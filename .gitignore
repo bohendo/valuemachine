@@ -1,0 +1,13 @@
+# Useless
+.DS_Store
+*.sw[op]
+
+# Generated
+build
+
+# Private
+attachments
+history
+partial-forms
+assets-*
+personal-data*
