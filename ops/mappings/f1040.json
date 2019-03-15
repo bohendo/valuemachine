@@ -4,7 +4,7 @@
   "FilingMarriedSeparate": "topmostSubform[0].Page1[0].FilingStatus[0].c1_01[2]",
   "FilingHeadOfHousehold": "topmostSubform[0].Page1[0].FilingStatus[0].c1_01[3]",
   "FilingWidow": "topmostSubform[0].Page1[0].FilingStatus[0].c1_01[4]",
-  "FilingOther": "topmostSubform[0].Page1[0].FilingStatus[0].c1_01[4]",
+  "FilingOther": "topmostSubform[0].Page1[0].FilingStatus[0].f1_01[0]",
   "FirstNameAndInitial": "topmostSubform[0].Page1[0].f1_02[0]",
   "LastName": "topmostSubform[0].Page1[0].f1_03[0]",
   "SocialSecurityNumber": "topmostSubform[0].Page1[0].YourSocial[0].f1_04[0]",
