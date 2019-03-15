@@ -6,8 +6,5 @@
 build
 
 # Private
-attachments
-history
-partial-forms
-assets-*
-personal-data*
+src/attachments/*
+src/*.json
