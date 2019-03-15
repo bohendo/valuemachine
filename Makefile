@@ -45,7 +45,7 @@ tax-return.pdf: $(forms)
 field-data/%.fdf: tools/fdfgen ops/fill-form.py src/%.json ops/mappings/%.json fields/%.dat
 	$(log_start)
 	mkdir -p build/field-data
-	python ops/fill-form.py src/$*.json fields/$*.dat ops/mappings/$*.json build/$@
+	python ops/fill-form.py src/$*.json build/fields/$*.dat ops/mappings/$*.json build/$@
 	$(log_finish)
 
 ########################################
