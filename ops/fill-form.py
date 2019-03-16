@@ -20,6 +20,10 @@ with open(fields_file, "rb") as fields_data:
 # Build FDF data
 data = []
 for key in input:
+  # First, make some sanity checks
+  if not key in mappings:
+    print('Error: Key exists in your input data but not the mappings:', key)
+    exit(1)
   # Insert strings into text fields as-is
   if isinstance(input[key], (basestring)):
     data.append((mappings[key], input[key]))
