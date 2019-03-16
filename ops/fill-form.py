@@ -30,7 +30,7 @@ for key in input:
   # Figure out the value needed to check this checkbox
   elif isinstance(input[key], (bool)):
     field = [field for field in fields if mappings[key] in field][0]
-    fieldStateOption = re.search('FieldStateOption: (.*)', field, re.M).group(1)
+    fieldStateOption = re.search('FieldStateOption: ([^O].*)', field, re.M).group(1)
     if input[key]:
       data.append((mappings[key], fieldStateOption))
     else:
