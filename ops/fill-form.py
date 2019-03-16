@@ -20,21 +20,21 @@ with open(fields_file, "rb") as fields_data:
 # Build FDF data
 data = []
 for key in input:
-  # First, make some sanity checks
-  if not key in mappings:
-    print('Error: Key exists in your input data but not the mappings:', key)
-    exit(1)
-  # Insert strings into text fields as-is
-  if isinstance(input[key], (basestring)):
-    data.append((mappings[key], input[key]))
-  # Figure out the value needed to check this checkbox
-  elif isinstance(input[key], (bool)):
-    field = [field for field in fields if mappings[key] in field][0]
-    fieldStateOption = re.search('FieldStateOption: ([^O].*)', field, re.M).group(1)
-    if input[key]:
-      data.append((mappings[key], fieldStateOption))
-    else:
-      data.append((mappings[key], 0))
+    # First, make some sanity checks
+    if not key in mappings:
+        print('Error: Key exists in your input data but not the mappings:', key)
+        exit(1)
+    # Insert strings into text fields as-is
+    if isinstance(input[key], (basestring)):
+        data.append((mappings[key], input[key]))
+    # Figure out the value needed to check this checkbox
+    elif isinstance(input[key], (bool)):
+        field = [field for field in fields if mappings[key] in field][0]
+        fieldStateOption = re.search('FieldStateOption: ([^O].*)', field, re.M).group(1)
+        if input[key]:
+            data.append((mappings[key], fieldStateOption))
+        else:
+            data.append((mappings[key], 0))
 
 # Convert data to fdf format
 fdf = forge_fdf("",data,[],[],[])
