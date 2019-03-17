@@ -3,7 +3,7 @@
 # Setup Env
 
 # Visit the readme to help figure out which forms you need & which are supported
-FORMS=f1040 f1040sd # keeep trailing space
+FORMS=f1040 f1040sd f8949 # keeep trailing space
 
 VPATH=build
 SHELL=/bin/bash
