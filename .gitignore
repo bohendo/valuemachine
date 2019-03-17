@@ -1,10 +1,12 @@
 # Useless
 .DS_Store
-*.sw[op]
 
 # Generated
 build
+*.sw[op]
 
-# Private
-src/attachments/*
-src/*.json
+# Personal data
+src
+
+# But still track the example personal data
+!src/examples

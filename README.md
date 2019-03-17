@@ -3,6 +3,14 @@
 
 Better tools for filling out form 1040 & friends for 2018 US taxes.
 
+# Disclaimer
+
+I am not even remotely qualified to be doing this.
+
+This repo certainly has some bugs lurking and, if you put your faith in it, the IRS will likely have some problems w you.
+
+Those are not my problems, use these tools at your own risk. Do your own research.
+
 # Prerequisites
 
 `make`: Probably already installed, otherwise run something like `brew install make` or `apt-get install make`
@@ -13,9 +21,13 @@ Better tools for filling out form 1040 & friends for 2018 US taxes.
 
 # Building your taxes
 
-Run `make example` to generate John Doe's example tax returns (using input data from `input/examples`).
+Run `make` to generate John Doe's example tax returns. This project pulls example input from `src/examples` and outputs the tax return to `build/examples/tax-return.pdf`.
 
-Make a copy of the example data to your own `personal-data` folder (`cp -r examples personal-data`) and edit the input to suit your situation. Then run `make` and check out your tax return pdf files in the `build` folder.
+To build your own tax returns, create similar data in `src` as is in `src/examples`. For example, try copying the example data (`cp -r src/examples/* src/`) and then make changes according to your own situation.
+
+All files & folders in `src` besides `src/examples` are ignored by git. This makes it less likely that your social security number will leak out of your local copy of this repo. It also means that your tax return inputs won't be automatically backed up outside your own computer so be careful with it.
+
+Running `make` will build both the example output and your personal tax return.
 
 # Forms Overview
 
@@ -31,7 +43,7 @@ Attachments:
  - 1099-R: ???
 
 Dependencies:
- - Schedule 1: Other income & deductions
+ - **Schedule 1**: Other income & deductions
  - Schedule 2: Alternative minimum tax
  - Schedule 3: Tax credits
  - Schedule 4: Other tax eg self-employment tax
@@ -48,7 +60,7 @@ Additional Income and Adjustments to Income
 
 Dependencies:
  - Schedule C (C-EZ): Business income/loss
- - Schedule D: Capital gains income/loss
+ - **Schedule D**: Capital gains income/loss
  - Schedule E: Real-estate/trust/S-Corp income/loss
  - Schedule F: Farming income/loss
  - Schedule SE: self-employment taxes
@@ -57,7 +69,6 @@ Dependencies:
  - Form 8889:
  - Form 3903:
 
-## Schedule C
 ## Schedule D
 
 Capital Gains and Losses
@@ -74,16 +85,3 @@ Dependencies:
  - Form 6781: Gains and Losses From Contracts and Straddles
  - Form 8824: Like-Kind Exchanges
  - **Form 8949**: Sales and Other Dispositions of Capital Assets
-
-# TODO
-
-1. Mappings from json data to schedule D fields
-2. Create some example Schedule D input
-
-# Disclaimer
-
-I am not even remotely qualified to be doing this.
-
-This code likely has bugs and if you put your faith in it, the IRS will likely have some problems w you.
-
-Those are not my problems, use these tools at your own risk. Do your own research.
