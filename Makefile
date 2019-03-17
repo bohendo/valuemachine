@@ -17,17 +17,25 @@ example_forms=$(wordlist 1,$(nforms),examples/$(subst $(space),$(space)examples/
 log_start=@echo "=============";echo "[Makefile] => Start building $@"; date "+%s" > build/.timestamp
 log_finish=@echo "[Makefile] => Finished building $@ in $$((`date "+%s"` - `cat build/.timestamp`)) seconds";echo "=============";echo
 
+history_dir=src/attachments/history
+history_src=$(shell find $(history_dir) -type f -name "*.csv")
 
 ########################################
 # Shortcut/Helper Rules
 
-default: all
+default: history
 all: example return
 example: examples/tax-return.pdf
 return: tax-return.pdf
 
 clean:
 	rm -rf build/examples/* build/fields/* build/field-data/*
+
+########################################
+# Build tx history data needed to fill in schedule D
+
+history: $(history_src)
+	python ops/generate-history.py $(history_dir) build/tx-history.csv src/address-book.json
 
 ########################################
 # Build components of our tax return
