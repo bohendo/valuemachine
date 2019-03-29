@@ -11,8 +11,10 @@ output_file=sys.argv[2]
 address_book=sys.argv[3]
 
 input_files=os.listdir(input_folder)
-field_names=['timestamp', 'asset', 'quantity', 'from', 'to', 'value_in', 'value_out', 'fee']
+field_names=['timestamp', 'asset', 'quantity', 'price', 'from', 'to', 'value_in', 'value_out', 'fee']
 history=[]
+
+hasWarned=[]
 
 with open(address_book, "rb") as address_data:
   addresses = json.load(address_data)
@@ -31,14 +33,18 @@ for file in input_files:
         # Skip data from not 2018
         if timestamp[:2] != '18':
           continue
+        # Skip coinbase interactions that aren't a buy or sell
+        if row["Transaction Type"] != "Buy" and row["Transaction Type"] != "Sell":
+          continue
         value_usd = float(row["USD Amount Transacted (Inclusive of Coinbase Fees)"])
         value_asset = round(float(row["USD Spot Price at Transaction"]) * float(row["Quantity Transacted"]), 2)
         generated_row = {
           "timestamp": timestamp,
           "asset": row["Asset"],
           "quantity": row["Quantity Transacted"],
-          "from": 'coinbase' if row["Transaction Type"] == "Buy" else 'me',
-          "to": 'coinbase' if row["Transaction Type"] == "Sell" else 'me',
+          "price": row["USD Spot Price at Transaction"],
+          "from": 'coinbase' if row["Transaction Type"] == "Buy" else 'self',
+          "to": 'coinbase' if row["Transaction Type"] == "Sell" else 'self',
           "value_in": value_asset if row["Transaction Type"] == "Buy" else value_usd,
           "value_out": value_asset if row["Transaction Type"] == "Sell" else value_usd,
           "fee": abs(value_asset - value_usd if row["Transaction Type"] == "Sell" else value_usd - value_asset),
@@ -50,6 +56,10 @@ for file in input_files:
     with open('%s/%s' % (input_folder,file), mode='rb') as f:
       csv_data = csv.DictReader(f)
       for row in csv_data:
+        timestamp = datetime.datetime.fromtimestamp(float(row["UnixTimestamp"])).strftime('%y%m%d-%H%M%S')
+        # Skip data from not 2018
+        if timestamp[:2] != '18':
+          continue
         if float(row["Value_OUT(ETH)"]) > 0 and float(row["Value_IN(ETH)"]) > 0:
           print("Edge case: found both value in and value out")
           print(row)
@@ -57,22 +67,34 @@ for file in input_files:
         quantity = float(row["Value_IN(ETH)"]) + float(row["Value_OUT(ETH)"])
         if quantity == 0:
           continue
+        # Try to match addresses to values in address book
         if row["From"] in addresses:
           sender = addresses[row["From"]]
         else:
           sender = row["From"]
-          print('Warning: address not in address book', sender)
+          if sender not in hasWarned:
+            print('Warning: address not in address book', sender)
+            hasWarned.append(sender)
         if row["To"] in addresses:
           to = addresses[row["To"]]
         else:
           to = row["To"]
-          print('Warning: address not in address book', to)
-        timestamp = datetime.datetime.fromtimestamp(float(row["UnixTimestamp"])).strftime('%y%m%d-%H%M%S')
+          if to not in hasWarned:
+            print('Warning: address not in address book', to)
+            hasWarned.append(to)
+        # Skip self-to-self transactions
+        if to[:4] == "self" and sender[:4] == "self":
+          #print("Skipping self-to-self tx: %s -> %s" % (to, sender))
+          continue
+        # Skip coinbase transactions, will be included by coinbase-specific tx history
+        if to[:8] == "coinbase" or sender[:8] == "coinbase":
+          continue
         value = round(quantity * float(row["Historical $Price/Eth"]), 2)
         generated_row = {
           "timestamp": timestamp,
           "asset": 'ETH',
           "quantity": quantity,
+          "price": row["Historical $Price/Eth"],
           "from": sender,
           "to": to,
           "value_in": value if float(row["Value_IN(ETH)"]) != 0 else 0,

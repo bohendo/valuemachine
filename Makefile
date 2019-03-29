@@ -34,8 +34,11 @@ clean:
 ########################################
 # Build tx history data needed to fill in schedule D
 
-history: $(history_src)
+tx-history.csv: $(history_src) ops/generate-history.py
 	python ops/generate-history.py $(history_dir) build/tx-history.csv src/address-book.json
+
+capital-gains: tx-history.csv src/starting-assets.json
+	python ops/capital-gains.py src/starting-assets.json build/tx-history.csv
 
 ########################################
 # Build components of our tax return
