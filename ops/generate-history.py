@@ -7,8 +7,8 @@ import os
 import datetime
 
 input_folder = sys.argv[1]
-output_file=sys.argv[2]
-address_book=sys.argv[3]
+address_book=sys.argv[2]
+output_file=sys.argv[3]
 
 input_files=os.listdir(input_folder)
 field_names=['timestamp', 'asset', 'quantity', 'price', 'from', 'to', 'value_in', 'value_out', 'fee']

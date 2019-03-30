@@ -4,6 +4,7 @@
 
 # Visit the readme to help figure out which forms you need & which are supported
 FORMS=f1040 f1040sd f8949 # keeep trailing space
+# f1040es.pdf f1040s1.pdf f1040s4.pdf f1040sc.pdf f1040sce.pdf f1040sse.pdf
 
 VPATH=build
 SHELL=/bin/bash
@@ -12,7 +13,7 @@ empty=
 space=$(empty) $(empty)
 nforms=$(words $(FORMS))
 forms=$(subst $(space),.pdf$(space),$(FORMS))
-example_forms=$(wordlist 1,$(nforms),examples/$(subst $(space),$(space)examples/,$(forms)))
+filled_forms=$(wordlist 1,$(nforms),filled-forms/$(subst $(space),$(space)filled-forms/,$(forms)))
 
 log_start=@echo "=============";echo "[Makefile] => Start building $@"; date "+%s" > build/.timestamp
 log_finish=@echo "[Makefile] => Finished building $@ in $$((`date "+%s"` - `cat build/.timestamp`)) seconds";echo "=============";echo
@@ -20,82 +21,74 @@ log_finish=@echo "[Makefile] => Finished building $@ in $$((`date "+%s"` - `cat 
 history_dir=src/attachments/history
 history_src=$(shell find $(history_dir) -type f -name "*.csv")
 
+json-data=$(shell find build/json-data -type f)
+field-names=$(shell find build/field-names -type f)
+mappings=$(shell find ops/mappings -type f)
+
+$(shell mkdir -p build/tools build/empty-forms build/field-names build/fdf-data build/fdf-data build/filled-forms)
+
 ########################################
 # Shortcut/Helper Rules
+.PHONY: tax-return.pdf # always build this
 
-default: f8949_1.pdf f8949_2.pdf
+default: return
 all: example return
 example: examples/tax-return.pdf
 return: tax-return.pdf
 
 clean:
-	rm -rf build/examples/* build/fields/* build/field-data/* build/data/*
-
-########################################
-# Build tx history data needed to fill in schedule D
-
-tx-history.csv: $(history_src) ops/generate-history.py
-	python ops/generate-history.py $(history_dir) build/tx-history.csv src/address-book.json
-
-capital-gains: tx-history.csv src/starting-assets.json
-	mkdir -p build/data
-	python ops/capital-gains.py src/starting-assets.json build/tx-history.csv src/f1040.json build/data/
-
-f8949_%.pdf: capital-gains fields/f8949.dat
-	python ops/fill-form.py build/data/f8949_$*.json build/fields/f8949.dat ops/mappings/f8949.json build/field-data/f8949_$*.fdf
-	pdftk build/forms/f8949.pdf fill_form build/field-data/f8949_$*.fdf output build/f8949_$*.pdf flatten
+	find build -type f -not -path "build/empty-forms/*" -not -path "build/tools/*" -exec rm -v {} \;
 
 ########################################
 # Build components of our tax return
 
-tax-return.pdf: $(forms)
+tax-return.pdf: forms json-data/f1040 json-data/f1040sd json-data/f8949
 	$(log_start)
-	cd build && pdftk $(forms) cat output tax-return.pdf
+	bash ops/build.sh
 	$(log_finish)
 
-%.pdf: tools/pdftk field-data/%.fdf forms/%.pdf
+forms: field-names/f1040.dat field-names/f1040sd.dat field-names/f8949.dat
+
+########################################
+# JSON data
+
+json-data/f1040:
 	$(log_start)
-	pdftk build/forms/$*.pdf fill_form build/field-data/$*.fdf output build/$*.pdf flatten
+	cp src/f1040.json build/json-data/f1040.json
+	touch build/json-data/f1040
 	$(log_finish)
 
-field-data/%.fdf: tools/fdfgen ops/fill-form.py src/%.json ops/mappings/%.json fields/%.dat
+json-data/f1040sd:
 	$(log_start)
-	mkdir -p build/field-data
-	python ops/fill-form.py src/$*.json build/fields/$*.dat ops/mappings/$*.json build/$@
+	cp src/f1040sd.json build/json-data/f1040sd.json
+	touch build/json-data/f1040sd
+	$(log_finish)
+
+json-data/f8949: ops/capital-gains.py src/starting-assets.json tx-history.csv src/f1040.json
+	$(log_start)
+	python ops/capital-gains.py src/starting-assets.json build/tx-history.csv src/f1040.json build/json-data/
+	touch build/json-data/f8949
 	$(log_finish)
 
 ########################################
-# Example returns
+# Supporting data derived from raw source data
 
-examples/tax-return.pdf: $(example_forms)
+tx-history.csv: ops/generate-history.py $(history_src) src/address-book.json
 	$(log_start)
-	cd build && pdftk $(example_forms) cat output examples/tax-return.pdf
-	$(log_finish)
-
-examples/%.pdf: tools/pdftk examples/field-data/%.fdf forms/%.pdf
-	$(log_start)
-	pdftk build/forms/$*.pdf fill_form build/examples/field-data/$*.fdf output build/examples/$*.pdf flatten
-	$(log_finish)
-
-examples/field-data/%.fdf: tools/fdfgen ops/fill-form.py src/examples/%.json ops/mappings/%.json fields/%.dat
-	$(log_start)
-	mkdir -p build/examples/field-data
-	python ops/fill-form.py src/examples/$*.json build/fields/$*.dat ops/mappings/$*.json build/$@
+	python ops/generate-history.py $(history_dir) src/address-book.json build/tx-history.csv
 	$(log_finish)
 
 ########################################
 # Form downloads & preprocessing
 
-fields/%.dat: tools/pdftk forms/%.pdf
+field-names/%.dat: tools/pdftk empty-forms/%.pdf
 	$(log_start)
-	mkdir -p build/fields
-	pdftk build/forms/$*.pdf dump_data_fields > build/fields/$*.dat
+	pdftk build/empty-forms/$*.pdf dump_data_fields > build/field-names/$*.dat
 	$(log_finish)
 
-forms/%.pdf:
+empty-forms/%.pdf: ops/fetch-forms.sh
 	$(log_start)
-	mkdir -p build/forms
-	bash ops/fetch-forms.sh
+	bash ops/fetch-forms.sh $*
 	$(log_finish)
 
 ########################################
@@ -104,11 +97,11 @@ forms/%.pdf:
 tools/fdfgen:
 	$(log_start)
 	pip install fdfgen
-	mkdir -p build/tools && touch build/$@
+	touch build/$@
 	$(log_finish)
 
 tools/pdftk:
 	$(log_start)
 	@if [[ -z "`which pdftk`" ]]; then echo "Install pdftk first, see README for the link" && exit 1; fi
-	mkdir -p build/tools && touch build/$@
+	touch build/$@
 	$(log_finish)

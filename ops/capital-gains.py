@@ -6,6 +6,16 @@ import sys
 debug=False
 year=18
 
+########################################
+# Read data from input files
+
+starting_assets = json.load(open(sys.argv[1], 'rb'))
+personal_data = json.load(open(sys.argv[3], 'rb'))
+tx_history = csv.DictReader(open(sys.argv[2], 'rb'))
+
+########################################
+# Calculate Capital Gains/Losses
+
 def assetsToString(assets):
   totals = {}
   msg = ""
@@ -16,22 +26,11 @@ def assetsToString(assets):
     msg += " [" + asset + " " + str(totals[asset]) + "] "
   return(msg)
 
-########################################
-# Read data from input files
-
-assets = json.load(open(sys.argv[1], 'rb'))
-personal_data = json.load(open(sys.argv[3], 'rb'))
-tx_history = csv.DictReader(open(sys.argv[2], 'rb'))
-
-print("Starting Assets:" + assetsToString(assets))
-
-########################################
-# Calculate Capital Gains/Losses
-
 total_proceeds = 0
 total_cost = 0
 total_profit = 0
 trades = []
+assets = starting_assets
 
 for row in tx_history:
 
@@ -83,11 +82,12 @@ for row in tx_history:
         assets[row['asset']].pop(0)
 
     proceeds = round(float(row['price']) * float(row['quantity']), 2)
+    dateSold = row['timestamp'][2:4] + ', ' + row['timestamp'][4:6] + ', ' + row['timestamp'][0:2] 
 
     trades.append({
       'Description': '%s %s'  % (round(float(row['quantity']), 3), row['asset']),
       'DateAcquired': 'VARIOUS',
-      'DateSold': row['timestamp'], # TODO: need MM, DD, YYYY format
+      'DateSold': dateSold,
       'Proceeds': proceeds,
       'Cost': round(cost, 2),
       'Code': '',
@@ -105,13 +105,13 @@ for row in tx_history:
 ########################################
 # Print results of our calculations
 
-print('')
+print("\nStarting Assets:" + assetsToString(starting_assets))
 for trade in trades:
   print('Sold %s\ton %s\tfor  %s\tPurchased for %s\t= profit of %s' % (
     trade['Description'], trade['DateSold'], trade['Proceeds'], trade['Cost'], trade['GainOrLoss']
   ))
-print('\nTotals:\t proceeds: {}\t cost: {}\t profit: {}'.format(round(total_proceeds,2), round(total_cost,2), round(total_profit,2)))
-print('\nAssets leftover:' + assetsToString(assets))
+print('Assets leftover:' + assetsToString(assets))
+print('\nTotals:\t proceeds: {}\t cost: {}\t profit: {}\n'.format(round(total_proceeds,2), round(total_cost,2), round(total_profit,2)))
 
 ########################################
 # Output trades in f8949 format
@@ -134,13 +134,12 @@ def buildF8949(fourteenTrades):
     totals['GainOrLoss'] += trade['GainOrLoss']
     for key, value in trade.iteritems():
       field='ST' + str(i) + key
-      print(field + ' = ' + str(value))
       f8949_data[field] = str(value)
 
-  f8949_data['STTotalProceeds'] = totals['Proceeds']
-  f8949_data['STTotalCost'] = totals['Cost']
+  f8949_data['STTotalProceeds'] = str(round(totals['Proceeds'], 2))
+  f8949_data['STTotalCost'] = str(round(totals['Cost'], 2))
   f8949_data['STTotalAdjustment'] = ''
-  f8949_data['STTotalGainOrLoss'] = totals['GainOrLoss']
+  f8949_data['STTotalGainOrLoss'] = str(round(totals['GainOrLoss'], 2))
 
   return(f8949_data)
 
