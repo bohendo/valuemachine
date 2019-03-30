@@ -23,13 +23,13 @@ history_src=$(shell find $(history_dir) -type f -name "*.csv")
 ########################################
 # Shortcut/Helper Rules
 
-default: history
+default: f8949_1.pdf f8949_2.pdf
 all: example return
 example: examples/tax-return.pdf
 return: tax-return.pdf
 
 clean:
-	rm -rf build/examples/* build/fields/* build/field-data/*
+	rm -rf build/examples/* build/fields/* build/field-data/* build/data/*
 
 ########################################
 # Build tx history data needed to fill in schedule D
@@ -38,7 +38,12 @@ tx-history.csv: $(history_src) ops/generate-history.py
 	python ops/generate-history.py $(history_dir) build/tx-history.csv src/address-book.json
 
 capital-gains: tx-history.csv src/starting-assets.json
-	python ops/capital-gains.py src/starting-assets.json build/tx-history.csv
+	mkdir -p build/data
+	python ops/capital-gains.py src/starting-assets.json build/tx-history.csv src/f1040.json build/data/
+
+f8949_%.pdf: capital-gains fields/f8949.dat
+	python ops/fill-form.py build/data/f8949_$*.json build/fields/f8949.dat ops/mappings/f8949.json build/field-data/f8949_$*.fdf
+	pdftk build/forms/f8949.pdf fill_form build/field-data/f8949_$*.fdf output build/f8949_$*.pdf flatten
 
 ########################################
 # Build components of our tax return
