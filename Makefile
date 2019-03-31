@@ -13,9 +13,12 @@ mappings=ops/mappings
 forms=build/forms
 data=build/data
 pages=build/pages
+example=build/example
+example_data=$(example)/data
+example_pages=$(example)/pages
 
 # Create output folders
-$(shell mkdir -p $(forms) $(data) $(pages))
+$(shell mkdir -p $(forms) $(data) $(example_data) $(pages) $(example_pages))
 
 # Helper functions
 log_start=@echo "=============";echo "[Makefile] => Start building $@"; date "+%s" > build/.timestamp
@@ -26,6 +29,8 @@ log_finish=@echo "[Makefile] => Finished building $@ in $$((`date "+%s"` - `cat 
 .PHONY: tax-return.pdf # always build this
 
 default: return
+all: example return
+example: build/example/tax-return.pdf
 return: build/tax-return.pdf
 
 clean:
@@ -39,13 +44,24 @@ purge:
 
 build/tax-return.pdf: forms $(data)/f1040 $(data)/f1040sd $(data)/f8949
 	$(log_start)
-	bash ops/build.sh $(forms) $(data) $(mappings) $(pages)
+	bash ops/build.sh $(forms) $(mappings) $(data) $(pages) build
+	$(log_finish)
+
+$(example)/tax-return.pdf: forms $(example_data)/f1040 $(example_data)/f1040sd $(example_data)/f8949
+	$(log_start)
+	bash ops/build.sh $(forms) $(mappings) $(example_data) $(example_pages) $(example)
 	$(log_finish)
 
 forms: $(forms)/f1040 $(forms)/f1040sd $(forms)/f8949
 
 ########################################
-# JSON data
+# form data
+
+$(example_data)/%:
+	$(log_start)
+	cp src/example/$*.json $(example_data)/$*.json
+	touch $@
+	$(log_finish)
 
 $(data)/f1040:
 	$(log_start)

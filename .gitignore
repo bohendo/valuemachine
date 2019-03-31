@@ -6,7 +6,7 @@ build
 *.sw[op]
 
 # Personal data
-src
+src/*
 
 # But still track the example personal data
-!src/examples
+!src/example

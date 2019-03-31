@@ -2,16 +2,17 @@
 set -e
 
 forms_dir="$1"
-data_dir="$2"
-mappings_dir="$3"
+mappings_dir="$2"
+data_dir="$3"
 pages_dir="$4"
+output_dir="$5"
 page_number=0
 
 # This is the order in which forms will be combined into the final tax return
 for form in f1040 f1040sd f8949
 do
   echo; echo "Compiling form: $form"
-  for page in `find $data_dir -type f -name "${form}.json" -or -name "${form}[-_]*.json" | sort`
+  for page in `find $data_dir -maxdepth 1 -type f -name "${form}.json" -or -name "${form}[-_]*.json" | sort`
   do
     echo "  page: $page"
     page="`basename ${page%.json}`"
@@ -30,5 +31,5 @@ do
   done
 done
 
-pdftk `find $pages_dir -type f | sort` cat output build/tax-return.pdf
+pdftk `find $pages_dir -type f | sort` cat output $output_dir/tax-return.pdf
 echo
