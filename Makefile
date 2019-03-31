@@ -47,17 +47,17 @@ build/tax-return.pdf: forms $(data)/f1040 $(data)/f1040sd $(data)/f8949
 	bash ops/build.sh $(forms) $(mappings) $(data) $(pages) build
 	$(log_finish)
 
-$(example)/tax-return.pdf: forms $(example_data)/f1040 $(example_data)/f1040sd $(example_data)/f8949
+$(example)/tax-return.pdf: forms $(example_data)/f1040 $(example_data)/f1040s1 $(example_data)/f1040sd $(example_data)/f8949
 	$(log_start)
 	bash ops/build.sh $(forms) $(mappings) $(example_data) $(example_pages) $(example)
 	$(log_finish)
 
-forms: $(forms)/f1040 $(forms)/f1040sd $(forms)/f8949
+forms: $(forms)/f1040 $(forms)/f1040s1 $(forms)/f1040sd $(forms)/f8949
 
 ########################################
 # form data
 
-$(example_data)/%:
+$(example_data)/%: src/example/%.json
 	$(log_start)
 	cp src/example/$*.json $(example_data)/$*.json
 	touch $@
@@ -72,7 +72,7 @@ $(data)/f1040:
 $(data)/f1040sd: $(data)/f8949
 	$(log_start)
 	python ops/f1040sd.py src/f1040.json $(data) $(data)/f8949*.json
-	#touch $@
+	touch $@
 	$(log_finish)
 
 $(data)/f8949: ops/f8949.py src/starting-assets.json build/tx-history.csv src/f1040.json
