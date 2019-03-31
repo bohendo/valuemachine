@@ -53,15 +53,16 @@ $(data)/f1040:
 	touch $@
 	$(log_finish)
 
-$(data)/f1040sd:
+$(data)/f1040sd: $(data)/f8949
 	$(log_start)
-	cp src/f1040sd.json $(data)/f1040sd.json
-	touch $@
+	python ops/f1040sd.py src/f1040.json $(data) $(data)/f8949*.json
+	#touch $@
 	$(log_finish)
 
-$(data)/f8949: ops/capital-gains.py src/starting-assets.json build/tx-history.csv src/f1040.json
+$(data)/f8949: ops/f8949.py src/starting-assets.json build/tx-history.csv src/f1040.json
 	$(log_start)
-	python ops/capital-gains.py src/starting-assets.json build/tx-history.csv src/f1040.json $(data)
+	cp src/f8949*.json $(data)
+	python ops/f8949.py src/starting-assets.json build/tx-history.csv src/f1040.json $(data)
 	touch $@
 	$(log_finish)
 

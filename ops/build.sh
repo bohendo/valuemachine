@@ -1,34 +1,34 @@
 #!/bin/bash
 set -e
 
-forms="$1"
-data="$2"
-mappings="$3"
-pages="$4"
-order=0
+forms_dir="$1"
+data_dir="$2"
+mappings_dir="$3"
+pages_dir="$4"
+page_number=0
 
 # This is the order in which forms will be combined into the final tax return
 for form in f1040 f1040sd f8949
 do
   echo; echo "Compiling form: $form"
-  for page in `find $data -type f -name "${form}.json" -or -name "${form}_[0-9]*.json" | sort`
+  for page in `find $data_dir -type f -name "${form}.json" -or -name "${form}[-_]*.json" | sort`
   do
     echo "  page: $page"
     page="`basename ${page%.json}`"
-    order=$(( $order + 1 ))
-    json_data="$data/$page.json"
-    fields="$forms/$form.fields"
-    mapping="$mappings/$form.json"
-    fdf_data="$data/$page.fdf"
-    empty="$forms/$form.pdf"
-    filled="$pages/${order}_$page.pdf"
+    page_number=$(( $page_number + 1 ))
+    json_data="$data_dir/$page.json"
+    fields="$forms_dir/$form.fields"
+    mappings="$mappings_dir/$form.json"
+    fdf_data="$data_dir/$page.fdf"
+    empty_form="$forms_dir/$form.pdf"
+    filled_form="$pages_dir/${page_number}_$page.pdf"
 
-    python ops/fill-form.py $json_data $fields $mapping $fdf_data
+    python ops/fill-form.py $json_data $fields $mappings $fdf_data
 
-    pdftk $empty fill_form $fdf_data output $filled flatten
+    pdftk $empty_form fill_form $fdf_data output $filled_form flatten
 
   done
 done
 
-pdftk `find $pages -type f | sort` cat output build/tax-return.pdf
+pdftk `find $pages_dir -type f | sort` cat output build/tax-return.pdf
 echo

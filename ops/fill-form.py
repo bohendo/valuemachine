@@ -4,34 +4,30 @@ import sys
 import json
 import re
 
-json_data = sys.argv[1]
-field_names = sys.argv[2]
-mappings_file = sys.argv[3]
+# Load data from files passed in as args
+json_data = json.load(open(sys.argv[1], "rb"))
+fields = open(sys.argv[2], "rb").read().decode("UTF-8").split('---')
+mappings = json.load(open(sys.argv[3], "rb"))
 output_file = sys.argv[4]
-
-# Load data from relevant files
-with open(json_data, "rb") as input_data:
-    input = json.load(input_data)
-with open(mappings_file, "rb") as mappings_data:
-    mappings = json.load(mappings_data)
-with open(field_names, "rb") as fields_data:
-    fields = fields_data.read().decode("UTF-8").split('---')
 
 # Build FDF data
 data = []
-for key in input:
+for key in json_data:
+
     # First, make some sanity checks
     if not key in mappings:
         print('Error: Key exists in your input data but not the mappings:', key)
         exit(1)
+
     # Insert strings into text fields as-is
-    if isinstance(input[key], (basestring)):
-        data.append((mappings[key], input[key]))
+    if isinstance(json_data[key], (basestring)):
+        data.append((mappings[key], json_data[key]))
+
     # Figure out the value needed to check this checkbox
-    elif isinstance(input[key], (bool)):
+    elif isinstance(json_data[key], (bool)):
         field = [field for field in fields if mappings[key] in field][0]
         fieldStateOption = re.search('FieldStateOption: ([^O].*)', field, re.M).group(1)
-        if input[key]:
+        if json_data[key]:
             data.append((mappings[key], fieldStateOption))
         else:
             data.append((mappings[key], 0))

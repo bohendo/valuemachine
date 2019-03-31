@@ -83,7 +83,7 @@ for row in tx_history:
         assets[row['asset']].pop(0)
 
     proceeds = round(float(row['price']) * float(row['quantity']), 2)
-    dateSold = row['timestamp'][2:4] + ', ' + row['timestamp'][4:6] + ', ' + row['timestamp'][0:2] 
+    dateSold = row['timestamp'][2:4] + '/' + row['timestamp'][4:6] + '/' + row['timestamp'][0:2] 
 
     trades.append({
       'Description': '%s %s'  % (round(float(row['quantity']), 3), row['asset']),
@@ -125,6 +125,9 @@ def buildF8949(fourteenTrades):
   f8949_data['isShortTermA'] = False
   f8949_data['isShortTermB'] = False
   f8949_data['isShortTermC'] = True # I don't have a Form 1099-B for my crypto trades
+  f8949_data['isLongTermD'] = False
+  f8949_data['isLongTermE'] = False
+  f8949_data['isLongTermF'] = False
 
   totals = { 'Proceeds': 0, 'Cost': 0, 'GainOrLoss': 0 }
 
