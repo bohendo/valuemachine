@@ -10,8 +10,9 @@ year=18
 # Read data from input files
 
 starting_assets = json.load(open(sys.argv[1], 'rb'))
-personal_data = json.load(open(sys.argv[3], 'rb'))
 tx_history = csv.DictReader(open(sys.argv[2], 'rb'))
+personal_data = json.load(open(sys.argv[3], 'rb'))
+target=sys.argv[4]
 
 ########################################
 # Calculate Capital Gains/Losses
@@ -150,7 +151,7 @@ def chunks(l, n):
 
 for i, tradesChunk in enumerate(chunks(trades, 14)):
   i+=1
-  outfile=sys.argv[4]+'f8949_'+str(i)+'.json'
+  outfile=target+'/f8949_'+str(i)+'.json'
   print('writing to output file: ' + outfile)
   with open(outfile, "wb") as output:
     json.dump(buildF8949(tradesChunk), output)
