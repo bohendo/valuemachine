@@ -9,7 +9,7 @@ output_dir="$5"
 page_number=0
 
 # This is the order in which forms will be combined into the final tax return
-for form in f1040 f1040s1 f1040sd f8949
+for form in f1040 f1040s1 f1040s4 f1040sd f8949
 do
   echo; echo "Compiling form: $form"
   for page in `find $data_dir -maxdepth 1 -type f -name "${form}.json" -or -name "${form}[-_]*.json" | sort`
