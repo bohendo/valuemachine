@@ -69,6 +69,12 @@ $(data)/f1040:
 	touch $@
 	$(log_finish)
 
+$(data)/f1040sc:
+	$(log_start)
+	cp src/f1040sc.json $(data)/f1040sc.json
+	touch $@
+	$(log_finish)
+
 $(data)/f1040sd: $(data)/f8949
 	$(log_start)
 	python ops/f1040sd.py src/f1040.json $(data) $(data)/f8949*.json
