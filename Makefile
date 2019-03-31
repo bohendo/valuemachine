@@ -42,7 +42,7 @@ purge:
 ########################################
 # Build components of our tax return
 
-build/tax-return.pdf: forms $(data)/f1040 $(data)/f1040s1 $(data)/f1040s4 $(data)/f1040sd $(data)/f8949
+build/tax-return.pdf: forms $(data)/f1040 $(data)/f1040sd $(data)/f8949
 	$(log_start)
 	bash ops/build.sh $(forms) $(mappings) $(data) $(pages) build
 	$(log_finish)
