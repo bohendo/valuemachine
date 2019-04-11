@@ -59,15 +59,15 @@ Dependencies:
 Additional Income and Adjustments to Income
 
 Dependencies:
- - **Schedule C** (C-EZ): Business income/loss
+ - **Schedule C** (or C-EZ): Business income/loss
  - **Schedule D**: Capital gains income/loss
  - Schedule E: Real-estate/trust/S-Corp income/loss
  - Schedule F: Profit or Loss From Farming
  - **Schedule SE**: self-employment taxes
- - Form 4797:
- - Form 2106:
- - Form 8889:
- - Form 3903:
+ - Form 2106: Employee Business Expenses
+ - Form 3903: Military Moving Expenses
+ - Form 4797: Sales of Business Property
+ - Form 8889: Health Savings Accounts (HSAs)
 
 ## Schedule 4
 
