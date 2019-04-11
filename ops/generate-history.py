@@ -90,6 +90,7 @@ for file in input_files:
         if to == "ex-coinbase" or sender == "ex-coinbase":
           continue
         value = round(quantity * float(row["Historical $Price/Eth"]), 2)
+        fee = '0' if not 'TxnFee(USD)' in row else row["TxnFee(USD)"]
         generated_row = {
           "timestamp": timestamp,
           "asset": 'ETH',
@@ -99,7 +100,7 @@ for file in input_files:
           "to": to,
           "value_in": value if float(row["Value_IN(ETH)"]) != 0 else 0,
           "value_out": value if float(row["Value_OUT(ETH)"]) != 0 else 0,
-          "fee": row["TxnFee(USD)"]
+          "fee": fee
         }
         history.append(generated_row)
 

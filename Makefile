@@ -69,9 +69,9 @@ $(data)/f1040: src/f1040.json
 	touch $@
 	$(log_finish)
 
-$(data)/f1040sc: ops/f1040sc.py src/f1040.json src/f1040sc.json build/tx-history.csv
+$(data)/f1040sc: ops/f1040sc.py src/income.json src/f1040.json src/f1040sc.json build/tx-history.csv
 	$(log_start)
-	python ops/f1040sc.py src/f1040.json src/f1040sc.json build/tx-history.csv $(data)
+	python ops/f1040sc.py src/income.json src/f1040.json src/f1040sc.json build/tx-history.csv $(data)
 	touch $@
 	$(log_finish)
 
