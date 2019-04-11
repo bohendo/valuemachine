@@ -42,7 +42,7 @@ for row in tx_history:
   if debug:
     print('Assets: ' + assetsToString(assets))
 
-  if row['from'] == "coinbase" or row['from'][:6] == "entity":
+  if row['from'] == "ex-coinbase" or row['from'][:6] == "entity":
 
     if debug and row['from'][:6] == "entity":
       print('Received {} {} from {} at {} on {}'.format(row['quantity'], row['asset'], row['from'],  row['price'], row['timestamp']))
@@ -54,7 +54,7 @@ for row in tx_history:
       "price": float(row['price'])
     })
 
-  elif row['to'] == "coinbase" or row['to'][:6] == "entity":
+  elif row['to'] == "ex-coinbase" or row['to'][:6] == "entity":
 
     if debug and row['to'][:6] == "entity":
       print('Sent {} {} to {} at {} on {}'.format(row['quantity'], row['asset'], row['to'], row['price'], row['timestamp']))

@@ -43,8 +43,8 @@ for file in input_files:
           "asset": row["Asset"],
           "quantity": row["Quantity Transacted"],
           "price": row["USD Spot Price at Transaction"],
-          "from": 'coinbase' if row["Transaction Type"] == "Buy" else 'self',
-          "to": 'coinbase' if row["Transaction Type"] == "Sell" else 'self',
+          "from": 'ex-coinbase' if row["Transaction Type"] == "Buy" else 'self',
+          "to": 'ex-coinbase' if row["Transaction Type"] == "Sell" else 'self',
           "value_in": value_asset if row["Transaction Type"] == "Buy" else value_usd,
           "value_out": value_asset if row["Transaction Type"] == "Sell" else value_usd,
           "fee": abs(value_asset - value_usd if row["Transaction Type"] == "Sell" else value_usd - value_asset),
@@ -87,7 +87,7 @@ for file in input_files:
           #print("Skipping self-to-self tx: %s -> %s" % (to, sender))
           continue
         # Skip coinbase transactions, will be included by coinbase-specific tx history
-        if to[:8] == "coinbase" or sender[:8] == "coinbase":
+        if to == "ex-coinbase" or sender == "ex-coinbase":
           continue
         value = round(quantity * float(row["Historical $Price/Eth"]), 2)
         generated_row = {
