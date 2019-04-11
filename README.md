@@ -74,15 +74,15 @@ Dependencies:
 Additional Taxes
 
 Dependencies:
- - **Schedule SE**: self-employment taxes
- - Schedule H: household employment taxes
+ - **Schedule SE**: Self-employment taxes
+ - Schedule H: Household employment taxes
  - Form 965A: Individual Report of Net 965 Tax Liability
- - Form 4137
- - Form 5329
- - From 5405
- - Form 8919
- - Form 8959
- - Form 8960
+ - Form 4137: Social Security and Medicare Tax on Unreported Tip Income
+ - Form 5329: Additional Taxes on Qualified Plans (Including IRAs) and Other Tax-Favored Accounts
+ - From 5405: Repayment of the First-Time Homebuyer Credit
+ - Form 8919: Uncollected Social Security and Medicare Tax on Wages
+ - Form 8959: Additional Medicare Tax
+ - Form 8960: Net Investment Income Tax— Individuals, Estates, and Trusts
 
 ## Schedule SE
 
