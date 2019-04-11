@@ -2,6 +2,7 @@
 import csv
 import json
 import sys
+from utils import *
 
 ########################################
 # Read data from input files
@@ -9,20 +10,6 @@ import sys
 f1040=json.load(open(sys.argv[1]))
 f1040sse=json.load(open(sys.argv[2]))
 target=sys.argv[3]+'/f1040s4.json'
-
-########################################
-# Helper Functions
-
-def fromForm(dollars, cents):
-  number = ''
-  number += '0' if str(dollars) == "" else str(dollars)
-  number += '.'
-  number += '0' if str(cents) == "" else str(cents)
-  return float(number)
-
-def toForm(num, isCents):
-  out = str(round(num, 2)).split('.')[isCents]
-  return '' if out == '0' else out
 
 ########################################
 # Build the form

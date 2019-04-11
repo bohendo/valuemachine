@@ -4,6 +4,7 @@
 # Generated
 build
 *.sw[op]
+*.pyc
 
 # Personal data
 src/*

@@ -2,6 +2,7 @@
 import csv
 import json
 import sys
+from utils import *
 
 ########################################
 # Read data from input files
@@ -11,20 +12,6 @@ f1040=json.load(open(sys.argv[2]))
 f1040sc=json.load(open(sys.argv[3]))
 txHistory = csv.DictReader(open(sys.argv[4], 'rb'))
 target=sys.argv[5]+'/f1040sc.json'
-
-########################################
-# Helper Functions
-
-def fromForm(dollars, cents):
-  number = ''
-  number += '0' if str(dollars) == "" else str(dollars)
-  number += '.'
-  number += '0' if str(cents) == "" else str(cents)
-  return float(number)
-
-def toForm(num, isCents):
-  out = str(round(num, 2)).split('.')[isCents]
-  return '' if out == '0' else out
 
 ########################################
 # Build the form
