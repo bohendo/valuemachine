@@ -16,7 +16,10 @@ do
   do
     echo "  page: $page"
     page="`basename ${page%.json}`"
-    page_number=$(( $page_number + 1 ))
+    page_number=$(( ${page_number#0} + 1 ))
+    if [[ "$page_number" -lt "10" ]]
+    then page_number="0$page_number"
+    fi
     json_data="$data_dir/$page.json"
     fields="$forms_dir/$form.fields"
     mappings="$mappings_dir/$form.json"
