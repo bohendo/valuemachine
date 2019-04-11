@@ -49,10 +49,10 @@ Dependencies:
  - **Schedule 4**: Other tax eg self-employment tax
  - Schedule 5: Other refund credits
  - Schedule 6: Foreign address or paid preparer details
- - Schedule A: deduction details
- - Form 8814:
- - Form 4972:
- - Form 8888:
+ - Schedule A: Deduction Details
+ - Form 4972: Tax on Lump-Sum Distributions
+ - Form 8814: Parents’ Election To Report Child’s Interest and Dividends
+ - Form 8888: Allocation of Refund (Including Savings Bond Purchases)
 
 ## Schedule 1
 

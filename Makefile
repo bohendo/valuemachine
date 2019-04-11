@@ -63,9 +63,9 @@ $(example_data)/%: src/example/%.json
 	touch $@
 	$(log_finish)
 
-$(data)/f1040: src/f1040.json
+$(data)/f1040: ops/f1040.py src/f1040.json $(data)/f1040s1 $(data)/f1040s4
 	$(log_start)
-	cp src/f1040.json $(data)/f1040.json
+	python ops/f1040.py src/f1040.json $(data)/f1040s1.json $(data)/f1040s4.json $(data)
 	touch $@
 	$(log_finish)
 
