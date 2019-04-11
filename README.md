@@ -62,7 +62,7 @@ Dependencies:
  - **Schedule C** (C-EZ): Business income/loss
  - **Schedule D**: Capital gains income/loss
  - Schedule E: Real-estate/trust/S-Corp income/loss
- - Schedule F: Farming income/loss
+ - Schedule F: Profit or Loss From Farming
  - **Schedule SE**: self-employment taxes
  - Form 4797:
  - Form 2106:
@@ -76,25 +76,25 @@ Additional Taxes
 Dependencies:
  - **Schedule SE**: self-employment taxes
  - Schedule H: household employment taxes
+ - Form 965A: Individual Report of Net 965 Tax Liability
  - Form 4137
- - Form 8919
  - Form 5329
  - From 5405
+ - Form 8919
  - Form 8959
  - Form 8960
- - Form 965A
 
 ## Schedule SE
 
 Self-employment taxes
 
 Dependencies:
- - Form 1065
- - Form 4137
- - Form 4316
- - Form 8919
- - **Schedule C**
- - Schedule F
+ - Form 1065: U.S. Return of Partnership Income
+ - Form 4137: Social Security and Medicare Tax on Unreported Tip Income
+ - Form 4361: Application for Exemption From Self-Employment Tax for Use by Ministers, etc
+ - Form 8919: Uncollected Social Security and Medicare Tax on Wages
+ - **Schedule C: Profit or Loss From Business**
+ - Schedule F: Profit or Loss From Farming
  - Schedule K-1: Partner’s Share of Income, Deductions, Credits, etc
 
 ## Schedule C
@@ -126,8 +126,3 @@ Dependencies:
  - **Form 8949**: Sales and Other Dispositions of Capital Assets
  - Schedule K-1: Partner’s Share of Income, Deductions, Credits, etc
 
-# TODO
- - Schedule C
- - Schedule SE
- - Schedule 4
- - Schedule 1
