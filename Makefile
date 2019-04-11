@@ -42,7 +42,7 @@ purge:
 ########################################
 # Build components of our tax return
 
-build/tax-return.pdf: forms $(data)/f1040 $(data)/f1040sc $(data)/f1040sd $(data)/f8949
+build/tax-return.pdf: forms $(data)/f1040 $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd $(data)/f8949
 	$(log_start)
 	bash ops/build.sh $(forms) $(mappings) $(data) $(pages) build
 	$(log_finish)
@@ -72,6 +72,12 @@ $(data)/f1040: src/f1040.json
 $(data)/f1040sc: ops/f1040sc.py src/income.json src/f1040.json src/f1040sc.json build/tx-history.csv
 	$(log_start)
 	python ops/f1040sc.py src/income.json src/f1040.json src/f1040sc.json build/tx-history.csv $(data)
+	touch $@
+	$(log_finish)
+
+$(data)/f1040sse: ops/f1040sse.py src/f1040sse.json $(data)/f1040sc
+	$(log_start)
+	python ops/f1040sse.py src/f1040sse.json src/f1040.json $(data)/f1040sc.json $(data)
 	touch $@
 	$(log_finish)
 
