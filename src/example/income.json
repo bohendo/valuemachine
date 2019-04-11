@@ -1,0 +1,9 @@
+{
+  "payments": [
+    { "source": "employer", "amount": "100.00" }
+  ],
+  "exceptions": {
+    "half": ["bounty"],
+    "skip": []
+  }
+}
