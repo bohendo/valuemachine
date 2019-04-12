@@ -1,10 +1,10 @@
 ########################################
 # Setup Env
 
-federal_source="https://www.irs.gov/pub/irs-pdf"
 SHELL=/bin/bash
 
 # Input sources
+src=$(shell find src -type f -name "*.csv")
 history_dir=src/attachments/history
 history_src=$(shell find $(history_dir) -type f -name "*.csv")
 mappings=ops/mappings
@@ -28,10 +28,13 @@ log_finish=@echo "[Makefile] => Finished building $@ in $$((`date "+%s"` - `cat 
 # Shortcut/Helper Rules
 .PHONY: tax-return.pdf # always build this
 
-default: return
-all: example return
-example: build/example/tax-return.pdf
-return: build/tax-return.pdf
+default: federal indiana
+example: federal-example indiana-example
+all: federal indiana federal-example indiana-example
+federal: build/federal-tax-return.pdf
+indiana: build/indiana-tax-return.pdf
+federal-example: build/example/federal-tax-return.pdf
+indiana-example: build/example/indiana-tax-return.pdf
 
 clean:
 	find build -type f -not -path "$(forms)/*" -exec rm -v {} \;
@@ -42,17 +45,25 @@ purge:
 ########################################
 # Build components of our tax return
 
-build/tax-return.pdf: forms $(data)/f1040 $(data)/f1040s1 $(data)/f1040s4 $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd $(data)/f8949 $(data)/f2210
+build/federal-tax-return.pdf: $(forms)/federal $(src)
 	$(log_start)
-	bash ops/build.sh $(forms) $(mappings) $(data) $(pages) build
+	bash ops/build.sh federal $(forms) $(mappings) $(data) $(pages) build
 	$(log_finish)
 
-$(example)/tax-return.pdf: forms $(example_data)/f1040 $(example_data)/f1040s1 $(example_data)/f1040s4 $(example_data)/f1040sse $(example_data)/f1040sc $(example_data)/f1040sd $(example_data)/f8949 $(example_data)/f2210
+$(example)/federal-tax-return.pdf: $(forms)/federal $(src)
 	$(log_start)
-	bash ops/build.sh $(forms) $(mappings) $(example_data) $(example_pages) $(example)
+	bash ops/build.sh federal $(forms) $(mappings) $(example_data) $(example_pages) $(example)
 	$(log_finish)
 
-forms: $(forms)/f1040 $(forms)/f1040s1 $(forms)/f1040s4 $(forms)/f1040sse $(forms)/f1040sc $(forms)/f1040sd $(forms)/f8949 $(forms)/f2210
+build/indiana-tax-return.pdf: $(forms)/indiana $(src)
+	$(log_start)
+	bash ops/build.sh indiana $(forms) $(mappings) $(data) $(pages) build
+	$(log_finish)
+
+$(example)/indiana-tax-return.pdf: $(forms)/indiana $(src)
+	$(log_start)
+	bash ops/build.sh indiana $(forms) $(mappings) $(example_data) $(example_pages) $(example)
+	$(log_finish)
 
 ########################################
 # form data
@@ -123,20 +134,18 @@ build/tx-history.csv: ops/generate-history.py $(history_src) src/address-book.js
 ########################################
 # Form downloads & preprocessing
 
-sources=$(shell cat ops/sources/indiana.json | jq keys | tr -d ' ,"[]' | tr '\n\r' ' ')
-
-$(forms)/indiana:
+$(forms)/indiana: ops/sources/indiana.json
 	$(log_start)
-	for f in $(sources) ; bash ops/fetch.sh indiana $$f; done   \
+	bash ops/fetch.sh indiana
 	touch $@
 	$(log_finish)
 
-# echo pdftk $(forms)/$$f.pdf dump_data_fields > $(forms)/$$f.fields ;\
+$(forms)/federal: ops/sources/federal.json
+	$(log_start)
+	bash ops/fetch.sh federal
+	touch $@
+	$(log_finish)
 
 $(forms)/%:
-	$(log_start)
 	wget "$(federal_source)/$*.pdf" --output-document="$(forms)/$*.pdf"
 	pdftk $(forms)/$*.pdf dump_data_fields > $(forms)/$*.fields
-	touch $@
-	$(log_finish)
-

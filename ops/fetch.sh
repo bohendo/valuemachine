@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 source="${1:-indiana}"
 name="${2}"
