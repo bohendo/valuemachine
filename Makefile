@@ -1,8 +1,8 @@
 ########################################
 # Setup Env
 
+federal_source="https://www.irs.gov/pub/irs-pdf"
 SHELL=/bin/bash
-form_source=https://www.irs.gov/pub/irs-pdf
 
 # Input sources
 history_dir=src/attachments/history
@@ -123,9 +123,19 @@ build/tx-history.csv: ops/generate-history.py $(history_src) src/address-book.js
 ########################################
 # Form downloads & preprocessing
 
+sources=$(shell cat ops/sources/indiana.json | jq keys | tr -d ' ,"[]' | tr '\n\r' ' ')
+
+$(forms)/indiana:
+	$(log_start)
+	for f in $(sources) ; bash ops/fetch.sh indiana $$f; done   \
+	touch $@
+	$(log_finish)
+
+# echo pdftk $(forms)/$$f.pdf dump_data_fields > $(forms)/$$f.fields ;\
+
 $(forms)/%:
 	$(log_start)
-	wget "$(form_source)/$*.pdf" --output-document="$(forms)/$*.pdf"
+	wget "$(federal_source)/$*.pdf" --output-document="$(forms)/$*.pdf"
 	pdftk $(forms)/$*.pdf dump_data_fields > $(forms)/$*.fields
 	touch $@
 	$(log_finish)
