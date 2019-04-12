@@ -41,6 +41,7 @@ do
   done
 done
 
+echo
 echo "pdftk `find $pages_dir -type f | sort` cat output $output_dir/$source-tax-return.pdf"
 pdftk `find $pages_dir -type f | sort` cat output $output_dir/$source-tax-return.pdf
 echo
