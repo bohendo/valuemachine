@@ -26,7 +26,5 @@ else
 
     echo "pdftk $forms/$name.pdf dump_data_fields > $forms/$name.fields"
     pdftk $forms/$name.pdf dump_data_fields > $forms/$name.fields
-
   done
-
 fi

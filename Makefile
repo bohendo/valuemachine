@@ -134,13 +134,13 @@ build/tx-history.csv: ops/generate-history.py $(history_src) src/address-book.js
 ########################################
 # Form downloads & preprocessing
 
-$(forms)/indiana: ops/sources/indiana.json
+$(forms)/indiana:
 	$(log_start)
 	bash ops/fetch.sh indiana
 	touch $@
 	$(log_finish)
 
-$(forms)/federal: ops/sources/federal.json
+$(forms)/federal:
 	$(log_start)
 	bash ops/fetch.sh federal
 	touch $@
