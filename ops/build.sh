@@ -10,14 +10,14 @@ pages_dir="$5/$source"
 output_dir="$6"
 page_number=0
 
-forms="`cat ops/sources/indiana.json | jq '.data | sort_by(.order) | map(.name)' | tr -d ' ,"[]' | tr '\n\r' ' '`"
+forms="`cat ops/sources/$source.json | jq '.data | sort_by(.order) | map(.name)' | tr -d ' ,"[]' | tr '\n\r' ' '`"
 mkdir -p $pages_dir
 
 # This is the order in which forms will be combined into the final tax return
 for form in $forms
 do
   echo; echo "Compiling form: $form"
-  for page in `find $data_dir -maxdepth 1 -type f -name "${form}.json" | sort`
+  for page in `find $data_dir -maxdepth 1 -type f -name "${form}.json" -or -name "${form}_*.json" | sort`
   do
     echo "  page: $page"
     page="`basename ${page%.json}`"
