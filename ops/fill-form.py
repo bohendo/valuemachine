@@ -27,8 +27,10 @@ for key in json_data:
     elif isinstance(json_data[key], (bool)):
         field = [field for field in fields if mappings[key] in field][0]
         fieldStateOption = re.search('FieldStateOption: ([^O].*)', field, re.M).group(1)
+        fieldStateOptions = re.findall('FieldStateOption: ([^O].*)', field, re.M)
+        onFlag = max(fieldStateOptions, key=len)
         if json_data[key]:
-            data.append((mappings[key], fieldStateOption))
+            data.append((mappings[key], onFlag))
         else:
             data.append((mappings[key], 0))
 
