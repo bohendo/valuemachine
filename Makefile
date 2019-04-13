@@ -74,61 +74,61 @@ $(example_data)/%: src/example/%.json
 	touch $@
 	$(log_finish)
 
-$(data)/f2210: src/f2210.json $(data)/f1040
+$(data)/f2210: ops/f2210.py src/personal.json src/f2210.json $(data)/f1040
 	$(log_start)
-	python ops/f2210.py src/f2210.json $(data)/f1040.json $(data)
+	python ops/f2210.py src/personal.json src/f2210.json $(data)/f1040.json $(data)
 	touch $@
 	$(log_finish)
 
-$(data)/f1040: ops/f1040.py src/f1040.json $(data)/f1040s1 $(data)/f1040s4
+$(data)/f1040: ops/f1040.py src/personal.json src/f1040.json $(data)/f1040s1 $(data)/f1040s4
 	$(log_start)
-	python ops/f1040.py src/f1040.json $(data)/f1040s1.json $(data)/f1040s4.json $(data)
+	python ops/f1040.py src/personal.json src/f1040.json $(data)/f1040s1.json $(data)/f1040s4.json $(data)
 	touch $@
 	$(log_finish)
 
-$(data)/f1040s1: ops/f1040s1.py src/f1040s1.json src/f1040.json $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd
+$(data)/f1040s1: ops/f1040s1.py src/personal.json src/f1040s1.json $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd
 	$(log_start)
-	python ops/f1040s1.py src/f1040s1.json src/f1040.json $(data)/f1040sc.json $(data)/f1040sse.json $(data)/f1040sd.json $(data)
+	python ops/f1040s1.py src/personal.json src/f1040s1.json $(data)/f1040sc.json $(data)/f1040sse.json $(data)/f1040sd.json $(data)
 	touch $@
 	$(log_finish)
 
-$(data)/f1040s4: ops/f1040s4.py src/f1040.json $(data)/f1040sse
+$(data)/f1040s4: ops/f1040s4.py src/personal.json $(data)/f1040sse
 	$(log_start)
-	python ops/f1040s4.py src/f1040.json $(data)/f1040sse.json $(data)
-	touch $@
-	$(log_finish)
-
-$(data)/f1040sc: ops/f1040sc.py src/income.json src/f1040.json src/f1040sc.json build/tx-history.csv
-	$(log_start)
-	python ops/f1040sc.py src/income.json src/f1040.json src/f1040sc.json build/tx-history.csv $(data)
+	python ops/f1040s4.py src/personal.json $(data)/f1040sse.json $(data)
 	touch $@
 	$(log_finish)
 
 $(data)/f1040sse: ops/f1040sse.py src/f1040sse.json $(data)/f1040sc
 	$(log_start)
-	python ops/f1040sse.py src/f1040sse.json src/f1040.json $(data)/f1040sc.json $(data)
+	python ops/f1040sse.py src/personal.json src/f1040sse.json $(data)/f1040sc.json $(data)
 	touch $@
 	$(log_finish)
 
-$(data)/f1040sd: $(data)/f8949
+$(data)/f1040sc: ops/f1040sc.py src/personal.json src/f1040sc.json build/tx-history.csv
 	$(log_start)
-	python ops/f1040sd.py src/f1040.json $(data) $(data)/f8949*.json
+	python ops/f1040sc.py src/personal.json src/f1040sc.json build/tx-history.csv $(data)
 	touch $@
 	$(log_finish)
 
-$(data)/f8949: ops/f8949.py src/starting-assets.json build/tx-history.csv src/f1040.json
+$(data)/f1040sd: ops/f1040sd.py src/personal.json $(data)/f8949
+	$(log_start)
+	python ops/f1040sd.py src/personal.json $(data) $(data)/f8949*.json
+	touch $@
+	$(log_finish)
+
+$(data)/f8949: ops/f8949.py src/personal.json build/tx-history.csv
 	$(log_start)
 	cp src/f8949*.json $(data)
-	python ops/f8949.py src/starting-assets.json build/tx-history.csv src/f1040.json $(data)
+	python ops/f8949.py src/personal.json build/tx-history.csv $(data)
 	touch $@
 	$(log_finish)
 
 ########################################
 # Supporting data derived from raw source data
 
-build/tx-history.csv: ops/generate-history.py $(history_src) src/address-book.json
+build/tx-history.csv: ops/generate-history.py $(history_src) src/personal.json
 	$(log_start)
-	python ops/generate-history.py $(history_dir) src/address-book.json build/tx-history.csv
+	python ops/generate-history.py $(history_dir) src/personal.json build/tx-history.csv
 	$(log_finish)
 
 ########################################

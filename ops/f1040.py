@@ -7,13 +7,18 @@ from utils import *
 ########################################
 # Read data from input files
 
-f1040=json.load(open(sys.argv[1]))
-f1040s1=json.load(open(sys.argv[2]))
-f1040s4=json.load(open(sys.argv[3]))
-target=sys.argv[4]+'/f1040.json'
+personal=json.load(open(sys.argv[1]))
+f1040=json.load(open(sys.argv[2]))
+f1040s1=json.load(open(sys.argv[3]))
+f1040s4=json.load(open(sys.argv[4]))
+target=sys.argv[5]+'/f1040.json'
 
 ########################################
 # Build the form
+
+f1040['FirstNameAndInitial'] = '%s %s' % (personal['FirstName'], personal['MiddleInitial'])
+f1040['LastName'] = personal['LastName']
+f1040['SocialSecurityNumber'] = personal['SocialSecurityNumber']
 
 line6extra = fromForm(f1040s1['Line22'], f1040s1['Line22c'])
 f1040['Line6Extra'] = toForm(line6extra, 0) + '.' + toForm(line6extra, 1)

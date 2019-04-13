@@ -7,16 +7,16 @@ from utils import *
 ########################################
 # Read data from input files
 
-f1040sse=json.load(open(sys.argv[1]))
-f1040=json.load(open(sys.argv[2]))
+personal=json.load(open(sys.argv[1]))
+f1040sse=json.load(open(sys.argv[2]))
 f1040sc=json.load(open(sys.argv[3]))
 target=sys.argv[4]+'/f1040sse.json'
 
 ########################################
 # Build the form
 
-f1040sse['FullNamePage1'] = f1040['FirstNameAndInitial'] + ' ' + f1040['LastName']
-f1040sse['SocialSecurityNumberPage1'] = f1040['SocialSecurityNumber']
+f1040sse['FullNamePage1'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+f1040sse['SocialSecurityNumberPage1'] = personal['SocialSecurityNumber']
 
 profitOrLoss = fromForm(f1040sc['Line31'], f1040sc['Line31c'])
 

@@ -7,7 +7,7 @@ import os
 import datetime
 
 input_folder = sys.argv[1]
-address_book=sys.argv[2]
+addresses= json.load(open(sys.argv[2], "rb"))['addresses']
 output_file=sys.argv[3]
 
 input_files=os.listdir(input_folder)
@@ -15,9 +15,6 @@ field_names=['timestamp', 'asset', 'quantity', 'price', 'from', 'to', 'value_in'
 history=[]
 
 hasWarned=[]
-
-with open(address_book, "rb") as address_data:
-  addresses = json.load(address_data)
 
 for file in input_files:
   # Process tx history from Coinbase

@@ -7,13 +7,13 @@ haveQualifiedDividends = True
 ########################################
 # Read data from input files
 
-personal_data=json.load(open(sys.argv[1], 'rb'))
+personal=json.load(open(sys.argv[1], 'rb'))
 target=sys.argv[2]+'/f1040sd.json'
 f8949_files=sys.argv[3:]
 
 f1040sd = {}
-f1040sd['FullName'] = personal_data['FirstNameAndInitial'] + ' ' + personal_data['LastName']
-f1040sd['SocialSecurityNumber'] = personal_data['SocialSecurityNumber']
+f1040sd['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+f1040sd['SocialSecurityNumber'] = personal['SocialSecurityNumber']
 
 sum_fields = [
   "Line1bProceeds", "Line1bCost", "Line1bGainOrLoss",

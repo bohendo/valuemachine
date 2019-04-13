@@ -7,17 +7,18 @@ from utils import *
 ########################################
 # Read data from input files
 
-income=json.load(open(sys.argv[1]))
-f1040=json.load(open(sys.argv[2]))
-f1040sc=json.load(open(sys.argv[3]))
-txHistory = csv.DictReader(open(sys.argv[4], 'rb'))
-target=sys.argv[5]+'/f1040sc.json'
+personal=json.load(open(sys.argv[1]))
+f1040sc=json.load(open(sys.argv[2]))
+txHistory = csv.DictReader(open(sys.argv[3], 'rb'))
+target=sys.argv[4]+'/f1040sc.json'
 
 ########################################
 # Build the form
 
-f1040sc['FullName'] = f1040['FirstNameAndInitial'] + ' ' + f1040['LastName']
-f1040sc['SocialSecurityNumber'] = f1040['SocialSecurityNumber']
+f1040sc['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+f1040sc['SocialSecurityNumber'] = personal['SocialSecurityNumber']
+
+income = personal['income']
 
 # Starting income, from non-tx-history sources
 total_income = 0

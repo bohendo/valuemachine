@@ -9,10 +9,9 @@ year=18
 ########################################
 # Read data from input files
 
-starting_assets = json.load(open(sys.argv[1], 'rb'))
+personal = json.load(open(sys.argv[1], 'rb'))
 tx_history = csv.DictReader(open(sys.argv[2], 'rb'))
-personal_data = json.load(open(sys.argv[3], 'rb'))
-target=sys.argv[4]
+target=sys.argv[3]
 
 ########################################
 # Calculate Capital Gains/Losses
@@ -27,11 +26,17 @@ def assetsToString(assets):
     msg += " [" + asset + " " + str(totals[asset]) + "] "
   return(msg)
 
+def chunks(l, n):
+  """Yield successive n-sized chunks from l."""
+  for i in range(0, len(l), n):
+    yield l[i:i + n]
+
 total_proceeds = 0
 total_cost = 0
 total_profit = 0
 trades = []
-assets = starting_assets
+starting_assets = assetsToString(personal['assets'])
+assets = personal['assets']
 
 for row in tx_history:
 
@@ -106,7 +111,7 @@ for row in tx_history:
 ########################################
 # Print results of our calculations
 
-print("\nStarting Assets:" + assetsToString(starting_assets))
+print("\nStarting Assets:" + starting_assets)
 for trade in trades:
   print('Sold %s\ton %s\tfor  %s\tPurchased for %s\t= profit of %s' % (
     trade['Description'], trade['DateSold'], trade['Proceeds'], trade['Cost'], trade['GainOrLoss']
@@ -119,8 +124,10 @@ print('\nTotals:\t proceeds: {}\t cost: {}\t profit: {}\n'.format(round(total_pr
 
 def buildF8949(fourteenTrades):
   f8949_data = {}
-  f8949_data['FullNamePage1'] = personal_data['FirstNameAndInitial'] + ' ' + personal_data['LastName']
-  f8949_data['SocialSecurityNumberPage1'] = personal_data['SocialSecurityNumber']
+  f8949_data['FullNamePage1'] = '%s %s %s' % (
+    personal['FirstName'], personal['MiddleInitial'], personal['LastName']
+  )
+  f8949_data['SocialSecurityNumberPage1'] = personal['SocialSecurityNumber']
 
   f8949_data['isShortTermA'] = False
   f8949_data['isShortTermB'] = False
@@ -146,11 +153,6 @@ def buildF8949(fourteenTrades):
   f8949_data['STTotalGainOrLoss'] = str(round(totals['GainOrLoss'], 2))
 
   return(f8949_data)
-
-def chunks(l, n):
-  """Yield successive n-sized chunks from l."""
-  for i in range(0, len(l), n):
-    yield l[i:i + n]
 
 for i, tradesChunk in enumerate(chunks(trades, 14)):
   i+=1
