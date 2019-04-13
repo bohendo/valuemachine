@@ -55,7 +55,7 @@ $(example)/federal-tax-return.pdf: $(forms)/federal $(src) $(example_data)/f1040
 	bash ops/build.sh federal $(forms) $(mappings) $(example_data) $(example_pages) $(example)
 	$(log_finish)
 
-build/indiana-tax-return.pdf: $(forms)/indiana $(src)
+build/indiana-tax-return.pdf: $(forms)/indiana $(src) $(data)/indiana
 	$(log_start)
 	bash ops/build.sh indiana $(forms) $(mappings) $(data) $(pages) build
 	$(log_finish)
@@ -66,13 +66,25 @@ $(example)/indiana-tax-return.pdf: $(forms)/indiana $(src) $(example_data)/ct40p
 	$(log_finish)
 
 ########################################
-# form data
+# Example form data
 
 $(example_data)/%: src/example/%.json
 	$(log_start)
 	cp src/example/$*.json $(example_data)/$*.json
 	touch $@
 	$(log_finish)
+
+########################################
+# Indiana form data
+
+$(data)/indiana: ops/indiana.py $(src)
+	$(log_start)
+	python ops/indiana.py src $(data)
+	touch $@
+	$(log_finish)
+
+########################################
+# Federal form data
 
 $(data)/f2210: ops/f2210.py src/personal.json src/f2210.json build/tx-history.csv $(data)/f1040
 	$(log_start)
