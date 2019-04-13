@@ -60,7 +60,7 @@ build/indiana-tax-return.pdf: $(forms)/indiana $(src) $(data)/indiana
 	bash ops/build.sh indiana $(forms) $(mappings) $(data) $(pages) build
 	$(log_finish)
 
-$(example)/indiana-tax-return.pdf: $(forms)/indiana $(src) $(example_data)/ct40pnr $(example_data)/it40pnr $(example_data)/it40pnr-indep $(example_data)/it40pnr-sa $(example_data)/it40pnr-sb $(example_data)/it40pnr-sc $(example_data)/it40pnr-sd $(example_data)/it40pnr-se $(example_data)/it40pnr-sf $(example_data)/it40pnr-sg $(example_data)/it40pnr-sh
+$(example)/indiana-tax-return.pdf: $(forms)/indiana $(src) $(example_data)/ct40pnr $(example_data)/it40pnr $(example_data)/it40pnr-sa $(example_data)/it40pnr-sd $(example_data)/it40pnr-sh
 	$(log_start)
 	bash ops/build.sh indiana $(forms) $(mappings) $(example_data) $(example_pages) $(example)
 	$(log_finish)

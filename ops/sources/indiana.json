@@ -1,13 +1,7 @@
 { "data": [
   { "name":  "it40pnr", "title": "", "order": 1, "url": "https://forms.in.gov/Download.aspx?id=13964" },
   { "name":  "it40pnr-sa", "title": "", "order": 2, "url": "https://forms.in.gov/Download.aspx?id=13965" },
-  { "name":  "it40pnr-sb", "title": "", "order": 3, "url": "https://forms.in.gov/Download.aspx?id=13966" },
-  { "name":  "it40pnr-sc", "title": "", "order": 4, "url": "https://forms.in.gov/Download.aspx?id=13967" },
   { "name":  "it40pnr-sd", "title": "", "order": 5, "url": "https://forms.in.gov/Download.aspx?id=13968" },
-  { "name":  "it40pnr-se", "title": "", "order": 6, "url": "https://forms.in.gov/Download.aspx?id=13969" },
-  { "name":  "it40pnr-sf", "title": "", "order": 7, "url": "https://forms.in.gov/Download.aspx?id=13970" },
-  { "name":  "it40pnr-sg", "title": "", "order": 8, "url": "https://forms.in.gov/Download.aspx?id=13971" },
   { "name":  "it40pnr-sh", "title": "", "order": 9, "url": "https://forms.in.gov/Download.aspx?id=13972" },
-  { "name":  "it40pnr-indep", "title": "", "order": 10, "url": "https://forms.in.gov/Download.aspx?id=13958" },
   { "name":  "ct40pnr", "title": "", "order": 11, "url": "https://forms.in.gov/Download.aspx?id=13973" }
 ]}
