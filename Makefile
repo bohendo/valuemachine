@@ -74,9 +74,9 @@ $(example_data)/%: src/example/%.json
 	touch $@
 	$(log_finish)
 
-$(data)/f2210: ops/f2210.py src/personal.json src/f2210.json $(data)/f1040
+$(data)/f2210: ops/f2210.py src/personal.json src/f2210.json build/tx-history.csv $(data)/f1040
 	$(log_start)
-	python ops/f2210.py src/personal.json src/f2210.json $(data)/f1040.json $(data)
+	python ops/f2210.py src/personal.json src/f2210.json build/tx-history.csv $(data)
 	touch $@
 	$(log_finish)
 
