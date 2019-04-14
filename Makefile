@@ -44,19 +44,19 @@ purge:
 ########################################
 # Build components of our tax return
 
-build/federal-tax-return.pdf: $(forms)/federal $(src) $(data)/f1040 $(data)/f1040s1 $(data)/f1040s3 $(data)/f1040s4 $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd $(data)/f8949 $(data)/f8889 $(data)/f2210
+build/federal-tax-return.pdf: ops/build.sh $(forms)/federal $(src) $(data)/f1040 $(data)/f1040s1 $(data)/f1040s3 $(data)/f1040s4 $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd $(data)/f8949 $(data)/f8889 $(data)/f2210
 	$(log_start)
 	bash ops/build.sh federal $(forms) $(mappings) $(data) $(pages) build
 
-$(example)/federal-tax-return.pdf: $(forms)/federal $(src) $(example_data)/f1040 $(example_data)/f1040s1 $(example_data)/f1040s3 $(example_data)/f1040s4 $(example_data)/f1040sse $(example_data)/f1040sc $(example_data)/f1040sd $(example_data)/f8949 $(example_data)/f8889 $(example_data)/f2210
+$(example)/federal-tax-return.pdf: ops/build.sh $(forms)/federal $(src) $(example_data)/f1040 $(example_data)/f1040s1 $(example_data)/f1040s3 $(example_data)/f1040s4 $(example_data)/f1040sse $(example_data)/f1040sc $(example_data)/f1040sd $(example_data)/f8949 $(example_data)/f8889 $(example_data)/f2210
 	$(log_start)
 	bash ops/build.sh federal $(forms) $(mappings) $(example_data) $(example_pages) $(example)
 
-build/indiana-tax-return.pdf: $(forms)/indiana $(src) $(data)/indiana
+build/indiana-tax-return.pdf: ops/build.sh $(forms)/indiana $(src) $(data)/indiana
 	$(log_start)
 	bash ops/build.sh indiana $(forms) $(mappings) $(data) $(pages) build
 
-$(example)/indiana-tax-return.pdf: $(forms)/indiana $(src) $(example_data)/ct40pnr $(example_data)/it40pnr $(example_data)/it40pnr-sa $(example_data)/it40pnr-sd $(example_data)/it40pnr-sh
+$(example)/indiana-tax-return.pdf: ops/build.sh $(forms)/indiana $(src) $(example_data)/ct40pnr $(example_data)/it40pnr $(example_data)/it40pnr-sa $(example_data)/it40pnr-sd $(example_data)/it40pnr-sh
 	$(log_start)
 	bash ops/build.sh indiana $(forms) $(mappings) $(example_data) $(example_pages) $(example)
 
