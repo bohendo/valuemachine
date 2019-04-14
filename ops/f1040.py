@@ -25,6 +25,18 @@ f1040['SpouseFirstNameAndInitial'] = '%s %s' % (personal['SpouseFirstName'], per
 f1040['SpouseLastName'] = personal['SpouseLastName']
 f1040['SpouseSocialSecurityNumber'] = personal['SpouseSocialSecurityNumber']
 
+line3a = 0
+line3b = 0
+dividends = [] if 'dividends' not in personal['income'] else personal['income']['dividends']
+for dividend in dividends:
+  line3b += float(dividend['amount'])
+  if dividend['type'] == 'qualified':
+    line3a += float(dividend['amount'])
+f1040['Line3a'] = toForm(line3a, 0)
+f1040['Line3ac'] = toForm(line3a, 1)
+f1040['Line3b'] = toForm(line3b, 0)
+f1040['Line3bc'] = toForm(line3b, 1)
+
 line6extra = fromForm(f1040s1['Line22'], f1040s1['Line22c'])
 f1040['Line6Extra'] = toForm(line6extra, 0) + '.' + toForm(line6extra, 1)
 line6 = line6extra
@@ -56,13 +68,15 @@ f1040['Line10c'] = toForm(line10, 1)
 # TODO: tax table?!
 if line10 == 0:
   line11 = 0
-elif line10 > 39300 and line10 < 39350 and f1040['FilingMarriedJointly']:
+elif line10 >= 39300 and line10 < 39350 and f1040['FilingMarriedJointly']:
   line11 = 4338
-elif line10 > 47200 and line10 < 47250 and f1040['FilingMarriedJointly']:
+elif line10 >= 47200 and line10 < 47250 and f1040['FilingMarriedJointly']:
   line11 = 5286
-elif line10 > 49700 and line10 < 49750 and f1040['FilingMarriedJointly']:
+elif line10 >= 47250 and line10 < 47300 and f1040['FilingMarriedJointly']:
+  line11 = 5292
+elif line10 >= 49700 and line10 < 49750 and f1040['FilingMarriedJointly']:
   line11 = 5586
-elif line10 > 51200 and line10 < 51250 and f1040['FilingMarriedJointly']:
+elif line10 >= 51200 and line10 < 51250 and f1040['FilingMarriedJointly']:
   line11 = 5766
 else:
   print('Oh no, tax table not implemented, please add entry for income of: %d' % line10)

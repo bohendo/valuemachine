@@ -125,4 +125,3 @@ Dependencies:
  - Form 8824: Like-Kind Exchanges
  - **Form 8949**: Sales and Other Dispositions of Capital Assets
  - Schedule K-1: Partner’s Share of Income, Deductions, Credits, etc
-
