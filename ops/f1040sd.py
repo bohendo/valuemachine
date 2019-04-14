@@ -95,7 +95,8 @@ if f1040sd["Line16"] > 0:
     # DONE
 
 elif f1040sd["Line16"] < 0:
-  f1040sd["Line21"] = abs(f1040sd["Line16"]) if abs(f1040sd["Line16"]) < 1500 else 1500
+  maxLoss = 1500 if f1040['FilingMarriedSeparate'] else 3000
+  f1040sd["Line21"] = abs(f1040sd["Line16"]) if abs(f1040sd["Line16"]) < maxLoss else maxLoss
   f1040sd["Line22Yes"] = haveQualifiedDividends
   f1040sd["Line22No"] = not haveQualifiedDividends
 

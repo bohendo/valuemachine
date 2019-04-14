@@ -56,9 +56,13 @@ f1040['Line10c'] = toForm(line10, 1)
 # TODO: tax table?!
 if line10 == 0:
   line11 = 0
-if line10 > 39300 and line10 < 39350 and f1040['FilingMarriedJointly']:
+elif line10 > 39300 and line10 < 39350 and f1040['FilingMarriedJointly']:
   line11 = 4338
-if line10 > 51200 and line10 < 51250 and f1040['FilingMarriedJointly']:
+elif line10 > 47200 and line10 < 47250 and f1040['FilingMarriedJointly']:
+  line11 = 5286
+elif line10 > 49700 and line10 < 49750 and f1040['FilingMarriedJointly']:
+  line11 = 5586
+elif line10 > 51200 and line10 < 51250 and f1040['FilingMarriedJointly']:
   line11 = 5766
 else:
   print('Oh no, tax table not implemented, please add entry for income of: %d' % line10)
