@@ -15,7 +15,7 @@ f8889=loadJSON(src_dir+'/f8889.json')
 ########################################
 # Build the form
 
-f8889['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+f8889['FullName'] = getName(personal)
 f8889['SocialSecurityNumber'] = personal['SpouseSocialSecurityNumber']
 
 with open(data_dir+'/f8889.json', "wb") as output:

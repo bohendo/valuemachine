@@ -16,7 +16,7 @@ f1040s4=loadJSON(src_dir+'/f1040s4.json')
 ########################################
 # Build the form
 
-f1040s4['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+f1040s4['FullName'] = getName(personal)
 f1040s4['SocialSecurityNumber'] = personal['SocialSecurityNumber']
 
 line57 = fromForm(f1040sse['Line5'], f1040sse['Line5c'])

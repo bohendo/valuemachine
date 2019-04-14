@@ -2,6 +2,17 @@ import csv
 import json
 from os.path import isfile
 
+def getName(personal):
+  if 'SpouseFirstName' in personal:
+    return '%s %s %s & %s %s %s' % (
+      personal['FirstName'], personal['MiddleInitial'], personal['LastName'],
+      personal['SpouseFirstName'], personal['SpouseMiddleInitial'], personal['SpouseLastName']
+    )
+  else:
+    return '%s %s %s' % (
+      personal['FirstName'], personal['MiddleInitial'], personal['LastName']
+    )
+
 def loadJSON(filename):
   if isfile(filename):
     return json.load(open(filename, 'rb'))

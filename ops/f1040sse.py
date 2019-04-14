@@ -16,7 +16,7 @@ f1040sse=loadJSON(src_dir+'/f1040sse.json')
 ########################################
 # Build the form
 
-f1040sse['FullNamePage1'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+f1040sse['FullNamePage1'] = getName(personal)
 f1040sse['SocialSecurityNumberPage1'] = personal['SocialSecurityNumber']
 
 profitOrLoss = fromForm(f1040sc['Line31'], f1040sc['Line31c'])

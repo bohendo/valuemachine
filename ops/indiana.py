@@ -25,22 +25,22 @@ it40pnr['SSN1'] = personal['SocialSecurityNumber'][:3]
 it40pnr['SSN2'] = personal['SocialSecurityNumber'][3:5]
 it40pnr['SSN3'] = personal['SocialSecurityNumber'][5:]
 
-it40pnrsa['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+it40pnrsa['FullName'] = getName(personal)
 it40pnrsa['SSN1'] = personal['SocialSecurityNumber'][:3]
 it40pnrsa['SSN2'] = personal['SocialSecurityNumber'][3:5]
 it40pnrsa['SSN3'] = personal['SocialSecurityNumber'][5:]
 
-it40pnrsd['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+it40pnrsd['FullName'] = getName(personal)
 it40pnrsd['SSN1'] = personal['SocialSecurityNumber'][:3]
 it40pnrsd['SSN2'] = personal['SocialSecurityNumber'][3:5]
 it40pnrsd['SSN3'] = personal['SocialSecurityNumber'][5:]
 
-it40pnrsh['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+it40pnrsh['FullName'] = getName(personal)
 it40pnrsh['SSN1'] = personal['SocialSecurityNumber'][:3]
 it40pnrsh['SSN2'] = personal['SocialSecurityNumber'][3:5]
 it40pnrsh['SSN3'] = personal['SocialSecurityNumber'][5:]
 
-ct40pnr['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+ct40pnr['FullName'] = getName(personal)
 ct40pnr['SSN1'] = personal['SocialSecurityNumber'][:3]
 ct40pnr['SSN2'] = personal['SocialSecurityNumber'][3:5]
 ct40pnr['SSN3'] = personal['SocialSecurityNumber'][5:]

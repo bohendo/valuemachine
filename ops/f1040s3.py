@@ -15,7 +15,7 @@ f1040s3=loadJSON(src_dir+'/f1040s3.json')
 ########################################
 # Build the form
 
-f1040s3['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+f1040s3['FullName'] = getName(personal)
 f1040s3['SocialSecurityNumber'] = personal['SpouseSocialSecurityNumber']
 
 line55 = 0

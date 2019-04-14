@@ -19,7 +19,7 @@ f1040sd = loadJSON(src_dir+'/f1040sd.json')
 
 haveQualifiedDividends = True
 
-f1040sd['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+f1040sd['FullName'] = getName(personal)
 f1040sd['SocialSecurityNumber'] = personal['SocialSecurityNumber']
 
 sum_fields = [

@@ -21,7 +21,7 @@ f8889=loadJSON(data_dir+'/f8889.json')
 ########################################
 # Build the form
 
-f1040s1['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+f1040s1['FullName'] = getName(personal)
 f1040s1['SocialSecurityNumber'] = personal['SocialSecurityNumber']
 
 line12 = fromForm(f1040sc['Line31'], f1040sc['Line31c'])

@@ -128,9 +128,7 @@ print('\nTotals:\t proceeds: {}\t cost: {}\t profit: {}\n'.format(round(total_pr
 
 def buildF8949(fourteenTrades):
   f8949_data = {}
-  f8949_data['FullNamePage1'] = '%s %s %s' % (
-    personal['FirstName'], personal['MiddleInitial'], personal['LastName']
-  )
+  f8949_data['FullNamePage1'] = getName(personal)
   f8949_data['SocialSecurityNumberPage1'] = personal['SocialSecurityNumber']
 
   f8949_data['isShortTermA'] = False

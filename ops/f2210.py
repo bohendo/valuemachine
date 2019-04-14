@@ -26,7 +26,7 @@ f2210=loadJSON(src_dir+'/f2210.json')
 annualization_amounts = [1,1,1,1]
 applicable_percentage = 1
 
-f2210['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
+f2210['FullName'] = getName(personal)
 f2210['SocialSecurityNumber'] = personal['SocialSecurityNumber']
 
 line1 = fromForm(f1040['Line13'], f1040['Line13c'])
