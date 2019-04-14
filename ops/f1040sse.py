@@ -1,16 +1,24 @@
 #!/bin/python
 import csv
 import json
+from os.path import isfile
 import sys
 from utils import *
 
 ########################################
 # Read data from input files
 
-personal=json.load(open(sys.argv[1]))
-f1040sse=json.load(open(sys.argv[2]))
-f1040sc=json.load(open(sys.argv[3]))
-target=sys.argv[4]+'/f1040sse.json'
+src_dir=sys.argv[1]
+build_dir=sys.argv[2]
+data_dir=sys.argv[3]
+
+personal = json.load(open(src_dir+'/personal.json', 'rb'))
+f1040sc=json.load(open(data_dir+'/f1040sc.json'))
+
+if isfile(src_dir+'/f1040sse.json'):
+  f1040sse=json.load(open(src_dir+'/f1040sse.json'))
+else:
+  f1040sse={}
 
 ########################################
 # Build the form
@@ -42,5 +50,5 @@ line6 = line5 * 0.5
 f1040sse['Line6'] = toForm(line6, 0)
 f1040sse['Line6c'] = toForm(line6, 1)
 
-with open(target, "wb") as output:
+with open(data_dir+'/f1040sse.json', "wb") as output:
   json.dump(f1040sse, output)

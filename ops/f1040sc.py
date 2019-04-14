@@ -2,15 +2,23 @@
 import csv
 import json
 import sys
+from os.path import isfile
 from utils import *
 
 ########################################
 # Read data from input files
 
-personal=json.load(open(sys.argv[1]))
-f1040sc=json.load(open(sys.argv[2]))
-txHistory = csv.DictReader(open(sys.argv[3], 'rb'))
-target=sys.argv[4]+'/f1040sc.json'
+src_dir=sys.argv[1]
+build_dir=sys.argv[2]
+data_dir=sys.argv[3]
+
+personal = json.load(open(src_dir+'/personal.json', 'rb'))
+txHistory = csv.DictReader(open(build_dir+'/tx-history.csv', 'rb'))
+
+if isfile(src_dir+'/f1040sc.json'):
+  f1040sc=json.load(open(src_dir+'/f1040sc.json'))
+else:
+  f1040sc={}
 
 ########################################
 # Build the form
@@ -19,6 +27,7 @@ f1040sc['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleIniti
 f1040sc['SocialSecurityNumber'] = personal['SocialSecurityNumber']
 
 income = personal['income']
+expenses = personal['expenses']
 
 # Starting income, from non-tx-history sources
 total_income = 0
@@ -66,9 +75,9 @@ f1040sc['Line7'] = toForm(line7, 0)
 f1040sc['Line7c'] = toForm(line7, 1)
 
 total_expenses = 0
-for expense in income['expenses']:
+for expense in expenses:
   if expense in f1040sc:
-    amount = float(income['expenses'][expense])
+    amount = float(expenses[expense])
     print('found expense for %s: %d' % (expense, amount))
     f1040sc[expense] = toForm(amount, 0)
     f1040sc[expense + 'c'] = toForm(amount, 1)
@@ -87,6 +96,6 @@ line31 = line29 - line30
 f1040sc['Line31'] = toForm(line31, 0)
 f1040sc['Line31c'] = toForm(line31, 1)
 
-with open(target, "wb") as output:
+with open(data_dir+'/f1040sc.json', "wb") as output:
   json.dump(f1040sc, output)
 

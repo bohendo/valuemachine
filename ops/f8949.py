@@ -9,9 +9,12 @@ year=18
 ########################################
 # Read data from input files
 
-personal = json.load(open(sys.argv[1], 'rb'))
-tx_history = csv.DictReader(open(sys.argv[2], 'rb'))
-target=sys.argv[3]
+src_dir=sys.argv[1]
+build_dir=sys.argv[2]
+data_dir=sys.argv[3]
+
+personal = json.load(open(src_dir+'/personal.json', 'rb'))
+tx_history = csv.DictReader(open(build_dir+'/tx-history.csv', 'rb'))
 
 ########################################
 # Calculate Capital Gains/Losses
@@ -54,6 +57,8 @@ for row in tx_history:
     elif debug:
       print('Bought {} {} at {} on {}'.format(row['quantity'], row['asset'], row['price'], row['timestamp']))
 
+    if row['asset'] not in assets:
+      assets[row['asset']] = []
     assets[row['asset']].append({
       "quantity": float(row['quantity']),
       "price": float(row['price'])
@@ -156,7 +161,7 @@ def buildF8949(fourteenTrades):
 
 for i, tradesChunk in enumerate(chunks(trades, 14)):
   i+=1
-  outfile=target+'/f8949_'+str(i)+'.json'
+  outfile=data_dir+'/f8949_'+str(i)+'.json'
   print('writing to output file: ' + outfile)
   with open(outfile, "wb") as output:
     json.dump(buildF8949(tradesChunk), output)

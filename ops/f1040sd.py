@@ -1,17 +1,29 @@
 #!/bin/python
 import json
 import sys
+from os.path import isfile
 
 haveQualifiedDividends = True
 
 ########################################
 # Read data from input files
 
-personal=json.load(open(sys.argv[1], 'rb'))
-target=sys.argv[2]+'/f1040sd.json'
-f8949_files=sys.argv[3:]
+src_dir=sys.argv[1]
+build_dir=sys.argv[2]
+data_dir=sys.argv[3]
 
-f1040sd = {}
+f8949_files=sys.argv[4:] # TODO: Can we remove this?
+
+personal = json.load(open(src_dir+'/personal.json', 'rb'))
+
+if isfile(src_dir+'/f1040sd.json'):
+  f1040sd=json.load(open(src_dir+'/f1040sd.json'))
+else:
+  f1040sd={}
+
+########################################
+# Build Form
+
 f1040sd['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
 f1040sd['SocialSecurityNumber'] = personal['SocialSecurityNumber']
 
@@ -105,5 +117,5 @@ f1040sd["Line15"] = str(f1040sd["Line15"])
 f1040sd["Line16"] = str(f1040sd["Line16"])
 f1040sd["Line21"] = str(f1040sd["Line21"])
 
-with open(target, "wb") as output:
+with open(data_dir+'/f1040sd.json', "wb") as output:
   json.dump(f1040sd, output)

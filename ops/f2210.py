@@ -2,27 +2,33 @@
 import csv
 from datetime import date
 import json
+from os.path import isfile
 import sys
 from utils import *
 
 ########################################
 # Read data from input files
 
-personal=json.load(open(sys.argv[1]))
-f2210=json.load(open(sys.argv[2]))
-tx_history = csv.DictReader(open(sys.argv[3], 'rb'))
-data_dir=sys.argv[4]
+src_dir=sys.argv[1]
+build_dir=sys.argv[2]
+data_dir=sys.argv[3]
 
+personal=json.load(open(src_dir+'/personal.json', 'rb'))
+tx_history = csv.DictReader(open(build_dir+'/tx-history.csv', 'rb'))
 f1040=json.load(open(data_dir+'/f1040.json'))
 f1040s4=json.load(open(data_dir+'/f1040s4.json'))
-target=data_dir+'/f2210.json'
 
-# TODO: What should these be?
-annualization_amounts = [1,1,1,1]
-applicable_percentage = 1
+if isfile(src_dir+'/f2210.json'):
+  f2210=json.load(open(src_dir+'/f2210.json'))
+else:
+  f2210={}
 
 ########################################
 # Build the form
+
+# TODO: What should these be??
+annualization_amounts = [1,1,1,1]
+applicable_percentage = 1
 
 f2210['FullName'] = '%s %s %s' % (personal['FirstName'], personal['MiddleInitial'], personal['LastName'])
 f2210['SocialSecurityNumber'] = personal['SocialSecurityNumber']
@@ -49,6 +55,10 @@ f2210['Line6'] = toForm(line6, 0)
 f2210['Line6c'] = toForm(line6, 1)
 
 line7 = line4 - line6
+if line7 < 1000:
+  print('Less than 1000 penalty owed, skipping f2210! :)')
+  exit(0)
+
 f2210['Line7'] = toForm(line7, 0)
 f2210['Line7c'] = toForm(line7, 1)
 
@@ -114,10 +124,10 @@ f2210['aiLine3b'] = toForm(fromForm(f2210['aiLine1b']) * fromForm(f2210['aiLine2
 f2210['aiLine3c'] = toForm(fromForm(f2210['aiLine1c']) * fromForm(f2210['aiLine2c']))
 f2210['aiLine3d'] = toForm(fromForm(f2210['aiLine1d']) * fromForm(f2210['aiLine2d']))
 
-f2210['aiLine4a'] = personal['income']['expenses']['q1']
-f2210['aiLine4b'] = toForm(fromForm(personal['income']['expenses']['q2']) + fromForm(f2210['aiLine4a']))
-f2210['aiLine4c'] = toForm(fromForm(personal['income']['expenses']['q3']) + fromForm(f2210['aiLine4b']))
-f2210['aiLine4d'] = toForm(fromForm(personal['income']['expenses']['q4']) + fromForm(f2210['aiLine4c']))
+f2210['aiLine4a'] = personal['expenses']['q1']
+f2210['aiLine4b'] = toForm(fromForm(personal['expenses']['q2']) + fromForm(f2210['aiLine4a']))
+f2210['aiLine4c'] = toForm(fromForm(personal['expenses']['q3']) + fromForm(f2210['aiLine4b']))
+f2210['aiLine4d'] = toForm(fromForm(personal['expenses']['q4']) + fromForm(f2210['aiLine4c']))
 
 f2210['aiLine5a'] = toForm(annualization_amounts[0])
 f2210['aiLine5b'] = toForm(annualization_amounts[1])

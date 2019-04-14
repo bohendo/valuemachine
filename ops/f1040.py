@@ -2,16 +2,24 @@
 import csv
 import json
 import sys
+from os.path import isfile
 from utils import *
 
 ########################################
 # Read data from input files
 
-personal=json.load(open(sys.argv[1]))
-f1040=json.load(open(sys.argv[2]))
-f1040s1=json.load(open(sys.argv[3]))
-f1040s4=json.load(open(sys.argv[4]))
-target=sys.argv[5]+'/f1040.json'
+src_dir=sys.argv[1]
+build_dir=sys.argv[2]
+data_dir=sys.argv[3]
+
+personal=json.load(open(src_dir+'/personal.json', 'rb'))
+f1040s1=json.load(open(data_dir+'/f1040s1.json'))
+f1040s4=json.load(open(data_dir+'/f1040s4.json'))
+
+if isfile(src_dir+'/f1040.json'):
+  f1040=json.load(open(src_dir+'/f1040.json'))
+else:
+  f1040={}
 
 ########################################
 # Build the form
@@ -19,6 +27,10 @@ target=sys.argv[5]+'/f1040.json'
 f1040['FirstNameAndInitial'] = '%s %s' % (personal['FirstName'], personal['MiddleInitial'])
 f1040['LastName'] = personal['LastName']
 f1040['SocialSecurityNumber'] = personal['SocialSecurityNumber']
+
+f1040['SpouseFirstNameAndInitial'] = '%s %s' % (personal['SpouseFirstName'], personal['SpouseMiddleInitial'])
+f1040['SpouseLastName'] = personal['SpouseLastName']
+f1040['SpouseSocialSecurityNumber'] = personal['SpouseSocialSecurityNumber']
 
 line6extra = fromForm(f1040s1['Line22'], f1040s1['Line22c'])
 f1040['Line6Extra'] = toForm(line6extra, 0) + '.' + toForm(line6extra, 1)
@@ -47,12 +59,19 @@ line10 = line10 if line10 >= 0 else 0
 f1040['Line10'] = toForm(line10, 0)
 f1040['Line10c'] = toForm(line10, 1)
 
+
 # TODO: tax table?!
 if line10 == 0:
   line11 = 0
+if line10 > 39300 and line10 < 39350 and f1040['FilingMarriedJointly']:
+  line11 = 4338
+if line10 > 51200 and line10 < 51250 and f1040['FilingMarriedJointly']:
+  line11 = 5766
 else:
-  print('Oh no, idk how to use the tax table in python..')
+  print('Oh no, tax table not implemented, please add entry for income of: %d' % line10)
   exit(1)
+
+
 f1040['Line11a'] = toForm(line11, 0) + '.' + toForm(line11, 1)
 f1040['Line11'] = toForm(line11, 0)
 f1040['Line11c'] = toForm(line11, 1)
@@ -89,5 +108,5 @@ f1040['Line22c'] = toForm(line22, 1)
 ########################################
 # Write form data to file
 
-with open(target, "wb") as output:
+with open(data_dir+'/f1040.json', "wb") as output:
   json.dump(f1040, output)
