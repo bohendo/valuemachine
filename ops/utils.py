@@ -1,3 +1,18 @@
+import csv
+import json
+from os.path import isfile
+
+def loadJSON(filename):
+  if isfile(filename):
+    return json.load(open(filename, 'rb'))
+  else:
+    return {}
+
+def loadCSV(filename):
+  if isfile(filename):
+    return csv.DictReader(open(filename, 'rb'))
+  else:
+    return {}
 
 def fromForm(dollars, cents=None):
   if dollars[:1] == '(':

@@ -1,8 +1,5 @@
 #!/bin/python
-import csv
-import json
 import sys
-from os.path import isfile
 from utils import *
 
 ########################################
@@ -11,32 +8,15 @@ from utils import *
 src_dir=sys.argv[1]
 data_dir=sys.argv[2]
 
-personal=json.load(open(src_dir+'/personal.json'))
+personal=loadJSON(src_dir+'/personal.json')
+it40pnr=loadJSON(src_dir+'/it40pnr.json')
+it40pnrsa=loadJSON(src_dir+'/it40pnr-sa.json')
+it40pnrsd=loadJSON(src_dir+'/it40pnr-sd.json')
+it40pnrsh=loadJSON(src_dir+'/it40pnr-sh.json')
+ct40pnr=loadJSON(src_dir+'/ct40pnr.json')
 
-if isfile(src_dir+'/it40pnr.json'):
-  it40pnr=json.load(open(src_dir+'/it40pnr.json'))
-else:
-  it40pnr={}
-
-if isfile(src_dir+'/it40pnr-sa.json'):
-  it40pnrsa=json.load(open(src_dir+'/it40pnr-sa.json'))
-else:
-  it40pnrsa={}
-
-if isfile(src_dir+'/it40pnr-sd.json'):
-  it40pnrsd=json.load(open(src_dir+'/it40pnr-sd.json'))
-else:
-  it40pnrsd={}
-
-if isfile(src_dir+'/it40pnr-sh.json'):
-  it40pnrsh=json.load(open(src_dir+'/it40pnr-sh.json'))
-else:
-  it40pnrsh={}
-
-if isfile(src_dir+'/ct40pnr.json'):
-  ct40pnr=json.load(open(src_dir+'/ct40pnr.json'))
-else:
-  ct40pnr={}
+########################################
+# Build forms
 
 it40pnr['FirstName'] = personal['FirstName']
 it40pnr['MiddleInitial'] = personal['MiddleInitial']

@@ -140,6 +140,8 @@ $(forms)/federal:
 	bash ops/fetch.sh federal
 	touch $@
 
+# Any random federal form can be downloaded & parsed via a command line:
+# make build/forms/i1040
 $(forms)/%:
-	wget "$(federal_source)/$*.pdf" --output-document="$(forms)/$*.pdf"
+	wget "https://www.irs.gov/pub/irs-pdf/$*.pdf" --output-document="$(forms)/$*.pdf"
 	pdftk $(forms)/$*.pdf dump_data_fields > $(forms)/$*.fields

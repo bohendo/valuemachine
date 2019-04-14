@@ -1,8 +1,5 @@
 #!/bin/python
-import csv
-import json
 import sys
-from os.path import isfile
 from utils import *
 
 ########################################
@@ -12,13 +9,9 @@ src_dir=sys.argv[1]
 build_dir=sys.argv[2]
 data_dir=sys.argv[3]
 
-personal = json.load(open(src_dir+'/personal.json', 'rb'))
-txHistory = csv.DictReader(open(build_dir+'/tx-history.csv', 'rb'))
-
-if isfile(src_dir+'/f1040sc.json'):
-  f1040sc=json.load(open(src_dir+'/f1040sc.json'))
-else:
-  f1040sc={}
+personal = loadJSON(src_dir+'/personal.json')
+txHistory = loadCSV(build_dir+'/tx-history.csv')
+f1040sc=loadJSON(src_dir+'/f1040sc.json')
 
 ########################################
 # Build the form

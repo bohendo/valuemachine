@@ -13,15 +13,11 @@ src_dir=sys.argv[1]
 build_dir=sys.argv[2]
 data_dir=sys.argv[3]
 
-personal=json.load(open(src_dir+'/personal.json', 'rb'))
-tx_history = csv.DictReader(open(build_dir+'/tx-history.csv', 'rb'))
-f1040=json.load(open(data_dir+'/f1040.json'))
-f1040s4=json.load(open(data_dir+'/f1040s4.json'))
-
-if isfile(src_dir+'/f2210.json'):
-  f2210=json.load(open(src_dir+'/f2210.json'))
-else:
-  f2210={}
+personal=loadJSON(src_dir+'/personal.json')
+tx_history = loadCSV(build_dir+'/tx-history.csv')
+f1040=loadJSON(data_dir+'/f1040.json')
+f1040s4=loadJSON(data_dir+'/f1040s4.json')
+f2210=loadJSON(src_dir+'/f2210.json')
 
 ########################################
 # Build the form

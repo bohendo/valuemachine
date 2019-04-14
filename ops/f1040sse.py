@@ -1,7 +1,4 @@
 #!/bin/python
-import csv
-import json
-from os.path import isfile
 import sys
 from utils import *
 
@@ -12,13 +9,9 @@ src_dir=sys.argv[1]
 build_dir=sys.argv[2]
 data_dir=sys.argv[3]
 
-personal = json.load(open(src_dir+'/personal.json', 'rb'))
-f1040sc=json.load(open(data_dir+'/f1040sc.json'))
-
-if isfile(src_dir+'/f1040sse.json'):
-  f1040sse=json.load(open(src_dir+'/f1040sse.json'))
-else:
-  f1040sse={}
+personal = loadJSON(src_dir+'/personal.json')
+f1040sc=loadJSON(data_dir+'/f1040sc.json')
+f1040sse=loadJSON(src_dir+'/f1040sse.json')
 
 ########################################
 # Build the form

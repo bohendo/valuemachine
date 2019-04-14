@@ -1,7 +1,6 @@
 #!/bin/python
-import csv
-import json
 import sys
+from utils import *
 
 debug=False
 year=18
@@ -13,8 +12,8 @@ src_dir=sys.argv[1]
 build_dir=sys.argv[2]
 data_dir=sys.argv[3]
 
-personal = json.load(open(src_dir+'/personal.json', 'rb'))
-tx_history = csv.DictReader(open(build_dir+'/tx-history.csv', 'rb'))
+personal = loadJSON(src_dir+'/personal.json')
+tx_history = loadCSV(build_dir+'/tx-history.csv')
 
 ########################################
 # Calculate Capital Gains/Losses
