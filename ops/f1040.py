@@ -71,6 +71,12 @@ if line10 == 0:
   line11 = 0
 elif line10 >= 39300 and line10 < 39350 and f1040['FilingMarriedJointly']:
   line11 = 4338
+elif line10 >= 44300 and line10 < 44350 and f1040['FilingMarriedJointly']:
+  line11 = 4938
+elif line10 >= 45000 and line10 < 45050 and f1040['FilingMarriedJointly']:
+  line11 = 5022
+elif line10 >= 45250 and line10 < 45300 and f1040['FilingMarriedJointly']:
+  line11 = 5052
 elif line10 >= 45300 and line10 < 45350 and f1040['FilingMarriedJointly']:
   line11 = 5058
 elif line10 >= 47150 and line10 < 47200 and f1040['FilingMarriedJointly']:
@@ -121,6 +127,9 @@ line19 = line18 - line15
 line19 = line19 if line19 >= 0 else 0
 f1040['Line19'] = toForm(line19, 0)
 f1040['Line19c'] = toForm(line19, 1)
+
+f1040['Line21'] = toForm(line19, 0)
+f1040['Line21c'] = toForm(line19, 1)
 
 line22 = line15 - line18
 line22 = line22 if line22 >= 0 else 0
