@@ -16,6 +16,7 @@ f1040=loadJSON(src_dir+'/f1040.json')
 f1040sc=loadJSON(data_dir+'/f1040sc.json')
 f1040sse=loadJSON(data_dir+'/f1040sse.json')
 f1040sd=loadJSON(data_dir+'/f1040sd.json')
+f8889=loadJSON(data_dir+'/f8889.json')
 
 ########################################
 # Build the form
@@ -41,6 +42,11 @@ for line in [10,11,12,13,14,17,18,19,21]:
   line22 += value
 f1040s1['Line22'] = toForm(line22, 0)
 f1040s1['Line22c'] = toForm(line22, 1)
+
+# Health Savings Account
+line25 = fromForm(f8889['Line13'], f8889['Line13c'])
+f1040s1['Line25'] = toForm(line25, 0)
+f1040s1['Line25c'] = toForm(line25, 1)
 
 line27 = fromForm(f1040sse['Line6'], f1040sse['Line6'])
 f1040s1['Line27'] = toForm(line27, 0)

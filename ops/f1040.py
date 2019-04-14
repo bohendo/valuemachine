@@ -40,7 +40,7 @@ f1040['Line3bc'] = toForm(line3b, 1)
 line6extra = fromForm(f1040s1['Line22'], f1040s1['Line22c'])
 f1040['Line6Extra'] = toForm(line6extra, 0) + '.' + toForm(line6extra, 1)
 line6 = line6extra
-for line in [1,'2a','2b','3a','3b','4a','4b','5a','5b']:
+for line in [1,'2b','3b','4b','5b']:
   value = fromForm(f1040['Line' + str(line)], f1040['Line'+str(line)+'c'])
   line6 += value
 f1040['Line6'] = toForm(line6, 0)
@@ -70,6 +70,10 @@ if line10 == 0:
   line11 = 0
 elif line10 >= 39300 and line10 < 39350 and f1040['FilingMarriedJointly']:
   line11 = 4338
+elif line10 >= 45300 and line10 < 45350 and f1040['FilingMarriedJointly']:
+  line11 = 5058
+elif line10 >= 47150 and line10 < 47200 and f1040['FilingMarriedJointly']:
+  line11 = 5280
 elif line10 >= 47200 and line10 < 47250 and f1040['FilingMarriedJointly']:
   line11 = 5286
 elif line10 >= 47250 and line10 < 47300 and f1040['FilingMarriedJointly']:
