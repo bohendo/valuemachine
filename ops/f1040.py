@@ -11,6 +11,7 @@ data_dir=sys.argv[3]
 
 personal = loadJSON(src_dir+'/personal.json')
 f1040s1=loadJSON(data_dir+'/f1040s1.json')
+f1040s3=loadJSON(data_dir+'/f1040s3.json')
 f1040s4=loadJSON(data_dir+'/f1040s4.json')
 f1040=loadJSON(src_dir+'/f1040.json')
 
@@ -90,6 +91,12 @@ else:
 f1040['Line11a'] = toForm(line11, 0) + '.' + toForm(line11, 1)
 f1040['Line11'] = toForm(line11, 0)
 f1040['Line11c'] = toForm(line11, 1)
+
+line12 = fromForm(f1040s3['Line55'], f1040s3['Line55c'])
+if line12 > 0:
+  f1040['Line12Schedule3'] = True
+  f1040['Line12'] = toForm(line12, 0)
+  f1040['Line12c'] = toForm(line12, 1)
 
 line13 = line11 - fromForm(f1040['Line12'], f1040['Line12c'])
 line13 = line13 if line13 >= 0 else 0

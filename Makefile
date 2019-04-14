@@ -44,11 +44,11 @@ purge:
 ########################################
 # Build components of our tax return
 
-build/federal-tax-return.pdf: $(forms)/federal $(src) $(data)/f1040 $(data)/f1040s1 $(data)/f1040s4 $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd $(data)/f8949 $(data)/f8889 $(data)/f2210
+build/federal-tax-return.pdf: $(forms)/federal $(src) $(data)/f1040 $(data)/f1040s1 $(data)/f1040s3 $(data)/f1040s4 $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd $(data)/f8949 $(data)/f8889 $(data)/f2210
 	$(log_start)
 	bash ops/build.sh federal $(forms) $(mappings) $(data) $(pages) build
 
-$(example)/federal-tax-return.pdf: $(forms)/federal $(src) $(example_data)/f1040 $(example_data)/f1040s1 $(example_data)/f1040s4 $(example_data)/f1040sse $(example_data)/f1040sc $(example_data)/f1040sd $(example_data)/f8949 $(example_data)/f8889 $(example_data)/f2210
+$(example)/federal-tax-return.pdf: $(forms)/federal $(src) $(example_data)/f1040 $(example_data)/f1040s1 $(example_data)/f1040s3 $(example_data)/f1040s4 $(example_data)/f1040sse $(example_data)/f1040sc $(example_data)/f1040sd $(example_data)/f8949 $(example_data)/f8889 $(example_data)/f2210
 	$(log_start)
 	bash ops/build.sh federal $(forms) $(mappings) $(example_data) $(example_pages) $(example)
 
@@ -84,7 +84,7 @@ $(data)/f2210: ops/f2210.py src/personal.json src/f2210.json build/tx-history.cs
 	python ops/f2210.py src build $(data)
 	touch $@
 
-$(data)/f1040: ops/f1040.py $(src) $(data)/f1040s1 $(data)/f1040s4
+$(data)/f1040: ops/f1040.py $(src) $(data)/f1040s1 $(data)/f1040s3 $(data)/f1040s4
 	$(log_start)
 	python ops/f1040.py src build $(data)
 	touch $@
@@ -92,6 +92,11 @@ $(data)/f1040: ops/f1040.py $(src) $(data)/f1040s1 $(data)/f1040s4
 $(data)/f1040s1: ops/f1040s1.py $(src) $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd $(data)/f8889
 	$(log_start)
 	python ops/f1040s1.py src build $(data)
+	touch $@
+
+$(data)/f1040s3: ops/f1040s3.py src/personal.json
+	$(log_start)
+	python ops/f1040s3.py src build $(data)
 	touch $@
 
 $(data)/f1040s4: ops/f1040s4.py src/personal.json $(data)/f1040sse
