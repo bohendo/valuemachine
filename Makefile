@@ -27,7 +27,7 @@ log_start=@echo;echo "=============";echo "[Makefile] => Start building $@"
 # Shortcut/Helper Rules
 .PHONY: tax-return.pdf # always build this
 
-default: federal indiana
+default: federal
 example: federal-example indiana-example
 all: federal indiana federal-example indiana-example
 federal: build/federal-tax-return.pdf
@@ -51,11 +51,11 @@ purge:
 ########################################
 # Build components of our tax return
 
-build/federal-tax-return.pdf: ops/build.sh $(forms)/federal $(src) $(data)/f1040 $(data)/f1040s1 $(data)/f1040s3 $(data)/f1040s4 $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd $(data)/f8949 $(data)/f8889 $(data)/f2210
+build/federal-tax-return.pdf: ops/build.sh $(forms)/federal $(src) $(data)/f1040 $(data)/f1040s1 $(data)/f1040s3 $(data)/f1040s4 $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd $(data)/f8949 $(data)/f8889
 	$(log_start)
 	bash ops/build.sh federal $(forms) $(mappings) $(data) $(pages) build
 
-$(example)/federal-tax-return.pdf: ops/build.sh $(forms)/federal $(src) $(example_data)/f1040 $(example_data)/f1040s1 $(example_data)/f1040s3 $(example_data)/f1040s4 $(example_data)/f1040sse $(example_data)/f1040sc $(example_data)/f1040sd $(example_data)/f8949 $(example_data)/f8889 $(example_data)/f2210
+$(example)/federal-tax-return.pdf: ops/build.sh $(forms)/federal $(src) $(example_data)/f1040 $(example_data)/f1040s1 $(example_data)/f1040s3 $(example_data)/f1040s4 $(example_data)/f1040sse $(example_data)/f1040sc $(example_data)/f1040sd $(example_data)/f8949 $(example_data)/f8889
 	$(log_start)
 	bash ops/build.sh federal $(forms) $(mappings) $(example_data) $(example_pages) $(example)
 
@@ -128,7 +128,7 @@ $(data)/f1040sd: ops/f1040sd.py $(src) $(data)/f8949
 
 $(data)/f8949: ops/f8949.py $(src) build/tx-history.csv
 	$(log_start)
-	cp src/f8949*.json $(data)
+	cp src/f8949*.json $(data) || true
 	python ops/f8949.py src build $(data)
 	touch $@
 

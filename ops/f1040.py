@@ -89,9 +89,11 @@ elif line10 >= 49700 and line10 < 49750 and f1040['FilingMarriedJointly']:
   line11 = 5586
 elif line10 >= 51200 and line10 < 51250 and f1040['FilingMarriedJointly']:
   line11 = 5766
+elif line10 >= 53350 and line10 < 53400 and f1040['FilingMarriedJointly']:
+  line11 = 6024
 else:
   print('Oh no, tax table not implemented, please add entry for income of: %d' % line10)
-  exit(1)
+  line11 = line10 * 0.111
 
 
 f1040['Line11a'] = toForm(line11, 0) + '.' + toForm(line11, 1)

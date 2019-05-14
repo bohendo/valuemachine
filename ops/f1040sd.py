@@ -70,7 +70,7 @@ f1040sd["Line16"] = f1040sd["Line7"] + f1040sd["Line15"]
 
 if f1040sd["Line16"] > 0:
   if f1040sd["Line7"] > 0 and f1040sd["Line15"] > 0:
-    print('WARNING: Capital Gains not properly implemented, upgrade ops/f1040.py first!')
+    print('WARNING: Capital Gains not properly implemented, upgrade ops/f1040sd.py first!')
     f1040sd["Line17Yes"] = True
     f1040sd["Line17No"] = False
 
@@ -96,7 +96,7 @@ if f1040sd["Line16"] > 0:
 
 elif f1040sd["Line16"] < 0:
   maxLoss = 1500 if f1040['FilingMarriedSeparate'] else 3000
-  f1040sd["Line21"] = abs(f1040sd["Line16"]) if abs(f1040sd["Line16"]) < maxLoss else maxLoss
+  f1040sd["Line21"] = str(abs(f1040sd["Line16"]) if abs(f1040sd["Line16"]) < maxLoss else maxLoss)
   f1040sd["Line22Yes"] = haveQualifiedDividends
   f1040sd["Line22No"] = not haveQualifiedDividends
 
@@ -111,7 +111,6 @@ for field in sum_fields:
 f1040sd["Line7"] = str(f1040sd["Line7"])
 f1040sd["Line15"] = str(f1040sd["Line15"])
 f1040sd["Line16"] = str(f1040sd["Line16"])
-f1040sd["Line21"] = str(f1040sd["Line21"])
 
 with open(data_dir+'/f1040sd.json', "wb") as output:
   json.dump(f1040sd, output)

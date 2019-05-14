@@ -6,6 +6,9 @@ import re
 import os
 import datetime
 
+# Skip data from not this year
+year='19'
+
 input_folder = sys.argv[1]
 addresses= json.load(open(sys.argv[2], "rb"))['addresses']
 output_file=sys.argv[3]
@@ -27,8 +30,7 @@ for file in input_files:
       n = 3
       for row in csv_data:
         timestamp = datetime.datetime.strptime(row["Timestamp"], '%m/%d/%Y').strftime('%y%m%d-%H%M%S')
-        # Skip data from not 2018
-        if timestamp[:2] != '18':
+        if timestamp[:2] != year:
           continue
         # Skip coinbase interactions that aren't a buy or sell
         if row["Transaction Type"] != "Buy" and row["Transaction Type"] != "Sell":
@@ -54,8 +56,7 @@ for file in input_files:
       csv_data = csv.DictReader(f)
       for row in csv_data:
         timestamp = datetime.datetime.fromtimestamp(float(row["UnixTimestamp"])).strftime('%y%m%d-%H%M%S')
-        # Skip data from not 2018
-        if timestamp[:2] != '18':
+        if timestamp[:2] != year:
           continue
         if float(row["Value_OUT(ETH)"]) > 0 and float(row["Value_IN(ETH)"]) > 0:
           print("Edge case: found both value in and value out")
@@ -70,14 +71,14 @@ for file in input_files:
         else:
           sender = row["From"]
           if sender not in hasWarned:
-            print('Warning: address not in address book', sender)
+            print('Warning: address not in address book', sender, row["Txhash"])
             hasWarned.append(sender)
         if row["To"] in addresses:
           to = addresses[row["To"]]
         else:
           to = row["To"]
           if to not in hasWarned:
-            print('Warning: address not in address book', to)
+            print('Warning: address not in address book', to, row["Txhash"])
             hasWarned.append(to)
         # Skip self-to-self transactions
         if to[:4] == "self" and sender[:4] == "self":

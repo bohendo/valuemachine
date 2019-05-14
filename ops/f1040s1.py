@@ -54,7 +54,10 @@ f1040s1['Line27c'] = toForm(line27, 1)
 
 # Student Loan Intereset Deduction
 if not f1040['FilingMarriedSeparate']:
-  interestPaid = personal['expenses']['StudentLoanInterest']
+  if 'StudentLoanInterest' in personal['expenses'].keys():
+    interestPaid = personal['expenses']['StudentLoanInterest']
+  else:
+    interestPaid = 0
   interestPaid = 2500 if interestPaid > 2500 else interestPaid
   f1040s1['Line33'] = toForm(interestPaid, 0)
   f1040s1['Line33c'] = toForm(interestPaid, 1)

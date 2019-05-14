@@ -2,6 +2,8 @@
 import sys
 from utils import *
 
+year='19'
+
 ########################################
 # Read data from input files
 
@@ -30,7 +32,7 @@ for payment in income['payments']:
 
 # Calculate income that came from txHistory
 for row in txHistory:
-  if row['timestamp'][:2] != '18':
+  if row['timestamp'][:2] != year:
     print("invalid row")
     continue
   if row['from'][7:] in income['exceptions']['skip']:
