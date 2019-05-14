@@ -72,8 +72,7 @@ then
 fi
 
 all_pages="`find $pages_dir -type f -name "*.pdf" | sort`"
-attachments="`find src/attachments -type f -name "*.pdf" -maxdepth 1 | sort`"
-receipts="`find src/attachments/receipts -type f -name "*.pdf" -maxdepth 1 | sort`"
-echo; echo "pdftk $all_pages $attachments $receipts cat output $output_dir/$source-tax-return.pdf"
-pdftk $all_pages $attachments $receipts cat output $output_dir/$source-tax-return.pdf
+attachments="`find src/attachments -type f -name "w2*.pdf" -maxdepth 1 | sort`"
+echo; echo "pdftk $all_pages $attachments cat output $output_dir/$source-tax-return.pdf"
+pdftk $all_pages $attachments cat output $output_dir/$source-tax-return.pdf
 echo
