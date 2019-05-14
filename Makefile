@@ -35,6 +35,13 @@ indiana: build/indiana-tax-return.pdf
 federal-example: build/example/federal-tax-return.pdf
 indiana-example: build/example/indiana-tax-return.pdf
 
+backup:
+	tar czf tax_backup.tar.gz src
+
+restore-backup:
+	mv src old-src
+	tar xvzf tax_backup.tar.gz
+
 clean:
 	find build -type f -not -path "$(forms)/*" -exec rm -v {} \;
 

@@ -8,6 +8,7 @@ build
 
 # Personal data
 src/*
+*backup.tar.gz
 
 # But still track the example personal data
 !src/example
