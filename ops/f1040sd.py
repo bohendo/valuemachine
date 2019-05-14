@@ -91,7 +91,8 @@ if f1040sd["Line16"] > 0:
   else:
     f1040sd["Line17Yes"] = False
     f1040sd["Line17No"] = True
-    f1040sd["Line22"] = False
+    f1040sd["Line22Yes"] = False
+    f1040sd["Line22No"] = True
     # DONE
 
 elif f1040sd["Line16"] < 0:

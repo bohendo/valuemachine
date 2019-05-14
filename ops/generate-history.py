@@ -19,7 +19,41 @@ history=[]
 
 hasWarned=[]
 
+def toNum(str):
+  if str == "":
+    return 0
+  else:
+    return float(str)
+
 for file in input_files:
+
+  # Process tx history from Sendwyre
+  if re.match('wyre', file):
+    with open('%s/%s' % (input_folder,file), mode='rb') as f:
+      csv_data = csv.DictReader(f)
+      for row in csv_data:
+        if row["Created At"] == '':
+          continue
+        timestamp = datetime.datetime.strptime(row["Created At"], '%b %d, %Y %I:%M:%S %p %Z').strftime('%y%m%d-%H%M%S')
+        if timestamp[:2] != year:
+          continue
+        # Ignore transfers into wyre account
+        if row["Source Currency"] == row["Dest Currency"]:
+          continue
+        generated_row = {
+          "timestamp": timestamp,
+          "asset": row["Source Currency"],
+          "quantity": row["Source Amount"],
+          "price": row["Exchange Rate"],
+          "from": 'ex-sendwyre' if row["Type"] == "INCOMING" else 'self',
+          "to": 'ex-sendwyre' if row["Type"] == "OUTGOING" else 'self',
+          "value_in": row["Dest Amount"],
+          "value_out": str(toNum(row["Source Amount"]) + toNum(row["Exchange Rate"])),
+          "fee": str(toNum(row["Fees ETH"]) + toNum(row["Fees DAI"]) + toNum(row["Fees BTC"]) + toNum(row["Fees USD"]))
+          # Note: fee is meaningless here bc units are fucked
+        }
+        history.append(generated_row)
+
   # Process tx history from Coinbase
   if re.match('coinbase', file):
     with open('%s/%s' % (input_folder,file), mode='rb') as f:
@@ -27,7 +61,6 @@ for file in input_files:
       f.readline()
       f.readline()
       csv_data = csv.DictReader(f)
-      n = 3
       for row in csv_data:
         timestamp = datetime.datetime.strptime(row["Timestamp"], '%m/%d/%Y').strftime('%y%m%d-%H%M%S')
         if timestamp[:2] != year:
