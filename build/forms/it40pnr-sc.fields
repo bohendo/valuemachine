@@ -1,0 +1,194 @@
+---
+FieldType: Text
+FieldName: Names shown on Form IT40PNR
+FieldNameAlt: Name(s) shown on Form IT-40PNR
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Number of months rented
+FieldNameAlt: Number of months rented
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2
+FieldNameAlt: 2
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 3
+FieldNameAlt: 3
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 4
+FieldNameAlt: 4
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5
+FieldNameAlt: 5
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6
+FieldNameAlt: 6
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 7
+FieldNameAlt: 7
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 10
+FieldNameAlt: 10
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 11a
+FieldNameAlt: 11a
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 11b
+FieldNameAlt: 11b
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 11c
+FieldNameAlt: 11c
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 12
+FieldNameAlt: 12
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: SSN1
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: SSN2
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: SSN3
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: Landlords name and address
+FieldNameAlt: Landlord&#8217;s name and address
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Rental Address
+FieldNameAlt: Rental Address
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Rental Amount
+FieldNameAlt: Rental Amount
+FieldFlags: 29360128
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 1
+FieldNameAlt: 1
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Address where property tax paid
+FieldNameAlt: Address where property tax paid 
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Number of months lived
+FieldNameAlt: Number of months lived
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Property Tax
+FieldNameAlt: Property Tax
+FieldFlags: 29360128
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 8
+FieldNameAlt: 8
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 9
+FieldNameAlt: 9
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Deduction name B
+FieldNameAlt: Enter deduction name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Deduction name A
+FieldNameAlt: Enter deduction name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Deduction name C
+FieldNameAlt: Enter deduction name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Code B
+FieldNameAlt: Code Number
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code A
+FieldNameAlt: Code Number
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code C
+FieldNameAlt: Code Number
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 3

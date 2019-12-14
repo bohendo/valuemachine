@@ -1,0 +1,942 @@
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_1[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_2[0]
+FieldFlags: 0
+FieldJustification: Center
+FieldMaxLength: 11
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_3[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[1].f1_4[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[1].f1_5[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[1].f1_6[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[1].f1_7[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[1].f1_8[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[1].f1_9[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[1].f1_10[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[2].f1_11[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[2].f1_12[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[2].f1_13[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[2].f1_14[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[2].f1_15[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[2].f1_16[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[2].f1_17[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[3].f1_18[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[3].f1_19[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[3].f1_20[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[3].f1_21[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[3].f1_22[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[3].f1_23[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[3].f1_24[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[4].f1_25[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[4].f1_26[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[4].f1_27[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[4].f1_28[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[4].f1_29[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[4].f1_30[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine2[0].#subform[4].f1_31[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: 
+FieldName: Return[0].Page1[0].TableLine2[0]
+FieldFlags: 0
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_32[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_33[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_34[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_35[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_36[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_37[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_38[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed1[0].f1_39[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed1[0].f1_40[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed1[0].f1_41[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed1[0].f1_42[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed1[0].f1_43[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed1[0].f1_44[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed1[0].f1_45[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed2[0].f1_46[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed2[0].f1_47[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed2[0].f1_48[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed2[0].f1_49[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed2[0].f1_50[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed2[0].f1_51[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed2[0].f1_52[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed3[0].f1_53[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed3[0].f1_54[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed3[0].f1_55[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed3[0].f1_56[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed3[0].f1_57[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed3[0].f1_58[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossFixed3[0].f1_59[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossDynamic[0].f1_60[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossDynamic[0].f1_61[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossDynamic[0].f1_62[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossDynamic[0].f1_63[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossDynamic[0].f1_64[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossDynamic[0].f1_65[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].TableLine10[0].OrdinaryGainLossDynamic[0].f1_66[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: 
+FieldName: Return[0].Page1[0].TableLine10[0]
+FieldFlags: 0
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_67[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_68[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_69[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_70[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_71[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_72[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_73[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_74[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page1[0].f1_75[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[4].f2_1[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[4].f2_2[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[4].f2_3[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[5].f2_4[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[5].f2_5[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[5].f2_6[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[6].f2_7[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[6].f2_8[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[6].f2_9[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[7].PropertyDescription[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[7].f2_10[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[2].#subform[7].f2_11[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: 
+FieldName: Return[0].Page2[0].#subform[2]
+FieldFlags: 0
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[10].f2_12[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[10].f2_13[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[10].f2_14[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[10].f2_15[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[11].f2_16[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[11].f2_17[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[11].f2_18[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[11].f2_19[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[12].f2_20[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[12].f2_21[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[12].f2_22[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[12].f2_23[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[13].f2_24[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[13].f2_25[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[13].f2_26[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[13].f2_27[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[14].f2_28[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[14].f2_29[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[14].f2_30[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[14].f2_31[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[16].f2_32[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[16].f2_33[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[16].f2_34[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[16].f2_35[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[17].f2_36[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[17].f2_37[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[17].f2_38[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[17].f2_39[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[19].f2_40[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[19].f2_41[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[19].f2_42[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[19].f2_43[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[20].f2_44[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[20].f2_45[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[20].f2_46[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[20].f2_47[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[21].f2_48[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[21].f2_49[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[21].f2_50[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[21].f2_51[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[22].f2_52[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[22].f2_53[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[22].f2_54[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[22].f2_55[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[23].f2_56[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[23].f2_57[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[23].f2_58[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[23].f2_59[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[24].f2_60[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[24].f2_61[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[24].f2_62[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[24].f2_63[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[25].f2_64[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[25].f2_65[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[25].f2_66[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[25].f2_67[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[27].f2_68[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[27].f2_69[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[27].f2_70[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[27].f2_71[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[28].f2_72[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[28].f2_73[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[28].f2_74[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[28].f2_75[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[29].f2_76[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[29].f2_77[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[29].f2_78[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[29].f2_79[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[31].f2_80[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[31].f2_81[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[31].f2_82[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[31].f2_83[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[32].f2_84[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[32].f2_85[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[32].f2_86[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[32].f2_87[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[34].f2_88[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[34].f2_89[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[34].f2_90[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[34].f2_91[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[35].f2_92[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[35].f2_93[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[35].f2_94[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[8].#subform[35].f2_95[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: 
+FieldName: Return[0].Page2[0].#subform[8]
+FieldFlags: 0
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].f2_96[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].f2_97[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].f2_98[0]
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 50
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[37].#subform[39].f2_99[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[37].#subform[39].f2_100[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[37].#subform[40].f2_101[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[37].#subform[40].f2_102[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[37].#subform[41].f2_103[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Return[0].Page2[0].#subform[37].#subform[41].f2_104[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: 
+FieldName: Return[0].Page2[0].#subform[37]
+FieldFlags: 0
+FieldJustification: Left
+---
+FieldType: 
+FieldName: Return[0]
+FieldFlags: 0
+FieldJustification: Left

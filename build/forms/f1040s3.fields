@@ -1,0 +1,133 @@
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_1[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_2[0]
+FieldFlags: 0
+FieldJustification: Center
+FieldMaxLength: 11
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_3[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_4[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_5[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_6[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_7[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_8[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_9[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_10[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_11[0]
+FieldFlags: 8388609
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_12[0]
+FieldFlags: 1
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_13[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_14[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Button
+FieldName: form1[0].Page1[0].c1_1[0]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 1
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: form1[0].Page1[0].c1_1[1]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: form1[0].Page1[0].c1_1[2]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 3
+FieldStateOption: Off
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_15[0]
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_16[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_17[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_18[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: form1[0].Page1[0].f1_19[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: 
+FieldName: form1[0]
+FieldFlags: 0
+FieldJustification: Left

@@ -1,0 +1,228 @@
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_1[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_2[0]
+FieldFlags: 0
+FieldJustification: Center
+FieldMaxLength: 11
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_3[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_4[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].Line1bCombfield[0].f1_5[0]
+FieldFlags: 25165824
+FieldJustification: Left
+FieldMaxLength: 9
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_1[0]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: A
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_1[1]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: B
+FieldStateOption: Off
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].Line1dCombfield[0].f1_6[0]
+FieldFlags: 25165824
+FieldJustification: Left
+FieldMaxLength: 17
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_7[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_8[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].Line2bCombfield[0].f1_9[0]
+FieldFlags: 25165824
+FieldJustification: Left
+FieldMaxLength: 9
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_2[0]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: A
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_2[1]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: B
+FieldStateOption: Off
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].Line2dCombfield[0].f1_10[0]
+FieldFlags: 25165824
+FieldJustification: Left
+FieldMaxLength: 17
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_11[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_12[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].Line3bCombfield[0].f1_13[0]
+FieldFlags: 25165824
+FieldJustification: Left
+FieldMaxLength: 9
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_3[0]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: A
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_3[1]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: B
+FieldStateOption: Off
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].Line3dCombfield[0].f1_14[0]
+FieldFlags: 25165824
+FieldJustification: Left
+FieldMaxLength: 17
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_15[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_16[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_17[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_18[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].Line5bCombfield[0].f1_19[0]
+FieldFlags: 25165824
+FieldJustification: Left
+FieldMaxLength: 33
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_4[0]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].Line5cCombfield[0].f1_20[0]
+FieldFlags: 25165824
+FieldJustification: Left
+FieldMaxLength: 33
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_21[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_22[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].Line6bCombfield[0].f1_23[0]
+FieldFlags: 25165824
+FieldJustification: Left
+FieldMaxLength: 33
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_5[0]
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].Line6cCombfield[0].f1_24[0]
+FieldFlags: 25165824
+FieldJustification: Left
+FieldMaxLength: 33
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_25[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_26[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_27[0]
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_28[0]
+FieldFlags: 0
+FieldJustification: Right
+FieldMaxLength: 3
+---
+FieldType: 
+FieldName: topmostSubform[0]
+FieldFlags: 0
+FieldJustification: Left

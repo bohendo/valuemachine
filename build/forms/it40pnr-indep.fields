@@ -1,0 +1,300 @@
+---
+FieldType: Text
+FieldName: SSN2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: SSN3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: SSN1
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: 2B
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 2C
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: 2C2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2C3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 2D2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2D3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 2A
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 3A
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 3B
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 3C
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: 3C2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 3C3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Button
+FieldName: 2E
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: 3D
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 3D2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 3D3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Button
+FieldName: 3E
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: 2D
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 4A
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 4B
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 4C
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: 4C2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 4C3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 4D
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 4D2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 4D3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Button
+FieldName: 4E
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: 1A
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 1B
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 1C
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: 1C2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1C3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 1D
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1D2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1D3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Button
+FieldName: 1E
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: 5A
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 5B
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 5C
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: 5C2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 5C3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 5D
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 5D2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Button
+FieldName: 5E
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: 5D3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 7
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 6
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Names
+FieldFlags: 8388608
+FieldJustification: Center

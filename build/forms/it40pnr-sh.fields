@@ -1,0 +1,484 @@
+---
+FieldType: Text
+FieldName: 1A
+FieldNameAlt: 1A
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1B
+FieldNameAlt: 1B
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1C
+FieldNameAlt: 1C
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1D
+FieldNameAlt: 1D
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2A
+FieldNameAlt: 2A
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2B
+FieldNameAlt: 2B
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2C
+FieldNameAlt: 2C
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2D
+FieldNameAlt: 2D
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Names
+FieldNameAlt: Names
+FieldFlags: 12582912
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: SSN2
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: SSN1
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: SSN3
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 1C Month
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1D Month
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1B Day
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1D Day
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1C Day
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1B Month
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1B Month2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1C Month2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1D Month2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1B Day2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1C Day2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1D Day2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1A Month
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2B Month
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2C Month
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2A Month
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2D Month
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1A Day
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2B Day
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2C Day
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2A Day
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2D Day
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1A Month2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2B Month2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2C Month2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2A Month2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2D Month2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1A Day2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2B Day2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2C Day2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2A Day2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 2D Day2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Button
+FieldName: Federal Extension
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: Indiana Extension
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: Farming
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: Taxpayer Month of Death
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Taxpayer Day of Death
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Spouse Month of Death
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Spouse Day of Death
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Phone Number
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Email
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Personal Rep Name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Personal Rep Phone
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Personal Rep Address
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Personal Rep City
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Personal Rep State
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Personal Rep Zip
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Paid Preparer Name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: PTIN
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Paid Preparer Address
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Paid Preparer City
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Paid Preparer State
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Paid Preparer Zip
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Button
+FieldName: Federal Filing
+FieldFlags: 49152
+FieldJustification: Left
+FieldStateOption: No
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: Authorize Personal Rep
+FieldFlags: 49152
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: 1A State Tax Return
+FieldFlags: 49152
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: 1B State Tax Return
+FieldFlags: 49152
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: 1C State Tax Return
+FieldFlags: 49152
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: 1D State Tax Return
+FieldFlags: 49152
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: 2A State Tax Return
+FieldFlags: 49152
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: 2B State Tax Return
+FieldFlags: 49152
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: 2C State Tax Return
+FieldFlags: 49152
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: 2D State Tax Return
+FieldFlags: 49152
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: IN-OPT
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: Professional Team Member
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes

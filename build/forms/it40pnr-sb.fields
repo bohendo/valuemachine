@@ -1,0 +1,297 @@
+---
+FieldType: Text
+FieldName: Names shown on Form IT40PNR
+FieldNameAlt: Name(s) shown on Form IT-40PNR
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 2
+FieldNameAlt: 2
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 3
+FieldNameAlt: 3
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 4
+FieldNameAlt: 4
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: SSN1
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: SSN2
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: SSN3
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 1
+FieldNameAlt: 1
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Add-back Name A
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name B
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name C
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name D
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name E
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name F
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name G
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name H
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name I
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name J
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name K
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name L
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name M
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name N
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Add-back Name O
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Code A
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code B
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code C
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code D
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code E
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code F
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code G
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code H
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code I
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code J
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code K
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code L
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code M
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code N
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code O
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: 5A
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5B
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5C
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5D
+FieldNameAlt: 5
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5E
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5F
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5G
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5H
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5I
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5J
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5K
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5L
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5M
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5N
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5O
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6
+FieldFlags: 8388608
+FieldJustification: Right

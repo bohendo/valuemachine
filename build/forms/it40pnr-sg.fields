@@ -1,0 +1,177 @@
+---
+FieldType: Text
+FieldName: Names shown on Form IT40PNR
+FieldNameAlt: Name(s) shown on Form IT-40PNR
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 2
+FieldNameAlt: 2
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 3a
+FieldNameAlt: 3a
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 3b
+FieldNameAlt: 3b
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 4
+FieldNameAlt: 4
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5
+FieldNameAlt: 5
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6a
+FieldNameAlt: 6a
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6b
+FieldNameAlt: 6b
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6c
+FieldNameAlt: 6c
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6d
+FieldNameAlt: 6d
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: SSN2
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: SSN1
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: SSN3
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 1
+FieldNameAlt: 1
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Credit name 3b
+FieldNameAlt: Enter credit name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Credit name 3a
+FieldNameAlt: Enter credit name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Credit name 6b
+FieldNameAlt: Enter credit name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Credit name 6c
+FieldNameAlt: Enter credit name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Credit name 6a
+FieldNameAlt: Enter credit name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Credit name 6d
+FieldNameAlt: Enter credit name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Code 3a
+FieldNameAlt: Code Number
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code 3b
+FieldNameAlt: Code Number
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code 6b
+FieldNameAlt: Code Number
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code 6c
+FieldNameAlt: Code Number
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code 6a
+FieldNameAlt: Code Number
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Code 6d
+FieldNameAlt: Code Number
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: 8
+FieldNameAlt: 8
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 7
+FieldNameAlt: 7
+FieldFlags: 8388608
+FieldJustification: Right

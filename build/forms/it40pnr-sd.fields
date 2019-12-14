@@ -1,0 +1,144 @@
+---
+FieldType: Text
+FieldName: Names shown on Form IT40PNR
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 2
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 3
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: SSN2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: SSN1
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: SSN3
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 1
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Button
+FieldName: You 65
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: You blind
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: Spouse 65
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: Spouse blind
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: You 65 or older
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: Spouse 65 or older
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: 4
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 11
+---
+FieldType: Text
+FieldName: 7
+FieldFlags: 8388608
+FieldJustification: Left
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Total Boxes 2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 1
+---
+FieldType: Text
+FieldName: Total Boxes
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 1
+---
+FieldType: Text
+FieldName: 8
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 7a
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 1
+---
+FieldType: Text
+FieldName: Box 6
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Box 7
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Amount from Sch A line 35A
+FieldFlags: 8388608
+FieldJustification: Right

@@ -1,0 +1,391 @@
+---
+FieldType: Text
+FieldName: 2
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 3
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 4
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 7
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 8
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 9
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 11
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 12
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 13
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 14
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 15
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 16
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 17
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Fiscal1
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Fiscal2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Fiscal3
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: Fiscal4
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Fiscal5
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Fiscal6
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: Your First Name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Your Last Name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Spouse First Name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Spouse Initial
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 1
+---
+FieldType: Text
+FieldName: Spouse Last Name
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Spouse Suffix
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 5
+---
+FieldType: Text
+FieldName: Address
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: City
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: State
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Zip Code
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Foreign Country Code
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: County Where You Lived
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: County Where Spouse Lived
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: County Where You Worked
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: County Where Spouse Worked
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: 1
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 10
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 18
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Your County Code
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Spouse County Code
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Button
+FieldName: Check Box7
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: Routing Number
+FieldFlags: 29360128
+FieldJustification: Left
+FieldMaxLength: 9
+---
+FieldType: Text
+FieldName: Account Number
+FieldFlags: 29360128
+FieldJustification: Left
+FieldMaxLength: 17
+---
+FieldType: Text
+FieldName: Date1
+FieldNameAlt: Date
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: Date2
+FieldNameAlt: Date
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: SSN1
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: SSN2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: SSN3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: Spouse SSN1
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: Spouse SSN2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: Spouse SSN3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Button
+FieldName: ITIN
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: Spouse ITIN
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: Initial
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 1
+---
+FieldType: Text
+FieldName: Suffix
+FieldFlags: 12582912
+FieldJustification: Center
+FieldMaxLength: 5
+---
+FieldType: Button
+FieldName: Married Filing Separately
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: 19a
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 19b
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 19c
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 19d
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 20
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 21
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Button
+FieldName: Checking
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: Savings
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Button
+FieldName: Account Outside US
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: Off
+FieldStateOption: Yes
+---
+FieldType: Text
+FieldName: 23
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 24
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 25
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 26
+FieldFlags: 8388608
+FieldJustification: Right

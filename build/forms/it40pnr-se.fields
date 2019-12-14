@@ -1,0 +1,267 @@
+---
+FieldType: Text
+FieldName: 1
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: 2
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: 3
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: 4
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: 5
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: SSN1
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: SSN2
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: SSN3
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: Names
+FieldNameAlt: Name(s) shown on Form IT-40PNR
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: A1
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: A2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: A3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: A4
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: A5
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: A6
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: A7
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: A8
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: A9
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: A10
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: B1
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: B2
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: B3
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: B4
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: B5
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: B6
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: B7
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: B8
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: B9
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: B10
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: C1
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: C2
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: C3
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: C4
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: C5
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: C6
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: C7
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: C8
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: C9
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: C10
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D1
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D2
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D3
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D4
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D5
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D6
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D7
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D8
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D9
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D10
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: D11
+FieldFlags: 8388608
+FieldJustification: Left

@@ -1,0 +1,176 @@
+---
+FieldType: Text
+FieldName: Names shown on Form IT40PNR
+FieldNameAlt: Name(s) shown on Form IT-40PNR
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: 3
+FieldNameAlt: 3
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 4
+FieldNameAlt: 4
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5
+FieldNameAlt: 5
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6
+FieldNameAlt: 6
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 7
+FieldNameAlt: 7
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: SSN2
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: SSN1
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: SSN3
+FieldNameAlt: Your Social Security Number
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 1
+FieldNameAlt: 1
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 2
+FieldNameAlt: 2
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Earned Income Credit
+FieldNameAlt: Earned Income Credit
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Proration1
+FieldFlags: 8388608
+FieldJustification: Right
+FieldMaxLength: 1
+---
+FieldType: Text
+FieldName: Proration2
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: 8
+FieldNameAlt: 8
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: code no. a
+FieldNameAlt: code no. a
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: code no. b
+FieldNameAlt: code no. b
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: code no. c
+FieldNameAlt: code no. c
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: code no. d
+FieldNameAlt: code no. d
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 1a
+FieldNameAlt: 1a
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 1b
+FieldNameAlt: 1b
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 1c
+FieldNameAlt: 1c
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 1d
+FieldNameAlt: 1d
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 2b
+FieldNameAlt: 2b
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 9
+FieldNameAlt: 9
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Enter fund name a
+FieldNameAlt: Enter fund name a
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Enter fund name b
+FieldNameAlt: Enter fund name b
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Enter fund name c
+FieldNameAlt: Enter fund name c
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Enter fund name d
+FieldNameAlt: Enter fund name d
+FieldFlags: 8388608
+FieldJustification: Right

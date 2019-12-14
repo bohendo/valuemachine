@@ -1,0 +1,173 @@
+---
+FieldType: Text
+FieldName: 1A
+FieldNameAlt: 1A
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 1B
+FieldNameAlt: 1B
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 2A
+FieldNameAlt: 2A
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 2B
+FieldNameAlt: 2B
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 3A
+FieldNameAlt: 3A
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 3B
+FieldNameAlt: 3B
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6
+FieldNameAlt: 6
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 7
+FieldNameAlt: 7
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 1A_2
+FieldNameAlt: 1A
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 1B_2
+FieldNameAlt: 1B
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 2A_2
+FieldNameAlt: 2A
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 2B_2
+FieldNameAlt: 2B
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 3A_2
+FieldNameAlt: 3A
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 3B_2
+FieldNameAlt: 3B
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5A_2
+FieldNameAlt: 5A
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5B_2
+FieldNameAlt: 5B
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 7A
+FieldNameAlt: 7A
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 7B
+FieldNameAlt: 7B
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 8_2
+FieldNameAlt: 8
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: Names
+FieldFlags: 8388608
+FieldJustification: Center
+---
+FieldType: Text
+FieldName: SSN1
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 3
+---
+FieldType: Text
+FieldName: SSN2
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 2
+---
+FieldType: Text
+FieldName: SSN3
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: 4A_2
+FieldNameAlt: 4A
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 4B_2
+FieldNameAlt: 4B
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 6A
+FieldNameAlt: 6A
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: 6B
+FieldNameAlt: 6B
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: 4
+FieldNameAlt: 4
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: 5
+FieldNameAlt: 5
+FieldFlags: 8388608
+FieldJustification: Right
