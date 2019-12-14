@@ -44,15 +44,14 @@ Attachments:
 
 Dependencies:
  - **Schedule 1**: Other income & deductions
- - Schedule 2: Alternative minimum tax
- - Schedule 3: Tax credits
- - **Schedule 4**: Other tax eg self-employment tax
- - Schedule 5: Other refund credits
- - Schedule 6: Foreign address or paid preparer details
+ - **Schedule 2**: Additional tax
+ - **Schedule 3**: Tax credits
  - Schedule A: Deduction Details
+ - **Schedule D**: Capital gains income/loss
  - Form 4972: Tax on Lump-Sum Distributions
  - Form 8814: Parents’ Election To Report Child’s Interest and Dividends
  - Form 8888: Allocation of Refund (Including Savings Bond Purchases)
+ - _Form 8995: Qualified Business Income Deductions (Form not available?)_
 
 ## Schedule 1
 
@@ -60,7 +59,6 @@ Additional Income and Adjustments to Income
 
 Dependencies:
  - **Schedule C** (or C-EZ): Business income/loss
- - **Schedule D**: Capital gains income/loss
  - Schedule E: Real-estate/trust/S-Corp income/loss
  - Schedule F: Profit or Loss From Farming
  - **Schedule SE**: self-employment taxes
@@ -68,21 +66,38 @@ Dependencies:
  - Form 3903: Military Moving Expenses
  - Form 4797: Sales of Business Property
  - Form 8889: Health Savings Accounts (HSAs)
+ - **Form 2555**: Foreign Earned Income
 
-## Schedule 4
+## Schedule 2
 
 Additional Taxes
 
 Dependencies:
- - **Schedule SE**: Self-employment taxes
- - Schedule H: Household employment taxes
- - Form 965A: Individual Report of Net 965 Tax Liability
- - Form 4137: Social Security and Medicare Tax on Unreported Tip Income
- - Form 5329: Additional Taxes on Qualified Plans (Including IRAs) and Other Tax-Favored Accounts
- - From 5405: Repayment of the First-Time Homebuyer Credit
- - Form 8919: Uncollected Social Security and Medicare Tax on Wages
+ - Schedule H: Household Employment Taxes
+ - Form 965: Net Tax Liability
+ - Form 5329: Additional Tax on Tax-favoured accounts
+ - _Form 6251: Alternative Minimum Tax—Individuals_
  - Form 8959: Additional Medicare Tax
  - Form 8960: Net Investment Income Tax— Individuals, Estates, and Trusts
+ - *Form 8962*: Premium Tax Credit
+
+## Schedule 3
+
+Tax Credits
+
+Dependencies:
+  - **Form 1116**: Foreign Tax Credit
+  - Form 2439: Shareholder of undistributed long-term capital gains
+  - Form 2441: Child and dependent care expenses
+  - Form 3800: Other credits
+  - Form 4136: Credits for fuels
+  - Form 5695: Residential energy
+  - Form 8801: Other credits
+  - Form 8863: Education credit
+  - Form 8880: Retirement savings contribution
+  - Form 8885: Health coverage tax credit
+ - *Form 8962*: Premium Tax Credit
+  
 
 ## Schedule SE
 
