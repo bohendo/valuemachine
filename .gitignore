@@ -7,8 +7,10 @@ build
 *.pyc
 
 # Personal data
-src/*
 *backup.tar.gz
+personal.json
+./*.json
+docs/*
 
 # But still track the example personal data
-!src/example
+!docs/example
