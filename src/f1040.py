@@ -5,15 +5,18 @@ from utils import *
 ########################################
 # Read data from input files
 
-src_dir=sys.argv[1]
+personal_data=sys.argv[1]
 build_dir=sys.argv[2]
 data_dir=sys.argv[3]
 
-personal = loadJSON(src_dir+'/personal.json')
+personal = loadJSON(personal_data)
 f1040s1=loadJSON(data_dir+'/f1040s1.json')
 f1040s3=loadJSON(data_dir+'/f1040s3.json')
 f1040s4=loadJSON(data_dir+'/f1040s4.json')
-f1040=loadJSON(src_dir+'/f1040.json')
+
+f1040 = personal["f1040"]
+
+print(f1040)
 
 ########################################
 # Build the form

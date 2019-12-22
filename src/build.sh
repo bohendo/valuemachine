@@ -49,30 +49,8 @@ then
   exit
 fi
 
-if [[ -f "src/signature.pdf" ]]
-then
-  echo "Signing..."
-  # Isolate the first page
-  mv $pages_dir/01_f1040.pdf $pages_dir/f1040.pdf
-  pdftk $pages_dir/f1040.pdf cat 1 output $pages_dir/01_unsigned_f1040.pdf
-  pdftk $pages_dir/f1040.pdf cat 2-end output $pages_dir/01_02_f1040.pdf
-  rm $pages_dir/f1040.pdf
-  # Stamp on our signature
-  pdfjam --paper 'letterpaper' --scale 0.25 --offset '-3.5cm 3.2cm' --outfile build/signature.pdf src/signature.pdf 
-  pdftk $pages_dir/01_unsigned_f1040.pdf stamp build/signature.pdf output $pages_dir/01_signed_f1040.pdf
-  rm $pages_dir/01_unsigned_f1040.pdf
-  if [[ -f "src/spouse-signature.pdf" ]]
-  then
-    pdfjam --paper 'letterpaper' --scale 0.1 --offset '-4.5cm 2.3cm' --outfile build/spouse-signature.pdf src/spouse-signature.pdf 
-    pdftk $pages_dir/01_signed_f1040.pdf stamp build/spouse-signature.pdf output $pages_dir/01_01_f1040.pdf
-    rm $pages_dir/01_signed_f1040.pdf
-  else
-    mv $pages_dir/01_signed_f1040.pdf $pages_dir/01_01_f1040.pdf
-  fi
-fi
-
 all_pages="`find $pages_dir -type f -name "*.pdf" | sort`"
-attachments="`find src/attachments -type f -name "w2*.pdf" -maxdepth 1 | sort`"
+attachments="`find docs/attachments -type f -name "w2*.pdf" -maxdepth 1 | sort`"
 echo; echo "pdftk $all_pages $attachments cat output $output_dir/$source-tax-return.pdf"
 pdftk $all_pages $attachments cat output $output_dir/$source-tax-return.pdf
 echo
