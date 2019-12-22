@@ -31,42 +31,39 @@ Running `make` will build both the example output and your personal tax return.
 
 # Forms Overview
 
-**Bold** forms are ones that are supported or in active development
+ - [x] Checked forms are supported by this repo.
 
 ## Form 1040
 
 Root of the tax form tree
 
-Attachments:
- - W-2: Reports income from employer
- - W-2G:
- - 1099-R:
-
 Dependencies:
- - **Schedule 1**: Other income & deductions
- - **Schedule 2**: Additional tax
- - **Schedule 3**: Tax credits
- - Schedule A: Deduction Details
- - **Schedule D**: Capital gains income/loss
- - Form 4972: Tax on Lump-Sum Distributions
- - Form 8814: Parents’ Election To Report Child’s Interest and Dividends
- - Form 8888: Allocation of Refund (Including Savings Bond Purchases)
- - _Form 8995: Qualified Business Income Deductions (Form not available?)_
+ - [] Form 4972: Tax on Lump-Sum Distributions
+ - [] Form 8814: Parents’ Election To Report Child’s Interest and Dividends
+ - [] Form 8863: Education Credits
+ - [] Form 8888: Allocation of Refund (Including Savings Bond Purchases)
+ - [] Form 8995: does not exist yet?
+ - [x] Schedule 1: Additional Income & Adjustments to Income
+ - [x] Schedule 2: Additional Tax
+ - [] Schedule 3: Additional Credits and Payments
+ - [] Schedule 8812: does not exist yet?
+ - [] Schedule A: Itemized Deductions
+ - [x] Schedule D: Capital Gains and Losses
 
 ## Schedule 1
 
 Additional Income and Adjustments to Income
 
 Dependencies:
- - **Schedule C** (or C-EZ): Business income/loss
+ - Schedule C (or C-EZ): Business income/loss
  - Schedule E: Real-estate/trust/S-Corp income/loss
  - Schedule F: Profit or Loss From Farming
- - **Schedule SE**: self-employment taxes
+ - Schedule SE: self-employment taxes
  - Form 2106: Employee Business Expenses
  - Form 3903: Military Moving Expenses
  - Form 4797: Sales of Business Property
  - Form 8889: Health Savings Accounts (HSAs)
- - **Form 2555**: Foreign Earned Income
+ - Form 2555: Foreign Earned Income
 
 ## Schedule 2
 
@@ -79,14 +76,14 @@ Dependencies:
  - _Form 6251: Alternative Minimum Tax—Individuals_
  - Form 8959: Additional Medicare Tax
  - Form 8960: Net Investment Income Tax— Individuals, Estates, and Trusts
- - *Form 8962*: Premium Tax Credit
+ - Form 8962: Premium Tax Credit
 
 ## Schedule 3
 
 Tax Credits
 
 Dependencies:
-  - **Form 1116**: Foreign Tax Credit
+  - Form 1116: Foreign Tax Credit
   - Form 2439: Shareholder of undistributed long-term capital gains
   - Form 2441: Child and dependent care expenses
   - Form 3800: Other credits
@@ -96,7 +93,7 @@ Dependencies:
   - Form 8863: Education credit
   - Form 8880: Retirement savings contribution
   - Form 8885: Health coverage tax credit
- - *Form 8962*: Premium Tax Credit
+ - Form 8962: Premium Tax Credit
   
 
 ## Schedule SE
@@ -108,16 +105,13 @@ Dependencies:
  - Form 4137: Social Security and Medicare Tax on Unreported Tip Income
  - Form 4361: Application for Exemption From Self-Employment Tax for Use by Ministers, etc
  - Form 8919: Uncollected Social Security and Medicare Tax on Wages
- - **Schedule C: Profit or Loss From Business**
+ - Schedule C: Profit or Loss From Business
  - Schedule F: Profit or Loss From Farming
  - Schedule K-1: Partner’s Share of Income, Deductions, Credits, etc
 
 ## Schedule C
 
 Profit or Loss from Business
-
-Attachments:
- - Form 1099: Reports income from self employment earnings
 
 Dependencies:
  - Form 4562: Depreciation and Amortization
@@ -128,15 +122,11 @@ Dependencies:
 
 Capital Gains and Losses
 
-Attachments:
- - 1099-B: Proceeds From Broker and Barter Exchange Transactions
-
 Dependencies:
- - Form 2439: Notice to Shareholder of Undistributed Long-Term Capital Gains
- - Form 4684: Casualties and Thefts
- - Form 4787: Sales of Business Property
- - Form 6252: Installment Sale Income
- - Form 6781: Gains and Losses From Contracts and Straddles
- - Form 8824: Like-Kind Exchanges
- - **Form 8949**: Sales and Other Dispositions of Capital Assets
- - Schedule K-1: Partner’s Share of Income, Deductions, Credits, etc
+ - [] Form 2439: Notice to Shareholder of Undistributed Long-Term Capital Gains
+ - [] Form 4684: Casualties and Thefts
+ - [] Form 4787: does not exist yet?
+ - [] Form 6252: Installment Sale Income
+ - [] Form 6781: Gains and Losses From Contracts and Straddles
+ - [] Form 8824: Like-Kind Exchanges
+ - [x] Form 8949: Sales and Other Dispositions of Capital Assets
