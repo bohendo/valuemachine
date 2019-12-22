@@ -1,0 +1,25 @@
+{
+  "name": "taxes",
+  "version": "1.0.0",
+  "description": "Toolkit for generating a US Federal Tax Return",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/bohendo/taxes.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/bohendo/taxes/issues"
+  },
+  "homepage": "https://gitlab.com/bohendo/taxes#readme",
+  "dependencies": {
+    "csv-parse": "^4.8.2"
+  }
+}
