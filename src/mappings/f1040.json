@@ -21,7 +21,6 @@
   "StreetAddress": "topmostSubform[0].Page1[0].Address[0].f1_08[0]",
   "Apartment": "topmostSubform[0].Page1[0].Address[0].f1_09[0]",
   "CityStateZip": "topmostSubform[0].Page1[0].Address[0].f1_10[0]",
-  "HealthCareExcempt": "topmostSubform[0].Page1[0].c1_09[0]",
   "PresidentialElection": "topmostSubform[0].Page1[0].PresidentialElection[0].c1_10[0]",
   "SpousePresidentialElection": "topmostSubform[0].Page1[0].PresidentialElection[0].c1_11[0]",
   "MoreThanFourDependents": "topmostSubform[0].Page1[0].IfMoreThan[0].c1_12[0]",
