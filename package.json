@@ -15,6 +15,7 @@
   "homepage": "https://gitlab.com/bohendo/taxes#readme",
   "dependencies": {
     "csv-parse": "^4.8.2",
-    "ethers": "^4.0.41"
+    "ethers": "^4.0.41",
+    "pdf2json": "^1.1.8"
   }
 }
