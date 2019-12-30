@@ -118,7 +118,7 @@ const parseEtherscan = (filename, personal) => {
 
 const parseHistory = (personalData) => {
   const allHistory = [];
-  for (const historyFilename of personalData.txHistory) {
+  for (const historyFilename of personalData.txHistory || []) {
     if (historyFilename.includes('coinbase')) {
       allHistory.push(...parseCoinbase(historyFilename, personalData))
     } else if (historyFilename.includes('wyre')) {
