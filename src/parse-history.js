@@ -4,6 +4,8 @@ const fs = require('fs');
 const year = require('../package.json').year
 const { add, mul, diff } = require("./math");
 
+const shouldWarn = false
+
 const getTimestamp = (date) => {
   if (isNaN(date.getFullYear())) {
     return '';
@@ -76,8 +78,8 @@ const parseEtherscan = (filename, personal) => {
       from = personal.addresses[row["From"]]
     } else {
       from = row["From"]
-      if (!hasWarned.includes(row["From"])) {
-        console.log(`Warning, unknown address: ${row["From"]} (eg in tx ${row["Txhash"]})`);
+      if (shouldWarn && !hasWarned.includes(row["From"])) {
+        console.log(`Warning, unknown address: ${row["From"]} (from tx ${row["Txhash"]})`);
         hasWarned.push(row["From"]);
       }
     }
@@ -86,8 +88,8 @@ const parseEtherscan = (filename, personal) => {
       to = personal.addresses[row["To"]]
     } else {
       to = row["To"]
-      if (!hasWarned.includes(row["To"])) {
-        console.log(`Warning, unknown address: ${row["To"]} (eg in tx ${row["Txhash"]})`);
+      if (shouldWarn && !hasWarned.includes(row["To"])) {
+        console.log(`Warning, unknown address: ${row["To"]} (from tx ${row["Txhash"]})`);
         hasWarned.push(row["To"]);
       }
     }

@@ -14,10 +14,6 @@ forms=build/forms
 data=build/data
 pages=build/pages
 example=build/example
-labels=build/labels
-labels_data=$(labels)/data
-example_data=$(example)/data
-example_pages=$(example)/pages
 
 # Create output folders
 $(shell mkdir -p $(forms) $(data) $(example_data) $(labels_data) $(pages) $(example_pages))
@@ -29,7 +25,9 @@ log_start=@echo;echo "=============";echo "[Makefile] => Start building $@"
 # Shortcut/Helper Rules
 .PHONY: tax-return.pdf # always build this
 
-default: tx-history
+default:
+	node src/entry.js personal.json $(data)
+	bash ops/build.sh $(data) $(pages)
 
 example: federal-example
 labels: federal-labels
@@ -50,6 +48,11 @@ purge:
 ########################################
 # Build components of our tax return
 
+tx-history:
+	$(log_start)
+	node src/entry.js personal.json
+
+
 
 
 $(labels)/federal-tax-return.pdf: $(labels_data)/f1040
@@ -60,12 +63,6 @@ $(labels_data)/f1040: src/f1040.py $(docs)
 	$(log_start)
 	python src/f1040.py labels.json $(labels_data) $(data)
 	touch $@
-
-tx-history:
-	$(log_start)
-	node src/parse-history.js personal.json
-
-
 
 build/federal-tax-return.pdf: ops/build.sh $(forms)/federal $(src) $(data)/f1040 $(data)/f1040s1 $(data)/f1040s3 $(data)/f1040s4 $(data)/f1040sc $(data)/f1040sse $(data)/f1040sd $(data)/f8949 $(data)/f8889
 	$(log_start)

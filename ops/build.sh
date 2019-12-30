@@ -1,16 +1,16 @@
 #!/bin/bash
 set -e
 
-source="$1"
+data_dir="$1"
+pages_dir="$2"
 
-forms_dir="$2"
-mappings_dir="$3"
-data_dir="$4"
-pages_dir="$5/$source"
-output_dir="$6"
+forms_dir="ops/forms"
+fields_dir="ops/fields"
+mappings_dir="src/mappings"
+
 page_number=0
 
-forms="`cat ops/sources/$source.json | jq '.data | sort_by(.order) | map(.name)' | tr -d ' ,"[]' | tr '\n\r' ' '`"
+forms="`cat ops/sources.json | jq '.data | sort_by(.order) | map(.name)' | tr -d ' ,"[]' | tr '\n\r' ' '`"
 mkdir -p $pages_dir
 
 # This is the order in which forms will be combined into the final tax return
@@ -26,7 +26,7 @@ do
     then page_number="0$page_number"
     fi
     json_data="$data_dir/$page.json"
-    fields="$forms_dir/$form.fields"
+    fields="$fields_dir/$form.fields"
     mappings="$mappings_dir/$form.json"
     fdf_data="$data_dir/$page.fdf"
     empty_form="$forms_dir/$form.pdf"
@@ -41,16 +41,8 @@ do
   done
 done
 
-if [[ "$source" != "federal" ]]
-then
-  all_pages="`find $pages_dir -type f -name "*.pdf" | sort`"
-  echo; echo "pdftk $all_pages cat output $output_dir/$source-tax-return.pdf"
-  pdftk $all_pages cat output $output_dir/$source-tax-return.pdf
-  exit
-fi
-
 all_pages="`find $pages_dir -type f -name "*.pdf" | sort`"
-attachments="`find docs/attachments -type f -name "w2*.pdf" -maxdepth 1 | sort`"
-echo; echo "pdftk $all_pages $attachments cat output $output_dir/$source-tax-return.pdf"
-pdftk $all_pages $attachments cat output $output_dir/$source-tax-return.pdf
+attachments="`find docs/attachments -maxdepth 1 -type f -name "w2*.pdf" | sort`"
+echo; echo "pdftk $all_pages $attachments cat output build/tax-return.pdf"
+pdftk $all_pages $attachments cat output build/tax-return.pdf
 echo
