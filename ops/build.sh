@@ -16,10 +16,9 @@ mkdir -p $pages_dir
 # This is the order in which forms will be combined into the final tax return
 for form in $forms
 do
-  echo; echo "Compiling form: $form"
   for page in `find $data_dir -maxdepth 1 -type f -name "${form}.json" -or -name "${form}_*.json" | sort`
   do
-    echo "  page: $page"
+    echo; echo "Compiling $page to pdf"
     page="`basename ${page%.json}`"
     page_number=$(( ${page_number#0} + 1 ))
     if [[ "$page_number" -lt "10" ]]

@@ -5,27 +5,15 @@ const year = require('../package.json').year
 const { add, mul, diff } = require("./math");
 const { parseHistory } = require("./parse-history.js");
 
-const resetForm = (form) => {
-  const emptyForm = JSON.parse(JSON.stringify(form))
-  for (const key of Object.keys(emptyForm)) {
-    emptyForm[key] = "";
-  }
-  return emptyForm;
-}
+const { parseF8949 } = require("./f8949");
 
-const f8949 = resetForm(require('./mappings/f8949.json'));
-
-
-const personalData = `${process.cwd()}/${process.argv[2]}`
+const personalData = require(`${process.cwd()}/${process.argv[2]}`)
 const outputFolder = `${process.cwd()}/${process.argv[3]}`
 
 console.log('Lets go');
 
-f8949.FullNamePage1 = "Robert Henderson"
-
-// console.log('f8949 fields:', Object.keys(f8949));
-
-const txHistory = parseHistory(require(personalData))
+const txHistory = parseHistory(personalData)
+const f8949 = parseF8949(personalData, txHistory);
 
 const writeOutput = (forms) => {
   for (const [name, data] of Object.entries(forms)) {
@@ -34,5 +22,3 @@ const writeOutput = (forms) => {
 }
 
 writeOutput({ f8949 })
-
-// console.log('All Tx History:', ${txHistory});
