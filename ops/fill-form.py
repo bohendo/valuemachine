@@ -25,9 +25,13 @@ for key in json_data:
 
     # Figure out the value needed to check this checkbox
     elif isinstance(json_data[key], (bool)):
-        field = [field for field in fields if mappings[key] in field][0]
-        fieldStateOption = re.search('FieldStateOption: ([^O].*)', field, re.M).group(1)
-        fieldStateOptions = re.findall('FieldStateOption: ([^O].*)', field, re.M)
+        field = [field for field in fields if mappings[key] in field]
+        if len(field) == 0:
+          print("Error: Key exists in mappings but not fields:", key);
+          exit(1)
+        fieldVal = field[0]
+        fieldStateOption = re.search('FieldStateOption: ([^O].*)', fieldVal, re.M).group(1)
+        fieldStateOptions = re.findall('FieldStateOption: ([^O].*)', fieldVal, re.M)
         onFlag = max(fieldStateOptions, key=len)
         if json_data[key]:
             data.append((mappings[key], onFlag))
