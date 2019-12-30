@@ -10,7 +10,7 @@ mappings_dir="src/mappings"
 
 page_number=0
 
-forms="`cat ops/sources.json | jq '.data | sort_by(.order) | map(.name)' | tr -d ' ,"[]' | tr '\n\r' ' '`"
+forms="`cat personal.json | jq '.forms' | tr -d ' ,"[]' | tr '\n\r' ' '`"
 mkdir -p $pages_dir
 
 # This is the order in which forms will be combined into the final tax return
@@ -40,8 +40,8 @@ do
   done
 done
 
-all_pages="`find $pages_dir -type f -name "*.pdf" | sort`"
-attachments="`find docs/attachments -maxdepth 1 -type f -name "w2*.pdf" | sort`"
+all_pages="`find $pages_dir -type f -name "*.pdf" | sort | tr  '\n\r' ' '`"
+attachments="`find docs/attachments -maxdepth 1 -type f -name "w2*.pdf" | sort | tr  '\n\r' ' '`"
 echo; echo "pdftk $all_pages $attachments cat output build/tax-return.pdf"
 pdftk $all_pages $attachments cat output build/tax-return.pdf
 echo

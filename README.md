@@ -45,7 +45,7 @@ Dependencies:
  - [ ] Form 8995: (Does Not Exist)
  - [x] Schedule 1: Additional Income & Adjustments to Income
  - [x] Schedule 2: Additional Tax
- - [ ] Schedule 3: Additional Credits and Payments
+ - [x] Schedule 3: Additional Credits and Payments
  - [ ] Schedule 8812: (Does Not Exist)
  - [ ] Schedule A: Itemized Deductions
  - [x] Schedule D: Capital Gains and Losses
