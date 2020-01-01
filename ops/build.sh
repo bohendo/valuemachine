@@ -40,7 +40,6 @@ do
 done
 
 all_pages="`find $pages_dir -type f -name "*.pdf" | sort | tr  '\n\r' ' '`"
-attachments="`find docs/attachments -maxdepth 1 -type f -name "w2*.pdf" | sort | tr  '\n\r' ' '`"
-echo; echo "pdftk $all_pages $attachments cat output $dir/tax-return.pdf"
-pdftk $all_pages $attachments cat output $dir/tax-return.pdf
+echo; echo "pdftk $all_pages cat output $dir/tax-return.pdf"
+pdftk $all_pages cat output $dir/tax-return.pdf
 echo

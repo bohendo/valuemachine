@@ -21,6 +21,9 @@ export const translate = (mappings) => (form) => {
   const newForm = {};
   for (const [key, value] of Object.entries(form)) {
     if (key === 'default') { continue; }
+    if (!mappings[key]) {
+      console.warn(`Key ${key} exists in output data but not in mappings`);
+    }
     newForm[mappings[key]] = value;
   }
   return newForm;

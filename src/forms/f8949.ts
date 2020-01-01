@@ -12,7 +12,7 @@ import {
   sub,
   translate,
 } from '../utils';
-import { InputData } from '../types';
+import { InputData, TaxableTx } from '../types';
 
 export type F8949 = { [key in keyof typeof mappings]: string|boolean };
 
@@ -31,14 +31,16 @@ const stringifyAssets = (assets) => {
 }
 
 export const f8949 = (input: InputData, output: any): any[]  => {
-  const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949);
+  const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949) as F8949;
 
-  const txHistory = parseHistory(input);
+  const txHistory = parseHistory(input) as TaxableTx[];
   const debugMode = !!input.debugLogs
 
   // Set values constant across all f8949 forms
-  f8949.FullNamePage1 = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
-  f8949.SocialSecurityNumberPage1 = input.SocialSecurityNumber;
+  f8949.f1_1 = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
+  f8949.f1_2 = input.SocialSecurityNumber;
+  f8949.f2_1 = f8949.f1_1;
+  f8949.f2_2 = f8949.f1_2;
 
   const assets = input.assets || {};
   const startingAssets = stringifyAssets(assets);
@@ -147,39 +149,40 @@ export const f8949 = (input: InputData, output: any): any[]  => {
 
   const buildF8949 = (fourteenTrades) => {
     console.log(`building form from ${fourteenTrades.length} trades`);
-    const subF8949 = JSON.parse(JSON.stringify(f8949));
+    const subF8949 = JSON.parse(JSON.stringify(f8949)) as F8949;
 
-    // TODO: identify long-term capital gains
-    subF8949.isShortTermA = false;
-    subF8949.isShortTermB = false;
-    subF8949.isShortTermC = true; // bc I don't have a Form 1099-B
-    subF8949.isLongTermD = false;
-    subF8949.isLongTermE = false;
-    subF8949.isLongTermF = false;
+    // TODO: identify & properly handle long-term capital gains
+    subF8949.c1_1_2 = true;
 
     const subTotal = { Proceeds: "0", Cost: "0", GainOrLoss: "0" }
 
-    let i = 1;
+    let i = 3;
     for (const trade of fourteenTrades) {
       subTotal.Proceeds = round(add(subTotal.Proceeds, trade.Proceeds), 2);
       subTotal.Cost = round(add(subTotal.Cost, trade.Cost), 2);
       subTotal.GainOrLoss = round(add(subTotal.GainOrLoss, trade.GainOrLoss), 2);
-      for (const [key, value] of Object.entries(trade)) {
-        subF8949[`ST${i}${key}`] = (value as any).match(/^-?[0-9]+.?[0-9]*$/) ? round(value, 2) : value;
-      }
-      i += 1;
+      subF8949[`f1_${i}`] = trade.Description
+      subF8949[`f1_${i+1}`] = trade.DateAcquired
+      subF8949[`f1_${i+2}`] = trade.DateSold
+      subF8949[`f1_${i+3}`] = round(trade.Proceeds, 2)
+      subF8949[`f1_${i+4}`] = round(trade.Cost, 2)
+      subF8949[`f1_${i+7}`] = round(trade.GainOrLoss, 2)
+      i += 8;
     }
-    subF8949.STTotalProceeds = round(subTotal.Proceeds, 2);
-    subF8949.STTotalCost = round(subTotal.Cost, 2);
-    subF8949.STTotalAdjustment = '';
-    subF8949.STTotalGainOrLoss = round(subTotal.GainOrLoss, 2);
+    subF8949.f1_115 = round(subTotal.Proceeds, 2);
+    subF8949.f1_116 = round(subTotal.Cost, 2);
+    subF8949.f1_119 = round(subTotal.GainOrLoss, 2);
 
     return subF8949;
   }
 
   // Build a series of forms from chunks of trades
   const chunkSize = 14;
-  return trades.map((e,i) =>
+  const tradeChunks = trades.map((e,i) =>
      i % chunkSize === 0 ? trades.slice(i, i + chunkSize) : null
-  ).filter(e => !!e).map(buildF8949).map(translate(mappings));
+  ).filter(e => !!e)
+
+  return (tradeChunks.length === 0)
+    ? [buildF8949([])].map(translate(mappings))
+    : tradeChunks.map(buildF8949).map(translate(mappings));
 }
