@@ -2,6 +2,7 @@ import csv from 'csv-parse/lib/sync';
 import fs from 'fs';
 
 import * as parsers from "./forms";
+import { translate } from "./utils";
 import { InputData } from "./types";
 
 const inputFile = `${process.cwd()}/${process.argv[2]}`;
@@ -13,27 +14,37 @@ const input = JSON.parse(fs.readFileSync(inputFile, { encoding: 'utf8' })) as In
 
 // Generate output form data from input
 const output = {} as any;
-for (const form of input.forms) {
+for (const form of input.forms.reverse()) {
+  console.log();
+  console.log(`========================================`);
+  console.log(`Building form ${form}`);
   if (!parsers[form]) {
     throw new Error(`Form not supported: ${form}`);
   }
   output[form] = parsers[form](input, output) as any;
 }
+console.log();
+console.log(`Writing output to files in ${outputFolder}`);
 
 // Write output to a series of JSON files
 for (const [name, data] of Object.entries(output)) {
   if ((data as any).length === 1) {
-    console.log(`Writing form data to ${name}`);
     delete data[0].default
-    fs.writeFileSync(`${outputFolder}/${name}.json`, JSON.stringify(data[0], null, 2));
+    console.log(`Writing ${JSON.stringify(name)}`);
+    const outputData = JSON.stringify(translate(data[0]), null, 2)
+    fs.writeFileSync(`${outputFolder}/${name}.json`, outputData);
   } else {
     let i = 1
     for (const page of data as any) {
       const pageName = `f8949_${i}`;
-      console.log(`Writing form data to ${pageName}`);
       delete page.default
-      fs.writeFileSync(`${outputFolder}/${pageName}.json`, JSON.stringify(page, null, 2));
+      console.log(`Writing ${pageName}`);
+      const outputData = JSON.stringify(translate(page), null, 2)
+      fs.writeFileSync(`${outputFolder}/${pageName}.json`, outputData);
       i += 1;
     }
   }
 }
+
+console.log();
+console.log(`Done generating form data!`);

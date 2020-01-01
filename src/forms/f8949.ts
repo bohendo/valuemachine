@@ -10,11 +10,13 @@ import {
   parseHistory,
   round,
   sub,
-  translate,
 } from '../utils';
 import { InputData, TaxableTx } from '../types';
 
-export type F8949 = { [key in keyof typeof mappings]: string|boolean };
+// TODO: add mappings to this type & use it
+export type F8949 = {
+  [key in keyof typeof mappings]: string|boolean;
+};
 
 const stringifyAssets = (assets) => {
   let output = '[\n'
@@ -31,12 +33,13 @@ const stringifyAssets = (assets) => {
 }
 
 export const f8949 = (input: InputData, output: any): any[]  => {
-  const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949) as F8949;
+  const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949) as any;
 
   const txHistory = parseHistory(input) as TaxableTx[];
   const debugMode = !!input.debugLogs
 
   // Set values constant across all f8949 forms
+  f8949.mappings = mappings
   f8949.f1_1 = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
   f8949.f1_2 = input.SocialSecurityNumber;
   f8949.f2_1 = f8949.f1_1;
@@ -148,8 +151,7 @@ export const f8949 = (input: InputData, output: any): any[]  => {
   // Format results into forms
 
   const buildF8949 = (fourteenTrades) => {
-    console.log(`building form from ${fourteenTrades.length} trades`);
-    const subF8949 = JSON.parse(JSON.stringify(f8949)) as F8949;
+    const subF8949 = JSON.parse(JSON.stringify(f8949)) as any;
 
     // TODO: identify & properly handle long-term capital gains
     subF8949.c1_1_2 = true;
@@ -183,6 +185,6 @@ export const f8949 = (input: InputData, output: any): any[]  => {
   ).filter(e => !!e)
 
   return (tradeChunks.length === 0)
-    ? [buildF8949([])].map(translate(mappings))
-    : tradeChunks.map(buildF8949).map(translate(mappings));
+    ? [buildF8949([])]
+    : tradeChunks.map(buildF8949)
 }
