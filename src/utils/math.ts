@@ -35,7 +35,7 @@ export const sub = (a, b) =>
 // absolute value of subtracting a and b
 export const diff = (a, b) => toWad(sub(a,b)).gt(Zero) ? sub(a,b) : sub(b,a)
 
-export const round = (decStr, n) => {
+export const round = (decStr, n?) => {
   if (!n) { return roundInt(decStr); }
   const power = `1${'0'.repeat(n || 0)}`
   let out = div(roundInt(mul(decStr, power)), power);

@@ -23,28 +23,23 @@ for (const form of input.forms.reverse()) {
   }
   output[form] = parsers[form](input, output) as any;
 }
+
 console.log();
+console.log(`Done generating form data!`);
 console.log(`Writing output to files in ${outputFolder}`);
 
 // Write output to a series of JSON files
 for (const [name, data] of Object.entries(output)) {
   if ((data as any).length === 1) {
-    delete data[0].default
-    console.log(`Writing ${JSON.stringify(name)}`);
     const outputData = JSON.stringify(translate(data[0]), null, 2)
     fs.writeFileSync(`${outputFolder}/${name}.json`, outputData);
   } else {
     let i = 1
     for (const page of data as any) {
       const pageName = `f8949_${i}`;
-      delete page.default
-      console.log(`Writing ${pageName}`);
       const outputData = JSON.stringify(translate(page), null, 2)
       fs.writeFileSync(`${outputFolder}/${pageName}.json`, outputData);
       i += 1;
     }
   }
 }
-
-console.log();
-console.log(`Done generating form data!`);

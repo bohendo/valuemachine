@@ -21,8 +21,8 @@ export const f1040sd = (input: InputData, output: any): any[] => {
   for (const f8949 of f8949s) {
     console.log(`Fetching data from f8949: proceeds=${f8949.f1_115} cost=${f8949.f1_116} gain|loss=${f8949.f1_119}`);
     totals.proceeds = add(totals.proceeds, f8949.f1_115);
-    totals.cost = add(totals.proceeds, f8949.f1_116);
-    totals.gainOrLoss = add(totals.proceeds, f8949.f1_119);
+    totals.cost = add(totals.cost, f8949.f1_116);
+    totals.gainOrLoss = add(totals.gainOrLoss, f8949.f1_119);
   }
   f1040sd.f1_15 = round(totals.proceeds, 2);
   f1040sd.f1_16 = round(totals.cost, 2);
@@ -37,7 +37,10 @@ export const f1040sd = (input: InputData, output: any): any[] => {
   if (gt(f1040sd.f2_01, "0")) {
     f1040.f1_37 = f1040sd.f2_01;
     if (gt(f1040sd.f1_43, "0")) {
+      f1040sd.c2_1_0 = true;
       throw new Error(`28% rate worksheet not implemented yet`);
+    } else {
+      f1040sd.c2_1_1 = true;
     }
   } else if (lt(f1040sd.f2_01, "0")) {
     if (f1040.c1_01_2) {
@@ -50,7 +53,10 @@ export const f1040sd = (input: InputData, output: any): any[] => {
   }
 
   if (f1040.f1_29) {
+    f1040sd.c2_3_0 = true;
     throw new Error(`Qualified Dividends and Capital Gain Tax Worksheet not implemented yet`);
+  } else {
+    f1040sd.c2_3_1 = true;
   }
 
   output.f1040 = [f1040];
