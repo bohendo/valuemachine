@@ -46,7 +46,7 @@ for (const form of test.forms) {
         .replace(/^_+/, '')
         .replace(/__/, '_')
 
-      console.log(`${field} ==> ${name}`);
+      console.log(`Field ${field} does not exist in mappings, adding it as: ${name}`);
       mappings[name] = field;
     }
   }
@@ -74,7 +74,7 @@ for (const form of test.forms) {
 
   for (const [key, value] of Object.entries(mappings)) {
     if (!Object.keys(test[form]).includes(key)) {
-      console.log(`Key ${key} of ${form} is in mappings but in test, adding..`);
+      console.log(`Key ${key} of ${form} is in mappings but not in test, adding..`);
       test[form][key] = key
     }
   }
