@@ -16,3 +16,12 @@ export const mergeForms = (form, values) => {
   }
   return newForm;
 };
+
+export const translate = (mappings) => (form) => {
+  const newForm = {};
+  for (const [key, value] of Object.entries(form)) {
+    if (key === 'default') { continue; }
+    newForm[mappings[key]] = value;
+  }
+  return newForm;
+}

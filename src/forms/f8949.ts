@@ -10,6 +10,7 @@ import {
   parseHistory,
   round,
   sub,
+  translate,
 } from '../utils';
 import { InputData } from '../types';
 
@@ -29,7 +30,7 @@ const stringifyAssets = (assets) => {
   return `${output}]`
 }
 
-export const f8949 = (input: InputData, output: any): F8949[]  => {
+export const f8949 = (input: InputData, output: any): any[]  => {
   const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949);
 
   const txHistory = parseHistory(input);
@@ -180,5 +181,5 @@ export const f8949 = (input: InputData, output: any): F8949[]  => {
   const chunkSize = 14;
   return trades.map((e,i) =>
      i % chunkSize === 0 ? trades.slice(i, i + chunkSize) : null
-  ).filter(e => !!e).map(buildF8949);
+  ).filter(e => !!e).map(buildF8949).map(translate(mappings));
 }
