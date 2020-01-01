@@ -70,8 +70,10 @@ for (const form of test.forms) {
   }
 
   for (const [key, value] of Object.entries(mappings)) {
-    if (!Object.keys(test[form]).includes(key)) {
-      test[form][key] = key
+    if (key.startsWith('c')) {
+      test[form][key] = true;
+    } else {
+      test[form][key] = key;
     }
   }
 }
