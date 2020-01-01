@@ -1,11 +1,12 @@
 import csv from 'csv-parse/lib/sync';
 import fs from 'fs';
 
+import { TaxableTx, InputData } from "../types";
 import { diff, add, sub, round, mul, eq, gt, lt } from './math';
 
 const shouldWarn = false
 
-const getTimestamp = (date) => {
+const getTimestamp = (date: Date): string => {
   if (isNaN(date.getFullYear())) {
     return '';
   }
@@ -15,7 +16,7 @@ const getTimestamp = (date) => {
   return `${year}${month}${day}`;
 }
 
-const parseCoinbase = (filename, personal) => {
+const parseCoinbase = (filename: string, personal: InputData): TaxableTx[] => {
   const rawFile = fs.readFileSync(filename, 'utf8').split('\r\n');
   return csv(
     rawFile.slice(3, rawFile.length).join('\r\n'),
@@ -37,7 +38,7 @@ const parseCoinbase = (filename, personal) => {
   });
 }
 
-const parseWyre = (filename, personal) => {
+const parseWyre = (filename: string, personal: InputData): TaxableTx[] => {
   return csv(
     fs.readFileSync(filename, 'utf8'),
     { columns: true, skip_empty_lines: true },
@@ -60,7 +61,7 @@ const parseWyre = (filename, personal) => {
   }).filter(row => !!row);
 }
 
-const parseEtherscan = (filename, personal) => {
+const parseEtherscan = (filename: string, personal: InputData): TaxableTx[] => {
   const hasWarned = [];
   const rawFile = fs.readFileSync(filename, 'utf8').split('\r\n');
   // Etherscan csv exports have 15 columns labeled but data rows have 16 columns..?
@@ -115,7 +116,7 @@ const parseEtherscan = (filename, personal) => {
   }).filter(row => !!row);
 }
 
-export const parseHistory = (personalData) => {
+export const parseHistory = (personalData: InputData): TaxableTx[] => {
   const allHistory = [];
   for (const historyFilename of personalData.txHistory || []) {
     if (historyFilename.includes('coinbase')) {

@@ -11,6 +11,7 @@ import {
   round,
   sub,
 } from '../utils';
+import { InputData } from '../types';
 
 const stringifyAssets = (assets) => {
   let output = '[\n'
@@ -26,7 +27,7 @@ const stringifyAssets = (assets) => {
   return `${output}]`
 }
 
-export const f8949 = (input, output)  => {
+export const f8949 = (input: InputData, output: any): any[]  => {
   const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949);
 
   const txHistory = parseHistory(input);

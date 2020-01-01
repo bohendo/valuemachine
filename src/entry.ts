@@ -2,13 +2,14 @@ import csv from 'csv-parse/lib/sync';
 import fs from 'fs';
 
 import * as parsers from "./forms";
+import { InputData } from "./types";
 
 const inputFile = `${process.cwd()}/${process.argv[2]}`;
 const outputFolder = `${process.cwd()}/${process.argv[3]}`
 
 console.log('Lets go');
 
-const input = JSON.parse(fs.readFileSync(inputFile, { encoding: 'utf8' })) as any;
+const input = JSON.parse(fs.readFileSync(inputFile, { encoding: 'utf8' })) as InputData;
 
 // Generate output form data from input
 const output = {} as any;
