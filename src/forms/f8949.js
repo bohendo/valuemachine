@@ -1,8 +1,5 @@
-const year = require('../package.json').year
-
-const f8949Mappings = require('./mappings/f8949.json');
-const { add, eq, gt, lt, mul, round, sub } = require('./math');
-const { emptyForm, mergeForms } = require('./utils');
+const f8949Mappings = require('../mappings/f8949.json');
+const { add, eq, gt, lt, mul, round, sub, emptyForm, mergeForms, parseHistory } = require('../utils');
 
 const debugMode = false;
 
@@ -20,14 +17,15 @@ const stringifyAssets = (assets) => {
   return `${output}]`
 }
 
-const parseF8949 = (personal, txHistory) => {
-  const f8949 = mergeForms(emptyForm(f8949Mappings), personal.f8949 || {});
+const parseF8949 = (input, output)  => {
+  const f8949 = mergeForms(emptyForm(f8949Mappings), input.f8949 || {});
+  const txHistory = parseHistory(input);
 
   // Set values constant across all f8949 forms
-  f8949.FullNamePage1 = `${personal.FirstName} ${personal.MiddleInitial} ${personal.LastName}`;
-  f8949.SocialSecurityNumberPage1 = personal.SocialSecurityNumber;
+  f8949.FullNamePage1 = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
+  f8949.SocialSecurityNumberPage1 = input.SocialSecurityNumber;
 
-  const assets = personal.assets || {};
+  const assets = input.assets || {};
   const startingAssets = stringifyAssets(assets);
   const trades = []
   let totalCost = "0"
@@ -37,7 +35,7 @@ const parseF8949 = (personal, txHistory) => {
   debugMode && console.log(`Assets: ${stringifyAssets(assets)}`);
 
   for (const tx of txHistory) {
-    if (!tx.timestamp.startsWith(year.substring(2))) {
+    if (!tx.timestamp.startsWith(input.taxYear.substring(2))) {
       debugMode && console.log(`Skipping old trade from ${tx.timestamp}`);
       continue
     }
