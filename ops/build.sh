@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 
-data_dir="$1"
-pages_dir="$2"
+dir="$1"
 
+data_dir="$dir/data"
+pages_dir="$dir/pages"
 forms_dir="ops/forms"
 fields_dir="ops/fields"
 mappings_dir="src/mappings"
@@ -11,7 +12,7 @@ mappings_dir="src/mappings"
 page_number=0
 
 forms="`cat personal.json | jq '.forms' | tr -d ' ,"[]' | tr '\n\r' ' '`"
-mkdir -p $pages_dir
+mkdir -p $data_dir $pages_dir
 
 # This is the order in which forms will be combined into the final tax return
 for form in $forms
@@ -43,5 +44,5 @@ done
 all_pages="`find $pages_dir -type f -name "*.pdf" | sort | tr  '\n\r' ' '`"
 attachments="`find docs/attachments -maxdepth 1 -type f -name "w2*.pdf" | sort | tr  '\n\r' ' '`"
 echo; echo "pdftk $all_pages $attachments cat output build/tax-return.pdf"
-pdftk $all_pages $attachments cat output build/tax-return.pdf
+pdftk $all_pages $attachments cat output $dir/tax-return.pdf
 echo

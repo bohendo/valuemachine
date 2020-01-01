@@ -12,8 +12,9 @@ find_options=-type f -not -path "*/node_modules/*" -not -name "*.swp" -not -path
 
 # Important Folders
 cwd=$(shell pwd)
-data=build/data
-pages=build/pages
+example=build/example
+personal=build/personal
+test=build/test
 
 # Setup docker run time
 # If on Linux, give the container our uid & gid so we know what to reset permissions to
@@ -28,16 +29,15 @@ totalTime=$(flags)/.totalTime
 log_start=@echo "=============";echo "[Makefile] => Start building $@"; date "+%s" > $(startTime)
 log_finish=@echo $$((`date "+%s"` - `cat $(startTime)`)) > $(totalTime); rm $(startTime); echo "[Makefile] => Finished building $@ in `cat $(totalTime)` seconds";echo "=============";echo
 
-
 # Create output folders
-$(shell mkdir -p $(flags) $(data) $(pages))
+$(shell mkdir -p $(flags) $(example)/data $(personal)/data $(test)/data)
 
 ########################################
 # Shortcut/Helper Rules
 .PHONY: tax-return.pdf # always build this
 
 default: personal
-all: example personal test
+all: test example personal
 
 backup:
 	tar czf tax_backup.tar.gz personal.json docs
@@ -53,20 +53,20 @@ purge:
 # Build tax return
 example: example.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
-	$(docker_run) "node build/entry.js example.json $(data)"
-	$(docker_run) "bash ops/build.sh $(data) $(pages)"
+	$(docker_run) "node build/src/entry.js example.json $(example)"
+	$(docker_run) "bash ops/build.sh $(example)
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
 personal: personal.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
-	$(docker_run) "node build/entry.js personal.json $(data)"
-	$(docker_run) "bash ops/build.sh $(data) $(pages)"
+	$(docker_run) "node build/src/entry.js personal.json $(personal)"
+	$(docker_run) "bash ops/build.sh $(personal)"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
 test: test.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
-	$(docker_run) "node build/entry.js test.json $(data)"
-	$(docker_run) "bash ops/build.sh $(data) $(pages)"
+	$(docker_run) "node build/src/entry.js test.json $(test)"
+	$(docker_run) "bash ops/build.sh $(test)"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
 

@@ -18,7 +18,7 @@
     "noLib": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "outDir": "build",
+    "outDir": "build/src",
     "removeComments": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,

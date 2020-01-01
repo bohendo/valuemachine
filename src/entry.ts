@@ -5,7 +5,7 @@ import * as parsers from "./forms";
 import { InputData } from "./types";
 
 const inputFile = `${process.cwd()}/${process.argv[2]}`;
-const outputFolder = `${process.cwd()}/${process.argv[3]}`
+const outputFolder = `${process.cwd()}/${process.argv[3]}/data`
 
 console.log('Lets go');
 
