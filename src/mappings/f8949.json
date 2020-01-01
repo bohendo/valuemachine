@@ -116,13 +116,12 @@
   "ST14Code": "topmostSubform[0].Page1[0].Table_Line1[0].Row14[0].f1_112[0]",
   "ST14Adjustment": "topmostSubform[0].Page1[0].Table_Line1[0].Row14[0].f1_113[0]",
   "ST14GainOrLoss": "topmostSubform[0].Page1[0].Table_Line1[0].Row14[0].f1_114[0]",
-  "DoesNotExist": "topmostSubform[0].Page1[0].Table_Line1[0]",
+  "DoesNotExist": "topmostSubform[0].Page2[0].Table_Line1[0]",
   "STTotalProceeds": "topmostSubform[0].Page1[0].f1_115[0]",
   "STTotalCost": "topmostSubform[0].Page1[0].f1_116[0]",
-  "Blank": "topmostSubform[0].Page1[0].f1_117[0]",
+  "Blank": "topmostSubform[0].Page2[0].f2_117[0]",
   "STTotalAdjustment": "topmostSubform[0].Page1[0].f1_118[0]",
   "STTotalGainOrLoss": "topmostSubform[0].Page1[0].f1_119[0]",
-
   "FullNamePage2": "topmostSubform[0].Page2[0].f2_1[0]",
   "SocialSecurityNumberPage2": "topmostSubform[0].Page2[0].f2_2[0]",
   "isLongTermD": "topmostSubform[0].Page2[0].c2_1[0]",
@@ -240,10 +239,9 @@
   "LT14Code": "topmostSubform[0].Page2[0].Table_Line1[0].Row14[0].f2_112[0]",
   "LT14Adjustment": "topmostSubform[0].Page2[0].Table_Line1[0].Row14[0].f2_113[0]",
   "LT14GainOrLoss": "topmostSubform[0].Page2[0].Table_Line1[0].Row14[0].f2_114[0]",
-  "DoesNotExist": "topmostSubform[0].Page2[0].Table_Line1[0]",
   "LTTotalProceeds": "topmostSubform[0].Page2[0].f2_115[0]",
   "LTTotalCost": "topmostSubform[0].Page2[0].f2_116[0]",
-  "Blank": "topmostSubform[0].Page2[0].f2_117[0]",
   "LTTotalAdjustments": "topmostSubform[0].Page2[0].f2_118[0]",
-  "LTTotalGainOrLoss": "topmostSubform[0].Page2[0].f2_119[0]"
+  "LTTotalGainOrLoss": "topmostSubform[0].Page2[0].f2_119[0]",
+  "f1_117": "topmostSubform[0].Page1[0].f1_117[0]"
 }

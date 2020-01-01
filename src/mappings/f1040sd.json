@@ -17,7 +17,7 @@
   "Line3Cost": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_16[0]",
   "Line3Adjustments": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_17[0]",
   "Line3GainOrLoss": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_18[0]",
-  "DoesNotExist": "topmostSubform[0].Page1[0].Table_PartI[0]",
+  "DoesNotExist": "topmostSubform[0].Page1[0].Table_PartII[0]",
   "Line4": "topmostSubform[0].Page1[0].f1_19[0]",
   "Line5": "topmostSubform[0].Page1[0].f1_20[0]",
   "Line6": "topmostSubform[0].Page1[0].f1_21[0]",
@@ -38,7 +38,6 @@
   "Line10Cost": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_36[0]",
   "Line10Adjustments": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_37[0]",
   "Line10GainOrLoss": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_38[0]",
-  "DoesNotExist": "topmostSubform[0].Page1[0].Table_PartII[0]",
   "Line11": "topmostSubform[0].Page1[0].f1_39[0]",
   "Line12": "topmostSubform[0].Page1[0].f1_40[0]",
   "Line13": "topmostSubform[0].Page1[0].f1_41[0]",
@@ -53,5 +52,7 @@
   "Line20No": "topmostSubform[0].Page2[0].c2_2[1]",
   "Line21": "topmostSubform[0].Page2[0].f2_04[0]",
   "Line22Yes": "topmostSubform[0].Page2[0].c2_3[0]",
-  "Line22No": "topmostSubform[0].Page2[0].c2_3[1]"
+  "Line22No": "topmostSubform[0].Page2[0].c2_3[1]",
+  "c1_1_0": "topmostSubform[0].Page1[0].c1_1[0]",
+  "c1_1_1": "topmostSubform[0].Page1[0].c1_1[1]"
 }
