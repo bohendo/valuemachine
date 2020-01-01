@@ -1,19 +1,7 @@
 const fs = require('fs');
-
 const test = require('../test.json');
 
-const forms = [ 
-  "f1040",
-  "f1040s1",
-  "f1040s2",
-  "f1040s3",
-  "f1040sse",
-  "f1040sc",
-  "f1040sd",
-  "f8949"
-];
-
-for (const form of forms) {
+for (const form of test.forms) {
   const mappings = require(`../src/mappings/${form}.json`);
   if (!mappings) {
     throw new Error(`Mappings for form ${form} do not exist!`);
@@ -37,7 +25,6 @@ for (const form of forms) {
       test[form][key] = key
     }
   }
-
 }
 
 fs.writeFileSync(`test.json`, JSON.stringify(test, null, 2));
