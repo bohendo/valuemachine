@@ -1,5 +1,5 @@
-const { Zero } = require('ethers/constants');
-const { formatUnits, parseUnits } = require('ethers/utils');
+import { Zero } from 'ethers/constants';
+import { formatUnits, parseUnits } from 'ethers/utils';
 
 ////////////////////////////////////////
 // Internal Helpers
@@ -16,26 +16,26 @@ const roundInt = (decStr) =>
 ////////////////////////////////////////
 // Exports
 
-const eq = (a, b) => toWad(a).eq(toWad(b));
-const gt = (a, b) => toWad(a).gt(toWad(b));
-const lt = (a, b) => toWad(a).lt(toWad(b));
+export const eq = (a, b) => toWad(a).eq(toWad(b));
+export const gt = (a, b) => toWad(a).gt(toWad(b));
+export const lt = (a, b) => toWad(a).lt(toWad(b));
 
-const mul = (a, b) =>
+export const mul = (a, b) =>
   fromWad(roundInt(fromWad(toWad(a).mul(toWad(b)))));
 
-const div = (a, b) =>
+export const div = (a, b) =>
   fromWad(toWad(toWad(a)).div(toWad(b)))
 
-const add = (a, b) => 
+export const add = (a, b) => 
   fromWad(toWad(a).add(toWad(b)))
 
-const sub = (a, b) =>
+export const sub = (a, b) =>
   fromWad(toWad(a).sub(toWad(b)))
 
 // absolute value of subtracting a and b
-const diff = (a, b) => toWad(sub(a,b)).gt(Zero) ? sub(a,b) : sub(b,a)
+export const diff = (a, b) => toWad(sub(a,b)).gt(Zero) ? sub(a,b) : sub(b,a)
 
-const round = (decStr, n) => {
+export const round = (decStr, n) => {
   if (!n) { return roundInt(decStr); }
   const power = `1${'0'.repeat(n || 0)}`
   let out = div(roundInt(mul(decStr, power)), power);
@@ -47,15 +47,3 @@ const round = (decStr, n) => {
   // console.log(`Rounded ${decStr} to ${n || 0} decimals: ${out}`);
   return out;
 }
-
-module.exports = {
-  add,
-  diff,
-  div,
-  eq,
-  gt,
-  lt,
-  mul,
-  round,
-  sub,
-};

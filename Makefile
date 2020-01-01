@@ -37,9 +37,6 @@ $(shell mkdir -p $(flags) $(data) $(pages))
 .PHONY: tax-return.pdf # always build this
 
 default: personal
-example: example-tax-return
-personal: personal-tax-return
-test: test-tax-return
 all: example personal test
 
 backup:
@@ -53,38 +50,32 @@ purge:
 	rm -rf build
 
 ########################################
-# Build components of our tax return
-
-example-tax-return: example-data $(shell find ops $(find_options))
+# Build tax return
+example: example.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
+	$(docker_run) "node build/entry.js example.json $(data)"
 	$(docker_run) "bash ops/build.sh $(data) $(pages)"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
-example-data: example.json $(shell find src $(find_options))
+personal: personal.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
-	$(docker_run) "node src/entry.js example.json $(data)"
-	$(log_finish) && mv -f $(totalTime) $(flags)/$@
-
-
-personal-tax-return: personal-data $(shell find ops $(find_options))
-	$(log_start)
+	$(docker_run) "node build/entry.js personal.json $(data)"
 	$(docker_run) "bash ops/build.sh $(data) $(pages)"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
-personal-data: node-modules personal.json $(shell find src $(find_options))
+test: test.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
-	$(docker_run) "node src/entry.js personal.json $(data)"
-	$(log_finish) && mv -f $(totalTime) $(flags)/$@
-
-
-test-tax-return: test-data $(shell find ops $(find_options))
-	$(log_start)
+	$(docker_run) "node build/entry.js test.json $(data)"
 	$(docker_run) "bash ops/build.sh $(data) $(pages)"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
-test-data: test.json $(shell find src $(find_options))
+
+########################################
+# Common Prerequisites
+
+taxes.js: node-modules tsconfig.json $(shell find src $(find_options))
 	$(log_start)
-	$(docker_run) "node src/entry.js test.json $(data)"
+	$(docker_run) "tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
 node-modules: builder package.json
@@ -94,5 +85,5 @@ node-modules: builder package.json
 
 builder: ops/builder.dockerfile
 	$(log_start)
-	$(docker_run) "docker build --file ops/builder.dockerfile --tag $(project)_builder:latest ."
+	docker build --file ops/builder.dockerfile --tag $(project)_builder:latest .
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@

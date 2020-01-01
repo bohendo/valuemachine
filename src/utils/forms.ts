@@ -1,4 +1,4 @@
-const emptyForm = (form) => {
+export const emptyForm = (form) => {
   const emptyForm = JSON.parse(JSON.stringify(form))
   for (const key of Object.keys(emptyForm)) {
     emptyForm[key] = "";
@@ -7,7 +7,7 @@ const emptyForm = (form) => {
 };
 
 // Replace any values in "form" with "values"
-const mergeForms = (form, values) => {
+export const mergeForms = (form, values) => {
   const newForm = JSON.parse(JSON.stringify(form))
   for (const key of Object.keys(newForm)) {
     if (values && values[key]) {
@@ -16,5 +16,3 @@ const mergeForms = (form, values) => {
   }
   return newForm;
 };
-
-module.exports = { emptyForm, mergeForms }

@@ -1,14 +1,23 @@
-const path = require('path');
-const { math, emptyForm, mergeForms, parseHistory } = require('../utils');
-
-const { add, sub, round, mul, eq, gt, lt } = math;
+import * as mappings from '../mappings/f8949.json';
+import {
+  add,
+  emptyForm,
+  eq,
+  gt,
+  lt,
+  mergeForms,
+  mul,
+  parseHistory,
+  round,
+  sub,
+} from '../utils';
 
 const stringifyAssets = (assets) => {
   let output = '[\n'
   for (const [key, value] of Object.entries(assets)) {
     let total = "0"
     output += `  ${key}:`
-    for (const chunk of value) {
+    for (const chunk of value as any) {
       output += ` ${chunk.quantity}@${chunk.price},`
       total = add(total, chunk.quantity)
     }
@@ -17,8 +26,7 @@ const stringifyAssets = (assets) => {
   return `${output}]`
 }
 
-const parseF8949 = (input, output)  => {
-  const mappings = require(`../mappings/${path.basename(__filename, '.js')}.json`)
+export const f8949 = (input, output)  => {
   const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949);
 
   const txHistory = parseHistory(input);
@@ -68,10 +76,10 @@ const parseF8949 = (input, output)  => {
         : (debugMode && console.log(`Sent ${tx.quantity} ${tx.asset} to ${tx.to}`))
 
 
-      profit = "0"
-      cost = "0"
+      let amt = tx.quantity
+      let cost = "0"
+      let profit = "0"
 
-      amt = tx.quantity
       while (true) {
         if (eq(amt, "0") || lt(amt, "0")) {
           break
@@ -135,7 +143,7 @@ const parseF8949 = (input, output)  => {
 
   const buildF8949 = (fourteenTrades) => {
     console.log(`building form from ${fourteenTrades.length} trades`);
-    subF8949 = JSON.parse(JSON.stringify(f8949));
+    const subF8949 = JSON.parse(JSON.stringify(f8949));
 
     // TODO: identify long-term capital gains
     subF8949.isShortTermA = false;
@@ -145,7 +153,7 @@ const parseF8949 = (input, output)  => {
     subF8949.isLongTermE = false;
     subF8949.isLongTermF = false;
 
-    subTotal = { Proceeds: "0", Cost: "0", GainOrLoss: "0" }
+    const subTotal = { Proceeds: "0", Cost: "0", GainOrLoss: "0" }
 
     let i = 1;
     for (const trade of fourteenTrades) {
@@ -153,7 +161,7 @@ const parseF8949 = (input, output)  => {
       subTotal.Cost = round(add(subTotal.Cost, trade.Cost), 2);
       subTotal.GainOrLoss = round(add(subTotal.GainOrLoss, trade.GainOrLoss), 2);
       for (const [key, value] of Object.entries(trade)) {
-        subF8949[`ST${i}${key}`] = value.match(/^-?[0-9]+.?[0-9]*$/) ? round(value, 2) : value;
+        subF8949[`ST${i}${key}`] = (value as any).match(/^-?[0-9]+.?[0-9]*$/) ? round(value, 2) : value;
       }
       i += 1;
     }
@@ -171,5 +179,3 @@ const parseF8949 = (input, output)  => {
      i % chunkSize === 0 ? trades.slice(i, i + chunkSize) : null
   ).filter(e => !!e).map(buildF8949);
 }
-
-module.exports = { parseF8949 }

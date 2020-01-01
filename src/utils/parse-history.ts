@@ -1,8 +1,7 @@
-const csv = require('csv-parse/lib/sync');
-const fs = require('fs');
+import csv from 'csv-parse/lib/sync';
+import fs from 'fs';
 
-const math = require('./math');
-const { add, sub, round, mul, eq, gt, lt } = math;
+import { diff, add, sub, round, mul, eq, gt, lt } from './math';
 
 const shouldWarn = false
 
@@ -116,7 +115,7 @@ const parseEtherscan = (filename, personal) => {
   }).filter(row => !!row);
 }
 
-const parseHistory = (personalData) => {
+export const parseHistory = (personalData) => {
   const allHistory = [];
   for (const historyFilename of personalData.txHistory || []) {
     if (historyFilename.includes('coinbase')) {
@@ -132,7 +131,3 @@ const parseHistory = (personalData) => {
   }
   return allHistory.filter(row => row.timestamp.startsWith('19'));
 }
-
-// console.log('All Tx History:', parseHistory(require(`${process.cwd()}/${process.argv[2]}`)));
-
-module.exports = { parseHistory }
