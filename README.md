@@ -23,19 +23,15 @@ Those are not my problems, use these tools at your own risk. Do your own researc
 
 Run `make example` to generate a simple example tax return based on the data in `example.json`
 
-Create a copy of `example.json` that will contain your sensitive, personal data: `cp example.json personal.json`
+Create a copy of `example.json` that will contain your personal data: `cp example.json personal.json`
 
-Then, to generate your tax returns, edit the relevant info in `personal.json` and run `make personal` (or just `make`)
+Then, to generate your tax returns, update the relevant info in `personal.json` and run `make personal` (or just `make`)
 
 # Important note re sensitive data
 
-To generate a valid tax return, you'll want to add your social security number & other sensitive data to `personal.json`
+To generate a valid tax return, you'll want to add your social security number & other sensitive data to `personal.json`. This file is added to the .gitignore so you're less likely to accidentally commit/push this personal data. But if you rename it to something like `personal.json.backup` then you could still accidentally commit it, so be careful & review diffs before you push.
 
-`personal.json` is added to the .gitignore so you're less likely to accidentally commit/push this personal data.
-
-This also means that `personal.json` won't automatically be backed up to a remote location while you're working on your taxes, take care to keep this file safe & not lose it.
-
-You can create a zipped archive of your personal data and attachments (expected to be in `docs/`) with the command: `make backup`.
+This also means that `personal.json` won't automatically be backed up to a remote repo as part of your fork of this repo. You'll probably spend a fair amount of time updating the info in `personal.json` so take care of this file & don't lose it. You can create a zipped archive of your personal data and attachments (expected to be in `docs/`) with the command: `make backup` & then copy this output somewhere safe.
 
 # Forms Overview
 

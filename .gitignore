@@ -1,8 +1,8 @@
-# Don't commit personal data
-*backup.tar.gz
-personal.json
+# Don't commit personal data or backups
 ./*.json
+./*.tar.gz
 docs/*
+personal.json
 
 # Cache
 .cache
