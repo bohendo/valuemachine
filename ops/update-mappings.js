@@ -39,21 +39,11 @@ for (const form of test.forms) {
     if (!Object.values(mappings).includes(field)) {
 
       const name = field
-        .replace(/\[[0-9]+\]\./g, '.')
-        .replace(/^topmostSubform./, '')
-        .replace(/^form1./, '')
-        .replace(/\[([0-9]+)\]$/, '_$1')
-        .replace(/\./g, '_')
-        .replace(/Page[0-9]+/g, '')
-        .replace(/Line/g, 'L')
-        .replace(/Item/g, 'I')
-        .replace(/ReadOrderControl/, '')
-        .replace(/Table/, '')
-        .replace(/Preparer_+Preparer_/, 'Preparer_')
-        .replace(/Dependents_+Dependents_/, 'Dependents_')
-        .replace(/(_f[0-9]+_[0-9]+)_0$/, '$1')
-        .replace(/^_+/, '')
-        .replace(/__/, '_')
+        .replace(/.*?\.([fc][0-9]+_[0-9].*)/, '$1')
+        .replace(/\[([0-9]+)\]/, '_$1')
+        .replace(/(f[0-9]+_[0-9]+)_0/, '$1')
+
+      if (name.match(/_RO_/)) { continue; }
 
       console.log(`Field ${field} does not exist in mappings, adding it as: ${name}`);
       mappings[name] = field;
