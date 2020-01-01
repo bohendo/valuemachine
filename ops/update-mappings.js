@@ -23,9 +23,7 @@ for (const form of test.forms) {
     throw new Error(`Fields for form ${form} do not exist!`);
   }
 
-  const fieldNames = fields.match(
-    /^FieldName: ([\[\]a-zA-Z0-9\._]*)$/gm
-  ).map(m => m.replace('FieldName: ', ''));
+  const fieldNames = fields.match(/^FieldName: (.*)$/gm).map(m => m.replace('FieldName: ', ''));
 
   for (const [key, value] of Object.entries(mappings)) {
     if (!fieldNames.includes(value)) {
