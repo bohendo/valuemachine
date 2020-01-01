@@ -10,7 +10,7 @@ const emptyForm = (form) => {
 const mergeForms = (form, values) => {
   const newForm = JSON.parse(JSON.stringify(form))
   for (const key of Object.keys(newForm)) {
-    if (values[key]) {
+    if (values && values[key]) {
       newForm[key] = values[key];
     }
   }

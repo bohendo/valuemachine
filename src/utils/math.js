@@ -1,6 +1,9 @@
 const { Zero } = require('ethers/constants');
 const { formatUnits, parseUnits } = require('ethers/utils');
 
+////////////////////////////////////////
+// Internal Helpers
+
 const fromWad = n => formatUnits(n.toString(), 18);
 
 const toWad = n => parseUnits((n || "0").toString(), 18);
@@ -9,6 +12,9 @@ const floor = (decStr) => decStr.substring(0, decStr.indexOf("."))
 
 const roundInt = (decStr) => 
   floor(fromWad(toWad(decStr).add(toWad("0.5"))).toString())
+
+////////////////////////////////////////
+// Exports
 
 const eq = (a, b) => toWad(a).eq(toWad(b));
 const gt = (a, b) => toWad(a).gt(toWad(b));

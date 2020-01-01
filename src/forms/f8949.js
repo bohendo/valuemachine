@@ -1,7 +1,7 @@
-const f8949Mappings = require('../mappings/f8949.json');
-const { add, eq, gt, lt, mul, round, sub, emptyForm, mergeForms, parseHistory } = require('../utils');
+const path = require('path');
+const { math, emptyForm, mergeForms, parseHistory } = require('../utils');
 
-const debugMode = false;
+const { add, sub, round, mul, eq, gt, lt } = math;
 
 const stringifyAssets = (assets) => {
   let output = '[\n'
@@ -18,8 +18,11 @@ const stringifyAssets = (assets) => {
 }
 
 const parseF8949 = (input, output)  => {
-  const f8949 = mergeForms(emptyForm(f8949Mappings), input.f8949 || {});
+  const mappings = require(`../mappings/${path.basename(__filename, '.js')}.json`)
+  const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949);
+
   const txHistory = parseHistory(input);
+  const debugMode = !!input.debugLogs
 
   // Set values constant across all f8949 forms
   f8949.FullNamePage1 = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;

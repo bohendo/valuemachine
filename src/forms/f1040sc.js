@@ -1,10 +1,9 @@
-const f1040scMappings = require('../mappings/f1040sc.json');
-const { add, eq, gt, lt, mul, round, sub, emptyForm, mergeForms } = require('../utils');
+const path = require('path');
+const { math, emptyForm, mergeForms } = require('../utils');
 
-const debugMode = false;
-
-const parseF1040sc = (personal) => {
-  const f1040sc = mergeForms(emptyForm(f1040scMappings), personal.f1040sc || {});
+const parseF1040sc = (input, output) => {
+  const mappings = require(`../mappings/${path.basename(__filename, '.js')}.json`)
+  const f1040sc = mergeForms(mergeForms(emptyForm(mappings), input.f1040sc), output.f1040sc);
 
   return [f1040sc]
 }

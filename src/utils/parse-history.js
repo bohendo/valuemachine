@@ -1,7 +1,8 @@
 const csv = require('csv-parse/lib/sync');
 const fs = require('fs');
 
-const { add, mul, diff } = require("./math");
+const math = require('./math');
+const { add, sub, round, mul, eq, gt, lt } = math;
 
 const shouldWarn = false
 
