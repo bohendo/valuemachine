@@ -13,6 +13,8 @@ import {
 } from '../utils';
 import { InputData } from '../types';
 
+export type F8949 = { [key in keyof typeof mappings]: string|boolean };
+
 const stringifyAssets = (assets) => {
   let output = '[\n'
   for (const [key, value] of Object.entries(assets)) {
@@ -27,7 +29,7 @@ const stringifyAssets = (assets) => {
   return `${output}]`
 }
 
-export const f8949 = (input: InputData, output: any): any[]  => {
+export const f8949 = (input: InputData, output: any): F8949[]  => {
   const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949);
 
   const txHistory = parseHistory(input);
