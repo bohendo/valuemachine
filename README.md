@@ -1,33 +1,41 @@
 
 # Tax Return
 
-Better tools for filling out form 1040 & friends for 2019 US taxes.
+Better tools for filling out form 1040 & friends.
 
 # Disclaimer
 
 I am not even remotely qualified to be doing this.
 
-This repo certainly has some bugs lurking and, if you put your faith in it, the IRS will likely have some problems w you.
+If you use this repo to generate tax return forms, **proof read the output carefully before sending it to the IRS**.
+
+This repo certainly has some bugs lurking and, if you put your blind faith in it, the IRS will likely have some problems w you.
 
 Those are not my problems, use these tools at your own risk. Do your own research.
 
 # Prerequisites
 
-`make`: Probably already installed, otherwise run something like `brew install make` or `apt-get install make`
-
-`python` & `pip`: Probably already installed, otherwise checkout [installation instructions](https://www.python.org/downloads/)
-
-`pdftk`: See [installation instructions](https://www.pdflabs.com/tools/pdftk-server/). The standard installation is broken on Mac, use [this one](https://stackoverflow.com/a/39814799) instead.
+ - `jq`: Probably not installed yet, install w `brew install jq` or `apt install jq` or similar.
+ - `make`: Probably already installed, otherwise install w `brew install make` or `apt install make` or similar.
+ - [`docker`](https://www.docker.com/): See website for instructions.
 
 # Building your taxes
 
-Run `make` to generate John Doe's example tax returns. This project pulls example input from `src/examples` and outputs the tax return to `build/examples/tax-return.pdf`.
+Run `make example` to generate a simple example tax return based on the data in `example.json`
 
-To build your own tax returns, create similar data in `src` as is in `src/examples`. For example, try copying the example data (`cp -r src/examples/* src/`) and then make changes according to your own situation.
+Create a copy of `example.json` that will contain your sensitive, personal data: `cp example.json personal.json`
 
-All files & folders in `src` besides `src/examples` are ignored by git. This makes it less likely that your social security number will leak out of your local copy of this repo. It also means that your tax return inputs won't be automatically backed up outside your own computer so be careful with it.
+Then, to generate your tax returns, edit the relevant info in `personal.json` and run `make personal` (or just `make`)
 
-Running `make` will build both the example output and your personal tax return.
+# Important note re sensitive data
+
+To generate a valid tax return, you'll want to add your social security number & other sensitive data to `personal.json`
+
+`personal.json` is added to the .gitignore so you're less likely to accidentally commit/push this personal data.
+
+This also means that `personal.json` won't automatically be backed up to a remote location while you're working on your taxes, take care to keep this file safe & not lose it.
+
+You can create a zipped archive of your personal data and attachments (expected to be in `docs/`) with the command: `make backup`.
 
 # Forms Overview
 
