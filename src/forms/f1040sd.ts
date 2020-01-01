@@ -10,10 +10,11 @@ export type F1040sd = {
 
 export const f1040sd = (input: InputData, output: any): any[] => {
   const f1040sd = mergeForms(mergeForms(emptyForm(mappings), input.f1040sd), output.f1040sd);
+  f1040sd.mappings = mappings
+  if (process.env.MODE === "test") { return [f1040sd]; }
   const f1040 = output.f1040 && output.f1040[0] ? output.f1040[0] : {};
   const f8949s = output.f8949 && output.f8949[0] ? output.f8949 : {};
 
-  f1040sd.mappings = mappings
   f1040sd.f1_01 = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
   f1040sd.f1_02 = input.SocialSecurityNumber;
 

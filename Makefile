@@ -51,6 +51,7 @@ purge:
 
 ########################################
 # Build tax return
+
 example: example.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
 	$(docker_run) "node build/src/entry.js example.json $(example)"
@@ -65,7 +66,7 @@ personal: personal.json taxes.js $(shell find ops $(find_options))
 
 test: test.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
-	$(docker_run) "node build/src/entry.js test.json $(test)"
+	$(docker_run) "MODE=test node build/src/entry.js test.json $(test)"
 	$(docker_run) "bash ops/build.sh $(test)"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
