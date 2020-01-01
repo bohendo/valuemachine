@@ -4,6 +4,15 @@ const test = require('../test.json');
 const mappingsFile = (form) => `./src/mappings/${form}.json`;
 const fieldsFile = (form) => `./ops/fields/${form}.fields`;
 
+const flag = process.argv[2];
+if (!flag) {
+  console.log(`Pass either "-n" or "-y" as the first & only argument`);
+  console.log(`  -n  Dry-run: print changes we would make if run with -y`);
+  console.log(`  -y  Make & save changes`);
+  process.exit();
+}
+const dryRun = flag === "-y"
+
 for (const form of test.forms) {
   const mappings = JSON.parse(fs.readFileSync(mappingsFile(form), { encoding: 'utf8' }));
   if (!mappings) {
@@ -51,7 +60,7 @@ for (const form of test.forms) {
     }
   }
 
-  fs.writeFileSync(mappingsFile(form), JSON.stringify(mappings, null, 2));
+  dryRun || fs.writeFileSync(mappingsFile(form), JSON.stringify(mappings, null, 2));
 }
 
 for (const form of test.forms) {
@@ -80,4 +89,4 @@ for (const form of test.forms) {
   }
 }
 
-fs.writeFileSync(`test.json`, JSON.stringify(test, null, 2));
+dryRun || fs.writeFileSync(`test.json`, JSON.stringify(test, null, 2));
