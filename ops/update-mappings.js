@@ -5,13 +5,13 @@ const mappingsFile = (form) => `./src/mappings/${form}.json`;
 const fieldsFile = (form) => `./ops/fields/${form}.fields`;
 
 const flag = process.argv[2];
-if (!flag) {
+if (!flag || (flag !== "-n" && flag !== "-y")) {
   console.log(`Pass either "-n" or "-y" as the first & only argument`);
   console.log(`  -n  Dry-run: print changes we would make if run with -y`);
   console.log(`  -y  Make & save changes`);
   process.exit();
 }
-const dryRun = flag === "-y"
+const dryRun = flag !== "-y"
 
 for (const form of test.forms) {
   const mappings = JSON.parse(fs.readFileSync(mappingsFile(form), { encoding: 'utf8' }));
@@ -70,20 +70,17 @@ for (const form of test.forms) {
   }
 
   if (!test[form]) {
-    console.log(`Test values for form ${form} do not exist, adding...`);
     test[form] = {}
   }
 
   for (const [key, value] of Object.entries(test[form])) {
     if (!Object.keys(mappings).includes(key)) {
-      console.log(`Key ${key} of ${form} is in test but not mappings, removing..`);
       delete test[form][key]
     }
   }
 
   for (const [key, value] of Object.entries(mappings)) {
     if (!Object.keys(test[form]).includes(key)) {
-      console.log(`Key ${key} of ${form} is in mappings but not in test, adding..`);
       test[form][key] = key
     }
   }
