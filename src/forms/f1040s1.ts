@@ -9,8 +9,8 @@ export const f1040s1 = (input: InputData, output: any): F1040s1[] => {
   f1040s1.mappings = mappings;
   if (process.env.MODE === "test") { return [f1040s1]; }
 
-  f1040s1.FullName = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
-  f1040s1.SSN = input.SocialSecurityNumber;
+  // f1040s1.FullName = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
+  // f1040s1.SSN = input.SocialSecurityNumber;
 
   return [f1040s1]
 }
