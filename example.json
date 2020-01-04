@@ -23,7 +23,7 @@
     "exceptions": { "half": [], "skip": [] },
     "dividends": [ ]
   },
-  "expenses": { },
+  "expenses": [],
 
   "assets": {
     "BTC": [
