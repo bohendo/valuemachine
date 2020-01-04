@@ -1,7 +1,8 @@
 import { round, add, gt, lt, eq } from '../utils';
 import { InputData, Forms } from '../types';
 
-export const f1040sd = (input: InputData, forms: Forms): Forms => {
+export const f1040sd = (input: InputData, oldForms: Forms): Forms => {
+  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const f1040 = forms.f1040 && forms.f1040[0] ? forms.f1040[0] : {};
   const f1040sd = forms.f1040sd && forms.f1040sd[0] ? forms.f1040sd[0] : {};
   const f8949s = forms.f8949 && forms.f8949[0] ? forms.f8949 : [];

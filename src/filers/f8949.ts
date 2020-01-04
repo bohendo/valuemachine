@@ -15,7 +15,8 @@ const stringifyAssets = (assets) => {
   return `${output}]`
 }
 
-export const f8949 = (input: InputData, forms: Forms): Forms  => {
+export const f8949 = (input: InputData, oldForms: Forms): Forms  => {
+  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const f8949 = forms.f8949 && forms.f8949[0] ? forms.f8949[0] : {};
 
   const txHistory = parseHistory(input) as TaxableTx[];

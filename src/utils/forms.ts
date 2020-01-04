@@ -20,7 +20,7 @@ export const mergeForms = (form, values) => {
 export const translate = (form, mappings) => {
   const newForm = {};
   for (const [key, value] of Object.entries(form)) {
-    if (key === 'default' || key === 'mappings') { continue; }
+    if (key === 'default') { continue; }
     if (!mappings[key]) {
       console.warn(`Key ${key} exists in output data but not in mappings`);
     }

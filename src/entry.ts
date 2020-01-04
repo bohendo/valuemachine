@@ -21,21 +21,23 @@ for (const form of input.forms.reverse()) {
   if (!mappings[form]) {
     throw new Error(`Form ${form} not supported: No mappings available`);
   }
-  output[form] = [mergeForms(emptyForm(mappings), input[form])];
+  output[form] = [mergeForms(emptyForm(mappings[form]), input[form])];
 }
 
 ////////////////////////////////////////
 // Step 2: Parse personal data & attachments to fill in the rest of the forms
 
-for (const form of input.forms.reverse()) {
-  console.log();
-  console.log(`\n========================================\n`);
-  console.log(`Building form ${form}`);
-  if (!filers[form]) {
-    console.warn(`No filer is available for form ${form}. Using unmodified user input.`);
-    continue;
+if (process.env.MODE !== 'test') {
+  for (const form of input.forms.reverse()) {
+    console.log();
+    console.log(`\n========================================\n`);
+    console.log(`Building form ${form}`);
+    if (!filers[form]) {
+      console.warn(`No filer is available for form ${form}. Using unmodified user input.`);
+      continue;
+    }
+    output = filers[form](input, output);
   }
-  output = filers[form](input, output);
 }
 
 ////////////////////////////////////////

@@ -1,7 +1,8 @@
 import { add, div, gt, lt, parseHistory, round, sub } from '../utils';
 import { InputData, Forms, TaxableTx } from '../types';
 
-export const f1040sc = (input: InputData, forms: Forms): Forms => {
+export const f1040sc = (input: InputData, oldForms: Forms): Forms => {
+  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const f1040s1 = forms.f1040s1 && forms.f1040s1[0] ? forms.f1040s1[0] : {};
   const f1040sc = forms.f1040sc && forms.f1040sc[0] ? forms.f1040sc[0] : {};
   const f1040sse = forms.f1040sse && forms.f1040sse[0] ? forms.f1040sse[0] : {};
