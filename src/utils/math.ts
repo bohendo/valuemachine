@@ -1,16 +1,16 @@
 import { Zero } from 'ethers/constants';
-import { formatUnits, parseUnits } from 'ethers/utils';
+import { BigNumber as BN, formatUnits, parseUnits } from 'ethers/utils';
 
 ////////////////////////////////////////
 // Internal Helpers
 
-const fromWad = n => formatUnits(n.toString(), 18);
+const fromWad = (n: BN | string): string => formatUnits((n || "0").toString(), 18);
 
-const toWad = n => parseUnits((n || "0").toString(), 18);
+const toWad = (n: BN | string): BN => parseUnits((n || "0").toString(), 18);
 
-const floor = (decStr) => decStr.substring(0, decStr.indexOf("."))
+const floor = (decStr: string): string => decStr.substring(0, decStr.indexOf("."))
 
-const roundInt = (decStr) => 
+const roundInt = (decStr: string): string => 
   floor(fromWad(toWad(decStr).add(toWad("0.5"))).toString())
 
 ////////////////////////////////////////
@@ -20,22 +20,23 @@ export const eq = (a, b) => toWad(a).eq(toWad(b));
 export const gt = (a, b) => toWad(a).gt(toWad(b));
 export const lt = (a, b) => toWad(a).lt(toWad(b));
 
-export const mul = (a, b) =>
+export const mul = (a: string, b: string): string =>
   fromWad(roundInt(fromWad(toWad(a).mul(toWad(b)))));
 
-export const div = (a, b) =>
+export const div = (a: string, b: string): string =>
   fromWad(toWad(toWad(a)).div(toWad(b)))
 
 export const add = (lon: string[]): string =>
   lon.reduce((sum, current) => fromWad(toWad(sum).add(toWad(current))));
 
-export const sub = (a, b) =>
+export const sub = (a: string, b: string): string =>
   fromWad(toWad(a).sub(toWad(b)))
 
 // absolute value of subtracting a and b
-export const diff = (a, b) => toWad(sub(a,b)).gt(Zero) ? sub(a,b) : sub(b,a)
+export const diff = (a: string, b: string): string =>
+  toWad(sub(a,b)).gt(Zero) ? sub(a,b) : sub(b,a)
 
-export const round = (decStr, n?) => {
+export const round = (decStr: string, n?: number) => {
   if (!n) { return roundInt(decStr); }
   const power = `1${'0'.repeat(n || 0)}`
   let out = div(roundInt(mul(decStr, power)), power);
