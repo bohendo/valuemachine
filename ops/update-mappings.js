@@ -63,11 +63,13 @@ for (const form of test.forms) {
 
   for (const [key, value] of Object.entries(test[form])) {
     if (!Object.keys(mappings).includes(key)) {
+      console.log(`Deleting key ${key} from test for ${form}`);
       delete test[form][key]
     }
   }
 
   for (const [key, value] of Object.entries(mappings)) {
+    console.log(`Adding key ${key} to test for ${form}`);
     if (key.startsWith('c')) {
       test[form][key] = true;
     } else {
