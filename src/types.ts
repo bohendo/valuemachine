@@ -1,6 +1,4 @@
-export type HasMappings = {
-  mappings: any;
-}
+export { Field, Forms } from './mappings';
 
 export type TaxableTx = {
   timestamp: string;
