@@ -1,9 +1,10 @@
 import csv from 'csv-parse/lib/sync';
 import fs from 'fs';
 
-import * as parsers from "./forms";
-import { translate } from "./utils";
+import * as filers from "./forms";
+import { mappings, Forms } from "./mappings";
 import { InputData } from "./types";
+import { emptyForm, mergeForms, translate } from './utils';
 
 const inputFile = `${process.cwd()}/${process.argv[2]}`;
 const outputFolder = `${process.cwd()}/${process.argv[3]}/data`
@@ -12,33 +13,44 @@ console.log('Lets go');
 
 const input = JSON.parse(fs.readFileSync(inputFile, { encoding: 'utf8' })) as InputData;
 
-// Generate output form data from input
-const output = {} as any;
+////////////////////////////////////////
+// Step 1: Start out w forms containing raw user supplied data
+
+let output = {} as Forms;
 for (const form of input.forms.reverse()) {
-  console.log();
-  console.log(`========================================`);
-  console.log(`Building form ${form}`);
-  if (!parsers[form]) {
-    throw new Error(`Form not supported: ${form}`);
+  if (!mappings[form]) {
+    throw new Error(`Form ${form} not supported: No mappings available`);
   }
-  output[form] = parsers[form](input, output) as any;
+  output[form] = [mergeForms(emptyForm(mappings), input[form])];
 }
 
-console.log();
-console.log(`Done generating form data!`);
-console.log(`Writing output to files in ${outputFolder}`);
+////////////////////////////////////////
+// Step 2: Parse personal data & attachments to fill in the rest of the forms
 
-// Write output to a series of JSON files
+for (const form of input.forms.reverse()) {
+  console.log();
+  console.log(`\n========================================\n`);
+  console.log(`Building form ${form}`);
+  if (!filers[form]) {
+    console.warn(`No filer is available for form ${form}. Using unmodified user input.`);
+    continue;
+  }
+  output = filers[form](input, output);
+}
+
+////////////////////////////////////////
+// Step 3: Write output to a series of JSON files
+
 for (const [name, data] of Object.entries(output)) {
   console.log(`Exporting form data for ${name}`);
-  if ((data as any).length === 1) {
-    const outputData = JSON.stringify(translate(data[0]), null, 2)
+  if (data.length === 1) {
+    const outputData = JSON.stringify(translate(data[0], mappings[name]), null, 2)
     fs.writeFileSync(`${outputFolder}/${name}.json`, outputData);
   } else {
     let i = 1
-    for (const page of data as any) {
+    for (const page of data) {
       const pageName = `f8949_${i}`;
-      const outputData = JSON.stringify(translate(page), null, 2)
+      const outputData = JSON.stringify(translate(page, mappings[name]), null, 2)
       fs.writeFileSync(`${outputFolder}/${pageName}.json`, outputData);
       i += 1;
     }

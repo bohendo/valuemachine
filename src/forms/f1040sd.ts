@@ -1,16 +1,10 @@
-import * as mappings from '../mappings/f1040sd.json';
-import { emptyForm, mergeForms } from '../utils';
 import { round, add, gt, lt, eq } from '../utils';
-import { HasMappings, InputData } from '../types';
+import { InputData, Forms } from '../types';
 
-export type F1040sd = HasMappings & { [key in keyof typeof mappings]: string|boolean; };
-
-export const f1040sd = (input: InputData, output: any): F1040sd[] => {
-  const f1040sd = mergeForms(mergeForms(emptyForm(mappings), input.f1040sd), output.f1040sd);
-  f1040sd.mappings = mappings
-  if (process.env.MODE === "test") { return [f1040sd]; }
-  const f1040 = output.f1040 && output.f1040[0] ? output.f1040[0] : {};
-  const f8949s = output.f8949 && output.f8949[0] ? output.f8949 : {};
+export const f1040sd = (input: InputData, forms: Forms): Forms => {
+  const f1040 = forms.f1040 && forms.f1040[0] ? forms.f1040[0] : {};
+  const f1040sd = forms.f1040sd && forms.f1040sd[0] ? forms.f1040sd[0] : {};
+  const f8949s = forms.f8949 && forms.f8949[0] ? forms.f8949 : [];
 
   f1040sd.f1_01 = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
   f1040sd.f1_02 = input.SocialSecurityNumber;
@@ -57,6 +51,7 @@ export const f1040sd = (input: InputData, output: any): F1040sd[] => {
     f1040sd.c2_3_1 = true;
   }
 
-  output.f1040 = [f1040];
-  return [f1040sd]
+  forms.f1040 = [f1040];
+  forms.f1040sd = [f1040sd];
+  return forms;
 }

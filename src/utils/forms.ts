@@ -17,9 +17,8 @@ export const mergeForms = (form, values) => {
   return newForm;
 };
 
-export const translate = (form) => {
+export const translate = (form, mappings) => {
   const newForm = {};
-  const mappings = form.mappings;
   for (const [key, value] of Object.entries(form)) {
     if (key === 'default' || key === 'mappings') { continue; }
     if (!mappings[key]) {

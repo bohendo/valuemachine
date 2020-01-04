@@ -1,15 +1,10 @@
-import * as mappings from '../mappings/f1040sc.json';
-import { add, div, emptyForm, gt, lt, mergeForms, parseHistory, round, sub } from '../utils';
-import { HasMappings, InputData, TaxableTx } from '../types';
+import { add, div, gt, lt, parseHistory, round, sub } from '../utils';
+import { InputData, Forms, TaxableTx } from '../types';
 
-export type F1040sc = HasMappings & { [key in keyof typeof mappings]: string|boolean; };
-
-export const f1040sc = (input: InputData, output: any): F1040sc[] => {
-  const f1040sc = mergeForms(mergeForms(emptyForm(mappings), input.f1040sc), output.f1040sc) as any;
-  f1040sc.mappings = mappings;
-  if (process.env.MODE === "test") { return [f1040sc]; }
-  const f1040s1 = output.f1040s1 && output.f1040s1[0] ? output.f1040s1[0] : {};
-  const f1040sse = output.f1040sse && output.f1040sse[0] ? output.f1040sse[0] : {};
+export const f1040sc = (input: InputData, forms: Forms): Forms => {
+  const f1040s1 = forms.f1040s1 && forms.f1040s1[0] ? forms.f1040s1[0] : {};
+  const f1040sc = forms.f1040sc && forms.f1040sc[0] ? forms.f1040sc[0] : {};
+  const f1040sse = forms.f1040sse && forms.f1040sse[0] ? forms.f1040sse[0] : {};
 
   f1040sc.FullName = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
   f1040sc.SSN = input.SocialSecurityNumber;
@@ -70,16 +65,17 @@ export const f1040sc = (input: InputData, output: any): F1040sc[] => {
 
   if (gt(f1040sc.Line31, "0")) {
     f1040s1.Line3 = f1040sc.Line31
-    f1040sse.Line2 = f1040sc.Line31
+    // f1040sse.Line2 = f1040sc.Line31
   } else if (lt(f1040sc.Line31, "0")) {
     if (f1040sc.Check32a) {
       f1040s1.Line3 = f1040sc.Line31
-      f1040sse.Line2 = f1040sc.Line31
+      // f1040sse.Line2 = f1040sc.Line31
     }
   }
 
-  output.f1040s1 = [f1040s1];
-  // output.f1040sse = [f1040sse];
-  return [f1040sc]
+  forms.f1040s1 = [f1040s1];
+  forms.f1040sc = [f1040sc];
+  // forms.f1040sse = [f1040sse];
+  return forms;
 }
 

@@ -1,22 +1,5 @@
-import * as mappings from '../mappings/f8949.json';
-import {
-  add,
-  emptyForm,
-  eq,
-  gt,
-  lt,
-  mergeForms,
-  mul,
-  parseHistory,
-  round,
-  sub,
-} from '../utils';
-import { HasMappings, InputData, TaxableTx } from '../types';
-
-// TODO: add mappings to this type & use it
-export type F8949 = HasMappings & {
-  [key in keyof typeof mappings]: string|boolean;
-};
+import { add, eq, gt, lt, mul, parseHistory, round, sub, } from '../utils';
+import { InputData, Forms, TaxableTx } from '../types';
 
 const stringifyAssets = (assets) => {
   let output = '[\n'
@@ -32,14 +15,13 @@ const stringifyAssets = (assets) => {
   return `${output}]`
 }
 
-export const f8949 = (input: InputData, output: any): F8949[]  => {
-  const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949) as any;
+export const f8949 = (input: InputData, forms: Forms): Forms  => {
+  const f8949 = forms.f8949 && forms.f8949[0] ? forms.f8949[0] : {};
 
   const txHistory = parseHistory(input) as TaxableTx[];
   const debugMode = !!input.debugLogs
 
   // Set values constant across all f8949 forms
-  f8949.mappings = mappings
   f8949.f1_1 = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
   f8949.f1_2 = input.SocialSecurityNumber;
   f8949.f2_1 = f8949.f1_1;
@@ -184,7 +166,9 @@ export const f8949 = (input: InputData, output: any): F8949[]  => {
      i % chunkSize === 0 ? trades.slice(i, i + chunkSize) : null
   ).filter(e => !!e)
 
-  return (tradeChunks.length === 0)
+  forms.f8949 = (tradeChunks.length === 0)
     ? [buildF8949([])]
     : tradeChunks.map(buildF8949)
+
+  return forms;
 }
