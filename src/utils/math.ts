@@ -26,8 +26,8 @@ export const mul = (a, b) =>
 export const div = (a, b) =>
   fromWad(toWad(toWad(a)).div(toWad(b)))
 
-export const add = (a, b) => 
-  fromWad(toWad(a).add(toWad(b)))
+export const add = (lon: string[]): string =>
+  lon.reduce((sum, current) => fromWad(toWad(sum).add(toWad(current))));
 
 export const sub = (a, b) =>
   fromWad(toWad(a).sub(toWad(b)))

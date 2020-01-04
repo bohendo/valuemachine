@@ -55,7 +55,7 @@ const parseWyre = (filename: string, personal: InputData): TaxableTx[] => {
       from: row["Type"] === "INCOMING" ? "ex-wyre" : "self",
       to: row["Type"] === "OUTGOING" ? "ex-wyre" : "self",
       valueIn: row["Dest Amount"],
-      valueOut: add(row["Source Amount"], row["Exchange Rate"]),
+      valueOut: add([row["Source Amount"], row["Exchange Rate"]]),
       fee: row["Fees USD"] || "0" // TODO: deal w fees charged in other currencies
     });
   }).filter(row => !!row);
@@ -71,7 +71,7 @@ const parseEtherscan = (filename: string, personal: InputData): TaxableTx[] => {
     { columns: true, skip_empty_lines: true },
   ).map(row => {
     // console.log(`Parsing row:`, row);
-    const quantity = add(row["Value_IN(ETH)"], row["Value_OUT(ETH)"]);
+    const quantity = add([row["Value_IN(ETH)"], row["Value_OUT(ETH)"]]);
     if (quantity === "0") return null; // TODO: ERC20 txns?!
     let from;
     if (Object.keys(personal.addresses).includes(row["From"].toLowerCase())) {
@@ -109,8 +109,8 @@ const parseEtherscan = (filename: string, personal: InputData): TaxableTx[] => {
       price: row["Historical $Price/Eth"],
       from,
       to,
-      valueIn: row["Value_IN(ETH)"] === "0" ? value : "0",
-      valueOut: row["Value_OUT(ETH)"] === "0" ? value : "0",
+      valueIn: row["Value_OUT(ETH)"] === "0" ? value : "0",
+      valueOut: row["Value_IN(ETH)"] === "0" ? value : "0",
       fee: row["TxnFee(USD)"] || '0',
     });
   }).filter(row => !!row);

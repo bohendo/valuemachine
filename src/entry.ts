@@ -30,6 +30,7 @@ console.log(`Writing output to files in ${outputFolder}`);
 
 // Write output to a series of JSON files
 for (const [name, data] of Object.entries(output)) {
+  console.log(`Exporting form data for ${name}`);
   if ((data as any).length === 1) {
     const outputData = JSON.stringify(translate(data[0]), null, 2)
     fs.writeFileSync(`${outputFolder}/${name}.json`, outputData);

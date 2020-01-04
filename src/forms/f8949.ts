@@ -25,7 +25,7 @@ const stringifyAssets = (assets) => {
     output += `  ${key}:`
     for (const chunk of value as any) {
       output += ` ${chunk.quantity}@${chunk.price},`
-      total = add(total, chunk.quantity)
+      total = add([total, chunk.quantity])
     }
     output += ` (Total: ${total})\n`
   }
@@ -98,19 +98,19 @@ export const f8949 = (input: InputData, output: any): F8949[]  => {
           throw new Error(`Attempting to sell more ${tx.asset} than we bought. ${tx.asset} left: ${JSON.stringify(assets[tx.asset])}`);
         }
         if (eq(asset.quantity, amt)) {
-          profit = add(profit, sub(mul(amt, tx.price), mul(amt, asset.price)));
-          cost = add(cost, mul(asset.price, amt));
+          profit = add([profit, sub(mul(amt, tx.price), mul(amt, asset.price))]);
+          cost = add([cost, mul(asset.price, amt)]);
           asset.quantity = sub(asset.quantity, amt);
           break
         } else if (gt(asset.quantity, amt)) {
-          profit = add(profit, sub(mul(amt, tx.price), mul(amt, asset.price)));
-          cost = add(cost, mul(asset.price, amt));
+          profit = add([profit, sub(mul(amt, tx.price), mul(amt, asset.price))]);
+          cost = add([cost, mul(asset.price, amt)]);
           asset.quantity = sub(asset.quantity, amt);
           assets[tx.asset].unshift(asset);
           break
         } else {
-          profit = add(profit, mul(sub(tx.price, asset.price), asset.quantity));
-          cost = add(cost, mul(asset.price, asset.quantity));
+          profit = add([profit, mul(sub(tx.price, asset.price), asset.quantity)]);
+          cost = add([cost, mul(asset.price, asset.quantity)]);
           amt = sub(amt, asset.quantity);
         }
       }
@@ -127,9 +127,9 @@ export const f8949 = (input: InputData, output: any): F8949[]  => {
         GainOrLoss: profit,
       });
 
-      totalProceeds = add(totalProceeds, proceeds);
-      totalCost = add(totalCost, cost);
-      totalProfit = add(totalProfit, profit);
+      totalProceeds = add([totalProceeds, proceeds]);
+      totalCost = add([totalCost, cost]);
+      totalProfit = add([totalProfit, profit]);
 
     } else {
       console.log(`idk what to do w tx of ${tx.quantity} ${tx.asset} from ${tx.from} to ${tx.to}`);
@@ -160,9 +160,9 @@ export const f8949 = (input: InputData, output: any): F8949[]  => {
 
     let i = 3;
     for (const trade of fourteenTrades) {
-      subTotal.Proceeds = round(add(subTotal.Proceeds, trade.Proceeds), 2);
-      subTotal.Cost = round(add(subTotal.Cost, trade.Cost), 2);
-      subTotal.GainOrLoss = round(add(subTotal.GainOrLoss, trade.GainOrLoss), 2);
+      subTotal.Proceeds = round(add([subTotal.Proceeds, trade.Proceeds]), 2);
+      subTotal.Cost = round(add([subTotal.Cost, trade.Cost]), 2);
+      subTotal.GainOrLoss = round(add([subTotal.GainOrLoss, trade.GainOrLoss]), 2);
       subF8949[`f1_${i}`] = trade.Description
       subF8949[`f1_${i+1}`] = trade.DateAcquired
       subF8949[`f1_${i+2}`] = trade.DateSold

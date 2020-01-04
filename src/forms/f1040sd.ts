@@ -18,19 +18,19 @@ export const f1040sd = (input: InputData, output: any): F1040sd[] => {
   const totals = { proceeds: "0", cost: "0", gainOrLoss: "0" }
   for (const f8949 of f8949s) {
     console.log(`Fetching data from f8949: proceeds=${f8949.f1_115} cost=${f8949.f1_116} gain|loss=${f8949.f1_119}`);
-    totals.proceeds = add(totals.proceeds, f8949.f1_115);
-    totals.cost = add(totals.cost, f8949.f1_116);
-    totals.gainOrLoss = add(totals.gainOrLoss, f8949.f1_119);
+    totals.proceeds = add([totals.proceeds, f8949.f1_115]);
+    totals.cost = add([totals.cost, f8949.f1_116]);
+    totals.gainOrLoss = add([totals.gainOrLoss, f8949.f1_119]);
   }
   f1040sd.f1_15 = round(totals.proceeds, 2);
   f1040sd.f1_16 = round(totals.cost, 2);
   f1040sd.f1_18 = round(totals.gainOrLoss, 2);
 
-  f1040sd.f1_22 = add(add(add(f1040sd.f1_18, f1040sd.f1_19), f1040sd.f1_20), f1040sd.f1_21);
+  f1040sd.f1_22 = add([f1040sd.f1_18, f1040sd.f1_19, f1040sd.f1_20, f1040sd.f1_21]);
 
   // TODO: handle long-term capital gains properly
 
-  f1040sd.f2_01 = add(f1040sd.f1_22, f1040sd.f1_43);
+  f1040sd.f2_01 = add([f1040sd.f1_22, f1040sd.f1_43]);
 
   if (gt(f1040sd.f2_01, "0")) {
     f1040.Line6 = f1040sd.f2_01;
