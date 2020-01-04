@@ -1,14 +1,11 @@
 import * as mappings from '../mappings/f1040sd.json';
 import { emptyForm, mergeForms } from '../utils';
 import { round, add, gt, lt, eq } from '../utils';
-import { InputData } from '../types';
+import { HasMappings, InputData } from '../types';
 
-// TODO: add mappings to this type & use it
-export type F1040sd = {
-  [key in keyof typeof mappings]: string|boolean;
-};
+export type F1040sd = HasMappings & { [key in keyof typeof mappings]: string|boolean; };
 
-export const f1040sd = (input: InputData, output: any): any[] => {
+export const f1040sd = (input: InputData, output: any): F1040sd[] => {
   const f1040sd = mergeForms(mergeForms(emptyForm(mappings), input.f1040sd), output.f1040sd);
   f1040sd.mappings = mappings
   if (process.env.MODE === "test") { return [f1040sd]; }
@@ -36,7 +33,7 @@ export const f1040sd = (input: InputData, output: any): any[] => {
   f1040sd.f2_01 = add(f1040sd.f1_22, f1040sd.f1_43);
 
   if (gt(f1040sd.f2_01, "0")) {
-    f1040.f1_37 = f1040sd.f2_01;
+    f1040.Line6 = f1040sd.f2_01;
     if (gt(f1040sd.f1_43, "0")) {
       f1040sd.c2_1_0 = true;
       throw new Error(`28% rate worksheet not implemented yet`);
@@ -44,16 +41,16 @@ export const f1040sd = (input: InputData, output: any): any[] => {
       f1040sd.c2_1_1 = true;
     }
   } else if (lt(f1040sd.f2_01, "0")) {
-    if (f1040.c1_01_2) {
+    if (f1040.isMarriedSeparate) {
       f1040sd.f2_04 = lt(f1040sd.f2_04, "1500") ? f1040sd.f2_04 : "1500.00";
     } else {
       f1040sd.f2_04 = lt(f1040sd.f2_04, "3000") ? f1040sd.f2_04 : "3000.00";
     }
   } else if (eq(f1040sd.f2_01, "0")) {
-    f1040.f1_37 = "0.00" 
+    f1040.Line6 = "0.00" 
   }
 
-  if (f1040.f1_29) {
+  if (!eq(f1040.Line3a, "0")) {
     f1040sd.c2_3_0 = true;
     throw new Error(`Qualified Dividends and Capital Gain Tax Worksheet not implemented yet`);
   } else {

@@ -1,3 +1,7 @@
+export type HasMappings = {
+  mappings: any;
+}
+
 export type TaxableTx = {
   timestamp: string;
   asset: string;

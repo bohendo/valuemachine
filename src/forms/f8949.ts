@@ -11,10 +11,10 @@ import {
   round,
   sub,
 } from '../utils';
-import { InputData, TaxableTx } from '../types';
+import { HasMappings, InputData, TaxableTx } from '../types';
 
 // TODO: add mappings to this type & use it
-export type F8949 = {
+export type F8949 = HasMappings & {
   [key in keyof typeof mappings]: string|boolean;
 };
 
@@ -32,7 +32,7 @@ const stringifyAssets = (assets) => {
   return `${output}]`
 }
 
-export const f8949 = (input: InputData, output: any): any[]  => {
+export const f8949 = (input: InputData, output: any): F8949[]  => {
   const f8949 = mergeForms(mergeForms(emptyForm(mappings), input.f8949), output.f8949) as any;
 
   const txHistory = parseHistory(input) as TaxableTx[];
