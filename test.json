@@ -50,11 +50,6 @@
     "c2_04_0": true,
     "c2_05_0": true,
     "c2_05_1": true,
-    "c1_01_0": true,
-    "c1_01_1": true,
-    "c1_01_2": true,
-    "c1_01_3": true,
-    "c1_01_4": true,
     "f1_01": "f1_01",
     "f1_04": "f1_04",
     "f1_05": "f1_05",
@@ -159,7 +154,12 @@
     "Line21d": "Line21d",
     "Line22": "Line22",
     "Line23": "Line23",
-    "Line24": "Line24"
+    "Line24": "Line24",
+    "isSingle": "isSingle",
+    "isMarriedJoint": "isMarriedJoint",
+    "isMarriedSeparate": "isMarriedSeparate",
+    "isHeadOfHousehold": "isHeadOfHousehold",
+    "isWidow": "isWidow"
   },
   "f1040s1": {
     "f1_01": "f1_01",
