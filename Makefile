@@ -55,7 +55,7 @@ purge:
 example: example.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
 	$(docker_run) "node build/src/entry.js example.json $(example)"
-	$(docker_run) "bash ops/build.sh $(example)
+	$(docker_run) "bash ops/build.sh $(example)"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
 personal: personal.json taxes.js $(shell find ops $(find_options))
