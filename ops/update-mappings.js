@@ -71,7 +71,7 @@ for (const form of test.forms) {
   for (const [key, value] of Object.entries(mappings)) {
     if (typeof test[form][key] == 'undefined') {
       console.log(`Adding key ${key} to test for ${form}`);
-      if (key.startsWith('c')) {
+      if (key.toLowerCase().startsWith('c')) {
         test[form][key] = true;
       } else {
         test[form][key] = key;
