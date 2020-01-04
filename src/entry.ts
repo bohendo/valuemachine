@@ -1,7 +1,7 @@
 import csv from 'csv-parse/lib/sync';
 import fs from 'fs';
 
-import * as filers from "./forms";
+import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
 import { InputData } from "./types";
 import { emptyForm, mergeForms, translate } from './utils';
