@@ -3,6 +3,7 @@
   "forms": [
     "f1040",
     "f1040s1",
+    "f1040sse",
     "f1040sc",
     "f1040sd",
     "f8949"
@@ -367,12 +368,10 @@
     "LineF": "LineF",
     "CheckG-Yes": true,
     "CheckG-No": true,
-    "CheckH-Check": true,
     "CheckI-Yes": true,
     "CheckI-No": true,
     "CheckJ-Yes": true,
     "CheckJ-No": true,
-    "Check1-Check": true,
     "Check32a": true,
     "Check32b": true,
     "Check33a": true,
@@ -387,7 +386,9 @@
     "Check47a-Yes": true,
     "Check47a-No": true,
     "Check47b-Yes": true,
-    "Check47b-No": true
+    "Check47b-No": true,
+    "CheckH": true,
+    "Check1": true
   },
   "f1040sd": {
     "f1_01": "f1_01",

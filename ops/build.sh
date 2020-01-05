@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-dir="$1"
+target=$1
+dir="`pwd`/build/$target"
 
 data_dir="$dir/data"
 pages_dir="$dir/pages"
@@ -10,7 +11,7 @@ fields_dir="ops/fields"
 
 page_number=0
 
-forms="`cat personal.json | jq '.forms' | tr -d ' ,"[]' | tr '\n\r' ' '`"
+forms="`cat $target.json | jq '.forms' | tr -d ' ,"[]' | tr '\n\r' ' '`"
 mkdir -p $data_dir $pages_dir
 
 # This is the order in which forms will be combined into the final tax return
