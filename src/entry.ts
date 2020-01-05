@@ -29,9 +29,7 @@ for (const form of input.forms.reverse()) {
 
 if (process.env.MODE !== 'test') {
   for (const form of input.forms.reverse()) {
-    console.log();
-    console.log(`\n========================================\n`);
-    console.log(`Building form ${form}`);
+    console.log(`\n========================================\n= Building Form: ${form}`);
     if (!filers[form]) {
       console.warn(`No filer is available for form ${form}. Using unmodified user input.`);
       continue;
