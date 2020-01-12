@@ -100,7 +100,7 @@ export const f8949 = (input: InputData, oldForms: Forms): Forms  => {
       const proceeds = mul(tx.price, tx.quantity);
 
       trades.push({
-        Description: `${round(tx.quantity, 2)} ${tx.asset}`,
+        Description: `${round(tx.quantity)} ${tx.asset}`,
         DateAcquired: 'VARIOUS',
         DateSold: `${tx.timestamp.substring(2,4)}/${tx.timestamp.substring(4,6)}/${tx.timestamp.substring(0,2)}`,
         Proceeds: proceeds,
@@ -143,20 +143,20 @@ export const f8949 = (input: InputData, oldForms: Forms): Forms  => {
 
     let i = 3;
     for (const trade of fourteenTrades) {
-      subTotal.Proceeds = round(add([subTotal.Proceeds, trade.Proceeds]), 2);
-      subTotal.Cost = round(add([subTotal.Cost, trade.Cost]), 2);
-      subTotal.GainOrLoss = round(add([subTotal.GainOrLoss, trade.GainOrLoss]), 2);
+      subTotal.Proceeds = round(add([subTotal.Proceeds, trade.Proceeds]));
+      subTotal.Cost = round(add([subTotal.Cost, trade.Cost]));
+      subTotal.GainOrLoss = round(add([subTotal.GainOrLoss, trade.GainOrLoss]));
       subF8949[`f1_${i}`] = trade.Description
       subF8949[`f1_${i+1}`] = trade.DateAcquired
       subF8949[`f1_${i+2}`] = trade.DateSold
-      subF8949[`f1_${i+3}`] = round(trade.Proceeds, 2)
-      subF8949[`f1_${i+4}`] = round(trade.Cost, 2)
-      subF8949[`f1_${i+7}`] = round(trade.GainOrLoss, 2)
+      subF8949[`f1_${i+3}`] = round(trade.Proceeds)
+      subF8949[`f1_${i+4}`] = round(trade.Cost)
+      subF8949[`f1_${i+7}`] = round(trade.GainOrLoss)
       i += 8;
     }
-    subF8949.f1_115 = round(subTotal.Proceeds, 2);
-    subF8949.f1_116 = round(subTotal.Cost, 2);
-    subF8949.f1_119 = round(subTotal.GainOrLoss, 2);
+    subF8949.f1_115 = round(subTotal.Proceeds);
+    subF8949.f1_116 = round(subTotal.Cost);
+    subF8949.f1_119 = round(subTotal.GainOrLoss);
 
     return subF8949;
   }

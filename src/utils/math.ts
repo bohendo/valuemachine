@@ -36,9 +36,9 @@ export const sub = (a: string, b: string): string =>
 export const diff = (a: string, b: string): string =>
   toWad(sub(a,b)).gt(Zero) ? sub(a,b) : sub(b,a)
 
-export const round = (decStr: string, n?: number) => {
+export const round = (decStr: string, n: number = 2) => {
   if (!n) { return roundInt(decStr); }
-  const power = `1${'0'.repeat(n || 0)}`
+  const power = `1${'0'.repeat(n)}`
   let out = div(roundInt(mul(decStr, power)), power);
   // Pad with extra zeros if needed
   if (out.indexOf('.') === -1) { out = `${out}.`; }

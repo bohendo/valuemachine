@@ -1,5 +1,5 @@
-import { round, add, gt, lt, eq } from '../utils';
 import { InputData, Forms } from '../types';
+import { round, add, gt, lt, eq } from '../utils';
 
 export const f1040sd = (input: InputData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
@@ -17,9 +17,9 @@ export const f1040sd = (input: InputData, oldForms: Forms): Forms => {
     totals.cost = add([totals.cost, f8949.f1_116]);
     totals.gainOrLoss = add([totals.gainOrLoss, f8949.f1_119]);
   }
-  f1040sd.f1_15 = round(totals.proceeds, 2);
-  f1040sd.f1_16 = round(totals.cost, 2);
-  f1040sd.f1_18 = round(totals.gainOrLoss, 2);
+  f1040sd.f1_15 = round(totals.proceeds);
+  f1040sd.f1_16 = round(totals.cost);
+  f1040sd.f1_18 = round(totals.gainOrLoss);
 
   f1040sd.f1_22 = add([f1040sd.f1_18, f1040sd.f1_19, f1040sd.f1_20, f1040sd.f1_21]);
 

@@ -34,15 +34,15 @@ export const f1040sc = (input: InputData, oldForms: Forms): Forms => {
     }
   }
 
-  f1040sc.Line1 = round(totalIncome, 2);
+  f1040sc.Line1 = round(totalIncome);
   console.log(`Total income: ${f1040sc.Line1}`);
-  f1040sc.Line3 = round(sub(f1040sc.Line1, f1040sc.Line2), 2);
+  f1040sc.Line3 = round(sub(f1040sc.Line1, f1040sc.Line2));
 
   // TODO: Part III
 
   f1040sc.Line4 = f1040sc.Line42;
-  f1040sc.Line5 = round(sub(f1040sc.Line3, f1040sc.Line4), 2);
-  f1040sc.Line7 = round(add([f1040sc.Line5, f1040sc.Line6]), 2);
+  f1040sc.Line5 = round(sub(f1040sc.Line3, f1040sc.Line4));
+  f1040sc.Line7 = round(add([f1040sc.Line5, f1040sc.Line6]));
 
   let totalExpenses = "0";
   for (const expense of input.expenses) {
@@ -61,8 +61,8 @@ export const f1040sc = (input: InputData, oldForms: Forms): Forms => {
     f1040sc.Line25, f1040sc.Line26, f1040sc.Line27a, f1040sc.Line27b,
   ]);
 
-  f1040sc.Line29 = round(sub(f1040sc.Line7, f1040sc.Line28), 2);
-  f1040sc.Line31 = round(sub(f1040sc.Line29, f1040sc.Line30), 2);
+  f1040sc.Line29 = round(sub(f1040sc.Line7, f1040sc.Line28));
+  f1040sc.Line31 = round(sub(f1040sc.Line29, f1040sc.Line30));
 
   if (gt(f1040sc.Line31, "0")) {
     f1040s1.Line3 = f1040sc.Line31
