@@ -66,17 +66,19 @@ export const f1040sc = (input: InputData, oldForms: Forms): Forms => {
 
   if (gt(f1040sc.Line31, "0")) {
     f1040s1.Line3 = f1040sc.Line31
-    // f1040sse.Line2 = f1040sc.Line31
+    f1040sse["f1_5"] = f1040sc.Line31
+    f1040sse["f2_5"] = f1040sc.Line31
   } else if (lt(f1040sc.Line31, "0")) {
     if (f1040sc.Check32a) {
       f1040s1.Line3 = f1040sc.Line31
-      // f1040sse.Line2 = f1040sc.Line31
+      f1040sse["f1_5"] = f1040sc.Line31
+      f1040sse["f2_5"] = f1040sc.Line31
     }
   }
 
   forms.f1040s1 = [f1040s1];
   forms.f1040sc = [f1040sc];
-  // forms.f1040sse = [f1040sse];
+  forms.f1040sse = [f1040sse];
   return forms;
 }
 
