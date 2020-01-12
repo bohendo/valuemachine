@@ -17,7 +17,7 @@ const input = JSON.parse(fs.readFileSync(inputFile, { encoding: 'utf8' })) as In
 // Step 1: Start out w forms containing raw user supplied data
 
 let output = {} as Forms;
-for (const form of input.forms.reverse()) {
+for (const form of input.forms) {
   if (!mappings[form]) {
     throw new Error(`Form ${form} not supported: No mappings available`);
   }
