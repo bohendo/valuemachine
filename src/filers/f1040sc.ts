@@ -1,5 +1,5 @@
-import { add, div, gt, lt, parseHistory, round, sub } from '../utils';
 import { InputData, Forms, TaxableTx } from '../types';
+import { add, div, gt, lt, parseHistory, round, sub } from '../utils';
 
 export const f1040sc = (input: InputData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
