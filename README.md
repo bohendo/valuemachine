@@ -33,6 +33,22 @@ To generate a valid tax return, you'll want to add your social security number &
 
 This also means that `personal.json` won't automatically be backed up to a remote repo as part of your fork of this repo. You'll probably spend a fair amount of time updating the info in `personal.json` so take care of this file & don't lose it. You can create a zipped archive of your personal data and attachments (expected to be in `docs/`) with the command: `make backup` & then copy this output somewhere safe.
 
+# Adding support for a new form
+
+Say we need form f1040nf to file our taxes and want to add support for it to this repo.
+
+1. Add "f1040nf" to the forms list in the test data: `test.json`
+
+2. Fetch this new form: `bash ops/fetch.sh f1040nf`
+
+3. Run `node ops/update-mappings.js -y` to create an auto-generated set of mappings, these can be hand-edited later to be made more human readable but the auto-generated ones work just fine.
+
+4. Copy the filer template to create a new filer module `cp src/filers/template.ts src/filers/f1040nf.ts`, change the exported function's name, and export this new filer function from `src/filers/index.ts`
+
+5. Run `make test` to generate a test tax return, how does your new form look? Check it out at: `./build/test/tax-return.pdf`
+
+6. (optional) if you want to rename the `f1_1` mapping to be called `fullName` for example, then change this field in `src/mappings/f1040nf.pdf` and then re-run `node ops/update-mappings.js -y`
+
 # Forms Overview
 
  - [x] Checked forms are supported by this repo.
