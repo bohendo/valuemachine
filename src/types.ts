@@ -60,7 +60,6 @@ export type InputData = {
   f1040: any;
   f1040s1: any;
   f1040s2: any;
-  f1040s3: any;
   f1040sse: any;
   f1040sc: any;
   f1040sd: any;
