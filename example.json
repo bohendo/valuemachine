@@ -10,14 +10,31 @@
   ],
   "debugLogs": false,
 
-  "FirstName": "FirstName",
-  "MiddleInitial": "MI",
-  "LastName": "LastName",
+  "FilingStatus": "MarriedFilingJointly",
+  "FirstName": "John",
+  "MiddleInitial": "M",
+  "LastName": "Doe",
   "SocialSecurityNumber": "123456789",
-  "SpouseFirstName": "SpouseFirst",
-  "SpouseMiddleInitial": "SM",
-  "SpouseLastName": "SpouseLast",
+  "SpouseFirstName": "Jane",
+  "SpouseMiddleInitial": "I",
+  "SpouseLastName": "Doe",
   "SpouseSocialSecurityNumber": "987654321",
+  "StreetAddress": "1234 E South St",
+  "AptNumber": "007",
+  "CityStateZip": "Smallville, XY 98765",
+  "ForeignCountry": "",
+  "ForeignState": "",
+  "ForeignPostalCode": "",
+  "Dependents": [
+    {
+      "FirstName": "Jake",
+      "LastName": "Doe",
+      "SSN": "123456789",
+      "Relationship": "Son",
+      "ChildTaxCredit": true,
+      "CreditForOther": true
+    }
+  ],
 
   "income": {
     "payments": [ ],

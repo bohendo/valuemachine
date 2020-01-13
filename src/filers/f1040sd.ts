@@ -36,7 +36,7 @@ export const f1040sd = (input: InputData, oldForms: Forms): Forms => {
       f1040sd.c2_1_1 = true;
     }
   } else if (lt(f1040sd.f2_01, "0")) {
-    if (f1040.isMarriedSeparate) {
+    if (input.FilingStatus === "MarriedFilingSeparately") {
       f1040sd.f2_04 = lt(f1040sd.f2_04, "1500") ? f1040sd.f2_04 : "1500.00";
     } else {
       f1040sd.f2_04 = lt(f1040sd.f2_04, "3000") ? f1040sd.f2_04 : "3000.00";

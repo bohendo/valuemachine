@@ -12,11 +12,21 @@ export type TaxableTx = {
   fee: string;
 };
 
+type Dependent = {
+  FirstName: string;
+  LastName: string;
+  SSN: string;
+  Relationship: string;
+  ChildTaxCredit: boolean;
+  CreditForOther: boolean;
+}
+
 export type InputData = {
   taxYear: string;
   forms: string[];
   debugLogs: string;
 
+  FilingStatus: "Single" | "MarriedFilingJointly" | "MarriedFilingSeparately" | "HeadOfHousehold" | "QualifiedWidow";
   FirstName: string;
   MiddleInitial: string;
   LastName: string;
@@ -25,6 +35,15 @@ export type InputData = {
   SpouseMiddleInitial?: string;
   SpouseLastName?: string;
   SpouseSocialSecurityNumber?: string;
+
+  StreetAddress: string;
+  AptNumber: string;
+  CityStateZip: string;
+  ForeignCountry: string;
+  ForeignState: string;
+  ForeignPostalCode: string;
+
+  Dependents: Dependent[];
 
   income: {
     payments: any;
