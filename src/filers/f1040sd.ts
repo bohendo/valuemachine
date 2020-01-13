@@ -28,7 +28,7 @@ export const f1040sd = (input: InputData, oldForms: Forms): Forms => {
   f1040sd.f2_01 = add([f1040sd.f1_22, f1040sd.f1_43]);
 
   if (gt(f1040sd.f2_01, "0")) {
-    f1040.Line6 = f1040sd.f2_01;
+    f1040.L6 = f1040sd.f2_01;
     if (gt(f1040sd.f1_43, "0")) {
       f1040sd.c2_1_0 = true;
       throw new Error(`28% rate worksheet not implemented yet`);
@@ -42,10 +42,10 @@ export const f1040sd = (input: InputData, oldForms: Forms): Forms => {
       f1040sd.f2_04 = lt(f1040sd.f2_04, "3000") ? f1040sd.f2_04 : "3000.00";
     }
   } else if (eq(f1040sd.f2_01, "0")) {
-    f1040.Line6 = "0.00" 
+    f1040.L6 = "0.00" 
   }
 
-  if (!eq(f1040.Line3a, "0")) {
+  if (!eq(f1040.L3a, "0")) {
     f1040sd.c2_3_0 = true;
     throw new Error(`Qualified Dividends and Capital Gain Tax Worksheet not implemented yet`);
   } else {

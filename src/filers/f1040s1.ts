@@ -9,18 +9,18 @@ export const f1040s1 = (input: InputData, oldForms: Forms): Forms => {
   f1040s1.FullName = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
   f1040s1.SSN = input.SocialSecurityNumber;
 
-  f1040s1.Line9 = round(add([
-    f1040s1.Line1, f1040s1.Line2a, f1040s1.Line3, f1040s1.Line4,
-    f1040s1.Line5, f1040s1.Line6, f1040s1.Line7, f1040s1.Line8,
+  f1040s1.L9 = round(add([
+    f1040s1.L1, f1040s1.L2a, f1040s1.L3, f1040s1.L4,
+    f1040s1.L5, f1040s1.L6, f1040s1.L7, f1040s1.L8,
   ]));
-  f1040.Line7a = f1040s1.Line9
+  f1040.L7a = f1040s1.L9
 
-  f1040s1.Line22 = round(add([
-    f1040s1.Line10, f1040s1.Line11, f1040s1.Line12, f1040s1.Line13,
-    f1040s1.Line14, f1040s1.Line15, f1040s1.Line16, f1040s1.Line17,
-    f1040s1.Line18a, f1040s1.Line19, f1040s1.Line20, f1040s1.Line21,
+  f1040s1.L22 = round(add([
+    f1040s1.L10, f1040s1.L11, f1040s1.L12, f1040s1.L13,
+    f1040s1.L14, f1040s1.L15, f1040s1.L16, f1040s1.L17,
+    f1040s1.L18a, f1040s1.L19, f1040s1.L20, f1040s1.L21,
   ]));
-  f1040.Line8a = f1040s1.Line22
+  f1040.L8a = f1040s1.L22
 
   forms.f1040 = [f1040];
   forms.f1040s1 = [f1040s1];

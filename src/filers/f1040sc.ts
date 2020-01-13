@@ -34,45 +34,45 @@ export const f1040sc = (input: InputData, oldForms: Forms): Forms => {
     }
   }
 
-  f1040sc.Line1 = round(totalIncome);
-  console.log(`Total income: ${f1040sc.Line1}`);
-  f1040sc.Line3 = round(sub(f1040sc.Line1, f1040sc.Line2));
+  f1040sc.L1 = round(totalIncome);
+  console.log(`Total income: ${f1040sc.L1}`);
+  f1040sc.L3 = round(sub(f1040sc.L1, f1040sc.L2));
 
   // TODO: Part III
 
-  f1040sc.Line4 = f1040sc.Line42;
-  f1040sc.Line5 = round(sub(f1040sc.Line3, f1040sc.Line4));
-  f1040sc.Line7 = round(add([f1040sc.Line5, f1040sc.Line6]));
+  f1040sc.L4 = f1040sc.L42;
+  f1040sc.L5 = round(sub(f1040sc.L3, f1040sc.L4));
+  f1040sc.L7 = round(add([f1040sc.L5, f1040sc.L6]));
 
   let totalExpenses = "0";
   for (const expense of input.expenses) {
-    const key = `Line${expense.type}`
+    const key = `L${expense.type}`
     if (typeof f1040sc[key] !== 'undefined') {
       console.log(`Handling expense of ${expense.amount}: ${expense.description}`);
       f1040sc[key] = add([f1040sc[expense.type], expense.amount]);
     }
   }
 
-  f1040sc.Line28 = add([
-    f1040sc.Line8, f1040sc.Line9, f1040sc.Line10, f1040sc.Line11, f1040sc.Line12,
-    f1040sc.Line13, f1040sc.Line14, f1040sc.Line15, f1040sc.Line16a, f1040sc.Line16b,
-    f1040sc.Line17, f1040sc.Line18, f1040sc.Line19, f1040sc.Line20a, f1040sc.Line20b,
-    f1040sc.Line21, f1040sc.Line22, f1040sc.Line23, f1040sc.Line24a, f1040sc.Line24b,
-    f1040sc.Line25, f1040sc.Line26, f1040sc.Line27a, f1040sc.Line27b,
+  f1040sc.L28 = add([
+    f1040sc.L8, f1040sc.L9, f1040sc.L10, f1040sc.L11, f1040sc.L12,
+    f1040sc.L13, f1040sc.L14, f1040sc.L15, f1040sc.L16a, f1040sc.L16b,
+    f1040sc.L17, f1040sc.L18, f1040sc.L19, f1040sc.L20a, f1040sc.L20b,
+    f1040sc.L21, f1040sc.L22, f1040sc.L23, f1040sc.L24a, f1040sc.L24b,
+    f1040sc.L25, f1040sc.L26, f1040sc.L27a, f1040sc.L27b,
   ]);
 
-  f1040sc.Line29 = round(sub(f1040sc.Line7, f1040sc.Line28));
-  f1040sc.Line31 = round(sub(f1040sc.Line29, f1040sc.Line30));
+  f1040sc.L29 = round(sub(f1040sc.L7, f1040sc.L28));
+  f1040sc.L31 = round(sub(f1040sc.L29, f1040sc.L30));
 
-  if (gt(f1040sc.Line31, "0")) {
-    f1040s1.Line3 = f1040sc.Line31
-    f1040sse["f1_5"] = f1040sc.Line31
-    f1040sse["f2_5"] = f1040sc.Line31
-  } else if (lt(f1040sc.Line31, "0")) {
-    if (f1040sc.Check32a) {
-      f1040s1.Line3 = f1040sc.Line31
-      f1040sse["f1_5"] = f1040sc.Line31
-      f1040sse["f2_5"] = f1040sc.Line31
+  if (gt(f1040sc.L31, "0")) {
+    f1040s1.L3 = f1040sc.L31
+    f1040sse.L2 = f1040sc.L31
+    f1040sse.L2_Long = f1040sc.L31
+  } else if (lt(f1040sc.L31, "0")) {
+    if (f1040sc.C32a) {
+      f1040s1.L3 = f1040sc.L31
+      f1040sse.L2 = f1040sc.L31
+      f1040sse.L2_Long = f1040sc.L31
     }
   }
 
