@@ -5,7 +5,7 @@ export const f1040 = (input: InputData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const f1040 = forms.f1040 && forms.f1040[0] ? forms.f1040[0] : {};
   const f1040s2 = forms.f1040s2 && forms.f1040s2[0] ? forms.f1040s2[0] : {};
-  // const f1040s3 = forms.f1040s3 && forms.f1040s3[0] ? forms.f1040s3[0] : {};
+  const f1040s3 = forms.f1040s3 && forms.f1040s3[0] ? forms.f1040s3[0] : {};
 
   f1040[input.FilingStatus] = true;
   f1040.f1_02 = `${input.FirstName} ${input.MiddleInitial}`;
@@ -55,7 +55,7 @@ export const f1040 = (input: InputData, oldForms: Forms): Forms => {
 
   f1040.Line12b = round(add([f1040s2.Line3, f1040.Line12a]));
 
-  f1040.Line13b = round(add([/*f1040s3.Line7, */f1040.Line13a]));
+  f1040.Line13b = round(add([f1040s3.L7, f1040.Line13a]));
 
   const taxesSoFar = sub(f1040.Line12b, f1040.Line13b)
   f1040.Line14 = round(gt(taxesSoFar, "0") ? taxesSoFar : "0");
