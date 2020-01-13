@@ -1,6 +1,7 @@
 export * from "./f1040";
 export * from "./f1040s1";
 export * from "./f1040s2";
+export * from "./f1040s3";
 export * from "./f1040sse";
 export * from "./f1040sc";
 export * from "./f1040sd";
