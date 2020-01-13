@@ -13,11 +13,21 @@ if (!flag || (flag !== "-n" && flag !== "-y")) {
 }
 const dryRun = flag !== "-y"
 
-for (const form of test.forms) {
-  const mappings = JSON.parse(fs.readFileSync(mappingsFile(form), { encoding: 'utf8' }));
-  if (!mappings) {
-    throw new Error(`Mappings for form ${form} do not exist!`);
+const getMappings = (name) => {
+  let mappings
+  try {
+    mappings = JSON.parse(fs.readFileSync(mappingsFile(name), { encoding: 'utf8' }));
+    if (!mappings) {
+      throw new Error(`Mappings for form ${name} do not exist!`);
+    }
+  } catch (e) {
+    mappings = {}
   }
+  return mappings;
+}
+
+for (const form of test.forms) {
+  const mappings = getMappings(form);
   const fields = fs.readFileSync(fieldsFile(form), { encoding: 'utf8' });
   if (!fields) {
     throw new Error(`Fields for form ${form} do not exist!`);
@@ -52,10 +62,7 @@ for (const form of test.forms) {
 }
 
 for (const form of test.forms) {
-  const mappings = JSON.parse(fs.readFileSync(mappingsFile(form), { encoding: 'utf8' }));
-  if (!mappings) {
-    throw new Error(`Mappings for form ${form} do not exist!`);
-  }
+  const mappings = getMappings(form);
 
   if (!test[form]) {
     test[form] = {}
