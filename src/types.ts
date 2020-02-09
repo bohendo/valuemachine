@@ -2,13 +2,14 @@ import { Field, Forms } from './mappings';
 export { Field, Forms }
 
 export type DecimalString = string;
+export type DateString = string;
 export type HexSting = string;
 
 export const EventCategories = {
   "?": "?",
+  "swap": "swap",
   "income": "income",
-  "business": "business",
-  "personal": "personal",
+  "expense": "expense",
 }
 export type EventCategory = keyof typeof EventCategories;
 
@@ -24,21 +25,25 @@ export type AssetType = keyof typeof AssetTypes;
 export type Asset = {
   type: AssetType;
   amount: DecimalString;
-  date?: string;
+  date?: DateString;
   value?: DecimalString;
 }
 
 export type CommonEvent = {
-  date: string;
+  date: DateString;
   category?: EventCategory | string;
   tags?: string[];
   description?: string;
   hash?: string;
+  to?: string;
+  from?: string;
+  assetsIn?: Asset[];
+  assetsOut?: Asset[];
+  prices?: { [key: string]: DecimalString };
 }
 
 export type IncomeEvent = CommonEvent & {
   assetsIn: Asset[];
-  prices?: { [key: string]: DecimalString };
   from: string;
   to: string;
 }
@@ -46,12 +51,10 @@ export type IncomeEvent = CommonEvent & {
 export type SwapEvent = CommonEvent & {
   assetsIn: Asset[];
   assetsOut: Asset[];
-  prices?: { [key: string]: DecimalString };
 }
 
 export type ExpenseEvent = CommonEvent & {
   assetsOut: Asset[];
-  prices?: { [key: string]: DecimalString };
   from: string;
   to: string;
 }
@@ -59,7 +62,7 @@ export type ExpenseEvent = CommonEvent & {
 export type Event = CommonEvent | IncomeEvent | SwapEvent | ExpenseEvent;
 
 export type State = {
-  date: string;
+  date: DateString;
   prices?: { [key: string]: DecimalString };
   assets: Asset[];
   liabilities: Asset[];
@@ -68,6 +71,7 @@ export type State = {
 
 export type InputData = {
   taxYear: string;
+  logLevel?: number;
   forms: string[];
   events: Array<Event>;
   txHistory: string[];

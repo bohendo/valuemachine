@@ -1,5 +1,5 @@
 import { add, eq, gt, lt, mul, parseHistory, round, sub, } from '../utils';
-import { InputData, Forms, TaxableTx } from '../types';
+import { InputData, Forms, Event } from '../types';
 
 const stringifyAssets = (assets) => {
   let output = '[\n'
@@ -19,16 +19,16 @@ export const f8949 = (input: InputData, oldForms: Forms): Forms  => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const f8949 = forms.f8949 && forms.f8949[0] ? forms.f8949[0] : {};
 
-  const txHistory = parseHistory(input) as TaxableTx[];
-  const debugMode = !!input.debugLogs
+  const txHistory = parseHistory(input) as Event[];
+  const debugMode = input.logLevel > 3
 
   // Set values constant across all f8949 forms
-  f8949.f1_1 = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
-  f8949.f1_2 = input.SocialSecurityNumber;
+  f8949.f1_1 = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
+  f8949.f1_2 = forms.f1040.SocialSecurityNumber;
   f8949.f2_1 = f8949.f1_1;
   f8949.f2_2 = f8949.f1_2;
 
-  const assets = input.assets || {};
+  const assets = {};
   const startingAssets = stringifyAssets(assets);
   const trades = []
   let totalCost = "0"
@@ -38,26 +38,23 @@ export const f8949 = (input: InputData, oldForms: Forms): Forms  => {
   debugMode && console.log(`Assets: ${stringifyAssets(assets)}`);
 
   for (const tx of txHistory) {
-    if (!tx.timestamp.startsWith(input.taxYear.substring(2))) {
-      debugMode && console.log(`Skipping old trade from ${tx.timestamp}`);
-      continue
-    }
-    if (eq(tx.quantity, "0")) {
-      debugMode && console.log(`Skipping zero-value trade of ${tx.asset} from ${tx.from} to ${tx.to}`);
+    if (!tx.date.startsWith(input.taxYear.substring(2))) {
+      debugMode && console.log(`Skipping old trade from ${tx.date}`);
       continue
     }
 
-    if (tx.from.substring(0, 4) !== "self") {
+    for (const input of ts.assetsIn) {
+
       tx.from.substring(0, 2) === "ex"
-        ? (debugMode && console.log(`Bought ${tx.quantity} ${tx.asset} from ${tx.from}`))
-        : (debugMode && console.log(`Received ${tx.quantity} ${tx.asset} from ${tx.from}`))
+        ? (debugMode && console.log(`Bought ${input.amount} ${input.type} from ${tx.from}`))
+        : (debugMode && console.log(`Received ${input.amount} ${input.type} from ${tx.from}`))
 
-      if (!assets[tx.asset]) {
-        debugMode && console.log(`Creating new asset category for ${tx.asset}`);
-        assets[tx.asset] = [];
+      if (!assets[input.type]) {
+        debugMode && console.log(`Creating new asset category for ${tx.type}`);
+        assets[input.type] = [];
       }
 
-      assets[tx.asset].push({
+      assets[tx.type].push({
         quantity: tx.quantity,
         price: tx.price,
       });
@@ -102,7 +99,7 @@ export const f8949 = (input: InputData, oldForms: Forms): Forms  => {
       trades.push({
         Description: `${round(tx.quantity)} ${tx.asset}`,
         DateAcquired: 'VARIOUS',
-        DateSold: `${tx.timestamp.substring(2,4)}/${tx.timestamp.substring(4,6)}/${tx.timestamp.substring(0,2)}`,
+        DateSold: `${tx.date.substring(2,4)}/${tx.date.substring(4,6)}/${tx.date.substring(0,2)}`,
         Proceeds: proceeds,
         Cost: cost,
         Code: '',
