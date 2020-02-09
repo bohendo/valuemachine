@@ -14,7 +14,7 @@ console.log('Lets go');
 const input = JSON.parse(fs.readFileSync(inputFile, { encoding: 'utf8' })) as InputData;
 
 ////////////////////////////////////////
-// Step 1: Start out w forms containing raw user supplied data
+// Step 1: Start out w empty forms containing raw user supplied data
 
 let output = {} as Forms;
 for (const form of input.forms) {

@@ -1,67 +1,77 @@
-export { Field, Forms } from './mappings';
+import { Field, Forms } from './mappings';
+export { Field, Forms }
 
-export type TaxableTx = {
-  timestamp: string;
-  asset: string;
-  quantity: string;
-  price: string;
+export type DecimalString = string;
+export type HexSting = string;
+
+export const EventCategories = {
+  "?": "?",
+  "income": "income",
+  "business": "business",
+  "personal": "personal",
+}
+export type EventCategory = keyof typeof EventCategories;
+
+export const AssetTypes = {
+  "DAI": "DAI",
+  "USD": "USD",
+  "INR": "INR",
+  "ETH": "ETH",
+  "MKR": "MKR",
+}
+export type AssetType = keyof typeof AssetTypes;
+
+export type Asset = {
+  type: AssetType;
+  amount: DecimalString;
+  date?: string;
+  value?: DecimalString;
+}
+
+export type CommonEvent = {
+  date: string;
+  category?: EventCategory | string;
+  tags?: string[];
+  description?: string;
+  hash?: string;
+}
+
+export type IncomeEvent = CommonEvent & {
+  assetsIn: Asset[];
+  prices?: { [key: string]: DecimalString };
   from: string;
   to: string;
-  valueIn: string;
-  valueOut: string;
-  fee: string;
-};
+}
 
-type Dependent = {
-  FirstName: string;
-  LastName: string;
-  SSN: string;
-  Relationship: string;
-  ChildTaxCredit: boolean;
-  CreditForOther: boolean;
+export type SwapEvent = CommonEvent & {
+  assetsIn: Asset[];
+  assetsOut: Asset[];
+  prices?: { [key: string]: DecimalString };
+}
+
+export type ExpenseEvent = CommonEvent & {
+  assetsOut: Asset[];
+  prices?: { [key: string]: DecimalString };
+  from: string;
+  to: string;
+}
+
+export type Event = CommonEvent | IncomeEvent | SwapEvent | ExpenseEvent;
+
+export type State = {
+  date: string;
+  prices?: { [key: string]: DecimalString };
+  assets: Asset[];
+  liabilities: Asset[];
+  events?: Event[];
 }
 
 export type InputData = {
   taxYear: string;
   forms: string[];
-  debugLogs: string;
-
-  FilingStatus: "Single" | "MarriedFilingJointly" | "MarriedFilingSeparately" | "HeadOfHousehold" | "QualifiedWidow";
-  FirstName: string;
-  MiddleInitial: string;
-  LastName: string;
-  SocialSecurityNumber: string;
-  SpouseFirstName?: string;
-  SpouseMiddleInitial?: string;
-  SpouseLastName?: string;
-  SpouseSocialSecurityNumber?: string;
-
-  StreetAddress: string;
-  AptNumber: string;
-  CityStateZip: string;
-  ForeignCountry: string;
-  ForeignState: string;
-  ForeignPostalCode: string;
-
-  Dependents: Dependent[];
-
-  income: {
-    payments: any;
-    exceptions: any;
-    dividends: any;
-  },
-
-  expenses: any;
-
+  events: Array<Event>;
   txHistory: string[];
-  assets: any;
+  snapshots: State[];
   addresses: { [key: string]: string };
-
-  f1040: any;
-  f1040s1: any;
-  f1040s2: any;
-  f1040sse: any;
-  f1040sc: any;
-  f1040sd: any;
-  f8949: any;
+  formData: Forms
 }

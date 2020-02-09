@@ -10,7 +10,7 @@ import * as f8949 from "./f8949.json";
 export type Field = any; // string | boolean;
 
 export type Forms = {
-  f1040: Array<{ [key in keyof typeof mappings.f1040]?: Field; }>;
+  f1040?: Array<{ [key in keyof typeof mappings.f1040]?: Field; }>;
   f1040s1?: Array<{ [key in keyof typeof mappings.f1040s1]?: Field; }>;
   f1040s2?: Array<{ [key in keyof typeof mappings.f1040s2]?: Field; }>;
   f1040s3?: Array<{ [key in keyof typeof mappings.f1040s3]?: Field; }>;

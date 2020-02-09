@@ -1,7 +1,7 @@
 import csv from 'csv-parse/lib/sync';
 import fs from 'fs';
 
-import { TaxableTx, InputData } from "../types";
+import { Event, InputData, SwapEvent } from "../types";
 import { diff, add, sub, round, mul, eq, gt, lt } from './math';
 
 const shouldWarn = false
@@ -16,29 +16,35 @@ const getTimestamp = (date: Date): string => {
   return `${year}${month}${day}`;
 }
 
-const parseCoinbase = (filename: string, personal: InputData): TaxableTx[] => {
+const parseCoinbase = (filename: string, personal: InputData): SwapEvent[] => {
   const rawFile = fs.readFileSync(filename, 'utf8').split('\r\n');
   return csv(
     rawFile.slice(3, rawFile.length).join('\r\n'),
     { columns: true, skip_empty_lines: true },
   ).map(row => {
-    const valueUsd = row["USD Amount Transacted (Inclusive of Coinbase Fees)"];
-    const valueAsset = mul(row["USD Spot Price at Transaction"], row["Quantity Transacted"]);
-    return ({
-      timestamp: getTimestamp(new Date(row["Timestamp"])),
-      asset: row["Asset"],
-      quantity: row["Quantity Transacted"],
+    const usd = {
+      amount: row["USD Amount Transacted (Inclusive of Coinbase Fees)"],
+      type: "USD",
+    };
+    const asset = {
       price: row["USD Spot Price at Transaction"],
-      from: row["Transaction Type"] === "Buy" ? "ex-coinbase" : "self",
-      to: row["Transaction Type"] === "Sell" ? "ex-coinbase" : "self",
-      valueIn: row["Transaction Type"] === "Buy" ? valueAsset : valueUsd,
-      valueOut: row["Transaction Type"] === "Sell" ? valueAsset : valueUsd,
-      fee: diff(valueAsset, valueUsd),
+      amount: row["Quantity Transacted"],
+      type: row["Asset"],
+    };
+    const isBuy = row["Transaction Type"] === "Buy";
+    return ({
+      date: getTimestamp(new Date(row["Timestamp"])),
+      category: "swap",
+      tags: ["coinbase"],
+      description: "",
+      assetsIn: [isBuy ? asset : usd],
+      assetsOut: [isBuy ? usd : asset],
+      prices: { [asset.type]: row["USD Spot Price at Transaction"] },
     });
   });
 }
 
-const parseWyre = (filename: string, personal: InputData): TaxableTx[] => {
+const parseWyre = (filename: string, personal: InputData): SwapEvent[] => {
   return csv(
     fs.readFileSync(filename, 'utf8'),
     { columns: true, skip_empty_lines: true },
@@ -48,20 +54,18 @@ const parseWyre = (filename: string, personal: InputData): TaxableTx[] => {
     // Ignore any transfers into Wyre account
     if (row["Source Currency"] === row["Dest Currency"]) return null;
     return ({
-      timestamp: getTimestamp(new Date(row["Created At"])),
-      asset: row["Source Currency"],
-      quantity: row["Source Amount"],
-      price: row["Exchange Rate"],
-      from: row["Type"] === "INCOMING" ? "ex-wyre" : "self",
-      to: row["Type"] === "OUTGOING" ? "ex-wyre" : "self",
-      valueIn: row["Dest Amount"],
-      valueOut: add([row["Source Amount"], row["Exchange Rate"]]),
-      fee: row["Fees USD"] || "0" // TODO: deal w fees charged in other currencies
+      date: getTimestamp(new Date(row["Created At"])),
+      category: "swap",
+      tags: ["sendwyre"],
+      description: "",
+      assetsIn: [{ type: row["Dest Currency"], amount: row["Dest Amount"] }],
+      assetsOut: [{ type: row["Source Currency"], amount: row["Source Amount"] }],
+      prices: { type: row["Dest Currency"], amount: row["Exchange Rate"] },
     });
   }).filter(row => !!row);
 }
 
-const parseEtherscan = (filename: string, personal: InputData): TaxableTx[] => {
+const parseEtherscan = (filename: string, personal: InputData): Event[] => {
   const hasWarned = [];
   const rawFile = fs.readFileSync(filename, 'utf8').split('\r\n');
   // Etherscan csv exports have 15 columns labeled but data rows have 16 columns..?
@@ -102,21 +106,23 @@ const parseEtherscan = (filename: string, personal: InputData): TaxableTx[] => {
       return null;
     }
     const value = mul(quantity, row["Historical $Price/Eth"]);
+    const eth = amount => ({ type: "ETH", amount });
     return ({
-      timestamp: getTimestamp(new Date(parseInt(`${row["UnixTimestamp"]}000`))),
-      asset: "ETH",
-      quantity,
-      price: row["Historical $Price/Eth"],
+      date: getTimestamp(new Date(parseInt(`${row["UnixTimestamp"]}000`))),
+      category: "idk",
+      tags: ["etherscan"],
+      description: "",
+      assetsIn: [row["Value_OUT(ETH)"] === "0" ? eth(value) : eth("0")],
+      assetsOut: row["Value_IN(ETH)"] === "0" ? eth(value) : eth("0"),
       from,
       to,
-      valueIn: row["Value_OUT(ETH)"] === "0" ? value : "0",
-      valueOut: row["Value_IN(ETH)"] === "0" ? value : "0",
-      fee: row["TxnFee(USD)"] || '0',
+      prices: { "ETH": row["Historical $Price/Eth"] },
+      hash: row["Txhash"]
     });
   }).filter(row => !!row);
 }
 
-export const parseHistory = (personalData: InputData): TaxableTx[] => {
+export const parseHistory = (personalData: InputData): Event[] => {
   const allHistory = [];
   for (const historyFilename of personalData.txHistory || []) {
     if (historyFilename.includes('coinbase')) {
