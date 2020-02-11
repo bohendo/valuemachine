@@ -32,78 +32,87 @@ export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrad
       continue;
     }
 
-    for (const asset of assetsIn) {
+    if (assetsIn && assetsIn.length && assetsIn.length > 0) {
+      for (const asset of assetsIn) {
 
-      from.substring(0, 2) === "ex"
-        ? (debugMode && console.log(`Bought ${asset.amount} ${asset.type} from ${from}`))
-        : (debugMode && console.log(`Received ${asset.amount} ${asset.type} from ${from}`));
+        (from || "").substring(0, 2) === "ex"
+          ? (debugMode && console.log(`Bought ${asset.amount} ${asset.type} from ${from}`))
+          : (debugMode && console.log(`Received ${asset.amount} ${asset.type} from ${from}`));
 
-      if (!assets[asset.type]) {
-        debugMode && console.log(`Creating new asset category for ${event.category}`);
-        assets[asset.type] = [];
+        if (!assets[asset.type]) {
+          debugMode && console.log(`Creating new asset category for ${event.category}`);
+          assets[asset.type] = [];
+        }
+
+        assets[asset.type].push({
+          amount: asset.amount,
+          date: event.date,
+          price: asset.price,
+          type: asset.type,
+        });
+
       }
-
-      assets[asset.type].push({
-        amount: asset.amount,
-        date: event.date,
-        price: asset.price,
-        type: asset.type,
-      });
-
     }
 
-    for (const asset of assetsOut) {
-      to.substring(0, 2) === "ex"
-        ? (debugMode && console.log(`Sold ${asset.amount} ${asset.type} to ${to}`))
-        : (debugMode && console.log(`Sent ${asset.amount} ${asset.type} to ${to}`));
+    if (assetsOut && assetsOut.length && assetsOut.length > 0) {
+      for (const asset of assetsOut) {
+        (to || "").substring(0, 2) === "ex"
+          ? (debugMode && console.log(`Sold ${asset.amount} ${asset.type} to ${to}`))
+          : (debugMode && console.log(`Sent ${asset.amount} ${asset.type} to ${to}`));
 
+        if (!assets[asset.type]) {
+          debugMode && console.log(`Creating new ${asset.type} asset category for ${event.category}`);
+          assets[asset.type] = [];
+        }
 
-      let amt = asset.amount;
-      let cost = "0";
-      let profit = "0";
+        let amt = asset.amount;
+        let cost = "0";
+        let profit = "0";
 
-      while (true) {
-        if (eq(amt, "0") || lt(amt, "0")) {
-          break;
+        while (true) {
+          if (eq(amt, "0") || lt(amt, "0")) {
+            break;
+          }
+          const chunk = assets[asset.type].pop();
+          if (!chunk) {
+            console.warn(`Attempting to sell more ${asset.type} than we bought. ${asset.type} left: ${JSON.stringify(assets[asset.type])}`);
+            break;
+          }
+          if (eq(chunk.amount, amt)) {
+            profit = add([profit, sub(mul(amt, chunk.price), mul(amt, chunk.price))]);
+            cost = add([cost, mul(chunk.price, amt)]);
+            chunk.amount = sub(chunk.amount, amt);
+            break;
+          } else if (gt(chunk.amount, amt)) {
+            profit = add([profit, sub(mul(amt, chunk.price), mul(amt, chunk.price))]);
+            cost = add([cost, mul(chunk.price, amt)]);
+            chunk.amount = sub(chunk.amount, amt);
+            assets[asset.type].unshift(chunk);
+            break;
+          } else {
+            profit = add([profit, mul(sub(chunk.price, chunk.price), chunk.amount)]);
+            cost = add([cost, mul(chunk.price, chunk.amount)]);
+            amt = sub(amt, chunk.amount);
+          }
         }
-        const chunk = assets[asset.type].pop();
-        if (!chunk) {
-          throw new Error(`Attempting to sell more ${chunk.type} than we bought. ${chunk.type} left: ${JSON.stringify(assets[chunk.type])}`);
-        }
-        if (eq(chunk.amount, amt)) {
-          profit = add([profit, sub(mul(amt, chunk.price), mul(amt, chunk.price))]);
-          cost = add([cost, mul(chunk.price, amt)]);
-          chunk.amount = sub(chunk.amount, amt);
-          break;
-        } else if (gt(chunk.amount, amt)) {
-          profit = add([profit, sub(mul(amt, chunk.price), mul(amt, chunk.price))]);
-          cost = add([cost, mul(chunk.price, amt)]);
-          chunk.amount = sub(chunk.amount, amt);
-          assets[asset.type].unshift(chunk);
-          break;
-        } else {
-          profit = add([profit, mul(sub(chunk.price, chunk.price), chunk.amount)]);
-          cost = add([cost, mul(chunk.price, chunk.amount)]);
-          amt = sub(amt, chunk.amount);
-        }
+        const proceeds = mul(asset.price, asset.amount);
+
+        trades.push({
+          Adjustment: "",
+          Code: "",
+          Cost: cost,
+          DateAcquired: "VARIOUS",
+          DateSold: `${date.substring(2,4)}/${date.substring(4,6)}/${date.substring(0,2)}`,
+          Description: `${round(asset.amount)} ${asset.type}`,
+          GainOrLoss: profit,
+          Proceeds: proceeds,
+        });
+
+        totalProceeds = add([totalProceeds, proceeds]);
+        totalCost = add([totalCost, cost]);
+        totalProfit = add([totalProfit, profit]);
+
       }
-      const proceeds = mul(asset.price, asset.amount);
-
-      trades.push({
-        Adjustment: "",
-        Code: "",
-        Cost: cost,
-        DateAcquired: "VARIOUS",
-        DateSold: `${date.substring(2,4)}/${date.substring(4,6)}/${date.substring(0,2)}`,
-        Description: `${round(asset.amount)} ${asset.type}`,
-        GainOrLoss: profit,
-        Proceeds: proceeds,
-      });
-
-      totalProceeds = add([totalProceeds, proceeds]);
-      totalCost = add([totalCost, cost]);
-      totalProfit = add([totalProfit, profit]);
-
     }
 
   }

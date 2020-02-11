@@ -136,5 +136,5 @@ export const parseHistory = (personalData: InputData): Event[] => {
       console.log(`No parser available for this history format, skipping: ${historyFilename}`);
     }
   }
-  return allHistory.filter(row => row.timestamp.startsWith("19"));
+  return allHistory.filter(row => row.date.startsWith("19"));
 };

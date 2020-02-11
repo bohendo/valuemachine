@@ -11,43 +11,6 @@
     "f8949"
   ],
   "debugLogs": false,
-  "FirstName": "FirstName",
-  "MiddleInitial": "MI",
-  "LastName": "LastName",
-  "SocialSecurityNumber": "123456789",
-  "SpouseFirstName": "SpouseFirst",
-  "SpouseMiddleInitial": "SM",
-  "SpouseLastName": "SpouseLast",
-  "SpouseSocialSecurityNumber": "987654321",
-  "income": {
-    "payments": [],
-    "exceptions": {
-      "half": [],
-      "skip": []
-    },
-    "dividends": []
-  },
-  "expenses": [],
-  "assets": {
-    "BTC": [
-      {
-        "price": 1000,
-        "quantity": 1
-      }
-    ],
-    "DAI": [
-      {
-        "price": 1,
-        "quantity": 1000
-      }
-    ],
-    "ETH": [
-      {
-        "price": 100,
-        "quantity": 10
-      }
-    ]
-  },
   "f1040": {
     "c2_04_0": true,
     "c2_05_0": true,
@@ -108,10 +71,10 @@
     "c2_03_0": true,
     "f2_01": "f2_01",
     "Single": "Single",
-    "MarriedFilingJointly": "MarriedFilingJointly",
-    "MarriedFilingSeparately": "MarriedFilingSeparately",
-    "HeadOfHousehold": "HeadOfHousehold",
-    "QualifiedWidow": "QualifiedWidow",
+    "MarriedFilingJointly": true,
+    "MarriedFilingSeparately": true,
+    "HeadOfHousehold": true,
+    "QualifiedWidow": true,
     "L1": "L1",
     "L2a": "L2a",
     "L2b": "L2b",
@@ -161,7 +124,7 @@
     "SpouseSocialSecurityNumber": "SpouseSocialSecurityNumber",
     "StreetAddress": "StreetAddress",
     "Apt": "Apt",
-    "CityStateZip": true,
+    "CityStateZip": "CityStateZip",
     "ForeignCountry": "ForeignCountry",
     "ForeignState": "ForeignState",
     "ForeignZip": "ForeignZip"

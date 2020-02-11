@@ -1,5 +1,5 @@
-import { FinancialData, Forms, TaxableTx } from "../types";
-import { add, div, gt, lt, parseHistory, round, sub } from "../utils";
+import { FinancialData, Forms } from "../types";
+import { add, div, gt, lt, round, sub } from "../utils";
 
 export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
@@ -11,26 +11,9 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   const txHistory = finances.txHistory;
   let totalIncome = "0";
 
-  finances.income.payments.forEach(payment => {
-    totalIncome = add([totalIncome, payment.amount]);
+  finances.income.forEach(event => {
+    totalIncome = add([totalIncome, event.assetsIn[0].amount]);
   });
-
-  for (const tx of txHistory) {
-    if (tx.timestamp.substring(0,2) !== finances.input.taxYear.substring(2)) {
-      console.log(`Skipping old tx from ${finances.input.taxYear}`);
-      continue;
-    }
-    if (finances.income.exceptions.skip.includes(tx.from)) {
-      console.log(`Skipping tx of ${tx.valueIn} from ${tx.from}`);
-      continue;
-    } else if (finances.income.exceptions.half.includes(tx.from)) {
-      console.log(`Got half payment of ${tx.valueIn} from ${tx.from}`);
-      totalIncome = add([totalIncome, div(tx.valueIn, "2")]);
-    } else if (tx.from.startsWith("entity")) {
-      console.log(`Got payment of ${tx.valueIn} from ${tx.from}`);
-      totalIncome = add([totalIncome, tx.valueIn]);
-    }
-  }
 
   f1040sc.L1 = round(totalIncome);
   console.log(`Total income: ${f1040sc.L1}`);
@@ -44,10 +27,12 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
 
   let totalExpenses = "0";
   for (const expense of finances.expenses) {
-    const key = `L${expense.type}`;
+    const asset = expense.assetsIn[0];
+    if (!asset) { throw new Error("idk"); }
+    const key = `L${asset.type}`;
     if (typeof f1040sc[key] !== "undefined") {
-      console.log(`Handling expense of ${expense.amount}: ${expense.description}`);
-      f1040sc[key] = add([f1040sc[expense.type], expense.amount]);
+      console.log(`Handling expense of ${asset.amount} ${asset.type}: ${expense.description}`);
+      f1040sc[key] = add([f1040sc[asset.type], asset.amount]);
     }
   }
 

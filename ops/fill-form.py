@@ -24,6 +24,9 @@ for key in json_data:
           print("Error: Key exists in data but not fields:", key);
           exit(1)
         fieldVal = field[0]
+        if not re.search('FieldStateOption: ([^O].*)', fieldVal, re.M):
+          print("Error: did you give a text field boolean input?", fieldVal);
+          exit(1)
         fieldStateOption = re.search('FieldStateOption: ([^O].*)', fieldVal, re.M).group(1)
         fieldStateOptions = re.findall('FieldStateOption: ([^O].*)', fieldVal, re.M)
         onFlag = max(fieldStateOptions, key=len)

@@ -96,6 +96,8 @@ export type State = {
 export type FinancialData = {
   input: InputData;
   events: Array<Event>;
+  income: Array<Event>,
+  expenses: Array<Event>,
   txHistory: string[];
   taxableTrades: TaxableTrade[];
   snapshots: State[];

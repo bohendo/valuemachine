@@ -10,50 +10,40 @@
     "f1040sd",
     "f8949"
   ],
-  "debugLogs": false,
 
-  "FilingStatus": "MarriedFilingJointly",
-  "FirstName": "John",
-  "MiddleInitial": "M",
-  "LastName": "Doe",
-  "SocialSecurityNumber": "123456789",
-  "SpouseFirstName": "Jane",
-  "SpouseMiddleInitial": "I",
-  "SpouseLastName": "Doe",
-  "SpouseSocialSecurityNumber": "987654321",
-  "StreetAddress": "1234 E South St",
-  "AptNumber": "007",
-  "CityStateZip": "Smallville, XY 98765",
-  "ForeignCountry": "",
-  "ForeignState": "",
-  "ForeignPostalCode": "",
-  "Dependents": [
-    {
-      "FirstName": "Jake",
+  "formData": {
+    "f1040": {
+      "FilingStatus": "MarriedFilingJointly",
+      "FirstNameMI": "John M",
       "LastName": "Doe",
-      "SSN": "123456789",
-      "Relationship": "Son",
-      "ChildTaxCredit": true,
-      "CreditForOther": true
+      "SocialSecurityNumber": "123456789",
+      "SpouseFirstNameMI": "Jane M",
+      "SpouseLastName": "Doe",
+      "SpouseSocialSecurityNumber": "987654321",
+      "StreetAddress": "1234 N. South St",
+      "Apt": "",
+      "CityStateZip": "Smallville, XY 12345",
+      "ForeignCountry": "",
+      "ForeignState": "",
+      "ForeignZip": "",
+      "Dependents": [
+        {
+          "FirstName": "Jake",
+          "LastName": "Doe",
+          "SSN": "123456789",
+          "Relationship": "Son",
+          "ChildTaxCredit": true,
+          "CreditForOther": true
+        }
+      ]
+    },
+
+    "f1040sc": {
+      "LineA": "Web Developer",
+      "LineB": "541510",
+      "CheckF-Cash": true,
+      "CheckG-Yes": true,
+      "CheckI-No": true
     }
-  ],
-
-  "income": {
-    "payments": [ ],
-    "exceptions": { "half": [], "skip": [] },
-    "dividends": [ ]
-  },
-  "expenses": [],
-
-  "assets": {
-    "BTC": [
-      {"price": 1000, "quantity": 1}
-    ],
-    "DAI": [
-      {"price": 1, "quantity": 1000}
-    ],
-    "ETH": [
-      {"price": 100, "quantity": 10}
-    ]
   }
 }

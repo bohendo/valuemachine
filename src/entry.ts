@@ -22,6 +22,8 @@ console.log("Lets go");
 
 const txHistory = parseHistory(input);
 const financialData = {
+  expenses: [],
+  income: [],
   input,
   taxableTrades: getTaxableTrades(input, txHistory),
   txHistory,
@@ -56,12 +58,12 @@ if (process.env.MODE !== "test") {
 
 for (const [name, data] of Object.entries(output)) {
   console.log(`Exporting form data for ${name}`);
-  if (!data.length || data.length === 1) {
+  if (!(data as any).length || (data as any).length === 1) {
     const outputData = JSON.stringify(translate(data[0], mappings[name]), null, 2);
     fs.writeFileSync(`${outputFolder}/${name}.json`, outputData);
   } else {
     let i = 1;
-    for (const page of data) {
+    for (const page of (data as any)) {
       const pageName = `f8949_${i}`;
       const outputData = JSON.stringify(translate(page, mappings[name]), null, 2);
       fs.writeFileSync(`${outputFolder}/${pageName}.json`, outputData);

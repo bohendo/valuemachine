@@ -77,7 +77,7 @@ test: test.json taxes.js $(shell find ops $(find_options))
 ########################################
 # Common Prerequisites
 
-taxes.js: node-modules mappings tsconfig.json $(shell find src $(find_options))
+taxes.js: node-modules tsconfig.json $(shell find src $(find_options))
 	$(log_start)
 	$(docker_run) "tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
