@@ -1,5 +1,5 @@
-import { Field, Forms } from './mappings';
-export { Field, Forms }
+import { Field, Forms } from "./mappings";
+export { Field, Forms };
 
 export type InputData = {
   taxYear: string;
@@ -12,31 +12,44 @@ export type InputData = {
   formData: Forms
 }
 
+// aka row of f8949
+export type TaxableTrade = {
+  Adjustment: string;
+  Code: string;
+  Cost: string;
+  DateAcquired: string;
+  DateSold: string;
+  Description: string;
+  GainOrLoss: string;
+  Proceeds: string;
+}
+
 export type DecimalString = string;
 export type DateString = string;
 export type HexSting = string;
 
 export const EventCategories = {
   "?": "?",
-  "swap": "swap",
-  "income": "income",
   "expense": "expense",
-}
+  "income": "income",
+  "swap": "swap",
+};
 export type EventCategory = keyof typeof EventCategories;
 
 export const AssetTypes = {
   "DAI": "DAI",
-  "USD": "USD",
-  "INR": "INR",
   "ETH": "ETH",
+  "INR": "INR",
   "MKR": "MKR",
-}
+  "USD": "USD",
+};
 export type AssetType = keyof typeof AssetTypes;
 
 export type Asset = {
   type: AssetType;
   amount: DecimalString;
   date?: DateString;
+  price?: DecimalString;
   value?: DecimalString;
 }
 
@@ -45,7 +58,7 @@ export type CommonEvent = {
   category?: EventCategory | string;
   tags?: string[];
   description?: string;
-  hash?: string;
+  hash?: HexSting;
   to?: string;
   from?: string;
   assetsIn?: Asset[];
@@ -84,6 +97,7 @@ export type FinancialData = {
   input: InputData;
   events: Array<Event>;
   txHistory: string[];
+  taxableTrades: TaxableTrade[];
   snapshots: State[];
   addresses: { [key: string]: string };
 }

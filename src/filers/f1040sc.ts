@@ -1,5 +1,5 @@
-import { FinancialData, Forms, TaxableTx } from '../types';
-import { add, div, gt, lt, parseHistory, round, sub } from '../utils';
+import { FinancialData, Forms, TaxableTx } from "../types";
+import { add, div, gt, lt, parseHistory, round, sub } from "../utils";
 
 export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
@@ -8,27 +8,27 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   f1040sc.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
   f1040sc.SSN = f1040.SocialSecurityNumber;
 
-  const txHistory = parseHistory(input) as TaxableTx[];
+  const txHistory = finances.txHistory;
   let totalIncome = "0";
 
-  input.income.payments.forEach(payment => {
-    totalIncome = add([totalIncome, payment.amount])
+  finances.income.payments.forEach(payment => {
+    totalIncome = add([totalIncome, payment.amount]);
   });
 
   for (const tx of txHistory) {
-    if (tx.timestamp.substring(0,2) !== input.taxYear.substring(2)) {
-      console.log(`Skipping old tx from ${input.taxYear}`);
+    if (tx.timestamp.substring(0,2) !== finances.input.taxYear.substring(2)) {
+      console.log(`Skipping old tx from ${finances.input.taxYear}`);
       continue;
     }
-    if (input.income.exceptions.skip.includes(tx.from)) {
+    if (finances.income.exceptions.skip.includes(tx.from)) {
       console.log(`Skipping tx of ${tx.valueIn} from ${tx.from}`);
       continue;
-    } else if (input.income.exceptions.half.includes(tx.from)) {
+    } else if (finances.income.exceptions.half.includes(tx.from)) {
       console.log(`Got half payment of ${tx.valueIn} from ${tx.from}`);
-      totalIncome = add([totalIncome, div(tx.valueIn, "2")])
+      totalIncome = add([totalIncome, div(tx.valueIn, "2")]);
     } else if (tx.from.startsWith("entity")) {
       console.log(`Got payment of ${tx.valueIn} from ${tx.from}`);
-      totalIncome = add([totalIncome, tx.valueIn])
+      totalIncome = add([totalIncome, tx.valueIn]);
     }
   }
 
@@ -43,9 +43,9 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   f1040sc.L7 = round(add([f1040sc.L5, f1040sc.L6]));
 
   let totalExpenses = "0";
-  for (const expense of input.expenses) {
-    const key = `L${expense.type}`
-    if (typeof f1040sc[key] !== 'undefined') {
+  for (const expense of finances.expenses) {
+    const key = `L${expense.type}`;
+    if (typeof f1040sc[key] !== "undefined") {
       console.log(`Handling expense of ${expense.amount}: ${expense.description}`);
       f1040sc[key] = add([f1040sc[expense.type], expense.amount]);
     }
@@ -63,17 +63,16 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   f1040sc.L31 = round(sub(f1040sc.L29, f1040sc.L30));
 
   if (gt(f1040sc.L31, "0")) {
-    f1040s1.L3 = f1040sc.L31
-    f1040sse.L2 = f1040sc.L31
-    f1040sse.L2_Long = f1040sc.L31
+    f1040s1.L3 = f1040sc.L31;
+    f1040sse.L2 = f1040sc.L31;
+    f1040sse.L2_Long = f1040sc.L31;
   } else if (lt(f1040sc.L31, "0")) {
     if (f1040sc.C32a) {
-      f1040s1.L3 = f1040sc.L31
-      f1040sse.L2 = f1040sc.L31
-      f1040sse.L2_Long = f1040sc.L31
+      f1040s1.L3 = f1040sc.L31;
+      f1040sse.L2 = f1040sc.L31;
+      f1040sse.L2_Long = f1040sc.L31;
     }
   }
 
   return { ...forms, f1040, f1040s1, f1040sc, f1040sse };
-}
-
+};

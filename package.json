@@ -15,10 +15,13 @@
   "homepage": "https://gitlab.com/bohendo/taxes#readme",
   "dependencies": {
     "csv-parse": "4.8.2",
-    "ethers": "4.0.41",
-    "typescript": "3.7.4"
+    "ethers": "4.0.41"
   },
   "devDependencies": {
-    "@types/node": "13.1.2"
+    "@typescript-eslint/parser": "2.19.2",
+    "@types/node": "13.1.2",
+    "@typescript-eslint/eslint-plugin": "2.19.2",
+    "eslint": "6.8.0",
+    "typescript": "3.7.4"
   }
 }

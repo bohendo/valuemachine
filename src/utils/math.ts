@@ -1,5 +1,5 @@
-import { Zero } from 'ethers/constants';
-import { BigNumber as BN, formatUnits, parseUnits } from 'ethers/utils';
+import { Zero } from "ethers/constants";
+import { BigNumber as BN, formatUnits, parseUnits } from "ethers/utils";
 
 ////////////////////////////////////////
 // Internal Helpers
@@ -8,10 +8,10 @@ const fromWad = (n: BN | string): string => formatUnits((n || "0").toString(), 1
 
 const toWad = (n: BN | string): BN => parseUnits((n || "0").toString(), 18);
 
-const floor = (decStr: string): string => decStr.substring(0, decStr.indexOf("."))
+const floor = (decStr: string): string => decStr.substring(0, decStr.indexOf("."));
 
 const roundInt = (decStr: string): string => 
-  floor(fromWad(toWad(decStr).add(toWad("0.5"))).toString())
+  floor(fromWad(toWad(decStr).add(toWad("0.5"))).toString());
 
 ////////////////////////////////////////
 // Exports
@@ -24,27 +24,27 @@ export const mul = (a: string, b: string): string =>
   fromWad(roundInt(fromWad(toWad(a).mul(toWad(b)))));
 
 export const div = (a: string, b: string): string =>
-  fromWad(toWad(toWad(a)).div(toWad(b)))
+  fromWad(toWad(toWad(a)).div(toWad(b)));
 
 export const add = (lon: string[]): string =>
   lon.reduce((sum, current) => fromWad(toWad(sum).add(toWad(current))));
 
 export const sub = (a: string, b: string): string =>
-  fromWad(toWad(a).sub(toWad(b)))
+  fromWad(toWad(a).sub(toWad(b)));
 
 // absolute value of subtracting a and b
 export const diff = (a: string, b: string): string =>
-  toWad(sub(a,b)).gt(Zero) ? sub(a,b) : sub(b,a)
+  toWad(sub(a,b)).gt(Zero) ? sub(a,b) : sub(b,a);
 
 export const round = (decStr: string, n: number = 2) => {
   if (!n) { return roundInt(decStr); }
-  const power = `1${'0'.repeat(n)}`
+  const power = `1${"0".repeat(n)}`;
   let out = div(roundInt(mul(decStr, power)), power);
   // Pad with extra zeros if needed
-  if (out.indexOf('.') === -1) { out = `${out}.`; }
-  if (out.substring(out.indexOf('.')).length - 1 < n) {
-    out = `${out}${'0'.repeat(n - out.substring(out.indexOf('.')).length + 1)}`;
+  if (out.indexOf(".") === -1) { out = `${out}.`; }
+  if (out.substring(out.indexOf(".")).length - 1 < n) {
+    out = `${out}${"0".repeat(n - out.substring(out.indexOf(".")).length + 1)}`;
   }
   // console.log(`Rounded ${decStr} to ${n || 0} decimals: ${out}`);
   return out;
-}
+};

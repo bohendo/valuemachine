@@ -1,99 +1,103 @@
-import { add, eq, gt, lt, mul, round, sub, } from '../utils';
-import { InputData, FinancialData, Forms, Event } from '../types';
+import { add, eq, gt, lt, mul, round, sub } from "./utils";
+import { Asset, AssetType, InputData, FinancialData, Forms, Event, TaxableTrade } from "./types";
 
 const stringifyAssets = (assets) => {
-  let output = '[\n'
+  let output = "[\n";
   for (const [key, value] of Object.entries(assets)) {
-    let total = "0"
-    output += `  ${key}:`
+    let total = "0";
+    output += `  ${key}:`;
     for (const chunk of value as any) {
-      output += ` ${chunk.quantity}@${chunk.price},`
-      total = add([total, chunk.quantity])
+      output += ` ${chunk.amount}@${chunk.price},`;
+      total = add([total, chunk.amount]);
     }
-    output += ` (Total: ${total})\n`
+    output += ` (Total: ${total})\n`;
   }
-  return `${output}]`
-}
+  return `${output}]`;
+};
 
-export const getTaxableTrades = (input: InputData) => {
+export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrade[] => {
+  const debugMode = input.logLevel > 3;
+  const assets: { [key: string]: Asset[] } = {};
+  const startingAssets: { [key: string]: Asset[] } = {};
+  const trades = [];
+  let totalCost = "0";
+  let totalProceeds = "0";
+  let totalProfit = "0";
 
-  const assets = {};
-  const startingAssets = stringifyAssets(assets);
-  const trades = []
-  let totalCost = "0"
-  let totalProceeds = "0"
-  let totalProfit = "0"
-
-  for (const tx of txHistory) {
-    if (!tx.date.startsWith(finances.input.taxYear.substring(2))) {
-      debugMode && console.log(`Skipping old trade from ${tx.date}`);
-      continue
+  for (const event of events) {
+    // if event.category === "init" then startingAssets.push()
+    const { assetsIn, assetsOut, date, from, to } = event;
+    if (!date.startsWith(input.taxYear.substring(2))) {
+      debugMode && console.log(`Skipping old trade from ${date}`);
+      continue;
     }
 
-    for (const input of tx.assetsIn) {
+    for (const asset of assetsIn) {
 
-      tx.from.substring(0, 2) === "ex"
-        ? (debugMode && console.log(`Bought ${input.amount} ${input.type} from ${tx.from}`))
-        : (debugMode && console.log(`Received ${input.amount} ${input.type} from ${tx.from}`))
+      from.substring(0, 2) === "ex"
+        ? (debugMode && console.log(`Bought ${asset.amount} ${asset.type} from ${from}`))
+        : (debugMode && console.log(`Received ${asset.amount} ${asset.type} from ${from}`));
 
-      if (!assets[input.type]) {
-        debugMode && console.log(`Creating new asset category for ${tx.type}`);
-        assets[input.type] = [];
+      if (!assets[asset.type]) {
+        debugMode && console.log(`Creating new asset category for ${event.category}`);
+        assets[asset.type] = [];
       }
 
-      assets[tx.type].push({
-        quantity: tx.quantity,
-        price: tx.price,
+      assets[asset.type].push({
+        amount: asset.amount,
+        date: event.date,
+        price: asset.price,
+        type: asset.type,
       });
 
     }
 
-    for (const output of tx.assetsOut) {
-      tx.to.substring(0, 2) === "ex"
-        ? (debugMode && console.log(`Sold ${tx.quantity} ${tx.asset} to ${tx.to}`))
-        : (debugMode && console.log(`Sent ${tx.quantity} ${tx.asset} to ${tx.to}`))
+    for (const asset of assetsOut) {
+      to.substring(0, 2) === "ex"
+        ? (debugMode && console.log(`Sold ${asset.amount} ${asset.type} to ${to}`))
+        : (debugMode && console.log(`Sent ${asset.amount} ${asset.type} to ${to}`));
 
 
-      let amt = tx.quantity
-      let cost = "0"
-      let profit = "0"
+      let amt = asset.amount;
+      let cost = "0";
+      let profit = "0";
 
       while (true) {
         if (eq(amt, "0") || lt(amt, "0")) {
-          break
+          break;
         }
-        const asset = assets[tx.asset].pop()
-        if (!asset) {
-          throw new Error(`Attempting to sell more ${tx.asset} than we bought. ${tx.asset} left: ${JSON.stringify(assets[tx.asset])}`);
+        const chunk = assets[asset.type].pop();
+        if (!chunk) {
+          throw new Error(`Attempting to sell more ${chunk.type} than we bought. ${chunk.type} left: ${JSON.stringify(assets[chunk.type])}`);
         }
-        if (eq(asset.quantity, amt)) {
-          profit = add([profit, sub(mul(amt, tx.price), mul(amt, asset.price))]);
-          cost = add([cost, mul(asset.price, amt)]);
-          asset.quantity = sub(asset.quantity, amt);
-          break
-        } else if (gt(asset.quantity, amt)) {
-          profit = add([profit, sub(mul(amt, tx.price), mul(amt, asset.price))]);
-          cost = add([cost, mul(asset.price, amt)]);
-          asset.quantity = sub(asset.quantity, amt);
-          assets[tx.asset].unshift(asset);
-          break
+        if (eq(chunk.amount, amt)) {
+          profit = add([profit, sub(mul(amt, chunk.price), mul(amt, chunk.price))]);
+          cost = add([cost, mul(chunk.price, amt)]);
+          chunk.amount = sub(chunk.amount, amt);
+          break;
+        } else if (gt(chunk.amount, amt)) {
+          profit = add([profit, sub(mul(amt, chunk.price), mul(amt, chunk.price))]);
+          cost = add([cost, mul(chunk.price, amt)]);
+          chunk.amount = sub(chunk.amount, amt);
+          assets[asset.type].unshift(chunk);
+          break;
         } else {
-          profit = add([profit, mul(sub(tx.price, asset.price), asset.quantity)]);
-          cost = add([cost, mul(asset.price, asset.quantity)]);
-          amt = sub(amt, asset.quantity);
+          profit = add([profit, mul(sub(chunk.price, chunk.price), chunk.amount)]);
+          cost = add([cost, mul(chunk.price, chunk.amount)]);
+          amt = sub(amt, chunk.amount);
         }
       }
-      const proceeds = mul(tx.price, tx.quantity);
+      const proceeds = mul(asset.price, asset.amount);
 
       trades.push({
-        Description: `${round(tx.quantity)} ${tx.asset}`,
-        DateAcquired: 'VARIOUS',
-        DateSold: `${tx.date.substring(2,4)}/${tx.date.substring(4,6)}/${tx.date.substring(0,2)}`,
-        Proceeds: proceeds,
+        Adjustment: "",
+        Code: "",
         Cost: cost,
-        Code: '',
-        Adjustment: '',
+        DateAcquired: "VARIOUS",
+        DateSold: `${date.substring(2,4)}/${date.substring(4,6)}/${date.substring(0,2)}`,
+        Description: `${round(asset.amount)} ${asset.type}`,
         GainOrLoss: profit,
+        Proceeds: proceeds,
       });
 
       totalProceeds = add([totalProceeds, proceeds]);
@@ -115,4 +119,4 @@ export const getTaxableTrades = (input: InputData) => {
   console.log(`Total proceeds: ${totalProceeds} - cost ${totalCost} = profit ${totalProfit}`); 
 
   return trades;
-}
+};

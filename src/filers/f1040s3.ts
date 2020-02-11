@@ -1,4 +1,4 @@
-import { FinancialData, Forms } from '../types';
+import { FinancialData, Forms } from "../types";
 
 export const f1040s3 = (finances: FinancialData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
@@ -8,5 +8,4 @@ export const f1040s3 = (finances: FinancialData, oldForms: Forms): Forms => {
   f1040s3.SSN = f1040.SocialSecurityNumber;
 
   return { ...forms, f1040s3 };
-}
-
+};
