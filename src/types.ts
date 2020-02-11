@@ -1,6 +1,17 @@
 import { Field, Forms } from './mappings';
 export { Field, Forms }
 
+export type InputData = {
+  taxYear: string;
+  logLevel?: number;
+  forms: string[];
+  events: Array<Event>;
+  txHistory: string[];
+  snapshots: State[];
+  addresses: { [key: string]: string };
+  formData: Forms
+}
+
 export type DecimalString = string;
 export type DateString = string;
 export type HexSting = string;
@@ -69,13 +80,10 @@ export type State = {
   events?: Event[];
 }
 
-export type InputData = {
-  taxYear: string;
-  logLevel?: number;
-  forms: string[];
+export type FinancialData = {
+  input: InputData;
   events: Array<Event>;
   txHistory: string[];
   snapshots: State[];
   addresses: { [key: string]: string };
-  formData: Forms
 }

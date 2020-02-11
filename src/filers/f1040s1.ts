@@ -1,13 +1,12 @@
-import { InputData, Forms } from '../types';
+import { FinancialData, Forms } from '../types';
 import { add, round } from '../utils';
 
-export const f1040s1 = (input: InputData, oldForms: Forms): Forms => {
+export const f1040s1 = (finances: FinancialData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
-  const f1040 = forms.f1040 && forms.f1040[0] ? forms.f1040[0] : {};
-  const f1040s1 = forms.f1040s1 && forms.f1040s1[0] ? forms.f1040s1[0] : {};
+  const { f1040, f1040s1 } = forms;
 
-  f1040s1.FullName = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
-  f1040s1.SSN = input.SocialSecurityNumber;
+  f1040s1.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
+  f1040s1.SSN = f1040.SocialSecurityNumber;
 
   f1040s1.L9 = round(add([
     f1040s1.L1, f1040s1.L2a, f1040s1.L3, f1040s1.L4,
@@ -22,7 +21,5 @@ export const f1040s1 = (input: InputData, oldForms: Forms): Forms => {
   ]));
   f1040.L8a = f1040s1.L22
 
-  forms.f1040 = [f1040];
-  forms.f1040s1 = [f1040s1];
-  return forms;
+  return { ...forms, f1040, f1040s1 };
 }

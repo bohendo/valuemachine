@@ -1,13 +1,12 @@
-import { InputData, Forms } from '../types';
+import { FinancialData, Forms } from '../types';
 
-export const f1040s3 = (input: InputData, oldForms: Forms): Forms => {
+export const f1040s3 = (finances: FinancialData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
-  const f1040s3 = forms.f1040s3 && forms.f1040s3[0] ? forms.f1040s3[0] : {};
+  const { f1040, f1040s3 } = forms;
 
-  f1040s3.FullName = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
-  f1040s3.SSN = input.SocialSecurityNumber;
+  f1040s3.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
+  f1040s3.SSN = f1040.SocialSecurityNumber;
 
-  forms.f1040s3 = [f1040s3];
-  return forms;
+  return { ...forms, f1040s3 };
 }
 

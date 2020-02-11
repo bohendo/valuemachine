@@ -1,8 +1,8 @@
 import csv from 'csv-parse/lib/sync';
 import fs from 'fs';
 
-import { Event, InputData, SwapEvent } from "../types";
-import { diff, add, sub, round, mul, eq, gt, lt } from './math';
+import { Event, InputData, SwapEvent } from "./types";
+import { diff, add, sub, round, mul, eq, gt, lt } from './utils';
 
 const shouldWarn = false
 

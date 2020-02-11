@@ -1,14 +1,12 @@
-import { InputData, Forms } from '../types';
+import { FinancialData, Forms } from '../types';
 import { add, gt, lt, mul, round } from '../utils';
 
-export const f1040sse = (input: InputData, oldForms: Forms): Forms => {
+export const f1040sse = (finances: FinancialData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
-  const f1040s1 = forms.f1040s1 && forms.f1040s1[0] ? forms.f1040s1[0] : {};
-  const f1040s2 = forms.f1040s2 && forms.f1040s2[0] ? forms.f1040s2[0] : {};
-  const f1040sse = forms.f1040sse && forms.f1040sse[0] ? forms.f1040sse[0] : {};
+  const { f1040, f1040s1, f1040s2, f1040sse } = forms;
 
-  f1040sse.FullName_1 = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
-  f1040sse.SSN_1 = input.SocialSecurityNumber;
+  f1040sse.FullName_1 = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
+  f1040sse.SSN_1 = forms.f1040.SocialSecurityNumber;
   f1040sse.FullName_2 = f1040sse.FullName_1
   f1040sse.SSN_2 = f1040sse.SSN_1;
 
@@ -29,8 +27,5 @@ export const f1040sse = (input: InputData, oldForms: Forms): Forms => {
   f1040sse.L6 = round(mul(f1040sse.L5, "0.5"));
   f1040s1.L14 = f1040sse.L6;
 
-  forms.f1040s1 = [f1040s1];
-  forms.f1040s2 = [f1040s2];
-  forms.f1040sse = [f1040sse];
-  return forms;
+  return { ...forms, f1040, f1040s1, f1040s2, f1040sse };
 }

@@ -1,14 +1,12 @@
-import { InputData, Forms, TaxableTx } from '../types';
+import { FinancialData, Forms, TaxableTx } from '../types';
 import { add, div, gt, lt, parseHistory, round, sub } from '../utils';
 
-export const f1040sc = (input: InputData, oldForms: Forms): Forms => {
+export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
-  const f1040s1 = forms.f1040s1 && forms.f1040s1[0] ? forms.f1040s1[0] : {};
-  const f1040sc = forms.f1040sc && forms.f1040sc[0] ? forms.f1040sc[0] : {};
-  const f1040sse = forms.f1040sse && forms.f1040sse[0] ? forms.f1040sse[0] : {};
+  const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 
-  f1040sc.FullName = `${input.FirstName} ${input.MiddleInitial} ${input.LastName}`;
-  f1040sc.SSN = input.SocialSecurityNumber;
+  f1040sc.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
+  f1040sc.SSN = f1040.SocialSecurityNumber;
 
   const txHistory = parseHistory(input) as TaxableTx[];
   let totalIncome = "0";
@@ -76,9 +74,6 @@ export const f1040sc = (input: InputData, oldForms: Forms): Forms => {
     }
   }
 
-  forms.f1040s1 = [f1040s1];
-  forms.f1040sc = [f1040sc];
-  forms.f1040sse = [f1040sse];
-  return forms;
+  return { ...forms, f1040, f1040s1, f1040sc, f1040sse };
 }
 
