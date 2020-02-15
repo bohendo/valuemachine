@@ -20,6 +20,11 @@ process.on("unhandledRejection", (e: any): any => {
   process.exit(1);
 });
 
+process.on("SIGINT", (e: any): any => {
+  console.error(`SIGINT detected, exiting.`);
+  process.exit(1);
+});
+
 (async () => {
 
   const inputFile = `${process.cwd()}/${process.argv[2]}`;
