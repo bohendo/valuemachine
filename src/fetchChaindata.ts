@@ -1,8 +1,12 @@
 /* global process */
 import fs from "fs";
+import axios from "axios";
 import { getDefaultProvider } from "ethers";
-import { JsonRpcProvider } from "ethers/providers";
+import { EtherscanProvider } from "ethers/providers";
+import { formatEther, hexlify } from "ethers/utils";
+
 import { AddressData, ChainData, InputData } from "./types";
+import { getDateString } from "./utils";
 
 const emptyChainData: ChainData = {
   addresses: {},
@@ -12,6 +16,7 @@ const emptyChainData: ChainData = {
 
 const emptyAddressData: AddressData = {
   nonce: 0,
+  transactions: [],
 };
 
 const cacheFile = "./.chain-data.json";
@@ -20,10 +25,10 @@ const loadCache = (): ChainData => {
   try {
     return JSON.parse(fs.readFileSync(cacheFile, "utf8"));
   } catch (e) {
-    console.warn(e.message);
     if (e.message.startsWith("ENOENT: no such file or directory")) {
       return emptyChainData;
     }
+    console.warn(e.message);
     throw new Error(`Unable to load chainData cache, try deleting ${cacheFile} & try again`);
   }
 };
@@ -34,16 +39,18 @@ const saveCache = (chainData: ChainData): void =>
 export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
   let chainData = loadCache();
   let provider;
-  if (process.env.ETH_PROVIDER) {
-    console.log(`Using provider: ${process.env.ETH_PROVIDER}`);
-    provider = new JsonRpcProvider(process.env.ETH_PROVIDER);
+  if (process.env.ETHERSCAN_KEY) {
+    provider = new EtherscanProvider("homestead", process.env.ETHERSCAN_KEY);
   } else {
-    console.log(`Using default provider`);
-    provider = getDefaultProvider("homestead");
+    throw new Error("An env var called ETHERSCAN_KEY is required.");
   }
 
-  chainData.blockNumber = await provider.getBlockNumber();
-  console.log(`Latest block: ${chainData.blockNumber}`);
+  const blockNumber = await provider.getBlockNumber();
+  if (chainData.blockNumber === blockNumber) {
+    console.log(`ChainData is up to date, nothing to do`);
+    return chainData;
+  }
+  console.log(`Syncing ChainData with blocks up to: ${blockNumber}`);
 
   for (const [address, label] of Object.entries(input.addresses)) {
     if (!label.startsWith("self")) { continue; }
@@ -51,12 +58,68 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
 
     console.log(`Fetching info for ${label} address: ${address}`);
 
-    chainData.addresses[address].nonce = await provider.getTransactionCount(address);
+    const nonce = await provider.getTransactionCount(address);
+    if (addressData.nonce === nonce) {
+      console.log(`AddressData is up to date, nothing to do`);
+      break; // TODO: continue;
+    }
+    addressData.nonce = nonce;
+
+    const txHistory = await provider.getHistory(address);
+    const internalTxHistory = (await axios.get(
+      `https://api.etherscan.io/api?module=account&action=txlistinternal&address=${
+        address
+      }&apikey=${
+        process.env.ETHERSCAN_KEY
+      }&sort=asc`,
+    )).data.result;
+    console.log(
+      `Retrieved ${txHistory.length} external & ${internalTxHistory.length} internal transactions`,
+    );
+
+    addressData.transactions = Array.from(new Set(addressData.transactions.concat(
+      txHistory.map(tx => tx.hash),
+      internalTxHistory.map(tx => tx.hash),
+    )));
+
+    for (const tx of txHistory) {
+      chainData.transactions[tx.hash] = {
+        block: tx.blockNumber,
+        data: tx.data,
+        from: tx.from,
+        gasLimit: hexlify(tx.gasLimit),
+        gasPrice: hexlify(tx.gasPrice),
+        hash: tx.hash,
+        index: tx.transactionIndex,
+        nonce: tx.nonce,
+        timestamp: getDateString(new Date(tx.timestamp * 1000)),
+        to: tx.to,
+        value: formatEther(tx.value),
+      };
+    }
 
     chainData.addresses[address] = addressData;
     saveCache(chainData);
     break; // TODO: remove
   }
 
+  for (const [hash, tx] of Object.entries(chainData.transactions)) {
+    if (!tx.gasUsed || !tx.logs) {
+      console.log(`Downloading logs for tx ${hash}`);
+      const receipt = await provider.getTransactionReceipt(tx.hash);
+      tx.gasUsed = hexlify(receipt.gasUsed);
+      tx.logs = receipt.logs.map(log => ({
+        address: log.address,
+        data: log.data,
+        index: log.transactionLogIndex,
+        topics: log.topics,
+      }));
+      chainData.transactions[hash] = tx;
+      saveCache(chainData);
+    }
+  }
+
+  chainData.blockNumber = blockNumber;
+  saveCache(chainData);
   return chainData;
 };

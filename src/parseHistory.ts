@@ -2,19 +2,9 @@ import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
 import { Event, InputData, SwapEvent } from "./types";
-import { diff, add, sub, round, mul, eq, gt, lt } from "./utils";
+import { getDateString, diff, add, sub, round, mul, eq, gt, lt } from "./utils";
 
 const shouldWarn = false;
-
-const getTimestamp = (date: Date): string => {
-  if (isNaN(date.getFullYear())) {
-    return "";
-  }
-  const year = date.getFullYear().toString().substring(2,4);
-  const month = date.getMonth().toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  return `${year}${month}${day}`;
-};
 
 const parseCoinbase = (filename: string, personal: InputData): SwapEvent[] => {
   const rawFile = fs.readFileSync(filename, "utf8").split("\r\n");
@@ -36,7 +26,7 @@ const parseCoinbase = (filename: string, personal: InputData): SwapEvent[] => {
       assetsIn: [isBuy ? asset : usd],
       assetsOut: [isBuy ? usd : asset],
       category: "swap",
-      date: getTimestamp(new Date(row["Timestamp"])),
+      date: getDateString(new Date(row["Timestamp"])),
       description: "",
       prices: { [asset.type]: row["USD Spot Price at Transaction"] },
       tags: ["coinbase"],
@@ -50,14 +40,14 @@ const parseWyre = (filename: string, personal: InputData): SwapEvent[] => {
     { columns: true, skip_empty_lines: true },
   ).map(row => {
     // Ignore any rows with an invalid timestamp
-    if (!getTimestamp(new Date(row["Created At"]))) return null;
+    if (!getDateString(new Date(row["Created At"]))) return null;
     // Ignore any transfers into Wyre account
     if (row["Source Currency"] === row["Dest Currency"]) return null;
     return ({
       assetsIn: [{ amount: row["Dest Amount"], type: row["Dest Currency"] }],
       assetsOut: [{ amount: row["Source Amount"], type: row["Source Currency"] }],
       category: "swap",
-      date: getTimestamp(new Date(row["Created At"])),
+      date: getDateString(new Date(row["Created At"])),
       description: "",
       prices: { amount: row["Exchange Rate"], type: row["Dest Currency"] },
       tags: ["sendwyre"],
@@ -111,7 +101,7 @@ const parseEtherscan = (filename: string, personal: InputData): Event[] => {
       assetsIn: [row["Value_OUT(ETH)"] === "0" ? eth(value) : eth("0")],
       assetsOut: row["Value_IN(ETH)"] === "0" ? eth(value) : eth("0"),
       category: "idk",
-      date: getTimestamp(new Date(parseInt(`${row["UnixTimestamp"]}000`))),
+      date: getDateString(new Date(parseInt(`${row["UnixTimestamp"]}000`))),
       description: "",
       from,
       hash: row["Txhash"],

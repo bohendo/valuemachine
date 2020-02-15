@@ -1,12 +1,32 @@
 import { Field, Forms } from "./mappings";
 export { Field, Forms };
-import { TransactionReceipt, TransactionResponse } from "ethers/providers";
-
-export type TransactionData = TransactionResponse & TransactionReceipt;
 
 export type DecimalString = string;
 export type DateString = string;
 export type HexString = string;
+
+export type LogData = {
+  address: HexString;
+  data: HexString;
+  index: number;
+  topics: Array<HexString>;
+}
+
+export type TransactionData = {
+  block: number;
+  data: HexString;
+  from: HexString;
+  gasLimit: HexString;
+  gasPrice: HexString;
+  gasUsed?: HexString;
+  hash: HexString;
+  index: number;
+  logs?: Array<any>;
+  nonce: number;
+  timestamp: DateString;
+  to: HexString;
+  value: DecimalString;
+};
 
 export type AddressData = {
   nonce: number;

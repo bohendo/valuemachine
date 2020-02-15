@@ -10,6 +10,16 @@ import { getTaxableTrades } from "./getTaxableTrades";
 import { parseHistory } from "./parseHistory";
 import { fetchChaindata } from "./fetchChaindata";
 
+process.on("uncaughtException", (e: any): any => {
+  console.error(e);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (e: any): any => {
+  console.error(e);
+  process.exit(1);
+});
+
 (async () => {
 
   const inputFile = `${process.cwd()}/${process.argv[2]}`;
