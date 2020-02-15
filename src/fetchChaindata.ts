@@ -51,10 +51,10 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
 
   console.log(`💫 getting block number..`);
   const block = await provider.getBlockNumber();
-  console.log(`✅ block: ${block}`);
+  console.log(`✅ block: ${block}\n`);
 
-  if (block >= chainData.block + blocksUntilStale) {
-    console.log(`ChainData is up to date`);
+  if (block <= chainData.block + blocksUntilStale) {
+    console.log(`ChainData is up to date (${block - chainData.block} blocks old)`);
     return chainData;
   }
 
@@ -64,11 +64,11 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
       chainData.addresses[address] || emptyAddressData,
     ));
 
-    if (block >= addressData.block + blocksUntilStale) {
-      console.log(`Info for address ${address} is up to date.`);
+    if (block <= addressData.block + blocksUntilStale) {
+      console.log(`Info for ${address} is up to date (${block - addressData.block} blocks old)`);
       continue;
     }
-    console.log(`\nFetching info for ${label} address: ${address}`);
+    console.log(`Fetching info for ${label} address: ${address}`);
 
     // note: via create2, addresses can start out w/out code & later code appears
     console.log(`💫 getting code..`);
@@ -109,8 +109,8 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
           block: tx.blockNumber,
           data: tx.data,
           from: tx.from,
-          gasLimit: hexlify(tx.gasLimit),
-          gasPrice: hexlify(tx.gasPrice),
+          gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
+          gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
           hash: tx.hash,
           index: tx.transactionIndex,
           nonce: tx.nonce,
@@ -121,12 +121,14 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
       }
     }
 
+    console.log(`📝 saving progress..`);
     addressData.block = block;
     saveCache(chainData);
+    console.log(`🔖 progress saved\n`);
   }
 
   console.log(`Fetching ${
-    Object.entries(chainData.transactions).filter(entry => !!entry[1].logs).length
+    Object.values(chainData.transactions).filter(tx => !tx.logs).length
   } transaction receipts`);
 
   for (const [hash, tx] of Object.entries(chainData.transactions)) {
@@ -140,7 +142,7 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
         index: log.transactionLogIndex,
         topics: log.topics,
       }));
-    console.log(`✅ got ${tx.logs.length} logs`);
+    console.log(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
       chainData.transactions[hash] = tx;
       saveCache(chainData);
     }

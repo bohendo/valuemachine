@@ -16,8 +16,8 @@ export type TransactionData = {
   block: number;
   data: HexString;
   from: HexString;
-  gasLimit: HexString;
-  gasPrice: HexString;
+  gasLimit?: HexString;
+  gasPrice?: HexString;
   gasUsed?: HexString;
   hash: HexString;
   index: number;
