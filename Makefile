@@ -65,7 +65,7 @@ example: example.json taxes.js $(shell find ops $(find_options))
 personal: personal.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
 	$(docker_run) "node build/src/entry.js personal.json $(personal)"
-	#$(docker_run) "bash ops/build.sh personal"
+	$(docker_run) "bash ops/build.sh personal"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
 test: test.json taxes.js $(shell find ops $(find_options))

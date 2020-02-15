@@ -56,14 +56,10 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
     if (!label.startsWith("self")) { continue; }
     const addressData = chainData.addresses[address] || emptyAddressData;
 
-    console.log(`Fetching info for ${label} address: ${address}`);
+    console.log(`\nFetching info for ${label} address: ${address}`);
 
-    const nonce = await provider.getTransactionCount(address);
-    if (addressData.nonce === nonce) {
-      console.log(`AddressData is up to date, nothing to do`);
-      break; // TODO: continue;
-    }
-    addressData.nonce = nonce;
+    addressData.nonce = await provider.getTransactionCount(address);
+    addressData.hasCode = (await provider.getCode(address)).length > 4;
 
     const txHistory = await provider.getHistory(address);
     const internalTxHistory = (await axios.get(
@@ -100,9 +96,11 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
 
     chainData.addresses[address] = addressData;
     saveCache(chainData);
-    break; // TODO: remove
   }
 
+  console.log(`Fetching ${
+    Object.entries(chainData.transactions).filter(entry => !!entry[1].logs).length
+  } transaction receipts`);
   for (const [hash, tx] of Object.entries(chainData.transactions)) {
     if (!tx.gasUsed || !tx.logs) {
       console.log(`Downloading logs for tx ${hash}`);

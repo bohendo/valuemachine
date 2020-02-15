@@ -30,8 +30,8 @@ export type TransactionData = {
 
 export type AddressData = {
   nonce: number;
-  isContract?: boolean;
-  transactions?: Array<string>;
+  hasCode?: boolean;
+  transactions: Array<string>;
 };
 
 export type ChainData = {
@@ -45,14 +45,14 @@ export type ChainData = {
 };
 
 export type InputData = {
-  taxYear: string;
-  logLevel?: number;
-  forms: string[];
-  events: Array<Event>;
-  txHistory: string[];
-  snapshots: State[];
   addresses: { [key: string]: string };
+  events: Array<Event>;
   formData: Forms
+  forms: string[];
+  logLevel?: number;
+  snapshots: State[];
+  taxYear: string;
+  txHistory: string[];
 }
 
 // aka row of f8949
@@ -85,24 +85,24 @@ export const AssetTypes = {
 export type AssetType = keyof typeof AssetTypes;
 
 export type Asset = {
-  type: AssetType;
   amount: DecimalString;
   date?: DateString;
   price?: DecimalString;
+  type: AssetType;
   value?: DecimalString;
 }
 
 export type CommonEvent = {
-  date: DateString;
-  category?: EventCategory | string;
-  tags?: string[];
-  description?: string;
-  hash?: HexString;
-  to?: string;
-  from?: string;
   assetsIn?: Asset[];
   assetsOut?: Asset[];
+  category?: EventCategory | string;
+  date: DateString;
+  description?: string;
+  from?: string;
+  hash?: HexString;
   prices?: { [key: string]: DecimalString };
+  tags?: string[];
+  to?: string;
 }
 
 export type IncomeEvent = CommonEvent & {
@@ -125,20 +125,21 @@ export type ExpenseEvent = CommonEvent & {
 export type Event = CommonEvent | IncomeEvent | SwapEvent | ExpenseEvent;
 
 export type State = {
-  date: DateString;
-  prices?: { [key: string]: DecimalString };
   assets: Asset[];
-  liabilities: Asset[];
+  date: DateString;
   events?: Event[];
+  liabilities: Asset[];
+  prices?: { [key: string]: DecimalString };
 }
 
 export type FinancialData = {
-  input: InputData;
-  events: Array<Event>;
-  income: Array<Event>,
-  expenses: Array<Event>,
-  txHistory: string[];
-  taxableTrades: TaxableTrade[];
-  snapshots: State[];
   addresses: { [key: string]: string };
+  chainData: ChainData;
+  events: Array<Event>;
+  expenses: Array<Event>,
+  income: Array<Event>,
+  input: InputData;
+  snapshots: State[];
+  taxableTrades: TaxableTrade[];
+  txHistory: string[];
 }

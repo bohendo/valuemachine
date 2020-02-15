@@ -33,14 +33,11 @@ process.on("unhandledRejection", (e: any): any => {
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  await fetchChaindata(input);
-
-  // TEMP: exit now bc we're just testing the chainData fetcher
-  console.log(`\nAll Done\n\n`);
-  process.exit(0);
+  const chainData = await fetchChaindata(input);
 
   const txHistory = parseHistory(input);
   const financialData = {
+    chainData,
     expenses: [],
     income: [],
     input,
