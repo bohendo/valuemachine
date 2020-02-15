@@ -33,7 +33,7 @@ export const getFinancialData = async (input: InputData): Promise<FinancialData>
   }
 
   const chainData = await fetchChainData(input.ethAddresses);
-  
+
   return {
     expenses: [],
     income: [],

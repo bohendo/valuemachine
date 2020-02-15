@@ -7,30 +7,22 @@ import { InputData } from "./types";
 import { emptyForm, mergeForms, translate } from "./utils";
 import { getFinancialData } from "./events";
 
-process.on("uncaughtException", (e: any): any => {
-  console.error(e);
+const logAndExit = (msg: any): void => {
+  console.error(msg);
   process.exit(1);
-});
-
-process.on("unhandledRejection", (e: any): any => {
-  console.error(e);
-  process.exit(1);
-});
-
-process.on("SIGINT", (e: any): any => {
-  console.error(`SIGINT detected, exiting.`);
-  process.exit(1);
-});
+};
+process.on("uncaughtException", logAndExit);
+process.on("unhandledRejection", logAndExit);
+process.on("SIGINT", logAndExit);
 
 (async () => {
-
   const inputFile = `${process.cwd()}/${process.argv[2]}`;
   const outputFolder = `${process.cwd()}/${process.argv[3]}/data`;
 
   const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as InputData;
   let output = {} as Forms;
 
-  console.log(`\n\nLets go\n`);
+  console.log(`\nLets go\n`);
 
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history

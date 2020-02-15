@@ -54,7 +54,7 @@ export const fetchChainData = async (addresses: string[]): Promise<ChainData> =>
   console.log(`✅ block: ${block}\n`);
 
   if (block <= chainData.block + blocksUntilStale) {
-    console.log(`ChainData is up to date (${block - chainData.block} blocks old)`);
+    console.log(`ChainData is up to date (${block - chainData.block} blocks old)\n`);
     return chainData;
   }
 
