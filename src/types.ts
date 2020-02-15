@@ -24,18 +24,19 @@ export type TransactionData = {
   logs?: Array<any>;
   nonce: number;
   timestamp: DateString;
-  to: HexString;
+  to: HexString | null;
   value: DecimalString;
 };
 
 export type AddressData = {
+  block: number;
   nonce: number;
   hasCode?: boolean;
   transactions: Array<string>;
 };
 
 export type ChainData = {
-  blockNumber: number;
+  block: number;
   addresses: {
     [address: string]: AddressData;
   };

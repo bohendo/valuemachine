@@ -8,13 +8,17 @@ import { formatEther, hexlify } from "ethers/utils";
 import { AddressData, ChainData, InputData } from "./types";
 import { getDateString } from "./utils";
 
+// Info is stale after 1 hour aka 240 blocks
+const blocksUntilStale = 60 * 60 / 15;
+
 const emptyChainData: ChainData = {
   addresses: {},
-  blockNumber: 0,
+  block: 0,
   transactions: {},
 };
 
 const emptyAddressData: AddressData = {
+  block: 0,
   nonce: 0,
   transactions: [],
 };
@@ -45,23 +49,43 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
     throw new Error("An env var called ETHERSCAN_KEY is required.");
   }
 
-  const blockNumber = await provider.getBlockNumber();
-  if (chainData.blockNumber === blockNumber) {
-    console.log(`ChainData is up to date, nothing to do`);
+  console.log(`💫 getting block number..`);
+  const block = await provider.getBlockNumber();
+  console.log(`✅ block: ${block}`);
+
+  if (block >= chainData.block + blocksUntilStale) {
+    console.log(`ChainData is up to date`);
     return chainData;
   }
-  console.log(`Syncing ChainData with blocks up to: ${blockNumber}`);
 
   for (const [address, label] of Object.entries(input.addresses)) {
     if (!label.startsWith("self")) { continue; }
-    const addressData = chainData.addresses[address] || emptyAddressData;
+    const addressData = JSON.parse(JSON.stringify(
+      chainData.addresses[address] || emptyAddressData,
+    ));
 
+    if (block >= addressData.block + blocksUntilStale) {
+      console.log(`Info for address ${address} is up to date.`);
+      continue;
+    }
     console.log(`\nFetching info for ${label} address: ${address}`);
 
-    addressData.nonce = await provider.getTransactionCount(address);
+    // note: via create2, addresses can start out w/out code & later code appears
+    console.log(`💫 getting code..`);
     addressData.hasCode = (await provider.getCode(address)).length > 4;
+    console.log(`✅ addressData.hasCode: ${addressData.hasCode}`);
 
-    const txHistory = await provider.getHistory(address);
+    if (!addressData.hasCode) {
+      console.log(`💫 getting nonce..`);
+      addressData.nonce = await provider.getTransactionCount(address);
+      console.log(`✅ addressData.nonce: ${addressData.nonce}`);
+    }
+
+    console.log(`💫 getting externaltxHistory..`);
+    const externaltxHistory = await provider.getHistory(address);
+    console.log(`✅ externaltxHistory: ${externaltxHistory.length} logs`);
+
+    console.log(`💫 getting internaltxHistory..`);
     const internalTxHistory = (await axios.get(
       `https://api.etherscan.io/api?module=account&action=txlistinternal&address=${
         address
@@ -69,41 +93,45 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
         process.env.ETHERSCAN_KEY
       }&sort=asc`,
     )).data.result;
-    console.log(
-      `Retrieved ${txHistory.length} external & ${internalTxHistory.length} internal transactions`,
-    );
+    console.log(`✅ internalTxHistory: ${internalTxHistory.length} logs`);
+
+    const txHistory = externaltxHistory.concat(internalTxHistory);
 
     addressData.transactions = Array.from(new Set(addressData.transactions.concat(
       txHistory.map(tx => tx.hash),
-      internalTxHistory.map(tx => tx.hash),
     )));
 
+    chainData.addresses[address] = addressData;
+
     for (const tx of txHistory) {
-      chainData.transactions[tx.hash] = {
-        block: tx.blockNumber,
-        data: tx.data,
-        from: tx.from,
-        gasLimit: hexlify(tx.gasLimit),
-        gasPrice: hexlify(tx.gasPrice),
-        hash: tx.hash,
-        index: tx.transactionIndex,
-        nonce: tx.nonce,
-        timestamp: getDateString(new Date(tx.timestamp * 1000)),
-        to: tx.to,
-        value: formatEther(tx.value),
-      };
+      if (tx && tx.hash && !chainData.transactions[tx.hash]) {
+        chainData.transactions[tx.hash] = {
+          block: tx.blockNumber,
+          data: tx.data,
+          from: tx.from,
+          gasLimit: hexlify(tx.gasLimit),
+          gasPrice: hexlify(tx.gasPrice),
+          hash: tx.hash,
+          index: tx.transactionIndex,
+          nonce: tx.nonce,
+          timestamp: getDateString(new Date(tx.timestamp * 1000)),
+          to: tx.to,
+          value: formatEther(tx.value),
+        };
+      }
     }
 
-    chainData.addresses[address] = addressData;
+    addressData.block = block;
     saveCache(chainData);
   }
 
   console.log(`Fetching ${
     Object.entries(chainData.transactions).filter(entry => !!entry[1].logs).length
   } transaction receipts`);
+
   for (const [hash, tx] of Object.entries(chainData.transactions)) {
     if (!tx.gasUsed || !tx.logs) {
-      console.log(`Downloading logs for tx ${hash}`);
+      console.log(`💫 getting logs for tx ${hash}..`);
       const receipt = await provider.getTransactionReceipt(tx.hash);
       tx.gasUsed = hexlify(receipt.gasUsed);
       tx.logs = receipt.logs.map(log => ({
@@ -112,12 +140,13 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
         index: log.transactionLogIndex,
         topics: log.topics,
       }));
+    console.log(`✅ got ${tx.logs.length} logs`);
       chainData.transactions[hash] = tx;
       saveCache(chainData);
     }
   }
 
-  chainData.blockNumber = blockNumber;
+  chainData.block = block;
   saveCache(chainData);
   return chainData;
 };
