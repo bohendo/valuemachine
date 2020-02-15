@@ -1,5 +1,28 @@
 import { Field, Forms } from "./mappings";
 export { Field, Forms };
+import { TransactionReceipt, TransactionResponse } from "ethers/providers";
+
+export type TransactionData = TransactionResponse & TransactionReceipt;
+
+export type DecimalString = string;
+export type DateString = string;
+export type HexString = string;
+
+export type AddressData = {
+  nonce: number;
+  isContract?: boolean;
+  transactions?: Array<string>;
+};
+
+export type ChainData = {
+  blockNumber: number;
+  addresses: {
+    [address: string]: AddressData;
+  };
+  transactions: {
+    [hash: string]: TransactionData;
+  };
+};
 
 export type InputData = {
   taxYear: string;
@@ -23,10 +46,6 @@ export type TaxableTrade = {
   GainOrLoss: string;
   Proceeds: string;
 }
-
-export type DecimalString = string;
-export type DateString = string;
-export type HexSting = string;
 
 export const EventCategories = {
   "?": "?",
@@ -58,7 +77,7 @@ export type CommonEvent = {
   category?: EventCategory | string;
   tags?: string[];
   description?: string;
-  hash?: HexSting;
+  hash?: HexString;
   to?: string;
   from?: string;
   assetsIn?: Asset[];

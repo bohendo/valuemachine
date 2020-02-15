@@ -3,6 +3,7 @@
 ./*.tar.gz
 docs/*
 personal.json
+.chain-data.json
 
 # Cache
 .cache

@@ -21,7 +21,7 @@ test=build/test
 # On Mac, the docker-VM takes care of this for us so pass root's id (ie noop)
 my_id=$(shell id -u):$(shell id -g)
 id=$(shell if [[ "`uname`" == "Darwin" ]]; then echo 0:0; else echo $(my_id); fi)
-docker_run=docker run --name=$(project)_builder --tty --rm --volume=$(cwd):/root $(project)_builder $(id)
+docker_run=docker run --name=$(project)_builder --tty --rm --volume=$(cwd):/root --env ETH_PROVIDER=$(ETH_PROVIDER) $(project)_builder $(id)
 
 # Helper functions
 startTime=$(flags)/.startTime
@@ -64,7 +64,7 @@ example: example.json taxes.js $(shell find ops $(find_options))
 personal: personal.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
 	$(docker_run) "node build/src/entry.js personal.json $(personal)"
-	$(docker_run) "bash ops/build.sh personal"
+	#$(docker_run) "bash ops/build.sh personal"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 
 test: test.json taxes.js $(shell find ops $(find_options))
