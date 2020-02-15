@@ -35,7 +35,7 @@ process.on("SIGINT", (e: any): any => {
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const financialData = getFinancialData(input);
+  const financialData = await getFinancialData(input);
 
   ////////////////////////////////////////
   // Step 2: Start out w empty forms containing raw user supplied data

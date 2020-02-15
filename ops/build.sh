@@ -14,6 +14,8 @@ page_number=0
 forms="`cat $target.json | jq '.forms' | tr -d ' ,"[]' | tr '\n\r' ' '`"
 mkdir -p $data_dir $pages_dir
 
+echo "Building PDFs from form data..."
+
 # This is the order in which forms will be combined into the final tax return
 for form in $forms
 do
@@ -30,13 +32,10 @@ do
     fdf_data="$data_dir/$page.fdf"
     empty_form="$forms_dir/$form.pdf"
     filled_form="$pages_dir/${page_number}_$page.pdf"
-
     # echo "  - python ops/fill-form.py $json_data $fields $fdf_data"
     python ops/fill-form.py $json_data $fields $fdf_data
-
     # echo "  - pdftk $empty_form fill_form $fdf_data output $filled_form flatten"
     pdftk $empty_form fill_form $fdf_data output $filled_form flatten
-
   done
 done
 

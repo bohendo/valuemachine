@@ -40,7 +40,7 @@ const loadCache = (): ChainData => {
 const saveCache = (chainData: ChainData): void =>
   fs.writeFileSync(cacheFile, JSON.stringify(chainData, null, 2));
 
-export const fetchChaindata = async (addresses: string[]): Promise<ChainData> => {
+export const fetchChainData = async (addresses: string[]): Promise<ChainData> => {
   let chainData = loadCache();
   let provider;
   if (process.env.ETHERSCAN_KEY) {
