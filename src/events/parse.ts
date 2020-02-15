@@ -1,5 +1,45 @@
-import { add, eq, gt, lt, mul, round, sub } from "./utils";
-import { Asset, AssetType, InputData, FinancialData, Forms, Event, TaxableTrade } from "./types";
+import {
+  Asset,
+  AssetType,
+  ChainData,
+  Event,
+  FinancialData,
+  Forms,
+  InputData,
+  TaxableTrade,
+} from "../types";
+import { add, eq, gt, lt, mul, round, sub } from "../utils";
+
+import { formatCoinbase } from "./coinbase";
+import { formatWyre } from "./wyre";
+import { fetchChaindata } from "./ethereum";
+
+export const getFinancialData = (input: InputData): FinancialData => {
+
+  const events: Event[] = [];
+
+  for (const event of input.events || []) {
+    if (typeof event === "string" && event.endsWith(".csv")) {
+      if (event.toLowerCase().includes("coinbase")) {
+        events.push(...formatCoinbase(event));
+      } else if (event.toLowerCase().includes("wyre")) {
+        events.push(...formatWyre(event));
+      } else {
+        throw new Error(`I don't know how to parse events from ${event}`);
+      }
+    } else if (typeof event !== "string" && event.date) {
+      events.push(event as Event);
+    }
+  }
+
+  // const chainData = fetchChaindata(input.ethAddresses);
+  
+  return {
+    expenses: [],
+    income: [],
+    trades: getTaxableTrades(input, events),
+  };
+};
 
 const stringifyAssets = (assets) => {
   let output = "[\n";

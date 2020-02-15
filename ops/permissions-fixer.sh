@@ -7,14 +7,14 @@ shift;
 cmd="$@"
 
 finish() {
-  if [[ "$this_user" == "$user" ]]
-  then echo "Same user, skipping permission fix"
-  else
-    echo "Fixing permissions for $user"
+  if [[ "$this_user" != "$user" ]]
+  then
     chown -R ${user} /root
+    #echo "Fixing permissions for $user"
+  #else echo "Same user, skipping permission fix"
   fi
 }
 trap finish EXIT SIGINT
 
-echo "Running command as "$this_user" (target user: $user)"
+#echo "Running command as "$this_user" (target user: $user)"
 bash -c "$cmd"

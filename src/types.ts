@@ -32,9 +32,10 @@ export type AddressData = {
   block: number;
   nonce: number;
   hasCode?: boolean;
-  transactions: Array<string>;
+  transactions: Array<HexString>;
 };
 
+// format of .chain-data.json cache
 export type ChainData = {
   block: number;
   addresses: {
@@ -46,14 +47,12 @@ export type ChainData = {
 };
 
 export type InputData = {
-  addresses: { [key: string]: string };
-  events: Array<Event>;
+  ethAddresses: string[];
+  events: Array<Event | string>;
   formData: Forms
   forms: string[];
   logLevel?: number;
-  snapshots: State[];
   taxYear: string;
-  txHistory: string[];
 }
 
 // aka row of f8949
@@ -125,22 +124,8 @@ export type ExpenseEvent = CommonEvent & {
 
 export type Event = CommonEvent | IncomeEvent | SwapEvent | ExpenseEvent;
 
-export type State = {
-  assets: Asset[];
-  date: DateString;
-  events?: Event[];
-  liabilities: Asset[];
-  prices?: { [key: string]: DecimalString };
-}
-
 export type FinancialData = {
-  addresses: { [key: string]: string };
-  chainData: ChainData;
-  events: Array<Event>;
-  expenses: Array<Event>,
-  income: Array<Event>,
-  input: InputData;
-  snapshots: State[];
-  taxableTrades: TaxableTrade[];
-  txHistory: string[];
+  expenses: Array<Event>;
+  income: Array<Event>;
+  trades: TaxableTrade[];
 }

@@ -8,7 +8,6 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   f1040sc.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
   f1040sc.SSN = f1040.SocialSecurityNumber;
 
-  const txHistory = finances.txHistory;
   let totalIncome = "0";
 
   finances.income.forEach(event => {

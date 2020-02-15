@@ -1,0 +1,1 @@
+export { getFinancialData } from "./parse";

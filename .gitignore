@@ -4,7 +4,7 @@ build.log
 ./*.tar.gz
 docs/*
 personal.json
-.chain-data.json
+chain-data.json
 
 # Cache
 .cache

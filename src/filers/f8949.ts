@@ -4,7 +4,7 @@ import { FinancialData, Forms, Event } from "../types";
 export const f8949 = (finances: FinancialData, oldForms: Forms): Forms  => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040 } = forms;
-  const trades = finances.taxableTrades;
+  const trades = finances.trades;
   const f8949 = {} as any;
 
   // Set values constant across all f8949 forms

@@ -5,8 +5,8 @@ import { getDefaultProvider } from "ethers";
 import { EtherscanProvider } from "ethers/providers";
 import { formatEther, hexlify } from "ethers/utils";
 
-import { AddressData, ChainData, InputData } from "./types";
-import { getDateString } from "./utils";
+import { AddressData, ChainData, InputData } from "../types";
+import { getDateString } from "../utils";
 
 // Info is stale after 1 hour aka 240 blocks
 const blocksUntilStale = 60 * 60 / 15;
@@ -23,7 +23,7 @@ const emptyAddressData: AddressData = {
   transactions: [],
 };
 
-const cacheFile = "./.chain-data.json";
+const cacheFile = "./chain-data.json";
 
 const loadCache = (): ChainData => {
   try {
@@ -40,7 +40,7 @@ const loadCache = (): ChainData => {
 const saveCache = (chainData: ChainData): void =>
   fs.writeFileSync(cacheFile, JSON.stringify(chainData, null, 2));
 
-export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
+export const fetchChaindata = async (addresses: string[]): Promise<ChainData> => {
   let chainData = loadCache();
   let provider;
   if (process.env.ETHERSCAN_KEY) {
@@ -58,8 +58,7 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
     return chainData;
   }
 
-  for (const [address, label] of Object.entries(input.addresses)) {
-    if (!label.startsWith("self")) { continue; }
+  for (const address of addresses) {
     const addressData = JSON.parse(JSON.stringify(
       chainData.addresses[address] || emptyAddressData,
     ));
@@ -68,7 +67,7 @@ export const fetchChaindata = async (input: InputData): Promise<ChainData> => {
       console.log(`Info for ${address} is up to date (${block - addressData.block} blocks old)`);
       continue;
     }
-    console.log(`Fetching info for ${label} address: ${address}`);
+    console.log(`Fetching info for address: ${address}`);
 
     // note: via create2, addresses can start out w/out code & later code appears
     console.log(`💫 getting code..`);

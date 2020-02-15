@@ -19,7 +19,7 @@ for form in $forms
 do
   for page in `find $data_dir -maxdepth 1 -type f -name "${form}.json" -or -name "${form}_*.json" | sort`
   do
-    echo; echo "Compiling $page to pdf"
+    # echo "Compiling $page to pdf"
     page="`basename ${page%.json}`"
     page_number=$(( ${page_number#0} + 1 ))
     if [[ "$page_number" -lt "10" ]]
@@ -31,16 +31,16 @@ do
     empty_form="$forms_dir/$form.pdf"
     filled_form="$pages_dir/${page_number}_$page.pdf"
 
-    echo "  - python ops/fill-form.py $json_data $fields $fdf_data"
+    # echo "  - python ops/fill-form.py $json_data $fields $fdf_data"
     python ops/fill-form.py $json_data $fields $fdf_data
 
-    echo "  - pdftk $empty_form fill_form $fdf_data output $filled_form flatten"
+    # echo "  - pdftk $empty_form fill_form $fdf_data output $filled_form flatten"
     pdftk $empty_form fill_form $fdf_data output $filled_form flatten
 
   done
 done
 
 all_pages="`find $pages_dir -type f -name "*.pdf" | sort | tr  '\n\r' ' '`"
-echo; echo "pdftk $all_pages cat output $dir/tax-return.pdf"
+# echo "pdftk $all_pages cat output $dir/tax-return.pdf"
 pdftk $all_pages cat output $dir/tax-return.pdf
-echo
+# echo
