@@ -10,6 +10,7 @@ export const parseEthTxFactory = (input: InputData) => {
   const myEthAddresses = input.ethAddresses.map(a => a.toLowerCase());
   const isSelf = (address: string) => address && myEthAddresses.includes(address.toLowerCase());
 
+  // TODO: take events as inputs & try to match this tx to some exchange transfer
   return (tx: TransactionData): Event | null => {
     if (!tx.logs) {
       throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);
