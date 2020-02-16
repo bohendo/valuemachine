@@ -51,7 +51,7 @@ export const fetchChainData = async (addresses: string[], etherscanKey: string):
     throw new Error("To track eth activity, you must provide an etherscanKey property in input");
   }
 
-  const provider = new EtherscanProvider("homestead", process.env.ETHERSCAN_KEY);
+  const provider = new EtherscanProvider("homestead", etherscanKey);
   let block;
   try {
   console.log(`💫 getting block number..`);
@@ -102,7 +102,7 @@ export const fetchChainData = async (addresses: string[], etherscanKey: string):
       `https://api.etherscan.io/api?module=account&action=txlistinternal&address=${
         address
       }&apikey=${
-        process.env.ETHERSCAN_KEY
+        etherscanKey
       }&sort=asc`,
     )).data.result;
     console.log(`✅ internalTxHistory: ${internalTxHistory.length} logs`);
