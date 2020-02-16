@@ -10,6 +10,7 @@ import {
 } from "../types";
 import { add, eq, gt, lt, mul, round, sub } from "../utils";
 
+import { parseEthTxFactory } from "./parseEthTx";
 import { fetchChainData } from "./fetchChainData";
 import { formatCoinbase } from "./coinbase";
 import { formatWyre } from "./wyre";
@@ -29,15 +30,22 @@ export const getFinancialData = async (input: InputData): Promise<FinancialData>
       }
     } else if (typeof event !== "string" && event.date) {
       events.push(event as Event);
+    } else {
+      throw new Error(`I don't know how to parse event: ${JSON.stringify(event)}`);
     }
   }
 
-  const chainData = await fetchChainData(input.ethAddresses);
+  const chainData = await fetchChainData(input.ethAddresses.map(a => a.toLowerCase()), input.etherscanKey);
+  const parseEthTx = parseEthTxFactory(input);
+
+  events.concat(
+    ...Object.values(chainData.transactions).map(parseEthTx).filter(e => !!e),
+  );
 
   return {
     expenses: [],
     income: [],
-    trades: getTaxableTrades(input, events),
+    trades: [], // getTaxableTrades(input, events),
   };
 };
 

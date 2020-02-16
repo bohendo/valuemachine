@@ -2,7 +2,7 @@ import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
 import { Event, InputData, SwapEvent } from "../types";
-import { getDateString, diff, add, sub, round, mul, eq, gt, lt } from "../utils";
+import { diff, add, sub, round, mul, eq, gt, lt } from "../utils";
 
 export const formatCoinbase = (filename: string): SwapEvent[] => {
   const rawFile = fs.readFileSync(filename, "utf8").split("\r\n");
@@ -24,7 +24,7 @@ export const formatCoinbase = (filename: string): SwapEvent[] => {
       assetsIn: [isBuy ? asset : usd],
       assetsOut: [isBuy ? usd : asset],
       category: "swap",
-      date: getDateString(new Date(row["Timestamp"])),
+      date: (new Date(row["Timestamp"])).toISOString(),
       description: "",
       prices: { [asset.type]: row["USD Spot Price at Transaction"] },
       tags: ["coinbase"],

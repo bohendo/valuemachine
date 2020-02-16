@@ -2,7 +2,7 @@ import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
 import { Event, InputData, SwapEvent } from "../types";
-import { getDateString, diff, add, sub, round, mul, eq, gt, lt } from "../utils";
+import { diff, add, sub, round, mul, eq, gt, lt } from "../utils";
 
 export const formatWyre = (filename: string): SwapEvent[] => {
   return csv(
@@ -10,14 +10,14 @@ export const formatWyre = (filename: string): SwapEvent[] => {
     { columns: true, skip_empty_lines: true },
   ).map(row => {
     // Ignore any rows with an invalid timestamp
-    if (!getDateString(new Date(row["Created At"]))) return null;
+    if (isNaN((new Date(row["Created At"])).getUTCFullYear())) return null;
     // Ignore any transfers into Wyre account
     if (row["Source Currency"] === row["Dest Currency"]) return null;
     return ({
       assetsIn: [{ amount: row["Dest Amount"], type: row["Dest Currency"] }],
       assetsOut: [{ amount: row["Source Amount"], type: row["Source Currency"] }],
       category: "swap",
-      date: getDateString(new Date(row["Created At"])),
+      date: (new Date(row["Created At"])).toISOString(),
       description: "",
       prices: { amount: row["Exchange Rate"], type: row["Dest Currency"] },
       tags: ["sendwyre"],

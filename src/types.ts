@@ -1,8 +1,9 @@
 import { Field, Forms } from "./mappings";
 export { Field, Forms };
 
-export type DecimalString = string;
+// DateString follows ISO 8601 format
 export type DateString = string;
+export type DecimalString = string;
 export type HexString = string;
 
 export type LogData = {
@@ -20,7 +21,7 @@ export type TransactionData = {
   gasPrice?: HexString;
   gasUsed?: HexString;
   hash: HexString;
-  index: number;
+  index?: number;
   logs?: Array<any>;
   nonce: number;
   timestamp: DateString;
@@ -35,7 +36,7 @@ export type AddressData = {
   transactions: Array<HexString>;
 };
 
-// format of .chain-data.json cache
+// format of chain-data.json
 export type ChainData = {
   block: number;
   addresses: {
@@ -47,7 +48,9 @@ export type ChainData = {
 };
 
 export type InputData = {
-  ethAddresses: string[];
+  addressBook?: { [address: string]: string };
+  ethAddresses?: HexString[];
+  etherscanKey?: string;
   events: Array<Event | string>;
   formData: Forms
   forms: string[];

@@ -6,10 +6,9 @@ import { EtherscanProvider } from "ethers/providers";
 import { formatEther, hexlify } from "ethers/utils";
 
 import { AddressData, ChainData, InputData } from "../types";
-import { getDateString } from "../utils";
 
-// Info is stale after 1 hour aka 240 blocks
-const blocksUntilStale = 60 * 60 / 15;
+// Info is stale after 6 hour aka 240 blocks
+const blocksUntilStale = 6 * 60 * 60 / 15;
 
 const emptyChainData: ChainData = {
   addresses: {},
@@ -40,18 +39,32 @@ const loadCache = (): ChainData => {
 const saveCache = (chainData: ChainData): void =>
   fs.writeFileSync(cacheFile, JSON.stringify(chainData, null, 2));
 
-export const fetchChainData = async (addresses: string[]): Promise<ChainData> => {
+export const fetchChainData = async (addresses: string[], etherscanKey: string): Promise<ChainData> => {
   let chainData = loadCache();
-  let provider;
-  if (process.env.ETHERSCAN_KEY) {
-    provider = new EtherscanProvider("homestead", process.env.ETHERSCAN_KEY);
-  } else {
-    throw new Error("An env var called ETHERSCAN_KEY is required.");
+
+  // Don't fetch anything if we don't have any addresses to scan
+  if (!addresses || addresses.length === 0) {
+    return chainData;
   }
 
+  if (!etherscanKey) {
+    throw new Error("To track eth activity, you must provide an etherscanKey property in input");
+  }
+
+  const provider = new EtherscanProvider("homestead", process.env.ETHERSCAN_KEY);
+  let block;
+  try {
   console.log(`💫 getting block number..`);
-  const block = await provider.getBlockNumber();
+  block = await provider.getBlockNumber();
   console.log(`✅ block: ${block}\n`);
+  } catch (e) {
+    if (e.message.includes("invalid response - 0")) {
+      console.warn(`Network error, couldn't fetch chain data (Are you offline?)`);
+      return chainData;
+    } else {
+      throw e;
+    }
+  }
 
   if (block <= chainData.block + blocksUntilStale) {
     console.log(`ChainData is up to date (${block - chainData.block} blocks old)\n`);
@@ -111,9 +124,8 @@ export const fetchChainData = async (addresses: string[]): Promise<ChainData> =>
           gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
           gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
           hash: tx.hash,
-          index: tx.transactionIndex,
           nonce: tx.nonce,
-          timestamp: getDateString(new Date(tx.timestamp * 1000)),
+          timestamp: (new Date(tx.timestamp * 1000)).toISOString(),
           to: tx.to,
           value: formatEther(tx.value),
         };
@@ -135,6 +147,7 @@ export const fetchChainData = async (addresses: string[]): Promise<ChainData> =>
       console.log(`💫 getting logs for tx ${hash}..`);
       const receipt = await provider.getTransactionReceipt(tx.hash);
       tx.gasUsed = hexlify(receipt.gasUsed);
+      tx.index = receipt.transactionIndex;
       tx.logs = receipt.logs.map(log => ({
         address: log.address,
         data: log.data,
