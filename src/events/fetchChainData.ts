@@ -1,4 +1,3 @@
-/* global process */
 import fs from "fs";
 import axios from "axios";
 import { getDefaultProvider } from "ethers";
@@ -83,9 +82,11 @@ export const fetchChainData = async (addresses: string[], etherscanKey: string):
     console.log(`Fetching info for address: ${address}`);
 
     // note: via create2, addresses can start out w/out code & later code appears
-    console.log(`💫 getting code..`);
-    addressData.hasCode = (await provider.getCode(address)).length > 4;
-    console.log(`✅ addressData.hasCode: ${addressData.hasCode}`);
+    if (!addressData.hasCode) {
+      console.log(`💫 getting code..`);
+      addressData.hasCode = (await provider.getCode(address)).length > 4;
+      console.log(`✅ addressData.hasCode: ${addressData.hasCode}`);
+    }
 
     if (!addressData.hasCode) {
       console.log(`💫 getting nonce..`);
@@ -117,15 +118,17 @@ export const fetchChainData = async (addresses: string[], etherscanKey: string):
 
     for (const tx of txHistory) {
       if (tx && tx.hash && !chainData.transactions[tx.hash]) {
+        const timestamp = tx.timestamp || (tx as any).timeStamp;
         chainData.transactions[tx.hash] = {
           block: tx.blockNumber,
+          call: (tx as any).type === "call",
           data: tx.data,
           from: tx.from,
           gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
           gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
           hash: tx.hash,
           nonce: tx.nonce,
-          timestamp: (new Date(tx.timestamp * 1000)).toISOString(),
+          timestamp: (new Date(timestamp * 1000)).toISOString(),
           to: tx.to,
           value: formatEther(tx.value),
         };

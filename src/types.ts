@@ -15,6 +15,7 @@ export type LogData = {
 
 export type TransactionData = {
   block: number;
+  call?: boolean;
   data: HexString;
   from: HexString;
   gasLimit?: HexString;
