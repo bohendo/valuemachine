@@ -140,7 +140,7 @@ export const parseEthTxFactory = (input: InputData) => {
       event.category = "swap";
     }
 
-    log.info(`${pretty(tx.hash)} ${event.description}`);
+    // log.info(`${pretty(tx.hash)} ${event.description}`);
     return event;
   };
 };

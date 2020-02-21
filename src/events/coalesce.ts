@@ -1,14 +1,17 @@
 /* global process */
 import { Asset, Event } from "../types";
+import { Logger, add, eq, gt, lt, mul, round, sub } from "../utils";
 
 // inputs are ISO 8601 format date strings
 const datesAreClose = (d1: string, d2: string): boolean =>
   Math.abs((new Date(d1)).getTime() - (new Date(d2)).getTime()) <= 1000 * 60 * 30;
 
 // If there's an address & it's in our addressBook then it should match the source or self
-const addressIsOk = (address: string, source: string) =>
+const addressIsOk = (address: string | null | undefined, source: string) =>
   (address ? (
-    address.startsWith("0x") || address.startsWith("self") || address.startsWith(source)
+    address.startsWith("0x") ||
+    address.startsWith("self") ||
+    address.startsWith(source.substring(0,6))
   ) : true);
 
 const sameEvent = (e1: Event, e2: Event): boolean =>
@@ -68,6 +71,11 @@ const commonAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
   return common;
 };
 
+const reduceSum = (acc, cur) => {
+  acc[cur.type] = acc[cur.type] ? add([acc[cur.type], cur.amount]) : cur.amount;
+  return acc;
+};
+
 export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
   const consolidated = [] as number[];
   const events = [] as Event[];
@@ -78,8 +86,8 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
       if (consolidated.includes(newI)) { continue; }
       if (mergedE.hash && newE.hash && mergedE.hash !== newE.hash) { continue; }
       if (sameEvent(mergedE, newE)) {
-        console.log(`Merging event "${mergedE.description}" with "${newE.description}"`);
         mergedE = mergeEvents(mergedE, newE);
+        // console.log(`Merged event "${mergedE.description}" with "${newE.description}"`);
         consolidated.push(newI);
       }
     }

@@ -13,11 +13,11 @@ export const formatWyre = (filename: string, logLevel: number): SwapEvent[] => {
     log.debug(`Parsing row ${JSON.stringify(row)}`);
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(row["Created At"])).getUTCFullYear())) return null;
-    const input = { amount: row["Source Amount"], type: row["Source Currency"] };
-    const output = { amount: row["Dest Amount"], type: row["Dest Currency"] };
+    const output = { amount: row["Source Amount"], type: row["Source Currency"] };
+    const input = { amount: row["Dest Amount"], type: row["Dest Currency"] };
     const category = row["Type"] === "EXCHANGE" || input.type !== output.type ? "swap" : "transfer";
     const description =
-      `${input.amount} ${input.type} -> ${output.amount} ${output.type} sendwire ${category}`;
+      `sendwyre ${category} of ${output.amount} ${output.type} -> ${input.amount} ${input.type}`;
     log.debug(`${description} (${row["Type"]})`);
     return ({
       assetsIn: [input],
