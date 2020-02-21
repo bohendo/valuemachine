@@ -50,10 +50,7 @@ const commonAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
   for (let i = 0; i < loa1.length; i++) {
     for (let j = 0; j < loa2.length; j++) {
       if (sameAsset(loa1[i], loa2[j])) {
-        console.log(`Equal assets: ${JSON.stringify(loa1[i])} & ${JSON.stringify(loa2[j])}`);
         common.push(JSON.parse(JSON.stringify(loa1[i])));
-      } else {
-        console.log(`UN-Equal assets: ${JSON.stringify(loa1[i])} & ${JSON.stringify(loa2[j])}`);
       }
     }
   }
@@ -68,7 +65,6 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
     let mergedE = oldEvents[oldI];
     for (let newI = 0; newI < newEvents.length; newI++) {
       const newE = newEvents[newI];
-      console.log(`Comparing "${mergedE.description}" with "${newE.description}"`);
 
       // Skip this newE if...
       if (consolidated.includes(newI)) { continue; }
@@ -76,65 +72,19 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
 
       // Merge mergedE with newE if...
       if (sameEvent(mergedE, newE)) {
-        console.log(`Consolidating "${mergedE.description}" with "${newE.description}"`);
+        console.log(`Merging event "${mergedE.description}" with "${newE.description}"`);
         mergedE = mergeEvents(mergedE, newE);
         consolidated.push(newI);
       }
     }
     events.push(mergedE);
   }
+
   for (let newI = 0; newI < newEvents.length; newI++) {
     if (!consolidated.includes(newI)) {
       events.push(newEvents[newI]);
     }
   }
 
-  console.log(`Returning coalesced output: ${JSON.stringify(events, null, 2)}`);
   return events;
 };
-
-const testNewEvents = [
-  {
-    "assetsIn": [
-      {
-        "amount": "15.2",
-        "type": "ETH",
-      },
-    ],
-    "assetsOut": [
-      {
-        "amount": "15.2",
-        "type": "ETH",
-      },
-    ],
-    "category": "transfer",
-    "date": "2019-03-25T07:55:53.000Z",
-    "description": "15.2 ETH -> 15.2 ETH sendwire transfer",
-    "prices": {},
-    "source": "sendwyre",
-    "tags": [],
-  },
-];
-
-const testOldEvents = [
-  {
-    "assetsIn": [],
-    "assetsOut": [
-      {
-        "amount": "15.2",
-        "type": "ETH",
-      },
-    ],
-    "category": "expense",
-    "date": "2019-03-25T07:52:39.000Z",
-    "description": "15.2 ETH to 0x3D251551",
-    "from": "0x119e26E8",
-    "hash": "0xc7e760fad8addbe93eead51260607f6ce59cd065de5ee8b4ceb64dca1d0d164d",
-    "source": "ethereum",
-    "to": "0x3D251551",
-  },
-];
-
-coalesce(testOldEvents, testNewEvents);
-console.log(`\n\n`);
-process.exit(0);
