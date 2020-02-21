@@ -6,12 +6,13 @@ import { formatEther, hexlify } from "ethers/utils";
 
 import { AddressData, ChainData, InputData } from "../types";
 
-// Info is stale after 6 hour aka 240 blocks
-const blocksUntilStale = 6 * 60 * 60 / 15;
+// Info is stale after 6 hour
+const timeUntilStale = 6 * 60 * 60 * 1000;
+const blocksUntilStale = timeUntilStale / (15 * 1000);
 
 const emptyChainData: ChainData = {
   addresses: {},
-  block: 0,
+  lastUpdated: (new Date(0)).toISOString(),
   transactions: {},
 };
 
@@ -50,6 +51,12 @@ export const fetchChainData = async (addresses: string[], etherscanKey: string):
     throw new Error("To track eth activity, you must provide an etherscanKey property in input");
   }
 
+  const lastUpdated = new Date(chainData.lastUpdated).getTime();
+  if (Date.now() <= lastUpdated + timeUntilStale) {
+    console.log(`ChainData is up to date (${Math.round((Date.now() - lastUpdated) / (1000 * 60))} minutes old)\n`);
+    return chainData;
+  }
+
   const provider = new EtherscanProvider("homestead", etherscanKey);
   let block;
   try {
@@ -63,11 +70,6 @@ export const fetchChainData = async (addresses: string[], etherscanKey: string):
     } else {
       throw e;
     }
-  }
-
-  if (block <= chainData.block + blocksUntilStale) {
-    console.log(`ChainData is up to date (${block - chainData.block} blocks old)\n`);
-    return chainData;
   }
 
   for (const address of addresses) {
@@ -163,7 +165,7 @@ export const fetchChainData = async (addresses: string[], etherscanKey: string):
     }
   }
 
-  chainData.block = block;
+  chainData.lastUpdated = (new Date()).toISOString();
   saveCache(chainData);
   return chainData;
 };
