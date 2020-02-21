@@ -5,11 +5,22 @@ import { Asset, Event } from "../types";
 const datesAreClose = (d1: string, d2: string): boolean =>
   Math.abs((new Date(d1)).getTime() - (new Date(d2)).getTime()) <= 1000 * 60 * 30;
 
+// If there's an address & it's in our addressBook then it should match the source or self
+const addressIsOk = (address: string, source: string) =>
+  (address ? (
+    address.startsWith("0x") || address.startsWith("self") || address.startsWith(source)
+  ) : true);
+
 const sameEvent = (e1: Event, e2: Event): boolean =>
   e1.source !== e2.source &&
   datesAreClose(e1.date, e2.date) && (
     commonAssets(e1.assetsIn, e2.assetsIn).length > 0 ||
     commonAssets(e1.assetsOut, e2.assetsOut).length > 0
+  ) && (
+    addressIsOk(e1.to, e2.source) &&
+    addressIsOk(e2.to, e1.source) &&
+    addressIsOk(e1.from, e2.source) &&
+    addressIsOk(e2.from, e1.source)
   );
 
 const mergeEvents = (e1: Event, e2: Event): Event => {
