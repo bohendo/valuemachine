@@ -17,7 +17,7 @@ Those are not my problems, use these tools at your own risk. Do your own researc
 
  - `jq`: Probably not installed yet, install w `brew install jq` or `apt install jq` or similar.
  - `make`: Probably already installed, otherwise install w `brew install make` or `apt install make` or similar.
- - [`docker`](https://www.docker.com/): See website for instructions.
+ - `docker`: See [website](https://www.docker.com/) for instructions.
 
 # Building your taxes
 
@@ -31,7 +31,7 @@ Then, to generate your tax returns, update the relevant info in `personal.json` 
 
 To generate a valid tax return, you'll want to add your social security number & other sensitive data to `personal.json`. This file is added to the .gitignore so you're less likely to accidentally commit/push this personal data. But if you rename it to something like `personal.json.backup` then you could still accidentally commit it, so be careful & review diffs before you push.
 
-This also means that `personal.json` won't automatically be backed up to a remote repo as part of your fork of this repo. You'll probably spend a fair amount of time updating the info in `personal.json` so take care of this file & don't lose it. You can create a zipped archive of your personal data and attachments (expected to be in `docs/`) with the command: `make backup` & then copy this output somewhere safe.
+This also means that `personal.json` won't automatically be backed up to a remote repo as part of your fork of this repo. You'll probably spend a fair amount of time updating the info in `personal.json` so take care of this file & don't lose it. You can create a zipped archive of your personal data and attachments (expected to be in `docs/`) with the command: `make backup` & then save a copy this archive somewhere safe.
 
 # Adding support for a new form
 

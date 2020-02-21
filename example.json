@@ -1,5 +1,6 @@
 {
   "taxYear": "2019",
+  "logLevel": 3,
   "forms": [
     "f1040",
     "f1040s1",
@@ -45,5 +46,9 @@
       "CheckG-Yes": true,
       "CheckI-No": true
     }
-  }
+  },
+
+  "events": [],
+  "ethAddresses": [],
+  "addressBook": {}
 }

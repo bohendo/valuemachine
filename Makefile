@@ -41,7 +41,7 @@ default: personal
 all: test example personal
 
 backup:
-	tar czf tax_backup.tar.gz personal.json docs
+	tar czf tax_backup.tar.gz docs chain-data.json personal.json
 
 clean:
 	rm -rf build/*
