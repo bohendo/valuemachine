@@ -7,8 +7,8 @@ import {
   Forms,
   InputData,
   TaxableTrade,
-} from "../types";
-import { add, eq, gt, lt, mul, round, sub } from "../utils";
+} from "./types";
+import { add, eq, gt, lt, mul, round, sub } from "./utils";
 
 const stringifyAssets = (assets) => {
   let output = "[\n";
@@ -25,7 +25,7 @@ const stringifyAssets = (assets) => {
 };
 
 export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrade[] => {
-  const debugMode = true; // input.logLevel > 3;
+  const debugMode = input.logLevel > 3;
   const assets: { [key: string]: Asset[] } = {};
   const startingAssets: { [key: string]: Asset[] } = {};
   const trades = [];

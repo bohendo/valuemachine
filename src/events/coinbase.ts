@@ -31,7 +31,8 @@ export const formatCoinbase = (filename: string, logLevel?: number): SwapEvent[]
       date: (new Date(row["Timestamp"])).toISOString(),
       description,
       prices: { [asset.type]: row["USD Spot Price at Transaction"] },
-      tags: ["coinbase"],
+      source: "coinbase",
+      tags: [],
     });
   });
 };

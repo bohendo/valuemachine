@@ -26,7 +26,8 @@ export const formatWyre = (filename: string, logLevel: number): SwapEvent[] => {
       date: (new Date(row["Created At"])).toISOString(),
       description,
       prices: {}, // Exchange Rate isn't a price, hence not super useful
-      tags: ["sendwyre"],
+      source: "sendwyre",
+      tags: [],
     });
   }).filter(row => !!row);
 };

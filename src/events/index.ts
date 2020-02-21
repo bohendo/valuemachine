@@ -14,7 +14,6 @@ import { add, eq, gt, lt, mul, round, sub, Logger } from "../utils";
 
 import { parseEthTxFactory } from "./parseEthTx";
 import { fetchChainData } from "./fetchChainData";
-import { getTaxableTrades } from "./getTaxableTrades";
 import { formatCoinbase } from "./coinbase";
 import { formatWyre } from "./wyre";
 
@@ -23,7 +22,7 @@ const mergeEvents = (loe1: Event[], loe2: Event[]): Event[] => {
   return loe1.concat(...loe2);
 };
 
-export const getFinancialData = async (input: InputData): Promise<FinancialData> => {
+export const getFinancialEvents = async (input: InputData): Promise<Event[]> => {
 
   const log = new Logger("getFinancialData", input.logLevel);
   const events: Event[] = [];
@@ -55,9 +54,5 @@ export const getFinancialData = async (input: InputData): Promise<FinancialData>
     ...Object.values(chainData.transactions).map(parseEthTx).filter(e => !!e),
   );
 
-  return {
-    expenses: [],
-    income: [],
-    trades: getTaxableTrades(input, events),
-  };
+  return events;
 };

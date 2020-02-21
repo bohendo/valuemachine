@@ -46,6 +46,7 @@ export const parseEthTxFactory = (input: InputData, eventsRef: Event[]) => {
           description: `${tx.value} ETH from ${pretty(tx.from)}`,
           from: pretty(tx.from),
           hash: tx.hash,
+          source: "ethereum",
           to: pretty(tx.to),
         });
       }
@@ -61,6 +62,7 @@ export const parseEthTxFactory = (input: InputData, eventsRef: Event[]) => {
           description: `${tx.value} ETH to ${pretty(tx.to)}`,
           from: pretty(tx.from),
           hash: tx.hash,
+          source: "ethereum",
           to: pretty(tx.to),
         });
       }

@@ -105,6 +105,7 @@ export type CommonEvent = {
   from?: string;
   hash?: HexString;
   prices?: { [key: string]: DecimalString };
+  source: string;
   tags?: string[];
   to?: string;
 }

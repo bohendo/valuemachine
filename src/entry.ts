@@ -5,7 +5,8 @@ import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
 import { InputData } from "./types";
 import { emptyForm, mergeForms, translate } from "./utils";
-import { getFinancialData } from "./events";
+import { getFinancialEvents } from "./events";
+import { getTaxableTrades } from "./getTaxableTrades";
 
 const logAndExit = (msg: any): void => {
   console.error(msg);
@@ -27,7 +28,15 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const financialData = await getFinancialData(input);
+  const financialEvents = await getFinancialEvents(input);
+
+  // should we dump a copy of events to disk to review manually?
+
+  const financialData = {
+    expenses: [], // TODO: get taxable expenses from events
+    income: [], // TODO: get taxable income from events
+    trades: getTaxableTrades(input, financialEvents),
+  };
 
   ////////////////////////////////////////
   // Step 2: Start out w empty forms containing raw user supplied data
