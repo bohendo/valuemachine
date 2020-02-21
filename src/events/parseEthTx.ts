@@ -115,8 +115,17 @@ export const parseEthTxFactory = (input: InputData) => {
       }
     }
 
-    const incomeStr = event.assetsIn.map(a => `${a.amount} ${a.type}`).join(", ");
-    const expenseStr = event.assetsOut.map(a => `${a.amount} ${a.type}`).join(", ");
+    const reduceSum = (acc, cur) => {
+      acc[cur.type] = acc[cur.type] ? add([acc[cur.type], cur.amount]) : cur.amount;
+      return acc;
+    };
+
+    const totalIncome = event.assetsIn.reduce(reduceSum , {});
+    const totalExpense = event.assetsOut.reduce(reduceSum , {});
+    const incomeStr = Object.entries(totalIncome)
+      .map(e => `${round(e[1].toString())} ${e[0]}`).join(", ");
+    const expenseStr = Object.entries(totalExpense)
+      .map(e => `${round(e[1].toString())} ${e[0]}`).join(", ");
 
     if (event.assetsIn.length === 0 && event.assetsOut.length === 0) {
       return null;
