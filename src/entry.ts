@@ -30,7 +30,8 @@ process.on("SIGINT", logAndExit);
 
   const financialEvents = await getFinancialEvents(input);
 
-  // should we dump a copy of events to disk to review manually?
+  // Dump a copy of events to disk to review manually if needed
+  fs.writeFileSync(`${outputFolder}/events.json`, JSON.stringify(financialEvents, null, 2));
 
   const financialData = {
     expenses: [], // TODO: get taxable expenses from events
