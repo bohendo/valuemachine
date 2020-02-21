@@ -1,9 +1,7 @@
 import { InputData, Event, TransactionData } from "../types";
 import { Logger, add, eq, gt, lt, mul, round, sub } from "../utils";
 
-export const parseEthTxFactory = (input: InputData, eventsRef: Event[]) => {
-  const events = JSON.parse(JSON.stringify(eventsRef)) as Event[];
-
+export const parseEthTxFactory = (input: InputData) => {
   const log = new Logger("ParseEthTx", input.logLevel);
   const prettyPrintAddress = (addressBook: { [key: string]: string }) =>
     (address: string): string => input.addressBook[address] || address.substring(0, 10);
@@ -11,7 +9,6 @@ export const parseEthTxFactory = (input: InputData, eventsRef: Event[]) => {
   const myEthAddresses = input.ethAddresses.map(a => a.toLowerCase());
   const isSelf = (address: string) => address && myEthAddresses.includes(address.toLowerCase());
 
-  // TODO: take events as inputs & try to match this tx to some exchange transfer
   return (tx: TransactionData): Event | null => {
     if (!tx.logs) {
       throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);

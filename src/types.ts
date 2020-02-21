@@ -92,7 +92,7 @@ export type Asset = {
   amount: DecimalString;
   date?: DateString;
   price?: DecimalString;
-  type: AssetType;
+  type: AssetType | string;
   value?: DecimalString;
 }
 
