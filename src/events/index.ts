@@ -1,4 +1,5 @@
 /* global process */
+import fs from "fs";
 import {
   Asset,
   AssetType,
@@ -16,6 +17,11 @@ import { fetchChainData } from "./fetchChainData";
 import { getTaxableTrades } from "./getTaxableTrades";
 import { formatCoinbase } from "./coinbase";
 import { formatWyre } from "./wyre";
+
+const mergeEvents = (loe1: Event[], loe2: Event[]): Event[] => {
+  if (loe1) { }
+  return loe1.concat(...loe2);
+};
 
 export const getFinancialData = async (input: InputData): Promise<FinancialData> => {
 
@@ -39,11 +45,11 @@ export const getFinancialData = async (input: InputData): Promise<FinancialData>
     }
   }
 
-  log.info("Temporarily done");
-  process.exit(0);
+  // log.info("Temporarily done");
+  // process.exit(0);
 
   const chainData = await fetchChainData(input.ethAddresses.map(a => a.toLowerCase()), input.etherscanKey);
-  const parseEthTx = parseEthTxFactory(input);
+  const parseEthTx = parseEthTxFactory(input, events);
 
   events.concat(
     ...Object.values(chainData.transactions).map(parseEthTx).filter(e => !!e),
@@ -52,6 +58,6 @@ export const getFinancialData = async (input: InputData): Promise<FinancialData>
   return {
     expenses: [],
     income: [],
-    trades: [], // getTaxableTrades(input, events),
+    trades: getTaxableTrades(input, events),
   };
 };

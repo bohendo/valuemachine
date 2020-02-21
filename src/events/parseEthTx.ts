@@ -1,7 +1,8 @@
 import { InputData, Event, TransactionData } from "../types";
 import { Logger, add, eq, gt, lt, mul, round, sub } from "../utils";
 
-export const parseEthTxFactory = (input: InputData) => {
+export const parseEthTxFactory = (input: InputData, eventsRef: Event[]) => {
+  const events = JSON.parse(JSON.stringify(eventsRef)) as Event[];
 
   const log = new Logger("ParseEthTx", input.logLevel);
   const prettyPrintAddress = (addressBook: { [key: string]: string }) =>

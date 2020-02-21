@@ -25,23 +25,24 @@ const stringifyAssets = (assets) => {
 };
 
 export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrade[] => {
-  const debugMode = input.logLevel > 3;
+  const debugMode = true; // input.logLevel > 3;
   const assets: { [key: string]: Asset[] } = {};
   const startingAssets: { [key: string]: Asset[] } = {};
   const trades = [];
   let totalCost = "0";
   let totalProceeds = "0";
   let totalProfit = "0";
+  debugMode && console.log(`Parsing ${events.length} events for taxable trades..`);
 
   for (const event of events) {
     // if event.category === "init" then startingAssets.push()
     const { assetsIn, assetsOut, date, from, to } = event;
-    if (!date.startsWith(input.taxYear.substring(2))) {
+    if (!date.startsWith(input.taxYear)) {
       debugMode && console.log(`Skipping old trade from ${date}`);
       continue;
     }
 
-    if (assetsIn && assetsIn.length && assetsIn.length > 0) {
+    if (assetsIn && assetsIn.length > 0) {
       for (const asset of assetsIn) {
 
         (from || "").substring(0, 2) === "ex"
@@ -63,7 +64,7 @@ export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrad
       }
     }
 
-    if (assetsOut && assetsOut.length && assetsOut.length > 0) {
+    if (assetsOut && assetsOut.length > 0) {
       for (const asset of assetsOut) {
         (to || "").substring(0, 2) === "ex"
           ? (debugMode && console.log(`Sold ${asset.amount} ${asset.type} to ${to}`))
@@ -111,7 +112,8 @@ export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrad
           Code: "",
           Cost: cost,
           DateAcquired: "VARIOUS",
-          DateSold: `${date.substring(2,4)}/${date.substring(4,6)}/${date.substring(0,2)}`,
+          // DateSold: month/day/year
+          DateSold: `${date.substring(5,7)}/${date.substring(8,10)}/${date.substring(2,4)}`,
           Description: `${round(asset.amount)} ${asset.type}`,
           GainOrLoss: profit,
           Proceeds: proceeds,
