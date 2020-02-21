@@ -22,7 +22,7 @@ const mergeEvents = (e1: Event, e2: Event): Event => {
   merged.assetsOut = coalesceAssets(e1.assetsOut, e2.assetsOut);
   merged.category = prefer("ethereum", false, "category", e1, e2);
   merged.date = prefer("ethereum", true, "date", e1, e2);
-  merged.description = prefer("ethereum", false, "description", e1, e2);
+  merged.description = prefer("ethereum", true, "description", e1, e2);
   merged.from = prefer("ethereum", false, "from", e1, e2);
   merged.hash = prefer("ethereum", true, "hash", e1, e2);
   merged.source = [...e1.source.split("+"), ...e2.source.split("+")].sort().join("+");
@@ -60,17 +60,12 @@ const commonAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
 export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
   const consolidated = [] as number[];
   const events = [] as Event[];
-
   for (let oldI = 0; oldI < oldEvents.length; oldI++) {
     let mergedE = oldEvents[oldI];
     for (let newI = 0; newI < newEvents.length; newI++) {
       const newE = newEvents[newI];
-
-      // Skip this newE if...
       if (consolidated.includes(newI)) { continue; }
       if (mergedE.hash && newE.hash && mergedE.hash !== newE.hash) { continue; }
-
-      // Merge mergedE with newE if...
       if (sameEvent(mergedE, newE)) {
         console.log(`Merging event "${mergedE.description}" with "${newE.description}"`);
         mergedE = mergeEvents(mergedE, newE);
@@ -79,12 +74,10 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
     }
     events.push(mergedE);
   }
-
   for (let newI = 0; newI < newEvents.length; newI++) {
     if (!consolidated.includes(newI)) {
       events.push(newEvents[newI]);
     }
   }
-
   return events;
 };

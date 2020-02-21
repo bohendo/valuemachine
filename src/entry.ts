@@ -33,10 +33,12 @@ process.on("SIGINT", logAndExit);
   // Dump a copy of events to disk to review manually if needed
   fs.writeFileSync(`${outputFolder}/events.json`, JSON.stringify(financialEvents, null, 2));
 
+  console.log(`Done gathering financial events.\n`);
+
   const financialData = {
     expenses: [], // TODO: get taxable expenses from events
     income: [], // TODO: get taxable income from events
-    trades: getTaxableTrades(input, financialEvents),
+    trades: [], // TODO: getTaxableTrades(input, financialEvents),
   };
 
   ////////////////////////////////////////

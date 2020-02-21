@@ -13,6 +13,13 @@ export type LogData = {
   topics: Array<HexString>;
 }
 
+export type TransactionLog = {
+  address: HexString;
+  data: HexString;
+  index: number;
+  topics: Array<HexString>;
+};
+
 export type TransactionData = {
   block: number;
   call?: boolean;
@@ -23,7 +30,7 @@ export type TransactionData = {
   gasUsed?: HexString;
   hash: HexString;
   index?: number;
-  logs?: Array<any>;
+  logs?: Array<TransactionLog>;
   nonce: number;
   timestamp: DateString;
   to: HexString | null;
@@ -39,7 +46,7 @@ export type AddressData = {
 
 // format of chain-data.json
 export type ChainData = {
-  block: number;
+  lastUpdated: DateString;
   addresses: {
     [address: string]: AddressData;
   };
@@ -56,6 +63,7 @@ export type InputData = {
   formData: Forms
   forms: string[];
   logLevel?: number;
+  supportedERC20s?: { [address: string]: string };
   taxYear: string;
 }
 
