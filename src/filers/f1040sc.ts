@@ -1,5 +1,5 @@
 import { FinancialData, Forms } from "../types";
-import { add, div, gt, lt, round, sub } from "../utils";
+import { add, gt, lt, round, sub } from "../utils";
 
 export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
@@ -24,7 +24,6 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   f1040sc.L5 = round(sub(f1040sc.L3, f1040sc.L4));
   f1040sc.L7 = round(add([f1040sc.L5, f1040sc.L6]));
 
-  let totalExpenses = "0";
   for (const expense of finances.expenses) {
     const asset = expense.assetsIn[0];
     if (!asset) { throw new Error("idk"); }

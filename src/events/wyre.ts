@@ -1,10 +1,10 @@
 import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
-import { Event, InputData, SwapEvent } from "../types";
-import { diff, add, sub, round, mul, eq, gt, lt, Logger } from "../utils";
+import { Event } from "../types";
+import { Logger } from "../utils";
 
-export const formatWyre = (filename: string, logLevel: number): SwapEvent[] => {
+export const formatWyre = (filename: string, logLevel: number): Event[] => {
   const log = new Logger("SendWyre", logLevel || 3);
   return csv(
     fs.readFileSync(filename, "utf8"),

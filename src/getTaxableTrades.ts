@@ -1,16 +1,12 @@
 import {
   Asset,
-  AssetType,
-  ChainData,
   Event,
-  FinancialData,
-  Forms,
   InputData,
   TaxableTrade,
 } from "./types";
 import { add, eq, gt, lt, mul, round, sub } from "./utils";
 
-const stringifyAssets = (assets) => {
+const stringifyAssets = (assets): string => {
   let output = "[\n";
   for (const [key, value] of Object.entries(assets)) {
     let total = "0";
@@ -79,6 +75,7 @@ export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrad
         let cost = "0";
         let profit = "0";
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           if (eq(amt, "0") || lt(amt, "0")) {
             break;

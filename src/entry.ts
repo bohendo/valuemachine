@@ -16,7 +16,7 @@ process.on("uncaughtException", logAndExit);
 process.on("unhandledRejection", logAndExit);
 process.on("SIGINT", logAndExit);
 
-(async () => {
+(async (): Promise<void> => {
   const inputFile = `${process.cwd()}/${process.argv[2]}`;
   const outputFolder = `${process.cwd()}/${process.argv[3]}/data`;
 
@@ -38,7 +38,7 @@ process.on("SIGINT", logAndExit);
   const financialData = {
     expenses: [], // TODO: get taxable expenses from events
     income: [], // TODO: get taxable income from events
-    trades: [], // TODO: getTaxableTrades(input, financialEvents),
+    trades: getTaxableTrades(input, financialEvents),
   };
 
   ////////////////////////////////////////

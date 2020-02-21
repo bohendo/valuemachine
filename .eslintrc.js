@@ -1,6 +1,7 @@
 module.exports = {
   rules: {
-    "@typescript-eslint/no-unused-expressions": ["error"],
+    "@typescript-eslint/camelcase": ["off"],
+    "@typescript-eslint/no-explicit-any": ["off"],
     "comma-dangle": ["error", "always-multiline"],
     "max-len": ["warn", { code: 100, ignoreTemplateLiterals: true }],
     "no-async-promise-executor": ["off"],

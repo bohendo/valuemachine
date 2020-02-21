@@ -1,10 +1,10 @@
 import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
-import { Event, InputData, SwapEvent } from "../types";
-import { diff, add, sub, round, mul, eq, gt, lt, Logger } from "../utils";
+import { Event } from "../types";
+import { Logger } from "../utils";
 
-export const formatCoinbase = (filename: string, logLevel?: number): SwapEvent[] => {
+export const formatCoinbase = (filename: string, logLevel?: number): Event[] => {
   const log = new Logger("Coinbase", logLevel || 3);
   const rawFile = fs.readFileSync(filename, "utf8");
   return csv(

@@ -1,5 +1,5 @@
-import { add, eq, gt, lt, mul, round, sub } from "../utils";
-import { FinancialData, Forms, Event } from "../types";
+import { add, round } from "../utils";
+import { FinancialData, Forms } from "../types";
 
 export const f8949 = (finances: FinancialData, oldForms: Forms): Forms  => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
@@ -16,7 +16,7 @@ export const f8949 = (finances: FinancialData, oldForms: Forms): Forms  => {
   ////////////////////////////////////////
   // Format results into forms
 
-  const buildF8949 = (fourteenTrades) => {
+  const buildF8949 = (fourteenTrades): any => {
     const subF8949 = JSON.parse(JSON.stringify(f8949)) as any;
 
     // TODO: identify & properly handle long-term capital gains

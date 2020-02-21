@@ -60,7 +60,7 @@ export type InputData = {
   ethAddresses?: HexString[];
   etherscanKey?: string;
   events: Array<Event | string>;
-  formData: Forms
+  formData: Forms;
   forms: string[];
   logLevel?: number;
   supportedERC20s?: { [address: string]: string };

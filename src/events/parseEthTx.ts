@@ -1,8 +1,8 @@
 import { Interface, formatEther } from "ethers/utils";
 import tokenAbi from "human-standard-token-abi";
 
-import { InputData, Event, TransactionData, TransactionLog } from "../types";
-import { Logger, add, addAssets, eq, gt, lt, mul, round, sub } from "../utils";
+import { InputData, Event, TransactionData } from "../types";
+import { Logger, addAssets, eq, round } from "../utils";
 
 const lowerCaseKeys = (obj: object): object => {
   const output = {};
@@ -12,13 +12,13 @@ const lowerCaseKeys = (obj: object): object => {
   return output;
 };
 
-export const parseEthTxFactory = (input: InputData) => {
+export const parseEthTxFactory = (input: InputData): any => {
   const log = new Logger("ParseEthTx", input.logLevel);
-  const addressBook = lowerCaseKeys(input.addressBook) as { [key: string]: string; };
-  const tokens = lowerCaseKeys(input.supportedERC20s) as { [key: string]: string; };
+  const addressBook = lowerCaseKeys(input.addressBook) as { [key: string]: string };
+  const tokens = lowerCaseKeys(input.supportedERC20s) as { [key: string]: string };
   const tokenI = new Interface(tokenAbi);
 
-  const isSelf = (address: string | null) =>
+  const isSelf = (address: string | null): boolean =>
     address && input.ethAddresses.map(a => a.toLowerCase()).includes(address.toLowerCase());
 
   const pretty = (address: string): string =>
@@ -77,7 +77,7 @@ export const parseEthTxFactory = (input: InputData) => {
     for (const txLog of tx.logs) {
       if (Object.keys(tokens).includes(txLog.address.toLowerCase())) {
         const assetType = tokens[txLog.address.toLowerCase()].toUpperCase();
-        let eventI = Object.values(tokenI.events).find(e => e.topic === txLog.topics[0]);
+        const eventI = Object.values(tokenI.events).find(e => e.topic === txLog.topics[0]);
         if (eventI && eventI.name === "Transfer") {
           const data = eventI.decode(txLog.data, txLog.topics);
           const amount = formatEther(data._value);

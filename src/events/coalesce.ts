@@ -6,7 +6,7 @@ const datesAreClose = (d1: string, d2: string): boolean =>
   Math.abs((new Date(d1)).getTime() - (new Date(d2)).getTime()) <= 1000 * 60 * 30;
 
 // If there's an address & it's in our addressBook then it should match the source or self
-const addressIsOk = (address: string | null | undefined, source: string) =>
+const addressIsOk = (address: string | null | undefined, source: string): boolean =>
   (address ? (
     address.startsWith("0x") ||
     address.startsWith("self") ||
@@ -27,7 +27,7 @@ const sameEvent = (e1: Event, e2: Event): boolean =>
 
 const mergeEvents = (e1: Event, e2: Event): Event => {
   const merged = {} as Event;
-  const prefer = (source: string, yea: boolean, key: string, e1: Event, e2: Event) =>
+  const prefer = (source: string, yea: boolean, key: string, e1: Event, e2: Event): string =>
     (e1.source === source) === yea ? (e1[key] || e2[key]) :
     (e2.source === source) === yea ? (e2[key] || e1[key]) :
     (e1[key] || e2[key]);

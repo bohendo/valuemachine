@@ -16,9 +16,9 @@ const roundInt = (decStr: string): string =>
 ////////////////////////////////////////
 // Exports
 
-export const eq = (a, b) => toWad(a).eq(toWad(b));
-export const gt = (a, b) => toWad(a).gt(toWad(b));
-export const lt = (a, b) => toWad(a).lt(toWad(b));
+export const eq = (a, b): boolean => toWad(a).eq(toWad(b));
+export const gt = (a, b): boolean => toWad(a).gt(toWad(b));
+export const lt = (a, b): boolean => toWad(a).lt(toWad(b));
 
 export const mul = (a: string, b: string): string =>
   fromWad(roundInt(fromWad(toWad(a).mul(toWad(b)))));
@@ -36,7 +36,7 @@ export const sub = (a: string, b: string): string =>
 export const diff = (a: string, b: string): string =>
   toWad(sub(a,b)).gt(Zero) ? sub(a,b) : sub(b,a);
 
-export const round = (decStr: string, n: number = 2) => {
+export const round = (decStr: string, n = 2): string => {
   if (!n) { return roundInt(decStr); }
   const power = `1${"0".repeat(n)}`;
   let out = div(roundInt(mul(decStr, power)), power);

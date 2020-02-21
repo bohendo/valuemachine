@@ -1,5 +1,5 @@
 import { FinancialData, Forms } from "../types";
-import { add, gt, lt, eq, round, sub } from "../utils";
+import { add, gt, round, sub } from "../utils";
 
 export const f1040 = (finances: FinancialData, oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
