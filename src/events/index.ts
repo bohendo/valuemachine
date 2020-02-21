@@ -1,15 +1,6 @@
-/* global process */
-import fs from "fs";
-import {
-  Asset,
-  AssetType,
-  ChainData,
-  Event,
-  Forms,
-  InputData,
-  TaxableTrade,
-} from "../types";
-import { add, eq, gt, lt, mul, round, sub, Logger } from "../utils";
+import { Event, InputData } from "../types";
+import { Logger } from "../utils";
+import { assetListsEq } from "../utils";
 
 import { parseEthTxFactory } from "./parseEthTx";
 import { fetchChainData } from "./fetchChainData";
@@ -50,6 +41,9 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
       throw new Error(`I don't know how to parse event: ${JSON.stringify(event)}`);
     }
   }
+
+  events = events.filter(event => !assetListsEq(event.assetsIn, event.assetsOut));
+  log.info(`Filtered out useless events, we're left with ${events.length}`);
 
   return events;
 };

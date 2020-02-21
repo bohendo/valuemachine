@@ -1,16 +1,17 @@
 module.exports = {
   rules: {
-    "@typescript-eslint/no-unused-expressions": "off",
+    "@typescript-eslint/no-unused-expressions": ["error"],
     "comma-dangle": ["error", "always-multiline"],
     "max-len": ["warn", { code: 100, ignoreTemplateLiterals: true }],
-    "no-async-promise-executor": "off",
+    "no-async-promise-executor": ["off"],
     "no-undef": ["error"],
     "no-var": ["error"],
     "object-curly-spacing": ["error", "always"],
     "quotes": ["error", "double", { allowTemplateLiterals: true }],
     "semi": ["error", "always"],
-    "spaced-comment": "off",
-    "no-prototype-builtins": "off",
+    "spaced-comment": ["off"],
+    "no-prototype-builtins": ["off"],
+    "no-unused-vars": ["error"],
     "sort-keys": ["error"],
   },
   settings: {
@@ -23,7 +24,9 @@ module.exports = {
     es6: true,
   },
   extends: [
+    "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {

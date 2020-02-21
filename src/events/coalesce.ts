@@ -1,6 +1,5 @@
-/* global process */
-import { Asset, Event } from "../types";
-import { Logger, add, eq, gt, lt, mul, round, sub } from "../utils";
+import { Event } from "../types";
+import { dedupAssets, commonAssets } from "../utils";
 
 // inputs are ISO 8601 format date strings
 const datesAreClose = (d1: string, d2: string): boolean =>
@@ -32,8 +31,8 @@ const mergeEvents = (e1: Event, e2: Event): Event => {
     (e1.source === source) === yea ? (e1[key] || e2[key]) :
     (e2.source === source) === yea ? (e2[key] || e1[key]) :
     (e1[key] || e2[key]);
-  merged.assetsIn = coalesceAssets(e1.assetsIn, e2.assetsIn);
-  merged.assetsOut = coalesceAssets(e1.assetsOut, e2.assetsOut);
+  merged.assetsIn = dedupAssets(e1.assetsIn, e2.assetsIn);
+  merged.assetsOut = dedupAssets(e1.assetsOut, e2.assetsOut);
   merged.category = prefer("ethereum", false, "category", e1, e2);
   merged.date = prefer("ethereum", true, "date", e1, e2);
   merged.description = prefer("ethereum", true, "description", e1, e2);
@@ -42,38 +41,6 @@ const mergeEvents = (e1: Event, e2: Event): Event => {
   merged.source = [...e1.source.split("+"), ...e2.source.split("+")].sort().join("+");
   merged.to = prefer("ethereum", false, "to", e1, e2);
   return merged;
-};
-
-const sameAsset = (a1: Asset, a2: Asset): boolean =>
-  a1.type == a2.type && a1.amount === a2.amount;
-
-const coalesceAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
-  const loa = JSON.parse(JSON.stringify(loa1)) as Asset[];
-  for (let a2 of loa2) {
-    if (loa.find(a => sameAsset(a, a2))) {
-      continue;
-    } else {
-      loa.push(a2);
-    }
-  }
-  return loa;
-};
-
-const commonAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
-  const common: Asset[] = [];
-  for (let i = 0; i < loa1.length; i++) {
-    for (let j = 0; j < loa2.length; j++) {
-      if (sameAsset(loa1[i], loa2[j])) {
-        common.push(JSON.parse(JSON.stringify(loa1[i])));
-      }
-    }
-  }
-  return common;
-};
-
-const reduceSum = (acc, cur) => {
-  acc[cur.type] = acc[cur.type] ? add([acc[cur.type], cur.amount]) : cur.amount;
-  return acc;
 };
 
 export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
