@@ -55,15 +55,30 @@ export type ChainData = {
   };
 };
 
+export const AddressCategories = {
+  "erc20": "erc20",
+  "family": "family",
+  "friend": "friend",
+  "private": "private",
+  "public": "public",
+  "self": "self",
+};
+export type AddressCategory = keyof typeof AddressCategories;
+
+export type AddressBook = Array<{
+  address: HexString;
+  category: AddressCategory;
+  name; string;
+  tags: string[];
+}>
+
 export type InputData = {
-  addressBook?: { [address: string]: string };
-  ethAddresses?: HexString[];
+  addressBook?: AddressBook;
   etherscanKey?: string;
   events: Array<Event | string>;
   formData: Forms;
   forms: string[];
   logLevel?: number;
-  supportedERC20s?: { [address: string]: string };
   taxYear: string;
 }
 
@@ -80,7 +95,6 @@ export type TaxableTrade = {
 }
 
 export const EventCategories = {
-  "?": "?",
   "expense": "expense",
   "income": "income",
   "swap": "swap",
@@ -104,7 +118,7 @@ export type Asset = {
   value?: DecimalString;
 }
 
-export type CommonEvent = {
+export type Event = {
   assetsIn?: Asset[];
   assetsOut?: Asset[];
   category?: EventCategory | string;
@@ -117,25 +131,6 @@ export type CommonEvent = {
   tags?: string[];
   to?: string;
 }
-
-export type IncomeEvent = CommonEvent & {
-  assetsIn: Asset[];
-  from: string;
-  to: string;
-}
-
-export type SwapEvent = CommonEvent & {
-  assetsIn: Asset[];
-  assetsOut: Asset[];
-}
-
-export type ExpenseEvent = CommonEvent & {
-  assetsOut: Asset[];
-  from: string;
-  to: string;
-}
-
-export type Event = CommonEvent | IncomeEvent | SwapEvent | ExpenseEvent;
 
 export type FinancialData = {
   expenses: Array<Event>;
