@@ -6,13 +6,6 @@ export type DateString = string;
 export type DecimalString = string;
 export type HexString = string;
 
-export type LogData = {
-  address: HexString;
-  data: HexString;
-  index: number;
-  topics: Array<HexString>;
-}
-
 export type TransactionLog = {
   address: HexString;
   data: HexString;
@@ -23,7 +16,7 @@ export type TransactionLog = {
 export type TransactionData = {
   block: number;
   call?: boolean;
-  data: HexString;
+  data?: HexString;
   from: HexString;
   gasLimit?: HexString;
   gasPrice?: HexString;
@@ -31,7 +24,7 @@ export type TransactionData = {
   hash: HexString;
   index?: number;
   logs?: Array<TransactionLog>;
-  nonce: number;
+  nonce?: number;
   timestamp: DateString;
   to: HexString | null;
   value: DecimalString;
@@ -72,6 +65,50 @@ export type AddressBook = Array<{
   tags: string[];
 }>
 
+export const AssetTypes = {
+  "DAI": "DAI",
+  "ETH": "ETH",
+  "INR": "INR",
+  "MKR": "MKR",
+  "SAI": "SAI",
+  "SNT": "SNT",
+  "SNX": "SNX",
+  "USD": "USD",
+  "WETH": "WETH",
+};
+export type AssetType = keyof typeof AssetTypes;
+
+export type Asset = {
+  amount: DecimalString;
+  date?: DateString;
+  price?: DecimalString;
+  type: AssetType | string;
+  value?: DecimalString;
+}
+
+export const EventCategories = {
+  "borrow": "borrow",
+  "expense": "expense",
+  "income": "income",
+  "repayment": "repayment",
+  "swap": "swap",
+};
+export type EventCategory = keyof typeof EventCategories;
+
+export type Event = {
+  assetsIn?: Asset[];
+  assetsOut?: Asset[];
+  category?: EventCategory | string;
+  date: DateString;
+  description?: string;
+  from?: string;
+  hash?: HexString;
+  prices?: { [key: string]: DecimalString };
+  source: string;
+  tags?: string[];
+  to?: string;
+}
+
 export type InputData = {
   addressBook?: AddressBook;
   etherscanKey?: string;
@@ -92,44 +129,6 @@ export type TaxableTrade = {
   Description: string;
   GainOrLoss: string;
   Proceeds: string;
-}
-
-export const EventCategories = {
-  "expense": "expense",
-  "income": "income",
-  "swap": "swap",
-};
-export type EventCategory = keyof typeof EventCategories;
-
-export const AssetTypes = {
-  "DAI": "DAI",
-  "ETH": "ETH",
-  "INR": "INR",
-  "MKR": "MKR",
-  "USD": "USD",
-};
-export type AssetType = keyof typeof AssetTypes;
-
-export type Asset = {
-  amount: DecimalString;
-  date?: DateString;
-  price?: DecimalString;
-  type: AssetType | string;
-  value?: DecimalString;
-}
-
-export type Event = {
-  assetsIn?: Asset[];
-  assetsOut?: Asset[];
-  category?: EventCategory | string;
-  date: DateString;
-  description?: string;
-  from?: string;
-  hash?: HexString;
-  prices?: { [key: string]: DecimalString };
-  source: string;
-  tags?: string[];
-  to?: string;
 }
 
 export type FinancialData = {

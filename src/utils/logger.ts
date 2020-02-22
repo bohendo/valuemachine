@@ -33,6 +33,6 @@ export class Logger {
 
   private log(level: string, msg: any): void {
     if (this.levels[level] > this.logLevel) return;
-    return (console as any)[level](`${level}: [${this.name}] ${msg}`);
+    return (console as any)[level](`[${this.name}] ${msg}`);
   }
 }

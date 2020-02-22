@@ -14,10 +14,10 @@
   },
   "homepage": "https://gitlab.com/bohendo/taxes#readme",
   "dependencies": {
+    "@openzeppelin/contracts": "2.5.0",
     "axios": "0.19.2",
     "csv-parse": "4.8.2",
-    "ethers": "4.0.41",
-    "human-standard-token-abi": "^2.0.0"
+    "ethers": "4.0.41"
   },
   "devDependencies": {
     "@typescript-eslint/parser": "2.19.2",

@@ -21,7 +21,7 @@ const stringifyAssets = (assets): string => {
 };
 
 // set to false for lifo
-const fifoMode = true;
+// const fifoMode = true;
 
 export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrade[] => {
   const debugMode = input.logLevel > 3;

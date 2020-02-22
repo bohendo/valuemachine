@@ -54,7 +54,7 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
       if (mergedE.hash && newE.hash && mergedE.hash !== newE.hash) { continue; }
       if (sameEvent(mergedE, newE)) {
         mergedE = mergeEvents(mergedE, newE);
-        // console.log(`Merged event "${mergedE.description}" with "${newE.description}"`);
+        console.log(`Merged event "${mergedE.description}" with "${newE.description}"`);
         consolidated.push(newI);
       }
     }
