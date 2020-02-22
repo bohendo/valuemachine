@@ -9,8 +9,7 @@ export type HexString = string;
 export type AddressData = {
   address: HexString;
   block: number;
-  nonce: number;
-  hasCode?: boolean;
+  hasCode: boolean;
   transactions: Array<HexString>;
 };
 

@@ -20,7 +20,7 @@ const emptyChainData: ChainData = {
 const emptyAddressData: AddressData = {
   address: AddressZero,
   block: 0,
-  nonce: 0,
+  hasCode: false,
   transactions: [],
 };
 
@@ -91,6 +91,7 @@ export const fetchChainData = async (
     const addressData = JSON.parse(JSON.stringify(
       chainData.addresses[address] || emptyAddressData,
     ));
+    addressData.address = address;
 
     if (addressData.block > 0 && retiredAddresses.includes(address)) {
       // console.log(`Retired address ${address} data has already been fetched`);
@@ -108,12 +109,6 @@ export const fetchChainData = async (
       console.log(`💫 getting code..`);
       addressData.hasCode = (await provider.getCode(address)).length > 4;
       console.log(`✅ addressData.hasCode: ${addressData.hasCode}`);
-    }
-
-    if (!addressData.hasCode) {
-      console.log(`💫 getting nonce..`);
-      addressData.nonce = await provider.getTransactionCount(address);
-      console.log(`✅ addressData.nonce: ${addressData.nonce}`);
     }
 
     console.log(`💫 getting externaltxHistory..`);
@@ -168,10 +163,9 @@ export const fetchChainData = async (
       }
     }
 
-    console.log(`📝 saving progress..`);
     addressData.block = block;
     saveCache(chainData);
-    console.log(`🔖 progress saved\n`);
+    console.log(`📝 progress saved\n`);
   }
 
   console.log(`Fetching ${
