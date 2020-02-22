@@ -12,12 +12,9 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
   const log = new Logger("getFinancialEvents", input.logLevel);
   let events: Event[] = [];
 
-  const chainData = await fetchChainData(
-    input.ethAddresses.map(a => a.toLowerCase()),
-    input.etherscanKey,
-  );
+  const chainData = await fetchChainData(input.addressBook, input.etherscanKey);
   const chainEvents = Object.values(chainData.transactions)
-    .map(parseEthTxFactory(input)).filter(e => !!e);
+    .map(parseEthTxFactory(input)).filter(e => !!e) as Event[];
   events = coalesce(events, chainEvents);
 
   log.info(`Found ${chainEvents.length} events (${events.length} total) from ${Object.keys(chainData.transactions).length} ethereum txs`);

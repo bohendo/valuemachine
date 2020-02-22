@@ -3,7 +3,7 @@ import axios from "axios";
 import { EtherscanProvider } from "ethers/providers";
 import { formatEther, hexlify } from "ethers/utils";
 
-import { AddressData, ChainData } from "../types";
+import { AddressBook, AddressData, ChainData } from "../types";
 
 // Info is stale after 6 hour
 const timeUntilStale = 6 * 60 * 60 * 1000;
@@ -39,10 +39,20 @@ const saveCache = (chainData: ChainData): void =>
   fs.writeFileSync(cacheFile, JSON.stringify(chainData, null, 2));
 
 export const fetchChainData = async (
-  addresses: string[],
+  addressBook: AddressBook,
   etherscanKey: string,
 ): Promise<ChainData> => {
   const chainData = loadCache();
+
+  const activeAddresses = addressBook
+    .filter(a => a.category === "self" && a.tags.includes("active"))
+    .map(a => a.address.toLowerCase());
+
+  const retiredAddresses = addressBook
+    .filter(a => a.category === "self" && !a.tags.includes("active"))
+    .map(a => a.address.toLowerCase());
+
+  const addresses = activeAddresses.concat(retiredAddresses);
 
   // Don't fetch anything if we don't have any addresses to scan
   if (!addresses || addresses.length === 0) {
@@ -79,8 +89,13 @@ export const fetchChainData = async (
       chainData.addresses[address] || emptyAddressData,
     ));
 
+    if (addressData.block > 0 && retiredAddresses.includes(address)) {
+      // console.log(`Retired address ${address} data has already been fetched`);
+      continue;
+    }
+
     if (block <= addressData.block + blocksUntilStale) {
-      console.log(`Info for ${address} is up to date (${block - addressData.block} blocks old)`);
+      console.log(`Active address ${address} was updated ${block - addressData.block} blocks ago`);
       continue;
     }
     console.log(`Fetching info for address: ${address}`);
@@ -149,6 +164,7 @@ export const fetchChainData = async (
     Object.values(chainData.transactions).filter(tx => !tx.logs).length
   } transaction receipts`);
 
+  // Scan all new transactions & fetch logs for any that don't have them yet
   for (const [hash, tx] of Object.entries(chainData.transactions)) {
     if (!tx.gasUsed || !tx.logs) {
       console.log(`💫 getting logs for tx ${hash}..`);

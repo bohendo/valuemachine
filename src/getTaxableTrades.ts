@@ -20,6 +20,9 @@ const stringifyAssets = (assets): string => {
   return `${output}]`;
 };
 
+// set to false for lifo
+const fifoMode = true;
+
 export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrade[] => {
   const debugMode = input.logLevel > 3;
   const assets: { [key: string]: Asset[] } = {};
@@ -31,7 +34,6 @@ export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrad
   debugMode && console.log(`Parsing ${events.length} events for taxable trades..`);
 
   for (const event of events) {
-    // if event.category === "init" then startingAssets.push()
     const { assetsIn, assetsOut, date, from, to } = event;
     if (!date.startsWith(input.taxYear)) {
       debugMode && console.log(`Skipping old trade from ${date}`);

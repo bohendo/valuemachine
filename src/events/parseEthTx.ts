@@ -4,25 +4,23 @@ import tokenAbi from "human-standard-token-abi";
 import { InputData, Event, TransactionData } from "../types";
 import { Logger, addAssets, eq, round } from "../utils";
 
-const lowerCaseKeys = (obj: object): object => {
-  const output = {};
-  Object.entries(obj).forEach(entry => {
-    output[entry[0].toLowerCase()] = entry[1];
-  });
-  return output;
-};
-
 export const parseEthTxFactory = (input: InputData): any => {
   const log = new Logger("ParseEthTx", input.logLevel);
-  const addressBook = lowerCaseKeys(input.addressBook) as { [key: string]: string };
-  const tokens = lowerCaseKeys(input.supportedERC20s) as { [key: string]: string };
-  const tokenI = new Interface(tokenAbi);
 
-  const isSelf = (address: string | null): boolean =>
-    address && input.ethAddresses.map(a => a.toLowerCase()).includes(address.toLowerCase());
+  const getName = (address: string | null): string => !address ? "" :
+    input.addressBook.find(a => a.address.toLowerCase() === address.toLowerCase()) ?
+    input.addressBook.find(a => a.address.toLowerCase() === address.toLowerCase()).name : "";
+
+  const isCategory = (address: string | null, category: string): boolean =>
+    address && input.addressBook
+      .filter(a => a.category.toLowerCase() === category.toLowerCase())
+      .map(a => a.address.toLowerCase())
+      .includes(address.toLowerCase());
+
+  const isSelf = (address: string | null): boolean => isCategory(address, "self");
 
   const pretty = (address: string): string =>
-    addressBook[address.toLowerCase()] || (isSelf(address) ? "self" : address.substring(0, 10));
+    getName(address) || (isSelf(address) ? "self" : address.substring(0, 10));
 
   return (tx: TransactionData): Event | null => {
     if (!tx.logs) {
@@ -75,9 +73,10 @@ export const parseEthTxFactory = (input: InputData): any => {
     }
 
     for (const txLog of tx.logs) {
-      if (Object.keys(tokens).includes(txLog.address.toLowerCase())) {
-        const assetType = tokens[txLog.address.toLowerCase()].toUpperCase();
-        const eventI = Object.values(tokenI.events).find(e => e.topic === txLog.topics[0]);
+      if (isCategory(txLog.address, "token")) {
+        const assetType = getName(txLog.address).toUpperCase();
+        const eventI = Object.values(new Interface(tokenAbi))
+          .find(e => e.topic === txLog.topics[0]);
         if (eventI && eventI.name === "Transfer") {
           const data = eventI.decode(txLog.data, txLog.topics);
           const amount = formatEther(data._value);
