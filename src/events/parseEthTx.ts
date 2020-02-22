@@ -61,9 +61,23 @@ export const parseEthCallFactory = (input: InputData): any => {
       event.assetsOut.push({ amount: call.value, type: "ETH" });
       event.category = "expense";
     } else {
-      throw new Error(`Idk how to parse call ${JSON.stringify(call)}`);
+      throw new Error(`Idk how to parse call: ${JSON.stringify(call)}`);
     }
 
+    const income = addAssets(event.assetsIn).map(a => `${round(a.amount)} ${a.type}`).join(", ");
+    const expense = addAssets(event.assetsOut).map(a => `${round(a.amount)} ${a.type}`).join(", ");
+
+    if (event.assetsIn.length === 0 && event.assetsOut.length === 0) {
+      return null;
+    } else if (event.assetsIn.length !== 0 && event.assetsOut.length === 0) {
+      event.description = `${event.category} of ${income} from ${event.from}`;
+    } else if (event.assetsIn.length === 0 && event.assetsOut.length !== 0) {
+      event.description = `${event.category} of ${expense} to ${event.to}`;
+    } else if (event.assetsIn.length !== 0 && event.assetsOut.length !== 0) {
+      event.description = `${event.category} of ${expense} for ${income}`;
+    }
+
+    log.info(event.description);
     return event;
   };
 };

@@ -15,7 +15,7 @@ export const addAssets = (assets: Asset[]): Asset[] => {
 };
 
 export const assetsEq = (a1: Asset, a2: Asset): boolean =>
-  a1.type == a2.type && a1.amount === a2.amount;
+  a1.amount === a2.amount && a1.type == a2.type;
 
 export const assetListsEq = (loa1: Asset[], loa2: Asset[]): boolean => {
   const sum1 = addAssets(loa1);
@@ -27,28 +27,4 @@ export const assetListsEq = (loa1: Asset[], loa2: Asset[]): boolean => {
     if (!sum1.find(a => assetsEq(a, a2))) { return false; }
   }
   return true;
-};
-
-export const dedupAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
-  const loa = JSON.parse(JSON.stringify(loa1)) as Asset[];
-  for (const a2 of loa2) {
-    if (loa.find(a => assetsEq(a, a2))) {
-      continue;
-    } else {
-      loa.push(a2);
-    }
-  }
-  return loa;
-};
-
-export const commonAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
-  const common: Asset[] = [];
-  for (let i = 0; i < loa1.length; i++) {
-    for (let j = 0; j < loa2.length; j++) {
-      if (assetsEq(loa1[i], loa2[j])) {
-        common.push(JSON.parse(JSON.stringify(loa1[i])));
-      }
-    }
-  }
-  return common;
 };
