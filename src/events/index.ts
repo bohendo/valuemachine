@@ -2,7 +2,7 @@ import { Event, InputData } from "../types";
 import { Logger } from "../utils";
 import { assetListsEq } from "../utils";
 
-import { parseEthTxFactory } from "./parseEthTx";
+import { parseEthTxFactory, parseEthCallFactory } from "./parseEthTx";
 import { fetchChainData } from "./fetchChainData";
 import { formatCoinbase } from "./coinbase";
 import { formatWyre } from "./wyre";
@@ -13,11 +13,20 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
   let events: Event[] = [];
 
   const chainData = await fetchChainData(input.addressBook, input.etherscanKey);
-  const chainEvents = Object.values(chainData.transactions)
-    .map(parseEthTxFactory(input)).filter(e => !!e) as Event[];
-  events = coalesce(events, chainEvents);
 
-  log.info(`Found ${chainEvents.length} events (${events.length} total) from ${Object.keys(chainData.transactions).length} ethereum txs`);
+  const callEvents =
+    Object.values(chainData.calls).map(parseEthCallFactory(input)).filter(e => !!e) as Event[];
+
+  events = coalesce(events, callEvents);
+
+  log.info(`Found ${callEvents.length} events (${events.length} total) from ${Object.keys(chainData.calls).length} ethereum calls`);
+
+  const transactionEvents =
+    Object.values(chainData.transactions).map(parseEthTxFactory(input)).filter(e => !!e) as Event[];
+
+  events = coalesce(events, transactionEvents);
+
+  log.info(`Found ${transactionEvents.length} events (${events.length} total) from ${Object.keys(chainData.transactions).length} ethereum txs`);
 
   for (const event of input.events || []) {
     if (typeof event === "string" && event.endsWith(".csv")) {

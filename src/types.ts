@@ -6,6 +6,14 @@ export type DateString = string;
 export type DecimalString = string;
 export type HexString = string;
 
+export type AddressData = {
+  address: HexString;
+  block: number;
+  nonce: number;
+  hasCode?: boolean;
+  transactions: Array<HexString>;
+};
+
 export type TransactionLog = {
   address: HexString;
   data: HexString;
@@ -15,37 +23,35 @@ export type TransactionLog = {
 
 export type TransactionData = {
   block: number;
-  call?: boolean;
-  data?: HexString;
+  data: HexString;
   from: HexString;
-  gasLimit?: HexString;
-  gasPrice?: HexString;
+  gasLimit: HexString;
+  gasPrice: HexString;
   gasUsed?: HexString;
   hash: HexString;
   index?: number;
   logs?: Array<TransactionLog>;
-  nonce?: number;
+  nonce: number;
   timestamp: DateString;
   to: HexString | null;
   value: DecimalString;
 };
 
-export type AddressData = {
+export type CallData = {
   block: number;
-  nonce: number;
-  hasCode?: boolean;
-  transactions: Array<HexString>;
+  from: HexString;
+  hash: HexString;
+  timestamp: DateString;
+  to: HexString;
+  value: DecimalString;
 };
 
 // format of chain-data.json
 export type ChainData = {
   lastUpdated: DateString;
-  addresses: {
-    [address: string]: AddressData;
-  };
-  transactions: {
-    [hash: string]: TransactionData;
-  };
+  addresses: { [address: string]: AddressData };
+  transactions: { [hash: string]: TransactionData };
+  calls: { [hash: string]: CallData };
 };
 
 export const AddressCategories = {

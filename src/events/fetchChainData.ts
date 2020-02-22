@@ -1,5 +1,6 @@
 import fs from "fs";
 import axios from "axios";
+import { AddressZero } from "ethers/constants";
 import { EtherscanProvider } from "ethers/providers";
 import { formatEther, hexlify } from "ethers/utils";
 
@@ -11,11 +12,13 @@ const blocksUntilStale = timeUntilStale / (15 * 1000);
 
 const emptyChainData: ChainData = {
   addresses: {},
+  calls: {},
   lastUpdated: (new Date(0)).toISOString(),
   transactions: {},
 };
 
 const emptyAddressData: AddressData = {
+  address: AddressZero,
   block: 0,
   nonce: 0,
   transactions: [],
@@ -135,19 +138,30 @@ export const fetchChainData = async (
 
     chainData.addresses[address] = addressData;
 
-    for (const tx of txHistory) {
+    for (const tx of internalTxHistory) {
+      if (tx && tx.hash && !chainData.calls[tx.hash]) {
+        chainData.calls[tx.hash] = {
+          block: parseInt(tx.blockNumber.toString(), 10),
+          from: tx.from,
+          hash: tx.hash,
+          timestamp: (new Date((tx.timestamp || (tx as any).timeStamp) * 1000)).toISOString(),
+          to: tx.to,
+          value: formatEther(tx.value),
+        };
+      }
+    }
+
+    for (const tx of externaltxHistory) {
       if (tx && tx.hash && !chainData.transactions[tx.hash]) {
-        const timestamp = tx.timestamp || (tx as any).timeStamp;
         chainData.transactions[tx.hash] = {
           block: tx.blockNumber,
-          call: (tx as any).type === "call",
           data: tx.data,
           from: tx.from,
           gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
           gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
           hash: tx.hash,
           nonce: tx.nonce,
-          timestamp: (new Date(timestamp * 1000)).toISOString(),
+          timestamp: (new Date(tx.timestamp * 1000)).toISOString(),
           to: tx.to,
           value: formatEther(tx.value),
         };

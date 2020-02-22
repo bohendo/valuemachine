@@ -2,10 +2,71 @@ import { AddressZero } from "ethers/constants";
 import { Interface, formatEther, EventDescription } from "ethers/utils";
 import { abi as tokenAbi } from "@openzeppelin/contracts/build/contracts/ERC20.json";
 
-import { InputData, Event, TransactionData } from "../types";
+import { CallData, InputData, Event, TransactionData } from "../types";
 import { Logger, addAssets, eq, round } from "../utils";
 import wethAbi from "./wethAbi.json";
 import saiAbi from "./saiAbi.json";
+
+export const parseEthCallFactory = (input: InputData): any => {
+
+  const getName = (address: string | null): string => !address ? "" :
+    input.addressBook.find(a => a.address.toLowerCase() === address.toLowerCase()) ?
+    input.addressBook.find(a => a.address.toLowerCase() === address.toLowerCase()).name : "";
+
+  const isCategory = (address: string | null, category: string): boolean =>
+    address && input.addressBook
+      .filter(a => a.category.toLowerCase() === category.toLowerCase())
+      .map(a => a.address.toLowerCase())
+      .includes(address.toLowerCase());
+
+  const isSelf = (address: string | null): boolean => isCategory(address, "self");
+
+  const pretty = (address: string): string =>
+    getName(address) || (isSelf(address) ? "self" : address.substring(0, 10));
+
+  return (call: CallData): any => {
+    const log = new Logger(`EthCall ${call.hash.substring(0, 10)}`, input.logLevel);
+
+    const event = {
+      assetsIn: [],
+      assetsOut: [],
+      date: call.timestamp,
+      from: pretty(call.from),
+      hash: call.hash,
+      source: "ethereum",
+      tags: [],
+      to: pretty(call.to),
+    } as Event;
+
+    if (isSelf(call.to) && isSelf(call.from)) {
+      log.debug(`Skipping simple self-to-self ETH call`);
+      return null;
+    }
+    if (!isSelf(call.to) && !isSelf(call.from)) {
+      log.debug(`Skipping simple external-to-external ETH call`);
+      return null;
+    }
+    if (eq(call.value, "0")) {
+      log.debug(`Skipping simple zero-value ETH call`);
+      return null;
+    }
+
+    // ETH in
+    if (call.value !== "0.0" && isSelf(call.to) && !isSelf(call.from)) {
+      log.debug(`Recieved ${call.value} ETH from ${pretty(call.from)}`);
+      event.assetsIn.push({ amount: call.value, type: "ETH" });
+      event.category = "income";
+    } else if (call.value !== "0.0" && !isSelf(call.to) && isSelf(call.from)) {
+      log.debug(`Sent ${call.value} ETH to ${pretty(call.to)}`);
+      event.assetsOut.push({ amount: call.value, type: "ETH" });
+      event.category = "expense";
+    } else {
+      throw new Error(`Idk how to parse call ${JSON.stringify(call)}`);
+    }
+
+    return event;
+  };
+};
 
 export const parseEthTxFactory = (input: InputData): any => {
 
@@ -50,7 +111,7 @@ export const parseEthTxFactory = (input: InputData): any => {
       tags: [],
       to: pretty(tx.to),
     } as Event;
-    
+
     if (tx.logs.length === 0) {
       if (isSelf(tx.to) && isSelf(tx.from)) {
         log.debug(`Skipping simple self-to-self ETH transfer`);
