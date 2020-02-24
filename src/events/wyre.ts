@@ -10,7 +10,6 @@ export const formatWyre = (filename: string, logLevel: number): Event[] => {
     fs.readFileSync(filename, "utf8"),
     { columns: true, skip_empty_lines: true },
   ).map(row => {
-    log.debug(`Parsing row ${JSON.stringify(row)}`);
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(row["Created At"])).getUTCFullYear())) return null;
     const output = { amount: row["Source Amount"], type: row["Source Currency"] };

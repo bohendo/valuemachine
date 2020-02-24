@@ -34,7 +34,6 @@ process.on("SIGINT", logAndExit);
   fs.writeFileSync(`${outputFolder}/events.json`, JSON.stringify(financialEvents, null, 2));
 
   console.log(`Done gathering financial events.\n`);
-  process.exit(0);
 
   const financialData = {
     expenses: [], // TODO: get taxable expenses from events

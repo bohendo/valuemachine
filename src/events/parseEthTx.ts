@@ -33,7 +33,7 @@ export const parseEthCallFactory = (input: InputData): any => {
       date: call.timestamp,
       from: pretty(call.from),
       hash: call.hash,
-      source: "ethereum",
+      source: "ethCall",
       tags: [],
       to: pretty(call.to),
     } as Event;
@@ -121,7 +121,7 @@ export const parseEthTxFactory = (input: InputData): any => {
       date: tx.timestamp,
       from: pretty(tx.from),
       hash: tx.hash,
-      source: "ethereum",
+      source: "ethTx",
       tags: [],
       to: pretty(tx.to),
     } as Event;

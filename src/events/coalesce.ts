@@ -1,6 +1,6 @@
 import { isHexString, arrayify } from "ethers/utils";
 import { Asset, Event } from "../types";
-import { assetsEq } from "../utils";
+import { addAssets, assetsEq, round } from "../utils";
 
 // inputs are ISO 8601 format date strings
 const datesAreClose = (d1: string, d2: string): boolean =>
@@ -61,30 +61,55 @@ const sameEvent = (e1: Event, e2: Event): boolean => (
     commonAssets(e1.assetsIn, e2.assetsIn).length > 0 ||
     commonAssets(e1.assetsOut, e2.assetsOut).length > 0
   ) && (
-    // If one event deals w USD, it can't be merged w an event from ethereum
+    // If one event deals w USD, it can't be merged w any events from ethereum
     (
-      e1.assetsIn.concat(e1.assetsOut).find(a => a.type === "USD") ? e2.source !== "ethereum" : true
+      e1.assetsIn.concat(e1.assetsOut).find(a => a.type === "USD")
+        ? !e2.source.includes("eth")
+        : true
     ) && (
-      e2.assetsIn.concat(e2.assetsOut).find(a => a.type === "USD") ? e1.source !== "ethereum" : true
+      e2.assetsIn.concat(e2.assetsOut).find(a => a.type === "USD")
+        ? !e1.source.includes("eth")
+        : true
     )
   );
 
 const mergeEvents = (e1: Event, e2: Event): Event => {
   const merged = {} as Event;
   const prefer = (source: string, yea: boolean, key: string, e1: Event, e2: Event): string =>
-    (e1.source === source) === yea ? (e1[key] || e2[key]) :
-    (e2.source === source) === yea ? (e2[key] || e1[key]) :
+    (e1.source.startsWith(source)) === yea ? (e1[key] || e2[key]) :
+    (e2.source.startsWith(source)) === yea ? (e2[key] || e1[key]) :
     (e1[key] || e2[key]);
   merged.assetsIn = dedupAssets(e1.assetsIn, e2.assetsIn);
   merged.assetsOut = dedupAssets(e1.assetsOut, e2.assetsOut);
-  merged.date = prefer("ethereum", true, "date", e1, e2);
-  merged.description = prefer("ethereum", true, "description", e1, e2);
-  merged.from = prefer("ethereum", false, "from", e1, e2);
-  merged.hash = prefer("ethereum", true, "hash", e1, e2);
+  merged.date = prefer("eth", true, "date", e1, e2);
+  merged.from = prefer("eth", false, "from", e1, e2);
+  merged.hash = prefer("eth", true, "hash", e1, e2);
   merged.prices = e1.prices || e2.prices;
-  merged.source = [...e1.source.split("+"), ...e2.source.split("+")].sort().join("+");
-  merged.to = prefer("ethereum", false, "to", e1, e2);
-  merged.category = prefer("ethereum", false, "category", e1, e2);
+  merged.source = Array.from(new Set([
+    ...e1.source.split("+"),
+    ...e2.source.split("+"),
+  ])).sort().join("+");
+  merged.tags = e1.tags.concat(e2.tags);
+  merged.to = prefer("eth", false, "to", e1, e2);
+  merged.description = prefer("eth", true, "description", e1, e2);
+  merged.category = prefer("eth", false, "category", e1, e2);
+
+  // TODO: dedup this logic
+  const income = addAssets(merged.assetsIn).map(a => `${round(a.amount)} ${a.type}`).join(", ");
+  const expense = addAssets(merged.assetsOut).map(a => `${round(a.amount)} ${a.type}`).join(", ");
+  if (merged.assetsIn.length === 0 && merged.assetsOut.length === 0) {
+    return null;
+  } else if (merged.assetsIn.length !== 0 && merged.assetsOut.length === 0) {
+    merged.category = merged.tags.includes("cdp") ? "borrow" : "income";
+    merged.description = `${merged.category} of ${income} from ${merged.from}`;
+  } else if (merged.assetsIn.length === 0 && merged.assetsOut.length !== 0) {
+    merged.category = merged.tags.includes("cdp") ? "repayment" : "expense";
+    merged.description = `${merged.category} of ${expense} to ${merged.to}`;
+  } else if (merged.assetsIn.length !== 0 && merged.assetsOut.length !== 0) {
+    merged.category = "swap";
+    merged.description = `${merged.category} of ${expense} for ${income}`;
+  }
+
   return merged;
 };
 
@@ -99,7 +124,7 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
       if (mergedE.hash && newE.hash && mergedE.hash !== newE.hash) { continue; }
       if (sameEvent(mergedE, newE)) {
         mergedE = mergeEvents(mergedE, newE);
-        console.log(`Merged event "${mergedE.description}" with "${newE.description}"`);
+        console.log(`Merged event "${newE.description}" into "${mergedE.description}"`);
         consolidated.push(newI);
       }
     }
