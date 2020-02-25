@@ -2,6 +2,14 @@ import { isHexString, arrayify } from "ethers/utils";
 import { Asset, Event } from "../types";
 import { addAssets, assetsEq, round } from "../utils";
 
+const castEvent = (event: any): Event => ({
+  assetsIn: [],
+  assetsOut: [],
+  prices: {},
+  tags: [],
+  ...event,
+});
+
 // inputs are ISO 8601 format date strings
 const datesAreClose = (d1: string, d2: string): boolean =>
   Math.abs((new Date(d1)).getTime() - (new Date(d2)).getTime()) <= 1000 * 60 * 15;
@@ -117,9 +125,9 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
   const consolidated = [] as number[];
   const events = [] as Event[];
   for (let oldI = 0; oldI < oldEvents.length; oldI++) {
-    let mergedE = oldEvents[oldI];
+    let mergedE = castEvent(oldEvents[oldI]);
     for (let newI = 0; newI < newEvents.length; newI++) {
-      const newE = newEvents[newI];
+      const newE = castEvent(newEvents[newI]);
       if (consolidated.includes(newI)) { continue; }
       if (mergedE.hash && newE.hash && mergedE.hash !== newE.hash) { continue; }
       if (sameEvent(mergedE, newE)) {
@@ -132,7 +140,7 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
   }
   for (let newI = 0; newI < newEvents.length; newI++) {
     if (!consolidated.includes(newI)) {
-      events.push(newEvents[newI]);
+      events.push(castEvent(newEvents[newI]));
     }
   }
   return events;
