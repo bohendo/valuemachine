@@ -1,7 +1,8 @@
 import { FinancialData, Forms } from "../types";
-import { round, add, gt, lt, eq } from "../utils";
+import { Logger, round, add, gt, lt, eq } from "../utils";
 
 export const f1040sd = (finances: FinancialData, oldForms: Forms): Forms => {
+  const log = new Logger("f1040sd", finances.input.logLevel);
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040sd } = forms;
 
@@ -10,7 +11,7 @@ export const f1040sd = (finances: FinancialData, oldForms: Forms): Forms => {
 
   const totals = { cost: "0", gainOrLoss: "0", proceeds: "0" };
   for (const f8949 of forms.f8949) {
-    console.log(`Fetching data from f8949: proceeds=${f8949.f1_115} cost=${f8949.f1_116} gain|loss=${f8949.f1_119}`);
+    log.info(`Fetching data from f8949: proceeds=${f8949.f1_115} cost=${f8949.f1_116} gain|loss=${f8949.f1_119}`);
     totals.proceeds = add([totals.proceeds, f8949.f1_115]);
     totals.cost = add([totals.cost, f8949.f1_116]);
     totals.gainOrLoss = add([totals.gainOrLoss, f8949.f1_119]);

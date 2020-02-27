@@ -3,6 +3,7 @@ import fs from "fs";
 
 import { Event } from "../types";
 import { Logger } from "../utils";
+import { getCategory, getDescription } from "./utils";
 
 export const formatCoinbase = (filename: string, logLevel?: number): Event[] => {
   const log = new Logger("Coinbase", logLevel || 3);
@@ -20,19 +21,17 @@ export const formatCoinbase = (filename: string, logLevel?: number): Event[] => 
       price: row["USD Spot Price at Transaction"],
       type: row["Asset"],
     };
-    const txType = row["Transaction Type"];
-    const category = txType === "Buy"  || txType === "Sell" ? "swap" : "transfer";
-    const description = `${asset.amount} ${asset.type} coinbase ${category}`;
-    log.debug(`${description} (${txType})`);
-    return ({
-      assetsIn: [txType === "Sell" ? usd : asset],
-      assetsOut: [txType === "Buy"  ? usd : asset],
-      category,
+    const event = {
+      assetsIn: [row["Transaction Type"] === "Sell" ? usd : asset],
+      assetsOut: [row["Transaction Type"] === "Buy"  ? usd : asset],
       date: (new Date(row["Timestamp"])).toISOString(),
-      description,
       prices: { [asset.type]: row["USD Spot Price at Transaction"] },
       source: "coinbase",
       tags: [],
-    });
+    } as Event;
+    event.category = getCategory(event);
+    event.description = getDescription(event);
+    log.debug(event.description);
+    return event;
   });
 };

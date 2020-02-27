@@ -4,7 +4,7 @@ import {
   InputData,
   TaxableTrade,
 } from "./types";
-import { add, eq, gt, lt, mul, round, sub } from "./utils";
+import { add, eq, gt, Logger, lt, mul, round, sub } from "./utils";
 
 const stringifyAssets = (assets): string => {
   let output = "[\n";
@@ -20,31 +20,30 @@ const stringifyAssets = (assets): string => {
   return `${output}]`;
 };
 
-// set to false for lifo
-// const fifoMode = true;
-
 export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade[] => {
-  const debugMode = true; // input.logLevel > 3;
+  const log = new Logger("CapitalGains", input.logLevel);
   const assets: { [key: string]: Asset[] } = {};
   const startingAssets: { [key: string]: Asset[] } = {};
   const trades = [];
-  const total = {
-    cost: {},
-    proceeds: {},
-    profit: {},
-  };
-  debugMode && console.log(`Parsing ${events.length} events for taxable trades..`);
+  const total = { cost: {}, proceeds: {}, profit: {} };
+
+  log.info(`Parsing ${events.length} events for taxable trades..`);
+
+  // TODO: what if input.capitalGainsMethod is LIFO or HIFO?
+  const getNext = (type: string): Asset => assets[type].pop();
+  const putBack = (type: string, asset: Asset): number => assets[type].unshift(asset);
 
   for (const event of events.sort(
     (e1, e2) => new Date(e1.date).getTime() - new Date(e2.date).getTime(),
   )) {
     const date = event.date;
 
-    console.log(`Processing event: ${event.description}`);
+    log.debug(`Processing event: ${JSON.stringify(event)}`);
+    log.info(`Processing event: ${event.description || JSON.stringify(event)}`);
 
     for (const asset of event.assetsIn) {
       if (!assets[asset.type]) {
-        debugMode && console.log(`Creating new asset category for ${asset.type}`);
+        log.info(`Creating new asset category for ${asset.type}`);
         assets[asset.type] = [];
       }
       assets[asset.type].push({
@@ -58,7 +57,7 @@ export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade
     for (const asset of event.assetsOut) {
 
       if (!assets[asset.type]) {
-        debugMode && console.log(`Creating new asset category for ${asset.type}`);
+        log.info(`Creating new asset category for ${asset.type}`);
         assets[asset.type] = [];
       }
 
@@ -66,9 +65,6 @@ export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade
       let cost = "0";
       let profit = "0";
       let proceeds = "0";
-
-      const getNext = (type: string): Asset => assets[type].pop();
-      const putBack = (type: string, asset: Asset): number => assets[type].unshift(asset);
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
@@ -129,12 +125,12 @@ export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade
   const totalProfit =
     Object.keys(total.profit).reduce((cur, acc) => add([acc, total.profit[cur]]), "0");
 
-  console.log(`Starting Assets: ${startingAssets}`); 
+  log.info(`Starting Assets: ${startingAssets}`); 
   for (const trade of trades) {
-    console.log(`Sold ${trade.Description} on ${trade.DateSold} for ${trade.Proceeds} (Purchased for ${trade.Cost} = profit of ${trade.GainOrLoss}`);
+    log.info(`Sold ${trade.Description} on ${trade.DateSold} for ${trade.Proceeds} (Purchased for ${trade.Cost} = profit of ${trade.GainOrLoss}`);
   }
-  console.log(`Assets Leftover: ${stringifyAssets(assets)}`); 
-  console.log(`Total proceeds: ${totalProceeds} - cost ${totalCost} = profit ${totalProfit}`); 
+  log.info(`Assets Leftover: ${stringifyAssets(assets)}`); 
+  log.info(`Total proceeds: ${totalProceeds} - cost ${totalCost} = profit ${totalProfit}`); 
 
   return trades;
 };

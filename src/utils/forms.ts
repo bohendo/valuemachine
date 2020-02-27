@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 
 export const emptyForm = (form): any => {
   const emptyForm = JSON.parse(JSON.stringify(form));
@@ -18,12 +19,13 @@ export const mergeForms = (form, values): any => {
   return newForm;
 };
 
-export const translate = (form, mappings): any => {
+export const translate = (form, mappings, logLevel): any => {
   const newForm = {};
   for (const [key, value] of Object.entries(form)) {
     if (key === "default") { continue; }
     if (!mappings[key]) {
-      console.warn(`Key ${key} exists in output data but not in mappings`);
+      new Logger("TranslateForms", logLevel)
+        .warn(`Key ${key} exists in output data but not in mappings`);
     }
     newForm[mappings[key]] = value;
   }

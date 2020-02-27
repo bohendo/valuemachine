@@ -3,7 +3,8 @@ import { Interface, formatEther, EventDescription } from "ethers/utils";
 import { abi as tokenAbi } from "@openzeppelin/contracts/build/contracts/ERC20.json";
 
 import { CallData, InputData, Event, TransactionData } from "../types";
-import { Logger, addAssets, eq, round } from "../utils";
+import { Logger, eq } from "../utils";
+import { getCategory, getDescription } from "./utils";
 import wethAbi from "./wethAbi.json";
 import saiAbi from "./saiAbi.json";
 
@@ -64,20 +65,9 @@ export const parseEthCallFactory = (input: InputData): any => {
       throw new Error(`Idk how to parse call: ${JSON.stringify(call)}`);
     }
 
-    const income = addAssets(event.assetsIn).map(a => `${round(a.amount)} ${a.type}`).join(", ");
-    const expense = addAssets(event.assetsOut).map(a => `${round(a.amount)} ${a.type}`).join(", ");
-
-    if (event.assetsIn.length === 0 && event.assetsOut.length === 0) {
-      return null;
-    } else if (event.assetsIn.length !== 0 && event.assetsOut.length === 0) {
-      event.description = `${event.category} of ${income} from ${event.from}`;
-    } else if (event.assetsIn.length === 0 && event.assetsOut.length !== 0) {
-      event.description = `${event.category} of ${expense} to ${event.to}`;
-    } else if (event.assetsIn.length !== 0 && event.assetsOut.length !== 0) {
-      event.description = `${event.category} of ${expense} for ${income}`;
-    }
-
-    log.info(event.description);
+    event.category = getCategory(event);
+    event.description = getDescription(event);
+    log.debug(event.description);
     return event;
   };
 };
@@ -228,23 +218,10 @@ export const parseEthTxFactory = (input: InputData): any => {
       }
     }
 
-    const income = addAssets(event.assetsIn).map(a => `${round(a.amount)} ${a.type}`).join(", ");
-    const expense = addAssets(event.assetsOut).map(a => `${round(a.amount)} ${a.type}`).join(", ");
+    event.category = getCategory(event);
+    event.description = getDescription(event);
+    log.debug(event.description);
 
-    if (event.assetsIn.length === 0 && event.assetsOut.length === 0) {
-      return null;
-    } else if (event.assetsIn.length !== 0 && event.assetsOut.length === 0) {
-      event.category = event.tags.includes("cdp") ? "borrow" : "income";
-      event.description = `${event.category} of ${income} from ${event.from}`;
-    } else if (event.assetsIn.length === 0 && event.assetsOut.length !== 0) {
-      event.category = event.tags.includes("cdp") ? "repayment" : "expense";
-      event.description = `${event.category} of ${expense} to ${event.to}`;
-    } else if (event.assetsIn.length !== 0 && event.assetsOut.length !== 0) {
-      event.category = "swap";
-      event.description = `${event.category} of ${expense} for ${income}`;
-    }
-
-    log.info(`${event.description}`);
     return event;
   };
 };

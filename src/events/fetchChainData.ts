@@ -4,7 +4,8 @@ import { AddressZero } from "ethers/constants";
 import { EtherscanProvider } from "ethers/providers";
 import { formatEther, hexlify } from "ethers/utils";
 
-import { AddressBook, AddressData, ChainData } from "../types";
+import { AddressData, ChainData, InputData } from "../types";
+import { Logger } from "../utils";
 
 // Info is stale after 6 hour
 const timeUntilStale = 6 * 60 * 60 * 1000;
@@ -26,14 +27,14 @@ const emptyAddressData: AddressData = {
 
 const cacheFile = "./chain-data.json";
 
-const loadCache = (): ChainData => {
+const loadCache = (log: Logger): ChainData => {
   try {
     return JSON.parse(fs.readFileSync(cacheFile, "utf8"));
   } catch (e) {
     if (e.message.startsWith("ENOENT: no such file or directory")) {
       return emptyChainData;
     }
-    console.warn(e.message);
+    log.warn(e.message);
     throw new Error(`Unable to load chainData cache, try deleting ${cacheFile} & try again`);
   }
 };
@@ -41,11 +42,12 @@ const loadCache = (): ChainData => {
 const saveCache = (chainData: ChainData): void =>
   fs.writeFileSync(cacheFile, JSON.stringify(chainData, null, 2));
 
-export const fetchChainData = async (
-  addressBook: AddressBook,
-  etherscanKey: string,
-): Promise<ChainData> => {
-  const chainData = loadCache();
+export const fetchChainData = async (input: InputData): Promise<ChainData> => {
+  const log = new Logger("FetchChainData", input.logLevel);
+  const addressBook = input.addressBook;
+  const etherscanKey = input.etherscanKey;
+
+  const chainData = loadCache(log);
 
   const activeAddresses = addressBook
     .filter(a => a.category === "self" && a.tags.includes("active"))
@@ -68,19 +70,19 @@ export const fetchChainData = async (
 
   const lastUpdated = new Date(chainData.lastUpdated).getTime();
   if (Date.now() <= lastUpdated + timeUntilStale) {
-    console.log(`ChainData is up to date (${Math.round((Date.now() - lastUpdated) / (1000 * 60))} minutes old)\n`);
+    log.info(`ChainData is up to date (${Math.round((Date.now() - lastUpdated) / (1000 * 60))} minutes old)\n`);
     return chainData;
   }
 
   const provider = new EtherscanProvider("homestead", etherscanKey);
   let block;
   try {
-  console.log(`💫 getting block number..`);
-  block = await provider.getBlockNumber();
-  console.log(`✅ block: ${block}\n`);
+    log.info(`💫 getting block number..`);
+    block = await provider.getBlockNumber();
+    log.info(`✅ block: ${block}\n`);
   } catch (e) {
     if (e.message.includes("invalid response - 0")) {
-      console.warn(`Network error, couldn't fetch chain data (Are you offline?)`);
+      log.warn(`Network error, couldn't fetch chain data (Are you offline?)`);
       return chainData;
     } else {
       throw e;
@@ -94,28 +96,28 @@ export const fetchChainData = async (
     addressData.address = address;
 
     if (addressData.block > 0 && retiredAddresses.includes(address)) {
-      // console.log(`Retired address ${address} data has already been fetched`);
+      // log.info(`Retired address ${address} data has already been fetched`);
       continue;
     }
 
     if (block <= addressData.block + blocksUntilStale) {
-      console.log(`Active address ${address} was updated ${block - addressData.block} blocks ago`);
+      log.info(`Active address ${address} was updated ${block - addressData.block} blocks ago`);
       continue;
     }
-    console.log(`Fetching info for address: ${address}`);
+    log.info(`Fetching info for address: ${address}`);
 
     // note: via create2, addresses can start out w/out code & later code appears
     if (!addressData.hasCode) {
-      console.log(`💫 getting code..`);
+      log.info(`💫 getting code..`);
       addressData.hasCode = (await provider.getCode(address)).length > 4;
-      console.log(`✅ addressData.hasCode: ${addressData.hasCode}`);
+      log.info(`✅ addressData.hasCode: ${addressData.hasCode}`);
     }
 
-    console.log(`💫 getting externaltxHistory..`);
+    log.info(`💫 getting externaltxHistory..`);
     const externaltxHistory = await provider.getHistory(address);
-    console.log(`✅ externaltxHistory: ${externaltxHistory.length} logs`);
+    log.info(`✅ externaltxHistory: ${externaltxHistory.length} logs`);
 
-    console.log(`💫 getting internaltxHistory..`);
+    log.info(`💫 getting internaltxHistory..`);
     const internalTxHistory = (await axios.get(
       `https://api.etherscan.io/api?module=account&action=txlistinternal&address=${
         address
@@ -123,7 +125,7 @@ export const fetchChainData = async (
         etherscanKey
       }&sort=asc`,
     )).data.result;
-    console.log(`✅ internalTxHistory: ${internalTxHistory.length} logs`);
+    log.info(`✅ internalTxHistory: ${internalTxHistory.length} logs`);
 
     const txHistory = externaltxHistory.concat(internalTxHistory);
 
@@ -165,17 +167,17 @@ export const fetchChainData = async (
 
     addressData.block = block;
     saveCache(chainData);
-    console.log(`📝 progress saved\n`);
+    log.info(`📝 progress saved\n`);
   }
 
-  console.log(`Fetching ${
+  log.info(`Fetching ${
     Object.values(chainData.transactions).filter(tx => !tx.logs).length
   } transaction receipts`);
 
   // Scan all new transactions & fetch logs for any that don't have them yet
   for (const [hash, tx] of Object.entries(chainData.transactions)) {
     if (!tx.gasUsed || !tx.logs) {
-      console.log(`💫 getting logs for tx ${hash}..`);
+      log.info(`💫 getting logs for tx ${hash}..`);
       const receipt = await provider.getTransactionReceipt(tx.hash);
       tx.gasUsed = hexlify(receipt.gasUsed);
       tx.index = receipt.transactionIndex;
@@ -185,7 +187,7 @@ export const fetchChainData = async (
         index: log.transactionLogIndex,
         topics: log.topics,
       }));
-    console.log(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
+    log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
       chainData.transactions[hash] = tx;
       saveCache(chainData);
     }

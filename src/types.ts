@@ -114,8 +114,16 @@ export type Event = {
   to?: string;
 }
 
+export const CapitalGainsMethods = {
+  "FIFO": "FIFO",
+  "HIFO": "HIFO",
+  "LIFO": "LIFO",
+};
+export type CapitalGainsMethod = keyof typeof CapitalGainsMethods;
+
 export type InputData = {
   addressBook?: AddressBook;
+  capitalGainsMethod: CapitalGainsMethod;
   etherscanKey?: string;
   events: Array<Event | string>;
   formData: Forms;
@@ -139,5 +147,6 @@ export type TaxableTrade = {
 export type FinancialData = {
   expenses: Array<Event>;
   income: Array<Event>;
+  input: InputData;
   trades: TaxableTrade[];
 }

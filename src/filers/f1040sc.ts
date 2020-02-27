@@ -1,7 +1,8 @@
 import { FinancialData, Forms } from "../types";
-import { add, gt, lt, round, sub } from "../utils";
+import { add, gt, Logger, lt, round, sub } from "../utils";
 
 export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
+  const log = new Logger("f1040sc", finances.input.logLevel);
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 
@@ -15,7 +16,7 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   });
 
   f1040sc.L1 = round(totalIncome);
-  console.log(`Total income: ${f1040sc.L1}`);
+  log.info(`Total income: ${f1040sc.L1}`);
   f1040sc.L3 = round(sub(f1040sc.L1, f1040sc.L2));
 
   // TODO: Part III
@@ -29,7 +30,7 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
     if (!asset) { throw new Error("idk"); }
     const key = `L${asset.type}`;
     if (typeof f1040sc[key] !== "undefined") {
-      console.log(`Handling expense of ${asset.amount} ${asset.type}: ${expense.description}`);
+      log.info(`Handling expense of ${asset.amount} ${asset.type}: ${expense.description}`);
       f1040sc[key] = add([f1040sc[asset.type], asset.amount]);
     }
   }

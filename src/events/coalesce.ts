@@ -1,6 +1,6 @@
 import { isHexString, arrayify } from "ethers/utils";
 import { Asset, Event } from "../types";
-import { addAssets, assetsEq, round } from "../utils";
+import { addAssets, assetsEq, Logger, round } from "../utils";
 
 const castEvent = (event: any): Event => ({
   assetsIn: [],
@@ -121,7 +121,8 @@ const mergeEvents = (e1: Event, e2: Event): Event => {
   return merged;
 };
 
-export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
+export const coalesce = (oldEvents: Event[], newEvents: Event[], logLevel: number): Event[] => {
+  const log = new Logger("Coalesce", logLevel || 3);
   const consolidated = [] as number[];
   const events = [] as Event[];
   for (let oldI = 0; oldI < oldEvents.length; oldI++) {
@@ -132,7 +133,7 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[]): Event[] => {
       if (mergedE.hash && newE.hash && mergedE.hash !== newE.hash) { continue; }
       if (sameEvent(mergedE, newE)) {
         mergedE = mergeEvents(mergedE, newE);
-        console.log(`Merged event "${newE.description}" into "${mergedE.description}"`);
+        log.debug(`Merged event "${newE.description}" into "${mergedE.description}"`);
         consolidated.push(newI);
       }
     }
