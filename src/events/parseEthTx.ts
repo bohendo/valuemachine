@@ -22,11 +22,14 @@ export const parseEthCallFactory = (input: InputData): any => {
 
   const isSelf = (address: string | null): boolean => isCategory(address, "self");
 
-  const shouldIgnore = (address: string | null): boolean =>
-    !address || input.addressBook
-      .filter(a => a.tags.includes("ignore"))
+  const isTagged = (address: string | null, tag: string): boolean =>
+    address && input.addressBook
+      .filter(a => a.tags.includes(tag))
       .map(a => a.address.toLowerCase())
       .includes(address.toLowerCase());
+
+  const shouldIgnore = (address: string | null): boolean =>
+    isTagged(address, "ignore");
 
   const pretty = (address: string): string =>
     getName(address) || (isSelf(address) ? "self" : address.substring(0, 10));
@@ -67,22 +70,30 @@ export const parseEthCallFactory = (input: InputData): any => {
       return null;
     }
 
-    // ETH in
+    const type = call.contractAddress && isCategory(call.contractAddress, "erc20")
+      ? getName(call.contractAddress)
+      : "ETH";
+
+    if (!type) {
+      log.debug(`Token contract ${call.contractAddress} is not supported`);
+      return null;
+    }
+
+    // assetsIn
     if (call.value !== "0.0" && isSelf(call.to) && !isSelf(call.from)) {
-      log.debug(`Recieved ${call.value} ETH from ${pretty(call.from)}`);
-      event.assetsIn.push({ amount: call.value, type: "ETH" });
-      event.category = "income";
+      log.debug(`Recieved ${call.value} ${type} from ${pretty(call.from)} via call`);
+      event.assetsIn.push({ amount: call.value, type });
+    // assetsOut
     } else if (call.value !== "0.0" && !isSelf(call.to) && isSelf(call.from)) {
-      log.debug(`Sent ${call.value} ETH to ${pretty(call.to)}`);
-      event.assetsOut.push({ amount: call.value, type: "ETH" });
-      event.category = "expense";
+      log.debug(`Sent ${call.value} ${type} to ${pretty(call.to)}`);
+      event.assetsOut.push({ amount: call.value, type });
     } else {
       throw new Error(`Idk how to parse call: ${JSON.stringify(call)}`);
     }
 
     event.category = getCategory(event);
     event.description = getDescription(event);
-    log.debug(event.description);
+    log.info(event.description);
     return event;
   };
 };
@@ -105,11 +116,11 @@ export const parseEthTxFactory = (input: InputData): any => {
       .map(a => a.address.toLowerCase())
       .includes(address.toLowerCase());
 
-  const isSelf = (address: string | null): boolean =>
-    isCategory(address, "self") || isTagged(address, "defi");
-
   const shouldIgnore = (address: string | null): boolean =>
     isTagged(address, "ignore");
+
+  const isSelf = (address: string | null): boolean =>
+    isCategory(address, "self") || isTagged(address, "defi");
 
   const pretty = (address: string): string =>
     getName(address) || (isSelf(address) ? "self" : address.substring(0, 10));
@@ -255,7 +266,7 @@ export const parseEthTxFactory = (input: InputData): any => {
 
     event.category = getCategory(event);
     event.description = getDescription(event);
-    log.debug(event.description);
+    log.info(event.description);
 
     return event;
   };

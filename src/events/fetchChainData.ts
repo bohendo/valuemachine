@@ -117,7 +117,7 @@ export const fetchChainData = async (input: InputData): Promise<ChainData> => {
     const externaltxHistory = await provider.getHistory(address);
     log.info(`✅ externaltxHistory: ${externaltxHistory.length} logs`);
 
-    log.info(`💫 getting internaltxHistory..`);
+    log.info(`💫 getting internalTxHistory..`);
     const internalTxHistory = (await axios.get(
       `https://api.etherscan.io/api?module=account&action=txlistinternal&address=${
         address
@@ -127,7 +127,17 @@ export const fetchChainData = async (input: InputData): Promise<ChainData> => {
     )).data.result;
     log.info(`✅ internalTxHistory: ${internalTxHistory.length} logs`);
 
-    const txHistory = externaltxHistory.concat(internalTxHistory);
+    log.info(`💫 getting tokenTxHistory..`);
+    const tokenTxHistory = (await axios.get(
+      `https://api.etherscan.io/api?module=account&action=tokentx&address=${
+        address
+      }&apikey=${
+        etherscanKey
+      }&sort=asc`,
+    )).data.result;
+    log.info(`✅ tokenTxHistory: ${tokenTxHistory.length} logs`);
+
+    const txHistory = externaltxHistory.concat(internalTxHistory).concat(tokenTxHistory);
 
     addressData.transactions = Array.from(new Set(addressData.transactions.concat(
       txHistory.map(tx => tx.hash),
@@ -139,6 +149,20 @@ export const fetchChainData = async (input: InputData): Promise<ChainData> => {
       if (tx && tx.hash && !chainData.calls[tx.hash]) {
         chainData.calls[tx.hash] = {
           block: parseInt(tx.blockNumber.toString(), 10),
+          from: tx.from,
+          hash: tx.hash,
+          timestamp: (new Date((tx.timestamp || (tx as any).timeStamp) * 1000)).toISOString(),
+          to: tx.to,
+          value: formatEther(tx.value),
+        };
+      }
+    }
+
+    for (const tx of tokenTxHistory) {
+      if (tx && tx.hash && !chainData.calls[tx.hash]) {
+        chainData.calls[tx.hash] = {
+          block: parseInt(tx.blockNumber.toString(), 10),
+          contractAddress: tx.contractAddress,
           from: tx.from,
           hash: tx.hash,
           timestamp: (new Date((tx.timestamp || (tx as any).timeStamp) * 1000)).toISOString(),

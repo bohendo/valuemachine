@@ -133,7 +133,7 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[], logLevel: numbe
       if (mergedE.hash && newE.hash && mergedE.hash !== newE.hash) { continue; }
       if (sameEvent(mergedE, newE)) {
         mergedE = mergeEvents(mergedE, newE);
-        log.debug(`Merged event "${newE.description}" into "${mergedE.description}"`);
+        log.info(`Merged event "${newE.description}" into "${mergedE.description}"`);
         consolidated.push(newI);
       }
     }

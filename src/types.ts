@@ -38,6 +38,7 @@ export type TransactionData = {
 
 export type CallData = {
   block: number;
+  contractAddress?: HexString; // undefined if ETH else ERC20 address
   from: HexString;
   hash: HexString;
   timestamp: TimestampString;

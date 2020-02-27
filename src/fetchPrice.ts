@@ -46,11 +46,11 @@ export const fetchPrice = async (
     if (!prices.ids[asset]) {
       log.info(`Fetching coin id for ${asset}..`);
       const coins = (await axios(`${coingeckoUrl}/coins/list`)).data;
-      const id = coins.find(coin => coin.symbol.toLowerCase() === asset.toLowerCase()).id;
-      if (!id) {
+      const coin = coins.find(coin => coin.symbol.toLowerCase() === asset.toLowerCase());
+      if (!coin || !coin.id) {
         throw new Error(`Asset ${asset} is not supported by coingecko`);
       }
-      prices.ids[asset] = id;
+      prices.ids[asset] = coin.id;
       saveCache(prices);
     }
     const coinId = prices.ids[asset];
