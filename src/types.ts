@@ -1,10 +1,10 @@
 import { Field, Forms } from "./mappings";
 export { Field, Forms };
 
-// DateString follows ISO 8601 format
-export type DateString = string;
-export type DecimalString = string;
-export type HexString = string;
+export type DateString = string; // eg "2020-02-27" aka TimestampString.split("T")[0] 
+export type DecimalString = string; // eg "3.1415"
+export type HexString = string; // eg "0xabc123"
+export type TimestampString = string; // eg "2020-02-27T09:51:30.444Z" (ISO 8601 format)
 
 export type AddressData = {
   address: HexString;
@@ -31,7 +31,7 @@ export type TransactionData = {
   index?: number;
   logs?: Array<TransactionLog>;
   nonce: number;
-  timestamp: DateString;
+  timestamp: TimestampString;
   to: HexString | null;
   value: DecimalString;
 };
@@ -40,14 +40,14 @@ export type CallData = {
   block: number;
   from: HexString;
   hash: HexString;
-  timestamp: DateString;
+  timestamp: TimestampString;
   to: HexString;
   value: DecimalString;
 };
 
 // format of chain-data.json
 export type ChainData = {
-  lastUpdated: DateString;
+  lastUpdated: TimestampString;
   addresses: { [address: string]: AddressData };
   transactions: { [hash: string]: TransactionData };
   calls: { [hash: string]: CallData };
@@ -85,10 +85,19 @@ export type AssetType = keyof typeof AssetTypes;
 
 export type Asset = {
   amount: DecimalString;
-  date?: DateString;
+  date?: TimestampString;
   price?: DecimalString;
   type: AssetType | string;
   value?: DecimalString;
+}
+
+export type PriceData = {
+  ids: {
+    [key: string /* AssetType */]: string;
+  };
+  [key: string /* DateString */]: {
+    [key: string /* AssetType */]: DecimalString;
+  };
 }
 
 export const EventCategories = {
@@ -104,7 +113,7 @@ export type Event = {
   assetsIn?: Asset[];
   assetsOut?: Asset[];
   category?: EventCategory | string;
-  date: DateString;
+  date: TimestampString;
   description?: string;
   from?: string;
   hash?: HexString;

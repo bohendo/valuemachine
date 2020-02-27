@@ -44,7 +44,6 @@ process.on("SIGINT", logAndExit);
   };
 
   log.info(`Done compiling financial events.\n`);
-  process.exit(0);
 
   ////////////////////////////////////////
   // Step 2: Start out w empty forms containing raw user supplied data
