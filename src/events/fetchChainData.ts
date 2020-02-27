@@ -50,11 +50,11 @@ export const fetchChainData = async (input: InputData): Promise<ChainData> => {
   const chainData = loadCache(log);
 
   const activeAddresses = addressBook
-    .filter(a => a.category === "self" && a.tags.includes("active"))
+    .filter(a => a.category === "self" && a.tags.includes("active") && !a.tags.includes("ignore"))
     .map(a => a.address.toLowerCase());
 
   const retiredAddresses = addressBook
-    .filter(a => a.category === "self" && !a.tags.includes("active"))
+    .filter(a => a.category === "self" && !a.tags.includes("active") && !a.tags.includes("ignore"))
     .map(a => a.address.toLowerCase());
 
   const addresses = activeAddresses.concat(retiredAddresses);

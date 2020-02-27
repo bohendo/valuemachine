@@ -41,10 +41,8 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
       } else {
         throw new Error(`I don't know how to parse events from ${event}`);
       }
-    } else if (typeof event !== "string" && event.date) {
-      events = coalesce(events, [event as Event], input.logLevel);
-    } else {
-      throw new Error(`I don't know how to parse event: ${JSON.stringify(event)}`);
+    } else if (typeof event !== "string") {
+      events = coalesce(events, [{ source: "personal", ...(event as Event) }], input.logLevel);
     }
   }
   events = events.filter(event => !assetListsEq(event.assetsIn, event.assetsOut));

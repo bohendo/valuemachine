@@ -32,7 +32,7 @@ export const getCapitalGains = async (
   input: InputData,
   events: Event[],
 ): Promise<CapitalGain[]> => {
-  const log = new Logger("CapitalGains", 5); // input.logLevel);
+  const log = new Logger("CapitalGains", input.logLevel);
   const assets: { [key: string]: Asset[] } = {};
   const startingAssets: { [key: string]: Asset[] } = {};
   const trades = [];
@@ -49,16 +49,15 @@ export const getCapitalGains = async (
   )) {
     const date = event.date;
 
-    if (event.description.includes("LTC")) {
-      log.setLevel(5);
-    } else {
-      log.setLevel(0);
-    }
+    // if (event.description.includes("ETH")) { log.setLevel(5); } else { log.setLevel(0); }
 
     log.info(`Processing event: ${event.description || JSON.stringify(event)}`);
     log.debug(`Processing event: ${JSON.stringify(event)}`);
 
     for (const asset of event.assetsIn) {
+      if (["USD", "SAI", "DAI"].includes(asset.type)) {
+        continue; // Buying USD-equivalents doesn't need to be tracked
+      }
       if (!assets[asset.type]) {
         log.debug(`Creating new asset category for ${asset.type}`);
         assets[asset.type] = [];
@@ -72,9 +71,12 @@ export const getCapitalGains = async (
     }
 
     for (const asset of event.assetsOut) {
+      if (["USD", "SAI", "DAI"].includes(asset.type)) {
+        continue; // Selling USD-equivalents never yields cap gains
+      }
 
       if (!assets[asset.type]) {
-        log.info(`Creating new asset category for ${asset.type}`);
+        log.debug(`Creating new asset category for ${asset.type}`);
         assets[asset.type] = [];
       }
 
@@ -95,7 +97,7 @@ export const getCapitalGains = async (
           break;
         }
 
-        const price = chunk.price; //|| await getPrice(input, asset.type, date);
+        const price = event.prices[asset.type] || await getPrice(input, asset.type, date);
         if (!price) {
           throw new Error(`Chunk is missing a price; ${JSON.stringify(chunk, null, 2)}`);
         }

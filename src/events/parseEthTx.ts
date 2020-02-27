@@ -22,11 +22,26 @@ export const parseEthCallFactory = (input: InputData): any => {
 
   const isSelf = (address: string | null): boolean => isCategory(address, "self");
 
+  const shouldIgnore = (address: string | null): boolean =>
+    !address || input.addressBook
+      .filter(a => a.tags.includes("ignore"))
+      .map(a => a.address.toLowerCase())
+      .includes(address.toLowerCase());
+
   const pretty = (address: string): string =>
     getName(address) || (isSelf(address) ? "self" : address.substring(0, 10));
 
   return (call: CallData): any => {
     const log = new Logger(`EthCall ${call.hash.substring(0, 10)}`, input.logLevel);
+
+    if (shouldIgnore(call.from)) {
+      log.debug(`Skipping call from ignored address ${pretty(call.from)}`);
+      return null;
+    }
+    if (shouldIgnore(call.to)) {
+      log.debug(`Skipping call to ignored address ${pretty(call.to)}`);
+      return null;
+    }
 
     const event = {
       assetsIn: [],
@@ -84,7 +99,17 @@ export const parseEthTxFactory = (input: InputData): any => {
       .map(a => a.address.toLowerCase())
       .includes(address.toLowerCase());
 
-  const isSelf = (address: string | null): boolean => isCategory(address, "self");
+  const isTagged = (address: string | null, tag: string): boolean =>
+    address && input.addressBook
+      .filter(a => a.tags.includes(tag))
+      .map(a => a.address.toLowerCase())
+      .includes(address.toLowerCase());
+
+  const isSelf = (address: string | null): boolean =>
+    isCategory(address, "self") || isTagged(address, "defi");
+
+  const shouldIgnore = (address: string | null): boolean =>
+    isTagged(address, "ignore");
 
   const pretty = (address: string): string =>
     getName(address) || (isSelf(address) ? "self" : address.substring(0, 10));
@@ -96,6 +121,16 @@ export const parseEthTxFactory = (input: InputData): any => {
 
   return (tx: TransactionData): Event | null => {
     const log = new Logger(`EthTx ${tx.hash.substring(0, 10)}`, input.logLevel);
+
+    if (shouldIgnore(tx.from)) {
+      log.debug(`Skipping tx from ignored address ${pretty(tx.from)}`);
+      return null;
+    }
+    if (shouldIgnore(tx.to)) {
+      log.debug(`Skipping tx to ignored address ${pretty(tx.to)}`);
+      return null;
+    }
+
     if (!tx.logs) {
       throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);
     }
