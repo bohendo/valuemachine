@@ -142,7 +142,7 @@ export type InputData = {
 }
 
 // aka row of f8949
-export type TaxableTrade = {
+export type CapitalGain = {
   Adjustment: string;
   Code: string;
   Cost: string;
@@ -157,5 +157,5 @@ export type FinancialData = {
   expenses: Array<Event>;
   income: Array<Event>;
   input: InputData;
-  trades: TaxableTrade[];
+  trades: CapitalGain[];
 }

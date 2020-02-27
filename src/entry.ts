@@ -40,7 +40,7 @@ process.on("SIGINT", logAndExit);
     expenses: financialEvents.filter(e => e.category === "expense"),
     income: financialEvents.filter(e => e.category === "income"),
     input,
-    trades: getCapitalGains(input, financialEvents),
+    trades: await getCapitalGains(input, financialEvents),
   };
 
   log.info(`Done compiling financial events.\n`);

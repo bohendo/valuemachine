@@ -2,9 +2,10 @@ import {
   Asset,
   Event,
   InputData,
-  TaxableTrade,
+  CapitalGain,
 } from "./types";
 import { add, eq, gt, Logger, lt, mul, round, sub } from "./utils";
+import { fetchPrice } from "./fetchPrice";
 
 const stringifyAssets = (assets): string => {
   let output = "[\n";
@@ -20,7 +21,17 @@ const stringifyAssets = (assets): string => {
   return `${output}]`;
 };
 
-export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade[] => {
+const getPrice = async (input: InputData, asset: string, date: string): Promise<string> =>
+  ["USD", "DAI", "SAI"].includes(asset)
+    ? "1"
+    : ["ETH", "WETH"].includes(asset)
+      ? await fetchPrice(input, "ETH", date)
+      : await fetchPrice(input, asset, date);
+
+export const getCapitalGains = async (
+  input: InputData,
+  events: Event[],
+): Promise<CapitalGain[]> => {
   const log = new Logger("CapitalGains", 5); // input.logLevel);
   const assets: { [key: string]: Asset[] } = {};
   const startingAssets: { [key: string]: Asset[] } = {};
@@ -52,15 +63,10 @@ export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade
         log.debug(`Creating new asset category for ${asset.type}`);
         assets[asset.type] = [];
       }
-      const price = ["USD", "DAI", "SAI"].includes(asset.type) ? "1" : event.prices[asset.type];
-      if (!price) {
-        throw new Error(`Price info is missing for asset ${asset.type} on ${date}`);
-        break;
-      }
       assets[asset.type].push({
         amount: asset.amount,
         date,
-        price,
+        price: event.prices[asset.type] || await getPrice(input, asset.type, date),
         type: asset.type,
       });
     }
@@ -89,10 +95,9 @@ export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade
           break;
         }
 
-        const price = ["USD", "DAI", "SAI"].includes(asset.type) ? "1" : event.prices[asset.type];
+        const price = chunk.price; //|| await getPrice(input, asset.type, date);
         if (!price) {
-          throw new Error(`Price info is missing for asset ${asset.type} on ${date}`);
-          break;
+          throw new Error(`Chunk is missing a price; ${JSON.stringify(chunk, null, 2)}`);
         }
 
         if (eq(chunk.amount, amt)) {

@@ -26,7 +26,7 @@ const loadCache = (log: Logger): PriceData => {
 const saveCache = (priceData: PriceData): void =>
   fs.writeFileSync(cacheFile, JSON.stringify(priceData, null, 2));
 
-export const getPrice = async (
+export const fetchPrice = async (
   input: InputData,
   asset: string,
   timestamp: TimestampString,
@@ -44,6 +44,7 @@ export const getPrice = async (
 
     // get coin id
     if (!prices.ids[asset]) {
+      log.info(`Fetching coin id for ${asset}..`);
       const coins = (await axios(`${coingeckoUrl}/coins/list`)).data;
       const id = coins.find(coin => coin.symbol.toLowerCase() === asset.toLowerCase()).id;
       if (!id) {
@@ -59,10 +60,15 @@ export const getPrice = async (
 
     // DD-MM-YYYY
     const coingeckoDate = `${date.split("-")[2]}-${date.split("-")[1]}-${date.split("-")[0]}`;
+    log.info(`Fetching price of ${asset} on ${coingeckoDate}..`);
     const response = (await axios(
       `${coingeckoUrl}/coins/${coinId}/history?date=${coingeckoDate}`,
     )).data;
-    prices[date][asset] = response.market_data.current_price.usd;
+    try {
+      prices[date][asset] = response.market_data.current_price.usd;
+    } catch (e) {
+      throw new Error(`Couldn't get price, double check that ${asset} existed on ${coingeckoDate}`);
+    }
     saveCache(prices);
   }
 
