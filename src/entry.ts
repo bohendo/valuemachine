@@ -6,7 +6,7 @@ import { mappings, Forms } from "./mappings";
 import { InputData } from "./types";
 import { emptyForm, mergeForms, translate } from "./utils";
 import { getFinancialEvents } from "./events";
-import { getTaxableTrades } from "./getTaxableTrades";
+import { getCapitalGains } from "./getCapitalGains";
 
 const logAndExit = (msg: any): void => {
   console.error(msg);
@@ -36,10 +36,13 @@ process.on("SIGINT", logAndExit);
   console.log(`Done gathering financial events.\n`);
 
   const financialData = {
-    expenses: [], // TODO: get taxable expenses from events
-    income: [], // TODO: get taxable income from events
-    trades: getTaxableTrades(input, financialEvents),
+    expenses: financialEvents.filter(e => e.category === "expense"),
+    income: financialEvents.filter(e => e.category === "income"),
+    trades: getCapitalGains(input, financialEvents),
   };
+
+  console.log(`Done compiling financial events.\n`);
+  process.exit(0);
 
   ////////////////////////////////////////
   // Step 2: Start out w empty forms containing raw user supplied data

@@ -6,13 +6,6 @@ import {
 } from "./types";
 import { add, eq, gt, lt, mul, round, sub } from "./utils";
 
-const emptyEvent = {
-  assetsIn: [],
-  assetsOut: [],
-  prices: {},
-  tags: [],
-};
-
 const stringifyAssets = (assets): string => {
   let output = "[\n";
   for (const [key, value] of Object.entries(assets)) {
@@ -30,14 +23,16 @@ const stringifyAssets = (assets): string => {
 // set to false for lifo
 // const fifoMode = true;
 
-export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrade[] => {
+export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade[] => {
   const debugMode = true; // input.logLevel > 3;
   const assets: { [key: string]: Asset[] } = {};
   const startingAssets: { [key: string]: Asset[] } = {};
   const trades = [];
-  let totalCost = "0";
-  let totalProceeds = "0";
-  let totalProfit = "0";
+  const total = {
+    cost: {},
+    proceeds: {},
+    profit: {},
+  };
   debugMode && console.log(`Parsing ${events.length} events for taxable trades..`);
 
   for (const event of events.sort(
@@ -70,6 +65,7 @@ export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrad
       let amt = asset.amount;
       let cost = "0";
       let profit = "0";
+      let proceeds = "0";
 
       const getNext = (type: string): Asset => assets[type].pop();
       const putBack = (type: string, asset: Asset): number => assets[type].unshift(asset);
@@ -101,7 +97,7 @@ export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrad
           amt = sub(amt, chunk.amount);
         }
       }
-      const proceeds = mul(asset.price, asset.amount);
+      proceeds = mul(asset.price, asset.amount);
 
       trades.push({
         Adjustment: "",
@@ -115,9 +111,9 @@ export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrad
         Proceeds: proceeds,
       });
 
-      totalProceeds = add([totalProceeds, proceeds]);
-      totalCost = add([totalCost, cost]);
-      totalProfit = add([totalProfit, profit]);
+      total.proceeds[asset.type] = add([total.proceeds[asset.type], proceeds]);
+      total.cost[asset.type] = add([total.cost[asset.type], cost]);
+      total.profit[asset.type] = add([total.profit[asset.type], profit]);
 
     }
 
@@ -125,6 +121,13 @@ export const getTaxableTrades = (input: InputData, events: Event[]): TaxableTrad
 
   ////////////////////////////////////////
   // Print Results
+
+  const totalCost =
+    Object.keys(total.cost).reduce((cur, acc) => add([acc, total.cost[cur]]), "0");
+  const totalProceeds =
+    Object.keys(total.proceeds).reduce((cur, acc) => add([acc, total.proceeds[cur]]), "0");
+  const totalProfit =
+    Object.keys(total.profit).reduce((cur, acc) => add([acc, total.profit[cur]]), "0");
 
   console.log(`Starting Assets: ${startingAssets}`); 
   for (const trade of trades) {
