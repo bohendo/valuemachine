@@ -20,13 +20,14 @@ export const parseEthCallFactory = (input: InputData): any => {
       .map(a => a.address.toLowerCase())
       .includes(address.toLowerCase());
 
-  const isSelf = (address: string | null): boolean => isCategory(address, "self");
-
   const isTagged = (address: string | null, tag: string): boolean =>
     address && input.addressBook
       .filter(a => a.tags.includes(tag))
       .map(a => a.address.toLowerCase())
       .includes(address.toLowerCase());
+
+  const isSelf = (address: string | null): boolean =>
+    isCategory(address, "self") || isTagged(address, "defi");
 
   const shouldIgnore = (address: string | null): boolean =>
     isTagged(address, "ignore");
@@ -91,8 +92,8 @@ export const parseEthCallFactory = (input: InputData): any => {
       throw new Error(`Idk how to parse call: ${JSON.stringify(call)}`);
     }
 
-    event.category = getCategory(event);
-    event.description = getDescription(event);
+    event.category = getCategory(event, log);
+    event.description = getDescription(event, log);
     log.info(event.description);
     return event;
   };
@@ -264,8 +265,8 @@ export const parseEthTxFactory = (input: InputData): any => {
       }
     }
 
-    event.category = getCategory(event);
-    event.description = getDescription(event);
+    event.category = getCategory(event, log);
+    event.description = getDescription(event, log);
     log.info(event.description);
 
     return event;

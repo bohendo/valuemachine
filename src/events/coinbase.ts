@@ -29,8 +29,8 @@ export const formatCoinbase = (filename: string, logLevel?: number): Event[] => 
       source: "coinbase",
       tags: [],
     } as Event;
-    event.category = getCategory(event);
-    event.description = getDescription(event);
+    event.category = getCategory(event, log);
+    event.description = getDescription(event, log);
     log.debug(event.description);
     return event;
   });

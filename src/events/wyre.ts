@@ -23,8 +23,8 @@ export const formatWyre = (filename: string, logLevel: number): Event[] => {
       source: "sendwyre",
       tags: [],
     } as Event;
-    event.category = getCategory(event);
-    event.description = getDescription(event);
+    event.category = getCategory(event, log);
+    event.description = getDescription(event, log);
     log.debug(event.description);
     return event;
   }).filter(row => !!row);

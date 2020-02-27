@@ -49,7 +49,7 @@ export const getCapitalGains = async (
   )) {
     const date = event.date;
 
-    // if (event.description.includes("GEN")) { log.setLevel(5); } else { log.setLevel(0); }
+    // if (event.description.includes("BAT")) { log.setLevel(5); } else { log.setLevel(0); }
 
     log.info(`Processing event: ${event.description || JSON.stringify(event)}`);
     log.debug(`Processing event: ${JSON.stringify(event)}`);
