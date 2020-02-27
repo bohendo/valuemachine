@@ -21,7 +21,7 @@ const stringifyAssets = (assets): string => {
 };
 
 export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade[] => {
-  const log = new Logger("CapitalGains", input.logLevel);
+  const log = new Logger("CapitalGains", 5); // input.logLevel);
   const assets: { [key: string]: Asset[] } = {};
   const startingAssets: { [key: string]: Asset[] } = {};
   const trades = [];
@@ -38,18 +38,29 @@ export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade
   )) {
     const date = event.date;
 
-    log.debug(`Processing event: ${JSON.stringify(event)}`);
+    if (event.description.includes("LTC")) {
+      log.setLevel(5);
+    } else {
+      log.setLevel(0);
+    }
+
     log.info(`Processing event: ${event.description || JSON.stringify(event)}`);
+    log.debug(`Processing event: ${JSON.stringify(event)}`);
 
     for (const asset of event.assetsIn) {
       if (!assets[asset.type]) {
-        log.info(`Creating new asset category for ${asset.type}`);
+        log.debug(`Creating new asset category for ${asset.type}`);
         assets[asset.type] = [];
+      }
+      const price = ["USD", "DAI", "SAI"].includes(asset.type) ? "1" : event.prices[asset.type];
+      if (!price) {
+        throw new Error(`Price info is missing for asset ${asset.type} on ${date}`);
+        break;
       }
       assets[asset.type].push({
         amount: asset.amount,
         date,
-        price: event.prices[asset.type],
+        price,
         type: asset.type,
       });
     }
@@ -71,26 +82,37 @@ export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade
         if (eq(amt, "0") || lt(amt, "0")) {
           break;
         }
+
         const chunk = getNext(asset.type);
         if (!chunk) {
           throw new Error(`Attempting to sell more ${asset.type} than we bought.`);
           break;
         }
+
+        const price = ["USD", "DAI", "SAI"].includes(asset.type) ? "1" : event.prices[asset.type];
+        if (!price) {
+          throw new Error(`Price info is missing for asset ${asset.type} on ${date}`);
+          break;
+        }
+
         if (eq(chunk.amount, amt)) {
-          profit = add([profit, sub(mul(amt, chunk.price), mul(amt, chunk.price))]);
+          profit = add([profit, mul(amt, sub(price, chunk.price))]);
           cost = add([cost, mul(chunk.price, amt)]);
           chunk.amount = sub(chunk.amount, amt);
+          log.debug(`Selling exact chunk of ${asset.type} for profit of ${profit} to finish sale`);
           break;
         } else if (gt(chunk.amount, amt)) {
-          profit = add([profit, sub(mul(amt, chunk.price), mul(amt, chunk.price))]);
+          profit = add([profit, mul(amt, sub(price, chunk.price))]);
           cost = add([cost, mul(chunk.price, amt)]);
           chunk.amount = sub(chunk.amount, amt);
           putBack(asset.type, chunk);
+          log.debug(`Selling part of chunk of ${asset.type} for profit of ${profit} to finish sale`);
           break;
         } else {
-          profit = add([profit, mul(sub(chunk.price, chunk.price), chunk.amount)]);
+          profit = add([profit, mul(chunk.amount, sub(price, chunk.price))]);
           cost = add([cost, mul(chunk.price, chunk.amount)]);
           amt = sub(amt, chunk.amount);
+          log.debug(`Selling entire chunk of ${asset.type} for profit of ${profit} and continuing sale`);
         }
       }
       proceeds = mul(asset.price, asset.amount);
@@ -111,6 +133,12 @@ export const getCapitalGains = (input: InputData, events: Event[]): TaxableTrade
       total.cost[asset.type] = add([total.cost[asset.type], cost]);
       total.profit[asset.type] = add([total.profit[asset.type], profit]);
 
+    }
+
+    for (const asset of Object.keys(assets)) {
+      if (total.cost[asset] && total.proceeds[asset] && total.profit[asset]) {
+        log.debug(`So far, we've spent $${round(total.cost[asset])}, recieved $${round(total.proceeds[asset])}, and profited $${round(total.profit[asset])} from ${asset}`);
+      }
     }
 
   }

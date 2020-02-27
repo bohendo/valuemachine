@@ -15,6 +15,10 @@ export class Logger {
       typeof logLevel !== "undefined" ? parseInt(logLevel.toString(), 10) : this.logLevel;
   }
 
+  public setLevel(logLevel: number): void {
+    this.logLevel = logLevel;
+  }
+
   public error(msg: string): void {
     this.log("error", msg);
   }
