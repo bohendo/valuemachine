@@ -1,6 +1,7 @@
 import { isHexString, arrayify } from "ethers/utils";
 import { Asset, Event } from "../types";
-import { addAssets, assetsEq, Logger, round } from "../utils";
+import { assetsEq, Logger } from "../utils";
+import { getCategory, getDescription } from "./utils";
 
 const castEvent = (event: any): Event => ({
   assetsIn: [],
@@ -81,7 +82,7 @@ const sameEvent = (e1: Event, e2: Event): boolean => (
     )
   );
 
-const mergeEvents = (e1: Event, e2: Event): Event => {
+const mergeEvents = (e1: Event, e2: Event, log: Logger): Event => {
   const merged = {} as Event;
   const prefer = (source: string, yea: boolean, key: string, e1: Event, e2: Event): string =>
     (e1.source.startsWith(source)) === yea ? (e1[key] || e2[key]) :
@@ -99,25 +100,8 @@ const mergeEvents = (e1: Event, e2: Event): Event => {
   ])).sort().join("+");
   merged.tags = e1.tags.concat(e2.tags);
   merged.to = prefer("eth", false, "to", e1, e2);
-  merged.description = prefer("eth", true, "description", e1, e2);
-  merged.category = prefer("eth", false, "category", e1, e2);
-
-  // TODO: dedup this logic
-  const income = addAssets(merged.assetsIn).map(a => `${round(a.amount)} ${a.type}`).join(", ");
-  const expense = addAssets(merged.assetsOut).map(a => `${round(a.amount)} ${a.type}`).join(", ");
-  if (merged.assetsIn.length === 0 && merged.assetsOut.length === 0) {
-    return null;
-  } else if (merged.assetsIn.length !== 0 && merged.assetsOut.length === 0) {
-    merged.category = merged.tags.includes("cdp") ? "borrow" : "income";
-    merged.description = `${merged.category} of ${income} from ${merged.from}`;
-  } else if (merged.assetsIn.length === 0 && merged.assetsOut.length !== 0) {
-    merged.category = merged.tags.includes("cdp") ? "repayment" : "expense";
-    merged.description = `${merged.category} of ${expense} to ${merged.to}`;
-  } else if (merged.assetsIn.length !== 0 && merged.assetsOut.length !== 0) {
-    merged.category = "swap";
-    merged.description = `${merged.category} of ${expense} for ${income}`;
-  }
-
+  merged.category = getCategory(merged, log);
+  merged.description = getDescription(merged, log);
   return merged;
 };
 
@@ -132,7 +116,7 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[], logLevel: numbe
       if (consolidated.includes(newI)) { continue; }
       if (mergedE.hash && newE.hash && mergedE.hash !== newE.hash) { continue; }
       if (sameEvent(mergedE, newE)) {
-        mergedE = mergeEvents(mergedE, newE);
+        mergedE = mergeEvents(mergedE, newE, log);
         log.info(`Merged event "${newE.description}" into "${mergedE.description}"`);
         consolidated.push(newI);
       }
