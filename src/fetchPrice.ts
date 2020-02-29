@@ -65,7 +65,7 @@ export const fetchPrice = async (
       `${coingeckoUrl}/coins/${coinId}/history?date=${coingeckoDate}`,
     )).data;
     try {
-      prices[date][asset] = response.market_data.current_price.usd;
+      prices[date][asset] = response.market_data.current_price.usd.toString();
     } catch (e) {
       throw new Error(`Couldn't get price, double check that ${asset} existed on ${coingeckoDate}`);
     }
