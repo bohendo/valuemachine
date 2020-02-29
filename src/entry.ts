@@ -6,7 +6,7 @@ import { mappings, Forms } from "./mappings";
 import { InputData } from "./types";
 import { emptyForm, Logger, mergeForms, translate } from "./utils";
 import { getFinancialEvents } from "./events";
-import { getCapitalGains } from "./getCapitalGains";
+import { getValueMachine } from "./vm";
 
 const logAndExit = (msg: any): void => {
   console.error(msg);
@@ -29,24 +29,29 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  let financialEvents;
+  let events;
 
   try {
-    financialEvents = JSON.parse(fs.readFileSync(`${outputFolder}/events.json`, "utf8"));
-    log.info(`Loaded ${financialEvents.length} events from cache`);
+    events = JSON.parse(fs.readFileSync(`${outputFolder}/events.json`, "utf8"));
+    log.info(`Loaded ${events.length} events from cache`);
   } catch (e) {
-    financialEvents = await getFinancialEvents(input);
-    fs.writeFileSync(`${outputFolder}/events.json`, JSON.stringify(financialEvents, null, 2));
+    events = await getFinancialEvents(input);
+    fs.writeFileSync(`${outputFolder}/events.json`, JSON.stringify(events, null, 2));
     // Dump a copy of events to project root too just for dev convenience
-    fs.writeFileSync(`./events.json`, JSON.stringify(financialEvents, null, 2));
+    fs.writeFileSync(`./events.json`, JSON.stringify(events, null, 2));
     log.info(`Done gathering financial events.\n`);
   }
 
+  const getNetWorth = (state: State): State => state;
+  const valueMachine = getValueMachine(input);
+  const [state, logs] = valueMachine(events);
+
+  console.log(`net worth: ${getNetWorth(state)}}`);
+
   const financialData = {
-    expenses: financialEvents.filter(e => e.category === "expense"),
-    income: financialEvents.filter(e => e.category === "income"),
-    input,
-    trades: await getCapitalGains(input, financialEvents),
+    expenses: logs.filter(log => log.type === "expense"),
+    income: logs.filter(log => log.type === "income"),
+    trades: logs.filter(log => log.type === "f8949"),
   };
 
   log.info(`Done compiling financial events.\n`);
