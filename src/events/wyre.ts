@@ -34,11 +34,19 @@ export const formatWyre = (filename: string, logLevel: number): Event[] => {
       event.to = "sendwyre";
       event.assetsOut.push(output);
       event.tags.push("ignore");
+      // bc sendwyre calls SAI DAI..
+      if (["DAI", "SAI"].includes(output.type)) {
+        event.assetsOut.push({ ...output, type: output.type === "SAI" ? "DAI" : "SAI" });
+      }
     } else if (row["Type"] === "OUTGOING") {
       event.from = "sendwyre";
       event.to = "external";
       event.assetsIn.push(input);
       event.tags.push("ignore");
+      // bc sendwyre calls SAI DAI..
+      if (["DAI", "SAI"].includes(output.type)) {
+        event.assetsIn.push({ ...input, type: input.type === "SAI" ? "DAI" : "SAI" });
+      }
     }
 
     event.category = getCategory(event, log);
