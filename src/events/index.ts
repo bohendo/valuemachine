@@ -45,7 +45,10 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
       events = coalesce(events, [{ source: "personal", ...(event as Event) }], input.logLevel);
     }
   }
-  events = events.filter(event => !assetListsEq(event.assetsIn, event.assetsOut));
+  // 821
+  events = events.filter(
+    event => !assetListsEq(event.assetsIn, event.assetsOut) && !event.tags.includes("ignore"),
+  );
   log.info(`Filtered out useless events, we're left with ${events.length}`);
   return events;
 };
