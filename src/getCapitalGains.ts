@@ -49,9 +49,9 @@ export const getCapitalGains = async (
   )) {
     const date = event.date;
 
-    // if (event.description.includes("ETH")) { log.setLevel(5); } else { log.setLevel(3); }
+    // if (event.description.includes("WETH")) { log.setLevel(5); } else { log.setLevel(3); }
 
-    log.info(`Processing event ${eventIndex}: ${event.description || JSON.stringify(event)}`);
+    log.info(`Processing event #${eventIndex} on ${date.split("T")[0]}: ${event.description || JSON.stringify(event)}`);
     eventIndex += 1;
     // log.debug(`Processing event: ${JSON.stringify(event)}`);
 
@@ -138,6 +138,9 @@ export const getCapitalGains = async (
         let toDeposit = asset.amount;
         while (gt(toDeposit, "0")) {
           const chunk = getNext(asset.type);
+          if (!chunk) {
+            throw new Error(`Failed to deposit ${asset.type} into ${app} bc we don't have enough.`);
+          }
           if (eq(chunk.amount, toDeposit)) {
             assets[app][asset.type].push(chunk);
             toDeposit = sub(toDeposit, chunk.amount);
