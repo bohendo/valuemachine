@@ -1,6 +1,6 @@
 import { isHexString, arrayify } from "ethers/utils";
-import { Asset, Event } from "../types";
-import { assetsEq, Logger } from "../utils";
+import { TimestampString, DecimalString, Asset, Event } from "../types";
+import { add, diff, div, Logger, lt, mul } from "../utils";
 import { getCategory, getDescription } from "./utils";
 
 const castEvent = (event: any): Event => ({
@@ -11,14 +11,16 @@ const castEvent = (event: any): Event => ({
   ...event,
 });
 
-// inputs are ISO 8601 format date strings
-const datesAreClose = (d1: string, d2: string): boolean =>
-  Math.abs((new Date(d1)).getTime() - (new Date(d2)).getTime()) <= 1000 * 60 * 15;
+const datesAreClose = (d1: TimestampString, d2: TimestampString): boolean =>
+  Math.abs((new Date(d1)).getTime() - (new Date(d2)).getTime()) <= 1000 * 60 * 60;
+
+const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
+  lt(div(mul(diff(a1, a2), "200"), add([a1, a2])), "1");
 
 const dedupAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
   const loa = JSON.parse(JSON.stringify(loa1)) as Asset[];
   for (const a2 of loa2) {
-    if (loa.find(a => assetsEq(a, a2))) {
+    if (loa.find(a => a.type === a2.type && amountsAreClose(a.amount, a2.amount))) {
       continue;
     } else {
       loa.push(a2);
@@ -31,7 +33,7 @@ const commonAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
   const common: Asset[] = [];
   for (let i = 0; i < loa1.length; i++) {
     for (let j = 0; j < loa2.length; j++) {
-      if (assetsEq(loa1[i], loa2[j])) {
+      if (loa1[i].type === loa2[j].type && amountsAreClose(loa1[i].amount, loa2[j].amount)) {
         common.push(JSON.parse(JSON.stringify(loa1[i])));
       }
     }
@@ -39,29 +41,14 @@ const commonAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
   return common;
 };
 
-/*
-// If there's an address & it's in our addressBook then it should match the source or self
-const addressIsOk = (address: string | null | undefined, source: string): boolean => {
-  const res = (address ? (
-    address.startsWith("0x") ||
-    address.startsWith("self") ||
-    address.startsWith(source.substring(0,6))
-  ) : true);
-  return res;
-};
-*/
-
 const sameEvent = (e1: Event, e2: Event): boolean => (
     // If both events have properly formatted hashes & they match then we're done
     isHexString(e1.hash) && arrayify(e1.hash).length === 32 && 
     isHexString(e2.hash) && arrayify(e2.hash).length === 32 &&
     e1.hash === e2.hash
   ) || (
-    // Categories should be compatible (transfer can match either income or expense)
-    e1.category === e2.category || (
-      (e1.category === "transfer" && (e2.category === "income" || e2.category === "expense")) ||
-      (e2.category === "transfer" && (e1.category === "income" || e1.category === "expense"))
-    )
+    // Categories should be the same
+    e1.category === e2.category
   ) && (
     // Needs to have happened at about the same time
     datesAreClose(e1.date, e2.date)
@@ -88,8 +75,12 @@ const mergeEvents = (e1: Event, e2: Event, log: Logger): Event => {
     (e1.source.startsWith(source)) === yea ? (e1[key] || e2[key]) :
     (e2.source.startsWith(source)) === yea ? (e2[key] || e1[key]) :
     (e1[key] || e2[key]);
-  merged.assetsIn = dedupAssets(e1.assetsIn, e2.assetsIn);
-  merged.assetsOut = dedupAssets(e1.assetsOut, e2.assetsOut);
+  merged.assetsIn = e1.source.startsWith("eth")
+    ? dedupAssets(e1.assetsIn, e2.assetsIn)
+    : dedupAssets(e2.assetsIn, e1.assetsIn);
+  merged.assetsOut = e1.source.startsWith("eth")
+    ? dedupAssets(e1.assetsOut, e2.assetsOut)
+    : dedupAssets(e2.assetsOut, e1.assetsOut);
   merged.date = prefer("eth", true, "date", e1, e2);
   merged.from = prefer("eth", false, "from", e1, e2);
   merged.hash = prefer("eth", true, "hash", e1, e2);
@@ -106,7 +97,7 @@ const mergeEvents = (e1: Event, e2: Event, log: Logger): Event => {
 };
 
 export const coalesce = (oldEvents: Event[], newEvents: Event[], logLevel: number): Event[] => {
-  const log = new Logger("Coalesce", logLevel || 3);
+  const log = new Logger("Coalesce", logLevel);
   const consolidated = [] as number[];
   const events = [] as Event[];
   for (let oldI = 0; oldI < oldEvents.length; oldI++) {
