@@ -24,9 +24,12 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
 
   const chainData = await fetchChainData(input);
 
+  // Multiple calls can come from the same transaction
   const callEvents = chainData.calls.map(parseEthCallFactory(input)).filter(e => !!e) as Event[];
-
-  events = coalesce(events, callEvents, input.logLevel);
+  // Coalesce one at a time to merge duplicates
+  for (const call of callEvents) {
+    events = coalesce(events, [call], input.logLevel);
+  }
 
   log.info(`Found ${callEvents.length} events (${events.length} total) from ${Object.keys(chainData.calls).length} ethereum calls`);
 
