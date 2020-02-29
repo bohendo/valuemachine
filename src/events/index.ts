@@ -62,5 +62,6 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
     event => !assetListsEq(event.assetsIn, event.assetsOut) && !event.tags.includes("ignore"),
   );
   log.info(`Filtered out useless events, we're left with ${events.length}`);
+
   return events;
 };

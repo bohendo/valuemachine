@@ -29,13 +29,18 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const financialEvents = await getFinancialEvents(input);
+  let financialEvents;
 
-  // Dump a copy of events to disk to review manually if needed
-  fs.writeFileSync(`${outputFolder}/events.json`, JSON.stringify(financialEvents, null, 2));
-  fs.writeFileSync(`./events.json`, JSON.stringify(financialEvents, null, 2));
-
-  log.info(`Done gathering financial events.\n`);
+  try {
+    financialEvents = JSON.parse(fs.readFileSync(`${outputFolder}/events.json`, "utf8"));
+    log.info(`Loaded ${financialEvents.length} events from cache`);
+  } catch (e) {
+    financialEvents = await getFinancialEvents(input);
+    fs.writeFileSync(`${outputFolder}/events.json`, JSON.stringify(financialEvents, null, 2));
+    // Dump a copy of events to project root too just for dev convenience
+    fs.writeFileSync(`./events.json`, JSON.stringify(financialEvents, null, 2));
+    log.info(`Done gathering financial events.\n`);
+  }
 
   const financialData = {
     expenses: financialEvents.filter(e => e.category === "expense"),
