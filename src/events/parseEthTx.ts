@@ -27,7 +27,7 @@ export const parseEthCallFactory = (input: InputData): any => {
       .includes(address.toLowerCase());
 
   const isSelf = (address: string | null): boolean =>
-    isCategory(address, "self") || isTagged(address, "defi");
+    isCategory(address, "self");
 
   const shouldIgnore = (address: string | null): boolean =>
     isTagged(address, "ignore");
@@ -47,13 +47,24 @@ export const parseEthCallFactory = (input: InputData): any => {
       return null;
     }
 
+    const type = call.contractAddress
+      ? isCategory(call.contractAddress, "erc20")
+        ? getName(call.contractAddress)
+        : null
+      : "ETH";
+
+    if (!type) {
+      log.debug(`Skipping unsupported token: ${call.contractAddress}`);
+      return null;
+    }
+
     const event = {
       assetsIn: [],
       assetsOut: [],
       date: call.timestamp,
       from: pretty(call.from),
       hash: call.hash,
-      source: "ethCall",
+      source: type === "ETH" ? "ethCall" : "tokenCall",
       tags: [],
       to: pretty(call.to),
     } as Event;
@@ -70,10 +81,6 @@ export const parseEthCallFactory = (input: InputData): any => {
       log.debug(`Skipping simple zero-value ETH call`);
       return null;
     }
-
-    const type = call.contractAddress && isCategory(call.contractAddress, "erc20")
-      ? getName(call.contractAddress)
-      : "ETH";
 
     if (!type) {
       log.debug(`Token contract ${call.contractAddress} is not supported`);
