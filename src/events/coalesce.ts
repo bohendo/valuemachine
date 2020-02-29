@@ -3,16 +3,16 @@ import { TimestampString, DecimalString, Asset, Event } from "../types";
 import { add, diff, div, Logger, lt, mul } from "../utils";
 import { getCategory, getDescription } from "./utils";
 
-const castEvent = (event: any): Event => ({
+const castEvent = (event: any): Event => JSON.parse(JSON.stringify({
   assetsIn: [],
   assetsOut: [],
   prices: {},
   tags: [],
   ...event,
-});
+}));
 
 const datesAreClose = (d1: TimestampString, d2: TimestampString): boolean =>
-  Math.abs((new Date(d1)).getTime() - (new Date(d2)).getTime()) <= 1000 * 60 * 60;
+  Math.abs((new Date(d1)).getTime() - (new Date(d2)).getTime()) <= 1000 * 60 * 15;
 
 const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
   lt(div(mul(diff(a1, a2), "200"), add([a1, a2])), "1");
@@ -116,7 +116,10 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[], logLevel: numbe
   }
   for (let newI = 0; newI < newEvents.length; newI++) {
     if (!consolidated.includes(newI)) {
+      log.debug(`Adding unmerged event to output as-is: ${newEvents[newI].description}`);
       events.push(castEvent(newEvents[newI]));
+    } else {
+      log.debug(`Event merged into another, skipping: ${newEvents[newI].description}`);
     }
   }
   return events;
