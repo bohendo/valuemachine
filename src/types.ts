@@ -103,10 +103,12 @@ export type PriceData = {
 
 export const EventCategories = {
   "borrow": "borrow",
+  "deposit": "desposit",
   "expense": "expense",
   "income": "income",
   "repayment": "repayment",
   "swap": "swap",
+  "withdrawal": "withdrawal",
 };
 export type EventCategory = keyof typeof EventCategories;
 
