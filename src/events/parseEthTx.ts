@@ -26,11 +26,9 @@ export const parseEthCallFactory = (input: InputData): any => {
       .map(a => a.address.toLowerCase())
       .includes(address.toLowerCase());
 
-  const isSelf = (address: string | null): boolean =>
-    isCategory(address, "self");
+  const isSelf = (address: string | null): boolean => isCategory(address, "self");
 
-  const shouldIgnore = (address: string | null): boolean =>
-    isTagged(address, "ignore");
+  const shouldIgnore = (address: string | null): boolean => isTagged(address, "ignore");
 
   const pretty = (address: string): string =>
     getName(address) || (isSelf(address) ? "self" : address.substring(0, 10));
@@ -99,6 +97,10 @@ export const parseEthCallFactory = (input: InputData): any => {
       throw new Error(`Idk how to parse call: ${JSON.stringify(call)}`);
     }
 
+    if (isTagged(call.to, "defi")) {
+      event.tags.push("defi");
+    }
+
     event.category = getCategory(event, log);
     event.description = getDescription(event, log);
     log.info(event.description);
@@ -124,11 +126,9 @@ export const parseEthTxFactory = (input: InputData): any => {
       .map(a => a.address.toLowerCase())
       .includes(address.toLowerCase());
 
-  const shouldIgnore = (address: string | null): boolean =>
-    isTagged(address, "ignore");
+  const shouldIgnore = (address: string | null): boolean => isTagged(address, "ignore");
 
-  const isSelf = (address: string | null): boolean =>
-    isCategory(address, "self") || isTagged(address, "defi");
+  const isSelf = (address: string | null): boolean => isCategory(address, "self");
 
   const pretty = (address: string): string =>
     getName(address) || (isSelf(address) ? "self" : address.substring(0, 10));
@@ -140,6 +140,7 @@ export const parseEthTxFactory = (input: InputData): any => {
 
   return (tx: TransactionData): Event | null => {
     const log = new Logger(`EthTx ${tx.hash.substring(0, 10)}`, input.logLevel);
+    // if (tx.hash.startsWith("0x37f4fb")) { log.setLevel(5); } else { log.setLevel(3); }
 
     if (shouldIgnore(tx.from)) {
       log.debug(`Skipping tx from ignored address ${pretty(tx.from)}`);
@@ -199,6 +200,10 @@ export const parseEthTxFactory = (input: InputData): any => {
       event.category = "expense";
     }
 
+    if (isTagged(tx.to, "defi")) {
+      event.tags.push("defi");
+    }
+
     for (const txLog of tx.logs) {
       if (isCategory(txLog.address, "erc20")) {
         const assetType = getName(txLog.address).toUpperCase();
@@ -236,7 +241,7 @@ export const parseEthTxFactory = (input: InputData): any => {
         } else if (eventI && eventI.name === "Deposit") {
           const data = eventI.decode(txLog.data, txLog.topics);
           const amount = formatEther(data.wad);
-          log.debug(`Deposited ETH for ${amount} ${assetType}`);
+          log.debug(`Deposited ${amount} ${assetType}`);
           event.assetsIn.push({ amount, type: assetType });
         } else if (eventI && eventI.name === "Withdrawal") {
           const data = eventI.decode(txLog.data, txLog.topics);
@@ -272,9 +277,13 @@ export const parseEthTxFactory = (input: InputData): any => {
       }
     }
 
+    event.tags = Array.from(new Set(event.tags));
     event.category = getCategory(event, log);
     event.description = getDescription(event, log);
-    log.info(event.description);
+
+    event.description !== "null"
+      ? log.info(event.description)
+      : log.debug(event.description);
 
     return event;
   };
