@@ -6,6 +6,7 @@ docs/*
 personal.json
 chain-data.json
 price-data.json
+events.json
 
 # Cache
 .cache
