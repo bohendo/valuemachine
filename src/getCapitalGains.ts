@@ -28,6 +28,7 @@ const getPrice = async (input: InputData, asset: string, date: string): Promise<
       ? await fetchPrice(input, "ETH", date)
       : await fetchPrice(input, asset, date);
 
+// TODO: Refactor to (input) => applyEvent(event, state) => [state, logs]
 export const getCapitalGains = async (
   input: InputData,
   events: Event[],
@@ -49,7 +50,7 @@ export const getCapitalGains = async (
   )) {
     const date = event.date;
 
-    // if (event.description.includes("WETH")) { log.setLevel(5); } else { log.setLevel(3); }
+    if (event.description.includes(" ETH")) { log.setLevel(5); } else { log.setLevel(3); }
 
     log.info(`Processing event #${eventIndex} on ${date.split("T")[0]}: ${event.description || JSON.stringify(event)}`);
     eventIndex += 1;

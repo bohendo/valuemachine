@@ -6,6 +6,16 @@ export type DecimalString = string; // eg "3.1415"
 export type HexString = string; // eg "0xabc123"
 export type TimestampString = string; // eg "2020-02-27T09:51:30.444Z" (ISO 8601 format)
 
+export interface AddressBook {
+  getName(address: string | null): string;
+  isCategory(address: string | null, category: string): boolean;
+  isTagged(address: string | null, tag: string): boolean;
+  isSelf(address: string | null): boolean;
+  shouldIgnore(address: string | null): boolean;
+  pretty(address: string): string;
+}
+
+// TODO: remove
 export type AddressData = {
   address: HexString;
   block: number;
@@ -54,23 +64,6 @@ export type ChainData = {
   calls: CallData[]; // We can have multiple calls per txHash
 };
 
-export const AddressCategories = {
-  "erc20": "erc20",
-  "family": "family",
-  "friend": "friend",
-  "private": "private",
-  "public": "public",
-  "self": "self",
-};
-export type AddressCategory = keyof typeof AddressCategories;
-
-export type AddressBook = Array<{
-  address: HexString;
-  category: AddressCategory;
-  name; string;
-  tags: string[];
-}>
-
 export const AssetTypes = {
   "DAI": "DAI",
   "ETH": "ETH",
@@ -112,6 +105,16 @@ export const EventCategories = {
 };
 export type EventCategory = keyof typeof EventCategories;
 
+export const Sources = {
+  "coinbase": "coinbase",
+  "coingecko": "coingecko",
+  "ethCall": "ethCall",
+  "ethLog": "ethLog",
+  "ethTx": "ethTx",
+  "sendwyre": "sendwyre",
+};
+export type Source = keyof typeof Sources;
+
 export type Event = {
   assetsIn?: Asset[];
   assetsOut?: Asset[];
@@ -121,7 +124,7 @@ export type Event = {
   from?: string;
   hash?: HexString;
   prices?: { [key: string]: DecimalString };
-  source: string;
+  source: Source | string;
   tags?: string[];
   to?: string;
 }
@@ -133,8 +136,23 @@ export const CapitalGainsMethods = {
 };
 export type CapitalGainsMethod = keyof typeof CapitalGainsMethods;
 
+export const AddressCategories = {
+  "erc20": "erc20",
+  "family": "family",
+  "friend": "friend",
+  "private": "private",
+  "public": "public",
+  "self": "self",
+};
+export type AddressCategory = keyof typeof AddressCategories;
+
 export type InputData = {
-  addressBook?: AddressBook;
+  addressBook?: Array<{
+    address: HexString;
+    category: AddressCategory;
+    name; string;
+    tags: string[];
+  }>
   capitalGainsMethod: CapitalGainsMethod;
   etherscanKey?: string;
   events: Array<Event | string>;

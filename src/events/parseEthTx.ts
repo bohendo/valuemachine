@@ -2,38 +2,24 @@ import { AddressZero } from "ethers/constants";
 import { Interface, formatEther, EventDescription } from "ethers/utils";
 import { abi as tokenAbi } from "@openzeppelin/contracts/build/contracts/ERC20.json";
 
+import { getAddressBook } from "../addressBook";
 import { CallData, InputData, Event, TransactionData } from "../types";
 import { Logger, eq } from "../utils";
 import { getCategory, getDescription } from "./utils";
 import wethAbi from "./wethAbi.json";
 import saiAbi from "./saiAbi.json";
 
-export const parseEthCallFactory = (input: InputData): any => {
 
-  const getName = (address: string | null): string => !address ? "" :
-    input.addressBook.find(a => a.address.toLowerCase() === address.toLowerCase()) ?
-    input.addressBook.find(a => a.address.toLowerCase() === address.toLowerCase()).name : "";
-
-  const isCategory = (address: string | null, category: string): boolean =>
-    address && input.addressBook
-      .filter(a => a.category.toLowerCase() === category.toLowerCase())
-      .map(a => a.address.toLowerCase())
-      .includes(address.toLowerCase());
-
-  const isTagged = (address: string | null, tag: string): boolean =>
-    address && input.addressBook
-      .filter(a => a.tags.includes(tag))
-      .map(a => a.address.toLowerCase())
-      .includes(address.toLowerCase());
-
-  const isSelf = (address: string | null): boolean => isCategory(address, "self");
-
-  const shouldIgnore = (address: string | null): boolean => isTagged(address, "ignore");
-
-  const pretty = (address: string): string =>
-    getName(address) || (isSelf(address) ? "self" : address.substring(0, 10));
-
-  return (call: CallData): any => {
+export const parseEthCallFactory = (input: InputData): any =>
+  (call: CallData): any => {
+    const {
+      getName,
+      isCategory,
+      isSelf,
+      isTagged,
+      pretty,
+      shouldIgnore,
+    } = getAddressBook(input);
     const log = new Logger(`EthCall ${call.hash.substring(0, 10)}`, input.logLevel);
 
     if (shouldIgnore(call.from)) {
@@ -106,39 +92,21 @@ export const parseEthCallFactory = (input: InputData): any => {
     log.info(event.description);
     return event;
   };
-};
 
-export const parseEthTxFactory = (input: InputData): any => {
+export const parseEthTxFactory = (input: InputData): any =>
+  (tx: TransactionData): Event | null => {
+    const {
+      getName,
+      isCategory,
+      isSelf,
+      isTagged,
+      pretty,
+      shouldIgnore,
+    } = getAddressBook(input);
+    const getEvents = (abi: any): EventDescription[] => Object.values((new Interface(abi)).events);
+    const tokenEvents =
+      Object.values(getEvents(tokenAbi).concat(getEvents(wethAbi)).concat(getEvents(saiAbi)));
 
-  const getName = (address: string | null): string => !address ? "" :
-    input.addressBook.find(a => a.address.toLowerCase() === address.toLowerCase()) ?
-    input.addressBook.find(a => a.address.toLowerCase() === address.toLowerCase()).name : "";
-
-  const isCategory = (address: string | null, category: string): boolean =>
-    address && input.addressBook
-      .filter(a => a.category.toLowerCase() === category.toLowerCase())
-      .map(a => a.address.toLowerCase())
-      .includes(address.toLowerCase());
-
-  const isTagged = (address: string | null, tag: string): boolean =>
-    address && input.addressBook
-      .filter(a => a.tags.includes(tag))
-      .map(a => a.address.toLowerCase())
-      .includes(address.toLowerCase());
-
-  const shouldIgnore = (address: string | null): boolean => isTagged(address, "ignore");
-
-  const isSelf = (address: string | null): boolean => isCategory(address, "self");
-
-  const pretty = (address: string): string =>
-    getName(address) || (isSelf(address) ? "self" : address.substring(0, 10));
-
-  const getEvents = (abi: any): EventDescription[] => Object.values((new Interface(abi)).events);
-
-  const tokenEvents =
-    Object.values(getEvents(tokenAbi).concat(getEvents(wethAbi)).concat(getEvents(saiAbi)));
-
-  return (tx: TransactionData): Event | null => {
     const log = new Logger(`EthTx ${tx.hash.substring(0, 10)}`, input.logLevel);
     // if (tx.hash.startsWith("0x37f4fb")) { log.setLevel(5); } else { log.setLevel(3); }
 
@@ -287,4 +255,3 @@ export const parseEthTxFactory = (input: InputData): any => {
 
     return event;
   };
-};

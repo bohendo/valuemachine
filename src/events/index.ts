@@ -12,16 +12,6 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
   const log = new Logger("FinancialEvents", input.logLevel);
   let events: Event[] = [];
 
-  // Sanity check address-book
-  const addresses = [];
-  input.addressBook.forEach(a => {
-    if (addresses.includes(a.address.toLowerCase())) {
-      throw new Error(`Address book has multiple entries for addres ${a.address}`);
-    } else {
-      addresses.push(a.address.toLowerCase());
-    }
-  });
-
   const chainData = await fetchChainData(input);
 
   // Multiple calls can come from the same transaction
