@@ -179,7 +179,7 @@ export const getCapitalGains = async (
 
           const chunk = getNext(asset.type);
           if (!chunk) {
-            throw new Error(`Selling more ${asset.type} than we have: ${JSON.stringify(assets, null, 2)}`);
+            throw new Error(`Selling more ${asset.type} than we have`);
             break;
           }
 

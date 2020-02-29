@@ -24,6 +24,12 @@ export const formatWyre = (filename: string, logLevel: number): Event[] => {
     const output = { amount: row["Source Amount"], type: row["Source Currency"] };
     const input = { amount: row["Dest Amount"], type: row["Dest Currency"] };
 
+    if (new Date(event.date).getTime() < new Date("2019-12-02T00:00:00Z").getTime()) {
+      input.type = input.type.replace("DAI", "SAI");
+      output.type = output.type.replace("DAI", "SAI");
+      log.debug(`${event.date} is before sendwyre switched, type is: ${input.type} & ${output.type}`);
+    }
+
     if (row["Type"] === "EXCHANGE") {
       event.from = "sendwyre";
       event.to = "sendwyre";
@@ -34,19 +40,11 @@ export const formatWyre = (filename: string, logLevel: number): Event[] => {
       event.to = "sendwyre";
       event.assetsOut.push(output);
       event.tags.push("ignore");
-      // bc sendwyre calls SAI DAI..
-      if (["DAI", "SAI"].includes(output.type)) {
-        event.assetsOut.push({ ...output, type: output.type === "SAI" ? "DAI" : "SAI" });
-      }
     } else if (row["Type"] === "OUTGOING") {
       event.from = "sendwyre";
       event.to = "external";
       event.assetsIn.push(input);
       event.tags.push("ignore");
-      // bc sendwyre calls SAI DAI..
-      if (["DAI", "SAI"].includes(output.type)) {
-        event.assetsIn.push({ ...input, type: input.type === "SAI" ? "DAI" : "SAI" });
-      }
     }
 
     event.category = getCategory(event, log);
