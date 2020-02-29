@@ -43,6 +43,7 @@ export const getCapitalGains = async (
   const getNext = (type: string): Asset => assets.self[type] ? assets.self[type].pop() : undefined;
   const putBack = (type: string, asset: Asset): number => assets.self[type].unshift(asset);
 
+  let eventIndex = 1;
   for (const event of events.sort(
     (e1, e2) => new Date(e1.date).getTime() - new Date(e2.date).getTime(),
   )) {
@@ -50,7 +51,8 @@ export const getCapitalGains = async (
 
     // if (event.description.includes("ETH")) { log.setLevel(5); } else { log.setLevel(3); }
 
-    log.info(`Processing event: ${event.description || JSON.stringify(event)}`);
+    log.info(`Processing event ${eventIndex}: ${event.description || JSON.stringify(event)}`);
+    eventIndex += 1;
     // log.debug(`Processing event: ${JSON.stringify(event)}`);
 
     for (const asset of event.assetsIn) {

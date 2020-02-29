@@ -14,8 +14,7 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
 
   const chainData = await fetchChainData(input);
 
-  const callEvents =
-    Object.values(chainData.calls).map(parseEthCallFactory(input)).filter(e => !!e) as Event[];
+  const callEvents = chainData.calls.map(parseEthCallFactory(input)).filter(e => !!e) as Event[];
 
   events = coalesce(events, callEvents, input.logLevel);
 

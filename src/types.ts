@@ -38,7 +38,7 @@ export type TransactionData = {
 
 export type CallData = {
   block: number;
-  contractAddress?: HexString; // undefined if ETH else ERC20 address
+  contractAddress: HexString; // AddressZero if ETH
   from: HexString;
   hash: HexString;
   timestamp: TimestampString;
@@ -51,7 +51,7 @@ export type ChainData = {
   lastUpdated: TimestampString;
   addresses: { [address: string]: AddressData };
   transactions: { [hash: string]: TransactionData };
-  calls: { [hash: string]: CallData };
+  calls: CallData[]; // We can have multiple calls per txHash
 };
 
 export const AddressCategories = {

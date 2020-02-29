@@ -13,7 +13,7 @@ const blocksUntilStale = timeUntilStale / (15 * 1000);
 
 const emptyChainData: ChainData = {
   addresses: {},
-  calls: {},
+  calls: [],
   lastUpdated: (new Date(0)).toISOString(),
   transactions: {},
 };
@@ -145,31 +145,16 @@ export const fetchChainData = async (input: InputData): Promise<ChainData> => {
 
     chainData.addresses[address] = addressData;
 
-    for (const tx of internalTxHistory) {
-      if (tx && tx.hash && !chainData.calls[tx.hash]) {
-        chainData.calls[tx.hash] = {
-          block: parseInt(tx.blockNumber.toString(), 10),
-          from: tx.from,
-          hash: tx.hash,
-          timestamp: (new Date((tx.timestamp || (tx as any).timeStamp) * 1000)).toISOString(),
-          to: tx.to,
-          value: formatEther(tx.value),
-        };
-      }
-    }
-
-    for (const tx of tokenTxHistory) {
-      if (tx && tx.hash && !chainData.calls[tx.hash]) {
-        chainData.calls[tx.hash] = {
-          block: parseInt(tx.blockNumber.toString(), 10),
-          contractAddress: tx.contractAddress,
-          from: tx.from,
-          hash: tx.hash,
-          timestamp: (new Date((tx.timestamp || (tx as any).timeStamp) * 1000)).toISOString(),
-          to: tx.to,
-          value: formatEther(tx.value),
-        };
-      }
+    for (const tx of internalTxHistory.concat(tokenTxHistory)) {
+      chainData.calls.push({
+        block: parseInt(tx.blockNumber.toString(), 10),
+        contractAddress: tx.contractAddress || AddressZero,
+        from: tx.from,
+        hash: tx.hash,
+        timestamp: (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString(),
+        to: tx.to,
+        value: formatEther(tx.value),
+      });
     }
 
     for (const tx of externaltxHistory) {
