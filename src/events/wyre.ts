@@ -13,19 +13,37 @@ export const formatWyre = (filename: string, logLevel: number): Event[] => {
   ).map(row => {
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(row["Created At"])).getUTCFullYear())) return null;
-    const output = { amount: row["Source Amount"], type: row["Source Currency"] };
-    const input = { amount: row["Dest Amount"], type: row["Dest Currency"] };
     const event = {
-      assetsIn: [input],
-      assetsOut: [output],
+      assetsIn: [],
+      assetsOut: [],
       date: (new Date(row["Created At"])).toISOString(),
-      prices: {}, // Exchange Rate isn't a price, hence not super useful
+      prices: {},
       source: "sendwyre",
       tags: [],
     } as Event;
+    const output = { amount: row["Source Amount"], type: row["Source Currency"] };
+    const input = { amount: row["Dest Amount"], type: row["Dest Currency"] };
+
+    if (row["Type"] === "EXCHANGE") {
+      event.from = "sendwyre";
+      event.to = "sendwyre";
+      event.assetsIn.push(input);
+      event.assetsOut.push(output);
+    } else if (row["Type"] === "INCOMING") {
+      event.from = "external";
+      event.to = "sendwyre";
+      event.assetsOut.push(output);
+      event.tags.push("ignore");
+    } else if (row["Type"] === "OUTGOING") {
+      event.from = "sendwyre";
+      event.to = "external";
+      event.assetsIn.push(input);
+      event.tags.push("ignore");
+    }
+
     event.category = getCategory(event, log);
     event.description = getDescription(event, log);
-    log.debug(event.description);
+    log.info(event.description);
     return event;
   }).filter(row => !!row);
 };
