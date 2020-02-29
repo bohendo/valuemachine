@@ -7,8 +7,10 @@ import { formatEther, hexlify } from "ethers/utils";
 import { AddressData, ChainData, InputData } from "../types";
 import { Logger } from "../utils";
 
-// Info is stale after 6 hour
+// Re-fetch tx history for active addresses if >6 hours since last check
 const timeUntilStale = 6 * 60 * 60 * 1000;
+const checkRetired = false;
+
 const blocksUntilStale = timeUntilStale / (15 * 1000);
 
 const emptyChainData: ChainData = {
@@ -95,8 +97,8 @@ export const fetchChainData = async (input: InputData): Promise<ChainData> => {
     ));
     addressData.address = address;
 
-    if (addressData.block > 0 && retiredAddresses.includes(address)) {
-      // log.info(`Retired address ${address} data has already been fetched`);
+    if (!checkRetired || (addressData.block > 0 && retiredAddresses.includes(address))) {
+      log.debug(`Retired address ${address} data has already been fetched`);
       continue;
     }
 
