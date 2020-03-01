@@ -20,21 +20,20 @@ export type State = {
 }
 
 export type Event = {
-  assetsIn: Asset[];
-  assetsOut: Asset[];
   date: TimestampString;
   description?: string;
-  from: string;
   hash?: HexString;
   prices: { [assetType: string]: DecimalString };
   sources: Set<Source>;
   tags: Set<EventTag>;
-  to: string;
+  transfers: Transfer[];
 }
 
-export type Asset = {
+export type Transfer = {
   assetType: AssetType;
   quantity: DecimalString;
+  from: HexString;
+  to: HexString;
 }
 
 export const Sources = {
@@ -128,7 +127,7 @@ export type PriceData = {
 export type ChainData = {
   addresses: { [address: string]: DateString /* Date last updated */ };
   lastUpdated: TimestampString;
-  transactions: { [hash: string]: TransactionData };
+  transactions: { [txHash: string]: TransactionData };
   calls: CallData[]; // We can have multiple calls per txHash
 };
 

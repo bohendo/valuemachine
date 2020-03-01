@@ -1,3 +1,3 @@
-import * as wethAbi from "./wethAbi.json";
-import * as saiAbi from "./saiAbi.json";
+import wethAbi from "./wethAbi.json";
+import saiAbi from "./saiAbi.json";
 export { wethAbi, saiAbi };

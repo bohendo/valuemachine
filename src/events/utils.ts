@@ -1,6 +1,18 @@
 import { env } from "../env";
 import { Event } from "../types";
-import { addAssets, Logger, round } from "../utils";
+import {
+  add,
+  addAssets,
+  diff,
+  div,
+  Logger,
+  lt,
+  mul,
+  round,
+} from "../utils";
+
+export const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
+  lt(div(mul(diff(a1, a2), "200"), add([a1, a2])), "1");
 
 const getCategory = (event: Event): string => {
   if (event.assetsIn.length === 0 && event.assetsOut.length === 0) {

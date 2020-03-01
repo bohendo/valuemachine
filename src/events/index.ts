@@ -2,13 +2,39 @@ import { env } from "../env";
 import { fetchPrice } from "../fetchPrice";
 import { getAddressBook } from "../addressBook";
 import { Event, InputData } from "../types";
-import { assetListsEq, Logger } from "../utils";
+import { Logger } from "../utils";
 
-import { coalesce } from "./coalesce";
-import { formatCoinbase } from "./coinbase";
 import { fetchChainData } from "./fetchChainData";
-import { parseEthTxFactory, parseEthCallFactory } from "./parseEthTx";
-import { formatWyre } from "./wyre";
+
+import { castCoinbase, mergeCoinbase } from "./coinbase";
+import { castEthTx } from "./ethTx";
+import { castEthCall, mergeEthCall } from "./ethCall";
+import { castWyre, mergeWyre } from "./wyre";
+
+const castDefault = (event: Partial<Event>): Partial<Event> => ({
+  prices: {},
+  sources: new Set(["personal"]),
+  tags: new Set(),
+  transfers: [],
+  ...event,
+});
+
+const mergeDefault = (events: Event[], input: Partial<Event>): Event[] => {
+  const output = [] as Event[];
+  for (const i = 0; i < events.length; i++) {
+    const event = events[i];
+    if (event.hash && input.hash && event.hash === input.hash) {
+      output.push({
+        ...event,
+        sources: new Set([...event.sources, ...input.sources]),
+        tags: new Set([...event.tags, ...input.tags]),
+      });
+      break;
+    }
+    output.push(event);
+  }
+  return output;
+};
 
 const getPrice = async (asset: string, date: string): Promise<string> =>
   ["USD", "DAI", "SAI"].includes(asset)
@@ -19,53 +45,40 @@ const getPrice = async (asset: string, date: string): Promise<string> =>
 
 export const getFinancialEvents = async (input: InputData): Promise<Event[]> => {
   const log = new Logger("FinancialEvents", env.logLevel);
-  let events: Event[] = [];
+  const addressBook = getAddressBook(input);
 
-  const chainData = await fetchChainData(getAddressBook(input));
+  const chainData = await fetchChainData(addressBook);
 
-  // Multiple calls can come from the same transaction
-  const callEvents = chainData.calls.map(parseEthCallFactory(input)).filter(e => !!e) as Event[];
-  // Coalesce one at a time to merge duplicates
-  for (const call of callEvents) {
-    events = coalesce(events, [call]);
+  let events = chainData.transactions.map(castEthTx(addressBook)).filter(e => !!e);
+  log.info(`We have ${events.length} events after parsing eth transactions`);
+
+  chainData.calls.map(castEthCall(addressBook)).filter(e => !!e).forEach(callEvent => {
+    events = mergeEthCall(events, callEvent);
+  });
+  log.info(`We have ${events.length} events after parsing eth calls`);
+
+  if (events.length > 0) {
+    throw new Error(`Stop early to debug`);
   }
 
-  log.info(`Found ${callEvents.length} events (${events.length} total) from ${Object.keys(chainData.calls).length} ethereum calls`);
-
-  const transactionEvents =
-    Object.values(chainData.transactions).map(parseEthTxFactory(input)).filter(e => !!e) as Event[];
-
-  events = coalesce(events, transactionEvents);
-
-  log.info(`Found ${transactionEvents.length} events (${events.length} total) from ${Object.keys(chainData.transactions).length} ethereum txs`);
-
-  for (const event of input.events || []) {
-    if (typeof event === "string" && event.endsWith(".csv")) {
-      if (event.toLowerCase().includes("coinbase")) {
-        const coinbaseEvents = formatCoinbase(event);
-        events = coalesce(events, coinbaseEvents);
-        log.info(`Found ${coinbaseEvents.length} events (${events.length} total) from coinbase: ${event}`);
-      } else if (event.toLowerCase().includes("wyre")) {
-        const wyreEvents = formatWyre(event);
-        events = coalesce(events, wyreEvents);
-        log.info(`Found ${wyreEvents.length} events (${events.length} total) from sendwyre: ${event}`);
+  for (const source of input.events || []) {
+    if (typeof source === "string" && source.endsWith(".csv")) {
+      if (source.toLowerCase().includes("coinbase")) {
+        castCoinbase(source).forEach(coinbaseEvent => {
+          events = mergeCoinbase(events, coinbaseEvent);
+        });
+      } else if (source.toLowerCase().includes("wyre")) {
+        castWyre(source).forEach(wyreEvent => {
+          events = mergeWyre(events, wyreEvent);
+        });
       } else {
-        throw new Error(`I don't know how to parse events from ${event}`);
+        throw new Error(`I don't know how to parse events from ${source}`);
       }
-    } else if (typeof event !== "string") {
-      events = coalesce(events, [{ sources: new Set(["personal"]), ...(event as Partial<Event>) }]);
+      log.info(`We have ${events.length} events after parsing ${source}`);
+    } else if (typeof source !== "string") {
+      events = mergeDefault(events, castDefault(source));
     }
   }
-
-  events = events.filter(
-    event => !assetListsEq(event.assetsIn, event.assetsOut) && !event.tags.has("ignore"),
-  );
-  log.info(`Filtered out useless events, we're left with ${events.length}`);
-
-  // Put events in chronological order
-  events = events.sort(
-    (e1, e2) => new Date(e1.date).getTime() - new Date(e2.date).getTime(),
-  );
 
   events = await Promise.all(events.map(async (event: Event): Promise<Event> => {
     const getType = (a): string => a.assetType;
