@@ -3,7 +3,7 @@ import { Interface, hexlify, formatEther, keccak256, EventDescription, RLP } fro
 import { abi as tokenAbi } from "@openzeppelin/contracts/build/contracts/ERC20.json";
 
 import { env } from "../env";
-import { Event, Transfer, TransactionData } from "../types";
+import { Event, TransactionData } from "../types";
 import { eq, Logger } from "../utils";
 import { saiAbi, wethAbi } from "../abi";
 import { mergeFactory } from "./utils";
@@ -65,11 +65,11 @@ export const castEthTx = (addressBook): any =>
           log.debug(`${quantity} ${assetType} was transfered to ${data.to}`);
 
         } else if (assetType === "WETH" && eventI.name === "Deposit") {
-          event.transfers.push({ ...transfer, from: txLog.address, to: data.dst });
+          event.transfers.push({ ...transfer, from: AddressZero, to: data.dst });
           log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
 
         } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
-          event.transfers.push({ ...transfer, from: data.src, to: txLog.address });
+          event.transfers.push({ ...transfer, from: data.src, to: AddressZero });
           log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
 
         } else if (assetType === "SAI" && eventI.name === "Mint") {
@@ -84,22 +84,25 @@ export const castEthTx = (addressBook): any =>
           log.debug(`Skipping Approval event`);
 
         } else if (eventI) {
-          log.debug(`Unknown ${assetType} event: ${JSON.stringify(eventI)}`);
+          log.warn(`Unknown ${assetType} event: ${JSON.stringify(eventI)}`);
         }
       }
     }
     event.sources.push("ethLogs");
 
-    // Filter out any zero-value transfers
-    event.transfers = event.transfers.filter(transfer => !eq(transfer.quantity, "0"));
+    event.transfers = event.transfers
+      // Filter out any zero-value transfers
+      .filter(transfer => !eq(transfer.quantity, "0"))
+      // sort by index
+      .sort((t1, t2) => t1.index - t2.index);
 
     if (event.transfers.length === 0) {
       return null;
     } else if (event.transfers.length === 1) {
-      const { quantity, assetType, to } = event.transfers[0];
-      event.description = `ethTx sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
+      const { assetType, from, quantity, to } = event.transfers[0];
+      event.description = `${addressBook.getName(from)} sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
     } else {
-      event.description = `ethTx made ${event.transfers.length} transfers`;
+      event.description = `${addressBook.getName(event.transfers[0].to)} made ${event.transfers.length} transfers`;
     }
 
     event.description !== "null"
