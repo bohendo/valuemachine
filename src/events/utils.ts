@@ -8,8 +8,10 @@ import {
   mul,
 } from "../utils";
 
-export const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
+const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
   lt(div(mul(diff(a1, a2), "200"), add([a1, a2])), "1");
+
+// Events are ordered [oldest ... newest]
 
 export const mergeFactory = (opts: {
   allowableTimeDiff: number;
@@ -64,3 +66,44 @@ export const mergeFactory = (opts: {
     output.push(newEvent);
     return output;
   };
+
+export const mergeOffChainEvents = (event: Event, ocEvent: Event): Event => {
+  const transfer = event.transfers[0];
+  const cbTransfer = ocEvent.transfers[0];
+  const mergedTransfer = {
+    ...transfer,
+    from: cbTransfer.from.startsWith("external") 
+      ? transfer.from
+      : cbTransfer.from,
+    to: cbTransfer.to.startsWith("external")
+      ? transfer.to
+      : cbTransfer.to,
+  };
+  return {
+    ...event,
+    description: ocEvent.description,
+    sources: Array.from(new Set([...event.sources, ...ocEvent.sources])),
+    tags: Array.from(new Set([...event.tags, ...ocEvent.tags])),
+    transfers: [mergedTransfer],
+  };
+};
+
+export const shouldMergeOffChain = (event: Event, ocEvent: Event): boolean => {
+  if (
+    // assumes the deposit to/withdraw from coinbase tx doesn't interact w other contracts
+    event.transfers.length !== 1 ||
+    // only simple off chain sends to the chain
+    ocEvent.transfers.length !== 1
+  ) {
+    return false;
+  }
+  const transfer = event.transfers[0];
+  const cbTransfer = ocEvent.transfers[0];
+  if (
+    transfer.assetType === cbTransfer.assetType &&
+    amountsAreClose(transfer.quantity, cbTransfer.quantity)
+  ) {
+    return true;
+  }
+  return false;
+};

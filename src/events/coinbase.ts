@@ -4,7 +4,7 @@ import fs from "fs";
 import { env } from "../env";
 import { Event } from "../types";
 import { Logger } from "../utils";
-import { amountsAreClose, mergeFactory } from "./utils";
+import { mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
 export const castCoinbase = (filename: string): Event[] => {
   const log = new Logger("Coinbase", env.logLevel);
@@ -71,58 +71,6 @@ export const castCoinbase = (filename: string): Event[] => {
 export const mergeCoinbase = mergeFactory({
   allowableTimeDiff: 15 * 60 * 1000,
   log: new Logger("MergeCoinbase", env.logLevel),
-
-  mergeEvents: (event: Event, cbEvent: Event): Event => {
-
-    const cbTransfer = cbEvent.transfers[0];
-    const mergedTransfers = [];
-
-    for (let j = 0; j < event.transfers.length; j++) {
-      const transfer = event.transfers[j];
-      if (
-        transfer.assetType === cbTransfer.assetType &&
-        amountsAreClose(transfer.quantity, cbTransfer.quantity)
-      ) {
-        mergedTransfers.push({
-          ...transfer,
-          from: cbTransfer.from.startsWith("external") 
-            ? transfer.from
-            : cbTransfer.from,
-          to: cbTransfer.to.startsWith("external")
-            ? transfer.to
-            : cbTransfer.to,
-        });
-      }
-      mergedTransfers.push(transfer);
-    }
-
-    return {
-      ...event,
-      sources: Array.from(new Set([...event.sources, ...cbEvent.sources])),
-      tags: Array.from(new Set([...event.tags, ...cbEvent.tags])),
-      transfers: mergedTransfers,
-    };
-  },
-
-  shouldMerge: (event: Event, cbEvent: Event): boolean => {
-    // Only events w one transfer are eligble to merge w ethTx events.
-    if (cbEvent.transfers.length !== 1) {
-      return false;
-    }
-    const cbTransfer = cbEvent.transfers[0];
-    // cbEvent must have one transfer in common w other event
-    for (let j = 0; j < event.transfers.length; j++) {
-      const transfer = event.transfers[j];
-      if (
-        transfer.assetType === cbTransfer.assetType &&
-        amountsAreClose(transfer.quantity, cbTransfer.quantity)
-      ) {
-        return true;
-      }
-      if (["USD", "LTC", "BTC"].includes(transfer.assetType)) {
-        return false; // Can't merge non-eth coinbase transactions
-      }
-    }
-    return false;
-  },
+  mergeEvents: mergeOffChainEvents,
+  shouldMerge: shouldMergeOffChain,
 });

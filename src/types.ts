@@ -21,7 +21,7 @@ export type State = {
 
 export type Event = {
   date: TimestampString;
-  description?: string;
+  description: string;
   hash?: HexString;
   prices: { [assetType: string]: DecimalString };
   sources: Source[];
@@ -31,6 +31,7 @@ export type Event = {
 
 export type Transfer = {
   assetType: AssetType;
+  index?: number;
   quantity: DecimalString;
   from: HexString;
   to: HexString;

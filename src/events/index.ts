@@ -139,7 +139,7 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
 
   assertChrono(events);
   events.forEach(event => {
-    ["date", "description", "prices"].forEach(required => {
+    ["date", "description", "prices", "sources", "tags", "transfers"].forEach(required => {
       if (!event[required]) {
         throw new Error(`Event doesn't have a ${required}: ${JSON.stringify(event, null, 2)}`);
       }

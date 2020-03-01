@@ -3,7 +3,7 @@ import { Interface, hexlify, formatEther, keccak256, EventDescription, RLP } fro
 import { abi as tokenAbi } from "@openzeppelin/contracts/build/contracts/ERC20.json";
 
 import { env } from "../env";
-import { Event, TransactionData } from "../types";
+import { Event, Transfer, TransactionData } from "../types";
 import { eq, Logger } from "../utils";
 import { saiAbi, wethAbi } from "../abi";
 import { mergeFactory } from "./utils";
@@ -36,6 +36,7 @@ export const castEthTx = (addressBook): any =>
       transfers: [{
         assetType: "ETH",
         from: tx.from,
+        index: 0,
         quantity: tx.value,
         to: tx.to,
       }],
@@ -47,63 +48,36 @@ export const castEthTx = (addressBook): any =>
       if (isCategory(txLog.address, "erc20")) {
 
         const assetType = getName(txLog.address).toUpperCase();
-
         const eventI = tokenEvents.find(e => e.topic === txLog.topics[0]);
+
         if (!eventI) {
           log.debug(`Unable to identify ${assetType} event w topic: ${txLog.topics[0]}`);
           continue;
         }
 
         const data = eventI.decode(txLog.data, txLog.topics);
-        if (!data) {
-          log.debug(`Unable to decode ${assetType} ${eventI.name} event data`);
-          continue;
-        }
         const quantity = formatEther(data.value || data.wad || "0");
+        const index = txLog.index;
+        const transfer = { assetType, index, quantity };
 
         if (eventI.name === "Transfer") {
-          event.transfers.push({
-            assetType,
-            from: data.from,
-            quantity,
-            to: data.to,
-          });
+          event.transfers.push({ ...transfer, from: data.from, to: data.to });
           log.debug(`${quantity} ${assetType} was transfered to ${data.to}`);
 
         } else if (assetType === "WETH" && eventI.name === "Deposit") {
-          event.transfers.push({
-            assetType,
-            from: txLog.address,
-            quantity: quantity,
-            to: data.dst,
-          });
+          event.transfers.push({ ...transfer, from: txLog.address, to: data.dst });
           log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
 
         } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
-          event.transfers.push({
-            assetType,
-            from: data.src,
-            quantity: quantity,
-            to: txLog.address,
-          });
+          event.transfers.push({ ...transfer, from: data.src, to: txLog.address });
           log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
 
         } else if (assetType === "SAI" && eventI.name === "Mint") {
-          event.transfers.push({
-            assetType,
-            from: AddressZero,
-            quantity: quantity,
-            to: data.guy,
-          });
+          event.transfers.push({ ...transfer, from: AddressZero, to: data.guy });
           log.debug(`Minted ${quantity} ${assetType}`);
 
         } else if (assetType === "SAI" && eventI.name === "Burn") {
-          event.transfers.push({
-            assetType,
-            from: data.guy,
-            quantity: quantity,
-            to: AddressZero,
-          });
+          event.transfers.push({ ...transfer, from: data.guy, to: AddressZero });
           log.debug(`Burnt ${quantity} ${assetType}`);
 
         } else if (eventI.name === "Approval") {

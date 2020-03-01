@@ -4,7 +4,7 @@ import fs from "fs";
 import { env } from "../env";
 import { DateString, Event } from "../types";
 import { Logger } from "../utils";
-import { amountsAreClose, mergeFactory } from "./utils";
+import { mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
 export const castWyre = (filename: string): Event[] => {
   const log = new Logger("SendWyre", env.logLevel);
@@ -110,58 +110,6 @@ export const castWyre = (filename: string): Event[] => {
 export const mergeWyre = mergeFactory({
   allowableTimeDiff: 15 * 60 * 1000,
   log: new Logger("MergeWyre", env.logLevel),
-
-  mergeEvents: (event: Event, wyreEvent: Event): Event => {
-
-    const wyreTransfer = wyreEvent.transfers[0];
-    const mergedTransfers = [];
-
-    for (let j = 0; j < event.transfers.length; j++) {
-      const transfer = event.transfers[j];
-      if (
-        transfer.assetType === wyreTransfer.assetType &&
-        amountsAreClose(transfer.quantity, wyreTransfer.quantity)
-      ) {
-        mergedTransfers.push({
-          ...transfer,
-          from: wyreTransfer.from.startsWith("external") 
-            ? transfer.from
-            : wyreTransfer.from,
-          to: wyreTransfer.to.startsWith("external")
-            ? transfer.to
-            : wyreTransfer.to,
-        });
-      }
-      mergedTransfers.push(transfer);
-    }
-
-    return {
-      ...event,
-      sources: Array.from(new Set([...event.sources, ...wyreEvent.sources])),
-      tags: Array.from(new Set([...event.tags, ...wyreEvent.tags])),
-      transfers: mergedTransfers,
-    };
-  },
-
-  shouldMerge: (event: Event, wyreEvent: Event): boolean => {
-    // Only events w one transfer are eligble to merge w ethTx events.
-    if (wyreEvent.transfers.length !== 1) {
-      return false;
-    }
-    const wyreTransfer = wyreEvent.transfers[0];
-    // wyreEvent must have one transfer in common w other event
-    for (let j = 0; j < event.transfers.length; j++) {
-      const transfer = event.transfers[j];
-      if (
-        transfer.assetType === wyreTransfer.assetType &&
-        amountsAreClose(transfer.quantity, wyreTransfer.quantity)
-      ) {
-        return true;
-      }
-      if (["USD", "LTC", "BTC"].includes(transfer.assetType)) {
-        return false; // Can't merge non-eth coinbase transactions
-      }
-    }
-    return false;
-  },
+  mergeEvents: mergeOffChainEvents,
+  shouldMerge: shouldMergeOffChain,
 });
