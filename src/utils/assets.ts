@@ -1,21 +1,24 @@
-import { Asset } from "../types";
+import { AssetType, DecimalString } from "../types";
 import { add } from "./math";
 
-// eg [{ amount: "1", type: "ETH"},{ amount: "1", type: "ETH"}] => [{ amount: "2", type: "ETH"}]
+type Asset = { assetType: AssetType; quantity: DecimalString };
+
+// eg [{ quantity: "1", assetType: "ETH"},{ quantity: "1", assetType: "ETH"}] =>
+//      [{ quantity: "2", assetType: "ETH"}]
 export const addAssets = (assets: Asset[]): Asset[] => {
   const total = {};
   for (const asset of assets) {
-    if (total[asset.type]) {
-      total[asset.type] = add([total[asset.type], asset.amount]);
+    if (total[asset.assetType]) {
+      total[asset.assetType] = add([total[asset.assetType], asset.quantity]);
     } else {
-      total[asset.type] = asset.amount;
+      total[asset.assetType] = asset.quantity;
     }
   }
-  return Object.entries(total).map(e => ({ amount: e[1].toString(), type: e[0] }));
+  return Object.entries(total).map(e => ({ assetType: e[0], quantity: e[1].toString() }));
 };
 
 export const assetsEq = (a1: Asset, a2: Asset): boolean =>
-  a1.amount === a2.amount && a1.type == a2.type;
+  a1.quantity === a2.quantity && a1.assetType == a2.assetType;
 
 export const assetListsEq = (loa1: Asset[], loa2: Asset[]): boolean => {
   const sum1 = addAssets(loa1);

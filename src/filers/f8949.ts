@@ -1,10 +1,10 @@
 import { add, round } from "../utils";
-import { FinancialData, Forms } from "../types";
+import { Log, Forms } from "../types";
 
-export const f8949 = (finances: FinancialData, oldForms: Forms): Forms  => {
+export const f8949 = (financialLogs: Log[], oldForms: Forms): Forms  => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040 } = forms;
-  const trades = finances.trades;
+  const trades = financialLogs.filter(log => log.type === "f8949");
   const f8949 = {} as any;
 
   // Set values constant across all f8949 forms

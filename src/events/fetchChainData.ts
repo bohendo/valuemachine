@@ -4,14 +4,13 @@ import { AddressZero } from "ethers/constants";
 import { EtherscanProvider } from "ethers/providers";
 import { formatEther, hexlify } from "ethers/utils";
 
-import { AddressData, ChainData, InputData } from "../types";
+import { env } from "../env";
+import { AddressBook, ChainData } from "../types";
 import { Logger } from "../utils";
 
 // Re-fetch tx history for active addresses if >6 hours since last check
 const timeUntilStale = 6 * 60 * 60 * 1000;
 const checkRetired = false;
-
-const blocksUntilStale = timeUntilStale / (15 * 1000);
 
 const emptyChainData: ChainData = {
   addresses: {},
@@ -20,23 +19,16 @@ const emptyChainData: ChainData = {
   transactions: {},
 };
 
-const emptyAddressData: AddressData = {
-  address: AddressZero,
-  block: 0,
-  hasCode: false,
-  transactions: [],
-};
-
 const cacheFile = "./chain-data.json";
 
-const loadCache = (log: Logger): ChainData => {
+const loadCache = (): ChainData => {
   try {
     return JSON.parse(fs.readFileSync(cacheFile, "utf8"));
   } catch (e) {
     if (e.message.startsWith("ENOENT: no such file or directory")) {
       return emptyChainData;
     }
-    log.warn(e.message);
+    new Logger("LoadChainDataCache", env.logLevel).warn(e.message);
     throw new Error(`Unable to load chainData cache, try deleting ${cacheFile} & try again`);
   }
 };
@@ -44,18 +36,17 @@ const loadCache = (log: Logger): ChainData => {
 const saveCache = (chainData: ChainData): void =>
   fs.writeFileSync(cacheFile, JSON.stringify(chainData, null, 2));
 
-export const fetchChainData = async (input: InputData): Promise<ChainData> => {
-  const log = new Logger("FetchChainData", input.logLevel);
-  const addressBook = input.addressBook;
-  const etherscanKey = input.etherscanKey;
+export const fetchChainData = async (addressBook: AddressBook): Promise<ChainData> => {
+  const log = new Logger("FetchChainData", env.logLevel);
+  const etherscanKey = env.etherscanKey;
 
-  const chainData = loadCache(log);
+  const chainData = loadCache();
 
-  const activeAddresses = addressBook
+  const activeAddresses = addressBook.addresses
     .filter(a => a.category === "self" && a.tags.includes("active") && !a.tags.includes("ignore"))
     .map(a => a.address.toLowerCase());
 
-  const retiredAddresses = addressBook
+  const retiredAddresses = addressBook.addresses
     .filter(a => a.category === "self" && !a.tags.includes("active") && !a.tags.includes("ignore"))
     .map(a => a.address.toLowerCase());
 
@@ -67,7 +58,7 @@ export const fetchChainData = async (input: InputData): Promise<ChainData> => {
   }
 
   if (!etherscanKey) {
-    throw new Error("To track eth activity, you must provide an etherscanKey property in input");
+    throw new Error("To track eth activity, you must provide an etherscanKey");
   }
 
   const lastUpdated = new Date(chainData.lastUpdated).getTime();
@@ -92,32 +83,41 @@ export const fetchChainData = async (input: InputData): Promise<ChainData> => {
   }
 
   for (const address of addresses) {
-    const addressData = JSON.parse(JSON.stringify(
-      chainData.addresses[address] || emptyAddressData,
-    ));
-    addressData.address = address;
+    const lastUpdated = chainData.addresses[address];
+    const timeDiff = lastUpdated ? Date.now() - new Date(lastUpdated).getTime() : 0;
 
-    if (!checkRetired || (addressData.block > 0 && retiredAddresses.includes(address))) {
+    if (!checkRetired || (lastUpdated && retiredAddresses.includes(address))) {
       log.debug(`Retired address ${address} data has already been fetched`);
       continue;
     }
 
-    if (block <= addressData.block + blocksUntilStale) {
-      log.info(`Active address ${address} was updated ${block - addressData.block} blocks ago`);
+    
+    if (timeDiff > timeUntilStale) {
+      log.info(`Active address ${address} was updated ${timeDiff / (60 * 1000)} minues ago`);
       continue;
     }
     log.info(`Fetching info for address: ${address}`);
 
-    // note: via create2, addresses can start out w/out code & later code appears
-    if (!addressData.hasCode) {
-      log.info(`💫 getting code..`);
-      addressData.hasCode = (await provider.getCode(address)).length > 4;
-      log.info(`✅ addressData.hasCode: ${addressData.hasCode}`);
-    }
-
     log.info(`💫 getting externaltxHistory..`);
     const externaltxHistory = await provider.getHistory(address);
     log.info(`✅ externaltxHistory: ${externaltxHistory.length} logs`);
+
+    for (const tx of externaltxHistory) {
+      if (tx && tx.hash && !chainData.transactions[tx.hash]) {
+        chainData.transactions[tx.hash] = {
+          block: tx.blockNumber,
+          data: tx.data,
+          from: tx.from,
+          gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
+          gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
+          hash: tx.hash,
+          nonce: tx.nonce,
+          timestamp: (new Date(tx.timestamp * 1000)).toISOString(),
+          to: tx.to,
+          value: formatEther(tx.value),
+        };
+      }
+    }
 
     log.info(`💫 getting internalTxHistory..`);
     const internalTxHistory = (await axios.get(
@@ -139,14 +139,6 @@ export const fetchChainData = async (input: InputData): Promise<ChainData> => {
     )).data.result;
     log.info(`✅ tokenTxHistory: ${tokenTxHistory.length} logs`);
 
-    const txHistory = externaltxHistory.concat(internalTxHistory).concat(tokenTxHistory);
-
-    addressData.transactions = Array.from(new Set(addressData.transactions.concat(
-      txHistory.map(tx => tx.hash),
-    )));
-
-    chainData.addresses[address] = addressData;
-
     for (const tx of internalTxHistory.concat(tokenTxHistory)) {
       chainData.calls.push({
         block: parseInt(tx.blockNumber.toString(), 10),
@@ -159,24 +151,7 @@ export const fetchChainData = async (input: InputData): Promise<ChainData> => {
       });
     }
 
-    for (const tx of externaltxHistory) {
-      if (tx && tx.hash && !chainData.transactions[tx.hash]) {
-        chainData.transactions[tx.hash] = {
-          block: tx.blockNumber,
-          data: tx.data,
-          from: tx.from,
-          gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
-          gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
-          hash: tx.hash,
-          nonce: tx.nonce,
-          timestamp: (new Date(tx.timestamp * 1000)).toISOString(),
-          to: tx.to,
-          value: formatEther(tx.value),
-        };
-      }
-    }
-
-    addressData.block = block;
+    chainData.addresses[address] = new Date().toISOString();
     saveCache(chainData);
     log.info(`📝 progress saved\n`);
   }

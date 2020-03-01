@@ -5,28 +5,36 @@ export type DateString = string; // eg "2020-02-27" aka TimestampString.split("T
 export type DecimalString = string; // eg "-3.1415"
 export type HexString = string; // eg "0xabc123"
 export type TimestampString = string; // eg "2020-02-27T09:51:30.444Z" (ISO 8601 format)
+export type Address = HexString | null;
+
+export type AssetChunk = {
+  dateRecieved: TimestampString;
+  purchasePrice: DecimalString; /* units of assetType per unit of account (USD/DAI) */
+  quantity: DecimalString;
+};
 
 export type State = {
-  [address: string]: {
-    [unit: string]: Array<{
-      dateRecieved: AssetType;
-      unitsPerUoa: AssetType;
-      value: DecimalString;
-    }>;
+  [account: string]: {
+    [assetType: string /* AssetType */]: Array<AssetChunk>;
   };
 }
 
 export type Event = {
-  assetsIn: Array<{ unit: AssetType; value: DecimalString }>;
-  assetsOut: Array<{ unit: AssetType; value: DecimalString }>;
+  assetsIn: Asset[];
+  assetsOut: Asset[];
   date: TimestampString;
   description?: string;
   from: string;
   hash?: HexString;
   prices: { [assetType: string]: DecimalString };
-  source: Set<Source>;
-  tags: Set<string>;
+  sources: Set<Source>;
+  tags: Set<EventTag>;
   to: string;
+}
+
+export type Asset = {
+  assetType: AssetType;
+  quantity: DecimalString;
 }
 
 export const Sources = {
@@ -39,12 +47,12 @@ export const Sources = {
 };
 export type Source = keyof typeof Sources | string;
 
-export const Tags = {
+export const EventTags = {
   "cdp": "cdp",
   "defi": "defi",
   "ignore": "ignore",
 };
-export type Tag = keyof typeof Tags | string;
+export type EventTag = keyof typeof EventTags | string;
 
 export const AssetTypes = {
   "DAI": "DAI",
@@ -59,10 +67,11 @@ export const AssetTypes = {
 };
 export type AssetType = keyof typeof AssetTypes | string;
 
-export type Log = Array<CapitalGain | any>;
+export type Log = F8949Log | any;
 
 // aka row of f8949
-export type CapitalGain = {
+export type F8949Log = {
+  type: "f8949";
   Adjustment: string;
   Code: string;
   Cost: string;
@@ -77,16 +86,47 @@ export type CapitalGain = {
 // Helpers & Source Data
 
 export interface AddressBook {
-  getName(address: string | null): string;
-  isCategory(address: string | null, category: string): boolean;
-  isTagged(address: string | null, tag: string): boolean;
-  isSelf(address: string | null): boolean;
-  shouldIgnore(address: string | null): boolean;
-  pretty(address: string): string;
+  addresses: Array<{
+    address: HexString;
+    category: AddressCategory;
+    name; string;
+    tags: string[];
+  }>;
+  getName(address: Address): string;
+  isCategory(address: Address, category: string): boolean;
+  isTagged(address: Address, tag: string): boolean;
+  isSelf(address: Address): boolean;
+  shouldIgnore(address: Address): boolean;
+  pretty(address: Address): string;
+}
+
+export const AddressTags = {
+  "cdp": "cdp",
+  "defi": "defi",
+  "ignore": "ignore",
+};
+export type AddressTag = keyof typeof AddressTags | string;
+
+export const AddressCategories = {
+  "erc20": "erc20",
+  "family": "family",
+  "friend": "friend",
+  "private": "private",
+  "public": "public",
+  "self": "self",
+};
+export type AddressCategory = keyof typeof AddressCategories;
+
+export type PriceData = {
+  ids: { [assetType: string]: string };
+  [date: string]: {
+    [assetType: string]: DecimalString;
+  };
 }
 
 // format of chain-data.json
 export type ChainData = {
+  addresses: { [address: string]: DateString /* Date last updated */ };
   lastUpdated: TimestampString;
   transactions: { [hash: string]: TransactionData };
   calls: CallData[]; // We can have multiple calls per txHash
@@ -130,12 +170,17 @@ export type InputData = {
     name; string;
     tags: string[];
   }>;
-  capitalGainsMethod: CapitalGainsMethod;
-  etherscanKey?: string;
+  env: Partial<Env>;
   events: Array<Event | string>;
   formData: Forms;
   forms: string[];
-  logLevel?: number;
+}
+
+export type Env = {
+  capitalGainsMethod: CapitalGainsMethod;
+  etherscanKey: string;
+  logLevel: number;
+  mode: string;
   taxYear: string;
 }
 
@@ -145,16 +190,6 @@ export const CapitalGainsMethods = {
   "LIFO": "LIFO",
 };
 export type CapitalGainsMethod = keyof typeof CapitalGainsMethods;
-
-export const AddressCategories = {
-  "erc20": "erc20",
-  "family": "family",
-  "friend": "friend",
-  "private": "private",
-  "public": "public",
-  "self": "self",
-};
-export type AddressCategory = keyof typeof AddressCategories;
 
 export type FinancialData = {
   expenses: Array<Log>;

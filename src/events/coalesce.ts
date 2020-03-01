@@ -1,13 +1,14 @@
 import { isHexString, arrayify } from "ethers/utils";
+import { env } from "../env";
 import { TimestampString, DecimalString, Asset, Event } from "../types";
 import { add, diff, div, Logger, lt, mul } from "../utils";
-import { getCategory, getDescription } from "./utils";
+import { getDescription } from "./utils";
 
 const castEvent = (event: any): Event => JSON.parse(JSON.stringify({
   assetsIn: [],
   assetsOut: [],
   prices: {},
-  tags: [],
+  tags: new Set(),
   ...event,
 }));
 
@@ -20,7 +21,7 @@ const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
 const dedupAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
   const loa = JSON.parse(JSON.stringify(loa1)) as Asset[];
   for (const a2 of loa2) {
-    if (loa.find(a => a.type === a2.type && amountsAreClose(a.amount, a2.amount))) {
+    if (loa.find(a => a.assetType === a2.assetType && amountsAreClose(a.quantity, a2.quantity))) {
       continue;
     } else {
       loa.push(a2);
@@ -33,7 +34,10 @@ const commonAssets = (loa1: Asset[], loa2: Asset[]): Asset[] => {
   const common: Asset[] = [];
   for (let i = 0; i < loa1.length; i++) {
     for (let j = 0; j < loa2.length; j++) {
-      if (loa1[i].type === loa2[j].type && amountsAreClose(loa1[i].amount, loa2[j].amount)) {
+      if (
+        loa1[i].assetType === loa2[j].assetType &&
+        amountsAreClose(loa1[i].quantity, loa2[j].quantity)
+      ) {
         common.push(JSON.parse(JSON.stringify(loa1[i])));
       }
     }
@@ -47,9 +51,6 @@ const sameEvent = (e1: Event, e2: Event): boolean => (
     isHexString(e2.hash) && arrayify(e2.hash).length === 32 &&
     e1.hash === e2.hash
   ) || (
-    // Categories should be the same
-    e1.category === e2.category
-  ) && (
     // Needs to have happened at about the same time
     datesAreClose(e1.date, e2.date)
   ) && (
@@ -59,45 +60,41 @@ const sameEvent = (e1: Event, e2: Event): boolean => (
   ) && (
     // If one event deals w USD, it can't be merged w any events from ethereum
     (
-      e1.assetsIn.concat(e1.assetsOut).find(a => a.type === "USD")
-        ? !e2.source.includes("eth")
+      e1.assetsIn.concat(e1.assetsOut).find(a => a.assetType === "USD")
+        ? (!e2.sources.has("ethTx") || !e2.sources.has("ethCall"))
         : true
     ) && (
-      e2.assetsIn.concat(e2.assetsOut).find(a => a.type === "USD")
-        ? !e1.source.includes("eth")
+      e2.assetsIn.concat(e2.assetsOut).find(a => a.assetType === "USD")
+        ? (!e1.sources.has("ethTx") || !e1.sources.has("ethCall"))
         : true
     )
   );
 
-const mergeEvents = (e1: Event, e2: Event, log: Logger): Event => {
+const mergeEvents = (e1: Event, e2: Event): Event => {
   const merged = {} as Event;
   const prefer = (source: string, yea: boolean, key: string, e1: Event, e2: Event): string =>
-    (e1.source.startsWith(source)) === yea ? (e1[key] || e2[key]) :
-    (e2.source.startsWith(source)) === yea ? (e2[key] || e1[key]) :
+    (e1.sources.has(source)) === yea ? (e1[key] || e2[key]) :
+    (e2.sources.has(source)) === yea ? (e2[key] || e1[key]) :
     (e1[key] || e2[key]);
-  merged.assetsIn = e1.source.startsWith("eth")
+  merged.assetsIn = e1.sources.has("ethTx")
     ? dedupAssets(e1.assetsIn, e2.assetsIn)
     : dedupAssets(e2.assetsIn, e1.assetsIn);
-  merged.assetsOut = e1.source.startsWith("eth")
+  merged.assetsOut = e1.sources.has("ethTx")
     ? dedupAssets(e1.assetsOut, e2.assetsOut)
     : dedupAssets(e2.assetsOut, e1.assetsOut);
-  merged.date = prefer("eth", true, "date", e1, e2);
-  merged.from = prefer("eth", false, "from", e1, e2);
-  merged.hash = prefer("eth", true, "hash", e1, e2);
+  merged.date = prefer("ethTx", true, "date", e1, e2);
+  merged.from = prefer("ethTx", false, "from", e1, e2);
+  merged.hash = prefer("ethTx", true, "hash", e1, e2);
   merged.prices = e1.prices || e2.prices;
-  merged.source = Array.from(new Set([
-    ...e1.source.split("+"),
-    ...e2.source.split("+"),
-  ])).sort().join("+");
-  merged.tags = e1.tags.concat(e2.tags);
-  merged.to = prefer("eth", false, "to", e1, e2);
-  merged.category = getCategory(merged, log);
-  merged.description = getDescription(merged, log);
+  merged.sources = new Set([...e1.sources, ...e2.sources]);
+  merged.tags = new Set([...e1.tags, ...e2.tags]);
+  merged.to = prefer("ethTx", false, "to", e1, e2);
+  merged.description = getDescription(merged);
   return merged;
 };
 
-export const coalesce = (oldEvents: Event[], newEvents: Event[], logLevel: number): Event[] => {
-  const log = new Logger("Coalesce", logLevel);
+export const coalesce = (oldEvents: Event[], newEvents: Partial<Event>[]): Event[] => {
+  const log = new Logger("Coalesce", env.logLevel);
   const consolidated = [] as number[];
   const events = [] as Event[];
   for (let oldI = 0; oldI < oldEvents.length; oldI++) {
@@ -107,7 +104,7 @@ export const coalesce = (oldEvents: Event[], newEvents: Event[], logLevel: numbe
       if (consolidated.includes(newI)) { continue; }
       if (mergedE.hash && newE.hash && mergedE.hash !== newE.hash) { continue; }
       if (sameEvent(mergedE, newE)) {
-        mergedE = mergeEvents(mergedE, newE, log);
+        mergedE = mergeEvents(mergedE, newE);
         log.info(`Merged event "${newE.description}" into "${mergedE.description}"`);
         consolidated.push(newI);
       }

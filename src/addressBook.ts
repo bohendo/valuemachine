@@ -51,6 +51,7 @@ export const getAddressBook = (input: InputData): AddressBook => {
       : address.substring(0, 10));
 
   return {
+    addresses: input.addressBook,
     getName,
     isCategory,
     isSelf,

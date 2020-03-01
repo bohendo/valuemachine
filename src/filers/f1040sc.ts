@@ -1,8 +1,9 @@
+import { env } from "../env";
 import { FinancialData, Forms } from "../types";
 import { add, gt, Logger, lt, round, sub } from "../utils";
 
 export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
-  const log = new Logger("f1040sc", finances.input.logLevel);
+  const log = new Logger("f1040sc", env.logLevel);
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 

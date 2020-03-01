@@ -1,44 +1,48 @@
+import { env } from "../env";
 import { Event } from "../types";
 import { addAssets, Logger, round } from "../utils";
 
-export const getCategory = (event: Event, log: Logger): string => {
+const getCategory = (event: Event): string => {
   if (event.assetsIn.length === 0 && event.assetsOut.length === 0) {
     return "null";
   } else if (event.assetsIn.length !== 0 && event.assetsOut.length === 0) {
-    return event.tags.includes("cdp")
+    return event.tags.has("cdp")
       ? "borrow"
-      : event.tags.includes("defi")
+      : event.tags.has("defi")
         ? "withdrawal"
         : "income";
   } else if (event.assetsIn.length === 0 && event.assetsOut.length !== 0) {
-    return event.tags.includes("cdp")
+    return event.tags.has("cdp")
       ? "repayment"
-      : event.tags.includes("defi")
+      : event.tags.has("defi")
         ? "deposit"
         : "expense";
   } else if (event.assetsIn.length !== 0 && event.assetsOut.length !== 0) {
     return "swap";
   }
-  log.info(`Idk how to get description for: ${JSON.stringify(event)}`);
+  new Logger("getCategory", env.logLevel)
+    .info(`Idk how to get description for: ${JSON.stringify(event)}`);
   return "idk";
 };
 
-export const getDescription = (event: Event, log: Logger): string => {
-  const assetsIn = addAssets(event.assetsIn).map(a => `${round(a.amount)} ${a.type}`).join(", ");
-  const assetsOut = addAssets(event.assetsOut).map(a => `${round(a.amount)} ${a.type}`).join(", ");
+export const getDescription = (event: Event): string => {
+  const assetsIn = addAssets(event.assetsIn).map(a => `${round(a.quantity)} ${a.assetType}`).join(", ");
+  const assetsOut = addAssets(event.assetsOut).map(a => `${round(a.quantity)} ${a.assetType}`).join(", ");
+  const category = getCategory(event);
   if (event.assetsIn.length === 0 && event.assetsOut.length === 0) {
     return "null";
   } else if (event.assetsIn.length !== 0 && event.assetsOut.length === 0) {
-    return event.tags.includes("cdp")
-      ? `${event.category} of ${assetsIn} from CDP`
-      : `${event.category} of ${assetsIn} from ${event.from}`;
+    return event.tags.has("cdp")
+      ? `${category} of ${assetsIn} from CDP`
+      : `${category} of ${assetsIn} from ${event.from}`;
   } else if (event.assetsIn.length === 0 && event.assetsOut.length !== 0) {
-    return event.tags.includes("cdp")
-      ? `${event.category} of ${assetsOut} to CDP`
-      : `${event.category} of ${assetsOut} to ${event.to}`;
+    return event.tags.has("cdp")
+      ? `${category} of ${assetsOut} to CDP`
+      : `${category} of ${assetsOut} to ${event.to}`;
   } else if (event.assetsIn.length !== 0 && event.assetsOut.length !== 0) {
-    return `${event.category} of ${assetsOut} for ${assetsIn}`;
+    return `${category} of ${assetsOut} for ${assetsIn}`;
   }
-  log.info(`Idk how to get description for: ${JSON.stringify(event)}`);
+  new Logger("getDescription", env.logLevel)
+    .info(`Idk how to get description for: ${JSON.stringify(event)}`);
   return "idk";
 };

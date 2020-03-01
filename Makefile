@@ -70,7 +70,7 @@ personal: personal.json taxes.js $(shell find ops $(find_options))
 
 test: test.json taxes.js $(shell find ops $(find_options))
 	$(log_start)
-	$(docker_run) "MODE=test node build/src/entry.js test.json $(test)"
+	$(docker_run) "NODE_ENV=test node build/src/entry.js test.json $(test)"
 	@$(docker_run) "bash ops/build.sh test"
 	$(log_finish) && mv -f $(totalTime) $(flags)/$@
 

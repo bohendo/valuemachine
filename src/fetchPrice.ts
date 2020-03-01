@@ -2,8 +2,9 @@ import fs from "fs";
 import axios from "axios";
 // import { formatEther } from "ethers/utils";
 
-import { DateString, InputData, PriceData, TimestampString } from "./types";
+import { DateString, PriceData, TimestampString } from "./types";
 import { Logger } from "./utils";
+import { env } from "./env";
 
 const emptyPriceData: PriceData = {
   ids: {},
@@ -27,11 +28,10 @@ const saveCache = (priceData: PriceData): void =>
   fs.writeFileSync(cacheFile, JSON.stringify(priceData, null, 2));
 
 export const fetchPrice = async (
-  input: InputData,
   asset: string,
   timestamp: TimestampString,
 ): Promise<string> => {
-  const log = new Logger("FetchPriceData", input.logLevel);
+  const log = new Logger("FetchPriceData", env.logLevel);
   const prices = loadCache(log) as PriceData;
   const date = (timestamp.includes("T") ? timestamp.split("T")[0] : timestamp) as DateString;
   const coingeckoUrl = "https://api.coingecko.com/api/v3";

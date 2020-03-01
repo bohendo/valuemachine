@@ -1,12 +1,13 @@
 import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
+import { env } from "../env";
 import { Event } from "../types";
 import { Logger } from "../utils";
-import { getCategory, getDescription } from "./utils";
+import { getDescription } from "./utils";
 
-export const formatCoinbase = (filename: string, logLevel?: number): Event[] => {
-  const log = new Logger("Coinbase", logLevel || 3);
+export const formatCoinbase = (filename: string): Event[] => {
+  const log = new Logger("Coinbase", env.logLevel);
   const rawFile = fs.readFileSync(filename, "utf8");
   return csv(
     rawFile,
@@ -17,31 +18,31 @@ export const formatCoinbase = (filename: string, logLevel?: number): Event[] => 
       assetsOut: [],
       date: (new Date(row["Timestamp"])).toISOString(),
       prices: {},
-      source: "coinbase",
-      tags: [],
+      sources: new Set(["coinbase"]),
+      tags: new Set(),
     } as Event;
 
     const usd = {
-      amount: row["USD Total (inclusive of fees)"],
-      type: "USD",
+      assetType: "USD",
+      quantity: row["USD Total (inclusive of fees)"],
     };
     const asset = {
-      amount: row["Quantity Transacted"],
-      type: row["Asset"],
+      assetType: row["Asset"],
+      quantity: row["Quantity Transacted"],
     };
 
-    event.prices[asset.type] = row["USD Spot Price at Transaction"];
+    event.prices[asset.assetType] = row["USD Spot Price at Transaction"];
 
     if (row["Transaction Type"] === "Send") {
       event.from = "coinbase";
       event.to = "external";
       event.assetsIn.push(asset);
-      event.tags.push("ignore");
+      event.tags.add("ignore");
     } else if (row["Transaction Type"] === "Receive") {
       event.from = "external";
       event.to = "coinbase";
       event.assetsOut.push(asset);
-      event.tags.push("ignore");
+      event.tags.add("ignore");
     } else if (row["Transaction Type"] === "Sell") {
       event.from = "coinbase";
       event.to = "coinbase";
@@ -54,8 +55,7 @@ export const formatCoinbase = (filename: string, logLevel?: number): Event[] => 
       event.assetsOut.push(usd);
     }
 
-    event.category = getCategory(event, log);
-    event.description = getDescription(event, log);
+    event.description = getDescription(event);
     log.info(event.description);
     return event;
   });
