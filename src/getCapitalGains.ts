@@ -56,6 +56,9 @@ export const getCapitalGains = async (
     // log.debug(`Processing event: ${JSON.stringify(event)}`);
 
     for (const asset of event.assetsIn) {
+      if (asset.type.toUpperCase().startsWith("C")) {
+        continue;
+      }
       const app = event.category === "withdrawal" ? event.from : "self";
       if (!assets[app]) {
         log.debug(`Creating new asset app for ${app}`);
@@ -121,6 +124,9 @@ export const getCapitalGains = async (
     }
 
     for (const asset of event.assetsOut) {
+      if (asset.type.toUpperCase().startsWith("C")) {
+        continue;
+      }
       const app = event.category === "deposit" ? event.to : "self";
       if (!assets[app]) {
         log.debug(`Creating new asset app for ${app}`);
@@ -233,6 +239,7 @@ export const getCapitalGains = async (
   ////////////////////////////////////////
   // Print Results
 
+/*
   const totalCost =
     Object.keys(total.cost).reduce((cur, acc) => add([acc, total.cost[cur]]), "0");
   const totalProceeds =
@@ -245,6 +252,7 @@ export const getCapitalGains = async (
   }
   log.info(`Assets Leftover: ${stringifyAssets(assets.self)}`);
   log.info(`Total proceeds: ${totalProceeds} - cost ${totalCost} = profit ${totalProfit}`);
+*/
 
   return trades;
 };
