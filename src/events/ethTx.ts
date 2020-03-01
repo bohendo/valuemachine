@@ -4,8 +4,9 @@ import { abi as tokenAbi } from "@openzeppelin/contracts/build/contracts/ERC20.j
 
 import { env } from "../env";
 import { Event, TransactionData } from "../types";
-import { Logger } from "../utils";
+import { eq, Logger } from "../utils";
 import { saiAbi, wethAbi } from "../abi";
+import { mergeFactory } from "./utils";
 
 const getEvents = (abi: any): EventDescription[] => Object.values((new Interface(abi)).events);
 const tokenEvents =
@@ -58,51 +59,52 @@ export const castEthTx = (addressBook): any =>
           log.debug(`Unable to decode ${assetType} ${eventI.name} event data`);
           continue;
         }
+        const quantity = formatEther(data.value || data.wad || "0");
 
         if (eventI.name === "Transfer") {
           event.transfers.push({
             assetType,
             from: data.from,
-            quantity: formatEther(data.value),
+            quantity,
             to: data.to,
           });
-          log.debug(`${formatEther(data.value)} ${assetType} was transfered to ${data.to}`);
+          log.debug(`${quantity} ${assetType} was transfered to ${data.to}`);
 
         } else if (assetType === "WETH" && eventI.name === "Deposit") {
           event.transfers.push({
             assetType,
             from: txLog.address,
-            quantity: formatEther(data.value),
+            quantity: quantity,
             to: data.dst,
           });
-          log.debug(`Deposit by ${data.dst} minted ${formatEther(data.value)} ${assetType}`);
+          log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
 
         } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
           event.transfers.push({
             assetType,
             from: data.src,
-            quantity: formatEther(data.value),
+            quantity: quantity,
             to: txLog.address,
           });
-          log.debug(`Withdraw by ${data.dst} burnt ${formatEther(data.value)} ${assetType}`);
+          log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
 
         } else if (assetType === "SAI" && eventI.name === "Mint") {
           event.transfers.push({
             assetType,
             from: AddressZero,
-            quantity: formatEther(data.wad),
+            quantity: quantity,
             to: data.guy,
           });
-          log.debug(`Minted ${formatEther(data.wad)} ${assetType}`);
+          log.debug(`Minted ${quantity} ${assetType}`);
 
         } else if (assetType === "SAI" && eventI.name === "Burn") {
           event.transfers.push({
             assetType,
             from: data.guy,
-            quantity: formatEther(data.wad),
+            quantity: quantity,
             to: AddressZero,
           });
-          log.debug(`Burnt ${formatEther(data.wad)} ${assetType}`);
+          log.debug(`Burnt ${quantity} ${assetType}`);
 
         } else if (eventI.name === "Approval") {
           log.debug(`Skipping Approval event`);
@@ -112,10 +114,14 @@ export const castEthTx = (addressBook): any =>
         }
       }
     }
-
     event.sources.add("ethLogs");
 
-    if (event.transfers.length === 1) {
+    // Filter out any zero-value transfers
+    event.transfers = event.transfers.filter(transfer => !eq(transfer.quantity, "0"));
+
+    if (event.transfers.length === 0) {
+      return null;
+    } else if (event.transfers.length === 1) {
       const { quantity, assetType, to } = event.transfers[0];
       event.description = `ethTx sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
     } else {
@@ -128,3 +134,13 @@ export const castEthTx = (addressBook): any =>
 
     return event;
   };
+
+export const mergeEthTx = mergeFactory({
+  allowableTimeDiff: 0,
+  log: new Logger("MergeEthTx", env.logLevel),
+  mergeEvents: (): void => {
+    throw new Error(`idk how to merge txEvents`);
+  },
+  shouldMerge: (event: Event, txEvent: Event): boolean =>
+    event.hash === txEvent.hash,
+});

@@ -3,11 +3,12 @@ import fs from "fs";
 
 import { getAddressBook } from "./addressBook";
 import { env, setEnv } from "./env";
+import { getFinancialEvents } from "./events";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
-import { InputData, State } from "./types";
+import { getNetWorth } from "./netWorth";
+import { InputData } from "./types";
 import { emptyForm, Logger, mergeForms, translate } from "./utils";
-import { getFinancialEvents } from "./events";
 import { getValueMachine } from "./vm";
 
 const logAndExit = (msg: any): void => {
@@ -28,7 +29,7 @@ process.on("SIGINT", logAndExit);
   const log = new Logger("Entry", input.env.logLevel);
 
   log.info(`Starting app in env: ${JSON.stringify(env)}`);
-  setEnv(input.env);
+  setEnv({ ...input.env, outputFolder });
   log.info(`Set new env: ${JSON.stringify(env)}`);
 
   log.info(`\nLets go\n`);
@@ -36,28 +37,17 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  let events;
+  const events = await getFinancialEvents(input);
 
-  try {
-    events = JSON.parse(fs.readFileSync(`${outputFolder}/events.json`, "utf8"));
-    log.info(`Loaded ${events.length} events from cache`);
-  } catch (e) {
-    events = await getFinancialEvents(input);
-    fs.writeFileSync(`${outputFolder}/events.json`, JSON.stringify(events, null, 2));
-    // Dump a copy of events to project root too just for dev convenience
-    fs.writeFileSync(`./events.json`, JSON.stringify(events, null, 2));
-    log.info(`Done gathering financial events.\n`);
-  }
-
-  const getNetWorth = (state: State): State => state;
   const valueMachine = getValueMachine(getAddressBook(input));
 
-  let [state, logs] = [null, []];
+  let state = null;
+  const logs = [];
   for (const event of events) {
-    [state, logs] = valueMachine(state, event);
+    const [newState, newLogs] = valueMachine(state, event);
+    logs.concat(...newLogs);
+    state = newState;
   }
-
-  // TODO: save latest state & pick up from there when we get new events.
 
   console.log(`net worth: ${getNetWorth(state)}}`);
 

@@ -1,20 +1,22 @@
+import { AddressZero } from "ethers/constants";
 import { env } from "../env";
 import { CallData, Event } from "../types";
-import { Logger } from "../utils";
+import { eq, Logger } from "../utils";
+import { mergeFactory } from "./utils";
 
 export const castEthCall = (addressBook): any =>
   (call: CallData): any => {
     const log = new Logger(`EthCall ${call.hash.substring(0, 10)}`, env.logLevel);
     const { getName, isCategory } = addressBook;
 
-    const assetType = call.contractAddress
-      ? isCategory(call.contractAddress, "erc20")
+    const assetType = call.contractAddress === AddressZero
+      ? "ETH"
+      : isCategory(call.contractAddress, "erc20")
         ? getName(call.contractAddress)
-        : null
-      : "ETH";
+        : null;
 
     if (!assetType) {
-      log.debug(`Skipping unsupported token: ${call.contractAddress}`);
+      log.debug(`Skipping ${isCategory(call.contractAddress, "erc20")}-supported token: ${call.contractAddress} aka ${getName(call.contractAddress)}`);
       return null;
     }
 
@@ -33,6 +35,9 @@ export const castEthCall = (addressBook): any =>
     } as Event;
 
     const { quantity, to } = event.transfers[0];
+    if (eq(quantity, "0")) {
+      return null;
+    }
     event.description = `${source} sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
 
     log.info(event.description);
@@ -41,43 +46,21 @@ export const castEthCall = (addressBook): any =>
     return event;
   };
 
-export const mergeEthCall = (events: Event[], callEvent: Event): Event[] => {
-  const log = new Logger("MergeWyre", env.logLevel);
-  const output = [] as Event[];
-  const closeEnough = 15 * 60 * 1000; // 15 minutes
-  for (let i = 0; i < events.length; i++) {
-    const event = events[i];
-
-    // Are event dates close enough to even consider merging?
-    const diff = new Date(callEvent.date).getTime() - new Date(event.date).getTime();
-    if (diff > closeEnough) {
-      output.push(event);
-      continue;
-    } else if (diff < (closeEnough * -1)) {
-      output.push(callEvent);
-      output.push(...events.slice(i));
-      return output;
-    }
-    log.debug(`Found event that happened ${diff / (1000)} seconds before this one.`);
-
-    if (event.hash !== callEvent.hash) {
-      if (diff >= 0) {
-        output.push(callEvent);
-        output.push(...events.slice(i));
-      } else {
-        output.push(event);
-        output.push(callEvent);
-        output.push(...events.slice(i + 1));
-      }
-      return output;
-    }
-
+export const mergeEthCall = mergeFactory({
+  allowableTimeDiff: 0,
+  log: new Logger("MergeEthCall", env.logLevel),
+  mergeEvents: (event: Event, callEvent: Event): Event => {
     // tx logs and token calls return same data, add this tranfer iff this isn't the case
-    if (!event.sources.has("ethLogs") && !callEvent.sources.has("tokenCall")) {
+    if (!event.sources || !event.sources.has) {
+      throw new Error(`Trying to merge callEvent into one w ${typeof event.sources} sources: ${
+        JSON.stringify(event, null, 2)
+      }`);
+    }
+    if (!event.sources.has("ethLogs") || !callEvent.sources.has("tokenCall")) {
       event.transfers.push(callEvent.transfers[0]);
     }
-    output.push(event, ...events.slice(i+1));
-    return output;
-  }
-  return output;
-};
+    return event;
+  },
+  shouldMerge: (event: Event, callEvent: Event): boolean =>
+    event.hash === callEvent.hash,
+});

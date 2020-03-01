@@ -10,6 +10,7 @@ export let env: Env = {
   etherscanKey: process.env.ETHERSCAN_KEY,
   logLevel: parseInt(process.env.LOG_LEVEL || "3", 10),
   mode: process.env.NODE_ENV || "development",
+  outputFolder: process.env.OUTPUT_FOLDER || process.cwd(),
   taxYear: process.env.TAX_YEAR || (new Date().getUTCFullYear() - 1).toString(),
 };
 

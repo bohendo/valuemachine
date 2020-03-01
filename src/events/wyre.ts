@@ -4,7 +4,7 @@ import fs from "fs";
 import { env } from "../env";
 import { DateString, Event } from "../types";
 import { Logger } from "../utils";
-import { amountsAreClose } from "./utils";
+import { amountsAreClose, mergeFactory } from "./utils";
 
 export const castWyre = (filename: string): Event[] => {
   const log = new Logger("SendWyre", env.logLevel);
@@ -52,12 +52,9 @@ export const castWyre = (filename: string): Event[] => {
       });
       event.description = sourceType === "USD"
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
-        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} USD on sendwyre`;
+        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on sendwyre`;
 
-    } else if (txType === "INCOMING") {
-      if (destType !== sourceType || destQuantity !== sourceQuantity) {
-        throw new Error(`[SendWyre] source & dest should be same for INCOMING txType`);
-      }
+    } else if (txType === "INCOMING" && destType === sourceType) {
       event.transfers.push({
         assetType: destType,
         from: "external-account",
@@ -66,10 +63,18 @@ export const castWyre = (filename: string): Event[] => {
       });
       event.description = `Deposit ${destQuantity} ${destType} into sendwyre`;
 
-    } else if (txType === "OUTGOING") {
-      if (destType !== sourceType || destQuantity !== sourceQuantity) {
-        throw new Error(`[SendWyre] source & dest should be same for INCOMING txType`);
-      }
+    } else if (txType === "INCOMING" && destType !== sourceType) {
+      event.transfers.push({
+        assetType: destType,
+        from: "external-account",
+        quantity: destQuantity,
+        to: "sendwyre-account",
+      });
+      event.description = sourceType === "USD"
+        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
+        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on sendwyre`;
+
+    } else if (txType === "OUTGOING" && destType === sourceType) {
       event.transfers.push({
         assetType: destType,
         from: "sendwyre-account",
@@ -77,6 +82,24 @@ export const castWyre = (filename: string): Event[] => {
         to: "external-account",
       });
       event.description = `Withdraw ${destQuantity} ${destType} out of sendwyre`;
+
+    } else if (txType === "OUTGOING" && destType !== sourceType) {
+      event.transfers.push({
+        assetType: sourceType,
+        from: "sendwyre-account",
+        quantity: sourceQuantity,
+        to: "sendwyre-exchange",
+      });
+      event.transfers.push({
+        assetType: destType,
+        from: "sendwyre-exchange",
+        quantity: destQuantity,
+        to: "external-account",
+      });
+      event.description = sourceType === "USD"
+        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
+        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on sendwyre`;
+
     }
 
     log.info(event.description);
@@ -84,48 +107,21 @@ export const castWyre = (filename: string): Event[] => {
   }).filter(row => !!row);
 };
 
-export const mergeWyre = (events: Event[], wyreEvent: Event): Event[] => {
-  const log = new Logger("MergeWyre", env.logLevel);
-  const output = [] as Event[];
-  const closeEnough = 15 * 60 * 1000; // 15 minutes
-  for (let i = 0; i < events.length; i++) {
-    const event = events[i];
+export const mergeWyre = mergeFactory({
+  allowableTimeDiff: 15 * 60 * 1000,
+  log: new Logger("MergeWyre", env.logLevel),
 
-    // Are event dates close enough to even consider merging?
-    const diff = new Date(wyreEvent.date).getTime() - new Date(event.date).getTime();
-    if (diff > closeEnough) {
-      output.push(event);
-      continue;
-    } else if (diff < (closeEnough * -1)) {
-      output.push(wyreEvent);
-      output.push(...events.slice(i));
-      return output;
-    }
-    log.debug(`Found event that happened ${diff / (1000)} seconds before this one.`);
+  mergeEvents: (event: Event, wyreEvent: Event): Event => {
 
-    // Only events w one transfer are eligble to merge w ethTx events.
-    if (wyreEvent.transfers.length !== 1) {
-      if (diff >= 0) {
-        output.push(wyreEvent);
-        output.push(...events.slice(i));
-      } else {
-        output.push(event);
-        output.push(wyreEvent);
-        output.push(...events.slice(i + 1));
-      }
-      return output;
-    }
     const wyreTransfer = wyreEvent.transfers[0];
-
-    let shouldMerge = false;
     const mergedTransfers = [];
+
     for (let j = 0; j < event.transfers.length; j++) {
       const transfer = event.transfers[j];
       if (
         transfer.assetType === wyreTransfer.assetType &&
-        amountsAreClose(transfer.assetType, wyreTransfer.assetType)
+        amountsAreClose(transfer.quantity, wyreTransfer.quantity)
       ) {
-        shouldMerge = true;
         mergedTransfers.push({
           ...transfer,
           from: wyreTransfer.from.startsWith("external") 
@@ -135,23 +131,37 @@ export const mergeWyre = (events: Event[], wyreEvent: Event): Event[] => {
             ? transfer.to
             : wyreTransfer.to,
         });
-        mergedTransfers.push(...event.transfers.slice(j + 1));
-        break;
       }
       mergedTransfers.push(transfer);
     }
-    if (shouldMerge) {
-      const mergedEvent = {
-        ...event,
-        sources: new Set([...event.sources, ...wyreEvent.sources]),
-        tags: new Set([...event.tags, ...wyreEvent.tags]),
-        transfers: mergedTransfers,
-      };
-      log.info(`Merged event: ${JSON.stringify(mergedEvent, null, 2)}`);
-      output.push(mergedEvent);
-      output.push(...events.slice(i + 1));
-      return output;
+
+    return {
+      ...event,
+      sources: new Set([...event.sources, ...wyreEvent.sources]),
+      tags: new Set([...event.tags, ...wyreEvent.tags]),
+      transfers: mergedTransfers,
+    };
+  },
+
+  shouldMerge: (event: Event, wyreEvent: Event): boolean => {
+    // Only events w one transfer are eligble to merge w ethTx events.
+    if (wyreEvent.transfers.length !== 1) {
+      return false;
     }
-  }
-  return output;
-};
+    const wyreTransfer = wyreEvent.transfers[0];
+    // wyreEvent must have one transfer in common w other event
+    for (let j = 0; j < event.transfers.length; j++) {
+      const transfer = event.transfers[j];
+      if (
+        transfer.assetType === wyreTransfer.assetType &&
+        amountsAreClose(transfer.quantity, wyreTransfer.quantity)
+      ) {
+        return true;
+      }
+      if (["USD", "LTC", "BTC"].includes(transfer.assetType)) {
+        return false; // Can't merge non-eth coinbase transactions
+      }
+    }
+    return false;
+  },
+});

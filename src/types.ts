@@ -180,6 +180,7 @@ export type Env = {
   etherscanKey: string;
   logLevel: number;
   mode: string;
+  outputFolder: string;
   taxYear: string;
 }
 

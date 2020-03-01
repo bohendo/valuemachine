@@ -1,15 +1,32 @@
+import fs from "fs";
+
 import { env } from "../env";
-import { fetchPrice } from "../fetchPrice";
 import { getAddressBook } from "../addressBook";
+import { getChainData } from "../chainData";
+import { getPrice } from "../priceData";
 import { Event, InputData } from "../types";
 import { Logger } from "../utils";
 
-import { fetchChainData } from "./fetchChainData";
-
 import { castCoinbase, mergeCoinbase } from "./coinbase";
-import { castEthTx } from "./ethTx";
+import { castEthTx, mergeEthTx } from "./ethTx";
 import { castEthCall, mergeEthCall } from "./ethCall";
 import { castWyre, mergeWyre } from "./wyre";
+
+const assertChrono = (events: Event[]): void => {
+  if (env.mode !== "production") {
+    let prev = 0;
+    for (const event of events) {
+      if (!event || !event.date) {
+        throw new Error(`Invalid event detected: ${JSON.stringify(event, null, 2)}`);
+      }
+      const curr = new Date(event.date).getTime();
+      if (curr < prev) {
+        throw new Error(`Events out of order: ${event.date} < ${new Date(prev).toISOString()}`);
+      }
+      prev = curr;
+    }
+  }
+};
 
 const castDefault = (event: Partial<Event>): Partial<Event> => ({
   prices: {},
@@ -36,37 +53,48 @@ const mergeDefault = (events: Event[], input: Partial<Event>): Event[] => {
   return output;
 };
 
-const getPrice = async (asset: string, date: string): Promise<string> =>
-  ["USD", "DAI", "SAI"].includes(asset)
-    ? "1"
-    : ["ETH", "WETH"].includes(asset)
-      ? await fetchPrice("ETH", date)
-      : await fetchPrice(asset, date);
-
 export const getFinancialEvents = async (input: InputData): Promise<Event[]> => {
   const log = new Logger("FinancialEvents", env.logLevel);
+
+  let events = [] as Event[];
+
+  if (env.mode === "production") {
+    try {
+      events = JSON.parse(fs.readFileSync(`${env.outputFolder}/events.json`, "utf8"));
+      log.info(`Loaded ${events.length} events from cache`);
+      return events;
+    } catch (e) {
+      log.warn(e.message);
+    }
+  }
+
   const addressBook = getAddressBook(input);
+  const chainData = await getChainData(addressBook);
 
-  const chainData = await fetchChainData(addressBook);
-
-  let events = Object.values(chainData.transactions)
+  Object.values(chainData.transactions)
     .map(castEthTx(addressBook))
-    .filter(e => !!e) as Event[];
+    .filter(e => !!e)
+    .forEach((txEvent: Event): void => {
+      events = mergeEthTx(events, txEvent);
+      assertChrono(events);
+    });
+
+  assertChrono(events);
 
   log.info(`We have ${events.length} events after parsing eth transactions`);
 
+  log.info(`Processing ${chainData.calls.length} ethCalls`);
   chainData.calls
     .map(castEthCall(addressBook))
     .filter(e => !!e)
     .forEach((callEvent: Event): void => {
       events = mergeEthCall(events, callEvent);
+      assertChrono(events);
     });
 
-  log.info(`We have ${events.length} events after parsing eth calls`);
+  assertChrono(events);
 
-  if (events.length > 0) {
-    throw new Error(`Stop early to debug`);
-  }
+  log.info(`We have ${events.length} events after parsing eth calls`);
 
   for (const source of input.events || []) {
     if (typeof source === "string" && source.endsWith(".csv")) {
@@ -87,15 +115,32 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
     }
   }
 
-  events = await Promise.all(events.map(async (event: Event): Promise<Event> => {
-    const assets = new Set(event.transfers.map(a => a.assetType));
-    assets.forEach(async (assetType): Promise<void> => {
+  // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
+  // edge case is tricky to solve at source, just sort manually ffs
+  events = events.sort((e1: Event, e2: Event): number =>
+    new Date(e1.date).getTime() - new Date(e2.date).getTime(),
+  );
+  assertChrono(events);
+
+  log.info(`Attaching price info to events`);
+  for (let i = 0; i < events.length; i++) {
+    const event = events[i];
+    const assets = Array.from(new Set(event.transfers.map(a => a.assetType)));
+    for (let j = 0; j < assets.length; j++) {
+      const assetType = assets[j];
+      if (!event.prices) { event.prices = {}; } // TODO: this should already be done
       if (!event.prices[assetType]) {
         event.prices[assetType] = await getPrice(assetType, event.date);
       }
-    });
-    return event;
-  }));
+    }
+  }
 
+  log.info(`Event price info is up to date`);
+
+  assertChrono(events);
+  
+  fs.writeFileSync(`${env.outputFolder}/events.json`, JSON.stringify(events, null, 2));
+  // and one local copy, just for convenience
+  fs.writeFileSync(`./events.json`, JSON.stringify(events, null, 2));
   return events;
 };

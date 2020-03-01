@@ -6,32 +6,29 @@ import { DateString, PriceData, TimestampString } from "./types";
 import { Logger } from "./utils";
 import { env } from "./env";
 
-const emptyPriceData: PriceData = {
-  ids: {},
-};
-
-const cacheFile = "./price-data.json";
-
-const loadCache = (log: Logger): PriceData => {
-  try {
-    return JSON.parse(fs.readFileSync(cacheFile, "utf8"));
-  } catch (e) {
-    if (e.message.startsWith("ENOENT: no such file or directory")) {
-      return emptyPriceData;
-    }
-    log.warn(e.message);
-    throw new Error(`Unable to load priceData cache, try deleting ${cacheFile} & try again`);
-  }
-};
-
-const saveCache = (priceData: PriceData): void =>
-  fs.writeFileSync(cacheFile, JSON.stringify(priceData, null, 2));
-
-export const fetchPrice = async (
+const fetchPrice = async (
   asset: string,
   timestamp: TimestampString,
 ): Promise<string> => {
   const log = new Logger("FetchPriceData", env.logLevel);
+  const emptyPriceData: PriceData = { ids: {} };
+  const cacheFile = "./price-data.json";
+
+  const loadCache = (log: Logger): PriceData => {
+    try {
+      return JSON.parse(fs.readFileSync(cacheFile, "utf8"));
+    } catch (e) {
+      if (e.message.startsWith("ENOENT: no such file or directory")) {
+        return emptyPriceData;
+      }
+      log.warn(e.message);
+      throw new Error(`Unable to load priceData cache, try deleting ${cacheFile} & try again`);
+    }
+  };
+
+  const saveCache = (priceData: PriceData): void =>
+    fs.writeFileSync(cacheFile, JSON.stringify(priceData, null, 2));
+
   const prices = loadCache(log) as PriceData;
   const date = (timestamp.includes("T") ? timestamp.split("T")[0] : timestamp) as DateString;
   const coingeckoUrl = "https://api.coingecko.com/api/v3";
@@ -74,3 +71,12 @@ export const fetchPrice = async (
 
   return prices[date][asset];
 };
+
+export const getPrice = async (asset: string, date: string): Promise<string> =>
+  ["USD", "DAI", "SAI"].includes(asset)
+    ? "1"
+    : ["ETH", "WETH"].includes(asset)
+    ? await fetchPrice("ETH", date)
+    : asset.toUpperCase().startsWith("C")
+    ? "0" // skip compound tokens for now
+    : await fetchPrice(asset, date);

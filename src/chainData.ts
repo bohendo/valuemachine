@@ -4,9 +4,9 @@ import { AddressZero } from "ethers/constants";
 import { EtherscanProvider } from "ethers/providers";
 import { formatEther, hexlify } from "ethers/utils";
 
-import { env } from "../env";
-import { AddressBook, ChainData } from "../types";
-import { Logger } from "../utils";
+import { env } from "./env";
+import { AddressBook, ChainData } from "./types";
+import { Logger } from "./utils";
 
 // Re-fetch tx history for active addresses if >6 hours since last check
 const timeUntilStale = 6 * 60 * 60 * 1000;
@@ -36,7 +36,7 @@ const loadCache = (): ChainData => {
 const saveCache = (chainData: ChainData): void =>
   fs.writeFileSync(cacheFile, JSON.stringify(chainData, null, 2));
 
-export const fetchChainData = async (addressBook: AddressBook): Promise<ChainData> => {
+export const getChainData = async (addressBook: AddressBook): Promise<ChainData> => {
   const log = new Logger("FetchChainData", env.logLevel);
   const etherscanKey = env.etherscanKey;
 

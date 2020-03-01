@@ -9,7 +9,7 @@ import {
 import { add, eq, gt, Logger, lt, mul, round, sub } from "./utils";
 
 export const getValueMachine = (addressBook: AddressBook) =>
-  (event: Event, oldState?: State): [State, Log] => {
+  (oldState: State | null, event: Event): [State, Log] => {
     const log = new Logger("ValueMachine", env.logLevel);
     const state = JSON.parse(JSON.stringify(oldState || {})) as State;
     const trades = [];
