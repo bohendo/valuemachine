@@ -2,9 +2,9 @@ import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
 import { env } from "../env";
-import { Event } from "../types";
+import { DateString, Event } from "../types";
 import { Logger } from "../utils";
-import { amountsAreClose, getDescription } from "./utils";
+import { amountsAreClose } from "./utils";
 
 export const castWyre = (filename: string): Event[] => {
   const log = new Logger("SendWyre", env.logLevel);
@@ -24,8 +24,8 @@ export const castWyre = (filename: string): Event[] => {
     const beforeDaiMigration = (date: DateString): boolean =>
       new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime();
 
-    const destType = beforeDaiMigration(date) && rawDestType === "DAI" ? "SAI" : "DAI";
-    const sourceType = beforeDaiMigration(date) && rawSourceType === "DAI" ? "SAI" : "DAI";
+    const destType = beforeDaiMigration(date) && rawDestType === "DAI" ? "SAI" : rawDestType;
+    const sourceType = beforeDaiMigration(date) && rawSourceType === "DAI" ? "SAI" : rawDestType;
 
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
@@ -50,6 +50,9 @@ export const castWyre = (filename: string): Event[] => {
         quantity: destQuantity,
         to: "sendwyre-account",
       });
+      event.description = sourceType === "USD"
+        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
+        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} USD on sendwyre`;
 
     } else if (txType === "INCOMING") {
       if (destType !== sourceType || destQuantity !== sourceQuantity) {
@@ -61,6 +64,7 @@ export const castWyre = (filename: string): Event[] => {
         quantity: destQuantity,
         to: "sendwyre-account",
       });
+      event.description = `Deposit ${destQuantity} ${destType} into sendwyre`;
 
     } else if (txType === "OUTGOING") {
       if (destType !== sourceType || destQuantity !== sourceQuantity) {
@@ -72,9 +76,9 @@ export const castWyre = (filename: string): Event[] => {
         quantity: destQuantity,
         to: "external-account",
       });
+      event.description = `Withdraw ${destQuantity} ${destType} out of sendwyre`;
     }
 
-    event.description = getDescription(event);
     log.info(event.description);
     return event;
   }).filter(row => !!row);
@@ -84,7 +88,7 @@ export const mergeWyre = (events: Event[], wyreEvent: Event): Event[] => {
   const log = new Logger("MergeWyre", env.logLevel);
   const output = [] as Event[];
   const closeEnough = 15 * 60 * 1000; // 15 minutes
-  for (const i = 0; i < events.length; i++) {
+  for (let i = 0; i < events.length; i++) {
     const event = events[i];
 
     // Are event dates close enough to even consider merging?
@@ -115,7 +119,7 @@ export const mergeWyre = (events: Event[], wyreEvent: Event): Event[] => {
 
     let shouldMerge = false;
     const mergedTransfers = [];
-    for (const j = 0; j < event.transfers.length; j++) {
+    for (let j = 0; j < event.transfers.length; j++) {
       const transfer = event.transfers[j];
       if (
         transfer.assetType === wyreTransfer.assetType &&

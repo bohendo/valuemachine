@@ -21,7 +21,7 @@ const castDefault = (event: Partial<Event>): Partial<Event> => ({
 
 const mergeDefault = (events: Event[], input: Partial<Event>): Event[] => {
   const output = [] as Event[];
-  for (const i = 0; i < events.length; i++) {
+  for (let i = 0; i < events.length; i++) {
     const event = events[i];
     if (event.hash && input.hash && event.hash === input.hash) {
       output.push({
@@ -49,12 +49,19 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
 
   const chainData = await fetchChainData(addressBook);
 
-  let events = chainData.transactions.map(castEthTx(addressBook)).filter(e => !!e);
+  let events = Object.values(chainData.transactions)
+    .map(castEthTx(addressBook))
+    .filter(e => !!e) as Event[];
+
   log.info(`We have ${events.length} events after parsing eth transactions`);
 
-  chainData.calls.map(castEthCall(addressBook)).filter(e => !!e).forEach(callEvent => {
-    events = mergeEthCall(events, callEvent);
-  });
+  chainData.calls
+    .map(castEthCall(addressBook))
+    .filter(e => !!e)
+    .forEach((callEvent: Event): void => {
+      events = mergeEthCall(events, callEvent);
+    });
+
   log.info(`We have ${events.length} events after parsing eth calls`);
 
   if (events.length > 0) {
@@ -64,7 +71,7 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
   for (const source of input.events || []) {
     if (typeof source === "string" && source.endsWith(".csv")) {
       if (source.toLowerCase().includes("coinbase")) {
-        castCoinbase(source).forEach(coinbaseEvent => {
+        castCoinbase(source).forEach((coinbaseEvent: Event): void => {
           events = mergeCoinbase(events, coinbaseEvent);
         });
       } else if (source.toLowerCase().includes("wyre")) {
@@ -81,8 +88,7 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
   }
 
   events = await Promise.all(events.map(async (event: Event): Promise<Event> => {
-    const getType = (a): string => a.assetType;
-    const assets = new Set(event.assetsIn.map(getType).concat(event.assetsOut.map(getType)));
+    const assets = new Set(event.transfers.map(a => a.assetType));
     assets.forEach(async (assetType): Promise<void> => {
       if (!event.prices[assetType]) {
         event.prices[assetType] = await getPrice(assetType, event.date);

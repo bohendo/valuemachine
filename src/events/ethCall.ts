@@ -1,7 +1,6 @@
 import { env } from "../env";
 import { CallData, Event } from "../types";
 import { Logger } from "../utils";
-import { getDescription } from "./utils";
 
 export const castEthCall = (addressBook): any =>
   (call: CallData): any => {
@@ -19,10 +18,11 @@ export const castEthCall = (addressBook): any =>
       return null;
     }
 
+    const source = assetType === "ETH" ? "ethCall" : "tokenCall";
     const event = {
       date: call.timestamp,
       hash: call.hash,
-      sources: new Set([assetType === "ETH" ? "ethCall" : "tokenCall"]),
+      sources: new Set([source]),
       tags: new Set(),
       transfers: [{
         assetType,
@@ -32,8 +32,9 @@ export const castEthCall = (addressBook): any =>
       }],
     } as Event;
 
+    const { quantity, to } = event.transfers[0];
+    event.description = `${source} sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
 
-    event.description = getDescription(event);
     log.info(event.description);
     log.debug(`${call.value} ${assetType} transferred to ${call.to}`);
 
@@ -44,7 +45,7 @@ export const mergeEthCall = (events: Event[], callEvent: Event): Event[] => {
   const log = new Logger("MergeWyre", env.logLevel);
   const output = [] as Event[];
   const closeEnough = 15 * 60 * 1000; // 15 minutes
-  for (const i = 0; i < events.length; i++) {
+  for (let i = 0; i < events.length; i++) {
     const event = events[i];
 
     // Are event dates close enough to even consider merging?

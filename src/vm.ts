@@ -30,11 +30,11 @@ export const getValueMachine = (addressBook: AddressBook) =>
     log.info(`Processing event on ${date.split("T")[0]}: ${event.description || JSON.stringify(event)}`);
     // log.debug(`Processing event: ${JSON.stringify(event)}`);
 
-    for (const { assetType, quantity } of event.assetsIn) {
+    for (const { assetType, from, quantity } of event.transfers) {
       if (assetType.toUpperCase().startsWith("C")) {
         continue;
       }
-      const app = event.from;
+      const app = addressBook.getName(from);
       if (!state[app]) {
         log.debug(`Creating new asset app for ${app}`);
         state[app] = {};
@@ -88,19 +88,19 @@ export const getValueMachine = (addressBook: AddressBook) =>
       } else {
 
         state[app][assetType].push({
-          quantity: quantity,
           dateRecieved: date,
           purchasePrice: event.prices[assetType],
+          quantity: quantity,
         });
 
       }
     }
 
-    for (const { assetType, quantity } of event.assetsOut) {
+    for (const { assetType, quantity, to } of event.transfers) {
       if (assetType.toUpperCase().startsWith("C")) {
         continue;
       }
-      const app = event.to;
+      const app = addressBook.getName(to);
       if (!state[app]) {
         log.debug(`Creating new asset app for ${app}`);
         state[app] = {};

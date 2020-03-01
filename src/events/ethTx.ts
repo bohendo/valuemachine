@@ -1,11 +1,10 @@
 import { AddressZero } from "ethers/constants";
-import { Interface, formatEther, keccak256, EventDescription, RLP } from "ethers/utils";
+import { Interface, hexlify, formatEther, keccak256, EventDescription, RLP } from "ethers/utils";
 import { abi as tokenAbi } from "@openzeppelin/contracts/build/contracts/ERC20.json";
 
 import { env } from "../env";
 import { Event, TransactionData } from "../types";
 import { Logger } from "../utils";
-import { getDescription } from "./utils";
 import { saiAbi, wethAbi } from "../abi";
 
 const getEvents = (abi: any): EventDescription[] => Object.values((new Interface(abi)).events);
@@ -23,8 +22,8 @@ export const castEthTx = (addressBook): any =>
 
     if (tx.to === null) {
       // derived from: https://ethereum.stackexchange.com/a/46960
-      tx.to = keccak256(RLP.encode([tx.from, tx.nonce])).substring(0, 24);
-      log.debug(`new contract deployed to ${tx.to}`);
+      tx.to = "0x" + keccak256(RLP.encode([tx.from, hexlify(tx.nonce)])).substring(26);
+      log.info(`new contract deployed to ${tx.to}`);
     }
 
     const event = {
@@ -116,7 +115,12 @@ export const castEthTx = (addressBook): any =>
 
     event.sources.add("ethLogs");
 
-    event.description = getDescription(event);
+    if (event.transfers.length === 1) {
+      const { quantity, assetType, to } = event.transfers[0];
+      event.description = `ethTx sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
+    } else {
+      event.description = `ethTx made ${event.transfers.length} transfers`;
+    }
 
     event.description !== "null"
       ? log.info(event.description)
