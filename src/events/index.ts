@@ -30,8 +30,8 @@ const assertChrono = (events: Event[]): void => {
 
 const castDefault = (event: Partial<Event>): Partial<Event> => ({
   prices: {},
-  sources: new Set(["personal"]),
-  tags: new Set(),
+  sources: ["personal"],
+  tags: [],
   transfers: [],
   ...event,
 });
@@ -43,8 +43,8 @@ const mergeDefault = (events: Event[], input: Partial<Event>): Event[] => {
     if (event.hash && input.hash && event.hash === input.hash) {
       output.push({
         ...event,
-        sources: new Set([...event.sources, ...input.sources]),
-        tags: new Set([...event.tags, ...input.tags]),
+        sources: Array.from(new Set([...event.sources, ...input.sources])),
+        tags: Array.from(new Set([...event.tags, ...input.tags])),
       });
       break;
     }
@@ -138,7 +138,14 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
   log.info(`Event price info is up to date`);
 
   assertChrono(events);
-  
+  events.forEach(event => {
+    ["date", "description", "prices"].forEach(required => {
+      if (!event[required]) {
+        throw new Error(`Event doesn't have a ${required}: ${JSON.stringify(event, null, 2)}`);
+      }
+    });
+  });
+
   fs.writeFileSync(`${env.outputFolder}/events.json`, JSON.stringify(events, null, 2));
   // and one local copy, just for convenience
   fs.writeFileSync(`./events.json`, JSON.stringify(events, null, 2));

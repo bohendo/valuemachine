@@ -25,8 +25,8 @@ export const castCoinbase = (filename: string): Event[] => {
     const event = {
       date: (new Date(date)).toISOString(),
       prices: { [assetType]: price },
-      sources: new Set(["coinbase"]),
-      tags: new Set(),
+      sources: ["coinbase"],
+      tags: [],
       transfers: [],
     } as Event;
 
@@ -98,8 +98,8 @@ export const mergeCoinbase = mergeFactory({
 
     return {
       ...event,
-      sources: new Set([...event.sources, ...cbEvent.sources]),
-      tags: new Set([...event.tags, ...cbEvent.tags]),
+      sources: Array.from(new Set([...event.sources, ...cbEvent.sources])),
+      tags: Array.from(new Set([...event.tags, ...cbEvent.tags])),
       transfers: mergedTransfers,
     };
   },

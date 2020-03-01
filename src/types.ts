@@ -24,8 +24,8 @@ export type Event = {
   description?: string;
   hash?: HexString;
   prices: { [assetType: string]: DecimalString };
-  sources: Set<Source>;
-  tags: Set<EventTag>;
+  sources: Source[];
+  tags: EventTag[];
   transfers: Transfer[];
 }
 

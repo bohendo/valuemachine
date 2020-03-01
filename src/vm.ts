@@ -20,17 +20,18 @@ export const getValueMachine = (addressBook: AddressBook) =>
     // TODO: what if input.capitalGainsMethod is LIFO or HIFO?
     const getNext = (assetType: string): AssetChunk =>
       state.self[assetType] ? state.self[assetType].pop() : undefined;
+
     const putBack = (assetType: string, asset: AssetChunk): number =>
       state.self[assetType].unshift(asset);
 
     const date = event.date;
 
-    if (event.description.includes(" ETH")) { log.setLevel(5); } else { log.setLevel(3); }
+    // if (event.description.includes(" ETH")) { log.setLevel(5); } else { log.setLevel(3); }
 
-    log.info(`Processing event on ${date.split("T")[0]}: ${event.description || JSON.stringify(event)}`);
+    log.info(`Input event ${date.split("T")[0]}: ${event.description}`);
     // log.debug(`Processing event: ${JSON.stringify(event)}`);
 
-    for (const { assetType, from, quantity } of event.transfers) {
+    for (const { assetType, from, quantity, to } of event.transfers) {
       if (assetType.toUpperCase().startsWith("C")) {
         continue;
       }

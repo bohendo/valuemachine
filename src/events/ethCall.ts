@@ -24,8 +24,8 @@ export const castEthCall = (addressBook): any =>
     const event = {
       date: call.timestamp,
       hash: call.hash,
-      sources: new Set([source]),
-      tags: new Set(),
+      sources: [source],
+      tags: [],
       transfers: [{
         assetType,
         from: call.from,
@@ -51,12 +51,7 @@ export const mergeEthCall = mergeFactory({
   log: new Logger("MergeEthCall", env.logLevel),
   mergeEvents: (event: Event, callEvent: Event): Event => {
     // tx logs and token calls return same data, add this tranfer iff this isn't the case
-    if (!event.sources || !event.sources.has) {
-      throw new Error(`Trying to merge callEvent into one w ${typeof event.sources} sources: ${
-        JSON.stringify(event, null, 2)
-      }`);
-    }
-    if (!event.sources.has("ethLogs") || !callEvent.sources.has("tokenCall")) {
+    if (!event.sources.includes("ethLogs") || !callEvent.sources.includes("tokenCall")) {
       event.transfers.push(callEvent.transfers[0]);
     }
     return event;

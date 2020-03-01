@@ -31,8 +31,8 @@ export const castEthTx = (addressBook): any =>
       date: tx.timestamp,
       hash: tx.hash,
       prices: {},
-      sources: new Set(["ethTx"]),
-      tags: new Set(),
+      sources: ["ethTx"],
+      tags: [],
       transfers: [{
         assetType: "ETH",
         from: tx.from,
@@ -114,7 +114,7 @@ export const castEthTx = (addressBook): any =>
         }
       }
     }
-    event.sources.add("ethLogs");
+    event.sources.push("ethLogs");
 
     // Filter out any zero-value transfers
     event.transfers = event.transfers.filter(transfer => !eq(transfer.quantity, "0"));

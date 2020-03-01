@@ -32,8 +32,8 @@ export const castWyre = (filename: string): Event[] => {
     const event = {
       date: (new Date(date)).toISOString(),
       prices: {},
-      sources: new Set(["sendwyre"]),
-      tags: new Set([]),
+      sources: ["sendwyre"],
+      tags: [],
       transfers: [],
     } as Event;
 
@@ -137,8 +137,8 @@ export const mergeWyre = mergeFactory({
 
     return {
       ...event,
-      sources: new Set([...event.sources, ...wyreEvent.sources]),
-      tags: new Set([...event.tags, ...wyreEvent.tags]),
+      sources: Array.from(new Set([...event.sources, ...wyreEvent.sources])),
+      tags: Array.from(new Set([...event.tags, ...wyreEvent.tags])),
       transfers: mergedTransfers,
     };
   },
