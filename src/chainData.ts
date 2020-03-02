@@ -92,7 +92,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     }
 
     if (timeDiff < timeUntilStale) {
-      log.info(`Active address ${address} was updated ${timeDiff / (60 * 1000)} minues ago`);
+      log.info(`Active address ${address} was updated ${timeDiff / (60 * 1000)} minutes ago`);
       continue;
     }
     log.info(`Fetching info for address: ${address} (last updated ${timeDiff / (60 * 1000)} minutes ago)`);
@@ -239,6 +239,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         to: tx.to,
         value: formatEther(tx.value),
       };
+      saveCache(chainData);
       log.info(`✅ got data with ${receipt.logs.length} log${receipt.logs.length > 1 ? "s" : ""}`);
     }
   }
