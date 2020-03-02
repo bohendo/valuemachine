@@ -4,7 +4,7 @@ import { CallData, Event } from "../types";
 import { eq, Logger } from "../utils";
 import { mergeFactory } from "./utils";
 
-export const castEthCall = (addressBook): any =>
+export const castEthCall = (addressBook, chainData): any =>
   (call: CallData): any => {
     const log = new Logger(`EthCall ${call.hash.substring(0, 10)}`, env.logLevel);
     const { getName, isCategory } = addressBook;
@@ -14,6 +14,15 @@ export const castEthCall = (addressBook): any =>
       : isCategory(call.contractAddress, "erc20")
         ? getName(call.contractAddress)
         : null;
+
+    if (!chainData || !chainData.transactions || !chainData.transactions[call.hash]) {
+      throw new Error(`No tx data for call ${call.hash}, did fetching chainData get interrupted?`);
+    }
+
+    if (chainData.transactions[call.hash].status !== 1) {
+      log.info(`Skipping call that reverted w status ${chainData.transactions[call.hash].status}`);
+      return null;
+    }
 
     if (!assetType) {
       log.debug(`Skipping ${isCategory(call.contractAddress, "erc20")}-supported token: ${call.contractAddress} aka ${getName(call.contractAddress)}`);

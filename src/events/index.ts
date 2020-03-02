@@ -63,7 +63,7 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
   log.info(`Processing ${chainData.calls.length} ethCalls`);
   chainData.calls
     .sort((call1, call2) => call1.block - call2.block)
-    .map(castEthCall(addressBook))
+    .map(castEthCall(addressBook, chainData))
     .filter(e => !!e)
     .forEach((callEvent: Event): void => {
       events = mergeEthCall(events, callEvent);
