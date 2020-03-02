@@ -138,16 +138,43 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     )).data.result;
     log.info(`✅ tokenTxHistory: ${tokenTxHistory.length} logs`);
 
-    for (const tx of internalTxHistory.concat(tokenTxHistory)) {
+    for (const tx of tokenTxHistory) {
       chainData.calls.push({
         block: parseInt(tx.blockNumber.toString(), 10),
-        contractAddress: tx.contractAddress || AddressZero,
+        contractAddress: tx.contractAddress,
         from: tx.from,
         hash: tx.hash,
         timestamp: (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString(),
         to: tx.to,
         value: formatEther(tx.value),
       });
+    }
+
+    // edge case: a tx makes 2 identical eth internal transfers
+    // We don't want to add these transfers twice for each of from & to
+    // But we still want these two identical eth transfers to be added
+
+    const oldCalls = JSON.parse(JSON.stringify(chainData.calls));
+    for (const tx of internalTxHistory) {
+      const oldDups = oldCalls.filter(call =>
+        tx.from === call.from &&
+        tx.hash === call.hash &&
+        tx.to === call.to &&
+        tx.value === call.value,
+      ).length;
+      if (oldDups === 0) {
+        chainData.calls.push({
+          block: parseInt(tx.blockNumber.toString(), 10),
+          contractAddress: AddressZero,
+          from: tx.from,
+          hash: tx.hash,
+          timestamp: (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString(),
+          to: tx.to,
+          value: formatEther(tx.value),
+        });
+      } else {
+        continue;
+      }
     }
 
     chainData.addresses[address] = new Date().toISOString();
