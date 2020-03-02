@@ -144,6 +144,18 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
         throw new Error(`Event doesn't have a ${required}: ${JSON.stringify(event, null, 2)}`);
       }
     });
+    event.transfers.forEach(transfer => {
+      if (transfer.from.match(/[A-Z]/)) {
+        throw new Error(`Event has uppercase letters in transfer.from: ${
+          JSON.stringify(event, null, 2)
+        }`);
+      }
+      if (transfer.to.match(/[A-Z]/)) {
+        throw new Error(`Event has uppercase letters in transfer.to: ${
+          JSON.stringify(event, null, 2)
+        }`);
+      }
+    });
   });
 
   fs.writeFileSync(`${env.outputFolder}/events.json`, JSON.stringify(events, null, 2));

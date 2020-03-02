@@ -93,6 +93,9 @@ export const castEthTx = (addressBook): any =>
     event.transfers = event.transfers
       // Filter out any zero-value transfers
       .filter(transfer => !eq(transfer.quantity, "0"))
+      // Make sure all addresses are lower-case
+      .map(transfer => ({ ...transfer, to: transfer.to.toLowerCase() }))
+      .map(transfer => ({ ...transfer, from: transfer.from.toLowerCase() }))
       // sort by index
       .sort((t1, t2) => t1.index - t2.index);
 

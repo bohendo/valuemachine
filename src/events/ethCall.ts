@@ -28,9 +28,9 @@ export const castEthCall = (addressBook): any =>
       tags: [],
       transfers: [{
         assetType,
-        from: call.from,
+        from: call.from.toLowerCase(),
         quantity: call.value,
-        to: call.to,
+        to: call.to.toLowerCase(),
       }],
     } as Event;
 
