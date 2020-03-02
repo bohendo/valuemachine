@@ -201,6 +201,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         index: log.transactionLogIndex,
         topics: log.topics,
       }));
+      tx.status = receipt.status || 1;
     log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
       chainData.transactions[hash] = tx;
       saveCache(chainData);

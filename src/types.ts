@@ -148,6 +148,7 @@ export type TransactionData = {
     topics: Array<HexString>;
   }>;
   nonce: number;
+  status: number;
   timestamp: TimestampString;
   to: HexString | null;
   value: DecimalString;

@@ -21,6 +21,11 @@ export const castEthTx = (addressBook): any =>
       throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);
     }
 
+    if (tx.status !== 1) {
+      log.info(`Skipping reverted tx w status ${tx.status}`);
+      return null;
+    }
+
     if (tx.to === null) {
       // derived from: https://ethereum.stackexchange.com/a/46960
       tx.to = "0x" + keccak256(RLP.encode([tx.from, hexlify(tx.nonce)])).substring(26);
