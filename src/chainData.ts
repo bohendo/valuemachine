@@ -50,7 +50,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     .filter(a => a.category === "self" && !a.tags.includes("active") && !a.tags.includes("ignore"))
     .map(a => a.address.toLowerCase());
 
-  const addresses = activeAddresses.concat(retiredAddresses);
+  const addresses = activeAddresses.concat(retiredAddresses).sort();
 
   // Don't fetch anything if we don't have any addresses to scan
   if (!addresses || addresses.length === 0) {
@@ -161,7 +161,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         tx.from === call.from &&
         tx.hash === call.hash &&
         tx.to === call.to &&
-        tx.value === call.value,
+        formatEther(tx.value) === call.value,
       ).length;
       if (oldDups === 0) {
         chainData.calls.push({
