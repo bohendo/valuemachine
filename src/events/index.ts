@@ -72,6 +72,7 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
   const chainData = await getChainData(addressBook);
 
   Object.values(chainData.transactions)
+    .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
     .map(castEthTx(addressBook))
     .filter(e => !!e)
     .forEach((txEvent: Event): void => {
@@ -85,6 +86,7 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
 
   log.info(`Processing ${chainData.calls.length} ethCalls`);
   chainData.calls
+    .sort((call1, call2) => call1.block - call2.block)
     .map(castEthCall(addressBook))
     .filter(e => !!e)
     .forEach((callEvent: Event): void => {
