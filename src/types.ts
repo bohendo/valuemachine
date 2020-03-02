@@ -132,6 +132,7 @@ export type ChainData = {
   calls: CallData[]; // We can have multiple calls per txHash
 };
 
+// TODO use Partial<> type instead of making some props optional
 export type TransactionData = {
   block: number;
   data: HexString;
@@ -148,7 +149,7 @@ export type TransactionData = {
     topics: Array<HexString>;
   }>;
   nonce: number;
-  status: number;
+  status?: number;
   timestamp: TimestampString;
   to: HexString | null;
   value: DecimalString;
