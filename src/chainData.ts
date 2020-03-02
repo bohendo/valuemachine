@@ -90,12 +90,12 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       log.debug(`Retired address ${address} data has already been fetched`);
       continue;
     }
-    
-    if (timeDiff > timeUntilStale) {
+
+    if (timeDiff < timeUntilStale) {
       log.info(`Active address ${address} was updated ${timeDiff / (60 * 1000)} minues ago`);
       continue;
     }
-    log.info(`Fetching info for address: ${address}`);
+    log.info(`Fetching info for address: ${address} (last updated ${timeDiff / (60 * 1000)} minutes ago)`);
 
     log.info(`💫 getting externaltxHistory..`);
     const externaltxHistory = await provider.getHistory(address);
@@ -189,7 +189,9 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
   } transaction receipts`);
 
   // Scan all new transactions & fetch logs for any that don't have them yet
-  for (const [hash, tx] of Object.entries(chainData.transactions)) {
+  for (const [hash, tx] of Object.entries(chainData.transactions).sort(
+    (e1, e2) => e1[0] > e2[0] ? 1 : -1,
+  )) {
     if (!tx.gasUsed || !tx.logs) {
       log.info(`💫 getting logs for tx ${hash}..`);
       const receipt = await provider.getTransactionReceipt(tx.hash);
@@ -202,9 +204,42 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         topics: log.topics,
       }));
       tx.status = receipt.status || 1;
-    log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
+      log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
       chainData.transactions[hash] = tx;
       saveCache(chainData);
+    }
+  }
+
+  // Loop through calls & get tx receipts for those too
+  // bc we might need to ignore calls if the tx receipt says it was reverted..
+
+  for (const call of chainData.calls.sort((c1, c2) => c1.hash > c2.hash ? 1 : -1)) {
+    if (!chainData.transactions[call.hash]) {
+      log.info(`💫 getting tx data for call ${call.hash}`);
+      const tx = await provider.getTransaction(call.hash);
+      const receipt = await provider.getTransactionReceipt(tx.hash);
+      chainData.transactions[tx.hash] = {
+        block: tx.blockNumber,
+        data: tx.data,
+        from: tx.from,
+        gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
+        gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
+        gasUsed: hexlify(receipt.gasUsed),
+        hash: tx.hash,
+        index: receipt.transactionIndex,
+        logs: receipt.logs.map(log => ({
+          address: log.address,
+          data: log.data,
+          index: log.transactionLogIndex,
+          topics: log.topics,
+        })),
+        nonce: tx.nonce,
+        status: receipt.status || 1,
+        timestamp: call.timestamp,
+        to: tx.to,
+        value: formatEther(tx.value),
+      };
+      log.info(`✅ got data with ${receipt.logs.length} log${receipt.logs.length > 1 ? "s" : ""}`);
     }
   }
 
