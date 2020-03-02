@@ -151,8 +151,9 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     }
 
     // edge case: a tx makes 2 identical eth internal transfers
-    // We don't want to add these transfers twice for each of from & to
-    // But we still want these two identical eth transfers to be added
+    // The to & from are both tracked accounts so we get these calls in the txHistory of both.
+    // We do want to include these two identical transfers
+    // But not a copy from both account's tx history.
 
     const oldCalls = JSON.parse(JSON.stringify(chainData.calls));
     for (const tx of internalTxHistory) {
@@ -173,6 +174,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
           value: formatEther(tx.value),
         });
       } else {
+        log.warn(`Skipping eth call, we have ${oldDups} from other account's history ${tx.hash}`);
         continue;
       }
     }
