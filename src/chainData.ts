@@ -10,7 +10,7 @@ import { Logger } from "./utils";
 
 // Re-fetch tx history for active addresses if >6 hours since last check
 const timeUntilStale = 6 * 60 * 60 * 1000;
-const checkRetired = false;
+const reCheckRetired = false;
 
 const emptyChainData: ChainData = {
   addresses: {},
@@ -86,11 +86,10 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     const lastUpdated = chainData.addresses[address];
     const timeDiff = lastUpdated ? Date.now() - new Date(lastUpdated).getTime() : 0;
 
-    if (!checkRetired || (lastUpdated && retiredAddresses.includes(address))) {
+    if (reCheckRetired || (lastUpdated && retiredAddresses.includes(address))) {
       log.debug(`Retired address ${address} data has already been fetched`);
       continue;
     }
-
     
     if (timeDiff > timeUntilStale) {
       log.info(`Active address ${address} was updated ${timeDiff / (60 * 1000)} minues ago`);

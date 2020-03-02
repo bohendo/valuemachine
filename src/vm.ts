@@ -11,7 +11,7 @@ import {
 import { add, eq, gt, Logger, sub } from "./utils";
 
 export const getValueMachine = (addressBook: AddressBook): any => {
-  const log = new Logger("ValueMachine", 5); // env.logLevel);
+  const log = new Logger("ValueMachine", env.logLevel);
   const { isSelf, pretty } = addressBook;
 
   const noValueError = (account: string, assetType: string): string =>
