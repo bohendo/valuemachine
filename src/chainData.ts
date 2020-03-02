@@ -203,7 +203,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         index: log.transactionLogIndex,
         topics: log.topics,
       }));
-      tx.status = receipt.status || 1;
+      tx.status = receipt.status;
       log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
       chainData.transactions[hash] = tx;
       saveCache(chainData);
@@ -234,7 +234,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
           topics: log.topics,
         })),
         nonce: tx.nonce,
-        status: receipt.status || 1,
+        status: receipt.status,
         timestamp: call.timestamp,
         to: tx.to,
         value: formatEther(tx.value),
