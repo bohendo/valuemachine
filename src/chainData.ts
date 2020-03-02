@@ -84,7 +84,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
 
   for (const address of addresses) {
     const lastUpdated = chainData.addresses[address];
-    const timeDiff = lastUpdated ? Date.now() - new Date(lastUpdated).getTime() : 0;
+    const timeDiff = lastUpdated ? Date.now() - new Date(lastUpdated).getTime() : Date.now();
 
     if (reCheckRetired || (lastUpdated && retiredAddresses.includes(address))) {
       log.debug(`Retired address ${address} data has already been fetched`);
