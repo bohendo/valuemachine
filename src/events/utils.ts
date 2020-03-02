@@ -8,10 +8,33 @@ import {
   mul,
 } from "../utils";
 
+export const castDefault = (event: Partial<Event>): Partial<Event> => ({
+  prices: {},
+  sources: ["personal"],
+  tags: [],
+  transfers: [],
+  ...event,
+});
+
+export const mergeDefault = (events: Event[], input: Partial<Event>): Event[] => {
+  const output = [] as Event[];
+  for (let i = 0; i < events.length; i++) {
+    const event = events[i];
+    if (event.hash && input.hash && event.hash === input.hash) {
+      output.push({
+        ...event,
+        sources: Array.from(new Set([...event.sources, ...input.sources])),
+        tags: Array.from(new Set([...event.tags, ...input.tags])),
+      });
+      break;
+    }
+    output.push(event);
+  }
+  return output;
+};
+
 const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
   lt(div(mul(diff(a1, a2), "200"), add([a1, a2])), "1");
-
-// Events are ordered [oldest ... newest]
 
 export const mergeFactory = (opts: {
   allowableTimeDiff: number;

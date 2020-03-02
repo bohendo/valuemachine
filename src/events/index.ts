@@ -10,6 +10,7 @@ import { Logger } from "../utils";
 import { castCoinbase, mergeCoinbase } from "./coinbase";
 import { castEthTx, mergeEthTx } from "./ethTx";
 import { castEthCall, mergeEthCall } from "./ethCall";
+import { castDefault, mergeDefault } from "./utils";
 import { castWyre, mergeWyre } from "./wyre";
 
 const assertChrono = (events: Event[]): void => {
@@ -26,31 +27,6 @@ const assertChrono = (events: Event[]): void => {
       prev = curr;
     }
   }
-};
-
-const castDefault = (event: Partial<Event>): Partial<Event> => ({
-  prices: {},
-  sources: ["personal"],
-  tags: [],
-  transfers: [],
-  ...event,
-});
-
-const mergeDefault = (events: Event[], input: Partial<Event>): Event[] => {
-  const output = [] as Event[];
-  for (let i = 0; i < events.length; i++) {
-    const event = events[i];
-    if (event.hash && input.hash && event.hash === input.hash) {
-      output.push({
-        ...event,
-        sources: Array.from(new Set([...event.sources, ...input.sources])),
-        tags: Array.from(new Set([...event.tags, ...input.tags])),
-      });
-      break;
-    }
-    output.push(event);
-  }
-  return output;
 };
 
 export const getFinancialEvents = async (input: InputData): Promise<Event[]> => {
