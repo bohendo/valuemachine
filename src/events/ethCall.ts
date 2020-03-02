@@ -6,7 +6,10 @@ import { mergeFactory } from "./utils";
 
 export const castEthCall = (addressBook, chainData): any =>
   (call: CallData): any => {
-    const log = new Logger(`EthCall ${call.hash.substring(0, 10)}`, env.logLevel);
+    const log = new Logger(
+      `EthCall ${call.hash.substring(0, 10)} ${call.timestamp.split("T")[0]}`,
+      env.logLevel,
+    );
     const { getName, isCategory } = addressBook;
 
     const assetType = call.contractAddress === AddressZero

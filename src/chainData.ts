@@ -2,11 +2,13 @@ import fs from "fs";
 import axios from "axios";
 import { AddressZero } from "ethers/constants";
 import { EtherscanProvider } from "ethers/providers";
-import { formatEther, hexlify } from "ethers/utils";
+import { bigNumberify, formatEther, hexlify } from "ethers/utils";
 
 import { env } from "./env";
 import { AddressBook, ChainData } from "./types";
-import { Logger } from "./utils";
+import { eq, Logger } from "./utils";
+
+const toDecStr = (hex: string): string => bigNumberify(hex).toString();
 
 // Re-fetch tx history for active addresses if >6 hours since last check
 const timeUntilStale = 6 * 60 * 60 * 1000;
@@ -192,8 +194,8 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
   for (const [hash, tx] of Object.entries(chainData.transactions).sort(
     (e1, e2) => e1[0] > e2[0] ? 1 : -1,
   )) {
-    if (!tx.gasUsed || !tx.logs) {
-      log.info(`💫 getting logs for tx ${hash}..`);
+    if (!tx.logs || typeof tx.status === "undefined" || tx.block < 4370000) {
+      log.info(`💫 getting logs for tx ${hash}`);
       const receipt = await provider.getTransactionReceipt(tx.hash);
       tx.gasUsed = hexlify(receipt.gasUsed);
       tx.index = receipt.transactionIndex;
@@ -203,7 +205,11 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         index: log.transactionLogIndex,
         topics: log.topics,
       }));
-      tx.status = receipt.status;
+      tx.status = typeof receipt.status === "number"
+        ? receipt.status
+        : eq(toDecStr(tx.gasLimit.toString()), toDecStr(receipt.gasUsed.toString()))
+        ? 0
+        : 1,
       log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
       chainData.transactions[hash] = tx;
       saveCache(chainData);
@@ -214,7 +220,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
   // bc we might need to ignore calls if the tx receipt says it was reverted..
 
   for (const call of chainData.calls.sort((c1, c2) => c1.hash > c2.hash ? 1 : -1)) {
-    if (!chainData.transactions[call.hash]) {
+    if (!chainData.transactions[call.hash] || call.block < 4370000) {
       log.info(`💫 getting tx data for call ${call.hash}`);
       const tx = await provider.getTransaction(call.hash);
       const receipt = await provider.getTransactionReceipt(tx.hash);
@@ -234,7 +240,11 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
           topics: log.topics,
         })),
         nonce: tx.nonce,
-        status: receipt.status,
+        status: typeof receipt.status === "number"
+          ? receipt.status
+          : eq(toDecStr(tx.gasLimit.toString()), toDecStr(receipt.gasUsed.toString()))
+          ? 0
+          : 1,
         timestamp: call.timestamp,
         to: tx.to,
         value: formatEther(tx.value),

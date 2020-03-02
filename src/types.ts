@@ -33,6 +33,7 @@ export type Transfer = {
   assetType: AssetType;
   index?: number;
   quantity: DecimalString;
+  fee?: DecimalString;
   from: HexString;
   to: HexString;
 }

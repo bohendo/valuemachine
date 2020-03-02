@@ -1,5 +1,7 @@
 import { AddressZero } from "ethers/constants";
-import { Interface, hexlify, formatEther, keccak256, EventDescription, RLP } from "ethers/utils";
+import {
+  bigNumberify, Interface, hexlify, formatEther, keccak256, EventDescription, RLP,
+} from "ethers/utils";
 import { abi as tokenAbi } from "@openzeppelin/contracts/build/contracts/ERC20.json";
 
 import { env } from "../env";
@@ -14,16 +16,14 @@ const tokenEvents =
 
 export const castEthTx = (addressBook): any =>
   (tx: TransactionData): Event | null => {
-    const log = new Logger(`EthTx ${tx.hash.substring(0, 10)}`, env.logLevel);
+    const log = new Logger(
+      `EthTx ${tx.hash.substring(0, 10)} ${tx.timestamp.split("T")[0]}`,
+      env.logLevel,
+    );
     const { getName, isCategory } = addressBook;
 
     if (!tx.logs) {
       throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);
-    }
-
-    if (tx.status !== 1) {
-      log.info(`Skipping reverted tx w status ${tx.status}`);
-      return null;
     }
 
     if (tx.to === null) {
@@ -40,12 +40,20 @@ export const castEthTx = (addressBook): any =>
       tags: [],
       transfers: [{
         assetType: "ETH",
-        from: tx.from,
+        fee: formatEther(bigNumberify(tx.gasUsed).mul(tx.gasPrice)),
+        from: tx.from.toLowerCase(),
         index: 0,
         quantity: tx.value,
-        to: tx.to,
+        to: tx.to.toLowerCase(),
       }],
     } as Event;
+
+    if (tx.status !== 1) {
+      log.info(`setting reverted tx to have zero quantity`);
+      event.transfers[0].quantity = "0";
+      event.description = `${addressBook.pretty(tx.from)} sent failed tx`;
+      return event;
+    }
 
     log.debug(`transfer of ${tx.value} ETH from ${tx.from} to ${tx.to}}`);
 
@@ -108,9 +116,9 @@ export const castEthTx = (addressBook): any =>
       return null;
     } else if (event.transfers.length === 1) {
       const { assetType, from, quantity, to } = event.transfers[0];
-      event.description = `${addressBook.getName(from)} sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
+      event.description = `${addressBook.pretty(from)} sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
     } else {
-      event.description = `${addressBook.getName(event.transfers[0].to)} made ${event.transfers.length} transfers`;
+      event.description = `${addressBook.pretty(event.transfers[0].to)} made ${event.transfers.length} transfers`;
     }
 
     event.description !== "null"
