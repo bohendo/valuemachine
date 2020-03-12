@@ -140,26 +140,38 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     )).data.result;
     log.info(`✅ tokenTxHistory: ${tokenTxHistory.length} logs`);
 
+    const oldTknCalls = JSON.parse(JSON.stringify(chainData.calls));
     for (const tx of tokenTxHistory) {
-      chainData.calls.push({
-        block: parseInt(tx.blockNumber.toString(), 10),
-        contractAddress: tx.contractAddress,
-        from: tx.from,
-        hash: tx.hash,
-        timestamp: (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString(),
-        to: tx.to,
-        value: formatEther(tx.value),
-      });
+      const oldDups = oldTknCalls.filter(call =>
+        tx.from === call.from &&
+        tx.hash === call.hash &&
+        tx.to === call.to &&
+        formatEther(tx.value) === call.value,
+      ).length;
+      if (oldDups === 0) {
+        chainData.calls.push({
+          block: parseInt(tx.blockNumber.toString(), 10),
+          contractAddress: tx.contractAddress,
+          from: tx.from,
+          hash: tx.hash,
+          timestamp: (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString(),
+          to: tx.to,
+          value: formatEther(tx.value),
+        });
+      } else {
+        log.debug(`Skipping token call, we already have ${oldDups} for ${tx.hash}`);
+        continue;
+      }
     }
 
     // edge case: a tx makes 2 identical eth internal transfers
     // The to & from are both tracked accounts so we get these calls in the txHistory of both.
-    // We do want to include these two identical transfers
-    // But not a copy from both account's tx history.
+    // We do want to include these two identical transfers so can't naively dedup
+    // But not a copy from both account's tx history so can't blindly push everything
 
-    const oldCalls = JSON.parse(JSON.stringify(chainData.calls));
+    const oldEthCalls = JSON.parse(JSON.stringify(chainData.calls));
     for (const tx of internalTxHistory) {
-      const oldDups = oldCalls.filter(call =>
+      const oldDups = oldEthCalls.filter(call =>
         tx.from === call.from &&
         tx.hash === call.hash &&
         tx.to === call.to &&
@@ -176,7 +188,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
           value: formatEther(tx.value),
         });
       } else {
-        log.warn(`Skipping eth call, we have ${oldDups} from other account's history ${tx.hash}`);
+        log.debug(`Skipping eth call, we already have ${oldDups} for ${tx.hash}`);
         continue;
       }
     }
