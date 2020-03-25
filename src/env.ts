@@ -1,12 +1,12 @@
 /* global process */
-import { CapitalGainsMethod, CapitalGainsMethods, Env } from "./types";
+import { CapitalGainsMethods, Env } from "./types";
 
 export let env: Env = {
   capitalGainsMethod: (
     Object.keys(CapitalGainsMethods).includes(process.env.CAPITAL_GAINS_METHOD)
       ? process.env.CAPITAL_GAINS_METHOD
       : "FIFO"
-  ) as CapitalGainsMethod,
+  ) as CapitalGainsMethods,
   etherscanKey: process.env.ETHERSCAN_KEY,
   logLevel: parseInt(process.env.LOG_LEVEL || "3", 10),
   mode: process.env.NODE_ENV || "development",

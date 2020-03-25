@@ -63,7 +63,7 @@ export const mergeEthCall = mergeFactory({
   log: new Logger("MergeEthCall", env.logLevel),
   mergeEvents: (event: Event, callEvent: Event): Event => {
     // tx logs and token calls return same data, add this tranfer iff this isn't the case
-    if (!event.sources.includes("ethLogs") || !callEvent.sources.includes("tokenCall")) {
+    if (!event.sources.includes("ethLog") || !callEvent.sources.includes("tokenCall")) {
       event.transfers.push(callEvent.transfers[0]);
     }
     return event;

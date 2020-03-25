@@ -2,7 +2,7 @@ import { env } from "./env";
 import {
   AddressBook,
   AssetChunk,
-  AssetType,
+  AssetTypes,
   DecimalString,
   Event,
   Log,
@@ -71,7 +71,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
   const log = new Logger("ValueMachine", 5 || env.logLevel);
   const { isSelf, pretty } = addressBook;
 
-  const offTheChain = (assetType: AssetType): boolean =>
+  const offTheChain = (assetType: AssetTypes): boolean =>
     ["BTC", "INR", "LTC", "USD"].includes(assetType);
 
   const noValueError = (account: string, assetType: string): string =>
@@ -79,7 +79,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
 
   // TODO: what if input.capitalGainsMethod is LIFO or HIFO?
   const getPutChunk = (state: State) =>
-    (account: string, assetType: string, asset: AssetChunk): void => {
+    (account: string, assetType: AssetTypes, asset: AssetChunk): void => {
       log.info(`Putting ${asset.quantity} ${assetType} into account ${account}`);
       if (offTheChain(assetType) || !isSelf(account)) {
         log.info(`Skipping off-chain or external asset put`);
@@ -95,7 +95,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
     };
 
   const getGetChunk = (state: State, event: Event) =>
-    (account: string, assetType: AssetType, quantity: DecimalString): AssetChunk[] => {
+    (account: string, assetType: AssetTypes, quantity: DecimalString): AssetChunk[] => {
       // Everyone has infinite USD in the value machine
       if (assetType === "USD") {
         log.info(`Printing more USD`);
@@ -143,7 +143,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
     };
 
   const getGetBalance = (state: State) =>
-    (account: string, assetType: AssetType): DecimalString =>
+    (account: string, assetType: AssetTypes): DecimalString =>
       !state[account]
         ? "0"
         : !state[account][assetType]

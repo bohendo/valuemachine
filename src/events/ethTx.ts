@@ -101,7 +101,7 @@ export const castEthTx = (addressBook): any =>
         }
       }
     }
-    event.sources.push("ethLogs");
+    event.sources.push("ethLog");
 
     event.transfers = event.transfers
       // Filter out any zero-value transfers

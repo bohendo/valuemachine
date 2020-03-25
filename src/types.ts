@@ -1,11 +1,33 @@
 import { Field, Forms } from "./mappings";
+import {
+  AddressCategories,
+  AddressTags,
+  AssetTypes,
+  CapitalGainsMethods,
+  EventSources,
+  EventTags,
+} from "./enums";
+
 export { Field, Forms };
+export {
+  AddressCategories,
+  AddressTags,
+  AssetTypes,
+  CapitalGainsMethods,
+  EventSources,
+  EventTags,
+};
 
 export type DateString = string; // eg "2020-02-27" aka TimestampString.split("T")[0] 
 export type DecimalString = string; // eg "-3.1415"
 export type HexString = string; // eg "0xabc123"
 export type TimestampString = string; // eg "2020-02-27T09:51:30.444Z" (ISO 8601 format)
 export type Address = HexString | null;
+
+export type Checkpoint = {
+  account: Address;
+  assetType: AssetTypes;
+}
 
 export type AssetChunk = {
   dateRecieved: TimestampString;
@@ -15,7 +37,7 @@ export type AssetChunk = {
 
 export type State = {
   [account: string]: {
-    [assetType: string /* AssetType */]: Array<AssetChunk>;
+    [assetType: string /* AssetTypes */]: Array<AssetChunk>;
   };
 }
 
@@ -24,49 +46,19 @@ export type Event = {
   description: string;
   hash?: HexString;
   prices: { [assetType: string]: DecimalString };
-  sources: Source[];
-  tags: EventTag[];
+  sources: EventSources[];
+  tags: EventTags[];
   transfers: Transfer[];
 }
 
 export type Transfer = {
-  assetType: AssetType;
+  assetType: AssetTypes;
   index?: number;
   quantity: DecimalString;
   fee?: DecimalString;
   from: HexString;
   to: HexString;
 }
-
-export const Sources = {
-  "coinbase": "coinbase",
-  "coingecko": "coingecko",
-  "ethCall": "ethCall",
-  "ethLog": "ethLog",
-  "ethTx": "ethTx",
-  "sendwyre": "sendwyre",
-};
-export type Source = keyof typeof Sources | string;
-
-export const EventTags = {
-  "cdp": "cdp",
-  "defi": "defi",
-  "ignore": "ignore",
-};
-export type EventTag = keyof typeof EventTags | string;
-
-export const AssetTypes = {
-  "DAI": "DAI",
-  "ETH": "ETH",
-  "INR": "INR",
-  "MKR": "MKR",
-  "SAI": "SAI",
-  "SNT": "SNT",
-  "SNX": "SNX",
-  "USD": "USD",
-  "WETH": "WETH",
-};
-export type AssetType = keyof typeof AssetTypes | string;
 
 export type Log = F8949Log | any;
 
@@ -89,7 +81,7 @@ export type F8949Log = {
 export interface AddressBook {
   addresses: Array<{
     address: HexString;
-    category: AddressCategory;
+    category: AddressCategories;
     name; string;
     tags: string[];
   }>;
@@ -100,23 +92,6 @@ export interface AddressBook {
   shouldIgnore(address: Address): boolean;
   pretty(address: Address): string;
 }
-
-export const AddressTags = {
-  "cdp": "cdp",
-  "defi": "defi",
-  "ignore": "ignore",
-};
-export type AddressTag = keyof typeof AddressTags | string;
-
-export const AddressCategories = {
-  "erc20": "erc20",
-  "family": "family",
-  "friend": "friend",
-  "private": "private",
-  "public": "public",
-  "self": "self",
-};
-export type AddressCategory = keyof typeof AddressCategories;
 
 export type PriceData = {
   ids: { [assetType: string]: string };
@@ -169,7 +144,7 @@ export type CallData = {
 export type InputData = {
   addressBook?: Array<{
     address: HexString;
-    category: AddressCategory;
+    category: AddressCategories;
     name; string;
     tags: string[];
   }>;
@@ -180,20 +155,13 @@ export type InputData = {
 }
 
 export type Env = {
-  capitalGainsMethod: CapitalGainsMethod;
+  capitalGainsMethod: CapitalGainsMethods;
   etherscanKey: string;
   logLevel: number;
   mode: string;
   outputFolder: string;
   taxYear: string;
 }
-
-export const CapitalGainsMethods = {
-  "FIFO": "FIFO",
-  "HIFO": "HIFO",
-  "LIFO": "LIFO",
-};
-export type CapitalGainsMethod = keyof typeof CapitalGainsMethods;
 
 export type FinancialData = {
   expenses: Array<Log>;
