@@ -202,6 +202,19 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     Object.values(chainData.transactions).filter(tx => !tx.logs).length
   } transaction receipts`);
 
+  const getStatus = (receipt, tx): number =>
+    // If post-byzantium, then the receipt already has a status, yay
+    typeof receipt.status === "number"
+      ? receipt.status
+      // If pre-byzantium used less gas than the limit, it definitely didn't fail
+      : !eq(toDecStr(tx.gasLimit.toString()), toDecStr(receipt.gasUsed.toString()))
+      ? 1
+      // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
+      : !eq(toDecStr(tx.gasLimit.toString()), "21000")
+      ? 1
+      // Otherwise it PROBABLY failed
+      : 0;
+
   // Scan all new transactions & fetch logs for any that don't have them yet
   for (const [hash, tx] of Object.entries(chainData.transactions).sort(
     (e1, e2) => e1[0] > e2[0] ? 1 : -1,
@@ -217,11 +230,8 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         index: log.transactionLogIndex,
         topics: log.topics,
       }));
-      tx.status = typeof receipt.status === "number"
-        ? receipt.status
-        : eq(toDecStr(tx.gasLimit.toString()), toDecStr(receipt.gasUsed.toString()))
-        ? 0
-        : 1,
+      // If a status field is proivided, awesome
+      tx.status = getStatus(receipt, tx);
       log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
       chainData.transactions[hash] = tx;
       saveCache(chainData);
@@ -252,11 +262,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
           topics: log.topics,
         })),
         nonce: tx.nonce,
-        status: typeof receipt.status === "number"
-          ? receipt.status
-          : eq(toDecStr(tx.gasLimit.toString()), toDecStr(receipt.gasUsed.toString()))
-          ? 0
-          : 1,
+        status: getStatus(receipt, tx),
         timestamp: call.timestamp,
         to: tx.to,
         value: formatEther(tx.value),
