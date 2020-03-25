@@ -177,11 +177,6 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         tx.to === call.to &&
         formatEther(tx.value) === call.value,
       ).length;
-      // Contracts creating contracts: if tx.to is empty then this is a contract creation call
-      // We got this call from this address's history so it must be either the tx.to or tx.from
-      if ((tx.to === "" || tx.to === null) && tx.from !== address) {
-        tx.to = address;
-      }
       if (oldDups === 0) {
         chainData.calls.push({
           block: parseInt(tx.blockNumber.toString(), 10),
@@ -189,7 +184,9 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
           from: tx.from,
           hash: tx.hash,
           timestamp: (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString(),
-          to: tx.to,
+          // Contracts creating contracts: if tx.to is empty then this is a contract creation call
+          // We got this call from this address's history so it must be either the tx.to or tx.from
+          to: ((tx.to === "" || tx.to === null) && tx.from !== address) ? address : tx.to,
           value: formatEther(tx.value),
         });
       } else {
@@ -215,7 +212,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       : !eq(toDecStr(tx.gasLimit.toString()), toDecStr(receipt.gasUsed.toString()))
       ? 1
       // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-      : !eq(toDecStr(tx.gasLimit.toString()), "21000")
+      : eq(toDecStr(tx.gasLimit.toString()), "21000")
       ? 1
       // Otherwise it PROBABLY failed
       : 0;
