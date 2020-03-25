@@ -140,6 +140,11 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     )).data.result;
     log.info(`✅ tokenTxHistory: ${tokenTxHistory.length} logs`);
 
+    // edge case: a tx makes 2 identical eth internal transfers
+    // The to & from are both tracked accounts so we get these calls in the txHistory of both.
+    // We do want to include these two identical transfers so we can't naively dedup
+    // But we don't want a copy from both account's tx history so can't blindly push everything
+
     const oldTknCalls = JSON.parse(JSON.stringify(chainData.calls));
     for (const tx of tokenTxHistory) {
       const oldDups = oldTknCalls.filter(call =>
@@ -164,11 +169,6 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       }
     }
 
-    // edge case: a tx makes 2 identical eth internal transfers
-    // The to & from are both tracked accounts so we get these calls in the txHistory of both.
-    // We do want to include these two identical transfers so can't naively dedup
-    // But not a copy from both account's tx history so can't blindly push everything
-
     const oldEthCalls = JSON.parse(JSON.stringify(chainData.calls));
     for (const tx of internalTxHistory) {
       const oldDups = oldEthCalls.filter(call =>
@@ -177,6 +177,11 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         tx.to === call.to &&
         formatEther(tx.value) === call.value,
       ).length;
+      // Contracts creating contracts: if tx.to is empty then this is a contract creation call
+      // We got this call from this address's history so it must be either the tx.to or tx.from
+      if ((tx.to === "" || tx.to === null) && tx.from !== address) {
+        tx.to = address;
+      }
       if (oldDups === 0) {
         chainData.calls.push({
           block: parseInt(tx.blockNumber.toString(), 10),

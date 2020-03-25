@@ -28,7 +28,7 @@ export const castEthTx = (addressBook): any =>
 
     if (tx.to === null) {
       // derived from: https://ethereum.stackexchange.com/a/46960
-      tx.to = "0x" + keccak256(RLP.encode([tx.from, hexlify(tx.nonce)])).substring(26);
+      tx.to = `0x${keccak256(RLP.encode([tx.from, hexlify(tx.nonce)])).substring(26)}`;
       log.info(`new contract deployed to ${tx.to}`);
     }
 
