@@ -1,3 +1,4 @@
+import { assertState } from "./checkpoints";
 import { env } from "./env";
 import {
   AddressBook,
@@ -9,61 +10,6 @@ import {
   State,
 } from "./types";
 import { add, eq, gt, Logger, round, sub } from "./utils";
-
-const checkpoints = [
-  {
-    account: "0xada083a3c06ee526f827b43695f2dcff5c8c892b",
-    assetType: "ETH",
-    balance: "0",
-    date: "2017-11-21T07:54:38.000Z",
-  },
-  {
-    account: "0xada083a3c06ee526f827b43695f2dcff5c8c892b",
-    assetType: "ETH",
-    balance: "6",
-    date: "2017-12-05T23:14:55.000Z",
-  },
-  /*
-  {
-    account: "0xada083a3c06ee526f827b43695f2dcff5c8c892b",
-    assetType: "ETH",
-    balance: "5.9820480179",
-    date: "2017-12-11T20:28:52.000Z",
-  },
-  {
-    account: "0xada083a3c06ee526f827b43695f2dcff5c8c892b",
-    assetType: "ETH",
-    balance: "1.472343111572222222",
-    date: "2017-12-30T15:14:53.000Z",
-  },
-  {
-    account: "0xada083a3c06ee526f827b43695f2dcff5c8c892b",
-    assetType: "ETH",
-    balance: "1.102702839572222222",
-    date: "2018-02-16T04:08:45.000Z",
-  },
-  */
-];
-
-const assertState = (state: State, event: Event): void => {
-  for (const { account, assetType, balance, date } of checkpoints) {
-    if (date === event.date) {
-      let actual;
-      if (!state[account] || !state[account][assetType]) {
-        if (!eq(balance, "0")) {
-          throw new Error(`Expected accout ${account} to have ${assetType} balance of ${balance} on ${date} but got 0`);
-        }
-        actual = "0";
-      } else {
-        actual = state[account][assetType]
-          .reduce((sum, chunk) => add([sum, chunk.quantity]), "0");
-      }
-      if (!eq(actual, balance)) {
-        throw new Error(`Expected accout ${account} to have ${assetType} balance of ${balance} on ${date} but got ${actual}`);
-      }
-    }
-  }
-};
 
 type SimpleState = any;
 
@@ -182,8 +128,6 @@ export const getValueMachine = (addressBook: AddressBook): any => {
     const logs = [];
     const [getChunks, putChunk] = [getGetChunk(state, event), getPutChunk(state)];
 
-    assertState(state, event);
-
     ////////////////////////////////////////
     // VM Core
 
@@ -235,6 +179,8 @@ export const getValueMachine = (addressBook: AddressBook): any => {
     log.info(`Final state after applying "${event.description}": ${
       JSON.stringify(endingBalances, null, 2)
     }`);
+
+    assertState(state, event);
 
     return [state, logs];
   };
