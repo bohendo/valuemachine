@@ -20,9 +20,9 @@
     "ethers": "4.0.41"
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "2.21.0",
-    "@types/node": "13.7.7",
-    "@typescript-eslint/eslint-plugin": "2.21.0",
+    "@types/node": "12.12.31",
+    "@typescript-eslint/eslint-plugin": "2.25.0",
+    "@typescript-eslint/parser": "2.25.0",
     "eslint": "6.8.0",
     "typescript": "3.8.3"
   }
