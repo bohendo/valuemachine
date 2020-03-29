@@ -45,11 +45,11 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
   const chainData = loadCache();
 
   const activeAddresses = addressBook.addresses
-    .filter(a => a.category === "self" && a.tags.includes("active") && !a.tags.includes("ignore"))
+    .filter(a => a.category === "self" && a.tags.includes("active"))
     .map(a => a.address.toLowerCase());
 
   const retiredAddresses = addressBook.addresses
-    .filter(a => a.category === "self" && !a.tags.includes("active") && !a.tags.includes("ignore"))
+    .filter(a => a.category === "self" && !a.tags.includes("active"))
     .map(a => a.address.toLowerCase());
 
   const addresses = activeAddresses.concat(retiredAddresses).sort();
@@ -89,7 +89,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     const timeDiff = lastUpdated ? Date.now() - new Date(lastUpdated).getTime() : Date.now();
 
     if (reCheckRetired || (lastUpdated && retiredAddresses.includes(address))) {
-      log.debug(`Retired address ${address} data has already been fetched`);
+      log.debug(`Retired address ${address} data was already fetched ${new Date(timeDiff).toISOString()} ago`);
       continue;
     }
 
