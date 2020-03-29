@@ -178,7 +178,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
     }
     log.info(`Final state after applying "${event.description}": ${
       JSON.stringify(endingBalances, null, 2)
-    }`);
+    }\n`);
 
     assertState(state, event);
 

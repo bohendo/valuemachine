@@ -26,9 +26,9 @@ export const mergeDefault = (events: Event[], input: Partial<Event>): Event[] =>
         sources: Array.from(new Set([...event.sources, ...input.sources])),
         tags: Array.from(new Set([...event.tags, ...input.tags])),
       });
-      break;
+    } else {
+      output.push(event);
     }
-    output.push(event);
   }
   return output;
 };

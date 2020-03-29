@@ -31,19 +31,7 @@ const assertChrono = (events: Event[]): void => {
 
 export const getFinancialEvents = async (input: InputData): Promise<Event[]> => {
   const log = new Logger("FinancialEvents", env.logLevel);
-
   let events = [] as Event[];
-
-  if (env.mode === "production") {
-    try {
-      events = JSON.parse(fs.readFileSync(`${env.outputFolder}/events.json`, "utf8"));
-      log.info(`Loaded ${events.length} events from cache`);
-      return events;
-    } catch (e) {
-      log.warn(e.message);
-    }
-  }
-
   const addressBook = getAddressBook(input);
   const chainData = await getChainData(addressBook);
 
@@ -51,10 +39,7 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
     .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
     .map(castEthTx(addressBook))
     .filter(e => !!e)
-    .forEach((txEvent: Event): void => {
-      events = mergeEthTx(events, txEvent);
-      assertChrono(events);
-    });
+    .forEach((txEvent: Event): void => { events = mergeEthTx(events, txEvent); });
 
   assertChrono(events);
 
@@ -65,10 +50,7 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
     .sort((call1, call2) => call1.block - call2.block)
     .map(castEthCall(addressBook, chainData))
     .filter(e => !!e)
-    .forEach((callEvent: Event): void => {
-      events = mergeEthCall(events, callEvent);
-      assertChrono(events);
-    });
+    .forEach((callEvent: Event): void => { events = mergeEthCall(events, callEvent); });
 
   assertChrono(events);
 
