@@ -29,7 +29,7 @@ export const getAddressBook = (input: InputData): AddressBook => {
       ? ""
       : addressBook.find(a => smeq(a.address, address))
       ? addressBook.find(a => smeq(a.address, address)).name
-      : "";
+      : address.substring(0, 8);
 
   const isCategory = (address: Address, category: string): boolean =>
     address && addressBook
