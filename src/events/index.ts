@@ -2,7 +2,7 @@ import { getAddressBook } from "../addressBook";
 import { loadEvents, saveEvents } from "../cache";
 import { getChainData } from "../chainData";
 import { env } from "../env";
-import { getPrice } from "../priceData";
+import { getPrice } from "../prices";
 import { Event, InputData } from "../types";
 import { Logger } from "../utils";
 
