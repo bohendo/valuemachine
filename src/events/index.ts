@@ -51,14 +51,16 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
     if (typeof source === "string" && source.endsWith(".csv")) {
       if (source.toLowerCase().includes("coinbase")) {
         const newCoinbaseEvents = castCoinbase(source).filter(onlyNew);
-        log.info(`Processing ${newCoinbaseEvents.length} new coinbase events`);
+        log.info(`Processing ${newCoinbaseEvents.length} new events from ${source}`);
         newCoinbaseEvents.forEach((coinbaseEvent: Event): void => {
+          log.info(coinbaseEvent.description);
           events = mergeCoinbase(events, coinbaseEvent);
         });
       } else if (source.toLowerCase().includes("wyre")) {
         const newWyreEvents = castWyre(source).filter(onlyNew);
-        log.info(`Processing ${newWyreEvents.length} new wyre events`);
+        log.info(`Processing ${newWyreEvents.length} new events from ${source}`);
         newWyreEvents.forEach(wyreEvent => {
+          log.info(wyreEvent.description);
           events = mergeWyre(events, wyreEvent);
         });
       } else {

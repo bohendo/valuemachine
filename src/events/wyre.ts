@@ -102,7 +102,7 @@ export const castWyre = (filename: string): Event[] => {
 
     }
 
-    log.info(event.description);
+    log.debug(event.description);
     return event;
   }).filter(row => !!row);
 };

@@ -63,7 +63,7 @@ export const castCoinbase = (filename: string): Event[] => {
 
     event.transfers.push({ assetType, from, quantity, to });
 
-    log.info(event.description);
+    log.debug(event.description);
     return event;
   });
 };
