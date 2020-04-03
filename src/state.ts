@@ -6,6 +6,7 @@ import {
   AssetTypes,
   DecimalString,
   Event,
+  NetWorth,
   State,
   StateBalances,
   StateJson,
@@ -131,10 +132,23 @@ export const getState = (addressBook: AddressBook, oldState: State): State => {
     return output;
   };
 
+  const getNetWorth = (): NetWorth => {
+    const output = {};
+    const allBalances = getAllBalances();
+    for (const account of Object.keys(allBalances)) {
+      for (const assetType of Object.keys(allBalances[account])) {
+        output[assetType] = output[assetType] || "0";
+        output[assetType] = add([output[assetType], allBalances[account][assetType]]);
+      }
+    }
+    return output;
+  };
+
   return {
     getAllBalances,
     getBalance,
     getChunks,
+    getNetWorth,
     getRelevantBalances,
     putChunk,
     toJson,

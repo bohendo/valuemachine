@@ -72,6 +72,8 @@ export type StateBalances = {
   };
 }
 
+export type NetWorth = { [assetType: string]: DecimalString };
+
 export interface State {
   getAllBalances(): StateBalances;
   getBalance(account: string, assetType: AssetTypes): DecimalString;
@@ -81,6 +83,7 @@ export interface State {
     quantity: DecimalString,
     event: Event,
   ): AssetChunk[];
+  getNetWorth(): NetWorth;
   getRelevantBalances(event: Event): StateBalances;
   putChunk(account: string, chunk: AssetChunk): void;
   toJson(): StateJson;
