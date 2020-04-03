@@ -1,4 +1,5 @@
 # Don't commit personal data or backups
+*log
 build.log
 ./*.json
 ./*.tar.gz
