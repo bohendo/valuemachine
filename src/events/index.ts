@@ -14,44 +14,56 @@ import { castWyre, mergeWyre } from "./wyre";
 
 export const getEvents = async (input: InputData): Promise<Event[]> => {
   const log = new Logger("FinancialEvents", env.logLevel);
-  let events = loadEvents();
   const addressBook = getAddressBook(input);
   const chainData = await getChainData(addressBook);
 
-  Object.values(chainData.transactions)
+  let events = loadEvents();
+  const latestCachedEvent = events.length !== 0
+    ? new Date(events[events.length - 1].date).getTime()
+    : 0;
+
+  log.info(`Loaded ${events.length} events from cache, most recent was on ${
+    new Date(latestCachedEvent).toISOString()
+  }`);
+
+  // returns true if new
+  const onlyNew = (data: any): boolean =>
+    new Date(data.timestamp || data.date).getTime() - latestCachedEvent > 0;
+
+  const newEthTxs = Object.values(chainData.transactions).filter(onlyNew);
+  log.info(`Processing ${newEthTxs.length} new ethereum transactions..`);
+  newEthTxs
     .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
     .map(castEthTx(addressBook))
     .forEach((txEvent: Event): void => { events = mergeEthTx(events, txEvent); });
-
   assertChrono(events);
 
-  log.info(`We have ${events.length} events after parsing eth transactions`);
-
-  log.info(`Processing ${chainData.calls.length} ethCalls`);
-  chainData.calls
+  const newEthCalls = chainData.calls.filter(onlyNew);
+  log.info(`Processing ${newEthCalls.length} new internal ethereum calls..`);
+  newEthCalls
     .sort((call1, call2) => call1.block - call2.block)
     .map(castEthCall(addressBook, chainData))
     .filter(e => !!e)
     .forEach((callEvent: Event): void => { events = mergeEthCall(events, callEvent); });
-
   assertChrono(events);
-
-  log.info(`We have ${events.length} events after parsing eth calls`);
 
   for (const source of input.events || []) {
     if (typeof source === "string" && source.endsWith(".csv")) {
       if (source.toLowerCase().includes("coinbase")) {
-        castCoinbase(source).forEach((coinbaseEvent: Event): void => {
+        const newCoinbaseEvents = castCoinbase(source).filter(onlyNew);
+        log.info(`Processing ${newCoinbaseEvents.length} new coinbase events`);
+        newCoinbaseEvents.forEach((coinbaseEvent: Event): void => {
           events = mergeCoinbase(events, coinbaseEvent);
         });
       } else if (source.toLowerCase().includes("wyre")) {
-        castWyre(source).forEach(wyreEvent => {
+        const newWyreEvents = castWyre(source).filter(onlyNew);
+        log.info(`Processing ${newWyreEvents.length} new wyre events`);
+        newWyreEvents.forEach(wyreEvent => {
           events = mergeWyre(events, wyreEvent);
         });
       } else {
         throw new Error(`I don't know how to parse events from ${source}`);
       }
-      log.info(`We have ${events.length} events after parsing ${source}`);
     } else if (typeof source !== "string") {
       events = mergeDefault(events, castDefault(source));
     }
@@ -76,7 +88,6 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
       }
     }
   }
-
   log.info(`Event price info is up to date`);
 
   assertChrono(events);
@@ -100,7 +111,7 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
     });
   });
 
-  process.exit(1);
+  log.info(`Saving ${events.length} events to cache`);
   saveEvents(events);
   return events;
 };
