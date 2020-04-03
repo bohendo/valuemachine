@@ -1,10 +1,10 @@
-import fs from "fs";
 import axios from "axios";
 import { AddressZero } from "ethers/constants";
 import { EtherscanProvider } from "ethers/providers";
 import { bigNumberify, formatEther, hexlify } from "ethers/utils";
 
 import { env } from "./env";
+import { loadChainData, saveChainData } from "./cache";
 import { AddressBook, ChainData } from "./types";
 import { eq, Logger } from "./utils";
 
@@ -14,35 +14,11 @@ const toDecStr = (hex: string): string => bigNumberify(hex).toString();
 const timeUntilStale = 6 * 60 * 60 * 1000;
 const reCheckRetired = false;
 
-const emptyChainData: ChainData = {
-  addresses: {},
-  calls: [],
-  lastUpdated: (new Date(0)).toISOString(),
-  transactions: {},
-};
-
-const cacheFile = "./chain-data.json";
-
-const loadCache = (): ChainData => {
-  try {
-    return JSON.parse(fs.readFileSync(cacheFile, "utf8"));
-  } catch (e) {
-    if (e.message.startsWith("ENOENT: no such file or directory")) {
-      return emptyChainData;
-    }
-    new Logger("LoadChainDataCache", env.logLevel).warn(e.message);
-    throw new Error(`Unable to load chainData cache, try deleting ${cacheFile} & try again`);
-  }
-};
-
-const saveCache = (chainData: ChainData): void =>
-  fs.writeFileSync(cacheFile, JSON.stringify(chainData, null, 2));
-
 export const getChainData = async (addressBook: AddressBook): Promise<ChainData> => {
   const log = new Logger("FetchChainData", env.logLevel);
   const etherscanKey = env.etherscanKey;
 
-  const chainData = loadCache();
+  const chainData = loadChainData();
 
   const activeAddresses = addressBook.addresses
     .filter(a => a.category === "self" && a.tags.includes("active"))
@@ -196,7 +172,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     }
 
     chainData.addresses[address] = new Date().toISOString();
-    saveCache(chainData);
+    saveChainData(chainData);
     log.info(`📝 progress saved\n`);
   }
 
@@ -236,7 +212,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       tx.status = getStatus(receipt, tx);
       log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
       chainData.transactions[hash] = tx;
-      saveCache(chainData);
+      saveChainData(chainData);
     }
   }
 
@@ -269,12 +245,12 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         to: tx.to,
         value: formatEther(tx.value),
       };
-      saveCache(chainData);
+      saveChainData(chainData);
       log.info(`✅ got data with ${receipt.logs.length} log${receipt.logs.length > 1 ? "s" : ""}`);
     }
   }
 
   chainData.lastUpdated = (new Date()).toISOString();
-  saveCache(chainData);
+  saveChainData(chainData);
   return chainData;
 };

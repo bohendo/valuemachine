@@ -1,8 +1,7 @@
-import fs from "fs";
-
-import { env } from "../env";
 import { getAddressBook } from "../addressBook";
+import { loadEvents, saveEvents } from "../cache";
 import { getChainData } from "../chainData";
+import { env } from "../env";
 import { getPrice } from "../priceData";
 import { Event, InputData } from "../types";
 import { Logger } from "../utils";
@@ -10,35 +9,18 @@ import { Logger } from "../utils";
 import { castCoinbase, mergeCoinbase } from "./coinbase";
 import { castEthTx, mergeEthTx } from "./ethTx";
 import { castEthCall, mergeEthCall } from "./ethCall";
-import { castDefault, mergeDefault } from "./utils";
+import { assertChrono, castDefault, mergeDefault } from "./utils";
 import { castWyre, mergeWyre } from "./wyre";
 
-const assertChrono = (events: Event[]): void => {
-  if (env.mode !== "production") {
-    let prev = 0;
-    for (const event of events) {
-      if (!event || !event.date) {
-        throw new Error(`Invalid event detected: ${JSON.stringify(event, null, 2)}`);
-      }
-      const curr = new Date(event.date).getTime();
-      if (curr < prev) {
-        throw new Error(`Events out of order: ${event.date} < ${new Date(prev).toISOString()}`);
-      }
-      prev = curr;
-    }
-  }
-};
-
-export const getFinancialEvents = async (input: InputData): Promise<Event[]> => {
+export const getEvents = async (input: InputData): Promise<Event[]> => {
   const log = new Logger("FinancialEvents", env.logLevel);
-  let events = [] as Event[];
+  let events = loadEvents();
   const addressBook = getAddressBook(input);
   const chainData = await getChainData(addressBook);
 
   Object.values(chainData.transactions)
     .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
     .map(castEthTx(addressBook))
-    .filter(e => !!e)
     .forEach((txEvent: Event): void => { events = mergeEthTx(events, txEvent); });
 
   assertChrono(events);
@@ -118,8 +100,7 @@ export const getFinancialEvents = async (input: InputData): Promise<Event[]> => 
     });
   });
 
-  fs.writeFileSync(`${env.outputFolder}/events.json`, JSON.stringify(events, null, 2));
-  // and one local copy, just for convenience
-  fs.writeFileSync(`./events.json`, JSON.stringify(events, null, 2));
+  process.exit(1);
+  saveEvents(events);
   return events;
 };

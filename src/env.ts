@@ -1,7 +1,7 @@
 /* global process */
-import { CapitalGainsMethods, Env } from "./types";
+import { CapitalGainsMethods, Env, Modes } from "./types";
 
-export let env: Env = {
+export const env = {
   capitalGainsMethod: (
     Object.keys(CapitalGainsMethods).includes(process.env.CAPITAL_GAINS_METHOD)
       ? process.env.CAPITAL_GAINS_METHOD
@@ -9,11 +9,10 @@ export let env: Env = {
   ) as CapitalGainsMethods,
   etherscanKey: process.env.ETHERSCAN_KEY,
   logLevel: parseInt(process.env.LOG_LEVEL || "3", 10),
-  mode: process.env.NODE_ENV || "development",
+  mode: process.env.NODE_ENV || Modes.example,
   outputFolder: process.env.OUTPUT_FOLDER || process.cwd(),
   taxYear: process.env.TAX_YEAR || (new Date().getUTCFullYear() - 1).toString(),
-};
+} as Env;
 
-export const setEnv = (newEnv: Partial<Env>): void => {
-  env = { ...env, ...newEnv };
-};
+export const setEnv = (newEnv: Partial<Env>): void =>
+  Object.keys(newEnv).forEach(key => env[key] = newEnv[key]);

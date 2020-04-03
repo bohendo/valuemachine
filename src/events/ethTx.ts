@@ -15,7 +15,7 @@ const tokenEvents =
   Object.values(getEvents(tokenAbi).concat(getEvents(wethAbi)).concat(getEvents(saiAbi)));
 
 export const castEthTx = (addressBook): any =>
-  (tx: TransactionData): Event | null => {
+  (tx: TransactionData): Event => {
     const log = new Logger(
       `EthTx ${tx.hash.substring(0, 10)} ${tx.timestamp.split("T")[0]}`,
       env.logLevel,
@@ -112,9 +112,7 @@ export const castEthTx = (addressBook): any =>
       // sort by index
       .sort((t1, t2) => t1.index - t2.index);
 
-    if (event.transfers.length === 0) {
-      return null;
-    } else if (event.transfers.length === 1) {
+    if (event.transfers.length === 1) {
       const { assetType, from, quantity, to } = event.transfers[0];
       event.description = `${addressBook.pretty(from)} sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
     } else {

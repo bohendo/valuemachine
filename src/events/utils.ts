@@ -8,6 +8,20 @@ import {
   mul,
 } from "../utils";
 
+export const assertChrono = (events: Event[]): void => {
+  let prev = 0;
+  for (const event of events) {
+    if (!event || !event.date) {
+      throw new Error(`Invalid event detected: ${JSON.stringify(event, null, 2)}`);
+    }
+    const curr = new Date(event.date).getTime();
+    if (curr < prev) {
+      throw new Error(`Events out of order: ${event.date} < ${new Date(prev).toISOString()}`);
+    }
+    prev = curr;
+  }
+};
+
 export const castDefault = (event: Partial<Event>): Partial<Event> => ({
   prices: {},
   sources: ["personal"],

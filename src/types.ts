@@ -6,6 +6,7 @@ import {
   CapitalGainsMethods,
   EventSources,
   EventTags,
+  Modes,
 } from "./enums";
 
 export { Field, Forms };
@@ -16,6 +17,7 @@ export {
   CapitalGainsMethods,
   EventSources,
   EventTags,
+  Modes,
 };
 
 export type DateString = string; // eg "2020-02-27" aka TimestampString.split("T")[0] 
@@ -50,6 +52,7 @@ export type Event = {
   tags: EventTags[];
   transfers: Transfer[];
 }
+export type Events = Event[];
 
 export type Transfer = {
   assetType: AssetTypes;
@@ -93,7 +96,7 @@ export interface AddressBook {
   pretty(address: Address): string;
 }
 
-export type PriceData = {
+export type Prices = {
   ids: { [assetType: string]: string };
   [date: string]: {
     [assetType: string]: DecimalString;
@@ -158,7 +161,7 @@ export type Env = {
   capitalGainsMethod: CapitalGainsMethods;
   etherscanKey: string;
   logLevel: number;
-  mode: string;
+  mode: Modes;
   outputFolder: string;
   taxYear: string;
 }

@@ -3,7 +3,7 @@ import fs from "fs";
 
 import { getAddressBook } from "./addressBook";
 import { env, setEnv } from "./env";
-import { getFinancialEvents } from "./events";
+import { getEvents } from "./events";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
 import { getNetWorth } from "./netWorth";
@@ -37,7 +37,7 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const events = await getFinancialEvents(input);
+  const events = await getEvents(input);
 
   const valueMachine = getValueMachine(getAddressBook(input));
 

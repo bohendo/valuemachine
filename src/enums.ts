@@ -1,5 +1,8 @@
 // stolen from https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-const enumify = <T extends {[index: string]: U}, U extends string>(x: T): T => x;
+export const enumify = <
+  T extends {[index: string]: U},
+  U extends string
+>(x: T): T => x;
 
 export const AddressCategories = enumify({
   erc20: "erc20",
@@ -31,6 +34,13 @@ export const AssetTypes = enumify({
 });
 export type AssetTypes = (typeof AssetTypes)[keyof typeof AssetTypes];
 
+export const CachedTypes = enumify({
+  ["ChainData"]: "ChainData",
+  ["Events"]: "Events",
+  ["Prices"]: "Prices",
+});
+export type CachedTypes = (typeof CachedTypes)[keyof typeof CachedTypes];
+
 export const CapitalGainsMethods = enumify({
   FIFO: "FIFO",
   HIFO: "HIFO",
@@ -56,3 +66,10 @@ export const EventTags = enumify({
   ignore: "ignore",
 });
 export type EventTags = (typeof EventTags)[keyof typeof EventTags];
+
+export const Modes = enumify({
+  example: "example",
+  personal: "personal",
+  test: "test",
+});
+export type Modes = (typeof Modes)[keyof typeof Modes];
