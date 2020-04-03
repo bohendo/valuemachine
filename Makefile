@@ -47,8 +47,9 @@ clean:
 	rm -rf build/*
 	rm -rf $(flags)/*
 
-purge:
-	rm -rf build
+reset:
+	rm -f .cache/*/events.json
+	rm -f $(flags)/personal
 
 mappings:
 	node ops/update-mappings.js -y
