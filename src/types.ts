@@ -82,15 +82,10 @@ export type F8949Log = {
 // Helpers & Source Data
 
 export interface AddressBook {
-  addresses: Array<{
-    address: HexString;
-    category: AddressCategories;
-    name; string;
-    tags: string[];
-  }>;
+  addresses: Address[];
   getName(address: Address): string;
-  isCategory(address: Address, category: string): boolean;
-  isTagged(address: Address, tag: string): boolean;
+  isCategory(category: string): (address: Address) => boolean;
+  isTagged(tag: string): (address: Address) => boolean;
   isSelf(address: Address): boolean;
   shouldIgnore(address: Address): boolean;
   pretty(address: Address): string;

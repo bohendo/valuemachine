@@ -17,32 +17,24 @@ const reCheckRetired = false;
 export const getChainData = async (addressBook: AddressBook): Promise<ChainData> => {
   const log = new Logger("FetchChainData", env.logLevel);
   const etherscanKey = env.etherscanKey;
-
   const chainData = loadChainData();
-
-  const activeAddresses = addressBook.addresses
-    .filter(a => a.category === "self" && a.tags.includes("active"))
-    .map(a => a.address.toLowerCase());
-
-  const retiredAddresses = addressBook.addresses
-    .filter(a => a.category === "self" && !a.tags.includes("active"))
-    .map(a => a.address.toLowerCase());
-
-  const addresses = activeAddresses.concat(retiredAddresses).sort();
+  const addresses = addressBook.addresses.filter(addressBook.isSelf);
+  const activeAddresses = addresses.filter(addressBook.isTagged("active"));
+  const retiredAddresses= addresses.filter(a => !activeAddresses.includes(a));
 
   // Don't fetch anything if we don't have any addresses to scan
   if (!addresses || addresses.length === 0) {
     return chainData;
   }
 
-  if (!etherscanKey) {
-    throw new Error("To track eth activity, you must provide an etherscanKey");
-  }
-
   const lastUpdated = new Date(chainData.lastUpdated).getTime();
   if (Date.now() <= lastUpdated + timeUntilStale) {
     log.info(`ChainData is up to date (${Math.round((Date.now() - lastUpdated) / (1000 * 60))} minutes old)`);
     return chainData;
+  }
+
+  if (!etherscanKey) {
+    throw new Error("To track eth activity, you must provide an etherscanKey");
   }
 
   const provider = new EtherscanProvider("homestead", etherscanKey);

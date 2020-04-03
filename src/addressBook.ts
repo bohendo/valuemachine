@@ -3,15 +3,21 @@ import { Address, AddressBook, InputData } from "./types";
 import { Logger } from "./utils";
 
 export const getAddressBook = (input: InputData): AddressBook => {
-  const log = new Logger("AddressBook", env.logLevel);
-
   const addressBook = input.addressBook;
+
+  ////////////////////////////////////////
+  // Internal Functions
+
+  const log = new Logger("AddressBook", env.logLevel);
 
   const sm = (str: string): string =>
     str.toLowerCase();
 
   const smeq = (str1: string, str2: string): boolean =>
     sm(str1) === sm(str2);
+
+  ////////////////////////////////////////
+  // Exported Functions
 
   // Sanity check: it shouldn't have two entries for the same address
   const addresses = [];
@@ -31,23 +37,23 @@ export const getAddressBook = (input: InputData): AddressBook => {
       ? addressBook.find(a => smeq(a.address, address)).name
       : address.substring(0, 8);
 
-  const isCategory = (address: Address, category: string): boolean =>
+  const isCategory = (category: string) => (address: Address): boolean =>
     address && addressBook
       .filter(a => smeq(a.category, category))
       .map(a => sm(a.address))
       .includes(sm(address));
 
-  const isTagged = (address: Address, tag: string): boolean =>
+  const isTagged = (tag: string) => (address: Address): boolean =>
     address && addressBook
       .filter(a => a.tags.includes(tag))
       .map(a => sm(a.address))
       .includes(sm(address));
 
   const isSelf = (address: Address): boolean =>
-    isCategory(address, "self");
+    isCategory("self")(address);
 
   const shouldIgnore = (address: Address): boolean =>
-    isTagged(address, "ignore");
+    isTagged("ignore")(address);
 
   const pretty = (address: Address): string =>
     getName(address) || (isSelf(address)
@@ -57,7 +63,7 @@ export const getAddressBook = (input: InputData): AddressBook => {
         : "null");
 
   return {
-    addresses: input.addressBook,
+    addresses,
     getName,
     isCategory,
     isSelf,
