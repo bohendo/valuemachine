@@ -37,15 +37,29 @@ export type Checkpoint = {
 export type AssetChunk = {
   assetType: AssetTypes;
   dateRecieved: TimestampString;
-  purchasePrice: DecimalString; /* units of assetType per unit of account (USD/DAI) */
+  purchasePrice: DecimalString; /* units of account (USD/DAI) per 1 assetType */
   quantity: DecimalString;
 };
+
+export type Log = F8949Log | any;
+
+// aka row of f8949
+export type F8949Log = {
+  Adjustment?: string;
+  Code?: string;
+  Cost: string;
+  DateAcquired: string;
+  DateSold: string;
+  Description: string;
+  GainOrLoss: string;
+  Proceeds: string;
+  type: "f8949";
+}
 
 export type Event = {
   date: TimestampString;
   description: string;
   hash?: HexString;
-  index: number;
   prices: { [assetType: string]: DecimalString };
   sources: EventSources[];
   tags: EventTags[];
@@ -87,21 +101,6 @@ export interface State {
   getRelevantBalances(event: Event): StateBalances;
   putChunk(account: string, chunk: AssetChunk): void;
   toJson(): StateJson;
-}
-
-export type Log = F8949Log | any;
-
-// aka row of f8949
-export type F8949Log = {
-  type: "f8949";
-  Adjustment: string;
-  Code: string;
-  Cost: string;
-  DateAcquired: string;
-  DateSold: string;
-  Description: string;
-  GainOrLoss: string;
-  Proceeds: string;
 }
 
 ////////////////////////////////////////

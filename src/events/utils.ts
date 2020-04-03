@@ -10,7 +10,6 @@ import {
 
 export const assertChrono = (events: Event[]): void => {
   let prevTime = 0;
-  let prevIndex = 0;
   for (const event of events) {
     if (!event || !event.date) {
       throw new Error(`Invalid event detected: ${JSON.stringify(event, null, 2)}`);
@@ -20,11 +19,6 @@ export const assertChrono = (events: Event[]): void => {
       throw new Error(`Events out of order: ${event.date} < ${new Date(prevTime).toISOString()}`);
     }
     prevTime = currTime;
-    const currIndex = event.index;
-    if (currIndex <= prevIndex) {
-      throw new Error(`Events out of order: ${event.index} <= ${prevIndex}`);
-    }
-    prevIndex = currIndex;
   }
 };
 

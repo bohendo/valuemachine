@@ -20,7 +20,7 @@ export const castEthTx = (addressBook): any =>
       `EthTx ${tx.hash.substring(0, 10)} ${tx.timestamp.split("T")[0]}`,
       env.logLevel,
     );
-    const { getName, isCategory } = addressBook;
+    const { getName, isCategory, pretty } = addressBook;
 
     if (!tx.logs) {
       throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);
@@ -51,14 +51,14 @@ export const castEthTx = (addressBook): any =>
     if (tx.status !== 1) {
       log.debug(`setting reverted tx to have zero quantity`);
       event.transfers[0].quantity = "0";
-      event.description = `${addressBook.pretty(tx.from)} sent failed tx`;
+      event.description = `${pretty(tx.from)} sent failed tx`;
       return event;
     }
 
     log.debug(`transfer of ${tx.value} ETH from ${tx.from} to ${tx.to}}`);
 
     for (const txLog of tx.logs) {
-      if (isCategory(txLog.address, "erc20")) {
+      if (isCategory("erc20")(txLog.address)) {
 
         const assetType = getName(txLog.address).toUpperCase();
         const eventI = tokenEvents.find(e => e.topic === txLog.topics[0]);
@@ -113,9 +113,9 @@ export const castEthTx = (addressBook): any =>
       throw new Error(`No transfers for EthTx: ${JSON.stringify(event, null, 2)}`);
     } else if (event.transfers.length === 1) {
       const { assetType, from, quantity, to } = event.transfers[0];
-      event.description = `${addressBook.pretty(from)} sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
+      event.description = `${pretty(from)} sent ${quantity} ${assetType} to ${getName(to)}`;
     } else {
-      event.description = `${addressBook.pretty(event.transfers[0].to)} made ${event.transfers.length} transfers`;
+      event.description = `${pretty(event.transfers[0].to)} made ${event.transfers.length} transfers`;
     }
 
     log.info(event.description);

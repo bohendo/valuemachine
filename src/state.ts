@@ -74,6 +74,7 @@ export const getState = (addressBook: AddressBook, oldState: State): State => {
       const chunk = getNextChunk(account, assetType);
       log.debug(`Checking out chunk w ${togo} to go: ${JSON.stringify(chunk, null, 2)}`);
       if (!chunk) {
+        output.forEach(chunk => putChunk(account, chunk)); // roll back changes so far
         throw new Error(`${account} attempted to spend more ${assetType} than they received.`);
       }
       if (gt(chunk.quantity, togo)) {

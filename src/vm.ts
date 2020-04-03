@@ -6,18 +6,21 @@ import {
   Event,
   Log,
   State,
+  TimestampString,
 } from "./types";
-import { eq, gt, Logger, sub } from "./utils";
+import { eq, gt, Logger, mul, round, sub } from "./utils";
 
 export const getValueMachine = (addressBook: AddressBook): any => {
   const log = new Logger("ValueMachine", env.logLevel);
-  const { pretty } = addressBook;
+  const { pretty, isSelf } = addressBook;
 
   return (oldState: State | null, event: Event): [State, Log[]] => {
     const state = getState(addressBook, oldState);
     const startingBalances = state.getRelevantBalances(event);
-    log.info(`Applying event ${event.index} from ${event.date}: ${event.description}`);
-    log.debug(`${event.date} Applying "${event.description}" to sub-state ${
+    log.info(`Applying event from ${event.date}: ${event.description}`);
+    log.debug(`Applying transfers: ${
+      JSON.stringify(event.transfers, null, 2)
+    } to sub-state ${
       JSON.stringify(startingBalances, null, 2)
     }`);
     const logs = [] as Log[];
@@ -36,6 +39,28 @@ export const getValueMachine = (addressBook: AddressBook): any => {
           log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
         }
         chunks = state.getChunks(from, assetType, quantity, event);
+
+        if (isSelf(from) && !isSelf(to)) {
+          const toFormDate = (date: TimestampString): string => {
+            const pieces = date.split("T")[0].split("-");
+            return `${pieces[1]}, ${pieces[2]}, ${pieces[0]}`;
+          };
+          chunks.forEach(chunk => {
+            const cost = mul(chunk.purchasePrice, chunk.quantity);
+            const proceeds = mul(event.prices[chunk.assetType], chunk.quantity);
+            logs.push({
+              Cost: cost,
+              DateAcquired: toFormDate(chunk.dateRecieved),
+              DateSold: toFormDate(event.date),
+              Description: `${round(chunk.quantity, 4)} ${chunk.assetType}`,
+              GainOrLoss: sub(proceeds, cost),
+              Proceeds: proceeds,
+              type: "f8949",
+
+            });
+          });
+        }
+
         chunks.forEach(chunk => state.putChunk(to, chunk));
       } catch (e) {
         log.warn(e.message);
