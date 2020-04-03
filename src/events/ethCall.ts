@@ -10,43 +10,35 @@ export const castEthCall = (addressBook, chainData): any =>
       `EthCall ${call.hash.substring(0, 10)} ${call.timestamp.split("T")[0]}`,
       env.logLevel,
     );
-    const { getName, isCategory } = addressBook;
 
-    const assetType = call.contractAddress === AddressZero
-      ? "ETH"
-      : isCategory(call.contractAddress, "erc20")
-        ? getName(call.contractAddress)
-        : null;
+    // We'll get internal token transfers from ethTx logs instead
+    if (call.contractAddress !== AddressZero) {
+      return null;
+    }
 
     if (!chainData || !chainData.transactions || !chainData.transactions[call.hash]) {
       throw new Error(`No tx data for call ${call.hash}, did fetching chainData get interrupted?`);
     }
 
     if (chainData.transactions[call.hash].status !== 1) {
-      log.info(`Skipping call that reverted w status ${chainData.transactions[call.hash].status}`);
+      log.debug(`Skipping call that reverted w status ${chainData.transactions[call.hash].status}`);
       return null;
     }
 
-    if (!assetType) {
-      log.debug(`Skipping ${isCategory(call.contractAddress, "erc20")}-supported token: ${call.contractAddress} aka ${getName(call.contractAddress)}`);
-      return null;
-    }
-
-    const source = assetType === "ETH" ? "ethCall" : "tokenCall";
     const event = {
       date: call.timestamp,
       hash: call.hash,
-      sources: [source],
+      sources: ["ethCall"],
       tags: [],
       transfers: [{
-        assetType,
+        assetType: "ETH",
         from: call.from.toLowerCase(),
         quantity: call.value,
         to: call.to.toLowerCase(),
       }],
     } as Event;
 
-    const { quantity, to } = event.transfers[0];
+    const { from, quantity, to } = event.transfers[0];
     if (eq(quantity, "0")) {
       return null;
     }
@@ -63,9 +55,8 @@ export const mergeEthCall = mergeFactory({
   log: new Logger("MergeEthCall", env.logLevel),
   mergeEvents: (event: Event, callEvent: Event): Event => {
     // tx logs and token calls return same data, add this tranfer iff this isn't the case
-    if (!event.sources.includes("ethLog") || !callEvent.sources.includes("tokenCall")) {
-      event.transfers.push(callEvent.transfers[0]);
-    }
+    event.transfers.push(callEvent.transfers[0]);
+    event.sources.push("ethCall");
     return event;
   },
   shouldMerge: (event: Event, callEvent: Event): boolean =>

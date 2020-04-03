@@ -52,11 +52,9 @@ export const EventSources = enumify({
   coinbase: "coinbase",
   coingecko: "coingecko",
   ethCall: "ethCall",
-  ethLog: "ethLog",
   ethTx: "ethTx",
   personal: "personal",
   sendwyre: "sendwyre",
-  tokenCall: "tokenCall",
 });
 export type EventSources = (typeof EventSources)[keyof typeof EventSources];
 
