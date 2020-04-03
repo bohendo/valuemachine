@@ -6,7 +6,7 @@ import { abi as tokenAbi } from "@openzeppelin/contracts/build/contracts/ERC20.j
 
 import { env } from "../env";
 import { Event, TransactionData } from "../types";
-import { eq, Logger } from "../utils";
+import { Logger } from "../utils";
 import { saiAbi, wethAbi } from "../abi";
 import { mergeFactory } from "./utils";
 
@@ -101,18 +101,17 @@ export const castEthTx = (addressBook): any =>
         }
       }
     }
-    event.sources.push("ethLog");
 
     event.transfers = event.transfers
-      // Filter out any zero-value transfers
-      .filter(transfer => !eq(transfer.quantity, "0"))
       // Make sure all addresses are lower-case
       .map(transfer => ({ ...transfer, to: transfer.to.toLowerCase() }))
       .map(transfer => ({ ...transfer, from: transfer.from.toLowerCase() }))
       // sort by index
       .sort((t1, t2) => t1.index - t2.index);
 
-    if (event.transfers.length === 1) {
+    if (event.transfers.length === 0) {
+      throw new Error(`No transfers for EthTx: ${JSON.stringify(event, null, 2)}`);
+    } else if (event.transfers.length === 1) {
       const { assetType, from, quantity, to } = event.transfers[0];
       event.description = `${addressBook.pretty(from)} sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
     } else {
