@@ -10,19 +10,19 @@ import {
   State,
   StateBalances,
   StateJson,
+  TimestampString,
 } from "./types";
 import { add, gt, Logger, round, sub } from "./utils";
 
-export const getState = (addressBook: AddressBook, oldState: State): State => {
+export const getState = (addressBook: AddressBook, oldState: StateJson): State => {
   const log = new Logger("State", env.logLevel);
 
   ////////////////////////////////////////
   // Run Init Code
 
-  const stateJson = oldState ? oldState.toJson() : {};
-  const state = {} as StateJson;
+  const state = JSON.parse(JSON.stringify(oldState)) as StateJson;
   for (const address of addressBook.addresses.filter(addressBook.isSelf)) {
-    state[address] = stateJson[address] || [];
+    state.accounts[address] = state.accounts[address] || [];
   }
 
   ////////////////////////////////////////
@@ -30,8 +30,8 @@ export const getState = (addressBook: AddressBook, oldState: State): State => {
 
   // TODO: implement FIFO/HIFO/LIFO
   const getNextChunk = (account: Address, assetType: AssetTypes): AssetChunk => {
-    const index = state[account].findIndex(chunk => chunk.assetType === assetType);
-    return state[account].splice(index, 1)[0];
+    const index = state.accounts[account].findIndex(chunk => chunk.assetType === assetType);
+    return state.accounts[account].splice(index, 1)[0];
   };
 
   ////////////////////////////////////////
@@ -45,7 +45,7 @@ export const getState = (addressBook: AddressBook, oldState: State): State => {
       return;
     }
     log.debug(`Putting ${chunk.quantity} ${chunk.assetType} into account ${account}`);
-    state[account].unshift(chunk);
+    state.accounts[account].unshift(chunk);
   };
 
   const getChunks = (
@@ -92,7 +92,7 @@ export const getState = (addressBook: AddressBook, oldState: State): State => {
   const getBalance = (account: Address, assetType: AssetTypes): DecimalString =>
     !addressBook.isSelf(account)
       ? "0"
-      : state[account]
+      : state.accounts[account]
         .filter(chunk => chunk.assetType === assetType)
         .reduce((sum, chunk) => add([sum, chunk.quantity]), "0");
 
@@ -118,8 +118,8 @@ export const getState = (addressBook: AddressBook, oldState: State): State => {
 
   const getAllBalances = (): StateBalances => {
     const output = {} as StateBalances;
-    for (const account of Object.keys(state)) {
-      const assetTypes = state[account].reduce((acc, cur) => {
+    for (const account of Object.keys(state.accounts)) {
+      const assetTypes = state.accounts[account].reduce((acc, cur) => {
         if (!acc.includes(cur.assetType)) {
           acc.push(cur.assetType);
         }
@@ -145,6 +145,10 @@ export const getState = (addressBook: AddressBook, oldState: State): State => {
     return output;
   };
 
+  const touch = (lastUpdated: TimestampString): void => {
+    state.lastUpdated = lastUpdated;
+  };
+
   return {
     getAllBalances,
     getBalance,
@@ -153,5 +157,6 @@ export const getState = (addressBook: AddressBook, oldState: State): State => {
     getRelevantBalances,
     putChunk,
     toJson,
+    touch,
   };
 };

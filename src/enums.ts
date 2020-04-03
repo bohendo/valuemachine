@@ -38,6 +38,7 @@ export const CachedTypes = enumify({
   ["ChainData"]: "ChainData",
   ["Events"]: "Events",
   ["Prices"]: "Prices",
+  ["State"]: "State",
 });
 export type CachedTypes = (typeof CachedTypes)[keyof typeof CachedTypes];
 

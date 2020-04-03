@@ -77,7 +77,8 @@ export type Transfer = {
 }
 
 export type StateJson = {
-  [account: string]: Array<AssetChunk>;
+  lastUpdated: TimestampString;
+  accounts: { [account: string]: Array<AssetChunk> };
 }
 
 export type StateBalances = {
@@ -101,6 +102,7 @@ export interface State {
   getRelevantBalances(event: Event): StateBalances;
   putChunk(account: string, chunk: AssetChunk): void;
   toJson(): StateJson;
+  touch(lastUpdated: TimestampString): void;
 }
 
 ////////////////////////////////////////

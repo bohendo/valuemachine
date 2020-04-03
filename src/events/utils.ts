@@ -91,7 +91,7 @@ export const mergeFactory = (opts: {
 
       if (shouldMerge(event, newEvent)) {
         const mergedEvent = mergeEvents(event, newEvent);
-        log && log.debug(`Merged "${newEvent.description}" into ${i} "${event.description}"`);
+        log && log.info(`Merged "${newEvent.description}" into ${i} "${event.description}"`);
         log && log.debug(`Yielding: ${JSON.stringify(mergedEvent, null, 2)}`);
         output.push(mergedEvent);
         output.push(...events.slice(i+1));

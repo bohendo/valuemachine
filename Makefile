@@ -49,6 +49,7 @@ clean:
 
 reset:
 	rm -f .cache/*/events.json
+	rm -f .cache/*/state.json
 	rm -f $(flags)/personal
 
 mappings:

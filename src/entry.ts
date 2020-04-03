@@ -2,10 +2,12 @@
 import fs from "fs";
 
 import { getAddressBook } from "./addressBook";
+import { loadState, saveState } from "./cache";
 import { env, setEnv } from "./env";
 import { getEvents } from "./events";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
+import { getState } from "./state";
 import { InputData } from "./types";
 import { emptyForm, Logger, mergeForms, translate } from "./utils";
 import { getValueMachine } from "./vm";
@@ -37,12 +39,17 @@ process.on("SIGINT", logAndExit);
 
   const valueMachine = getValueMachine(getAddressBook(input));
 
-  let state = null;
+  let state = getState(getAddressBook(input), loadState());
   const vmLogs = [];
-  for (const event of events) {
-    const [newState, newLogs] = valueMachine(state, event);
+  for (const event of events.filter(
+    event => new Date(event.date).getTime() > new Date(state.toJson().lastUpdated).getTime(),
+  )) {
+    const [newState, newLogs] = valueMachine(state.toJson(), event);
     vmLogs.concat(...newLogs);
     state = newState;
+    if (parseInt(event.date.split("-")[0], 10) < parseInt(env.taxYear, 10)) {
+      saveState(state.toJson());
+    }
   }
 
   console.log(`Final state: ${JSON.stringify(state.getAllBalances(), null, 2)}`);

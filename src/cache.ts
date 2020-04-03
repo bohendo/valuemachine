@@ -4,32 +4,37 @@ import fs from "fs";
 import { CachedTypes } from "./enums";
 import { env } from "./env";
 import { Logger } from "./utils";
-import { ChainData, Events, Prices } from "./types";
+import { ChainData, Events, Prices, StateJson } from "./types";
 
 ////////////////////////////////////////
 // Internal Data
 
 const log = new Logger("Cache", env.logLevel);
 
-type CachedData = ChainData | Events | Prices;
+type CachedData = ChainData | Events | Prices | StateJson;
 
 const dirName = `${process.cwd()}/.cache`;
 
-const initialData: { [index in CachedTypes]: CachedData } = {
+const initialData = {
   [CachedTypes.ChainData]: {
     addresses: {},
     calls: [],
     lastUpdated: (new Date(0)).toISOString(),
     transactions: {},
-  },
-  [CachedTypes.Events]: [],
-  [CachedTypes.Prices]: { ids: {} },
+  } as ChainData,
+  [CachedTypes.Events]: [] as Events,
+  [CachedTypes.Prices]: { ids: {} } as Prices,
+  [CachedTypes.State]: {
+    accounts: {},
+    lastUpdated: (new Date(0)).toISOString(),
+  } as StateJson,
 };
 
 const innerCache: { [index in CachedTypes]: CachedData | null} = {
   [CachedTypes.ChainData]: null,
   [CachedTypes.Events]: null,
   [CachedTypes.Prices]: null,
+  [CachedTypes.State]: null,
 };
 
 ////////////////////////////////////////
@@ -81,6 +86,8 @@ if (!fs.existsSync(getDir())){
 export const loadChainData = (): ChainData => load(CachedTypes.ChainData) as ChainData;
 export const loadEvents = (): Events => load(CachedTypes.Events) as Events;
 export const loadPrices = (): Prices => load(CachedTypes.Prices) as Prices;
+export const loadState = (): StateJson => load(CachedTypes.State) as StateJson;
 export const saveChainData = (chainData: ChainData): void => save(CachedTypes.ChainData, chainData);
 export const saveEvents = (events: Events): void => save(CachedTypes.Events, events);
 export const savePrices = (prices: Prices): void => save(CachedTypes.Prices, prices);
+export const saveState = (chainData: StateJson): void => save(CachedTypes.State, chainData);

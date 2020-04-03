@@ -6,6 +6,7 @@ import {
   Event,
   Log,
   State,
+  StateJson,
   TimestampString,
 } from "./types";
 import { eq, gt, Logger, mul, round, sub } from "./utils";
@@ -14,7 +15,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
   const log = new Logger("ValueMachine", env.logLevel);
   const { pretty, isSelf } = addressBook;
 
-  return (oldState: State | null, event: Event): [State, Log[]] => {
+  return (oldState: StateJson | null, event: Event): [State, Log[]] => {
     const state = getState(addressBook, oldState);
     const startingBalances = state.getRelevantBalances(event);
     log.info(`Applying event from ${event.date}: ${event.description}`);
@@ -40,7 +41,8 @@ export const getValueMachine = (addressBook: AddressBook): any => {
         }
         chunks = state.getChunks(from, assetType, quantity, event);
 
-        if (isSelf(from) && !isSelf(to)) {
+        // Emit f8949 logs
+        if (isSelf(from) && !isSelf(to) && event.date.startsWith(env.taxYear)) {
           const toFormDate = (date: TimestampString): string => {
             const pieces = date.split("T")[0].split("-");
             return `${pieces[1]}, ${pieces[2]}, ${pieces[0]}`;
@@ -100,6 +102,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
     }\n`);
 
     assertState(state, event);
+    state.touch(event.date);
 
     return [state, logs];
   };
