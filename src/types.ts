@@ -29,19 +29,17 @@ export type Address = HexString | null;
 export type Checkpoint = {
   account: Address;
   assetType: AssetTypes;
+  balance: DecimalString;
+  date: TimestampString;
+  hash: HexString;
 }
 
 export type AssetChunk = {
+  assetType: AssetTypes;
   dateRecieved: TimestampString;
   purchasePrice: DecimalString; /* units of assetType per unit of account (USD/DAI) */
   quantity: DecimalString;
 };
-
-export type State = {
-  [account: string]: {
-    [assetType: string /* AssetTypes */]: Array<AssetChunk>;
-  };
-}
 
 export type Event = {
   date: TimestampString;
@@ -61,6 +59,29 @@ export type Transfer = {
   fee?: DecimalString;
   from: HexString;
   to: HexString;
+}
+
+export type StateJson = {
+  [account: string]: Array<AssetChunk>;
+}
+
+export type StateBalances = {
+  [account: string]: {
+    [assetType: string]: DecimalString;
+  };
+}
+
+export interface State {
+  getBalance(account: string, assetType: AssetTypes): DecimalString;
+  getChunks(
+    account: Address,
+    assetType: AssetTypes,
+    quantity: DecimalString,
+    event: Event,
+  ): AssetChunk[];
+  getRelevantBalances(event: Event): StateBalances;
+  putChunk(account: string, chunk: AssetChunk): void;
+  toJson(): StateJson;
 }
 
 export type Log = F8949Log | any;

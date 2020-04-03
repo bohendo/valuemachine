@@ -1,5 +1,5 @@
-import { Event, State } from "./types";
-import { add, eq } from "./utils";
+import { Checkpoint, Event, State } from "./types";
+import { eq } from "./utils";
 
 let checkpoints = [
   {
@@ -50,21 +50,12 @@ let checkpoints = [
   (ckpt) => ({ ...ckpt, account: ckpt.account.toLowerCase() }),
 ).sort(
   (c1, c2) => new Date(c1.date).getTime() - new Date(c2.date).getTime(),
-);
+) as Checkpoint[];
 
 export const assertState = (state: State, event: Event): void => {
   for (const { account, assetType, balance, date, hash } of checkpoints) {
     if (date === event.date || (hash && event.hash && hash === event.hash)) {
-      let actual;
-      if (!state[account] || !state[account][assetType]) {
-        if (!eq(balance, "0")) {
-          throw new Error(`Expected accout ${account} to have ${assetType} balance of ${balance} on ${event.date} but got 0`);
-        }
-        actual = "0";
-      } else {
-        actual = state[account][assetType]
-          .reduce((sum, chunk) => add([sum, chunk.quantity]), "0");
-      }
+      const actual = state.getBalance(account, assetType);
       if (!eq(actual, balance)) {
         throw new Error(`Expected accout ${account} to have ${assetType} balance of ${balance} on ${event.date} but got ${actual}`);
       }
