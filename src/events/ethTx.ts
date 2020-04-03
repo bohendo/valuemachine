@@ -29,7 +29,7 @@ export const castEthTx = (addressBook): any =>
     if (tx.to === null) {
       // derived from: https://ethereum.stackexchange.com/a/46960
       tx.to = `0x${keccak256(RLP.encode([tx.from, hexlify(tx.nonce)])).substring(26)}`;
-      log.info(`new contract deployed to ${tx.to}`);
+      log.debug(`new contract deployed to ${tx.to}`);
     }
 
     const event = {
@@ -49,7 +49,7 @@ export const castEthTx = (addressBook): any =>
     } as Event;
 
     if (tx.status !== 1) {
-      log.info(`setting reverted tx to have zero quantity`);
+      log.debug(`setting reverted tx to have zero quantity`);
       event.transfers[0].quantity = "0";
       event.description = `${addressBook.pretty(tx.from)} sent failed tx`;
       return event;
@@ -119,9 +119,7 @@ export const castEthTx = (addressBook): any =>
       event.description = `${addressBook.pretty(event.transfers[0].to)} made ${event.transfers.length} transfers`;
     }
 
-    event.description !== "null"
-      ? log.info(event.description)
-      : log.debug(event.description);
+    log.info(event.description);
 
     return event;
   };

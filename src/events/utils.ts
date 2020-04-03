@@ -84,14 +84,14 @@ export const mergeFactory = (opts: {
           output.push(...events.slice(i));
           return output;
         }
-        log && log.info(
+        log && log.debug(
           `event ${i} "${event.description}" occured ${delta / 1000}s after "${newEvent.description}"`,
         );
       }
 
       if (shouldMerge(event, newEvent)) {
         const mergedEvent = mergeEvents(event, newEvent);
-        log && log.info(`Merged "${newEvent.description}" into ${i} "${event.description}"`);
+        log && log.debug(`Merged "${newEvent.description}" into ${i} "${event.description}"`);
         log && log.debug(`Yielding: ${JSON.stringify(mergedEvent, null, 2)}`);
         output.push(mergedEvent);
         output.push(...events.slice(i+1));
@@ -105,15 +105,15 @@ export const mergeFactory = (opts: {
 
 export const mergeOffChainEvents = (event: Event, ocEvent: Event): Event => {
   const transfer = event.transfers[0];
-  const cbTransfer = ocEvent.transfers[0];
+  const ocTransfer = ocEvent.transfers[0];
   const mergedTransfer = {
     ...transfer,
-    from: cbTransfer.from.startsWith("external") 
+    from: ocTransfer.from.startsWith("external")
       ? transfer.from
-      : cbTransfer.from,
-    to: cbTransfer.to.startsWith("external")
+      : ocTransfer.from,
+    to: ocTransfer.to.startsWith("external")
       ? transfer.to
-      : cbTransfer.to,
+      : ocTransfer.to,
   };
   return {
     ...event,
@@ -126,7 +126,7 @@ export const mergeOffChainEvents = (event: Event, ocEvent: Event): Event => {
 
 export const shouldMergeOffChain = (event: Event, ocEvent: Event): boolean => {
   if (
-    // assumes the deposit to/withdraw from coinbase tx doesn't interact w other contracts
+    // assumes the deposit to/withdraw from exchange account doesn't interact w other contracts
     event.transfers.length !== 1 ||
     // only simple off chain sends to the chain
     ocEvent.transfers.length !== 1
@@ -134,10 +134,10 @@ export const shouldMergeOffChain = (event: Event, ocEvent: Event): boolean => {
     return false;
   }
   const transfer = event.transfers[0];
-  const cbTransfer = ocEvent.transfers[0];
+  const ocTransfer = ocEvent.transfers[0];
   if (
-    transfer.assetType === cbTransfer.assetType &&
-    amountsAreClose(transfer.quantity, cbTransfer.quantity)
+    transfer.assetType === ocTransfer.assetType &&
+    amountsAreClose(transfer.quantity, ocTransfer.quantity)
   ) {
     return true;
   }

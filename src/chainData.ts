@@ -41,7 +41,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
 
   const lastUpdated = new Date(chainData.lastUpdated).getTime();
   if (Date.now() <= lastUpdated + timeUntilStale) {
-    log.info(`ChainData is up to date (${Math.round((Date.now() - lastUpdated) / (1000 * 60))} minutes old)\n`);
+    log.info(`ChainData is up to date (${Math.round((Date.now() - lastUpdated) / (1000 * 60))} minutes old)`);
     return chainData;
   }
 

@@ -50,10 +50,10 @@ export const castEthCall = (addressBook, chainData): any =>
     if (eq(quantity, "0")) {
       return null;
     }
-    event.description = `${source} sent ${quantity} ${assetType} to ${addressBook.getName(to)}`;
+    event.description =
+      `${addressBook.getName(from)} sent ${quantity} ETH to ${addressBook.getName(to)} (internal)`;
 
     log.info(event.description);
-    log.debug(`${call.value} ${assetType} transferred to ${call.to}`);
 
     return event;
   };

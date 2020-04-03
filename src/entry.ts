@@ -28,11 +28,8 @@ process.on("SIGINT", logAndExit);
 
   const log = new Logger("Entry", input.env.logLevel);
 
-  log.info(`Starting app in env: ${JSON.stringify(env)}`);
   setEnv({ ...input.env, outputFolder });
-  log.info(`Set new env: ${JSON.stringify(env)}`);
-
-  log.info(`\nLets go\n`);
+  log.info(`Starting app in env: ${JSON.stringify(env)}`);
 
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
