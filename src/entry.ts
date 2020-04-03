@@ -6,7 +6,6 @@ import { env, setEnv } from "./env";
 import { getEvents } from "./events";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
-import { getNetWorth } from "./netWorth";
 import { InputData } from "./types";
 import { emptyForm, Logger, mergeForms, translate } from "./utils";
 import { getValueMachine } from "./vm";
@@ -47,8 +46,6 @@ process.on("SIGINT", logAndExit);
   }
 
   console.log(`Final state: ${JSON.stringify(state, null, 2)}`);
-
-  console.log(`net worth: ${getNetWorth(state)}}`);
 
   log.info(`Done compiling financial events.\n`);
 

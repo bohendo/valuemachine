@@ -42,7 +42,7 @@ export const getState = (addressBook: AddressBook, stateJson?: StateJson): State
       log.debug(`Skipping off-chain or external asset put`);
       return;
     }
-    log.info(`Putting ${chunk.quantity} ${chunk.assetType} into account ${account}`);
+    log.debug(`Putting ${chunk.quantity} ${chunk.assetType} into account ${account}`);
     state[account].unshift(chunk);
   };
 
@@ -65,12 +65,12 @@ export const getState = (addressBook: AddressBook, stateJson?: StateJson): State
         quantity,
       }];
     }
-    log.info(`Getting chunks totaling ${quantity} ${assetType} from ${account}`);
+    log.debug(`Getting chunks totaling ${quantity} ${assetType} from ${account}`);
     const output = [];
     let togo = quantity;
     while (gt(togo, "0")) {
       const chunk = getNextChunk(account, assetType);
-      log.info(`Checking out chunk w ${togo} to go: ${JSON.stringify(chunk, null, 2)}`);
+      log.debug(`Checking out chunk w ${togo} to go: ${JSON.stringify(chunk, null, 2)}`);
       if (!chunk) {
         throw new Error(`${account} attempted to spend more ${assetType} than they received.`);
       }
