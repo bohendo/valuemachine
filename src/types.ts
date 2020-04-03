@@ -45,6 +45,7 @@ export type Event = {
   date: TimestampString;
   description: string;
   hash?: HexString;
+  index: number;
   prices: { [assetType: string]: DecimalString };
   sources: EventSources[];
   tags: EventTags[];

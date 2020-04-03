@@ -9,16 +9,22 @@ import {
 } from "../utils";
 
 export const assertChrono = (events: Event[]): void => {
-  let prev = 0;
+  let prevTime = 0;
+  let prevIndex = 0;
   for (const event of events) {
     if (!event || !event.date) {
       throw new Error(`Invalid event detected: ${JSON.stringify(event, null, 2)}`);
     }
-    const curr = new Date(event.date).getTime();
-    if (curr < prev) {
-      throw new Error(`Events out of order: ${event.date} < ${new Date(prev).toISOString()}`);
+    const currTime = new Date(event.date).getTime();
+    if (currTime < prevTime) {
+      throw new Error(`Events out of order: ${event.date} < ${new Date(prevTime).toISOString()}`);
     }
-    prev = curr;
+    prevTime = currTime;
+    const currIndex = event.index;
+    if (currIndex <= prevIndex) {
+      throw new Error(`Events out of order: ${event.index} <= ${prevIndex}`);
+    }
+    prevIndex = currIndex;
   }
 };
 

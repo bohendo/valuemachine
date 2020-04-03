@@ -13,11 +13,10 @@ export const getValueMachine = (addressBook: AddressBook): any => {
   const log = new Logger("ValueMachine", env.logLevel);
   const { pretty } = addressBook;
 
-  let index = 1;
   return (oldState: StateJson | null, event: Event): [StateJson, Log[]] => {
     const state = getState(addressBook, oldState);
     const startingBalances = state.getRelevantBalances(event);
-    log.info(`Applying event ${index++} on ${event.date}: ${event.description}`);
+    log.info(`Applying event ${event.index} on ${event.date}: ${event.description}`);
     log.debug(`${event.date} Applying "${event.description}" to sub-state ${
       JSON.stringify(startingBalances, null, 2)
     }`);

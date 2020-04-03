@@ -74,7 +74,9 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
   // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
   // edge case is tricky to solve at source, just sort manually ffs
   events = events.sort((e1: Event, e2: Event): number =>
-    new Date(e1.date).getTime() - new Date(e2.date).getTime(),
+    new Date(e1.date).getTime() - new Date(e2.date).getTime() === 0
+     ? (e1.index || 0) - (e2.index || 0)
+     : new Date(e1.date).getTime() - new Date(e2.date).getTime(),
   );
   assertChrono(events);
 
@@ -93,7 +95,16 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
   log.info(`Event price info is up to date`);
 
   assertChrono(events);
+  let index = 1;
   events.forEach(event => {
+    if (typeof event.index === "undefined") {
+      event.index = index;
+    } else if (event.index !== index) {
+      throw new Error(
+        `Events has an out-of-order index (expected ${index}, got ${event.index}): ${JSON.stringify(event)}`,
+      );
+    }
+    index += 1;
     ["date", "description", "prices", "sources", "tags", "transfers"].forEach(required => {
       if (!event[required]) {
         throw new Error(`Event doesn't have a ${required}: ${JSON.stringify(event, null, 2)}`);
