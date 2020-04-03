@@ -73,6 +73,7 @@ export type StateBalances = {
 }
 
 export interface State {
+  getAllBalances(): StateBalances;
   getBalance(account: string, assetType: AssetTypes): DecimalString;
   getChunks(
     account: Address,

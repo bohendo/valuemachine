@@ -12,15 +12,16 @@ import {
 } from "./types";
 import { add, gt, Logger, round, sub } from "./utils";
 
-export const getState = (addressBook: AddressBook, stateJson?: StateJson): State => {
+export const getState = (addressBook: AddressBook, oldState: State): State => {
   const log = new Logger("State", env.logLevel);
 
   ////////////////////////////////////////
   // Run Init Code
 
+  const stateJson = oldState ? oldState.toJson() : {};
   const state = {} as StateJson;
   for (const address of addressBook.addresses.filter(addressBook.isSelf)) {
-    state[address] = (stateJson && stateJson[address]) ? stateJson[address] : [];
+    state[address] = stateJson[address] || [];
   }
 
   ////////////////////////////////////////
@@ -113,7 +114,25 @@ export const getState = (addressBook: AddressBook, stateJson?: StateJson): State
     return simpleState;
   };
 
+  const getAllBalances = (): StateBalances => {
+    const output = {} as StateBalances;
+    for (const account of Object.keys(state)) {
+      const assetTypes = state[account].reduce((acc, cur) => {
+        if (!acc.includes(cur.assetType)) {
+          acc.push(cur.assetType);
+        }
+        return acc;
+      }, []);
+      for (const assetType of assetTypes) {
+        output[account] = output[account] || {};
+        output[account][assetType] = getBalance(account, assetType);
+      }
+    }
+    return output;
+  };
+
   return {
+    getAllBalances,
     getBalance,
     getChunks,
     getRelevantBalances,

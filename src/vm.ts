@@ -5,7 +5,7 @@ import {
   AddressBook,
   Event,
   Log,
-  StateJson,
+  State,
 } from "./types";
 import { eq, gt, Logger, sub } from "./utils";
 
@@ -13,10 +13,10 @@ export const getValueMachine = (addressBook: AddressBook): any => {
   const log = new Logger("ValueMachine", env.logLevel);
   const { pretty } = addressBook;
 
-  return (oldState: StateJson | null, event: Event): [StateJson, Log[]] => {
+  return (oldState: State | null, event: Event): [State, Log[]] => {
     const state = getState(addressBook, oldState);
     const startingBalances = state.getRelevantBalances(event);
-    log.info(`Applying event ${event.index} on ${event.date}: ${event.description}`);
+    log.info(`Applying event ${event.index} from ${event.date}: ${event.description}`);
     log.debug(`${event.date} Applying "${event.description}" to sub-state ${
       JSON.stringify(startingBalances, null, 2)
     }`);
@@ -76,6 +76,6 @@ export const getValueMachine = (addressBook: AddressBook): any => {
 
     assertState(state, event);
 
-    return [state.toJson(), logs];
+    return [state, logs];
   };
 };

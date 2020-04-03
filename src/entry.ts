@@ -45,7 +45,7 @@ process.on("SIGINT", logAndExit);
     state = newState;
   }
 
-  console.log(`Final state: ${JSON.stringify(state, null, 2)}`);
+  console.log(`Final state: ${JSON.stringify(state.getAllBalances(), null, 2)}`);
 
   log.info(`Done compiling financial events.\n`);
 
