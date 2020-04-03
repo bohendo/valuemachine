@@ -1,13 +1,19 @@
+/* global process */
 import fs from "fs";
 
 import { CachedTypes } from "./enums";
 import { env } from "./env";
+import { Logger } from "./utils";
 import { ChainData, Events, Prices } from "./types";
 
 ////////////////////////////////////////
 // Internal Data
 
+const log = new Logger("Cache", env.logLevel);
+
 type CachedData = ChainData | Events | Prices;
+
+const dirName = `${process.cwd()}/.cache`;
 
 const initialData: { [index in CachedTypes]: CachedData } = {
   [CachedTypes.ChainData]: {
@@ -29,18 +35,16 @@ const innerCache: { [index in CachedTypes]: CachedData | null} = {
 ////////////////////////////////////////
 // Internal Functions
 
-const getDir = (): string => `.cache/${env.mode}`;
+const getDir = (): string => `${dirName}/${env.mode}`;
 
 const toFilename = (cachedType: CachedTypes): string => `${getDir()}/${
-    cachedType.replace(/[A-Z]/g, "-$&".toLowerCase()).replace(/^-/, "")
+    cachedType.replace(/[A-Z]/g, "-$&".toLowerCase()).replace(/^-/, "").toLowerCase()
   }.json`;
 
 const load = (cachedType: CachedTypes): CachedData => {
   if (!innerCache[cachedType]) {
     try {
-      if (!fs.existsSync(getDir())){
-        fs.mkdirSync(getDir());
-      }
+      log.info(`Loading ${cachedType} cache from ${toFilename(cachedType)}`);
       innerCache[cachedType] = JSON.parse(fs.readFileSync(toFilename(cachedType), "utf8"));
     } catch (e) {
       if (e.message.startsWith("ENOENT: no such file or directory")) {
@@ -61,7 +65,18 @@ const save = (cachedType: CachedTypes, data: CachedData): void => {
 };
 
 ////////////////////////////////////////
-// Exported Functions
+// Run Init Code
+
+if (!fs.existsSync(dirName)){
+  fs.mkdirSync(dirName);
+}
+
+if (!fs.existsSync(getDir())){
+  fs.mkdirSync(getDir());
+}
+
+////////////////////////////////////////
+// Exports
 
 export const loadChainData = (): ChainData => load(CachedTypes.ChainData) as ChainData;
 export const loadEvents = (): Events => load(CachedTypes.Events) as Events;
