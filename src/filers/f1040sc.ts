@@ -1,8 +1,8 @@
 import { env } from "../env";
-import { FinancialData, Forms } from "../types";
+import { Forms, Log } from "../types";
 import { add, gt, Logger, lt, round, sub } from "../utils";
 
-export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
+export const f1040sc = (vmLogs: Log[], oldForms: Forms): Forms => {
   const log = new Logger("f1040sc", env.logLevel);
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
@@ -12,7 +12,7 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
 
   let totalIncome = "0";
 
-  finances.income.forEach(event => {
+  vmLogs.filter(l => l.type === "income").forEach(event => {
     totalIncome = add([totalIncome, event.assetsIn[0].amount]);
   });
 
@@ -26,7 +26,7 @@ export const f1040sc = (finances: FinancialData, oldForms: Forms): Forms => {
   f1040sc.L5 = round(sub(f1040sc.L3, f1040sc.L4));
   f1040sc.L7 = round(add([f1040sc.L5, f1040sc.L6]));
 
-  for (const expense of finances.expenses) {
+  for (const expense of vmLogs.filter(l => l.type === "expenses")) {
     const asset = expense.assetsIn[0];
     if (!asset) { throw new Error("idk"); }
     const key = `L${asset.type}`;

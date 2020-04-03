@@ -1,10 +1,10 @@
 import { add, round } from "../utils";
 import { Log, Forms } from "../types";
 
-export const f8949 = (financialLogs: Log[], oldForms: Forms): Forms  => {
+export const f8949 = (vmLogs: Log[], oldForms: Forms): Forms  => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040 } = forms;
-  const trades = financialLogs.filter(log => log.type === "f8949");
+  const trades = vmLogs.filter(log => log.type === "f8949");
   const f8949 = {} as any;
 
   // Set values constant across all f8949 forms

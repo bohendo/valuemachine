@@ -42,20 +42,16 @@ process.on("SIGINT", logAndExit);
   const valueMachine = getValueMachine(getAddressBook(input));
 
   let state = null;
-  const logs = [];
+  const vmLogs = [];
   for (const event of events) {
     const [newState, newLogs] = valueMachine(state, event);
-    logs.concat(...newLogs);
+    vmLogs.concat(...newLogs);
     state = newState;
   }
 
-  console.log(`net worth: ${getNetWorth(state)}}`);
+  console.log(`Final state: ${JSON.stringify(state, null, 2)}`);
 
-  const financialData = {
-    expenses: logs.filter(log => log.type === "expense"),
-    income: logs.filter(log => log.type === "income"),
-    trades: logs.filter(log => log.type === "trades"),
-  };
+  console.log(`net worth: ${getNetWorth(state)}}`);
 
   log.info(`Done compiling financial events.\n`);
 
@@ -70,7 +66,7 @@ process.on("SIGINT", logAndExit);
   }
 
   ////////////////////////////////////////
-  // Step 3: Parse financial data to fill in the rest of the forms
+  // Step 3: Parse financial data & calculate data for the rest of the forms
 
   if (env.mode !== "test") {
     for (const form of input.forms.reverse()) {
@@ -78,7 +74,7 @@ process.on("SIGINT", logAndExit);
         log.warn(`No filer is available for form ${form}. Using unmodified user input.`);
         continue;
       }
-      output = filers[form](financialData, output);
+      output = filers[form](vmLogs, output);
     }
   }
 

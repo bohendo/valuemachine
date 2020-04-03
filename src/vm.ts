@@ -14,7 +14,7 @@ import { add, eq, gt, Logger, round, sub } from "./utils";
 type SimpleState = any;
 
 export const getValueMachine = (addressBook: AddressBook): any => {
-  const log = new Logger("ValueMachine", 5 || env.logLevel);
+  const log = new Logger("ValueMachine", env.logLevel);
   const { isSelf, pretty } = addressBook;
 
   const offTheChain = (assetType: AssetTypes): boolean =>
@@ -26,9 +26,9 @@ export const getValueMachine = (addressBook: AddressBook): any => {
   // TODO: what if input.capitalGainsMethod is LIFO or HIFO?
   const getPutChunk = (state: State) =>
     (account: string, assetType: AssetTypes, asset: AssetChunk): void => {
-      log.info(`Putting ${asset.quantity} ${assetType} into account ${account}`);
+      log.debug(`Putting ${asset.quantity} ${assetType} into account ${account}`);
       if (offTheChain(assetType) || !isSelf(account)) {
-        log.info(`Skipping off-chain or external asset put`);
+        log.debug(`Skipping off-chain or external asset put`);
         return;
       }
       if (!state[account]) {
@@ -44,10 +44,10 @@ export const getValueMachine = (addressBook: AddressBook): any => {
     (account: string, assetType: AssetTypes, quantity: DecimalString): AssetChunk[] => {
       // Everyone has infinite USD in the value machine
       if (assetType === "USD") {
-        log.info(`Printing more USD`);
+        log.debug(`Printing more USD`);
         return [{ dateRecieved: "1970-01-01T00:00:00.000Z", purchasePrice: "1", quantity }];
       }
-      log.info(`Getting chunks totaling ${quantity} ${assetType} from ${account}`);
+      log.debug(`Getting chunks totaling ${quantity} ${assetType} from ${account}`);
       // We assume nothing about the history of chunks coming to us from the outside
       if (!isSelf(account)) {
         return [{
@@ -56,7 +56,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
           quantity,
         }];
       }
-      log.info(`Still getting chunks totaling ${quantity} ${assetType} from ${account}`);
+      log.debug(`Still getting chunks totaling ${quantity} ${assetType} from ${account}`);
       const putChunk = getPutChunk(state);
       if (!state[account]) {
         state[account] = {};
@@ -78,7 +78,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
           putChunk(account, assetType, leftovers);
           log.debug(`Putting ${leftovers.quantity} back, we're done`);
           output.push({ ...chunk, quantity: togo });
-          log.info(`Got ${output.length} chunks totaling ${quantity} ${assetType} from ${account}`);
+          log.debug(`Got ${output.length} chunks totaling ${quantity} ${assetType} from ${account}`);
           return output;
         }
         output.push({ ...chunk, quantity: chunk.quantity });
@@ -119,13 +119,15 @@ export const getValueMachine = (addressBook: AddressBook): any => {
     return simpleState;
   };
 
-  return (oldState: State | null, event: Event): [State, Log] => {
+  let index = 1;
+  return (oldState: State | null, event: Event): [State, Log[]] => {
     const state = JSON.parse(JSON.stringify(oldState || {})) as State;
     const startingBalances = getRelevantBalances(state, event);
-    log.info(`${event.date} Applying "${event.description}" to sub-state ${
+    log.info(`Applying event ${index++} on ${event.date}`);
+    log.debug(`${event.date} Applying "${event.description}" to sub-state ${
       JSON.stringify(startingBalances, null, 2)
     }`);
-    const logs = [];
+    const logs = [] as Log[];
     const [getChunks, putChunk] = [getGetChunk(state, event), getPutChunk(state)];
 
     ////////////////////////////////////////
@@ -133,13 +135,13 @@ export const getValueMachine = (addressBook: AddressBook): any => {
 
     const later = [];
     for (const { assetType, fee, from, index, quantity, to } of event.transfers) {
-      log.info(`transfering ${quantity} ${assetType} from ${pretty(from)} to ${pretty(to)}`);
+      log.debug(`transfering ${quantity} ${assetType} from ${pretty(from)} to ${pretty(to)}`);
       let feeChunks;
       let chunks;
       try {
         if (fee) {
           feeChunks = getChunks(from, assetType, fee);
-          log.info(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
+          log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
         }
         chunks = getChunks(from, assetType, quantity);
         chunks.forEach(chunk => putChunk(to, assetType, chunk));
@@ -154,10 +156,10 @@ export const getValueMachine = (addressBook: AddressBook): any => {
     }
 
     for (const { assetType, fee, from, quantity, to } of later) {
-      log.info(`transfering ${quantity} ${assetType} from ${pretty(from)} to ${pretty(to)} (attempt 2)`);
+      log.debug(`transfering ${quantity} ${assetType} from ${pretty(from)} to ${pretty(to)} (attempt 2)`);
       if (fee) {
         const feeChunks = getChunks(from, assetType, fee);
-        log.info(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
+        log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
       }
       const chunks = getChunks(from, assetType, quantity);
       chunks.forEach(chunk => putChunk(to, assetType, chunk));
@@ -176,7 +178,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
         }
       }
     }
-    log.info(`Final state after applying "${event.description}": ${
+    log.debug(`Final state after applying "${event.description}": ${
       JSON.stringify(endingBalances, null, 2)
     }\n`);
 
