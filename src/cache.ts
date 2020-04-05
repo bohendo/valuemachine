@@ -49,6 +49,9 @@ const toFilename = (cachedType: CachedTypes): string => `${getDir()}/${
 const load = (cachedType: CachedTypes): CachedData => {
   if (!innerCache[cachedType]) {
     try {
+      if (!fs.existsSync(getDir())){
+        fs.mkdirSync(getDir());
+      }
       log.info(`Loading ${cachedType} cache from ${toFilename(cachedType)}`);
       innerCache[cachedType] = JSON.parse(fs.readFileSync(toFilename(cachedType), "utf8"));
     } catch (e) {
@@ -74,10 +77,6 @@ const save = (cachedType: CachedTypes, data: CachedData): void => {
 
 if (!fs.existsSync(dirName)){
   fs.mkdirSync(dirName);
-}
-
-if (!fs.existsSync(getDir())){
-  fs.mkdirSync(getDir());
 }
 
 ////////////////////////////////////////
