@@ -1,18 +1,12 @@
 import { AddressZero } from "ethers/constants";
-import {
-  bigNumberify, Interface, hexlify, formatEther, keccak256, EventDescription, RLP,
-} from "ethers/utils";
-import { abi as tokenAbi } from "@openzeppelin/contracts/build/contracts/ERC20.json";
+import { bigNumberify, hexlify, formatEther, keccak256, RLP } from "ethers/utils";
 
 import { env } from "../env";
 import { Event, TransactionData } from "../types";
 import { Logger } from "../utils";
-import { saiAbi, wethAbi } from "../abi";
+import { tokenEvents } from "../abi";
 import { mergeFactory } from "./utils";
 
-const getEvents = (abi: any): EventDescription[] => Object.values((new Interface(abi)).events);
-const tokenEvents =
-  Object.values(getEvents(tokenAbi).concat(getEvents(wethAbi)).concat(getEvents(saiAbi)));
 
 export const castEthTx = (addressBook): any =>
   (tx: TransactionData): Event => {
