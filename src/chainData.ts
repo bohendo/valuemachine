@@ -154,7 +154,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
           hash: tx.hash,
           nonce: tx.nonce,
           timestamp: (new Date(tx.timestamp * 1000)).toISOString(),
-          to: tx.to.toLowerCase(),
+          to: tx.to ? tx.to.toLowerCase() : null,
           value: formatEther(tx.value),
         });
       }
@@ -189,7 +189,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         // We got call from this address's history so it must be either the call.to or call.from
         to: ((call.to === "" || call.to === null) && call.from !== address)
           ? address
-          : call.to.toLowerCase(),
+          : call.to ? call.to.toLowerCase() : null,
         value: formatEther(call.value),
       });
     }
@@ -247,7 +247,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       hash: tx.hash,
       nonce: tx.nonce,
       timestamp: call.timestamp,
-      to: tx.to.toLowerCase(),
+      to: tx.to ? tx.to.toLowerCase() : null,
       value: formatEther(tx.value),
     };
     if (index === -1) {
