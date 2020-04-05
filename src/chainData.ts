@@ -75,7 +75,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     log.info(`Fetching info for token ${logProg(supportedTokens, tokenAddress)}: ${tokenAddress}`);
     const token = new Contract(tokenAddress, getTokenAbi(tokenAddress), provider);
     const tokenData = {
-      address: tokenAddress,
+      address: tokenAddress.toLowerCase(),
       decimals: toNum((await token.functions.decimals()) || 18),
       name: toStr((await token.functions.name()) || "Unknown"),
       symbol: toStr((await token.functions.symbol()) || "???"),
@@ -96,28 +96,42 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       if (!chainData.addresses[address]) {
         return true;
       }
+
+      const lastAction = chainData.transactions
+        .filter(tx =>
+          tx.to === address ||
+          tx.from === address ||
+          (
+            tx.logs &&
+            tx.logs
+              .map(log => log.topics.concat(log.address).concat(log.data))
+              .some(logData => logData.some(
+                dataField => dataField.includes(address.replace(/^0x/, "")),
+              ))
+          ),
+        )
+        .map(tx => tx.timestamp)
+        .concat(
+          chainData.calls
+            .filter(call => call.to === address || call.from === address)
+            .map(tx => tx.timestamp),
+        )
+        .sort((ds1, ds2) => new Date(ds1).getTime() - new Date(ds2).getTime())[0];
+
+      if (!lastAction) {
+        log.info(`No activity detected for address ${address}`);
+        return true;
+      }
+
       // Don't sync any addresses w no recent activity if they have been synced before
-      if (new Date(
-        chainData.transactions
-          .filter(tx =>
-            tx.to === address ||
-            tx.from === address ||
-            (
-              tx.logs &&
-              tx.logs
-                .map(log => [log.address].concat(log.topics))
-                .some(logData => logData.includes(address.replace(/^0x/, "")))
-            ),
-          )
-          .map(tx => tx.timestamp)
-          .sort((ds1, ds2) => new Date(ds1).getTime() - new Date(ds2).getTime())[0],
-      ).getTime() > year) {
-        log.info(`Skipping retired address ${address} because data was already fetched`);
+      if (Date.now() - new Date(lastAction).getTime() > year) {
+        log.info(`Skipping retired address (lastAction: ${lastAction}) ${address} because data was already fetched`);
         return false;
       }
+
       // Don't sync any active addresses if they've been synced recently
       if (Date.now() - new Date(chainData.addresses[address]).getTime() < 6 * hour) {
-        log.info(`Skipping active address ${address} because it was recently synced.`);
+        log.info(`Skipping active address (lastAction: ${lastAction}) ${address} because it was recently synced.`);
         return false;
       }
       return true;
@@ -134,13 +148,13 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         chainData.transactions.push({
           block: tx.blockNumber,
           data: tx.data,
-          from: tx.from,
+          from: tx.from.toLowerCase(),
           gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
           gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
           hash: tx.hash,
           nonce: tx.nonce,
           timestamp: (new Date(tx.timestamp * 1000)).toISOString(),
-          to: tx.to,
+          to: tx.to.toLowerCase(),
           value: formatEther(tx.value),
         });
       }
@@ -152,9 +166,9 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     // But we don't want a copy from both account's tx history so can't blindly push everything
     const getDups = (oldList: any[], newElem: any): number =>
       oldList.filter(oldElem =>
-        newElem.from === oldElem.from &&
+        newElem.from.toLowerCase() === oldElem.from &&
         newElem.hash === oldElem.hash &&
-        newElem.to === oldElem.to &&
+        newElem.to.toLowerCase() === oldElem.to &&
         formatEther(newElem.value) === oldElem.value,
       ).length;
 
@@ -168,12 +182,14 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       chainData.calls.push({
         block: parseInt(call.blockNumber.toString(), 10),
         contractAddress: AddressZero,
-        from: call.from,
+        from: call.from.toLowerCase(),
         hash: call.hash,
         timestamp: (new Date((call.timestamp || call.timeStamp) * 1000)).toISOString(),
         // Contracts creating contracts: if call.to is empty then this is a contract creation call
         // We got call from this address's history so it must be either the call.to or call.from
-        to: ((call.to === "" || call.to === null) && call.from !== address) ? address : call.to,
+        to: ((call.to === "" || call.to === null) && call.from !== address)
+          ? address
+          : call.to.toLowerCase(),
         value: formatEther(call.value),
       });
     }
@@ -187,11 +203,11 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       }
       chainData.calls.push({
         block: parseInt(call.blockNumber.toString(), 10),
-        contractAddress: call.contractAddress,
-        from: call.from,
+        contractAddress: call.contractAddress.toLowerCase(),
+        from: call.from.toLowerCase(),
         hash: call.hash,
         timestamp: (new Date((call.timestamp || call.timeStamp) * 1000)).toISOString(),
-        to: call.to,
+        to: call.to.toLowerCase(),
         value: formatEther(call.value),
       });
     }
@@ -225,13 +241,13 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     const transaction = {
       block: tx.blockNumber,
       data: tx.data,
-      from: tx.from,
+      from: tx.from.toLowerCase(),
       gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
       gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
       hash: tx.hash,
       nonce: tx.nonce,
       timestamp: call.timestamp,
-      to: tx.to,
+      to: tx.to.toLowerCase(),
       value: formatEther(tx.value),
     };
     if (index === -1) {
