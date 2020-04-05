@@ -276,7 +276,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       tx.gasUsed = hexlify(receipt.gasUsed);
       tx.index = receipt.transactionIndex;
       tx.logs = receipt.logs.map(log => ({
-        address: log.address,
+        address: log.address.toLowerCase(),
         data: log.data,
         index: log.transactionLogIndex,
         topics: log.topics,
