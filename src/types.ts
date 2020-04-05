@@ -83,9 +83,8 @@ export type NetWorth = { [assetType: string]: DecimalString };
 export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
-  isCategory(category: string): (address: Address) => boolean;
-  isTagged(tag: string): (address: Address) => boolean;
   isSelf(address: Address): boolean;
+  isToken(address: Address): boolean;
   shouldIgnore(address: Address): boolean;
   pretty(address: Address): string;
 }
@@ -97,7 +96,6 @@ export type Prices = {
   };
 }
 
-// TODO use Partial<> type instead of making some props optional
 export type TransactionData = {
   block: number;
   data: HexString;
@@ -139,6 +137,13 @@ export type Env = {
   taxYear: string;
 }
 
+export type TokenData = {
+  address: Address;
+  decimals: number;
+  name: string;
+  symbol: string;
+}
+
 ////////////////////////////////////////
 // Level 2+, depends on stuff above
 
@@ -177,9 +182,9 @@ export interface State {
 // format of chain-data.json
 export type ChainData = {
   addresses: { [address: string]: DateString /* Date last updated */ };
-  lastUpdated: TimestampString;
-  transactions: { [txHash: string]: TransactionData };
-  calls: CallData[]; // We can have multiple calls per txHash
+  calls: CallData[]; // Note: we can have multiple calls per txHash
+  tokens: TokenData[];
+  transactions: TransactionData[];
 };
 
 export type InputData = {

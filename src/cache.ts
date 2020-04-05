@@ -19,8 +19,8 @@ const initialData = {
   [CachedTypes.ChainData]: {
     addresses: {},
     calls: [],
-    lastUpdated: (new Date(0)).toISOString(),
-    transactions: {},
+    tokens: [],
+    transactions: [],
   } as ChainData,
   [CachedTypes.Events]: [] as Events,
   [CachedTypes.Prices]: { ids: {} } as Prices,

@@ -16,6 +16,18 @@ export const getAddressBook = (input: InputData): AddressBook => {
   const smeq = (str1: string, str2: string): boolean =>
     sm(str1) === sm(str2);
 
+  const isCategory = (category: string) => (address: Address): boolean =>
+    address && addressBook
+      .filter(a => smeq(a.category, category))
+      .map(a => sm(a.address))
+      .includes(sm(address));
+
+  const isTagged = (tag: string) => (address: Address): boolean =>
+    address && addressBook
+      .filter(a => a.tags.includes(tag))
+      .map(a => sm(a.address))
+      .includes(sm(address));
+
   ////////////////////////////////////////
   // Exported Functions
 
@@ -30,30 +42,16 @@ export const getAddressBook = (input: InputData): AddressBook => {
   });
   log.info(`Address book verified`);
 
+  const isToken = isCategory("erc20");
+  const isSelf = isCategory("self");
+  const shouldIgnore = isTagged("ignore");
+
   const getName = (address: Address): string =>
     !address
       ? ""
       : addressBook.find(a => smeq(a.address, address))
       ? addressBook.find(a => smeq(a.address, address)).name
       : address.substring(0, 8);
-
-  const isCategory = (category: string) => (address: Address): boolean =>
-    address && addressBook
-      .filter(a => smeq(a.category, category))
-      .map(a => sm(a.address))
-      .includes(sm(address));
-
-  const isTagged = (tag: string) => (address: Address): boolean =>
-    address && addressBook
-      .filter(a => a.tags.includes(tag))
-      .map(a => sm(a.address))
-      .includes(sm(address));
-
-  const isSelf = (address: Address): boolean =>
-    isCategory("self")(address);
-
-  const shouldIgnore = (address: Address): boolean =>
-    isTagged("ignore")(address);
 
   const pretty = (address: Address): string =>
     getName(address) || (isSelf(address)
@@ -65,9 +63,8 @@ export const getAddressBook = (input: InputData): AddressBook => {
   return {
     addresses,
     getName,
-    isCategory,
     isSelf,
-    isTagged,
+    isToken,
     pretty,
     shouldIgnore,
   };

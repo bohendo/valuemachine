@@ -1,48 +1,36 @@
 import axios from "axios";
+import { Contract } from "ethers";
 import { AddressZero } from "ethers/constants";
 import { EtherscanProvider } from "ethers/providers";
-import { bigNumberify, formatEther, hexlify } from "ethers/utils";
+import { BigNumber, bigNumberify, formatEther, hexlify, toUtf8String } from "ethers/utils";
 
+import { getTokenAbi } from "./abi";
 import { env } from "./env";
 import { loadChainData, saveChainData } from "./cache";
-import { AddressBook, ChainData } from "./types";
-import { eq, Logger } from "./utils";
+import { AddressBook, ChainData, HexString } from "./types";
+import { Logger } from "./utils";
 
-const toDecStr = (hex: string): string => bigNumberify(hex).toString();
+const toNum = (num: BigNumber | number): number =>
+  parseInt(bigNumberify(num.toString()).toString(), 10);
 
-// Re-fetch tx history for active addresses if >6 hours since last check
-const timeUntilStale = 6 * 60 * 60 * 1000;
-const reCheckRetired = false;
+const toStr = (str: HexString | string): string =>
+  str.startsWith("0x") ? toUtf8String(str).replace(/\u0000/g, "") : str;
 
 export const getChainData = async (addressBook: AddressBook): Promise<ChainData> => {
-  const log = new Logger("FetchChainData", env.logLevel);
-  const etherscanKey = env.etherscanKey;
+  const log = new Logger("ChainData", env.logLevel);
   const chainData = loadChainData();
-  const addresses = addressBook.addresses.filter(addressBook.isSelf);
-  const activeAddresses = addresses.filter(addressBook.isTagged("active"));
-  const retiredAddresses= addresses.filter(a => !activeAddresses.includes(a));
+  const addresses = addressBook.addresses.filter(addressBook.isSelf).sort();
+  const supportedTokens = addressBook.addresses.filter(addressBook.isToken).sort();
 
-  // Don't fetch anything if we don't have any addresses to scan
-  if (!addresses || addresses.length === 0) {
-    return chainData;
-  }
-
-  const lastUpdated = new Date(chainData.lastUpdated).getTime();
-  if (Date.now() <= lastUpdated + timeUntilStale) {
-    log.info(`ChainData is up to date (${Math.round((Date.now() - lastUpdated) / (1000 * 60))} minutes old)`);
-    return chainData;
-  }
-
-  if (!etherscanKey) {
+  if (!env.etherscanKey) {
     throw new Error("To track eth activity, you must provide an etherscanKey");
   }
+  const provider = new EtherscanProvider("homestead", env.etherscanKey);
 
-  const provider = new EtherscanProvider("homestead", etherscanKey);
-  let block;
   try {
-    log.info(`💫 getting block number..`);
-    block = await provider.getBlockNumber();
-    log.info(`✅ block: ${block}\n`);
+    log.info(`💫 verifying ethereum provider`);
+    const network = await provider.getNetwork();
+    log.info(`✅ successfully connected to network: ${JSON.stringify(network)}`);
   } catch (e) {
     if (e.message.includes("invalid response - 0")) {
       log.warn(`Network error, couldn't fetch chain data (Are you offline?)`);
@@ -52,16 +40,59 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     }
   }
 
+  ////////////////////////////////////////
+  // Step 1: Get token data
+
+  for (const tokenAddress of supportedTokens) {
+    if (!chainData.tokens.map(token => token.address).includes(tokenAddress)) {
+      log.info(`Fetching info for token ${tokenAddress}`);
+
+      const token = new Contract(tokenAddress, getTokenAbi(tokenAddress), provider);
+      const tokenData = {
+        address: tokenAddress,
+        decimals: toNum((await token.functions.decimals()) || 18),
+        name: toStr((await token.functions.name()) || "Unknown"),
+        symbol: toStr((await token.functions.symbol()) || "???"),
+      };
+      chainData.tokens.push(tokenData);
+      saveChainData(chainData);
+    } else {
+      log.info(`Info for token ${tokenAddress} is up to date.`);
+    }
+  }
+
+  saveChainData(chainData);
+  log.info(`Token info is up to date`);
+
+  ////////////////////////////////////////
+  // Step 2: Get account history
+
   for (const address of addresses) {
+    // Find the most recent tx timestamp that involved any interaction w this address
+    const lastSeen = chainData.transactions
+      .filter(
+        tx => tx.to === address ||
+        tx.from === address || 
+        (
+          tx.logs &&
+          tx.logs
+            .map(log => [log.address].concat(log.topics))
+            .some(logData => logData.includes(address.replace(/^0x/, "")))
+        ),
+      )
+      .map(tx => tx.timestamp)
+      .sort((ds1, ds2) => new Date(ds1).getTime() - new Date(ds2).getTime())[0];
     const lastUpdated = chainData.addresses[address];
     const timeDiff = lastUpdated ? Date.now() - new Date(lastUpdated).getTime() : Date.now();
 
-    if (reCheckRetired || (lastUpdated && retiredAddresses.includes(address))) {
-      log.debug(`Retired address ${address} data was already fetched ${new Date(timeDiff).toISOString()} ago`);
+    // Accounts are considered retired if no activity seen in the previous year
+    if (lastUpdated && new Date(lastSeen).getTime() > 365 * 24 * 60 * 50 * 1000) {
+      log.info(`Retired address ${address} data was already fetched ${new Date(timeDiff).toISOString()} ago`);
       continue;
     }
 
-    if (timeDiff < timeUntilStale) {
+    // Re-fetch tx history for active addresses w no activity detected in the last 24 hours
+    if (timeDiff < 6 * 60 * 60 * 1000) {
       log.info(`Active address ${address} was updated ${timeDiff / (60 * 1000)} minutes ago`);
       continue;
     }
@@ -72,8 +103,8 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     log.info(`✅ externaltxHistory: ${externaltxHistory.length} logs`);
 
     for (const tx of externaltxHistory) {
-      if (tx && tx.hash && !chainData.transactions[tx.hash]) {
-        chainData.transactions[tx.hash] = {
+      if (tx && tx.hash && !chainData.transactions.find(existing => existing.hash === tx.hash)) {
+        chainData.transactions.push({
           block: tx.blockNumber,
           data: tx.data,
           from: tx.from,
@@ -84,7 +115,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
           timestamp: (new Date(tx.timestamp * 1000)).toISOString(),
           to: tx.to,
           value: formatEther(tx.value),
-        };
+        });
       }
     }
 
@@ -93,17 +124,43 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       `https://api.etherscan.io/api?module=account&action=txlistinternal&address=${
         address
       }&apikey=${
-        etherscanKey
+        env.etherscanKey
       }&sort=asc`,
     )).data.result;
     log.info(`✅ internalTxHistory: ${internalTxHistory.length} logs`);
+
+    const oldEthCalls = JSON.parse(JSON.stringify(chainData.calls));
+    for (const tx of internalTxHistory) {
+      const oldDups = oldEthCalls.filter(call =>
+        tx.from === call.from &&
+        tx.hash === call.hash &&
+        tx.to === call.to &&
+        formatEther(tx.value) === call.value,
+      ).length;
+      if (oldDups === 0) {
+        chainData.calls.push({
+          block: parseInt(tx.blockNumber.toString(), 10),
+          contractAddress: AddressZero,
+          from: tx.from,
+          hash: tx.hash,
+          timestamp: (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString(),
+          // Contracts creating contracts: if tx.to is empty then this is a contract creation call
+          // We got this call from this address's history so it must be either the tx.to or tx.from
+          to: ((tx.to === "" || tx.to === null) && tx.from !== address) ? address : tx.to,
+          value: formatEther(tx.value),
+        });
+      } else {
+        log.debug(`Skipping eth call, we already have ${oldDups} for ${tx.hash}`);
+        continue;
+      }
+    }
 
     log.info(`💫 getting tokenTxHistory..`);
     const tokenTxHistory = (await axios.get(
       `https://api.etherscan.io/api?module=account&action=tokentx&address=${
         address
       }&apikey=${
-        etherscanKey
+        env.etherscanKey
       }&sort=asc`,
     )).data.result;
     log.info(`✅ tokenTxHistory: ${tokenTxHistory.length} logs`);
@@ -137,60 +194,38 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       }
     }
 
-    const oldEthCalls = JSON.parse(JSON.stringify(chainData.calls));
-    for (const tx of internalTxHistory) {
-      const oldDups = oldEthCalls.filter(call =>
-        tx.from === call.from &&
-        tx.hash === call.hash &&
-        tx.to === call.to &&
-        formatEther(tx.value) === call.value,
-      ).length;
-      if (oldDups === 0) {
-        chainData.calls.push({
-          block: parseInt(tx.blockNumber.toString(), 10),
-          contractAddress: AddressZero,
-          from: tx.from,
-          hash: tx.hash,
-          timestamp: (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString(),
-          // Contracts creating contracts: if tx.to is empty then this is a contract creation call
-          // We got this call from this address's history so it must be either the tx.to or tx.from
-          to: ((tx.to === "" || tx.to === null) && tx.from !== address) ? address : tx.to,
-          value: formatEther(tx.value),
-        });
-      } else {
-        log.debug(`Skipping eth call, we already have ${oldDups} for ${tx.hash}`);
-        continue;
-      }
-    }
-
     chainData.addresses[address] = new Date().toISOString();
     saveChainData(chainData);
     log.info(`📝 progress saved\n`);
   }
 
-  log.info(`Fetching ${
-    Object.values(chainData.transactions).filter(tx => !tx.logs).length
-  } transaction receipts`);
+  chainData.calls = chainData.calls.sort((c1, c2) => c1.hash > c2.hash ? 1 : -1);
+  chainData.transactions = chainData.transactions.sort((tx1, tx2) => tx1.hash > tx2.hash ? 1 : -1);
+  saveChainData(chainData);
+
+  ////////////////////////////////////////
+  // Step 3: Get receipts for all transactions & calls
+
+  log.info(`Fetching ${chainData.transactions.filter(tx => !tx.logs).length} transaction receipts`);
 
   const getStatus = (receipt, tx): number =>
     // If post-byzantium, then the receipt already has a status, yay
     typeof receipt.status === "number"
       ? receipt.status
-      // If pre-byzantium used less gas than the limit, it definitely didn't fail
-      : !eq(toDecStr(tx.gasLimit.toString()), toDecStr(receipt.gasUsed.toString()))
+      // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
+      : !tx.gasLimit.eq(receipt.gasUsed)
       ? 1
       // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-      : eq(toDecStr(tx.gasLimit.toString()), "21000")
+      : tx.gasLimit.eq(bigNumberify("21000"))
       ? 1
       // Otherwise it PROBABLY failed
       : 0;
 
   // Scan all new transactions & fetch logs for any that don't have them yet
-  for (const [hash, tx] of Object.entries(chainData.transactions).sort(
-    (e1, e2) => e1[0] > e2[0] ? 1 : -1,
-  )) {
-    if (!tx.logs || typeof tx.status === "undefined" || tx.block < 4370000) {
-      log.info(`💫 getting logs for tx ${hash}`);
+  for (const tx of chainData.transactions) {
+    if (!tx.logs) {
+      const index = chainData.transactions.findIndex(t => t.hash === tx.hash);
+      log.info(`💫 getting logs for tx ${index}/${chainData.transactions.length} ${tx.hash}`);
       const receipt = await provider.getTransactionReceipt(tx.hash);
       tx.gasUsed = hexlify(receipt.gasUsed);
       tx.index = receipt.transactionIndex;
@@ -203,7 +238,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       // If a status field is proivided, awesome
       tx.status = getStatus(receipt, tx);
       log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
-      chainData.transactions[hash] = tx;
+      chainData.transactions.splice(index, 1, tx);
       saveChainData(chainData);
     }
   }
@@ -211,38 +246,45 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
   // Loop through calls & get tx receipts for those too
   // bc we might need to ignore calls if the tx receipt says it was reverted..
 
-  for (const call of chainData.calls.sort((c1, c2) => c1.hash > c2.hash ? 1 : -1)) {
-    if (!chainData.transactions[call.hash] || call.block < 4370000) {
-      log.info(`💫 getting tx data for call ${call.hash}`);
-      const tx = await provider.getTransaction(call.hash);
-      const receipt = await provider.getTransactionReceipt(tx.hash);
-      chainData.transactions[tx.hash] = {
-        block: tx.blockNumber,
-        data: tx.data,
-        from: tx.from,
-        gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
-        gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
-        gasUsed: hexlify(receipt.gasUsed),
-        hash: tx.hash,
-        index: receipt.transactionIndex,
-        logs: receipt.logs.map(log => ({
-          address: log.address,
-          data: log.data,
-          index: log.transactionLogIndex,
-          topics: log.topics,
-        })),
-        nonce: tx.nonce,
-        status: getStatus(receipt, tx),
-        timestamp: call.timestamp,
-        to: tx.to,
-        value: formatEther(tx.value),
-      };
-      saveChainData(chainData);
-      log.info(`✅ got data with ${receipt.logs.length} log${receipt.logs.length > 1 ? "s" : ""}`);
+  for (const call of chainData.calls) {
+    const index = chainData.transactions.findIndex(tx => tx.hash === call.hash);
+    if (index !== -1 && chainData.transactions[index].logs) {
+      continue;
     }
+    log.info(`💫 getting tx data for call ${call.hash}`);
+    const tx = await provider.getTransaction(call.hash);
+    const receipt = await provider.getTransactionReceipt(call.hash);
+    log.info(`✅ got data with ${receipt.logs.length} log${receipt.logs.length > 1 ? "s" : ""}`);
+    const transaction = {
+      block: tx.blockNumber,
+      data: tx.data,
+      from: tx.from,
+      gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
+      gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
+      gasUsed: hexlify(receipt.gasUsed),
+      hash: tx.hash,
+      index: receipt.transactionIndex,
+      logs: receipt.logs.map(log => ({
+        address: log.address,
+        data: log.data,
+        index: log.transactionLogIndex,
+        topics: log.topics,
+      })),
+      nonce: tx.nonce,
+      status: getStatus(receipt, tx),
+      timestamp: call.timestamp,
+      to: tx.to,
+      value: formatEther(tx.value),
+    };
+    if (index === -1) {
+      chainData.transactions.push(transaction); // insert element at end
+    } else {
+      chainData.transactions.splice(index, 1, transaction); // replace 1 element at index
+    }
+    saveChainData(chainData);
   }
 
-  chainData.lastUpdated = (new Date()).toISOString();
+  chainData.transactions = chainData.transactions.sort((tx1, tx2) => tx1.hash > tx2.hash ? 1 : -1);
   saveChainData(chainData);
   return chainData;
 };

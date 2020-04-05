@@ -30,7 +30,7 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
   const onlyNew = (data: any): boolean =>
     new Date(data.timestamp || data.date).getTime() - latestCachedEvent > 0;
 
-  const newEthTxs = Object.values(chainData.transactions).filter(onlyNew);
+  const newEthTxs = chainData.transactions.filter(onlyNew);
   log.info(`Processing ${newEthTxs.length} new ethereum transactions..`);
   newEthTxs
     .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
