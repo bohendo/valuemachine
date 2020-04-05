@@ -67,6 +67,7 @@ export const castEthTx = (addressBook, chainData): any =>
           data.value || data.wad || "0",
           chainData.tokens[txLog.address] ? chainData.tokens[txLog.address].decimals : 18,
         );
+
         const index = txLog.index;
         const transfer = { assetType, index, quantity };
 
@@ -103,13 +104,6 @@ export const castEthTx = (addressBook, chainData): any =>
       }
     }
 
-    event.transfers = event.transfers
-      // Make sure all addresses are lower-case
-      .map(transfer => ({ ...transfer, to: transfer.to.toLowerCase() }))
-      .map(transfer => ({ ...transfer, from: transfer.from.toLowerCase() }))
-      // sort by index
-      .sort((t1, t2) => t1.index - t2.index);
-
     if (event.transfers.length === 0) {
       throw new Error(`No transfers for EthTx: ${JSON.stringify(event, null, 2)}`);
     } else if (event.transfers.length === 1) {
@@ -120,6 +114,13 @@ export const castEthTx = (addressBook, chainData): any =>
     }
 
     log.info(event.description);
+
+    event.transfers = event.transfers
+      // Make sure all addresses are lower-case
+      .map(transfer => ({ ...transfer, to: transfer.to.toLowerCase() }))
+      .map(transfer => ({ ...transfer, from: transfer.from.toLowerCase() }))
+      // sort by index
+      .sort((t1, t2) => t1.index - t2.index);
 
     return event;
   };

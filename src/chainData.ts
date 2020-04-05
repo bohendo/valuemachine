@@ -36,6 +36,9 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
   const logProg = (list: any[], elem: any): string =>
     `${list.indexOf(elem)}/${list.length}`;
 
+  const chrono = (d1: any, d2: any): number =>
+    new Date(d1.timestamp || d1).getTime() - new Date(d2.timestamp || d2).getTime();
+
   if (!env.etherscanKey) {
     throw new Error("To track eth activity, you must provide an etherscanKey");
   }
@@ -67,8 +70,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
 
   const supportedTokens = addressBook.addresses
     .filter(addressBook.isToken)
-    .filter(address => !Object.keys(chainData.tokens).includes(address))
-    .sort();
+    .filter(address => !Object.keys(chainData.tokens).includes(address));
 
   log.info(`Step 1: Fetching info for ${supportedTokens.length} supported tokens`);
   for (const tokenAddress of supportedTokens) {
@@ -89,7 +91,6 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
 
   const addresses = addressBook.addresses
     .filter(addressBook.isSelf)
-    .sort()
     .filter(address => {
       if (!chainData.addresses[address]) {
         return true;
@@ -114,7 +115,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
             .filter(call => call.to === address || call.from === address)
             .map(tx => tx.timestamp),
         )
-        .sort((ds1, ds2) => new Date(ds2).getTime() - new Date(ds1).getTime())[0];
+        .sort(chrono).reverse()[0];
 
       if (!lastAction) {
         log.info(`No activity detected for address ${address}`);
@@ -123,13 +124,13 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
 
       // Don't sync any addresses w no recent activity if they have been synced before
       if (Date.now() - new Date(lastAction).getTime() > year) {
-        log.info(`Skipping retired address (lastAction: ${lastAction}) ${address} because data was already fetched`);
+        log.info(`Skipping retired (${lastAction}) address ${address} because data was already fetched`);
         return false;
       }
 
       // Don't sync any active addresses if they've been synced recently
       if (Date.now() - new Date(chainData.addresses[address]).getTime() < 6 * hour) {
-        log.info(`Skipping active address (lastAction: ${lastAction}) ${address} because it was recently synced.`);
+        log.info(`Skipping active (${lastAction}) address ${address} because it was recently synced.`);
         return false;
       }
       return true;
@@ -219,8 +220,6 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     log.info(`📝 progress saved`);
   }
 
-  chainData.calls = chainData.calls.sort((c1, c2) => c1.hash > c2.hash ? 1 : -1);
-  chainData.transactions = chainData.transactions.sort((tx1, tx2) => tx1.hash > tx2.hash ? 1 : -1);
   saveChainData(chainData);
 
   ////////////////////////////////////////
@@ -298,7 +297,8 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     }
   }
 
-  chainData.transactions = chainData.transactions.sort((tx1, tx2) => tx1.hash > tx2.hash ? 1 : -1);
+  chainData.calls = chainData.calls.sort(chrono);
+  chainData.transactions = chainData.transactions.sort(chrono);
   saveChainData(chainData);
   return chainData;
 };

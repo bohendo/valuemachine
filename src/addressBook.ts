@@ -1,3 +1,5 @@
+import { getAddress } from "ethers/utils";
+
 import { env } from "./env";
 import { Address, AddressBook, InputData } from "./types";
 import { Logger } from "./utils";
@@ -32,14 +34,17 @@ export const getAddressBook = (input: InputData): AddressBook => {
   // Exported Functions
 
   // Sanity check: it shouldn't have two entries for the same address
-  const addresses = [];
+  let addresses = [];
   addressBook.forEach(a => {
     if (addresses.includes(sm(a.address))) {
-      throw new Error(`Address book has multiple entries for addres ${a.address}`);
+      throw new Error(`Address book has multiple entries for address ${a.address}`);
+    } else if (!getAddress(a.address)) {
+      throw new Error(`Address book contains invalid address ${a.address}`);
     } else {
       addresses.push(sm(a.address));
     }
   });
+  addresses = addresses.sort();
   log.info(`Address book verified`);
 
   const isToken = isCategory("erc20");

@@ -51,7 +51,7 @@ clean:
 reset:
 	rm -f .cache/*/events.json
 	rm -f .cache/*/state.json
-	rm -f $(flags)/personal
+	rm -f $(flags)/personal $(flags)/example $(flags)/test
 
 mappings:
 	node ops/update-mappings.js -y
