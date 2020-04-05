@@ -1,8 +1,8 @@
 import { env } from "../env";
-import { Forms, Log } from "../types";
-import { add, gt, Logger, lt, round, sub } from "../utils";
+import { Forms, ExpenseLog, IncomeLog, Logs, LogTypes } from "../types";
+import { add, gt, Logger, lt, mul, round, sub } from "../utils";
 
-export const f1040sc = (vmLogs: Log[], oldForms: Forms): Forms => {
+export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
   const log = new Logger("f1040sc", env.logLevel);
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
@@ -12,8 +12,9 @@ export const f1040sc = (vmLogs: Log[], oldForms: Forms): Forms => {
 
   let totalIncome = "0";
 
-  vmLogs.filter(l => l.type === "income").forEach(event => {
-    totalIncome = add([totalIncome, event.assetsIn[0].amount]);
+  vmLogs.filter(l => l.type === LogTypes.Income).forEach((income: IncomeLog): void => {
+    log.info(`Including income: ${income.description}`);
+    totalIncome = add([totalIncome, mul(income.quantity, income.assetPrice)]);
   });
 
   f1040sc.L1 = round(totalIncome);
@@ -26,14 +27,9 @@ export const f1040sc = (vmLogs: Log[], oldForms: Forms): Forms => {
   f1040sc.L5 = round(sub(f1040sc.L3, f1040sc.L4));
   f1040sc.L7 = round(add([f1040sc.L5, f1040sc.L6]));
 
-  for (const expense of vmLogs.filter(l => l.type === "expenses")) {
-    const asset = expense.assetsIn[0];
-    if (!asset) { throw new Error("idk"); }
-    const key = `L${asset.type}`;
-    if (typeof f1040sc[key] !== "undefined") {
-      log.info(`Handling expense of ${asset.amount} ${asset.type}: ${expense.description}`);
-      f1040sc[key] = add([f1040sc[asset.type], asset.amount]);
-    }
+  for (const expense of vmLogs.filter(l => l.type === LogTypes.Expense) as ExpenseLog[]) {
+    log.info(`Including expense: ${expense.description}`);
+    f1040sc.L8 = add([f1040sc.L8, mul(expense.quantity, expense.assetPrice)]);
   }
 
   f1040sc.L28 = add([

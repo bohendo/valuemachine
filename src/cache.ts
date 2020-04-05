@@ -11,7 +11,7 @@ import { ChainData, Events, Logs, Prices, StateJson } from "./types";
 
 const log = new Logger("Cache", env.logLevel);
 
-type CachedData = ChainData | Events | Prices | StateJson;
+type CachedData = ChainData | Events | Logs | Prices | StateJson;
 
 const dirName = `${process.cwd()}/.cache`;
 

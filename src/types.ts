@@ -51,37 +51,6 @@ export type AssetChunk = {
   quantity: DecimalString;
 };
 
-// used to fill in a row of f8949
-export type CapitalGainsLog = {
-  cost: DecimalString;
-  date: FormDateString;
-  dateRecieved: FormDateString;
-  description: string;
-  gainOrLoss: DecimalString;
-  proceeds: DecimalString;
-  type: typeof LogTypes.CapitalGains;
-}
-
-// used to fill in a row of f8949
-export type IncomeLog = {
-  date: FormDateString;
-  description: string;
-  assetType: AssetTypes;
-  quantity: DecimalString;
-  assetPrice: DecimalString;
-  type: typeof LogTypes.CapitalGains;
-}
-
-// used to fill in a row of f8949
-export type ExpenseLog = {
-  date: FormDateString;
-  description: string;
-  assetType: AssetTypes;
-  quantity: DecimalString;
-  assetPrice: DecimalString;
-  type: typeof LogTypes.CapitalGains;
-}
-
 export type Transfer = {
   assetType: AssetTypes;
   index?: number;
@@ -162,8 +131,42 @@ export type TokenData = {
   symbol: string;
 }
 
+// used to fill in a row of f8949
+export type CapitalGainsLog = {
+  cost: DecimalString;
+  date: FormDateString;
+  dateRecieved: FormDateString;
+  description: string;
+  gainOrLoss: DecimalString;
+  proceeds: DecimalString;
+  type: typeof LogTypes.CapitalGains;
+}
+
+export type IncomeLog = {
+  assetPrice: DecimalString;
+  assetType: AssetTypes;
+  date: FormDateString;
+  from: Address;
+  description: string;
+  quantity: DecimalString;
+  type: typeof LogTypes.Income;
+}
+
+export type ExpenseLog = {
+  assetPrice: DecimalString;
+  assetType: AssetTypes;
+  date: FormDateString;
+  description: string;
+  quantity: DecimalString;
+  to: Address;
+  type: typeof LogTypes.Expense;
+}
+
 ////////////////////////////////////////
 // Level 2+, depends on stuff above
+
+export type Log = CapitalGainsLog | IncomeLog | ExpenseLog;
+export type Logs = Log[];
 
 export type Event = {
   date: TimestampString;
@@ -175,9 +178,6 @@ export type Event = {
   transfers: Transfer[];
 }
 export type Events = Event[];
-
-export type Log = CapitalGainsLog | any;
-export type Logs = Log[];
 
 export type StateJson = {
   lastUpdated: TimestampString;
