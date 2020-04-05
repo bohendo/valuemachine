@@ -40,12 +40,12 @@ process.on("SIGINT", logAndExit);
   const valueMachine = getValueMachine(getAddressBook(input));
 
   let state = getState(getAddressBook(input), loadState());
-  const vmLogs = [];
+  let vmLogs = [];
   for (const event of events.filter(
     event => new Date(event.date).getTime() > new Date(state.toJson().lastUpdated).getTime(),
   )) {
     const [newState, newLogs] = valueMachine(state.toJson(), event);
-    vmLogs.concat(...newLogs);
+    vmLogs = vmLogs.concat(...newLogs);
     state = newState;
     if (parseInt(event.date.split("-")[0], 10) < parseInt(env.taxYear, 10)) {
       saveState(state.toJson());
