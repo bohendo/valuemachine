@@ -6,8 +6,9 @@ build.log
 docs/*
 personal.json
 chain-data.json
-price-data.json
 events.json
+prices.json
+state.json
 
 # Cache
 .cache

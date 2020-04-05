@@ -10,7 +10,7 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
-    "lib": ["es2017", "dom", "esnext.asynciterable"],
+    "lib": ["es2019"],
     "module": "CommonJS",
     "moduleResolution": "node",
     "noImplicitAny": false,
