@@ -49,8 +49,6 @@ export type AssetChunk = {
   quantity: DecimalString;
 };
 
-export type Log = F8949Log | any;
-
 // aka row of f8949
 export type F8949Log = {
   Adjustment?: string;
@@ -157,6 +155,9 @@ export type Event = {
   transfers: Transfer[];
 }
 export type Events = Event[];
+
+export type Log = F8949Log | any;
+export type Logs = Log[];
 
 export type StateJson = {
   lastUpdated: TimestampString;
