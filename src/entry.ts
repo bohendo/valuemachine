@@ -47,8 +47,10 @@ process.on("SIGINT", logAndExit);
     const [newState, newLogs] = valueMachine(state.toJson(), event);
     vmLogs = vmLogs.concat(...newLogs);
     state = newState;
-    saveState(state.toJson());
-    saveLogs(vmLogs);
+    if (parseInt(event.date.split("-")[0], 10) < parseInt(env.taxYear, 10)) {
+      saveState(state.toJson());
+      saveLogs(vmLogs);
+    }
   }
 
   console.log(`Final state: ${JSON.stringify(state.getAllBalances(), null, 2)}`);

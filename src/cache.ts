@@ -28,7 +28,6 @@ const initialData = {
   [CachedTypes.State]: {
     accounts: {},
     lastUpdated: (new Date(0)).toISOString(),
-    logs: [],
   } as StateJson,
 };
 

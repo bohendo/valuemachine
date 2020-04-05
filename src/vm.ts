@@ -1,5 +1,6 @@
 import { assertState } from "./checkpoints";
 import { env } from "./env";
+import { emitLogs } from "./logs";
 import { getState } from "./state";
 import {
   AddressBook,
@@ -7,13 +8,12 @@ import {
   Log,
   State,
   StateJson,
-  LogTypes,
 } from "./types";
-import { eq, gt, Logger, mul, round, sub } from "./utils";
+import { eq, gt, Logger, sub } from "./utils";
 
 export const getValueMachine = (addressBook: AddressBook): any => {
   const log = new Logger("ValueMachine", env.logLevel);
-  const { pretty, isSelf } = addressBook;
+  const { pretty } = addressBook;
 
   return (oldState: StateJson | null, event: Event): [State, Log[]] => {
     const state = getState(addressBook, oldState);
@@ -30,7 +30,8 @@ export const getValueMachine = (addressBook: AddressBook): any => {
     // VM Core
 
     const later = [];
-    for (const { assetType, fee, from, index, quantity, to } of event.transfers) {
+    for (const transfer of event.transfers) {
+      const { assetType, fee, from, quantity, to } = transfer;
       log.debug(`transfering ${quantity} ${assetType} from ${pretty(from)} to ${pretty(to)}`);
       let feeChunks;
       let chunks;
@@ -41,35 +42,19 @@ export const getValueMachine = (addressBook: AddressBook): any => {
         }
         chunks = state.getChunks(from, assetType, quantity, event);
         chunks.forEach(chunk => state.putChunk(to, chunk));
-
-        // Emit capital gain logs
-        if (isSelf(from) && !isSelf(to)) {
-          chunks.forEach(chunk => {
-            const cost = mul(chunk.purchasePrice, chunk.quantity);
-            const proceeds = mul(event.prices[chunk.assetType], chunk.quantity);
-            logs.push({
-              cost,
-              date: event.date,
-              dateRecieved: chunk.dateRecieved,
-              description: `${round(chunk.quantity, 4)} ${chunk.assetType}`,
-              gainOrLoss: sub(proceeds, cost),
-              proceeds,
-              type: LogTypes.CapitalGains,
-            });
-          });
-        }
-
+        logs.push(...emitLogs(addressBook, chunks, event, transfer));
       } catch (e) {
         log.warn(e.message);
         if (feeChunks) {
           feeChunks.forEach(chunk => state.putChunk(from, chunk));
         }
-        later.push({ assetType, fee, from, index, quantity, to });
+        later.push(transfer);
         continue;
       }
     }
 
-    for (const { assetType, fee, from, quantity, to } of later) {
+    for (const transfer of later) {
+      const { assetType, fee, from, quantity, to } = transfer;
       log.debug(`transfering ${quantity} ${assetType} from ${pretty(from)} to ${pretty(to)} (attempt 2)`);
       if (fee) {
         const feeChunks = state.getChunks(from, assetType, fee, event);
@@ -77,6 +62,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
       }
       const chunks = state.getChunks(from, assetType, quantity, event);
       chunks.forEach(chunk => state.putChunk(to, chunk));
+      logs.push(...emitLogs(addressBook, chunks, event, transfer));
     }
 
     ////////////////////////////////////////

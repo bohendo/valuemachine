@@ -62,6 +62,26 @@ export type CapitalGainsLog = {
   type: typeof LogTypes.CapitalGains;
 }
 
+// used to fill in a row of f8949
+export type IncomeLog = {
+  date: FormDateString;
+  description: string;
+  assetType: AssetTypes;
+  quantity: DecimalString;
+  assetPrice: DecimalString;
+  type: typeof LogTypes.CapitalGains;
+}
+
+// used to fill in a row of f8949
+export type ExpenseLog = {
+  date: FormDateString;
+  description: string;
+  assetType: AssetTypes;
+  quantity: DecimalString;
+  assetPrice: DecimalString;
+  type: typeof LogTypes.CapitalGains;
+}
+
 export type Transfer = {
   assetType: AssetTypes;
   index?: number;
