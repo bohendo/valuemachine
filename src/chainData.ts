@@ -118,19 +118,19 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         .sort(chrono).reverse()[0];
 
       if (!lastAction) {
-        log.info(`No activity detected for address ${address}`);
+        log.debug(`No activity detected for address ${address}`);
         return true;
       }
 
       // Don't sync any addresses w no recent activity if they have been synced before
       if (Date.now() - new Date(lastAction).getTime() > year) {
-        log.info(`Skipping retired (${lastAction}) address ${address} because data was already fetched`);
+        log.debug(`Skipping retired (${lastAction}) address ${address} because data was already fetched`);
         return false;
       }
 
       // Don't sync any active addresses if they've been synced recently
       if (Date.now() - new Date(chainData.addresses[address]).getTime() < 6 * hour) {
-        log.info(`Skipping active (${lastAction}) address ${address} because it was recently synced.`);
+        log.debug(`Skipping active (${lastAction}) address ${address} because it was recently synced.`);
         return false;
       }
       return true;

@@ -75,7 +75,7 @@ process.on("SIGINT", logAndExit);
         log.warn(`No filer is available for form ${form}. Using unmodified user input.`);
         continue;
       }
-      output = filers[form](vmLogs, output);
+      output = filers[form](vmLogs.filter(log => log.date.startsWith(env.taxYear)), output);
     }
   }
 

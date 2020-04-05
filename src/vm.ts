@@ -7,7 +7,7 @@ import {
   Log,
   State,
   StateJson,
-  TimestampString,
+  LogTypes,
 } from "./types";
 import { eq, gt, Logger, mul, round, sub } from "./utils";
 
@@ -40,30 +40,25 @@ export const getValueMachine = (addressBook: AddressBook): any => {
           log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
         }
         chunks = state.getChunks(from, assetType, quantity, event);
+        chunks.forEach(chunk => state.putChunk(to, chunk));
 
-        // Emit f8949 logs
-        if (isSelf(from) && !isSelf(to) && event.date.startsWith(env.taxYear)) {
-          const toFormDate = (date: TimestampString): string => {
-            const pieces = date.split("T")[0].split("-");
-            return `${pieces[1]}, ${pieces[2]}, ${pieces[0]}`;
-          };
+        // Emit capital gain logs
+        if (isSelf(from) && !isSelf(to)) {
           chunks.forEach(chunk => {
             const cost = mul(chunk.purchasePrice, chunk.quantity);
             const proceeds = mul(event.prices[chunk.assetType], chunk.quantity);
             logs.push({
-              Cost: cost,
-              DateAcquired: toFormDate(chunk.dateRecieved),
-              DateSold: toFormDate(event.date),
-              Description: `${round(chunk.quantity, 4)} ${chunk.assetType}`,
-              GainOrLoss: sub(proceeds, cost),
-              Proceeds: proceeds,
-              type: "f8949",
-
+              cost,
+              date: event.date,
+              dateRecieved: chunk.dateRecieved,
+              description: `${round(chunk.quantity, 4)} ${chunk.assetType}`,
+              gainOrLoss: sub(proceeds, cost),
+              proceeds,
+              type: LogTypes.CapitalGains,
             });
           });
         }
 
-        chunks.forEach(chunk => state.putChunk(to, chunk));
       } catch (e) {
         log.warn(e.message);
         if (feeChunks) {

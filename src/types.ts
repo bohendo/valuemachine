@@ -6,6 +6,7 @@ import {
   CapitalGainsMethods,
   EventSources,
   EventTags,
+  LogTypes,
   Modes,
 } from "./enums";
 
@@ -17,6 +18,7 @@ export {
   CapitalGainsMethods,
   EventSources,
   EventTags,
+  LogTypes,
   Modes,
 };
 
@@ -49,17 +51,15 @@ export type AssetChunk = {
   quantity: DecimalString;
 };
 
-// aka row of f8949
-export type F8949Log = {
-  Adjustment?: string;
-  Code?: string;
-  Cost: DecimalString;
-  DateAcquired: FormDateString;
-  DateSold: FormDateString;
-  Description: string;
-  GainOrLoss: DecimalString;
-  Proceeds: DecimalString;
-  type: "f8949";
+// used to fill in a row of f8949
+export type CapitalGainsLog = {
+  cost: DecimalString;
+  date: FormDateString;
+  dateRecieved: FormDateString;
+  description: string;
+  gainOrLoss: DecimalString;
+  proceeds: DecimalString;
+  type: typeof LogTypes.CapitalGains;
 }
 
 export type Transfer = {
@@ -156,7 +156,7 @@ export type Event = {
 }
 export type Events = Event[];
 
-export type Log = F8949Log | any;
+export type Log = CapitalGainsLog | any;
 export type Logs = Log[];
 
 export type StateJson = {

@@ -9,6 +9,7 @@ chain-data.json
 events.json
 prices.json
 state.json
+logs.json
 
 # Cache
 .cache

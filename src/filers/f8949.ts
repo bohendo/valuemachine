@@ -1,10 +1,10 @@
-import { add, round } from "../utils";
-import { Log, Forms } from "../types";
+import { add, round, toFormDate } from "../utils";
+import { Forms, Log, LogTypes } from "../types";
 
 export const f8949 = (vmLogs: Log[], oldForms: Forms): Forms  => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040 } = forms;
-  const trades = vmLogs.filter(log => log.type === "f8949");
+  const trades = vmLogs.filter(log => log.type === LogTypes.CapitalGains);
   const f8949 = {} as any;
 
   // Set values constant across all f8949 forms
@@ -26,13 +26,13 @@ export const f8949 = (vmLogs: Log[], oldForms: Forms): Forms  => {
 
     let i = 3;
     for (const trade of fourteenTrades) {
-      subTotal.Proceeds = round(add([subTotal.Proceeds, trade.Proceeds]));
-      subTotal.Cost = round(add([subTotal.Cost, trade.Cost]));
-      subTotal.GainOrLoss = round(add([subTotal.GainOrLoss, trade.GainOrLoss]));
-      subF8949[`f1_${i}`] = trade.Description;
-      subF8949[`f1_${i+1}`] = trade.DateAcquired;
-      subF8949[`f1_${i+2}`] = trade.DateSold;
-      subF8949[`f1_${i+3}`] = round(trade.Proceeds);
+      subTotal.Proceeds = round(add([subTotal.Proceeds, trade.proceeds]));
+      subTotal.Cost = round(add([subTotal.Cost, trade.cost]));
+      subTotal.GainOrLoss = round(add([subTotal.GainOrLoss, trade.gainOrLoss]));
+      subF8949[`f1_${i}`] = trade.description;
+      subF8949[`f1_${i+1}`] = toFormDate(trade.dateRecieved);
+      subF8949[`f1_${i+2}`] = toFormDate(trade.date);
+      subF8949[`f1_${i+3}`] = round(trade.proceeds);
       subF8949[`f1_${i+4}`] = round(trade.Cost);
       subF8949[`f1_${i+7}`] = round(trade.GainOrLoss);
       i += 8;

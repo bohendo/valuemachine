@@ -67,6 +67,13 @@ export const EventTags = enumify({
 });
 export type EventTags = (typeof EventTags)[keyof typeof EventTags];
 
+export const LogTypes = enumify({
+  CapitalGains: "CapitalGains",
+  Expense: "Expense",
+  Income: "Income",
+});
+export type LogTypes = (typeof LogTypes)[keyof typeof LogTypes];
+
 export const Modes = enumify({
   example: "example",
   personal: "personal",

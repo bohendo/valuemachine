@@ -51,6 +51,7 @@ clean:
 reset:
 	rm -f .cache/*/events.json
 	rm -f .cache/*/state.json
+	rm -f .cache/*/logs.json
 	rm -f $(flags)/personal $(flags)/example $(flags)/test
 
 mappings:
