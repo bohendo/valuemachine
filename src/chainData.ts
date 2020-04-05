@@ -197,6 +197,10 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     log.info(`💫 getting tokenTxHistory..`);
     const oldTknCalls = JSON.parse(JSON.stringify(chainData.calls));
     for (const call of (await fetchHistory("tokentx", address))) {
+      if (!addressBook.isToken(call.contractAddress)) {
+        log.debug(`Skipping token call, unsupported token: ${call.contractAddress}`);
+        continue;
+      }
       if (getDups(oldTknCalls, call) > 0) {
         log.debug(`Skipping token call, dup detected`);
         continue;
