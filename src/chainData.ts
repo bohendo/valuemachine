@@ -116,7 +116,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
             .filter(call => call.to === address || call.from === address)
             .map(tx => tx.timestamp),
         )
-        .sort((ds1, ds2) => new Date(ds1).getTime() - new Date(ds2).getTime())[0];
+        .sort((ds1, ds2) => new Date(ds2).getTime() - new Date(ds1).getTime())[0];
 
       if (!lastAction) {
         log.info(`No activity detected for address ${address}`);
