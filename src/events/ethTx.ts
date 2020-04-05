@@ -2,7 +2,7 @@ import { AddressZero } from "ethers/constants";
 import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from "ethers/utils";
 
 import { env } from "../env";
-import { Event, TransactionData } from "../types";
+import { Event, EventSources, EventTags, TransactionData } from "../types";
 import { Logger } from "../utils";
 import { tokenEvents } from "../abi";
 import { mergeFactory } from "./utils";
@@ -30,7 +30,7 @@ export const castEthTx = (addressBook, chainData): any =>
       date: tx.timestamp,
       hash: tx.hash,
       prices: {},
-      sources: ["ethTx"],
+      sources: [EventSources.EthTx],
       tags: [],
       transfers: [{
         assetType: "ETH",
@@ -78,27 +78,27 @@ export const castEthTx = (addressBook, chainData): any =>
             to: data.to || data.dst,
           });
           log.debug(`${quantity} ${assetType} was transfered to ${data.to}`);
-          event.tags.push("transfer");
+          event.tags.push(EventTags.Transfer);
 
         } else if (assetType === "WETH" && eventI.name === "Deposit") {
           event.transfers.push({ ...transfer, from: AddressZero, to: data.dst });
           log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
-          event.tags.push("mint");
+          event.tags.push(EventTags.Mint);
 
         } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
           event.transfers.push({ ...transfer, from: data.src, to: AddressZero });
           log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
-          event.tags.push("burn");
+          event.tags.push(EventTags.Burn);
 
         } else if (assetType === "SAI" && eventI.name === "Mint") {
           event.transfers.push({ ...transfer, from: AddressZero, to: data.guy });
           log.debug(`Minted ${quantity} ${assetType}`);
-          event.tags.push("mint");
+          event.tags.push(EventTags.Mint);
 
         } else if (assetType === "SAI" && eventI.name === "Burn") {
           event.transfers.push({ ...transfer, from: data.guy, to: AddressZero });
           log.debug(`Burnt ${quantity} ${assetType}`);
-          event.tags.push("burn");
+          event.tags.push(EventTags.Burn);
 
         } else if (eventI.name === "Approval") {
           log.debug(`Skipping Approval event`);

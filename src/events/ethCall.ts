@@ -1,6 +1,6 @@
 import { AddressZero } from "ethers/constants";
 import { env } from "../env";
-import { CallData, Event } from "../types";
+import { CallData, Event, EventSources } from "../types";
 import { eq, Logger } from "../utils";
 import { mergeFactory } from "./utils";
 
@@ -28,7 +28,7 @@ export const castEthCall = (addressBook, chainData): any =>
     const event = {
       date: call.timestamp,
       hash: call.hash,
-      sources: ["ethCall"],
+      sources: [EventSources.EthCall],
       tags: [],
       transfers: [{
         assetType: "ETH",
@@ -56,7 +56,7 @@ export const mergeEthCall = mergeFactory({
   mergeEvents: (event: Event, callEvent: Event): Event => {
     // tx logs and token calls return same data, add this tranfer iff this isn't the case
     event.transfers.push(callEvent.transfers[0]);
-    event.sources.push("ethCall");
+    event.sources.push(EventSources.EthCall);
     return event;
   },
   shouldMerge: (event: Event, callEvent: Event): boolean =>

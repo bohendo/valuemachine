@@ -1,4 +1,4 @@
-import { DecimalString, Event } from "../types";
+import { DecimalString, Event, EventSources } from "../types";
 import {
   add,
   diff,
@@ -24,7 +24,7 @@ export const assertChrono = (events: Event[]): void => {
 
 export const castDefault = (event: Partial<Event>): Partial<Event> => ({
   prices: {},
-  sources: ["personal"],
+  sources: [EventSources.Personal],
   tags: [],
   transfers: [],
   ...event,

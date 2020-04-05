@@ -2,7 +2,7 @@ import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
 import { env } from "../env";
-import { DateString, Event } from "../types";
+import { DateString, Event, EventSources, EventTags } from "../types";
 import { Logger } from "../utils";
 import { mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
@@ -31,9 +31,10 @@ export const castWyre = (filename: string): Event[] => {
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
     const event = {
       date: (new Date(date)).toISOString(),
+      description: "",
       prices: {},
-      sources: ["sendwyre"],
-      tags: [],
+      sources: [EventSources.SendWyre],
+      tags: [EventTags.Trade],
       transfers: [],
     } as Event;
 

@@ -35,11 +35,11 @@ export const AssetTypes = enumify({
 export type AssetTypes = (typeof AssetTypes)[keyof typeof AssetTypes];
 
 export const CachedTypes = enumify({
-  ["ChainData"]: "ChainData",
-  ["Events"]: "Events",
-  ["Logs"]: "Logs",
-  ["Prices"]: "Prices",
-  ["State"]: "State",
+  ChainData: "ChainData",
+  Events: "Events",
+  Logs: "Logs",
+  Prices: "Prices",
+  State: "State",
 });
 export type CachedTypes = (typeof CachedTypes)[keyof typeof CachedTypes];
 
@@ -51,21 +51,21 @@ export const CapitalGainsMethods = enumify({
 export type CapitalGainsMethods = (typeof CapitalGainsMethods)[keyof typeof CapitalGainsMethods];
 
 export const EventSources = enumify({
-  coinbase: "coinbase",
-  coingecko: "coingecko",
-  ethCall: "ethCall",
-  ethTx: "ethTx",
-  personal: "personal",
-  sendwyre: "sendwyre",
+  CoinGecko: "CoinGecko",
+  Coinbase: "Coinbase",
+  EthCall: "EthCall",
+  EthTx: "EthTx",
+  Personal: "Personal",
+  SendWyre: "SendWyre",
 });
 export type EventSources = (typeof EventSources)[keyof typeof EventSources];
 
 export const EventTags = enumify({
-  ["burn"]: "burn",
-  ["burn-sai"]: "burn-sai",
-  ["ignore"]: "ignore",
-  ["mint"]: "mint",
-  ["transfer"]: "transfer",
+  Burn: "Burn",
+  Ignore: "Ignore",
+  Mint: "Mint",
+  Trade: "Trade",
+  Transfer: "Transfer",
 });
 export type EventTags = (typeof EventTags)[keyof typeof EventTags];
 

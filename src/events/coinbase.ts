@@ -2,7 +2,7 @@ import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
 import { env } from "../env";
-import { Event } from "../types";
+import { Event, EventSources, EventTags } from "../types";
 import { Logger } from "../utils";
 import { mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
@@ -25,8 +25,8 @@ export const castCoinbase = (filename: string): Event[] => {
     const event = {
       date: (new Date(date)).toISOString(),
       prices: { [assetType]: price },
-      sources: ["coinbase"],
-      tags: [],
+      sources: [EventSources.Coinbase],
+      tags: [EventTags.Trade],
       transfers: [],
     } as Event;
 

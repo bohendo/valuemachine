@@ -1,8 +1,11 @@
-import { add, round, toFormDate } from "../utils";
+import { env } from "../env";
+import { add, Logger, round, toFormDate } from "../utils";
 import { Forms, Log, LogTypes } from "../types";
 
 export const f8949 = (vmLogs: Log[], oldForms: Forms): Forms  => {
+  const log = new Logger("f8949", env.logLevel);
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
+
   const { f1040 } = forms;
   const trades = vmLogs.filter(log => log.type === LogTypes.CapitalGains);
   const f8949 = {} as any;
@@ -26,6 +29,7 @@ export const f8949 = (vmLogs: Log[], oldForms: Forms): Forms  => {
 
     let i = 3;
     for (const trade of fourteenTrades) {
+      log.info(`Including trade: ${trade.description}`);
       subTotal.Proceeds = round(add([subTotal.Proceeds, trade.proceeds]));
       subTotal.Cost = round(add([subTotal.Cost, trade.cost]));
       subTotal.GainOrLoss = round(add([subTotal.GainOrLoss, trade.gainOrLoss]));

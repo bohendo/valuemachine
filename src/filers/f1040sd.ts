@@ -12,7 +12,7 @@ export const f1040sd = (vmLogs: Log[], oldForms: Forms): Forms => {
 
   const totals = { cost: "0", gainOrLoss: "0", proceeds: "0" };
   for (const f8949 of forms.f8949) {
-    log.info(`Fetching data from f8949: proceeds=${f8949.f1_115} cost=${f8949.f1_116} gain|loss=${f8949.f1_119}`);
+    log.debug(`Fetching data from f8949: proceeds=${f8949.f1_115} cost=${f8949.f1_116} gain|loss=${f8949.f1_119}`);
     totals.proceeds = add([totals.proceeds, f8949.f1_115]);
     totals.cost = add([totals.cost, f8949.f1_116]);
     totals.gainOrLoss = add([totals.gainOrLoss, f8949.f1_119]);
