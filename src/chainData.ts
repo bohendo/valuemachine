@@ -2,28 +2,39 @@ import axios from "axios";
 import { Contract } from "ethers";
 import { AddressZero } from "ethers/constants";
 import { EtherscanProvider } from "ethers/providers";
-import { BigNumber, BigNumberish, bigNumberify, formatEther, hexlify, toUtf8String } from "ethers/utils";
+import {
+  BigNumber,
+  bigNumberify,
+  BigNumberish,
+  formatEther,
+  hexlify,
+  toUtf8String,
+} from "ethers/utils";
 
 import { getTokenAbi } from "./abi";
 import { env } from "./env";
 import { loadChainData, saveChainData } from "./cache";
-import { AddressBook, ChainData, HexObject, HexString } from "./types";
+import { Address, AddressBook, ChainData, HexObject, HexString } from "./types";
 import { Logger } from "./utils";
-
-const toBN = (n: BigNumberish | HexObject): BigNumber =>
-  bigNumberify((n && (n as HexObject)._hex) ? (n as HexObject)._hex : n.toString());
-
-const toNum = (num: BigNumber | number): number =>
-  parseInt(toBN(num.toString()).toString(), 10);
-
-const toStr = (str: HexString | string): string =>
-  str.startsWith("0x") ? toUtf8String(str).replace(/\u0000/g, "") : str;
 
 export const getChainData = async (addressBook: AddressBook): Promise<ChainData> => {
   const log = new Logger("ChainData", env.logLevel);
   const chainData = loadChainData();
-  const addresses = addressBook.addresses.filter(addressBook.isSelf).sort();
-  const supportedTokens = addressBook.addresses.filter(addressBook.isToken).sort();
+
+  const hour = 60 * 60 * 1000;
+  const year = 365 * 24 * hour;
+
+  const toBN = (n: BigNumberish | HexObject): BigNumber =>
+    bigNumberify((n && (n as HexObject)._hex) ? (n as HexObject)._hex : n.toString());
+
+  const toNum = (num: BigNumber | number): number =>
+    parseInt(toBN(num.toString()).toString(), 10);
+
+  const toStr = (str: HexString | string): string =>
+    str.startsWith("0x") ? toUtf8String(str).replace(/\u0000/g, "") : str;
+
+  const logProg = (list: any[], elem: any): string =>
+    `${list.indexOf(elem)}/${list.length}`;
 
   if (!env.etherscanKey) {
     throw new Error("To track eth activity, you must provide an etherscanKey");
@@ -43,69 +54,82 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     }
   }
 
+  const fetchHistory = async (method: string, address: Address): Promise<any[]> =>
+    (await axios.get(`https://api.etherscan.io/api?module=account&action=${method}&address=${
+      address
+    }&apikey=${
+      env.etherscanKey
+    }&sort=asc`)).data.result;
+
+
   ////////////////////////////////////////
   // Step 1: Get token data
 
-  for (const tokenAddress of supportedTokens) {
-    if (!chainData.tokens.map(token => token.address).includes(tokenAddress)) {
-      log.info(`Fetching info for token ${tokenAddress}`);
+  const supportedTokens = addressBook.addresses
+    .filter(addressBook.isToken)
+    .filter(address => !chainData.tokens.map(token => token.address).includes(address))
+    .sort();
 
-      const token = new Contract(tokenAddress, getTokenAbi(tokenAddress), provider);
-      const tokenData = {
-        address: tokenAddress,
-        decimals: toNum((await token.functions.decimals()) || 18),
-        name: toStr((await token.functions.name()) || "Unknown"),
-        symbol: toStr((await token.functions.symbol()) || "???"),
-      };
-      chainData.tokens.push(tokenData);
-      saveChainData(chainData);
-    } else {
-      log.info(`Info for token ${tokenAddress} is up to date.`);
-    }
+  log.info(`Step 1: Fetching info for ${supportedTokens.length} supported tokens`);
+  for (const tokenAddress of supportedTokens) {
+    log.info(`Fetching info for token ${logProg(supportedTokens, tokenAddress)}: ${tokenAddress}`);
+    const token = new Contract(tokenAddress, getTokenAbi(tokenAddress), provider);
+    const tokenData = {
+      address: tokenAddress,
+      decimals: toNum((await token.functions.decimals()) || 18),
+      name: toStr((await token.functions.name()) || "Unknown"),
+      symbol: toStr((await token.functions.symbol()) || "???"),
+    };
+    chainData.tokens.push(tokenData);
+    saveChainData(chainData);
   }
 
   saveChainData(chainData);
-  log.info(`Token info is up to date`);
 
   ////////////////////////////////////////
   // Step 2: Get account history
 
+  const addresses = addressBook.addresses
+    .filter(addressBook.isSelf)
+    .sort()
+    .filter(address => {
+      if (!chainData.addresses[address]) {
+        return true;
+      }
+      // Don't sync any addresses w no recent activity if they have been synced before
+      if (new Date(
+        chainData.transactions
+          .filter(tx =>
+            tx.to === address ||
+            tx.from === address ||
+            (
+              tx.logs &&
+              tx.logs
+                .map(log => [log.address].concat(log.topics))
+                .some(logData => logData.includes(address.replace(/^0x/, "")))
+            ),
+          )
+          .map(tx => tx.timestamp)
+          .sort((ds1, ds2) => new Date(ds1).getTime() - new Date(ds2).getTime())[0],
+      ).getTime() > year) {
+        log.info(`Skipping retired address ${address} because data was already fetched`);
+        return false;
+      }
+      // Don't sync any active addresses if they've been synced recently
+      if (Date.now() - new Date(chainData.addresses[address]).getTime() < 6 * hour) {
+        log.info(`Skipping active address ${address} because it was recently synced.`);
+        return false;
+      }
+      return true;
+    });
+
+  log.info(`Step 2: Fetching tx history for ${addresses.length} addresses`);
   for (const address of addresses) {
     // Find the most recent tx timestamp that involved any interaction w this address
-    const lastSeen = chainData.transactions
-      .filter(
-        tx => tx.to === address ||
-        tx.from === address || 
-        (
-          tx.logs &&
-          tx.logs
-            .map(log => [log.address].concat(log.topics))
-            .some(logData => logData.includes(address.replace(/^0x/, "")))
-        ),
-      )
-      .map(tx => tx.timestamp)
-      .sort((ds1, ds2) => new Date(ds1).getTime() - new Date(ds2).getTime())[0];
-    const lastUpdated = chainData.addresses[address];
-    const timeDiff = lastUpdated ? Date.now() - new Date(lastUpdated).getTime() : Date.now();
-
-    // Accounts are considered retired if no activity seen in the previous year
-    if (lastUpdated && new Date(lastSeen).getTime() > 365 * 24 * 60 * 50 * 1000) {
-      log.info(`Retired address ${address} data was already fetched ${new Date(timeDiff).toISOString()} ago`);
-      continue;
-    }
-
-    // Re-fetch tx history for active addresses w no activity detected in the last 24 hours
-    if (timeDiff < 6 * 60 * 60 * 1000) {
-      log.info(`Active address ${address} was updated ${timeDiff / (60 * 1000)} minutes ago`);
-      continue;
-    }
-    log.info(`Fetching info for address: ${address} (last updated ${timeDiff / (60 * 1000)} minutes ago)`);
+    log.info(`Fetching info for address ${logProg(addresses, address)}: ${address}`);
 
     log.info(`💫 getting externaltxHistory..`);
-    const externaltxHistory = await provider.getHistory(address);
-    log.info(`✅ externaltxHistory: ${externaltxHistory.length} logs`);
-
-    for (const tx of externaltxHistory) {
+    for (const tx of (await provider.getHistory(address))) {
       if (tx && tx.hash && !chainData.transactions.find(existing => existing.hash === tx.hash)) {
         chainData.transactions.push({
           block: tx.blockNumber,
@@ -122,84 +146,59 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       }
     }
 
-    log.info(`💫 getting internalTxHistory..`);
-    const internalTxHistory = (await axios.get(
-      `https://api.etherscan.io/api?module=account&action=txlistinternal&address=${
-        address
-      }&apikey=${
-        env.etherscanKey
-      }&sort=asc`,
-    )).data.result;
-    log.info(`✅ internalTxHistory: ${internalTxHistory.length} logs`);
-
-    const oldEthCalls = JSON.parse(JSON.stringify(chainData.calls));
-    for (const tx of internalTxHistory) {
-      const oldDups = oldEthCalls.filter(call =>
-        tx.from === call.from &&
-        tx.hash === call.hash &&
-        tx.to === call.to &&
-        formatEther(tx.value) === call.value,
+    // Beware of edge case: a tx makes 2 identical eth internal transfers and
+    // the to & from are both tracked accounts so we get these calls in the txHistory of both.
+    // We do want to include these two identical transfers so we can't naively dedup
+    // But we don't want a copy from both account's tx history so can't blindly push everything
+    const getDups = (oldList: any[], newElem: any): number =>
+      oldList.filter(oldElem =>
+        newElem.from === oldElem.from &&
+        newElem.hash === oldElem.hash &&
+        newElem.to === oldElem.to &&
+        formatEther(newElem.value) === oldElem.value,
       ).length;
-      if (oldDups === 0) {
-        chainData.calls.push({
-          block: parseInt(tx.blockNumber.toString(), 10),
-          contractAddress: AddressZero,
-          from: tx.from,
-          hash: tx.hash,
-          timestamp: (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString(),
-          // Contracts creating contracts: if tx.to is empty then this is a contract creation call
-          // We got this call from this address's history so it must be either the tx.to or tx.from
-          to: ((tx.to === "" || tx.to === null) && tx.from !== address) ? address : tx.to,
-          value: formatEther(tx.value),
-        });
-      } else {
-        log.debug(`Skipping eth call, we already have ${oldDups} for ${tx.hash}`);
+
+    log.info(`💫 getting internalTxHistory..`);
+    const oldEthCalls = JSON.parse(JSON.stringify(chainData.calls));
+    for (const call of (await fetchHistory("txlistinternal", address))) {
+      if (getDups(oldEthCalls, call) > 0) {
+        log.debug(`Skipping eth call, dup detected`);
         continue;
       }
+      chainData.calls.push({
+        block: parseInt(call.blockNumber.toString(), 10),
+        contractAddress: AddressZero,
+        from: call.from,
+        hash: call.hash,
+        timestamp: (new Date((call.timestamp || call.timeStamp) * 1000)).toISOString(),
+        // Contracts creating contracts: if call.to is empty then this is a contract creation call
+        // We got call from this address's history so it must be either the call.to or call.from
+        to: ((call.to === "" || call.to === null) && call.from !== address) ? address : call.to,
+        value: formatEther(call.value),
+      });
     }
 
     log.info(`💫 getting tokenTxHistory..`);
-    const tokenTxHistory = (await axios.get(
-      `https://api.etherscan.io/api?module=account&action=tokentx&address=${
-        address
-      }&apikey=${
-        env.etherscanKey
-      }&sort=asc`,
-    )).data.result;
-    log.info(`✅ tokenTxHistory: ${tokenTxHistory.length} logs`);
-
-    // edge case: a tx makes 2 identical eth internal transfers
-    // The to & from are both tracked accounts so we get these calls in the txHistory of both.
-    // We do want to include these two identical transfers so we can't naively dedup
-    // But we don't want a copy from both account's tx history so can't blindly push everything
-
     const oldTknCalls = JSON.parse(JSON.stringify(chainData.calls));
-    for (const tx of tokenTxHistory) {
-      const oldDups = oldTknCalls.filter(call =>
-        tx.from === call.from &&
-        tx.hash === call.hash &&
-        tx.to === call.to &&
-        formatEther(tx.value) === call.value,
-      ).length;
-      if (oldDups === 0) {
-        chainData.calls.push({
-          block: parseInt(tx.blockNumber.toString(), 10),
-          contractAddress: tx.contractAddress,
-          from: tx.from,
-          hash: tx.hash,
-          timestamp: (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString(),
-          to: tx.to,
-          value: formatEther(tx.value),
-        });
-      } else {
-        log.debug(`Skipping token call, we already have ${oldDups} for ${tx.hash}`);
+    for (const call of (await fetchHistory("tokentx", address))) {
+      if (getDups(oldTknCalls, call) > 0) {
+        log.debug(`Skipping token call, dup detected`);
         continue;
       }
+      chainData.calls.push({
+        block: parseInt(call.blockNumber.toString(), 10),
+        contractAddress: call.contractAddress,
+        from: call.from,
+        hash: call.hash,
+        timestamp: (new Date((call.timestamp || call.timeStamp) * 1000)).toISOString(),
+        to: call.to,
+        value: formatEther(call.value),
+      });
     }
 
     chainData.addresses[address] = new Date().toISOString();
     saveChainData(chainData);
-    log.info(`📝 progress saved\n`);
+    log.info(`📝 progress saved`);
   }
 
   chainData.calls = chainData.calls.sort((c1, c2) => c1.hash > c2.hash ? 1 : -1);
@@ -207,22 +206,46 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
   saveChainData(chainData);
 
   ////////////////////////////////////////
-  // Step 3: Get receipts for all transactions & calls
+  // Step 3: Get transaction data for all calls
+  // bc we might need to ignore calls if the tx receipt says it was reverted..
 
-  log.info(`Fetching ${chainData.transactions.filter(tx => !tx.logs).length} transaction receipts`);
+  const callsWithoutTx = chainData.calls.filter(
+    call => !chainData.transactions.some(tx => tx.hash === call.hash),
+  );
+  log.info(`Step 3: Fetching transaction data for ${callsWithoutTx.length} calls`);
 
-  const getStatus = (receipt, tx): number =>
-    // If post-byzantium, then the receipt already has a status, yay
-    typeof receipt.status === "number"
-      ? receipt.status
-      // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
-      : !toBN(tx.gasLimit).eq(toBN(receipt.gasUsed))
-      ? 1
-      // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-      : toBN(tx.gasLimit).eq(toBN("21000"))
-      ? 1
-      // Otherwise it PROBABLY failed
-      : 0;
+  for (const call of callsWithoutTx) {
+    const index = chainData.transactions.findIndex(tx => tx.hash === call.hash);
+    if (index !== -1) {
+      continue;
+    }
+    log.info(`💫 getting tx data for call ${logProg(callsWithoutTx, call)} ${call.hash}`);
+    const tx = await provider.getTransaction(call.hash);
+    log.info(`✅ got transaction`);
+    const transaction = {
+      block: tx.blockNumber,
+      data: tx.data,
+      from: tx.from,
+      gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
+      gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
+      hash: tx.hash,
+      nonce: tx.nonce,
+      timestamp: call.timestamp,
+      to: tx.to,
+      value: formatEther(tx.value),
+    };
+    if (index === -1) {
+      chainData.transactions.push(transaction); // insert element at end
+    } else {
+      chainData.transactions.splice(index, 1, transaction); // replace 1 element at index
+    }
+    saveChainData(chainData);
+  }
+
+  ////////////////////////////////////////
+  // Step 4: Get receipts for all transactions
+
+  log.info(`Step 4: Fetching ${chainData.transactions.filter(tx => !tx.logs).length} transaction receipts`);
 
   // Scan all new transactions & fetch logs for any that don't have them yet
   for (const tx of chainData.transactions) {
@@ -239,52 +262,22 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
         topics: log.topics,
       }));
       // If a status field is proivided, awesome
-      tx.status = getStatus(receipt, tx);
+      tx.status =
+        // If post-byzantium, then the receipt already has a status, yay
+        typeof receipt.status === "number"
+          ? receipt.status
+          // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
+          : !toBN(tx.gasLimit).eq(toBN(receipt.gasUsed))
+          ? 1
+          // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
+          : toBN(tx.gasLimit).eq(toBN("21000"))
+          ? 1
+          // Otherwise it PROBABLY failed
+          : 0;
       log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
       chainData.transactions.splice(index, 1, tx);
       saveChainData(chainData);
     }
-  }
-
-  // Loop through calls & get tx receipts for those too
-  // bc we might need to ignore calls if the tx receipt says it was reverted..
-
-  for (const call of chainData.calls) {
-    const index = chainData.transactions.findIndex(tx => tx.hash === call.hash);
-    if (index !== -1 && chainData.transactions[index].logs) {
-      continue;
-    }
-    log.info(`💫 getting tx data for call ${call.hash}`);
-    const tx = await provider.getTransaction(call.hash);
-    const receipt = await provider.getTransactionReceipt(call.hash);
-    log.info(`✅ got data with ${receipt.logs.length} log${receipt.logs.length > 1 ? "s" : ""}`);
-    const transaction = {
-      block: tx.blockNumber,
-      data: tx.data,
-      from: tx.from,
-      gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
-      gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
-      gasUsed: hexlify(receipt.gasUsed),
-      hash: tx.hash,
-      index: receipt.transactionIndex,
-      logs: receipt.logs.map(log => ({
-        address: log.address,
-        data: log.data,
-        index: log.transactionLogIndex,
-        topics: log.topics,
-      })),
-      nonce: tx.nonce,
-      status: getStatus(receipt, tx),
-      timestamp: call.timestamp,
-      to: tx.to,
-      value: formatEther(tx.value),
-    };
-    if (index === -1) {
-      chainData.transactions.push(transaction); // insert element at end
-    } else {
-      chainData.transactions.splice(index, 1, transaction); // replace 1 element at index
-    }
-    saveChainData(chainData);
   }
 
   chainData.transactions = chainData.transactions.sort((tx1, tx2) => tx1.hash > tx2.hash ? 1 : -1);
