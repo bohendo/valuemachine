@@ -20,11 +20,18 @@ export {
   Modes,
 };
 
+////////////////////////////////////////
+// Level 0: Simple Utils, no dependencies
+
+export type FormDateString = string; // eg "02, 27, 2020" as required by form f8949 etc
 export type DateString = string; // eg "2020-02-27" aka TimestampString.split("T")[0] 
 export type DecimalString = string; // eg "-3.1415"
 export type HexString = string; // eg "0xabc123"
 export type TimestampString = string; // eg "2020-02-27T09:51:30.444Z" (ISO 8601 format)
-export type Address = HexString | null;
+export type Address = HexString | null; // eg null "to" during contract creation 
+
+////////////////////////////////////////
+// Level 1: Only depends on simple utils
 
 export type Checkpoint = {
   account: Address;
@@ -47,25 +54,14 @@ export type Log = F8949Log | any;
 export type F8949Log = {
   Adjustment?: string;
   Code?: string;
-  Cost: string;
-  DateAcquired: string;
-  DateSold: string;
+  Cost: DecimalString;
+  DateAcquired: FormDateString;
+  DateSold: FormDateString;
   Description: string;
-  GainOrLoss: string;
-  Proceeds: string;
+  GainOrLoss: DecimalString;
+  Proceeds: DecimalString;
   type: "f8949";
 }
-
-export type Event = {
-  date: TimestampString;
-  description: string;
-  hash?: HexString;
-  prices: { [assetType: string]: DecimalString };
-  sources: EventSources[];
-  tags: EventTags[];
-  transfers: Transfer[];
-}
-export type Events = Event[];
 
 export type Transfer = {
   assetType: AssetTypes;
@@ -76,11 +72,6 @@ export type Transfer = {
   to: HexString;
 }
 
-export type StateJson = {
-  lastUpdated: TimestampString;
-  accounts: { [account: string]: Array<AssetChunk> };
-}
-
 export type StateBalances = {
   [account: string]: {
     [assetType: string]: DecimalString;
@@ -88,25 +79,6 @@ export type StateBalances = {
 }
 
 export type NetWorth = { [assetType: string]: DecimalString };
-
-export interface State {
-  getAllBalances(): StateBalances;
-  getBalance(account: string, assetType: AssetTypes): DecimalString;
-  getChunks(
-    account: Address,
-    assetType: AssetTypes,
-    quantity: DecimalString,
-    event: Event,
-  ): AssetChunk[];
-  getNetWorth(): NetWorth;
-  getRelevantBalances(event: Event): StateBalances;
-  putChunk(account: string, chunk: AssetChunk): void;
-  toJson(): StateJson;
-  touch(lastUpdated: TimestampString): void;
-}
-
-////////////////////////////////////////
-// Helpers & Source Data
 
 export interface AddressBook {
   addresses: Address[];
@@ -124,14 +96,6 @@ export type Prices = {
     [assetType: string]: DecimalString;
   };
 }
-
-// format of chain-data.json
-export type ChainData = {
-  addresses: { [address: string]: DateString /* Date last updated */ };
-  lastUpdated: TimestampString;
-  transactions: { [txHash: string]: TransactionData };
-  calls: CallData[]; // We can have multiple calls per txHash
-};
 
 // TODO use Partial<> type instead of making some props optional
 export type TransactionData = {
@@ -166,6 +130,58 @@ export type CallData = {
   value: DecimalString;
 };
 
+export type Env = {
+  capitalGainsMethod: CapitalGainsMethods;
+  etherscanKey: string;
+  logLevel: number;
+  mode: Modes;
+  outputFolder: string;
+  taxYear: string;
+}
+
+////////////////////////////////////////
+// Level 2+, depends on stuff above
+
+export type Event = {
+  date: TimestampString;
+  description: string;
+  hash?: HexString;
+  prices: { [assetType: string]: DecimalString };
+  sources: EventSources[];
+  tags: EventTags[];
+  transfers: Transfer[];
+}
+export type Events = Event[];
+
+export type StateJson = {
+  lastUpdated: TimestampString;
+  accounts: { [account: string]: Array<AssetChunk> };
+}
+
+export interface State {
+  getAllBalances(): StateBalances;
+  getBalance(account: string, assetType: AssetTypes): DecimalString;
+  getChunks(
+    account: Address,
+    assetType: AssetTypes,
+    quantity: DecimalString,
+    event: Event,
+  ): AssetChunk[];
+  getNetWorth(): NetWorth;
+  getRelevantBalances(event: Event): StateBalances;
+  putChunk(account: string, chunk: AssetChunk): void;
+  toJson(): StateJson;
+  touch(lastUpdated: TimestampString): void;
+}
+
+// format of chain-data.json
+export type ChainData = {
+  addresses: { [address: string]: DateString /* Date last updated */ };
+  lastUpdated: TimestampString;
+  transactions: { [txHash: string]: TransactionData };
+  calls: CallData[]; // We can have multiple calls per txHash
+};
+
 export type InputData = {
   addressBook?: Array<{
     address: HexString;
@@ -177,19 +193,4 @@ export type InputData = {
   events: Array<Event | string>;
   formData: Forms;
   forms: string[];
-}
-
-export type Env = {
-  capitalGainsMethod: CapitalGainsMethods;
-  etherscanKey: string;
-  logLevel: number;
-  mode: Modes;
-  outputFolder: string;
-  taxYear: string;
-}
-
-export type FinancialData = {
-  expenses: Array<Log>;
-  income: Array<Log>;
-  trades: Array<Log>;
 }

@@ -1,6 +1,6 @@
-import { FinancialData, Forms } from "../types";
+import { Forms, Log } from "../types";
 
-export const f1040s3 = (finances: FinancialData, oldForms: Forms): Forms => {
+export const f1040s3 = (vmLogs: Log[], oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s3 } = forms;
 
