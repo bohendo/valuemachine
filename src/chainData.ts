@@ -2,16 +2,19 @@ import axios from "axios";
 import { Contract } from "ethers";
 import { AddressZero } from "ethers/constants";
 import { EtherscanProvider } from "ethers/providers";
-import { BigNumber, bigNumberify, formatEther, hexlify, toUtf8String } from "ethers/utils";
+import { BigNumber, BigNumberish, bigNumberify, formatEther, hexlify, toUtf8String } from "ethers/utils";
 
 import { getTokenAbi } from "./abi";
 import { env } from "./env";
 import { loadChainData, saveChainData } from "./cache";
-import { AddressBook, ChainData, HexString } from "./types";
+import { AddressBook, ChainData, HexObject, HexString } from "./types";
 import { Logger } from "./utils";
 
+const toBN = (n: BigNumberish | HexObject): BigNumber =>
+  bigNumberify((n && (n as HexObject)._hex) ? (n as HexObject)._hex : n.toString());
+
 const toNum = (num: BigNumber | number): number =>
-  parseInt(bigNumberify(num.toString()).toString(), 10);
+  parseInt(toBN(num.toString()).toString(), 10);
 
 const toStr = (str: HexString | string): string =>
   str.startsWith("0x") ? toUtf8String(str).replace(/\u0000/g, "") : str;
@@ -213,10 +216,10 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     typeof receipt.status === "number"
       ? receipt.status
       // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
-      : !tx.gasLimit.eq(receipt.gasUsed)
+      : !toBN(tx.gasLimit).eq(toBN(receipt.gasUsed))
       ? 1
       // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-      : tx.gasLimit.eq(bigNumberify("21000"))
+      : toBN(tx.gasLimit).eq(toBN("21000"))
       ? 1
       // Otherwise it PROBABLY failed
       : 0;

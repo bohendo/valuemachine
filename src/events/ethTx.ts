@@ -14,7 +14,7 @@ export const castEthTx = (addressBook): any =>
       `EthTx ${tx.hash.substring(0, 10)} ${tx.timestamp.split("T")[0]}`,
       env.logLevel,
     );
-    const { getName, isCategory, pretty } = addressBook;
+    const { getName, isToken, pretty } = addressBook;
 
     if (!tx.logs) {
       throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);
@@ -52,7 +52,7 @@ export const castEthTx = (addressBook): any =>
     log.debug(`transfer of ${tx.value} ETH from ${tx.from} to ${tx.to}}`);
 
     for (const txLog of tx.logs) {
-      if (isCategory("erc20")(txLog.address)) {
+      if (isToken(txLog.address)) {
 
         const assetType = getName(txLog.address).toUpperCase();
         const eventI = tokenEvents.find(e => e.topic === txLog.topics[0]);
@@ -68,7 +68,11 @@ export const castEthTx = (addressBook): any =>
         const transfer = { assetType, index, quantity };
 
         if (eventI.name === "Transfer") {
-          event.transfers.push({ ...transfer, from: data.from, to: data.to });
+          event.transfers.push({
+            ...transfer,
+            from: data.from || data.src,
+            to: data.to || data.dst,
+          });
           log.debug(`${quantity} ${assetType} was transfered to ${data.to}`);
 
         } else if (assetType === "WETH" && eventI.name === "Deposit") {

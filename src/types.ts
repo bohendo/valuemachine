@@ -29,6 +29,7 @@ export type DecimalString = string; // eg "-3.1415"
 export type HexString = string; // eg "0xabc123"
 export type TimestampString = string; // eg "2020-02-27T09:51:30.444Z" (ISO 8601 format)
 export type Address = HexString | null; // eg null "to" during contract creation 
+export type HexObject = { _hex: HexString }; // result of JSON.stringifying a BigNumber
 
 ////////////////////////////////////////
 // Level 1: Only depends on simple utils

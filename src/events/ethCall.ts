@@ -16,12 +16,12 @@ export const castEthCall = (addressBook, chainData): any =>
       return null;
     }
 
-    if (!chainData || !chainData.transactions || !chainData.transactions[call.hash]) {
+    if (!chainData.transactions || !chainData.transactions.find(tx => tx.hash === call.hash)) {
       throw new Error(`No tx data for call ${call.hash}, did fetching chainData get interrupted?`);
     }
 
-    if (chainData.transactions[call.hash].status !== 1) {
-      log.debug(`Skipping call that reverted w status ${chainData.transactions[call.hash].status}`);
+    if (chainData.transactions.find(tx => tx.hash === call.hash).status !== 1) {
+      log.debug(`Skipping reverted call`);
       return null;
     }
 
