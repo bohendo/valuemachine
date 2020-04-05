@@ -139,7 +139,6 @@ export type Env = {
 }
 
 export type TokenData = {
-  address: Address;
   decimals: number;
   name: string;
   symbol: string;
@@ -184,7 +183,7 @@ export interface State {
 export type ChainData = {
   addresses: { [address: string]: DateString /* Date last updated */ };
   calls: CallData[]; // Note: we can have multiple calls per txHash
-  tokens: TokenData[];
+  tokens: { [address: string]: TokenData /* Date last updated */ };
   transactions: TransactionData[];
 };
 

@@ -1,5 +1,5 @@
 import { AddressZero } from "ethers/constants";
-import { bigNumberify, hexlify, formatEther, keccak256, RLP } from "ethers/utils";
+import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from "ethers/utils";
 
 import { env } from "../env";
 import { Event, TransactionData } from "../types";
@@ -8,7 +8,7 @@ import { tokenEvents } from "../abi";
 import { mergeFactory } from "./utils";
 
 
-export const castEthTx = (addressBook): any =>
+export const castEthTx = (addressBook, chainData): any =>
   (tx: TransactionData): Event => {
     const log = new Logger(
       `EthTx ${tx.hash.substring(0, 10)} ${tx.timestamp.split("T")[0]}`,
@@ -63,7 +63,10 @@ export const castEthTx = (addressBook): any =>
         }
 
         const data = eventI.decode(txLog.data, txLog.topics);
-        const quantity = formatEther(data.value || data.wad || "0");
+        const quantity = formatUnits(
+          data.value || data.wad || "0",
+          chainData.tokens[txLog.address] ? chainData.tokens[txLog.address].decimals : 18,
+        );
         const index = txLog.index;
         const transfer = { assetType, index, quantity };
 

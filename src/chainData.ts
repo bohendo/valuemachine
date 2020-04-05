@@ -67,20 +67,18 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
 
   const supportedTokens = addressBook.addresses
     .filter(addressBook.isToken)
-    .filter(address => !chainData.tokens.map(token => token.address).includes(address))
+    .filter(address => !Object.keys(chainData.tokens).includes(address))
     .sort();
 
   log.info(`Step 1: Fetching info for ${supportedTokens.length} supported tokens`);
   for (const tokenAddress of supportedTokens) {
     log.info(`Fetching info for token ${logProg(supportedTokens, tokenAddress)}: ${tokenAddress}`);
     const token = new Contract(tokenAddress, getTokenAbi(tokenAddress), provider);
-    const tokenData = {
-      address: tokenAddress.toLowerCase(),
+    chainData.tokens[tokenAddress.toLowerCase()] = {
       decimals: toNum((await token.functions.decimals()) || 18),
       name: toStr((await token.functions.name()) || "Unknown"),
       symbol: toStr((await token.functions.symbol()) || "???"),
     };
-    chainData.tokens.push(tokenData);
     saveChainData(chainData);
   }
 

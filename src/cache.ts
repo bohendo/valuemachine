@@ -19,7 +19,7 @@ const initialData = {
   [CachedTypes.ChainData]: {
     addresses: {},
     calls: [],
-    tokens: [],
+    tokens: {},
     transactions: [],
   } as ChainData,
   [CachedTypes.Events]: [] as Events,

@@ -34,7 +34,7 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
   log.info(`Processing ${newEthTxs.length} new ethereum transactions..`);
   newEthTxs
     .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
-    .map(castEthTx(addressBook))
+    .map(castEthTx(addressBook, chainData))
     .forEach((txEvent: Event): void => { events = mergeEthTx(events, txEvent); });
   assertChrono(events);
 
