@@ -46,6 +46,7 @@ backup:
 clean:
 	rm -rf build/*
 	rm -rf $(flags)/*
+	docker container prune -f
 
 reset:
 	rm -f .cache/*/events.json
