@@ -78,22 +78,27 @@ export const castEthTx = (addressBook, chainData): any =>
             to: data.to || data.dst,
           });
           log.debug(`${quantity} ${assetType} was transfered to ${data.to}`);
+          event.tags.push("transfer");
 
         } else if (assetType === "WETH" && eventI.name === "Deposit") {
           event.transfers.push({ ...transfer, from: AddressZero, to: data.dst });
           log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
+          event.tags.push("mint");
 
         } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
           event.transfers.push({ ...transfer, from: data.src, to: AddressZero });
           log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
+          event.tags.push("burn");
 
         } else if (assetType === "SAI" && eventI.name === "Mint") {
           event.transfers.push({ ...transfer, from: AddressZero, to: data.guy });
           log.debug(`Minted ${quantity} ${assetType}`);
+          event.tags.push("mint");
 
         } else if (assetType === "SAI" && eventI.name === "Burn") {
           event.transfers.push({ ...transfer, from: data.guy, to: AddressZero });
           log.debug(`Burnt ${quantity} ${assetType}`);
+          event.tags.push("burn");
 
         } else if (eventI.name === "Approval") {
           log.debug(`Skipping Approval event`);

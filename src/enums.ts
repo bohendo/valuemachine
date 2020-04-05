@@ -61,9 +61,11 @@ export const EventSources = enumify({
 export type EventSources = (typeof EventSources)[keyof typeof EventSources];
 
 export const EventTags = enumify({
-  cdp: "cdp",
-  defi: "defi",
-  ignore: "ignore",
+  ["burn"]: "burn",
+  ["burn-sai"]: "burn-sai",
+  ["ignore"]: "ignore",
+  ["mint"]: "mint",
+  ["transfer"]: "transfer",
 });
 export type EventTags = (typeof EventTags)[keyof typeof EventTags];
 
