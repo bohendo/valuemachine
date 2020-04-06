@@ -47,6 +47,7 @@ export const getAddressBook = (input: InputData): AddressBook => {
   addresses = addresses.sort();
   log.info(`Address book verified`);
 
+  const isExchange = isTagged("exchange");
   const isToken = isCategory("erc20");
   const isSelf = isCategory("self");
   const shouldIgnore = isTagged("ignore");
@@ -68,6 +69,7 @@ export const getAddressBook = (input: InputData): AddressBook => {
   return {
     addresses,
     getName,
+    isExchange,
     isSelf,
     isToken,
     pretty,

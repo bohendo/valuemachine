@@ -129,7 +129,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       }
 
       // Don't sync any active addresses if they've been synced recently
-      if (Date.now() - new Date(chainData.addresses[address]).getTime() < 6 * hour) {
+      if (Date.now() - new Date(chainData.addresses[address]).getTime() < 12 * hour) {
         log.debug(`Skipping active (${lastAction}) address ${address} because it was recently synced.`);
         return false;
       }

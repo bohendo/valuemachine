@@ -114,6 +114,8 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
   });
 
   log.info(`Saving ${events.length} events to cache`);
+  let i = 1;
+  events.map(event => event.index = i++);
   saveEvents(events);
   return events;
 };

@@ -56,6 +56,9 @@ export const castEthTx = (addressBook, chainData): any =>
 
         const assetType = getName(txLog.address).toUpperCase();
         const eventI = tokenEvents.find(e => e.topic === txLog.topics[0]);
+        if (addressBook.isExchange(txLog.address)) {
+          event.tags.push(EventTags.Trade);
+        }
 
         if (!eventI) {
           log.debug(`Unable to identify ${assetType} event w topic: ${txLog.topics[0]}`);

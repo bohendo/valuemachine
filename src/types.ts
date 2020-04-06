@@ -71,6 +71,7 @@ export type NetWorth = { [assetType: string]: DecimalString };
 export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
+  isExchange(address: Address): boolean;
   isSelf(address: Address): boolean;
   isToken(address: Address): boolean;
   shouldIgnore(address: Address): boolean;
@@ -172,6 +173,7 @@ export type Event = {
   date: TimestampString;
   description: string;
   hash?: HexString;
+  index: number;
   prices: { [assetType: string]: DecimalString };
   sources: EventSources[];
   tags: EventTags[];
