@@ -22,7 +22,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
   const chainData = loadChainData();
 
   const hour = 60 * 60 * 1000;
-  const year = 365 * 24 * hour;
+  const month = 30 * 24 * hour;
 
   const toBN = (n: BigNumberish | HexObject): BigNumber =>
     bigNumberify((n && (n as HexObject)._hex) ? (n as HexObject)._hex : n.toString());
@@ -123,7 +123,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       }
 
       // Don't sync any addresses w no recent activity if they have been synced before
-      if (Date.now() - new Date(lastAction).getTime() > year) {
+      if (Date.now() - new Date(lastAction).getTime() > 6* month) {
         log.debug(`Skipping retired (${lastAction}) address ${address} because data was already fetched`);
         return false;
       }
