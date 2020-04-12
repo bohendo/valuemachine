@@ -7,13 +7,13 @@ SHELL=/bin/bash
 
 dir=$(shell cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
 project=$(shell cat $(dir)/package.json | jq .name | tr -d '"')
-find_options=-type f -not -path "*/node_modules/*" -not -name "*.swp" -not -path "*/.*" -not -name "*.log"
+find_options=-type f -not -path "**/node_modules/**" -not -path "**/.*"
 
 # Important Folders
 cwd=$(shell pwd)
-example=build/example
-personal=build/personal
-test=build/test
+example=modules/core/build/example
+personal=modules/core/build/personal
+test=modules/core/build/test
 
 # Setup docker run time
 # If on Linux, give the container our uid & gid so we know what to reset permissions to
@@ -33,14 +33,13 @@ log_finish=@echo $$((`date "+%s"` - `cat $(startTime)`)) > $(totalTime); rm $(st
 $(shell mkdir -p .flags $(example)/data $(personal)/data $(test)/data)
 
 ########################################
-# Shortcut/Helper Rules
-.PHONY: tax-return.pdf # always build this
+# Command & Control Aliases
 
 default: personal
 all: test example personal
 
 backup:
-	tar czf tax_backup.tar.gz docs chain-data.json personal.json
+	tar czf tax_backup.tar.gz modules/core/.cache modules/core/docs modules/core/personal.json
 
 clean:
 	rm -rf build/*
@@ -48,50 +47,49 @@ clean:
 	docker container prune -f
 
 reset:
-	rm -f .cache/*/events.json
-	rm -f .cache/*/state.json
-	rm -f .cache/*/logs.json
+	rm -f modules/core/.cache/*/events.json
+	rm -f modules/core/.cache/*/state.json
+	rm -f modules/core/.cache/*/logs.json
 	rm -f .flags/personal .flags/example .flags/test
 
 mappings:
-	node ops/update-mappings.js -y
-
-########################################
-# Build tax return
-
-example: example.json taxes.js $(shell find ops $(find_options))
-	$(log_start)
-	$(docker_run) "node build/src/entry.js example.json $(example)"
-	@$(docker_run) "bash ops/build.sh example"
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-personal: personal.json taxes.js $(shell find ops $(find_options))
-	$(log_start)
-	$(docker_run) "node build/src/entry.js personal.json $(personal)"
-	#@$(docker_run) "bash ops/build.sh personal"
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-test: test.json taxes.js $(shell find ops $(find_options))
-	$(log_start)
-	$(docker_run) "NODE_ENV=test node build/src/entry.js test.json $(test)"
-	@$(docker_run) "bash ops/build.sh test"
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
+	node modules/core/ops/update-mappings.js -y
 
 ########################################
 # Common Prerequisites
 
-taxes.js: node-modules tsconfig.json $(shell find src $(find_options))
+builder: $(shell find ops/builder $(find_options))
 	$(log_start)
-	$(docker_run) "tsc -p tsconfig.json"
+	docker build --file ops/builder/Dockerfile --tag $(project)_builder:latest ops/builder
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 node-modules: builder package.json
 	$(log_start)
-	$(docker_run) "npm install"
+	$(docker_run) "lerna bootstrap --hoist"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-builder: ops/builder.dockerfile
+########################################
+# Build tax return
+
+example: modules/core/example.json core-js $(shell find modules/core/ops $(find_options))
 	$(log_start)
-	docker build --file ops/builder.dockerfile --tag $(project)_builder:latest .
+	$(docker_run) "node modules/core/build/src/entry.js example.json $(example)"
+	@$(docker_run) "bash modules/core/ops/build.sh example"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+personal: modules/core/personal.json core-js $(shell find modules/core/ops $(find_options))
+	$(log_start)
+	$(docker_run) "node modules/core/build/src/entry.js personal.json $(personal)"
+	#@$(docker_run) "bash modules/core/ops/build.sh personal"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+test: modules/core/test.json core-js $(shell find modules/core/ops $(find_options))
+	$(log_start)
+	$(docker_run) "NODE_ENV=test node modules/core/build/src/entry.js test.json $(test)"
+	@$(docker_run) "bash modules/core/ops/build.sh test"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+core-js: node-modules tsconfig.json $(shell find modules/core/src $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/core && tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) .flags/$@

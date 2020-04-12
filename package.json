@@ -1,0 +1,17 @@
+{
+  "name": "finances",
+  "version": "1.0.0",
+  "description": "financial dashboard + tax tools",
+  "dependencies": {},
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@gitlab.com/bohendo/finances.git"
+  },
+  "author": "Bo & Shivani Henderson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/bohendo/finances/issues"
+  },
+  "homepage": "https://gitlab.com/bohendo/finances#readme"
+}

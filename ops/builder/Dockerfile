@@ -6,6 +6,7 @@ RUN apk add --no-cache --repository="http://dl-cdn.alpinelinux.org/alpine/v3.8/m
 RUN npm config set unsafe-perm true
 RUN npm install --global npm@6.14.1
 RUN pip install --upgrade pip fdfgen
-COPY ops /ops
+RUN npm install -g lerna@3.20.2
+COPY . .
 ENV PATH="./node_modules/.bin:${PATH}"
-ENTRYPOINT ["bash", "/ops/permissions-fixer.sh"]
+ENTRYPOINT ["bash", "entry.sh"]
