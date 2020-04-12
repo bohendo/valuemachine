@@ -79,7 +79,7 @@ example: modules/core/example.json core-js $(shell find modules/core/ops $(find_
 
 personal: modules/core/personal.json core-js $(shell find modules/core/ops $(find_options))
 	$(log_start)
-	$(docker_run) "node modules/core/build/src/entry.js personal.json $(personal)"
+	$(docker_run) "cd modules/core && node build/src/entry.js personal.json build/personal"
 	#@$(docker_run) "bash modules/core/ops/build.sh personal"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
@@ -89,7 +89,7 @@ test: modules/core/test.json core-js $(shell find modules/core/ops $(find_option
 	@$(docker_run) "bash modules/core/ops/build.sh test"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-core-js: node-modules tsconfig.json $(shell find modules/core/src $(find_options))
+core-js: node-modules $(shell find modules/core $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/core && tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
