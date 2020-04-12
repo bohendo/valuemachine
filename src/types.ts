@@ -60,14 +60,6 @@ export type Transfer = {
   to: HexString;
 }
 
-export type StateBalances = {
-  [account: string]: {
-    [assetType: string]: DecimalString;
-  };
-}
-
-export type NetWorth = { [assetType: string]: DecimalString };
-
 export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
@@ -131,6 +123,14 @@ export type TokenData = {
   name: string;
   symbol: string;
 }
+
+export type StateBalances = {
+  [account: string]: {
+    [assetType: string]: DecimalString;
+  };
+}
+
+export type NetWorth = { [assetType: string]: DecimalString };
 
 // used to fill in a row of f8949
 export type CapitalGainsLog = {
