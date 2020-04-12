@@ -1,36 +1,30 @@
 # Don't commit personal data or backups
-*log
-build.log
-./*.json
-./*.tar.gz
-docs/*
-personal.json
-chain-data.json
-events.json
-prices.json
-state.json
-logs.json
+**/*.log
+**/*.tar.gz
+**/.env
+**/chain-data.json
+**/docs/**
+**/events.json
+**/logs.json
+**/personal.json
+**/prices.json
+**/state.json
 
 # Cache
-.cache
-.config
-.node-gyp
-.npm
-modules/**/.cache
-modules/**/.config
-modules/**/.node-gyp
-modules/**/.npm
+**/.cache
+**/.config
+**/.node-gyp
+**/.npm
+**/.rpt2_cache
 
 # Compiled output
-build/
-dist/
-node_modules/
-.makeflags
+**/build/**
+**/dist/**
+**/node_modules/**
+**/.flags
 
-# Logs
-lerna-debug.log*
-npm-debug.log*
-package.json.lerna_backup
+# Backups
+**/*.lerna_backup
 
 # OS
 .bash_history
@@ -52,9 +46,3 @@ cypress/videos
 .project
 .settings/
 .vscode
-
-# Misc
-.rpt2_cache
-.env
-modules/**/.env
-
