@@ -9,6 +9,7 @@
 **/personal.json
 **/prices.json
 **/state.json
+modules/client/src/data
 
 # Cache
 **/.cache
