@@ -63,9 +63,22 @@ builder: $(shell find ops/builder $(find_options))
 	docker build --file ops/builder/Dockerfile --tag $(project)_builder:latest ops/builder
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-node-modules: builder package.json
+node-modules: builder $(shell find modules/*/package.json $(find_options))
 	$(log_start)
 	$(docker_run) "lerna bootstrap --hoist"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+########################################
+# Typescript -> Javascript
+
+core-js: node-modules $(shell find modules/core $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/core && tsc -p tsconfig.json"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+types: node-modules $(shell find modules/types $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/types && tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################
@@ -87,9 +100,4 @@ test: modules/core/test.json core-js $(shell find modules/core/ops $(find_option
 	$(log_start)
 	$(docker_run) "NODE_ENV=test node modules/core/build/src/entry.js test.json $(test)"
 	@$(docker_run) "bash modules/core/ops/build.sh test"
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-core-js: node-modules $(shell find modules/core $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/core && tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) .flags/$@

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+import { AssetTotal, NetGraphData } from "@finances/types";
+
 import {
   AppBar,
   Container,
@@ -34,11 +36,9 @@ import { getNetWorthData } from './utils/netWorth';
 
 import {
   AddressBook,
-  AssetTotal,
   ChainData,
   Event,
   EventByCategoryPerAssetType,
-  NetGraphData,
 } from './types';
 
 const useStyles = makeStyles((theme: Theme) => createStyles({

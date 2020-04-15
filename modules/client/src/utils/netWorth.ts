@@ -1,9 +1,9 @@
 import _ from 'lodash';
+import { Event } from '../types';
 import {
   AssetTotal,
-  Event,
   NetGraphData,
-} from '../types';
+} from '@finances/types';
 import { In, mergeArray } from './utils';
 
 const emptyNetGraphData = { lastUpdated: '', netWorth: {} } as NetGraphData;

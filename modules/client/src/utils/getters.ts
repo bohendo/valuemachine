@@ -1,15 +1,15 @@
 import _ from 'lodash';
+import { AssetTotal, TotalByCategoryPerAssetType } from "@finances/types";
+
 import {
   AddressBook,
   AddressBookByCategory,
-  AssetTotal,
   ChainData,
   CallData,
   Event,
   EventByCategoryPerAssetType,
   TransactionData,
   TransactionLog,
-  TotalByCategoryPerAssetType,
 } from '../types';
 
 import {

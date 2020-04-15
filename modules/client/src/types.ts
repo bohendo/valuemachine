@@ -165,9 +165,6 @@ export type FinancialData = {
   trades: CapitalGain[];
 }
 
-
-// Data type to be consumed by React-app
-
 export type AddressBookByCategory = {
   [category: string]: {
     [address: string]: {
@@ -177,20 +174,6 @@ export type AddressBookByCategory = {
       tags: string[];
     }
   }
-}
-
-export type EventByCategoryPerAssetType = {
-  [category: string]: {
-    [assetType: string]: Array<Event>
-  };
-}
-
-export type AssetTotal = {
-  [assetType: string]: [number, number, number];
-}
-
-export type TotalByCategoryPerAssetType = {
-  [category: string]: AssetTotal;
 }
 
 export type NetStandingPerAssetType = Array<{
@@ -205,11 +188,9 @@ export type NetStandingData = Array<{
   investment: number;
 }>
 
-export type NetWorth = {
-  [date: string]: AssetTotal;
+export type EventByCategoryPerAssetType = {
+  [category: string]: {
+    [assetType: string]: Array<Event>
+  };
 }
 
-export type NetGraphData = {
-  lastUpdated: TimestampString;
-  netWorth: NetWorth;
-}
