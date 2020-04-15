@@ -1,6 +1,7 @@
 {
-  "name": "taxes",
+  "name": "@finances/core",
   "year": "2019",
+  "main": "build/src/index.js",
   "version": "1.0.0",
   "description": "Toolkit for generating a US Federal Tax Return",
   "repository": {

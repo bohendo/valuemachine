@@ -1,5 +1,5 @@
 import { getAddressBook } from "../addressBook";
-import { loadEvents, saveEvents } from "../cache";
+import { loadPrices, savePrices, loadEvents, saveEvents } from "../cache";
 import { getChainData } from "../chainData";
 import { env } from "../env";
 import { getPrice } from "../prices";
@@ -86,7 +86,7 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
       const assetType = assets[j];
       if (!event.prices) { event.prices = {}; } // TODO: this should already be done
       if (!event.prices[assetType]) {
-        event.prices[assetType] = await getPrice(assetType, event.date);
+        event.prices[assetType] = await getPrice(assetType, event.date, {loadPrices, savePrices});
       }
     }
   }

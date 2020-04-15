@@ -1,3 +1,6 @@
+import { getPrice } from '@finances/core';
+
+import * as cache from './cache';
 import {
   AddressBookByCategory,
   CallData,
@@ -17,7 +20,6 @@ import {
   isProxy,
   isExchange,
 } from './utils';
-import { getPrice } from './priceFetcher';
 
 import {
   findDefiCategory,
@@ -45,7 +47,7 @@ export const createEventFromLog = async (
         date: txn.timestamp,
         from: addressToName(addressBookByCategory, txn.from),
         hash: txn.hash,
-        price: await getPrice(assetType, txn.timestamp),
+        price: await getPrice(assetType, txn.timestamp, cache),
         source: "defi",
         to: addressToName(addressBookByCategory, txn.to),
       } as Event
@@ -61,7 +63,7 @@ export const createEventFromLog = async (
         date: txn.timestamp,
         from: addressToName(addressBookByCategory, txn.from),
         hash: txn.hash,
-        price: await getPrice(assetType, txn.timestamp),
+        price: await getPrice(assetType, txn.timestamp, cache),
         source: "exchange",
         to: addressToName(addressBookByCategory, txn.to),
       } as Event
@@ -77,7 +79,7 @@ export const createEventFromLog = async (
         date: txn.timestamp,
         from: addressToName(addressBookByCategory, txn.from),
         hash: txn.hash,
-        price: await getPrice(assetType, txn.timestamp),
+        price: await getPrice(assetType, txn.timestamp, cache),
         source: "exchange",
         to: addressToName(addressBookByCategory, txn.to),
       } as Event
@@ -104,7 +106,7 @@ export const createEventFromCallData = async (
     return null;
   }
 
-  let price = await getPrice(assetType, call.timestamp);
+  let price = await getPrice(assetType, call.timestamp, cache);
 
   return ({
     category,
@@ -133,7 +135,7 @@ export const createEventFromTransactionData = async (
 
   if (category === 'proxy') { return null; }
 
-  let price = await getPrice(assetType, txn.timestamp);
+  let price = await getPrice(assetType, txn.timestamp, cache);
 
   return ({
     category,

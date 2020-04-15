@@ -116,10 +116,10 @@ function App() {
 
         console.log(date);
 
-        let byAsset = await Promise.all(getNetStanding(
+        let byAsset = await getNetStanding(
           netWorthData.netWorth[date],
           endDate.toISOString()
-        ));
+        );
 
         if (byAsset.length > 0) {
           setNetStandingByAssetTypeOn(byAsset)

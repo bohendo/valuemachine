@@ -1,5 +1,8 @@
 import _ from 'lodash';
+import { getPrice } from '@finances/core';
 import { AssetTotal, TotalByCategoryPerAssetType } from "@finances/types";
+
+import * as cache from './cache';
 
 import {
   AddressBook,
@@ -19,7 +22,6 @@ import {
   filterEventByCategory,
 } from './filters';
 
-import { getPrice } from './priceFetcher';
 import {
   In,
   NULL_ADDRESS,
@@ -45,19 +47,22 @@ export const getNetWorthOn = (
   return _.round(_.sumBy(netStandingByAssetTypeOn, (o: any) => o.totalUSD), 2)
 }
 
-export const getNetStanding = (
+export const getNetStanding = async (
   assetTotal: AssetTotal,
   date: string
 ) => {
-  return Object.keys(assetTotal).map(async (asset: string) => {
-    let price = Number(await getPrice(asset, date));
+  const result = [];
+  for (const asset of Object.keys(assetTotal)) {
+    //return Object.keys(assetTotal).map(async (asset: string) => {
+    let price = Number(await getPrice(asset, date, cache));
     let total = assetTotal[asset][0] + assetTotal[asset][1] - assetTotal[asset][2]
-    return {
+    result.push({
       asset: asset,
       total: total,
       totalUSD: price * total,
-    }
-  });
+    });
+  }
+  return result;
 }
 
 export const getAssetType = (

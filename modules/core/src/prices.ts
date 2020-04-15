@@ -2,17 +2,17 @@ import axios from "axios";
 // import { formatEther } from "ethers/utils";
 
 import { env } from "./env";
-import { loadPrices, savePrices } from "./cache";
 import { DateString, TimestampString } from "./types";
 import { Logger } from "./utils";
 
 const fetchPrice = async (
   asset: string,
   timestamp: TimestampString,
+  cache: any
 ): Promise<string> => {
   const log = new Logger("FetchPriceData", env.logLevel);
 
-  const prices = loadPrices();
+  const prices = cache.loadPrices();
   const date = (timestamp.includes("T") ? timestamp.split("T")[0] : timestamp) as DateString;
   const coingeckoUrl = "https://api.coingecko.com/api/v3";
 
@@ -31,7 +31,7 @@ const fetchPrice = async (
         throw new Error(`Asset ${asset} is not supported by coingecko`);
       }
       prices.ids[asset] = coin.id;
-      savePrices(prices);
+      cache.savePrices(prices);
     }
     const coinId = prices.ids[asset];
 
@@ -49,17 +49,17 @@ const fetchPrice = async (
     } catch (e) {
       throw new Error(`Couldn't get price, double check that ${asset} existed on ${coingeckoDate}`);
     }
-    savePrices(prices);
+    cache.savePrices(prices);
   }
 
   return prices[date][asset];
 };
 
-export const getPrice = async (asset: string, date: string): Promise<string> =>
+export const getPrice = async (asset: string, date: string, cache: any): Promise<string> =>
   ["USD", "DAI", "SAI"].includes(asset)
     ? "1"
     : ["ETH", "WETH"].includes(asset)
-    ? await fetchPrice("ETH", date)
+    ? await fetchPrice("ETH", date, cache)
     : asset.toUpperCase().startsWith("C")
     ? "0" // skip compound tokens for now
-    : await fetchPrice(asset, date);
+    : await fetchPrice(asset, date, cache);

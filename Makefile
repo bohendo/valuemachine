@@ -71,7 +71,7 @@ node-modules: builder $(shell find modules/*/package.json $(find_options))
 ########################################
 # Typescript -> Javascript
 
-core-js: node-modules $(shell find modules/core $(find_options))
+core: node-modules $(shell find modules/core $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/core && tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
@@ -84,19 +84,19 @@ types: node-modules $(shell find modules/types $(find_options))
 ########################################
 # Build tax return
 
-example: modules/core/example.json core-js $(shell find modules/core/ops $(find_options))
+example: modules/core/example.json core $(shell find modules/core/ops $(find_options))
 	$(log_start)
 	$(docker_run) "node modules/core/build/src/entry.js example.json $(example)"
 	@$(docker_run) "bash modules/core/ops/build.sh example"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-personal: modules/core/personal.json core-js $(shell find modules/core/ops $(find_options))
+personal: modules/core/personal.json core $(shell find modules/core/ops $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/core && node build/src/entry.js personal.json build/personal"
 	#@$(docker_run) "bash modules/core/ops/build.sh personal"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-test: modules/core/test.json core-js $(shell find modules/core/ops $(find_options))
+test: modules/core/test.json core $(shell find modules/core/ops $(find_options))
 	$(log_start)
 	$(docker_run) "NODE_ENV=test node modules/core/build/src/entry.js test.json $(test)"
 	@$(docker_run) "bash modules/core/ops/build.sh test"

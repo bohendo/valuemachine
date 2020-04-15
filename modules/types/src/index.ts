@@ -16,3 +16,9 @@ export type NetGraphData = {
   netWorth: NetWorth;
 }
 
+export type PriceData = {
+  ids: { [assetType: string]: string };
+  [date: string]: {
+    [assetType: string]: DecimalString;
+  };
+}

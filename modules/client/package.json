@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@finances/types": "1.0.0",
+    "@finances/core": "1.0.0",
     "@date-io/date-fns": "^1.3.13",
     "@devexpress/dx-react-chart": "^2.6.0",
     "@devexpress/dx-react-chart-material-ui": "^2.6.0",
