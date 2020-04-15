@@ -16,6 +16,7 @@
 **/.node-gyp
 **/.npm
 **/.rpt2_cache
+**/.git
 
 # Compiled output
 **/build/**
