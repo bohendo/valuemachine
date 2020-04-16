@@ -1,3 +1,5 @@
+import { DecimalString, HexString, TimestampString, Address } from "@finances/types";
+
 import { Field, Forms } from "./mappings";
 import {
   AddressCategories,
@@ -22,16 +24,7 @@ export {
   Modes,
 };
 
-////////////////////////////////////////
-// Level 0: Simple Utils, no dependencies
-
 export type FormDateString = string; // eg "02, 27, 2020" as required by form f8949 etc
-export type DateString = string; // eg "2020-02-27" aka TimestampString.split("T")[0] 
-export type DecimalString = string; // eg "-3.1415"
-export type HexString = string; // eg "0xabc123"
-export type TimestampString = string; // eg "2020-02-27T09:51:30.444Z" (ISO 8601 format)
-export type Address = HexString | null; // eg null "to" during contract creation 
-export type HexObject = { _hex: HexString }; // result of JSON.stringifying a BigNumber
 
 ////////////////////////////////////////
 // Level 1: Only depends on simple utils
@@ -77,38 +70,6 @@ export type Prices = {
   };
 }
 
-export type TransactionData = {
-  block: number;
-  data: HexString;
-  from: HexString;
-  gasLimit: HexString;
-  gasPrice: HexString;
-  gasUsed?: HexString;
-  hash: HexString;
-  index?: number;
-  logs?: Array<{
-    address: HexString;
-    data: HexString;
-    index: number;
-    topics: Array<HexString>;
-  }>;
-  nonce: number;
-  status?: number | undefined;
-  timestamp: TimestampString;
-  to: HexString | null;
-  value: DecimalString;
-};
-
-export type CallData = {
-  block: number;
-  contractAddress: HexString; // AddressZero if ETH
-  from: HexString;
-  hash: HexString;
-  timestamp: TimestampString;
-  to: HexString;
-  value: DecimalString;
-};
-
 export type Env = {
   capitalGainsMethod: CapitalGainsMethods;
   etherscanKey: string;
@@ -116,12 +77,6 @@ export type Env = {
   mode: Modes;
   outputFolder: string;
   taxYear: string;
-}
-
-export type TokenData = {
-  decimals: number;
-  name: string;
-  symbol: string;
 }
 
 export type StateBalances = {
@@ -201,14 +156,6 @@ export interface State {
   toJson(): StateJson;
   touch(lastUpdated: TimestampString): void;
 }
-
-// format of chain-data.json
-export type ChainData = {
-  addresses: { [address: string]: DateString /* Date last updated */ };
-  calls: CallData[]; // Note: we can have multiple calls per txHash
-  tokens: { [address: string]: TokenData /* Date last updated */ };
-  transactions: TransactionData[];
-};
 
 export type InputData = {
   addressBook?: Array<{

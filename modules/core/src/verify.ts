@@ -1,4 +1,4 @@
-import { TransactionData } from "./types";
+import { TransactionData } from "@finances/types";
 
 export const verifyTransactionData = (transaction: TransactionData): string | null => {
   if (!transaction) {

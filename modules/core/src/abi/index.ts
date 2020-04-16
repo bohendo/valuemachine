@@ -1,6 +1,6 @@
 import { Interface, EventDescription, EventFragment, FunctionFragment } from "ethers/utils";
 
-import { Address } from "../types";
+import { Address } from "@finances/types";
 
 import daiAbi from "./dai.json";
 import erc20Abi from "./erc20.json";

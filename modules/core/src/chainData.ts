@@ -1,3 +1,4 @@
+import { Address, ChainData, HexObject, HexString } from "@finances/types";
 import axios from "axios";
 import { Contract } from "ethers";
 import { AddressZero } from "ethers/constants";
@@ -14,7 +15,7 @@ import {
 import { getTokenAbi } from "./abi";
 import { env } from "./env";
 import { loadChainData, saveChainData } from "./cache";
-import { Address, AddressBook, ChainData, HexObject, HexString } from "./types";
+import { AddressBook } from "./types";
 import { Logger } from "./utils";
 
 export const getChainData = async (addressBook: AddressBook): Promise<ChainData> => {

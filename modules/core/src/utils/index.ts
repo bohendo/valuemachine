@@ -1,4 +1,4 @@
-import { TimestampString } from "../types";
+import { TimestampString } from "@finances/types";
 
 export * from "./math";
 export * from "./forms";

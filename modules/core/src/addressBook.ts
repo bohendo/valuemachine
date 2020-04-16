@@ -1,7 +1,8 @@
+import { Address, } from "@finances/types";
 import { getAddress } from "ethers/utils";
 
 import { env } from "./env";
-import { Address, AddressBook, InputData } from "./types";
+import { AddressBook, InputData } from "./types";
 import { Logger } from "./utils";
 
 export const getAddressBook = (input: InputData): AddressBook => {

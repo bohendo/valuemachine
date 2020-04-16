@@ -1,16 +1,19 @@
-import { env } from "./env";
 import {
   Address,
+  DecimalString,
+  TimestampString,
+} from "@finances/types";
+
+import { env } from "./env";
+import {
   AddressBook,
   AssetChunk,
   AssetTypes,
-  DecimalString,
   Event,
   NetWorth,
   State,
   StateBalances,
   StateJson,
-  TimestampString,
 } from "./types";
 import { add, gt, Logger, round, sub } from "./utils";
 

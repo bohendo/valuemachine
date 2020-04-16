@@ -1,10 +1,11 @@
 /* global process */
+import { ChainData, PriceData as Prices } from "@finances/types";
 import fs from "fs";
 
 import { CachedTypes } from "./enums";
 import { env } from "./env";
 import { Logger } from "./utils";
-import { ChainData, Events, Logs, Prices, StateJson } from "./types";
+import { Events, Logs, StateJson } from "./types";
 
 ////////////////////////////////////////
 // Internal Data

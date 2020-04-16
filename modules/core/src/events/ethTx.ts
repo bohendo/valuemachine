@@ -1,8 +1,10 @@
+import { TransactionData } from "@finances/types";
+
 import { AddressZero } from "ethers/constants";
 import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from "ethers/utils";
 
 import { env } from "../env";
-import { Event, EventSources, EventTags, TransactionData } from "../types";
+import { Event, EventSources, EventTags } from "../types";
 import { Logger } from "../utils";
 import { tokenEvents } from "../abi";
 import { mergeFactory } from "./utils";

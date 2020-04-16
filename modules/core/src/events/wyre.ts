@@ -1,8 +1,9 @@
+import { DateString } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
 import { env } from "../env";
-import { DateString, Event, EventSources, EventTags } from "../types";
+import { Event, EventSources, EventTags } from "../types";
 import { Logger } from "../utils";
 import { mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 

@@ -1,4 +1,6 @@
-import { DecimalString, Event, EventSources } from "../types";
+import { DecimalString } from "@finances/types";
+
+import { Event, EventSources } from "../types";
 import {
   add,
   diff,

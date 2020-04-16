@@ -1,8 +1,8 @@
+import { DateString, TimestampString } from "@finances/types";
 import axios from "axios";
 // import { formatEther } from "ethers/utils";
 
 import { env } from "./env";
-import { DateString, TimestampString } from "./types";
 import { Logger } from "./utils";
 
 const fetchPrice = async (
