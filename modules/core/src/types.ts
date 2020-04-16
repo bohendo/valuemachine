@@ -58,6 +58,7 @@ export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
   isExchange(address: Address): boolean;
+  isDefi(address: Address): boolean;
   isSelf(address: Address): boolean;
   isToken(address: Address): boolean;
   shouldIgnore(address: Address): boolean;
