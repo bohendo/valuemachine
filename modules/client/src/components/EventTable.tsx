@@ -20,7 +20,7 @@ import {
 
 export const EventTable = (props: any) => {
 
-  const [filteredEventByCategory, setFilteredEventByCategory] = useState();
+  const [filteredEventByCategory, setFilteredEventByCategory] = useState({} as any);
   const {
     assetTypes,
     endDate,
@@ -46,7 +46,7 @@ export const EventTable = (props: any) => {
     }
   }, [eventByCategory, endDate]);
 
-  if (!netStandingByAssetTypeOn || !filteredEventByCategory || !assetTypes) {
+  if (netStandingByAssetTypeOn.length === 0 || !filteredEventByCategory || !assetTypes) {
     return <> Loading! We will have event table shortly </>;
   }
 
@@ -85,7 +85,13 @@ export const EventTable = (props: any) => {
             {
               assetTypes.map((assetType: string) => (
                 <TableCell align="right" key={assetType}>
-                {netStandingByAssetTypeOn[_.findIndex(netStandingByAssetTypeOn, (o: any) => o.asset === assetType)].total}
+                {() => {
+                  let i = _.findIndex(netStandingByAssetTypeOn, (o: any) => o.asset === assetType)
+                  if (i >= 0) {
+                    return netStandingByAssetTypeOn[i].total;
+                  }
+                  return 0
+                }}
                 </TableCell>
               ))
             }

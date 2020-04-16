@@ -1,17 +1,20 @@
 import _ from 'lodash';
 import { getPrice } from '@finances/core';
-import { AssetTotal, TotalByCategoryPerAssetType } from "@finances/types";
+import {
+  AssetTotal,
+  ChainData,
+  CallData,
+  TotalByCategoryPerAssetType,
+  TransactionData,
+} from "@finances/types";
 
 import * as cache from './cache';
 
 import {
   AddressBook,
   AddressBookByCategory,
-  ChainData,
-  CallData,
   Event,
   EventByCategoryPerAssetType,
-  TransactionData,
   TransactionLog,
 } from '../types';
 
@@ -57,7 +60,7 @@ export const getNetStanding = async (
     let price = Number(await getPrice(asset, date, cache));
     let total = assetTotal[asset][0] + assetTotal[asset][1] - assetTotal[asset][2]
     result.push({
-      asset: asset,
+      assetType: asset,
       total: total,
       totalUSD: price * total,
     });

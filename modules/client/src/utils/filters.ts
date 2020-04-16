@@ -1,18 +1,21 @@
-import _ from 'lodash';
+import _ from "lodash";
 import {
-  AddressBook,
   CallData,
   ChainData,
-  Event,
   TransactionData,
-} from '../types';
+} from "@finances/types";
+
+import {
+  AddressBook,
+  Event,
+} from "../types";
 import {
   NULL_ADDRESS,
-} from './utils'
+} from "./utils"
 
 import {
   getAddressBookByCategory,
-} from './getters';
+} from "./getters";
 
 export const filterEventByCategory = (
   allEvent: Array<Event>,
@@ -49,9 +52,9 @@ export const filterEventsByTx = (
   chainData.calls = _.filter( chainData.calls, (o: CallData) => filterByHash(o.hash));
 
   // Ignore all the txns with ignore tags
-  chainData.transactions = _.keyBy(
-    _.filter( chainData.transactions, (o: TransactionData) => filterByHash(o.hash)),
-    'hash'
+  chainData.transactions = _.filter(
+    chainData.transactions,
+    (o: TransactionData) => filterByHash(o.hash)
   );
 }
 
@@ -82,9 +85,9 @@ export const filterEventsByAddress = (
 
 
   // Ignore txns to/from Addresses with Ignore tag
-  chainData.transactions = _.keyBy(
-    _.filter( chainData.transactions, (o: TransactionData) => filterByAddress(o)),
-    'hash'
+  chainData.transactions = _.filter(
+    chainData.transactions,
+    (o: TransactionData) => filterByAddress(o)
   );
 }
 
@@ -133,9 +136,9 @@ export const filterEventsByNoTaxLiability = (
 
   chainData.calls = _.filter( chainData.calls, (o: CallData) => filterNonTaxableEvents(o));
 
-  chainData.transactions = _.keyBy(
-    _.filter( chainData.transactions, (o: TransactionData) => filterNonTaxableEvents(o)),
-    'hash'
+  chainData.transactions = _.filter(
+    chainData.transactions,
+    (o: TransactionData) => filterNonTaxableEvents(o)
   );
 }
 

@@ -1,11 +1,17 @@
-import { getPrice } from '@finances/core';
+import {
+  getPrice,
+} from '@finances/core';
+
+import {
+  CallData,
+  TransactionData,
+} from '@finances/types';
+
 
 import * as cache from './cache';
 import {
   AddressBookByCategory,
-  CallData,
   Event,
-  TransactionData,
   TransactionLog,
 } from '../types';
 

@@ -44,7 +44,7 @@ const pointComponent = (props: any) => {
 */
 
 export const AssetDistribution = (props: any) => {
-  const [data, setData] = useState();
+  const [data, setData] = useState([] as { assetType: string; total: number; totalUSD: number; }[]);
   const {
     netStandingByAssetTypeOn,
   } = props;

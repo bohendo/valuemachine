@@ -73,15 +73,13 @@ const TitleText = (props: any) => {
 };
 
 export const NetWorth = (props: any) => {
-  const [netWorth, setNetWorth] = useState();
-  const [netWorthAll, setNetWorthAll] = useState();
+  const [netWorth, setNetWorth] = useState([] as any);
+  const [netWorthAll, setNetWorthAll] = useState([] as any);
   const { allEvent, endDate } = props;
 
   useEffect(() => {
     if (allEvent) {
       let netWorthData = getNetWorthOverTimeAll(allEvent);
-      //let netWorthData = getNetWorthOverTimeTill(allEvent, endDate);
-      //console.log(netWorthData)
       setNetWorthAll(netWorthData);
     }
   }, [allEvent]);

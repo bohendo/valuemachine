@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
-import { AssetTotal, NetGraphData } from "@finances/types";
+import {
+  AssetTotal,
+  ChainData,
+  NetGraphData,
+} from "@finances/types";
 
 import {
   AppBar,
@@ -36,7 +40,6 @@ import { getNetWorthData } from './utils/netWorth';
 
 import {
   AddressBook,
-  ChainData,
   Event,
   EventByCategoryPerAssetType,
 } from './types';
@@ -70,7 +73,7 @@ function App() {
   const [netWorthData, setNetWorthData] = useState({} as NetGraphData);
   const [eventByCategory, setEventByCategory] = useState({} as EventByCategoryPerAssetType);
   const [assetTypes, setAssetTypes] = useState([] as Array<string>);
-  const [netStandingByAssetTypeOn, setNetStandingByAssetTypeOn] = useState()
+  const [netStandingByAssetTypeOn, setNetStandingByAssetTypeOn] = useState([] as { assetType: string; total: number; totalUSD: number; }[])
 
   useEffect(() => {
     setData(getFilteredChainData(personal, chainData));

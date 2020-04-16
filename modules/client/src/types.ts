@@ -1,10 +1,9 @@
-// import { Field, Forms } from "./mappings";
-// export { Field, Forms };
-
-export type DateString = string; // eg "2020-02-27" aka TimestampString.split("T")[0] 
-export type DecimalString = string; // eg "3.1415"
-export type HexString = string; // eg "0xabc123"
-export type TimestampString = string; // eg "2020-02-27T09:51:30.444Z" (ISO 8601 format)
+import {
+  HexString,
+  DateString,
+  DecimalString,
+  TimestampString,
+} from "@finances/types";
 
 export type AddressData = {
   address: HexString;
@@ -18,42 +17,6 @@ export type TransactionLog = {
   data: HexString;
   index: number;
   topics: Array<HexString>;
-};
-
-export type TransactionData = {
-  block: number;
-  data: HexString;
-  from: HexString;
-  gasLimit: HexString;
-  gasPrice: HexString;
-  gasUsed?: HexString;
-  hash: HexString;
-  index?: number;
-  logs?: Array<TransactionLog>;
-  nonce: number;
-  status?: number;
-  timestamp: TimestampString;
-  to: HexString | null;
-  value: DecimalString;
-};
-
-export type CallData = {
-  block: number;
-  contractAddress: HexString; // AddressZero if ETH
-  from: HexString;
-  hash: HexString;
-  timestamp: TimestampString;
-  to: HexString;
-  value: DecimalString;
-};
-
-// format of chain-data.json
-export type ChainData = {
-  lastUpdated: TimestampString;
-  //addresses: { [address: string]: AddressData };
-  addresses: { [address: string]: string };
-  transactions: { [hash: string]: TransactionData };
-  calls: CallData[]; // We can have multiple calls per txHash
 };
 
 export const AddressCategories = {
@@ -92,13 +55,6 @@ export type Asset = {
   price?: DecimalString;
   type: AssetType | string;
   value?: DecimalString;
-}
-
-export type PriceData = {
-  ids: { [assetType: string]: string };
-  [date: string]: {
-    [assetType: string]: DecimalString;
-  };
 }
 
 export const EventCategories = {
@@ -193,4 +149,3 @@ export type EventByCategoryPerAssetType = {
     [assetType: string]: Array<Event>
   };
 }
-

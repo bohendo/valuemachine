@@ -1,6 +1,9 @@
 import {
-  AddressBookByCategory,
   TransactionData,
+} from "@finances/types";
+
+import {
+  AddressBookByCategory,
   TransactionLog,
 } from '../types';
 
