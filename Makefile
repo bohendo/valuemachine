@@ -71,7 +71,7 @@ node-modules: builder $(shell find modules/*/package.json $(find_options))
 ########################################
 # Typescript -> Javascript
 
-core: node-modules $(shell find modules/core $(find_options))
+core: node-modules types $(shell find modules/core $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/core && tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
