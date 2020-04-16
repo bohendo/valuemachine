@@ -45,12 +45,14 @@ export const castWyre = (filename: string): Event[] => {
         from: "sendwyre-account",
         quantity: sourceQuantity,
         to: "sendwyre-exchange",
+        tags: ["swapOut"]
       });
       event.transfers.push({
         assetType: destType,
         from: "sendwyre-exchange",
         quantity: destQuantity,
         to: "sendwyre-account",
+        tags: ["swapIn"]
       });
       event.description = sourceType === "USD"
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
@@ -62,15 +64,24 @@ export const castWyre = (filename: string): Event[] => {
         from: "external-account",
         quantity: destQuantity,
         to: "sendwyre-account",
+        tags: []
       });
       event.description = `Deposit ${destQuantity} ${destType} into sendwyre`;
 
     } else if (txType === "INCOMING" && destType !== sourceType) {
       event.transfers.push({
-        assetType: destType,
+        assetType: sourceType,
         from: "external-account",
+        quantity: sourceQuantity,
+        to: "sendwyre-exchange",
+        tags: ["swapOut"]
+      });
+      event.transfers.push({
+        assetType: destType,
+        from: "sendwyre-exchange",
         quantity: destQuantity,
         to: "sendwyre-account",
+        tags: ["swapIn"]
       });
       event.description = sourceType === "USD"
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
@@ -82,6 +93,7 @@ export const castWyre = (filename: string): Event[] => {
         from: "sendwyre-account",
         quantity: destQuantity,
         to: "external-account",
+        tags: []
       });
       event.description = `Withdraw ${destQuantity} ${destType} out of sendwyre`;
 
@@ -91,12 +103,14 @@ export const castWyre = (filename: string): Event[] => {
         from: "sendwyre-account",
         quantity: sourceQuantity,
         to: "sendwyre-exchange",
+        tags: ["swapOut"]
       });
       event.transfers.push({
         assetType: destType,
         from: "sendwyre-exchange",
         quantity: destQuantity,
         to: "external-account",
+        tags: ["swapIn"]
       });
       event.description = sourceType === "USD"
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`

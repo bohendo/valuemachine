@@ -41,6 +41,7 @@ export const castEthTx = (addressBook, chainData): any =>
         index: 0,
         quantity: tx.value,
         to: tx.to.toLowerCase(),
+        tags: []
       }],
     } as Event;
 
@@ -74,7 +75,7 @@ export const castEthTx = (addressBook, chainData): any =>
         );
 
         const index = txLog.index;
-        const transfer = { assetType, index, quantity };
+        const transfer = { assetType, index, quantity, tags: [] };
 
         if (eventI.name === "Transfer") {
           event.transfers.push({

@@ -37,6 +37,7 @@ export const castEthCall = (addressBook, chainData): any =>
         from: call.from.toLowerCase(),
         quantity: call.value,
         to: call.to.toLowerCase(),
+        tags: []
       }],
     } as Event;
 

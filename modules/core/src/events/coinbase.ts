@@ -30,38 +30,40 @@ export const castCoinbase = (filename: string): Event[] => {
       transfers: [],
     } as Event;
 
-    let [from, to] = ["", ""];
+    let [from, to, tags] = ["", "", []];
 
     if (txType === "Send") {
-      [from, to] = ["coinbase-account", "external-account"];
+      [from, to, tags] = ["coinbase-account", "external-account", []];
       event.description = `Withdraw ${quantity} ${assetType} out of coinbase`;
 
     } else if (txType === "Receive") {
-      [from, to] = ["external-account", "coinbase-account"];
+      [from, to, tags] = ["external-account", "coinbase-account", []];
       event.description = `Deposit ${quantity} ${assetType} into coinbase`;
 
     } else if (txType === "Sell") {
-      [from, to] = ["coinbase-account", "coinbase-exchange"];
+      [from, to, tags] = ["coinbase-account", "coinbase-exchange", ["swapOut"]];
       event.transfers.push({
         assetType: "USD",
         from: "coinbase-exchange",
         quantity: usdQuantity,
         to: "coinbase-account",
+        tags: ["swapIn"]
       });
       event.description = `Sell ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
 
     } else if (txType === "Buy") {
-      [from, to] = ["coinbase-exchange", "coinbase-account"];
+      [from, to, tags] = ["coinbase-exchange", "coinbase-account", ["swapIn"]];
       event.transfers.push({
         assetType: "USD",
         from: "coinbase-account",
         quantity: usdQuantity,
         to: "coinbase-exchange",
+        tags: ["swapOut"]
       });
       event.description = `Buy ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
     }
 
-    event.transfers.push({ assetType, from, quantity, to });
+    event.transfers.push({ assetType, from, quantity, to, tags });
 
     log.debug(event.description);
     return event;

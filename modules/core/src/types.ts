@@ -51,6 +51,7 @@ export type Transfer = {
   fee?: DecimalString;
   from: HexString;
   to: HexString;
+  tags: Array<string>;
 }
 
 export interface AddressBook {
