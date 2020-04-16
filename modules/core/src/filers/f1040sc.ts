@@ -28,7 +28,7 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
   f1040sc.L7 = round(add([f1040sc.L5, f1040sc.L6]));
 
   for (const expense of vmLogs.filter(l => l.type === LogTypes.Expense) as ExpenseLog[]) {
-    log.debug(`Including expense: ${expense.description}`);
+    log.info(`Including expense: ${expense.description}`);
     f1040sc.L8 = add([f1040sc.L8, mul(expense.quantity, expense.assetPrice)]);
   }
 

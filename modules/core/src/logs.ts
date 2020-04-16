@@ -1,3 +1,4 @@
+import { Address } from "@finances/types";
 import { AddressZero } from "ethers/constants";
 
 import {
@@ -24,6 +25,8 @@ export const emitLogs = (
   const position = `#${event.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
   const wethAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 
+  const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("account");
+
   if (
     from === AddressZero || to === AddressZero ||
     from === wethAddress || to === wethAddress ||
@@ -32,10 +35,10 @@ export const emitLogs = (
     return logs;
   }
 
-  if (isSelf(from) && !isSelf(to)) {
+  if (isAnySelf(from) && !isAnySelf(to)) {
 
     // maybe emit expense
-    if (!event.tags.includes(TransferTags.SwapOut)) {
+    if (!transfer.tags.includes(TransferTags.SwapOut)) {
       logs.push({
         assetPrice: event.prices[assetType],
         assetType: assetType,
@@ -45,10 +48,10 @@ export const emitLogs = (
         to,
         type: LogTypes.Expense,
       });
-      }
+    }
 
     // maybe emit capital gain logs
-    if (!unitOfAccount.includes(assetType) && event.tags.includes(TransferTags.SwapOut)) {
+    if (!unitOfAccount.includes(assetType) && transfer.tags.includes(TransferTags.SwapOut)) {
       chunks.forEach(chunk => {
         const cost = mul(chunk.purchasePrice, chunk.quantity);
         const proceeds = mul(event.prices[chunk.assetType], chunk.quantity);
@@ -67,9 +70,9 @@ export const emitLogs = (
 
   // maybe emit income log
   if (
-    !isSelf(from) &&
-    isSelf(to) &&
-    !event.tags.includes(TransferTags.SwapIn)
+    !isAnySelf(from) &&
+    isAnySelf(to) &&
+    !transfer.tags.includes(TransferTags.SwapIn)
   ) {
     logs.push({
       assetPrice: event.prices[assetType],
