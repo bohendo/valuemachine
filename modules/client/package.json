@@ -1,7 +1,12 @@
 {
-  "name": "fdashboard",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@finances/dashboard",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
   "dependencies": {
     "@finances/types": "1.0.0",
     "@finances/core": "1.0.0",
@@ -31,12 +36,6 @@
     "react-dom": "16.12.0",
     "react-scripts": "3.4.0",
     "typescript": "3.8.3"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": "react-app"

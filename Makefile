@@ -35,7 +35,10 @@ $(shell mkdir -p .flags $(example)/data $(personal)/data $(test)/data)
 ########################################
 # Command & Control Aliases
 
-default: personal
+default: dev
+dev: core
+prod: client
+taxes: personal
 all: test example personal
 
 backup:
@@ -70,6 +73,11 @@ node-modules: builder $(shell find modules/*/package.json $(find_options))
 
 ########################################
 # Typescript -> Javascript
+
+client: core $(shell find modules/client $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/client && npm run build"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 core: node-modules types $(shell find modules/core $(find_options))
 	$(log_start)
