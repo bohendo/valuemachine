@@ -1,7 +1,8 @@
 import { DecimalString, TransactionLog } from "@finances/types";
+import { AddressZero } from "ethers/constants";
 import { formatEther } from "ethers/utils";
 
-import { exchangeEvents } from "../abi";
+import { exchangeEvents, daiJoinInterface } from "../abi";
 import { AddressBook, Event, EventSources, Transfer, TransferTags } from "../types";
 import {
   add,
@@ -18,16 +19,38 @@ export const transferMatcher = (
   txLogs: TransactionLog[],
   addressBook: AddressBook,
 ): TransferTags[] => {
+
+  // eg SwapOut to Uniswap
+  if (addressBook.isExchange(transfer.to) && addressBook.isSelf(transfer.from)) {
+    return [TransferTags.SwapOut];
+
+  // eg SwapIn from Uniswap
+  } else if (addressBook.isExchange(transfer.from) && addressBook.isSelf(transfer.to)) {
+    return [TransferTags.SwapIn];
+  }
+
   for (const txLog of txLogs) {
+
+    // eg SCD -> MCD Migration
+    if (
+      addressBook.getName(txLog.address) === "maker-dai-join" &&
+      txLog.topics[0].slice(0,10) === daiJoinInterface.functions.exit.sighash
+    ) {
+      const src = '0x' + txLog.topics[1].slice(26,).toLowerCase();
+      const dst = '0x' + txLog.topics[2].slice(26,).toLowerCase();
+      const amt = formatEther(txLog.topics[3]);
+      if (
+        addressBook.getName(src) === "scdmcdmigration" &&
+        addressBook.isSelf(dst) &&
+        eq(amt, transfer.quantity) &&
+        transfer.from === AddressZero
+      ) {
+        return [TransferTags.SwapIn];
+      }
+    }
+
+    // eg Compound
     if (addressBook.isDefi(txLog.address)) {
-
-    // eg SwapOut to Uniswap
-    } else if (addressBook.isExchange(transfer.to)) {
-      return [TransferTags.SwapOut];
-
-    // eg SwapIn from Uniswap
-    } else if (addressBook.isExchange(transfer.from)) {
-      return [TransferTags.SwapIn];
 
     // eg Oasis Dex
     } else if (addressBook.isExchange(txLog.address)) {

@@ -4,6 +4,7 @@ import { Address } from "@finances/types";
 
 import oasisDexAbi from "./oasisDex.json";
 import daiAbi from "./dai.json";
+import daiJoinAbi from "./daiJoin.json";
 import erc20Abi from "./erc20.json";
 import saiAbi from "./sai.json";
 import wethAbi from "./weth.json";
@@ -22,6 +23,8 @@ export const getTokenAbi = (address?: Address): Array<EventFragment | FunctionFr
   : erc20Abi as Array<EventFragment | FunctionFragment>;
 
 const getEvents = (abi: any): EventDescription[] => Object.values((new Interface(abi)).events);
+
+export const daiJoinInterface = new Interface(daiJoinAbi);
 
 export const exchangeEvents = [
   oasisDexAbi,
