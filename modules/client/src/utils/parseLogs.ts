@@ -73,8 +73,7 @@ export const findTxLogCategory = (
         let dst = '0x' + txLog.topics[1].slice(26,).toLowerCase()
         if (addressBookByCategory['self'][dst] || isProxy(addressBookByCategory, dst)) 
           category = "deposit"
-      }
-      else if (eventI.name === "Withdrawal") { category = "cashout" }
+      } else if (eventI.name === "Withdrawal") { category = "cashout" }
 
       else if (eventI.name === "Transfer") {
         let src = addressToName(addressBookByCategory, '0x' + txLog.topics[1].slice(26,).toLowerCase())

@@ -2,6 +2,7 @@ import { Interface, EventDescription, EventFragment, FunctionFragment } from "et
 
 import { Address } from "@finances/types";
 
+import oasisDexAbi from "./oasisDex.json";
 import daiAbi from "./dai.json";
 import erc20Abi from "./erc20.json";
 import saiAbi from "./sai.json";
@@ -20,6 +21,15 @@ export const getTokenAbi = (address?: Address): Array<EventFragment | FunctionFr
   ? wethAbi as Array<EventFragment | FunctionFragment>
   : erc20Abi as Array<EventFragment | FunctionFragment>;
 
-export const tokenEvents = [daiAbi, erc20Abi, saiAbi, wethAbi].flatMap(abi =>
-  Object.values((new Interface(abi)).events) as EventDescription[],
-) as EventDescription[];
+const getEvents = (abi: any): EventDescription[] => Object.values((new Interface(abi)).events);
+
+export const exchangeEvents = [
+  oasisDexAbi,
+].flatMap(getEvents) as EventDescription[];
+
+export const tokenEvents = [
+  daiAbi,
+  erc20Abi,
+  saiAbi,
+  wethAbi,
+].flatMap(getEvents) as EventDescription[];

@@ -19,6 +19,13 @@ export type CallData = {
   value: DecimalString;
 };
 
+export type TransactionLog = {
+  address: HexString;
+  data: HexString;
+  index: number;
+  topics: Array<HexString>;
+}
+
 export type TransactionData = {
   block: number;
   data: HexString;
@@ -28,12 +35,7 @@ export type TransactionData = {
   gasUsed?: HexString;
   hash: HexString;
   index?: number;
-  logs?: Array<{
-    address: HexString;
-    data: HexString;
-    index: number;
-    topics: Array<HexString>;
-  }>;
+  logs?: TransactionLog[];
   nonce: number;
   status?: number | undefined;
   timestamp: TimestampString;

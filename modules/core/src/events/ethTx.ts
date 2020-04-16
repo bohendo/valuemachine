@@ -4,10 +4,10 @@ import { AddressZero } from "ethers/constants";
 import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from "ethers/utils";
 
 import { env } from "../env";
-import { Event, EventSources, TransferTags } from "../types";
+import { Event, EventSources, TransferTags, Transfer } from "../types";
 import { Logger } from "../utils";
 import { tokenEvents } from "../abi";
-import { mergeFactory } from "./utils";
+import { mergeFactory, transferMatcher } from "./utils";
 
 
 export const castEthTx = (addressBook, chainData): any =>
@@ -77,36 +77,35 @@ export const castEthTx = (addressBook, chainData): any =>
         );
 
         const index = txLog.index;
-        const transfer = { assetType, index, quantity, tags: [] };
+        const transfer = { assetType, index, quantity, tags: [] } as Transfer;
 
         if (eventI.name === "Transfer") {
-          event.transfers.push({
-            ...transfer,
-            from: data.from || data.src,
-            to: data.to || data.dst,
-          });
           log.debug(`${quantity} ${assetType} was transfered to ${data.to}`);
+          transfer.from = data.from || data.src;
+          transfer.to = data.to || data.dst;
           transfer.tags.push(TransferTags.Transfer);
+          transfer.tags.push(...transferMatcher(transfer, tx.logs, addressBook));
+          event.transfers.push(transfer);
 
         } else if (assetType === "WETH" && eventI.name === "Deposit") {
-          event.transfers.push({ ...transfer, from: AddressZero, to: data.dst });
           log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
           transfer.tags.push(TransferTags.Mint);
+          event.transfers.push({ ...transfer, from: AddressZero, to: data.dst });
 
         } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
-          event.transfers.push({ ...transfer, from: data.src, to: AddressZero });
           log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
           transfer.tags.push(TransferTags.Burn);
+          event.transfers.push({ ...transfer, from: data.src, to: AddressZero });
 
         } else if (assetType === "SAI" && eventI.name === "Mint") {
-          event.transfers.push({ ...transfer, from: AddressZero, to: data.guy });
           log.debug(`Minted ${quantity} ${assetType}`);
           transfer.tags.push(TransferTags.Mint);
+          event.transfers.push({ ...transfer, from: AddressZero, to: data.guy });
 
         } else if (assetType === "SAI" && eventI.name === "Burn") {
-          event.transfers.push({ ...transfer, from: data.guy, to: AddressZero });
           log.debug(`Burnt ${quantity} ${assetType}`);
           transfer.tags.push(TransferTags.Burn);
+          event.transfers.push({ ...transfer, from: data.guy, to: AddressZero });
 
         } else if (eventI.name === "Approval") {
           log.debug(`Skipping Approval event`);

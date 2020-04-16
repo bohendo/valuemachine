@@ -12,13 +12,6 @@ export type AddressData = {
   transactions: Array<HexString>;
 };
 
-export type TransactionLog = {
-  address: HexString;
-  data: HexString;
-  index: number;
-  topics: Array<HexString>;
-};
-
 export const AddressCategories = {
   "erc20": "erc20",
   "family": "family",

@@ -1,14 +1,44 @@
-import { DecimalString } from "@finances/types";
+import { DecimalString, TransactionLog } from "@finances/types";
+import { formatEther } from "ethers/utils";
 
-import { Event, EventSources } from "../types";
+import { exchangeEvents } from "../abi";
+import { AddressBook, Event, EventSources, Transfer, TransferTags } from "../types";
 import {
   add,
   diff,
   div,
+  eq,
   Logger,
   lt,
   mul,
 } from "../utils";
+
+export const transferMatcher = (
+  transfer: Partial<Transfer>,
+  txLogs: TransactionLog[],
+  addressBook: AddressBook,
+): TransferTags[] => {
+  for (const txLog of txLogs) {
+    if (addressBook.isDefi(txLog.address)) {
+    } else if (addressBook.isExchange(txLog.address)) {
+
+      const event = exchangeEvents.find(e => e.topic === txLog.topics[0]);
+      if (event && event.name === "LogTake") {
+        let data = event.decode(txLog.data, txLog.topics);
+
+        if (eq(formatEther(data.take_amt), transfer.quantity)) {
+          return [TransferTags.SwapIn];
+
+        } else if (eq(formatEther(data.give_amt), transfer.quantity)) {
+          return [TransferTags.SwapOut];
+
+        }
+      }
+
+    }
+  }
+  return [];
+}
 
 export const assertChrono = (events: Event[]): void => {
   let prevTime = 0;
