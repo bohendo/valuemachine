@@ -1,0 +1,17 @@
+{
+  "name": "@finances/server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@finances/core": "1.0.0",
+    "@finances/types": "1.0.0",
+    "@types/node": "13.11.0",
+    "express": "4.17.1",
+    "typescript": "3.8.3"
+  }
+}
