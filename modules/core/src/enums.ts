@@ -60,14 +60,15 @@ export const EventSources = enumify({
 });
 export type EventSources = (typeof EventSources)[keyof typeof EventSources];
 
-export const EventTags = enumify({
+export const TransferTags = enumify({
   Burn: "Burn",
   Ignore: "Ignore",
   Mint: "Mint",
-  Trade: "Trade",
+  SwapIn: "SwapIn",
+  SwapOut: "SwapOut",
   Transfer: "Transfer",
 });
-export type EventTags = (typeof EventTags)[keyof typeof EventTags];
+export type TransferTags = (typeof TransferTags)[keyof typeof TransferTags];
 
 export const LogTypes = enumify({
   CapitalGains: "CapitalGains",

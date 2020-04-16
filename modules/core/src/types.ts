@@ -7,7 +7,7 @@ import {
   AssetTypes,
   CapitalGainsMethods,
   EventSources,
-  EventTags,
+  TransferTags,
   LogTypes,
   Modes,
 } from "./enums";
@@ -19,7 +19,7 @@ export {
   AssetTypes,
   CapitalGainsMethods,
   EventSources,
-  EventTags,
+  TransferTags,
   LogTypes,
   Modes,
 };
@@ -133,14 +133,14 @@ export type Event = {
   index: number;
   prices: { [assetType: string]: DecimalString };
   sources: EventSources[];
-  tags: EventTags[];
+  tags: string[];
   transfers: Transfer[];
 }
 export type Events = Event[];
 
 export type StateJson = {
   lastUpdated: TimestampString;
-  accounts: { [account: string]: Array<AssetChunk> };
+  accounts: { [account: string]: AssetChunk[] };
 }
 
 export interface State {

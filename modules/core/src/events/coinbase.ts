@@ -2,7 +2,7 @@ import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
 import { env } from "../env";
-import { Event, EventSources, EventTags } from "../types";
+import { Event, EventSources, TransferTags } from "../types";
 import { Logger } from "../utils";
 import { mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
@@ -26,7 +26,7 @@ export const castCoinbase = (filename: string): Event[] => {
       date: (new Date(date)).toISOString(),
       prices: { [assetType]: price },
       sources: [EventSources.Coinbase],
-      tags: [EventTags.Trade],
+      tags: [],
       transfers: [],
     } as Event;
 
@@ -41,24 +41,24 @@ export const castCoinbase = (filename: string): Event[] => {
       event.description = `Deposit ${quantity} ${assetType} into coinbase`;
 
     } else if (txType === "Sell") {
-      [from, to, tags] = ["coinbase-account", "coinbase-exchange", ["swapOut"]];
+      [from, to, tags] = ["coinbase-account", "coinbase-exchange", [TransferTags.SwapOut]];
       event.transfers.push({
         assetType: "USD",
         from: "coinbase-exchange",
         quantity: usdQuantity,
         to: "coinbase-account",
-        tags: ["swapIn"]
+        tags: [TransferTags.SwapIn]
       });
       event.description = `Sell ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
 
     } else if (txType === "Buy") {
-      [from, to, tags] = ["coinbase-exchange", "coinbase-account", ["swapIn"]];
+      [from, to, tags] = ["coinbase-exchange", "coinbase-account", [TransferTags.SwapIn]];
       event.transfers.push({
         assetType: "USD",
         from: "coinbase-account",
         quantity: usdQuantity,
         to: "coinbase-exchange",
-        tags: ["swapOut"]
+        tags: [TransferTags.SwapOut]
       });
       event.description = `Buy ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
     }

@@ -4,7 +4,7 @@ import {
   AddressBook,
   AssetChunk,
   Event,
-  EventTags,
+  TransferTags,
   Logs,
   LogTypes,
   Transfer,
@@ -35,7 +35,7 @@ export const emitLogs = (
   if (isSelf(from) && !isSelf(to)) {
 
     // maybe emit expense
-    if (!event.tags.includes(EventTags.Trade)) {
+    if (!event.tags.includes(TransferTags.SwapOut)) {
       logs.push({
         assetPrice: event.prices[assetType],
         assetType: assetType,
@@ -48,7 +48,7 @@ export const emitLogs = (
       }
 
     // maybe emit capital gain logs
-    if (!unitOfAccount.includes(assetType) && event.tags.includes(EventTags.Trade)) {
+    if (!unitOfAccount.includes(assetType) && event.tags.includes(TransferTags.SwapOut)) {
       chunks.forEach(chunk => {
         const cost = mul(chunk.purchasePrice, chunk.quantity);
         const proceeds = mul(event.prices[chunk.assetType], chunk.quantity);
@@ -69,7 +69,7 @@ export const emitLogs = (
   if (
     !isSelf(from) &&
     isSelf(to) &&
-    !event.tags.includes(EventTags.Trade)
+    !event.tags.includes(TransferTags.SwapIn)
   ) {
     logs.push({
       assetPrice: event.prices[assetType],
