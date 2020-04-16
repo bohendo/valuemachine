@@ -20,22 +20,28 @@ export const transferMatcher = (
 ): TransferTags[] => {
   for (const txLog of txLogs) {
     if (addressBook.isDefi(txLog.address)) {
-    } else if (addressBook.isExchange(txLog.address)) {
 
+    // eg SwapOut to Uniswap
+    } else if (addressBook.isExchange(transfer.to)) {
+      return [TransferTags.SwapOut];
+
+    // eg SwapIn from Uniswap
+    } else if (addressBook.isExchange(transfer.from)) {
+      return [TransferTags.SwapIn];
+
+    // eg Oasis Dex
+    } else if (addressBook.isExchange(txLog.address)) {
       const event = exchangeEvents.find(e => e.topic === txLog.topics[0]);
       if (event && event.name === "LogTake") {
         let data = event.decode(txLog.data, txLog.topics);
-
         if (eq(formatEther(data.take_amt), transfer.quantity)) {
           return [TransferTags.SwapIn];
-
         } else if (eq(formatEther(data.give_amt), transfer.quantity)) {
           return [TransferTags.SwapOut];
-
         }
       }
-
     }
+
   }
   return [];
 }
