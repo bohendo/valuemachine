@@ -126,8 +126,9 @@ export type AddressBookByCategory = {
 }
 
 export type NetStandingPerAssetType = Array<{
-  asset: string;
+  assetType: string;
   total: number;
+  totalUSD: number;
 }>
 
 export type NetStandingData = Array<{

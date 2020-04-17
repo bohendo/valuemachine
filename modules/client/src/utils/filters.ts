@@ -24,7 +24,9 @@ export const filterEventByCategory = (
   return _.compact( _.filter(allEvent, (event: Event) => {
     if(event.category === category) {
       return true
-    }}))
+    }
+    return false
+  }))
 }
 
 export const filterEventsByTx = (

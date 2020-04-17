@@ -5,6 +5,7 @@ import {
 import {
   CallData,
   TransactionData,
+  TransactionLog,
 } from '@finances/types';
 
 
@@ -12,7 +13,6 @@ import * as cache from './cache';
 import {
   AddressBookByCategory,
   Event,
-  TransactionLog,
 } from '../types';
 
 import {

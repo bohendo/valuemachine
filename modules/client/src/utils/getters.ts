@@ -2,10 +2,11 @@ import _ from 'lodash';
 import { getPrice } from '@finances/core';
 import {
   AssetTotal,
-  ChainData,
   CallData,
+  ChainData,
   TotalByCategoryPerAssetType,
   TransactionData,
+  TransactionLog,
 } from "@finances/types";
 
 import * as cache from './cache';
@@ -15,7 +16,7 @@ import {
   AddressBookByCategory,
   Event,
   EventByCategoryPerAssetType,
-  TransactionLog,
+  NetStandingPerAssetType,
 } from '../types';
 
 import {
@@ -53,8 +54,8 @@ export const getNetWorthOn = (
 export const getNetStanding = async (
   assetTotal: AssetTotal,
   date: string
-) => {
-  const result = [];
+): Promise<NetStandingPerAssetType> => {
+  const result = [] as NetStandingPerAssetType;
   for (const asset of Object.keys(assetTotal)) {
     //return Object.keys(assetTotal).map(async (asset: string) => {
     let price = Number(await getPrice(asset, date, cache));
@@ -149,7 +150,7 @@ export const getCategory = (
 export const getAllEvent = async (
   data: ChainData,
   addressBook: AddressBook
-) => {
+): Promise<Event[]> => {
 
   let addressBookByCategory = getAddressBookByCategory(addressBook);
   let allEvent = [] as Promise<Event|null>[];
@@ -169,6 +170,7 @@ export const getAllEvent = async (
           let event = await createEventFromLog(addressBookByCategory, log, txn)
           if (event)
             return event
+          return null;
         })))
       }
       let event = await createEventFromTransactionData(txn, addressBookByCategory)
