@@ -58,6 +58,13 @@ reset:
 mappings:
 	node modules/core/ops/update-mappings.js -y
 
+ln:
+	ln -s modules/core/.cache/personal/events.json events.json
+	ln -s modules/core/.cache/personal/chain-data.json chain-data.json
+	ln -s modules/core/.cache/personal/state.json state.json
+	ln -s modules/core/.cache/personal/logs.json logs.json
+	ln -s modules/core/.cache/personal/prices.json prices.json
+
 ########################################
 # Common Prerequisites
 
@@ -106,7 +113,7 @@ example: modules/core/example.json core $(shell find modules/core/ops $(find_opt
 personal: modules/core/personal.json core $(shell find modules/core/ops $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/core && node build/src/entry.js personal.json build/personal"
-	#@$(docker_run) "bash modules/core/ops/build.sh personal"
+	@$(docker_run) "bash modules/core/ops/build.sh personal"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 test: modules/core/test.json core $(shell find modules/core/ops $(find_options))
