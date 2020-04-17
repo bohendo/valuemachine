@@ -1,4 +1,4 @@
-import { Address, } from "@finances/types";
+import { Address } from "@finances/types";
 import { getAddress } from "ethers/utils";
 
 import { env } from "./env";
@@ -51,7 +51,7 @@ export const getAddressBook = (input: InputData): AddressBook => {
   const isDefi = isTagged("defi");
   const isExchange = isTagged("exchange");
   const isFamily = (address: Address): boolean =>
-    isTagged("family")(address) || isTagged("friend")(address);
+    isCategory("family")(address) || isCategory("friend")(address);
   const isSelf = isCategory("self");
   const isToken = isCategory("erc20");
   const shouldIgnore = isTagged("ignore");
