@@ -36,7 +36,7 @@ $(shell mkdir -p .flags $(example)/data $(personal)/data $(test)/data)
 # Command & Control Aliases
 
 default: dev
-dev: core
+dev: server
 prod: client
 taxes: personal
 all: test example personal

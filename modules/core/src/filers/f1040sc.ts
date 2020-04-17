@@ -1,5 +1,6 @@
 import { env } from "../env";
-import { Forms, ExpenseLog, IncomeLog, Logs, LogTypes } from "../types";
+import { Logs, ExpenseLog, IncomeLog, LogTypes } from "@finances/types";
+import { Forms } from "../types";
 import { add, gt, Logger, lt, mul, round, sub } from "../utils";
 
 export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {

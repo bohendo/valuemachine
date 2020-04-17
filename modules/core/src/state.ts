@@ -1,19 +1,19 @@
 import {
   Address,
+  AssetChunk,
+  AssetTypes,
   DecimalString,
+  Event,
+  StateJson,
   TimestampString,
 } from "@finances/types";
 
 import { env } from "./env";
 import {
   AddressBook,
-  AssetChunk,
-  AssetTypes,
-  Event,
   NetWorth,
   State,
   StateBalances,
-  StateJson,
 } from "./types";
 import { add, gt, Logger, round, sub } from "./utils";
 

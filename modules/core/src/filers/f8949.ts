@@ -1,6 +1,8 @@
+import { Log, LogTypes } from "@finances/types";
+
 import { env } from "../env";
 import { add, Logger, round, toFormDate } from "../utils";
-import { Forms, Log, LogTypes } from "../types";
+import { Forms } from "../types";
 
 export const f8949 = (vmLogs: Log[], oldForms: Forms): Forms  => {
   const log = new Logger("f8949", env.logLevel);

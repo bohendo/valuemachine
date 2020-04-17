@@ -1,8 +1,8 @@
+import { Event, EventSources, TransferTags } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
 import { env } from "../env";
-import { Event, EventSources, TransferTags } from "../types";
 import { Logger } from "../utils";
 import { mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
@@ -46,8 +46,8 @@ export const castCoinbase = (filename: string): Event[] => {
         assetType: "USD",
         from: "coinbase-exchange",
         quantity: usdQuantity,
+        tags: [TransferTags.SwapIn],
         to: "coinbase-account",
-        tags: [TransferTags.SwapIn]
       });
       event.description = `Sell ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
 
@@ -57,13 +57,13 @@ export const castCoinbase = (filename: string): Event[] => {
         assetType: "USD",
         from: "coinbase-account",
         quantity: usdQuantity,
+        tags: [TransferTags.SwapOut],
         to: "coinbase-exchange",
-        tags: [TransferTags.SwapOut]
       });
       event.description = `Buy ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
     }
 
-    event.transfers.push({ assetType, from, quantity, to, tags });
+    event.transfers.push({ assetType, from, quantity, tags, to });
 
     log.debug(event.description);
     return event;

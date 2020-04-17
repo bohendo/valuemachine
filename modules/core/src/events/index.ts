@@ -1,7 +1,9 @@
+import { AssetTypes, Event } from "@finances/types";
+
 import { getAddressBook } from "../addressBook";
 import { getChainData } from "../chainData";
 import { getPrice } from "../prices";
-import { AssetTypes, Event, InputData } from "../types";
+import { InputData } from "../types";
 import { Logger } from "../utils";
 
 import { castCoinbase, mergeCoinbase } from "./coinbase";

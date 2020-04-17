@@ -1,14 +1,10 @@
+import { Event, Log, StateJson } from "@finances/types";
+
 import { assertState } from "./checkpoints";
 import { env } from "./env";
 import { emitLogs } from "./logs";
 import { getState } from "./state";
-import {
-  AddressBook,
-  Event,
-  Log,
-  State,
-  StateJson,
-} from "./types";
+import { AddressBook, State } from "./types";
 import { eq, gt, Logger, sub } from "./utils";
 
 export const getValueMachine = (addressBook: AddressBook): any => {

@@ -21,19 +21,6 @@ export const AddressTags = enumify({
 });
 export type AddressTags = (typeof AddressTags)[keyof typeof AddressTags];
 
-export const AssetTypes = enumify({
-  DAI: "DAI",
-  ETH: "ETH",
-  INR: "INR",
-  MKR: "MKR",
-  SAI: "SAI",
-  SNT: "SNT",
-  SNX: "SNX",
-  USD: "USD",
-  WETH: "WETH",
-});
-export type AssetTypes = (typeof AssetTypes)[keyof typeof AssetTypes];
-
 export const CachedTypes = enumify({
   ChainData: "ChainData",
   Events: "Events",
@@ -42,47 +29,6 @@ export const CachedTypes = enumify({
   State: "State",
 });
 export type CachedTypes = (typeof CachedTypes)[keyof typeof CachedTypes];
-
-export const CapitalGainsMethods = enumify({
-  FIFO: "FIFO",
-  HIFO: "HIFO",
-  LIFO: "LIFO",
-});
-export type CapitalGainsMethods = (typeof CapitalGainsMethods)[keyof typeof CapitalGainsMethods];
-
-export const EventSources = enumify({
-  CoinGecko: "CoinGecko",
-  Coinbase: "Coinbase",
-  EthCall: "EthCall",
-  EthTx: "EthTx",
-  Personal: "Personal",
-  SendWyre: "SendWyre",
-});
-export type EventSources = (typeof EventSources)[keyof typeof EventSources];
-
-export const TransferTags = enumify({
-  Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
-  Burn: "Burn",
-  Deposit: "Deposit", // eg dai->dsr or eth->compound
-  Gift: "Gift",
-  Ignore: "Ignore",
-  Lock: "Lock",
-  Mint: "Mint",
-  Repay: "Repay",
-  SwapIn: "SwapIn",
-  SwapOut: "SwapOut",
-  Transfer: "Transfer",
-  Unlock: "Unlock",
-  Withdraw: "Withdraw",
-});
-export type TransferTags = (typeof TransferTags)[keyof typeof TransferTags];
-
-export const LogTypes = enumify({
-  CapitalGains: "CapitalGains",
-  Expense: "Expense",
-  Income: "Income",
-});
-export type LogTypes = (typeof LogTypes)[keyof typeof LogTypes];
 
 export const Modes = enumify({
   example: "example",

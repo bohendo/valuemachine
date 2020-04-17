@@ -1,9 +1,16 @@
-import { DecimalString, TransactionLog } from "@finances/types";
+import {
+  DecimalString,
+  Event,
+  EventSources,
+  TransactionLog,
+  Transfer,
+  TransferTags,
+} from "@finances/types";
 import { AddressZero } from "ethers/constants";
 import { formatEther } from "ethers/utils";
 
 import { exchangeEvents, daiJoinInterface, defiEvents, vatInterface } from "../abi";
-import { AddressBook, Event, EventSources, Transfer, TransferTags } from "../types";
+import { AddressBook } from "../types";
 import {
   add,
   diff,

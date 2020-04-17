@@ -1,4 +1,5 @@
-import { Forms, Log } from "../types";
+import { Log } from "@finances/types";
+import { Forms } from "../types";
 import { add, round } from "../utils";
 
 export const f1040s1 = (vmLogs: Log[], oldForms: Forms): Forms => {

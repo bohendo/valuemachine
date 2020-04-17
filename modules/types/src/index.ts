@@ -1,41 +1,10 @@
-// stolen from https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-export const enumify = <
-  T extends {[index: string]: U},
-  U extends string
->(x: T): T => x;
+import { AssetTypes, EventSources, LogTypes, TransferTags } from "./enums";
 
-export const LogTypes = enumify({
-  CapitalGains: "CapitalGains",
-  Expense: "Expense",
-  Income: "Income",
-});
-export type LogTypes = (typeof LogTypes)[keyof typeof LogTypes];
-
-export const EventSources = enumify({
-  CoinGecko: "CoinGecko",
-  Coinbase: "Coinbase",
-  EthCall: "EthCall",
-  EthTx: "EthTx",
-  Personal: "Personal",
-  SendWyre: "SendWyre",
-});
-export type EventSources = (typeof EventSources)[keyof typeof EventSources];
-
-export const AssetTypes = enumify({
-  DAI: "DAI",
-  ETH: "ETH",
-  INR: "INR",
-  MKR: "MKR",
-  SAI: "SAI",
-  SNT: "SNT",
-  SNX: "SNX",
-  USD: "USD",
-  WETH: "WETH",
-});
-export type AssetTypes = (typeof AssetTypes)[keyof typeof AssetTypes];
+export * from "./empty";
+export * from "./enums";
 
 ////////////////////////////////////////
-// Level 0: Simple Utils, no dependencies
+// Simple util types
 
 export type FormDateString = string; // eg "02, 27, 2020" as required by form f8949 etc
 export type DateString = string; // eg "2020-02-27" aka TimestampString.split("T")[0] 
@@ -46,6 +15,8 @@ export type Address = HexString | null; // eg null "to" during contract creation
 export type HexObject = { _hex: HexString }; // result of JSON.stringifying a BigNumber
 
 ////////////////////////////////////////
+// Chain Data
+
 export type CallData = {
   block: number;
   contractAddress: HexString; // AddressZero if ETH
@@ -94,6 +65,9 @@ export type ChainData = {
   transactions: TransactionData[];
 };
 
+////////////////////////////////////////
+// Events
+
 export type Transfer = {
   assetType: AssetTypes;
   index?: number;
@@ -101,8 +75,23 @@ export type Transfer = {
   fee?: DecimalString;
   from: HexString;
   to: HexString;
-  tags: Array<string>;
+  tags: TransferTags[];
 }
+
+export type Event = {
+  date: TimestampString;
+  description: string;
+  hash?: HexString;
+  index: number;
+  prices: { [assetType: string]: DecimalString };
+  sources: EventSources[];
+  tags: string[];
+  transfers: Transfer[];
+}
+export type Events = Event[];
+
+////////////////////////////////////////
+// Prices
 
 export type PriceData = {
   ids: { [assetType: string]: string };
@@ -111,12 +100,23 @@ export type PriceData = {
   };
 }
 
+////////////////////////////////////////
+// State
+
 export type AssetChunk = {
   assetType: AssetTypes;
   dateRecieved: TimestampString;
   purchasePrice: DecimalString; /* units of account (USD/DAI) per 1 assetType */
   quantity: DecimalString;
 };
+
+export type StateJson = {
+  lastUpdated: TimestampString;
+  accounts: { [account: string]: AssetChunk[] };
+}
+
+////////////////////////////////////////
+// Logs
 
 // used to fill in a row of f8949
 export type CapitalGainsLog = {
@@ -152,34 +152,9 @@ export type ExpenseLog = {
 export type Log = CapitalGainsLog | IncomeLog | ExpenseLog;
 export type Logs = Log[];
 
-export type StateJson = {
-  lastUpdated: TimestampString;
-  accounts: { [account: string]: AssetChunk[] };
-}
-
-export type Event = {
-  date: TimestampString;
-  description: string;
-  hash?: HexString;
-  index: number;
-  prices: { [assetType: string]: DecimalString };
-  sources: EventSources[];
-  tags: string[];
-  transfers: Transfer[];
-}
-export type Events = Event[];
-
-export const emptyPriceData = {ids: {} } as PriceData;
-
-export const emptyChainData = {
-  addresses: {},
-  calls: [],
-  tokens: {},
-  transactions: [],
-} as ChainData;
-
 ////////////////////////////////////////
-// TODO: Implement new types in core to merge with dashboard
+// Dashboard Input
+
 export type AssetTotal = {
   [assetType: string]: [number, number, number];
 }

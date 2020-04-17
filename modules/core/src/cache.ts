@@ -1,11 +1,21 @@
 /* global process */
-import { ChainData, PriceData as Prices } from "@finances/types";
+import {
+  ChainData,
+  emptyChainData,
+  emptyEvents,
+  emptyLogs,
+  emptyPriceData,
+  emptyState,
+  PriceData as Prices,
+  Events,
+  Logs,
+  StateJson,
+} from "@finances/types";
 import fs from "fs";
 
 import { CachedTypes } from "./enums";
 import { env } from "./env";
 import { Logger } from "./utils";
-import { Events, Logs, StateJson } from "./types";
 
 ////////////////////////////////////////
 // Internal Data
@@ -17,19 +27,11 @@ type CachedData = ChainData | Events | Logs | Prices | StateJson;
 const dirName = `${process.cwd()}/.cache`;
 
 const initialData = {
-  [CachedTypes.ChainData]: {
-    addresses: {},
-    calls: [],
-    tokens: {},
-    transactions: [],
-  } as ChainData,
-  [CachedTypes.Events]: [] as Events,
-  [CachedTypes.Logs]: [] as Logs,
-  [CachedTypes.Prices]: { ids: {} } as Prices,
-  [CachedTypes.State]: {
-    accounts: {},
-    lastUpdated: (new Date(0)).toISOString(),
-  } as StateJson,
+  [CachedTypes.ChainData]: emptyChainData,
+  [CachedTypes.Events]: emptyEvents,
+  [CachedTypes.Logs]: emptyLogs,
+  [CachedTypes.Prices]: emptyPriceData,
+  [CachedTypes.State]: emptyState,
 };
 
 const innerCache: { [index in CachedTypes]: CachedData | null} = {

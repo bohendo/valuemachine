@@ -1,8 +1,7 @@
-import { CallData } from "@finances/types";
+import { CallData, Event, EventSources, TransferTags } from "@finances/types";
 
 import { AddressZero } from "ethers/constants";
 import { env } from "../env";
-import { Event, EventSources, TransferTags } from "../types";
 import { eq, Logger } from "../utils";
 import { mergeFactory } from "./utils";
 

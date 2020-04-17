@@ -1,4 +1,6 @@
-import { Checkpoint, Event, State } from "./types";
+import { Event } from "@finances/types";
+
+import { Checkpoint, State } from "./types";
 import { eq } from "./utils";
 
 let checkpoints = [
