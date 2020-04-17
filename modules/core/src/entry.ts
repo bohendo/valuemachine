@@ -3,6 +3,7 @@ import fs from "fs";
 
 import { getAddressBook } from "./addressBook";
 import * as cache from "./cache";
+import { getChainData } from "./chainData";
 import { env, setEnv } from "./env";
 import { getEvents } from "./events";
 import * as filers from "./filers";
@@ -35,9 +36,13 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const events = await getEvents(input, cache);
+  const addressBook = getAddressBook(input);
 
-  const valueMachine = getValueMachine(getAddressBook(input));
+  const chainData = await getChainData(addressBook, cache, input.env);
+
+  const events = await getEvents(input, chainData, cache);
+
+  const valueMachine = getValueMachine(addressBook);
 
   let state = getState(getAddressBook(input), cache.loadState());
   let vmLogs = cache.loadLogs();
