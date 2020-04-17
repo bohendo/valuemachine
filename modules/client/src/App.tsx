@@ -5,7 +5,9 @@ import {
   ChainData,
   NetGraphData,
 } from "@finances/types";
-
+import {
+  getEvents,
+} from "@finances/core";
 import {
   AppBar,
   Container,
@@ -17,6 +19,7 @@ import {
   makeStyles,
 } from '@material-ui/core';
 
+import * as cache from './utils/cache';
 import { NetWorth } from './components/NetWorthGraph';
 import { AssetDistribution } from './components/AssetDistribution';
 import { DateTime } from './components/DateTimePicker'
@@ -74,6 +77,12 @@ function App() {
   const [eventByCategory, setEventByCategory] = useState({} as EventByCategoryPerAssetType);
   const [assetTypes, setAssetTypes] = useState([] as Array<string>);
   const [netStandingByAssetTypeOn, setNetStandingByAssetTypeOn] = useState([] as { assetType: string; total: number; totalUSD: number; }[])
+
+  useEffect(() => {
+    (async () => {
+      getEvents(personal, cache)
+    })();
+  }, []);
 
   useEffect(() => {
     setData(getFilteredChainData(personal, chainData));

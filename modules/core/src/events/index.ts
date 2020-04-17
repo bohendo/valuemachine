@@ -1,6 +1,5 @@
 import { getAddressBook } from "../addressBook";
 import { getChainData } from "../chainData";
-import { env } from "../env";
 import { getPrice } from "../prices";
 import { AssetTypes, Event, InputData } from "../types";
 import { Logger } from "../utils";
@@ -12,9 +11,9 @@ import { assertChrono, castDefault, mergeDefault } from "./utils";
 import { castWyre, mergeWyre } from "./wyre";
 
 export const getEvents = async (input: InputData, cache: any): Promise<Event[]> => {
-  const log = new Logger("FinancialEvents", env.logLevel);
+  const log = new Logger("FinancialEvents", input.env.logLevel);
   const addressBook = getAddressBook(input);
-  const chainData = await getChainData(addressBook, cache);
+  const chainData = await getChainData(addressBook, cache, input.env);
 
   let events = cache.loadEvents();
   const latestCachedEvent = events.length !== 0

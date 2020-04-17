@@ -8,9 +8,11 @@ import {
   emptyPriceData,
 } from "@finances/types";
 
+import chainData from '../data/chain-data.json';
+
 export const emptyData = {
   priceData: emptyPriceData,
-  chainData: emptyChainData,
+  chainData: chainData,
   events: [],
   logs: [],
   state: {

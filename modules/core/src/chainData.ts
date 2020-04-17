@@ -13,11 +13,10 @@ import {
 } from "ethers/utils";
 
 import { getTokenAbi } from "./abi";
-import { env } from "./env";
 import { AddressBook } from "./types";
 import { Logger } from "./utils";
 
-export const getChainData = async (addressBook: AddressBook, cache: any): Promise<ChainData> => {
+export const getChainData = async (addressBook: AddressBook, cache: any, env: any): Promise<ChainData> => {
   const log = new Logger("ChainData", env.logLevel);
   const chainData = cache.loadChainData();
 
