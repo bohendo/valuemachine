@@ -1,4 +1,6 @@
-export class Logger {
+import { ILogger } from "../types";
+
+export class Logger implements ILogger {
   private levels: { [key: string]: number } = {
     debug: 4,
     error: 1,

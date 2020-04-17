@@ -1,9 +1,7 @@
 import { AssetTypes, ChainData, Event } from "@finances/types";
 
-import { getAddressBook } from "../addressBook";
 import { getPrice } from "../prices";
-import { InputData } from "../types";
-import { Logger } from "../utils";
+import { AddressBook, ILogger } from "../types";
 
 import { castCoinbase, mergeCoinbase } from "./coinbase";
 import { castEthTx, mergeEthTx } from "./ethTx";
@@ -12,12 +10,12 @@ import { assertChrono, castDefault, mergeDefault } from "./utils";
 import { castWyre, mergeWyre } from "./wyre";
 
 export const getEvents = async (
-  input: InputData,
+  addressBook: AddressBook,
   chainData: ChainData,
   cache: any,
+  extraEvents: Array<Event | string>,
+  log: ILogger = console,
 ): Promise<Event[]> => {
-  const log = new Logger("FinancialEvents", input.env.logLevel);
-  const addressBook = getAddressBook(input);
 
   let events = cache.loadEvents();
   const latestCachedEvent = events.length !== 0
@@ -49,7 +47,7 @@ export const getEvents = async (
     .forEach((callEvent: Event): void => { events = mergeEthCall(events, callEvent); });
   assertChrono(events);
 
-  for (const source of input.events || []) {
+  for (const source of extraEvents || []) {
     if (typeof source === "string" && source.endsWith(".csv")) {
       if (source.toLowerCase().includes("coinbase")) {
         const newCoinbaseEvents = castCoinbase(source).filter(onlyNew);

@@ -13,11 +13,15 @@ import {
 } from "ethers/utils";
 
 import { getTokenAbi } from "./abi";
-import { AddressBook } from "./types";
-import { Logger } from "./utils";
+import { ILogger } from "./types";
 
-export const getChainData = async (addressBook: AddressBook, cache: any, env: any): Promise<ChainData> => {
-  const log = new Logger("ChainData", env.logLevel);
+export const getChainData = async (
+  userAddresses: Address[],
+  tokenAddresses: Address[],
+  cache: any,
+  etherscanKey: string,
+  log: ILogger = console,
+): Promise<ChainData> => {
   const chainData = cache.loadChainData();
 
   const hour = 60 * 60 * 1000;
@@ -38,10 +42,10 @@ export const getChainData = async (addressBook: AddressBook, cache: any, env: an
   const chrono = (d1: any, d2: any): number =>
     new Date(d1.timestamp || d1).getTime() - new Date(d2.timestamp || d2).getTime();
 
-  if (!env.etherscanKey) {
+  if (!etherscanKey) {
     throw new Error("To track eth activity, you must provide an etherscanKey");
   }
-  const provider = new EtherscanProvider("homestead", env.etherscanKey);
+  const provider = new EtherscanProvider("homestead", etherscanKey);
 
   try {
     log.info(`💫 verifying ethereum provider`);
@@ -60,16 +64,16 @@ export const getChainData = async (addressBook: AddressBook, cache: any, env: an
     (await axios.get(`https://api.etherscan.io/api?module=account&action=${method}&address=${
       address
     }&apikey=${
-      env.etherscanKey
+      etherscanKey
     }&sort=asc`)).data.result;
 
 
   ////////////////////////////////////////
   // Step 1: Get token data
 
-  const supportedTokens = addressBook.addresses
-    .filter(addressBook.isToken)
-    .filter(address => !Object.keys(chainData.tokens).includes(address));
+  const supportedTokens = tokenAddresses.filter(
+    address => !Object.keys(chainData.tokens).includes(address),
+  );
 
   log.info(`Step 1: Fetching info for ${supportedTokens.length} supported tokens`);
   for (const tokenAddress of supportedTokens) {
@@ -88,52 +92,50 @@ export const getChainData = async (addressBook: AddressBook, cache: any, env: an
   ////////////////////////////////////////
   // Step 2: Get account history
 
-  const addresses = addressBook.addresses
-    .filter(addressBook.isSelf)
-    .filter(address => {
-      if (!chainData.addresses[address]) {
-        return true;
-      }
-
-      const lastAction = chainData.transactions
-        .filter(tx =>
-          tx.to === address ||
-          tx.from === address ||
-          (
-            tx.logs &&
-            tx.logs
-              .map(log => log.topics.concat(log.address).concat(log.data))
-              .some(logData => logData.some(
-                dataField => dataField.includes(address.replace(/^0x/, "")),
-              ))
-          ),
-        )
-        .map(tx => tx.timestamp)
-        .concat(
-          chainData.calls
-            .filter(call => call.to === address || call.from === address)
-            .map(tx => tx.timestamp),
-        )
-        .sort(chrono).reverse()[0];
-
-      if (!lastAction) {
-        log.debug(`No activity detected for address ${address}`);
-        return true;
-      }
-
-      // Don't sync any addresses w no recent activity if they have been synced before
-      if (Date.now() - new Date(lastAction).getTime() > 6* month) {
-        log.debug(`Skipping retired (${lastAction}) address ${address} because data was already fetched`);
-        return false;
-      }
-
-      // Don't sync any active addresses if they've been synced recently
-      if (Date.now() - new Date(chainData.addresses[address]).getTime() < 12 * hour) {
-        log.debug(`Skipping active (${lastAction}) address ${address} because it was recently synced.`);
-        return false;
-      }
+  const addresses = userAddresses.filter(address => {
+    if (!chainData.addresses[address]) {
       return true;
-    });
+    }
+
+    const lastAction = chainData.transactions
+      .filter(tx =>
+        tx.to === address ||
+        tx.from === address ||
+        (
+          tx.logs &&
+          tx.logs
+            .map(log => log.topics.concat(log.address).concat(log.data))
+            .some(logData => logData.some(
+              dataField => dataField.includes(address.replace(/^0x/, "")),
+            ))
+        ),
+      )
+      .map(tx => tx.timestamp)
+      .concat(
+        chainData.calls
+          .filter(call => call.to === address || call.from === address)
+          .map(tx => tx.timestamp),
+      )
+      .sort(chrono).reverse()[0];
+
+    if (!lastAction) {
+      log.debug(`No activity detected for address ${address}`);
+      return true;
+    }
+
+    // Don't sync any addresses w no recent activity if they have been synced before
+    if (Date.now() - new Date(lastAction).getTime() > 6* month) {
+      log.debug(`Skipping retired (${lastAction}) address ${address} because data was already fetched`);
+      return false;
+    }
+
+    // Don't sync any active addresses if they've been synced recently
+    if (Date.now() - new Date(chainData.addresses[address]).getTime() < 12 * hour) {
+      log.debug(`Skipping active (${lastAction}) address ${address} because it was recently synced.`);
+      return false;
+    }
+    return true;
+  });
 
   log.info(`Step 2: Fetching tx history for ${addresses.length} addresses`);
   for (const address of addresses) {
@@ -195,7 +197,7 @@ export const getChainData = async (addressBook: AddressBook, cache: any, env: an
     log.info(`💫 getting tokenTxHistory..`);
     const oldTknCalls = JSON.parse(JSON.stringify(chainData.calls));
     for (const call of (await fetchHistory("tokentx", address))) {
-      if (!addressBook.isToken(call.contractAddress)) {
+      if (!tokenAddresses.includes(call.contractAddress)) {
         log.debug(`Skipping token call, unsupported token: ${call.contractAddress}`);
         continue;
       }

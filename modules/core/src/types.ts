@@ -1,11 +1,12 @@
 import {
+  Address,
   AssetChunk,
   AssetTypes,
   DecimalString,
+  Event,
   HexString,
-  TimestampString,
-  Address,
   StateJson,
+  TimestampString,
 } from "@finances/types";
 
 import { Field, Forms } from "./mappings";
@@ -23,8 +24,12 @@ export {
   Modes,
 };
 
-////////////////////////////////////////
-// Level 1: Only depends on simple utils
+export interface ILogger {
+  debug(message: string): void;
+  info(message: string): void;
+  warn(message: string): void;
+  error(message: string): void;
+}
 
 export type Checkpoint = {
   account: Address;
@@ -45,6 +50,13 @@ export interface AddressBook {
   pretty(address: Address): string;
   shouldIgnore(address: Address): boolean;
 }
+
+export type AddressBookJson = Array<{
+  address: HexString;
+  category: AddressCategories;
+  name; string;
+  tags: string[];
+}>;
 
 export type Env = {
   etherscanKey: string;
@@ -82,12 +94,7 @@ export interface State {
 }
 
 export type InputData = {
-  addressBook?: Array<{
-    address: HexString;
-    category: AddressCategories;
-    name; string;
-    tags: string[];
-  }>;
+  addressBook?: AddressBookJson;
   env: Partial<Env>;
   events: Array<Event | string>;
   formData: Forms;

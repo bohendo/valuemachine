@@ -36,15 +36,27 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const addressBook = getAddressBook(input);
+  const addressBook = getAddressBook(input.addressBook);
 
-  const chainData = await getChainData(addressBook, cache, input.env);
+  const chainData = await getChainData(
+    addressBook.addresses.filter(addressBook.isSelf),
+    addressBook.addresses.filter(addressBook.isToken),
+    cache,
+    input.env.etherscanKey,
+    new Logger("ChainData", input.env.logLevel),
+  );
 
-  const events = await getEvents(input, chainData, cache);
+  const events = await getEvents(
+    addressBook,
+    chainData,
+    cache,
+    input.events,
+    new Logger("Events", input.env.logLevel),
+  );
 
   const valueMachine = getValueMachine(addressBook);
 
-  let state = getState(getAddressBook(input), cache.loadState());
+  let state = getState(addressBook, cache.loadState());
   let vmLogs = cache.loadLogs();
   for (const event of events.filter(
     event => new Date(event.date).getTime() > new Date(state.toJson().lastUpdated).getTime(),

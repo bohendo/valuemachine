@@ -2,11 +2,10 @@ import { Address } from "@finances/types";
 import { getAddress } from "ethers/utils";
 
 import { env } from "./env";
-import { AddressBook, InputData } from "./types";
+import { AddressBookJson, AddressBook } from "./types";
 import { Logger } from "./utils";
 
-export const getAddressBook = (input: InputData): AddressBook => {
-  const addressBook = input.addressBook;
+export const getAddressBook = (addressBook: AddressBookJson): AddressBook => {
 
   ////////////////////////////////////////
   // Internal Functions
@@ -32,7 +31,7 @@ export const getAddressBook = (input: InputData): AddressBook => {
       .includes(sm(address));
 
   ////////////////////////////////////////
-  // Exported Functions
+  // Init Code
 
   // Sanity check: it shouldn't have two entries for the same address
   let addresses = [];
@@ -47,6 +46,9 @@ export const getAddressBook = (input: InputData): AddressBook => {
   });
   addresses = addresses.sort();
   log.info(`Address book verified`);
+
+  ////////////////////////////////////////
+  // Exported Functions
 
   const isDefi = isTagged("defi");
   const isExchange = isTagged("exchange");
