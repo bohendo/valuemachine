@@ -57,12 +57,13 @@ export type Transfer = {
 export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
-  isExchange(address: Address): boolean;
   isDefi(address: Address): boolean;
+  isExchange(address: Address): boolean;
+  isFamily(address: Address): boolean;
   isSelf(address: Address): boolean;
   isToken(address: Address): boolean;
-  shouldIgnore(address: Address): boolean;
   pretty(address: Address): string;
+  shouldIgnore(address: Address): boolean;
 }
 
 export type Prices = {

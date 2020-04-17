@@ -64,12 +64,15 @@ export const TransferTags = enumify({
   Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
   Burn: "Burn",
   Deposit: "Deposit", // eg dai->dsr or eth->compound
+  Gift: "Gift",
   Ignore: "Ignore",
+  Lock: "Lock",
   Mint: "Mint",
   Repay: "Repay",
   SwapIn: "SwapIn",
   SwapOut: "SwapOut",
   Transfer: "Transfer",
+  Unlock: "Unlock",
   Withdraw: "Withdraw",
 });
 export type TransferTags = (typeof TransferTags)[keyof typeof TransferTags];

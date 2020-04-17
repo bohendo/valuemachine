@@ -36,8 +36,8 @@ export const castEthCall = (addressBook, chainData): any =>
         assetType: "ETH",
         from: call.from.toLowerCase(),
         quantity: call.value,
+        tags: [],
         to: call.to.toLowerCase(),
-        tags: []
       }],
     } as Event;
 
@@ -45,6 +45,10 @@ export const castEthCall = (addressBook, chainData): any =>
       event.transfers[0].tags.push(TransferTags.SwapIn);
     } else if (addressBook.isExchange(call.to)) {
       event.transfers[0].tags.push(TransferTags.SwapOut);
+    } else if (addressBook.getName(call.from).toLowerCase() === "weth") {
+      event.transfers[0].tags.push(TransferTags.Unlock);
+    } else if (addressBook.getName(call.to).toLowerCase() === "weth") {
+      event.transfers[0].tags.push(TransferTags.Lock);
     }
 
     const { from, quantity, to } = event.transfers[0];

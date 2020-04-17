@@ -38,7 +38,7 @@ export const emitLogs = (
   if (isAnySelf(from) && !isAnySelf(to)) {
 
     // maybe emit expense
-    if (!transfer.tags.includes(TransferTags.SwapOut)) {
+    if (transfer.tags.length === 1 && transfer.tags.includes(TransferTags.Transfer)) {
       logs.push({
         assetPrice: event.prices[assetType],
         assetType: assetType,
@@ -72,7 +72,7 @@ export const emitLogs = (
   if (
     !isAnySelf(from) &&
     isAnySelf(to) &&
-    !transfer.tags.includes(TransferTags.SwapIn)
+    transfer.tags.length === 1 && transfer.tags.includes(TransferTags.Transfer)
   ) {
     logs.push({
       assetPrice: event.prices[assetType],

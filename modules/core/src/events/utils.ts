@@ -20,7 +20,7 @@ export const transferTagger = (
   addressBook: AddressBook,
 ): Transfer => {
   const transfer = JSON.parse(JSON.stringify(inputTransfer));
-  const { isExchange, isDefi, isSelf, isToken, getName } = addressBook;
+  const { isExchange, isDefi, isFamily, isSelf, isToken, getName } = addressBook;
 
   // nothing to match with if self-to-self
   if (isSelf(transfer.from) && isSelf(transfer.to)) {
@@ -39,6 +39,21 @@ export const transferTagger = (
   } else if (isExchange(transfer.from) && isSelf(transfer.to)) {
     transfer.tags.push(TransferTags.SwapIn);
     return transfer;
+
+  // eg deposit into OG CDP
+  } else if (transfer.assetType === "WETH" && getName(transfer.to) === "makerdao-v1-tub") {
+    transfer.tags.push(TransferTags.Deposit);
+    return transfer;
+
+  // eg withdraw from OG CDP
+  } else if (transfer.assetType === "WETH" && getName(transfer.from) === "makerdao-v1-tub") {
+    transfer.tags.push(TransferTags.Withdraw);
+    return transfer;
+
+  } else if (isFamily(transfer.to) || isFamily(transfer.from)) {
+    transfer.tags.push(TransferTags.Gift);
+    return transfer;
+
   }
 
   for (const txLog of txLogs) {
@@ -99,7 +114,6 @@ export const transferTagger = (
         const event = defiEvents.find(e => e.topic === txLog.topics[0]);
         if (!event) { continue; }
         const data = event.decode(txLog.data, txLog.topics);
-
         if (
           eq(formatEther(data.amount), transfer.quantity) &&
           getName(data.asset) === transfer.assetType
@@ -118,9 +132,7 @@ export const transferTagger = (
             transfer.tags.push(TransferTags.Repay);
           }
         }
-
       }
-
 
     // eg Oasis Dex
     } else if (isExchange(txLog.address)) {

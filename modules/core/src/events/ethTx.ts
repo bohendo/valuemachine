@@ -93,12 +93,12 @@ export const castEthTx = (addressBook, chainData): any =>
 
         } else if (assetType === "SAI" && eventI.name === "Mint") {
           log.debug(`Minted ${quantity} ${assetType}`);
-          transfer.tags.push(TransferTags.Mint);
+          transfer.tags.push(TransferTags.Borrow);
           event.transfers.push({ ...transfer, from: AddressZero, to: data.guy });
 
         } else if (assetType === "SAI" && eventI.name === "Burn") {
           log.debug(`Burnt ${quantity} ${assetType}`);
-          transfer.tags.push(TransferTags.Burn);
+          transfer.tags.push(TransferTags.Repay);
           event.transfers.push({ ...transfer, from: data.guy, to: AddressZero });
 
         } else if (eventI.name === "Approval") {
