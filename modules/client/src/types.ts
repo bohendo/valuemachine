@@ -1,8 +1,9 @@
 import {
-  HexString,
   DateString,
   DecimalString,
+  HexString,
   TimestampString,
+  Transfer,
 } from "@finances/types";
 
 export type AddressData = {
@@ -142,4 +143,10 @@ export type EventByCategoryPerAssetType = {
   [category: string]: {
     [assetType: string]: Array<OldEvent>
   };
+}
+
+export type TransferRow = Transfer & {
+  date: TimestampString;
+  hash: HexString;
+  value: Number;
 }

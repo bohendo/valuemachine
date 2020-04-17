@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Event } from '../types';
+import { Event } from '@finances/types';
 
 import {
   IconButton,
@@ -96,7 +96,7 @@ const TablePaginationActions = (props: TablePaginationActionsProps) => {
 }
 
 export const TransactionLogsTable = (props: any) => {
-  const { filteredEvents } = props
+  const { addressBook, filteredEvents } = props
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -128,7 +128,7 @@ export const TransactionLogsTable = (props: any) => {
         <TableHead>
           <TableRow>
             <TableCell> Date </TableCell>
-            <TableCell> Category </TableCell>
+            <TableCell> Tags </TableCell>
             <TableCell> Amount </TableCell>
             <TableCell> Type </TableCell>
             <TableCell> Value </TableCell>
@@ -142,14 +142,14 @@ export const TransactionLogsTable = (props: any) => {
             ? filteredEvents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : filteredEvents
           ).map((event: Event) => (
-              <TableRow key={event.hash + event.type + event.amount + event.category}>
+              <TableRow key={event.hash + event.assetType + event.quantity + event.tags}>
                 <TableCell> {event.date} </TableCell>
-                <TableCell> {event.category} </TableCell>
-                <TableCell> {event.amount} </TableCell>
-                <TableCell> {event.type} </TableCell>
-                <TableCell> {Number(event.amount) * Number(event.price)} </TableCell>
-                <TableCell> {event.from} </TableCell>
-                <TableCell> {event.to} </TableCell>
+                <TableCell> {event.tags} </TableCell>
+                <TableCell> {event.quantity} </TableCell>
+                <TableCell> {event.assetType} </TableCell>
+                <TableCell> {event.value} </TableCell>
+                <TableCell> {addressBook.getName(event.from)} </TableCell>
+                <TableCell> {addressBook.getName(event.to)} </TableCell>
                 <TableCell> {event.hash} </TableCell>
               </TableRow>
             ))}

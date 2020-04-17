@@ -73,9 +73,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 function App() {
   const classes = useStyles();
   const [endDate, setEndDate] = useState(new Date());
+  const [addressBook, setAddressBook] = useState({} as AddressBook);
   const [data, setData] = useState({} as ChainData);
   const [allEvent, setAllEvent] = useState([] as Array<OldEvent>);
-  const [financialEvents, setFinancialEvent] = useState([] as Array<Event>);
+  const [financialEvents, setFinancialEvents] = useState([] as Array<Event>);
   const [netWorthData, setNetWorthData] = useState({} as NetGraphData);
   const [eventByCategory, setEventByCategory] = useState({} as EventByCategoryPerAssetType);
   const [assetTypes, setAssetTypes] = useState([] as Array<string>);
@@ -84,15 +85,17 @@ function App() {
 
   useEffect(() => {
     (async () => {
+      const addressBook = getAddressBook(personal.addressBook);
+      setAddressBook(addressBook);
       const events = await getEvents(
-        getAddressBook(personal.addressBook),
+        addressBook,
         chainData,
         cache,
         [],
         console,
       );
 
-      setFinancialEvent(events);
+      setFinancialEvents(events);
     })();
   }, []);
 
@@ -154,7 +157,7 @@ function App() {
 
   //console.log(allEvent)
   //console.log(eventByCategory);
-  console.log(netStandingByAssetTypeOn);
+  //console.log(netStandingByAssetTypeOn);
 
   return (
     <div className={classes.root}>
@@ -192,7 +195,7 @@ function App() {
               <AssetDistribution netStandingByAssetTypeOn={netStandingByAssetTypeOn}/>
             </Grid>
             <Grid container>
-              <TransactionLogs allEvent={allEvent} financialEvents={financialEvents} />
+              <TransactionLogs addressBook={addressBook} financialEvents={financialEvents} />
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
               <EventTable eventByCategory={eventByCategory} assetTypes={assetTypes} netStandingByAssetTypeOn={netStandingByAssetTypeOn} endDate={endDate.toISOString()}/>
