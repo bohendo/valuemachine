@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Event } from '../types';
+import { OldEvent } from '../types';
 import {
   AssetTotal,
   NetGraphData,
@@ -22,15 +22,15 @@ const saveCache = (netGraphData: NetGraphData): void =>
   localStorage.setItem('netGraphData', JSON.stringify(netGraphData))
 
 export const getNetWorthData = (
-  allEvent: Array<Event>
+  allEvent: Array<OldEvent>
 ): NetGraphData => {
 
   const getPositionChangeFor = (
-    events: Array<Event>
+    events: Array<OldEvent>
   ): AssetTotal => {
     let temp = {} as AssetTotal
 
-    events.forEach((event: Event) => {
+    events.forEach((event: OldEvent) => {
       if (In.includes(event.category)) {
         try {
           temp[event.type][0] = temp[event.type][0] + Number(event.amount)
@@ -77,13 +77,13 @@ export const getNetWorthData = (
     return result;
   }
 
-  const getAssetTotal = ( events: Array<Event>): AssetTotal => {
+  const getAssetTotal = ( events: Array<OldEvent>): AssetTotal => {
     if (events.length === 0) return {} as AssetTotal;
 
     const current = events[events.length -1].date.slice(0,10);
     const splitIndex = _.findLastIndex(
       events,
-      (event: Event) => event.date.slice(0,10) === current
+      (event: OldEvent) => event.date.slice(0,10) === current
     )
 
     if (netGraphData.netWorth[current]) {
@@ -118,7 +118,7 @@ export const getNetWorthData = (
     console.log('undefined');
     assetTotal = getAssetTotal(allEvent);
   } else {
-    const newEvents = _.takeRightWhile(allEvent, (e: Event) => e.date > netGraphData.lastUpdated);
+    const newEvents = _.takeRightWhile(allEvent, (e: OldEvent) => e.date > netGraphData.lastUpdated);
     assetTotal = getAssetTotal(newEvents);
   }
 

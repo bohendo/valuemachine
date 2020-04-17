@@ -14,7 +14,7 @@ import * as cache from './cache';
 import {
   AddressBook,
   AddressBookByCategory,
-  Event,
+  OldEvent,
   EventByCategoryPerAssetType,
   NetStandingPerAssetType,
 } from '../types';
@@ -97,11 +97,11 @@ export const getAllAssetTypes = (
 }
 
 export const getEventCategoryByAssetType = (
-  allEvent: Array<Event>
+  allEvent: Array<OldEvent>
 ): EventByCategoryPerAssetType | null => {
   if (!allEvent) return null;
 
-  let temp1 = _.groupBy(allEvent, (event: Event) => event.category)
+  let temp1 = _.groupBy(allEvent, (event: OldEvent) => event.category)
 
   let temp2 = {} as EventByCategoryPerAssetType;
   Object.keys(temp1).forEach((key: string) => {
@@ -150,11 +150,11 @@ export const getCategory = (
 export const getAllEvent = async (
   data: ChainData,
   addressBook: AddressBook
-): Promise<Event[]> => {
+): Promise<OldEvent[]> => {
 
   let addressBookByCategory = getAddressBookByCategory(addressBook);
-  let allEvent = [] as Promise<Event|null>[];
-  let allEvent2 = [] as Promise<Event|null>[];
+  let allEvent = [] as Promise<OldEvent|null>[];
+  let allEvent2 = [] as Promise<OldEvent|null>[];
 
   if (data.calls) {
     allEvent = data.calls.map(async (call: CallData) => {
@@ -200,7 +200,7 @@ export const getFilteredChainData = (
   personal: any,
   chainData: ChainData
 ) => {
-  //filterEventsByTx(personal.events as Array<Event>, chainData);
+  //filterEventsByTx(personal.events as Array<OldEvent>, chainData);
   //filterEventsByAddress(personal.addressBook as AddressBook, chainData);
   filterEventsByNoTaxLiability(personal.addressBook as AddressBook, chainData);
   return chainData;

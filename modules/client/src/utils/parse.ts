@@ -12,7 +12,7 @@ import {
 import * as cache from './cache';
 import {
   AddressBookByCategory,
-  Event,
+  OldEvent,
 } from '../types';
 
 import {
@@ -56,7 +56,7 @@ export const createEventFromLog = async (
         price: await getPrice(assetType, txn.timestamp, cache),
         source: "defi",
         to: addressToName(addressBookByCategory, txn.to),
-      } as Event
+      } as OldEvent
     }
   }
   else if (addressBookByCategory['erc20'][txLog.address.toLowerCase()]) {
@@ -72,7 +72,7 @@ export const createEventFromLog = async (
         price: await getPrice(assetType, txn.timestamp, cache),
         source: "exchange",
         to: addressToName(addressBookByCategory, txn.to),
-      } as Event
+      } as OldEvent
     }
   }
   else if (isExchange(addressBookByCategory, txLog.address) && isProxy(addressBookByCategory, txn.to!)) {
@@ -88,7 +88,7 @@ export const createEventFromLog = async (
         price: await getPrice(assetType, txn.timestamp, cache),
         source: "exchange",
         to: addressToName(addressBookByCategory, txn.to),
-      } as Event
+      } as OldEvent
     }
   }
   
@@ -124,7 +124,7 @@ export const createEventFromCallData = async (
     hash: call.hash,
     price,
     source: "ethereum",
-    } as Event)
+    } as OldEvent)
 }
 
 export const createEventFromTransactionData = async (
@@ -153,5 +153,5 @@ export const createEventFromTransactionData = async (
     hash: txn.hash,
     price,
     source: "ethereum",
-    } as Event)
+    } as OldEvent)
 }

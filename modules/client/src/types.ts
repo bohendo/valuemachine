@@ -63,7 +63,7 @@ export const EventCategories = {
 };
 export type EventCategory = keyof typeof EventCategories;
 
-export type Event = {
+export type OldEvent = {
   amount: DecimalString;
   type: AssetType | string;
   category: EventCategory | string;
@@ -88,7 +88,7 @@ export type InputData = {
   addressBook?: AddressBook;
   capitalGainsMethod: CapitalGainsMethod;
   etherscanKey?: string;
-  events: Array<Event | string>;
+  events: Array<OldEvent | string>;
   //formData: Forms;
   forms: string[];
   logLevel?: number;
@@ -108,8 +108,8 @@ export type CapitalGain = {
 }
 
 export type FinancialData = {
-  expenses: Array<Event>;
-  income: Array<Event>;
+  expenses: Array<OldEvent>;
+  income: Array<OldEvent>;
   input: InputData;
   trades: CapitalGain[];
 }
@@ -140,6 +140,6 @@ export type NetStandingData = Array<{
 
 export type EventByCategoryPerAssetType = {
   [category: string]: {
-    [assetType: string]: Array<Event>
+    [assetType: string]: Array<OldEvent>
   };
 }

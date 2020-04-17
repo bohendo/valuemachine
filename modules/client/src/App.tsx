@@ -4,9 +4,11 @@ import {
   AssetTotal,
   ChainData,
   NetGraphData,
+  Event,
 } from "@finances/types";
 import {
   getEvents,
+  getAddressBook,
 } from "@finances/core";
 import {
   AppBar,
@@ -43,7 +45,7 @@ import { getNetWorthData } from './utils/netWorth';
 
 import {
   AddressBook,
-  Event,
+  OldEvent,
   EventByCategoryPerAssetType,
 } from './types';
 
@@ -72,15 +74,25 @@ function App() {
   const classes = useStyles();
   const [endDate, setEndDate] = useState(new Date());
   const [data, setData] = useState({} as ChainData);
-  const [allEvent, setAllEvent] = useState([] as Array<Event>);
+  const [allEvent, setAllEvent] = useState([] as Array<OldEvent>);
+  const [financialEvents, setFinancialEvent] = useState([] as Array<Event>);
   const [netWorthData, setNetWorthData] = useState({} as NetGraphData);
   const [eventByCategory, setEventByCategory] = useState({} as EventByCategoryPerAssetType);
   const [assetTypes, setAssetTypes] = useState([] as Array<string>);
   const [netStandingByAssetTypeOn, setNetStandingByAssetTypeOn] = useState([] as { assetType: string; total: number; totalUSD: number; }[])
 
+
   useEffect(() => {
     (async () => {
-      getEvents(personal, cache)
+      const events = await getEvents(
+        getAddressBook(personal.addressBook),
+        chainData,
+        cache,
+        [],
+        console,
+      );
+
+      setFinancialEvent(events);
     })();
   }, []);
 
@@ -180,7 +192,7 @@ function App() {
               <AssetDistribution netStandingByAssetTypeOn={netStandingByAssetTypeOn}/>
             </Grid>
             <Grid container>
-              <TransactionLogs allEvent={allEvent} />
+              <TransactionLogs allEvent={allEvent} financialEvents={financialEvents} />
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
               <EventTable eventByCategory={eventByCategory} assetTypes={assetTypes} netStandingByAssetTypeOn={netStandingByAssetTypeOn} endDate={endDate.toISOString()}/>

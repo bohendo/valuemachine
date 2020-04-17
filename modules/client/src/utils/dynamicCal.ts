@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { In, Out } from './utils';
 import {
-  Event,
+  OldEvent,
 } from '../types';
 
 const netWorth = [{
@@ -11,13 +11,13 @@ const netWorth = [{
   'networth': 0,
 }]
 
-export const getNetWorthOverTimeAll = (allEvent: Array<Event>) => {
+export const getNetWorthOverTimeAll = (allEvent: Array<OldEvent>) => {
   let debt = 0
   let networth = 0
   let investment = 0
   if (allEvent.length > 0) {
     //console.log(allEvent)
-    return allEvent.map((event: Event, i: number) => {
+    return allEvent.map((event: OldEvent, i: number) => {
       let date = event.date
       let value = Number(event.amount);
       let price = Number(event.price);

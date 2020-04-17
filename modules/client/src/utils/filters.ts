@@ -7,7 +7,7 @@ import {
 
 import {
   AddressBook,
-  Event,
+  OldEvent,
 } from "../types";
 import {
   NULL_ADDRESS,
@@ -18,10 +18,10 @@ import {
 } from "./getters";
 
 export const filterEventByCategory = (
-  allEvent: Array<Event>,
+  allEvent: Array<OldEvent>,
   category: string
 ) => {
-  return _.compact( _.filter(allEvent, (event: Event) => {
+  return _.compact( _.filter(allEvent, (event: OldEvent) => {
     if(event.category === category) {
       return true
     }
@@ -30,14 +30,14 @@ export const filterEventByCategory = (
 }
 
 export const filterEventsByTx = (
-  events: Array<string | Event>,
+  events: Array<string | OldEvent>,
   chainData: ChainData
 ) => {
   
   let eventsToIgnore = _.keyBy(
     _.filter(
       events,
-      (o: string | Event) => {
+      (o: string | OldEvent) => {
         if ( typeof(o) == "object" && o.tags && o.tags.indexOf("ignore") >= 0)
           return true;
         return false;
@@ -147,16 +147,16 @@ export const filterEventsByNoTaxLiability = (
 export const filterEventsByDate = (
   startDate: string,
   endDate: string,
-  allEvent: Array<Event>
+  allEvent: Array<OldEvent>
 ) => {
 
   const filterByDate = (
-    event: Event,
+    event: OldEvent,
   ) => {
       return (event.date >= startDate && event.date <= endDate)
   }
 
-  return _.filter(allEvent, (o: Event) => filterByDate(o));
+  return _.filter(allEvent, (o: OldEvent) => filterByDate(o));
 }
 
 export const filterAddressByCategory = (addressBook: AddressBook, category: string) => {
