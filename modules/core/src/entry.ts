@@ -2,7 +2,7 @@
 import fs from "fs";
 
 import { getAddressBook } from "./addressBook";
-import { loadLogs, loadState, saveLogs, saveState } from "./cache";
+import * as cache from "./cache";
 import { env, setEnv } from "./env";
 import { getEvents } from "./events";
 import * as filers from "./filers";
@@ -35,12 +35,12 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const events = await getEvents(input);
+  const events = await getEvents(input, cache);
 
   const valueMachine = getValueMachine(getAddressBook(input));
 
-  let state = getState(getAddressBook(input), loadState());
-  let vmLogs = loadLogs();
+  let state = getState(getAddressBook(input), cache.loadState());
+  let vmLogs = cache.loadLogs();
   for (const event of events.filter(
     event => new Date(event.date).getTime() > new Date(state.toJson().lastUpdated).getTime(),
   )) {
@@ -48,8 +48,8 @@ process.on("SIGINT", logAndExit);
     vmLogs = vmLogs.concat(...newLogs);
     state = newState;
     if (parseInt(event.date.split("-")[0], 10) < parseInt(env.taxYear, 10)) {
-      saveState(state.toJson());
-      saveLogs(vmLogs);
+      cache.saveState(state.toJson());
+      cache.saveLogs(vmLogs);
     }
   }
 

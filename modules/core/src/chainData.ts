@@ -14,13 +14,12 @@ import {
 
 import { getTokenAbi } from "./abi";
 import { env } from "./env";
-import { loadChainData, saveChainData } from "./cache";
 import { AddressBook } from "./types";
 import { Logger } from "./utils";
 
-export const getChainData = async (addressBook: AddressBook): Promise<ChainData> => {
+export const getChainData = async (addressBook: AddressBook, cache: any): Promise<ChainData> => {
   const log = new Logger("ChainData", env.logLevel);
-  const chainData = loadChainData();
+  const chainData = cache.loadChainData();
 
   const hour = 60 * 60 * 1000;
   const month = 30 * 24 * hour;
@@ -82,10 +81,10 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
       name: toStr((await token.functions.name()) || "Unknown"),
       symbol: toStr((await token.functions.symbol()) || "???"),
     };
-    saveChainData(chainData);
+    cache.saveChainData(chainData);
   }
 
-  saveChainData(chainData);
+  cache.saveChainData(chainData);
 
   ////////////////////////////////////////
   // Step 2: Get account history
@@ -217,11 +216,11 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     }
 
     chainData.addresses[address] = new Date().toISOString();
-    saveChainData(chainData);
+    cache.saveChainData(chainData);
     log.info(`📝 progress saved`);
   }
 
-  saveChainData(chainData);
+  cache.saveChainData(chainData);
 
   ////////////////////////////////////////
   // Step 3: Get transaction data for all calls
@@ -257,7 +256,7 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
     } else {
       chainData.transactions.splice(index, 1, transaction); // replace 1 element at index
     }
-    saveChainData(chainData);
+    cache.saveChainData(chainData);
   }
 
   ////////////////////////////////////////
@@ -294,12 +293,12 @@ export const getChainData = async (addressBook: AddressBook): Promise<ChainData>
           : 0;
       log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
       chainData.transactions.splice(index, 1, tx);
-      saveChainData(chainData);
+      cache.saveChainData(chainData);
     }
   }
 
   chainData.calls = chainData.calls.sort(chrono);
   chainData.transactions = chainData.transactions.sort(chrono);
-  saveChainData(chainData);
+  cache.saveChainData(chainData);
   return chainData;
 };

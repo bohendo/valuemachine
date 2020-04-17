@@ -1,9 +1,8 @@
 import { getAddressBook } from "../addressBook";
-import { loadPrices, savePrices, loadEvents, saveEvents } from "../cache";
 import { getChainData } from "../chainData";
 import { env } from "../env";
 import { getPrice } from "../prices";
-import { Event, InputData } from "../types";
+import { AssetTypes, Event, InputData } from "../types";
 import { Logger } from "../utils";
 
 import { castCoinbase, mergeCoinbase } from "./coinbase";
@@ -12,12 +11,12 @@ import { castEthCall, mergeEthCall } from "./ethCall";
 import { assertChrono, castDefault, mergeDefault } from "./utils";
 import { castWyre, mergeWyre } from "./wyre";
 
-export const getEvents = async (input: InputData): Promise<Event[]> => {
+export const getEvents = async (input: InputData, cache: any): Promise<Event[]> => {
   const log = new Logger("FinancialEvents", env.logLevel);
   const addressBook = getAddressBook(input);
-  const chainData = await getChainData(addressBook);
+  const chainData = await getChainData(addressBook, cache);
 
-  let events = loadEvents();
+  let events = cache.loadEvents();
   const latestCachedEvent = events.length !== 0
     ? new Date(events[events.length - 1].date).getTime()
     : 0;
@@ -83,10 +82,10 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
     const event = events[i];
     const assets = Array.from(new Set(event.transfers.map(a => a.assetType)));
     for (let j = 0; j < assets.length; j++) {
-      const assetType = assets[j];
+      const assetType = assets[j] as AssetTypes;
       if (!event.prices) { event.prices = {}; } // TODO: this should already be done
       if (!event.prices[assetType]) {
-        event.prices[assetType] = await getPrice(assetType, event.date, {loadPrices, savePrices});
+        event.prices[assetType] = await getPrice(assetType, event.date, cache);
       }
     }
   }
@@ -116,6 +115,6 @@ export const getEvents = async (input: InputData): Promise<Event[]> => {
   log.info(`Saving ${events.length} events to cache`);
   let i = 1;
   events.map(event => event.index = i++);
-  saveEvents(events);
+  cache.saveEvents(events);
   return events;
 };
