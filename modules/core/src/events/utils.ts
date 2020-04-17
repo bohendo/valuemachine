@@ -2,7 +2,7 @@ import { DecimalString, TransactionLog } from "@finances/types";
 import { AddressZero } from "ethers/constants";
 import { formatEther } from "ethers/utils";
 
-import { exchangeEvents, daiJoinInterface } from "../abi";
+import { exchangeEvents, daiJoinInterface, defiEvents, vatInterface } from "../abi";
 import { AddressBook, Event, EventSources, Transfer, TransferTags } from "../types";
 import {
   add,
@@ -14,60 +14,150 @@ import {
   mul,
 } from "../utils";
 
-export const transferMatcher = (
-  transfer: Partial<Transfer>,
+export const transferTagger = (
+  inputTransfer: Partial<Transfer>,
   txLogs: TransactionLog[],
   addressBook: AddressBook,
-): TransferTags[] => {
+): Transfer => {
+  const transfer = JSON.parse(JSON.stringify(inputTransfer));
+  const { isExchange, isDefi, isSelf, isToken, getName } = addressBook;
+
+  // nothing to match with if self-to-self
+  if (isSelf(transfer.from) && isSelf(transfer.to)) {
+    return transfer;
+
+  // nothing to match with external-to-external
+  } else if (!isSelf(transfer.from) && !isSelf(transfer.to)) {
+    return transfer;
 
   // eg SwapOut to Uniswap
-  if (addressBook.isExchange(transfer.to) && addressBook.isSelf(transfer.from)) {
-    return [TransferTags.SwapOut];
+  } else if (isExchange(transfer.to) && isSelf(transfer.from)) {
+    transfer.tags.push(TransferTags.SwapOut);
+    return transfer;
 
   // eg SwapIn from Uniswap
-  } else if (addressBook.isExchange(transfer.from) && addressBook.isSelf(transfer.to)) {
-    return [TransferTags.SwapIn];
+  } else if (isExchange(transfer.from) && isSelf(transfer.to)) {
+    transfer.tags.push(TransferTags.SwapIn);
+    return transfer;
   }
 
   for (const txLog of txLogs) {
 
+    if (isDefi(txLog.address)) {
+
+      // compound v2
+      if (isToken(txLog.address) && getName(txLog.address).toLowerCase().startsWith("c")) {
+        const event = defiEvents.find(e => e.topic === txLog.topics[0]);
+        if (!event) { continue; }
+        const data = event.decode(txLog.data, txLog.topics);
+        // Withdraw
+        if (event.name === "Redeem" && eq(formatEther(data.redeemAmount), transfer.quantity)) {
+          transfer.tags.push(TransferTags.Withdraw);
+          if (transfer.from === AddressZero) {
+            transfer.from = txLog.address;
+          }
+        // Deposit
+        } else if (event.name === "Mint" && eq(formatEther(data.mintAmount), transfer.quantity)) {
+          transfer.tags.push(TransferTags.Deposit);
+        }
+
+      // makerdao
+      } else if (
+        getName(txLog.address) === "maker-core-vat" &&
+        txLog.topics[0].slice(0,10) === vatInterface.functions.move.sighash
+      ) {
+        const src = "0x"+ txLog.topics[1].slice(26);
+        const dst = "0x"+ txLog.topics[2].slice(26);
+
+        // Amounts are not always exact so not sure if we can make useful comparisons yet
+        // const rad = formatUnits(txLog.topics[2], 45);
+
+        if (transfer.from === AddressZero && getName(src) === "maker-pot") {
+          transfer.tags.push(TransferTags.Withdraw);
+          transfer.from = src;
+          break;
+
+        } else if (transfer.from === AddressZero && getName(src) === "cdp" /* user-specific */) {
+          transfer.tags.push(TransferTags.Borrow);
+          transfer.from = src;
+          break;
+
+        } else if (transfer.to === AddressZero && getName(dst) === "maker-pot") {
+          transfer.tags.push(TransferTags.Deposit);
+          transfer.to = dst;
+          break;
+
+        } else if (transfer.to === AddressZero && getName(dst) === "cdp") {
+          transfer.tags.push(TransferTags.Repay);
+          transfer.to = dst;
+          break;
+
+        }
+
+      // eg compound v1
+      } else {
+        const event = defiEvents.find(e => e.topic === txLog.topics[0]);
+        if (!event) { continue; }
+        const data = event.decode(txLog.data, txLog.topics);
+
+        if (
+          eq(formatEther(data.amount), transfer.quantity) &&
+          getName(data.asset) === transfer.assetType
+        ) {
+          if (event.name === "RepayBorrow") {
+            transfer.tags.push(TransferTags.Repay);
+          } else if (event.name === "Borrow") {
+            transfer.tags.push(TransferTags.Borrow);
+          } else if (event.name === "SupplyReceived") {
+            transfer.tags.push(TransferTags.Deposit);
+          } else if (event.name === "SupplyWithdrawn") {
+            transfer.tags.push(TransferTags.Withdraw);
+          } else if (event.name === "BorrowTaken") {
+            transfer.tags.push(TransferTags.Borrow);
+          } else if (event.name === "BorrowRepaid") {
+            transfer.tags.push(TransferTags.Repay);
+          }
+        }
+
+      }
+
+
+    // eg Oasis Dex
+    } else if (isExchange(txLog.address)) {
+      const event = exchangeEvents.find(e => e.topic === txLog.topics[0]);
+      if (event && event.name === "LogTake") {
+        const data = event.decode(txLog.data, txLog.topics);
+        if (eq(formatEther(data.take_amt), transfer.quantity)) {
+          transfer.tags.push(TransferTags.SwapIn);
+          break;
+        } else if (eq(formatEther(data.give_amt), transfer.quantity)) {
+          transfer.tags.push(TransferTags.SwapOut);
+          break;
+        }
+      }
+
     // eg SCD -> MCD Migration
-    if (
-      addressBook.getName(txLog.address) === "maker-dai-join" &&
+    } else if (
+      getName(txLog.address) === "maker-dai-join" &&
       txLog.topics[0].slice(0,10) === daiJoinInterface.functions.exit.sighash
     ) {
-      const src = '0x' + txLog.topics[1].slice(26,).toLowerCase();
-      const dst = '0x' + txLog.topics[2].slice(26,).toLowerCase();
+      const src = "0x" + txLog.topics[1].slice(26).toLowerCase();
+      const dst = "0x" + txLog.topics[2].slice(26).toLowerCase();
       const amt = formatEther(txLog.topics[3]);
       if (
-        addressBook.getName(src) === "scdmcdmigration" &&
-        addressBook.isSelf(dst) &&
+        getName(src) === "scdmcdmigration" &&
+        isSelf(dst) &&
         eq(amt, transfer.quantity) &&
         transfer.from === AddressZero
       ) {
-        return [TransferTags.SwapIn];
-      }
-    }
-
-    // eg Compound
-    if (addressBook.isDefi(txLog.address)) {
-
-    // eg Oasis Dex
-    } else if (addressBook.isExchange(txLog.address)) {
-      const event = exchangeEvents.find(e => e.topic === txLog.topics[0]);
-      if (event && event.name === "LogTake") {
-        let data = event.decode(txLog.data, txLog.topics);
-        if (eq(formatEther(data.take_amt), transfer.quantity)) {
-          return [TransferTags.SwapIn];
-        } else if (eq(formatEther(data.give_amt), transfer.quantity)) {
-          return [TransferTags.SwapOut];
-        }
+        transfer.tags.push(TransferTags.SwapIn);
+        break;
       }
     }
 
   }
-  return [];
-}
+  return transfer;
+};
 
 export const assertChrono = (events: Event[]): void => {
   let prevTime = 0;

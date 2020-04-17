@@ -7,7 +7,7 @@ import { env } from "../env";
 import { Event, EventSources, TransferTags, Transfer } from "../types";
 import { Logger } from "../utils";
 import { tokenEvents } from "../abi";
-import { mergeFactory, transferMatcher } from "./utils";
+import { mergeFactory, transferTagger } from "./utils";
 
 
 export const castEthTx = (addressBook, chainData): any =>
@@ -16,7 +16,7 @@ export const castEthTx = (addressBook, chainData): any =>
       `EthTx ${tx.hash.substring(0, 10)} ${tx.timestamp.split("T")[0]}`,
       env.logLevel,
     );
-    const { getName, isToken, isDefi, pretty } = addressBook;
+    const { getName, isToken, pretty } = addressBook;
 
     if (!tx.logs) {
       throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);
@@ -40,8 +40,8 @@ export const castEthTx = (addressBook, chainData): any =>
         from: tx.from.toLowerCase(),
         index: 0,
         quantity: tx.value,
+        tags: [],
         to: tx.to.toLowerCase(),
-        tags: []
       }],
     } as Event;
 
@@ -59,11 +59,6 @@ export const castEthTx = (addressBook, chainData): any =>
 
         const assetType = getName(txLog.address).toUpperCase();
         const eventI = tokenEvents.find(e => e.topic === txLog.topics[0]);
-        /* TODO: find more specific tag
-        if (addressBook.isExchange(txLog.address)) {
-          event.tags.push(TransferTags.Trade);
-        }
-         */
 
         if (!eventI) {
           log.debug(`Unable to identify ${assetType} event w topic: ${txLog.topics[0]}`);
@@ -84,8 +79,7 @@ export const castEthTx = (addressBook, chainData): any =>
           transfer.from = data.from || data.src;
           transfer.to = data.to || data.dst;
           transfer.tags.push(TransferTags.Transfer);
-          transfer.tags.push(...transferMatcher(transfer, tx.logs, addressBook));
-          event.transfers.push(transfer);
+          event.transfers.push(transferTagger(transfer, tx.logs, addressBook));
 
         } else if (assetType === "WETH" && eventI.name === "Deposit") {
           log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);

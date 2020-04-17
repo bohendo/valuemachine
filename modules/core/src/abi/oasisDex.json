@@ -198,41 +198,6 @@
     "constant": false,
     "inputs": [
       {
-        "name": "pay_amt",
-        "type": "uint256"
-      },
-      {
-        "name": "pay_gem",
-        "type": "address"
-      },
-      {
-        "name": "buy_amt",
-        "type": "uint256"
-      },
-      {
-        "name": "buy_gem",
-        "type": "address"
-      },
-      {
-        "name": "pos",
-        "type": "uint256"
-      }
-    ],
-    "name": "offer",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
         "name": "id",
         "type": "uint256"
       },
@@ -982,37 +947,6 @@
       {
         "name": "rounding",
         "type": "bool"
-      }
-    ],
-    "name": "offer",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "pay_amt",
-        "type": "uint256"
-      },
-      {
-        "name": "pay_gem",
-        "type": "address"
-      },
-      {
-        "name": "buy_amt",
-        "type": "uint256"
-      },
-      {
-        "name": "buy_gem",
-        "type": "address"
       }
     ],
     "name": "offer",

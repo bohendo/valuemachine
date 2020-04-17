@@ -1,6 +1,12 @@
 import { Address } from "@finances/types";
-import { Interface, EventDescription, EventFragment, FunctionFragment } from "ethers/utils";
+import {
+  EventDescription,
+  EventFragment,
+  FunctionFragment,
+  Interface,
+} from "ethers/utils";
 
+import cTokenAbi from "./cToken.json";
 import compoundAbi from "./compound.json";
 import daiAbi from "./dai.json";
 import daiJoinAbi from "./daiJoin.json";
@@ -10,8 +16,6 @@ import oasisDexAbi from "./oasisDex.json";
 import saiAbi from "./sai.json";
 import vatAbi from "./vat.json";
 import wethAbi from "./weth.json";
-
-const getEvents = (abi: any): EventDescription[] => Object.values((new Interface(abi)).events);
 
 export const getTokenAbi = (address?: Address): Array<EventFragment | FunctionFragment> => !address
   ? erc20Abi as Array<EventFragment | FunctionFragment>
@@ -25,11 +29,15 @@ export const getTokenAbi = (address?: Address): Array<EventFragment | FunctionFr
   ? wethAbi as Array<EventFragment | FunctionFragment>
   : erc20Abi as Array<EventFragment | FunctionFragment>;
 
+const getEvents = (abi: any): EventDescription[] =>
+  Object.values((new Interface(abi)).events);
+
 export const vatInterface = new Interface(vatAbi);
 export const daiJoinInterface = new Interface(daiJoinAbi);
 
 export const defiEvents = [
   compoundAbi,
+  cTokenAbi,
 ].flatMap(getEvents) as EventDescription[];
 
 export const exchangeEvents = [
