@@ -2,8 +2,6 @@
   "name": "finances",
   "version": "1.0.0",
   "description": "financial dashboard + tax tools",
-  "dependencies": {},
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+ssh://git@gitlab.com/bohendo/finances.git"
@@ -13,5 +11,10 @@
   "bugs": {
     "url": "https://gitlab.com/bohendo/finances/issues"
   },
-  "homepage": "https://gitlab.com/bohendo/finances#readme"
+  "homepage": "https://gitlab.com/bohendo/finances#readme",
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "2.26.0",
+    "@typescript-eslint/parser": "2.26.0",
+    "eslint": "6.8.0"
+  }
 }

@@ -1,31 +1,19 @@
 {
   "name": "@finances/core",
-  "year": "2019",
-  "main": "build/src/index.js",
   "version": "1.0.0",
-  "description": "Toolkit for generating a US Federal Tax Return",
-  "repository": {
-    "type": "git",
-    "url": "https://gitlab.com/bohendo/taxes"
-  },
-  "author": "bohendo",
+  "main": "build/src/index.js",
+  "author": "Bo & Shiv Henderson",
   "license": "MIT",
-  "bugs": {
-    "url": "https://gitlab.com/bohendo/taxes/issues"
-  },
   "homepage": "https://gitlab.com/bohendo/taxes#readme",
   "dependencies": {
+    "@finances/types": "1.0.0",
     "@openzeppelin/contracts": "2.5.0",
     "axios": "0.19.2",
     "csv-parse": "4.8.2",
     "ethers": "4.0.46"
   },
   "devDependencies": {
-    "@finances/types": "1.0.0",
-    "@types/node": "13.11.0",
-    "@typescript-eslint/eslint-plugin": "2.26.0",
-    "@typescript-eslint/parser": "2.26.0",
-    "eslint": "6.8.0",
+    "@types/node": "13.11.1",
     "typescript": "3.8.3"
   }
 }

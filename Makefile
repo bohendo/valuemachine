@@ -74,19 +74,24 @@ node-modules: builder $(shell find modules/*/package.json $(find_options))
 ########################################
 # Typescript -> Javascript
 
+types: node-modules $(shell find modules/types $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/types && tsc -p tsconfig.json"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+core: types $(shell find modules/core $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/core && tsc -p tsconfig.json"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
 client: core $(shell find modules/client $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/client && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-core: node-modules types $(shell find modules/core $(find_options))
+server: core $(shell find modules/server $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/core && tsc -p tsconfig.json"
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-types: node-modules $(shell find modules/types $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/types && tsc -p tsconfig.json"
+	$(docker_run) "cd modules/server && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################
