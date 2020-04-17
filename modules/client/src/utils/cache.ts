@@ -4,7 +4,6 @@ import {
   Logs,
   ChainData,
   PriceData,
-  emptyChainData,
   emptyPriceData,
 } from "@finances/types";
 

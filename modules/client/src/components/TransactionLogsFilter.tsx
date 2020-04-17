@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import _ from 'lodash';
 import { AssetTypes, Event, Transfer, TransferTags } from '@finances/types';
-
-import { OldEvent, TransferRow } from '../types';
 
 import {
   Checkbox,
