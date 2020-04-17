@@ -1,10 +1,10 @@
 import {
   TransactionData,
+  TransactionLog,
 } from "@finances/types";
 
 import {
   AddressBookByCategory,
-  TransactionLog,
 } from '../types';
 
 import {
@@ -170,9 +170,7 @@ export const findExchangeCategory = (
     } else if (eventD.name === 'LogTake') {
       assetType = addressToName(addressBookByCategory, data.pay_gem.toLowerCase())
       category = 'swapIn';
-      //fromName = addressToName(addressBookByCategory, chainEvent.to)
       quantity = formatEther(data.take_amt || "0");
-      //toName = addressToName(addressBookByCategory, chainEvent.from)
     }
   }
 
