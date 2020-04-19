@@ -5,9 +5,21 @@ export const enumify = <
 >(x: T): T => x;
 
 export const LogTypes = enumify({
+  Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
+  Burn: "Burn",
   CapitalGains: "CapitalGains",
+  Deposit: "Deposit", // eg dai->dsr or eth->compound
   Expense: "Expense",
+  GiftIn: "GiftIn",
+  GiftOut: "GiftOut",
   Income: "Income",
+  Lock: "Lock",
+  Mint: "Mint",
+  Repay: "Repay",
+  SwapIn: "SwapIn",
+  SwapOut: "SwapOut",
+  Unlock: "Unlock",
+  Withdraw: "Withdraw",
 });
 export type LogTypes = (typeof LogTypes)[keyof typeof LogTypes];
 

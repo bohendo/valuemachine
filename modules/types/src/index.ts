@@ -118,38 +118,110 @@ export type StateJson = {
 ////////////////////////////////////////
 // Logs
 
-// used to fill in a row of f8949
-export type CapitalGainsLog = {
-  cost: DecimalString;
+export type BaseLog = {
+  assetPrice: DecimalString;
+  assetType: AssetTypes;
   date: FormDateString;
-  dateRecieved: FormDateString;
   description: string;
+  quantity: DecimalString;
+  type: LogTypes;
+}
+
+export type BorrowLog = BaseLog & {
+  from: Address;
+  type: typeof LogTypes.Borrow;
+}
+
+export type BurnLog = BaseLog & {
+  from: Address;
+  type: typeof LogTypes.Burn;
+}
+
+// used to fill in a row of f8949
+export type CapitalGainsLog = BaseLog & {
+  cost: DecimalString;
+  dateRecieved: FormDateString;
   gainOrLoss: DecimalString;
   proceeds: DecimalString;
   type: typeof LogTypes.CapitalGains;
 }
 
-export type IncomeLog = {
-  assetPrice: DecimalString;
-  assetType: AssetTypes;
-  date: FormDateString;
-  from: Address;
-  description: string;
-  quantity: DecimalString;
-  type: typeof LogTypes.Income;
+export type DepositLog = BaseLog & {
+  to: Address;
+  type: typeof LogTypes.Deposit;
 }
 
-export type ExpenseLog = {
-  assetPrice: DecimalString;
-  assetType: AssetTypes;
-  date: FormDateString;
-  description: string;
-  quantity: DecimalString;
+export type ExpenseLog = BaseLog & {
   to: Address;
   type: typeof LogTypes.Expense;
 }
 
-export type Log = CapitalGainsLog | IncomeLog | ExpenseLog;
+export type GiftInLog = BaseLog & {
+  from: Address;
+  type: typeof LogTypes.GiftIn;
+}
+
+export type GiftOutLog = BaseLog & {
+  to: Address;
+  type: typeof LogTypes.GiftOut;
+}
+
+export type IncomeLog = BaseLog & {
+  from: Address;
+  type: typeof LogTypes.Income;
+}
+
+export type LockLog = BaseLog & {
+  location: Address;
+  type: typeof LogTypes.Lock;
+}
+
+export type MintLog = BaseLog & {
+  from: Address;
+  type: typeof LogTypes.Mint;
+}
+
+export type RepayLog = BaseLog & {
+  to: Address;
+  type: typeof LogTypes.Repay;
+}
+
+export type SwapInLog = BaseLog & {
+  from: Address;
+  type: typeof LogTypes.SwapIn;
+}
+
+export type SwapOutLog = BaseLog & {
+  to: Address;
+  type: typeof LogTypes.SwapOut;
+}
+
+export type UnlockLog = BaseLog & {
+  location: Address;
+  type: typeof LogTypes.Unlock;
+}
+
+export type WithdrawLog = BaseLog & {
+  from: Address;
+  type: typeof LogTypes.Withdraw;
+}
+
+export type Log =
+  | BorrowLog
+  | BurnLog
+  | CapitalGainsLog
+  | DepositLog
+  | ExpenseLog
+  | GiftInLog
+  | GiftOutLog
+  | IncomeLog
+  | LockLog
+  | MintLog
+  | RepayLog
+  | SwapInLog
+  | SwapOutLog
+  | UnlockLog
+  | WithdrawLog;
 export type Logs = Log[];
 
 ////////////////////////////////////////
