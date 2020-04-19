@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 
 import {
   AssetTotal,
+  AssetTypes,
   ChainData,
-  NetGraphData,
   Event,
   Log,
+  LogTypes,
+  NetGraphData,
 } from "@finances/types";
 import {
   getAddressBook,
@@ -73,6 +75,26 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
+const inTypes = [
+  LogTypes.Borrow,
+  LogTypes.GiftIn,
+  LogTypes.Income,
+  LogTypes.Mint,
+  LogTypes.SwapIn,
+  LogTypes.Unlock,
+  LogTypes.Withdraw,
+];
+
+const outTypes = [
+  LogTypes.Burn,
+  LogTypes.Deposit,
+  LogTypes.Expense,
+  LogTypes.GiftOut,
+  LogTypes.Lock,
+  LogTypes.Repay,
+  LogTypes.SwapOut,
+];
+
 function App() {
   const classes = useStyles();
   const [endDate, setEndDate] = useState(new Date());
@@ -83,6 +105,9 @@ function App() {
   const [financialLogs, setFinancialLogs] = useState([] as Log[]);
   const [netWorthData, setNetWorthData] = useState({} as NetGraphData);
   const [netStandingByAssetTypeOn, setNetStandingByAssetTypeOn] = useState([] as { assetType: string; total: number; totalUSD: number; }[])
+  const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
+  const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
+
 
 
   useEffect(() => {
@@ -117,6 +142,31 @@ function App() {
 
     })();
   }, []);
+
+  useEffect(() => {
+    let totalByCategory = {};
+    let tempTotalByAssetType = {};
+    financialLogs.filter(log => new Date(log.date).getTime() <= endDate.getTime()).forEach((log: Log) => {
+      if (!totalByCategory[log.type]) {
+        totalByCategory[log.type] = {};
+      }
+      if (!totalByCategory[log.type][log.assetType]) {
+        totalByCategory[log.type][log.assetType] = 0;
+      }
+
+      totalByCategory[log.type][log.assetType] += parseFloat(log.quantity);
+      if (!tempTotalByAssetType[log.assetType]) {
+        tempTotalByAssetType[log.assetType] = 0;
+      }
+      if (inTypes.includes(log.type)) {
+        tempTotalByAssetType[log.assetType] += parseFloat(log.quantity);
+      } else if (outTypes.includes(log.type)) {
+        tempTotalByAssetType[log.assetType] -= parseFloat(log.quantity);
+      }
+    })
+    setFilteredTotalByCategory(totalByCategory);
+    setTotalByAssetType(tempTotalByAssetType);
+  }, [financialLogs, endDate]);
 
   useEffect(() => {
     (async () => {
@@ -207,7 +257,7 @@ function App() {
               <TransactionLogs addressBook={addressBook} financialEvents={financialEvents} />
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
-              <EventTable financialLogs={financialLogs} endDate={endDate}/>
+              <EventTable filteredTotalByCategory={filteredTotalByCategory} totalByAssetType={totalByAssetType}/>
             </Grid>
           </Grid>
         </Container>
