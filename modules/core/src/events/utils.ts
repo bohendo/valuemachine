@@ -61,6 +61,16 @@ export const transferTagger = (
     transfer.tags.push(TransferTags.Gift);
     return transfer;
 
+  } else if (
+    transfer.assetType === "ETH" &&
+    addressBook.getName(transfer.from).toLowerCase() === "weth"
+  ) {
+    transfer.tags.push(TransferTags.Unlock);
+  } else if (
+    transfer.assetType === "ETH"
+    && addressBook.getName(transfer.to).toLowerCase() === "weth"
+  ) {
+    transfer.tags.push(TransferTags.Lock);
   }
 
   for (const txLog of txLogs) {

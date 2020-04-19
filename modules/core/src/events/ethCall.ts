@@ -3,7 +3,7 @@ import { CallData, Event, EventSources, TransferTags } from "@finances/types";
 import { AddressZero } from "ethers/constants";
 import { env } from "../env";
 import { eq, Logger } from "../utils";
-import { mergeFactory } from "./utils";
+import { mergeFactory, transferTagger } from "./utils";
 
 export const castEthCall = (addressBook, chainData): any =>
   (call: CallData): any => {
@@ -40,15 +40,7 @@ export const castEthCall = (addressBook, chainData): any =>
       }],
     } as Event;
 
-    if (addressBook.isExchange(call.from)) {
-      event.transfers[0].tags.push(TransferTags.SwapIn);
-    } else if (addressBook.isExchange(call.to)) {
-      event.transfers[0].tags.push(TransferTags.SwapOut);
-    } else if (addressBook.getName(call.from).toLowerCase() === "weth") {
-      event.transfers[0].tags.push(TransferTags.Unlock);
-    } else if (addressBook.getName(call.to).toLowerCase() === "weth") {
-      event.transfers[0].tags.push(TransferTags.Lock);
-    }
+    event.transfers[0] = transferTagger(event.transfers[0], [], addressBook);
 
     const { from, quantity, to } = event.transfers[0];
     if (eq(quantity, "0")) {

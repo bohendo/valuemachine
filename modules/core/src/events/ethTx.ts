@@ -53,6 +53,8 @@ export const castEthTx = (addressBook, chainData): any =>
 
     log.debug(`transfer of ${tx.value} ETH from ${tx.from} to ${tx.to}}`);
 
+    event.transfers[0] = transferTagger(event.transfers[0], [], addressBook);
+
     for (const txLog of tx.logs) {
       if (isToken(txLog.address)) {
 
