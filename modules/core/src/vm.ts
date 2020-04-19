@@ -2,7 +2,7 @@ import { Event, Log, StateJson } from "@finances/types";
 
 import { assertState } from "./checkpoints";
 import { env } from "./env";
-import { emitLogs } from "./logs";
+import { emitEventLogs, emitTransferLogs } from "./logs";
 import { getState } from "./state";
 import { AddressBook, State } from "./types";
 import { eq, gt, Logger, sub } from "./utils";
@@ -38,7 +38,7 @@ export const getValueMachine = (addressBook: AddressBook): any => {
         }
         chunks = state.getChunks(from, assetType, quantity, event);
         chunks.forEach(chunk => state.putChunk(to, chunk));
-        logs.push(...emitLogs(addressBook, chunks, event, transfer));
+        logs.push(...emitTransferLogs(addressBook, chunks, event, transfer));
       } catch (e) {
         log.warn(e.message);
         if (feeChunks) {
@@ -58,10 +58,12 @@ export const getValueMachine = (addressBook: AddressBook): any => {
       }
       const chunks = state.getChunks(from, assetType, quantity, event);
       chunks.forEach(chunk => state.putChunk(to, chunk));
-      logs.push(...emitLogs(addressBook, chunks, event, transfer));
+      logs.push(...emitTransferLogs(addressBook, chunks, event, transfer));
     }
 
     ////////////////////////////////////////
+
+    logs.push(...emitEventLogs(addressBook, event, state));
 
     const endingBalances = state.getRelevantBalances(event);
 

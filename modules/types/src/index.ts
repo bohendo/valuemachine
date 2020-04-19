@@ -206,6 +206,13 @@ export type WithdrawLog = BaseLog & {
   type: typeof LogTypes.Withdraw;
 }
 
+export type NetWorthLog = BaseLog & {
+  assets: { [assetType: string]: DecimalString };
+  date: FormDateString;
+  prices: { [assetType: string]: DecimalString };
+  type: typeof LogTypes.NetWorth;
+}
+
 export type Log =
   | BorrowLog
   | BurnLog
@@ -221,6 +228,7 @@ export type Log =
   | SwapInLog
   | SwapOutLog
   | UnlockLog
+  | NetWorthLog
   | WithdrawLog;
 export type Logs = Log[];
 

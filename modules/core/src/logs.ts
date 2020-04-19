@@ -9,10 +9,25 @@ import {
 } from "@finances/types";
 import { AddressZero } from "ethers/constants";
 
-import { AddressBook } from "./types";
+import { AddressBook, State } from "./types";
 import { eq, mul, round, sub } from "./utils";
 
-export const emitLogs = (
+export const emitEventLogs = (
+  addressBook: AddressBook,
+  event: Event,
+  state: State,
+) => {
+  const logs = [];
+  logs.push({
+    assets: state.getNetWorth(),
+    date: event.date,
+    prices: event.prices,
+    type: LogTypes.NetWorth,
+  });
+  return logs;
+};
+
+export const emitTransferLogs = (
   addressBook: AddressBook,
   chunks: AssetChunk[],
   event: Event,

@@ -15,6 +15,7 @@ export const LogTypes = enumify({
   Income: "Income",
   Lock: "Lock",
   Mint: "Mint",
+  NetWorth: "NetWorth",
   Repay: "Repay",
   SwapIn: "SwapIn",
   SwapOut: "SwapOut",
