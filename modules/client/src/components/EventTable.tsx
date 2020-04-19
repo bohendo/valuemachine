@@ -1,12 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import _ from 'lodash';
-
-import {
-  sumByToken,
-} from '../utils/utils';
-
-import { Event } from '../types';
-
 import {
   Paper,
   Table,

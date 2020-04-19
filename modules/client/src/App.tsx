@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
 import {
-  AssetTotal,
-  AssetTypes,
-  ChainData,
   Event,
   Log,
   LogTypes,
-  NetGraphData,
 } from "@finances/types";
 import {
   getAddressBook,
@@ -35,24 +31,6 @@ import { TransactionLogs } from './components/TransactionLogs'
 
 import personal from './data/personal.json';
 import chainData from './data/chain-data.json';
-
-//import { getParsedPersonal } from './utils/parse';
-import {
-  getAllEvent,
-  getFilteredChainData,
-  getAllAssetTypes,
-  getEventCategoryByAssetType,
-  getNetWorthOn,
-  getNetStanding,
-} from './utils/getters';
-
-import { getNetWorthData } from './utils/netWorth';
-
-import {
-  AddressBook,
-  OldEvent,
-  EventByCategoryPerAssetType,
-} from './types';
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -97,13 +75,11 @@ const outTypes = [
 
 function App() {
   const classes = useStyles();
-  const [addressBook, setAddressBook] = useState({} as AddressBook);
-  const [data, setData] = useState({} as ChainData);
+  const [addressBook, setAddressBook] = useState({} as any);
   const [endDate, setEndDate] = useState(new Date());
   const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
   const [financialEvents, setFinancialEvents] = useState([] as Event[]);
   const [financialLogs, setFinancialLogs] = useState([] as Log[]);
-  const [netStandingByAssetTypeOn, setNetStandingByAssetTypeOn] = useState([] as { assetType: string; total: number; totalUSD: number; }[])
   const [netWorthSnapshot, setNetWorthSnapshot] = useState(0);
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});

@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { LogTypes } from "@finances/types";
+import React from 'react';
 import {
   Paper,
   Theme,
@@ -18,8 +17,6 @@ import { scaleTime } from 'd3-scale';
 import {
   ArgumentScale,
 } from '@devexpress/dx-react-chart';
-
-import { getNetWorthOverTimeTill, getNetWorthOverTimeAll} from '../utils/dynamicCal';
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -75,8 +72,6 @@ const TitleText = (props: any) => {
 
 export const NetWorth = (props: any) => {
   const { netWorthTimeline} = props;
-
-  console.log(netWorthTimeline);
 
   if (!netWorthTimeline || netWorthTimeline.length === 0) {
     return <> Will have net worth graph soon </>

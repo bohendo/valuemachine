@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import _ from 'lodash';
 import { getPrice } from "@finances/core";
 
 /*
@@ -18,7 +17,7 @@ import {
   PieSeries,
   Title,
 } from '@devexpress/dx-react-chart-material-ui';
-import { Animation } from '@devexpress/dx-react-chart';
+// import { Animation } from '@devexpress/dx-react-chart';
 
 import * as cache from "../utils/cache";
 
