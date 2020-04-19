@@ -207,7 +207,7 @@ function App() {
               <TransactionLogs addressBook={addressBook} financialEvents={financialEvents} />
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
-              <EventTable financialLogs={financialLogs} endDate={endDate.toISOString()}/>
+              <EventTable financialLogs={financialLogs} endDate={endDate}/>
             </Grid>
           </Grid>
         </Container>

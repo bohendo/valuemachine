@@ -54,7 +54,7 @@ export const EventTable = (props: any) => {
   useEffect(() => {
     let totalByCategory = {};
     let tempTotalByAssetType = {};
-    financialLogs.forEach((log: Log) => {
+    financialLogs.filter(log => new Date(log.date).getTime() <= endDate.getTime()).forEach((log: Log) => {
       if (!totalByCategory[log.type]) {
         totalByCategory[log.type] = {};
       }
