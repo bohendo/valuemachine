@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import {
-  AssetTypes,
-} from "@finances/types";
 import _ from 'lodash';
 
 import {
@@ -21,8 +18,6 @@ import {
   TableRow,
 } from '@material-ui/core';
 
-const assetTypes = Object.keys(AssetTypes);
-
 export const EventTable = (props: any) => {
 
   const { filteredTotalByCategory, totalByAssetType } = props;
@@ -38,7 +33,7 @@ export const EventTable = (props: any) => {
           <TableRow>
             <TableCell> Event </TableCell>
             {
-              assetTypes.map((assetType: string) => (
+              Object.keys(totalByAssetType).map((assetType: string) => (
                 <TableCell align="right" key={assetType}> {assetType} </TableCell>
               ))
             }
@@ -51,7 +46,7 @@ export const EventTable = (props: any) => {
               <TableRow key={row}>
                 <TableCell> {row} </TableCell>
                 {
-                  assetTypes.map((assetType: string) => (
+                  Object.keys(totalByAssetType).map((assetType: string) => (
                     <TableCell align="right" key={assetType}>
                      {_.round(filteredTotalByCategory[row][assetType], 2) || 0}
                     </TableCell>
@@ -66,7 +61,7 @@ export const EventTable = (props: any) => {
           <TableRow>
             <TableCell> Net Position </TableCell>
             {
-              assetTypes.map((assetType: string) => (
+              Object.keys(totalByAssetType).map((assetType: string) => (
                 <TableCell align="right" key={assetType}>
                   {_.round(totalByAssetType[assetType], 2) || 0}
                 </TableCell>

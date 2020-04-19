@@ -147,6 +147,7 @@ function App() {
     let totalByCategory = {};
     let tempTotalByAssetType = {};
     financialLogs.filter(log => new Date(log.date).getTime() <= endDate.getTime()).forEach((log: Log) => {
+      if (!log.assetType) return;
       if (!totalByCategory[log.type]) {
         totalByCategory[log.type] = {};
       }
@@ -164,6 +165,14 @@ function App() {
         tempTotalByAssetType[log.assetType] -= parseFloat(log.quantity);
       }
     })
+    for (const assetType of Object.keys(tempTotalByAssetType)) {
+      if (tempTotalByAssetType[assetType] === 0) {
+        delete tempTotalByAssetType[assetType];
+        for (const logType of Object.keys(totalByCategory)) {
+          delete totalByCategory[logType][assetType];
+        }
+      }
+    }
     setFilteredTotalByCategory(totalByCategory);
     setTotalByAssetType(tempTotalByAssetType);
   }, [financialLogs, endDate]);
@@ -251,7 +260,7 @@ function App() {
               <NetWorth allEvent={allEvent} endDate={endDate.toISOString()}/>
             </Grid>
             <Grid item xs={12} md={4} lg={3}>
-              <AssetDistribution netStandingByAssetTypeOn={netStandingByAssetTypeOn}/>
+              <AssetDistribution totalByAssetType={totalByAssetType} date={endDate.toISOString()}/>
             </Grid>
             <Grid container>
               <TransactionLogs addressBook={addressBook} financialEvents={financialEvents} />

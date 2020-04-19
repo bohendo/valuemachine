@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import _ from 'lodash';
+import { getPrice } from "@finances/core";
 
 /*
 import {
@@ -18,6 +19,8 @@ import {
   Title,
 } from '@devexpress/dx-react-chart-material-ui';
 import { Animation } from '@devexpress/dx-react-chart';
+
+import * as cache from "../utils/cache";
 
 /*
 TODO: Find a better way to display slice values
@@ -46,12 +49,25 @@ const pointComponent = (props: any) => {
 export const AssetDistribution = (props: any) => {
   const [data, setData] = useState([] as { assetType: string; total: number; totalUSD: number; }[]);
   const {
-    netStandingByAssetTypeOn,
+    totalByAssetType,
+    date,
   } = props;
 
+  console.log(totalByAssetType);
+
   useEffect(() => {
-    setData(_.filter(netStandingByAssetTypeOn, (o: any) => o.totalUSD > 0))
-  }, [netStandingByAssetTypeOn]);
+    (async () => {
+      const temp = [];
+      for (const entry of Object.entries(totalByAssetType)) {
+        console.log(`getting price for asset ${entry[0]} on ${date}`);
+        const price = await getPrice(entry[0], date, cache);
+        temp.push({ assetType: entry[0], total: entry[1] * price });
+      }
+      setData(temp);
+    })()
+  }, [date, totalByAssetType]);
+
+  console.log(data);
 
   if (!data) return <> Will have asset distribution soon </>
 
@@ -61,8 +77,8 @@ export const AssetDistribution = (props: any) => {
         data={data}
       >
         <PieSeries
-          valueField="totalUSD"
-          argumentField="asset"
+          valueField="total"
+          argumentField="assetType"
           outerRadius={1}
         />
         <Legend position="right" />
