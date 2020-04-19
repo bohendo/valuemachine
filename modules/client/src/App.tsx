@@ -82,8 +82,6 @@ function App() {
   const [financialEvents, setFinancialEvents] = useState([] as Event[]);
   const [financialLogs, setFinancialLogs] = useState([] as Log[]);
   const [netWorthData, setNetWorthData] = useState({} as NetGraphData);
-  const [eventByCategory, setEventByCategory] = useState({} as EventByCategoryPerAssetType);
-  const [assetTypes, setAssetTypes] = useState([] as Array<string>);
   const [netStandingByAssetTypeOn, setNetStandingByAssetTypeOn] = useState([] as { assetType: string; total: number; totalUSD: number; }[])
 
 
@@ -126,11 +124,6 @@ function App() {
         let eventData = await getAllEvent(data, personal.addressBook as AddressBook)
         if (eventData) {
           setAllEvent(eventData);
-          let byCategory = getEventCategoryByAssetType(eventData);
-          if (byCategory) {
-            setEventByCategory(byCategory);
-            setAssetTypes(getAllAssetTypes(byCategory));
-          }
         }
       }
     })();
@@ -173,7 +166,6 @@ function App() {
   }, [netWorthData, endDate]);
 
   //console.log(allEvent)
-  //console.log(eventByCategory);
   //console.log(netStandingByAssetTypeOn);
 
   return (
@@ -215,7 +207,7 @@ function App() {
               <TransactionLogs addressBook={addressBook} financialEvents={financialEvents} />
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
-              <EventTable financialLogs={financialLogs} eventByCategory={eventByCategory} assetTypes={assetTypes} netStandingByAssetTypeOn={netStandingByAssetTypeOn} endDate={endDate.toISOString()}/>
+              <EventTable financialLogs={financialLogs} endDate={endDate.toISOString()}/>
             </Grid>
           </Grid>
         </Container>
