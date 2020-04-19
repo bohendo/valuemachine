@@ -129,7 +129,7 @@ export const TransactionLogsTable = (props: any) => {
         <TableHead>
           <TableRow>
             <TableCell> Date </TableCell>
-            <TableCell> Tags </TableCell>
+            <TableCell> Category </TableCell>
             <TableCell> Amount </TableCell>
             <TableCell> Type </TableCell>
             <TableCell> Value </TableCell>
@@ -143,9 +143,9 @@ export const TransactionLogsTable = (props: any) => {
             ? filteredEvents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : filteredEvents
           ).map((row: TransferRow) => (
-              <TableRow key={row.hash + row.assetType + row.quantity + row.tags}>
+              <TableRow key={row.hash + row.assetType + row.quantity + row.category}>
                 <TableCell> {row.date} </TableCell>
-                <TableCell> {row.tags} </TableCell>
+                <TableCell> {row.category} </TableCell>
                 <TableCell> {row.quantity} </TableCell>
                 <TableCell> {row.assetType} </TableCell>
                 <TableCell> {row.value} </TableCell>

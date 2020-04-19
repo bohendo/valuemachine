@@ -34,16 +34,16 @@ export const TransactionLogsFilter = (props: any) => {
   const [startDate, setStartDate] = useState(new Date("November 30, 2018 00:00:00"));
   const [endDate, setEndDate] = useState(new Date("December 30, 2018 00:00:00"));
 
-  let allTags = { all: true };
-  Object.keys(TransferCategories).forEach(tag => { allTags[tag] = false })
-  const [tags, setTags] = useState(allTags);
+  let allCategories = { all: true };
+  Object.keys(TransferCategories).forEach(category => { allCategories[category] = false })
+  const [categories, setCategories] = useState(allCategories);
 
   let allAssets = { all: true };
   Object.keys(AssetTypes).forEach(asset => { allAssets[asset] = false })
   const [assets, setAssets] = useState(allAssets);
 
-  const handleTagChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTags({...tags, [event.target.name]: event.target.checked})
+  const handleCategoryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCategories({...categories, [event.target.name]: event.target.checked})
   };
 
   const handleAssetChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,8 +61,8 @@ export const TransactionLogsFilter = (props: any) => {
       
       event.transfers.forEach((transfer: Transfer) => {
         if(
-          (tags.all || transfer.tags.some(tag => tags[tag])) &&
-          (assets.all || (assets as any)[transfer.assetType])
+          (categories.all || categories[transfer.category]) &&
+          (assets.all || assets[transfer.assetType])
         ) {
           temp.push({
             ...transfer,
@@ -76,7 +76,7 @@ export const TransactionLogsFilter = (props: any) => {
 
     console.log(temp);
     setFilteredEvents(temp)
-  }, [financialEvents, startDate, endDate, tags, assets, setFilteredEvents]);
+  }, [financialEvents, startDate, endDate, categories, assets, setFilteredEvents]);
 
   return (
     <>
@@ -85,14 +85,14 @@ export const TransactionLogsFilter = (props: any) => {
 
       <Divider />
       <FormControl component="fieldset" className={classes.formControl}>
-        <FormLabel component="legend">Select Tags</FormLabel>
+        <FormLabel component="legend">Select Categories</FormLabel>
         <FormGroup row>
-          {Object.keys(tags).map((key: string) => (
+          {Object.keys(categories).map((key: string) => (
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={(tags as any)[key]}
-                  onChange={handleTagChange}
+                  checked={(categories as any)[key]}
+                  onChange={handleCategoryChange}
                   name={key}
                 />
               }
@@ -110,7 +110,7 @@ export const TransactionLogsFilter = (props: any) => {
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={(assets as any)[key]}
+                  checked={assets[key]}
                   onChange={handleAssetChange}
                   name={key}
                 />

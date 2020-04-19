@@ -177,7 +177,7 @@ export type LockLog = BaseLog & {
 }
 
 export type MintLog = BaseLog & {
-  from: Address;
+  to: Address;
   type: typeof LogTypes.Mint;
 }
 
