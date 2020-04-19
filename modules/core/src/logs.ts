@@ -27,16 +27,21 @@ export const emitLogs = (
 
   const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("account");
 
-  if (
-    from === AddressZero || to === AddressZero ||
-    from === wethAddress || to === wethAddress ||
-    eq(quantity, "0")
-  ) {
-    return logs;
+  if (transfer.tags.length !== 1 || !transfer.tags.includes(TransferTags.Transfer)) {
+    if (transfer.tags.some(tag => ["Borrow", "Burn", "Income", "Mint", "SwapIn", "Withdraw"].includes(tag))) {
+      logs.push({
+        assetPrice: event.prices[assetType],
+        assetType: assetType,
+        date: event.date,
+        description: `${quantity} ${assetType} to ${pretty(to)} ${position}`,
+        quantity: quantity,
+        from,
+        type: transfer.tags[0] as LogTypes,
+      });
+    }
   }
 
   if (isAnySelf(from) && !isAnySelf(to)) {
-
     // maybe emit expense
     if (transfer.tags.length === 1 && transfer.tags.includes(TransferTags.Transfer)) {
       logs.push({
@@ -66,10 +71,9 @@ export const emitLogs = (
         });
       });
     }
-  }
 
   // maybe emit income log
-  if (
+  } else if (
     !isAnySelf(from) &&
     isAnySelf(to) &&
     transfer.tags.length === 1 && transfer.tags.includes(TransferTags.Transfer)
