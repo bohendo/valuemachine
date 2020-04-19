@@ -139,6 +139,12 @@ export type NetStandingData = Array<{
   investment: number;
 }>
 
+export type TotalByCategoryPerAssetType = {
+  [category: string]: {
+    [assetType: string]: number;
+  };
+}
+
 export type EventByCategoryPerAssetType = {
   [category: string]: {
     [assetType: string]: Array<OldEvent>

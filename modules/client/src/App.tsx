@@ -5,10 +5,13 @@ import {
   ChainData,
   NetGraphData,
   Event,
+  Log,
 } from "@finances/types";
 import {
-  getEvents,
   getAddressBook,
+  getEvents,
+  getState,
+  getValueMachine,
 } from "@finances/core";
 import {
   AppBar,
@@ -76,7 +79,8 @@ function App() {
   const [addressBook, setAddressBook] = useState({} as AddressBook);
   const [data, setData] = useState({} as ChainData);
   const [allEvent, setAllEvent] = useState([] as Array<OldEvent>);
-  const [financialEvents, setFinancialEvents] = useState([] as Array<Event>);
+  const [financialEvents, setFinancialEvents] = useState([] as Event[]);
+  const [financialLogs, setFinancialLogs] = useState([] as Log[]);
   const [netWorthData, setNetWorthData] = useState({} as NetGraphData);
   const [eventByCategory, setEventByCategory] = useState({} as EventByCategoryPerAssetType);
   const [assetTypes, setAssetTypes] = useState([] as Array<string>);
@@ -84,6 +88,8 @@ function App() {
 
 
   useEffect(() => {
+    //TODO: Remove
+    setData(getFilteredChainData(personal, chainData));
     (async () => {
       const addressBook = getAddressBook(personal.addressBook);
       setAddressBook(addressBook);
@@ -94,13 +100,24 @@ function App() {
         [],
         console,
       );
-
       setFinancialEvents(events);
-    })();
-  }, []);
 
-  useEffect(() => {
-    setData(getFilteredChainData(personal, chainData));
+      const valueMachine = getValueMachine(addressBook);
+
+      let state = getState(addressBook, cache.loadState());
+      let vmLogs = cache.loadLogs();
+      for (const event of events.filter(
+        event => new Date(event.date).getTime() > new Date(state.toJson().lastUpdated).getTime(),
+      )) {
+        const [newState, newLogs] = valueMachine(state.toJson(), event);
+        vmLogs = vmLogs.concat(...newLogs);
+        state = newState;
+        cache.saveState(state.toJson());
+        cache.saveLogs(vmLogs);
+      }
+      setFinancialLogs(vmLogs);
+
+    })();
   }, []);
 
   useEffect(() => {
@@ -198,7 +215,7 @@ function App() {
               <TransactionLogs addressBook={addressBook} financialEvents={financialEvents} />
             </Grid>
             <Grid item xs={12} md={12} lg={12}>
-              <EventTable eventByCategory={eventByCategory} assetTypes={assetTypes} netStandingByAssetTypeOn={netStandingByAssetTypeOn} endDate={endDate.toISOString()}/>
+              <EventTable financialLogs={financialLogs} eventByCategory={eventByCategory} assetTypes={assetTypes} netStandingByAssetTypeOn={netStandingByAssetTypeOn} endDate={endDate.toISOString()}/>
             </Grid>
           </Grid>
         </Container>

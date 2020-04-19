@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import {
+  AssetTypes,
+} from "@finances/types";
 import _ from 'lodash';
 
 import {
@@ -18,35 +21,35 @@ import {
   TableRow,
 } from '@material-ui/core';
 
+const assetTypes = Object.keys(AssetTypes);
+
 export const EventTable = (props: any) => {
 
-  const [filteredEventByCategory, setFilteredEventByCategory] = useState({} as any);
+  const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
+
   const {
-    assetTypes,
     endDate,
     eventByCategory,
+    financialLogs,
     netStandingByAssetTypeOn,
   } = props;
 
   useEffect(() => {
+    let totalByCategory = {};
+    financialLogs.forEach((log: Log) => {
+      if (!totalByCategory[log.type]) {
+        totalByCategory[log.type] = {};
+      }
+      if (!totalByCategory[log.type][log.assetType]) {
+        totalByCategory[log.type][log.assetType] = 0;
+      }
+      totalByCategory[log.type][log.assetType] += parseFloat(log.quantity);
+    })
+    setFilteredTotalByCategory(totalByCategory);
+  }, [financialLogs, endDate]);
 
-    if (eventByCategory && endDate) {
-      let temp = {} as any
-      Object.keys(eventByCategory).forEach((category: string) => {
-        Object.keys(eventByCategory[category]).forEach((assetType: string) => {
-          if (!temp[category]) temp[category] = {}
-          temp[category][assetType] = _.dropRightWhile(
-            eventByCategory[category][assetType],
-            (event: Event) => event.date > endDate
-          )
-        })
-      })
-
-      setFilteredEventByCategory(temp)
-    }
-  }, [eventByCategory, endDate]);
-
-  if (netStandingByAssetTypeOn.length === 0 || !filteredEventByCategory || !assetTypes) {
+  console.log(filteredTotalByCategory);
+  if (netStandingByAssetTypeOn.length === 0 || !filteredTotalByCategory) {
     return <> Loading! We will have event table shortly </>;
   }
 
@@ -64,14 +67,16 @@ export const EventTable = (props: any) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {Object.keys(filteredEventByCategory).map(
+          {Object.keys(filteredTotalByCategory).map(
             (row: string) => {
               return (
               <TableRow key={row}>
                 <TableCell> {row} </TableCell>
                 {
                   assetTypes.map((assetType: string) => (
-                    <TableCell align="right" key={assetType}> {_.round(sumByToken(assetType, filteredEventByCategory[row]), 2)} </TableCell>
+                    <TableCell align="right" key={assetType}>
+                     {_.round(filteredTotalByCategory[row][assetType], 2) || 0}
+                    </TableCell>
                   ))
                 }
               </TableRow>
