@@ -27,7 +27,7 @@ export const emitLogs = (
 
   const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("account");
 
-  if (["Borrow", "Burn", "Income", "Mint", "SwapIn", "Withdraw"].includes(transfer.category)) {
+  if (["Borrow", "Burn", "Income", "SwapIn", "Withdraw"].includes(transfer.category)) {
     logs.push({
       assetPrice: event.prices[assetType],
       assetType: assetType,
@@ -37,10 +37,20 @@ export const emitLogs = (
       from,
       type: transfer.category as LogTypes,
     });
+  } else if (["Deposit", "Expense", "Mint", "Repay", "SwapOut"].includes(transfer.category)) {
+    logs.push({
+      assetPrice: event.prices[assetType],
+      assetType: assetType,
+      date: event.date,
+      description: `${quantity} ${assetType} to ${pretty(to)} ${position}`,
+      quantity: quantity,
+      to,
+      type: transfer.category as LogTypes,
+    });
   }
 
   if (isAnySelf(from) && !isAnySelf(to)) {
-    // maybe emit expense
+    // maybe emit expense/gift
     if (transfer.category === TransferCategories.Transfer) {
       logs.push({
         assetPrice: event.prices[assetType],
@@ -50,6 +60,16 @@ export const emitLogs = (
         quantity: quantity,
         to,
         type: LogTypes.Expense,
+      });
+    } else if (transfer.category === TransferCategories.Gift) {
+      logs.push({
+        assetPrice: event.prices[assetType],
+        assetType: assetType,
+        date: event.date,
+        description: `${quantity} ${assetType} to ${pretty(to)} ${position}`,
+        quantity: quantity,
+        to,
+        type: LogTypes.GiftOut,
       });
     }
 
@@ -70,21 +90,29 @@ export const emitLogs = (
       });
     }
 
-  // maybe emit income log
-  } else if (
-    !isAnySelf(from) &&
-    isAnySelf(to) &&
-    transfer.category === TransferCategories.Transfer
-  ) {
-    logs.push({
-      assetPrice: event.prices[assetType],
-      assetType: assetType,
-      date: event.date,
-      description: `${quantity} ${assetType} from ${pretty(from)} ${position}`,
-      from,
-      quantity: quantity,
-      type: LogTypes.Income,
-    });
+  // maybe emit income/gift log
+  } else if (!isAnySelf(from) && isAnySelf(to)) {
+    if (transfer.category === TransferCategories.Transfer) {
+      logs.push({
+        assetPrice: event.prices[assetType],
+        assetType: assetType,
+        date: event.date,
+        description: `${quantity} ${assetType} from ${pretty(from)} ${position}`,
+        from,
+        quantity: quantity,
+        type: LogTypes.Income,
+      });
+    } else if (transfer.category === TransferCategories.Gift) {
+      logs.push({
+        assetPrice: event.prices[assetType],
+        assetType: assetType,
+        date: event.date,
+        description: `${quantity} ${assetType} to ${pretty(to)} ${position}`,
+        quantity: quantity,
+        to,
+        type: LogTypes.GiftOut,
+      });
+    }
   }
 
   return logs;
