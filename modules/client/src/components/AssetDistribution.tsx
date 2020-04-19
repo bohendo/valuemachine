@@ -53,8 +53,6 @@ export const AssetDistribution = (props: any) => {
     date,
   } = props;
 
-  console.log(totalByAssetType);
-
   useEffect(() => {
     (async () => {
       const temp = [];
@@ -67,9 +65,7 @@ export const AssetDistribution = (props: any) => {
     })()
   }, [date, totalByAssetType]);
 
-  console.log(data);
-
-  if (!data) return <> Will have asset distribution soon </>
+  if (!data || data.length === 0) return <> Will have asset distribution soon </>
 
   return (
     <Paper>

@@ -97,22 +97,18 @@ const outTypes = [
 
 function App() {
   const classes = useStyles();
-  const [endDate, setEndDate] = useState(new Date());
   const [addressBook, setAddressBook] = useState({} as AddressBook);
   const [data, setData] = useState({} as ChainData);
-  const [allEvent, setAllEvent] = useState([] as Array<OldEvent>);
+  const [endDate, setEndDate] = useState(new Date());
+  const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
   const [financialEvents, setFinancialEvents] = useState([] as Event[]);
   const [financialLogs, setFinancialLogs] = useState([] as Log[]);
-  const [netWorthData, setNetWorthData] = useState({} as NetGraphData);
   const [netStandingByAssetTypeOn, setNetStandingByAssetTypeOn] = useState([] as { assetType: string; total: number; totalUSD: number; }[])
-  const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
+  const [netWorthSnapshot, setNetWorthSnapshot] = useState(0);
+  const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
 
-
-
   useEffect(() => {
-    //TODO: Remove
-    setData(getFilteredChainData(personal, chainData));
     (async () => {
       const addressBook = getAddressBook(personal.addressBook);
       setAddressBook(addressBook);
@@ -175,57 +171,27 @@ function App() {
     }
     setFilteredTotalByCategory(totalByCategory);
     setTotalByAssetType(tempTotalByAssetType);
+
+    const recentPrices = {};
+    const netWorthData = financialLogs
+      .filter(log => new Date(log.date).getTime() <= endDate.getTime())
+      .filter(log => log.type === LogTypes.NetWorth)
+      .map((log: Log, index: number) => {
+        let total = 0;
+        for (const assetType of Object.keys(log.assets )) {
+          recentPrices[assetType] = log.prices[assetType] || recentPrices[assetType];
+          total += parseFloat(log.assets[assetType]) * parseFloat(recentPrices[assetType]);
+        }
+        return { date: new Date(log.date), networth: total };
+      });
+
+    setNetWorthTimeline(netWorthData);
+
+    if (netWorthData.length > 0) {
+      setNetWorthSnapshot(netWorthData[netWorthData.length - 1].networth);
+    }
+
   }, [financialLogs, endDate]);
-
-  useEffect(() => {
-    (async () => {
-      if (data) {
-        let eventData = await getAllEvent(data, personal.addressBook as AddressBook)
-        if (eventData) {
-          setAllEvent(eventData);
-        }
-      }
-    })();
-  }, [data]);
-
-
-  useEffect(() => {
-    setNetWorthData(getNetWorthData(allEvent));
-  }, [allEvent]);
-
-  useEffect(() => {
-    (async () => {
-      if (endDate && netWorthData && netWorthData.netWorth) {
-        let date = endDate.toISOString().slice(0,10)
-
-        if (!netWorthData.netWorth[date]) {
-          if (endDate.toISOString() > netWorthData.lastUpdated) 
-            date = netWorthData.lastUpdated.slice(0,10);
-          else {
-            //@ts-ignore
-            let nearestDate = _.findLastKey(
-              netWorthData.netWorth,
-              (value: AssetTotal, key: string) => key < date);
-            if (nearestDate) date = nearestDate;
-          }
-        }
-
-        console.log(date);
-
-        let byAsset = await getNetStanding(
-          netWorthData.netWorth[date],
-          endDate.toISOString()
-        );
-
-        if (byAsset.length > 0) {
-          setNetStandingByAssetTypeOn(byAsset)
-        }
-      }
-    })();
-  }, [netWorthData, endDate]);
-
-  //console.log(allEvent)
-  //console.log(netStandingByAssetTypeOn);
 
   return (
     <div className={classes.root}>
@@ -253,11 +219,11 @@ function App() {
             </Grid>
             <Grid item xs={6} md={6} lg={6}>
               <Typography>
-                $ {getNetWorthOn(netStandingByAssetTypeOn)}
+                $ {netWorthSnapshot}
               </Typography>
             </Grid>
             <Grid item xs={12} md={8} lg={9}>
-              <NetWorth allEvent={allEvent} endDate={endDate.toISOString()}/>
+              <NetWorth netWorthTimeline={netWorthTimeline} endDate={endDate}/>
             </Grid>
             <Grid item xs={12} md={4} lg={3}>
               <AssetDistribution totalByAssetType={totalByAssetType} date={endDate.toISOString()}/>

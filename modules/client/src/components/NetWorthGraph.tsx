@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LogTypes } from "@finances/types";
 import {
   Paper,
   Theme,
@@ -73,55 +74,39 @@ const TitleText = (props: any) => {
 };
 
 export const NetWorth = (props: any) => {
-  const [netWorth, setNetWorth] = useState([] as any);
-  const [netWorthAll, setNetWorthAll] = useState([] as any);
-  const { allEvent, endDate } = props;
+  const { netWorthTimeline} = props;
 
-  useEffect(() => {
-    if (allEvent) {
-      let netWorthData = getNetWorthOverTimeAll(allEvent);
-      setNetWorthAll(netWorthData);
-    }
-  }, [allEvent]);
+  console.log(netWorthTimeline);
 
-  useEffect(() => {
-    if (netWorthAll && endDate) {
-      let netWorthData = getNetWorthOverTimeTill(netWorthAll, endDate);
-      setNetWorth(netWorthData);
-    }
-  }, [endDate, netWorthAll]);
+  if (!netWorthTimeline || netWorthTimeline.length === 0) {
+    return <> Will have net worth graph soon </>
+  }
 
-  if (!netWorth) return <> Will have net worth graph soon </>
+  return (
+    <Paper>
+      <Chart
+        data={netWorthTimeline}
+      >
+        <ArgumentScale factory={scaleTime} />
+        <ArgumentAxis />
+        <ValueAxis
+          labelComponent={ValueLabel}
+        />
 
-    return (
-      <Paper>
-        <Chart
-          data={netWorth}
-        >
-          <ArgumentScale factory={scaleTime} />
-          <ArgumentAxis />
-          <ValueAxis
-            labelComponent={ValueLabel}
-          />
-
-          <LineSeries
-            name="Net Worth"
-            valueField="networth"
-            argumentField="date"
-          />
-          <LineSeries
-            name="Debt"
-            valueField="debt"
-            argumentField="date"
-          />
-          <Legend position="bottom" rootComponent={LegendRootBase} itemComponent={LegendItemBase} labelComponent={LegendLabelBase} />
-          <Title
-            text={'Networth over time'}
-            textComponent={TitleText}
-          />
-        </Chart>
-      </Paper>
-    );
+        <LineSeries
+          name="Net Worth"
+          valueField="networth"
+          argumentField="date"
+        />
+        {/*<LineSeries name="Debt" valueField="debt" argumentField="date" />*/}
+        <Legend position="bottom" rootComponent={LegendRootBase} itemComponent={LegendItemBase} labelComponent={LegendLabelBase} />
+        <Title
+          text={'NetWorth over time'}
+          textComponent={TitleText}
+        />
+      </Chart>
+    </Paper>
+  );
 }
 
 /*
