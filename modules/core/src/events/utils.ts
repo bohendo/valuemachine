@@ -4,7 +4,7 @@ import {
   EventSources,
   TransactionLog,
   Transfer,
-  TransferTags,
+  TransferCategories,
 } from "@finances/types";
 import { AddressZero } from "ethers/constants";
 import { formatEther } from "ethers/utils";
@@ -39,38 +39,38 @@ export const transferTagger = (
 
   // eg SwapOut to Uniswap
   } else if (isExchange(transfer.to) && isSelf(transfer.from)) {
-    transfer.tags.push(TransferTags.SwapOut);
+    transfer.category = TransferCategories.SwapOut;
     return transfer;
 
   // eg SwapIn from Uniswap
   } else if (isExchange(transfer.from) && isSelf(transfer.to)) {
-    transfer.tags.push(TransferTags.SwapIn);
+    transfer.category = TransferCategories.SwapIn;
     return transfer;
 
   // eg deposit into OG CDP
   } else if (transfer.assetType === "WETH" && getName(transfer.to) === "makerdao-v1-tub") {
-    transfer.tags.push(TransferTags.Deposit);
+    transfer.category = TransferCategories.Deposit;
     return transfer;
 
   // eg withdraw from OG CDP
   } else if (transfer.assetType === "WETH" && getName(transfer.from) === "makerdao-v1-tub") {
-    transfer.tags.push(TransferTags.Withdraw);
+    transfer.category = TransferCategories.Withdraw;
     return transfer;
 
   } else if (isFamily(transfer.to) || isFamily(transfer.from)) {
-    transfer.tags.push(TransferTags.Gift);
+    transfer.category = TransferCategories.Gift;
     return transfer;
 
   } else if (
     transfer.assetType === "ETH" &&
     addressBook.getName(transfer.from).toLowerCase() === "weth"
   ) {
-    transfer.tags.push(TransferTags.Unlock);
+    transfer.category = TransferCategories.Unlock;
   } else if (
     transfer.assetType === "ETH"
     && addressBook.getName(transfer.to).toLowerCase() === "weth"
   ) {
-    transfer.tags.push(TransferTags.Lock);
+    transfer.category = TransferCategories.Lock;
   }
 
   for (const txLog of txLogs) {
@@ -84,13 +84,13 @@ export const transferTagger = (
         const data = event.decode(txLog.data, txLog.topics);
         // Withdraw
         if (event.name === "Redeem" && eq(formatEther(data.redeemAmount), transfer.quantity)) {
-          transfer.tags.push(TransferTags.Withdraw);
+          transfer.category = TransferCategories.Withdraw;
           if (transfer.from === AddressZero) {
             transfer.from = txLog.address;
           }
         // Deposit
         } else if (event.name === "Mint" && eq(formatEther(data.mintAmount), transfer.quantity)) {
-          transfer.tags.push(TransferTags.Deposit);
+          transfer.category = TransferCategories.Deposit;
         }
 
       // makerdao
@@ -105,22 +105,22 @@ export const transferTagger = (
         // const rad = formatUnits(txLog.topics[2], 45);
 
         if (transfer.from === AddressZero && getName(src) === "maker-pot") {
-          transfer.tags.push(TransferTags.Withdraw);
+          transfer.category = TransferCategories.Withdraw;
           transfer.from = src;
           break;
 
         } else if (transfer.from === AddressZero && getName(src) === "cdp" /* user-specific */) {
-          transfer.tags.push(TransferTags.Borrow);
+          transfer.category = TransferCategories.Borrow;
           transfer.from = src;
           break;
 
         } else if (transfer.to === AddressZero && getName(dst) === "maker-pot") {
-          transfer.tags.push(TransferTags.Deposit);
+          transfer.category = TransferCategories.Deposit;
           transfer.to = dst;
           break;
 
         } else if (transfer.to === AddressZero && getName(dst) === "cdp") {
-          transfer.tags.push(TransferTags.Repay);
+          transfer.category = TransferCategories.Repay;
           transfer.to = dst;
           break;
 
@@ -136,17 +136,17 @@ export const transferTagger = (
           getName(data.asset) === transfer.assetType
         ) {
           if (event.name === "RepayBorrow") {
-            transfer.tags.push(TransferTags.Repay);
+            transfer.category = TransferCategories.Repay;
           } else if (event.name === "Borrow") {
-            transfer.tags.push(TransferTags.Borrow);
+            transfer.category = TransferCategories.Borrow;
           } else if (event.name === "SupplyReceived") {
-            transfer.tags.push(TransferTags.Deposit);
+            transfer.category = TransferCategories.Deposit;
           } else if (event.name === "SupplyWithdrawn") {
-            transfer.tags.push(TransferTags.Withdraw);
+            transfer.category = TransferCategories.Withdraw;
           } else if (event.name === "BorrowTaken") {
-            transfer.tags.push(TransferTags.Borrow);
+            transfer.category = TransferCategories.Borrow;
           } else if (event.name === "BorrowRepaid") {
-            transfer.tags.push(TransferTags.Repay);
+            transfer.category = TransferCategories.Repay;
           }
         }
       }
@@ -157,10 +157,10 @@ export const transferTagger = (
       if (event && event.name === "LogTake") {
         const data = event.decode(txLog.data, txLog.topics);
         if (eq(formatEther(data.take_amt), transfer.quantity)) {
-          transfer.tags.push(TransferTags.SwapIn);
+          transfer.category = TransferCategories.SwapIn;
           break;
         } else if (eq(formatEther(data.give_amt), transfer.quantity)) {
-          transfer.tags.push(TransferTags.SwapOut);
+          transfer.category = TransferCategories.SwapOut;
           break;
         }
       }
@@ -179,7 +179,7 @@ export const transferTagger = (
         eq(amt, transfer.quantity) &&
         transfer.from === AddressZero
       ) {
-        transfer.tags.push(TransferTags.SwapIn);
+        transfer.category = TransferCategories.SwapIn;
         break;
       }
     }

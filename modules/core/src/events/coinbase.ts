@@ -1,4 +1,4 @@
-import { Event, EventSources, TransferTags } from "@finances/types";
+import { Event, EventSources, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
@@ -30,40 +30,40 @@ export const castCoinbase = (filename: string): Event[] => {
       transfers: [],
     } as Event;
 
-    let [from, to, tags] = ["", "", []];
+    let [from, to, category] = ["", "", TransferCategories.Transfer as TransferCategories];
 
     if (txType === "Send") {
-      [from, to, tags] = ["coinbase-account", "external-account", []];
+      [from, to, category] = ["coinbase-account", "external-account", TransferCategories.Transfer];
       event.description = `Withdraw ${quantity} ${assetType} out of coinbase`;
 
     } else if (txType === "Receive") {
-      [from, to, tags] = ["external-account", "coinbase-account", []];
+      [from, to, category] = ["external-account", "coinbase-account", TransferCategories.Transfer];
       event.description = `Deposit ${quantity} ${assetType} into coinbase`;
 
     } else if (txType === "Sell") {
-      [from, to, tags] = ["coinbase-account", "coinbase-exchange", [TransferTags.SwapOut]];
+      [from, to, category] = ["coinbase-account", "coinbase-exchange", TransferCategories.SwapOut];
       event.transfers.push({
         assetType: "USD",
         from: "coinbase-exchange",
         quantity: usdQuantity,
-        tags: [TransferTags.SwapIn],
+        category: TransferCategories.SwapIn,
         to: "coinbase-account",
       });
       event.description = `Sell ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
 
     } else if (txType === "Buy") {
-      [from, to, tags] = ["coinbase-exchange", "coinbase-account", [TransferTags.SwapIn]];
+      [from, to, category] = ["coinbase-exchange", "coinbase-account", TransferCategories.SwapIn];
       event.transfers.push({
         assetType: "USD",
         from: "coinbase-account",
         quantity: usdQuantity,
-        tags: [TransferTags.SwapOut],
+        category: TransferCategories.SwapOut,
         to: "coinbase-exchange",
       });
       event.description = `Buy ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
     }
 
-    event.transfers.push({ assetType, from, quantity, tags, to });
+    event.transfers.push({ assetType, from, quantity, category, to });
 
     log.debug(event.description);
     return event;

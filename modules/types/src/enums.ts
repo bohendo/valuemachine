@@ -46,7 +46,7 @@ export const AssetTypes = enumify({
 });
 export type AssetTypes = (typeof AssetTypes)[keyof typeof AssetTypes];
 
-export const TransferTags = enumify({
+export const TransferCategories = enumify({
   Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
   Burn: "Burn",
   Deposit: "Deposit", // eg dai->dsr or eth->compound
@@ -61,4 +61,4 @@ export const TransferTags = enumify({
   Unlock: "Unlock",
   Withdraw: "Withdraw",
 });
-export type TransferTags = (typeof TransferTags)[keyof typeof TransferTags];
+export type TransferCategories = (typeof TransferCategories)[keyof typeof TransferCategories];

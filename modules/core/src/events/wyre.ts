@@ -1,4 +1,4 @@
-import { DateString, Event, EventSources, TransferTags } from "@finances/types";
+import { DateString, Event, EventSources, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 import fs from "fs";
 
@@ -43,14 +43,14 @@ export const castWyre = (filename: string): Event[] => {
         assetType: sourceType,
         from: "sendwyre-account",
         quantity: sourceQuantity,
-        tags: [TransferTags.SwapOut],
+        category: TransferCategories.SwapOut,
         to: "sendwyre-exchange",
       });
       event.transfers.push({
         assetType: destType,
         from: "sendwyre-exchange",
         quantity: destQuantity,
-        tags: [TransferTags.SwapIn],
+        category: TransferCategories.SwapIn,
         to: "sendwyre-account",
       });
       event.description = sourceType === "USD"
@@ -62,7 +62,7 @@ export const castWyre = (filename: string): Event[] => {
         assetType: destType,
         from: "external-account",
         quantity: destQuantity,
-        tags: [],
+        category: TransferCategories.Transfer,
         to: "sendwyre-account",
       });
       event.description = `Deposit ${destQuantity} ${destType} into sendwyre`;
@@ -72,14 +72,14 @@ export const castWyre = (filename: string): Event[] => {
         assetType: sourceType,
         from: "external-account",
         quantity: sourceQuantity,
-        tags: [TransferTags.SwapOut],
+        category: TransferCategories.SwapOut,
         to: "sendwyre-exchange",
       });
       event.transfers.push({
         assetType: destType,
         from: "sendwyre-exchange",
         quantity: destQuantity,
-        tags: [TransferTags.SwapIn],
+        category: TransferCategories.SwapIn,
         to: "sendwyre-account",
       });
       event.description = sourceType === "USD"
@@ -91,7 +91,7 @@ export const castWyre = (filename: string): Event[] => {
         assetType: destType,
         from: "sendwyre-account",
         quantity: destQuantity,
-        tags: [],
+        category: TransferCategories.Transfer,
         to: "external-account",
       });
       event.description = `Withdraw ${destQuantity} ${destType} out of sendwyre`;
@@ -101,14 +101,14 @@ export const castWyre = (filename: string): Event[] => {
         assetType: sourceType,
         from: "sendwyre-account",
         quantity: sourceQuantity,
-        tags: [TransferTags.SwapOut],
+        category: TransferCategories.SwapOut,
         to: "sendwyre-exchange",
       });
       event.transfers.push({
         assetType: destType,
         from: "sendwyre-exchange",
         quantity: destQuantity,
-        tags: [TransferTags.SwapIn],
+        category: TransferCategories.SwapIn,
         to: "external-account",
       });
       event.description = sourceType === "USD"

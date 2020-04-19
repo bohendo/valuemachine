@@ -1,4 +1,4 @@
-import { AssetTypes, EventSources, LogTypes, TransferTags } from "./enums";
+import { AssetTypes, EventSources, LogTypes, TransferCategories } from "./enums";
 
 export * from "./empty";
 export * from "./enums";
@@ -75,7 +75,7 @@ export type Transfer = {
   fee?: DecimalString;
   from: HexString;
   to: HexString;
-  tags: TransferTags[];
+  category: TransferCategories;
 }
 
 export type Event = {

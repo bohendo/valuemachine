@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AssetTypes, Event, Transfer, TransferTags } from '@finances/types';
+import { AssetTypes, Event, Transfer, TransferCategories } from '@finances/types';
 
 import {
   Checkbox,
@@ -35,7 +35,7 @@ export const TransactionLogsFilter = (props: any) => {
   const [endDate, setEndDate] = useState(new Date("December 30, 2018 00:00:00"));
 
   let allTags = { all: true };
-  Object.keys(TransferTags).forEach(tag => { allTags[tag] = false })
+  Object.keys(TransferCategories).forEach(tag => { allTags[tag] = false })
   const [tags, setTags] = useState(allTags);
 
   let allAssets = { all: true };

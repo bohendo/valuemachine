@@ -1,4 +1,4 @@
-import { Event, EventSources, TransferTags, Transfer, TransactionData } from "@finances/types";
+import { Event, EventSources, TransferCategories, Transfer, TransactionData } from "@finances/types";
 
 import { AddressZero } from "ethers/constants";
 import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from "ethers/utils";
@@ -39,7 +39,7 @@ export const castEthTx = (addressBook, chainData): any =>
         from: tx.from.toLowerCase(),
         index: 0,
         quantity: tx.value,
-        tags: [],
+        category: TransferCategories.Transfer,
         to: tx.to.toLowerCase(),
       }],
     } as Event;
@@ -73,33 +73,33 @@ export const castEthTx = (addressBook, chainData): any =>
         );
 
         const index = txLog.index;
-        const transfer = { assetType, index, quantity, tags: [] } as Transfer;
+        const transfer = { assetType, index, quantity, category: "Transfer" } as Transfer;
 
         if (eventI.name === "Transfer") {
           log.debug(`${quantity} ${assetType} was transfered to ${data.to}`);
           transfer.from = data.from || data.src;
           transfer.to = data.to || data.dst;
-          transfer.tags.push(TransferTags.Transfer);
+          transfer.category = TransferCategories.Transfer;
           event.transfers.push(transferTagger(transfer, tx.logs, addressBook));
 
         } else if (assetType === "WETH" && eventI.name === "Deposit") {
           log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
-          transfer.tags.push(TransferTags.Mint);
+          transfer.category = TransferCategories.Mint;
           event.transfers.push({ ...transfer, from: AddressZero, to: data.dst });
 
         } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
           log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
-          transfer.tags.push(TransferTags.Burn);
+          transfer.category = TransferCategories.Burn;
           event.transfers.push({ ...transfer, from: data.src, to: AddressZero });
 
         } else if (assetType === "SAI" && eventI.name === "Mint") {
           log.debug(`Minted ${quantity} ${assetType}`);
-          transfer.tags.push(TransferTags.Borrow);
+          transfer.category = TransferCategories.Borrow;
           event.transfers.push({ ...transfer, from: AddressZero, to: data.guy });
 
         } else if (assetType === "SAI" && eventI.name === "Burn") {
           log.debug(`Burnt ${quantity} ${assetType}`);
-          transfer.tags.push(TransferTags.Repay);
+          transfer.category = TransferCategories.Repay;
           event.transfers.push({ ...transfer, from: data.guy, to: AddressZero });
 
         } else if (eventI.name === "Approval") {

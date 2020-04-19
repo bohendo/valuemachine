@@ -1,4 +1,4 @@
-import { CallData, Event, EventSources, TransferTags } from "@finances/types";
+import { CallData, Event, EventSources, TransferCategories } from "@finances/types";
 
 import { AddressZero } from "ethers/constants";
 import { env } from "../env";
@@ -35,7 +35,7 @@ export const castEthCall = (addressBook, chainData): any =>
         assetType: "ETH",
         from: call.from.toLowerCase(),
         quantity: call.value,
-        tags: [],
+        category: TransferCategories.Transfer,
         to: call.to.toLowerCase(),
       }],
     } as Event;
