@@ -142,8 +142,8 @@ export const TransactionLogsTable = (props: any) => {
           {(rowsPerPage > 0
             ? filteredEvents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : filteredEvents
-          ).map((row: TransferRow) => (
-              <TableRow key={row.hash + row.assetType + row.quantity + row.category}>
+          ).map((row: TransferRow, i: number) => (
+              <TableRow key={i}>
                 <TableCell> {row.date} </TableCell>
                 <TableCell> {row.category} </TableCell>
                 <TableCell> {row.quantity} </TableCell>
