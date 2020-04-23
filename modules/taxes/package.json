@@ -2,8 +2,7 @@
   "name": "@finances/taxes",
   "version": "1.0.0",
   "description": "",
-  "main": "build/src/index.js",
-  "types": "build/src/index.d.ts",
+  "main": "build/src/entry.js",
   "author": "",
   "license": "ISC",
   "devDependencies": {

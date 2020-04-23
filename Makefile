@@ -108,16 +108,17 @@ server: core $(shell find modules/server $(find_options))
 ########################################
 # Build tax return
 
+tax-return: personal
 example: modules/core/example.json core $(shell find modules/core/ops $(find_options))
 	$(log_start)
 	$(docker_run) "node modules/core/build/src/entry.js example.json $(example)"
 	@$(docker_run) "bash modules/core/ops/build.sh example"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-personal: modules/core/personal.json core $(shell find modules/core/ops $(find_options))
+personal: modules/taxes/personal.json taxes $(shell find modules/taxes/ops $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/core && node build/src/entry.js personal.json build/personal"
-	@$(docker_run) "bash modules/core/ops/build.sh personal"
+	$(docker_run) "cd modules/taxes && node build/src/entry.js personal.json build/personal"
+	@$(docker_run) "bash modules/taxes/ops/build.sh personal"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 test: modules/core/test.json core $(shell find modules/core/ops $(find_options))
