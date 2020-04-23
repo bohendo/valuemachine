@@ -1,8 +1,21 @@
 #!/bin/bash
 set -e
 
-target=$1
-dir="`pwd`/build/$target"
+input_file="$1"
+
+echo "[entry.sh] Processing input file $input_file"
+
+username="`cat $input_file | jq '.env.username' | tr -d '" '`"
+
+echo "[entry.sh] Generating tax-return data for $username"
+
+mkdir -p build/$username/data
+
+node build/src/entry.js $input_file
+
+echo "[entry.sh] Compiling tax return data into PDFs"
+
+dir="build/$username"
 
 data_dir="$dir/data"
 pages_dir="$dir/pages"
@@ -11,7 +24,7 @@ fields_dir="ops/fields"
 
 page_number=0
 
-forms="`cat $target.json | jq '.forms' | tr -d ' ,"[]' | tr '\n\r' ' '`"
+forms="`cat $input_file | jq '.forms' | tr -d ' ,"[]' | tr '\n\r' ' '`"
 mkdir -p $data_dir $pages_dir
 
 echo "Building PDFs from form data..."
@@ -43,3 +56,5 @@ all_pages="`find $pages_dir -type f -name "*.pdf" | sort | tr  '\n\r' ' '`"
 # echo "pdftk $all_pages cat output $dir/tax-return.pdf"
 pdftk $all_pages cat output $dir/tax-return.pdf
 # echo
+
+ln -fs $dir/tax-return.pdf tax-return.pdf

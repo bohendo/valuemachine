@@ -64,6 +64,7 @@ export type Env = {
   mode: Modes;
   outputFolder: string;
   taxYear: string;
+  username: string;
 }
 
 export type StateBalances = {

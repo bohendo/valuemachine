@@ -11,9 +11,6 @@ find_options=-type f -not -path "**/node_modules/**" -not -path "**/.*"
 
 # Important Folders
 cwd=$(shell pwd)
-example=modules/core/build/example
-personal=modules/core/build/personal
-test=modules/core/build/test
 
 # Setup docker run time
 # If on Linux, give the container our uid & gid so we know what to reset permissions to
@@ -30,7 +27,7 @@ log_start=@echo "=============";echo "[Makefile] => Start building $@"; date "+%
 log_finish=@echo $$((`date "+%s"` - `cat $(startTime)`)) > $(totalTime); rm $(startTime); echo "[Makefile] => Finished building $@ in `cat $(totalTime)` seconds";echo "=============";echo
 
 # Create output folders
-$(shell mkdir -p .flags $(example)/data $(personal)/data $(test)/data)
+$(shell mkdir -p .flags)
 
 ########################################
 # Command & Control Aliases
@@ -44,7 +41,7 @@ backup:
 	tar czf tax_backup.tar.gz modules/core/.cache modules/core/docs modules/core/personal.json
 
 clean:
-	rm -rf build/*
+	rm -rf **/build/**
 	rm -rf .flags/*
 	docker container prune -f
 
@@ -111,18 +108,18 @@ server: core $(shell find modules/server $(find_options))
 tax-return: personal
 example: modules/core/example.json core $(shell find modules/core/ops $(find_options))
 	$(log_start)
-	$(docker_run) "node modules/core/build/src/entry.js example.json $(example)"
-	@$(docker_run) "bash modules/core/ops/build.sh example"
+	$(docker_run) "cd modules/taxes && bash ops/entry.sh example.json"
+	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 personal: modules/taxes/personal.json taxes $(shell find modules/taxes/ops $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/taxes && node build/src/entry.js personal.json build/personal"
-	@$(docker_run) "bash modules/taxes/ops/build.sh personal"
+	$(docker_run) "cd modules/taxes && bash ops/entry.sh personal.json"
+	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 test: modules/core/test.json core $(shell find modules/core/ops $(find_options))
 	$(log_start)
-	$(docker_run) "NODE_ENV=test node modules/core/build/src/entry.js test.json $(test)"
-	@$(docker_run) "bash modules/core/ops/build.sh test"
+	$(docker_run) "cd modules/taxes && bash ops/entry.sh test.json"
+	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
 	$(log_finish) && mv -f $(totalTime) .flags/$@

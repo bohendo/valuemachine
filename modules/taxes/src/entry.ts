@@ -26,12 +26,15 @@ process.on("SIGINT", logAndExit);
 
 (async (): Promise<void> => {
   const inputFile = `${process.cwd()}/${process.argv[2]}`;
-  const outputFolder = `${process.cwd()}/${process.argv[3]}/data`;
 
   const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as InputData;
-  let output = {} as Forms;
-
+  const username = input.env.username;
   const log = new Logger("Entry", input.env.logLevel);
+  log.info(`Generating tax return data for ${username}`);
+
+  const outputFolder = `${process.cwd()}/build/${username}/data`;
+
+  let output = {} as Forms;
 
   setEnv({ ...input.env, outputFolder });
   log.info(`Starting app in env: ${JSON.stringify(env)}`);
@@ -104,12 +107,13 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 4: Save form data to disk
 
-  log.info(`Done generating form data, exporting...\n`);
   for (const [name, data] of Object.entries(output)) {
     if (!(data as any).length || (data as any).length === 1) {
+      const filename = `${outputFolder}/${name}.json`;
+      log.info(`Saving ${name} data to ${filename}`);
       const outputData =
         JSON.stringify(translate(data[0], mappings[name]), null, 2);
-      fs.writeFileSync(`${outputFolder}/${name}.json`, outputData);
+      fs.writeFileSync(filename, outputData);
     } else {
       let i = 1;
       for (const page of (data as any)) {

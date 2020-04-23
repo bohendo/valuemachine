@@ -9,6 +9,7 @@
 **/personal.json
 **/prices.json
 **/state.json
+**/tax-return.pdf
 modules/client/src/data
 
 # Cache
