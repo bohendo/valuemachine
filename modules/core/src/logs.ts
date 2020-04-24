@@ -33,7 +33,7 @@ export const emitTransferLogs = (
   event: Event,
   transfer: Transfer,
 ): Logs => {
-  const { isSelf, pretty } = addressBook;
+  const { isSelf, getName } = addressBook;
   const logs = [];
   const unitOfAccount = ["DAI", "SAI", "USD"];
   const { assetType, from, quantity, to } = transfer;
@@ -46,7 +46,7 @@ export const emitTransferLogs = (
       assetPrice: event.prices[assetType],
       assetType: assetType,
       date: event.date,
-      description: `${quantity} ${assetType} to ${pretty(to)} ${position}`,
+      description: `${quantity} ${assetType} to ${getName(to)} ${position}`,
       from,
       quantity: quantity,
       type: transfer.category as LogTypes,
@@ -56,7 +56,7 @@ export const emitTransferLogs = (
       assetPrice: event.prices[assetType],
       assetType: assetType,
       date: event.date,
-      description: `${quantity} ${assetType} to ${pretty(to)} ${position}`,
+      description: `${quantity} ${assetType} to ${getName(to)} ${position}`,
       quantity: quantity,
       to,
       type: transfer.category as LogTypes,
@@ -70,7 +70,7 @@ export const emitTransferLogs = (
         assetPrice: event.prices[assetType],
         assetType: assetType,
         date: event.date,
-        description: `${quantity} ${assetType} to ${pretty(to)} ${position}`,
+        description: `${quantity} ${assetType} to ${getName(to)} ${position}`,
         quantity: quantity,
         to,
         type: LogTypes.Expense,
@@ -80,7 +80,7 @@ export const emitTransferLogs = (
         assetPrice: event.prices[assetType],
         assetType: assetType,
         date: event.date,
-        description: `${quantity} ${assetType} to ${pretty(to)} ${position}`,
+        description: `${quantity} ${assetType} to ${getName(to)} ${position}`,
         quantity: quantity,
         to,
         type: LogTypes.GiftOut,
@@ -111,7 +111,7 @@ export const emitTransferLogs = (
         assetPrice: event.prices[assetType],
         assetType: assetType,
         date: event.date,
-        description: `${quantity} ${assetType} from ${pretty(from)} ${position}`,
+        description: `${quantity} ${assetType} from ${getName(from)} ${position}`,
         from,
         quantity: quantity,
         type: LogTypes.Income,
@@ -121,7 +121,7 @@ export const emitTransferLogs = (
         assetPrice: event.prices[assetType],
         assetType: assetType,
         date: event.date,
-        description: `${quantity} ${assetType} to ${pretty(to)} ${position}`,
+        description: `${quantity} ${assetType} to ${getName(to)} ${position}`,
         quantity: quantity,
         to,
         type: LogTypes.GiftOut,

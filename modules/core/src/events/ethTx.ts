@@ -44,7 +44,7 @@ export const mergeEthTxEvents = (
       if (new Date(tx.timestamp).getTime() <= lastUpdated) {
         return null;
       }
-      const { getName, isToken, pretty } = addressBook;
+      const { getName, isToken } = addressBook;
       const log = new ContextLogger(`EthTx ${tx.hash.substring(0, 8)}`, logger);
 
       if (!tx.logs) {
@@ -77,7 +77,7 @@ export const mergeEthTxEvents = (
       if (tx.status !== 1) {
         log.debug(`setting reverted tx to have zero quantity`);
         event.transfers[0].quantity = "0";
-        event.description = `${pretty(tx.from)} sent failed tx`;
+        event.description = `${getName(tx.from)} sent failed tx`;
         return event;
       }
 
@@ -145,9 +145,9 @@ export const mergeEthTxEvents = (
         throw new Error(`No transfers for EthTx: ${JSON.stringify(event, null, 2)}`);
       } else if (event.transfers.length === 1) {
         const { assetType, from, quantity, to } = event.transfers[0];
-        event.description = `${pretty(from)} sent ${quantity} ${assetType} to ${getName(to)}`;
+        event.description = `${getName(from)} sent ${quantity} ${assetType} to ${getName(to)}`;
       } else {
-        event.description = `${pretty(event.transfers[0].to)} made ${event.transfers.length} transfers`;
+        event.description = `${getName(event.transfers[0].to)} made ${event.transfers.length} transfers`;
       }
 
       log.info(event.description);

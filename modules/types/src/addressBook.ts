@@ -32,5 +32,4 @@ export interface AddressBook {
   isFamily(address: Address): boolean;
   isSelf(address: Address): boolean;
   isToken(address: Address): boolean;
-  pretty(address: Address): string;
 }

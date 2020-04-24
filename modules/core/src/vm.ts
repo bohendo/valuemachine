@@ -6,7 +6,7 @@ import { eq, gt, ContextLogger, sub } from "./utils";
 
 export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any => {
   const log = new ContextLogger("ValueMachine", logger);
-  const { pretty } = addressBook;
+  const { getName } = addressBook;
 
   return (oldState: StateJson | null, event: Event): [State, Log[]] => {
     const state = getState(addressBook, oldState, logger);
@@ -25,7 +25,7 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
     const later = [];
     for (const transfer of event.transfers) {
       const { assetType, fee, from, quantity, to } = transfer;
-      log.debug(`transfering ${quantity} ${assetType} from ${pretty(from)} to ${pretty(to)}`);
+      log.debug(`transfering ${quantity} ${assetType} from ${getName(from)} to ${getName(to)}`);
       let feeChunks;
       let chunks;
       try {
@@ -48,7 +48,7 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
 
     for (const transfer of later) {
       const { assetType, fee, from, quantity, to } = transfer;
-      log.debug(`transfering ${quantity} ${assetType} from ${pretty(from)} to ${pretty(to)} (attempt 2)`);
+      log.debug(`transfering ${quantity} ${assetType} from ${getName(from)} to ${getName(to)} (attempt 2)`);
       if (fee) {
         const feeChunks = state.getChunks(from, assetType, fee, event);
         log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);

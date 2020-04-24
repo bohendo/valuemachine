@@ -33,7 +33,7 @@ $(shell mkdir -p .flags)
 # Command & Control Aliases
 
 default: dev
-dev: server
+dev: server taxes
 prod: client
 all: test example personal
 

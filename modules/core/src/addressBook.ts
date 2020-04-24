@@ -86,13 +86,6 @@ export const getAddressBook = (addressBook: AddressBookJson, logger?: ILogger): 
       ? addressBook.find(a => smeq(a.address, address)).name
       : address.substring(0, 8);
 
-  const pretty = (address: Address): string =>
-    getName(address) || (isSelf(address)
-      ? "self"
-      : address
-        ? address.substring(0, 10)
-        : "null");
-
   return {
     addresses,
     getName,
@@ -102,6 +95,5 @@ export const getAddressBook = (addressBook: AddressBookJson, logger?: ILogger): 
     isFamily,
     isSelf,
     isToken,
-    pretty,
   };
 };
