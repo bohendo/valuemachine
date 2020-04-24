@@ -1,7 +1,6 @@
-import { DateString, TimestampString } from "@finances/types";
+import { DateString, ILogger, TimestampString } from "@finances/types";
 import axios from "axios";
 
-import { ILogger } from "./types";
 import { ContextLogger } from "./utils";
 
 const fetchPrice = async (

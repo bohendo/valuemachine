@@ -1,4 +1,4 @@
-import { Address, ChainData, HexObject, HexString } from "@finances/types";
+import { Address, ChainData, HexString, ILogger } from "@finances/types";
 import axios from "axios";
 import { Contract } from "ethers";
 import { AddressZero } from "ethers/constants";
@@ -13,7 +13,6 @@ import {
 } from "ethers/utils";
 
 import { getTokenAbi } from "./abi";
-import { ILogger } from "./types";
 import { ContextLogger } from "./utils";
 
 export const getChainData = async (
@@ -29,8 +28,12 @@ export const getChainData = async (
   const hour = 60 * 60 * 1000;
   const month = 30 * 24 * hour;
 
-  const toBN = (n: BigNumberish | HexObject): BigNumber =>
-    bigNumberify((n && (n as HexObject)._hex) ? (n as HexObject)._hex : n.toString());
+  const toBN = (n: BigNumberish | { _hex: HexString }): BigNumber =>
+    bigNumberify(
+      (n && (n as { _hex: HexString })._hex)
+        ? (n as { _hex: HexString })._hex
+        : n.toString(),
+    );
 
   const toNum = (num: BigNumber | number): number =>
     parseInt(toBN(num.toString()).toString(), 10);

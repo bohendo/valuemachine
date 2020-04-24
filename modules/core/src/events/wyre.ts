@@ -1,8 +1,8 @@
-import { DateString, Event, EventSources, TransferCategories } from "@finances/types";
+import { DateString, Event, EventSources, ILogger, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
 import { ContextLogger } from "../utils";
-import { ILogger } from "../types";
+
 import { assertChrono, mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
 export const mergeWyreEvents = (

@@ -1,22 +1,22 @@
 import {
   Address,
+  AddressBook,
   AssetChunk,
   Event,
-  TransferCategories,
   Logs,
   LogTypes,
+  State,
   Transfer,
+  TransferCategories,
 } from "@finances/types";
-import { AddressZero } from "ethers/constants";
 
-import { AddressBook, State } from "./types";
-import { eq, mul, round, sub } from "./utils";
+import { gt, mul, round, sub } from "./utils";
 
 export const emitEventLogs = (
   addressBook: AddressBook,
   event: Event,
   state: State,
-) => {
+): Logs => {
   const logs = [];
   logs.push({
     assets: state.getNetWorth(),
@@ -38,7 +38,6 @@ export const emitTransferLogs = (
   const unitOfAccount = ["DAI", "SAI", "USD"];
   const { assetType, from, quantity, to } = transfer;
   const position = `#${event.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
-  const wethAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 
   const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("account");
 
@@ -48,8 +47,8 @@ export const emitTransferLogs = (
       assetType: assetType,
       date: event.date,
       description: `${quantity} ${assetType} to ${pretty(to)} ${position}`,
-      quantity: quantity,
       from,
+      quantity: quantity,
       type: transfer.category as LogTypes,
     });
   } else if (["Deposit", "Expense", "Mint", "Repay", "SwapOut"].includes(transfer.category)) {
@@ -64,7 +63,7 @@ export const emitTransferLogs = (
     });
   }
 
-  if (isAnySelf(from) && !isAnySelf(to)) {
+  if (isAnySelf(from) && !isAnySelf(to) && gt(transfer.quantity, "0")) {
     // maybe emit expense/gift
     if (transfer.category === TransferCategories.Transfer) {
       logs.push({
@@ -106,7 +105,7 @@ export const emitTransferLogs = (
     }
 
   // maybe emit income/gift log
-  } else if (!isAnySelf(from) && isAnySelf(to)) {
+  } else if (!isAnySelf(from) && isAnySelf(to) && gt(transfer.quantity, "0")) {
     if (transfer.category === TransferCategories.Transfer) {
       logs.push({
         assetPrice: event.prices[assetType],

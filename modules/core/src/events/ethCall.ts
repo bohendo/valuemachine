@@ -1,15 +1,18 @@
 import {
+  AddressBook,
   CallData,
   ChainData,
   Event,
   EventSources,
+  ILogger,
   TransferCategories,
 } from "@finances/types";
-
 import { AddressZero } from "ethers/constants";
-import { AddressBook, ILogger } from "../types";
+
 import { eq, ContextLogger } from "../utils";
-import { assertChrono, mergeFactory, transferTagger } from "./utils";
+
+import { categorizeTransfer } from "./categorizeTransfer";
+import { assertChrono, mergeFactory } from "./utils";
 
 export const mergeEthCallEvents = (
   oldEvents: Event[],
@@ -58,7 +61,7 @@ export const mergeEthCallEvents = (
       }],
     } as Event;
 
-    event.transfers[0] = transferTagger(event.transfers[0], [], addressBook);
+    event.transfers[0] = categorizeTransfer(event.transfers[0], [], addressBook, logger);
 
     const { from, quantity, to } = event.transfers[0];
     if (eq(quantity, "0")) {

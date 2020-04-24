@@ -1,8 +1,7 @@
-import { Event, Log, StateJson } from "@finances/types";
+import { AddressBook, State, Event, ILogger, Log, StateJson } from "@finances/types";
 
 import { emitEventLogs, emitTransferLogs } from "./logs";
 import { getState } from "./state";
-import { AddressBook, ILogger, State } from "./types";
 import { eq, gt, ContextLogger, sub } from "./utils";
 
 export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any => {

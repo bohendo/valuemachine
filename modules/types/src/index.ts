@@ -1,4 +1,4 @@
-import { AssetTypes, EventSources, LogTypes, TransferCategories } from "./enums";
+import { AddressCategories, AssetTypes, EventSources, LogTypes, TransferCategories } from "./enums";
 
 export * from "./empty";
 export * from "./enums";
@@ -12,7 +12,36 @@ export type DecimalString = string; // eg "-3.1415"
 export type HexString = string; // eg "0xabc123"
 export type TimestampString = string; // eg "2020-02-27T09:51:30.444Z" (ISO 8601 format)
 export type Address = HexString | null; // eg null "to" during contract creation 
-export type HexObject = { _hex: HexString }; // result of JSON.stringifying a BigNumber
+
+export interface ILogger {
+  debug(message: string): void;
+  info(message: string): void;
+  warn(message: string): void;
+  error(message: string): void;
+}
+
+////////////////////////////////////////
+// Addresses
+
+export type AddressBookJson = Array<{
+  address: HexString;
+  category: AddressCategories;
+  name; string;
+  tags: string[];
+}>;
+
+export interface AddressBook {
+  addresses: Address[];
+  getName(address: Address): string;
+  isCategory(category: AddressCategories): (address: Address) => boolean;
+  isDefi(address: Address): boolean;
+  isExchange(address: Address): boolean;
+  isFamily(address: Address): boolean;
+  isSelf(address: Address): boolean;
+  isToken(address: Address): boolean;
+  shouldIgnore(address: Address): boolean;
+  pretty(address: Address): string;
+}
 
 ////////////////////////////////////////
 // Chain Data
@@ -113,6 +142,32 @@ export type AssetChunk = {
 export type StateJson = {
   lastUpdated: TimestampString;
   accounts: { [account: string]: AssetChunk[] };
+}
+
+export type NetWorth = {
+  [date: string]: DecimalString;
+}
+
+export type StateBalances = {
+  [account: string]: {
+    [assetType: string]: DecimalString;
+  };
+}
+
+export interface State {
+  getAllBalances(): StateBalances;
+  getBalance(account: string, assetType: AssetTypes): DecimalString;
+  getChunks(
+    account: Address,
+    assetType: AssetTypes,
+    quantity: DecimalString,
+    event: Event,
+  ): AssetChunk[];
+  getNetWorth(): NetWorth;
+  getRelevantBalances(event: Event): StateBalances;
+  putChunk(account: string, chunk: AssetChunk): void;
+  toJson(): StateJson;
+  touch(lastUpdated: TimestampString): void;
 }
 
 ////////////////////////////////////////
@@ -241,9 +296,6 @@ export type AssetTotal = {
 
 export type TotalByCategoryPerAssetType = {
   [category: string]: AssetTotal;
-}
-export type NetWorth = {
-  [date: string]: AssetTotal;
 }
 
 export type NetGraphData = {

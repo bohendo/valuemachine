@@ -1,20 +1,18 @@
 import {
   Address,
+  AddressBook,
   AssetChunk,
   AssetTypes,
   DecimalString,
   Event,
-  StateJson,
-  TimestampString,
-} from "@finances/types";
-
-import {
-  AddressBook,
   ILogger,
   NetWorth,
   State,
   StateBalances,
-} from "./types";
+  StateJson,
+  TimestampString,
+} from "@finances/types";
+
 import { add, gt, ContextLogger, round, sub } from "./utils";
 
 export const getState = (

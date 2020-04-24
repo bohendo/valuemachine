@@ -1,23 +1,32 @@
 import { ContextLogger, LevelLogger } from "@finances/core";
 import {
   ChainData,
+  Events,
+  Logs,
+  PriceData as Prices,
+  StateJson,
   emptyChainData,
   emptyEvents,
   emptyLogs,
   emptyPriceData,
   emptyState,
-  PriceData as Prices,
-  Events,
-  Logs,
-  StateJson,
+  enumify,
 } from "@finances/types";
 import fs from "fs";
 
-import { CachedTypes } from "./enums";
 import { env } from "./env";
 
 ////////////////////////////////////////
 // Internal Data
+
+export const CachedTypes = enumify({
+  ChainData: "ChainData",
+  Events: "Events",
+  Logs: "Logs",
+  Prices: "Prices",
+  State: "State",
+});
+export type CachedTypes = (typeof CachedTypes)[keyof typeof CachedTypes];
 
 const log = new ContextLogger("Cache", new LevelLogger(env.logLevel));
 

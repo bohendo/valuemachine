@@ -85,17 +85,6 @@ export const CapitalGainsMethods = {
 };
 export type CapitalGainsMethod = keyof typeof CapitalGainsMethods;
 
-export type InputData = {
-  addressBook?: AddressBook;
-  capitalGainsMethod: CapitalGainsMethod;
-  etherscanKey?: string;
-  events: Array<OldEvent | string>;
-  //formData: Forms;
-  forms: string[];
-  logLevel?: number;
-  taxYear: string;
-}
-
 // aka row of f8949
 export type CapitalGain = {
   Adjustment: string;
@@ -111,7 +100,6 @@ export type CapitalGain = {
 export type FinancialData = {
   expenses: Array<OldEvent>;
   income: Array<OldEvent>;
-  input: InputData;
   trades: CapitalGain[];
 }
 

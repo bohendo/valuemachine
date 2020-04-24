@@ -1,4 +1,4 @@
-import { ILogger } from "../types";
+import { ILogger } from "@finances/types";
 
 export class ContextLogger implements ILogger {
   private logger: ILogger;

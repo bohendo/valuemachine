@@ -7,7 +7,7 @@ SHELL=/bin/bash
 
 dir=$(shell cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
 project=$(shell cat $(dir)/package.json | jq .name | tr -d '"')
-find_options=-type f -not -path "**/node_modules/**" -not -path "**/.*"
+find_options=-type f -not -path "**/node_modules/**" -not -path "**/.*" -not -path "**/build/**"
 
 # Important Folders
 cwd=$(shell pwd)

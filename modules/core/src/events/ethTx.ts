@@ -1,7 +1,9 @@
 import {
+  AddressBook,
   ChainData,
   Event,
   EventSources,
+  ILogger,
   TransactionData,
   Transfer,
   TransferCategories,
@@ -12,8 +14,9 @@ import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from 
 
 import { tokenEvents } from "../abi";
 import { ContextLogger } from "../utils";
-import { AddressBook, ILogger } from "../types";
-import { assertChrono, mergeFactory, transferTagger } from "./utils";
+
+import { categorizeTransfer } from "./categorizeTransfer";
+import { assertChrono, mergeFactory } from "./utils";
 
 export const mergeEthTxEvents = (
   oldEvents: Event[],
@@ -80,7 +83,7 @@ export const mergeEthTxEvents = (
 
       log.debug(`transfer of ${tx.value} ETH from ${tx.from} to ${tx.to}`);
 
-      event.transfers[0] = transferTagger(event.transfers[0], [], addressBook);
+      event.transfers[0] = categorizeTransfer(event.transfers[0], [], addressBook, logger);
 
       for (const txLog of tx.logs) {
         if (isToken(txLog.address)) {
@@ -107,7 +110,7 @@ export const mergeEthTxEvents = (
             transfer.from = data.from || data.src;
             transfer.to = data.to || data.dst;
             transfer.category = TransferCategories.Transfer;
-            event.transfers.push(transferTagger(transfer, tx.logs, addressBook));
+            event.transfers.push(categorizeTransfer(transfer, tx.logs, addressBook, logger));
 
           } else if (assetType === "WETH" && eventI.name === "Deposit") {
             log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);

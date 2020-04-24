@@ -4,6 +4,21 @@ export const enumify = <
   U extends string
 >(x: T): T => x;
 
+export const AddressCategories = enumify({
+  CToken: "CToken",
+  Cdp: "Cdp",
+  Defi: "Defi",
+  Erc20: "Erc20",
+  Exchange: "Exchange",
+  Family: "Family",
+  Friend: "Friend",
+  Ignore: "Ignore",
+  Private: "Private",
+  Public: "Public",
+  Self: "Self",
+});
+export type AddressCategories = (typeof AddressCategories)[keyof typeof AddressCategories];
+
 export const LogTypes = enumify({
   Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
   Burn: "Burn",

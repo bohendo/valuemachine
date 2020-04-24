@@ -1,8 +1,7 @@
-import { AssetTypes, ChainData, Event } from "@finances/types";
+import { AddressBook, ILogger, AssetTypes, ChainData, Event } from "@finances/types";
 import * as fs from "fs";
 
 import { getPrice } from "../prices";
-import { AddressBook, ILogger } from "../types";
 import { ContextLogger } from "../utils";
 
 import { mergeCoinbaseEvents } from "./coinbase";
