@@ -8,17 +8,21 @@ import {
   TimestampString,
 } from "@finances/types";
 
-import { env } from "./env";
 import {
   AddressBook,
+  ILogger,
   NetWorth,
   State,
   StateBalances,
 } from "./types";
 import { add, gt, Logger, round, sub } from "./utils";
 
-export const getState = (addressBook: AddressBook, oldState: StateJson): State => {
-  const log = new Logger("State", env.logLevel);
+export const getState = (
+  addressBook: AddressBook,
+  oldState: StateJson,
+  logger?: ILogger,
+): State => {
+  const log = new Logger("State", logger);
 
   ////////////////////////////////////////
   // Run Init Code

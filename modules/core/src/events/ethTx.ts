@@ -1,19 +1,25 @@
-import { Event, EventSources, TransferCategories, Transfer, TransactionData } from "@finances/types";
+import {
+  ChainData,
+  Event,
+  EventSources,
+  TransactionData,
+  Transfer,
+  TransferCategories,
+} from "@finances/types";
 
 import { AddressZero } from "ethers/constants";
 import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from "ethers/utils";
 
-import { env } from "../env";
-import { Logger } from "../utils";
 import { tokenEvents } from "../abi";
-import { mergeFactory, transferTagger } from "./utils";
+import { Logger } from "../utils";
+import { AddressBook, ILogger } from "../types";
+import { assertChrono, mergeFactory, transferTagger } from "./utils";
 
-
-export const castEthTx = (addressBook, chainData): any =>
+const castEthTx = (addressBook: AddressBook, chainData: ChainData, logger?: ILogger): any =>
   (tx: TransactionData): Event => {
     const log = new Logger(
       `EthTx ${tx.hash.substring(0, 10)} ${tx.timestamp.split("T")[0]}`,
-      env.logLevel,
+      logger,
     );
     const { getName, isToken, pretty } = addressBook;
 
@@ -35,11 +41,11 @@ export const castEthTx = (addressBook, chainData): any =>
       tags: [],
       transfers: [{
         assetType: "ETH",
+        category: TransferCategories.Transfer,
         fee: formatEther(bigNumberify(tx.gasUsed).mul(tx.gasPrice)),
         from: tx.from.toLowerCase(),
         index: 0,
         quantity: tx.value,
-        category: TransferCategories.Transfer,
         to: tx.to.toLowerCase(),
       }],
     } as Event;
@@ -73,7 +79,7 @@ export const castEthTx = (addressBook, chainData): any =>
         );
 
         const index = txLog.index;
-        const transfer = { assetType, index, quantity, category: "Transfer" } as Transfer;
+        const transfer = { assetType, category: "Transfer", index, quantity } as Transfer;
 
         if (eventI.name === "Transfer") {
           log.debug(`${quantity} ${assetType} was transfered to ${data.to}`);
@@ -132,12 +138,40 @@ export const castEthTx = (addressBook, chainData): any =>
     return event;
   };
 
-export const mergeEthTx = mergeFactory({
-  allowableTimeDiff: 0,
-  log: new Logger("MergeEthTx", env.logLevel),
-  mergeEvents: (): void => {
-    throw new Error(`idk how to merge txEvents`);
-  },
-  shouldMerge: (event: Event, txEvent: Event): boolean =>
-    event.hash === txEvent.hash,
-});
+export const mergeEthTxEvents = (
+  oldEvents: Event[],
+  addressBook: AddressBook,
+  chainData: ChainData,
+  logger?: ILogger,
+): Event[] => {
+  const log = new Logger("EthTx", logger);
+  let events = JSON.parse(JSON.stringify(oldEvents));
+
+  const latestCachedEvent = events.length !== 0
+    ? new Date(events[events.length - 1].date).getTime()
+    : 0;
+
+  // returns true if new
+  const onlyNew = (data: any): boolean =>
+    new Date(data.timestamp || data.date).getTime() - latestCachedEvent > 0;
+
+  const mergeEthTx = mergeFactory({
+    allowableTimeDiff: 0,
+    log,
+    mergeEvents: (): void => {
+      throw new Error(`idk how to merge txEvents`);
+    },
+    shouldMerge: (event: Event, txEvent: Event): boolean =>
+      event.hash === txEvent.hash,
+  });
+
+  const newEthTxs = chainData.transactions.filter(onlyNew);
+  log.info(`Processing ${newEthTxs.length} new ethereum transactions..`);
+  newEthTxs
+    .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
+    .map(castEthTx(addressBook, chainData, log))
+    .forEach((txEvent: Event): void => { events = mergeEthTx(events, txEvent); });
+  assertChrono(events);
+
+  return events;
+};

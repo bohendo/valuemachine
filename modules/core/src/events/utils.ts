@@ -10,16 +10,8 @@ import { AddressZero } from "ethers/constants";
 import { formatEther } from "ethers/utils";
 
 import { exchangeEvents, daiJoinInterface, defiEvents, vatInterface } from "../abi";
-import { AddressBook } from "../types";
-import {
-  add,
-  diff,
-  div,
-  eq,
-  Logger,
-  lt,
-  mul,
-} from "../utils";
+import { AddressBook, ILogger } from "../types";
+import { add, diff, div, eq, lt, mul } from "../utils";
 
 export const transferTagger = (
   inputTransfer: Partial<Transfer>,
@@ -202,15 +194,18 @@ export const assertChrono = (events: Event[]): void => {
   }
 };
 
-export const castDefault = (event: Partial<Event>): Partial<Event> => ({
-  prices: {},
-  sources: [EventSources.Personal],
-  tags: [],
-  transfers: [],
-  ...event,
-});
+export const mergeDefaultEvents = (events: Event[], source: Partial<Event>): Event[] => {
 
-export const mergeDefault = (events: Event[], input: Partial<Event>): Event[] => {
+  const castDefault = (event: Partial<Event>): Partial<Event> => ({
+    prices: {},
+    sources: [EventSources.Personal],
+    tags: [],
+    transfers: [],
+    ...event,
+  });
+
+  const input = castDefault(source);
+
   const output = [] as Event[];
   for (let i = 0; i < events.length; i++) {
     const event = events[i];
@@ -234,7 +229,7 @@ export const mergeFactory = (opts: {
   allowableTimeDiff: number;
   mergeEvents: any;
   shouldMerge: any;
-  log?: Logger;
+  log: ILogger;
 }) =>
   (events: Event[], newEvent: Event): Event[] => {
     const { allowableTimeDiff, mergeEvents, shouldMerge, log } = opts;

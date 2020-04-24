@@ -1,16 +1,15 @@
 import { Address } from "@finances/types";
 import { getAddress } from "ethers/utils";
 
-import { env } from "./env";
-import { AddressBookJson, AddressBook } from "./types";
+import { AddressBookJson, AddressBook, ILogger } from "./types";
 import { Logger } from "./utils";
 
-export const getAddressBook = (addressBook: AddressBookJson): AddressBook => {
+export const getAddressBook = (addressBook: AddressBookJson, logger?: ILogger): AddressBook => {
 
   ////////////////////////////////////////
   // Internal Functions
 
-  const log = new Logger("AddressBook", env.logLevel);
+  const log = new Logger("AddressBook", logger);
 
   const sm = (str: string): string =>
     str.toLowerCase();

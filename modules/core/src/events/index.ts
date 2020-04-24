@@ -1,13 +1,14 @@
 import { AssetTypes, ChainData, Event } from "@finances/types";
+import * as fs from "fs";
 
 import { getPrice } from "../prices";
 import { AddressBook, ILogger } from "../types";
 
-import { castCoinbase, mergeCoinbase } from "./coinbase";
-import { castEthTx, mergeEthTx } from "./ethTx";
-import { castEthCall, mergeEthCall } from "./ethCall";
-import { assertChrono, castDefault, mergeDefault } from "./utils";
-import { castWyre, mergeWyre } from "./wyre";
+import { mergeCoinbaseEvents } from "./coinbase";
+import { mergeWyreEvents } from "./wyre";
+import { mergeEthTxEvents } from "./ethTx";
+import { mergeEthCallEvents } from "./ethCall";
+import { mergeDefaultEvents } from "./utils";
 
 export const getEvents = async (
   addressBook: AddressBook,
@@ -22,61 +23,26 @@ export const getEvents = async (
     ? new Date(events[events.length - 1].date).getTime()
     : 0;
 
-  log.info(`Loaded ${events.length} events from cache, most recent was on ${
-    new Date(latestCachedEvent).toISOString()
+  log.info(`Loaded ${events.length} events from cache, most recent was on: ${
+    latestCachedEvent ? new Date(latestCachedEvent).toISOString() : "never"
   }`);
 
-  // returns true if new
-  const onlyNew = (data: any): boolean =>
-    new Date(data.timestamp || data.date).getTime() - latestCachedEvent > 0;
-
-  const newEthTxs = chainData.transactions.filter(onlyNew);
-  log.info(`Processing ${newEthTxs.length} new ethereum transactions..`);
-  newEthTxs
-    .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
-    .map(castEthTx(addressBook, chainData))
-    .forEach((txEvent: Event): void => { events = mergeEthTx(events, txEvent); });
-  assertChrono(events);
-
-  const newEthCalls = chainData.calls.filter(onlyNew);
-  log.info(`Processing ${newEthCalls.length} new internal ethereum calls..`);
-  newEthCalls
-    .sort((call1, call2) => call1.block - call2.block)
-    .map(castEthCall(addressBook, chainData))
-    .filter(e => !!e)
-    .forEach((callEvent: Event): void => { events = mergeEthCall(events, callEvent); });
-  assertChrono(events);
+  events = mergeEthTxEvents(events, addressBook, chainData);
+  events = mergeEthCallEvents(events, addressBook, chainData);
 
   for (const source of extraEvents || []) {
     if (typeof source === "string" && source.endsWith(".csv")) {
       if (source.toLowerCase().includes("coinbase")) {
-        const newCoinbaseEvents = castCoinbase(source).filter(onlyNew);
-        log.info(`Processing ${newCoinbaseEvents.length} new events from ${source}`);
-        newCoinbaseEvents.forEach((coinbaseEvent: Event): void => {
-          log.info(coinbaseEvent.description);
-          events = mergeCoinbase(events, coinbaseEvent);
-        });
+        events = mergeCoinbaseEvents(events, fs.readFileSync(source, "utf8"));
       } else if (source.toLowerCase().includes("wyre")) {
-        const newWyreEvents = castWyre(source).filter(onlyNew);
-        log.info(`Processing ${newWyreEvents.length} new events from ${source}`);
-        newWyreEvents.forEach(wyreEvent => {
-          log.info(wyreEvent.description);
-          events = mergeWyre(events, wyreEvent);
-        });
+        events = mergeWyreEvents(events, fs.readFileSync(source, "utf8"));
       } else {
         throw new Error(`I don't know how to parse events from ${source}`);
       }
     } else if (typeof source !== "string") {
-      events = mergeDefault(events, castDefault(source));
+      events = mergeDefaultEvents(events, source);
     }
   }
-
-  // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
-  // edge case is tricky to solve at source, just sort manually ffs
-  events = events.sort((e1: Event, e2: Event): number =>
-    new Date(e1.date).getTime() - new Date(e2.date).getTime(),
-  );
-  assertChrono(events);
 
   log.info(`Attaching price info to events`);
   for (let i = 0; i < events.length; i++) {
@@ -91,27 +57,6 @@ export const getEvents = async (
     }
   }
   log.info(`Event price info is up to date`);
-
-  assertChrono(events);
-  events.forEach(event => {
-    ["date", "description", "prices", "sources", "tags", "transfers"].forEach(required => {
-      if (!event[required]) {
-        throw new Error(`Event doesn't have a ${required}: ${JSON.stringify(event, null, 2)}`);
-      }
-    });
-    event.transfers.forEach(transfer => {
-      if (transfer.from.match(/[A-Z]/)) {
-        throw new Error(`Event has uppercase letters in transfer.from: ${
-          JSON.stringify(event, null, 2)
-        }`);
-      }
-      if (transfer.to.match(/[A-Z]/)) {
-        throw new Error(`Event has uppercase letters in transfer.to: ${
-          JSON.stringify(event, null, 2)
-        }`);
-      }
-    });
-  });
 
   log.info(`Saving ${events.length} events to cache`);
   let i = 1;

@@ -1,15 +1,19 @@
 import { DateString, Event, EventSources, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
-import fs from "fs";
 
-import { env } from "../env";
 import { Logger } from "../utils";
-import { mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
+import { ILogger } from "../types";
+import { assertChrono, mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
-export const castWyre = (filename: string): Event[] => {
-  const log = new Logger("SendWyre", env.logLevel);
-  return csv(
-    fs.readFileSync(filename, "utf8"),
+export const mergeWyreEvents = (
+  oldEvents: Event[],
+  wyreData: string,
+  logger?: ILogger,
+): Event[] => {
+  const log = new Logger("SendWyre", logger);
+  let events = JSON.parse(JSON.stringify(oldEvents));
+  const wyreEvents = csv(
+    wyreData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
     const {
@@ -41,16 +45,16 @@ export const castWyre = (filename: string): Event[] => {
     if (txType === "EXCHANGE") {
       event.transfers.push({
         assetType: sourceType,
+        category: TransferCategories.SwapOut,
         from: "sendwyre-account",
         quantity: sourceQuantity,
-        category: TransferCategories.SwapOut,
         to: "sendwyre-exchange",
       });
       event.transfers.push({
         assetType: destType,
+        category: TransferCategories.SwapIn,
         from: "sendwyre-exchange",
         quantity: destQuantity,
-        category: TransferCategories.SwapIn,
         to: "sendwyre-account",
       });
       event.description = sourceType === "USD"
@@ -60,9 +64,9 @@ export const castWyre = (filename: string): Event[] => {
     } else if (txType === "INCOMING" && destType === sourceType) {
       event.transfers.push({
         assetType: destType,
+        category: TransferCategories.Transfer,
         from: "external-account",
         quantity: destQuantity,
-        category: TransferCategories.Transfer,
         to: "sendwyre-account",
       });
       event.description = `Deposit ${destQuantity} ${destType} into sendwyre`;
@@ -70,16 +74,16 @@ export const castWyre = (filename: string): Event[] => {
     } else if (txType === "INCOMING" && destType !== sourceType) {
       event.transfers.push({
         assetType: sourceType,
+        category: TransferCategories.SwapOut,
         from: "external-account",
         quantity: sourceQuantity,
-        category: TransferCategories.SwapOut,
         to: "sendwyre-exchange",
       });
       event.transfers.push({
         assetType: destType,
+        category: TransferCategories.SwapIn,
         from: "sendwyre-exchange",
         quantity: destQuantity,
-        category: TransferCategories.SwapIn,
         to: "sendwyre-account",
       });
       event.description = sourceType === "USD"
@@ -89,9 +93,9 @@ export const castWyre = (filename: string): Event[] => {
     } else if (txType === "OUTGOING" && destType === sourceType) {
       event.transfers.push({
         assetType: destType,
+        category: TransferCategories.Transfer,
         from: "sendwyre-account",
         quantity: destQuantity,
-        category: TransferCategories.Transfer,
         to: "external-account",
       });
       event.description = `Withdraw ${destQuantity} ${destType} out of sendwyre`;
@@ -99,16 +103,16 @@ export const castWyre = (filename: string): Event[] => {
     } else if (txType === "OUTGOING" && destType !== sourceType) {
       event.transfers.push({
         assetType: sourceType,
+        category: TransferCategories.SwapOut,
         from: "sendwyre-account",
         quantity: sourceQuantity,
-        category: TransferCategories.SwapOut,
         to: "sendwyre-exchange",
       });
       event.transfers.push({
         assetType: destType,
+        category: TransferCategories.SwapIn,
         from: "sendwyre-exchange",
         quantity: destQuantity,
-        category: TransferCategories.SwapIn,
         to: "external-account",
       });
       event.description = sourceType === "USD"
@@ -120,11 +124,28 @@ export const castWyre = (filename: string): Event[] => {
     log.debug(event.description);
     return event;
   }).filter(row => !!row);
-};
 
-export const mergeWyre = mergeFactory({
-  allowableTimeDiff: 15 * 60 * 1000,
-  log: new Logger("MergeWyre", env.logLevel),
-  mergeEvents: mergeOffChainEvents,
-  shouldMerge: shouldMergeOffChain,
-});
+
+  const mergeWyre = mergeFactory({
+    allowableTimeDiff: 15 * 60 * 1000,
+    log,
+    mergeEvents: mergeOffChainEvents,
+    shouldMerge: shouldMergeOffChain,
+  });
+
+  log.info(`Processing ${wyreEvents.length} new events from wyre`);
+
+  wyreEvents.forEach((wyreEvent: Event): void => {
+    log.info(wyreEvent.description);
+    events = mergeWyre(events, wyreEvent);
+  });
+
+  // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
+  // edge case is tricky to solve at source, just sort manually ffs
+  events = events.sort((e1: Event, e2: Event): number =>
+    new Date(e1.date).getTime() - new Date(e2.date).getTime(),
+  );
+  assertChrono(events);
+
+  return events;
+};

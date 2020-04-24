@@ -2,15 +2,16 @@ import { DateString, TimestampString } from "@finances/types";
 import axios from "axios";
 // import { formatEther } from "ethers/utils";
 
-import { env } from "./env";
+import { ILogger } from "./types";
 import { Logger } from "./utils";
 
 const fetchPrice = async (
   asset: string,
   timestamp: TimestampString,
-  cache: any
+  cache: any,
+  logger?: ILogger,
 ): Promise<string> => {
-  const log = new Logger("FetchPriceData", env.logLevel);
+  const log = new Logger("FetchPriceData", logger);
 
   const prices = cache.loadPrices();
   const date = (timestamp.includes("T") ? timestamp.split("T")[0] : timestamp) as DateString;
@@ -55,11 +56,16 @@ const fetchPrice = async (
   return prices[date][asset];
 };
 
-export const getPrice = async (asset: string, date: string, cache: any): Promise<string> =>
+export const getPrice = async (
+  asset: string,
+  date: string,
+  cache: any,
+  logger?: ILogger,
+): Promise<string> =>
   ["USD", "DAI", "SAI"].includes(asset)
     ? "1"
     : ["ETH", "WETH"].includes(asset)
-    ? await fetchPrice("ETH", date, cache)
+    ? await fetchPrice("ETH", date, cache, logger)
     : asset.toUpperCase().startsWith("C")
     ? "0" // skip compound tokens for now
-    : await fetchPrice(asset, date, cache);
+    : await fetchPrice(asset, date, cache, logger);

@@ -1,14 +1,12 @@
 import { Event, Log, StateJson } from "@finances/types";
 
-import { assertState } from "./checkpoints";
-import { env } from "./env";
 import { emitEventLogs, emitTransferLogs } from "./logs";
 import { getState } from "./state";
-import { AddressBook, State } from "./types";
+import { AddressBook, ILogger, State } from "./types";
 import { eq, gt, Logger, sub } from "./utils";
 
-export const getValueMachine = (addressBook: AddressBook): any => {
-  const log = new Logger("ValueMachine", env.logLevel);
+export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any => {
+  const log = new Logger("ValueMachine", logger);
   const { pretty } = addressBook;
 
   return (oldState: StateJson | null, event: Event): [State, Log[]] => {
@@ -80,7 +78,6 @@ export const getValueMachine = (addressBook: AddressBook): any => {
       JSON.stringify(endingBalances, null, 2)
     }\n`);
 
-    assertState(state, event);
     state.touch(event.date);
 
     return [state, logs];

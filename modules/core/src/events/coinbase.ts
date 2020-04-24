@@ -1,16 +1,19 @@
 import { Event, EventSources, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
-import fs from "fs";
 
-import { env } from "../env";
+import { ILogger } from "../types";
 import { Logger } from "../utils";
-import { mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
+import { assertChrono, mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
-export const castCoinbase = (filename: string): Event[] => {
-  const log = new Logger("Coinbase", env.logLevel);
-  const rawFile = fs.readFileSync(filename, "utf8");
-  return csv(
-    rawFile,
+export const mergeCoinbaseEvents = (
+  oldEvents: Event[],
+  coinbaseData: string,
+  logger?: ILogger,
+): Event[] => {
+  const log = new Logger("Coinbase", logger);
+  let events = JSON.parse(JSON.stringify(oldEvents));
+  const coinbaseEvents = csv(
+    coinbaseData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
     const {
@@ -44,9 +47,9 @@ export const castCoinbase = (filename: string): Event[] => {
       [from, to, category] = ["coinbase-account", "coinbase-exchange", TransferCategories.SwapOut];
       event.transfers.push({
         assetType: "USD",
+        category: TransferCategories.SwapIn,
         from: "coinbase-exchange",
         quantity: usdQuantity,
-        category: TransferCategories.SwapIn,
         to: "coinbase-account",
       });
       event.description = `Sell ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
@@ -55,24 +58,41 @@ export const castCoinbase = (filename: string): Event[] => {
       [from, to, category] = ["coinbase-exchange", "coinbase-account", TransferCategories.SwapIn];
       event.transfers.push({
         assetType: "USD",
+        category: TransferCategories.SwapOut,
         from: "coinbase-account",
         quantity: usdQuantity,
-        category: TransferCategories.SwapOut,
         to: "coinbase-exchange",
       });
       event.description = `Buy ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
     }
 
-    event.transfers.push({ assetType, from, quantity, category, to });
+    event.transfers.push({ assetType, category, from, quantity, to });
 
     log.debug(event.description);
     return event;
   });
+
+  const mergeCoinbase = mergeFactory({
+    allowableTimeDiff: 15 * 60 * 1000,
+    log,
+    mergeEvents: mergeOffChainEvents,
+    shouldMerge: shouldMergeOffChain,
+  });
+
+  log.info(`Processing ${coinbaseEvents.length} new events from coinbase`);
+
+  coinbaseEvents.forEach((coinbaseEvent: Event): void => {
+    log.info(coinbaseEvent.description);
+    events = mergeCoinbase(events, coinbaseEvent);
+  });
+
+  // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
+  // edge case is tricky to solve at source, just sort manually ffs
+  events = events.sort((e1: Event, e2: Event): number =>
+    new Date(e1.date).getTime() - new Date(e2.date).getTime(),
+  );
+  assertChrono(events);
+
+  return events;
 };
 
-export const mergeCoinbase = mergeFactory({
-  allowableTimeDiff: 15 * 60 * 1000,
-  log: new Logger("MergeCoinbase", env.logLevel),
-  mergeEvents: mergeOffChainEvents,
-  shouldMerge: shouldMergeOffChain,
-});
