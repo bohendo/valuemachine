@@ -8,6 +8,7 @@ import { assertChrono, mergeFactory, mergeOffChainEvents, shouldMergeOffChain } 
 export const mergeCoinbaseEvents = (
   oldEvents: Event[],
   coinbaseData: string,
+  lastUpdated,
   logger?: ILogger,
 ): Event[] => {
   const log = new ContextLogger("Coinbase", logger);
@@ -24,6 +25,10 @@ export const mergeCoinbaseEvents = (
       ["USD Spot Price at Transaction"]: price,
       ["USD Total (inclusive of fees)"]: usdQuantity,
     } = row;
+
+    if (new Date(date).getTime() <= lastUpdated) {
+      return null;
+    }
 
     const event = {
       date: (new Date(date)).toISOString(),
@@ -70,20 +75,18 @@ export const mergeCoinbaseEvents = (
 
     log.debug(event.description);
     return event;
-  });
-
-  const mergeCoinbase = mergeFactory({
-    allowableTimeDiff: 15 * 60 * 1000,
-    log,
-    mergeEvents: mergeOffChainEvents,
-    shouldMerge: shouldMergeOffChain,
-  });
+  }).filter(row => !!row);
 
   log.info(`Processing ${coinbaseEvents.length} new events from coinbase`);
 
   coinbaseEvents.forEach((coinbaseEvent: Event): void => {
     log.info(coinbaseEvent.description);
-    events = mergeCoinbase(events, coinbaseEvent);
+    events = mergeFactory({
+      allowableTimeDiff: 15 * 60 * 1000,
+      log,
+      mergeEvents: mergeOffChainEvents,
+      shouldMerge: shouldMergeOffChain,
+    })(events, coinbaseEvent);
   });
 
   // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting

@@ -8,6 +8,7 @@ import { assertChrono, mergeFactory, mergeOffChainEvents, shouldMergeOffChain } 
 export const mergeWyreEvents = (
   oldEvents: Event[],
   wyreData: string,
+  lastUpdated: number,
   logger?: ILogger,
 ): Event[] => {
   const log = new ContextLogger("SendWyre", logger);
@@ -24,6 +25,10 @@ export const mergeWyreEvents = (
       ["Source Currency"]: rawSourceType,
       ["Type"]: txType,
     } = row;
+
+    if (new Date(date).getTime() <= lastUpdated) {
+      return null;
+    }
 
     const beforeDaiMigration = (date: DateString): boolean =>
       new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime();

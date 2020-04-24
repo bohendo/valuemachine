@@ -21,28 +21,28 @@ export const getEvents = async (
   const log = new ContextLogger("GetEvents", logger);
 
   let events = cache.loadEvents();
-  const latestCachedEvent = events.length !== 0
+  const lastUpdated = events.length !== 0
     ? new Date(events[events.length - 1].date).getTime()
     : 0;
 
   log.info(`Loaded ${events.length} events from cache, most recent was on: ${
-    latestCachedEvent ? new Date(latestCachedEvent).toISOString() : "never"
+    lastUpdated ? new Date(lastUpdated).toISOString() : "never"
   }`);
 
-  events = mergeEthTxEvents(events, addressBook, chainData, logger);
-  events = mergeEthCallEvents(events, addressBook, chainData, logger);
+  events = mergeEthTxEvents(events, addressBook, chainData, lastUpdated, logger);
+  events = mergeEthCallEvents(events, addressBook, chainData, lastUpdated, logger);
 
   for (const source of extraEvents || []) {
     if (typeof source === "string" && source.endsWith(".csv")) {
       if (source.toLowerCase().includes("coinbase")) {
-        events = mergeCoinbaseEvents(events, fs.readFileSync(source, "utf8"), logger);
+        events = mergeCoinbaseEvents(events, fs.readFileSync(source, "utf8"), lastUpdated, logger);
       } else if (source.toLowerCase().includes("wyre")) {
-        events = mergeWyreEvents(events, fs.readFileSync(source, "utf8"), logger);
+        events = mergeWyreEvents(events, fs.readFileSync(source, "utf8"), lastUpdated, logger);
       } else {
         throw new Error(`I don't know how to parse events from ${source}`);
       }
     } else if (typeof source !== "string") {
-      events = mergeDefaultEvents(events, source);
+      events = mergeDefaultEvents(events, source, lastUpdated);
     }
   }
 

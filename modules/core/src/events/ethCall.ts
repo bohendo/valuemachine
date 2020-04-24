@@ -11,8 +11,24 @@ import { AddressBook, ILogger } from "../types";
 import { eq, ContextLogger } from "../utils";
 import { assertChrono, mergeFactory, transferTagger } from "./utils";
 
-const castEthCall = (addressBook: AddressBook, chainData: ChainData, log: ILogger): any =>
-  (call: CallData): any => {
+export const mergeEthCallEvents = (
+  oldEvents: Event[],
+  addressBook: AddressBook,
+  chainData: ChainData,
+  lastUpdated: number,
+  logger?: ILogger,
+): Event[] => {
+  const log = new ContextLogger("EthCall", logger);
+  let events = JSON.parse(JSON.stringify(oldEvents));
+
+  log.info(`Processing ${chainData.calls.length} ethereum calls..`);
+
+  chainData.calls.sort((call1, call2) => {
+    return call1.block - call2.block;
+  }).map((call: CallData): any => {
+    if (new Date(call.timestamp).getTime() <= lastUpdated) {
+      return null;
+    }
 
     // We'll get internal token transfers from ethTx logs instead
     if (call.contractAddress !== AddressZero) {
@@ -54,44 +70,20 @@ const castEthCall = (addressBook: AddressBook, chainData: ChainData, log: ILogge
     log.info(event.description);
 
     return event;
-  };
-
-export const mergeEthCallEvents = (
-  oldEvents: Event[],
-  addressBook: AddressBook,
-  chainData: ChainData,
-  logger?: ILogger,
-): Event[] => {
-  const log = new ContextLogger("EthCall", logger);
-  let events = JSON.parse(JSON.stringify(oldEvents));
-
-  const latestCachedEvent = events.length !== 0
-    ? new Date(events[events.length - 1].date).getTime()
-    : 0;
-
-  // returns true if new
-  const onlyNew = (data: any): boolean =>
-    new Date(data.timestamp || data.date).getTime() - latestCachedEvent > 0;
-
-  const mergeEthCall = mergeFactory({
-    allowableTimeDiff: 0,
-    log,
-    mergeEvents: (event: Event, callEvent: Event): Event => {
-      // tx logs and token calls return same data, add this tranfer iff this isn't the case
-      event.transfers.push(callEvent.transfers[0]);
-      event.sources.push(EventSources.EthCall);
-      return event;
-    },
-    shouldMerge: (event: Event, callEvent: Event): boolean =>
-      event.hash === callEvent.hash,
+  }).filter(e => !!e).forEach((txEvent: Event): void => {
+    events = mergeFactory({
+      allowableTimeDiff: 0,
+      log,
+      mergeEvents: (event: Event, callEvent: Event): Event => {
+        // tx logs and token calls return same data, add this tranfer iff this isn't the case
+        event.transfers.push(callEvent.transfers[0]);
+        event.sources.push(EventSources.EthCall);
+        return event;
+      },
+      shouldMerge: (event: Event, callEvent: Event): boolean =>
+        event.hash === callEvent.hash,
+    })(events, txEvent);
   });
-
-  const newEthCalls = chainData.transactions.filter(onlyNew);
-  log.info(`Processing ${newEthCalls.length} new ethereum transactions..`);
-  newEthCalls
-    .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
-    .map(castEthCall(addressBook, chainData, log))
-    .forEach((txEvent: Event): void => { events = mergeEthCall(events, txEvent); });
   assertChrono(events);
 
   return events;

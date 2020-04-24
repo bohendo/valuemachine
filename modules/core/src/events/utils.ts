@@ -194,7 +194,14 @@ export const assertChrono = (events: Event[]): void => {
   }
 };
 
-export const mergeDefaultEvents = (events: Event[], source: Partial<Event>): Event[] => {
+export const mergeDefaultEvents = (
+  events: Event[],
+  source: Partial<Event>,
+  lastUpdated: number,
+): Event[] => {
+  if (source && source.date && new Date(source.date).getTime() <= lastUpdated) {
+    return events;
+  }
 
   const castDefault = (event: Partial<Event>): Partial<Event> => ({
     prices: {},
@@ -222,9 +229,6 @@ export const mergeDefaultEvents = (events: Event[], source: Partial<Event>): Eve
   return output;
 };
 
-const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
-  lt(div(mul(diff(a1, a2), "200"), add([a1, a2])), "1");
-
 export const mergeFactory = (opts: {
   allowableTimeDiff: number;
   mergeEvents: any;
@@ -249,25 +253,25 @@ export const mergeFactory = (opts: {
           }`);
         }
         if (delta > allowableTimeDiff) {
-          log && log.debug(`new event came way before event ${i}, moving on`);
+          log.debug(`new event came way before event ${i}, moving on`);
           output.push(event);
           continue;
         }
         if (delta < -1 * allowableTimeDiff) {
-          log && log.debug(`new event came way after event ${i}, we're done`);
+          log.debug(`new event came way after event ${i}, we're done`);
           output.push(newEvent);
           output.push(...events.slice(i));
           return output;
         }
-        log && log.debug(
+        log.debug(
           `event ${i} "${event.description}" occured ${delta / 1000}s after "${newEvent.description}"`,
         );
       }
 
       if (shouldMerge(event, newEvent)) {
         const mergedEvent = mergeEvents(event, newEvent);
-        log && log.info(`Merged "${newEvent.description}" into ${i} "${event.description}"`);
-        log && log.debug(`Yielding: ${JSON.stringify(mergedEvent, null, 2)}`);
+        log.info(`Merged "${newEvent.description}" into ${i} "${event.description}"`);
+        log.debug(`Yielding: ${JSON.stringify(mergedEvent, null, 2)}`);
         output.push(mergedEvent);
         output.push(...events.slice(i+1));
         return output;
@@ -300,6 +304,9 @@ export const mergeOffChainEvents = (event: Event, ocEvent: Event): Event => {
 };
 
 export const shouldMergeOffChain = (event: Event, ocEvent: Event): boolean => {
+  const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
+    lt(div(mul(diff(a1, a2), "200"), add([a1, a2])), "1");
+
   if (
     // assumes the deposit to/withdraw from exchange account doesn't interact w other contracts
     event.transfers.length !== 1 ||

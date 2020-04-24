@@ -23,7 +23,7 @@ const log = new ContextLogger("Cache", new LevelLogger(env.logLevel));
 
 type CachedData = ChainData | Events | Logs | Prices | StateJson;
 
-const dirName = `${process.cwd()}/.cache`;
+const dirName = `${process.cwd()}/../../.cache`;
 
 const initialData = {
   [CachedTypes.ChainData]: emptyChainData,

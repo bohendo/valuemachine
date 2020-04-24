@@ -38,7 +38,7 @@ prod: client
 all: test example personal
 
 backup:
-	tar czf tax_backup.tar.gz modules/core/.cache modules/core/docs modules/core/personal.json
+	tar czf tax_backup.tar.gz .cache modules/core/docs modules/core/personal.json
 
 clean:
 	rm -rf **/build/**
@@ -46,20 +46,20 @@ clean:
 	docker container prune -f
 
 reset:
-	rm -f modules/core/.cache/*/events.json
-	rm -f modules/core/.cache/*/state.json
-	rm -f modules/core/.cache/*/logs.json
+	rm -f .cache/*/events.json
+	rm -f .cache/*/state.json
+	rm -f .cache/*/logs.json
 	rm -f .flags/personal .flags/example .flags/test
 
 mappings:
 	node modules/core/ops/update-mappings.js -y
 
 ln:
-	ln -s modules/core/.cache/personal/events.json events.json
-	ln -s modules/core/.cache/personal/chain-data.json chain-data.json
-	ln -s modules/core/.cache/personal/state.json state.json
-	ln -s modules/core/.cache/personal/logs.json logs.json
-	ln -s modules/core/.cache/personal/prices.json prices.json
+	ln -s .cache/personal/events.json events.json
+	ln -s .cache/personal/chain-data.json chain-data.json
+	ln -s .cache/personal/state.json state.json
+	ln -s .cache/personal/logs.json logs.json
+	ln -s .cache/personal/prices.json prices.json
 
 ########################################
 # Common Prerequisites
