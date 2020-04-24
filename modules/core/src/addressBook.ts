@@ -78,7 +78,6 @@ export const getAddressBook = (addressBook: AddressBookJson, logger?: ILogger): 
   const isFamily = isCategory(AddressCategories.Family);
   const isSelf = isCategory(AddressCategories.Self);
   const isToken = isCategory(AddressCategories.Erc20);
-  const shouldIgnore = isCategory(AddressCategories.Ignore);
 
   const getName = (address: Address): string =>
     !address
@@ -104,6 +103,5 @@ export const getAddressBook = (addressBook: AddressBookJson, logger?: ILogger): 
     isSelf,
     isToken,
     pretty,
-    shouldIgnore,
   };
 };
