@@ -73,9 +73,6 @@ export const getAddressBook = (addressBook: AddressBookJson, logger?: ILogger): 
   const isCategory = (category: AddressCategories) => (address: Address): boolean =>
     isInnerCategory(category)(address) || isTagged(category)(address);
 
-  const isDefi = isCategory(AddressCategories.Defi);
-  const isExchange = isCategory(AddressCategories.Exchange);
-  const isFamily = isCategory(AddressCategories.Family);
   const isSelf = isCategory(AddressCategories.Self);
   const isToken = isCategory(AddressCategories.Erc20);
 
@@ -90,9 +87,6 @@ export const getAddressBook = (addressBook: AddressBookJson, logger?: ILogger): 
     addresses,
     getName,
     isCategory,
-    isDefi,
-    isExchange,
-    isFamily,
     isSelf,
     isToken,
   };

@@ -1,5 +1,6 @@
 import {
   AddressBook,
+  AddressCategories,
   ILogger,
   TransactionLog,
   Transfer,
@@ -18,24 +19,36 @@ export const categorizeTransfer = (
   logger?: ILogger,
 ): Transfer => {
   const transfer = JSON.parse(JSON.stringify(inputTransfer));
-  const { isExchange, isDefi, isFamily, isSelf, isToken, getName } = addressBook;
+  const { isCategory, isSelf, isToken, getName } = addressBook;
   const log = new ContextLogger("CategorizeTransfer", logger);
 
   log.debug(`Categorizing transfer of ${transfer.quantity} from ${getName(transfer.from)} to ${getName(transfer.to)}`);
 
   // Doesn't matter if self-to-self or external-to-external
-  if (isSelf(transfer.from) && isSelf(transfer.to)) {
+  if (
+    isSelf(transfer.from) &&
+    isSelf(transfer.to)
+  ) {
     return transfer;
-  } else if (!isSelf(transfer.from) && !isSelf(transfer.to)) {
+  } else if (
+    !isSelf(transfer.from) &&
+    !isSelf(transfer.to)
+  ) {
     return transfer;
 
   // eg SwapOut to Uniswap
-  } else if (isExchange(transfer.to) && isSelf(transfer.from)) {
+  } else if (
+    isCategory(AddressCategories.Exchange)(transfer.to) &&
+    isSelf(transfer.from)
+  ) {
     transfer.category = TransferCategories.SwapOut;
     return transfer;
 
   // eg SwapIn from Uniswap
-  } else if (isExchange(transfer.from) && isSelf(transfer.to)) {
+  } else if (
+    isCategory(AddressCategories.Exchange)(transfer.from) &&
+    isSelf(transfer.to)
+  ) {
     transfer.category = TransferCategories.SwapIn;
     return transfer;
 
@@ -60,7 +73,10 @@ export const categorizeTransfer = (
     return transfer;
 
   // gifts
-  } else if (isFamily(transfer.to) || isFamily(transfer.from)) {
+  } else if (
+    isCategory(AddressCategories.Family)(transfer.to) ||
+    isCategory(AddressCategories.Family)(transfer.from)
+  ) {
     transfer.category = TransferCategories.Gift;
     return transfer;
 
@@ -78,10 +94,13 @@ export const categorizeTransfer = (
 
   for (const txLog of txLogs) {
 
-    if (isDefi(txLog.address)) {
+    if (isCategory(AddressCategories.Defi)(txLog.address)) {
 
       // compound v2
-      if (isToken(txLog.address) && getName(txLog.address).toLowerCase().startsWith("c")) {
+      if (
+        isToken(txLog.address) &&
+        getName(txLog.address).toLowerCase().startsWith("c")
+      ) {
         const event = defiEvents.find(e => e.topic === txLog.topics[0]);
         if (!event) { continue; }
         const data = event.decode(txLog.data, txLog.topics);
@@ -155,7 +174,7 @@ export const categorizeTransfer = (
       }
 
     // eg Oasis Dex
-    } else if (isExchange(txLog.address)) {
+    } else if (isCategory(AddressCategories.Exchange)(txLog.address)) {
       const event = exchangeEvents.find(e => e.topic === txLog.topics[0]);
       if (event && event.name === "LogTake") {
         const data = event.decode(txLog.data, txLog.topics);

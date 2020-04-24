@@ -27,9 +27,6 @@ export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
   isCategory(category: AddressCategories): (address: Address) => boolean;
-  isDefi(address: Address): boolean;
-  isExchange(address: Address): boolean;
-  isFamily(address: Address): boolean;
   isSelf(address: Address): boolean;
   isToken(address: Address): boolean;
 }
