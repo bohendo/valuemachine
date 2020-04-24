@@ -9,9 +9,6 @@ import {
   TimestampString,
 } from "@finances/types";
 
-import { Field, Forms } from "./mappings";
-export { Field, Forms };
-
 import {
   AddressCategories,
   AddressTags,
@@ -97,6 +94,5 @@ export type InputData = {
   addressBook?: AddressBookJson;
   env: Partial<Env>;
   events: Array<Event | string>;
-  formData: Forms;
   forms: string[];
 }

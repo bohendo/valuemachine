@@ -1,7 +1,6 @@
 import { TimestampString } from "@finances/types";
 
 export * from "./math";
-export * from "./forms";
 export * from "./logger";
 
 export const toFormDate = (date: TimestampString): string => {
