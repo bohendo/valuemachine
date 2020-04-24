@@ -19,36 +19,24 @@ export const categorizeTransfer = (
   logger?: ILogger,
 ): Transfer => {
   const transfer = JSON.parse(JSON.stringify(inputTransfer));
-  const { isCategory, isSelf, isToken, getName } = addressBook;
+  const { isCategory, isSelf, getName } = addressBook;
   const log = new ContextLogger("CategorizeTransfer", logger);
 
   log.debug(`Categorizing transfer of ${transfer.quantity} from ${getName(transfer.from)} to ${getName(transfer.to)}`);
 
   // Doesn't matter if self-to-self or external-to-external
-  if (
-    isSelf(transfer.from) &&
-    isSelf(transfer.to)
-  ) {
+  if (isSelf(transfer.from) && isSelf(transfer.to)) {
     return transfer;
-  } else if (
-    !isSelf(transfer.from) &&
-    !isSelf(transfer.to)
-  ) {
+  } else if (!isSelf(transfer.from) && !isSelf(transfer.to)) {
     return transfer;
 
   // eg SwapOut to Uniswap
-  } else if (
-    isCategory(AddressCategories.Exchange)(transfer.to) &&
-    isSelf(transfer.from)
-  ) {
+  } else if (isCategory(AddressCategories.Exchange)(transfer.to)) {
     transfer.category = TransferCategories.SwapOut;
     return transfer;
 
   // eg SwapIn from Uniswap
-  } else if (
-    isCategory(AddressCategories.Exchange)(transfer.from) &&
-    isSelf(transfer.to)
-  ) {
+  } else if (isCategory(AddressCategories.Exchange)(transfer.from)) {
     transfer.category = TransferCategories.SwapIn;
     return transfer;
 
@@ -69,6 +57,16 @@ export const categorizeTransfer = (
 
   // retrieve GEN from DAOstack Genesis Protocol
   } else if (transfer.assetType === "GEN" && getName(transfer.from) === "genesis-protocol") {
+    transfer.category = TransferCategories.Withdraw;
+    return transfer;
+
+  // deposit into compound v2
+  } else if (isCategory(AddressCategories.CToken)(transfer.to)) {
+    transfer.category = TransferCategories.Deposit;
+    return transfer;
+
+  // withdraw from compound v2
+  } else if (isCategory(AddressCategories.CToken)(transfer.from)) {
     transfer.category = TransferCategories.Withdraw;
     return transfer;
 
@@ -96,11 +94,8 @@ export const categorizeTransfer = (
 
     if (isCategory(AddressCategories.Defi)(txLog.address)) {
 
-      // compound v2
-      if (
-        isToken(txLog.address) &&
-        getName(txLog.address).toLowerCase().startsWith("c")
-      ) {
+      // update dai null addresses for compound v2
+      if (isCategory(AddressCategories.CToken)(txLog.address)) {
         const event = defiEvents.find(e => e.topic === txLog.topics[0]);
         if (!event) { continue; }
         const data = event.decode(txLog.data, txLog.topics);
