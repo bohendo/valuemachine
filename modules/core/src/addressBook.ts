@@ -45,7 +45,7 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: ILogge
 
   const isTagged = (tag: AddressCategories) => (address: Address): boolean =>
     address && addressBook
-      .filter(row => row.tags && row.tags.includes(tag))
+      .filter(row => row.tags && row.tags.includes(tag.toLowerCase()))
       .map(row => sm(row.address))
       .includes(sm(address));
 

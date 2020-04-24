@@ -81,9 +81,9 @@ export const mergeEthTxEvents = (
         return event;
       }
 
-      log.debug(`transfer of ${tx.value} ETH from ${tx.from} to ${tx.to}`);
-
       event.transfers[0] = categorizeTransfer(event.transfers[0], [], addressBook, logger);
+
+      log.debug(`${tx.value} ETH from ${tx.from} to ${tx.to}: ${event.transfers[0].category}`);
 
       for (const txLog of tx.logs) {
         if (isToken(txLog.address)) {
