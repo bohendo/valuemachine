@@ -1,4 +1,3 @@
-/* global process */
 import { Env, Modes } from "./types";
 
 export const env = {

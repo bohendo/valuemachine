@@ -1,4 +1,3 @@
-/* global process */
 import { ContextLogger, LevelLogger } from "@finances/core";
 import {
   ChainData,

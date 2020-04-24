@@ -1,4 +1,3 @@
-/* global process */
 import fs from "fs";
 
 import {
@@ -71,10 +70,8 @@ process.on("SIGINT", logAndExit);
     const [newState, newLogs] = valueMachine(state.toJson(), event);
     vmLogs = vmLogs.concat(...newLogs);
     state = newState;
-    if (parseInt(event.date.split("-")[0], 10) < parseInt(env.taxYear, 10)) {
-      cache.saveState(state.toJson());
-      cache.saveLogs(vmLogs);
-    }
+    cache.saveState(state.toJson());
+    cache.saveLogs(vmLogs);
   }
 
   console.log(`Final state: ${JSON.stringify(state.getAllBalances(), null, 2)}`);
@@ -89,7 +86,7 @@ process.on("SIGINT", logAndExit);
     if (!mappings[form]) {
       throw new Error(`Form ${form} not supported: No mappings available`);
     }
-    output[form] = [mergeForms(emptyForm(mappings[form]), input[form])];
+    output[form] = mergeForms(emptyForm(mappings[form]), input.formData[form]);
   }
 
   ////////////////////////////////////////
@@ -113,7 +110,7 @@ process.on("SIGINT", logAndExit);
       const filename = `${outputFolder}/${name}.json`;
       log.info(`Saving ${name} data to ${filename}`);
       const outputData =
-        JSON.stringify(translate(data[0], mappings[name]), null, 2);
+        JSON.stringify(translate(data, mappings[name]), null, 2);
       fs.writeFileSync(filename, outputData);
     } else {
       let i = 1;

@@ -1,6 +1,5 @@
 import { DateString, TimestampString } from "@finances/types";
 import axios from "axios";
-// import { formatEther } from "ethers/utils";
 
 import { ILogger } from "./types";
 import { ContextLogger } from "./utils";
