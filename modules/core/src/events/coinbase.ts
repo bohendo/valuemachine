@@ -2,7 +2,7 @@ import { Event, EventSources, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
 import { ILogger } from "../types";
-import { Logger } from "../utils";
+import { ContextLogger } from "../utils";
 import { assertChrono, mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
 export const mergeCoinbaseEvents = (
@@ -10,7 +10,7 @@ export const mergeCoinbaseEvents = (
   coinbaseData: string,
   logger?: ILogger,
 ): Event[] => {
-  const log = new Logger("Coinbase", logger);
+  const log = new ContextLogger("Coinbase", logger);
   let events = JSON.parse(JSON.stringify(oldEvents));
   const coinbaseEvents = csv(
     coinbaseData,

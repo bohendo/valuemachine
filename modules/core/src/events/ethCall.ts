@@ -8,7 +8,7 @@ import {
 
 import { AddressZero } from "ethers/constants";
 import { AddressBook, ILogger } from "../types";
-import { eq, Logger } from "../utils";
+import { eq, ContextLogger } from "../utils";
 import { assertChrono, mergeFactory, transferTagger } from "./utils";
 
 const castEthCall = (addressBook: AddressBook, chainData: ChainData, log: ILogger): any =>
@@ -62,7 +62,7 @@ export const mergeEthCallEvents = (
   chainData: ChainData,
   logger?: ILogger,
 ): Event[] => {
-  const log = new Logger("EthCall", logger);
+  const log = new ContextLogger("EthCall", logger);
   let events = JSON.parse(JSON.stringify(oldEvents));
 
   const latestCachedEvent = events.length !== 0

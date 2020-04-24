@@ -3,6 +3,7 @@ import * as fs from "fs";
 
 import { getPrice } from "../prices";
 import { AddressBook, ILogger } from "../types";
+import { ContextLogger } from "../utils";
 
 import { mergeCoinbaseEvents } from "./coinbase";
 import { mergeWyreEvents } from "./wyre";
@@ -15,8 +16,9 @@ export const getEvents = async (
   chainData: ChainData,
   cache: any,
   extraEvents: Array<Event | string>,
-  log: ILogger = console,
+  logger: ILogger = console,
 ): Promise<Event[]> => {
+  const log = new ContextLogger("GetEvents", logger);
 
   let events = cache.loadEvents();
   const latestCachedEvent = events.length !== 0
@@ -27,15 +29,15 @@ export const getEvents = async (
     latestCachedEvent ? new Date(latestCachedEvent).toISOString() : "never"
   }`);
 
-  events = mergeEthTxEvents(events, addressBook, chainData);
-  events = mergeEthCallEvents(events, addressBook, chainData);
+  events = mergeEthTxEvents(events, addressBook, chainData, logger);
+  events = mergeEthCallEvents(events, addressBook, chainData, logger);
 
   for (const source of extraEvents || []) {
     if (typeof source === "string" && source.endsWith(".csv")) {
       if (source.toLowerCase().includes("coinbase")) {
-        events = mergeCoinbaseEvents(events, fs.readFileSync(source, "utf8"));
+        events = mergeCoinbaseEvents(events, fs.readFileSync(source, "utf8"), logger);
       } else if (source.toLowerCase().includes("wyre")) {
-        events = mergeWyreEvents(events, fs.readFileSync(source, "utf8"));
+        events = mergeWyreEvents(events, fs.readFileSync(source, "utf8"), logger);
       } else {
         throw new Error(`I don't know how to parse events from ${source}`);
       }
@@ -52,7 +54,7 @@ export const getEvents = async (
       const assetType = assets[j] as AssetTypes;
       if (!event.prices) { event.prices = {}; } // TODO: this should already be done
       if (!event.prices[assetType]) {
-        event.prices[assetType] = await getPrice(assetType, event.date, cache);
+        event.prices[assetType] = await getPrice(assetType, event.date, cache, logger);
       }
     }
   }

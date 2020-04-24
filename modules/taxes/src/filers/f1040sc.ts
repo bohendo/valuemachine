@@ -1,10 +1,12 @@
-import { env } from "../env";
+import { ContextLogger, LevelLogger } from "@finances/core";
 import { Logs, ExpenseLog, IncomeLog, LogTypes } from "@finances/types";
+
+import { env } from "../env";
 import { Forms } from "../types";
-import { add, gt, Logger, lt, mul, round, sub } from "../utils";
+import { add, gt, lt, mul, round, sub } from "../utils";
 
 export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
-  const log = new Logger("f1040sc", env.logLevel);
+  const log = new ContextLogger("f1040sc", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 

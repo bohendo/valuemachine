@@ -3,14 +3,14 @@ import { Event, Log, StateJson } from "@finances/types";
 import { emitEventLogs, emitTransferLogs } from "./logs";
 import { getState } from "./state";
 import { AddressBook, ILogger, State } from "./types";
-import { eq, gt, Logger, sub } from "./utils";
+import { eq, gt, ContextLogger, sub } from "./utils";
 
 export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any => {
-  const log = new Logger("ValueMachine", logger);
+  const log = new ContextLogger("ValueMachine", logger);
   const { pretty } = addressBook;
 
   return (oldState: StateJson | null, event: Event): [State, Log[]] => {
-    const state = getState(addressBook, oldState);
+    const state = getState(addressBook, oldState, logger);
     const startingBalances = state.getRelevantBalances(event);
     log.info(`Applying event from ${event.date}: ${event.description}`);
     log.debug(`Applying transfers: ${

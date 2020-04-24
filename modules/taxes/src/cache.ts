@@ -1,4 +1,5 @@
 /* global process */
+import { ContextLogger, LevelLogger } from "@finances/core";
 import {
   ChainData,
   emptyChainData,
@@ -15,12 +16,11 @@ import fs from "fs";
 
 import { CachedTypes } from "./enums";
 import { env } from "./env";
-import { Logger } from "./utils";
 
 ////////////////////////////////////////
 // Internal Data
 
-const log = new Logger("Cache", env.logLevel);
+const log = new ContextLogger("Cache", new LevelLogger(env.logLevel));
 
 type CachedData = ChainData | Events | Logs | Prices | StateJson;
 

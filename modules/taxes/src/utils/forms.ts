@@ -1,5 +1,6 @@
+import { ContextLogger, LevelLogger } from "@finances/core";
+
 import { env } from "../env";
-import { Logger } from "./logger";
 
 export const emptyForm = (form): any => {
   const emptyForm = JSON.parse(JSON.stringify(form));
@@ -25,7 +26,7 @@ export const translate = (form, mappings): any => {
   for (const [key, value] of Object.entries(form)) {
     if (key === "default") { continue; }
     if (!mappings[key]) {
-      new Logger("TranslateForms", env.logLevel)
+      new ContextLogger("TranslateForms", new LevelLogger(env.logLevel))
         .warn(`Key ${key} exists in output data but not in mappings`);
     }
     newForm[mappings[key]] = value;

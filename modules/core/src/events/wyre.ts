@@ -1,7 +1,7 @@
 import { DateString, Event, EventSources, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
-import { Logger } from "../utils";
+import { ContextLogger } from "../utils";
 import { ILogger } from "../types";
 import { assertChrono, mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 
@@ -10,7 +10,7 @@ export const mergeWyreEvents = (
   wyreData: string,
   logger?: ILogger,
 ): Event[] => {
-  const log = new Logger("SendWyre", logger);
+  const log = new ContextLogger("SendWyre", logger);
   let events = JSON.parse(JSON.stringify(oldEvents));
   const wyreEvents = csv(
     wyreData,

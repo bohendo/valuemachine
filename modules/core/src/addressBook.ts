@@ -2,14 +2,14 @@ import { Address } from "@finances/types";
 import { getAddress } from "ethers/utils";
 
 import { AddressBookJson, AddressBook, ILogger } from "./types";
-import { Logger } from "./utils";
+import { ContextLogger } from "./utils";
 
 export const getAddressBook = (addressBook: AddressBookJson, logger?: ILogger): AddressBook => {
 
   ////////////////////////////////////////
   // Internal Functions
 
-  const log = new Logger("AddressBook", logger);
+  const log = new ContextLogger("AddressBook", logger);
 
   const sm = (str: string): string =>
     str.toLowerCase();

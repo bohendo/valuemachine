@@ -11,13 +11,13 @@ import { AddressZero } from "ethers/constants";
 import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from "ethers/utils";
 
 import { tokenEvents } from "../abi";
-import { Logger } from "../utils";
+import { ContextLogger } from "../utils";
 import { AddressBook, ILogger } from "../types";
 import { assertChrono, mergeFactory, transferTagger } from "./utils";
 
 const castEthTx = (addressBook: AddressBook, chainData: ChainData, logger?: ILogger): any =>
   (tx: TransactionData): Event => {
-    const log = new Logger(
+    const log = new ContextLogger(
       `EthTx ${tx.hash.substring(0, 10)} ${tx.timestamp.split("T")[0]}`,
       logger,
     );
@@ -144,7 +144,7 @@ export const mergeEthTxEvents = (
   chainData: ChainData,
   logger?: ILogger,
 ): Event[] => {
-  const log = new Logger("EthTx", logger);
+  const log = new ContextLogger("EthTx", logger);
   let events = JSON.parse(JSON.stringify(oldEvents));
 
   const latestCachedEvent = events.length !== 0

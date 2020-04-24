@@ -14,14 +14,16 @@ import {
 
 import { getTokenAbi } from "./abi";
 import { ILogger } from "./types";
+import { ContextLogger } from "./utils";
 
 export const getChainData = async (
   userAddresses: Address[],
   tokenAddresses: Address[],
   cache: any,
   etherscanKey: string,
-  log: ILogger = console,
+  logger: ILogger = console,
 ): Promise<ChainData> => {
+  const log = new ContextLogger("GetChainData", logger);
   const chainData = cache.loadChainData();
 
   const hour = 60 * 60 * 1000;

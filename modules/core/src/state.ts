@@ -15,14 +15,14 @@ import {
   State,
   StateBalances,
 } from "./types";
-import { add, gt, Logger, round, sub } from "./utils";
+import { add, gt, ContextLogger, round, sub } from "./utils";
 
 export const getState = (
   addressBook: AddressBook,
   oldState: StateJson,
   logger?: ILogger,
 ): State => {
-  const log = new Logger("State", logger);
+  const log = new ContextLogger("State", logger);
 
   ////////////////////////////////////////
   // Run Init Code

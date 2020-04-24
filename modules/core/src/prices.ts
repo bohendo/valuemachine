@@ -3,7 +3,7 @@ import axios from "axios";
 // import { formatEther } from "ethers/utils";
 
 import { ILogger } from "./types";
-import { Logger } from "./utils";
+import { ContextLogger } from "./utils";
 
 const fetchPrice = async (
   asset: string,
@@ -11,7 +11,7 @@ const fetchPrice = async (
   cache: any,
   logger?: ILogger,
 ): Promise<string> => {
-  const log = new Logger("FetchPriceData", logger);
+  const log = new ContextLogger("FetchPriceData", logger);
 
   const prices = cache.loadPrices();
   const date = (timestamp.includes("T") ? timestamp.split("T")[0] : timestamp) as DateString;

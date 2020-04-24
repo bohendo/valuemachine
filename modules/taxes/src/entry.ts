@@ -7,6 +7,7 @@ import {
   getEvents,
   getState,
   getValueMachine,
+  LevelLogger,
 } from "@finances/core";
 
 import * as cache from "./cache";
@@ -14,7 +15,7 @@ import { env, setEnv } from "./env";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
 import { InputData } from "./types";
-import { emptyForm, Logger, mergeForms, translate } from "./utils";
+import { emptyForm, mergeForms, translate } from "./utils";
 
 const logAndExit = (msg: any): void => {
   console.error(msg);
@@ -29,8 +30,8 @@ process.on("SIGINT", logAndExit);
 
   const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as InputData;
   const username = input.env.username;
-  const log = new Logger("Entry", input.env.logLevel);
-  log.info(`Generating tax return data for ${username}`);
+  const log = new LevelLogger(input.env.logLevel);
+  log.info(`Generating tax return data for ${username} (log level: ${input.env.logLevel})`);
 
   const outputFolder = `${process.cwd()}/build/${username}/data`;
 
@@ -42,14 +43,14 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const addressBook = getAddressBook(input.addressBook);
+  const addressBook = getAddressBook(input.addressBook, log);
 
   const chainData = await getChainData(
     addressBook.addresses.filter(addressBook.isSelf),
     addressBook.addresses.filter(addressBook.isToken),
     cache,
     input.env.etherscanKey,
-    new Logger("ChainData", input.env.logLevel),
+    log,
   );
 
   const events = await getEvents(
@@ -57,12 +58,12 @@ process.on("SIGINT", logAndExit);
     chainData,
     cache,
     input.events,
-    new Logger("Events", input.env.logLevel),
+    log,
   );
 
-  const valueMachine = getValueMachine(addressBook);
+  const valueMachine = getValueMachine(addressBook, log);
 
-  let state = getState(addressBook, cache.loadState());
+  let state = getState(addressBook, cache.loadState(), log);
   let vmLogs = cache.loadLogs();
   for (const event of events.filter(
     event => new Date(event.date).getTime() > new Date(state.toJson().lastUpdated).getTime(),
