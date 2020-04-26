@@ -8,7 +8,6 @@ import {
 import {
   getAddressBook,
   getEvents,
-  getState,
   getValueMachine,
 } from "@finances/core";
 import {
@@ -99,15 +98,15 @@ function App() {
 
       const valueMachine = getValueMachine(addressBook);
 
-      let state = getState(addressBook, cache.loadState());
+      let state = cache.loadState();
       let vmLogs = cache.loadLogs();
       for (const event of events.filter(
-        event => new Date(event.date).getTime() > new Date(state.toJson().lastUpdated).getTime(),
+        event => new Date(event.date).getTime() > new Date(state.lastUpdated).getTime(),
       )) {
-        const [newState, newLogs] = valueMachine(state.toJson(), event);
+        const [newState, newLogs] = valueMachine(state, event);
         vmLogs = vmLogs.concat(...newLogs);
         state = newState;
-        cache.saveState(state.toJson());
+        cache.saveState(state);
         cache.saveLogs(vmLogs);
       }
       setFinancialLogs(vmLogs);

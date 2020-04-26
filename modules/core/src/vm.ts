@@ -1,4 +1,4 @@
-import { AddressBook, State, Event, ILogger, Log, StateJson } from "@finances/types";
+import { AddressBook, Event, ILogger, Log, StateJson } from "@finances/types";
 
 import { emitEventLogs, emitTransferLogs } from "./logs";
 import { getState } from "./state";
@@ -8,7 +8,7 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
   const log = new ContextLogger("ValueMachine", logger);
   const { getName } = addressBook;
 
-  return (oldState: StateJson | null, event: Event): [State, Log[]] => {
+  return (oldState: StateJson, event: Event): [StateJson, Log[]] => {
     const state = getState(addressBook, oldState, logger);
     log.info(`Applying event from ${event.date}: ${event.description}`);
     log.debug(`Applying transfers: ${
@@ -62,6 +62,6 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
 
     state.touch(event.date);
 
-    return [state, logs];
+    return [state.toJson(), logs];
   };
 };

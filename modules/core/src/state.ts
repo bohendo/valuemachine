@@ -17,7 +17,7 @@ import { add, gt, ContextLogger, round, sub } from "./utils";
 
 export const getState = (
   addressBook: AddressBook,
-  oldState: StateJson,
+  state: StateJson,
   logger?: ILogger,
 ): State => {
   const log = new ContextLogger("State", logger);
@@ -25,7 +25,6 @@ export const getState = (
   ////////////////////////////////////////
   // Run Init Code
 
-  const state = JSON.parse(JSON.stringify(oldState)) as StateJson;
   for (const address of addressBook.addresses.filter(addressBook.isSelf)) {
     state.accounts[address] = state.accounts[address] || [];
   }
@@ -42,7 +41,7 @@ export const getState = (
   ////////////////////////////////////////
   // Exported Functions
 
-  const toJson = (): StateJson => JSON.parse(JSON.stringify(state));
+  const toJson = (): StateJson => state;
 
   const putChunk = (account: Address, chunk: AssetChunk): void => {
     if (["BTC", "INR", "LTC", "USD"].includes(chunk.assetType) || !addressBook.isSelf(account)) {

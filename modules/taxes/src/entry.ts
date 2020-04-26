@@ -62,22 +62,24 @@ process.on("SIGINT", logAndExit);
 
   const valueMachine = getValueMachine(addressBook, log);
 
-  let state = getState(addressBook, cache.loadState(), log);
+  let state = cache.loadState();
   let vmLogs = cache.loadLogs();
   for (const event of events.filter(
-    event => new Date(event.date).getTime() > new Date(state.toJson().lastUpdated).getTime(),
+    event => new Date(event.date).getTime() > new Date(state.lastUpdated).getTime(),
   )) {
-    const [newState, newLogs] = valueMachine(state.toJson(), event);
+    const [newState, newLogs] = valueMachine(state, event);
     vmLogs = vmLogs.concat(...newLogs);
     state = newState;
     // if (parseInt(event.date.split("-")[0], 10) < parseInt(env.taxYear, 10)) {
-    cache.saveState(state.toJson());
+    cache.saveState(state);
     cache.saveLogs(vmLogs);
     // }
   }
 
-  console.log(`Final state: ${JSON.stringify(state.getAllBalances(), null, 2)}`);
-  console.log(`\nNet Worth: ${JSON.stringify(state.getNetWorth(), null, 2)}`);
+  const finalState = getState(addressBook, state, log);
+
+  console.log(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
+  console.log(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
 
   log.info(`Done compiling financial events.\n`);
 
