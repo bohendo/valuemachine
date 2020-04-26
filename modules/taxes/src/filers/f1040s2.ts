@@ -14,5 +14,8 @@ export const f1040s2 = (vmLogs: Log[], oldForms: Forms): Forms => {
     f1040s2.L4, f1040s2.L5, f1040s2.L6, f1040s2.L7a, f1040s2.L7b, f1040s2.L8,
   ]));
 
-  return { ...forms, f1040s2 };
+  f1040.L12b = f1040s2.L3;
+  f1040.L15 = f1040s2.L10;
+
+  return { ...forms, f1040, f1040s2 };
 };

@@ -83,12 +83,10 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
   if (gt(f1040sc.L31, "0")) {
     f1040s1.L3 = f1040sc.L31;
     f1040sse.L2 = f1040sc.L31;
-    f1040sse.L2_Long = f1040sc.L31;
   } else if (lt(f1040sc.L31, "0")) {
     if (f1040sc.C32a) {
       f1040s1.L3 = f1040sc.L31;
       f1040sse.L2 = f1040sc.L31;
-      f1040sse.L2_Long = f1040sc.L31;
     }
   }
 
