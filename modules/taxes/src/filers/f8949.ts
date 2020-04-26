@@ -2,7 +2,7 @@ import { ContextLogger, LevelLogger } from "@finances/core";
 import { Log, LogTypes } from "@finances/types";
 
 import { env } from "../env";
-import { add, round, toFormDate } from "../utils";
+import { add, mul, round, sub, toFormDate } from "../utils";
 import { Forms } from "../types";
 
 export const f8949 = (vmLogs: Log[], oldForms: Forms): Forms  => {
@@ -28,25 +28,29 @@ export const f8949 = (vmLogs: Log[], oldForms: Forms): Forms  => {
     // TODO: identify & properly handle long-term capital gains
     subF8949.c1_1_2 = true;
 
-    const subTotal = { Cost: "0", GainOrLoss: "0", Proceeds: "0" };
+    const subTotal = { cost: "0", gainOrLoss: "0", proceeds: "0" };
 
     let i = 3;
     for (const trade of fourteenTrades) {
-      log.info(`Including trade: ${trade.description}`);
-      subTotal.Proceeds = round(add([subTotal.Proceeds, trade.proceeds]));
-      subTotal.Cost = round(add([subTotal.Cost, trade.cost]));
-      subTotal.GainOrLoss = round(add([subTotal.GainOrLoss, trade.gainOrLoss]));
-      subF8949[`f1_${i}`] = trade.description;
-      subF8949[`f1_${i+1}`] = toFormDate(trade.dateRecieved);
+      const description = `${round(trade.quantity, 4)} ${trade.assetType}`;
+      const proceeds = mul(trade.quantity, trade.assetPrice);
+      const cost = mul(trade.quantity, trade.purchasePrice);
+      const gainOrLoss = sub(proceeds, cost);
+      log.info(`Sold ${description} | ${round(proceeds)} - ${round(cost)} = ${round(gainOrLoss)}`);
+      subTotal.proceeds = round(add([subTotal.proceeds, proceeds]));
+      subTotal.cost = round(add([subTotal.cost, cost]));
+      subTotal.gainOrLoss = round(add([subTotal.gainOrLoss, gainOrLoss]));
+      subF8949[`f1_${i}`] = description;
+      subF8949[`f1_${i+1}`] = toFormDate(trade.purchaseDate);
       subF8949[`f1_${i+2}`] = toFormDate(trade.date);
-      subF8949[`f1_${i+3}`] = round(trade.proceeds);
-      subF8949[`f1_${i+4}`] = round(trade.Cost);
-      subF8949[`f1_${i+7}`] = round(trade.GainOrLoss);
+      subF8949[`f1_${i+3}`] = round(proceeds);
+      subF8949[`f1_${i+4}`] = round(cost);
+      subF8949[`f1_${i+7}`] = round(gainOrLoss);
       i += 8;
     }
-    subF8949.f1_115 = round(subTotal.Proceeds);
-    subF8949.f1_116 = round(subTotal.Cost);
-    subF8949.f1_119 = round(subTotal.GainOrLoss);
+    subF8949.f1_115 = round(subTotal.proceeds);
+    subF8949.f1_116 = round(subTotal.cost);
+    subF8949.f1_119 = round(subTotal.gainOrLoss);
 
     return subF8949;
   };

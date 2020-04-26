@@ -2,7 +2,7 @@ import { AddressBook, State, Event, ILogger, Log, StateJson } from "@finances/ty
 
 import { emitEventLogs, emitTransferLogs } from "./logs";
 import { getState } from "./state";
-import { eq, gt, ContextLogger, sub } from "./utils";
+import { ContextLogger } from "./utils";
 
 export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any => {
   const log = new ContextLogger("ValueMachine", logger);
@@ -10,12 +10,11 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
 
   return (oldState: StateJson | null, event: Event): [State, Log[]] => {
     const state = getState(addressBook, oldState, logger);
-    const startingBalances = state.getRelevantBalances(event);
     log.info(`Applying event from ${event.date}: ${event.description}`);
     log.debug(`Applying transfers: ${
       JSON.stringify(event.transfers, null, 2)
     } to sub-state ${
-      JSON.stringify(startingBalances, null, 2)
+      JSON.stringify(state.getRelevantBalances(event), null, 2)
     }`);
     const logs = [] as Log[];
 
@@ -42,7 +41,6 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
           feeChunks.forEach(chunk => state.putChunk(from, chunk));
         }
         later.push(transfer);
-        continue;
       }
     }
 
@@ -61,21 +59,6 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
     ////////////////////////////////////////
 
     logs.push(...emitEventLogs(addressBook, event, state));
-
-    const endingBalances = state.getRelevantBalances(event);
-
-    // Print & assert on state afterwards
-    for (const account of Object.keys(endingBalances)) {
-      for (const assetType of Object.keys(endingBalances[account])) {
-        const diff = sub(endingBalances[account][assetType], startingBalances[account][assetType]);
-        if (!eq(diff, "0")) {
-          endingBalances[account][assetType] += ` (${gt(diff, 0) ? "+" : ""}${diff})`;
-        }
-      }
-    }
-    log.debug(`Final state after applying "${event.description}": ${
-      JSON.stringify(endingBalances, null, 2)
-    }\n`);
 
     state.touch(event.date);
 

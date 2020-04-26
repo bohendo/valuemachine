@@ -16,7 +16,7 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
   let totalIncome = "0";
 
   vmLogs.filter(l => l.type === LogTypes.Income).forEach((income: IncomeLog): void => {
-    log.info(`Including income: ${income.description}`);
+    log.info(`Including income: ${income.description} (worth ${round(mul(income.quantity, income.assetPrice))}) (total ${round(totalIncome)})`);
     totalIncome = add([totalIncome, mul(income.quantity, income.assetPrice)]);
   });
 

@@ -1,5 +1,5 @@
 import { AssetTypes } from "./assets";
-import { Address, DecimalString, FormDateString } from "./strings";
+import { Address, DecimalString, TimestampString } from "./strings";
 import { enumify } from "./utils";
 
 export const LogTypes = enumify({
@@ -25,7 +25,7 @@ export type LogTypes = (typeof LogTypes)[keyof typeof LogTypes];
 export type BaseLog = {
   assetPrice: DecimalString;
   assetType: AssetTypes;
-  date: FormDateString;
+  date: TimestampString;
   description: string;
   quantity: DecimalString;
   type: LogTypes;
@@ -43,10 +43,8 @@ export type BurnLog = BaseLog & {
 
 // used to fill in a row of f8949
 export type CapitalGainsLog = BaseLog & {
-  cost: DecimalString;
-  dateRecieved: FormDateString;
-  gainOrLoss: DecimalString;
-  proceeds: DecimalString;
+  purchaseDate: TimestampString;
+  purchasePrice: DecimalString;
   type: typeof LogTypes.CapitalGains;
 }
 
@@ -112,7 +110,7 @@ export type WithdrawLog = BaseLog & {
 
 export type NetWorthLog = BaseLog & {
   assets: { [assetType: string]: DecimalString };
-  date: FormDateString;
+  date: TimestampString;
   prices: { [assetType: string]: DecimalString };
   type: typeof LogTypes.NetWorth;
 }

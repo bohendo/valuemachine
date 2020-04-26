@@ -25,7 +25,7 @@ export class ContextLogger implements ILogger {
   private log(level: string): (msg: string) => void {
     return (msg: string): void => {
       return this.logger[level](
-        `${level.substring(0, 1).toUpperCase()} [${this.context}] ${msg}`,
+        `${new Date().toISOString()} [${this.context}] ${msg}`,
       );
     };
   }

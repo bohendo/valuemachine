@@ -41,7 +41,7 @@ backup:
 	tar czf tax_backup.tar.gz .cache modules/core/docs modules/core/personal.json
 
 clean:
-	rm -rf **/build/**
+	rm -rf modules/*/build/**
 	rm -rf .flags/*
 	docker container prune -f
 

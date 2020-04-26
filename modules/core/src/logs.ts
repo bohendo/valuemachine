@@ -10,7 +10,7 @@ import {
   TransferCategories,
 } from "@finances/types";
 
-import { gt, mul, round, sub } from "./utils";
+import { gt, round } from "./utils";
 
 export const emitEventLogs = (
   addressBook: AddressBook,
@@ -48,7 +48,7 @@ export const emitTransferLogs = (
       date: event.date,
       description: `${quantity} ${assetType} to ${getName(to)} ${position}`,
       from,
-      quantity: quantity,
+      quantity,
       type: transfer.category as LogTypes,
     });
   } else if (["Deposit", "Expense", "Mint", "Repay", "SwapOut"].includes(transfer.category)) {
@@ -57,7 +57,7 @@ export const emitTransferLogs = (
       assetType: assetType,
       date: event.date,
       description: `${quantity} ${assetType} to ${getName(to)} ${position}`,
-      quantity: quantity,
+      quantity,
       to,
       type: transfer.category as LogTypes,
     });
@@ -71,7 +71,7 @@ export const emitTransferLogs = (
         assetType: assetType,
         date: event.date,
         description: `${quantity} ${assetType} to ${getName(to)} ${position}`,
-        quantity: quantity,
+        quantity,
         to,
         type: LogTypes.Expense,
       });
@@ -81,7 +81,7 @@ export const emitTransferLogs = (
         assetType: assetType,
         date: event.date,
         description: `${quantity} ${assetType} to ${getName(to)} ${position}`,
-        quantity: quantity,
+        quantity,
         to,
         type: LogTypes.GiftOut,
       });
@@ -90,15 +90,14 @@ export const emitTransferLogs = (
     // maybe emit capital gain logs
     if (!unitOfAccount.includes(assetType) && transfer.category === TransferCategories.SwapOut) {
       chunks.forEach(chunk => {
-        const cost = mul(chunk.purchasePrice, chunk.quantity);
-        const proceeds = mul(event.prices[chunk.assetType], chunk.quantity);
         logs.push({
-          cost,
+          assetPrice: event.prices[chunk.assetType],
+          assetType: chunk.assetType,
           date: event.date,
-          dateRecieved: chunk.dateRecieved,
           description: `${round(chunk.quantity, 4)} ${chunk.assetType} ${position}`,
-          gainOrLoss: sub(proceeds, cost),
-          proceeds,
+          purchaseDate: chunk.dateRecieved,
+          purchasePrice: chunk.purchasePrice,
+          quantity,
           type: LogTypes.CapitalGains,
         });
       });
