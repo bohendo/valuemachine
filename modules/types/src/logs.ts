@@ -70,6 +70,7 @@ export type GiftOutLog = BaseLog & {
 
 export type IncomeLog = BaseLog & {
   from: Address;
+  taxTags: string[];
   type: typeof LogTypes.Income;
 }
 

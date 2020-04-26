@@ -16,8 +16,13 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
   let totalIncome = "0";
 
   vmLogs.filter(l => l.type === LogTypes.Income).forEach((income: IncomeLog): void => {
-    log.info(`Including income: ${income.description} (worth ${round(mul(income.quantity, income.assetPrice))}) (total ${round(totalIncome)})`);
-    totalIncome = add([totalIncome, mul(income.quantity, income.assetPrice)]);
+    const value = round(mul(income.quantity, income.assetPrice));
+    if (income.taxTags.includes("ignore")) {
+      log.info(`Ignoring income: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
+    } else {
+      totalIncome = add([totalIncome, value]);
+      log.info(`Adding income: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
+    }
   });
 
   f1040sc.L1 = round(totalIncome);
@@ -33,8 +38,8 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
   let otherExpenseIndex = 15;
   for (const expense of vmLogs.filter(l => l.type === LogTypes.Expense) as ExpenseLog[]) {
     const tags = expense.taxTags;
-    if (!tags.some(tag => tag.startsWith("f1040sc"))) {
-      log.info(`Doing nothing with expense: ${expense.description}`);
+    if (!tags.some(tag => tag.startsWith("f1040sc")) || tags.includes("ignore")) {
+      log.info(`Ignoring expense: ${expense.description}`);
     } else {
       const otherExpenseKey = "f1040sc-L48:";
       if (tags.some(tag => tag.startsWith(otherExpenseKey))) {
@@ -42,6 +47,7 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
           .find(tag => tag.startsWith(otherExpenseKey))
           .replace(otherExpenseKey, "");
         const quantity = round(mul(expense.quantity, expense.assetPrice));
+        log.info(`Adding misc expense: ${expense.description}`);
         f1040sc[`f2_${otherExpenseIndex}`] = description;
         f1040sc[`f2_${otherExpenseIndex+1}`] = quantity;
         f1040sc.f2_33 = add([f1040sc.f2_33, quantity]);
@@ -55,7 +61,9 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
         "L25", "L26", "L27a", "L27b",
       ]) {
         if (tags.some(tag => tag.startsWith(`f1040sc-${row}`))) {
-          f1040sc[row] = add([f1040sc[row], expense.quantity]);
+          const quantity = round(mul(expense.quantity, expense.assetPrice));
+          log.info(`Adding ${row} expense: ${expense.description}`);
+          f1040sc[row] = add([f1040sc[row], quantity]);
         }
       }
     }
