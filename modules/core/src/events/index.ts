@@ -5,6 +5,7 @@ import { getPrice } from "../prices";
 import { ContextLogger } from "../utils";
 
 import { mergeCoinbaseEvents } from "./coinbase";
+import { mergeDigitalOceanEvents } from "./digitalocean";
 import { mergeWyreEvents } from "./wyre";
 import { mergeEthTxEvents } from "./ethTx";
 import { mergeEthCallEvents } from "./ethCall";
@@ -35,6 +36,13 @@ export const getEvents = async (
     if (typeof source === "string" && source.endsWith(".csv")) {
       if (source.toLowerCase().includes("coinbase")) {
         events = mergeCoinbaseEvents(events, fs.readFileSync(source, "utf8"), lastUpdated, logger);
+      } else if (source.toLowerCase().includes("digital-ocean")) {
+        events = mergeDigitalOceanEvents(
+          events,
+          fs.readFileSync(source, "utf8"),
+          lastUpdated,
+          logger,
+        );
       } else if (source.toLowerCase().includes("wyre")) {
         events = mergeWyreEvents(events, fs.readFileSync(source, "utf8"), lastUpdated, logger);
       } else {

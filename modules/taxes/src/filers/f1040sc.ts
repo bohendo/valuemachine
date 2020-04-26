@@ -30,9 +30,35 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
   f1040sc.L5 = round(sub(f1040sc.L3, f1040sc.L4));
   f1040sc.L7 = round(add([f1040sc.L5, f1040sc.L6]));
 
+  let otherExpenseIndex = 15;
   for (const expense of vmLogs.filter(l => l.type === LogTypes.Expense) as ExpenseLog[]) {
-    log.info(`Including expense: ${expense.description}`);
-    f1040sc.L8 = add([f1040sc.L8, mul(expense.quantity, expense.assetPrice)]);
+    const tags = expense.taxTags;
+    if (!tags.some(tag => tag.startsWith("f1040sc"))) {
+      log.info(`Doing nothing with expense: ${expense.description}`);
+    } else {
+      const otherExpenseKey = "f1040sc-L48:";
+      if (tags.some(tag => tag.startsWith(otherExpenseKey))) {
+        const description = tags
+          .find(tag => tag.startsWith(otherExpenseKey))
+          .replace(otherExpenseKey, "");
+        const quantity = round(mul(expense.quantity, expense.assetPrice));
+        f1040sc[`f2_${otherExpenseIndex}`] = description;
+        f1040sc[`f2_${otherExpenseIndex+1}`] = quantity;
+        f1040sc.f2_33 = add([f1040sc.f2_33, quantity]);
+        otherExpenseIndex += 2;
+      }
+      for (const row of [
+        "L8", "L9", "L10", "L11", "L12",
+        "L13", "L14", "L15", "L16a", "L16b",
+        "L17", "L18", "L19", "L20a", "L20b",
+        "L21", "L22", "L23", "L24a", "L24b",
+        "L25", "L26", "L27a", "L27b",
+      ]) {
+        if (tags.some(tag => tag.startsWith(`f1040sc-${row}`))) {
+          f1040sc[row] = add([f1040sc[row], expense.quantity]);
+        }
+      }
+    }
   }
 
   f1040sc.L28 = add([
@@ -40,7 +66,7 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
     f1040sc.L13, f1040sc.L14, f1040sc.L15, f1040sc.L16a, f1040sc.L16b,
     f1040sc.L17, f1040sc.L18, f1040sc.L19, f1040sc.L20a, f1040sc.L20b,
     f1040sc.L21, f1040sc.L22, f1040sc.L23, f1040sc.L24a, f1040sc.L24b,
-    f1040sc.L25, f1040sc.L26, f1040sc.L27a, f1040sc.L27b,
+    f1040sc.L25, f1040sc.L26, f1040sc.L27a, f1040sc.L27b, f1040sc.f2_33,
   ]);
 
   f1040sc.L29 = round(sub(f1040sc.L7, f1040sc.L28));

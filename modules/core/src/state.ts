@@ -32,7 +32,6 @@ export const getState = (
   ////////////////////////////////////////
   // Internal Functions
 
-  // TODO: implement FIFO/HIFO/LIFO
   const getNextChunk = (account: Address, assetType: AssetTypes): AssetChunk => {
     const index = state.accounts[account].findIndex(chunk => chunk.assetType === assetType);
     return state.accounts[account].splice(index, 1)[0];
@@ -49,7 +48,10 @@ export const getState = (
       return;
     }
     log.debug(`Putting ${chunk.quantity} ${chunk.assetType} into account ${account}`);
-    state.accounts[account].unshift(chunk);
+    state.accounts[account].push(chunk);
+    state.accounts[account].sort((chunk1, chunk2) =>
+      new Date(chunk1.dateRecieved).getTime() - new Date(chunk2.dateRecieved).getTime(),
+    );
   };
 
   const getChunks = (

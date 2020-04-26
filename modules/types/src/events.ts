@@ -8,6 +8,7 @@ import { enumify } from "./utils";
 export const EventSources = enumify({
   CoinGecko: "CoinGecko",
   Coinbase: "Coinbase",
+  DigitalOcean: "DigitalOcean",
   EthCall: "EthCall",
   EthTx: "EthTx",
   Personal: "Personal",
@@ -34,12 +35,12 @@ export type TransferCategories = (typeof TransferCategories)[keyof typeof Transf
 
 export type Transfer = {
   assetType: AssetTypes;
-  index?: number;
-  quantity: DecimalString;
+  category: TransferCategories;
   fee?: DecimalString;
   from: HexString;
+  index?: number;
+  quantity: DecimalString;
   to: HexString;
-  category: TransferCategories;
 }
 
 export type Event = {

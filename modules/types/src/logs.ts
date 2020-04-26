@@ -53,6 +53,7 @@ export type DepositLog = BaseLog & {
 }
 
 export type ExpenseLog = BaseLog & {
+  taxTags: string[];
   to: Address;
   type: typeof LogTypes.Expense;
 }

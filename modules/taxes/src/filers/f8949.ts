@@ -2,15 +2,20 @@ import { ContextLogger, LevelLogger } from "@finances/core";
 import { CapitalGainsLog, Logs, LogTypes } from "@finances/types";
 
 import { env } from "../env";
-import { add, mul, round, sub, toFormDate } from "../utils";
+import { add, div, eq, mul, round, sub, toFormDate } from "../utils";
 import { Forms } from "../types";
+
+const msPerDay = 1000 * 60 * 60 * 24;
+const msPerYear = msPerDay * 365;
 
 export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
   const log = new ContextLogger("f8949", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
 
   const { f1040 } = forms;
-  const trades = vmLogs.filter(log => log.type === LogTypes.CapitalGains) as CapitalGainsLog[];
+  const trades = vmLogs
+    .filter(vmLog => vmLog.type === LogTypes.CapitalGains)
+    .filter(vmLog => !eq(round(vmLog.quantity, 4), "0")) as CapitalGainsLog[];
   const f8949Base = {} as any;
 
   // Set values constant across all f8949 forms
@@ -33,7 +38,11 @@ export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
       const proceeds = mul(trade.quantity, trade.assetPrice);
       const cost = mul(trade.quantity, trade.purchasePrice);
       const gainOrLoss = sub(proceeds, cost);
-      log.info(`Sold ${description} | ${round(proceeds)} - ${round(cost)} = ${round(gainOrLoss)}`);
+      const timeHeld = round(div(
+        (new Date(trade.date).getTime() - new Date(trade.purchaseDate).getTime()).toString(),
+        msPerDay.toString(),
+      ));
+      log.info(`Sold ${description} after ${timeHeld} days | ${round(proceeds)} - ${round(cost)} = ${round(gainOrLoss)}`);
       subTotal.proceeds = round(add([subTotal.proceeds, proceeds]));
       subTotal.cost = round(add([subTotal.cost, cost]));
       subTotal.gainOrLoss = round(add([subTotal.gainOrLoss, gainOrLoss]));
@@ -57,7 +66,11 @@ export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
       const proceeds = mul(trade.quantity, trade.assetPrice);
       const cost = mul(trade.quantity, trade.purchasePrice);
       const gainOrLoss = sub(proceeds, cost);
-      log.info(`Sold ${description} | ${round(proceeds)} - ${round(cost)} = ${round(gainOrLoss)}`);
+      const timeHeld = round(div(
+        (new Date(trade.date).getTime() - new Date(trade.purchaseDate).getTime()).toString(),
+        msPerDay.toString(),
+      ));
+      log.info(`Sold ${description} after ${timeHeld} days | ${round(proceeds)} - ${round(cost)} = ${round(gainOrLoss)}`);
       subTotal.proceeds = round(add([subTotal.proceeds, proceeds]));
       subTotal.cost = round(add([subTotal.cost, cost]));
       subTotal.gainOrLoss = round(add([subTotal.gainOrLoss, gainOrLoss]));
@@ -69,20 +82,34 @@ export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
       subF8949[`f2_${i+7}`] = round(gainOrLoss);
       i += 8;
     }
-    subF8949.f1_115 = round(subTotal.proceeds);
-    subF8949.f1_116 = round(subTotal.cost);
-    subF8949.f1_119 = round(subTotal.gainOrLoss);
+    subF8949.f2_115 = round(subTotal.proceeds);
+    subF8949.f2_116 = round(subTotal.cost);
+    subF8949.f2_119 = round(subTotal.gainOrLoss);
 
     return subF8949;
   };
 
+  // Merge trades w the same recieved & sold dates
+  const mergedTrades = [];
+  for (const trade of trades) {
+    const dup = mergedTrades.findIndex(merged =>
+      merged.assetType === trade.assetType &&
+      merged.date.split("T")[0] === trade.date.split("T")[0] &&
+      merged.purchaseDate.split("T")[0] === trade.purchaseDate.split("T")[0],
+    );
+    if (dup !== -1) {
+      mergedTrades[dup].quantity = add([mergedTrades[dup].quantity, trade.quantity]);
+    } else {
+      mergedTrades.push(trade);
+    }
+  }
+
   // Sort trades into long-term/short-term
-  const msPerYear = 1000 * 60 * 60 * 24 * 365;
-  const shortTermTrades = trades.filter(trade =>
+  const shortTermTrades = mergedTrades.filter(trade =>
     (new Date(trade.date).getTime() - new Date(trade.purchaseDate).getTime()) < msPerYear,
   );
 
-  const longTermTrades = trades.filter(trade =>
+  const longTermTrades = mergedTrades.filter(trade =>
     (new Date(trade.date).getTime() - new Date(trade.purchaseDate).getTime()) >= msPerYear,
   );
 

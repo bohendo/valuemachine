@@ -2,6 +2,7 @@ import {
   Address,
   AddressBook,
   AssetChunk,
+  AssetTypes,
   Event,
   Logs,
   LogTypes,
@@ -39,7 +40,7 @@ export const emitTransferLogs = (
   const { assetType, from, quantity, to } = transfer;
   const position = `#${event.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
 
-  const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("account");
+  const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("-account");
 
   if (["Borrow", "Burn", "Income", "SwapIn", "Withdraw"].includes(transfer.category)) {
     logs.push({
@@ -72,6 +73,7 @@ export const emitTransferLogs = (
         date: event.date,
         description: `${quantity} ${assetType} to ${getName(to)} ${position}`,
         quantity,
+        taxTags: event.tags,
         to,
         type: LogTypes.Expense,
       });
@@ -88,7 +90,11 @@ export const emitTransferLogs = (
     }
 
     // maybe emit capital gain logs
-    if (!unitOfAccount.includes(assetType) && transfer.category === TransferCategories.SwapOut) {
+    if (
+      !unitOfAccount.includes(assetType) &&
+      Object.keys(AssetTypes).includes(assetType) &&
+      transfer.category === TransferCategories.SwapOut
+    ) {
       chunks.forEach(chunk => {
         logs.push({
           assetPrice: event.prices[chunk.assetType],
