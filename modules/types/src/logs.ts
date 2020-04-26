@@ -41,7 +41,6 @@ export type BurnLog = BaseLog & {
   type: typeof LogTypes.Burn;
 }
 
-// used to fill in a row of f8949
 export type CapitalGainsLog = BaseLog & {
   purchaseDate: TimestampString;
   purchasePrice: DecimalString;

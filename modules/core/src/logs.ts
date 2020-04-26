@@ -97,7 +97,7 @@ export const emitTransferLogs = (
           description: `${round(chunk.quantity, 4)} ${chunk.assetType} ${position}`,
           purchaseDate: chunk.dateRecieved,
           purchasePrice: chunk.purchasePrice,
-          quantity,
+          quantity: chunk.quantity,
           type: LogTypes.CapitalGains,
         });
       });

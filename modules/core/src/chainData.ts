@@ -47,7 +47,7 @@ export const getChainData = async (
   const chrono = (d1: any, d2: any): number =>
     new Date(d1.timestamp || d1).getTime() - new Date(d2.timestamp || d2).getTime();
 
-  if (userAddresses.length === 0 && tokenAddresses.length === 0) {
+  if (userAddresses.length === 0) {
     return chainData;
   }
 
