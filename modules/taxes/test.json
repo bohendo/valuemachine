@@ -1,6 +1,12 @@
 {
-  "taxYear": "2019",
-  "logLevel": 5,
+  "env": {
+    "username": "test",
+    "mode": "test",
+    "capitalGainsMethod": "FIFO",
+    "etherscanKey": "",
+    "logLevel": 3,
+    "taxYear": "2019"
+  },
   "forms": [
     "f1040",
     "f1040s1",
@@ -659,6 +665,5 @@
     }
   },
   "events": [],
-  "ethAddresses": [],
-  "addressBook": {}
+  "addressBook": []
 }
