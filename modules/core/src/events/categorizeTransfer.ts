@@ -60,6 +60,14 @@ export const categorizeTransfer = (
     transfer.category = TransferCategories.Withdraw;
     return transfer;
 
+  } else if (isCategory(AddressCategories.Defi)(transfer.to)) {
+    transfer.category = TransferCategories.Deposit;
+    return transfer;
+
+  } else if (isCategory(AddressCategories.Defi)(transfer.from)) {
+    transfer.category = TransferCategories.Withdraw;
+    return transfer;
+
   // deposit into compound v2
   } else if (isCategory(AddressCategories.CToken)(transfer.to)) {
     transfer.category = TransferCategories.Deposit;
