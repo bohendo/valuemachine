@@ -3,7 +3,7 @@ import { Log } from "@finances/types";
 
 import { env } from "../env";
 import { Forms } from "../types";
-import { round, add, gt, lt, eq } from "../utils";
+import { add, eq, gt, lt, round } from "../utils";
 
 export const f1040sd = (vmLogs: Log[], oldForms: Forms): Forms => {
   const log = new ContextLogger("f1040sd", new LevelLogger(env.logLevel));
@@ -20,18 +20,15 @@ export const f1040sd = (vmLogs: Log[], oldForms: Forms): Forms => {
     D: { proceeds: "0", cost: "0", adjustments: "0", gainOrLoss: "0" },
     E: { proceeds: "0", cost: "0", adjustments: "0", gainOrLoss: "0" },
     F: { proceeds: "0", cost: "0", adjustments: "0", gainOrLoss: "0" },
+    ["?"]: { proceeds: "0", cost: "0", adjustments: "0", gainOrLoss: "0" },
   };
-  for (const f8949 of forms.f8949) {
-    const shortType =
-        f8949.P1C1_A ? "A"
-      : f8949.P1C1_B ? "B"
-      : f8949.P1C1_C ? "C"
-      : "?";
 
-    const longType = 
-        f8949.P2C1_D ? "D"
-      : f8949.P2C1_E ? "E"
-      : f8949.P2C1_F ? "F"
+  for (const f8949 of forms.f8949) {
+
+    const shortType =
+        f8949.P1C0_A ? "A"
+      : f8949.P1C0_B ? "B"
+      : f8949.P1C0_C ? "C"
       : "?";
 
     log.debug(`Short-term f8949 row: proceeds=${f8949.P1L2d} cost=${f8949.P1L2e} gain|loss=${f8949.P1L2h}`);
@@ -39,6 +36,13 @@ export const f1040sd = (vmLogs: Log[], oldForms: Forms): Forms => {
     totals[shortType].cost = add([totals[shortType].cost, f8949.P1L2e]);
     totals[shortType].adjustments = add([totals[shortType].adjustments, f8949.P1L2g]);
     totals[shortType].gainOrLoss = add([totals[shortType].gainOrLoss, f8949.P1L2h]);
+
+    const longType =
+        f8949.P2C0_D ? "D"
+      : f8949.P2C0_E ? "E"
+      : f8949.P2C0_F ? "F"
+      : "?";
+
     log.debug(`Long-term f8949 row: proceeds=${f8949.P2L2d} cost=${f8949.P2L2e} gain|loss=${f8949.P2L2h}`);
     totals[longType].proceeds = add([totals[longType].proceeds, f8949.P2L2d]);
     totals[longType].cost = add([totals[longType].cost, f8949.P2L2e]);
@@ -123,9 +127,9 @@ export const f1040sd = (vmLogs: Log[], oldForms: Forms): Forms => {
 
   if (next === "L21") {
     if (f1040.MarriedFilingSeparately) {
-      f1040sd.L21 = lt(f1040sd.L16, "1500") ? f1040sd.L16 : "1500.00";
+      f1040sd.L21 = lt(f1040sd.L16, "-1500") ? "-1500" : f1040sd.L16;
     } else {
-      f1040sd.L21 = lt(f1040sd.L16, "3000") ? f1040sd.L16 : "3000.00";
+      f1040sd.L21 = lt(f1040sd.L16, "-3000") ? "-3000" : f1040sd.L16;
     }
     f1040.L6 = f1040sd.L21;
   }

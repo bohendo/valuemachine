@@ -35,7 +35,7 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
   f1040sc.L5 = round(sub(f1040sc.L3, f1040sc.L4));
   f1040sc.L7 = round(add([f1040sc.L5, f1040sc.L6]));
 
-  let otherExpenseIndex = 15;
+  let otherExpenseIndex = 1;
   for (const expense of vmLogs.filter(l => l.type === LogTypes.Expense) as ExpenseLog[]) {
     const tags = expense.taxTags;
     if (!tags.some(tag => tag.startsWith("f1040sc")) || tags.includes("ignore")) {
@@ -48,10 +48,10 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
           .replace(otherExpenseKey, "");
         const quantity = round(mul(expense.quantity, expense.assetPrice));
         log.info(`Adding misc expense: ${expense.description}`);
-        f1040sc[`f2_${otherExpenseIndex}`] = description;
-        f1040sc[`f2_${otherExpenseIndex+1}`] = quantity;
+        f1040sc[`L48R${otherExpenseIndex}_desc`] = description;
+        f1040sc[`L48R${otherExpenseIndex}_amt`] = quantity;
         f1040sc.L48 = add([f1040sc.L48, quantity]);
-        otherExpenseIndex += 2;
+        otherExpenseIndex += 1;
       }
       for (const row of [
         "L8", "L9", "L10", "L11", "L12",

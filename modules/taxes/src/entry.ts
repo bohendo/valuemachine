@@ -14,7 +14,7 @@ import { env, setEnv } from "./env";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
 import { InputData } from "./types";
-import { emptyForm, mergeForms, translate } from "./utils";
+import { add, emptyForm, mergeForms, round, translate } from "./utils";
 
 const logAndExit = (msg: any): void => {
   console.error(msg);
@@ -94,7 +94,27 @@ process.on("SIGINT", logAndExit);
   }
 
   ////////////////////////////////////////
-  // Step 3: Parse financial data & calculate data for the rest of the forms
+  // Step 3: Fill out a few simple fields from user input
+
+  if (input.dividends && input.dividends.length > 0) {
+    const total = { qualified: "0", ordinary: "0" };
+    input.dividends.forEach(dividend => {
+      if (dividend.assetType !== "USD") {
+        return;
+      }
+      const isQualified = dividend.tags.includes("qualified");
+      log.info(`Adding ${isQualified ? "qualified " : ""} dividend of ${dividend.quantity} ${dividend.assetType} from ${dividend.source}`);
+      total.ordinary = add([total.ordinary, dividend.quantity]);
+      if (isQualified) {
+        total.qualified = add([total.qualified, dividend.quantity]);
+      }
+    });
+    output.f1040.L3a = round(total.qualified);
+    output.f1040.L3b = round(total.ordinary);
+  }
+
+  ////////////////////////////////////////
+  // Step 4: calculate data for the rest of the forms from financial data
 
   if (env.mode !== "test") {
     for (const form of input.forms.reverse()) {
@@ -107,7 +127,7 @@ process.on("SIGINT", logAndExit);
   }
 
   ////////////////////////////////////////
-  // Step 4: Save form data to disk
+  // Step 5: Save form data to disk
 
   for (const [name, data] of Object.entries(output)) {
     if (!(data as any).length || (data as any).length === 1) {
@@ -120,8 +140,10 @@ process.on("SIGINT", logAndExit);
       let i = 1;
       for (const page of (data as any)) {
         const pageName = `f8949_${i}`;
+        const fileName = `${outputFolder}/${pageName}.json`;
+        log.info(`Saving page ${i} of ${name} data to ${fileName}`);
         const outputData = JSON.stringify(translate(page, mappings[name]), null, 2);
-        fs.writeFileSync(`${outputFolder}/${pageName}.json`, outputData);
+        fs.writeFileSync(fileName, outputData);
         i += 1;
       }
     }

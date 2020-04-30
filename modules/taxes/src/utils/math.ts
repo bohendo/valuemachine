@@ -32,9 +32,12 @@ export const add = (lon: string[]): string =>
 export const sub = (a: string, b: string): string =>
   fromWad(toWad(a).sub(toWad(b)));
 
+export const abs = (a: string): string =>
+  toWad(a).gt(Zero) ? a : mul(a, "-1");
+
 // absolute value of subtracting a and b
 export const diff = (a: string, b: string): string =>
-  toWad(sub(a,b)).gt(Zero) ? sub(a,b) : sub(b,a);
+  abs(sub(a, b));
 
 export const round = (decStr: string, n = 2): string => {
   if (!n) { return roundInt(decStr); }

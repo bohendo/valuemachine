@@ -25,6 +25,7 @@ export type Env = {
 
 export type InputData = {
   addressBook?: AddressBookJson;
+  dividends: Array<{ source: string; assetType: string; tags: string[]; quantity: string }>;
   env: Partial<Env>;
   events: Array<Event | string>;
   formData: Forms;
