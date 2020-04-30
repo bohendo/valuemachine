@@ -114,13 +114,13 @@ export const mergeEthTxEvents = (
 
           } else if (assetType === "WETH" && eventI.name === "Deposit") {
             log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
-            transfer.category = TransferCategories.Mint;
-            event.transfers.push({ ...transfer, from: AddressZero, to: data.dst });
+            transfer.category = TransferCategories.SwapOut;
+            event.transfers.push({ ...transfer, from: txLog.address, to: data.dst });
 
           } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
             log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
-            transfer.category = TransferCategories.Burn;
-            event.transfers.push({ ...transfer, from: data.src, to: AddressZero });
+            transfer.category = TransferCategories.SwapIn;
+            event.transfers.push({ ...transfer, from: data.src, to: txLog.address });
 
           } else if (assetType === "SAI" && eventI.name === "Mint") {
             log.debug(`Minted ${quantity} ${assetType}`);

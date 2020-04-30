@@ -70,14 +70,14 @@ export const categorizeTransfer = (
 
   } else if (
     transfer.assetType === "ETH" &&
-    addressBook.getName(transfer.from).toLowerCase() === "weth"
+    addressBook.getName(transfer.from) === "WETH"
   ) {
-    transfer.category = TransferCategories.Unlock;
+    transfer.category = TransferCategories.SwapIn;
   } else if (
     transfer.assetType === "ETH"
-    && addressBook.getName(transfer.to).toLowerCase() === "weth"
+    && addressBook.getName(transfer.to) === "WETH"
   ) {
-    transfer.category = TransferCategories.Lock;
+    transfer.category = TransferCategories.SwapOut;
   }
 
   for (const txLog of txLogs) {
@@ -102,7 +102,7 @@ export const categorizeTransfer = (
 
       // makerdao
       } else if (
-        getName(txLog.address) === "maker-core-vat" &&
+        getName(txLog.address) === "mcd-vat" &&
         txLog.topics[0].slice(0,10) === vatInterface.functions.move.sighash
       ) {
         const src = "0x"+ txLog.topics[1].slice(26);

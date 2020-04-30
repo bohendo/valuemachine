@@ -22,13 +22,11 @@ export const TransferCategories = enumify({
   Deposit: "Deposit", // eg dai->dsr or eth->compound
   Gift: "Gift",
   Ignore: "Ignore",
-  Lock: "Lock",
   Mint: "Mint",
   Repay: "Repay",
   SwapIn: "SwapIn",
   SwapOut: "SwapOut",
   Transfer: "Transfer",
-  Unlock: "Unlock",
   Withdraw: "Withdraw",
 });
 export type TransferCategories = (typeof TransferCategories)[keyof typeof TransferCategories];

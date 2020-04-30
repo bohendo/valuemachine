@@ -11,13 +11,11 @@ export const LogTypes = enumify({
   GiftIn: "GiftIn",
   GiftOut: "GiftOut",
   Income: "Income",
-  Lock: "Lock",
   Mint: "Mint",
   NetWorth: "NetWorth",
   Repay: "Repay",
   SwapIn: "SwapIn",
   SwapOut: "SwapOut",
-  Unlock: "Unlock",
   Withdraw: "Withdraw",
 });
 export type LogTypes = (typeof LogTypes)[keyof typeof LogTypes];
@@ -74,11 +72,6 @@ export type IncomeLog = BaseLog & {
   type: typeof LogTypes.Income;
 }
 
-export type LockLog = BaseLog & {
-  location: Address;
-  type: typeof LogTypes.Lock;
-}
-
 export type MintLog = BaseLog & {
   to: Address;
   type: typeof LogTypes.Mint;
@@ -97,11 +90,6 @@ export type SwapInLog = BaseLog & {
 export type SwapOutLog = BaseLog & {
   to: Address;
   type: typeof LogTypes.SwapOut;
-}
-
-export type UnlockLog = BaseLog & {
-  location: Address;
-  type: typeof LogTypes.Unlock;
 }
 
 export type WithdrawLog = BaseLog & {
@@ -125,12 +113,10 @@ export type Log =
   | GiftInLog
   | GiftOutLog
   | IncomeLog
-  | LockLog
   | MintLog
   | RepayLog
   | SwapInLog
   | SwapOutLog
-  | UnlockLog
   | NetWorthLog
   | WithdrawLog;
 export type Logs = Log[];

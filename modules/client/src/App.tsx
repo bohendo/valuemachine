@@ -58,7 +58,6 @@ const inTypes = [
   LogTypes.Income,
   LogTypes.Mint,
   LogTypes.SwapIn,
-  LogTypes.Unlock,
   LogTypes.Withdraw,
 ];
 
@@ -67,7 +66,6 @@ const outTypes = [
   LogTypes.Deposit,
   LogTypes.Expense,
   LogTypes.GiftOut,
-  LogTypes.Lock,
   LogTypes.Repay,
   LogTypes.SwapOut,
 ];
