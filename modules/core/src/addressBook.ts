@@ -73,6 +73,7 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: ILogge
     { name: "idle-dai", address: "0x10ec0d497824e342bcb0edce00959142aaa766dd" },
     { name: "mcd-dai-join", address: "0x9759a6ac90977b93b58547b4a71c78317f391a28" },
     { name: "mcd-gem-join", address: "0x2f0b23f53734252bda2277357e97e1517d6b042a" },
+    { name: "mcd-sai-join", address: "0xad37fd42185ba63009177058208dd1be4b136e6b" },
     { name: "mcd-vat", address: "0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b" },
     { name: "scd-gem-pit", address: "0x69076e44a9c70a67d5b79d95795aba299083c275" },
     { name: "scd-tub", address: "0x448a5065aebb8e423f0896e6c5d525c040f59af3" },

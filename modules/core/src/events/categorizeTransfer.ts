@@ -82,7 +82,22 @@ export const categorizeTransfer = (
 
   for (const txLog of txLogs) {
 
-    if (isCategory(AddressCategories.Defi)(txLog.address)) {
+    // eg Oasis Dex
+    if (isCategory(AddressCategories.Exchange)(txLog.address)) {
+      const event = exchangeEvents.find(e => e.topic === txLog.topics[0]);
+      if (event && event.name === "LogTake") {
+        const data = event.decode(txLog.data, txLog.topics);
+        if (eq(formatEther(data.take_amt), transfer.quantity)) {
+          transfer.category = TransferCategories.SwapIn;
+          break;
+        } else if (eq(formatEther(data.give_amt), transfer.quantity)) {
+          transfer.category = TransferCategories.SwapOut;
+          break;
+        }
+      }
+
+    // eg compound & makerdao stuff
+    } else if (isCategory(AddressCategories.Defi)(txLog.address)) {
 
       // update dai addresses address zero params for compound v2
       if (isCategory(AddressCategories.CToken)(txLog.address)) {
@@ -133,6 +148,25 @@ export const categorizeTransfer = (
 
         }
 
+      } else if (
+        getName(txLog.address) === "mcd-dai-join" &&
+        txLog.topics[0].startsWith(daiJoinInterface.functions.exit.sighash)
+      ) {
+        const src = "0x" + txLog.topics[1].slice(26).toLowerCase();
+        const dst = "0x" + txLog.topics[2].slice(26).toLowerCase();
+        const amt = formatEther(txLog.topics[3]);
+        log.info(`src=${src}, dst=${dst} amt=${amt} transfer.quantity=${transfer.quantity} transfer.from=${transfer.from}`);
+        if (
+          getName(src) === "scd-mcd-migration" &&
+          isSelf(dst) &&
+          eq(amt, transfer.quantity) &&
+          transfer.from === AddressZero
+        ) {
+          transfer.category = TransferCategories.SwapIn;
+          transfer.from = src;
+          break;
+        }
+
       // eg compound v1
       } else {
         const event = defiEvents.find(e => e.topic === txLog.topics[0]);
@@ -156,39 +190,6 @@ export const categorizeTransfer = (
             transfer.category = TransferCategories.Repay;
           }
         }
-      }
-
-    // eg Oasis Dex
-    } else if (isCategory(AddressCategories.Exchange)(txLog.address)) {
-      const event = exchangeEvents.find(e => e.topic === txLog.topics[0]);
-      if (event && event.name === "LogTake") {
-        const data = event.decode(txLog.data, txLog.topics);
-        if (eq(formatEther(data.take_amt), transfer.quantity)) {
-          transfer.category = TransferCategories.SwapIn;
-          break;
-        } else if (eq(formatEther(data.give_amt), transfer.quantity)) {
-          transfer.category = TransferCategories.SwapOut;
-          break;
-        }
-      }
-
-    // eg SCD -> MCD Migration
-    } else if (
-      getName(txLog.address) === "mcd-dai-join" &&
-      txLog.topics[0].slice(0,10) === daiJoinInterface.functions.exit.sighash
-    ) {
-      const src = "0x" + txLog.topics[1].slice(26).toLowerCase();
-      const dst = "0x" + txLog.topics[2].slice(26).toLowerCase();
-      const amt = formatEther(txLog.topics[3]);
-      if (
-        getName(src) === "scd-mcd-migration" &&
-        isSelf(dst) &&
-        eq(amt, transfer.quantity) &&
-        transfer.from === AddressZero
-      ) {
-        transfer.category = TransferCategories.SwapIn;
-        transfer.from = src;
-        break;
       }
     }
 
