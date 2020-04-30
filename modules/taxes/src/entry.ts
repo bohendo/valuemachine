@@ -7,6 +7,7 @@ import {
   getState,
   getValueMachine,
   LevelLogger,
+  ContextLogger,
 } from "@finances/core";
 
 import * as cache from "./cache";
@@ -29,7 +30,8 @@ process.on("SIGINT", logAndExit);
 
   const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as InputData;
   const username = input.env.username;
-  const log = new LevelLogger(input.env.logLevel);
+  const logger = new LevelLogger(input.env.logLevel);
+  const log = new ContextLogger("Taxes", logger);
   log.info(`Generating tax return data for ${username} (log level: ${input.env.logLevel})`);
 
   const outputFolder = `${process.cwd()}/build/${username}/data`;
@@ -42,14 +44,14 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const addressBook = getAddressBook(input.addressBook, log);
+  const addressBook = getAddressBook(input.addressBook, logger);
 
   const chainData = await getChainData(
     addressBook.addresses.filter(addressBook.isSelf),
     addressBook.addresses.filter(addressBook.isToken),
     cache,
     input.env.etherscanKey,
-    log,
+    logger,
   );
 
   const events = await getEvents(
@@ -57,10 +59,10 @@ process.on("SIGINT", logAndExit);
     chainData,
     cache,
     input.events,
-    log,
+    logger,
   );
 
-  const valueMachine = getValueMachine(addressBook, log);
+  const valueMachine = getValueMachine(addressBook, logger);
 
   let state = cache.loadState();
   let vmLogs = cache.loadLogs();
@@ -76,10 +78,10 @@ process.on("SIGINT", logAndExit);
     // }
   }
 
-  const finalState = getState(addressBook, state, log);
+  const finalState = getState(addressBook, state, logger);
 
-  console.log(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
-  console.log(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
+  log.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
+  log.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
 
   log.info(`Done compiling financial events.\n`);
 
@@ -90,7 +92,17 @@ process.on("SIGINT", logAndExit);
     if (!mappings[form]) {
       throw new Error(`Form ${form} not supported: No mappings available`);
     }
-    output[form] = mergeForms(emptyForm(mappings[form]), input.formData[form]);
+    if (input.formData[form] && input.formData[form].length) {
+      if (!output[form]) {
+        output[form] = [];
+      }
+      input.formData[form].forEach(page => {
+        log.debug(`Adding info for page of form ${form}: ${JSON.stringify(page)}`);
+        output[form].push(mergeForms(emptyForm(mappings[form]), page));
+      });
+    } else {
+      output[form] = mergeForms(emptyForm(mappings[form]), input.formData[form]);
+    }
   }
 
   ////////////////////////////////////////
@@ -122,7 +134,7 @@ process.on("SIGINT", logAndExit);
         log.warn(`No filer is available for form ${form}. Using unmodified user input.`);
         continue;
       }
-      output = filers[form](vmLogs.filter(log => log.date.startsWith(env.taxYear)), output);
+      output = filers[form](vmLogs.filter(vmLog => vmLog.date.startsWith(env.taxYear)), output);
     }
   }
 
