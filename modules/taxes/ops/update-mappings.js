@@ -1,5 +1,5 @@
-const fs = require('fs');
-const test = require('../test.json');
+const fs = require("fs");
+const test = require("../test.json");
 
 const mappingsFile = (form) => `./src/mappings/${form}.json`;
 const fieldsFile = (form) => `./ops/fields/${form}.fields`;
@@ -11,29 +11,29 @@ if (!flag || (flag !== "-n" && flag !== "-y")) {
   console.log(`  -y  Make & save changes`);
   process.exit();
 }
-const dryRun = flag !== "-y"
+const dryRun = flag !== "-y";
 
 const getMappings = (name) => {
-  let mappings
+  let mappings;
   try {
-    mappings = JSON.parse(fs.readFileSync(mappingsFile(name), { encoding: 'utf8' }));
+    mappings = JSON.parse(fs.readFileSync(mappingsFile(name), { encoding: "utf8" }));
     if (!mappings) {
       throw new Error(`Mappings for form ${name} do not exist!`);
     }
   } catch (e) {
-    mappings = {}
+    mappings = {};
   }
   return mappings;
-}
+};
 
 for (const form of test.forms) {
   const mappings = getMappings(form);
-  const fields = fs.readFileSync(fieldsFile(form), { encoding: 'utf8' });
+  const fields = fs.readFileSync(fieldsFile(form), { encoding: "utf8" });
   if (!fields) {
     throw new Error(`Fields for form ${form} do not exist!`);
   }
 
-  const fieldNames = fields.match(/^FieldName: (.*)$/gm).map(m => m.replace('FieldName: ', ''));
+  const fieldNames = fields.match(/^FieldName: (.*)$/gm).map(m => m.replace("FieldName: ", ""));
 
   for (const [key, value] of Object.entries(mappings)) {
     if (!fieldNames.includes(value)) {
@@ -47,9 +47,9 @@ for (const form of test.forms) {
     if (!Object.values(mappings).includes(field)) {
 
       const name = field
-        .replace(/.*?\.([fc][0-9]+_[0-9].*)/, '$1')
-        .replace(/\[([0-9]+)\]/, '_$1')
-        .replace(/(f[0-9]+_[0-9]+)_0/, '$1')
+        .replace(/.*?\.([fc][0-9]+_[0-9].*)/, "$1")
+        .replace(/\[([0-9]+)\]/, "_$1")
+        .replace(/(f[0-9]+_[0-9]+)_0/, "$1");
 
       if (name.match(/_RO_/)) { continue; }
 
@@ -64,24 +64,24 @@ for (const form of test.forms) {
 for (const form of test.forms) {
   const mappings = getMappings(form);
 
-  if (!test[form]) {
-    test[form] = {}
+  if (!test.formData[form]) {
+    test.formData[form] = {};
   }
 
-  for (const [key, value] of Object.entries(test[form])) {
-    if (!Object.keys(mappings).includes(key) && typeof test[form][key] !== 'undefined') {
+  for (const [key, value] of Object.entries(test.formData[form])) {
+    if (!Object.keys(mappings).includes(key) && typeof test.formData[form][key] !== "undefined") {
       console.log(`Deleting key ${key} from test for ${form}`);
-      delete test[form][key]
+      delete test.formData[form][key];
     }
   }
 
   for (const [key, value] of Object.entries(mappings)) {
-    if (typeof test[form][key] == 'undefined') {
+    if (typeof test.formData[form][key] == "undefined") {
       console.log(`Adding key ${key} to test for ${form}`);
-      if (key.toLowerCase().startsWith('c')) {
-        test[form][key] = true;
+      if (key.toLowerCase().startsWith("c")) {
+        test.formData[form][key] = true;
       } else {
-        test[form][key] = key;
+        test.formData[form][key] = key;
       }
     }
   }
