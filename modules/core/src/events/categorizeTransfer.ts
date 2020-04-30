@@ -40,30 +40,12 @@ export const categorizeTransfer = (
     transfer.category = TransferCategories.SwapIn;
     return transfer;
 
-  // eg deposit into OG CDP
-  } else if (transfer.assetType === "WETH" && getName(transfer.to) === "makerdao-v1-tub") {
-    transfer.category = TransferCategories.Deposit;
-    return transfer;
-
-  // eg withdraw from OG CDP
-  } else if (transfer.assetType === "WETH" && getName(transfer.from) === "makerdao-v1-tub") {
-    transfer.category = TransferCategories.Withdraw;
-    return transfer;
-
-  // stake GEN on DAOstack Genesis Protocol
-  } else if (transfer.assetType === "GEN" && getName(transfer.to) === "genesis-protocol") {
-    transfer.category = TransferCategories.Deposit;
-    return transfer;
-
-  // retrieve GEN from DAOstack Genesis Protocol
-  } else if (transfer.assetType === "GEN" && getName(transfer.from) === "genesis-protocol") {
-    transfer.category = TransferCategories.Withdraw;
-    return transfer;
-
+  // eg deposit into compound v1
   } else if (isCategory(AddressCategories.Defi)(transfer.to)) {
     transfer.category = TransferCategories.Deposit;
     return transfer;
 
+  // eg withdraw from compound v1
   } else if (isCategory(AddressCategories.Defi)(transfer.from)) {
     transfer.category = TransferCategories.Withdraw;
     return transfer;
@@ -102,7 +84,7 @@ export const categorizeTransfer = (
 
     if (isCategory(AddressCategories.Defi)(txLog.address)) {
 
-      // update dai null addresses for compound v2
+      // update dai addresses address zero params for compound v2
       if (isCategory(AddressCategories.CToken)(txLog.address)) {
         const event = defiEvents.find(e => e.topic === txLog.topics[0]);
         if (!event) { continue; }
@@ -129,7 +111,7 @@ export const categorizeTransfer = (
         // Amounts are not always exact so not sure if we can make useful comparisons yet
         // const rad = formatUnits(txLog.topics[2], 45);
 
-        if (transfer.from === AddressZero && getName(src) === "maker-pot") {
+        if (transfer.from === AddressZero && getName(src) === "mcd-pot" /* user-specific */) {
           transfer.category = TransferCategories.Withdraw;
           transfer.from = src;
           break;
@@ -139,7 +121,7 @@ export const categorizeTransfer = (
           transfer.from = src;
           break;
 
-        } else if (transfer.to === AddressZero && getName(dst) === "maker-pot") {
+        } else if (transfer.to === AddressZero && getName(dst) === "mcd-pot") {
           transfer.category = TransferCategories.Deposit;
           transfer.to = dst;
           break;
@@ -192,19 +174,20 @@ export const categorizeTransfer = (
 
     // eg SCD -> MCD Migration
     } else if (
-      getName(txLog.address) === "maker-dai-join" &&
+      getName(txLog.address) === "mcd-dai-join" &&
       txLog.topics[0].slice(0,10) === daiJoinInterface.functions.exit.sighash
     ) {
       const src = "0x" + txLog.topics[1].slice(26).toLowerCase();
       const dst = "0x" + txLog.topics[2].slice(26).toLowerCase();
       const amt = formatEther(txLog.topics[3]);
       if (
-        getName(src) === "scdmcdmigration" &&
+        getName(src) === "scd-mcd-migration" &&
         isSelf(dst) &&
         eq(amt, transfer.quantity) &&
         transfer.from === AddressZero
       ) {
         transfer.category = TransferCategories.SwapIn;
+        transfer.from = src;
         break;
       }
     }

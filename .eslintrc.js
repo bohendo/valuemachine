@@ -16,7 +16,7 @@ module.exports = {
     "spaced-comment": ["off"],
     "no-prototype-builtins": ["off"],
     "no-unused-vars": ["error"],
-    "sort-keys": ["error"],
+    "sort-keys": ["off"],
   },
   settings: {
     react: {
