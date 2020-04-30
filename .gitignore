@@ -15,10 +15,12 @@ modules/client/src/data
 # Cache
 **/.cache
 **/.config
+**/.git
 **/.node-gyp
 **/.npm
 **/.rpt2_cache
-**/.git
+modules/taxes/ops/fields/i*.fields
+modules/taxes/ops/forms/i*.pdf
 
 # Compiled output
 **/build/**
