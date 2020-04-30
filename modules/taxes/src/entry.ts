@@ -115,7 +115,7 @@ process.on("SIGINT", logAndExit);
         return;
       }
       const isQualified = dividend.tags.includes("qualified");
-      log.info(`Adding ${isQualified ? "qualified " : ""} dividend of ${dividend.quantity} ${dividend.assetType} from ${dividend.source}`);
+      log.info(`Adding ${isQualified ? "qualified " : ""}dividend of ${dividend.quantity} ${dividend.assetType} from ${dividend.source}`);
       total.ordinary = add([total.ordinary, dividend.quantity]);
       if (isQualified) {
         total.qualified = add([total.qualified, dividend.quantity]);

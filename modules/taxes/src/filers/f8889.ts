@@ -1,10 +1,47 @@
+import { ContextLogger, LevelLogger } from "@finances/core";
 import { Log } from "@finances/types";
 
+import { env } from "../env";
 import { Forms } from "../types";
+import { add, gt, mul, round, sub, subToZero } from "../utils";
 
 export const f8889 = (vmLogs: Log[], oldForms: Forms): Forms => {
+  const log = new ContextLogger("f8889", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
-  const { f8889 } = forms;
+  const { f1040s1, f1040s2, f8889 } = forms;
 
-  return { ...forms, f8889 };
+  f8889.FullName = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
+  f8889.SSN = forms.f1040.SocialSecurityNumber;
+
+  f8889.L5 = subToZero(f8889.L3, f8889.L4);
+  f8889.L6 = f8889.L5;
+  f8889.L8 = add([f8889.L6, f8889.L7]);
+  f8889.L11 = add([f8889.L9, f8889.L10]);
+  f8889.L12 = subToZero(f8889.L8, f8889.L11);
+  f8889.L13 = gt(f8889.L2, f8889.L12) ? f8889.L12 : f8889.L2;
+
+  f8889.L14c = sub(f8889.L14a, f8889.L14b);
+
+  log.debug(`${f8889.L14a} - ${f8889.L14b} = ${f8889.L14c}`);
+
+  f8889.L16 = subToZero(f8889.L14c, f8889.L15);
+
+  if (gt(f8889.L16, "0")) {
+    f8889.L17b = round(mul(f8889.L16, "0.2"));
+
+    const description = `HSA ${f8889.L17b}`;
+    f1040s1.L8 = add([f1040s2.L8, f8889.L17b]);
+    f1040s1.L8R1 = description;
+
+    f1040s2.L8 = add([f1040s2.L8, f8889.L17b]);
+    f1040s2.C8c = true;
+    f1040s2.L8c = description;
+  }
+
+  f8889.L20 = add([f8889.L18, f8889.L19]);
+  if (gt(f8889.L20, "0")) {
+    log.warn(`Required but not implemented: part 3 of f8889`);
+  }
+
+  return { ...forms, f1040s1, f1040s2, f8889 };
 };

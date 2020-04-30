@@ -32,6 +32,11 @@ export const add = (lon: string[]): string =>
 export const sub = (a: string, b: string): string =>
   fromWad(toWad(a).sub(toWad(b)));
 
+export const subToZero = (a: string, b: string): string => {
+  const diff = toWad(a).sub(toWad(b));
+  return diff.gt(Zero) ? fromWad(diff) : "0";
+};
+
 export const abs = (a: string): string =>
   toWad(a).gt(Zero) ? a : mul(a, "-1");
 

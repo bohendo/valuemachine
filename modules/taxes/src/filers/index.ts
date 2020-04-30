@@ -5,4 +5,5 @@ export * from "./f1040s3";
 export * from "./f1040sse";
 export * from "./f1040sc";
 export * from "./f1040sd";
+export * from "./f8889";
 export * from "./f8949";
