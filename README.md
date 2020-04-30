@@ -47,7 +47,7 @@ Say we need form f1040s3 to file our taxes and it's not supported yet. Here are 
 
 5. Copy the filer template to create a new filer module `cp src/filers/template.ts src/filers/f1040s3.ts`, change the exported function's name, and export this new filer function from `src/filers/index.ts`
 
-5. Run `make test` to generate a test tax return, how does your new form look? Check it out at: `./build/test/tax-return.pdf`
+5. Run `make test` to generate a test tax return, how does this tax return look?
 
 6. (optional) if you want to rename the `f1_1` mapping to be called `fullName` for example, then change this field in `src/mappings/f1040nf.pdf` and then re-run `node ops/update-mappings.js -y`
 
