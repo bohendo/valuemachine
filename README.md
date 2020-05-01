@@ -37,19 +37,13 @@ This also means that `personal.json` won't automatically be backed up to a remot
 
 Say we need form f1040s3 to file our taxes and it's not supported yet. Here are the steps for adding support for this new form:
 
-1. Fetch the new form: `bash ops/fetch.sh f1040s3`
+1. `bash ops/new-form.sh f1040s3`
 
-2. Add "f1040s3" to the forms list in the test data: `test.json`
+2. Follow the directions provided by this script after running.
 
-3. Run `node ops/update-mappings.js -y` to create an auto-generated set of mappings, these can be hand-edited later to be made more human readable but the auto-generated ones work just fine.
+3. Run `make test` to generate a test tax return, how does this tax return look?
 
-4. Import & export this new set of mappings from `src/mappings/index.ts`, also add it to the `Form` type definition.
-
-5. Copy the filer template to create a new filer module `cp src/filers/template.ts src/filers/f1040s3.ts`, change the exported function's name, and export this new filer function from `src/filers/index.ts`
-
-5. Run `make test` to generate a test tax return, how does this tax return look?
-
-6. (optional) if you want to rename the `f1_1` mapping to be called `fullName` for example, then change this field in `src/mappings/f1040nf.pdf` and then re-run `node ops/update-mappings.js -y`
+4. (optional) if you want to rename the `f1_1` mapping to be called `fullName` for example, then change this field in `src/mappings/f1040s3.pdf` and then re-run `node ops/update-mappings.js -y`
 
 # Forms Overview
 
