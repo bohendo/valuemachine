@@ -26,7 +26,7 @@ cp $filers/template.ts $filers/$name.ts
 
 index=$filers/index.ts
 mv $index $index.backup
-echo 'export * from "./'$name'";' | cat $index.backup | sort > $index
+echo 'export * from "./'$name'";' | cat - $index.backup | sort > $index
 rm $index.backup
 
 echo "1. Add $name to mappings index & Form type in: modules/taxes/src/mappings/index.ts"

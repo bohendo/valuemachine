@@ -30,7 +30,12 @@ export const translate = (form, mappings): any => {
       new ContextLogger("TranslateForms", new LevelLogger(env.logLevel))
         .warn(`Key ${key} exists in output data but not in mappings`);
     }
-    if (typeof value === "string" && key.match(/L[0-9]/) && value.match(/^-?[0-9.]+$/)) {
+    if (
+      !["_dec", "_int"].some(suffix => key.endsWith(suffix)) &&
+      key.match(/L[0-9]/) &&
+      typeof value === "string" &&
+      value.match(/^-?[0-9.]+$/)
+    ) {
       newForm[mappings[key]] = round(value);
       if (newForm[mappings[key]].startsWith("-")) {
         newForm[mappings[key]] = `(${newForm[mappings[key]].substring(1)})`;
