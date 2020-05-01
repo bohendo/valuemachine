@@ -16,9 +16,15 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
   let totalIncome = "0";
 
   vmLogs.filter(l => l.type === LogTypes.Income).forEach((income: IncomeLog): void => {
-    const value = round(mul(income.quantity, income.assetPrice));
+    let value = round(mul(income.quantity, income.assetPrice));
     if (income.taxTags.includes("ignore")) {
       log.info(`Ignoring income: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
+    } else if (income.taxTags.some(tag => tag.startsWith("multiply-"))) {
+      const tag = income.taxTags.find(tag => tag.startsWith("multiply-"));
+      const multiplier = tag.split("-")[1];
+      value = mul(value, multiplier);
+      totalIncome = add([totalIncome, value]);
+      log.info(`Multiplying income by ${multiplier}: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
     } else {
       totalIncome = add([totalIncome, value]);
       log.info(`Adding income: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
@@ -41,16 +47,24 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
     if (!tags.some(tag => tag.startsWith("f1040sc")) || tags.includes("ignore")) {
       log.info(`Ignoring expense: ${expense.description}`);
     } else {
+      let value = round(mul(expense.quantity, expense.assetPrice));
+
+      if (expense.taxTags.some(tag => tag.startsWith("multiply-"))) {
+        const tag = expense.taxTags.find(tag => tag.startsWith("multiply-"));
+        const multiplier = tag.split("-")[1];
+        value = mul(value, multiplier);
+        log.info(`Multiplying expense by ${multiplier}: ${expense.description} (worth ${value})`);
+      }
+
       const otherExpenseKey = "f1040sc-L48:";
       if (tags.some(tag => tag.startsWith(otherExpenseKey))) {
         const description = tags
           .find(tag => tag.startsWith(otherExpenseKey))
           .replace(otherExpenseKey, "");
-        const quantity = round(mul(expense.quantity, expense.assetPrice));
         log.info(`Adding misc expense: ${expense.description}`);
         f1040sc[`L48R${otherExpenseIndex}_desc`] = description;
-        f1040sc[`L48R${otherExpenseIndex}_amt`] = quantity;
-        f1040sc.L48 = add([f1040sc.L48, quantity]);
+        f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
+        f1040sc.L48 = add([f1040sc.L48, value]);
         otherExpenseIndex += 1;
       }
       for (const row of [
@@ -61,9 +75,8 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
         "L25", "L26", "L27a", "L27b",
       ]) {
         if (tags.some(tag => tag.startsWith(`f1040sc-${row}`))) {
-          const quantity = round(mul(expense.quantity, expense.assetPrice));
           log.info(`Adding ${row} expense: ${expense.description}`);
-          f1040sc[row] = add([f1040sc[row], quantity]);
+          f1040sc[row] = add([f1040sc[row], value]);
         }
       }
     }
