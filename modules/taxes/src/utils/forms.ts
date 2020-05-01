@@ -1,6 +1,7 @@
 import { ContextLogger, LevelLogger } from "@finances/core";
 
 import { env } from "../env";
+import { round } from "./math";
 
 export const emptyForm = (form): any => {
   const emptyForm = JSON.parse(JSON.stringify(form));
@@ -29,7 +30,14 @@ export const translate = (form, mappings): any => {
       new ContextLogger("TranslateForms", new LevelLogger(env.logLevel))
         .warn(`Key ${key} exists in output data but not in mappings`);
     }
-    newForm[mappings[key]] = value;
+    if (typeof value === "string" && key.match(/L[0-9]/) && value.match(/^-?[0-9.]+$/)) {
+      newForm[mappings[key]] = round(value);
+      if (newForm[mappings[key]].startsWith("-")) {
+        newForm[mappings[key]] = `(${newForm[mappings[key]].substring(1)})`;
+      }
+    } else {
+      newForm[mappings[key]] = value;
+    }
   }
   return newForm;
 };

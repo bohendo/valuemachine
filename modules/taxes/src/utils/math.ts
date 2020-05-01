@@ -11,7 +11,9 @@ const toWad = (n: BN | string): BN => parseUnits((n || "0").toString(), 18);
 const floor = (decStr: string): string => decStr.substring(0, decStr.indexOf("."));
 
 const roundInt = (decStr: string): string => 
-  floor(fromWad(toWad(decStr).add(toWad("0.5"))).toString());
+  decStr.startsWith("-")
+    ? floor(fromWad(toWad(decStr).sub(toWad("0.5"))).toString())
+    : floor(fromWad(toWad(decStr).add(toWad("0.5"))).toString());
 
 ////////////////////////////////////////
 // Exports
@@ -23,8 +25,7 @@ export const lt = (a, b): boolean => toWad(a).lt(toWad(b));
 export const mul = (a: string, b: string): string =>
   fromWad(roundInt(fromWad(toWad(a).mul(toWad(b)))));
 
-export const div = (a: string, b: string): string =>
-  fromWad(toWad(toWad(a)).div(toWad(b)));
+export const div = (a: string, b: string): string => fromWad(toWad(toWad(a)).div(toWad(b)));
 
 export const add = (lon: string[]): string =>
   lon.reduce((sum, current) => fromWad(toWad(sum).add(toWad(current))));

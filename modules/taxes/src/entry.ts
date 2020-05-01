@@ -72,11 +72,10 @@ process.on("SIGINT", logAndExit);
     const [newState, newLogs] = valueMachine(state, event);
     vmLogs = vmLogs.concat(...newLogs);
     state = newState;
-    // if (parseInt(event.date.split("-")[0], 10) < parseInt(env.taxYear, 10)) {
-    cache.saveState(state);
-    cache.saveLogs(vmLogs);
-    // }
+    // if (parseInt(event.date.split("-")[0], 10) < parseInt(env.taxYear, 10)) {}
   }
+  cache.saveState(state);
+  cache.saveLogs(vmLogs);
 
   const finalState = getState(addressBook, state, logger);
 
