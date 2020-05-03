@@ -9,8 +9,8 @@ username="`cat $input_file | jq '.env.username' | tr -d '" '`"
 
 echo "[entry.sh] Generating tax-return data for $username"
 
+rm -rf build/$username
 mkdir -p build/$username/data
-rm -rf build/$username/data/*
 
 node build/src/entry.js $input_file
 

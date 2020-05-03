@@ -38,7 +38,7 @@ prod: client server taxes
 all: test example personal
 
 backup:
-	tar czf tax_backup.tar.gz .cache modules/core/docs modules/core/personal.json
+	tar czf tax_backup.tar.gz .cache modules/taxes/docs modules/taxes/personal.json
 
 clean:
 	rm -rf modules/*/build/**
