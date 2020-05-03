@@ -871,11 +871,6 @@
       "L9": "L9",
       "C9_No": true,
       "C9_Yes": true,
-      "P1C0_A": true,
-      "P1C0_B": true,
-      "P1C0_C": true,
-      "P1C0_D": true,
-      "P1C0_E": true,
       "L10": "L10",
       "L11": "L11",
       "L12": "L12",
@@ -1032,7 +1027,12 @@
       "P4L36a": "P4L36a",
       "P4L36b": "P4L36b",
       "P4L36c": "P4L36c",
-      "P4L36d": "P4L36d"
+      "P4L36d": "P4L36d",
+      "C0_A": true,
+      "C0_B": true,
+      "C0_C": true,
+      "C0_D": true,
+      "C0_E": true
     }
   },
   "events": [],

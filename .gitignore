@@ -7,6 +7,8 @@
 **/events.json
 **/logs.json
 **/personal.json
+**/joint.json
+**/separate.json
 **/prices.json
 **/state.json
 **/tax-return.pdf

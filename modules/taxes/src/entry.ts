@@ -7,6 +7,7 @@ import {
   getState,
   getValueMachine,
 } from "@finances/core";
+import { ExpenseLog, LogTypes } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import * as cache from "./cache";
@@ -15,6 +16,22 @@ import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
 import { InputData } from "./types";
 import { emptyForm, mergeForms, translate } from "./utils";
+
+// Order of this list is important, it should follow the dependency graph.
+// ie: first no dependents, last no dependencies
+const supportedForms = [
+  "f2210",
+  "f1040",
+  "f2555",
+  "f1040s1",
+  "f1040s2",
+  "f1040s3",
+  "f1040sse",
+  "f1040sc",
+  "f1040sd",
+  "f8949",
+  "f8889",
+];
 
 const logAndExit = (msg: any): void => {
   console.error(msg);
@@ -39,6 +56,8 @@ process.on("SIGINT", logAndExit);
 
   setEnv({ ...input.env, outputFolder });
   log.info(`Starting app in env: ${JSON.stringify(env)}`);
+
+  const formsToFile = supportedForms.filter(form => input.forms.includes(form));
 
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
@@ -86,11 +105,12 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 2: Start out w empty forms containing raw user supplied data
 
-  for (const form of input.forms) {
+  for (const form of formsToFile) {
     if (!mappings[form]) {
       throw new Error(`Form ${form} not supported: No mappings available`);
     }
-    if (input.formData[form] && input.formData[form].length) {
+    // TODO: simplify multi-page detection
+    if (input.formData[form] && typeof input.formData[form].length === "number") {
       if (!output[form]) {
         output[form] = [];
       }
@@ -123,11 +143,25 @@ process.on("SIGINT", logAndExit);
     output.f1040.L3b = math.round(total.ordinary);
   }
 
+  if (input.expenses && input.expenses.length > 0) {
+    input.expenses.forEach(expense => {
+      vmLogs.push({
+        assetType: "USD",
+        assetPrice: "1",
+        to: "merchant",
+        txTags: [],
+        type: LogTypes.Expense,
+        ...expense,
+      } as ExpenseLog);
+      vmLogs.sort((a, b): number => new Date(a.date).getTime() - new Date(b.date).getTime());
+    });
+  }
+
   ////////////////////////////////////////
   // Step 4: calculate data for the rest of the forms from financial data
 
   if (env.mode !== "test") {
-    for (const form of input.forms.reverse()) {
+    for (const form of formsToFile.reverse()) {
       if (!filers[form]) {
         log.warn(`No filer is available for form ${form}. Using unmodified user input.`);
         continue;

@@ -73,7 +73,7 @@ export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
       const proceeds = round(mul(trade.quantity, trade.assetPrice));
       const cost = round(mul(trade.quantity, trade.purchasePrice));
       const gainOrLoss = sub(proceeds, cost);
-      log.info(`Sold ${description} on ${trade.date}: ${proceeds} - ${cost} = ${gainOrLoss}`);
+      log.info(`${trade.date} Sold ${description}: ${proceeds} - ${cost} = ${gainOrLoss}`);
       subF8949[getCell(i, "a")] = description;
       subF8949[getCell(i, "b")] = toFormDate(trade.purchaseDate);
       subF8949[getCell(i, "c")] = toFormDate(trade.date);
@@ -103,17 +103,17 @@ export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
         const shortCell = getShortCell(row, column);
         const longCell = getLongCell(row, column);
         if (gt(page[shortCell], "0")) {
-          log.info(`Adding short ${page[shortCell]} to ${shortTotal[column]}`);
+          log.debug(`Adding short-term trade ${page[shortCell]} to ${shortTotal[column]}`);
         }
         if (gt(page[longCell], "0")) {
-          log.info(`Adding long ${page[longCell]} to ${longTotal[column]}`);
+          log.debug(`Adding long-term trade ${page[longCell]} to ${longTotal[column]}`);
         }
         shortTotal[column] = add(shortTotal[column], page[shortCell]);
         longTotal[column] = add(longTotal[column], page[longCell]);
       }
     }
     for (const column of columns) {
-      log.info(`Subtotal ${p} ${column}: short=${shortTotal[column]} long=${longTotal[column]}`);
+      log.debug(`Subtotal ${p} ${column}: short=${shortTotal[column]} long=${longTotal[column]}`);
       page[`P1L2${column}`] = round(shortTotal[column]);
       page[`P2L2${column}`] = round(longTotal[column]);
     }
