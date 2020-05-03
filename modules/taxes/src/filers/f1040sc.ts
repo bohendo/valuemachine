@@ -24,10 +24,10 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
       const tag = income.taxTags.find(tag => tag.startsWith("multiply-"));
       const multiplier = tag.split("-")[1];
       value = mul(value, multiplier);
-      totalIncome = add([totalIncome, value]);
+      totalIncome = add(totalIncome, value);
       log.info(`Multiplying income by ${multiplier}: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
     } else {
-      totalIncome = add([totalIncome, value]);
+      totalIncome = add(totalIncome, value);
       log.info(`Adding income: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
     }
   });
@@ -40,7 +40,7 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
 
   f1040sc.L4 = f1040sc.L42;
   f1040sc.L5 = round(sub(f1040sc.L3, f1040sc.L4));
-  f1040sc.L7 = round(add([f1040sc.L5, f1040sc.L6]));
+  f1040sc.L7 = round(add(f1040sc.L5, f1040sc.L6));
 
   let otherExpenseIndex = 1;
   for (const expense of vmLogs.filter(l => l.type === LogTypes.Expense) as ExpenseLog[]) {
@@ -65,7 +65,7 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
         log.info(`Adding misc expense: ${expense.description}`);
         f1040sc[`L48R${otherExpenseIndex}_desc`] = description;
         f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
-        f1040sc.L48 = add([f1040sc.L48, value]);
+        f1040sc.L48 = add(f1040sc.L48, value);
         otherExpenseIndex += 1;
       }
       for (const row of [
@@ -77,19 +77,19 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
       ]) {
         if (tags.some(tag => tag.startsWith(`f1040sc-${row}`))) {
           log.info(`Adding ${row} expense: ${expense.description}`);
-          f1040sc[row] = add([f1040sc[row], value]);
+          f1040sc[row] = add(f1040sc[row], value);
         }
       }
     }
   }
 
-  f1040sc.L28 = add([
+  f1040sc.L28 = add(
     f1040sc.L8, f1040sc.L9, f1040sc.L10, f1040sc.L11, f1040sc.L12,
     f1040sc.L13, f1040sc.L14, f1040sc.L15, f1040sc.L16a, f1040sc.L16b,
     f1040sc.L17, f1040sc.L18, f1040sc.L19, f1040sc.L20a, f1040sc.L20b,
     f1040sc.L21, f1040sc.L22, f1040sc.L23, f1040sc.L24a, f1040sc.L24b,
     f1040sc.L25, f1040sc.L26, f1040sc.L27a, f1040sc.L27b, f1040sc.L48,
-  ]);
+  );
 
   f1040sc.L29 = round(sub(f1040sc.L7, f1040sc.L28));
   f1040sc.L31 = round(sub(f1040sc.L29, f1040sc.L30));

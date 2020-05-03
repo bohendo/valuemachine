@@ -101,7 +101,7 @@ export const getState = (
       ? "0"
       : state.accounts[account]
         .filter(chunk => chunk.assetType === assetType)
-        .reduce((sum, chunk) => add([sum, chunk.quantity]), "0");
+        .reduce((sum, chunk) => add(sum, chunk.quantity), "0");
 
   const getRelevantBalances = (event: Event): StateBalances => {
     const simpleState = {} as StateBalances;
@@ -146,7 +146,7 @@ export const getState = (
     for (const account of Object.keys(allBalances)) {
       for (const assetType of Object.keys(allBalances[account])) {
         output[assetType] = output[assetType] || "0";
-        output[assetType] = add([output[assetType], allBalances[account][assetType]]);
+        output[assetType] = add(output[assetType], allBalances[account][assetType]);
       }
     }
     return output;

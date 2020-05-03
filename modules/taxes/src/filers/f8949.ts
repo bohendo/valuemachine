@@ -34,7 +34,7 @@ export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
         getDate(merged.purchaseDate) === getDate(trade.purchaseDate),
       );
       if (dup !== -1) {
-        trades[dup].quantity = add([trades[dup].quantity, trade.quantity]);
+        trades[dup].quantity = add(trades[dup].quantity, trade.quantity);
       } else {
         trades.push(trade);
       }
@@ -108,8 +108,8 @@ export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
         if (gt(page[longCell], "0")) {
           log.info(`Adding long ${page[longCell]} to ${longTotal[column]}`);
         }
-        shortTotal[column] = add([shortTotal[column], page[shortCell]]);
-        longTotal[column] = add([longTotal[column], page[longCell]]);
+        shortTotal[column] = add(shortTotal[column], page[shortCell]);
+        longTotal[column] = add(longTotal[column], page[longCell]);
       }
     }
     for (const column of columns) {

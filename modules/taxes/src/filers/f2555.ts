@@ -14,7 +14,7 @@ export const f2555 = (vmLogs: Log[], oldForms: Forms): Forms => {
 
   log.info(`Foreign earned income exclusion: ${f2555.L42}`);
 
-  f2555.L43 = math.add([f2555.L36, f2555.L42]);
+  f2555.L43 = math.add(f2555.L36, f2555.L42);
 
   return { ...forms, f2555 };
 };

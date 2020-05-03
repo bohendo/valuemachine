@@ -133,7 +133,7 @@ export const mergeOffChainEvents = (event: Event, ocEvent: Event): Event => {
 
 export const shouldMergeOffChain = (event: Event, ocEvent: Event): boolean => {
   const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
-    lt(div(mul(diff(a1, a2), "200"), add([a1, a2])), "1");
+    lt(div(mul(diff(a1, a2), "200"), add(a1, a2)), "1");
 
   if (
     // assumes the deposit to/withdraw from exchange account doesn't interact w other contracts

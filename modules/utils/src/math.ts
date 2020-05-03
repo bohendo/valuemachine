@@ -20,14 +20,17 @@ export const eq = (a, b): boolean => toWad(a).eq(toWad(b));
 export const gt = (a, b): boolean => toWad(a).gt(toWad(b));
 export const lt = (a, b): boolean => toWad(a).lt(toWad(b));
 
-export const mul = (a: string, b: string): string =>
-  fromWad(roundInt(fromWad(toWad(a).mul(toWad(b)))));
+export const add = (...lon: string[]): string =>
+  lon.reduce((sum, current) => fromWad(toWad(sum).add(toWad(current))), "0");
+
+export const mul = (...lon: string[]): string =>
+  lon.reduce(
+    (product, current) => fromWad(roundInt(fromWad(toWad(product).mul(toWad(current))))),
+    "1",
+  );
 
 export const div = (a: string, b: string): string =>
   fromWad(toWad(toWad(a)).div(toWad(b)));
-
-export const add = (lon: string[]): string =>
-  lon.reduce((sum, current) => fromWad(toWad(sum).add(toWad(current))));
 
 export const sub = (a: string, b: string): string =>
   fromWad(toWad(a).sub(toWad(b)));

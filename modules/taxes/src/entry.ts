@@ -114,9 +114,9 @@ process.on("SIGINT", logAndExit);
       }
       const isQualified = dividend.tags.includes("qualified");
       log.info(`Adding ${isQualified ? "qualified " : ""}dividend of ${dividend.quantity} ${dividend.assetType} from ${dividend.source}`);
-      total.ordinary = math.add([total.ordinary, dividend.quantity]);
+      total.ordinary = math.add(total.ordinary, dividend.quantity);
       if (isQualified) {
-        total.qualified = math.add([total.qualified, dividend.quantity]);
+        total.qualified = math.add(total.qualified, dividend.quantity);
       }
     });
     output.f1040.L3a = math.round(total.qualified);

@@ -16,8 +16,8 @@ export const f8889 = (vmLogs: Log[], oldForms: Forms): Forms => {
 
   f8889.L5 = subToZero(f8889.L3, f8889.L4);
   f8889.L6 = f8889.L5;
-  f8889.L8 = add([f8889.L6, f8889.L7]);
-  f8889.L11 = add([f8889.L9, f8889.L10]);
+  f8889.L8 = add(f8889.L6, f8889.L7);
+  f8889.L11 = add(f8889.L9, f8889.L10);
   f8889.L12 = subToZero(f8889.L8, f8889.L11);
   f8889.L13 = gt(f8889.L2, f8889.L12) ? f8889.L12 : f8889.L2;
 
@@ -31,15 +31,15 @@ export const f8889 = (vmLogs: Log[], oldForms: Forms): Forms => {
     f8889.L17b = round(mul(f8889.L16, "0.2"));
 
     const description = `HSA ${f8889.L17b}`;
-    f1040s1.L8 = add([f1040s2.L8, f8889.L17b]);
+    f1040s1.L8 = add(f1040s2.L8, f8889.L17b);
     f1040s1.L8R1 = description;
 
-    f1040s2.L8 = add([f1040s2.L8, f8889.L17b]);
+    f1040s2.L8 = add(f1040s2.L8, f8889.L17b);
     f1040s2.C8c = true;
     f1040s2.L8c = description;
   }
 
-  f8889.L20 = add([f8889.L18, f8889.L19]);
+  f8889.L20 = add(f8889.L18, f8889.L19);
   if (gt(f8889.L20, "0")) {
     log.warn(`Required but not implemented: part 3 of f8889`);
   }

@@ -33,10 +33,10 @@ export const f1040sd = (vmLogs: Log[], oldForms: Forms): Forms => {
       : "?";
 
     log.debug(`Short-term f8949 row: proceeds=${f8949.P1L2d} cost=${f8949.P1L2e} gain|loss=${f8949.P1L2h}`);
-    totals[shortType].proceeds = add([totals[shortType].proceeds, f8949.P1L2d]);
-    totals[shortType].cost = add([totals[shortType].cost, f8949.P1L2e]);
-    totals[shortType].adjustments = add([totals[shortType].adjustments, f8949.P1L2g]);
-    totals[shortType].gainOrLoss = add([totals[shortType].gainOrLoss, f8949.P1L2h]);
+    totals[shortType].proceeds = add(totals[shortType].proceeds, f8949.P1L2d);
+    totals[shortType].cost = add(totals[shortType].cost, f8949.P1L2e);
+    totals[shortType].adjustments = add(totals[shortType].adjustments, f8949.P1L2g);
+    totals[shortType].gainOrLoss = add(totals[shortType].gainOrLoss, f8949.P1L2h);
 
     const longType =
         f8949.P2C0_D ? "D"
@@ -45,10 +45,10 @@ export const f1040sd = (vmLogs: Log[], oldForms: Forms): Forms => {
       : "?";
 
     log.debug(`Long-term f8949 row: proceeds=${f8949.P2L2d} cost=${f8949.P2L2e} gain|loss=${f8949.P2L2h}`);
-    totals[longType].proceeds = add([totals[longType].proceeds, f8949.P2L2d]);
-    totals[longType].cost = add([totals[longType].cost, f8949.P2L2e]);
-    totals[longType].adjustments = add([totals[longType].adjustments, f8949.P2L2g]);
-    totals[longType].gainOrLoss = add([totals[longType].gainOrLoss, f8949.P2L2h]);
+    totals[longType].proceeds = add(totals[longType].proceeds, f8949.P2L2d);
+    totals[longType].cost = add(totals[longType].cost, f8949.P2L2e);
+    totals[longType].adjustments = add(totals[longType].adjustments, f8949.P2L2g);
+    totals[longType].gainOrLoss = add(totals[longType].gainOrLoss, f8949.P2L2h);
   }
 
   f1040sd.L1b_d = round(totals.A.proceeds);
@@ -66,10 +66,10 @@ export const f1040sd = (vmLogs: Log[], oldForms: Forms): Forms => {
   f1040sd.L3_g = round(totals.C.adjustments);
   f1040sd.L3_h = round(totals.C.gainOrLoss);
 
-  f1040sd.L7 = add([
+  f1040sd.L7 = add(
     f1040sd.L1a_h, f1040sd.L1b_h, f1040sd.L2_h, f1040sd.L3_h,
     f1040sd.L4, f1040sd.L5, f1040sd.L6,
-  ]);
+  );
 
   f1040sd.L8b_d = round(totals.D.proceeds);
   f1040sd.L8b_e = round(totals.D.cost);
@@ -86,12 +86,12 @@ export const f1040sd = (vmLogs: Log[], oldForms: Forms): Forms => {
   f1040sd.L10_g = round(totals.F.adjustments);
   f1040sd.L10_h = round(totals.F.gainOrLoss);
 
-  f1040sd.L15 = add([
+  f1040sd.L15 = add(
     f1040sd.L8a_h, f1040sd.L8b_h, f1040sd.L9_h, f1040sd.L10_h,
     f1040sd.L11, f1040sd.L12, f1040sd.L13, f1040sd.L14,
-  ]);
+  );
 
-  f1040sd.L16 = add([f1040sd.L7, f1040sd.L15]);
+  f1040sd.L16 = add(f1040sd.L7, f1040sd.L15);
 
   let next: string;
 

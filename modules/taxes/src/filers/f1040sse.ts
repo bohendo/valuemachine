@@ -14,7 +14,7 @@ export const f1040sse = (vmLogs: Log[], oldForms: Forms): Forms => {
   f1040sse.P2_FullName = f1040sse.P1_FullName;
   f1040sse.P2_SSN = f1040sse.P1_SSN;
 
-  f1040sse.P1L3 = round(add([f1040sse.P1L1a, f1040sse.P1L1b, f1040sse.P1L2]));
+  f1040sse.P1L3 = round(add(f1040sse.P1L1a, f1040sse.P1L1b, f1040sse.P1L2));
   f1040sse.P1L4 = round(mul(f1040sse.P1L3, "0.9235"));
 
   if (lt(f1040sse.P1L4, "400")) {
@@ -23,7 +23,7 @@ export const f1040sse = (vmLogs: Log[], oldForms: Forms): Forms => {
 
   f1040sse.P1L5 = round(
     gt(f1040sse.P1L4, "132900")
-      ? add([mul(f1040sse.P1L4, "0.029"), "16479.60"])
+      ? add(mul(f1040sse.P1L4, "0.029"), "16479.60")
       : mul(f1040sse.P1L4, "0.153"),
   );
   f1040s2.L4 = f1040sse.P1L5;
