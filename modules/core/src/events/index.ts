@@ -1,8 +1,8 @@
 import { AddressBook, ILogger, AssetTypes, ChainData, Event } from "@finances/types";
+import { ContextLogger } from "@finances/utils";
 import * as fs from "fs";
 
 import { getPrice } from "../prices";
-import { ContextLogger } from "../utils";
 
 import { mergeCoinbaseEvents } from "./coinbase";
 import { mergeDigitalOceanEvents } from "./digitalocean";

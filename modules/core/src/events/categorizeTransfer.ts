@@ -6,11 +6,11 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
+import { ContextLogger, math } from "@finances/utils";
 import { AddressZero } from "ethers/constants";
 import { formatEther } from "ethers/utils";
 
 import { exchangeEvents, daiJoinInterface, defiEvents, vatInterface } from "../abi";
-import { eq, ContextLogger } from "../utils";
 
 export const categorizeTransfer = (
   inputTransfer: Partial<Transfer>,
@@ -87,10 +87,10 @@ export const categorizeTransfer = (
       const event = exchangeEvents.find(e => e.topic === txLog.topics[0]);
       if (event && event.name === "LogTake") {
         const data = event.decode(txLog.data, txLog.topics);
-        if (eq(formatEther(data.take_amt), transfer.quantity)) {
+        if (math.eq(formatEther(data.take_amt), transfer.quantity)) {
           transfer.category = TransferCategories.SwapIn;
           break;
-        } else if (eq(formatEther(data.give_amt), transfer.quantity)) {
+        } else if (math.eq(formatEther(data.give_amt), transfer.quantity)) {
           transfer.category = TransferCategories.SwapOut;
           break;
         }
@@ -105,13 +105,15 @@ export const categorizeTransfer = (
         if (!event) { continue; }
         const data = event.decode(txLog.data, txLog.topics);
         // Withdraw
-        if (event.name === "Redeem" && eq(formatEther(data.redeemAmount), transfer.quantity)) {
+        if (event.name === "Redeem" && math.eq(formatEther(data.redeemAmount), transfer.quantity)) {
           transfer.category = TransferCategories.Withdraw;
           if (transfer.from === AddressZero) {
             transfer.from = txLog.address;
           }
         // Deposit
-        } else if (event.name === "Mint" && eq(formatEther(data.mintAmount), transfer.quantity)) {
+        } else if (
+          event.name === "Mint" && math.eq(formatEther(data.mintAmount), transfer.quantity)
+        ) {
           transfer.category = TransferCategories.Deposit;
         }
 
@@ -159,7 +161,7 @@ export const categorizeTransfer = (
         if (
           getName(src) === "scd-mcd-migration" &&
           isSelf(dst) &&
-          eq(amt, transfer.quantity) &&
+          math.eq(amt, transfer.quantity) &&
           transfer.from === AddressZero
         ) {
           transfer.category = TransferCategories.SwapIn;
@@ -173,7 +175,7 @@ export const categorizeTransfer = (
         if (!event) { continue; }
         const data = event.decode(txLog.data, txLog.topics);
         if (
-          eq(formatEther(data.amount), transfer.quantity) &&
+          math.eq(formatEther(data.amount), transfer.quantity) &&
           getName(data.asset) === transfer.assetType
         ) {
           if (event.name === "RepayBorrow") {

@@ -1,6 +1,9 @@
 import { Log } from "@finances/types";
+import { math } from "@finances/utils";
+
 import { Forms } from "../types";
-import { add, gt, lt, mul, round } from "../utils";
+
+const { add, gt, lt, mul, round } = math;
 
 export const f1040sse = (vmLogs: Log[], oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;

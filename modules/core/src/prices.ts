@@ -1,7 +1,6 @@
 import { DateString, ILogger, TimestampString } from "@finances/types";
+import { ContextLogger } from "@finances/utils";
 import axios from "axios";
-
-import { ContextLogger } from "./utils";
 
 const fetchPrice = async (
   asset: string,

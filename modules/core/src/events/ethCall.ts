@@ -7,9 +7,8 @@ import {
   ILogger,
   TransferCategories,
 } from "@finances/types";
+import { ContextLogger, math } from "@finances/utils";
 import { AddressZero } from "ethers/constants";
-
-import { eq, ContextLogger } from "../utils";
 
 import { categorizeTransfer } from "./categorizeTransfer";
 import { assertChrono, mergeFactory } from "./utils";
@@ -64,7 +63,7 @@ export const mergeEthCallEvents = (
     event.transfers[0] = categorizeTransfer(event.transfers[0], [], addressBook, logger);
 
     const { from, quantity, to } = event.transfers[0];
-    if (eq(quantity, "0")) {
+    if (math.eq(quantity, "0")) {
       return null;
     }
     event.description =

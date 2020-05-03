@@ -6,16 +6,15 @@ import {
   getEvents,
   getState,
   getValueMachine,
-  LevelLogger,
-  ContextLogger,
 } from "@finances/core";
+import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import * as cache from "./cache";
 import { env, setEnv } from "./env";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
 import { InputData } from "./types";
-import { add, emptyForm, mergeForms, round, translate } from "./utils";
+import { emptyForm, mergeForms, translate } from "./utils";
 
 const logAndExit = (msg: any): void => {
   console.error(msg);
@@ -115,13 +114,13 @@ process.on("SIGINT", logAndExit);
       }
       const isQualified = dividend.tags.includes("qualified");
       log.info(`Adding ${isQualified ? "qualified " : ""}dividend of ${dividend.quantity} ${dividend.assetType} from ${dividend.source}`);
-      total.ordinary = add([total.ordinary, dividend.quantity]);
+      total.ordinary = math.add([total.ordinary, dividend.quantity]);
       if (isQualified) {
-        total.qualified = add([total.qualified, dividend.quantity]);
+        total.qualified = math.add([total.qualified, dividend.quantity]);
       }
     });
-    output.f1040.L3a = round(total.qualified);
-    output.f1040.L3b = round(total.ordinary);
+    output.f1040.L3a = math.round(total.qualified);
+    output.f1040.L3b = math.round(total.ordinary);
   }
 
   ////////////////////////////////////////

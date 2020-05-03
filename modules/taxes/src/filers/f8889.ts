@@ -1,9 +1,10 @@
-import { ContextLogger, LevelLogger } from "@finances/core";
 import { Log } from "@finances/types";
+import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
 import { Forms } from "../types";
-import { add, gt, mul, round, sub, subToZero } from "../utils";
+
+const { add, gt, mul, round, sub, subToZero } = math;
 
 export const f8889 = (vmLogs: Log[], oldForms: Forms): Forms => {
   const log = new ContextLogger("f8889", new LevelLogger(env.logLevel));

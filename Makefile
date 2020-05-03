@@ -34,7 +34,7 @@ $(shell mkdir -p .flags)
 
 default: dev
 dev: server taxes
-prod: client
+prod: client server taxes
 all: test example personal
 
 backup:
@@ -82,12 +82,17 @@ types: node-modules $(shell find modules/types $(find_options))
 	$(docker_run) "cd modules/types && tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-core: types $(shell find modules/core $(find_options))
+utils: node-modules $(shell find modules/utils $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/utils && tsc -p tsconfig.json"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+core: types utils $(shell find modules/core $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/core && tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-taxes: types core $(shell find modules/taxes $(find_options))
+taxes: types utils core $(shell find modules/taxes $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/taxes && tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) .flags/$@

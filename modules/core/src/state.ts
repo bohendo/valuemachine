@@ -12,8 +12,9 @@ import {
   StateJson,
   TimestampString,
 } from "@finances/types";
+import { ContextLogger, math } from "@finances/utils";
 
-import { add, gt, ContextLogger, round, sub } from "./utils";
+const { add, gt, round, sub } = math;
 
 export const getState = (
   addressBook: AddressBook,

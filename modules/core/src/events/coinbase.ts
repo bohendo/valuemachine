@@ -1,7 +1,6 @@
 import { Event, EventSources, ILogger, TransferCategories } from "@finances/types";
+import { ContextLogger } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
-
-import { ContextLogger } from "../utils";
 
 import { assertChrono, mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
 

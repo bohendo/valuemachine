@@ -1,4 +1,5 @@
 import { Address, ChainData, HexString, ILogger } from "@finances/types";
+import { ContextLogger } from "@finances/utils";
 import axios from "axios";
 import { Contract } from "ethers";
 import { AddressZero } from "ethers/constants";
@@ -13,7 +14,6 @@ import {
 } from "ethers/utils";
 
 import { getTokenAbi } from "./abi";
-import { ContextLogger } from "./utils";
 
 export const getChainData = async (
   userAddresses: Address[],

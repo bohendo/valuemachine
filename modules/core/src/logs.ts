@@ -10,8 +10,9 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
+import { math } from "@finances/utils";
 
-import { gt, round } from "./utils";
+const { gt, round } = math;
 
 export const emitEventLogs = (
   addressBook: AddressBook,

@@ -1,9 +1,11 @@
-import { ContextLogger, LevelLogger } from "@finances/core";
 import { CapitalGainsLog, Logs, LogTypes } from "@finances/types";
+import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
-import { add, eq, gt, mul, round, sub, toFormDate } from "../utils";
 import { Forms } from "../types";
+import { toFormDate } from "../utils";
+
+const { add, eq, gt, mul, round, sub } = math;
 
 const msPerDay = 1000 * 60 * 60 * 24;
 const msPerYear = msPerDay * 365;

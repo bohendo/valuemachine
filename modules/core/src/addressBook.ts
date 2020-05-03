@@ -5,9 +5,8 @@ import {
   AddressCategories,
   ILogger,
 } from "@finances/types";
+import { ContextLogger } from "@finances/utils";
 import { getAddress } from "ethers/utils";
-
-import { ContextLogger } from "./utils";
 
 export const getAddressBook = (userAddressBook: AddressBookJson, logger?: ILogger): AddressBook => {
   const log = new ContextLogger("AddressBook", logger);

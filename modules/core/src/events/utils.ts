@@ -4,8 +4,9 @@ import {
   EventSources,
   ILogger,
 } from "@finances/types";
+import { math } from "@finances/utils";
 
-import { add, diff, div, lt, mul } from "../utils";
+const { add, diff, div, lt, mul } = math;
 
 export const assertChrono = (events: Event[]): void => {
   let prevTime = 0;

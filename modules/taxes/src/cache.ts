@@ -1,4 +1,3 @@
-import { ContextLogger, LevelLogger } from "@finances/core";
 import {
   ChainData,
   Events,
@@ -12,6 +11,7 @@ import {
   emptyState,
   enumify,
 } from "@finances/types";
+import { ContextLogger, LevelLogger } from "@finances/utils";
 import fs from "fs";
 
 import { env } from "./env";

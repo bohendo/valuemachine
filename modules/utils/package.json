@@ -1,14 +1,13 @@
 {
-  "name": "@finances/taxes",
+  "name": "@finances/utils",
   "version": "1.0.0",
   "description": "",
-  "main": "build/src/entry.js",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@finances/core": "1.0.0",
     "@finances/types": "1.0.0",
-    "@finances/utils": "1.0.0",
     "@types/node": "13.11.1",
     "ethers": "4.0.46",
     "typescript": "3.8.3"

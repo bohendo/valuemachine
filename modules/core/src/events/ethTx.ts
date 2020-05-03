@@ -8,12 +8,12 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
+import { ContextLogger } from "@finances/utils";
 
 import { AddressZero } from "ethers/constants";
 import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from "ethers/utils";
 
 import { tokenEvents } from "../abi";
-import { ContextLogger } from "../utils";
 
 import { categorizeTransfer } from "./categorizeTransfer";
 import { assertChrono, mergeFactory } from "./utils";

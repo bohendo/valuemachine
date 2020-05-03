@@ -1,7 +1,12 @@
-import { ContextLogger, LevelLogger } from "@finances/core";
+import { TimestampString } from "@finances/types";
+import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
-import { env } from "../env";
-import { round } from "./math";
+import { env } from "./env";
+
+export const toFormDate = (date: TimestampString): string => {
+  const pieces = date.split("T")[0].split("-");
+  return `${pieces[1]}, ${pieces[2]}, ${pieces[0]}`;
+};
 
 export const emptyForm = (form): any => {
   const emptyForm = JSON.parse(JSON.stringify(form));
@@ -36,7 +41,7 @@ export const translate = (form, mappings): any => {
       typeof value === "string" &&
       value.match(/^-?[0-9.]+$/)
     ) {
-      newForm[mappings[key]] = round(value);
+      newForm[mappings[key]] = math.round(value);
       if (newForm[mappings[key]].startsWith("-")) {
         newForm[mappings[key]] = `(${newForm[mappings[key]].substring(1)})`;
       }
