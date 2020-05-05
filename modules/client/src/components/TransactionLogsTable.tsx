@@ -98,7 +98,6 @@ const TablePaginationActions = (props: TablePaginationActionsProps) => {
 
 export const TransactionLogsTable = (props: any) => {
   const { addressBook, filteredEvents } = props
-
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -118,6 +117,10 @@ export const TransactionLogsTable = (props: any) => {
   };
 
   const classes = useStyles();
+
+  if (!addressBook.addresses || addressBook.addresses.length == 0) {
+    return <> Please Update your addresses to view your on chain finances </>
+  }
 
   if (!filteredEvents) return <> Will have event logs soon </>
 
