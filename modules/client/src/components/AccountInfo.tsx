@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import {
   Button,
   Card,
+  CardHeader,
   Chip,
   Container,
   Divider,
@@ -13,6 +14,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Table,
   TableCell,
   TableRow,
   TextField,
@@ -127,16 +129,17 @@ const AddListItem = (props: any) => {
   )
 }
 
-/*
-const AddressList = (title: React.ReactNode, addressBook: AddressBookJson) => {
-  <Card>
-    <CardHeader title={title} />
-    <Divider />
-    <List dense component="div" role="list">
-    </List>
-  </Card>
+const AddressList = (props: any) => {
+  return (
+    <Card>
+      <CardHeader title={props.category} />
+      <Divider />
+      <Table>
+        <AddListItem category={props.category} />
+      </Table>
+    </Card>
+  )
 }
-*/
 
 export const AccountInfo: React.FC = () => {
   const classes = useStyles();
@@ -165,7 +168,7 @@ export const AccountInfo: React.FC = () => {
       <Typography variant="h6">
         Personal Accounts
       </Typography>
-      <AddListItem category="self" />
+      <AddressList category="self" />
 
       <Typography variant="h6">
         Friend/Family Accounts
@@ -193,4 +196,3 @@ export const AccountInfo: React.FC = () => {
     </div>
   )
 }
-

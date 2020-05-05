@@ -63,11 +63,11 @@ export const Dashboard: React.FC = (props: any) => {
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
 
   useEffect(() => {
-    let addressBookJson = cache.loadPersonal();
-    if (addressBookJson) {
-      setAddressBook(getAddressBook(addressBookJson));
+    let personal = cache.loadPersonal();
+    if (personal.addressBook) {
+      setAddressBook(getAddressBook(personal.addressBook));
     }
-    console.log(addressBookJson);
+    console.log(personal.addressBook);
   }, []);
 
   useEffect(() => {
