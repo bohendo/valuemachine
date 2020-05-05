@@ -7,13 +7,15 @@ import {
   emptyPriceData,
 } from "@finances/types";
 
-import chainData from '../data/chain-data.json';
+import chainData from "../data/chain-data.json";
+import { Personal } from "../types";
 
 export const emptyData = {
-  priceData: emptyPriceData,
   chainData: chainData,
   events: [],
   logs: [],
+  personal: {} as Personal,
+  priceData: emptyPriceData,
   state: {
     accounts: {},
     lastUpdated: (new Date(0)).toISOString(),
@@ -35,12 +37,15 @@ const save = (key: string, data: any) => {
 }
 
 export const loadPrices = () : PriceData => load("priceData");
-export const savePrices = (priceData: PriceData): void => save("priceData", priceData);
 export const loadChainData = (): ChainData => load("chainData") as ChainData;
-export const saveChainData = (chainData: ChainData): void => save("chainData", chainData);
 export const loadEvents = (): Events => load("events") as Events;
-export const saveEvents = (events: Events): void => save("events", events);
 export const loadLogs = (): Logs => load("logs") as Logs;
-export const saveLogs = (events: Logs): void => save("logs", events);
 export const loadState = (): StateJson => load("state") as StateJson;
+export const loadPersonal = (): Personal => load("personal") as Personal;
+
+export const saveLogs = (events: Logs): void => save("logs", events);
+export const savePrices = (priceData: PriceData): void => save("priceData", priceData);
+export const saveChainData = (chainData: ChainData): void => save("chainData", chainData);
+export const saveEvents = (events: Events): void => save("events", events);
 export const saveState = (chainData: StateJson): void => save("state", chainData);
+export const savePersonal = (personal: Personal) => save("personal", personal);
