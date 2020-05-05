@@ -3,6 +3,6 @@ import {
 } from "@finances/types";
 
 export type Personal = {
-  name: string;
+  profileName: string;
   addressBook: AddressBookJson
 }

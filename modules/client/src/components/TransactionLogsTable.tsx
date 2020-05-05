@@ -118,7 +118,7 @@ export const TransactionLogsTable = (props: any) => {
 
   const classes = useStyles();
 
-  if (!addressBook.addresses || addressBook.addresses.length == 0) {
+  if (!addressBook.addresses || addressBook.addresses.length === 0) {
     return <> Please Update your addresses to view your on chain finances </>
   }
 

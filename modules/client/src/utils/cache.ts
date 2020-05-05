@@ -14,7 +14,10 @@ export const emptyData = {
   chainData: chainData,
   events: [],
   logs: [],
-  personal: {} as Personal,
+  personal: {
+    profileName: '',
+    addressBook: [],
+  } as Personal,
   priceData: emptyPriceData,
   state: {
     accounts: {},

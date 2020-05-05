@@ -5,6 +5,7 @@ import {
   Log,
   LogTypes,
 } from "@finances/types";
+import { LevelLogger } from "@finances/utils";
 import {
   getAddressBook,
   getEvents,
@@ -77,7 +78,7 @@ export const Dashboard: React.FC = (props: any) => {
         chainData,
         cache,
         [],
-        console,
+        new LevelLogger(2),
       );
       setFinancialEvents(events);
 
