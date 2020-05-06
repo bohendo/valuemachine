@@ -63,22 +63,25 @@ export const Dashboard: React.FC = (props: any) => {
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
 
+  const { personal } = props;
+
   useEffect(() => {
-    let personal = cache.loadPersonal();
-    if (personal.addressBook) {
+    if (personal && personal.addressBook.length > 0) {
       setAddressBook(getAddressBook(personal.addressBook));
     }
-    console.log(personal.addressBook);
-  }, []);
+  }, [personal]);
 
   useEffect(() => {
     (async () => {
+      if (Object.keys(addressBook).length === 0) {
+        return;
+      }
       const events = await getEvents(
         addressBook,
         chainData,
         cache,
         [],
-        new LevelLogger(2),
+        new LevelLogger(),
       );
       setFinancialEvents(events);
 

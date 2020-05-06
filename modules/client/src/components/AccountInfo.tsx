@@ -195,9 +195,9 @@ const AddressList = (props: any) => {
   )
 }
 
-export const AccountInfo: React.FC = () => {
+export const AccountInfo: React.FC = (props: any) => {
   const classes = useStyles();
-  const [personal, setPersonal] = useState(cache.loadPersonal());
+  const {personal, setPersonal} = props;
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setPersonal({...personal, profileName: event.target.value});

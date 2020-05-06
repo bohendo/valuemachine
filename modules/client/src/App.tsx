@@ -15,6 +15,7 @@ import { NavBar } from "./components/NavBar";
 import { AccountInfo } from "./components/AccountInfo";
 import { Dashboard } from "./components/Dashboard";
 
+import * as cache from "./utils/cache";
 import chainData from './data/chain-data.json';
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -37,6 +38,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const App: React.FC = () => {
   const classes = useStyles();
+  const [personal, setPersonal] = useState(cache.loadPersonal());
 
   return (
     <div className={classes.root}>
@@ -45,10 +47,10 @@ const App: React.FC = () => {
         <main className={classes.main}>
           <Switch>
             <Route exact path="/">
-              <Dashboard />
+              <Dashboard personal={personal} />
             </Route>
             <Route exact path="/account">
-              <AccountInfo />
+              <AccountInfo personal={personal} setPersonal={setPersonal} />
             </Route>
           </Switch>
         </main>
