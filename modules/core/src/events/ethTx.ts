@@ -78,7 +78,10 @@ export const mergeEthTxEvents = (
         log.debug(`setting reverted tx to have zero quantity`);
         event.transfers[0].quantity = "0";
         event.description = `${getName(tx.from)} sent failed tx`;
-        return event;
+        if (addressBook.isSelf(event.transfers[0].from)) {
+          return event;
+        }
+        return null;
       }
 
       event.transfers[0] = categorizeTransfer(event.transfers[0], [], addressBook, logger);
@@ -153,11 +156,16 @@ export const mergeEthTxEvents = (
       log.info(event.description);
 
       event.transfers = event.transfers
+        .filter(transfer => addressBook.isSelf(transfer.to) || addressBook.isSelf(transfer.from))
         // Make sure all addresses are lower-case
         .map(transfer => ({ ...transfer, to: transfer.to.toLowerCase() }))
         .map(transfer => ({ ...transfer, from: transfer.from.toLowerCase() }))
         // sort by index
         .sort((t1, t2) => t1.index - t2.index);
+
+      if (event.transfers.length === 0) {
+        return null;
+      }
 
       return event;
     }).filter(e => !!e).forEach((txEvent: Event): void => {

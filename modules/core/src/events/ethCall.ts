@@ -32,6 +32,10 @@ export const mergeEthCallEvents = (
       return null;
     }
 
+    if (!(addressBook.isSelf(call.to) || addressBook.isSelf(call.from))){
+      return null;
+    }
+
     // We'll get internal token transfers from ethTx logs instead
     if (call.contractAddress !== AddressZero) {
       return null;
