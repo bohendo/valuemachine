@@ -31,8 +31,8 @@ export const TransactionLogsFilter = (props: any) => {
 
   const classes = useStyles();
 
-  const [startDate, setStartDate] = useState(new Date("November 30, 2018 00:00:00"));
-  const [endDate, setEndDate] = useState(new Date("December 30, 2018 00:00:00"));
+  const [startDate, setStartDate] = useState(new Date(0));
+  const [endDate, setEndDate] = useState(new Date());
 
   let allCategories = { all: true };
   Object.keys(TransferCategories).forEach(category => { allCategories[category] = false })
