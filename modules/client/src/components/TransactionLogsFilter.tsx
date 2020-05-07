@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AssetTypes, Event, Transfer, TransferCategories } from '@finances/types';
+import { math } from "@finances/utils";
 
 import {
   Checkbox,
@@ -61,6 +62,7 @@ export const TransactionLogsFilter = (props: any) => {
       
       event.transfers.forEach((transfer: Transfer) => {
         if(
+          math.gt(transfer.quantity, "0") &&
           (categories.all || categories[transfer.category]) &&
           (assets.all || assets[transfer.assetType])
         ) {
