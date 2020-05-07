@@ -41,6 +41,9 @@ export const categorizeTransfer = (
     return transfer;
   }
 
+  // TODO: get tx to and from value
+  // eg. Swap in 0xa97a61408670463c4a0cf293df1b047407e8440f260f271cdbe87505c7305937 is
+  // currently categorized as Income & Expense
   // eg SwapOut to Uniswap
   if (isCategory(AddressCategories.Exchange)(transfer.to)) {
     transfer.category = TransferCategories.SwapOut;
