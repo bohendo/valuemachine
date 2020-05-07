@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
 import {
+  getAddressBook,
+} from "@finances/core";
+import {
   Container,
   Theme,
   createStyles,
@@ -35,6 +38,13 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 const App: React.FC = () => {
   const classes = useStyles();
   const [personal, setPersonal] = useState(cache.loadPersonal());
+  const [addressBook, setAddressBook] = useState({} as any);
+
+  useEffect(() => {
+    if (personal && personal.addressBook.length > 0) {
+      setAddressBook(getAddressBook(personal.addressBook));
+    }
+  }, [personal]);
 
   return (
     <div className={classes.root}>
@@ -43,10 +53,10 @@ const App: React.FC = () => {
         <Container maxWidth="lg" className={classes.container}>
           <Switch>
             <Route exact path="/">
-              <Dashboard personal={personal} />
+              <Dashboard addressBook={addressBook} personal={personal} />
             </Route>
             <Route exact path="/account">
-              <AccountInfo personal={personal} setPersonal={setPersonal} />
+              <AccountInfo addressBook={addressBook} personal={personal} setPersonal={setPersonal} />
             </Route>
           </Switch>
         </Container>

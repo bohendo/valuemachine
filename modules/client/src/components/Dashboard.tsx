@@ -28,7 +28,6 @@ import { inTypes, outTypes } from '../utils/utils';
 import chainData from '../data/chain-data.json';
 
 export const Dashboard: React.FC = (props: any) => {
-  const [addressBook, setAddressBook] = useState({} as any);
   const [endDate, setEndDate] = useState(new Date());
   const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
   const [financialEvents, setFinancialEvents] = useState([] as Event[]);
@@ -37,13 +36,7 @@ export const Dashboard: React.FC = (props: any) => {
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
 
-  const { personal } = props;
-
-  useEffect(() => {
-    if (personal && personal.addressBook.length > 0) {
-      setAddressBook(getAddressBook(personal.addressBook));
-    }
-  }, [personal]);
+  const { personal, addressBook } = props;
 
   useEffect(() => {
     (async () => {

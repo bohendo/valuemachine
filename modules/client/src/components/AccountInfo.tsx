@@ -9,14 +9,12 @@ import {
   FormControl,
   FormHelperText,
   IconButton,
-  Input,
   InputLabel,
   MenuItem,
   Select,
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableRow,
   TextField,
@@ -167,7 +165,7 @@ const AddressList = (props: any) => {
 
         <TableBody>
           { personal.addressBook.map((entry: AddressData, i: number) => {
-              if (entry.category === category.toLowerCase())
+              if (entry.category === category.toLowerCase()) {
                 return (
                   <TableRow key={i} >
                     <TableCell>
@@ -180,8 +178,8 @@ const AddressList = (props: any) => {
                     <TableCell> {entry.tags} </TableCell>
                   </TableRow>
                 )
-            })
-          }
+              } else return null;
+          })}
         </TableBody>
       </Table>
     </Card>
@@ -190,7 +188,7 @@ const AddressList = (props: any) => {
 
 export const AccountInfo: React.FC = (props: any) => {
   const classes = useStyles();
-  const {personal, setPersonal} = props;
+  const { addressBook, personal, setPersonal } = props;
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setPersonal({...personal, profileName: event.target.value});
