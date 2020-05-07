@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import {
   Container,
-  CssBaseline,
-  Grid,
   Theme,
-  Typography,
   createStyles,
   makeStyles,
 } from '@material-ui/core';
@@ -16,7 +13,6 @@ import { AccountInfo } from "./components/AccountInfo";
 import { Dashboard } from "./components/Dashboard";
 
 import * as cache from "./utils/cache";
-import chainData from './data/chain-data.json';
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -27,7 +23,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     paddingBottom: theme.spacing(4),
   },
   main: {
-    marginTop: "80px",
+    marginTop: "50px",
     height: "100vh",
     overflow: "auto",
   },
@@ -42,9 +38,9 @@ const App: React.FC = () => {
 
   return (
     <div className={classes.root}>
-      <Container maxWidth="lg" className={classes.container}>
-        <NavBar />
-        <main className={classes.main}>
+      <NavBar />
+      <main className={classes.main}>
+        <Container maxWidth="lg" className={classes.container}>
           <Switch>
             <Route exact path="/">
               <Dashboard personal={personal} />
@@ -53,8 +49,8 @@ const App: React.FC = () => {
               <AccountInfo personal={personal} setPersonal={setPersonal} />
             </Route>
           </Switch>
-        </main>
-      </Container>
+        </Container>
+      </main>
     </div>
   );
 }

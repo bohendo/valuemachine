@@ -5,10 +5,8 @@ import {
   Card,
   CardHeader,
   Chip,
-  Container,
   Divider,
   FormControl,
-  Grid,
   IconButton,
   Input,
   InputLabel,
@@ -36,7 +34,6 @@ import {
 } from "@finances/types";
 
 import * as cache from "../utils/cache";
-import { Personal } from "../types";
 
 const tagsSelect = [
   "active",
@@ -64,7 +61,7 @@ const AddListItem = (props: any) => {
   const classes = useStyles();
   useEffect(() => {
     setNewAddressData({...newAddressData, category: category.toLowerCase()});
-  }, []);
+  }, [newAddressData, category]);
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setNewAddressData({...newAddressData, [event.target.name]: event.target.value});
@@ -178,6 +175,7 @@ const AddressList = (props: any) => {
                     <TableCell> {entry.tags} </TableCell>
                   </TableRow>
                 )
+              else return null
             })
           }
           <TableRow>

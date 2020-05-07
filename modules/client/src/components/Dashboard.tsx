@@ -12,16 +12,8 @@ import {
   getValueMachine,
 } from "@finances/core";
 import {
-  AppBar,
-  Container,
-  CssBaseline,
   Grid,
-  IconButton,
-  Theme,
-  Toolbar,
   Typography,
-  createStyles,
-  makeStyles,
 } from '@material-ui/core';
 
 import { AssetDistribution } from './AssetDistribution';
@@ -158,39 +150,37 @@ export const Dashboard: React.FC = (props: any) => {
   }, [financialLogs, endDate]);
 
   return (
-    <>
-      <Grid container spacing={3}>
-        <Grid item xs={6} md={6} lg={6}>
-          <Typography>
-            Account Overview
-          </Typography>
-        </Grid>
-        <Grid item xs={6} md={6} lg={6}>
-          <DateTime date={endDate} label="View Net Worth As of" setDate={setEndDate}/>
-        </Grid>
-        <Grid item xs={6} md={6} lg={6}>
-          <Typography>
-            Net Worth
-          </Typography>
-        </Grid>
-        <Grid item xs={6} md={6} lg={6}>
-          <Typography>
-            $ {netWorthSnapshot}
-          </Typography>
-        </Grid>
-        <Grid item xs={12} md={8} lg={9}>
-          <NetWorth netWorthTimeline={netWorthTimeline} endDate={endDate}/>
-        </Grid>
-        <Grid item xs={12} md={4} lg={3}>
-          <AssetDistribution totalByAssetType={totalByAssetType} date={endDate.toISOString()}/>
-        </Grid>
-        <Grid container>
-          <TransactionLogs addressBook={addressBook} financialEvents={financialEvents} />
-        </Grid>
-        <Grid item xs={12} md={12} lg={12}>
-          <EventTable filteredTotalByCategory={filteredTotalByCategory} totalByAssetType={totalByAssetType}/>
-        </Grid>
+    <Grid container spacing={3}>
+      <Grid item xs={6} md={6} lg={6}>
+        <Typography>
+          Account Overview
+        </Typography>
       </Grid>
-    </>
+      <Grid item xs={6} md={6} lg={6}>
+        <DateTime date={endDate} label="View Net Worth As of" setDate={setEndDate}/>
+      </Grid>
+      <Grid item xs={6} md={6} lg={6}>
+        <Typography>
+          Net Worth
+        </Typography>
+      </Grid>
+      <Grid item xs={6} md={6} lg={6}>
+        <Typography>
+          $ {netWorthSnapshot}
+        </Typography>
+      </Grid>
+      <Grid item xs={12} md={8} lg={9}>
+        <NetWorth netWorthTimeline={netWorthTimeline} endDate={endDate}/>
+      </Grid>
+      <Grid item xs={12} md={4} lg={3}>
+        <AssetDistribution totalByAssetType={totalByAssetType} date={endDate.toISOString()}/>
+      </Grid>
+      <Grid container>
+        <TransactionLogs addressBook={addressBook} financialEvents={financialEvents} />
+      </Grid>
+      <Grid item xs={12} md={12} lg={12}>
+        <EventTable filteredTotalByCategory={filteredTotalByCategory} totalByAssetType={totalByAssetType}/>
+      </Grid>
+    </Grid>
   )
 }
