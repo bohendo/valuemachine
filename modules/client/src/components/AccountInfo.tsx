@@ -7,6 +7,7 @@ import {
   Chip,
   Divider,
   FormControl,
+  FormHelperText,
   IconButton,
   Input,
   InputLabel,
@@ -25,10 +26,11 @@ import {
   makeStyles,
 } from '@material-ui/core';
 import {
+  AddCircle as AddIcon,
   Delete as DeleteIcon,
   GetApp as DownloadIcon,
+  RemoveCircle as RemoveIcon,
   Save as SaveIcon,
-  AddCircle as AddIcon,
 } from "@material-ui/icons";
 import {
   AddressData,
@@ -40,6 +42,12 @@ const tagsSelect = [
   "active",
   "proxy",
 ];
+
+const addressCategories = [
+  "self",
+  "friend",
+  "family",
+]
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   chip: {
@@ -57,7 +65,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const AddListItem = (props: any) => {
   const [newAddressData, setNewAddressData] = useState({category: props.category} as AddressData);
-  const { category, personal, setPersonal } = props;
+  const { personal, setPersonal } = props;
   const classes = useStyles();
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
@@ -70,78 +78,74 @@ const AddListItem = (props: any) => {
   };
 
   return (
-    <TableRow>
-      <TableCell>
-        <IconButton
-          onClick={addNewAddress}
+    <Card>
+      <CardHeader title={"Add new Address"} />
+      <IconButton onClick={addNewAddress} >
+        <AddIcon />
+      </IconButton>
+      <TextField
+        id="address"
+        label="Eth Address"
+        defaultValue="0xabc..."
+        helperText="Add your ethereum address to fetch info"
+        name="address"
+        onChange={handleChange}
+        margin="normal"
+        variant="outlined"
+      />
+      <FormControl variant="outlined" className={classes.input}>
+        <InputLabel id="Category">Category</InputLabel>
+        <Select
+          labelId="category-select-drop"
+          id="category-select"
+          value={newAddressData.category || "self"}
+          name="category"
+          onChange={handleChange}
         >
-          <AddIcon />
-        </IconButton>
-      </TableCell>
-      <TableCell>
-        <TextField
-          id="address"
-          label="Eth Address"
-          defaultValue="0xabc..."
-          helperText="Add your ethereum address to fetch info"
-          name="address"
+          {addressCategories.map((category) => (
+            <MenuItem key={category} value={category}>
+              {category}
+            </MenuItem>
+          ))}
+        </Select>
+        <FormHelperText>Select address category</FormHelperText>
+      </FormControl>
+      <TextField
+        id="name"
+        label="Account Name"
+        defaultValue="Shivhend.eth"
+        helperText="Give your account a nickname"
+        name="name"
+        onChange={handleChange}
+        margin="normal"
+        variant="outlined"
+      />
+      <FormControl variant="outlined" className={classes.input}>
+        <InputLabel id="Tags">Tags</InputLabel>
+        <Select
+          labelId="tags-select-drop"
+          id="tags-select"
+          multiple
+          value={newAddressData.tags || []}
+          name="tags"
           onChange={handleChange}
-          margin="normal"
-          variant="outlined"
-        />
-      </TableCell>
-      {/*<TableCell>
-        <TextField
-          id="category"
-          label="Category"
-          defaultValue={props.category}
-          helperText="Address category. self/friend/family/employer etc."
-          InputProps={{
-            readOnly: true,
-          }}
-          variant="outlined"
-        />
-      </TableCell>*/}
-      <TableCell>
-        <TextField
-          id="name"
-          label="Account Name"
-          defaultValue="Shivhend.eth"
-          helperText="Give your account a nickname"
-          name="name"
-          onChange={handleChange}
-          margin="normal"
-          variant="outlined"
-        />
-      </TableCell>
-      <TableCell>
-        <FormControl className={classes.input}>
-          <InputLabel id="Tags">Tags</InputLabel>
-          <Select
-            labelId="tags-select-drop"
-            id="tags-select"
-            multiple
-            value={newAddressData.tags || []}
-            name="tags"
-            onChange={handleChange}
-            input={<Input />}
-            renderValue={(selected) => (
-              <div className={classes.chips}>
-                {(selected as string[]).map((value) => (
-                  <Chip key={value} label={value} className={classes.chip} />
-                ))}
-              </div>
-            )}
-          >
-            {tagsSelect.map((name) => (
-              <MenuItem key={name} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </TableCell>
-    </TableRow>
+          renderValue={(selected) => (
+            <div className={classes.chips}>
+              {(selected as string[]).map((value) => (
+                <Chip key={value} label={value} className={classes.chip} />
+              ))}
+            </div>
+          )}
+        >
+          {tagsSelect.map((name) => (
+            <MenuItem key={name} value={name}>
+              {name}
+            </MenuItem>
+          ))}
+        </Select>
+        <FormHelperText>Select relevant tags for this address</FormHelperText>
+      </FormControl>
+    </Card>
   )
 }
 
@@ -166,7 +170,11 @@ const AddressList = (props: any) => {
               if (entry.category === category.toLowerCase())
                 return (
                   <TableRow key={i} >
-                    <TableCell> Action </TableCell>
+                    <TableCell>
+                      <IconButton onClick={console.log} >
+                        <RemoveIcon />
+                      </IconButton>
+                    </TableCell>
                     <TableCell> {entry.address} </TableCell>
                     <TableCell> {entry.name} </TableCell>
                     <TableCell> {entry.tags} </TableCell>
@@ -174,16 +182,7 @@ const AddressList = (props: any) => {
                 )
             })
           }
-          <TableRow>
-            <TableCell colSpan={4}>
-              Add {category} accounts here
-            </TableCell>
-          </TableRow>
         </TableBody>
-        
-        <TableFooter>
-          <AddListItem category={category} personal={personal} setPersonal={setPersonal} />
-        </TableFooter>
       </Table>
     </Card>
   )
@@ -229,6 +228,7 @@ export const AccountInfo: React.FC = (props: any) => {
       <AddressList category="Self" setPersonal={setPersonal} personal={personal} />
       <AddressList category="Friend" setPersonal={setPersonal} personal={personal} />
       <AddressList category="Family" setPersonal={setPersonal} personal={personal} />
+      <AddListItem category={"self"} personal={personal} setPersonal={setPersonal} />
 
       <Divider/>
       <Button
