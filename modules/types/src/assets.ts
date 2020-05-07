@@ -2,6 +2,7 @@ import { DecimalString, TimestampString } from "./strings";
 import { enumify } from "./utils";
 
 export const AssetTypes = enumify({
+  BAT: "BAT",
   DAI: "DAI",
   ETH: "ETH",
   INR: "INR",
