@@ -25,6 +25,7 @@ import {
   makeStyles,
 } from '@material-ui/core';
 import {
+  Delete as DeleteIcon,
   GetApp as DownloadIcon,
   Save as SaveIcon,
   AddCircle as AddIcon,
@@ -55,13 +56,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 const AddListItem = (props: any) => {
-  const [newAddressData, setNewAddressData] = useState({} as AddressData);
+  const [newAddressData, setNewAddressData] = useState({category: props.category} as AddressData);
   const { category, personal, setPersonal } = props;
-
   const classes = useStyles();
-  useEffect(() => {
-    setNewAddressData({...newAddressData, category: category.toLowerCase()});
-  }, [newAddressData, category]);
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setNewAddressData({...newAddressData, [event.target.name]: event.target.value});
@@ -175,7 +172,6 @@ const AddressList = (props: any) => {
                     <TableCell> {entry.tags} </TableCell>
                   </TableRow>
                 )
-              else return null
             })
           }
           <TableRow>
@@ -203,11 +199,23 @@ export const AccountInfo: React.FC = (props: any) => {
 
   return (
     <div className={classes.grow}>
+      <Button
+        variant="contained"
+        color="primary"
+        size="small"
+        className={classes.button}
+        onClick={() => cache.reset(["logs", "state", "events"])}
+        startIcon={<DeleteIcon />}
+      >
+        Reset Cached events
+      </Button>
+      <Divider/>
+
       <Typography variant="h4">
         Account Info
       </Typography>
-      
       <Divider/>
+      
       <TextField
         id="profile-name"
         label="Profile Name"

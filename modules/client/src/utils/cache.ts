@@ -39,6 +39,10 @@ const save = (key: string, data: any) => {
   localStorage.setItem(key, JSON.stringify(data))
 }
 
+export const reset = (keys: string[]) => {
+  keys.forEach((key) => save(key, emptyData[key]));
+}
+
 export const loadPrices = () : PriceData => load("priceData");
 export const loadChainData = (): ChainData => load("chainData") as ChainData;
 export const loadEvents = (): Events => load("events") as Events;
