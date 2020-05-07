@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-import { math } from "@finances/utils";
 import {
   IconButton,
   Paper,
@@ -17,6 +16,7 @@ import {
   makeStyles,
   useTheme,
 } from '@material-ui/core';
+
 import {
   FirstPage as FirstPageIcon,
   KeyboardArrowLeft,
@@ -145,22 +145,18 @@ export const TransactionLogsTable = (props: any) => {
           {(rowsPerPage > 0
             ? filteredEvents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : filteredEvents
-          ).map((row: TransferRow, i: number) => {
-            if (math.gt(row.quantity, "0")) {
-              return (
-                <TableRow key={i}>
-                  <TableCell> {row.date} </TableCell>
-                  <TableCell> {row.category} </TableCell>
-                  <TableCell> {row.quantity} </TableCell>
-                  <TableCell> {row.assetType} </TableCell>
-                  <TableCell> {row.value} </TableCell>
-                  <TableCell> {addressBook.getName(row.from)} </TableCell>
-                  <TableCell> {addressBook.getName(row.to)} </TableCell>
-                  <TableCell> {row.hash} </TableCell>
-                </TableRow>
-              )
-            } else return null;
-          })}
+          ).map((row: TransferRow, i: number) => (
+              <TableRow key={i}>
+                <TableCell> {row.date} </TableCell>
+                <TableCell> {row.category} </TableCell>
+                <TableCell> {row.quantity} </TableCell>
+                <TableCell> {row.assetType} </TableCell>
+                <TableCell> {row.value} </TableCell>
+                <TableCell> {addressBook.getName(row.from)} </TableCell>
+                <TableCell> {addressBook.getName(row.to)} </TableCell>
+                <TableCell> {row.hash} </TableCell>
+              </TableRow>
+            ))}
         </TableBody>
         <TableFooter>
           <TableRow>
