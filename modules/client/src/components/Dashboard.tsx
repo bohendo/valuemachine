@@ -23,26 +23,9 @@ import { NetWorth } from './NetWorthGraph';
 import { TransactionLogs } from './TransactionLogs'
 
 import * as cache from '../utils/cache';
+import { inTypes, outTypes } from '../utils/utils';
 
 import chainData from '../data/chain-data.json';
-
-const inTypes = [
-  LogTypes.Borrow,
-  LogTypes.GiftIn,
-  LogTypes.Income,
-  LogTypes.Mint,
-  LogTypes.SwapIn,
-  LogTypes.Withdraw,
-];
-
-const outTypes = [
-  LogTypes.Burn,
-  LogTypes.Deposit,
-  LogTypes.Expense,
-  LogTypes.GiftOut,
-  LogTypes.Repay,
-  LogTypes.SwapOut,
-];
 
 export const Dashboard: React.FC = (props: any) => {
   //return <> Hello WOrld </>
