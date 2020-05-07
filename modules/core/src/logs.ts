@@ -43,7 +43,7 @@ export const emitTransferLogs = (
 
   const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("-account");
 
-  if (["Borrow", "Burn", "Income", "SwapIn", "Withdraw"].includes(transfer.category)) {
+  if (["Borrow", "Burn", "GiftOut", "Income", "SwapIn", "Withdraw"].includes(transfer.category)) {
     logs.push({
       assetPrice: event.prices[assetType],
       assetType: assetType,
@@ -53,7 +53,7 @@ export const emitTransferLogs = (
       quantity,
       type: transfer.category as LogTypes,
     });
-  } else if (["Deposit", "Expense", "Mint", "Repay", "SwapOut"].includes(transfer.category)) {
+  } else if (["Deposit", "Expense", "GiftIn", "Mint", "Repay", "SwapOut"].includes(transfer.category)) {
     logs.push({
       assetPrice: event.prices[assetType],
       assetType: assetType,
@@ -78,7 +78,7 @@ export const emitTransferLogs = (
         to,
         type: LogTypes.Expense,
       });
-    } else if (transfer.category === TransferCategories.Gift) {
+    } else if (transfer.category === TransferCategories.GiftOut) {
       logs.push({
         assetPrice: event.prices[assetType],
         assetType: assetType,
@@ -123,7 +123,7 @@ export const emitTransferLogs = (
         taxTags: event.tags,
         type: LogTypes.Income,
       });
-    } else if (transfer.category === TransferCategories.Gift) {
+    } else if (transfer.category === TransferCategories.GiftIn) {
       logs.push({
         assetPrice: event.prices[assetType],
         assetType: assetType,
@@ -131,7 +131,7 @@ export const emitTransferLogs = (
         description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
         quantity: quantity,
         to,
-        type: LogTypes.GiftOut,
+        type: LogTypes.GiftIn,
       });
     }
   }

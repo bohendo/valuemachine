@@ -24,14 +24,25 @@ export const categorizeTransfer = (
 
   log.debug(`Categorizing transfer of ${transfer.quantity} from ${getName(transfer.from)} to ${getName(transfer.to)}`);
 
-  // Doesn't matter if self-to-self or external-to-external
-  if (isSelf(transfer.from) && isSelf(transfer.to)) {
+  if (isSelf(transfer.from)) {
+
+    // Doesn't matter if self-to-self
+    if (isSelf(transfer.to)) {
+      return transfer;
+    } else {
+      transfer.category = TransferCategories.Expense;
+    }
+
+  } else if (isSelf(transfer.to)) {
+    transfer.category = TransferCategories.Income;
+
+    // Doesn't matter if self-to-self or external-to-external
+  } else {
     return transfer;
-  } else if (!isSelf(transfer.from) && !isSelf(transfer.to)) {
-    return transfer;
+  }
 
   // eg SwapOut to Uniswap
-  } else if (isCategory(AddressCategories.Exchange)(transfer.to)) {
+  if (isCategory(AddressCategories.Exchange)(transfer.to)) {
     transfer.category = TransferCategories.SwapOut;
     return transfer;
 
@@ -61,11 +72,12 @@ export const categorizeTransfer = (
     return transfer;
 
   // gifts
-  } else if (
-    isCategory(AddressCategories.Family)(transfer.to) ||
-    isCategory(AddressCategories.Family)(transfer.from)
-  ) {
-    transfer.category = TransferCategories.Gift;
+  } else if (isCategory(AddressCategories.Family)(transfer.to)) {
+    transfer.category = TransferCategories.GiftOut;
+    return transfer;
+
+  } else if (isCategory(AddressCategories.Family)(transfer.from)) {
+    transfer.category = TransferCategories.GiftIn;
     return transfer;
 
   } else if (

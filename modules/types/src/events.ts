@@ -20,8 +20,11 @@ export const TransferCategories = enumify({
   Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
   Burn: "Burn",
   Deposit: "Deposit", // eg dai->dsr or eth->compound
-  Gift: "Gift",
+  Expense: "Expense",
+  GiftIn: "GiftIn",
+  GiftOut: "GiftOut",
   Ignore: "Ignore",
+  Income: "Income",
   Mint: "Mint",
   Repay: "Repay",
   SwapIn: "SwapIn",

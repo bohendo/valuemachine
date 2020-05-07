@@ -25,6 +25,7 @@ export const mergeEthTxEvents = (
   lastUpdated: number,
   logger?: ILogger,
 ): Event[] => {
+  // TODO: Why stringify then parse again?
   let events = JSON.parse(JSON.stringify(oldEvents));
   const log = new ContextLogger("EthTx", logger);
 
