@@ -28,7 +28,6 @@ import { inTypes, outTypes } from '../utils/utils';
 import chainData from '../data/chain-data.json';
 
 export const Dashboard: React.FC = (props: any) => {
-  //return <> Hello WOrld </>
   const [addressBook, setAddressBook] = useState({} as any);
   const [endDate, setEndDate] = useState(new Date());
   const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
@@ -56,8 +55,9 @@ export const Dashboard: React.FC = (props: any) => {
         chainData,
         cache,
         [],
-        new LevelLogger(),
+        new LevelLogger(1),
       );
+      console.log(events);
       setFinancialEvents(events);
 
       const valueMachine = getValueMachine(addressBook);
@@ -125,6 +125,7 @@ export const Dashboard: React.FC = (props: any) => {
       });
 
     setNetWorthTimeline(netWorthData);
+    console.log(netWorthData);
 
     if (netWorthData.length > 0) {
       setNetWorthSnapshot(netWorthData[netWorthData.length - 1].networth);

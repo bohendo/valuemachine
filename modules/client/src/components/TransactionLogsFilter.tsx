@@ -74,7 +74,6 @@ export const TransactionLogsFilter = (props: any) => {
       })
     });
 
-    console.log(temp);
     setFilteredEvents(temp)
   }, [financialEvents, startDate, endDate, categories, assets, setFilteredEvents]);
 
