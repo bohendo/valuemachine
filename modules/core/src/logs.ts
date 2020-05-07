@@ -66,30 +66,6 @@ export const emitTransferLogs = (
   }
 
   if (isAnySelf(from) && !isAnySelf(to) && gt(transfer.quantity, "0")) {
-    // maybe emit expense/gift
-    if (transfer.category === TransferCategories.Transfer) {
-      logs.push({
-        assetPrice: event.prices[assetType],
-        assetType: assetType,
-        date: event.date,
-        description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
-        quantity,
-        taxTags: event.tags,
-        to,
-        type: LogTypes.Expense,
-      });
-    } else if (transfer.category === TransferCategories.GiftOut) {
-      logs.push({
-        assetPrice: event.prices[assetType],
-        assetType: assetType,
-        date: event.date,
-        description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
-        quantity,
-        to,
-        type: LogTypes.GiftOut,
-      });
-    }
-
     // maybe emit capital gain logs
     if (
       !unitOfAccount.includes(assetType) &&
@@ -107,31 +83,6 @@ export const emitTransferLogs = (
           quantity: chunk.quantity,
           type: LogTypes.CapitalGains,
         });
-      });
-    }
-
-  // maybe emit income/gift log
-  } else if (!isAnySelf(from) && isAnySelf(to) && gt(transfer.quantity, "0")) {
-    if (transfer.category === TransferCategories.Transfer) {
-      logs.push({
-        assetPrice: event.prices[assetType],
-        assetType: assetType,
-        date: event.date,
-        description: `${round(quantity)} ${assetType} from ${getName(from)} ${position}`,
-        from,
-        quantity: quantity,
-        taxTags: event.tags,
-        type: LogTypes.Income,
-      });
-    } else if (transfer.category === TransferCategories.GiftIn) {
-      logs.push({
-        assetPrice: event.prices[assetType],
-        assetType: assetType,
-        date: event.date,
-        description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
-        quantity: quantity,
-        to,
-        type: LogTypes.GiftIn,
       });
     }
   }
