@@ -1,4 +1,4 @@
-import { Address, DateString, DecimalString, HexString, TimestampString } from "./strings";
+import { Address, DecimalString, HexString, TimestampString } from "./strings";
 
 export type EthCall = {
   block: number;
@@ -41,17 +41,18 @@ export type TokenData = {
 }
 
 export type ChainDataJson = {
-  addresses: { [address: string]: DateString /* Date last updated */ };
+  addresses: { [address: string]: HexString[] /* List of txns involving this address */ };
   calls: EthCall[]; // Note: we can have multiple calls per txHash
   tokens: { [address: string]: TokenData };
   transactions: EthTransaction[];
 };
 
 export interface ChainData {
-  getAddressData: (...addresses: Address[]) => ChainDataJson;
-  syncAddressData: (...addresses: Address[]) => Promise<ChainDataJson>;
-  getTokenData: (...tokens: Address[]) => Promise<ChainDataJson>;
+  getAddressHistory: (...addresses: Address[]) => ChainDataJson;
+  getTokenData: (token: Address) => TokenData;
   json: ChainDataJson;
+  syncAddressHistory: (...addresses: Address[]) => Promise<void>;
+  syncTokenData: (...tokens: Address[]) => Promise<void>;
 }
 
 export const emptyChainData = {

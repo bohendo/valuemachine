@@ -9,7 +9,7 @@ import {
 import {
   AddressBook,
   AssetTypes,
-  ChainDataJson,
+  ChainData,
   Logger,
   Store,
   StoreKeys,
@@ -20,7 +20,7 @@ import * as fs from "fs";
 
 export const getTransactions = async (
   addressBook: AddressBook,
-  chainData: ChainDataJson,
+  chainData: ChainData,
   store: Store,
   extraTransactions: Array<Transaction | string>,
   logger: Logger = console,
@@ -39,7 +39,7 @@ export const getTransactions = async (
   transactions = mergeEthTransactions(
     transactions,
     addressBook,
-    chainData,
+    chainData.getAddressHistory(...addressBook.addresses.filter(addressBook.isSelf)),
     lastUpdated,
     logger,
   );

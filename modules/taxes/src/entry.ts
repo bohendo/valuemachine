@@ -65,12 +65,13 @@ process.on("SIGINT", logAndExit);
   const addressBook = getAddressBook(input.addressBook, logger);
 
   const chainData = await getChainData(
-    addressBook.addresses.filter(addressBook.isSelf),
-    addressBook.addresses.filter(addressBook.isToken),
-    store,
     input.env.etherscanKey,
+    store,
     logger,
   );
+
+  await chainData.syncTokenData(...addressBook.addresses.filter(addressBook.isToken));
+  await chainData.syncAddressHistory(...addressBook.addresses.filter(addressBook.isSelf));
 
   const transactions = await getTransactions(
     addressBook,
