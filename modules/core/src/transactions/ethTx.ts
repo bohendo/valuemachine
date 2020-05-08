@@ -16,7 +16,8 @@ import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from 
 import { tokenEvents } from "../abi";
 
 import { categorizeTransfer } from "./categorizeTransfer";
-import { assertChrono, mergeFactory } from "./utils";
+import { mergeFactory } from "./utils";
+import { getTransactionsError } from "../verify";
 
 export const mergeEthTxTransactions = (
   oldTransactions: Transaction[],
@@ -184,7 +185,11 @@ export const mergeEthTxTransactions = (
           transaction.hash === txTransaction.hash,
       })(transactions, txTransaction);
     });
-  assertChrono(transactions);
+
+  const error = getTransactionsError(transactions);
+  if (error) {
+    throw new Error(error);
+  }
 
   return transactions;
 };

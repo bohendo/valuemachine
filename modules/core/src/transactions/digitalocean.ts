@@ -2,7 +2,8 @@ import { Transaction, TransactionSources, ILogger, TransferCategories } from "@f
 import { ContextLogger } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
-import { assertChrono, mergeFactory } from "./utils";
+import { mergeFactory } from "./utils";
+import { getTransactionsError } from "../verify";
 
 export const mergeDigitalOceanTransactions = (
   oldTransactions: Transaction[],
@@ -58,7 +59,11 @@ export const mergeDigitalOceanTransactions = (
     })(transactions, digitaloceanTransaction);
   });
 
-  assertChrono(transactions);
+  const error = getTransactionsError(transactions);
+  if (error) {
+    throw new Error(error);
+  }
+
   return transactions;
 };
 

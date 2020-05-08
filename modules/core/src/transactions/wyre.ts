@@ -9,11 +9,11 @@ import { ContextLogger } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
 import {
-  assertChrono,
   mergeFactory,
   mergeOffChainTransactions,
   shouldMergeOffChain,
 } from "./utils";
+import { getTransactionsError } from "../verify";
 
 export const mergeWyreTransactions = (
   oldTransactions: Transaction[],
@@ -160,7 +160,11 @@ export const mergeWyreTransactions = (
   transactions = transactions.sort((e1: Transaction, e2: Transaction): number =>
     new Date(e1.date).getTime() - new Date(e2.date).getTime(),
   );
-  assertChrono(transactions);
+
+  const error = getTransactionsError(transactions);
+  if (error) {
+    throw new Error(error);
+  }
 
   return transactions;
 };

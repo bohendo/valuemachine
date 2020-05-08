@@ -8,20 +8,6 @@ import { math } from "@finances/utils";
 
 const { add, diff, div, lt, mul } = math;
 
-export const assertChrono = (transactions: Transaction[]): void => {
-  let prevTime = 0;
-  for (const transaction of transactions) {
-    if (!transaction || !transaction.date) {
-      throw new Error(`Invalid transaction detected: ${JSON.stringify(transaction, null, 2)}`);
-    }
-    const currTime = new Date(transaction.date).getTime();
-    if (currTime < prevTime) {
-      throw new Error(`Transactions out of order: ${transaction.date} < ${new Date(prevTime).toISOString()}`);
-    }
-    prevTime = currTime;
-  }
-};
-
 export const mergeDefaultTransactions = (
   transactions: Transaction[],
   source: Partial<Transaction>,

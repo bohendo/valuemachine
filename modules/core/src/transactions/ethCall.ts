@@ -11,7 +11,8 @@ import { ContextLogger, math } from "@finances/utils";
 import { AddressZero } from "ethers/constants";
 
 import { categorizeTransfer } from "./categorizeTransfer";
-import { assertChrono, mergeFactory } from "./utils";
+import { mergeFactory } from "./utils";
+import { getTransactionsError } from "../verify";
 
 export const mergeEthCallTransactions = (
   oldTransactions: Transaction[],
@@ -95,7 +96,11 @@ export const mergeEthCallTransactions = (
         transaction.hash === callTransaction.hash,
     })(transactions, txTransaction);
   });
-  assertChrono(transactions);
+
+  const error = getTransactionsError(transactions);
+  if (error) {
+    throw new Error(error);
+  }
 
   return transactions;
 };
