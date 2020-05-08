@@ -26,16 +26,17 @@ import { getTokenAbi } from "./abi";
 import { getEthTransactionError } from "./verify";
 
 export const getChainData = (
-  etherscanKey: string,
   store: Store,
   logger: Logger = console,
+  etherscanKey?: string,
   chainData?: ChainDataJson,
 ): ChainData => {
   const log = new ContextLogger("GetChainData", logger);
   const json = chainData || store.load(StoreKeys.ChainData);
 
-  const hour = 60 * 60 * 1000;
-  const month = 30 * 24 * hour;
+  log.info(`Loaded chain data containing ${
+    json.transactions.length
+  } transactions from ${chainData ? "input" : "store"}`);
 
   const toBN = (n: BigNumberish | { _hex: HexString }): BigNumber =>
     bigNumberify(
@@ -56,6 +57,13 @@ export const getChainData = (
   const chrono = (d1: any, d2: any): number =>
     new Date(d1.timestamp || d1).getTime() - new Date(d2.timestamp || d2).getTime();
 
+  const getProvider = (): EtherscanProvider => {
+    if (!etherscanKey) {
+      throw new Error("To sync chain data, you must provide an etherscanKey");
+    }
+    return new EtherscanProvider("homestead", etherscanKey);
+  };
+
   const fetchHistory = async (action: string, address: Address): Promise<any[]> =>
     (await axios.get(
       `https://api.etherscan.io/api?module=account&` +
@@ -64,17 +72,12 @@ export const getChainData = (
       `apikey=${etherscanKey}&sort=asc`,
     )).data.result;
 
-  if (!etherscanKey) {
-    throw new Error("To track eth activity, you must provide an etherscanKey");
-  }
-  const provider = new EtherscanProvider("homestead", etherscanKey);
-
   ////////////////////////////////////////
   // Exported Methods
 
   const getAddressHistory = (...addresses: Address[]): ChainDataJson => {
     const include = (tx: { hash: HexString }): boolean => addresses.some(
-        address => json.addresses[address].includes(tx.hash),
+        address => json.addresses[address] && json.addresses[address].history.includes(tx.hash),
       );
     const summary = {};
     Object.keys(json.addresses).forEach(
@@ -93,12 +96,12 @@ export const getChainData = (
   };
 
   const syncTokenData = async (...tokens: Address[]): Promise<void> => {
-    log.info(`Fetching info for ${tokens.length} supported tokens`);
-    for (const tokenAddress of tokens) {
-      if (json.tokens[tokenAddress] && typeof json.tokens[tokenAddress].decimals === "number") {
-        log.debug(`Info for token ${logProg(tokens, tokenAddress)} is up to date: ${tokenAddress}`);
-        continue;
-      }
+    const provider = getProvider();
+    const newlySupported = tokens.filter(tokenAddress =>
+      !json.tokens[tokenAddress] || typeof json.tokens[tokenAddress].decimals !== "number",
+    );
+    log.info(`Fetching info for ${newlySupported.length} newly supported tokens`);
+    for (const tokenAddress of newlySupported) {
       log.info(`Fetching info for token ${logProg(tokens, tokenAddress)}: ${tokenAddress}`);
       const token = new Contract(tokenAddress, getTokenAbi(tokenAddress), provider);
       json.tokens[tokenAddress.toLowerCase()] = {
@@ -111,7 +114,7 @@ export const getChainData = (
   };
 
   const syncAddressHistory = async (...userAddresses: Address[]): Promise<void> => {
-
+    const provider = getProvider();
     const addresses = userAddresses.filter(address => {
       if (!json.addresses[address]) {
         return true;
@@ -143,9 +146,18 @@ export const getChainData = (
         return true;
       }
 
+      const hour = 60 * 60 * 1000;
+      const month = 30 * 24 * hour;
+
       // Don't sync any addresses w no recent activity if they have been synced before
       if (Date.now() - new Date(lastAction).getTime() > 6 * month) {
-        log.debug(`Skipping retired (${lastAction}) address ${address} because data was already fetched`);
+        log.debug(`Skipping retired (${lastAction}) address ${address} bc data was already fetched`);
+        return false;
+      }
+
+      // Don't sync any active addresses if they've been synced recently
+      if (Date.now() - new Date(json.addresses[address].lastUpdated).getTime() < 12 * hour) {
+        log.debug(`Skipping active (${lastAction}) address ${address} bc it was recently synced.`);
         return false;
       }
 
@@ -155,9 +167,13 @@ export const getChainData = (
     log.info(`Fetching tx history for ${addresses.length} addresses`);
     for (const address of addresses) {
       // Find the most recent tx timestamp that involved any interaction w this address
-      log.info(`Fetching info for address ${logProg(addresses, address)}: ${address}`);
+      log.info(`Fetching history for address ${logProg(addresses, address)}: ${address}`);
 
-      log.info(`💫 getting externaltxHistory..`);
+      if (!json.addresses[address]) {
+        json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
+      }
+
+      log.debug(`💫 getting externaltxHistory..`);
       const txHistory = await provider.getHistory(address);
       for (const tx of txHistory) {
         if (tx && tx.hash && !json.transactions.find(existing => existing.hash === tx.hash)) {
@@ -188,7 +204,7 @@ export const getChainData = (
           formatEther(newElem.value) === oldElem.value,
         ).length;
 
-      log.info(`💫 getting internalTxHistory..`);
+      log.debug(`💫 getting internalTxHistory..`);
       const oldEthCalls = JSON.parse(JSON.stringify(json.calls));
       const ethCalls = await fetchHistory("txlistinternal", address);
       for (const call of ethCalls) {
@@ -211,7 +227,7 @@ export const getChainData = (
         });
       }
 
-      log.info(`💫 getting tokenTxHistory..`);
+      log.debug(`💫 getting tokenTxHistory..`);
       const oldTknCalls = JSON.parse(JSON.stringify(json.calls));
       const tknCalls = await fetchHistory("tokentx", address);
       for (const call of tknCalls) {
@@ -234,14 +250,16 @@ export const getChainData = (
         });
       }
 
-      json.addresses[address] = Array.from(new Set([]
+      json.addresses[address].history = Array.from(new Set([]
         .concat(txHistory, ethCalls, tknCalls)
         .map(tx => tx.hash)
         .filter(hash => !!hash),
       ));
 
+      json.addresses[address].lastUpdated = new Date().toISOString();
+
       store.save(StoreKeys.ChainData, json);
-      log.info(`📝 progress saved`);
+      log.debug(`📝 progress saved`);
     }
 
     ////////////////////////////////////////

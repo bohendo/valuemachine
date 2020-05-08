@@ -38,12 +38,23 @@ export const mergeEthTxTransactions = (
     new Date(data.timestamp || data.date).getTime() - latestCachedTransaction > 0;
 
   const newEthTxs = chainData.transactions.filter(onlyNew);
+
+  const merge = mergeFactory({
+        allowableTimeDiff: 0,
+        log: new ContextLogger("MergeEthTx", logger),
+        mergeTransactions: (): void => {
+          throw new Error(`idk how to merge txTransactions`);
+        },
+        shouldMerge: (transaction: Transaction, txTransaction: Transaction): boolean =>
+          transaction.hash === txTransaction.hash,
+      });
+
   log.info(`Processing ${newEthTxs.length} new ethereum transactions..`);
   newEthTxs
     .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
-    .map((tx: EthTransaction): Transaction => {
+    .forEach((tx: EthTransaction): void => {
       if (new Date(tx.timestamp).getTime() <= lastUpdated) {
-        return null;
+        return;
       }
       const { getName, isToken } = addressBook;
       const log = new ContextLogger(`EthTx ${tx.hash.substring(0, 8)}`, logger);
@@ -80,9 +91,10 @@ export const mergeEthTxTransactions = (
         transaction.transfers[0].quantity = "0";
         transaction.description = `${getName(tx.from)} sent failed tx`;
         if (addressBook.isSelf(transaction.transfers[0].from)) {
-          return transaction;
+          transactions = merge(transactions, transaction);
+          return;
         }
-        return null;
+        return;
       }
 
       transaction.transfers[0] = categorizeTransfer(
@@ -170,20 +182,11 @@ export const mergeEthTxTransactions = (
         .sort((t1, t2) => t1.index - t2.index);
 
       if (transaction.transfers.length === 0) {
-        return null;
+        return;
       }
 
-      return transaction;
-    }).filter(e => !!e).forEach((txTransaction: Transaction): void => {
-      transactions = mergeFactory({
-        allowableTimeDiff: 0,
-        log: new ContextLogger("MergeEthTx", logger),
-        mergeTransactions: (): void => {
-          throw new Error(`idk how to merge txTransactions`);
-        },
-        shouldMerge: (transaction: Transaction, txTransaction: Transaction): boolean =>
-          transaction.hash === txTransaction.hash,
-      })(transactions, txTransaction);
+      transactions = merge(transactions, transaction);
+      return;
     });
 
   const error = getTransactionsError(transactions);

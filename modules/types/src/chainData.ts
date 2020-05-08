@@ -1,4 +1,4 @@
-import { Address, DecimalString, HexString, TimestampString } from "./strings";
+import { Address, DateString, DecimalString, HexString, TimestampString } from "./strings";
 
 export type EthCall = {
   block: number;
@@ -41,7 +41,12 @@ export type TokenData = {
 }
 
 export type ChainDataJson = {
-  addresses: { [address: string]: HexString[] /* List of txns involving this address */ };
+  addresses: {
+    [address: string]: {
+      history: HexString[]; /* List of txns involving this address */
+      lastUpdated: DateString;
+    };
+  };
   calls: EthCall[]; // Note: we can have multiple calls per txHash
   tokens: { [address: string]: TokenData };
   transactions: EthTransaction[];

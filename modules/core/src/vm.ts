@@ -10,7 +10,7 @@ export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any 
 
   return (oldState: StateJson, transaction: Transaction): [StateJson, Event[]] => {
     const state = getState(addressBook, oldState, logger);
-    log.info(`Applying transaction from ${transaction.date}: ${transaction.description}`);
+    log.info(`Applying transaction ${transaction.index} from ${transaction.date}: ${transaction.description}`);
     log.debug(`Applying transfers: ${
       JSON.stringify(transaction.transfers, null, 2)
     } to sub-state ${

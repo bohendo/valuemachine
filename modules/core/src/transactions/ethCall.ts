@@ -24,66 +24,7 @@ export const mergeEthCallTransactions = (
   const log = new ContextLogger("EthCall", logger);
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
 
-  log.info(`Processing ${chainData.calls.length} ethereum calls..`);
-
-  chainData.calls.sort((call1, call2) => {
-    return call1.block - call2.block;
-  }).map((call: EthCall): any => {
-    if (new Date(call.timestamp).getTime() <= lastUpdated) {
-      return null;
-    }
-
-    if (!(addressBook.isSelf(call.to) || addressBook.isSelf(call.from))){
-      return null;
-    }
-
-    // We'll get internal token transfers from ethTx logs instead
-    if (call.contractAddress !== AddressZero) {
-      return null;
-    }
-
-    if (!chainData.transactions || !chainData.transactions.find(tx => tx.hash === call.hash)) {
-      throw new Error(`No tx data for call ${call.hash}, did fetching chainData get interrupted?`);
-    }
-
-    if (chainData.transactions.find(tx => tx.hash === call.hash).status !== 1) {
-      log.debug(`Skipping reverted call`);
-      return null;
-    }
-
-    const transaction = {
-      date: call.timestamp,
-      hash: call.hash,
-      sources: [TransactionSources.EthCall],
-      tags: [],
-      transfers: [{
-        assetType: "ETH",
-        category: TransferCategories.Transfer,
-        from: call.from.toLowerCase(),
-        quantity: call.value,
-        to: call.to.toLowerCase(),
-      }],
-    } as Transaction;
-
-    transaction.transfers[0] = categorizeTransfer(
-      transaction.transfers[0],
-      [],
-      addressBook,
-      logger,
-    );
-
-    const { from, quantity, to } = transaction.transfers[0];
-    if (math.eq(quantity, "0")) {
-      return null;
-    }
-    transaction.description =
-      `${addressBook.getName(from)} sent ${quantity} ETH to ${addressBook.getName(to)} (internal)`;
-
-    log.info(transaction.description);
-
-    return transaction;
-  }).filter(e => !!e).forEach((txTransaction: Transaction): void => {
-    transactions = mergeFactory({
+  const merge = mergeFactory({
       allowableTimeDiff: 0,
       log,
       mergeTransactions: (transaction: Transaction, callTransaction: Transaction): Transaction => {
@@ -94,8 +35,68 @@ export const mergeEthCallTransactions = (
       },
       shouldMerge: (transaction: Transaction, callTransaction: Transaction): boolean =>
         transaction.hash === callTransaction.hash,
-    })(transactions, txTransaction);
-  });
+    });
+
+  log.info(`Processing ${chainData.calls.length} ethereum calls..`);
+
+  chainData.calls
+    .sort((call1, call2) => call1.block - call2.block)
+    .forEach((call: EthCall): void => {
+      if (new Date(call.timestamp).getTime() <= lastUpdated) {
+        return;
+      }
+
+      if (!(addressBook.isSelf(call.to) || addressBook.isSelf(call.from))){
+        return;
+      }
+
+      // We'll get internal token transfers from ethTx logs instead
+      if (call.contractAddress !== AddressZero) {
+        return;
+      }
+
+      if (!chainData.transactions || !chainData.transactions.find(tx => tx.hash === call.hash)) {
+        throw new Error(`No tx data for call ${call.hash}, did fetching chainData get interrupted?`);
+      }
+
+      if (chainData.transactions.find(tx => tx.hash === call.hash).status !== 1) {
+        log.debug(`Skipping reverted call`);
+        return;
+      }
+
+      const transaction = {
+        date: call.timestamp,
+        hash: call.hash,
+        prices: {},
+        sources: [TransactionSources.EthCall],
+        tags: [],
+        transfers: [{
+          assetType: "ETH",
+          category: TransferCategories.Transfer,
+          from: call.from.toLowerCase(),
+          quantity: call.value,
+          to: call.to.toLowerCase(),
+        }],
+      } as Transaction;
+
+      transaction.transfers[0] = categorizeTransfer(
+        transaction.transfers[0],
+        [],
+        addressBook,
+        logger,
+      );
+
+      const { from, quantity, to } = transaction.transfers[0];
+      if (math.eq(quantity, "0")) {
+        return;
+      }
+      transaction.description =
+        `${addressBook.getName(from)} sent ${quantity} ETH to ${addressBook.getName(to)} (internal)`;
+
+      log.info(transaction.description);
+
+      transactions = merge(transactions, transaction);
+    });
 
   const error = getTransactionsError(transactions);
   if (error) {

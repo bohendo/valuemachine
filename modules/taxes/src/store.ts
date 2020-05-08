@@ -43,6 +43,7 @@ const load = <T extends keyof StoreValues>(key: T): StoreValues[T] => {
       cache[key] = JSON.parse(fs.readFileSync(toFilename(key), "utf8"));
     } catch (e) {
       if (e.message.startsWith("ENOENT: no such file or directory")) {
+        log.info(`Couldn't find anything, returning empty ${key}`);
         cache[key] = emptyStore[key];
       } else {
         throw new Error(

@@ -36,13 +36,23 @@ export const getTransactions = async (
     lastUpdated ? new Date(lastUpdated).toISOString() : "never"
   }`);
 
+  const start = new Date().getTime();
+
+  const selfAddresses = addressBook.addresses.filter(addressBook.isSelf);
+
+  const allHistory = chainData.getAddressHistory(...selfAddresses);
+
   transactions = mergeEthTransactions(
     transactions,
     addressBook,
-    chainData.getAddressHistory(...addressBook.addresses.filter(addressBook.isSelf)),
+    allHistory,
     lastUpdated,
     logger,
   );
+
+  log.info(`Processed ${allHistory.transactions.length} txs & ${
+    allHistory.calls.length
+  } calls for ${selfAddresses.length} addresses in ${new Date().getTime() - start} ms`);
 
   for (const source of extraTransactions || []) {
     if (typeof source === "string" && source.endsWith(".csv")) {
@@ -82,7 +92,6 @@ export const getTransactions = async (
     const assets = Array.from(new Set(transaction.transfers.map(a => a.assetType)));
     for (let j = 0; j < assets.length; j++) {
       const assetType = assets[j] as AssetTypes;
-      if (!transaction.prices) { transaction.prices = {}; } // TODO: this should already be done
       if (!transaction.prices[assetType]) {
         transaction.prices[assetType] = await prices.getPrice(assetType, transaction.date);
       }
