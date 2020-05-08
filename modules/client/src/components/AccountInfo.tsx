@@ -30,10 +30,10 @@ import {
   AddCircle as AddIcon,
 } from "@material-ui/icons";
 import {
-  AddressData,
+  AddressEntry,
 } from "@finances/types";
 
-import * as cache from "../utils/cache";
+import { store } from "../utils/cache";
 
 const tagsSelect = [
   "active",
@@ -55,21 +55,21 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 const AddListItem = (props: any) => {
-  const [newAddressData, setNewAddressData] = useState({} as AddressData);
+  const [newAddressEntry, setNewAddressEntry] = useState({} as AddressEntry);
   const { category, personal, setPersonal } = props;
 
   const classes = useStyles();
   useEffect(() => {
-    setNewAddressData({...newAddressData, category: category.toLowerCase()});
+    setNewAddressEntry({...newAddressEntry, category: category.toLowerCase()});
   }, []);
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setNewAddressData({...newAddressData, [event.target.name]: event.target.value});
-    console.log(newAddressData)
+    setNewAddressEntry({...newAddressEntry, [event.target.name]: event.target.value});
+    console.log(newAddressEntry)
   };
 
   const addNewAddress = () => {
-    setPersonal({...personal, addressBook: [...personal.addressBook, newAddressData]});
+    setPersonal({...personal, addressBook: [...personal.addressBook, newAddressEntry]});
   };
 
   return (
@@ -124,7 +124,7 @@ const AddListItem = (props: any) => {
             labelId="tags-select-drop"
             id="tags-select"
             multiple
-            value={newAddressData.tags || []}
+            value={newAddressEntry.tags || []}
             name="tags"
             onChange={handleChange}
             input={<Input />}
@@ -165,7 +165,7 @@ const AddressList = (props: any) => {
         </TableHead>
 
         <TableBody>
-          { personal.addressBook.map((entry: AddressData, i: number) => {
+          { personal.addressBook.map((entry: AddressEntry, i: number) => {
               if (entry.category === category.toLowerCase())
                 return (
                   <TableRow key={i} >
@@ -227,7 +227,7 @@ export const AccountInfo: React.FC = (props: any) => {
         color="primary"
         size="small"
         className={classes.button}
-        onClick={() => cache.savePersonal(personal)}
+        onClick={() => store.save("personal", personal)}
         startIcon={<SaveIcon />}
       >
         Save LocalStorage

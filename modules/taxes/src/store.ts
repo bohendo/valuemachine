@@ -54,7 +54,7 @@ const load = <T extends keyof StoreValues>(key: T): StoreValues[T] => {
   return cache[key];
 };
 
-const save = <T extends keyof StoreValues>(key: T) => (data: StoreValues[T]): void => {
+const save = <T extends keyof StoreValues>(key: T, data: StoreValues[T]): void => {
   fs.writeFileSync(toFilename(key), JSON.stringify(data, null, 2));
   cache[key] = data;
 };

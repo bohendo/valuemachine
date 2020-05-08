@@ -29,9 +29,10 @@ export const getChainData = (
   etherscanKey: string,
   store: Store,
   logger: Logger = console,
+  chainData?: ChainDataJson,
 ): ChainData => {
   const log = new ContextLogger("GetChainData", logger);
-  const json = store.load(StoreKeys.ChainData);
+  const json = chainData || store.load(StoreKeys.ChainData);
 
   const hour = 60 * 60 * 1000;
   const month = 30 * 24 * hour;

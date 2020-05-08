@@ -21,11 +21,11 @@ import { AssetDistribution } from './AssetDistribution';
 import { DateTime } from './DateTimePicker'
 import { EventTable } from './EventTable'
 import { NetWorth } from './NetWorthGraph';
-import { EthTransactionLogs } from './EthTransactionLogs'
+import { EthTransactionLogs } from './TransactionLogs'
 
-import * as cache from '../utils/cache';
+import { store } from '../utils/cache';
 
-import chainData from '../data/chain-data.json';
+import chainDataJson from '../data/chain-data.json';
 
 const inTypes = [
   EventTypes.Borrow,
@@ -73,7 +73,8 @@ export const Dashboard: React.FC = (props: any) => {
       const newTransactions = await mergeEthTransactions(
         [], // Could give transactions & this function will merge new txns into the existing array
         addressBook,
-        chainData,
+        // getChainData returns chain data access methods eg chainData.getAddressHistory
+        getChainData("etherscanKey", store, logger, chainDataJson),
         0, // Only consider merging transactions after this time
         logger,
       );
@@ -87,7 +88,7 @@ export const Dashboard: React.FC = (props: any) => {
             tx.prices[assetType] = await getPrice(
               assetType,
               tx.date,
-              cache,
+              store,
               logger,
             );
           }
@@ -98,16 +99,16 @@ export const Dashboard: React.FC = (props: any) => {
 
       const valueMachine = getValueMachine(addressBook);
 
-      let state = cache.loadState();
-      let vmEvents = cache.loadEvents();
+      let state = store.load(StoreKeys.State);
+      let vmEvents = store.load(StoreKeys.Event);
       for (const transaction of newTransactions.filter(
         tx => new Date(tx.date).getTime() > new Date(state.lastUpdated).getTime(),
       )) {
         const [newState, newEvents] = valueMachine(state, transaction);
         vmEvents = vmEvents.concat(...newEvents);
         state = newState;
-        cache.saveState(state);
-        cache.saveEvents(vmEvents);
+        store.save(StoreKeys.State, state);
+        store.save(StoreKeys.Events, vmEvents);
       }
       setFinancialEvents(vmEvents);
 

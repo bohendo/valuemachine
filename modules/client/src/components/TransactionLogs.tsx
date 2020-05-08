@@ -3,8 +3,8 @@ import { Event } from '@finances/types';
 
 import { Grid, } from '@material-ui/core';
 
-import { EthTransactionLogsTable } from './EthTransactionLogsTable'
-import { EthTransactionLogsFilter } from './EthTransactionLogsFilter'
+import { EthTransactionLogsTable } from './TransactionLogsTable'
+import { EthTransactionLogsFilter } from './TransactionLogsFilter'
 
 export const EthTransactionLogs = (props: any) => {
   const [filteredEvents, setFilteredEvents] = useState([] as Array<Event>);
