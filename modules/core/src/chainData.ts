@@ -38,11 +38,11 @@ type ChainDataParams = {
 export const getChainData = (params: ChainDataParams): ChainData => {
   const { store, logger, etherscanKey, chainDataJson } = params;
   const log = new ContextLogger("ChainData", logger || console);
-  const json = chainDataJson || store ? store.load(StoreKeys.ChainData) : emptyChainData;
+  const json = chainDataJson || (store ? store.load(StoreKeys.ChainData) : emptyChainData);
 
   log.info(`Loaded chain data containing ${
     json.transactions.length
-  } transactions from ${chainDataJson ? "input" : store ? "store" : "default"}`);
+  } EthTxs from ${chainDataJson ? "input" : store ? "store" : "default"}`);
 
   ////////////////////////////////////////
   // Internal Helper Functions

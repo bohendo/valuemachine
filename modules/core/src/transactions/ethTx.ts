@@ -8,7 +8,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { ContextLogger } from "@finances/utils";
+import { ContextLogger, math } from "@finances/utils";
 
 import { AddressZero } from "ethers/constants";
 import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from "ethers/utils";
@@ -28,11 +28,17 @@ export const mergeEthTxTransactions = (
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const log = new ContextLogger("EthTx", logger);
+  const start = Date.now();
 
   const newEthTxs = chainData.getEthTransactions(ethTx =>
     new Date(ethTx.timestamp).getTime() > lastUpdated &&
     !transactions.some(tx => tx.hash === ethTx.hash),
   );
+
+  if (newEthTxs.length === 0) {
+    log.info(`Done processing ${newEthTxs.length} new eth txs`);
+    return transactions;
+  }
 
   const merge = mergeFactory({
     allowableTimeDiff: 0,
@@ -44,7 +50,7 @@ export const mergeEthTxTransactions = (
       transaction.hash === txTransaction.hash,
   });
 
-  log.info(`Processing ${newEthTxs.length} new ethereum transactions..`);
+  log.info(`Processing ${newEthTxs.length} new eth txs..`);
   newEthTxs
     .sort((tx1, tx2) =>
       (tx1.block * 10000 + tx1.index || 0) -
@@ -169,7 +175,7 @@ export const mergeEthTxTransactions = (
         transaction.description = `${getName(transaction.transfers[0].to)} made ${transaction.transfers.length} transfers`;
       }
 
-      log.info(transaction.description);
+      log.debug(transaction.description);
 
       transaction.transfers = transaction.transfers
         .filter(transfer => addressBook.isSelf(transfer.to) || addressBook.isSelf(transfer.from))
@@ -192,5 +198,7 @@ export const mergeEthTxTransactions = (
     throw new Error(error);
   }
 
+  const diff = (Date.now() - start).toString();
+  log.info(`Done processing eth txs in ${diff} ms (avg ${math.round(math.div(diff, newEthTxs.length.toString()))} ms/ethTx)`);
   return transactions;
 };

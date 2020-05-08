@@ -23,10 +23,16 @@ export const mergeEthCallTransactions = (
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const log = new ContextLogger("EthCall", logger);
+  const start = Date.now();
 
   const newEthCalls = chainData.getEthCalls(ethCall =>
     new Date(ethCall.timestamp).getTime() > lastUpdated,
   );
+
+  if (newEthCalls.length === 0) {
+    log.info(`Done processing ${newEthCalls.length} new eth calls`);
+    return transactions;
+  }
 
   const merge = mergeFactory({
       allowableTimeDiff: 0,
@@ -41,7 +47,7 @@ export const mergeEthCallTransactions = (
         transaction.hash === callTransaction.hash,
     });
 
-  log.info(`Processing ${newEthCalls.length} ethereum calls..`);
+  log.info(`Processing ${newEthCalls.length} new eth calls..`);
 
   newEthCalls
     .sort((call1, call2) => call1.block - call2.block)
@@ -96,7 +102,7 @@ export const mergeEthCallTransactions = (
       transaction.description =
         `${addressBook.getName(from)} sent ${quantity} ETH to ${addressBook.getName(to)} (internal)`;
 
-      log.info(transaction.description);
+      log.debug(transaction.description);
 
       transactions = merge(transactions, transaction);
     });
@@ -106,5 +112,7 @@ export const mergeEthCallTransactions = (
     throw new Error(error);
   }
 
+  const diff = (Date.now() - start).toString();
+  log.info(`Done processing eth calls in ${diff} ms (avg ${math.round(math.div(diff, newEthCalls.length.toString()))} ms/ethCall)`);
   return transactions;
 };

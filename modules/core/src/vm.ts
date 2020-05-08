@@ -10,7 +10,7 @@ export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any 
 
   return (oldState: StateJson, transaction: Transaction): [StateJson, Event[]] => {
     const state = getState(addressBook, oldState, logger);
-    log.info(`Applying transaction ${transaction.index} from ${transaction.date}: ${transaction.description}`);
+    log.debug(`Applying transaction ${transaction.index} from ${transaction.date}: ${transaction.description}`);
     log.debug(`Applying transfers: ${
       JSON.stringify(transaction.transfers, null, 2)
     } to sub-state ${
@@ -36,7 +36,7 @@ export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any 
         chunks.forEach(chunk => state.putChunk(to, chunk));
         logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer));
       } catch (e) {
-        log.warn(e.message);
+        log.debug(e.message);
         if (feeChunks) {
           feeChunks.forEach(chunk => state.putChunk(from, chunk));
         }

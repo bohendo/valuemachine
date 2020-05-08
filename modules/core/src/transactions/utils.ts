@@ -85,7 +85,7 @@ export const mergeFactory = (opts: {
 
       if (shouldMerge(transaction, newTransaction)) {
         const mergedTransaction = mergeTransactions(transaction, newTransaction);
-        log.info(`Merged "${newTransaction.description}" into ${i} "${transaction.description}"`);
+        log.debug(`Merged "${newTransaction.description}" into ${i} "${transaction.description}"`);
         log.debug(`Yielding: ${JSON.stringify(mergedTransaction, null, 2)}`);
         output.push(mergedTransaction);
         output.push(...transactions.slice(i+1));

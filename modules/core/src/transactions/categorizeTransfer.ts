@@ -157,7 +157,6 @@ export const categorizeTransfer = (
         const src = "0x" + txLog.topics[1].slice(26).toLowerCase();
         const dst = "0x" + txLog.topics[2].slice(26).toLowerCase();
         const amt = formatEther(txLog.topics[3]);
-        log.info(`src=${src}, dst=${dst} amt=${amt} transfer.quantity=${transfer.quantity} transfer.from=${transfer.from}`);
         if (
           getName(src) === "scd-mcd-migration" &&
           isSelf(dst) &&

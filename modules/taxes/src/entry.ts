@@ -81,12 +81,21 @@ process.on("SIGINT", logAndExit);
 
   let state = store.load(StoreKeys.State);
   let vmEvents = store.load(StoreKeys.Events);
+  let start = Date.now();
   for (const transaction of transactions.filter(
     transaction => new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
   )) {
     const [newState, newEvents] = valueMachine(state, transaction);
     vmEvents = vmEvents.concat(...newEvents);
     state = newState;
+
+    const chunk = 100;
+    if (transaction.index % chunk === 0) {
+      const diff = (Date.now() - start).toString();
+        log.info(`Processed transactions ${transaction.index - chunk}-${transaction.index} in ${diff} ms`);
+      start = Date.now();
+    }
+
   }
   store.save(StoreKeys.State, state);
   store.save(StoreKeys.Events, vmEvents);
