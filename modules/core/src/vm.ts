@@ -1,14 +1,14 @@
-import { AddressBook, Transaction, ILogger, Log, StateJson } from "@finances/types";
+import { AddressBook, Transaction, ILogger, Event, StateJson } from "@finances/types";
 import { ContextLogger } from "@finances/utils";
 
-import { emitTransactionLogs, emitTransferLogs } from "./logs";
+import { emitTransactionEvents, emitTransferEvents } from "./events";
 import { getState } from "./state";
 
 export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any => {
   const log = new ContextLogger("ValueMachine", logger);
   const { getName } = addressBook;
 
-  return (oldState: StateJson, transaction: Transaction): [StateJson, Log[]] => {
+  return (oldState: StateJson, transaction: Transaction): [StateJson, Event[]] => {
     const state = getState(addressBook, oldState, logger);
     log.info(`Applying transaction from ${transaction.date}: ${transaction.description}`);
     log.debug(`Applying transfers: ${
@@ -16,7 +16,7 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
     } to sub-state ${
       JSON.stringify(state.getRelevantBalances(transaction), null, 2)
     }`);
-    const logs = [] as Log[];
+    const logs = [] as Event[];
 
     ////////////////////////////////////////
     // VM Core
@@ -34,7 +34,7 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
         }
         chunks = state.getChunks(from, assetType, quantity, transaction);
         chunks.forEach(chunk => state.putChunk(to, chunk));
-        logs.push(...emitTransferLogs(addressBook, chunks, transaction, transfer));
+        logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer));
       } catch (e) {
         log.warn(e.message);
         if (feeChunks) {
@@ -53,12 +53,12 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
       }
       const chunks = state.getChunks(from, assetType, quantity, transaction);
       chunks.forEach(chunk => state.putChunk(to, chunk));
-      logs.push(...emitTransferLogs(addressBook, chunks, transaction, transfer));
+      logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer));
     }
 
     ////////////////////////////////////////
 
-    logs.push(...emitTransactionLogs(addressBook, transaction, state));
+    logs.push(...emitTransactionEvents(addressBook, transaction, state));
 
     state.touch(transaction.date);
 

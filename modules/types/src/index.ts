@@ -2,7 +2,7 @@ export * from "./addressBook";
 export * from "./assets";
 export * from "./chainData";
 export * from "./client";
-export * from "./logs";
+export * from "./events";
 export * from "./prices";
 export * from "./state";
 export * from "./strings";

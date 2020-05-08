@@ -1,11 +1,11 @@
-import { Log } from "@finances/types";
+import { Event } from "@finances/types";
 import { math } from "@finances/utils";
 
 import { Forms } from "../types";
 
 const { add, gt, sub } = math;
 
-export const f1040 = (vmLogs: Log[], oldForms: Forms): Forms => {
+export const f1040 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s2, f1040s3 } = forms;
 

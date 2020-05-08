@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 import {
   Transaction,
-  Log,
-  LogTypes,
+  Event,
+  EventTypes,
 } from "@finances/types";
 import { LevelLogger } from "@finances/utils";
 import {
@@ -28,21 +28,21 @@ import * as cache from '../utils/cache';
 import chainData from '../data/chain-data.json';
 
 const inTypes = [
-  LogTypes.Borrow,
-  LogTypes.GiftIn,
-  LogTypes.Income,
-  LogTypes.Mint,
-  LogTypes.SwapIn,
-  LogTypes.Withdraw,
+  EventTypes.Borrow,
+  EventTypes.GiftIn,
+  EventTypes.Income,
+  EventTypes.Mint,
+  EventTypes.SwapIn,
+  EventTypes.Withdraw,
 ];
 
 const outTypes = [
-  LogTypes.Burn,
-  LogTypes.Deposit,
-  LogTypes.Expense,
-  LogTypes.GiftOut,
-  LogTypes.Repay,
-  LogTypes.SwapOut,
+  EventTypes.Burn,
+  EventTypes.Deposit,
+  EventTypes.Expense,
+  EventTypes.GiftOut,
+  EventTypes.Repay,
+  EventTypes.SwapOut,
 ];
 
 export const Dashboard: React.FC = (props: any) => {
@@ -51,7 +51,7 @@ export const Dashboard: React.FC = (props: any) => {
   const [endDate, setEndDate] = useState(new Date());
   const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
   const [transactions, setTransactions] = useState([] as Transaction[]);
-  const [financialLogs, setFinancialLogs] = useState([] as Log[]);
+  const [financialEvents, setFinancialEvents] = useState([] as Event[]);
   const [netWorthSnapshot, setNetWorthSnapshot] = useState(0);
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
@@ -99,17 +99,17 @@ export const Dashboard: React.FC = (props: any) => {
       const valueMachine = getValueMachine(addressBook);
 
       let state = cache.loadState();
-      let vmLogs = cache.loadLogs();
+      let vmEvents = cache.loadEvents();
       for (const transaction of newTransactions.filter(
         tx => new Date(tx.date).getTime() > new Date(state.lastUpdated).getTime(),
       )) {
-        const [newState, newLogs] = valueMachine(state, transaction);
-        vmLogs = vmLogs.concat(...newLogs);
+        const [newState, newEvents] = valueMachine(state, transaction);
+        vmEvents = vmEvents.concat(...newEvents);
         state = newState;
         cache.saveState(state);
-        cache.saveLogs(vmLogs);
+        cache.saveEvents(vmEvents);
       }
-      setFinancialLogs(vmLogs);
+      setFinancialEvents(vmEvents);
 
     })();
   }, [addressBook]);
@@ -117,30 +117,30 @@ export const Dashboard: React.FC = (props: any) => {
   useEffect(() => {
     let totalByCategory = {};
     let tempTotalByAssetType = {};
-    financialLogs.filter(log => new Date(log.date).getTime() <= endDate.getTime()).forEach((log: Log) => {
-      if (!log.assetType) return;
-      if (!totalByCategory[log.type]) {
-        totalByCategory[log.type] = {};
+    financialEvents.filter(event => new Date(event.date).getTime() <= endDate.getTime()).forEach((event: Event) => {
+      if (!event.assetType) return;
+      if (!totalByCategory[event.type]) {
+        totalByCategory[event.type] = {};
       }
-      if (!totalByCategory[log.type][log.assetType]) {
-        totalByCategory[log.type][log.assetType] = 0;
+      if (!totalByCategory[event.type][event.assetType]) {
+        totalByCategory[event.type][event.assetType] = 0;
       }
 
-      totalByCategory[log.type][log.assetType] += parseFloat(log.quantity);
-      if (!tempTotalByAssetType[log.assetType]) {
-        tempTotalByAssetType[log.assetType] = 0;
+      totalByCategory[event.type][event.assetType] += parseFloat(event.quantity);
+      if (!tempTotalByAssetType[event.assetType]) {
+        tempTotalByAssetType[event.assetType] = 0;
       }
-      if (inTypes.includes(log.type)) {
-        tempTotalByAssetType[log.assetType] += parseFloat(log.quantity);
-      } else if (outTypes.includes(log.type)) {
-        tempTotalByAssetType[log.assetType] -= parseFloat(log.quantity);
+      if (inTypes.includes(event.type)) {
+        tempTotalByAssetType[event.assetType] += parseFloat(event.quantity);
+      } else if (outTypes.includes(event.type)) {
+        tempTotalByAssetType[event.assetType] -= parseFloat(event.quantity);
       }
     })
     for (const assetType of Object.keys(tempTotalByAssetType)) {
       if (tempTotalByAssetType[assetType] === 0) {
         delete tempTotalByAssetType[assetType];
-        for (const logType of Object.keys(totalByCategory)) {
-          delete totalByCategory[logType][assetType];
+        for (const eventType of Object.keys(totalByCategory)) {
+          delete totalByCategory[eventType][assetType];
         }
       }
     }
@@ -148,16 +148,16 @@ export const Dashboard: React.FC = (props: any) => {
     setTotalByAssetType(tempTotalByAssetType);
 
     const recentPrices = {};
-    const netWorthData = financialLogs
-      .filter(log => new Date(log.date).getTime() <= endDate.getTime())
-      .filter(log => log.type === LogTypes.NetWorth)
-      .map((log: Log, index: number) => {
+    const netWorthData = financialEvents
+      .filter(event => new Date(event.date).getTime() <= endDate.getTime())
+      .filter(event => event.type === EventTypes.NetWorth)
+      .map((event: Event, index: number) => {
         let total = 0;
-        for (const assetType of Object.keys(log.assets )) {
-          recentPrices[assetType] = log.prices[assetType] || recentPrices[assetType];
-          total += parseFloat(log.assets[assetType]) * parseFloat(recentPrices[assetType]);
+        for (const assetType of Object.keys(event.assets )) {
+          recentPrices[assetType] = event.prices[assetType] || recentPrices[assetType];
+          total += parseFloat(event.assets[assetType]) * parseFloat(recentPrices[assetType]);
         }
-        return { date: new Date(log.date), networth: total };
+        return { date: new Date(event.date), networth: total };
       });
 
     setNetWorthTimeline(netWorthData);
@@ -166,7 +166,7 @@ export const Dashboard: React.FC = (props: any) => {
       setNetWorthSnapshot(netWorthData[netWorthData.length - 1].networth);
     }
 
-  }, [financialLogs, endDate]);
+  }, [financialEvents, endDate]);
 
   return (
     <>

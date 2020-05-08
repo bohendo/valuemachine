@@ -4,8 +4,8 @@ import {
   AssetChunk,
   AssetTypes,
   Transaction,
-  Logs,
-  LogTypes,
+  Events,
+  EventTypes,
   State,
   Transfer,
   TransferCategories,
@@ -14,29 +14,29 @@ import { math } from "@finances/utils";
 
 const { gt, round } = math;
 
-export const emitTransactionLogs = (
+export const emitTransactionEvents = (
   addressBook: AddressBook,
   transaction: Transaction,
   state: State,
-): Logs => {
-  const logs = [];
-  logs.push({
+): Events => {
+  const events = [];
+  events.push({
     assets: state.getNetWorth(),
     date: transaction.date,
     prices: transaction.prices,
-    type: LogTypes.NetWorth,
+    type: EventTypes.NetWorth,
   });
-  return logs;
+  return events;
 };
 
-export const emitTransferLogs = (
+export const emitTransferEvents = (
   addressBook: AddressBook,
   chunks: AssetChunk[],
   transaction: Transaction,
   transfer: Transfer,
-): Logs => {
+): Events => {
   const { isSelf, getName } = addressBook;
-  const logs = [];
+  const events = [];
   const unitOfAccount = ["DAI", "SAI", "USD"];
   const { assetType, from, quantity, to } = transfer;
   const position = `#${transaction.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
@@ -44,31 +44,31 @@ export const emitTransferLogs = (
   const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("-account");
 
   if (["Borrow", "Burn", "Income", "SwapIn", "Withdraw"].includes(transfer.category)) {
-    logs.push({
+    events.push({
       assetPrice: transaction.prices[assetType],
       assetType: assetType,
       date: transaction.date,
       description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
       from,
       quantity,
-      type: transfer.category as LogTypes,
+      type: transfer.category as EventTypes,
     });
   } else if (["Deposit", "Expense", "Mint", "Repay", "SwapOut"].includes(transfer.category)) {
-    logs.push({
+    events.push({
       assetPrice: transaction.prices[assetType],
       assetType: assetType,
       date: transaction.date,
       description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
       quantity,
       to,
-      type: transfer.category as LogTypes,
+      type: transfer.category as EventTypes,
     });
   }
 
   if (isAnySelf(from) && !isAnySelf(to) && gt(transfer.quantity, "0")) {
     // maybe emit expense/gift
     if (transfer.category === TransferCategories.Transfer) {
-      logs.push({
+      events.push({
         assetPrice: transaction.prices[assetType],
         assetType: assetType,
         date: transaction.date,
@@ -76,28 +76,28 @@ export const emitTransferLogs = (
         quantity,
         taxTags: transaction.tags,
         to,
-        type: LogTypes.Expense,
+        type: EventTypes.Expense,
       });
     } else if (transfer.category === TransferCategories.Gift) {
-      logs.push({
+      events.push({
         assetPrice: transaction.prices[assetType],
         assetType: assetType,
         date: transaction.date,
         description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
         quantity,
         to,
-        type: LogTypes.GiftOut,
+        type: EventTypes.GiftOut,
       });
     }
 
-    // maybe emit capital gain logs
+    // maybe emit capital gain events
     if (
       !unitOfAccount.includes(assetType) &&
       Object.keys(AssetTypes).includes(assetType) &&
       transfer.category === TransferCategories.SwapOut
     ) {
       chunks.forEach(chunk => {
-        logs.push({
+        events.push({
           assetPrice: transaction.prices[chunk.assetType],
           assetType: chunk.assetType,
           date: transaction.date,
@@ -105,15 +105,15 @@ export const emitTransferLogs = (
           purchaseDate: chunk.dateRecieved,
           purchasePrice: chunk.purchasePrice,
           quantity: chunk.quantity,
-          type: LogTypes.CapitalGains,
+          type: EventTypes.CapitalGains,
         });
       });
     }
 
-  // maybe emit income/gift log
+  // maybe emit income/gift event
   } else if (!isAnySelf(from) && isAnySelf(to) && gt(transfer.quantity, "0")) {
     if (transfer.category === TransferCategories.Transfer) {
-      logs.push({
+      events.push({
         assetPrice: transaction.prices[assetType],
         assetType: assetType,
         date: transaction.date,
@@ -121,20 +121,20 @@ export const emitTransferLogs = (
         from,
         quantity: quantity,
         taxTags: transaction.tags,
-        type: LogTypes.Income,
+        type: EventTypes.Income,
       });
     } else if (transfer.category === TransferCategories.Gift) {
-      logs.push({
+      events.push({
         assetPrice: transaction.prices[assetType],
         assetType: assetType,
         date: transaction.date,
         description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
         quantity: quantity,
         to,
-        type: LogTypes.GiftOut,
+        type: EventTypes.GiftOut,
       });
     }
   }
 
-  return logs;
+  return events;
 };

@@ -1,10 +1,10 @@
-import { Log, LogTypes, IncomeLog, ExpenseLog } from "@finances/types";
+import { Event, EventTypes, IncomeEvent, ExpenseEvent } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
 import { Forms } from "../types";
 
-export const f2210 = (vmLogs: Log[], oldForms: Forms): Forms => {
+export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const log = new ContextLogger("f2210", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s2, f1040s3, f2210 } = forms;
@@ -113,7 +113,7 @@ export const f2210 = (vmLogs: Log[], oldForms: Forms): Forms => {
   const quarterlyExpenses = { a: "0", b: "0", c: "0", d: "0" };
   const quarterlyPayments = { a: "0", b: "0", c: "0", d: "0" };
 
-  vmLogs.filter(l => l.type === LogTypes.Income).forEach((income: IncomeLog): void => {
+  vmEvents.filter(l => l.type === EventTypes.Income).forEach((income: IncomeEvent): void => {
     const date = new Date(income.date).getTime();
     const value = math.mul(income.quantity, income.assetPrice);
     if (date > Q0 && date < Q1) {
@@ -127,11 +127,11 @@ export const f2210 = (vmLogs: Log[], oldForms: Forms): Forms => {
     }
   });
 
-  vmLogs.filter(l =>
-    l.type === LogTypes.Expense &&
+  vmEvents.filter(l =>
+    l.type === EventTypes.Expense &&
     !l.taxTags.includes("ignore") &&
     l.taxTags.some(tag => tag.startsWith("f1040sc")),
-  ).forEach((expense: ExpenseLog): void => {
+  ).forEach((expense: ExpenseEvent): void => {
     const date = new Date(expense.date).getTime();
     const value = math.mul(expense.quantity, expense.assetPrice);
     if (date > Q0 && date < Q1) {
@@ -145,11 +145,11 @@ export const f2210 = (vmLogs: Log[], oldForms: Forms): Forms => {
     }
   });
 
-  vmLogs.filter(l =>
-    l.type === LogTypes.Expense &&
+  vmEvents.filter(l =>
+    l.type === EventTypes.Expense &&
     !l.taxTags.includes("ignore") &&
     l.taxTags.some(tag => tag.startsWith("f2210")),
-  ).forEach((expense: ExpenseLog): void => {
+  ).forEach((expense: ExpenseEvent): void => {
     const date = new Date(expense.date).getTime();
     const value = math.mul(expense.quantity, expense.assetPrice);
     if (date > Q0 && date < Q1) {

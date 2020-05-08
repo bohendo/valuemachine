@@ -6,7 +6,7 @@ import {
   getState,
   getValueMachine,
 } from "@finances/core";
-import { ExpenseLog, LogTypes } from "@finances/types";
+import { ExpenseEvent, EventTypes } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import * as cache from "./cache";
@@ -83,16 +83,16 @@ process.on("SIGINT", logAndExit);
   const valueMachine = getValueMachine(addressBook, logger);
 
   let state = cache.loadState();
-  let vmLogs = cache.loadLogs();
+  let vmEvents = cache.loadEvents();
   for (const transaction of transactions.filter(
     transaction => new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
   )) {
-    const [newState, newLogs] = valueMachine(state, transaction);
-    vmLogs = vmLogs.concat(...newLogs);
+    const [newState, newEvents] = valueMachine(state, transaction);
+    vmEvents = vmEvents.concat(...newEvents);
     state = newState;
   }
   cache.saveState(state);
-  cache.saveLogs(vmLogs);
+  cache.saveEvents(vmEvents);
 
   const finalState = getState(addressBook, state, logger);
 
@@ -144,15 +144,15 @@ process.on("SIGINT", logAndExit);
 
   if (input.expenses && input.expenses.length > 0) {
     input.expenses.forEach(expense => {
-      vmLogs.push({
+      vmEvents.push({
         assetType: "USD",
         assetPrice: "1",
         to: "merchant",
         taxTags: [],
-        type: LogTypes.Expense,
+        type: EventTypes.Expense,
         ...expense,
-      } as ExpenseLog);
-      vmLogs.sort((a, b): number => new Date(a.date).getTime() - new Date(b.date).getTime());
+      } as ExpenseEvent);
+      vmEvents.sort((a, b): number => new Date(a.date).getTime() - new Date(b.date).getTime());
     });
   }
 
@@ -165,7 +165,10 @@ process.on("SIGINT", logAndExit);
         log.warn(`No filer is available for form ${form}. Using unmodified user input.`);
         continue;
       }
-      output = filers[form](vmLogs.filter(vmLog => vmLog.date.startsWith(env.taxYear)), output);
+      output = filers[form](
+        vmEvents.filter(vmEvent => vmEvent.date.startsWith(env.taxYear)),
+        output,
+      );
     }
   }
 

@@ -12,7 +12,7 @@ export const mergeEthTransactions = (
   oldTransactions: Transaction[],
   addressBook: AddressBook,
   chainData: ChainData,
-  lastUpdated: number = 0,
+  lastUpdated = 0,
   logger?: ILogger,
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));

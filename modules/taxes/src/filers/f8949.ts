@@ -1,4 +1,4 @@
-import { CapitalGainsLog, Logs, LogTypes } from "@finances/types";
+import { CapitalGainsEvent, Events, EventTypes } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
@@ -10,7 +10,7 @@ const { add, eq, gt, mul, round, sub } = math;
 const msPerDay = 1000 * 60 * 60 * 24;
 const msPerYear = msPerDay * 365;
 
-export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
+export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
   const log = new ContextLogger("f8949", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const f1040 = forms.f1040;
@@ -23,11 +23,11 @@ export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
 
   // Merge trades w the same recieved & sold dates
   const trades = [];
-  vmLogs
-    .filter(vmLog => vmLog.type === LogTypes.CapitalGains)
-    .filter(vmLog => !eq(round(vmLog.quantity, 4), "0"))
-    .filter((trade: CapitalGainsLog) => getDate(trade.date) !== getDate(trade.purchaseDate))
-    .forEach((trade: CapitalGainsLog): void => {
+  vmEvents
+    .filter(vmEvent => vmEvent.type === EventTypes.CapitalGains)
+    .filter(vmEvent => !eq(round(vmEvent.quantity, 4), "0"))
+    .filter((trade: CapitalGainsEvent) => getDate(trade.date) !== getDate(trade.purchaseDate))
+    .forEach((trade: CapitalGainsEvent): void => {
       const dup = trades.findIndex(merged =>
         merged.assetType === trade.assetType &&
         getDate(merged.date) === getDate(trade.date) &&
@@ -45,7 +45,7 @@ export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
   const columns = ["d", "e", "g", "h"];
   const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
-  const isLongTerm = (trade: CapitalGainsLog): boolean => 
+  const isLongTerm = (trade: CapitalGainsEvent): boolean => 
     (new Date(trade.date).getTime() - new Date(trade.purchaseDate).getTime()) >= msPerYear;
 
   const chunkify = (list: any[]): any[][] => list.map(
@@ -60,14 +60,14 @@ export const f8949 = (vmLogs: Logs, oldForms: Forms): Forms  => {
   const getLongCell = (row: number, column: string): string => `P2L1R${row}${column}`;
   const getShortCell = (row: number, column: string): string => `P1L1R${row}${column}`;
 
-  // Convert chunk of vmLogs into f8949 rows
+  // Convert chunk of vmEvents into f8949 rows
   for (let page = 0; page < nPages; page++) {
     const shortTerm = shortChunks[page] || [];
     const longTerm = longChunks[page] || [];
     const subF8949 = {} as any;
     subF8949.P1C0_C = shortTerm.length > 0;
     subF8949.P2C0_F = longTerm.length > 0;
-    const parseTrade = getCell => (trade: CapitalGainsLog, index: number): void => {
+    const parseTrade = getCell => (trade: CapitalGainsEvent, index: number): void => {
       const i = index + 1;
       const description = `${round(trade.quantity, 4)} ${trade.assetType}`;
       const proceeds = round(mul(trade.quantity, trade.assetPrice));

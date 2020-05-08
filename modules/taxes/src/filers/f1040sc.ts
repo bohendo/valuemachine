@@ -1,4 +1,4 @@
-import { Logs, ExpenseLog, IncomeLog, LogTypes } from "@finances/types";
+import { Events, ExpenseEvent, IncomeEvent, EventTypes } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
@@ -6,7 +6,7 @@ import { Forms } from "../types";
 
 const { add, gt, lt, mul, round, sub } = math;
 
-export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
+export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
   const log = new ContextLogger("f1040sc", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
@@ -16,7 +16,7 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
 
   let totalIncome = "0";
 
-  vmLogs.filter(l => l.type === LogTypes.Income).forEach((income: IncomeLog): void => {
+  vmEvents.filter(l => l.type === EventTypes.Income).forEach((income: IncomeEvent): void => {
     let value = round(mul(income.quantity, income.assetPrice));
     if (income.taxTags.includes("ignore")) {
       log.info(`${income.date} Ignoring income: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
@@ -43,7 +43,7 @@ export const f1040sc = (vmLogs: Logs, oldForms: Forms): Forms => {
   f1040sc.L7 = round(add(f1040sc.L5, f1040sc.L6));
 
   let otherExpenseIndex = 1;
-  for (const expense of vmLogs.filter(l => l.type === LogTypes.Expense) as ExpenseLog[]) {
+  for (const expense of vmEvents.filter(l => l.type === EventTypes.Expense) as ExpenseEvent[]) {
     const tags = expense.taxTags;
     if (!tags.some(tag => tag.startsWith("f1040sc")) || tags.includes("ignore")) {
       log.info(`${expense.date} Ignoring expense: ${expense.description}`);
