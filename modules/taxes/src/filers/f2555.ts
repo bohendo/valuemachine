@@ -16,5 +16,7 @@ export const f2555 = (vmLogs: Log[], oldForms: Forms): Forms => {
 
   f2555.L43 = math.add(f2555.L36, f2555.L42);
 
+  f2555.L27 = f2555.L26
+
   return { ...forms, f2555 };
 };

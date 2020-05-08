@@ -715,8 +715,6 @@
       "C6c_No": true,
       "L6d": "L6d",
       "L7": "L7",
-      "L8a_Yes": "L8a_Yes",
-      "L8a_No": "L8a_No",
       "L8b": "L8b",
       "L9R1": "L9R1",
       "L9R2": "L9R2",
@@ -855,7 +853,9 @@
       "L35_int": "L35_int",
       "L35_dec": "L35_dec",
       "L39_int": "L39_int",
-      "L39_dec": "L39_dec"
+      "L39_dec": "L39_dec",
+      "C8a_Yes": true,
+      "C8a_No": true
     },
     "f2210": {
       "FullName": "FullName",
