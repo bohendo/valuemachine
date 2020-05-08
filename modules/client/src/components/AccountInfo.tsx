@@ -5,10 +5,8 @@ import {
   Card,
   CardHeader,
   Chip,
-  Container,
   Divider,
   FormControl,
-  Grid,
   IconButton,
   Input,
   InputLabel,
@@ -36,7 +34,6 @@ import {
 } from "@finances/types";
 
 import * as cache from "../utils/cache";
-import { Personal } from "../types";
 
 const tagsSelect = [
   "active",

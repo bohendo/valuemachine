@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 import {
   Container,
-  CssBaseline,
-  Grid,
   Theme,
-  Typography,
   createStyles,
   makeStyles,
 } from '@material-ui/core';
@@ -16,7 +13,6 @@ import { AccountInfo } from "./components/AccountInfo";
 import { Dashboard } from "./components/Dashboard";
 
 import * as cache from "./utils/cache";
-import chainData from './data/chain-data.json';
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
