@@ -1,5 +1,5 @@
 import {
-  Events,
+  Transactions,
   StateJson,
   Logs,
   ChainData,
@@ -12,7 +12,7 @@ import { Personal } from "../types";
 
 export const emptyData = {
   chainData: chainData,
-  events: [],
+  transactions: [],
   logs: [],
   personal: {
     profileName: '',
@@ -41,14 +41,14 @@ const save = (key: string, data: any) => {
 
 export const loadPrices = () : PriceData => load("priceData");
 export const loadChainData = (): ChainData => load("chainData") as ChainData;
-export const loadEvents = (): Events => load("events") as Events;
+export const loadTransactions = (): Transactions => load("transactions") as Transactions;
 export const loadLogs = (): Logs => load("logs") as Logs;
 export const loadState = (): StateJson => load("state") as StateJson;
 export const loadPersonal = (): Personal => load("personal") as Personal;
 
-export const saveLogs = (events: Logs): void => save("logs", events);
+export const saveLogs = (logs: Logs): void => save("logs", logs);
 export const savePrices = (priceData: PriceData): void => save("priceData", priceData);
 export const saveChainData = (chainData: ChainData): void => save("chainData", chainData);
-export const saveEvents = (events: Events): void => save("events", events);
+export const saveTransactions = (transactions: Transactions): void => save("transactions", transactions);
 export const saveState = (chainData: StateJson): void => save("state", chainData);
 export const savePersonal = (personal: Personal) => save("personal", personal);

@@ -3,7 +3,7 @@ import {
   AddressBook,
   AssetChunk,
   AssetTypes,
-  Event,
+  Transaction,
   Logs,
   LogTypes,
   State,
@@ -14,16 +14,16 @@ import { math } from "@finances/utils";
 
 const { gt, round } = math;
 
-export const emitEventLogs = (
+export const emitTransactionLogs = (
   addressBook: AddressBook,
-  event: Event,
+  transaction: Transaction,
   state: State,
 ): Logs => {
   const logs = [];
   logs.push({
     assets: state.getNetWorth(),
-    date: event.date,
-    prices: event.prices,
+    date: transaction.date,
+    prices: transaction.prices,
     type: LogTypes.NetWorth,
   });
   return logs;
@@ -32,22 +32,22 @@ export const emitEventLogs = (
 export const emitTransferLogs = (
   addressBook: AddressBook,
   chunks: AssetChunk[],
-  event: Event,
+  transaction: Transaction,
   transfer: Transfer,
 ): Logs => {
   const { isSelf, getName } = addressBook;
   const logs = [];
   const unitOfAccount = ["DAI", "SAI", "USD"];
   const { assetType, from, quantity, to } = transfer;
-  const position = `#${event.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
+  const position = `#${transaction.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
 
   const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("-account");
 
   if (["Borrow", "Burn", "Income", "SwapIn", "Withdraw"].includes(transfer.category)) {
     logs.push({
-      assetPrice: event.prices[assetType],
+      assetPrice: transaction.prices[assetType],
       assetType: assetType,
-      date: event.date,
+      date: transaction.date,
       description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
       from,
       quantity,
@@ -55,9 +55,9 @@ export const emitTransferLogs = (
     });
   } else if (["Deposit", "Expense", "Mint", "Repay", "SwapOut"].includes(transfer.category)) {
     logs.push({
-      assetPrice: event.prices[assetType],
+      assetPrice: transaction.prices[assetType],
       assetType: assetType,
-      date: event.date,
+      date: transaction.date,
       description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
       quantity,
       to,
@@ -69,20 +69,20 @@ export const emitTransferLogs = (
     // maybe emit expense/gift
     if (transfer.category === TransferCategories.Transfer) {
       logs.push({
-        assetPrice: event.prices[assetType],
+        assetPrice: transaction.prices[assetType],
         assetType: assetType,
-        date: event.date,
+        date: transaction.date,
         description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
         quantity,
-        taxTags: event.tags,
+        taxTags: transaction.tags,
         to,
         type: LogTypes.Expense,
       });
     } else if (transfer.category === TransferCategories.Gift) {
       logs.push({
-        assetPrice: event.prices[assetType],
+        assetPrice: transaction.prices[assetType],
         assetType: assetType,
-        date: event.date,
+        date: transaction.date,
         description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
         quantity,
         to,
@@ -98,9 +98,9 @@ export const emitTransferLogs = (
     ) {
       chunks.forEach(chunk => {
         logs.push({
-          assetPrice: event.prices[chunk.assetType],
+          assetPrice: transaction.prices[chunk.assetType],
           assetType: chunk.assetType,
-          date: event.date,
+          date: transaction.date,
           description: `${round(chunk.quantity, 4)} ${chunk.assetType} ${position}`,
           purchaseDate: chunk.dateRecieved,
           purchasePrice: chunk.purchasePrice,
@@ -114,20 +114,20 @@ export const emitTransferLogs = (
   } else if (!isAnySelf(from) && isAnySelf(to) && gt(transfer.quantity, "0")) {
     if (transfer.category === TransferCategories.Transfer) {
       logs.push({
-        assetPrice: event.prices[assetType],
+        assetPrice: transaction.prices[assetType],
         assetType: assetType,
-        date: event.date,
+        date: transaction.date,
         description: `${round(quantity)} ${assetType} from ${getName(from)} ${position}`,
         from,
         quantity: quantity,
-        taxTags: event.tags,
+        taxTags: transaction.tags,
         type: LogTypes.Income,
       });
     } else if (transfer.category === TransferCategories.Gift) {
       logs.push({
-        assetPrice: event.prices[assetType],
+        assetPrice: transaction.prices[assetType],
         assetType: assetType,
-        date: event.date,
+        date: transaction.date,
         description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
         quantity: quantity,
         to,

@@ -1,8 +1,8 @@
 import {
   AddressBook,
   ChainData,
-  Event,
-  EventSources,
+  Transaction,
+  TransactionSources,
   ILogger,
   TransactionData,
   Transfer,
@@ -18,29 +18,29 @@ import { tokenEvents } from "../abi";
 import { categorizeTransfer } from "./categorizeTransfer";
 import { assertChrono, mergeFactory } from "./utils";
 
-export const mergeEthTxEvents = (
-  oldEvents: Event[],
+export const mergeEthTxTransactions = (
+  oldTransactions: Transaction[],
   addressBook: AddressBook,
   chainData: ChainData,
   lastUpdated: number,
   logger?: ILogger,
-): Event[] => {
-  let events = JSON.parse(JSON.stringify(oldEvents));
+): Transaction[] => {
+  let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const log = new ContextLogger("EthTx", logger);
 
-  const latestCachedEvent = events.length !== 0
-    ? new Date(events[events.length - 1].date).getTime()
+  const latestCachedTransaction = transactions.length !== 0
+    ? new Date(transactions[transactions.length - 1].date).getTime()
     : 0;
 
   // returns true if new
   const onlyNew = (data: any): boolean =>
-    new Date(data.timestamp || data.date).getTime() - latestCachedEvent > 0;
+    new Date(data.timestamp || data.date).getTime() - latestCachedTransaction > 0;
 
   const newEthTxs = chainData.transactions.filter(onlyNew);
   log.info(`Processing ${newEthTxs.length} new ethereum transactions..`);
   newEthTxs
     .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
-    .map((tx: TransactionData): Event => {
+    .map((tx: TransactionData): Transaction => {
       if (new Date(tx.timestamp).getTime() <= lastUpdated) {
         return null;
       }
@@ -57,11 +57,11 @@ export const mergeEthTxEvents = (
         log.debug(`new contract deployed to ${tx.to}`);
       }
 
-      const event = {
+      const transaction = {
         date: tx.timestamp,
         hash: tx.hash,
         prices: {},
-        sources: [EventSources.EthTx],
+        sources: [TransactionSources.EthTx],
         tags: [],
         transfers: [{
           assetType: "ETH",
@@ -72,21 +72,26 @@ export const mergeEthTxEvents = (
           quantity: tx.value,
           to: tx.to.toLowerCase(),
         }],
-      } as Event;
+      } as Transaction;
 
       if (tx.status !== 1) {
         log.debug(`setting reverted tx to have zero quantity`);
-        event.transfers[0].quantity = "0";
-        event.description = `${getName(tx.from)} sent failed tx`;
-        if (addressBook.isSelf(event.transfers[0].from)) {
-          return event;
+        transaction.transfers[0].quantity = "0";
+        transaction.description = `${getName(tx.from)} sent failed tx`;
+        if (addressBook.isSelf(transaction.transfers[0].from)) {
+          return transaction;
         }
         return null;
       }
 
-      event.transfers[0] = categorizeTransfer(event.transfers[0], [], addressBook, logger);
+      transaction.transfers[0] = categorizeTransfer(
+        transaction.transfers[0],
+        [],
+        addressBook,
+        logger,
+      );
 
-      log.debug(`${tx.value} ETH from ${tx.from} to ${tx.to}: ${event.transfers[0].category}`);
+      log.debug(`${tx.value} ETH from ${tx.from} to ${tx.to}: ${transaction.transfers[0].category}`);
 
       for (const txLog of tx.logs) {
         if (isToken(txLog.address)) {
@@ -113,27 +118,27 @@ export const mergeEthTxEvents = (
             transfer.from = data.from || data.src;
             transfer.to = data.to || data.dst;
             transfer.category = TransferCategories.Transfer;
-            event.transfers.push(categorizeTransfer(transfer, tx.logs, addressBook, logger));
+            transaction.transfers.push(categorizeTransfer(transfer, tx.logs, addressBook, logger));
 
           } else if (assetType === "WETH" && eventI.name === "Deposit") {
             log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
             transfer.category = TransferCategories.SwapOut;
-            event.transfers.push({ ...transfer, from: txLog.address, to: data.dst });
+            transaction.transfers.push({ ...transfer, from: txLog.address, to: data.dst });
 
           } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
             log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
             transfer.category = TransferCategories.SwapIn;
-            event.transfers.push({ ...transfer, from: data.src, to: txLog.address });
+            transaction.transfers.push({ ...transfer, from: data.src, to: txLog.address });
 
           } else if (assetType === "SAI" && eventI.name === "Mint") {
             log.debug(`Minted ${quantity} ${assetType}`);
             transfer.category = TransferCategories.Borrow;
-            event.transfers.push({ ...transfer, from: AddressZero, to: data.guy });
+            transaction.transfers.push({ ...transfer, from: AddressZero, to: data.guy });
 
           } else if (assetType === "SAI" && eventI.name === "Burn") {
             log.debug(`Burnt ${quantity} ${assetType}`);
             transfer.category = TransferCategories.Repay;
-            event.transfers.push({ ...transfer, from: data.guy, to: AddressZero });
+            transaction.transfers.push({ ...transfer, from: data.guy, to: AddressZero });
 
           } else if (eventI.name === "Approval") {
             log.debug(`Skipping Approval event`);
@@ -144,18 +149,18 @@ export const mergeEthTxEvents = (
         }
       }
 
-      if (event.transfers.length === 0) {
-        throw new Error(`No transfers for EthTx: ${JSON.stringify(event, null, 2)}`);
-      } else if (event.transfers.length === 1) {
-        const { assetType, from, quantity, to } = event.transfers[0];
-        event.description = `${getName(from)} sent ${quantity} ${assetType} to ${getName(to)}`;
+      if (transaction.transfers.length === 0) {
+        throw new Error(`No transfers for EthTx: ${JSON.stringify(transaction, null, 2)}`);
+      } else if (transaction.transfers.length === 1) {
+        const { assetType, from, quantity, to } = transaction.transfers[0];
+        transaction.description = `${getName(from)} sent ${quantity} ${assetType} to ${getName(to)}`;
       } else {
-        event.description = `${getName(event.transfers[0].to)} made ${event.transfers.length} transfers`;
+        transaction.description = `${getName(transaction.transfers[0].to)} made ${transaction.transfers.length} transfers`;
       }
 
-      log.info(event.description);
+      log.info(transaction.description);
 
-      event.transfers = event.transfers
+      transaction.transfers = transaction.transfers
         .filter(transfer => addressBook.isSelf(transfer.to) || addressBook.isSelf(transfer.from))
         // Make sure all addresses are lower-case
         .map(transfer => ({ ...transfer, to: transfer.to.toLowerCase() }))
@@ -163,23 +168,23 @@ export const mergeEthTxEvents = (
         // sort by index
         .sort((t1, t2) => t1.index - t2.index);
 
-      if (event.transfers.length === 0) {
+      if (transaction.transfers.length === 0) {
         return null;
       }
 
-      return event;
-    }).filter(e => !!e).forEach((txEvent: Event): void => {
-      events = mergeFactory({
+      return transaction;
+    }).filter(e => !!e).forEach((txTransaction: Transaction): void => {
+      transactions = mergeFactory({
         allowableTimeDiff: 0,
         log: new ContextLogger("MergeEthTx", logger),
-        mergeEvents: (): void => {
-          throw new Error(`idk how to merge txEvents`);
+        mergeTransactions: (): void => {
+          throw new Error(`idk how to merge txTransactions`);
         },
-        shouldMerge: (event: Event, txEvent: Event): boolean =>
-          event.hash === txEvent.hash,
-      })(events, txEvent);
+        shouldMerge: (transaction: Transaction, txTransaction: Transaction): boolean =>
+          transaction.hash === txTransaction.hash,
+      })(transactions, txTransaction);
     });
-  assertChrono(events);
+  assertChrono(transactions);
 
-  return events;
+  return transactions;
 };

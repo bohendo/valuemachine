@@ -2,8 +2,8 @@ import {
   AddressBook,
   CallData,
   ChainData,
-  Event,
-  EventSources,
+  Transaction,
+  TransactionSources,
   ILogger,
   TransferCategories,
 } from "@finances/types";
@@ -13,15 +13,15 @@ import { AddressZero } from "ethers/constants";
 import { categorizeTransfer } from "./categorizeTransfer";
 import { assertChrono, mergeFactory } from "./utils";
 
-export const mergeEthCallEvents = (
-  oldEvents: Event[],
+export const mergeEthCallTransactions = (
+  oldTransactions: Transaction[],
   addressBook: AddressBook,
   chainData: ChainData,
   lastUpdated: number,
   logger?: ILogger,
-): Event[] => {
+): Transaction[] => {
   const log = new ContextLogger("EthCall", logger);
-  let events = JSON.parse(JSON.stringify(oldEvents));
+  let transactions = JSON.parse(JSON.stringify(oldTransactions));
 
   log.info(`Processing ${chainData.calls.length} ethereum calls..`);
 
@@ -50,10 +50,10 @@ export const mergeEthCallEvents = (
       return null;
     }
 
-    const event = {
+    const transaction = {
       date: call.timestamp,
       hash: call.hash,
-      sources: [EventSources.EthCall],
+      sources: [TransactionSources.EthCall],
       tags: [],
       transfers: [{
         assetType: "ETH",
@@ -62,35 +62,40 @@ export const mergeEthCallEvents = (
         quantity: call.value,
         to: call.to.toLowerCase(),
       }],
-    } as Event;
+    } as Transaction;
 
-    event.transfers[0] = categorizeTransfer(event.transfers[0], [], addressBook, logger);
+    transaction.transfers[0] = categorizeTransfer(
+      transaction.transfers[0],
+      [],
+      addressBook,
+      logger,
+    );
 
-    const { from, quantity, to } = event.transfers[0];
+    const { from, quantity, to } = transaction.transfers[0];
     if (math.eq(quantity, "0")) {
       return null;
     }
-    event.description =
+    transaction.description =
       `${addressBook.getName(from)} sent ${quantity} ETH to ${addressBook.getName(to)} (internal)`;
 
-    log.info(event.description);
+    log.info(transaction.description);
 
-    return event;
-  }).filter(e => !!e).forEach((txEvent: Event): void => {
-    events = mergeFactory({
+    return transaction;
+  }).filter(e => !!e).forEach((txTransaction: Transaction): void => {
+    transactions = mergeFactory({
       allowableTimeDiff: 0,
       log,
-      mergeEvents: (event: Event, callEvent: Event): Event => {
+      mergeTransactions: (transaction: Transaction, callTransaction: Transaction): Transaction => {
         // tx logs and token calls return same data, add this tranfer iff this isn't the case
-        event.transfers.push(callEvent.transfers[0]);
-        event.sources.push(EventSources.EthCall);
-        return event;
+        transaction.transfers.push(callTransaction.transfers[0]);
+        transaction.sources.push(TransactionSources.EthCall);
+        return transaction;
       },
-      shouldMerge: (event: Event, callEvent: Event): boolean =>
-        event.hash === callEvent.hash,
-    })(events, txEvent);
+      shouldMerge: (transaction: Transaction, callTransaction: Transaction): boolean =>
+        transaction.hash === callTransaction.hash,
+    })(transactions, txTransaction);
   });
-  assertChrono(events);
+  assertChrono(transactions);
 
-  return events;
+  return transactions;
 };

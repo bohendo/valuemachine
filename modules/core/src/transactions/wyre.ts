@@ -1,18 +1,29 @@
-import { DateString, Event, EventSources, ILogger, TransferCategories } from "@finances/types";
+import {
+  DateString,
+  ILogger,
+  Transaction,
+  TransactionSources,
+  TransferCategories,
+} from "@finances/types";
 import { ContextLogger } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
-import { assertChrono, mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
+import {
+  assertChrono,
+  mergeFactory,
+  mergeOffChainTransactions,
+  shouldMergeOffChain,
+} from "./utils";
 
-export const mergeWyreEvents = (
-  oldEvents: Event[],
+export const mergeWyreTransactions = (
+  oldTransactions: Transaction[],
   wyreData: string,
   lastUpdated: number,
   logger?: ILogger,
-): Event[] => {
+): Transaction[] => {
   const log = new ContextLogger("SendWyre", logger);
-  let events = JSON.parse(JSON.stringify(oldEvents));
-  const wyreEvents = csv(
+  let transactions = JSON.parse(JSON.stringify(oldTransactions));
+  const wyreTransactions = csv(
     wyreData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
@@ -37,119 +48,119 @@ export const mergeWyreEvents = (
 
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
-    const event = {
+    const transaction = {
       date: (new Date(date)).toISOString(),
       description: "",
       prices: {},
-      sources: [EventSources.SendWyre],
+      sources: [TransactionSources.SendWyre],
       tags: [],
       transfers: [],
-    } as Event;
+    } as Transaction;
 
     if (txType === "EXCHANGE") {
-      event.transfers.push({
+      transaction.transfers.push({
         assetType: sourceType,
         category: TransferCategories.SwapOut,
         from: "sendwyre-account",
         quantity: sourceQuantity,
         to: "sendwyre-exchange",
       });
-      event.transfers.push({
+      transaction.transfers.push({
         assetType: destType,
         category: TransferCategories.SwapIn,
         from: "sendwyre-exchange",
         quantity: destQuantity,
         to: "sendwyre-account",
       });
-      event.description = sourceType === "USD"
+      transaction.description = sourceType === "USD"
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
         : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on sendwyre`;
 
     } else if (txType === "INCOMING" && destType === sourceType) {
-      event.transfers.push({
+      transaction.transfers.push({
         assetType: destType,
         category: TransferCategories.Transfer,
         from: "external-account",
         quantity: destQuantity,
         to: "sendwyre-account",
       });
-      event.description = `Deposit ${destQuantity} ${destType} into sendwyre`;
+      transaction.description = `Deposit ${destQuantity} ${destType} into sendwyre`;
 
     } else if (txType === "INCOMING" && destType !== sourceType) {
-      event.transfers.push({
+      transaction.transfers.push({
         assetType: sourceType,
         category: TransferCategories.SwapOut,
         from: "external-account",
         quantity: sourceQuantity,
         to: "sendwyre-exchange",
       });
-      event.transfers.push({
+      transaction.transfers.push({
         assetType: destType,
         category: TransferCategories.SwapIn,
         from: "sendwyre-exchange",
         quantity: destQuantity,
         to: "sendwyre-account",
       });
-      event.description = sourceType === "USD"
+      transaction.description = sourceType === "USD"
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
         : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on sendwyre`;
 
     } else if (txType === "OUTGOING" && destType === sourceType) {
-      event.transfers.push({
+      transaction.transfers.push({
         assetType: destType,
         category: TransferCategories.Transfer,
         from: "sendwyre-account",
         quantity: destQuantity,
         to: "external-account",
       });
-      event.description = `Withdraw ${destQuantity} ${destType} out of sendwyre`;
+      transaction.description = `Withdraw ${destQuantity} ${destType} out of sendwyre`;
 
     } else if (txType === "OUTGOING" && destType !== sourceType) {
-      event.transfers.push({
+      transaction.transfers.push({
         assetType: sourceType,
         category: TransferCategories.SwapOut,
         from: "sendwyre-account",
         quantity: sourceQuantity,
         to: "sendwyre-exchange",
       });
-      event.transfers.push({
+      transaction.transfers.push({
         assetType: destType,
         category: TransferCategories.SwapIn,
         from: "sendwyre-exchange",
         quantity: destQuantity,
         to: "external-account",
       });
-      event.description = sourceType === "USD"
+      transaction.description = sourceType === "USD"
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
         : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on sendwyre`;
 
     }
 
-    log.debug(event.description);
-    return event;
+    log.debug(transaction.description);
+    return transaction;
   }).filter(row => !!row);
 
 
   const mergeWyre = mergeFactory({
     allowableTimeDiff: 15 * 60 * 1000,
     log,
-    mergeEvents: mergeOffChainEvents,
+    mergeTransactions: mergeOffChainTransactions,
     shouldMerge: shouldMergeOffChain,
   });
 
-  log.info(`Processing ${wyreEvents.length} new events from wyre`);
+  log.info(`Processing ${wyreTransactions.length} new transactions from wyre`);
 
-  wyreEvents.forEach((wyreEvent: Event): void => {
-    log.info(wyreEvent.description);
-    events = mergeWyre(events, wyreEvent);
+  wyreTransactions.forEach((wyreTransaction: Transaction): void => {
+    log.info(wyreTransaction.description);
+    transactions = mergeWyre(transactions, wyreTransaction);
   });
 
   // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
   // edge case is tricky to solve at source, just sort manually ffs
-  events = events.sort((e1: Event, e2: Event): number =>
+  transactions = transactions.sort((e1: Transaction, e2: Transaction): number =>
     new Date(e1.date).getTime() - new Date(e2.date).getTime(),
   );
-  assertChrono(events);
+  assertChrono(transactions);
 
-  return events;
+  return transactions;
 };

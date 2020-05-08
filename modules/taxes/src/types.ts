@@ -1,6 +1,6 @@
 import {
   AddressBookJson,
-  Event,
+  Transaction,
   ExpenseLog,
   enumify,
 } from "@finances/types";
@@ -29,7 +29,7 @@ export type InputData = {
   dividends: Array<{ source: string; assetType: string; tags: string[]; quantity: string }>;
   expenses: Array<Partial<ExpenseLog>>;
   env: Partial<Env>;
-  events: Array<Event | string>;
+  transactions: Array<Transaction | string>;
   formData: Forms;
   forms: string[];
 }

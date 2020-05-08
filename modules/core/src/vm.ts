@@ -1,20 +1,20 @@
-import { AddressBook, Event, ILogger, Log, StateJson } from "@finances/types";
+import { AddressBook, Transaction, ILogger, Log, StateJson } from "@finances/types";
 import { ContextLogger } from "@finances/utils";
 
-import { emitEventLogs, emitTransferLogs } from "./logs";
+import { emitTransactionLogs, emitTransferLogs } from "./logs";
 import { getState } from "./state";
 
 export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any => {
   const log = new ContextLogger("ValueMachine", logger);
   const { getName } = addressBook;
 
-  return (oldState: StateJson, event: Event): [StateJson, Log[]] => {
+  return (oldState: StateJson, transaction: Transaction): [StateJson, Log[]] => {
     const state = getState(addressBook, oldState, logger);
-    log.info(`Applying event from ${event.date}: ${event.description}`);
+    log.info(`Applying transaction from ${transaction.date}: ${transaction.description}`);
     log.debug(`Applying transfers: ${
-      JSON.stringify(event.transfers, null, 2)
+      JSON.stringify(transaction.transfers, null, 2)
     } to sub-state ${
-      JSON.stringify(state.getRelevantBalances(event), null, 2)
+      JSON.stringify(state.getRelevantBalances(transaction), null, 2)
     }`);
     const logs = [] as Log[];
 
@@ -22,19 +22,19 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
     // VM Core
 
     const later = [];
-    for (const transfer of event.transfers) {
+    for (const transfer of transaction.transfers) {
       const { assetType, fee, from, quantity, to } = transfer;
       log.debug(`transfering ${quantity} ${assetType} from ${getName(from)} to ${getName(to)}`);
       let feeChunks;
       let chunks;
       try {
         if (fee) {
-          feeChunks = state.getChunks(from, assetType, fee, event);
+          feeChunks = state.getChunks(from, assetType, fee, transaction);
           log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
         }
-        chunks = state.getChunks(from, assetType, quantity, event);
+        chunks = state.getChunks(from, assetType, quantity, transaction);
         chunks.forEach(chunk => state.putChunk(to, chunk));
-        logs.push(...emitTransferLogs(addressBook, chunks, event, transfer));
+        logs.push(...emitTransferLogs(addressBook, chunks, transaction, transfer));
       } catch (e) {
         log.warn(e.message);
         if (feeChunks) {
@@ -48,19 +48,19 @@ export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any
       const { assetType, fee, from, quantity, to } = transfer;
       log.debug(`transfering ${quantity} ${assetType} from ${getName(from)} to ${getName(to)} (attempt 2)`);
       if (fee) {
-        const feeChunks = state.getChunks(from, assetType, fee, event);
+        const feeChunks = state.getChunks(from, assetType, fee, transaction);
         log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
       }
-      const chunks = state.getChunks(from, assetType, quantity, event);
+      const chunks = state.getChunks(from, assetType, quantity, transaction);
       chunks.forEach(chunk => state.putChunk(to, chunk));
-      logs.push(...emitTransferLogs(addressBook, chunks, event, transfer));
+      logs.push(...emitTransferLogs(addressBook, chunks, transaction, transfer));
     }
 
     ////////////////////////////////////////
 
-    logs.push(...emitEventLogs(addressBook, event, state));
+    logs.push(...emitTransactionLogs(addressBook, transaction, state));
 
-    state.touch(event.date);
+    state.touch(transaction.date);
 
     return [state.toJson(), logs];
   };

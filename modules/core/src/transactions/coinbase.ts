@@ -1,18 +1,23 @@
-import { Event, EventSources, ILogger, TransferCategories } from "@finances/types";
+import { Transaction, TransactionSources, ILogger, TransferCategories } from "@finances/types";
 import { ContextLogger } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
-import { assertChrono, mergeFactory, mergeOffChainEvents, shouldMergeOffChain } from "./utils";
+import {
+  assertChrono,
+  mergeFactory,
+  mergeOffChainTransactions,
+  shouldMergeOffChain,
+} from "./utils";
 
-export const mergeCoinbaseEvents = (
-  oldEvents: Event[],
+export const mergeCoinbaseTransactions = (
+  oldTransactions: Transaction[],
   coinbaseData: string,
   lastUpdated,
   logger?: ILogger,
-): Event[] => {
+): Transaction[] => {
   const log = new ContextLogger("Coinbase", logger);
-  let events = JSON.parse(JSON.stringify(oldEvents));
-  const coinbaseEvents = csv(
+  let transactions = JSON.parse(JSON.stringify(oldTransactions));
+  const coinbaseTransactions = csv(
     coinbaseData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
@@ -29,72 +34,72 @@ export const mergeCoinbaseEvents = (
       return null;
     }
 
-    const event = {
+    const transaction = {
       date: (new Date(date)).toISOString(),
       prices: { [assetType]: price },
-      sources: [EventSources.Coinbase],
+      sources: [TransactionSources.Coinbase],
       tags: [],
       transfers: [],
-    } as Event;
+    } as Transaction;
 
     let [from, to, category] = ["", "", TransferCategories.Transfer as TransferCategories];
 
     if (txType === "Send") {
       [from, to, category] = ["coinbase-account", "external-account", TransferCategories.Transfer];
-      event.description = `Withdraw ${quantity} ${assetType} out of coinbase`;
+      transaction.description = `Withdraw ${quantity} ${assetType} out of coinbase`;
 
     } else if (txType === "Receive") {
       [from, to, category] = ["external-account", "coinbase-account", TransferCategories.Transfer];
-      event.description = `Deposit ${quantity} ${assetType} into coinbase`;
+      transaction.description = `Deposit ${quantity} ${assetType} into coinbase`;
 
     } else if (txType === "Sell") {
       [from, to, category] = ["coinbase-account", "coinbase-exchange", TransferCategories.SwapOut];
-      event.transfers.push({
+      transaction.transfers.push({
         assetType: "USD",
         category: TransferCategories.SwapIn,
         from: "coinbase-exchange",
         quantity: usdQuantity,
         to: "coinbase-account",
       });
-      event.description = `Sell ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
+      transaction.description = `Sell ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
 
     } else if (txType === "Buy") {
       [from, to, category] = ["coinbase-exchange", "coinbase-account", TransferCategories.SwapIn];
-      event.transfers.push({
+      transaction.transfers.push({
         assetType: "USD",
         category: TransferCategories.SwapOut,
         from: "coinbase-account",
         quantity: usdQuantity,
         to: "coinbase-exchange",
       });
-      event.description = `Buy ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
+      transaction.description = `Buy ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
     }
 
-    event.transfers.push({ assetType, category, from, quantity, to });
+    transaction.transfers.push({ assetType, category, from, quantity, to });
 
-    log.debug(event.description);
-    return event;
+    log.debug(transaction.description);
+    return transaction;
   }).filter(row => !!row);
 
-  log.info(`Processing ${coinbaseEvents.length} new events from coinbase`);
+  log.info(`Processing ${coinbaseTransactions.length} new transactions from coinbase`);
 
-  coinbaseEvents.forEach((coinbaseEvent: Event): void => {
-    log.info(coinbaseEvent.description);
-    events = mergeFactory({
+  coinbaseTransactions.forEach((coinbaseTransaction: Transaction): void => {
+    log.info(coinbaseTransaction.description);
+    transactions = mergeFactory({
       allowableTimeDiff: 15 * 60 * 1000,
       log,
-      mergeEvents: mergeOffChainEvents,
+      mergeTransactions: mergeOffChainTransactions,
       shouldMerge: shouldMergeOffChain,
-    })(events, coinbaseEvent);
+    })(transactions, coinbaseTransaction);
   });
 
   // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
   // edge case is tricky to solve at source, just sort manually ffs
-  events = events.sort((e1: Event, e2: Event): number =>
+  transactions = transactions.sort((e1: Transaction, e2: Transaction): number =>
     new Date(e1.date).getTime() - new Date(e2.date).getTime(),
   );
-  assertChrono(events);
+  assertChrono(transactions);
 
-  return events;
+  return transactions;
 };
 

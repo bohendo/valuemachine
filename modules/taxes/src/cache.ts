@@ -1,11 +1,11 @@
 import {
   ChainData,
-  Events,
+  Transactions,
   Logs,
   PriceData as Prices,
   StateJson,
   emptyChainData,
-  emptyEvents,
+  emptyTransactions,
   emptyLogs,
   emptyPriceData,
   emptyState,
@@ -21,7 +21,7 @@ import { env } from "./env";
 
 export const CachedTypes = enumify({
   ChainData: "ChainData",
-  Events: "Events",
+  Transactions: "Transactions",
   Logs: "Logs",
   Prices: "Prices",
   State: "State",
@@ -30,13 +30,13 @@ export type CachedTypes = (typeof CachedTypes)[keyof typeof CachedTypes];
 
 const log = new ContextLogger("Cache", new LevelLogger(env.logLevel));
 
-type CachedData = ChainData | Events | Logs | Prices | StateJson;
+type CachedData = ChainData | Transactions | Logs | Prices | StateJson;
 
 const dirName = `${process.cwd()}/../../.cache`;
 
 const initialData = {
   [CachedTypes.ChainData]: emptyChainData,
-  [CachedTypes.Events]: emptyEvents,
+  [CachedTypes.Transactions]: emptyTransactions,
   [CachedTypes.Logs]: emptyLogs,
   [CachedTypes.Prices]: emptyPriceData,
   [CachedTypes.State]: emptyState,
@@ -44,7 +44,7 @@ const initialData = {
 
 const innerCache: { [index in CachedTypes]: CachedData | null} = {
   [CachedTypes.ChainData]: null,
-  [CachedTypes.Events]: null,
+  [CachedTypes.Transactions]: null,
   [CachedTypes.Logs]: null,
   [CachedTypes.Prices]: null,
   [CachedTypes.State]: null,
@@ -96,12 +96,12 @@ if (!fs.existsSync(dirName)){
 // Exports
 
 export const loadChainData = (): ChainData => load(CachedTypes.ChainData) as ChainData;
-export const loadEvents = (): Events => load(CachedTypes.Events) as Events;
+export const loadTransactions = (): Transactions => load(CachedTypes.Transactions) as Transactions;
 export const loadLogs = (): Logs => load(CachedTypes.Logs) as Logs;
 export const loadPrices = (): Prices => load(CachedTypes.Prices) as Prices;
 export const loadState = (): StateJson => load(CachedTypes.State) as StateJson;
 export const saveChainData = (chainData: ChainData): void => save(CachedTypes.ChainData, chainData);
-export const saveEvents = (events: Events): void => save(CachedTypes.Events, events);
-export const saveLogs = (events: Logs): void => save(CachedTypes.Logs, events);
+export const saveTransactions = (txs: Transactions): void => save(CachedTypes.Transactions, txs);
+export const saveLogs = (logs: Logs): void => save(CachedTypes.Logs, logs);
 export const savePrices = (prices: Prices): void => save(CachedTypes.Prices, prices);
 export const saveState = (chainData: StateJson): void => save(CachedTypes.State, chainData);

@@ -3,9 +3,9 @@ import { DecimalString, HexString, TimestampString } from "./strings";
 import { enumify } from "./utils";
 
 ////////////////////////////////////////
-// Events
+// Transactions
 
-export const EventSources = enumify({
+export const TransactionSources = enumify({
   CoinGecko: "CoinGecko",
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
@@ -14,7 +14,7 @@ export const EventSources = enumify({
   Personal: "Personal",
   SendWyre: "SendWyre",
 });
-export type EventSources = (typeof EventSources)[keyof typeof EventSources];
+export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
 
 export const TransferCategories = enumify({
   Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
@@ -41,16 +41,16 @@ export type Transfer = {
   to: HexString;
 }
 
-export type Event = {
+export type Transaction = {
   date: TimestampString;
   description: string;
   hash?: HexString;
   index: number;
   prices: { [assetType: string]: DecimalString };
-  sources: EventSources[];
+  sources: TransactionSources[];
   tags: string[];
   transfers: Transfer[];
 }
-export type Events = Event[];
+export type Transactions = Transaction[];
 
-export const emptyEvents = [] as Events;
+export const emptyTransactions = [] as Transactions;

@@ -3,7 +3,7 @@ import fs from "fs";
 import {
   getAddressBook,
   getChainData,
-  getEvents,
+  getTransactions,
   getState,
   getValueMachine,
 } from "@finances/core";
@@ -72,11 +72,11 @@ process.on("SIGINT", logAndExit);
     logger,
   );
 
-  const events = await getEvents(
+  const transactions = await getTransactions(
     addressBook,
     chainData,
     cache,
-    input.events,
+    input.transactions,
     logger,
   );
 
@@ -84,13 +84,12 @@ process.on("SIGINT", logAndExit);
 
   let state = cache.loadState();
   let vmLogs = cache.loadLogs();
-  for (const event of events.filter(
-    event => new Date(event.date).getTime() > new Date(state.lastUpdated).getTime(),
+  for (const transaction of transactions.filter(
+    transaction => new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
   )) {
-    const [newState, newLogs] = valueMachine(state, event);
+    const [newState, newLogs] = valueMachine(state, transaction);
     vmLogs = vmLogs.concat(...newLogs);
     state = newState;
-    // if (parseInt(event.date.split("-")[0], 10) < parseInt(env.taxYear, 10)) {}
   }
   cache.saveState(state);
   cache.saveLogs(vmLogs);

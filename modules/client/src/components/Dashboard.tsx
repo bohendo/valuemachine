@@ -1,27 +1,19 @@
 import React, { useState, useEffect } from 'react';
 
 import {
-  Event,
+  Transaction,
   Log,
   LogTypes,
 } from "@finances/types";
 import { LevelLogger } from "@finances/utils";
 import {
   getAddressBook,
-  getEvents,
+  getTransactions,
   getValueMachine,
 } from "@finances/core";
 import {
-  AppBar,
-  Container,
-  CssBaseline,
   Grid,
-  IconButton,
-  Theme,
-  Toolbar,
   Typography,
-  createStyles,
-  makeStyles,
 } from '@material-ui/core';
 
 import { AssetDistribution } from './AssetDistribution';
@@ -57,7 +49,7 @@ export const Dashboard: React.FC = (props: any) => {
   const [addressBook, setAddressBook] = useState({} as any);
   const [endDate, setEndDate] = useState(new Date());
   const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
-  const [financialEvents, setFinancialEvents] = useState([] as Event[]);
+  const [transactions, setTransactionss] = useState([] as Transaction[]);
   const [financialLogs, setFinancialLogs] = useState([] as Log[]);
   const [netWorthSnapshot, setNetWorthSnapshot] = useState(0);
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
@@ -76,23 +68,23 @@ export const Dashboard: React.FC = (props: any) => {
       if (Object.keys(addressBook).length === 0) {
         return;
       }
-      const events = await getEvents(
+      const transactions = await getTransactions(
         addressBook,
         chainData,
         cache,
         [],
         new LevelLogger(),
       );
-      setFinancialEvents(events);
+      setTransactionss(transactions);
 
       const valueMachine = getValueMachine(addressBook);
 
       let state = cache.loadState();
       let vmLogs = cache.loadLogs();
-      for (const event of events.filter(
-        event => new Date(event.date).getTime() > new Date(state.lastUpdated).getTime(),
+      for (const transaction of transactions.filter(
+        transaction => new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
       )) {
-        const [newState, newLogs] = valueMachine(state, event);
+        const [newState, newLogs] = valueMachine(state, transaction);
         vmLogs = vmLogs.concat(...newLogs);
         state = newState;
         cache.saveState(state);
@@ -185,7 +177,7 @@ export const Dashboard: React.FC = (props: any) => {
           <AssetDistribution totalByAssetType={totalByAssetType} date={endDate.toISOString()}/>
         </Grid>
         <Grid container>
-          <TransactionLogs addressBook={addressBook} financialEvents={financialEvents} />
+          <TransactionLogs addressBook={addressBook} transactions={transactions} />
         </Grid>
         <Grid item xs={12} md={12} lg={12}>
           <EventTable filteredTotalByCategory={filteredTotalByCategory} totalByAssetType={totalByAssetType}/>

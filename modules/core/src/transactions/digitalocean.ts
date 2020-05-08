@@ -1,18 +1,18 @@
-import { Event, EventSources, ILogger, TransferCategories } from "@finances/types";
+import { Transaction, TransactionSources, ILogger, TransferCategories } from "@finances/types";
 import { ContextLogger } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
 import { assertChrono, mergeFactory } from "./utils";
 
-export const mergeDigitalOceanEvents = (
-  oldEvents: Event[],
+export const mergeDigitalOceanTransactions = (
+  oldTransactions: Transaction[],
   digitaloceanData: string,
   lastUpdated,
   logger?: ILogger,
-): Event[] => {
+): Transaction[] => {
   const log = new ContextLogger("DigitalOcean", logger);
-  let events = JSON.parse(JSON.stringify(oldEvents));
-  const digitaloceanEvents = csv(
+  let transactions = JSON.parse(JSON.stringify(oldTransactions));
+  const digitaloceanTransactions = csv(
     digitaloceanData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
@@ -26,16 +26,16 @@ export const mergeDigitalOceanEvents = (
       return null;
     }
 
-    const event = {
+    const transaction = {
       date: (new Date(date)).toISOString(),
       description: `Paid digital ocean for ${description}`,
       prices: {},
-      sources: [EventSources.DigitalOcean],
+      sources: [TransactionSources.DigitalOcean],
       tags: ["f1040sc-L20a"],
       transfers: [],
     };
 
-    event.transfers.push({
+    transaction.transfers.push({
       assetType: "USD",
       category: TransferCategories.Transfer,
       from: "digitalocean-account",
@@ -43,22 +43,22 @@ export const mergeDigitalOceanEvents = (
       to: "digitalocean",
     });
 
-    return event;
+    return transaction;
   }).filter(row => !!row);
 
-  log.info(`Loaded ${digitaloceanEvents.length} new events from digitalocean`);
+  log.info(`Loaded ${digitaloceanTransactions.length} new transactions from digitalocean`);
 
-  digitaloceanEvents.forEach((digitaloceanEvent: Event): void => {
-    log.info(digitaloceanEvent.description);
-    events = mergeFactory({
+  digitaloceanTransactions.forEach((digitaloceanTransaction: Transaction): void => {
+    log.info(digitaloceanTransaction.description);
+    transactions = mergeFactory({
       allowableTimeDiff: 0,
       log,
-      mergeEvents: () => {},
+      mergeTransactions: () => {},
       shouldMerge: () => false,
-    })(events, digitaloceanEvent);
+    })(transactions, digitaloceanTransaction);
   });
 
-  assertChrono(events);
-  return events;
+  assertChrono(transactions);
+  return transactions;
 };
 
