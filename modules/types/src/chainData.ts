@@ -17,7 +17,7 @@ export type TransactionLog = {
   topics: Array<HexString>;
 }
 
-export type TransactionData = {
+export type EthTransaction = {
   block: number;
   data: HexString;
   from: Address;
@@ -45,7 +45,7 @@ export type ChainData = {
   addresses: { [address: string]: DateString /* Date last updated */ };
   calls: CallData[]; // Note: we can have multiple calls per txHash
   tokens: { [address: string]: TokenData /* Date last updated */ };
-  transactions: TransactionData[];
+  transactions: EthTransaction[];
 };
 
 export const emptyChainData = {

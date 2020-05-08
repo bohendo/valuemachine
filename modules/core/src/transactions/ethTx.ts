@@ -4,7 +4,7 @@ import {
   Transaction,
   TransactionSources,
   ILogger,
-  TransactionData,
+  EthTransaction,
   Transfer,
   TransferCategories,
 } from "@finances/types";
@@ -40,7 +40,7 @@ export const mergeEthTxTransactions = (
   log.info(`Processing ${newEthTxs.length} new ethereum transactions..`);
   newEthTxs
     .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
-    .map((tx: TransactionData): Transaction => {
+    .map((tx: EthTransaction): Transaction => {
       if (new Date(tx.timestamp).getTime() <= lastUpdated) {
         return null;
       }

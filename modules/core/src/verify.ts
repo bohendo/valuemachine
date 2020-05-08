@@ -1,6 +1,6 @@
-import { TransactionData } from "@finances/types";
+import { EthTransaction } from "@finances/types";
 
-export const verifyTransactionData = (transaction: TransactionData): string | null => {
+export const verifyEthTransaction = (transaction: EthTransaction): string | null => {
   if (!transaction) {
     return `Transaction is falsy: ${transaction}`;
   }
