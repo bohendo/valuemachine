@@ -53,8 +53,12 @@ export type ChainDataJson = {
 };
 
 export interface ChainData {
-  getAddressHistory: (...addresses: Address[]) => ChainDataJson;
+  getAddressHistory: (...addresses: Address[]) => ChainData;
   getTokenData: (token: Address) => TokenData;
+  getEthTransaction: (hash: HexString) => EthTransaction;
+  getEthTransactions: (testFn: (tx: EthTransaction) => boolean) => EthTransaction[];
+  getEthCall: (hash: HexString) => EthCall;
+  getEthCalls: (testFn: (call: EthCall) => boolean) => EthCall[];
   json: ChainDataJson;
   syncAddressHistory: (...addresses: Address[]) => Promise<void>;
   syncTokenData: (...tokens: Address[]) => Promise<void>;

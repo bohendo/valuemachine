@@ -1,4 +1,4 @@
-import { AddressBook, Logger, ChainDataJson, Transaction } from "@finances/types";
+import { AddressBook, Logger, ChainData, Transaction } from "@finances/types";
 
 import { mergeEthTxTransactions } from "./ethTx";
 import { mergeEthCallTransactions } from "./ethCall";
@@ -11,7 +11,7 @@ export { mergeDefaultTransactions } from "./utils";
 export const mergeEthTransactions = (
   oldTransactions: Transaction[],
   addressBook: AddressBook,
-  chainData: ChainDataJson,
+  chainData: ChainData,
   lastUpdated = 0,
   logger?: Logger,
 ): Transaction[] => {

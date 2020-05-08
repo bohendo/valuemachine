@@ -50,8 +50,8 @@ export const getTransactions = async (
     logger,
   );
 
-  log.info(`Processed ${allHistory.transactions.length} txs & ${
-    allHistory.calls.length
+  log.info(`Processed ${allHistory.json.transactions.length} txs & ${
+    allHistory.json.calls.length
   } calls for ${selfAddresses.length} addresses in ${new Date().getTime() - start} ms`);
 
   for (const source of extraTransactions || []) {

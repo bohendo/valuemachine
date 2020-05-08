@@ -1,7 +1,7 @@
 import {
   AddressBook,
   EthCall,
-  ChainDataJson,
+  ChainData,
   Transaction,
   TransactionSources,
   Logger,
@@ -17,12 +17,16 @@ import { getTransactionsError } from "../verify";
 export const mergeEthCallTransactions = (
   oldTransactions: Transaction[],
   addressBook: AddressBook,
-  chainData: ChainDataJson,
+  chainData: ChainData,
   lastUpdated: number,
   logger?: Logger,
 ): Transaction[] => {
-  const log = new ContextLogger("EthCall", logger);
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
+  const log = new ContextLogger("EthCall", logger);
+
+  const newEthCalls = chainData.getEthCalls(ethCall =>
+    new Date(ethCall.timestamp).getTime() > lastUpdated,
+  );
 
   const merge = mergeFactory({
       allowableTimeDiff: 0,
@@ -37,9 +41,9 @@ export const mergeEthCallTransactions = (
         transaction.hash === callTransaction.hash,
     });
 
-  log.info(`Processing ${chainData.calls.length} ethereum calls..`);
+  log.info(`Processing ${newEthCalls.length} ethereum calls..`);
 
-  chainData.calls
+  newEthCalls
     .sort((call1, call2) => call1.block - call2.block)
     .forEach((call: EthCall): void => {
       if (new Date(call.timestamp).getTime() <= lastUpdated) {
@@ -55,11 +59,10 @@ export const mergeEthCallTransactions = (
         return;
       }
 
-      if (!chainData.transactions || !chainData.transactions.find(tx => tx.hash === call.hash)) {
+      const ethTx = chainData.getEthTransaction(call.hash);
+      if (!ethTx) {
         throw new Error(`No tx data for call ${call.hash}, did fetching chainData get interrupted?`);
-      }
-
-      if (chainData.transactions.find(tx => tx.hash === call.hash).status !== 1) {
+      } else if (ethTx.status !== 1) {
         log.debug(`Skipping reverted call`);
         return;
       }

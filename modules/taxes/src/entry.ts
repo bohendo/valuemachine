@@ -48,14 +48,14 @@ process.on("SIGINT", logAndExit);
   const username = input.env.username;
   const logger = new LevelLogger(input.env.logLevel);
   const log = new ContextLogger("Taxes", logger);
-  log.info(`Generating tax return data for ${username} (log level: ${input.env.logLevel})`);
+  log.debug(`Generating tax return data for ${username} (log level: ${input.env.logLevel})`);
 
   const outputFolder = `${process.cwd()}/build/${username}/data`;
 
   let output = {} as Forms;
 
   setEnv({ ...input.env, outputFolder });
-  log.info(`Starting app in env: ${JSON.stringify(env)}`);
+  log.debug(`Starting app in env: ${JSON.stringify(env)}`);
 
   const formsToFile = supportedForms.filter(form => input.forms.includes(form));
 
@@ -64,11 +64,7 @@ process.on("SIGINT", logAndExit);
 
   const addressBook = getAddressBook(input.addressBook, logger);
 
-  const chainData = await getChainData(
-    store,
-    logger,
-    input.env.etherscanKey,
-  );
+  const chainData = await getChainData({ store, logger, etherscanKey: input.env.etherscanKey });
 
   await chainData.syncTokenData(...addressBook.addresses.filter(addressBook.isToken));
   await chainData.syncAddressHistory(...addressBook.addresses.filter(addressBook.isSelf));
@@ -97,7 +93,7 @@ process.on("SIGINT", logAndExit);
 
   const finalState = getState(addressBook, state, logger);
 
-  log.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
+  log.debug(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
   log.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
 
   log.info(`Done compiling financial events.\n`);

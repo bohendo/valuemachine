@@ -1,5 +1,8 @@
 import {
   Address,
+  emptyChainData,
+  EthTransaction,
+  EthCall,
   ChainData,
   ChainDataJson,
   HexString,
@@ -25,18 +28,24 @@ import {
 import { getTokenAbi } from "./abi";
 import { getEthTransactionError } from "./verify";
 
-export const getChainData = (
-  store: Store,
-  logger: Logger = console,
-  etherscanKey?: string,
-  chainData?: ChainDataJson,
-): ChainData => {
-  const log = new ContextLogger("GetChainData", logger);
-  const json = chainData || store.load(StoreKeys.ChainData);
+type ChainDataParams = {
+  store?: Store;
+  logger: Logger;
+  etherscanKey?: string;
+  chainDataJson?: ChainDataJson;
+};
+
+export const getChainData = (params: ChainDataParams): ChainData => {
+  const { store, logger, etherscanKey, chainDataJson } = params;
+  const log = new ContextLogger("ChainData", logger || console);
+  const json = chainDataJson || store ? store.load(StoreKeys.ChainData) : emptyChainData;
 
   log.info(`Loaded chain data containing ${
     json.transactions.length
-  } transactions from ${chainData ? "input" : "store"}`);
+  } transactions from ${chainDataJson ? "input" : store ? "store" : "default"}`);
+
+  ////////////////////////////////////////
+  // Internal Helper Functions
 
   const toBN = (n: BigNumberish | { _hex: HexString }): BigNumber =>
     bigNumberify(
@@ -64,6 +73,12 @@ export const getChainData = (
     return new EtherscanProvider("homestead", etherscanKey);
   };
 
+  const assertStore = (): void => {
+    if (!store) {
+      throw new Error("To sync chain data, you must provide an etherscanKey");
+    }
+  };
+
   const fetchHistory = async (action: string, address: Address): Promise<any[]> =>
     (await axios.get(
       `https://api.etherscan.io/api?module=account&` +
@@ -75,7 +90,7 @@ export const getChainData = (
   ////////////////////////////////////////
   // Exported Methods
 
-  const getAddressHistory = (...addresses: Address[]): ChainDataJson => {
+  const getAddressHistory = (...addresses: Address[]): ChainData => {
     const include = (tx: { hash: HexString }): boolean => addresses.some(
         address => json.addresses[address] && json.addresses[address].history.includes(tx.hash),
       );
@@ -83,19 +98,38 @@ export const getChainData = (
     Object.keys(json.addresses).forEach(
       address => { if (addresses.includes(address)) { summary[address] = json[address]; } },
     );
-    return JSON.parse(JSON.stringify({
-      addresses: summary,
-      transactions: json.transactions.filter(include),
-      calls: json.calls.filter(include),
-      tokens: json.tokens,
-    }));
+    return getChainData({
+      chainDataJson: {
+        addresses: summary,
+        transactions: json.transactions.filter(include),
+        calls: json.calls.filter(include),
+        tokens: json.tokens,
+      },
+      logger,
+    });
   };
 
-  const getTokenData =  (token: Address): TokenData => {
-    return JSON.parse(JSON.stringify(json.tokens[token]));
+  const getTokenData =  (token: Address): TokenData =>
+    JSON.parse(JSON.stringify(json.tokens[token]));
+
+  const getEthTransaction = (hash: HexString): EthTransaction => {
+    const ethTx = json.transactions.find(tx => tx.hash === hash);
+    return ethTx ? JSON.parse(JSON.stringify(ethTx)) : undefined;
   };
+
+  const getEthCall = (hash: HexString): EthCall => {
+    const ethCall = json.calls.find(call => call.hash === hash);
+    return ethCall ? JSON.parse(JSON.stringify(ethCall)) : undefined;
+  };
+
+  const getEthTransactions = (testFn: (tx: EthTransaction) => boolean): EthTransaction[] =>
+    JSON.parse(JSON.stringify(json.transactions.filter(testFn)));
+
+  const getEthCalls = (testFn: (call: EthCall) => boolean): EthCall[] =>
+    JSON.parse(JSON.stringify(json.calls.filter(testFn)));
 
   const syncTokenData = async (...tokens: Address[]): Promise<void> => {
+    assertStore();
     const provider = getProvider();
     const newlySupported = tokens.filter(tokenAddress =>
       !json.tokens[tokenAddress] || typeof json.tokens[tokenAddress].decimals !== "number",
@@ -114,6 +148,7 @@ export const getChainData = (
   };
 
   const syncAddressHistory = async (...userAddresses: Address[]): Promise<void> => {
+    assertStore();
     const provider = getProvider();
     const addresses = userAddresses.filter(address => {
       if (!json.addresses[address]) {
@@ -121,18 +156,7 @@ export const getChainData = (
       }
 
       const lastAction = json.transactions
-        .filter(tx =>
-          tx.to === address ||
-          tx.from === address ||
-          (
-            tx.logs &&
-            tx.logs
-              .map(log => log.topics.concat(log.address).concat(log.data))
-              .some(logData => logData.some(
-                dataField => dataField.includes(address.replace(/^0x/, "")),
-              ))
-          ),
-        )
+        .filter(tx => json.addresses[address].history.some(hash => hash === tx.hash))
         .map(tx => tx.timestamp)
         .concat(
           json.calls
@@ -164,7 +188,10 @@ export const getChainData = (
       return true;
     });
 
-    log.info(`Fetching tx history for ${addresses.length} addresses`);
+    ////////////////////////////////////////
+    // Fetch tx history for addresses that need to be updated
+
+    log.info(`Fetching tx history for ${addresses.length} out-of-date addresses`);
     for (const address of addresses) {
       // Find the most recent tx timestamp that involved any interaction w this address
       log.info(`Fetching history for address ${logProg(addresses, address)}: ${address}`);
@@ -263,20 +290,20 @@ export const getChainData = (
     }
 
     ////////////////////////////////////////
-    // Step 3: Get transaction data for all calls
+    // Make sure all calls have transaction data associated with them
     // bc we might need to ignore calls if the tx receipt says it was reverted..
 
-    const callsWithoutTx = json.calls.filter(
+    const newCalls = json.calls.filter(
       call => !json.transactions.some(tx => tx.hash === call.hash),
     );
-    log.info(`Fetching transaction data for ${callsWithoutTx.length} calls`);
+    log.info(`Fetching transaction data for ${newCalls.length} new calls`);
 
-    for (const call of callsWithoutTx) {
+    for (const call of newCalls) {
       const index = json.transactions.findIndex(tx => tx.hash === call.hash);
       if (index !== -1) {
         continue;
       }
-      log.info(`💫 getting tx data for call ${logProg(callsWithoutTx, call)} ${call.hash}`);
+      log.info(`💫 getting tx data for call ${logProg(newCalls, call)} ${call.hash}`);
       const tx = await provider.getTransaction(call.hash);
       log.info(`✅ got transaction`);
       const transaction = {
@@ -300,41 +327,40 @@ export const getChainData = (
     }
 
     ////////////////////////////////////////
-    // Step 4: Get receipts for all transactions
+    // Make sure all transactions have receipts
 
-    log.info(`Fetching ${json.transactions.filter(tx => !tx.logs).length} transaction receipts`);
+    const newEthTxs = json.transactions.filter(tx => !tx.logs);
+    log.info(`Fetching receipts for ${newEthTxs.length} new transactions`);
 
     // Scan all new transactions & fetch logs for any that don't have them yet
-    for (const tx of json.transactions) {
-      if (!tx.logs) {
-        const index = json.transactions.findIndex(t => t.hash === tx.hash);
-        log.info(`💫 getting logs for tx ${index}/${json.transactions.length} ${tx.hash}`);
-        const receipt = await provider.getTransactionReceipt(tx.hash);
-        tx.gasUsed = hexlify(receipt.gasUsed);
-        tx.index = receipt.transactionIndex;
-        tx.logs = receipt.logs.map(log => ({
-          address: log.address.toLowerCase(),
-          data: log.data,
-          index: log.transactionLogIndex,
-          topics: log.topics,
-        }));
-        // If a status field is proivided, awesome
-        tx.status =
-          // If post-byzantium, then the receipt already has a status, yay
-          typeof receipt.status === "number"
-            ? receipt.status
-            // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
-            : !toBN(tx.gasLimit).eq(toBN(receipt.gasUsed))
-            ? 1
-            // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-            : toBN(tx.gasLimit).eq(toBN("21000"))
-            ? 1
-            // Otherwise it PROBABLY failed
-            : 0;
-        log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
-        json.transactions.splice(index, 1, tx);
-        store.save(StoreKeys.ChainData, json);
-      }
+    for (const tx of newEthTxs) {
+      const index = json.transactions.findIndex(t => t.hash === tx.hash);
+      log.info(`💫 getting logs for tx ${index}/${json.transactions.length} ${tx.hash}`);
+      const receipt = await provider.getTransactionReceipt(tx.hash);
+      tx.gasUsed = hexlify(receipt.gasUsed);
+      tx.index = receipt.transactionIndex;
+      tx.logs = receipt.logs.map(log => ({
+        address: log.address.toLowerCase(),
+        data: log.data,
+        index: log.transactionLogIndex,
+        topics: log.topics,
+      }));
+      // If a status field is proivided, awesome
+      tx.status =
+        // If post-byzantium, then the receipt already has a status, yay
+        typeof receipt.status === "number"
+          ? receipt.status
+          // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
+          : !toBN(tx.gasLimit).eq(toBN(receipt.gasUsed))
+          ? 1
+          // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
+          : toBN(tx.gasLimit).eq(toBN("21000"))
+          ? 1
+          // Otherwise it PROBABLY failed
+          : 0;
+      log.info(`✅ got ${tx.logs.length} log${tx.logs.length > 1 ? "s" : ""}`);
+      json.transactions.splice(index, 1, tx);
+      store.save(StoreKeys.ChainData, json);
     }
 
     json.calls = json.calls.sort(chrono);
@@ -350,6 +376,10 @@ export const getChainData = (
 
   return {
     getAddressHistory,
+    getEthCall,
+    getEthCalls,
+    getEthTransaction,
+    getEthTransactions,
     getTokenData,
     json,
     syncAddressHistory,

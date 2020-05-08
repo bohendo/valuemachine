@@ -1,6 +1,6 @@
 import {
   AddressBook,
-  ChainDataJson,
+  ChainData,
   Transaction,
   TransactionSources,
   Logger,
@@ -22,36 +22,34 @@ import { getTransactionsError } from "../verify";
 export const mergeEthTxTransactions = (
   oldTransactions: Transaction[],
   addressBook: AddressBook,
-  chainData: ChainDataJson,
+  chainData: ChainData,
   lastUpdated: number,
   logger?: Logger,
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const log = new ContextLogger("EthTx", logger);
 
-  const latestCachedTransaction = transactions.length !== 0
-    ? new Date(transactions[transactions.length - 1].date).getTime()
-    : 0;
-
-  // returns true if new
-  const onlyNew = (data: any): boolean =>
-    new Date(data.timestamp || data.date).getTime() - latestCachedTransaction > 0;
-
-  const newEthTxs = chainData.transactions.filter(onlyNew);
+  const newEthTxs = chainData.getEthTransactions(ethTx =>
+    new Date(ethTx.timestamp).getTime() > lastUpdated &&
+    !transactions.some(tx => tx.hash === ethTx.hash),
+  );
 
   const merge = mergeFactory({
-        allowableTimeDiff: 0,
-        log: new ContextLogger("MergeEthTx", logger),
-        mergeTransactions: (): void => {
-          throw new Error(`idk how to merge txTransactions`);
-        },
-        shouldMerge: (transaction: Transaction, txTransaction: Transaction): boolean =>
-          transaction.hash === txTransaction.hash,
-      });
+    allowableTimeDiff: 0,
+    log: new ContextLogger("MergeEthTx", logger),
+    mergeTransactions: (): void => {
+      throw new Error(`idk how to merge EthTxs`);
+    },
+    shouldMerge: (transaction: Transaction, txTransaction: Transaction): boolean =>
+      transaction.hash === txTransaction.hash,
+  });
 
   log.info(`Processing ${newEthTxs.length} new ethereum transactions..`);
   newEthTxs
-    .sort((tx1, tx2) => parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`))
+    .sort((tx1, tx2) =>
+      (tx1.block * 10000 + tx1.index || 0) -
+      (tx2.block * 10000 + tx2.index || 0),
+    )
     .forEach((tx: EthTransaction): void => {
       if (new Date(tx.timestamp).getTime() <= lastUpdated) {
         return;
@@ -120,7 +118,7 @@ export const mergeEthTxTransactions = (
           const data = eventI.decode(txLog.data, txLog.topics);
           const quantity = formatUnits(
             data.value || data.wad || "0",
-            chainData.tokens[txLog.address] ? chainData.tokens[txLog.address].decimals : 18,
+            chainData.getTokenData(txLog.address).decimals,
           );
 
           const index = txLog.index;

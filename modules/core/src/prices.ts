@@ -15,6 +15,10 @@ export const getPrices = (store: Store, logger: Logger, pricesJson?: PricesJson)
   const save = (json: PricesJson): void => store.save(StoreKeys.Prices, json);
   const log = new ContextLogger("Prices", logger);
 
+  log.info(`Loaded prices for ${
+    Object.keys(json).length
+  } dates from ${pricesJson ? "input" : "store"}`);
+
   const fetchPrice = async (
     asset: string,
     timestamp: TimestampString,

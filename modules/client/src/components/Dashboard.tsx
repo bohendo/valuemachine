@@ -74,7 +74,7 @@ export const Dashboard: React.FC = (props: any) => {
         [], // Could give transactions & this function will merge new txns into the existing array
         addressBook,
         // getChainData returns chain data access methods eg chainData.getAddressHistory
-        getChainData(store, logger, "etherscanKey", chainDataJson),
+        getChainData({ store, logger, etherscanKey: "etherscanKey", chainDataJson }),
         0, // Only consider merging transactions after this time
         logger,
       );

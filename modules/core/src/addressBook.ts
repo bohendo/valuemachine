@@ -117,7 +117,8 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
     }
   });
   addresses = addresses.sort();
-  log.info(`Address book verified`);
+
+  log.info(`Address book containing ${addresses.length} addresses has been validated`);
 
   ////////////////////////////////////////
   // Exported Functions
