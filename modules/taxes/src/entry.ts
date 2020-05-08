@@ -3,7 +3,6 @@ import fs from "fs";
 import {
   getAddressBook,
   getChainData,
-  getTransactions,
   getState,
   getValueMachine,
 } from "@finances/core";
@@ -14,6 +13,7 @@ import * as cache from "./cache";
 import { env, setEnv } from "./env";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
+import { getTransactions } from "./transactions";
 import { InputData } from "./types";
 import { emptyForm, mergeForms, translate } from "./utils";
 

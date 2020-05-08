@@ -8,7 +8,8 @@ import {
 import { LevelLogger } from "@finances/utils";
 import {
   getAddressBook,
-  getTransactions,
+  mergeEthTransactions,
+  getPrice,
   getValueMachine,
 } from "@finances/core";
 import {
@@ -49,7 +50,7 @@ export const Dashboard: React.FC = (props: any) => {
   const [addressBook, setAddressBook] = useState({} as any);
   const [endDate, setEndDate] = useState(new Date());
   const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
-  const [transactions, setTransactionss] = useState([] as Transaction[]);
+  const [transactions, setTransactions] = useState([] as Transaction[]);
   const [financialLogs, setFinancialLogs] = useState([] as Log[]);
   const [netWorthSnapshot, setNetWorthSnapshot] = useState(0);
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
@@ -68,21 +69,39 @@ export const Dashboard: React.FC = (props: any) => {
       if (Object.keys(addressBook).length === 0) {
         return;
       }
-      const transactions = await getTransactions(
+      const logger = new LevelLogger();
+      const newTransactions = await mergeEthTransactions(
+        [], // Could give transactions & this function will merge new txns into the existing array
         addressBook,
         chainData,
-        cache,
-        [],
-        new LevelLogger(),
+        0, // Only consider merging transactions after this time
+        logger,
       );
-      setTransactionss(transactions);
+
+      for (let i = 0; i < newTransactions.length; i++) {
+        const tx = newTransactions[i];
+        const assets = Array.from(new Set(tx.transfers.map(a => a.assetType)));
+        for (let j = 0; j < assets.length; j++) {
+          const assetType = assets[j] as AssetTypes;
+          if (!tx.prices[assetType]) {
+            tx.prices[assetType] = await getPrice(
+              assetType,
+              tx.date,
+              cache,
+              logger,
+            );
+          }
+        }
+      }
+
+      setTransactions(newTransactions);
 
       const valueMachine = getValueMachine(addressBook);
 
       let state = cache.loadState();
       let vmLogs = cache.loadLogs();
-      for (const transaction of transactions.filter(
-        transaction => new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
+      for (const transaction of newTransactions.filter(
+        tx => new Date(tx.date).getTime() > new Date(state.lastUpdated).getTime(),
       )) {
         const [newState, newLogs] = valueMachine(state, transaction);
         vmLogs = vmLogs.concat(...newLogs);
