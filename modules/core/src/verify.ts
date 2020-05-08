@@ -1,10 +1,9 @@
 import { EthTransaction } from "@finances/types";
 
-export const verifyEthTransaction = (transaction: EthTransaction): string | null => {
+export const getEthTransactionError = (transaction: EthTransaction): string | null => {
   if (!transaction) {
     return `Transaction is falsy: ${transaction}`;
   }
-
   for (const { key, type } of [
     { key: "block", type: "number" },
     { key: "data", type: "string" },
@@ -15,16 +14,25 @@ export const verifyEthTransaction = (transaction: EthTransaction): string | null
     { key: "hash", type: "string" },
     { key: "index", type: "number" },
     { key: "logs", type: "object" },
-    { key: "nounce", type: "number" },
+    { key: "nonce", type: "number" },
     { key: "status", type: "number" },
     { key: "timestamp", type: "string" },
-    { key: "to", type: "string" },
+    { key: "to", type: ["string", "object"] },
     { key: "value", type: "string" },
   ]) {
-    if (!transaction[key] || typeof transaction[key] !== type) {
-      return `Transaction ${key} isn't a ${type}: ${JSON.stringify(transaction, null, 2)}`;
+    if (typeof type === "string") {
+      if (typeof transaction[key] !== type) {
+        return `${key} is a ${typeof transaction[key]}, expected a ${type}: ${
+          JSON.stringify(transaction, null, 2)
+        }`;
+      }
+    } else if (typeof type === "object" && typeof type.length === "number") {
+      if (!type.includes(typeof transaction[key])) {
+        return `${key} is a ${typeof transaction[key]}, expected one of ${type}: ${
+          JSON.stringify(transaction, null, 2)
+        }`;
+      }
     }
   }
-
   return null;
 };

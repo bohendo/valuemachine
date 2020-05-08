@@ -14,6 +14,7 @@ import {
 } from "ethers/utils";
 
 import { getTokenAbi } from "./abi";
+import { getEthTransactionError } from "./verify";
 
 export const getChainData = async (
   userAddresses: Address[],
@@ -309,6 +310,12 @@ export const getChainData = async (
 
   chainData.calls = chainData.calls.sort(chrono);
   chainData.transactions = chainData.transactions.sort(chrono);
+  chainData.transactions.forEach(tx => {
+    const error = getEthTransactionError(tx);
+    if (error) {
+      throw new Error(error);
+    }
+  });
   cache.saveChainData(chainData);
   return chainData;
 };
