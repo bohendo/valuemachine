@@ -1,30 +1,38 @@
 import {
-  getPrice,
+  getPrices,
   mergeCoinbaseTransactions,
   mergeDefaultTransactions,
   mergeDigitalOceanTransactions,
   mergeEthTransactions,
   mergeWyreTransactions,
 } from "@finances/core";
-import { AddressBook, ILogger, AssetTypes, ChainData, Transaction } from "@finances/types";
+import {
+  AddressBook,
+  AssetTypes,
+  ChainDataJson,
+  Logger,
+  Store,
+  StoreKeys,
+  Transaction,
+} from "@finances/types";
 import { ContextLogger } from "@finances/utils";
 import * as fs from "fs";
 
 export const getTransactions = async (
   addressBook: AddressBook,
-  chainData: ChainData,
-  cache: any,
+  chainData: ChainDataJson,
+  store: Store,
   extraTransactions: Array<Transaction | string>,
-  logger: ILogger = console,
+  logger: Logger = console,
 ): Promise<Transaction[]> => {
   const log = new ContextLogger("GetTransactions", logger);
 
-  let transactions = cache.loadTransactions();
+  let transactions = store.load(StoreKeys.Transactions);
   const lastUpdated = transactions.length !== 0
     ? new Date(transactions[transactions.length - 1].date).getTime()
     : 0;
 
-  log.info(`Loaded ${transactions.length} transactions from cache, most recent was on: ${
+  log.info(`Loaded ${transactions.length} transactions from store, most recent was on: ${
     lastUpdated ? new Date(lastUpdated).toISOString() : "never"
   }`);
 
@@ -68,6 +76,7 @@ export const getTransactions = async (
   }
 
   log.info(`Attaching price info to transactions`);
+  const prices = getPrices(store, logger);
   for (let i = 0; i < transactions.length; i++) {
     const transaction = transactions[i];
     const assets = Array.from(new Set(transaction.transfers.map(a => a.assetType)));
@@ -75,16 +84,16 @@ export const getTransactions = async (
       const assetType = assets[j] as AssetTypes;
       if (!transaction.prices) { transaction.prices = {}; } // TODO: this should already be done
       if (!transaction.prices[assetType]) {
-        transaction.prices[assetType] = await getPrice(assetType, transaction.date, cache, logger);
+        transaction.prices[assetType] = await prices.getPrice(assetType, transaction.date);
       }
     }
   }
   log.info(`Transaction price info is up to date`);
 
-  log.info(`Saving ${transactions.length} transactions to cache`);
+  log.info(`Saving ${transactions.length} transactions to store`);
   let i = 1;
   transactions.map(transaction => transaction.index = i++);
-  cache.saveTransactions(transactions);
+  store.save(StoreKeys.Transactions, transactions);
   return transactions;
 };
 

@@ -1,10 +1,10 @@
-import { AddressBook, Transaction, ILogger, Event, StateJson } from "@finances/types";
+import { AddressBook, Transaction, Logger, Event, StateJson } from "@finances/types";
 import { ContextLogger } from "@finances/utils";
 
 import { emitTransactionEvents, emitTransferEvents } from "./events";
 import { getState } from "./state";
 
-export const getValueMachine = (addressBook: AddressBook, logger?: ILogger): any => {
+export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any => {
   const log = new ContextLogger("ValueMachine", logger);
   const { getName } = addressBook;
 

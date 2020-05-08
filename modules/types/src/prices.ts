@@ -1,10 +1,16 @@
-import { DecimalString } from "./strings";
+import { AssetTypes } from "./assets";
+import { DecimalString, TimestampString } from "./strings";
 
-export type PriceData = {
+export type PricesJson = {
   ids: { [assetType: string]: string };
   [date: string]: {
     [assetType: string]: DecimalString;
   };
 }
 
-export const emptyPriceData = { ids: {} } as PriceData;
+export interface Prices {
+  getPrice(asset: AssetTypes, date: TimestampString): Promise<string>;
+  json: PricesJson;
+}
+
+export const emptyPrices = { ids: {} } as PricesJson;

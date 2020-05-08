@@ -1,9 +1,9 @@
 import {
   AddressBook,
-  ChainData,
+  ChainDataJson,
   Transaction,
   TransactionSources,
-  ILogger,
+  Logger,
   EthTransaction,
   Transfer,
   TransferCategories,
@@ -22,9 +22,9 @@ import { getTransactionsError } from "../verify";
 export const mergeEthTxTransactions = (
   oldTransactions: Transaction[],
   addressBook: AddressBook,
-  chainData: ChainData,
+  chainData: ChainDataJson,
   lastUpdated: number,
-  logger?: ILogger,
+  logger?: Logger,
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const log = new ContextLogger("EthTx", logger);

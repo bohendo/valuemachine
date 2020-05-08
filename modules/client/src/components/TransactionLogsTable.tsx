@@ -96,7 +96,7 @@ const TablePaginationActions = (props: TablePaginationActionsProps) => {
   );
 }
 
-export const TransactionLogsTable = (props: any) => {
+export const EthTransactionLogsTable = (props: any) => {
   const { addressBook, filteredEvents } = props
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);

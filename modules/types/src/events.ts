@@ -121,4 +121,6 @@ export type Event =
   | WithdrawEvent;
 export type Events = Event[];
 
+export type EventsJson = Events;
+
 export const emptyEvents = [] as Events;

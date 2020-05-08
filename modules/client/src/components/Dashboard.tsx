@@ -21,7 +21,7 @@ import { AssetDistribution } from './AssetDistribution';
 import { DateTime } from './DateTimePicker'
 import { EventTable } from './EventTable'
 import { NetWorth } from './NetWorthGraph';
-import { TransactionLogs } from './TransactionLogs'
+import { EthTransactionLogs } from './EthTransactionLogs'
 
 import * as cache from '../utils/cache';
 
@@ -196,7 +196,7 @@ export const Dashboard: React.FC = (props: any) => {
           <AssetDistribution totalByAssetType={totalByAssetType} date={endDate.toISOString()}/>
         </Grid>
         <Grid container>
-          <TransactionLogs addressBook={addressBook} transactions={transactions} />
+          <EthTransactionLogs addressBook={addressBook} transactions={transactions} />
         </Grid>
         <Grid item xs={12} md={12} lg={12}>
           <EventTable filteredTotalByCategory={filteredTotalByCategory} totalByAssetType={totalByAssetType}/>

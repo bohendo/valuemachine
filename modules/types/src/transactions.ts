@@ -53,4 +53,6 @@ export type Transaction = {
 }
 export type Transactions = Transaction[];
 
+export type TransactionsJson = Transactions;
+
 export const emptyTransactions = [] as Transactions;

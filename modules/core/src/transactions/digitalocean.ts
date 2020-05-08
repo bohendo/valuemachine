@@ -1,4 +1,4 @@
-import { Transaction, TransactionSources, ILogger, TransferCategories } from "@finances/types";
+import { Transaction, TransactionSources, Logger, TransferCategories } from "@finances/types";
 import { ContextLogger } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
@@ -9,7 +9,7 @@ export const mergeDigitalOceanTransactions = (
   oldTransactions: Transaction[],
   digitaloceanData: string,
   lastUpdated,
-  logger?: ILogger,
+  logger?: Logger,
 ): Transaction[] => {
   const log = new ContextLogger("DigitalOcean", logger);
   let transactions = JSON.parse(JSON.stringify(oldTransactions));

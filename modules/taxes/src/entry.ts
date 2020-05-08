@@ -6,10 +6,10 @@ import {
   getState,
   getValueMachine,
 } from "@finances/core";
-import { ExpenseEvent, EventTypes } from "@finances/types";
+import { ExpenseEvent, EventTypes, StoreKeys } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
-import * as cache from "./cache";
+import { store } from "./store";
 import { env, setEnv } from "./env";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
@@ -67,7 +67,7 @@ process.on("SIGINT", logAndExit);
   const chainData = await getChainData(
     addressBook.addresses.filter(addressBook.isSelf),
     addressBook.addresses.filter(addressBook.isToken),
-    cache,
+    store,
     input.env.etherscanKey,
     logger,
   );
@@ -75,15 +75,15 @@ process.on("SIGINT", logAndExit);
   const transactions = await getTransactions(
     addressBook,
     chainData,
-    cache,
+    store,
     input.transactions,
     logger,
   );
 
   const valueMachine = getValueMachine(addressBook, logger);
 
-  let state = cache.loadState();
-  let vmEvents = cache.loadEvents();
+  let state = store.load(StoreKeys.State);
+  let vmEvents = store.load(StoreKeys.Events);
   for (const transaction of transactions.filter(
     transaction => new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
   )) {
@@ -91,8 +91,8 @@ process.on("SIGINT", logAndExit);
     vmEvents = vmEvents.concat(...newEvents);
     state = newState;
   }
-  cache.saveState(state);
-  cache.saveEvents(vmEvents);
+  store.save(StoreKeys.State, state);
+  store.save(StoreKeys.Events, vmEvents);
 
   const finalState = getState(addressBook, state, logger);
 

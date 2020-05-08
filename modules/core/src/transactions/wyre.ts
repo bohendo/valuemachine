@@ -1,6 +1,6 @@
 import {
   DateString,
-  ILogger,
+  Logger,
   Transaction,
   TransactionSources,
   TransferCategories,
@@ -19,7 +19,7 @@ export const mergeWyreTransactions = (
   oldTransactions: Transaction[],
   wyreData: string,
   lastUpdated: number,
-  logger?: ILogger,
+  logger?: Logger,
 ): Transaction[] => {
   const log = new ContextLogger("SendWyre", logger);
   let transactions = JSON.parse(JSON.stringify(oldTransactions));

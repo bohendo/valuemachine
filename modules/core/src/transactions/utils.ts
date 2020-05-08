@@ -2,7 +2,7 @@ import {
   DecimalString,
   Transaction,
   TransactionSources,
-  ILogger,
+  Logger,
 } from "@finances/types";
 import { math } from "@finances/utils";
 
@@ -47,7 +47,7 @@ export const mergeFactory = (opts: {
   allowableTimeDiff: number;
   mergeTransactions: any;
   shouldMerge: any;
-  log: ILogger;
+  log: Logger;
 }) =>
   (transactions: Transaction[], newTransaction: Transaction): Transaction[] => {
     const { allowableTimeDiff, mergeTransactions, shouldMerge, log } = opts;

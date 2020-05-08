@@ -1,6 +1,6 @@
 import { Address, DateString, DecimalString, HexString, TimestampString } from "./strings";
 
-export type CallData = {
+export type EthCall = {
   block: number;
   contractAddress: Address; // AddressZero if ETH
   from: Address;
@@ -10,7 +10,7 @@ export type CallData = {
   value: DecimalString;
 };
 
-export type TransactionLog = {
+export type EthTransactionLog = {
   address: Address;
   data: HexString;
   index: number;
@@ -26,7 +26,7 @@ export type EthTransaction = {
   gasUsed?: HexString;
   hash: HexString;
   index?: number;
-  logs?: TransactionLog[];
+  logs?: EthTransactionLog[];
   nonce: number;
   status?: number | undefined;
   timestamp: TimestampString;
@@ -40,17 +40,23 @@ export type TokenData = {
   symbol: string;
 }
 
-// format of chain-data.json
-export type ChainData = {
+export type ChainDataJson = {
   addresses: { [address: string]: DateString /* Date last updated */ };
-  calls: CallData[]; // Note: we can have multiple calls per txHash
-  tokens: { [address: string]: TokenData /* Date last updated */ };
+  calls: EthCall[]; // Note: we can have multiple calls per txHash
+  tokens: { [address: string]: TokenData };
   transactions: EthTransaction[];
 };
+
+export interface ChainData {
+  getAddressData: (...addresses: Address[]) => ChainDataJson;
+  syncAddressData: (...addresses: Address[]) => Promise<ChainDataJson>;
+  getTokenData: (...tokens: Address[]) => Promise<ChainDataJson>;
+  json: ChainDataJson;
+}
 
 export const emptyChainData = {
   addresses: {},
   calls: [],
   tokens: {},
   transactions: [],
-} as ChainData;
+} as ChainDataJson;

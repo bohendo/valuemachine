@@ -7,6 +7,6 @@ export {
   mergeWyreTransactions,
   mergeDefaultTransactions,
 } from "./transactions";
-export { getPrice } from "./prices";
+export { getPrices } from "./prices";
 export { getState } from "./state";
 export { getValueMachine } from "./vm";

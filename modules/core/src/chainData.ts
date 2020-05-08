@@ -1,4 +1,4 @@
-import { Address, ChainData, HexString, ILogger } from "@finances/types";
+import { Address, ChainDataJson, HexString, Logger } from "@finances/types";
 import { ContextLogger } from "@finances/utils";
 import axios from "axios";
 import { Contract } from "ethers";
@@ -21,8 +21,8 @@ export const getChainData = async (
   tokenAddresses: Address[],
   cache: any,
   etherscanKey: string,
-  logger: ILogger = console,
-): Promise<ChainData> => {
+  logger: Logger = console,
+): Promise<ChainDataJson> => {
   const log = new ContextLogger("GetChainData", logger);
   const chainData = cache.loadChainData();
 

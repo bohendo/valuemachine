@@ -1,8 +1,8 @@
 import {
   AddressBook,
   AddressCategories,
-  ILogger,
-  TransactionLog,
+  Logger,
+  EthTransactionLog,
   Transfer,
   TransferCategories,
 } from "@finances/types";
@@ -14,9 +14,9 @@ import { exchangeEvents, daiJoinInterface, defiEvents, vatInterface } from "../a
 
 export const categorizeTransfer = (
   inputTransfer: Partial<Transfer>,
-  txLogs: TransactionLog[],
+  txLogs: EthTransactionLog[],
   addressBook: AddressBook,
-  logger?: ILogger,
+  logger?: Logger,
 ): Transfer => {
   const transfer = JSON.parse(JSON.stringify(inputTransfer));
   const { isCategory, isSelf, getName } = addressBook;

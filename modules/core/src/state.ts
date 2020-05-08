@@ -5,7 +5,7 @@ import {
   AssetTypes,
   DecimalString,
   Transaction,
-  ILogger,
+  Logger,
   NetWorth,
   State,
   StateBalances,
@@ -19,7 +19,7 @@ const { add, gt, round, sub } = math;
 export const getState = (
   addressBook: AddressBook,
   state: StateJson,
-  logger?: ILogger,
+  logger?: Logger,
 ): State => {
   const log = new ContextLogger("State", logger);
 

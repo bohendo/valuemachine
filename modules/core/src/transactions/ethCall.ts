@@ -1,10 +1,10 @@
 import {
   AddressBook,
-  CallData,
-  ChainData,
+  EthCall,
+  ChainDataJson,
   Transaction,
   TransactionSources,
-  ILogger,
+  Logger,
   TransferCategories,
 } from "@finances/types";
 import { ContextLogger, math } from "@finances/utils";
@@ -17,9 +17,9 @@ import { getTransactionsError } from "../verify";
 export const mergeEthCallTransactions = (
   oldTransactions: Transaction[],
   addressBook: AddressBook,
-  chainData: ChainData,
+  chainData: ChainDataJson,
   lastUpdated: number,
-  logger?: ILogger,
+  logger?: Logger,
 ): Transaction[] => {
   const log = new ContextLogger("EthCall", logger);
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
@@ -28,7 +28,7 @@ export const mergeEthCallTransactions = (
 
   chainData.calls.sort((call1, call2) => {
     return call1.block - call2.block;
-  }).map((call: CallData): any => {
+  }).map((call: EthCall): any => {
     if (new Date(call.timestamp).getTime() <= lastUpdated) {
       return null;
     }
