@@ -1,29 +1,121 @@
-import { TransactionData } from "@finances/types";
+import { EthTransaction, Transaction } from "@finances/types";
 
-export const verifyTransactionData = (transaction: TransactionData): string | null => {
+const isSameType = (actual: any, expected: string): boolean => {
+  if (typeof actual === expected) {
+    return true;
+  }
+  if (typeof actual === "object" && JSON.stringify(actual) === expected) {
+    return true;
+  }
+  if (
+    expected.endsWith("[]") &&
+    typeof actual === "object" &&
+    typeof actual.length === "number" &&
+    actual.every(element => expected.startsWith(typeof element))
+  ) {
+    return true;
+  }
+  if (
+    expected.endsWith("?") && (
+      expected.startsWith(typeof actual) || typeof actual === "undefined"
+    )
+  ) {
+    return true;
+  }
+  return false;
+};
+
+const getTypeError = (target: any, key: string, expected: string | string[]): string | null => {
+  if (typeof expected === "string") {
+    if (!isSameType(target[key], expected)) {
+      return `${key} is a ${typeof target[key]}, expected a ${expected}: ${
+        JSON.stringify(target, null, 2)
+      }`;
+    }
+  } else if (typeof expected === "object" && typeof expected.length === "number") {
+    if (!expected.some(expectedType => isSameType(target[key], expectedType))) {
+      return `${key} is a ${typeof target[key]}, expected one of ${expected}: ${
+        JSON.stringify(target, null, 2)
+      }`;
+    }
+  }
+  return null;
+};
+
+export const getEthTransactionError = (transaction: EthTransaction): string | null => {
   if (!transaction) {
     return `Transaction is falsy: ${transaction}`;
   }
-
-  for (const { key, type } of [
-    { key: "block", type: "number" },
-    { key: "data", type: "string" },
-    { key: "from", type: "string" },
-    { key: "gasLimit", type: "string" },
-    { key: "gasPrice", type: "string" },
-    { key: "gasUsed", type: "string" },
-    { key: "hash", type: "string" },
-    { key: "index", type: "number" },
-    { key: "logs", type: "object" },
-    { key: "nounce", type: "number" },
-    { key: "status", type: "number" },
-    { key: "timestamp", type: "string" },
-    { key: "to", type: "string" },
-    { key: "value", type: "string" },
+  for (const { key, expected } of [
+    { key: "block", expected: "number" },
+    { key: "data", expected: "string" },
+    { key: "from", expected: "string" },
+    { key: "gasLimit", expected: "string" },
+    { key: "gasPrice", expected: "string" },
+    { key: "gasUsed", expected: "string" },
+    { key: "hash", expected: "string" },
+    { key: "index", expected: "number" },
+    { key: "logs", expected: "object" },
+    { key: "nonce", expected: "number" },
+    { key: "status", expected: "number" },
+    { key: "timestamp", expected: "string" },
+    { key: "to", expected: ["string", "null"] },
+    { key: "value", expected: "string" },
   ]) {
-    if (!transaction[key] || typeof transaction[key] !== type) {
-      return `Transaction ${key} isn't a ${type}: ${JSON.stringify(transaction, null, 2)}`;
+    const typeError = getTypeError(transaction, key, expected);
+    if (typeError) {
+      return typeError;
     }
+  }
+  return null;
+};
+
+export const getTransactionsError = (transactions: Transaction[]): string | null => {
+  for (const transaction of transactions) {
+    for (const { key, expected } of [
+      { key: "date", expected: "string" },
+      { key: "description", expected: "string" },
+      { key: "hash", expected: "string?" },
+      { key: "index", expected: "number?" },
+      { key: "prices", expected: "object" },
+      { key: "sources", expected: "string[]" },
+      { key: "tags", expected: "string[]" },
+      { key: "transfers", expected: "object[]" },
+    ]) {
+      const typeError = getTypeError(transaction, key, expected);
+      if (typeError) {
+        return typeError;
+      }
+    }
+
+    for (const transfer of transaction.transfers) {
+      for (const { key, expected } of [
+        { key: "assetType", expected: "string" },
+        { key: "category", expected: "string" },
+        { key: "fee", expected: "string?" },
+        { key: "from", expected: "string" },
+        { key: "index", expected: "number?" },
+        { key: "quantity", expected: "string" },
+        { key: "to", expected: "string" },
+      ]) {
+        const typeError = getTypeError(transfer, key, expected);
+        if (typeError) {
+          return typeError;
+        }
+      }
+    }
+  }
+
+  // Make sure events are in chronological order
+  let prevTime = 0;
+  for (const transaction of transactions) {
+    const currTime = new Date(transaction.date).getTime();
+    if (currTime < prevTime) {
+      throw new Error(
+        `Transactions out of order: ${transaction.date} < ${new Date(prevTime).toISOString()}`,
+      );
+    }
+    prevTime = currTime;
   }
 
   return null;

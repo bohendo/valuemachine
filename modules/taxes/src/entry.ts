@@ -3,17 +3,17 @@ import fs from "fs";
 import {
   getAddressBook,
   getChainData,
-  getEvents,
   getState,
   getValueMachine,
 } from "@finances/core";
-import { ExpenseLog, LogTypes } from "@finances/types";
+import { ExpenseEvent, EventTypes, StoreKeys } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
-import * as cache from "./cache";
+import { store } from "./store";
 import { env, setEnv } from "./env";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
+import { getTransactions } from "./transactions";
 import { InputData } from "./types";
 import { emptyForm, mergeForms, translate } from "./utils";
 
@@ -48,14 +48,14 @@ process.on("SIGINT", logAndExit);
   const username = input.env.username;
   const logger = new LevelLogger(input.env.logLevel);
   const log = new ContextLogger("Taxes", logger);
-  log.info(`Generating tax return data for ${username} (log level: ${input.env.logLevel})`);
+  log.debug(`Generating tax return data for ${username} (log level: ${input.env.logLevel})`);
 
   const outputFolder = `${process.cwd()}/build/${username}/data`;
 
   let output = {} as Forms;
 
   setEnv({ ...input.env, outputFolder });
-  log.info(`Starting app in env: ${JSON.stringify(env)}`);
+  log.debug(`Starting app in env: ${JSON.stringify(env)}`);
 
   const formsToFile = supportedForms.filter(form => input.forms.includes(form));
 
@@ -64,40 +64,45 @@ process.on("SIGINT", logAndExit);
 
   const addressBook = getAddressBook(input.addressBook, logger);
 
-  const chainData = await getChainData(
-    addressBook.addresses.filter(addressBook.isSelf),
-    addressBook.addresses.filter(addressBook.isToken),
-    cache,
-    input.env.etherscanKey,
-    logger,
-  );
+  const chainData = await getChainData({ store, logger, etherscanKey: input.env.etherscanKey });
 
-  const events = await getEvents(
+  await chainData.syncTokenData(...addressBook.addresses.filter(addressBook.isToken));
+  await chainData.syncAddressHistory(...addressBook.addresses.filter(addressBook.isSelf));
+
+  const transactions = await getTransactions(
     addressBook,
     chainData,
-    cache,
-    input.events,
+    store,
+    input.transactions,
     logger,
   );
 
   const valueMachine = getValueMachine(addressBook, logger);
 
-  let state = cache.loadState();
-  let vmLogs = cache.loadLogs();
-  for (const event of events.filter(
-    event => new Date(event.date).getTime() > new Date(state.lastUpdated).getTime(),
+  let state = store.load(StoreKeys.State);
+  let vmEvents = store.load(StoreKeys.Events);
+  let start = Date.now();
+  for (const transaction of transactions.filter(
+    transaction => new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
   )) {
-    const [newState, newLogs] = valueMachine(state, event);
-    vmLogs = vmLogs.concat(...newLogs);
+    const [newState, newEvents] = valueMachine(state, transaction);
+    vmEvents = vmEvents.concat(...newEvents);
     state = newState;
-    // if (parseInt(event.date.split("-")[0], 10) < parseInt(env.taxYear, 10)) {}
+
+    const chunk = 100;
+    if (transaction.index % chunk === 0) {
+      const diff = (Date.now() - start).toString();
+        log.info(`Processed transactions ${transaction.index - chunk}-${transaction.index} in ${diff} ms`);
+      start = Date.now();
+    }
+
   }
-  cache.saveState(state);
-  cache.saveLogs(vmLogs);
+  store.save(StoreKeys.State, state);
+  store.save(StoreKeys.Events, vmEvents);
 
   const finalState = getState(addressBook, state, logger);
 
-  log.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
+  log.debug(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
   log.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
 
   log.info(`Done compiling financial events.\n`);
@@ -145,15 +150,15 @@ process.on("SIGINT", logAndExit);
 
   if (input.expenses && input.expenses.length > 0) {
     input.expenses.forEach(expense => {
-      vmLogs.push({
+      vmEvents.push({
         assetType: "USD",
         assetPrice: "1",
         to: "merchant",
         taxTags: [],
-        type: LogTypes.Expense,
+        type: EventTypes.Expense,
         ...expense,
-      } as ExpenseLog);
-      vmLogs.sort((a, b): number => new Date(a.date).getTime() - new Date(b.date).getTime());
+      } as ExpenseEvent);
+      vmEvents.sort((a, b): number => new Date(a.date).getTime() - new Date(b.date).getTime());
     });
   }
 
@@ -166,7 +171,10 @@ process.on("SIGINT", logAndExit);
         log.warn(`No filer is available for form ${form}. Using unmodified user input.`);
         continue;
       }
-      output = filers[form](vmLogs.filter(vmLog => vmLog.date.startsWith(env.taxYear)), output);
+      output = filers[form](
+        vmEvents.filter(vmEvent => vmEvent.date.startsWith(env.taxYear)),
+        output,
+      );
     }
   }
 

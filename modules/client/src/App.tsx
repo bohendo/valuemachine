@@ -15,7 +15,7 @@ import { NavBar } from "./components/NavBar";
 import { AccountInfo } from "./components/AccountInfo";
 import { Dashboard } from "./components/Dashboard";
 
-import * as cache from "./utils/cache";
+import { store } from "./utils/cache";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -37,7 +37,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const App: React.FC = () => {
   const classes = useStyles();
-  const [personal, setPersonal] = useState(cache.loadPersonal());
+  const [personal, setPersonal] = useState(store.load("personal"));
   const [addressBook, setAddressBook] = useState({} as any);
 
   useEffect(() => {

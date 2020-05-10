@@ -15,14 +15,15 @@ export const AddressCategories = enumify({
   Self: "Self",
 });
 export type AddressCategories = (typeof AddressCategories)[keyof typeof AddressCategories];
-export type AddressData = {
+
+export type AddressEntry = {
   address: HexString;
   category: AddressCategories;
   name: string;
   tags?: string[];
 }
 
-export type AddressBookJson = Array<AddressData>;
+export type AddressBookJson = Array<AddressEntry>;
 
 export interface AddressBook {
   addresses: Address[];

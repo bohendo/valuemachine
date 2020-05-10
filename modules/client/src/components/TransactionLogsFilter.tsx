@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-export const TransactionLogsFilter = (props: any) => {
+export const EthTransactionLogsFilter = (props: any) => {
   const { financialEvents, setFilteredEvents } = props
 
   const classes = useStyles();

@@ -31,10 +31,10 @@ import {
   Save as SaveIcon,
 } from "@material-ui/icons";
 import {
-  AddressData,
+  AddressEntry,
 } from "@finances/types";
 
-import * as cache from "../utils/cache";
+import { store } from "../utils/cache";
 
 const tagsSelect = [
   "active",
@@ -62,17 +62,18 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 const AddListItem = (props: any) => {
-  const [newAddressData, setNewAddressData] = useState({category: props.category} as AddressData);
+  const [newAddressEntry, setNewAddressEntry] = useState({} as AddressEntry);
   const { personal, setPersonal } = props;
+
   const classes = useStyles();
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setNewAddressData({...newAddressData, [event.target.name]: event.target.value});
-    console.log(newAddressData)
+    setNewAddressEntry({...newAddressEntry, [event.target.name]: event.target.value});
+    console.log(newAddressEntry)
   };
 
   const addNewAddress = () => {
-    setPersonal({...personal, addressBook: [...personal.addressBook, newAddressData]});
+    setPersonal({...personal, addressBook: [...personal.addressBook, newAddressEntry]});
   };
 
   return (
@@ -164,7 +165,7 @@ const AddressList = (props: any) => {
         </TableHead>
 
         <TableBody>
-          { personal.addressBook.map((entry: AddressData, i: number) => {
+          { personal.addressBook.map((entry: AddressEntry, i: number) => {
               if (entry.category === category.toLowerCase()) {
                 return (
                   <TableRow key={i} >
@@ -178,7 +179,9 @@ const AddressList = (props: any) => {
                     <TableCell> {entry.tags} </TableCell>
                   </TableRow>
                 )
-              } else return null;
+              } else {
+                return null;
+              }
           })}
         </TableBody>
       </Table>
@@ -234,7 +237,7 @@ export const AccountInfo: React.FC = (props: any) => {
         color="primary"
         size="small"
         className={classes.button}
-        onClick={() => cache.savePersonal(personal)}
+        onClick={() => store.save("personal", personal)}
         startIcon={<SaveIcon />}
       >
         Save LocalStorage

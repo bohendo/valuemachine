@@ -1,10 +1,10 @@
-import { Log } from "@finances/types";
+import { Event } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
 import { Forms } from "../types";
 
-export const f2555 = (vmLogs: Log[], oldForms: Forms): Forms => {
+export const f2555 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const log = new ContextLogger("f2555", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f2555 } = forms;
@@ -15,6 +15,8 @@ export const f2555 = (vmLogs: Log[], oldForms: Forms): Forms => {
   log.info(`Foreign earned income exclusion: ${f2555.L42}`);
 
   f2555.L43 = math.add(f2555.L36, f2555.L42);
+
+  f2555.L27 = f2555.L26;
 
   return { ...forms, f2555 };
 };

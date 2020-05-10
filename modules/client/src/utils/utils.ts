@@ -1,25 +1,25 @@
 import {
-  LogTypes,
+  EventTypes,
 } from "@finances/types";
 
 const INDENT = 5;
 
 export const inTypes = [
-  LogTypes.Borrow,
-  LogTypes.GiftIn,
-  LogTypes.Income,
-  LogTypes.Mint,
-  LogTypes.SwapIn,
-  LogTypes.Withdraw,
+  EventTypes.Borrow,
+  EventTypes.GiftIn,
+  EventTypes.Income,
+  EventTypes.Mint,
+  EventTypes.SwapIn,
+  EventTypes.Withdraw,
 ];
 
 export const outTypes = [
-  LogTypes.Burn,
-  LogTypes.Deposit,
-  LogTypes.Expense,
-  LogTypes.GiftOut,
-  LogTypes.Repay,
-  LogTypes.SwapOut,
+  EventTypes.Burn,
+  EventTypes.Deposit,
+  EventTypes.Expense,
+  EventTypes.GiftOut,
+  EventTypes.Repay,
+  EventTypes.SwapOut,
 ];
 
 export const getCoordinates = (startAngle: number, endAngle: number, maxRadius: number) => {

@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
 import {
+  Transaction,
   Event,
-  Log,
-  LogTypes,
+  EventTypes,
 } from "@finances/types";
 import { LevelLogger } from "@finances/utils";
 import {
-  getEvents,
+  getAddressBook,
+  getChainData,
+  getPrices,
   getValueMachine,
+  mergeEthTransactions,
 } from "@finances/core";
 import {
   Grid,
@@ -19,18 +22,18 @@ import { AssetDistribution } from './AssetDistribution';
 import { DateTime } from './DateTimePicker'
 import { EventTable } from './EventTable'
 import { NetWorth } from './NetWorthGraph';
-import { TransactionLogs } from './TransactionLogs'
+import { EthTransactionLogs } from './TransactionLogs'
 
-import * as cache from '../utils/cache';
 import { inTypes, outTypes } from '../utils/utils';
+import { store } from '../utils/cache';
 
-import chainData from '../data/chain-data.json';
+import chainDataJson from '../data/chain-data.json';
 
 export const Dashboard: React.FC = (props: any) => {
   const [endDate, setEndDate] = useState(new Date());
   const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
+  const [transactions, setTransactions] = useState([] as Transaction[]);
   const [financialEvents, setFinancialEvents] = useState([] as Event[]);
-  const [financialLogs, setFinancialLogs] = useState([] as Log[]);
   const [netWorthSnapshot, setNetWorthSnapshot] = useState(0);
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
@@ -42,30 +45,46 @@ export const Dashboard: React.FC = (props: any) => {
       if (Object.keys(addressBook).length === 0) {
         return;
       }
-      const events = await getEvents(
+      const logger = new LevelLogger();
+      const newTransactions = await mergeEthTransactions(
+        [], // Could give transactions & this function will merge new txns into the existing array
         addressBook,
-        chainData,
-        cache,
-        [],
-        new LevelLogger(1),
+        // getChainData returns chain data access methods eg chainData.getAddressHistory
+        getChainData({ store, logger, etherscanKey: "etherscanKey", chainDataJson }),
+        0, // Only consider merging transactions after this time
+        logger,
       );
-      console.log(events);
-      setFinancialEvents(events);
+
+      for (let i = 0; i < newTransactions.length; i++) {
+        const tx = newTransactions[i];
+        const assets = Array.from(new Set(tx.transfers.map(a => a.assetType)));
+        for (let j = 0; j < assets.length; j++) {
+          const assetType = assets[j] as AssetTypes;
+          if (!tx.prices[assetType]) {
+            tx.prices[assetType] = await getPrices(
+              store,
+              logger,
+            ).getPrice(assetType, tx.date);
+          }
+        }
+      }
+
+      setTransactions(newTransactions);
 
       const valueMachine = getValueMachine(addressBook);
 
-      let state = cache.loadState();
-      let vmLogs = cache.loadLogs();
-      for (const event of events.filter(
-        event => new Date(event.date).getTime() > new Date(state.lastUpdated).getTime(),
+      let state = store.load(StoreKeys.State);
+      let vmEvents = store.load(StoreKeys.Event);
+      for (const transaction of newTransactions.filter(
+        tx => new Date(tx.date).getTime() > new Date(state.lastUpdated).getTime(),
       )) {
-        const [newState, newLogs] = valueMachine(state, event);
-        vmLogs = vmLogs.concat(...newLogs);
+        const [newState, newEvents] = valueMachine(state, transaction);
+        vmEvents = vmEvents.concat(...newEvents);
         state = newState;
-        cache.saveState(state);
-        cache.saveLogs(vmLogs);
+        store.save(StoreKeys.State, state);
+        store.save(StoreKeys.Events, vmEvents);
       }
-      setFinancialLogs(vmLogs);
+      setFinancialEvents(vmEvents);
 
     })();
   }, [addressBook]);
@@ -73,30 +92,30 @@ export const Dashboard: React.FC = (props: any) => {
   useEffect(() => {
     let totalByCategory = {};
     let tempTotalByAssetType = {};
-    financialLogs.filter(log => new Date(log.date).getTime() <= endDate.getTime()).forEach((log: Log) => {
-      if (!log.assetType) return;
-      if (!totalByCategory[log.type]) {
-        totalByCategory[log.type] = {};
+    financialEvents.filter(event => new Date(event.date).getTime() <= endDate.getTime()).forEach((event: Event) => {
+      if (!event.assetType) return;
+      if (!totalByCategory[event.type]) {
+        totalByCategory[event.type] = {};
       }
-      if (!totalByCategory[log.type][log.assetType]) {
-        totalByCategory[log.type][log.assetType] = 0;
+      if (!totalByCategory[event.type][event.assetType]) {
+        totalByCategory[event.type][event.assetType] = 0;
       }
 
-      totalByCategory[log.type][log.assetType] += parseFloat(log.quantity);
-      if (!tempTotalByAssetType[log.assetType]) {
-        tempTotalByAssetType[log.assetType] = 0;
+      totalByCategory[event.type][event.assetType] += parseFloat(event.quantity);
+      if (!tempTotalByAssetType[event.assetType]) {
+        tempTotalByAssetType[event.assetType] = 0;
       }
-      if (inTypes.includes(log.type)) {
-        tempTotalByAssetType[log.assetType] += parseFloat(log.quantity);
-      } else if (outTypes.includes(log.type)) {
-        tempTotalByAssetType[log.assetType] -= parseFloat(log.quantity);
+      if (inTypes.includes(event.type)) {
+        tempTotalByAssetType[event.assetType] += parseFloat(event.quantity);
+      } else if (outTypes.includes(event.type)) {
+        tempTotalByAssetType[event.assetType] -= parseFloat(event.quantity);
       }
     })
     for (const assetType of Object.keys(tempTotalByAssetType)) {
       if (tempTotalByAssetType[assetType] === 0) {
         delete tempTotalByAssetType[assetType];
-        for (const logType of Object.keys(totalByCategory)) {
-          delete totalByCategory[logType][assetType];
+        for (const eventType of Object.keys(totalByCategory)) {
+          delete totalByCategory[eventType][assetType];
         }
       }
     }
@@ -104,16 +123,16 @@ export const Dashboard: React.FC = (props: any) => {
     setTotalByAssetType(tempTotalByAssetType);
 
     const recentPrices = {};
-    const netWorthData = financialLogs
-      .filter(log => new Date(log.date).getTime() <= endDate.getTime())
-      .filter(log => log.type === LogTypes.NetWorth)
-      .map((log: Log, index: number) => {
+    const netWorthData = financialEvents
+      .filter(event => new Date(event.date).getTime() <= endDate.getTime())
+      .filter(event => event.type === EventTypes.NetWorth)
+      .map((event: Event, index: number) => {
         let total = 0;
-        for (const assetType of Object.keys(log.assets )) {
-          recentPrices[assetType] = log.prices[assetType] || recentPrices[assetType];
-          total += parseFloat(log.assets[assetType]) * parseFloat(recentPrices[assetType]);
+        for (const assetType of Object.keys(event.assets )) {
+          recentPrices[assetType] = event.prices[assetType] || recentPrices[assetType];
+          total += parseFloat(event.assets[assetType]) * parseFloat(recentPrices[assetType]);
         }
-        return { date: new Date(log.date), networth: total };
+        return { date: new Date(event.date), networth: total };
       });
 
     setNetWorthTimeline(netWorthData);
@@ -123,7 +142,7 @@ export const Dashboard: React.FC = (props: any) => {
       setNetWorthSnapshot(netWorthData[netWorthData.length - 1].networth);
     }
 
-  }, [financialLogs, endDate]);
+  }, [financialEvents, endDate]);
 
   return (
     <Grid container spacing={3}>
@@ -152,7 +171,7 @@ export const Dashboard: React.FC = (props: any) => {
         <AssetDistribution totalByAssetType={totalByAssetType} date={endDate.toISOString()}/>
       </Grid>
       <Grid container>
-        <TransactionLogs addressBook={addressBook} financialEvents={financialEvents} />
+        <EthTransactionLogs financialEvents={financialEvents} addressBook={addressBook} transactions={transactions} />
       </Grid>
       <Grid item xs={12} md={12} lg={12}>
         <EventTable filteredTotalByCategory={filteredTotalByCategory} totalByAssetType={totalByAssetType}/>

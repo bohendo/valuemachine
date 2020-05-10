@@ -1,5 +1,5 @@
 import { AssetChunk, AssetTypes } from "./assets";
-import { Event } from "./events";
+import { Transaction } from "./transactions";
 import { Address, DecimalString, TimestampString } from "./strings";
 
 ////////////////////////////////////////
@@ -27,10 +27,10 @@ export interface State {
     account: Address,
     assetType: AssetTypes,
     quantity: DecimalString,
-    event: Event,
+    tx: Transaction,
   ): AssetChunk[];
   getNetWorth(): NetWorth;
-  getRelevantBalances(event: Event): StateBalances;
+  getRelevantBalances(tx: Transaction): StateBalances;
   putChunk(account: string, chunk: AssetChunk): void;
   toJson(): StateJson;
   touch(lastUpdated: TimestampString): void;

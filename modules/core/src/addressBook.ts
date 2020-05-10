@@ -3,12 +3,12 @@ import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
-  ILogger,
+  Logger,
 } from "@finances/types";
 import { ContextLogger } from "@finances/utils";
 import { getAddress } from "ethers/utils";
 
-export const getAddressBook = (userAddressBook: AddressBookJson, logger?: ILogger): AddressBook => {
+export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger): AddressBook => {
   const log = new ContextLogger("AddressBook", logger);
 
   ////////////////////////////////////////
@@ -160,7 +160,8 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: ILogge
     }
   });
   addresses = addresses.sort();
-  log.info(`Address book verified`);
+
+  log.info(`Address book containing ${addresses.length} addresses has been validated`);
 
   ////////////////////////////////////////
   // Exported Functions

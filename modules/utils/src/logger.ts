@@ -1,12 +1,12 @@
-import { ILogger } from "@finances/types";
+import { Logger } from "@finances/types";
 
-export class ContextLogger implements ILogger {
-  private logger: ILogger;
+export class ContextLogger implements Logger {
+  private logger: Logger;
   public context = "Default";
 
-  public constructor(context: string, logger?: ILogger) {
+  public constructor(context: string, logger?: Logger) {
     this.context = context;
-    this.logger = logger || console as ILogger;
+    this.logger = logger || console as Logger;
   }
 
   public newContext(context: string): ContextLogger {
@@ -31,12 +31,12 @@ export class ContextLogger implements ILogger {
   }
 }
 
-export class LevelLogger implements ILogger {
+export class LevelLogger implements Logger {
   private levels: { [key: string]: number } = { debug: 4, error: 1, info: 3, warn: 2 };
-  private logger = console as ILogger;
+  private logger = console as Logger;
   public logLevel = 3;
 
-  public constructor(logLevel: number, logger?: ILogger) {
+  public constructor(logLevel: number, logger?: Logger) {
     this.logLevel = typeof logLevel === "number" ? logLevel : this.logLevel;
     this.logger =  logger || this.logger;
   }

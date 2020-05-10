@@ -4,8 +4,8 @@ import {
   AssetChunk,
   AssetTypes,
   DecimalString,
-  Event,
-  ILogger,
+  Transaction,
+  Logger,
   NetWorth,
   State,
   StateBalances,
@@ -19,7 +19,7 @@ const { add, gt, round, sub } = math;
 export const getState = (
   addressBook: AddressBook,
   state: StateJson,
-  logger?: ILogger,
+  logger?: Logger,
 ): State => {
   const log = new ContextLogger("State", logger);
 
@@ -59,7 +59,7 @@ export const getState = (
     account: Address,
     assetType: AssetTypes,
     quantity: DecimalString,
-    event: Event,
+    transaction: Transaction,
   ): AssetChunk[] => {
     if (assetType === "USD") {
       log.debug(`Printing more USD`); // Everyone has infinite USD in the value machine
@@ -69,8 +69,8 @@ export const getState = (
     if (!addressBook.isSelf(account)) {
       return [{
         assetType,
-        dateRecieved: event.date,
-        purchasePrice: event.prices[assetType],
+        dateRecieved: transaction.date,
+        purchasePrice: transaction.prices[assetType],
         quantity,
       }];
     }
@@ -103,16 +103,16 @@ export const getState = (
         .filter(chunk => chunk.assetType === assetType)
         .reduce((sum, chunk) => add(sum, chunk.quantity), "0");
 
-  const getRelevantBalances = (event: Event): StateBalances => {
+  const getRelevantBalances = (transaction: Transaction): StateBalances => {
     const simpleState = {} as StateBalances;
-    const accounts = event.transfers.reduce((acc, cur) => {
+    const accounts = transaction.transfers.reduce((acc, cur) => {
       addressBook.isSelf(cur.to) && acc.push(cur.to);
       addressBook.isSelf(cur.from) && acc.push(cur.from);
       return acc;
     }, []);
     for (const account of accounts) {
       simpleState[account] = {};
-      const assetTypes = event.transfers.reduce((acc, cur) => {
+      const assetTypes = transaction.transfers.reduce((acc, cur) => {
         acc.push(cur.assetType);
         return acc;
       }, []);
