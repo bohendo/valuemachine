@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getPrice } from "@finances/core";
+import { getPrices } from "@finances/core";
 
 /*
 import {
@@ -19,7 +19,7 @@ import {
 } from '@devexpress/dx-react-chart-material-ui';
 // import { Animation } from '@devexpress/dx-react-chart';
 
-import * as cache from "../utils/cache";
+import { store } from "../utils/cache";
 
 /*
 TODO: Find a better way to display slice values
@@ -55,9 +55,10 @@ export const AssetDistribution = (props: any) => {
   useEffect(() => {
     (async () => {
       const temp = [];
+      const prices = getPrices(store, console);
       for (const entry of Object.entries(totalByAssetType)) {
         console.log(`getting price for asset ${entry[0]} on ${date}`);
-        const price = await getPrice(entry[0], date, cache);
+        const price = await prices.getPrice(entry[0], date);
         temp.push({ assetType: entry[0], total: entry[1] * price });
       }
       setData(temp);

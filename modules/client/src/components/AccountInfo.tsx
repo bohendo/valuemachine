@@ -32,6 +32,7 @@ import {
 } from "@material-ui/icons";
 import {
   AddressEntry,
+  StoreKeys,
 } from "@finances/types";
 
 import { store } from "../utils/cache";
@@ -97,7 +98,7 @@ const AddListItem = (props: any) => {
         <Select
           labelId="category-select-drop"
           id="category-select"
-          value={newAddressData.category || "self"}
+          value={newAddressEntry.category || "self"}
           name="category"
           onChange={handleChange}
         >
@@ -125,7 +126,7 @@ const AddListItem = (props: any) => {
           labelId="tags-select-drop"
           id="tags-select"
           multiple
-          value={newAddressData.tags || []}
+          value={newAddressEntry.tags || []}
           name="tags"
           onChange={handleChange}
           renderValue={(selected) => (
@@ -197,6 +198,14 @@ export const AccountInfo: React.FC = (props: any) => {
     setPersonal({...personal, profileName: event.target.value});
   };
 
+  const resetData = (): void => {
+    const keys = [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events];
+    keys.forEach(key => {
+      if (!key) throw new Error(`${key} isn't a valid store key`);
+      store.save(key);
+    });
+  };
+
   return (
     <div className={classes.grow}>
       <Button
@@ -204,7 +213,7 @@ export const AccountInfo: React.FC = (props: any) => {
         color="primary"
         size="small"
         className={classes.button}
-        onClick={() => cache.reset(["logs", "state", "events"])}
+        onClick={resetData}
         startIcon={<DeleteIcon />}
       >
         Reset Cached events

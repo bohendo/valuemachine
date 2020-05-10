@@ -7,18 +7,18 @@ import { EthTransactionLogsTable } from './TransactionLogsTable'
 import { EthTransactionLogsFilter } from './TransactionLogsFilter'
 
 export const EthTransactionLogs = (props: any) => {
-  const [filteredEvents, setFilteredEvents] = useState([] as Array<Event>);
+  const [filteredTransactions, setFilteredTransactions] = useState([] as Array<Event>);
 
   return (
     <>
       <Grid item xs={12} md={3} lg={3}>
         <EthTransactionLogsFilter
-          financialEvents={props.financialEvents}
-          setFilteredEvents={setFilteredEvents}
+          transactions={props.transactions}
+          setFilteredTransactions={setFilteredTransactions}
         />
       </Grid>
       <Grid item xs={12} md={9} lg={9}>
-        <EthTransactionLogsTable addressBook={props.addressBook} filteredEvents={filteredEvents} />
+        <EthTransactionLogsTable addressBook={props.addressBook} filteredTransactions={filteredTransactions} />
       </Grid>
     </>
   )

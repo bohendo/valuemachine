@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
 import {
-  Transaction,
   Event,
   EventTypes,
+  StoreKeys,
+  Transaction,
 } from "@finances/types";
 import { LevelLogger } from "@finances/utils";
 import {
@@ -55,16 +56,14 @@ export const Dashboard: React.FC = (props: any) => {
         logger,
       );
 
+      const prices = getPrices(store, logger);
       for (let i = 0; i < newTransactions.length; i++) {
         const tx = newTransactions[i];
         const assets = Array.from(new Set(tx.transfers.map(a => a.assetType)));
         for (let j = 0; j < assets.length; j++) {
           const assetType = assets[j] as AssetTypes;
           if (!tx.prices[assetType]) {
-            tx.prices[assetType] = await getPrices(
-              store,
-              logger,
-            ).getPrice(assetType, tx.date);
+            tx.prices[assetType] = await prices.getPrice(assetType, tx.date);
           }
         }
       }
@@ -74,7 +73,7 @@ export const Dashboard: React.FC = (props: any) => {
       const valueMachine = getValueMachine(addressBook);
 
       let state = store.load(StoreKeys.State);
-      let vmEvents = store.load(StoreKeys.Event);
+      let vmEvents = store.load(StoreKeys.Events);
       for (const transaction of newTransactions.filter(
         tx => new Date(tx.date).getTime() > new Date(state.lastUpdated).getTime(),
       )) {
@@ -136,7 +135,6 @@ export const Dashboard: React.FC = (props: any) => {
       });
 
     setNetWorthTimeline(netWorthData);
-    console.log(netWorthData);
 
     if (netWorthData.length > 0) {
       setNetWorthSnapshot(netWorthData[netWorthData.length - 1].networth);
@@ -171,7 +169,7 @@ export const Dashboard: React.FC = (props: any) => {
         <AssetDistribution totalByAssetType={totalByAssetType} date={endDate.toISOString()}/>
       </Grid>
       <Grid container>
-        <EthTransactionLogs financialEvents={financialEvents} addressBook={addressBook} transactions={transactions} />
+        <EthTransactionLogs addressBook={addressBook} transactions={transactions} />
       </Grid>
       <Grid item xs={12} md={12} lg={12}>
         <EventTable filteredTotalByCategory={filteredTotalByCategory} totalByAssetType={totalByAssetType}/>

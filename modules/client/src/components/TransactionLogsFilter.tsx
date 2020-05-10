@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AssetTypes, Event, Transfer, TransferCategories } from '@finances/types';
+import { AssetTypes, Transaction, Transfer, TransferCategories } from '@finances/types';
 import { math } from "@finances/utils";
 
 import {
@@ -28,7 +28,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export const EthTransactionLogsFilter = (props: any) => {
-  const { financialEvents, setFilteredEvents } = props
+  const { transactions, setFilteredTransactions } = props
 
   const classes = useStyles();
 
@@ -54,13 +54,13 @@ export const EthTransactionLogsFilter = (props: any) => {
   useEffect(() => {
     let temp = [];
 
-    financialEvents.forEach((event: Event) => {
+    transactions.forEach((transaction: Transaction) => {
       if (
-        event.date < startDate.toISOString() ||
-        event.date > endDate.toISOString()
+        transaction.date < startDate.toISOString() ||
+        transaction.date > endDate.toISOString()
       ) return;
       
-      event.transfers.forEach((transfer: Transfer) => {
+      transaction.transfers.forEach((transfer: Transfer) => {
         if(
           math.gt(transfer.quantity, "0") &&
           (categories.all || categories[transfer.category]) &&
@@ -68,16 +68,16 @@ export const EthTransactionLogsFilter = (props: any) => {
         ) {
           temp.push({
             ...transfer,
-            date: event.date,
-            hash: event.hash,
-            value: parseFloat(event.prices[transfer.assetType]) * parseFloat(transfer.quantity)
+            date: transaction.date,
+            hash: transaction.hash,
+            value: parseFloat(transaction.prices[transfer.assetType]) * parseFloat(transfer.quantity)
           })
         }
       })
     });
 
-    setFilteredEvents(temp)
-  }, [financialEvents, startDate, endDate, categories, assets, setFilteredEvents]);
+    setFilteredTransactions(temp)
+  }, [transactions, startDate, endDate, categories, assets, setFilteredTransactions]);
 
   return (
     <>

@@ -97,13 +97,13 @@ const TablePaginationActions = (props: TablePaginationActionsProps) => {
 }
 
 export const EthTransactionLogsTable = (props: any) => {
-  const { addressBook, filteredEvents } = props
+  const { addressBook, filteredTransactions } = props
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     setPage(0)
-  }, [filteredEvents]);
+  }, [filteredTransactions]);
 
   const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
@@ -122,9 +122,9 @@ export const EthTransactionLogsTable = (props: any) => {
     return <> Please Update your addresses to view your on chain finances </>
   }
 
-  if (!filteredEvents) return <> Will have event logs soon </>
+  if (!filteredTransactions) return <> Loading transactions soon </>
 
-  //console.log(filteredEvents)
+  //console.log(filteredTransactions)
 
   return (
     <TableContainer component={Paper}>
@@ -143,8 +143,8 @@ export const EthTransactionLogsTable = (props: any) => {
         </TableHead>
         <TableBody>
           {(rowsPerPage > 0
-            ? filteredEvents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            : filteredEvents
+            ? filteredTransactions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            : filteredTransactions
           ).map((row: TransferRow, i: number) => (
               <TableRow key={i}>
                 <TableCell> {row.date} </TableCell>
@@ -163,7 +163,7 @@ export const EthTransactionLogsTable = (props: any) => {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
               colSpan={6}
-              count={filteredEvents.length}
+              count={filteredTransactions.length}
               rowsPerPage={rowsPerPage}
               page={page}
               SelectProps={{
