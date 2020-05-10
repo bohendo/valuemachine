@@ -53,7 +53,7 @@ const App: React.FC = () => {
         <Container maxWidth="lg" className={classes.container}>
           <Switch>
             <Route exact path="/">
-              <Dashboard addressBook={addressBook} personal={personal} />
+              <Dashboard addressBook={addressBook} />
             </Route>
             <Route exact path="/account">
               <AccountInfo addressBook={addressBook} personal={personal} setPersonal={setPersonal} />

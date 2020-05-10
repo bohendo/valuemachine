@@ -7,7 +7,6 @@ import {
 } from "@finances/types";
 import { LevelLogger } from "@finances/utils";
 import {
-  getAddressBook,
   getEvents,
   getValueMachine,
 } from "@finances/core";
@@ -36,7 +35,7 @@ export const Dashboard: React.FC = (props: any) => {
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
 
-  const { personal, addressBook } = props;
+  const { addressBook } = props;
 
   useEffect(() => {
     (async () => {
