@@ -49,6 +49,11 @@ const addressCategories = [
 ]
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
+  root: {
+    '& > *': {
+      margin: theme.spacing(1),
+    },
+  },
   chip: {
       margin: 2,
   },
@@ -210,7 +215,7 @@ export const AccountInfo: React.FC = (props: any) => {
   };
 
   return (
-    <div>
+    <div className={classes.root}>
       <Button
         variant="contained"
         color="primary"
