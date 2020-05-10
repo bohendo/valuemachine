@@ -4,6 +4,7 @@ import {
   getAddressBook,
 } from "@finances/core";
 import {
+  CssBaseline,
   Container,
   Theme,
   createStyles,
@@ -18,20 +19,19 @@ import { Dashboard } from "./components/Dashboard";
 import { store } from "./utils/cache";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
+  appBarSpacer: theme.mixins.toolbar,
   root: {
     backgroundColor: "linen",
+    display: 'flex',
   },
   container: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
   },
   main: {
-    marginTop: "50px",
+    flexGrow: 1,
     height: "100vh",
     overflow: "auto",
-  },
-  title: {
-    flexGrow: 1,
   },
 }));
 
@@ -48,8 +48,10 @@ const App: React.FC = () => {
 
   return (
     <div className={classes.root}>
+      <CssBaseline />
       <NavBar />
       <main className={classes.main}>
+        <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
           <Switch>
             <Route exact path="/">
