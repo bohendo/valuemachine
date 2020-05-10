@@ -91,6 +91,7 @@ export const mergeEthCallTransactions = (
       transaction.transfers[0] = categorizeTransfer(
         transaction.transfers[0],
         [],
+        call.to,
         addressBook,
         logger,
       );

@@ -104,6 +104,7 @@ export const mergeEthTxTransactions = (
       transaction.transfers[0] = categorizeTransfer(
         transaction.transfers[0],
         [],
+        tx.to,
         addressBook,
         logger,
       );
@@ -135,7 +136,7 @@ export const mergeEthTxTransactions = (
             transfer.from = data.from || data.src;
             transfer.to = data.to || data.dst;
             transfer.category = TransferCategories.Transfer;
-            transaction.transfers.push(categorizeTransfer(transfer, tx.logs, addressBook, logger));
+            transaction.transfers.push(categorizeTransfer(transfer, tx.logs, tx.to, addressBook, logger));
 
           } else if (assetType === "WETH" && eventI.name === "Deposit") {
             log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
