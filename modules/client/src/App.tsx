@@ -37,7 +37,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const App: React.FC = () => {
   const classes = useStyles();
-  const [personal, setPersonal] = useState(store.load("personal"));
+  const [personal, setPersonal] = useState(store.load("personal") || { addressBook: [] });
   const [addressBook, setAddressBook] = useState({} as any);
 
   useEffect(() => {

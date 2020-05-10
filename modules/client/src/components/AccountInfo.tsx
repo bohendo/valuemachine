@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import {
   Button,
@@ -63,7 +63,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 const AddListItem = (props: any) => {
-  const [newAddressEntry, setNewAddressEntry] = useState({} as AddressEntry);
+  const [newAddressEntry, setNewAddressEntry] = useState({category: "self"} as AddressEntry);
   const { personal, setPersonal } = props;
 
   const classes = useStyles();
@@ -150,7 +150,7 @@ const AddListItem = (props: any) => {
 }
 
 const AddressList = (props: any) => {
-  const { category, personal, setPersonal } = props;
+  const { category, personal } = props;
   return (
     <Card>
       <CardHeader title={category + " Accounts"} />
@@ -192,7 +192,7 @@ const AddressList = (props: any) => {
 
 export const AccountInfo: React.FC = (props: any) => {
   const classes = useStyles();
-  const { addressBook, personal, setPersonal } = props;
+  const { personal, setPersonal } = props;
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setPersonal({...personal, profileName: event.target.value});
@@ -224,13 +224,23 @@ export const AccountInfo: React.FC = (props: any) => {
         Account Info
       </Typography>
       <Divider/>
-      
+
       <TextField
         id="profile-name"
         label="Profile Name"
         defaultValue={personal.profileName || "Default"}
         onChange={handleChange}
         helperText="Choose a name for your profile eg. Company ABC, Shiv G, etc."
+        margin="normal"
+        variant="outlined"
+      />
+
+      <TextField
+        id="api-key"
+        label="Api Key"
+        defaultValue={personal.apiKey || "abc123"}
+        onChange={handleChange}
+        helperText="Provide an etherscan API Key to sync chain data"
         margin="normal"
         variant="outlined"
       />
