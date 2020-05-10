@@ -60,8 +60,9 @@ export interface ChainData {
   getEthCall: (hash: HexString) => EthCall;
   getEthCalls: (testFn: (call: EthCall) => boolean) => EthCall[];
   json: ChainDataJson;
-  syncAddressHistory: (...addresses: Address[]) => Promise<void>;
-  syncTokenData: (...tokens: Address[]) => Promise<void>;
+  merge: (newJson: ChainDataJson) => void;
+  syncAddressHistory: (addresses: Address[], key?: string) => Promise<void>;
+  syncTokenData: (tokens: Address[], key?: string) => Promise<void>;
 }
 
 export const emptyChainData = {

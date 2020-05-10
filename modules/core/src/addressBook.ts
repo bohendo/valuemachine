@@ -87,7 +87,7 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
     { name: "artifaqt", address: "0x34d565bddcff2dd74bc98e056ebd32dd5f5e1d34" },
     { name: "augur", address: "0x24e2b1d415e6e0d04042eaa45dc2a08fc33ca6cd" },
     { name: "augur", address: "0xd5524179cb7ae012f5b642c1d6d700bbaa76b96b" },
-    { name: "base-registrar-implementation", address: "0xfac7bea255a6990f749363002136af6556b31e04" },
+    { name: "base-registrar", address: "0xfac7bea255a6990f749363002136af6556b31e04" },
     { name: "bounties-network", address: "0x2af47a65da8cd66729b4209c22017d6a5c2d2400" },
     { name: "bounties-network", address: "0xe7f69ea2a79521136ee0bf3c50f6b5f1ea0ab0cd" },
     { name: "connext-daicard", address: "0x925488c7cd7e5eb3441885c6c1dfdbea875e08f7" },
@@ -122,7 +122,10 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
     { name: "thecyber", address: "0x0734d56da60852a03e2aafae8a36ffd8c12b32f1" },
     { name: "urbit-azimuth", address: "0x6ac07b7c4601b5ce11de8dfe6335b871c7c4dd4d" },
   ].map(row => ({ ...row, category: AddressCategories.Public })) as AddressBookJson;
-  const addressBook = userAddressBook.concat(defi, exchanges, external, tokens, cTokens);
+
+  const addressBook = []
+    .concat(defi, exchanges, external, tokens, cTokens, userAddressBook)
+    .filter(entry => !!entry);
 
   ////////////////////////////////////////
   // Internal Functions
@@ -164,7 +167,7 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
   log.info(`Address book containing ${addresses.length} addresses has been validated`);
 
   ////////////////////////////////////////
-  // Exported Functions
+  // Exports
 
   const isCategory = (category: AddressCategories) => (address: Address): boolean =>
     isInnerCategory(category)(address) || isTagged(category)(address);
@@ -184,6 +187,7 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
   return {
     addresses,
     getName,
+    json: userAddressBook,
     isCategory,
     isSelf,
     isToken,

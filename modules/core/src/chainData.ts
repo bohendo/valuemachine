@@ -66,11 +66,11 @@ export const getChainData = (params: ChainDataParams): ChainData => {
   const chrono = (d1: any, d2: any): number =>
     new Date(d1.timestamp || d1).getTime() - new Date(d2.timestamp || d2).getTime();
 
-  const getProvider = (): EtherscanProvider => {
-    if (!etherscanKey) {
+  const getProvider = (key?: string): EtherscanProvider => {
+    if (!(key || etherscanKey)) {
       throw new Error("To sync chain data, you must provide an etherscanKey");
     }
-    return new EtherscanProvider("homestead", etherscanKey);
+    return new EtherscanProvider("homestead", key || etherscanKey);
   };
 
   const assertStore = (): void => {
@@ -87,8 +87,52 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       `apikey=${etherscanKey}&sort=asc`,
     )).data.result;
 
+    // Beware of edge case: a tx makes 2 identical eth internal transfers and
+    // the to & from are both tracked accounts so we get these calls in the txHistory of both.
+    // We do want to include these two identical transfers so we can't naively dedup
+    // But we don't want a copy from both account's tx history so can't blindly push everything
+    const getDups = (oldList: any[], newElem: any): number =>
+      oldList.filter(oldElem =>
+        newElem.from.toLowerCase() === oldElem.from &&
+        newElem.hash === oldElem.hash &&
+        newElem.to.toLowerCase() === oldElem.to &&
+        (
+          newElem.value.includes(".") ? newElem.value : formatEther(newElem.value)
+        ) === oldElem.value,
+      ).length;
+
   ////////////////////////////////////////
   // Exported Methods
+
+  const merge = (newJson: ChainDataJson): void => {
+    let before;
+    before = Object.keys(json.addresses).length; 
+    for (const address of Object.keys(newJson.addresses)) {
+      json.addresses[address] = newJson[address];
+    }
+    log.info(`Merged ${Object.keys(json.addresses).length - before} new addresses`);
+    before = Object.keys(json.tokens).length; 
+    for (const token of Object.keys(newJson.tokens)) {
+      json.tokens[token] = newJson[token];
+    }
+    log.info(`Merged ${Object.keys(json.tokens).length - before} new tokens`);
+    before = Object.keys(newJson.transactions).length; 
+    for (const transaction of Object.keys(newJson.transactions)) {
+      json.transactions[transaction] = newJson[transaction];
+    }
+    log.info(`Merged ${Object.keys(json.transactions).length - before} new transactions`);
+    const oldCalls = JSON.parse(JSON.stringify(json.calls));
+    before = Object.keys(oldCalls).length; 
+    for (const call of newJson.calls) {
+      log.info(`Maybe merging call: ${JSON.stringify(call)}`);
+      log.info(call.value.includes(".") ? call.value : formatEther(call.value));
+      if (getDups(oldCalls, call) === 0) {
+        json.calls.push(call);
+      }
+      log.info(`On to the next`);
+    }
+    log.info(`Merged ${json.calls.length - before} new calls`);
+  };
 
   const getAddressHistory = (...addresses: Address[]): ChainData => {
     const include = (tx: { hash: HexString }): boolean => addresses.some(
@@ -128,9 +172,9 @@ export const getChainData = (params: ChainDataParams): ChainData => {
   const getEthCalls = (testFn: (call: EthCall) => boolean): EthCall[] =>
     JSON.parse(JSON.stringify(json.calls.filter(testFn)));
 
-  const syncTokenData = async (...tokens: Address[]): Promise<void> => {
+  const syncTokenData = async (tokens: Address[], key?: string): Promise<void> => {
     assertStore();
-    const provider = getProvider();
+    const provider = getProvider(key);
     const newlySupported = tokens.filter(tokenAddress =>
       !json.tokens[tokenAddress] || typeof json.tokens[tokenAddress].decimals !== "number",
     );
@@ -147,9 +191,9 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     }
   };
 
-  const syncAddressHistory = async (...userAddresses: Address[]): Promise<void> => {
+  const syncAddressHistory = async (userAddresses: Address[], key?: string): Promise<void> => {
     assertStore();
-    const provider = getProvider();
+    const provider = getProvider(key);
     const addresses = userAddresses.filter(address => {
       if (!json.addresses[address]) {
         return true;
@@ -218,18 +262,6 @@ export const getChainData = (params: ChainDataParams): ChainData => {
           });
         }
       }
-
-      // Beware of edge case: a tx makes 2 identical eth internal transfers and
-      // the to & from are both tracked accounts so we get these calls in the txHistory of both.
-      // We do want to include these two identical transfers so we can't naively dedup
-      // But we don't want a copy from both account's tx history so can't blindly push everything
-      const getDups = (oldList: any[], newElem: any): number =>
-        oldList.filter(oldElem =>
-          newElem.from.toLowerCase() === oldElem.from &&
-          newElem.hash === oldElem.hash &&
-          newElem.to.toLowerCase() === oldElem.to &&
-          formatEther(newElem.value) === oldElem.value,
-        ).length;
 
       log.debug(`💫 getting internalTxHistory..`);
       const oldEthCalls = JSON.parse(JSON.stringify(json.calls));
@@ -382,6 +414,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     getEthTransactions,
     getTokenData,
     json,
+    merge,
     syncAddressHistory,
     syncTokenData,
   };

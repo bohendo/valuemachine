@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 
 import {
   getAddressBook,
+  getChainData,
 } from "@finances/core";
 import {
-  emptyProfile,
+  AddressBook,
+  ChainData,
   StoreKeys,
+  emptyProfile,
 } from "@finances/types";
 
 import {
@@ -21,6 +24,8 @@ import { Route, Switch } from "react-router-dom";
 import { NavBar } from "./components/NavBar";
 import { AccountInfo } from "./components/AccountInfo";
 import { Dashboard } from "./components/Dashboard";
+
+import chainDataJson from './data/chain-data.json';
 
 import { store } from "./utils/cache";
 
@@ -44,7 +49,8 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 const App: React.FC = () => {
   const classes = useStyles();
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || emptyProfile);
-  const [addressBook, setAddressBook] = useState({} as any);
+  const [addressBook, setAddressBook] = useState({} as AddressBook);
+  const [chainData, setChainData] = useState({} as ChainData);
   const [signer, setSigner] = useState({} as Wallet);
 
   useEffect(() => {
@@ -60,6 +66,15 @@ const App: React.FC = () => {
       localStorage.setItem("signerKey", signerKey);
     }
     setSigner(new Wallet(signerKey));
+
+    // getChainData returns chain data access methods eg chainData.getAddressHistory
+    setChainData(getChainData({
+      chainDataJson,
+      etherscanKey: "etherscanKey",
+      console,
+      store,
+    }));
+
   }, []);
 
   return (
@@ -71,12 +86,14 @@ const App: React.FC = () => {
         <Container maxWidth="lg" className={classes.container}>
           <Switch>
             <Route exact path="/">
-              <Dashboard addressBook={addressBook} />
+              <Dashboard addressBook={addressBook} chainData={chainData} />
             </Route>
             <Route exact path="/account">
               <AccountInfo
                 addressBook={addressBook}
+                chainData={chainData}
                 profile={profile}
+                setChainData={setChainData}
                 setProfile={setProfile}
                 signer={signer}
               />

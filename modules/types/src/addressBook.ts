@@ -28,6 +28,7 @@ export type AddressBookJson = Array<AddressEntry>;
 export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
+  json: AddressBookJson;
   isCategory(category: AddressCategories): (address: Address) => boolean;
   isSelf(address: Address): boolean;
   isToken(address: Address): boolean;

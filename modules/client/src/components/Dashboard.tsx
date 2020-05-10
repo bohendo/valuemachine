@@ -8,8 +8,6 @@ import {
 } from "@finances/types";
 import { LevelLogger } from "@finances/utils";
 import {
-  getAddressBook,
-  getChainData,
   getPrices,
   getValueMachine,
   mergeEthTransactions,
@@ -28,8 +26,6 @@ import { EthTransactionLogs } from './TransactionLogs'
 import { inTypes, outTypes } from '../utils/utils';
 import { store } from '../utils/cache';
 
-import chainDataJson from '../data/chain-data.json';
-
 export const Dashboard: React.FC = (props: any) => {
   const [endDate, setEndDate] = useState(new Date());
   const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
@@ -39,7 +35,7 @@ export const Dashboard: React.FC = (props: any) => {
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
 
-  const { addressBook } = props;
+  const { addressBook, chainData } = props;
 
   useEffect(() => {
     (async () => {
@@ -50,8 +46,7 @@ export const Dashboard: React.FC = (props: any) => {
       const newTransactions = await mergeEthTransactions(
         [], // Could give transactions & this function will merge new txns into the existing array
         addressBook,
-        // getChainData returns chain data access methods eg chainData.getAddressHistory
-        getChainData({ store, logger, etherscanKey: "etherscanKey", chainDataJson }),
+        chainData,
         0, // Only consider merging transactions after this time
         logger,
       );
@@ -86,7 +81,7 @@ export const Dashboard: React.FC = (props: any) => {
       setFinancialEvents(vmEvents);
 
     })();
-  }, [addressBook]);
+  }, [addressBook, chainData]);
 
   useEffect(() => {
     let totalByCategory = {};

@@ -13,6 +13,10 @@ docker swarm init 2> /dev/null || true
 # alias env var
 FINANCES_LOG_LEVEL="$LOG_LEVEL";
 
+function extractEnv {
+  grep "$1" "$2" | cut -d "=" -f 2- | tr -d '\n\r"' | sed 's/ *#.*//'
+}
+
 # First choice: use existing env vars (dotEnv not called)
 function dotEnv {
   key="$1"
@@ -25,6 +29,7 @@ function dotEnv {
 
 export FINANCES_LOG_LEVEL="${FINANCES_LOG_LEVEL:-`dotEnv FINANCES_LOG_LEVEL`}"
 export FINANCES_ADMIN_TOKEN="${FINANCES_ADMIN_TOKEN:-`dotEnv FINANCES_ADMIN_TOKEN`}"
+export FINANCES_ETHERSCAN_KEY="${FINANCES_ETHERSCAN_KEY:-`dotEnv FINANCES_ETHERSCAN_KEY`}"
 
 ####################
 # Internal Config
@@ -95,6 +100,7 @@ services:
     entrypoint: 'bash -c "cd modules/server && bash ops/entry.sh"'
     environment:
       FINANCES_ADMIN_TOKEN: '$FINANCES_ADMIN_TOKEN'
+      FINANCES_ETHERSCAN_KEY: '$FINANCES_ETHERSCAN_KEY'
       FINANCES_LOG_LEVEL: '$FINANCES_LOG_LEVEL'
       FINANCES_PORT: '$server_port'
       NODE_ENV: 'development'
