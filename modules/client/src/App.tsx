@@ -4,6 +4,7 @@ import {
   getAddressBook,
 } from "@finances/core";
 import {
+  emptyProfile,
   StoreKeys,
 } from "@finances/types";
 
@@ -14,6 +15,7 @@ import {
   createStyles,
   makeStyles,
 } from '@material-ui/core';
+import { Wallet } from "ethers";
 import { Route, Switch } from "react-router-dom";
 
 import { NavBar } from "./components/NavBar";
@@ -41,14 +43,24 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const App: React.FC = () => {
   const classes = useStyles();
-  const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || { addressBook: [] });
+  const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || emptyProfile);
   const [addressBook, setAddressBook] = useState({} as any);
+  const [signer, setSigner] = useState({} as Wallet);
 
   useEffect(() => {
     if (profile && profile.addressBook.length > 0) {
       setAddressBook(getAddressBook(profile.addressBook));
     }
   }, [profile]);
+
+  useEffect(() => { 
+    let signerKey = localStorage.getItem("signerKey");
+    if (!signerKey) {
+      signerKey = Wallet.createRandom().privateKey;
+      localStorage.setItem("signerKey", signerKey);
+    }
+    setSigner(new Wallet(signerKey));
+  }, []);
 
   return (
     <div className={classes.root}>
@@ -62,7 +74,12 @@ const App: React.FC = () => {
               <Dashboard addressBook={addressBook} />
             </Route>
             <Route exact path="/account">
-              <AccountInfo addressBook={addressBook} profile={profile} setProfile={setProfile} />
+              <AccountInfo
+                addressBook={addressBook}
+                profile={profile}
+                setProfile={setProfile}
+                signer={signer}
+              />
             </Route>
           </Switch>
         </Container>

@@ -1,8 +1,8 @@
-import { AddressBookJson, } from "./addressBook";
+import { AddressBookJson } from "./addressBook";
 
 export type ProfileJson = {
-  profileName: string;
-  addressBook: AddressBookJson
+  username: string;
+  addressBook: AddressBookJson;
 }
 
 export interface Profile {

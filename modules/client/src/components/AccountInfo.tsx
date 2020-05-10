@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import axios from "axios";
 import {
@@ -35,7 +35,6 @@ import {
   AddressEntry,
   StoreKeys,
 } from "@finances/types";
-import { Wallet } from "ethers";
 
 import { store } from "../utils/cache";
 
@@ -202,33 +201,31 @@ const AddressList = (props: any) => {
 
 export const AccountInfo: React.FC = (props: any) => {
   const classes = useStyles();
-  const { profile, setProfile } = props;
+  const { profile, setProfile, signer } = props;
 
-  const defaultProfile = profile.profileName || "Default";
-  const defaultKey = profile.apiKey || "abc123";
+  const defaults = {
+    username: profile.username || "Default",
+    apiKey: profile.apiKey || "abc123",
+  };
 
-  const registerKey = async () => {
+  const registerProfile = useCallback(async () => {
+    if (!signer) {
+      console.warn(`No signer available, can't register w/out one.`);
+      return;
+    }
     if (!profile || !profile.apiKey) {
       console.warn(`No api key provided, nothing to register. Personal=${JSON.stringify(profile)}`);
       return;
     }
-    let signingKey = localStorage.getItem("signingKey");
-    if (!signingKey) {
-      signingKey = Wallet.createRandom().privateKey;
-      localStorage.setItem("signingKey", signingKey);
-    }
-    const signer = new Wallet(signingKey);
-    const sig = await signer.signMessage(profile.apiKey);
-    const res = await axios.post(`${window.location.origin}/api/profile`, {
-      sig,
-      profile
-    });
+    const payload = { profile, signerAddress: profile.signerAddress };
+    const sig = await signer.signMessage(JSON.stringify(payload));
+    const res = await axios.post(`${window.location.origin}/api/profile`, { sig, payload });
     console.log(res);
-  };
+  }, [profile, signer]);
 
   const handleProfileChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    console.log(`Set profile.profileName = "${event.target.value}"`);
-    setProfile({...profile, profileName: event.target.value});
+    console.log(`Set profile.username = "${event.target.value}"`);
+    setProfile({...profile, username: event.target.value});
   };
 
   const handleKeyChange = (event: React.ChangeEvent<{ value: unknown }>) => {
@@ -237,16 +234,18 @@ export const AccountInfo: React.FC = (props: any) => {
   };
 
   useEffect(() => {
-    setProfile({ apiKey: defaultKey, profileName: defaultProfile, ...profile});
+    console.log(`Setting default profile values: ${JSON.stringify(defaults)}`);
+    setProfile(oldProfile => ({ ...defaults, ...oldProfile }));
   }, []); // eslint-disable-line
 
   const resetData = (): void => {
-    const keys = [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events, StoreKeys.Profile];
-    keys.forEach(key => {
-      if (!key) throw new Error(`${key} isn't a valid store key`);
+    [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events, StoreKeys.Profile].forEach(key => {
+      console.log(`Resetting data for ${key}`);
       store.save(key);
     });
   };
+
+  console.log(profile);
 
   return (
     <div className={classes.root}>
@@ -279,7 +278,7 @@ export const AccountInfo: React.FC = (props: any) => {
       <TextField
         id="profile-name"
         label="Profile Name"
-        defaultValue={defaultProfile}
+        defaultValue={defaults.username}
         onChange={handleProfileChange}
         helperText="Choose a name for your profile eg. Company ABC, Shiv G, etc."
         margin="normal"
@@ -291,7 +290,7 @@ export const AccountInfo: React.FC = (props: any) => {
       <TextField
         id="api-key"
         label="Api Key"
-        defaultValue={defaultKey}
+        defaultValue={defaults.apiKey}
         onChange={handleKeyChange}
         helperText="Register an etherscan API Key to sync chain data"
         margin="normal"
@@ -303,10 +302,10 @@ export const AccountInfo: React.FC = (props: any) => {
         color="primary"
         size="small"
         className={classes.button}
-        onClick={registerKey}
+        onClick={registerProfile}
         startIcon={<SaveIcon />}
       >
-        Register Key
+        Register Profile
       </Button>
 
       <AddressList category="Self" setProfile={setProfile} profile={profile} />

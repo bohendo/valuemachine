@@ -103,7 +103,7 @@ services:
     ports:
       - '$server_port:$server_port'
     volumes:
-      - data:/data'
+      - 'data:/data'
       - '`pwd`:/root'
 EOF
 

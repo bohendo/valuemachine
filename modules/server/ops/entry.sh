@@ -7,6 +7,10 @@ elif [[ ! -f "src/index.ts" && ! -f "dist/src/index.js" ]]
 then echo "Fatal: couldn't find file to run" && exit 1
 fi
 
+if [[ ! -d "/data" ]]
+then mkdir -p /data
+fi
+
 if [[ "$NODE_ENV" == "development" ]]
 then
   echo "Starting finances server in dev-mode"
