@@ -104,6 +104,7 @@ export const mergeEthTxTransactions = (
       transaction.transfers[0] = categorizeTransfer(
         transaction.transfers[0],
         [],
+        tx.to,
         addressBook,
         logger,
       );
@@ -135,16 +136,16 @@ export const mergeEthTxTransactions = (
             transfer.from = data.from || data.src;
             transfer.to = data.to || data.dst;
             transfer.category = TransferCategories.Transfer;
-            transaction.transfers.push(categorizeTransfer(transfer, tx.logs, addressBook, logger));
+            transaction.transfers.push(categorizeTransfer(transfer, tx.logs, tx.to, addressBook, logger));
 
           } else if (assetType === "WETH" && eventI.name === "Deposit") {
             log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
-            transfer.category = TransferCategories.SwapOut;
+            transfer.category = TransferCategories.SwapIn;
             transaction.transfers.push({ ...transfer, from: txLog.address, to: data.dst });
 
           } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
             log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
-            transfer.category = TransferCategories.SwapIn;
+            transfer.category = TransferCategories.SwapOut;
             transaction.transfers.push({ ...transfer, from: data.src, to: txLog.address });
 
           } else if (assetType === "SAI" && eventI.name === "Mint") {

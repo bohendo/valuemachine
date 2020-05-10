@@ -80,7 +80,6 @@ const AddListItem = (props: any) => {
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setNewAddressEntry({...newAddressEntry, [event.target.name]: event.target.value});
-    console.log(newAddressEntry)
   };
 
   const addNewAddress = () => {
@@ -285,6 +284,7 @@ export const AccountInfo: React.FC = (props: any) => {
       console.log(`Resetting data for ${key}`);
       store.save(key);
     });
+    setProfile(store.load(StoreKeys.Profile))
   };
 
   console.log(profile);

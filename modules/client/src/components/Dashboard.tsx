@@ -40,6 +40,8 @@ export const Dashboard: React.FC = (props: any) => {
   useEffect(() => {
     (async () => {
       if (Object.keys(addressBook).length === 0) {
+        setFinancialEvents([] as Event[]);
+        setTransactions([] as Transaction[]);
         return;
       }
       const logger = new LevelLogger();
@@ -88,6 +90,7 @@ export const Dashboard: React.FC = (props: any) => {
     let tempTotalByAssetType = {};
     financialEvents.filter(event => new Date(event.date).getTime() <= endDate.getTime()).forEach((event: Event) => {
       if (!event.assetType) return;
+      if (event.assetType.toLowerCase().startsWith('c')) return;
       if (!totalByCategory[event.type]) {
         totalByCategory[event.type] = {};
       }
@@ -105,14 +108,6 @@ export const Dashboard: React.FC = (props: any) => {
         tempTotalByAssetType[event.assetType] -= parseFloat(event.quantity);
       }
     })
-    for (const assetType of Object.keys(tempTotalByAssetType)) {
-      if (tempTotalByAssetType[assetType] === 0) {
-        delete tempTotalByAssetType[assetType];
-        for (const eventType of Object.keys(totalByCategory)) {
-          delete totalByCategory[eventType][assetType];
-        }
-      }
-    }
     setFilteredTotalByCategory(totalByCategory);
     setTotalByAssetType(tempTotalByAssetType);
 

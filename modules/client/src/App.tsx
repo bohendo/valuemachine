@@ -54,9 +54,7 @@ const App: React.FC = () => {
   const [signer, setSigner] = useState({} as Wallet);
 
   useEffect(() => {
-    if (profile && profile.addressBook.length > 0) {
-      setAddressBook(getAddressBook(profile.addressBook));
-    }
+    setAddressBook(getAddressBook(profile.addressBook));
   }, [profile]);
 
   useEffect(() => { 

@@ -97,10 +97,11 @@ export type WithdrawEvent = BaseEvent & {
   type: typeof EventTypes.Withdraw;
 }
 
-export type NetWorthEvent = BaseEvent & {
+export type NetWorthEvent = {
   assets: { [assetType: string]: DecimalString };
   date: TimestampString;
   prices: { [assetType: string]: DecimalString };
+  quantity: DecimalString;
   type: typeof EventTypes.NetWorth;
 }
 
