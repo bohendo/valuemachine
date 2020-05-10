@@ -10,7 +10,7 @@ export { Field, Forms };
 
 export const Modes = enumify({
   example: "example",
-  personal: "personal",
+  profile: "profile",
   test: "test",
 });
 export type Modes = (typeof Modes)[keyof typeof Modes];

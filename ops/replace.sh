@@ -11,7 +11,7 @@ echo "Before:"
 bash ops/search.sh $old
 
 echo
-find modules/*/src modules/*/ops -type f -not -name "*.swp" -exec sed -i '' "s|$old|$new|g" {} \;
+find modules/*/src -type f -not -name "*.swp" -exec sed -i '' "s|$old|$new|g" {} \;
 
 echo "After:"
 bash ops/search.sh $new

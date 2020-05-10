@@ -10,5 +10,4 @@ export interface Profile {
   json: ProfileJson;
 }
 
-export const emptyProfile = { addressBook: {} } as ProfileJson;
-
+export const emptyProfile = { addressBook: [] } as ProfileJson;

@@ -11,7 +11,7 @@ export const TransactionSources = enumify({
   DigitalOcean: "DigitalOcean",
   EthCall: "EthCall",
   EthTx: "EthTx",
-  Personal: "Personal",
+  Profile: "Profile",
   SendWyre: "SendWyre",
 });
 export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];

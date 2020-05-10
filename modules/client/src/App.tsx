@@ -4,6 +4,10 @@ import {
   getAddressBook,
 } from "@finances/core";
 import {
+  StoreKeys,
+} from "@finances/types";
+
+import {
   CssBaseline,
   Container,
   Theme,
@@ -37,14 +41,14 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const App: React.FC = () => {
   const classes = useStyles();
-  const [personal, setPersonal] = useState(store.load("personal") || { addressBook: [] });
+  const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || { addressBook: [] });
   const [addressBook, setAddressBook] = useState({} as any);
 
   useEffect(() => {
-    if (personal && personal.addressBook.length > 0) {
-      setAddressBook(getAddressBook(personal.addressBook));
+    if (profile && profile.addressBook.length > 0) {
+      setAddressBook(getAddressBook(profile.addressBook));
     }
-  }, [personal]);
+  }, [profile]);
 
   return (
     <div className={classes.root}>
@@ -58,7 +62,7 @@ const App: React.FC = () => {
               <Dashboard addressBook={addressBook} />
             </Route>
             <Route exact path="/account">
-              <AccountInfo addressBook={addressBook} personal={personal} setPersonal={setPersonal} />
+              <AccountInfo addressBook={addressBook} profile={profile} setProfile={setProfile} />
             </Route>
           </Switch>
         </Container>

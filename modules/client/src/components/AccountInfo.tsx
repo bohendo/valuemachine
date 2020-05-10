@@ -52,9 +52,6 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   chip: {
       margin: 2,
   },
-  grow: {
-    borderBottom: `5px solid ${theme.palette.divider}`,
-  },
   input: {
     margin: theme.spacing(1),
     minWidth: 120,
@@ -63,8 +60,12 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 const AddListItem = (props: any) => {
-  const [newAddressEntry, setNewAddressEntry] = useState({category: "self"} as AddressEntry);
-  const { personal, setPersonal } = props;
+  const [newAddressEntry, setNewAddressEntry] = useState({
+    tags: ["active"],
+    category: "self"
+  } as AddressEntry);
+
+  const { profile, setProfile } = props;
 
   const classes = useStyles();
 
@@ -74,7 +75,9 @@ const AddListItem = (props: any) => {
   };
 
   const addNewAddress = () => {
-    setPersonal({...personal, addressBook: [...personal.addressBook, newAddressEntry]});
+    const newProfile = {...profile, addressBook: [...profile.addressBook, newAddressEntry]}
+    setProfile(newProfile);
+    store.save(StoreKeys.Profile, newProfile);
   };
 
   return (
@@ -150,7 +153,7 @@ const AddListItem = (props: any) => {
 }
 
 const AddressList = (props: any) => {
-  const { category, personal } = props;
+  const { category, profile } = props;
   return (
     <Card>
       <CardHeader title={category + " Accounts"} />
@@ -166,7 +169,7 @@ const AddressList = (props: any) => {
         </TableHead>
 
         <TableBody>
-          { personal.addressBook.map((entry: AddressEntry, i: number) => {
+          { profile.addressBook.map((entry: AddressEntry, i: number) => {
               if (entry.category === category.toLowerCase()) {
                 return (
                   <TableRow key={i} >
@@ -192,14 +195,14 @@ const AddressList = (props: any) => {
 
 export const AccountInfo: React.FC = (props: any) => {
   const classes = useStyles();
-  const { personal, setPersonal } = props;
+  const { profile, setProfile } = props;
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setPersonal({...personal, profileName: event.target.value});
+    setProfile({...profile, profileName: event.target.value});
   };
 
   const resetData = (): void => {
-    const keys = [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events];
+    const keys = [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events, StoreKeys.Profile];
     keys.forEach(key => {
       if (!key) throw new Error(`${key} isn't a valid store key`);
       store.save(key);
@@ -207,7 +210,7 @@ export const AccountInfo: React.FC = (props: any) => {
   };
 
   return (
-    <div className={classes.grow}>
+    <div>
       <Button
         variant="contained"
         color="primary"
@@ -217,6 +220,15 @@ export const AccountInfo: React.FC = (props: any) => {
         startIcon={<DeleteIcon />}
       >
         Reset Cached events
+      </Button>
+      <Button
+        variant="contained"
+        color="primary"
+        size="small"
+        className={classes.button}
+        startIcon={<DownloadIcon />}
+      >
+        Download CSV
       </Button>
       <Divider/>
 
@@ -228,7 +240,7 @@ export const AccountInfo: React.FC = (props: any) => {
       <TextField
         id="profile-name"
         label="Profile Name"
-        defaultValue={personal.profileName || "Default"}
+        defaultValue={profile.profileName || "Default"}
         onChange={handleChange}
         helperText="Choose a name for your profile eg. Company ABC, Shiv G, etc."
         margin="normal"
@@ -238,38 +250,19 @@ export const AccountInfo: React.FC = (props: any) => {
       <TextField
         id="api-key"
         label="Api Key"
-        defaultValue={personal.apiKey || "abc123"}
+        defaultValue={profile.apiKey || "abc123"}
         onChange={handleChange}
         helperText="Provide an etherscan API Key to sync chain data"
         margin="normal"
         variant="outlined"
       />
 
-      <AddressList category="Self" setPersonal={setPersonal} personal={personal} />
-      <AddressList category="Friend" setPersonal={setPersonal} personal={personal} />
-      <AddressList category="Family" setPersonal={setPersonal} personal={personal} />
-      <AddListItem category={"self"} personal={personal} setPersonal={setPersonal} />
+      <AddressList category="Self" setProfile={setProfile} profile={profile} />
+      <AddressList category="Friend" setProfile={setProfile} profile={profile} />
+      <AddressList category="Family" setProfile={setProfile} profile={profile} />
+      <AddListItem category={"self"} profile={profile} setProfile={setProfile} />
 
       <Divider/>
-      <Button
-        variant="contained"
-        color="primary"
-        size="small"
-        className={classes.button}
-        onClick={() => store.save("personal", personal)}
-        startIcon={<SaveIcon />}
-      >
-        Save LocalStorage
-      </Button>
-      <Button
-        variant="contained"
-        color="primary"
-        size="small"
-        className={classes.button}
-        startIcon={<DownloadIcon />}
-      >
-        Download CSV
-      </Button>
     </div>
   )
 }
