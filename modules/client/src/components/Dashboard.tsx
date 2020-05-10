@@ -44,6 +44,8 @@ export const Dashboard: React.FC = (props: any) => {
   useEffect(() => {
     (async () => {
       if (Object.keys(addressBook).length === 0) {
+        setFinancialEvents([] as Event[]);
+        setTransactions([] as Transaction[]);
         return;
       }
       const logger = new LevelLogger();
@@ -135,10 +137,6 @@ export const Dashboard: React.FC = (props: any) => {
 
   }, [financialEvents, endDate]);
 
-  //console.log(transactions);
-  //console.log(financialEvents);
-  //console.log(filteredTotalByCategory);
-  console.log(totalByAssetType);
   return (
     <Grid container spacing={3}>
       <Grid item xs={6} md={6} lg={6}>

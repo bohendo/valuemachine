@@ -45,9 +45,7 @@ const App: React.FC = () => {
   const [addressBook, setAddressBook] = useState({} as any);
 
   useEffect(() => {
-    if (profile && profile.addressBook.length > 0) {
-      setAddressBook(getAddressBook(profile.addressBook));
-    }
+    setAddressBook(getAddressBook(profile.addressBook));
   }, [profile]);
 
   return (
