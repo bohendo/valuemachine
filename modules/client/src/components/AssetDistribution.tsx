@@ -57,9 +57,10 @@ export const AssetDistribution = (props: any) => {
       const temp = [];
       const prices = getPrices(store, console);
       for (const entry of Object.entries(totalByAssetType)) {
-        console.log(`getting price for asset ${entry[0]} on ${date}`);
-        const price = await prices.getPrice(entry[0], date);
-        temp.push({ assetType: entry[0], total: entry[1] * price });
+        if (entry[1] > 0 ) {
+          const price = await prices.getPrice(entry[0], date);
+          temp.push({ assetType: entry[0], total: entry[1] * price });
+        }
       }
       setData(temp);
     })()

@@ -93,6 +93,7 @@ export const Dashboard: React.FC = (props: any) => {
     let tempTotalByAssetType = {};
     financialEvents.filter(event => new Date(event.date).getTime() <= endDate.getTime()).forEach((event: Event) => {
       if (!event.assetType) return;
+      if (event.assetType.toLowerCase().startsWith('c')) return;
       if (!totalByCategory[event.type]) {
         totalByCategory[event.type] = {};
       }
@@ -110,14 +111,6 @@ export const Dashboard: React.FC = (props: any) => {
         tempTotalByAssetType[event.assetType] -= parseFloat(event.quantity);
       }
     })
-    for (const assetType of Object.keys(tempTotalByAssetType)) {
-      if (tempTotalByAssetType[assetType] === 0) {
-        delete tempTotalByAssetType[assetType];
-        for (const eventType of Object.keys(totalByCategory)) {
-          delete totalByCategory[eventType][assetType];
-        }
-      }
-    }
     setFilteredTotalByCategory(totalByCategory);
     setTotalByAssetType(tempTotalByAssetType);
 
@@ -142,6 +135,10 @@ export const Dashboard: React.FC = (props: any) => {
 
   }, [financialEvents, endDate]);
 
+  //console.log(transactions);
+  //console.log(financialEvents);
+  //console.log(filteredTotalByCategory);
+  console.log(totalByAssetType);
   return (
     <Grid container spacing={3}>
       <Grid item xs={6} md={6} lg={6}>
