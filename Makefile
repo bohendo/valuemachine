@@ -9,8 +9,9 @@ dir=$(shell cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
 project=$(shell cat $(dir)/package.json | jq .name | tr -d '"')
 find_options=-type f -not -path "**/node_modules/**" -not -path "**/.*" -not -path "**/build/**"
 
-# Important Folders
 cwd=$(shell pwd)
+commit=$(shell git rev-parse HEAD | head -c 8)
+release=$(shell cat package.json | grep '"version"' | head -n 1 | cut -d '"' -f 4)
 
 # Setup docker run time
 # If on Linux, give the container our uid & gid so we know what to reset permissions to
@@ -33,9 +34,15 @@ $(shell mkdir -p .flags)
 # Command & Control Aliases
 
 default: dev
-dev: server taxes
-prod: client server taxes
+dev: proxy server taxes
+prod: client proxy server taxes
 all: test example personal
+
+start: dev
+	bash ops/start-dev.sh
+
+stop:
+	bash ops/stop.sh
 
 backup:
 	tar czf tax_backup.tar.gz .cache modules/taxes/docs modules/taxes/personal.json
@@ -105,6 +112,15 @@ client: core $(shell find modules/client $(find_options))
 server: core $(shell find modules/server $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/server && npm run build"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+########################################
+# Build docker images
+
+proxy: $(shell find ops/proxy $(find_options))
+	$(log_start)
+	docker build --file ops/proxy/Dockerfile $(image_cache) --tag $(project)_proxy ops
+	docker tag $(project)_proxy $(project)_proxy:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################
