@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
+import axios from "axios";
 import {
   Button,
   Card,
@@ -34,6 +35,7 @@ import {
   AddressEntry,
   StoreKeys,
 } from "@finances/types";
+import { Wallet } from "ethers";
 
 import { store } from "../utils/cache";
 
@@ -202,9 +204,41 @@ export const AccountInfo: React.FC = (props: any) => {
   const classes = useStyles();
   const { profile, setProfile } = props;
 
-  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const defaultProfile = profile.profileName || "Default";
+  const defaultKey = profile.apiKey || "abc123";
+
+  const registerKey = async () => {
+    if (!profile || !profile.apiKey) {
+      console.warn(`No api key provided, nothing to register. Personal=${JSON.stringify(profile)}`);
+      return;
+    }
+    let signingKey = localStorage.getItem("signingKey");
+    if (!signingKey) {
+      signingKey = Wallet.createRandom().privateKey;
+      localStorage.setItem("signingKey", signingKey);
+    }
+    const signer = new Wallet(signingKey);
+    const sig = await signer.signMessage(profile.apiKey);
+    const res = await axios.post(`${window.location.origin}/api/profile`, {
+      sig,
+      profile
+    });
+    console.log(res);
+  };
+
+  const handleProfileChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    console.log(`Set profile.profileName = "${event.target.value}"`);
     setProfile({...profile, profileName: event.target.value});
   };
+
+  const handleKeyChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    console.log(`Set profile.apiKey = "${event.target.value}"`);
+    setProfile({...profile, apiKey: event.target.value});
+  };
+
+  useEffect(() => {
+    setProfile({ apiKey: defaultKey, profileName: defaultProfile, ...profile});
+  }, []); // eslint-disable-line
 
   const resetData = (): void => {
     const keys = [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events, StoreKeys.Profile];
@@ -245,8 +279,8 @@ export const AccountInfo: React.FC = (props: any) => {
       <TextField
         id="profile-name"
         label="Profile Name"
-        defaultValue={profile.profileName || "Default"}
-        onChange={handleChange}
+        defaultValue={defaultProfile}
+        onChange={handleProfileChange}
         helperText="Choose a name for your profile eg. Company ABC, Shiv G, etc."
         margin="normal"
         variant="outlined"
@@ -257,12 +291,23 @@ export const AccountInfo: React.FC = (props: any) => {
       <TextField
         id="api-key"
         label="Api Key"
-        defaultValue={profile.apiKey || "abc123"}
-        onChange={handleChange}
-        helperText="Provide an etherscan API Key to sync chain data"
+        defaultValue={defaultKey}
+        onChange={handleKeyChange}
+        helperText="Register an etherscan API Key to sync chain data"
         margin="normal"
         variant="outlined"
       />
+
+      <Button
+        variant="contained"
+        color="primary"
+        size="small"
+        className={classes.button}
+        onClick={registerKey}
+        startIcon={<SaveIcon />}
+      >
+        Register Key
+      </Button>
 
       <AddressList category="Self" setProfile={setProfile} profile={profile} />
       <AddressList category="Friend" setProfile={setProfile} profile={profile} />

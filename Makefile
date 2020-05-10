@@ -44,15 +44,19 @@ start: dev
 stop:
 	bash ops/stop.sh
 
+restart:
+	bash ops/stop.sh
+	bash ops/start-dev.sh
+
 backup:
 	tar czf tax_backup.tar.gz .cache modules/taxes/docs modules/taxes/personal.json
 
-clean:
+clean: stop
 	rm -rf modules/*/build/**
 	rm -rf .flags/*
 	docker container prune -f
 
-reset:
+reset: stop
 	rm -f .cache/*/events.json
 	rm -f .cache/*/state.json
 	rm -f .cache/*/transactions.json
