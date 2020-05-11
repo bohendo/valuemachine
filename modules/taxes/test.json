@@ -1,11 +1,9 @@
 {
   "env": {
-    "username": "test",
-    "mode": "test",
-    "capitalGainsMethod": "FIFO",
     "etherscanKey": "",
     "logLevel": 3,
-    "taxYear": "2019"
+    "mode": "test",
+    "username": "test"
   },
   "forms": {
     "f1040": {
@@ -1022,6 +1020,6 @@
       "C0_E": true
     }
   },
-  "events": [],
+  "transactions": [],
   "addressBook": []
 }

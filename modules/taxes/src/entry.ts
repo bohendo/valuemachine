@@ -48,7 +48,8 @@ process.on("SIGINT", logAndExit);
   const username = input.env.username;
   const logger = new LevelLogger(input.env.logLevel);
   const log = new ContextLogger("Taxes", logger);
-  log.debug(`Generating tax return data for ${username} (log level: ${input.env.logLevel})`);
+  const taxYear = math.round(math.sub(new Date().toISOString().split("-")[0], "1"), 0);
+  log.info(`Generating ${taxYear} tax return data for ${username}`);
 
   const outputFolder = `${process.cwd()}/build/${username}/data`;
 
@@ -66,8 +67,10 @@ process.on("SIGINT", logAndExit);
 
   const chainData = await getChainData({ store, logger, etherscanKey: input.env.etherscanKey });
 
-  await chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
-  await chainData.syncAddressHistory(addressBook.addresses.filter(addressBook.isSelf));
+  if (env.mode !== "test") {
+    await chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
+    await chainData.syncAddressHistory(addressBook.addresses.filter(addressBook.isSelf));
+  }
 
   const transactions = await getTransactions(
     addressBook,
@@ -172,7 +175,7 @@ process.on("SIGINT", logAndExit);
         continue;
       }
       output = filers[form](
-        vmEvents.filter(vmEvent => vmEvent.date.startsWith(env.taxYear)),
+        vmEvents.filter(vmEvent => vmEvent.date.startsWith(taxYear)),
         output,
       );
     }
@@ -183,7 +186,7 @@ process.on("SIGINT", logAndExit);
 
   let page = 1;
   for (const [name, data] of Object.entries(output)) {
-    if (!(data as any).length || (data as any).length === 1) {
+    if (!(data as any).length) {
       const filename = `${outputFolder}/${page++}_${name}.json`;
       log.info(`Saving ${name} data to ${filename}`);
       const outputData =
