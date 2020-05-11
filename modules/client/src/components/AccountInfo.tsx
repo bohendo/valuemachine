@@ -161,7 +161,18 @@ const AddListItem = (props: any) => {
 }
 
 const AddressList = (props: any) => {
-  const { category, chainData, profile, setChainData, signer} = props;
+  const { category, chainData, profile, setChainData, setProfile, signer} = props;
+
+  const deleteAddress = (entry: AddressEntry) => {
+    console.log(`Deleting ${JSON.stringify(entry)}`);
+    const newProfile = {...profile, addressBook: [...profile.addressBook]}
+    let i = newProfile.addressBook.findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase())
+    if (i >= 0) {
+      newProfile.addressBook.splice(i,1)
+      setProfile(newProfile);
+      store.save(StoreKeys.Profile, newProfile);
+    }
+  };
 
   const syncHistory = async (signer: Wallet, address: Address) => {
     const payload = { signerAddress: signer.address, address };
@@ -203,7 +214,7 @@ const AddressList = (props: any) => {
                 return (
                   <TableRow key={i} >
                     <TableCell>
-                      <IconButton onClick={console.log} >
+                      <IconButton onClick={() => deleteAddress(entry)} >
                         <RemoveIcon />
                       </IconButton>
                     </TableCell>
