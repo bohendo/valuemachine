@@ -1,4 +1,4 @@
-import { Zero } from "ethers/constants";
+import { MaxUint256, Zero } from "ethers/constants";
 import { BigNumber as BN, formatUnits, parseUnits } from "ethers/utils";
 
 ////////////////////////////////////////
@@ -21,6 +21,18 @@ const roundInt = (decStr: string): string =>
 export const eq = (a, b): boolean => toWad(a).eq(toWad(b));
 export const gt = (a, b): boolean => toWad(a).gt(toWad(b));
 export const lt = (a, b): boolean => toWad(a).lt(toWad(b));
+
+export const max = (...lon: string[]): string =>
+  lon.reduce(
+    (max: any, current: any) => gt(max, current) ? max : current,
+    "-" + MaxUint256.toString(),
+  );
+
+export const min = (...lon: string[]): string =>
+  lon.reduce(
+    (min: any, current: any) => (lt(min, current) ? min : current),
+    MaxUint256.toString(),
+  );
 
 export const add = (...lon: string[]): string =>
   lon.reduce((sum, current) => fromWad(toWad(sum).add(toWad(current))), "0");

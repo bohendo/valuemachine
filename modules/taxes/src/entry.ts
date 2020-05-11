@@ -20,9 +20,9 @@ import { emptyForm, mergeForms, translate } from "./utils";
 // Order of this list is important, it should follow the dependency graph.
 // ie: first no dependents, last no dependencies
 const supportedForms = [
+  "f2555",
   "f1040",
   "f2210",
-  "f2555",
   "f1040s1",
   "f1040s2",
   "f1040s3",
