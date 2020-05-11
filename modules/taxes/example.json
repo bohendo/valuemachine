@@ -8,14 +8,6 @@
     "taxYear": "2019"
   },
   "forms": [
-    "f1040",
-    "f1040s1",
-    "f1040s2",
-    "f1040s3",
-    "f1040sse",
-    "f1040sc",
-    "f1040sd",
-    "f8949"
   ],
 
   "formData": {
@@ -44,14 +36,20 @@
         }
       ]
     },
-
+    "f1040s1": {},
+    "f1040s2": {},
+    "f1040s3": {},
+    "f1040sse": {},
+    "f1040sc": {},
     "f1040sc": {
       "LineA": "Web Developer",
       "LineB": "541510",
       "CheckF-Cash": true,
       "CheckG-Yes": true,
       "CheckI-No": true
-    }
+    },
+    "f1040sd": {},
+    "f8949": {}
   },
 
   "events": [],
