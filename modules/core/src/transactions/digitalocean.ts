@@ -38,7 +38,7 @@ export const mergeDigitalOceanTransactions = (
 
     transaction.transfers.push({
       assetType: "USD",
-      category: TransferCategories.Transfer,
+      category: TransferCategories.Expense,
       from: "digitalocean-account",
       quantity: quantity.replace("$", ""),
       to: "digitalocean",
@@ -50,7 +50,7 @@ export const mergeDigitalOceanTransactions = (
   log.info(`Loaded ${digitaloceanTransactions.length} new transactions from digitalocean`);
 
   digitaloceanTransactions.forEach((digitaloceanTransaction: Transaction): void => {
-    log.info(digitaloceanTransaction.description);
+    log.debug(digitaloceanTransaction.description);
     transactions = mergeFactory({
       allowableTimeDiff: 0,
       log,
