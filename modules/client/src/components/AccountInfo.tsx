@@ -70,9 +70,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const AddListItem = (props: any) => {
   const [newAddressEntry, setNewAddressEntry] = useState({
+    category: "self",
+    name: "default",
     tags: ["active"],
-    category: "self"
   } as AddressEntry);
+  const [newEntryError, setNewEntryError] = useState({ err: false, msg: "Add your ethereum address to fetch info"});
 
   const { profile, setProfile } = props;
 
@@ -80,12 +82,24 @@ const AddListItem = (props: any) => {
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setNewAddressEntry({...newAddressEntry, [event.target.name]: event.target.value});
+    setNewEntryError({err: false, msg: "Add your ethereum address to fetch info"})
   };
 
   const addNewAddress = () => {
-    const newProfile = {...profile, addressBook: [...profile.addressBook, newAddressEntry]}
-    setProfile(newProfile);
-    store.save(StoreKeys.Profile, newProfile);
+    if (!newAddressEntry.address) {
+      setNewEntryError({err: true, msg: "Required! Ethereum Address"})
+    } else {
+      let i = profile.addressBook.findIndex(
+        (o) => o.address.toLowerCase() === newAddressEntry.address.toLowerCase()
+      );
+      if (i < 0) {
+        const newProfile = {...profile, addressBook: [...profile.addressBook, newAddressEntry]}
+        setProfile(newProfile);
+        store.save(StoreKeys.Profile, newProfile);
+      } else {
+        setNewEntryError({err: true, msg: "Address already added"})
+      }
+    }
   };
 
   return (
@@ -95,10 +109,11 @@ const AddListItem = (props: any) => {
         <AddIcon />
       </IconButton>
       <TextField
+        error={newEntryError.err}
         id="address"
         label="Eth Address"
         defaultValue="0xabc..."
-        helperText="Add your ethereum address to fetch info"
+        helperText={newEntryError.msg}
         name="address"
         onChange={handleChange}
         margin="normal"
@@ -124,7 +139,7 @@ const AddListItem = (props: any) => {
       <TextField
         id="name"
         label="Account Name"
-        defaultValue="Shivhend.eth"
+        defaultValue="hot-wallet"
         helperText="Give your account a nickname"
         name="name"
         onChange={handleChange}
