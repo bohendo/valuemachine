@@ -11,7 +11,9 @@ const toWad = (n: BN | string): BN => parseUnits((n || "0").toString(), 18);
 const floor = (decStr: string): string => decStr.substring(0, decStr.indexOf("."));
 
 const roundInt = (decStr: string): string => 
-  floor(fromWad(toWad(decStr).add(toWad("0.5"))).toString());
+  toWad(decStr).lt(toWad("0"))
+    ? floor(fromWad(toWad(decStr).sub(toWad("0.5"))).toString())
+    : floor(fromWad(toWad(decStr).add(toWad("0.5"))).toString());
 
 ////////////////////////////////////////
 // Exports
