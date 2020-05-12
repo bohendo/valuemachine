@@ -148,10 +148,8 @@ export const getChainData = (params: ChainDataParams): ChainData => {
         address => json.addresses[address] && json.addresses[address].history.includes(tx.hash),
       );
     const summary = {};
-    Object.keys(json.addresses).forEach(address => {
-      if (addresses.includes(address)) {
-        summary[address] = json[address];
-      }
+    addresses.forEach(address => {
+      summary[address] = json.addresses[address];
     });
     return getChainData({
       chainDataJson: {
