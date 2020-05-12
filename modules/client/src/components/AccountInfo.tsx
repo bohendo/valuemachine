@@ -281,7 +281,7 @@ export const AccountInfo: React.FC = (props: any) => {
   }, []); // eslint-disable-line
 
   const resetData = (): void => {
-    [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events, StoreKeys.Profile].forEach(key => {
+    [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events].forEach(key => {
       console.log(`Resetting data for ${key}`);
       store.save(key);
     });
