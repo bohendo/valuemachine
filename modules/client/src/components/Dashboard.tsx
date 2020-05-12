@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import {
+  AssetTypes,
   Event,
   EventTypes,
   StoreKeys,
@@ -34,8 +35,20 @@ export const Dashboard: React.FC = (props: any) => {
   const [netWorthSnapshot, setNetWorthSnapshot] = useState(0);
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
+  const [endDatePrice, setEndDatePrice] = useState({} as any[]);
 
   const { addressBook, chainData } = props;
+
+  const logger = new LevelLogger(3);
+  const prices = getPrices(store, logger);
+
+  useEffect(() => {
+    let currentPrices = {}
+    Object.values(AssetTypes).forEach(async (assetType) => {
+      currentPrices[assetType] = await prices.getPrice(assetType, endDate.toISOString());
+    })
+    setEndDatePrice(currentPrices);
+  }, [endDate]);
 
   useEffect(() => {
     (async () => {
@@ -44,7 +57,6 @@ export const Dashboard: React.FC = (props: any) => {
         setTransactions([] as Transaction[]);
         return;
       }
-      const logger = new LevelLogger(3);
       const log = new ContextLogger("Dashboard", logger);
       let newTransactions = await mergeEthTransactions(
         [], // Could give transactions & this function will merge new txns into the existing array
@@ -56,7 +68,6 @@ export const Dashboard: React.FC = (props: any) => {
 
       log.info(`address book contains ${addressBook.addresses.filter(addressBook.isSelf).length} self addresses`);
 
-      const prices = getPrices(store, logger);
       for (let i = 0; i < newTransactions.length; i++) {
         const tx = newTransactions[i];
         newTransactions[i].index = i+1;
@@ -143,18 +154,34 @@ export const Dashboard: React.FC = (props: any) => {
     setFilteredTotalByCategory(totalByCategory);
     setTotalByAssetType(tempTotalByAssetType);
 
+    /*
+    const netWorthEvents = financialEvents
+      .filter(event => new Date(event.date).getTime() <= endDate.getTime())
+      .filter(event => event.type === EventTypes.NetWorth)
+    console.log(netWorthEvents);
+    */
+
     const recentPrices = {};
     const netWorthData = financialEvents
       .filter(event => new Date(event.date).getTime() <= endDate.getTime())
       .filter(event => event.type === EventTypes.NetWorth)
       .map((event: Event, index: number) => {
         let total = 0;
-        for (const assetType of Object.keys(event.assets )) {
+        for (const assetType of Object.keys(event.assets)) {
           recentPrices[assetType] = event.prices[assetType] || recentPrices[assetType];
           total += parseFloat(event.assets[assetType]) * parseFloat(recentPrices[assetType]);
         }
         return { date: new Date(event.date), networth: total };
       });
+
+    if (netWorthData.length > 0 && netWorthData[netWorthData.length -1].date.toDateString() !== endDate.toDateString()) {
+      let total = 0;
+      for (const assetType of Object.keys(totalByAssetType)) {
+        total += totalByAssetType[assetType] * parseFloat(endDatePrice[assetType]);
+      }
+      netWorthData.push({date: endDate, networth: total})
+    }
+    console.log(netWorthData);
 
     setNetWorthTimeline(netWorthData);
 
