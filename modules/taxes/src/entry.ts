@@ -20,12 +20,12 @@ import { emptyForm, mergeForms, translate } from "./utils";
 // Order of this list is important, it should follow the dependency graph.
 // ie: first no dependents, last no dependencies
 const supportedForms = [
-  "f2555",
-  "f1040",
   "f2210",
+  "f1040",
   "f1040s1",
   "f1040s2",
   "f1040s3",
+  "f2555",
   "f1040sse",
   "f1040sc",
   "f1040sd",
@@ -184,9 +184,31 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 5: Save form data to disk
 
+  // Ordered according to "Attachment Sequence No." in top right of each form
+  const attachmentSequence = [
+    "f1040",
+    "f1040s1", // 1
+    "f1040s2", // 2
+    "f1040s3", // 3
+    "f2210", // 6
+    "f1040sc", // 9
+    "f1040sd", // 12
+    "f8949", // 12a
+    "f1040sse", // 17
+    "f2555", // 34
+    "f8889", // 52
+  ];
+
+  if (attachmentSequence.some(form => !supportedForms.includes(form))) {
+    throw new Error(`Some supported form doesn't have an attachment sequence number yet`);
+  }
+
   let page = 1;
-  for (const [name, data] of Object.entries(output)) {
-    if (!(data as any).length) {
+  attachmentSequence.forEach(name => {
+    const data = output[name];
+    if (!data) {
+      return;
+    } else if (!(data as any).length) {
       const filename = `${outputFolder}/${page++}_${name}.json`;
       log.info(`Saving ${name} data to ${filename}`);
       const outputData =
@@ -196,10 +218,11 @@ process.on("SIGINT", logAndExit);
       for (const formPage of (data as any)) {
         const pageName = `${page++}_f8949`;
         const fileName = `${outputFolder}/${pageName}.json`;
-        log.info(`Saving page of ${name} data to ${fileName}`);
+        log.info(`Saving a page of ${name} data to ${fileName}`);
         const outputData = JSON.stringify(translate(formPage, mappings[name]), null, 2);
         fs.writeFileSync(fileName, outputData);
       }
     }
-  }
+  });
+
 })();
