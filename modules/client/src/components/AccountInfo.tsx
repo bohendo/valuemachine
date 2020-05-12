@@ -177,6 +177,7 @@ const AddListItem = (props: any) => {
 
 const AddressList = (props: any) => {
   const { category, chainData, profile, setChainData, setProfile, signer} = props;
+  const [sync, setSync] = useState(false);
 
   const deleteAddress = (entry: AddressEntry) => {
     console.log(`Deleting ${JSON.stringify(entry)}`);
@@ -190,6 +191,7 @@ const AddressList = (props: any) => {
   };
 
   const syncHistory = async (signer: Wallet, address: Address) => {
+    setSync(true);
     const payload = { signerAddress: signer.address, address };
     const sig = await signer.signMessage(JSON.stringify(payload));
 
@@ -201,6 +203,7 @@ const AddressList = (props: any) => {
         console.log(`Got address history:`, history.data);
         chainData.merge(history.data);
         setChainData(chainData);
+        setSync(false);
         break;
       }
       await new Promise(res => setTimeout(res, 3000));
@@ -240,6 +243,7 @@ const AddressList = (props: any) => {
                     <TableCell>
 
                       <Button
+                        disabled={sync}
                         variant="contained"
                         color="primary"
                         size="small"
@@ -307,7 +311,7 @@ export const AccountInfo: React.FC = (props: any) => {
   }, []); // eslint-disable-line
 
   const resetData = (): void => {
-    [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events, StoreKeys.Profile].forEach(key => {
+    [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events, StoreKeys.ChainData].forEach(key => {
       console.log(`Resetting data for ${key}`);
       store.save(key);
     });
