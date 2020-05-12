@@ -110,18 +110,18 @@ app.post("/chaindata", async (req, res) => {
       setTimeout(() => res(false), 1000),
     ),
     new Promise((res, rej) =>
-      chainData.syncAddressHistory([payload.address], profile.etherscanKey)
-        .then(() => res(true))
-        .catch(() => rej()),
+      chainData.syncAddressHistory([payload.address], profile.etherscanKey).then(() => {
+        const index = syncing.indexOf(payload.address);
+        if (index > -1) {
+          syncing.splice(index, 1);
+        }
+        res(true);
+      }).catch(() => rej()),
     ),
   ]).then((didSync: boolean) => {
     if (didSync) {
       log.info(`Chain data is synced, returning address history`);
       res.json(chainData.getAddressHistory(payload.address).json);
-      const index = syncing.indexOf(payload.address);
-      if (index > -1) {
-        syncing.splice(index, 1);
-      }
       return;
     }
     return logAndSend(`Chain data for ${payload.address} has started syncing, please wait`);

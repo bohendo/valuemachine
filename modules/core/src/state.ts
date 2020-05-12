@@ -35,6 +35,7 @@ export const getState = (
 
   const getNextChunk = (account: Address, assetType: AssetTypes): AssetChunk => {
     const index = state.accounts[account].findIndex(chunk => chunk.assetType === assetType);
+    if (index === -1) return undefined;
     return state.accounts[account].splice(index, 1)[0];
   };
 
@@ -79,10 +80,10 @@ export const getState = (
     let togo = quantity;
     while (gt(togo, "0")) {
       const chunk = getNextChunk(account, assetType);
-      log.debug(`Checking out chunk w ${togo} to go: ${JSON.stringify(chunk, null, 2)}`);
+      log.debug(`Got next chunk of ${assetType} w ${togo} to go: ${JSON.stringify(chunk, null, 2)}`);
       if (!chunk) {
         output.forEach(chunk => putChunk(account, chunk)); // roll back changes so far
-        throw new Error(`${account} attempted to spend more ${assetType} than they received.`);
+        throw new Error(`${account} attempted to spend ${quantity} ${assetType} but they are missing ${togo}. All chunks: ${JSON.stringify(output)}.`);
       }
       if (gt(chunk.quantity, togo)) {
         putChunk(account, { ...chunk, quantity: sub(chunk.quantity, togo) });

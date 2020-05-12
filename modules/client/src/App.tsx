@@ -65,7 +65,6 @@ const App: React.FC = () => {
 
     // getChainData returns chain data access methods eg chainData.getAddressHistory
     setChainData(getChainData({
-      etherscanKey: "etherscanKey",
       console,
       store,
     }));

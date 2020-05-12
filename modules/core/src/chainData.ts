@@ -11,7 +11,7 @@ import {
   StoreKeys,
   TokenData,
 } from "@finances/types";
-import { ContextLogger } from "@finances/utils";
+import { ContextLogger, sm, smeq } from "@finances/utils";
 import axios from "axios";
 import { Contract } from "ethers";
 import { AddressZero } from "ethers/constants";
@@ -93,9 +93,9 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     // But we don't want a copy from both account's tx history so can't blindly push everything
     const getDups = (oldList: any[], newElem: any): number =>
       oldList.filter(oldElem =>
-        newElem.from.toLowerCase() === oldElem.from &&
+        smeq(newElem.from, oldElem.from) &&
         newElem.hash === oldElem.hash &&
-        newElem.to.toLowerCase() === oldElem.to &&
+        smeq(newElem.to, oldElem.to) &&
         (
           newElem.value.includes(".") ? newElem.value : formatEther(newElem.value)
         ) === oldElem.value,
@@ -119,7 +119,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       json.tokens[token] = newJson.tokens[token];
     }
     log.info(`Merged ${Object.keys(json.tokens).length - before} new tokens`);
-    before = newJson.transactions.length;
+    before = json.transactions.length;
     for (const newTx of newJson.transactions) {
       if (!json.transactions.some(tx => tx.hash === newTx.hash)) {
         json.transactions.push(newTx);
@@ -142,14 +142,17 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     return;
   };
 
-  const getAddressHistory = (...addresses: Address[]): ChainData => {
+  const getAddressHistory = (...rawAddresses: Address[]): ChainData => {
+    const addresses = rawAddresses.map(sm);
     const include = (tx: { hash: HexString }): boolean => addresses.some(
         address => json.addresses[address] && json.addresses[address].history.includes(tx.hash),
       );
     const summary = {};
-    Object.keys(json.addresses).forEach(
-      address => { if (addresses.includes(address)) { summary[address] = json[address]; } },
-    );
+    Object.keys(json.addresses).forEach(address => {
+      if (addresses.includes(address)) {
+        summary[address] = json[address];
+      }
+    });
     return getChainData({
       chainDataJson: {
         addresses: summary,
@@ -190,7 +193,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     for (const tokenAddress of newlySupported) {
       log.info(`Fetching info for token ${logProg(tokens, tokenAddress)}: ${tokenAddress}`);
       const token = new Contract(tokenAddress, getTokenAbi(tokenAddress), provider);
-      json.tokens[tokenAddress.toLowerCase()] = {
+      json.tokens[sm(tokenAddress)] = {
         decimals: toNum((await token.functions.decimals()) || 18),
         name: toStr((await token.functions.name()) || "Unknown"),
         symbol: toStr((await token.functions.symbol()) || "???"),
@@ -202,7 +205,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
   const syncAddressHistory = async (userAddresses: Address[], key?: string): Promise<void> => {
     assertStore();
     const provider = getProvider(key);
-    const addresses = userAddresses.filter(address => {
+    const addresses = userAddresses.map(sm).filter(address => {
       if (!json.addresses[address]) {
         return true;
       }
@@ -212,7 +215,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
         .map(tx => tx.timestamp)
         .concat(
           json.calls
-            .filter(call => call.to === address || call.from === address)
+            .filter(call => smeq(call.to, address) || smeq(call.from, address))
             .map(tx => tx.timestamp),
         )
         .sort(chrono).reverse()[0];
@@ -240,7 +243,6 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       return true;
     });
 
-    ////////////////////////////////////////
     // Fetch tx history for addresses that need to be updated
 
     log.info(`Fetching tx history for ${addresses.length} out-of-date addresses`);
@@ -259,13 +261,13 @@ export const getChainData = (params: ChainDataParams): ChainData => {
           json.transactions.push({
             block: tx.blockNumber,
             data: tx.data,
-            from: tx.from.toLowerCase(),
+            from: sm(tx.from),
             gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
             gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
             hash: tx.hash,
             nonce: tx.nonce,
             timestamp: (new Date(tx.timestamp * 1000)).toISOString(),
-            to: tx.to ? tx.to.toLowerCase() : null,
+            to: tx.to ? sm(tx.to) : null,
             value: formatEther(tx.value),
           });
         }
@@ -282,14 +284,14 @@ export const getChainData = (params: ChainDataParams): ChainData => {
         json.calls.push({
           block: parseInt(call.blockNumber.toString(), 10),
           contractAddress: AddressZero,
-          from: call.from.toLowerCase(),
+          from: sm(call.from),
           hash: call.hash,
           timestamp: (new Date((call.timestamp || call.timeStamp) * 1000)).toISOString(),
           // Contracts creating contracts: if call.to is empty then this is a contract creation call
           // We got call from this address's history so it must be either the call.to or call.from
-          to: ((call.to === "" || call.to === null) && call.from !== address)
+          to: ((call.to === "" || call.to === null) && !smeq(call.from, address))
             ? address
-            : call.to ? call.to.toLowerCase() : null,
+            : call.to ? sm(call.to) : null,
           value: formatEther(call.value),
         });
       }
@@ -308,11 +310,11 @@ export const getChainData = (params: ChainDataParams): ChainData => {
         }
         json.calls.push({
           block: parseInt(call.blockNumber.toString(), 10),
-          contractAddress: call.contractAddress.toLowerCase(),
-          from: call.from.toLowerCase(),
+          contractAddress: sm(call.contractAddress),
+          from: sm(call.from),
           hash: call.hash,
           timestamp: (new Date((call.timestamp || call.timeStamp) * 1000)).toISOString(),
-          to: call.to.toLowerCase(),
+          to: sm(call.to),
           value: formatEther(call.value),
         });
       }
@@ -329,7 +331,6 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       log.debug(`📝 progress saved`);
     }
 
-    ////////////////////////////////////////
     // Make sure all calls have transaction data associated with them
     // bc we might need to ignore calls if the tx receipt says it was reverted..
 
@@ -349,13 +350,13 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       const transaction = {
         block: tx.blockNumber,
         data: tx.data,
-        from: tx.from.toLowerCase(),
+        from: sm(tx.from),
         gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
         gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
         hash: tx.hash,
         nonce: tx.nonce,
         timestamp: call.timestamp,
-        to: tx.to ? tx.to.toLowerCase() : null,
+        to: tx.to ? sm(tx.to) : null,
         value: formatEther(tx.value),
       };
       if (index === -1) {
@@ -366,7 +367,6 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       store.save(StoreKeys.ChainData, json);
     }
 
-    ////////////////////////////////////////
     // Make sure all transactions have receipts
 
     const newEthTxs = json.transactions.filter(tx => !tx.logs);
@@ -380,7 +380,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       tx.gasUsed = hexlify(receipt.gasUsed);
       tx.index = receipt.transactionIndex;
       tx.logs = receipt.logs.map(log => ({
-        address: log.address.toLowerCase(),
+        address: sm(log.address),
         data: log.data,
         index: log.transactionLogIndex,
         topics: log.topics,
