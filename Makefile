@@ -60,7 +60,7 @@ reset: stop
 	rm -f .cache/*/events.json
 	rm -f .cache/*/state.json
 	rm -f .cache/*/transactions.json
-	rm -f .flags/personal .flags/example .flags/test
+	rm -f .flags/tax-return .flags/example-return .flags/test-return
 
 mappings:
 	node modules/core/ops/update-mappings.js -y
