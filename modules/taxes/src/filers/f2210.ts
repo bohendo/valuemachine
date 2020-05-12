@@ -1,4 +1,4 @@
-import { Event, EventTypes, IncomeEvent, ExpenseEvent } from "@finances/types";
+import { Event, EventTypes, IncomeEvent, ExpenseEvent, TimestampString } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
@@ -12,25 +12,20 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   f2210.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
   f2210.SSN = f1040.SocialSecurityNumber;
 
+  ////////////////////////////////////////
+  // Part I
+
   f2210.L1 = f1040.L14;
-  log.info(`L1: ${f2210.L1}`);
 
   f2210.L2 = math.add(f1040s2.L4, f1040s2.L6, f1040s2.L7a, f1040s2.L7b, f1040s2.L8);
-  log.info(`L2: ${f2210.L2}`);
 
   if (math.gt(f1040s2.L8, "0") || math.gt(f1040s2.L7a, "0")) {
     log.warn(`Read instructions & verify value on f2210.L2`);
   }
 
-  if (math.eq(f2210.L3, "0")) {
-    log.error(`Required but not implemented or provided: f2210.L3`);
-  }
+  f2210.L3 = math.add(f1040s3.L9, f1040s3.L12);
 
-  f2210.L3 = math.sub(math.add(f1040s3.L1, f1040s3.L2), f1040s3.L3);
-  log.info(`L3: ${f2210.L3}`);
-
-  f2210.L4 = math.add(f2210.L1,f2210.L2, f2210.L3);
-  log.info(`L4: ${f2210.L4}`);
+  f2210.L4 = math.sub(math.add(f2210.L1,f2210.L2), f2210.L3);
 
   if (math.lt(f2210.L4, "1000")) {
     log.info(`No penalty required, not filing form 2210: f2210.L4=${f2210.L4} < 1000`);
@@ -39,13 +34,10 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   }
 
   f2210.L5 = math.mul(f2210.L4, "0.90");
-  log.info(`L5: ${f2210.L5}`);
 
   f2210.L6 = math.add(f1040.L17, f1040s3.L11);
-  log.info(`L6: ${f2210.L6}`);
 
   f2210.L7 = math.sub(f2210.L4, f2210.L6);
-  log.info(`L7: ${f2210.L7}`);
 
   if (math.lt(f2210.L7, "1000")) {
     log.info(`No penalty required, not filing form 2210`);
@@ -56,12 +48,13 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   if (math.eq(f2210.L8, "0")) {
     log.warn(`Required but not implemented or provided: f2210.L8`);
   }
-  log.info(`L8: ${f2210.L8}`);
 
-  f2210.L9 = math.lt(f2210.L5, f2210.L8) ? f2210.L5 : f2210.L8;
-  log.info(`L9: ${f2210.L9}`);
+  f2210.L9 = math.min(f2210.L5, f2210.L8);
 
-  if (math.lt(f2210.L8, f2210.L5)) {
+  ////////////////////////////////////////
+  // Part II
+
+  if (math.gt(f2210.L8, f2210.L5)) {
     f2210.C0_E = false;
   }
 
@@ -90,78 +83,82 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
     }
   }
 
+  ////////////////////////////////////////
+  // Get required info from events
+
   const columns = ["a", "b", "c", "d"];
 
-  const getGetKey = (prefix: string, column: string) => (row: number): string =>
-    `${prefix}${row}${column}`;
+  const allPayments = [];
+  const expenses = {};
+  const income = {};
+  const payments = {};
 
-  const getGetVal = (getKey: any) => (row: number): string => f2210[getKey(row)];
+  columns.forEach(col => {
+    expenses[col] = "0";
+    income[col] = "0";
+    payments[col] = "0";
+  });
 
-  const getGetPrevVal = (prefix: string, column: string) => (row: number): string =>
-    f2210[`${prefix}${row}${columns[columns.indexOf(column) - 1]}`];
+  const getTime = (day: string, month: string, yearDiff = 0): number =>
+    new Date(`${new Date().getFullYear() - 1 + yearDiff}-${month}-${day}T00:00:00.000Z`).getTime();
+
+  const getCol = (date: TimestampString): string => {
+    const time = new Date(date).getTime();
+    return columns[
+        time < getTime("01", "01") ? -1
+      : time < getTime("01", "04") ? 0
+      : time < getTime("01", "06") ? 1
+      : time < getTime("01", "09") ? 2
+      : time < getTime("01", "01", +1) ? 3
+      : -1
+    ];
+  };
+
+  // Get income events
+  vmEvents.filter(
+    event => event.type === EventTypes.Income &&
+    !event.taxTags.includes("ignore"),
+  ).forEach(
+    (event: IncomeEvent): void => {
+      income[getCol(event.date)] = math.add(
+        income[getCol(event.date)],
+        math.round(math.mul(event.quantity, event.assetPrice)),
+      );
+  });
+  log.info(`Income: Q1 ${income["a"]} | Q2 ${income["b"]} | Q3 ${income["c"]} | Q4 ${income["d"]}`);
+
+  // Get business expense events
+  vmEvents.filter(event =>
+    event.type === EventTypes.Expense &&
+    !event.taxTags.includes("ignore") &&
+    event.taxTags.some(tag => tag.startsWith("f1040sc")),
+  ).forEach(
+    (event: ExpenseEvent): void => {
+      expenses[getCol(event.date)] = math.add(
+        expenses[getCol(event.date)],
+        math.round(math.mul(event.quantity, event.assetPrice)),
+      );
+  });
+  log.info(`Expenses: Q1 ${expenses["a"]} | Q2 ${expenses["b"]} | Q3 ${expenses["c"]} | Q4 ${expenses["d"]}`);
+
+  // Get tax payment events
+  vmEvents.filter(event =>
+    event.type === EventTypes.Expense &&
+    !event.taxTags.includes("ignore") &&
+    event.taxTags.includes("f1040s3.L8"),
+  ).forEach(
+    (event: ExpenseEvent): void => {
+      const value = math.round(math.mul(event.quantity, event.assetPrice));
+      allPayments.push({ date: new Date(event.date).getTime(), value });
+      payments[getCol(event.date)] = math.add(
+        payments[getCol(event.date)],
+        value,
+      );
+  });
+  log.info(`Payments: Q1 ${payments["a"]} | Q2 ${payments["b"]} | Q3 ${payments["c"]} | Q4 ${payments["d"]}`);
 
   ////////////////////////////////////////
   // Schedule AI - Annualized Income Installment Method
-
-  const Q0 = new Date("2018-12-31T23:59:59.999Z").getTime();
-  const Q1 = new Date("2019-04-01T00:00:00.000Z").getTime();
-  const Q2 = new Date("2019-06-01T00:00:00.000Z").getTime();
-  const Q3 = new Date("2019-08-01T00:00:00.000Z").getTime();
-  const Q4 = new Date("2020-01-01T00:00:00.000Z").getTime();
-
-  const quarterlyIncome = { a: "0", b: "0", c: "0", d: "0" };
-  const quarterlyExpenses = { a: "0", b: "0", c: "0", d: "0" };
-  const quarterlyPayments = { a: "0", b: "0", c: "0", d: "0" };
-
-  vmEvents.filter(l => l.type === EventTypes.Income).forEach((income: IncomeEvent): void => {
-    const date = new Date(income.date).getTime();
-    const value = math.mul(income.quantity, income.assetPrice);
-    if (date > Q0 && date < Q1) {
-      quarterlyIncome[columns[0]] = math.add(quarterlyIncome[columns[0]], value);
-    } else if (date > Q0 && date < Q2) {
-      quarterlyIncome[columns[1]] = math.add(quarterlyIncome[columns[1]], value);
-    } else if (date > Q0 && date < Q3) {
-      quarterlyIncome[columns[2]] = math.add(quarterlyIncome[columns[2]], value);
-    } else if (date > Q0 && date < Q4) {
-      quarterlyIncome[columns[3]] = math.add(quarterlyIncome[columns[3]], value);
-    }
-  });
-
-  vmEvents.filter(l =>
-    l.type === EventTypes.Expense &&
-    !l.taxTags.includes("ignore") &&
-    l.taxTags.some(tag => tag.startsWith("f1040sc")),
-  ).forEach((expense: ExpenseEvent): void => {
-    const date = new Date(expense.date).getTime();
-    const value = math.mul(expense.quantity, expense.assetPrice);
-    if (date > Q0 && date < Q1) {
-      quarterlyExpenses[columns[0]] = math.add(quarterlyExpenses[columns[0]], value);
-    } else if (date > Q0 && date < Q2) {
-      quarterlyExpenses[columns[1]] = math.add(quarterlyExpenses[columns[1]], value);
-    } else if (date > Q0 && date < Q3) {
-      quarterlyExpenses[columns[2]] = math.add(quarterlyExpenses[columns[2]], value);
-    } else if (date > Q0 && date < Q4) {
-      quarterlyExpenses[columns[3]] = math.add(quarterlyExpenses[columns[3]], value);
-    }
-  });
-
-  vmEvents.filter(l =>
-    l.type === EventTypes.Expense &&
-    !l.taxTags.includes("ignore") &&
-    l.taxTags.some(tag => tag.startsWith("f2210")),
-  ).forEach((expense: ExpenseEvent): void => {
-    const date = new Date(expense.date).getTime();
-    const value = math.mul(expense.quantity, expense.assetPrice);
-    if (date > Q0 && date < Q1) {
-      quarterlyPayments[columns[0]] = math.add(quarterlyPayments[columns[0]], value);
-    } else if (date > Q0 && date < Q2) {
-      quarterlyPayments[columns[1]] = math.add(quarterlyPayments[columns[1]], value);
-    } else if (date > Q0 && date < Q3) {
-      quarterlyPayments[columns[2]] = math.add(quarterlyPayments[columns[2]], value);
-    } else if (date > Q0 && date < Q4) {
-      quarterlyPayments[columns[3]] = math.add(quarterlyPayments[columns[3]], value);
-    }
-  });
 
   const preFilled = {
     L2: { a: "4", b: "2.4", c: "1.5", d: "1" },
@@ -173,48 +170,53 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   };
 
   columns.forEach(column => {
-    const getKey = getGetKey("P4L", column);
-    const getVal = getGetVal(getKey);
-    const getPrevVal = getGetPrevVal("P4L", column);
+    const getKey = (row: number): string =>
+      `P4L${row}${column}`;
+
+    const getVal = (row: number): string =>
+      preFilled[`L${row}`] ? preFilled[`L${row}`][column] : f2210[getKey(row)];
+
+    const getPrevVal = (row: number): string =>
+      f2210[`P4L${row}${columns[columns.indexOf(column) - 1]}`];
 
     ////////////////////////////////////////
     // Schedule AI Part II - Annualized Self-Employment Tax
 
     f2210[getKey(28)] = math.mul(
-      math.sub(quarterlyIncome[column], quarterlyExpenses[column]),
+      math.sub(income[column], expenses[column]),
       "0.9235",
     );
 
-    log.warn(`Required but not implemented: f2210.${getKey(30)}`);
+    if (f2210[getKey(30)] === "") {
+      log.warn(`Maybe required but not provided: f2210.${getKey(30)}`);
+    }
 
-    f2210[getKey(31)] = math.subToZero(preFilled.L29[column], getVal(30));
+    f2210[getKey(31)] = math.subToZero(getVal(29), getVal(30));
 
-    f2210[getKey(33)] = math.lt(getVal(28), getVal(31))
-      ? math.mul(preFilled.L32[column], getVal(28))
-      : math.mul(preFilled.L32[column], getVal(31));
+    f2210[getKey(33)] = math.mul(math.min(getVal(28), getVal(31)), getVal(32));
 
-    log.info(`${math.mul(preFilled.L32[column], getVal(28))} OR ${math.mul(preFilled.L32[column], getVal(31))}`);
-    log.info(`f2210[${getKey(33)}] = ${f2210[getKey(33)]}`);
+    f2210[getKey(35)] = math.mul(getVal(28), getVal(34));
 
-    f2210[getKey(35)] = math.mul(getVal(28), preFilled.L34[column]);
     f2210[getKey(36)] = math.add(getVal(33), getVal(35));
 
     ////////////////////////////////////////
     // Schedule AI Part I - Annualized Income Installments
 
-    f2210[getKey(1)] = quarterlyIncome[column];
+    f2210[getKey(1)] = income[column];
 
-    f2210[getKey(3)] = math.mul(getVal(1), preFilled.L2[column]);
+    f2210[getKey(3)] = math.mul(getVal(1), getVal(2));
 
-    f2210[getKey(4)] = quarterlyExpenses[column];
+    f2210[getKey(4)] = expenses[column];
 
-    f2210[getKey(6)] = math.mul(getVal(5), preFilled.L5[column]);
+    f2210[getKey(6)] = math.mul(getVal(4), getVal(5));
 
     f2210[getKey(7)] = f1040.L9;
 
-    f2210[getKey(8)] = math.gt(getVal(6), getVal(7)) ? getVal(6) : getVal(7);
+    f2210[getKey(8)] = math.max(getVal(6), getVal(7));
 
-    log.warn(`Required but not implemented: f2210.${getKey(9)}`);
+    if ((forms as any).f8995) {
+      log.warn(`Required but not implemented: f2210.${getKey(9)}`);
+    }
 
     f2210[getKey(10)] = math.add(getVal(8), getVal(9));
 
@@ -236,7 +238,7 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
 
     f2210[getKey(19)] = math.subToZero(getVal(17), getVal(18));
 
-    f2210[getKey(21)] = math.mul(preFilled.L20[column], getVal(19));
+    f2210[getKey(21)] = math.mul(getVal(20), getVal(19));
 
     if (column === "b") {
       f2210[getKey(22)] = f2210.P4L27a;
@@ -254,7 +256,7 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
 
     f2210[getKey(24)] = math.mul(f2210.L9, "0.25");
 
-    f2210[getKey(25)] = math.sub(getPrevVal(26), getPrevVal(26));
+    f2210[getKey(25)] = math.sub(getPrevVal(26), getPrevVal(27));
 
     f2210[getKey(26)] = math.add(getVal(24), getVal(25));
 
@@ -269,11 +271,12 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   // F2210 Part IV - The Megular Method
 
   columns.forEach(column => {
-    const getKey = getGetKey("L", column);
-    const getVal = getGetVal(getKey);
-    const getPrevVal = getGetPrevVal("L", column);
+    const getKey = (row: number): string => `L${row}${column}`;
+    const getVal = (row: number): string => f2210[getKey(row)];
+    const getPrevVal = (row: number): string =>
+      f2210[`L${row}${columns[columns.indexOf(column) - 1]}`];
 
-    f2210[getKey(19)] = quarterlyPayments[column];
+    f2210[getKey(19)] = payments[column];
 
     if (column === "a") {
       f2210[getKey(23)] = getVal(19);
@@ -285,17 +288,171 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
       f2210[getKey(24)] = math.eq(getVal(23), "0") ? math.sub(getVal(22), getVal(21)) : "0";
     }
 
-    f2210[getKey(25)] = math.gt(getVal(18), getVal(23))
-      ? math.sub(getVal(18), getVal(23))
-      : "0";
-
-    f2210[getKey(26)] = math.lt(getVal(18), getVal(23))
-      ? math.sub(getVal(23), getVal(18))
-      : "0";
+    f2210[getKey(25)] = math.subToZero(getVal(18), getVal(23));
+    f2210[getKey(26)] = math.subToZero(getVal(23), getVal(18));
   });
 
   ////////////////////////////////////////
   // F2210 Worksheet Section B - Figure the Penalty
 
-  return { ...forms, f2210 };
+  const d190415 = new Date("2019-04-15T00:00:00.000Z").getTime();
+  const d190615 = new Date("2019-06-15T00:00:00.000Z").getTime();
+  const d190630 = new Date("2019-06-30T00:00:00.000Z").getTime();
+  const d190915 = new Date("2019-09-15T00:00:00.000Z").getTime();
+  const d190930 = new Date("2019-09-30T00:00:00.000Z").getTime();
+  const d191231 = new Date("2019-12-31T00:00:00.000Z").getTime();
+  const d200115 = new Date("2020-01-15T00:00:00.000Z").getTime();
+  const d200415 = new Date("2020-04-15T00:00:00.000Z").getTime();
+
+  const rows = ["1a", "1b", "2", "3", "4", "5", "6" , "7", "8", "9", "10", "11", "12", "13"];
+  const worksheet = {};
+  const requiredInstallments = {};
+
+  const chrono = (d1: any, d2: any): number =>
+    new Date(d1.timestamp || d1).getTime() - new Date(d2.timestamp || d2).getTime();
+
+  const daysDiff = (d1: number, d2: number): number =>
+    Math.round(Math.abs(d1 - d2) / (1000 * 60 * 60 * 24));
+
+  allPayments.sort(chrono);
+
+  let penalty = "0"; 
+
+  const dueLabel = {
+    a: "Q1",
+    b: "Q2",
+    c: "Q3",
+    d: "Q4",
+  };
+   
+
+  columns.forEach(column => {
+
+    requiredInstallments[column] = f2210[`L18${column}`];
+
+    const getKey = (row: number): string => `${rows[row]}_${column}`;
+
+    if (column === "a") {
+      worksheet[getKey(2)] = d190415;
+      worksheet[getKey(5)] = d190630;
+      worksheet[getKey(8)] = d190930;
+      worksheet[getKey(11)] = d191231;
+    } else if (column === "b") {
+      worksheet[getKey(2)] = d190615;
+      worksheet[getKey(5)] = d190630;
+      worksheet[getKey(8)] = d190930;
+      worksheet[getKey(11)] = d191231;
+    } else if (column === "c") {
+      worksheet[getKey(5)] = d190915;
+      worksheet[getKey(8)] = d190930;
+      worksheet[getKey(11)] = d191231;
+    } else if (column === "d") {
+      worksheet[getKey(11)] = d200115;
+    }
+
+    worksheet[getKey(0)] = f2210[`L25${column}`];
+
+    let togo = requiredInstallments[column];
+    worksheet[getKey(1)] = [];
+
+    while (math.gt(togo, "0")) {
+
+      const payment = allPayments.shift();
+      log.debug(`Processing payment: ${JSON.stringify(payment)}`);
+
+      if (!payment) {
+        log.debug(`Not enough allPayments..`);
+        break;
+
+      } else if (math.gt(payment.value, togo)) {
+        log.debug(`Applying part of payment & we're done: ${JSON.stringify(payment)}`);
+        payment.value = math.sub(payment.value, togo);
+        // put the rest of this payment back
+        allPayments.unshift(payment);
+        worksheet[getKey(1)].push({
+          date: payment.date,
+          value: togo,
+        });
+        togo = "0";
+
+      } else {
+        log.debug(`Applying entire payment & getting the next one: ${JSON.stringify(payment)}`);
+        togo = math.sub(togo, payment.value);
+        worksheet[getKey(1)].push(payment);
+
+      }
+
+    }
+
+    if (!math.eq(togo, "0")) {
+      log.debug(`After all allPayments made, still ${togo} to go`);
+    }
+
+
+    let total;
+    if (["a", "b"].includes(column)) {
+      worksheet[getKey(3)] = [];
+      worksheet[getKey(4)] = [];
+      total = "0";
+      worksheet[getKey(1)].forEach(payment => {
+        const diff = daysDiff(Math.min(payment.date, d190630), worksheet[getKey(2)]);
+        const amt = math.round(math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06"));
+        worksheet[getKey(3)].push(diff);
+        worksheet[getKey(4)].push(amt);
+        total = math.add(total, amt);
+      });
+      log.info(`Penalty owed for ${dueLabel[column]} taxes in Q2: [${worksheet[getKey(3)]}] => [${worksheet[getKey(4)]}] => ${total}`);
+      penalty = math.add(penalty, total);
+    }
+
+    if (["a", "b", "c"].includes(column)) {
+      worksheet[getKey(6)] = [];
+      worksheet[getKey(7)] = [];
+      total = "0";
+      worksheet[getKey(1)].forEach(payment => {
+        const diff = daysDiff(Math.min(payment.date, d190930), worksheet[getKey(5)]);
+        const amt = math.round(math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06"));
+        worksheet[getKey(6)].push(diff);
+        worksheet[getKey(7)].push(amt);
+        total = math.add(total, amt);
+      });
+      log.info(`Penalty owed for ${dueLabel[column]} taxes in Q3: [${worksheet[getKey(6)]}] => [${worksheet[getKey(7)]}] => ${total}`);
+      penalty = math.add(penalty, total);
+
+      worksheet[getKey(9)] = [];
+      worksheet[getKey(10)] = [];
+      total = "0";
+      worksheet[getKey(1)].forEach(payment => {
+        const diff = daysDiff(Math.min(payment.date, d191231), worksheet[getKey(8)]);
+        const amt = math.round(math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06"));
+        worksheet[getKey(9)].push(diff);
+        worksheet[getKey(10)].push(amt);
+        total = math.add(total, amt);
+      });
+      log.info(`Penalty owed for ${dueLabel[column]} taxes in Q4: [${worksheet[getKey(9)]}] => [${worksheet[getKey(10)]}] => ${total}`);
+      penalty = math.add(penalty, total);
+    }
+
+    total = "0";
+    worksheet[getKey(12)] = [];
+    worksheet[getKey(13)] = [];
+    worksheet[getKey(1)].forEach(payment => {
+      const diff = daysDiff(Math.min(payment.date, d200415), worksheet[getKey(11)]);
+      const amt = math.round(math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06"));
+      worksheet[getKey(12)].push(diff);
+      worksheet[getKey(13)].push(amt);
+      total = math.add(total, amt);
+    });
+    log.info(`Penalty owed for ${dueLabel[column]} taxes in Q5: [${worksheet[getKey(12)]}] => [${worksheet[getKey(13)]}] => ${total}`);
+    penalty = math.add(penalty, total);
+
+  }); 
+
+  log.info(`Total Penalty: ${penalty}`);
+
+  f2210.L27 = penalty;
+  f1040.L24 = penalty;
+
+
+  return { ...forms, f2210, f1040 };
 };

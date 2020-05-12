@@ -7,7 +7,7 @@ import { Forms } from "../types";
 export const f2555 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const log = new ContextLogger("f2555", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
-  const { f2555, f1040, f1040s1 } = forms;
+  const { f2555, f1040, f1040s1, f1040sc } = forms;
 
   f2555.FullName = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
   f2555.SSN = forms.f1040.SocialSecurityNumber;
@@ -26,7 +26,7 @@ export const f2555 = (vmEvents: Event[], oldForms: Forms): Forms => {
 
   f2555.L19 = f1040.L1;
 
-  f2555.L23 = f1040.L7b;
+  f2555.L23 = f1040sc.L31;
 
   f2555.L24 = math.add(
     f2555.L19, f2555.L20a, f2555.L20b,

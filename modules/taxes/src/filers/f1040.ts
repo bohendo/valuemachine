@@ -33,6 +33,12 @@ export const f1040 = (vmEvents: Event[], oldForms: Forms): Forms => {
   f1040.L11b = math.subToZero(f1040.L8b, f1040.L11a);
   log.info(`Taxable Income: ${math.round(f1040.L11b)}`);
 
+  if (!(forms as any).f2555) {
+    log.warn("Required but not implemented: normal f1040.L12a");
+  } else {
+    const worksheet = math.add(f1040.L11b, math.subToZero(forms.f2555.L45, "0"));
+  }
+
   f1040.L12b = math.add(f1040s2.L3, f1040.L12a);
 
   f1040.L13b = math.add(f1040s3.L7, f1040.L13a);
