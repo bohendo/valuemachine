@@ -90,18 +90,18 @@ app.post("/chaindata", async (req, res) => {
   const logAndSend = getLogAndSend(res);
   const payload = req.body.payload;
   if (!isValidAddress(payload.address)) {
-    logAndSend(`A valid address must be provided, got ${payload.address}`);
+    return logAndSend(`A valid address must be provided, got ${payload.address}`);
   }
   if (syncing.includes(payload.address)) {
-    logAndSend(`Chain data for ${payload.address} is already syncing, please wait`);
+    return logAndSend(`Chain data for ${payload.address} is already syncing, please wait`);
   }
   const userStore = getStore(payload.signerAddress);
   const profile = userStore.load(StoreKeys.Profile);
   if (!profile) {
-    logAndSend(`A profile must be registered first`);
+    return logAndSend(`A profile must be registered first`);
   }
   if (!profile.etherscanKey) {
-    logAndSend(`A profile must be registered first`);
+    return logAndSend(`A profile must be registered first`);
   }
   console.log(`Chain data is synced, returning address history`);
   syncing.push(payload.address);
@@ -109,20 +109,29 @@ app.post("/chaindata", async (req, res) => {
     new Promise(res =>
       setTimeout(() => res(false), 1000),
     ),
-    new Promise(res =>
-      chainData.syncAddressHistory([payload.address], profile.etherscanKey).then(() => res(true)),
+    new Promise((res, rej) =>
+      chainData.syncAddressHistory([payload.address], profile.etherscanKey).then(() => {
+        const index = syncing.indexOf(payload.address);
+        if (index > -1) {
+          syncing.splice(index, 1);
+        }
+        res(true);
+      }).catch(() => rej()),
     ),
   ]).then((didSync: boolean) => {
     if (didSync) {
       log.info(`Chain data is synced, returning address history`);
       res.json(chainData.getAddressHistory(payload.address).json);
-      const index = syncing.indexOf(payload.address);
-      if (index > -1) {
-        syncing.splice(index, 1);
-      }
       return;
     }
-    logAndSend(`Chain data for ${payload.address} has started syncing, please wait`);
+    return logAndSend(`Chain data for ${payload.address} has started syncing, please wait`);
+  }).catch(() => {
+    log.warn(`Encountered an error while syncing history for ${payload.address}, try again.`);
+    const index = syncing.indexOf(payload.address);
+    if (index > -1) {
+      syncing.splice(index, 1);
+    }
+
   });
 });
 

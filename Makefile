@@ -36,7 +36,7 @@ $(shell mkdir -p .flags)
 default: dev
 dev: proxy server taxes
 prod: client proxy server taxes
-all: test example personal
+all: prod test-return example-return tax-return
 
 start: dev
 	bash ops/start-dev.sh
@@ -60,7 +60,7 @@ reset: stop
 	rm -f .cache/*/events.json
 	rm -f .cache/*/state.json
 	rm -f .cache/*/transactions.json
-	rm -f .flags/personal .flags/example .flags/test
+	rm -f .flags/tax-return .flags/example-return .flags/test-return
 
 mappings:
 	node modules/core/ops/update-mappings.js -y
@@ -130,20 +130,19 @@ proxy: $(shell find ops/proxy $(find_options))
 ########################################
 # Build tax return
 
-tax-return: personal
-example: modules/taxes/example.json taxes $(shell find modules/taxes/ops $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/taxes && bash ops/entry.sh example.json"
-	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-personal: modules/taxes/personal.json taxes $(shell find modules/taxes/ops $(find_options))
+tax-return: modules/taxes/personal.json taxes $(shell find modules/taxes/ops $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/taxes && bash ops/entry.sh personal.json"
 	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-test: modules/taxes/test.json taxes $(shell find modules/taxes/ops $(find_options))
+example-return: modules/taxes/example.json taxes $(shell find modules/taxes/ops $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/taxes && bash ops/entry.sh example.json"
+	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+test-return: modules/taxes/test.json taxes $(shell find modules/taxes/ops $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/taxes && bash ops/entry.sh test.json"
 	ln -fs modules/taxes/tax-return.pdf tax-return.pdf

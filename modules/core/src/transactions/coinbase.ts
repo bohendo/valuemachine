@@ -84,7 +84,7 @@ export const mergeCoinbaseTransactions = (
   log.info(`Processing ${coinbaseTransactions.length} new transactions from coinbase`);
 
   coinbaseTransactions.forEach((coinbaseTransaction: Transaction): void => {
-    log.info(coinbaseTransaction.description);
+    log.debug(coinbaseTransaction.description);
     transactions = mergeFactory({
       allowableTimeDiff: 15 * 60 * 1000,
       log,

@@ -1,7 +1,7 @@
 
-# Tax Return
+# Financial Tools
 
-Better tools for filling out form 1040 & friends.
+Financial tools + open source version of TurboTax & friends.
 
 # Disclaimer
 
@@ -21,17 +21,17 @@ Those are not my problems, use these tools at your own risk. Do your own researc
 
 # Building your taxes
 
-Run `make example` to generate a simple example tax return based on the data in `example.json`
+Run `make example-return` to generate a simple example tax return based on the data in `modules/taxes/example.json`
 
-Create a copy of `example.json` that will contain your personal data: `cp example.json personal.json`
+Create a copy of `example.json` that will contain your personal data: `cp modules/taxes/example.json modules/taxes/personal.json`
 
-Then, to generate your tax returns, update the relevant info in `personal.json` and run `make personal` (or just `make`)
+Then, to generate your tax returns, update the relevant info in `personal.json` and run `make tax-return`
 
 # Important note re sensitive data
 
-To generate a valid tax return, you'll want to add your social security number & other sensitive data to `personal.json`. This file is added to the .gitignore so you're less likely to accidentally commit/push this personal data. But if you rename it to something like `personal.json.backup` then you could still accidentally commit it, so be careful & review diffs before you push.
+To generate a valid tax return, you might want to add your social security number & other sensitive data to `personal.json`. This file is added to the .gitignore so you're less likely to accidentally commit/push this personal data. But if you rename it to something like `personal.json.backup` then you could still accidentally commit it, so be careful & review diffs before you push.
 
-This also means that `personal.json` won't automatically be backed up to a remote repo as part of your fork of this repo. You'll probably spend a fair amount of time updating the info in `personal.json` so take care of this file & don't lose it. You can create a zipped archive of your personal data and attachments (expected to be in `docs/`) with the command: `make backup` & then save a copy this archive somewhere safe.
+This also means that `personal.json` won't automatically be backed up to a remote repo as part of your fork of this repo. You'll probably spend a fair amount of time updating the info in `personal.json` so take care of this file & don't lose it. You can create a zipped archive of your personal data and attachments (expected to be in `modules/taxes/docs/`) with the command: `make backup` & then save a copy this archive somewhere safe.
 
 # Adding support for a new form
 
@@ -43,7 +43,7 @@ Say we need form f1040s3 to file our taxes and it's not supported yet. Here are 
 
 3. Run `make test` to generate a test tax return, how does this tax return look?
 
-4. (optional) if you want to rename the `f1_1` mapping to be called `fullName` for example, then change this field in `src/mappings/f1040s3.pdf` and then re-run `node ops/update-mappings.js -y`
+4. (optional) if you want to rename the `f1_1` mapping to be called `fullName`, for example, then change this field & any others in `src/mappings/f1040s3.pdf` and then run `node ops/update-mappings.js -y` to sync the test-return data.
 
 # Forms Overview
 

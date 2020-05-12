@@ -25,8 +25,6 @@ import { NavBar } from "./components/NavBar";
 import { AccountInfo } from "./components/AccountInfo";
 import { Dashboard } from "./components/Dashboard";
 
-import chainDataJson from './data/chain-data.json';
-
 import { store } from "./utils/cache";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -67,8 +65,6 @@ const App: React.FC = () => {
 
     // getChainData returns chain data access methods eg chainData.getAddressHistory
     setChainData(getChainData({
-      chainDataJson,
-      etherscanKey: "etherscanKey",
       console,
       store,
     }));

@@ -5,7 +5,7 @@ import {
   AddressCategories,
   Logger,
 } from "@finances/types";
-import { ContextLogger } from "@finances/utils";
+import { ContextLogger, sm, smeq } from "@finances/utils";
 import { getAddress } from "ethers/utils";
 
 export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger): AddressBook => {
@@ -129,12 +129,6 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
 
   ////////////////////////////////////////
   // Internal Functions
-
-  const sm = (str: string): string =>
-    str.toLowerCase();
-
-  const smeq = (str1: string, str2: string): boolean =>
-    sm(str1) === sm(str2);
 
   const isInnerCategory = (category: AddressCategories) => (address: Address): boolean =>
     address && addressBook

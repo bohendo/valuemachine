@@ -197,7 +197,8 @@ const AddressList = (props: any) => {
     while (true) {
       const history = await axios.post(`${window.location.origin}/api/chaindata`, { sig, payload });
       console.log(`attempt ${n++}:`, history);
-      if (history.status === 200 && history.data) {
+      if (history.status === 200 && typeof history.data === "object") {
+        console.log(`Got address history:`, history.data);
         chainData.merge(history.data);
         setChainData(chainData);
         break;

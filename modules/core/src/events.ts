@@ -38,39 +38,38 @@ export const emitTransferEvents = (
   const { isSelf, getName } = addressBook;
   const events = [];
   const unitOfAccount = ["DAI", "SAI", "USD"];
-  const { assetType, from, quantity, to } = transfer;
+  const { assetType, category, from, quantity, to } = transfer;
   const position = `#${transaction.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
 
   const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("-account");
 
-  if (["Borrow", "Burn", "GiftOut", "Income", "SwapIn", "Withdraw"].includes(transfer.category)) {
-    events.push({
-      assetPrice: transaction.prices[assetType],
-      assetType: assetType,
-      date: transaction.date,
-      description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
-      from,
-      quantity,
-      type: transfer.category as EventTypes,
-    });
-  } else if (["Deposit", "Expense", "GiftIn", "Mint", "Repay", "SwapOut"].includes(transfer.category)) {
-    events.push({
-      assetPrice: transaction.prices[assetType],
-      assetType: assetType,
-      date: transaction.date,
-      description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
-      quantity,
-      to,
-      type: transfer.category as EventTypes,
-    });
+  const newEvent = {
+    assetPrice: transaction.prices[assetType],
+    assetType: assetType,
+    date: transaction.date,
+    description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
+    quantity,
+    type: category as EventTypes,
+  } as any;
+
+  if (["Borrow", "Burn", "GiftOut", "Income", "SwapIn", "Withdraw"].includes(category)) {
+    newEvent.from = from;
+  } else if (["Deposit", "Expense", "GiftIn", "Mint", "Repay", "SwapOut"].includes(category)) {
+    newEvent.to = to;
   }
+
+  if (["Income", "Expense"].includes(category)) {
+    newEvent.taxTags = transaction.tags;
+  }
+
+  events.push(newEvent);
 
   if (isAnySelf(from) && !isAnySelf(to) && gt(transfer.quantity, "0")) {
     // maybe emit capital gain logs
     if (
       !unitOfAccount.includes(assetType) &&
       Object.keys(AssetTypes).includes(assetType) &&
-      transfer.category === TransferCategories.SwapOut
+      category === TransferCategories.SwapOut
     ) {
       chunks.forEach(chunk => {
         events.push({

@@ -6,7 +6,7 @@ import {
   StoreKeys,
   Transaction,
 } from "@finances/types";
-import { LevelLogger } from "@finances/utils";
+import { ContextLogger, LevelLogger } from "@finances/utils";
 import {
   getPrices,
   getValueMachine,
@@ -44,8 +44,9 @@ export const Dashboard: React.FC = (props: any) => {
         setTransactions([] as Transaction[]);
         return;
       }
-      const logger = new LevelLogger();
-      const newTransactions = await mergeEthTransactions(
+      const logger = new LevelLogger(3);
+      const log = new ContextLogger("Dashboard", logger);
+      let newTransactions = await mergeEthTransactions(
         [], // Could give transactions & this function will merge new txns into the existing array
         addressBook,
         chainData,
@@ -53,9 +54,12 @@ export const Dashboard: React.FC = (props: any) => {
         logger,
       );
 
+      log.info(`address book contains ${addressBook.addresses.filter(addressBook.isSelf).length} self addresses`);
+
       const prices = getPrices(store, logger);
       for (let i = 0; i < newTransactions.length; i++) {
         const tx = newTransactions[i];
+        newTransactions[i].index = i+1;
         const assets = Array.from(new Set(tx.transfers.map(a => a.assetType)));
         for (let j = 0; j < assets.length; j++) {
           const assetType = assets[j] as AssetTypes;
@@ -66,20 +70,33 @@ export const Dashboard: React.FC = (props: any) => {
       }
 
       setTransactions(newTransactions);
+      store.save(StoreKeys.Transactions, newTransactions);
 
-      const valueMachine = getValueMachine(addressBook);
+      const valueMachine = getValueMachine(addressBook, logger);
 
       let state = store.load(StoreKeys.State);
       let vmEvents = store.load(StoreKeys.Events);
-      for (const transaction of newTransactions.filter(
+
+      const filteredTransactions = newTransactions.filter(
         tx => new Date(tx.date).getTime() > new Date(state.lastUpdated).getTime(),
-      )) {
+      )
+
+      log.info(`Processing ${filteredTransactions.length} new transactions of ${newTransactions.length} total`);
+
+      let start = Date.now();
+      for (const transaction of filteredTransactions) {
         const [newState, newEvents] = valueMachine(state, transaction);
         vmEvents = vmEvents.concat(...newEvents);
         state = newState;
-        store.save(StoreKeys.State, state);
-        store.save(StoreKeys.Events, vmEvents);
+        const chunk = 100;
+        if (transaction.index % chunk === 0) {
+          const diff = (Date.now() - start).toString();
+          log.info(`Processed transactions ${transaction.index - chunk}-${transaction.index} in ${diff} ms`);
+          start = Date.now();
+        }
       }
+      store.save(StoreKeys.State, state);
+      store.save(StoreKeys.Events, vmEvents);
       setFinancialEvents(vmEvents);
 
     })();

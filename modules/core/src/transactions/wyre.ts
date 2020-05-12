@@ -151,7 +151,7 @@ export const mergeWyreTransactions = (
   log.info(`Processing ${wyreTransactions.length} new transactions from wyre`);
 
   wyreTransactions.forEach((wyreTransaction: Transaction): void => {
-    log.info(wyreTransaction.description);
+    log.debug(wyreTransaction.description);
     transactions = mergeWyre(transactions, wyreTransaction);
   });
 

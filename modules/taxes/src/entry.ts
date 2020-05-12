@@ -20,9 +20,9 @@ import { emptyForm, mergeForms, translate } from "./utils";
 // Order of this list is important, it should follow the dependency graph.
 // ie: first no dependents, last no dependencies
 const supportedForms = [
-  "f2210",
-  "f1040",
   "f2555",
+  "f1040",
+  "f2210",
   "f1040s1",
   "f1040s2",
   "f1040s3",
@@ -48,7 +48,8 @@ process.on("SIGINT", logAndExit);
   const username = input.env.username;
   const logger = new LevelLogger(input.env.logLevel);
   const log = new ContextLogger("Taxes", logger);
-  log.debug(`Generating tax return data for ${username} (log level: ${input.env.logLevel})`);
+  const taxYear = math.round(math.sub(new Date().toISOString().split("-")[0], "1"), 0);
+  log.info(`Generating ${taxYear} tax return data for ${username}`);
 
   const outputFolder = `${process.cwd()}/build/${username}/data`;
 
@@ -57,7 +58,7 @@ process.on("SIGINT", logAndExit);
   setEnv({ ...input.env, outputFolder });
   log.debug(`Starting app in env: ${JSON.stringify(env)}`);
 
-  const formsToFile = supportedForms.filter(form => input.forms.includes(form));
+  const formsToFile = supportedForms.filter(form => Object.keys(input.forms).includes(form));
 
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
@@ -66,8 +67,10 @@ process.on("SIGINT", logAndExit);
 
   const chainData = await getChainData({ store, logger, etherscanKey: input.env.etherscanKey });
 
-  await chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
-  await chainData.syncAddressHistory(addressBook.addresses.filter(addressBook.isSelf));
+  if (env.mode !== "test") {
+    await chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
+    await chainData.syncAddressHistory(addressBook.addresses.filter(addressBook.isSelf));
+  }
 
   const transactions = await getTransactions(
     addressBook,
@@ -115,16 +118,16 @@ process.on("SIGINT", logAndExit);
       throw new Error(`Form ${form} not supported: No mappings available`);
     }
     // TODO: simplify multi-page detection
-    if (input.formData[form] && typeof input.formData[form].length === "number") {
+    if (input.forms[form] && typeof input.forms[form].length === "number") {
       if (!output[form]) {
         output[form] = [];
       }
-      input.formData[form].forEach(page => {
+      input.forms[form].forEach(page => {
         log.debug(`Adding info for page of form ${form}: ${JSON.stringify(page)}`);
         output[form].push(mergeForms(emptyForm(mappings[form]), page));
       });
     } else {
-      output[form] = mergeForms(emptyForm(mappings[form]), input.formData[form]);
+      output[form] = mergeForms(emptyForm(mappings[form]), input.forms[form]);
     }
   }
 
@@ -172,7 +175,7 @@ process.on("SIGINT", logAndExit);
         continue;
       }
       output = filers[form](
-        vmEvents.filter(vmEvent => vmEvent.date.startsWith(env.taxYear)),
+        vmEvents.filter(vmEvent => vmEvent.date.startsWith(taxYear)),
         output,
       );
     }
@@ -181,22 +184,21 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 5: Save form data to disk
 
+  let page = 1;
   for (const [name, data] of Object.entries(output)) {
-    if (!(data as any).length || (data as any).length === 1) {
-      const filename = `${outputFolder}/${name}.json`;
+    if (!(data as any).length) {
+      const filename = `${outputFolder}/${page++}_${name}.json`;
       log.info(`Saving ${name} data to ${filename}`);
       const outputData =
         JSON.stringify(translate(data, mappings[name]), null, 2);
       fs.writeFileSync(filename, outputData);
     } else {
-      let i = 1;
-      for (const page of (data as any)) {
-        const pageName = `f8949_${i}`;
+      for (const formPage of (data as any)) {
+        const pageName = `${page++}_f8949`;
         const fileName = `${outputFolder}/${pageName}.json`;
-        log.info(`Saving page ${i} of ${name} data to ${fileName}`);
-        const outputData = JSON.stringify(translate(page, mappings[name]), null, 2);
+        log.info(`Saving page of ${name} data to ${fileName}`);
+        const outputData = JSON.stringify(translate(formPage, mappings[name]), null, 2);
         fs.writeFileSync(fileName, outputData);
-        i += 1;
       }
     }
   }

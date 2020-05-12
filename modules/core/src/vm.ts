@@ -36,11 +36,15 @@ export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any 
         chunks.forEach(chunk => state.putChunk(to, chunk));
         logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer));
       } catch (e) {
-        log.debug(e.message);
-        if (feeChunks) {
-          feeChunks.forEach(chunk => state.putChunk(from, chunk));
+        log.debug(`Error while processing tx ${e.message}: ${JSON.stringify(transaction)}`);
+        if (e.message.includes("attempted to spend")) {
+          if (feeChunks) {
+            feeChunks.forEach(chunk => state.putChunk(from, chunk));
+          }
+          later.push(transfer);
+        } else {
+          throw e;
         }
-        later.push(transfer);
       }
     }
 
