@@ -112,12 +112,13 @@ export const Dashboard: React.FC = (props: any) => {
       }
       if (!totalByCategory[event.type]) {
         totalByCategory[event.type] = {};
-      }
-      if (!totalByCategory[event.type][event.assetType]) {
         totalByCategory[event.type][event.assetType] = 0;
       }
-
+      else if (!totalByCategory[event.type][event.assetType]) {
+        totalByCategory[event.type][event.assetType] = 0;
+      }
       totalByCategory[event.type][event.assetType] += parseFloat(event.quantity);
+
       if (!tempTotalByAssetType[event.assetType]) {
         tempTotalByAssetType[event.assetType] = 0;
       }
@@ -127,6 +128,18 @@ export const Dashboard: React.FC = (props: any) => {
         tempTotalByAssetType[event.assetType] -= parseFloat(event.quantity);
       }
     })
+    if (totalByCategory[EventTypes.Withdraw]) {
+      Object.keys(totalByCategory[EventTypes.Deposit]).forEach((assetType: AssetTypes) => {
+        const interest =
+          (totalByCategory[EventTypes.Withdraw][assetType] || 0) -
+          (totalByCategory[EventTypes.Deposit][assetType] || 0)
+
+          if (interest > 0) {
+            console.log(`${interest} ${assetType} earned as interest`);
+            tempTotalByAssetType[assetType] += interest
+          }
+      })
+    }
     setFilteredTotalByCategory(totalByCategory);
     setTotalByAssetType(tempTotalByAssetType);
 
