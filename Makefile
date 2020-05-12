@@ -116,6 +116,7 @@ client: core $(shell find modules/client $(find_options))
 server: core $(shell find modules/server $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/server && npm run build"
+	$(docker_run) "touch modules/server/src/index.ts"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################
