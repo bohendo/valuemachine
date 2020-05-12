@@ -72,6 +72,8 @@ export const getPrices = (store: Store, logger: Logger, pricesJson?: PricesJson)
   ): Promise<string> =>
     ["USD", "DAI", "SAI"].includes(asset)
       ? "1"
+      : "INR" === asset
+      ? "0.013"
       : ["ETH", "WETH"].includes(asset)
       ? await fetchPrice("ETH", date)
       : asset.toUpperCase().startsWith("C")
