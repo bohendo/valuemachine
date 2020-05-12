@@ -105,33 +105,41 @@ export const getChainData = (params: ChainDataParams): ChainData => {
   // Exported Methods
 
   const merge = (newJson: ChainDataJson): void => {
+    if (!newJson.addresses || !newJson.tokens || !newJson.transactions || !newJson.calls) {
+      throw new Error(`Invalid ChainDataJson, got keys: ${Object.keys(newJson)}`);
+    }
     let before;
     before = Object.keys(json.addresses).length; 
     for (const address of Object.keys(newJson.addresses)) {
-      json.addresses[address] = newJson[address];
+      json.addresses[address] = newJson.addresses[address];
     }
     log.info(`Merged ${Object.keys(json.addresses).length - before} new addresses`);
     before = Object.keys(json.tokens).length; 
     for (const token of Object.keys(newJson.tokens)) {
-      json.tokens[token] = newJson[token];
+      json.tokens[token] = newJson.tokens[token];
     }
     log.info(`Merged ${Object.keys(json.tokens).length - before} new tokens`);
-    before = Object.keys(newJson.transactions).length; 
-    for (const transaction of Object.keys(newJson.transactions)) {
-      json.transactions[transaction] = newJson[transaction];
+    before = newJson.transactions.length;
+    for (const newTx of newJson.transactions) {
+      if (!json.transactions.some(tx => tx.hash === newTx.hash)) {
+        json.transactions.push(newTx);
+      }
     }
-    log.info(`Merged ${Object.keys(json.transactions).length - before} new transactions`);
+    log.info(`Merged ${json.transactions.length - before} new transactions`);
     const oldCalls = JSON.parse(JSON.stringify(json.calls));
     before = Object.keys(oldCalls).length; 
     for (const call of newJson.calls) {
-      log.info(`Maybe merging call: ${JSON.stringify(call)}`);
-      log.info(call.value.includes(".") ? call.value : formatEther(call.value));
       if (getDups(oldCalls, call) === 0) {
         json.calls.push(call);
       }
-      log.info(`On to the next`);
     }
     log.info(`Merged ${json.calls.length - before} new calls`);
+    if (!store) {
+      log.warn(`No store provided, can't save newly merged chain data`);
+    } else {
+      store.save(StoreKeys.ChainData, json);
+    }
+    return;
   };
 
   const getAddressHistory = (...addresses: Address[]): ChainData => {
@@ -405,6 +413,14 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     });
     store.save(StoreKeys.ChainData, json);
   };
+
+  ////////////////////////////////////////
+  // One more bit of init code before returning
+
+  if (chainDataJson && store) {
+    merge(store.load(StoreKeys.ChainData));
+    store.save(StoreKeys.ChainData, json);
+  }
 
   return {
     getAddressHistory,
