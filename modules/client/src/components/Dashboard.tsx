@@ -154,18 +154,12 @@ export const Dashboard: React.FC = (props: any) => {
     setFilteredTotalByCategory(totalByCategory);
     setTotalByAssetType(tempTotalByAssetType);
 
-    /*
     const netWorthEvents = financialEvents
       .filter(event => new Date(event.date).getTime() <= endDate.getTime())
       .filter(event => event.type === EventTypes.NetWorth)
-    console.log(netWorthEvents);
-    */
 
     const recentPrices = {};
-    const netWorthData = financialEvents
-      .filter(event => new Date(event.date).getTime() <= endDate.getTime())
-      .filter(event => event.type === EventTypes.NetWorth)
-      .map((event: Event, index: number) => {
+    const netWorthData = netWorthEvents.map((event: Event, index: number) => {
         let total = 0;
         for (const assetType of Object.keys(event.assets)) {
           recentPrices[assetType] = event.prices[assetType] || recentPrices[assetType];
@@ -176,12 +170,14 @@ export const Dashboard: React.FC = (props: any) => {
 
     if (netWorthData.length > 0 && netWorthData[netWorthData.length -1].date.toDateString() !== endDate.toDateString()) {
       let total = 0;
-      for (const assetType of Object.keys(totalByAssetType)) {
-        total += totalByAssetType[assetType] * parseFloat(endDatePrice[assetType]);
+      console.log('running this');
+      for (const assetType of Object.keys(netWorthEvents[netWorthEvents.length - 1].assets)) {
+        total += parseFloat(netWorthEvents[netWorthEvents.length - 1].assets[assetType]) * parseFloat(endDatePrice[assetType]);
       }
       netWorthData.push({date: endDate, networth: total})
     }
-    console.log(netWorthData);
+    console.log(recentPrices);
+    console.log(netWorthEvents[netWorthEvents.length - 1]);
 
     setNetWorthTimeline(netWorthData);
 
