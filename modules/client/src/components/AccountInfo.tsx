@@ -71,7 +71,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 const AddListItem = (props: any) => {
   const [newAddressEntry, setNewAddressEntry] = useState({
     category: "self",
-    name: "default",
+    name: "hot-wallet",
     tags: ["active"],
   } as AddressEntry);
   const [newEntryError, setNewEntryError] = useState({ err: false, msg: "Add your ethereum address to fetch info"});

@@ -90,7 +90,9 @@ export const Dashboard: React.FC = (props: any) => {
     let tempTotalByAssetType = {};
     financialEvents.filter(event => new Date(event.date).getTime() <= endDate.getTime()).forEach((event: Event) => {
       if (!event.assetType) return;
-      if (event.assetType.toLowerCase().startsWith('c')) return;
+      if (event.assetType.toLowerCase().startsWith('c')) {
+        return;
+      }
       if (!totalByCategory[event.type]) {
         totalByCategory[event.type] = {};
       }
