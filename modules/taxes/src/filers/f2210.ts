@@ -3,11 +3,12 @@ import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
 import { Forms } from "../types";
+import { getIncomeTax } from "../utils";
 
 export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const log = new ContextLogger("f2210", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
-  const { f1040, f1040s2, f1040s3, f2210 } = forms;
+  const { f1040, f1040s2, f1040s3, f1040sse, f2210 } = forms;
 
   f2210.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
   f2210.SSN = f1040.SocialSecurityNumber;
@@ -120,12 +121,19 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
     !event.taxTags.includes("ignore"),
   ).forEach(
     (event: IncomeEvent): void => {
+      let value = math.mul(event.quantity, event.assetPrice);
+      if (event.taxTags.some(tag => tag.startsWith("multiply-"))) {
+        const tag = event.taxTags.find(tag => tag.startsWith("multiply-"));
+        const multiplier = tag.split("-")[1];
+        value = math.mul(value, multiplier);
+      }
       income[getCol(event.date)] = math.add(
         income[getCol(event.date)],
-        math.round(math.mul(event.quantity, event.assetPrice)),
+        math.round(value),
       );
   });
   log.info(`Income: Q1 ${income["a"]} | Q2 ${income["b"]} | Q3 ${income["c"]} | Q4 ${income["d"]}`);
+  log.info(`Total Income: ${math.add(income["a"], income["b"], income["c"], income["d"])}`);
 
   // Get business expense events
   vmEvents.filter(event =>
@@ -134,12 +142,19 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
     event.taxTags.some(tag => tag.startsWith("f1040sc")),
   ).forEach(
     (event: ExpenseEvent): void => {
+      let value = math.mul(event.quantity, event.assetPrice);
+      if (event.taxTags.some(tag => tag.startsWith("multiply-"))) {
+        const tag = event.taxTags.find(tag => tag.startsWith("multiply-"));
+        const multiplier = tag.split("-")[1];
+        value = math.mul(value, multiplier);
+      }
       expenses[getCol(event.date)] = math.add(
         expenses[getCol(event.date)],
-        math.round(math.mul(event.quantity, event.assetPrice)),
+        math.round(value),
       );
   });
   log.info(`Expenses: Q1 ${expenses["a"]} | Q2 ${expenses["b"]} | Q3 ${expenses["c"]} | Q4 ${expenses["d"]}`);
+  log.info(`Total Expenses: ${math.add(expenses["a"], expenses["b"], expenses["c"], expenses["d"])}`);
 
   // Get tax payment events
   vmEvents.filter(event =>
@@ -179,16 +194,29 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
     const getPrevVal = (row: number): string =>
       f2210[`P4L${row}${columns[columns.indexOf(column) - 1]}`];
 
+    const leftSum = (quarterly: any): string => {
+      let total = "0";
+      const n = columns.indexOf(column) + 1;
+      for (let i = 0; i < n; i++) {
+        total = math.add(total, quarterly[columns[i]]);
+      }
+      return total;
+    };
+
     ////////////////////////////////////////
     // Schedule AI Part II - Annualized Self-Employment Tax
 
     f2210[getKey(28)] = math.mul(
-      math.sub(income[column], expenses[column]),
+      math.sub(leftSum(income), leftSum(expenses)),
       "0.9235",
     );
 
-    if (f2210[getKey(30)] === "") {
-      log.warn(`Maybe required but not provided: f2210.${getKey(30)}`);
+    f2210[getKey(30)] = f1040sse.P2L8d === ""
+      ? "0"
+      : math.mul(f1040sse.P2L8d, getVal(2));
+
+    if (((forms as any).f4137 || (forms as any).f8919)) {
+      log.warn(`See instructions & verify value on line ${getKey(30)}`);
     }
 
     f2210[getKey(31)] = math.subToZero(getVal(29), getVal(30));
@@ -202,11 +230,18 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
     ////////////////////////////////////////
     // Schedule AI Part I - Annualized Income Installments
 
-    f2210[getKey(1)] = income[column];
+    if (forms.f2555 && math.gt(forms.f2555.L42, "0")) {
+      const adjustment = math.div(forms.f2555.L42, getVal(2));
+      f2210[getKey(1)] = math.subToZero(leftSum(income), adjustment);
+      log.info(`Income for Q${columns.indexOf(column)+1}: ${leftSum(income)} - ${adjustment}`);
+    } else {
+      f2210[getKey(1)] = leftSum(income);
+      log.info(`Income for Q${columns.indexOf(column)+1}: ${leftSum(income)}`);
+    }
 
     f2210[getKey(3)] = math.mul(getVal(1), getVal(2));
 
-    f2210[getKey(4)] = expenses[column];
+    f2210[getKey(4)] = leftSum(expenses);
 
     f2210[getKey(6)] = math.mul(getVal(4), getVal(5));
 
@@ -220,17 +255,23 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
 
     f2210[getKey(10)] = math.add(getVal(8), getVal(9));
 
-    f2210[getKey(11)] = math.sub(getVal(3), getVal(10));
+    f2210[getKey(11)] = math.subToZero(getVal(3), getVal(10));
 
     f2210[getKey(12)] = "0";
 
     f2210[getKey(13)] = math.subToZero(getVal(11), getVal(12));
 
-    log.warn(`Required but not implemented: f2210.${getKey(14)}`);
+    if (f1040.Single || f1040.MarriedFilingSeparately) {
+      f2210[getKey(14)] = getIncomeTax(getVal(13), "single");
+    } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
+      f2210[getKey(14)] = getIncomeTax(getVal(13), "joint");
+    } else if (f1040.HeadOfHousehold) {
+      f2210[getKey(14)] = getIncomeTax(getVal(13), "head");
+    }
 
     f2210[getKey(15)] = getVal(36);
 
-    log.warn(`Required but not implemented: f2210.${getKey(16)}`);
+    f2210[getKey(16)] = math.div(math.sub(f2210.L2, f1040s2.L4), getVal(2));
 
     f2210[getKey(17)] = math.add(getVal(14), getVal(15), getVal(16));
 

@@ -26,7 +26,7 @@ const getMappings = (name) => {
   return mappings;
 };
 
-for (const form of test.forms) {
+for (const form of Object.keys(test.forms)) {
   const mappings = getMappings(form);
   const fields = fs.readFileSync(fieldsFile(form), { encoding: "utf8" });
   if (!fields) {
@@ -61,27 +61,27 @@ for (const form of test.forms) {
   dryRun || fs.writeFileSync(mappingsFile(form), JSON.stringify(mappings, null, 2));
 }
 
-for (const form of test.forms) {
+for (const form of Object.keys(test.forms)) {
   const mappings = getMappings(form);
 
-  if (!test.formData[form]) {
-    test.formData[form] = {};
+  if (!test.forms[form]) {
+    test.forms[form] = {};
   }
 
-  for (const [key, value] of Object.entries(test.formData[form])) {
-    if (!Object.keys(mappings).includes(key) && typeof test.formData[form][key] !== "undefined") {
+  for (const [key, value] of Object.entries(test.forms[form])) {
+    if (!Object.keys(mappings).includes(key) && typeof test.forms[form][key] !== "undefined") {
       console.log(`Deleting key ${key} from test for ${form}`);
-      delete test.formData[form][key];
+      delete test.forms[form][key];
     }
   }
 
   for (const [key, value] of Object.entries(mappings)) {
-    if (typeof test.formData[form][key] == "undefined") {
+    if (typeof test.forms[form][key] == "undefined") {
       console.log(`Adding key ${key} to test for ${form}`);
       if (value.match(/\.c[0-9]+_[0-9]/)) {
-        test.formData[form][key] = true;
+        test.forms[form][key] = true;
       } else {
-        test.formData[form][key] = key;
+        test.forms[form][key] = key;
       }
     }
   }
