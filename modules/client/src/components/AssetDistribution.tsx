@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { getPrices } from "@finances/core";
 
-/*
 import {
   getCoordinates,
 } from '../utils/utils';
-*/
 
 import {
   Paper,
@@ -23,12 +21,13 @@ import { store } from "../utils/cache";
 
 /*
 TODO: Find a better way to display slice values
+*/
 const pointComponent = (props: any) => {
   const { startAngle, endAngle, maxRadius, arg, val, value } = props;
   const { x, y } = getCoordinates(startAngle, endAngle, maxRadius);
 
-  console.log(props)
-  console.log(x, y)
+  //console.log(props)
+  //console.log(x, y)
   return (
     <React.Fragment>
       <PieSeries.Point {...props} />
@@ -43,7 +42,6 @@ const pointComponent = (props: any) => {
     </React.Fragment>
   );
 };
-*/
 
 export const AssetDistribution = (props: any) => {
   const [data, setData] = useState([] as { assetType: string; total: number; totalUSD: number; }[]);
@@ -77,6 +75,7 @@ export const AssetDistribution = (props: any) => {
           valueField="total"
           argumentField="assetType"
           outerRadius={1}
+          pointComponent={pointComponent}
         />
         <Legend position="right" />
         <Title position="top" text="Asset Distribution" />

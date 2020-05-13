@@ -70,9 +70,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const AddListItem = (props: any) => {
   const [newAddressEntry, setNewAddressEntry] = useState({
+    category: "self",
+    name: "hot-wallet",
     tags: ["active"],
-    category: "self"
   } as AddressEntry);
+  const [newEntryError, setNewEntryError] = useState({ err: false, msg: "Add your ethereum address to fetch info"});
 
   const { profile, setProfile } = props;
 
@@ -80,12 +82,24 @@ const AddListItem = (props: any) => {
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setNewAddressEntry({...newAddressEntry, [event.target.name]: event.target.value});
+    setNewEntryError({err: false, msg: "Add your ethereum address to fetch info"})
   };
 
   const addNewAddress = () => {
-    const newProfile = {...profile, addressBook: [...profile.addressBook, newAddressEntry]}
-    setProfile(newProfile);
-    store.save(StoreKeys.Profile, newProfile);
+    if (!newAddressEntry.address) {
+      setNewEntryError({err: true, msg: "Required! Ethereum Address"})
+    } else {
+      let i = profile.addressBook.findIndex(
+        (o) => o.address.toLowerCase() === newAddressEntry.address.toLowerCase()
+      );
+      if (i < 0) {
+        const newProfile = {...profile, addressBook: [...profile.addressBook, newAddressEntry]}
+        setProfile(newProfile);
+        store.save(StoreKeys.Profile, newProfile);
+      } else {
+        setNewEntryError({err: true, msg: "Address already added"})
+      }
+    }
   };
 
   return (
@@ -95,10 +109,11 @@ const AddListItem = (props: any) => {
         <AddIcon />
       </IconButton>
       <TextField
+        error={newEntryError.err}
         id="address"
         label="Eth Address"
         defaultValue="0xabc..."
-        helperText="Add your ethereum address to fetch info"
+        helperText={newEntryError.msg}
         name="address"
         onChange={handleChange}
         margin="normal"
@@ -124,7 +139,7 @@ const AddListItem = (props: any) => {
       <TextField
         id="name"
         label="Account Name"
-        defaultValue="Shivhend.eth"
+        defaultValue="hot-wallet"
         helperText="Give your account a nickname"
         name="name"
         onChange={handleChange}
@@ -161,9 +176,22 @@ const AddListItem = (props: any) => {
 }
 
 const AddressList = (props: any) => {
-  const { category, chainData, profile, setChainData, signer} = props;
+  const { category, chainData, profile, setChainData, setProfile, signer} = props;
+  const [sync, setSync] = useState(false);
+
+  const deleteAddress = (entry: AddressEntry) => {
+    console.log(`Deleting ${JSON.stringify(entry)}`);
+    const newProfile = {...profile, addressBook: [...profile.addressBook]}
+    let i = newProfile.addressBook.findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase())
+    if (i >= 0) {
+      newProfile.addressBook.splice(i,1)
+      setProfile(newProfile);
+      store.save(StoreKeys.Profile, newProfile);
+    }
+  };
 
   const syncHistory = async (signer: Wallet, address: Address) => {
+    setSync(true);
     const payload = { signerAddress: signer.address, address };
     const sig = await signer.signMessage(JSON.stringify(payload));
 
@@ -175,6 +203,7 @@ const AddressList = (props: any) => {
         console.log(`Got address history:`, history.data);
         chainData.merge(history.data);
         setChainData(chainData);
+        setSync(false);
         break;
       }
       await new Promise(res => setTimeout(res, 3000));
@@ -204,7 +233,7 @@ const AddressList = (props: any) => {
                 return (
                   <TableRow key={i} >
                     <TableCell>
-                      <IconButton onClick={console.log} >
+                      <IconButton onClick={() => deleteAddress(entry)} >
                         <RemoveIcon />
                       </IconButton>
                     </TableCell>
@@ -214,6 +243,7 @@ const AddressList = (props: any) => {
                     <TableCell>
 
                       <Button
+                        disabled={sync}
                         variant="contained"
                         color="primary"
                         size="small"

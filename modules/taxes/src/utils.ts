@@ -30,6 +30,7 @@ export const getIncomeTax = (taxableIncome: string, filingStatus: string): strin
       );
     }
   });
+  return incomeTax;
 };
 
 export const toFormDate = (date: TimestampString): string => {
