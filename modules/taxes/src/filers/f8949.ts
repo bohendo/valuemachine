@@ -73,7 +73,12 @@ export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
       const proceeds = round(mul(trade.quantity, trade.assetPrice));
       const cost = round(mul(trade.quantity, trade.purchasePrice));
       const gainOrLoss = sub(proceeds, cost);
-      log.info(`${trade.date} Sold ${description}: ${proceeds} - ${cost} = ${gainOrLoss}`);
+      const pad = (str: string, n = 9): string => str.padStart(n, " ");
+      log.info(
+        `${trade.date.split("T")[0]} Sold ${pad(math.round(trade.quantity, 3))} ` +
+        `${pad(trade.assetType, 4)} for ${pad(proceeds)} - ` + 
+        `${pad(cost)} = ${pad(gainOrLoss)} profit`,
+      );
       subF8949[getCell(i, "a")] = description;
       subF8949[getCell(i, "b")] = toFormDate(trade.purchaseDate);
       subF8949[getCell(i, "c")] = toFormDate(trade.date);

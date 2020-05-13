@@ -53,9 +53,9 @@ export const emitTransferEvents = (
   } as any;
 
   if (["Borrow", "Burn", "GiftOut", "Income", "SwapIn", "Withdraw"].includes(category)) {
-    newEvent.from = from;
+    newEvent.from = addressBook.getName(from);
   } else if (["Deposit", "Expense", "GiftIn", "Mint", "Repay", "SwapOut"].includes(category)) {
-    newEvent.to = to;
+    newEvent.to = addressBook.getName(to);
   }
 
   if (["Income", "Expense"].includes(category)) {

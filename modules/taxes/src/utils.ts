@@ -1,8 +1,48 @@
-import { TimestampString } from "@finances/types";
+import { Events, IncomeEvent, ExpenseEvent, EventTypes, TimestampString } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 import { MaxUint256 } from "ethers/constants";
 
 import { env } from "./env";
+
+export const processIncome = (
+  vmEvents: Events,
+  callback: (event: IncomeEvent, value: string) => void,
+): void => {
+  vmEvents.filter(event =>
+    event.type === EventTypes.Income &&
+    math.gt(event.quantity, "0") &&
+    !event.taxTags.includes("ignore"),
+  ).forEach((income: IncomeEvent): void => {
+    let value = math.mul(income.quantity, income.assetPrice);
+    if (income.taxTags.includes("ignore")) {
+      return;
+    } else if (income.taxTags.some(tag => tag.startsWith("multiply-"))) {
+      const tag = income.taxTags.find(tag => tag.startsWith("multiply-"));
+      const multiplier = tag.split("-")[1];
+      value = math.mul(value, multiplier);
+    }
+    callback(income, value);
+  });
+};
+
+export const processExpenses = (
+  vmEvents: Events,
+  callback: (event: ExpenseEvent, value: string) => void,
+): void => {
+  vmEvents.filter(event =>
+    event.type === EventTypes.Expense &&
+    math.gt(event.quantity, "0") &&
+    !event.taxTags.includes("ignore"),
+  ).forEach((event: ExpenseEvent): void => {
+    let value = math.round(math.mul(event.quantity, event.assetPrice));
+    if (event.taxTags.some(tag => tag.startsWith("multiply-"))) {
+      const tag = event.taxTags.find(tag => tag.startsWith("multiply-"));
+      const multiplier = tag.split("-")[1];
+      value = math.mul(value, multiplier);
+    }
+    callback(event, value);
+  });
+};
 
 export const getIncomeTax = (taxableIncome: string, filingStatus: string): string => {
   const inf = MaxUint256.toString();

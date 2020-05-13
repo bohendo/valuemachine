@@ -1,9 +1,9 @@
-import { Event, EventTypes, IncomeEvent, ExpenseEvent, TimestampString } from "@finances/types";
+import { Event, IncomeEvent, ExpenseEvent, TimestampString } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
 import { Forms } from "../types";
-import { getIncomeTax } from "../utils";
+import { getIncomeTax, processExpenses, processIncome } from "../utils";
 
 export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const log = new ContextLogger("f2210", new LevelLogger(env.logLevel));
@@ -116,60 +116,31 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   };
 
   // Get income events
-  vmEvents.filter(
-    event => event.type === EventTypes.Income &&
-    !event.taxTags.includes("ignore"),
-  ).forEach(
-    (event: IncomeEvent): void => {
-      let value = math.mul(event.quantity, event.assetPrice);
-      if (event.taxTags.some(tag => tag.startsWith("multiply-"))) {
-        const tag = event.taxTags.find(tag => tag.startsWith("multiply-"));
-        const multiplier = tag.split("-")[1];
-        value = math.mul(value, multiplier);
-      }
-      income[getCol(event.date)] = math.add(
-        income[getCol(event.date)],
-        math.round(value),
-      );
+  processIncome(vmEvents, (event: IncomeEvent, value: string): void => {
+    income[getCol(event.date)] = math.add(
+      income[getCol(event.date)],
+      math.round(value),
+    );
   });
-  log.info(`Income: Q1 ${income["a"]} | Q2 ${income["b"]} | Q3 ${income["c"]} | Q4 ${income["d"]}`);
-  log.info(`Total Income: ${math.add(income["a"], income["b"], income["c"], income["d"])}`);
 
-  // Get business expense events
-  vmEvents.filter(event =>
-    event.type === EventTypes.Expense &&
-    !event.taxTags.includes("ignore") &&
-    event.taxTags.some(tag => tag.startsWith("f1040sc")),
-  ).forEach(
-    (event: ExpenseEvent): void => {
-      let value = math.mul(event.quantity, event.assetPrice);
-      if (event.taxTags.some(tag => tag.startsWith("multiply-"))) {
-        const tag = event.taxTags.find(tag => tag.startsWith("multiply-"));
-        const multiplier = tag.split("-")[1];
-        value = math.mul(value, multiplier);
-      }
+  // Get business expenses & tax payments
+  processExpenses(vmEvents, (event: ExpenseEvent, value: string): void => {
+    if (event.taxTags.some(tag => tag.startsWith("f1040sc"))) {
       expenses[getCol(event.date)] = math.add(
         expenses[getCol(event.date)],
         math.round(value),
       );
-  });
-  log.info(`Expenses: Q1 ${expenses["a"]} | Q2 ${expenses["b"]} | Q3 ${expenses["c"]} | Q4 ${expenses["d"]}`);
-  log.info(`Total Expenses: ${math.add(expenses["a"], expenses["b"], expenses["c"], expenses["d"])}`);
-
-  // Get tax payment events
-  vmEvents.filter(event =>
-    event.type === EventTypes.Expense &&
-    !event.taxTags.includes("ignore") &&
-    event.taxTags.includes("f1040s3.L8"),
-  ).forEach(
-    (event: ExpenseEvent): void => {
-      const value = math.round(math.mul(event.quantity, event.assetPrice));
+    } else if (event.taxTags.includes("f1040s3.L8")) {
       allPayments.push({ date: new Date(event.date).getTime(), value });
       payments[getCol(event.date)] = math.add(
         payments[getCol(event.date)],
         value,
       );
+    }
   });
+
+  log.info(`Income: Q1 ${income["a"]} | Q2 ${income["b"]} | Q3 ${income["c"]} | Q4 ${income["d"]}`);
+  log.info(`Expenses: Q1 ${expenses["a"]} | Q2 ${expenses["b"]} | Q3 ${expenses["c"]} | Q4 ${expenses["d"]}`);
   log.info(`Payments: Q1 ${payments["a"]} | Q2 ${payments["b"]} | Q3 ${payments["c"]} | Q4 ${payments["d"]}`);
 
   ////////////////////////////////////////

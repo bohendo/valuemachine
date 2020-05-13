@@ -176,7 +176,7 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
       ? ""
       : addressBook.find(row => smeq(row.address, address))
       ? addressBook.find(row => smeq(row.address, address)).name
-      : address.substring(0, 8);
+      : address.substring(0, 12);
 
   return {
     addresses,

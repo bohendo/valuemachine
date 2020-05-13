@@ -1,39 +1,30 @@
-import { Events, ExpenseEvent, IncomeEvent, EventTypes } from "@finances/types";
+import { Events, ExpenseEvent, IncomeEvent } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
 import { Forms } from "../types";
+import { processExpenses, processIncome } from "../utils";
 
-const { add, gt, lt, mul, round, sub } = math;
+const { add, gt, lt, round, sub } = math;
 
 export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
   const log = new ContextLogger("f1040sc", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 
+  const pad = (str: string, n = 9): string => str.padStart(n, " ");
+
   f1040sc.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
   f1040sc.SSN = f1040.SocialSecurityNumber;
 
   let totalIncome = "0";
-
-  vmEvents
-    .filter(event => event.type === EventTypes.Income)
-    .filter(event => event.quantity && gt(event.quantity, "0"))
-    .forEach((income: IncomeEvent): void => {
-      let value = round(mul(income.quantity, income.assetPrice));
-      if (income.taxTags.includes("ignore")) {
-        log.info(`${income.date} Ignoring income: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
-      } else if (income.taxTags.some(tag => tag.startsWith("multiply-"))) {
-        const tag = income.taxTags.find(tag => tag.startsWith("multiply-"));
-        const multiplier = tag.split("-")[1];
-        value = mul(value, multiplier);
-        totalIncome = add(totalIncome, value);
-        log.info(`${income.date} Multiplying income by ${multiplier}: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
-      } else {
-        totalIncome = add(totalIncome, value);
-        log.info(`${income.date} Adding income: ${income.description} (worth ${value}) (total ${round(totalIncome)})`);
-      }
-    });
+  processIncome(vmEvents, (income: IncomeEvent, value: string): void => {
+    totalIncome = math.add(totalIncome, value);
+    log.info(
+      `${income.date.split("T")[0]} Income of ${pad(math.round(income.quantity))} ` +
+      `${pad(income.assetType, 4)} worth ${pad(math.round(value))} from ${income.from}`,
+    );
+  });
 
   f1040sc.L1 = round(totalIncome);
   log.info(`Total income: ${f1040sc.L1}`);
@@ -47,48 +38,36 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
 
   let otherExpenseIndex = 1;
 
-  vmEvents
-    .filter(event => event.type === EventTypes.Expense)
-    .filter(event => event.quantity && gt(event.quantity, "0"))
-    .forEach((expense: ExpenseEvent): void => {
-      const tags = expense.taxTags;
-      if (!tags.some(tag => tag.startsWith("f1040sc")) || tags.includes("ignore")) {
-        log.info(`${expense.date} Ignoring expense: ${expense.description}`);
-      } else {
-        let value = round(mul(expense.quantity, expense.assetPrice));
-
-        if (expense.taxTags.some(tag => tag.startsWith("multiply-"))) {
-          const tag = expense.taxTags.find(tag => tag.startsWith("multiply-"));
-          const multiplier = tag.split("-")[1];
-          value = mul(value, multiplier);
-          log.info(`${expense.date} Multiplying expense by ${multiplier}: ${expense.description} (worth ${value})`);
-        }
-
-        const otherExpenseKey = "f1040sc-L48:";
-        if (tags.some(tag => tag.startsWith(otherExpenseKey))) {
-          const description = tags
-            .find(tag => tag.startsWith(otherExpenseKey))
-            .replace(otherExpenseKey, "");
-          log.info(`${expense.date} Adding misc expense: ${expense.description}`);
-          f1040sc[`L48R${otherExpenseIndex}_desc`] = description;
-          f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
-          f1040sc.L48 = add(f1040sc.L48, value);
-          otherExpenseIndex += 1;
-        }
-        for (const row of [
-          "L8", "L9", "L10", "L11", "L12",
-          "L13", "L14", "L15", "L16a", "L16b",
-          "L17", "L18", "L19", "L20a", "L20b",
-          "L21", "L22", "L23", "L24a", "L24b",
-          "L25", "L26", "L27a", "L27b",
-        ]) {
-          if (tags.some(tag => tag.startsWith(`f1040sc-${row}`))) {
-            log.info(`${expense.date} Adding ${row} expense: ${expense.description}`);
-            f1040sc[row] = add(f1040sc[row], value);
-          }
+  processExpenses(vmEvents, (expense: ExpenseEvent, value: string): void => {
+    const tags = expense.taxTags;
+    const message = `${expense.date.split("T")[0]} ` +
+      `Expense of ${pad(math.round(expense.quantity), 8)} ${pad(expense.assetType, 4)} ` +
+      `to ${expense.to}`;
+    const otherExpenseKey = "f1040sc-L48:";
+    if (tags.some(tag => tag.startsWith(otherExpenseKey))) {
+      const description = tags
+        .find(tag => tag.startsWith(otherExpenseKey))
+        .replace(otherExpenseKey, "");
+      log.info(`${message}: L48 ${description}`);
+      f1040sc[`L48R${otherExpenseIndex}_desc`] = description;
+      f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
+      f1040sc.L48 = add(f1040sc.L48, value);
+      otherExpenseIndex += 1;
+    } else if (expense.taxTags.some(tag => tag.startsWith("f1040sc"))) {
+      for (const row of [
+        "L8", "L9", "L10", "L11", "L12",
+        "L13", "L14", "L15", "L16a", "L16b",
+        "L17", "L18", "L19", "L20a", "L20b",
+        "L21", "L22", "L23", "L24a", "L24b",
+        "L25", "L26", "L27a", "L27b",
+      ]) {
+        if (tags.some(tag => tag.startsWith(`f1040sc-${row}`))) {
+          log.info(`${message}: ${row}`);
+          f1040sc[row] = add(f1040sc[row], value);
         }
       }
-    });
+    }
+  });
 
   f1040sc.L27a = f1040sc.L48;
 
