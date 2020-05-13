@@ -72,6 +72,9 @@ ln:
 	ln -s .cache/personal/logs.json logs.json
 	ln -s .cache/personal/prices.json prices.json
 
+test: taxes
+	$(docker_run) "cd modules/taxes && npm run test"
+
 ########################################
 # Common Prerequisites
 

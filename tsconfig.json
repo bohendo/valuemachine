@@ -24,8 +24,7 @@
     "strict": false,
     "target": "es6",
     "typeRoots": [
-      "./node_modules/@types",
-      "./node_modules/@counterfactual/typescript-typings/types"
+      "./node_modules/@types"
     ]
   }
 }
