@@ -3,6 +3,7 @@ import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
 import { Forms } from "../types";
+import { getIncomeTax } from "../utils";
 
 export const f1040 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const log = new ContextLogger("f1040", new LevelLogger(env.logLevel));
@@ -33,10 +34,12 @@ export const f1040 = (vmEvents: Event[], oldForms: Forms): Forms => {
   f1040.L11b = math.subToZero(f1040.L8b, f1040.L11a);
   log.info(`Taxable Income: ${math.round(f1040.L11b)}`);
 
-  if (!(forms as any).f2555) {
-    log.warn("Required but not implemented: normal f1040.L12a");
-  } else {
-    const worksheet = math.add(f1040.L11b, math.subToZero(forms.f2555.L45, "0"));
+  if (f1040.Single || f1040.MarriedFilingSeparately) {
+    f1040.L12a = getIncomeTax(f1040.L11b, "single");
+  } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
+    f1040.L12a = getIncomeTax(f1040.L11b, "joint");
+  } else if (f1040.HeadOfHousehold) {
+    f1040.L12a = getIncomeTax(f1040.L11b, "head");
   }
 
   f1040.L12b = math.add(f1040s2.L3, f1040.L12a);
