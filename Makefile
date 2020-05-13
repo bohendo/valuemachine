@@ -48,8 +48,15 @@ restart:
 	bash ops/stop.sh
 	bash ops/start-dev.sh
 
-backup:
-	tar czf tax_backup.tar.gz .cache modules/taxes/docs modules/taxes/personal.json modules/taxes/.cache/personal
+backup: tax-return
+	rm -rf /tmp/taxes
+	mkdir /tmp/taxes
+	if [[ -f build.log ]]; then cp build.log /tmp/taxes/build.log; fi
+	cp -r modules/taxes/docs /tmp/taxes/docs
+	cp -r .cache/personal /tmp/taxes/cache
+	cp modules/taxes/personal.json /tmp/taxes/personal.json
+	cp -r modules/taxes/build/personal/tax-return.pdf /tmp/taxes/tax-return.pdf
+	cd /tmp && tar czf $(cwd)/tax_backup.tar.gz taxes
 
 clean: stop
 	rm -rf modules/*/build/**
