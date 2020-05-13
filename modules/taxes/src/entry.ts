@@ -43,15 +43,15 @@ process.on("SIGINT", logAndExit);
 
 (async (): Promise<void> => {
   const inputFile = `${process.cwd()}/${process.argv[2]}`;
+  const basename = process.argv[2].replace(".json", "");
 
   const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as InputData;
-  const username = input.env.username;
   const logger = new LevelLogger(input.env.logLevel);
   const log = new ContextLogger("Taxes", logger);
   const taxYear = math.round(math.sub(new Date().toISOString().split("-")[0], "1"), 0);
-  log.info(`Generating ${taxYear} tax return data for ${username}`);
+  log.info(`Generating ${taxYear} ${basename} tax return`);
 
-  const outputFolder = `${process.cwd()}/build/${username}/data`;
+  const outputFolder = `${process.cwd()}/build/${basename}/data`;
 
   let output = {} as Forms;
 

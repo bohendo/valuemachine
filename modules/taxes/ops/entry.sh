@@ -6,6 +6,7 @@ then cd modules/taxes
 fi
 
 input_file="$1"
+basename="${input_file%.json}"
 
 echo "[entry.sh] Processing input file $input_file"
 
@@ -13,11 +14,9 @@ if [[ ! -f "$input_file" ]]
 then echo "Error: $input_file does not exist." && exit 1
 fi
 
-username="`cat $input_file | jq '.env.username' | tr -d '" '`"
+echo "[entry.sh] Generating $basename tax-return data"
 
-echo "[entry.sh] Generating tax-return data for $username"
-
-dir="build/$username"
+dir="build/$basename"
 rm -rf $dir
 mkdir -p $dir/data $dir/pages
 

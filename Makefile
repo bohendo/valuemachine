@@ -49,7 +49,7 @@ restart:
 	bash ops/start-dev.sh
 
 backup:
-	tar czf tax_backup.tar.gz .cache modules/taxes/docs modules/taxes/personal.json
+	tar czf tax_backup.tar.gz .cache modules/taxes/docs modules/taxes/personal.json modules/taxes/.cache/personal
 
 clean: stop
 	rm -rf modules/*/build/**

@@ -1,6 +1,7 @@
 import {
   Address,
   AddressBook,
+  AddressCategories,
   AssetChunk,
   AssetTypes,
   Transaction,
@@ -40,6 +41,11 @@ export const emitTransferEvents = (
   const unitOfAccount = ["DAI", "SAI", "USD"];
   const { assetType, category, from, quantity, to } = transfer;
   const position = `#${transaction.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
+  const taxTags = [];
+  const shouldIgnore = addressBook.isCategory(AddressCategories.Ignore);
+  if (shouldIgnore(transfer.to) || shouldIgnore(transfer.from)) {
+    taxTags.push("ignore");
+  }
 
   const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("-account");
 
@@ -59,7 +65,7 @@ export const emitTransferEvents = (
   }
 
   if (["Income", "Expense"].includes(category)) {
-    newEvent.taxTags = transaction.tags;
+    newEvent.taxTags = taxTags.concat(...transaction.tags);
   }
 
   events.push(newEvent);
