@@ -8,7 +8,16 @@ import { getIncomeTax } from "../utils";
 export const f1040 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const log = new ContextLogger("f1040", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
-  const { f1040, f1040s1, f1040s2, f1040s3 } = forms;
+  const { f1040, f1040s1, f1040s2, f1040s3, f2555 } = forms;
+
+  let filingStatus;
+  if (f1040.Single || f1040.MarriedFilingSeparately) {
+    filingStatus = "single";
+  } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
+    filingStatus = "joint";
+  } else if (f1040.HeadOfHousehold) {
+    filingStatus = "head";
+  }
 
   f1040.L7a = f1040s1.L9;
 
@@ -34,12 +43,15 @@ export const f1040 = (vmEvents: Event[], oldForms: Forms): Forms => {
   f1040.L11b = math.subToZero(f1040.L8b, f1040.L11a);
   log.info(`Taxable Income: ${math.round(f1040.L11b)}`);
 
-  if (f1040.Single || f1040.MarriedFilingSeparately) {
-    f1040.L12a = getIncomeTax(f1040.L11b, "single");
-  } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
-    f1040.L12a = getIncomeTax(f1040.L11b, "joint");
-  } else if (f1040.HeadOfHousehold) {
-    f1040.L12a = getIncomeTax(f1040.L11b, "head");
+  if (!forms.f2555) {
+    f1040.L12a = getIncomeTax(f1040.L11b, filingStatus);
+  } else {
+    log.warn(`idk what 2b from Foreign Earned Income Tax Worksheet should be, using 0`);
+    const L2c = math.add(f2555.L45, f2555.L50);
+    const L3 = math.add(f1040.L11b, math.add());
+    const L4 = getIncomeTax(L3, filingStatus);
+    const L5 = getIncomeTax(L2c, filingStatus);
+    f1040.L12a = math.subToZero(L4, L5);
   }
 
   f1040.L12b = math.add(f1040s2.L3, f1040.L12a);
