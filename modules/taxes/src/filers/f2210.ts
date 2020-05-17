@@ -343,6 +343,7 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
     requiredInstallments[column] = f2210[`L18${column}`];
 
     const getKey = (row: number): string => `${rows[row]}_${column}`;
+    const getVal = (row: number): string => worksheet[`${rows[row]}_${column}`];
 
     if (column === "a") {
       worksheet[getKey(2)] = d190415;
@@ -363,6 +364,7 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
     }
 
     worksheet[getKey(0)] = f2210[`L25${column}`];
+    log.info(`Underpayment for period ${column}: ${getVal(0)}`);
 
     let togo = requiredInstallments[column];
     worksheet[getKey(1)] = [];
@@ -373,7 +375,11 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
       log.debug(`Processing payment: ${JSON.stringify(payment)}`);
 
       if (!payment) {
-        log.debug(`Not enough allPayments..`);
+        worksheet[getKey(1)].push({
+          date: Date.now(),
+          value: togo,
+        });
+        log.warn(`You didn't make enough payments.. Assuming you pay the rest today..`);
         break;
 
       } else if (math.gt(payment.value, togo)) {
@@ -393,13 +399,11 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
         worksheet[getKey(1)].push(payment);
 
       }
-
     }
 
     if (!math.eq(togo, "0")) {
-      log.debug(`After all allPayments made, still ${togo} to go`);
+      log.warn(`After all payments made, still ${togo} to go`);
     }
-
 
     let total;
     if (["a", "b"].includes(column)) {
