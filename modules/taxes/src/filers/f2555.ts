@@ -1,13 +1,14 @@
-import { Event } from "@finances/types";
+import { Event, ExpenseEvent, IncomeEvent } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
 
 import { env } from "../env";
 import { Forms } from "../types";
+import { processExpenses, processIncome } from "../utils";
 
 export const f2555 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const log = new ContextLogger("f2555", new LevelLogger(env.logLevel));
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
-  const { f2555, f1040, f1040s1, f1040sc } = forms;
+  const { f2555, f1040, f1040s1 } = forms;
 
   f2555.FullName = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
   f2555.SSN = forms.f1040.SocialSecurityNumber;
@@ -26,7 +27,17 @@ export const f2555 = (vmEvents: Event[], oldForms: Forms): Forms => {
 
   f2555.L19 = f1040.L1;
 
-  f2555.L23 = f1040sc.L31;
+  let totalIncome = "0";
+  let totalExpenses = "0";
+  processIncome(vmEvents, (income: IncomeEvent, value: string): void => {
+    totalIncome = math.add(totalIncome, value);
+  });
+  processExpenses(vmEvents, (expense: ExpenseEvent, value: string): void => {
+    if (expense.taxTags.some(tag => tag.startsWith("f1040sc"))) {
+      totalExpenses = math.add(totalExpenses, value);
+    }
+  });
+  f2555.L23 = math.round(math.sub(totalIncome, totalExpenses));
 
   f2555.L24 = math.add(
     f2555.L19, f2555.L20a, f2555.L20b,
@@ -90,6 +101,7 @@ export const f2555 = (vmEvents: Event[], oldForms: Forms): Forms => {
 
   f2555.L45 = math.sub(f2555.L43, f2555.L44);
 
+  // TODO: concat strings better
   f1040s1.L8R2 += `Form 2555 (${f2555.L45})`;
   f1040s1.L8 = math.sub(f1040s1.L8, f2555.L45);
   f1040s1.L9 = math.round(math.add(

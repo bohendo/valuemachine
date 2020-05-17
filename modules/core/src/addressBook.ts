@@ -104,7 +104,7 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
     { name: "daostack", address: "0x99bc239c208c7cf6c123c5fc1666383d17eace19" },
     { name: "genesis-alpha", address: "0x294f999356ed03347c7a23bcbcf8d33fa41dc830" },
     { name: "genesis-alpha", address: "0xa3f5411cfc9eee0dd108bf0d07433b6dd99037f1" },
-    { name: "gitcoin-grants-dhack", address: "0x0ed985925bb42c6719d10dcd1cc02d8cf596c15b" },
+    { name: "dhack-eth-india", address: "0x0ed985925bb42c6719d10dcd1cc02d8cf596c15b" },
     { name: "gitcoin-grants-ethersjs", address: "0x8ba1f109551bd432803012645ac136ddd64dba72" },
     { name: "gitcoin-grants-rdai", address: "0xa153b8891e77f1ae037026514c927530d877fab8" },
     { name: "gitcoin-grants-walletconnect", address: "0xcbec15583a21c3ddad5fab658be5b4fe85df730b" },

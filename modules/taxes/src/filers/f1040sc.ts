@@ -19,11 +19,15 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
 
   let totalIncome = "0";
   processIncome(vmEvents, (income: IncomeEvent, value: string): void => {
-    totalIncome = math.add(totalIncome, value);
-    log.info(
-      `${income.date.split("T")[0]} Income of ${pad(math.round(income.quantity))} ` +
-      `${pad(income.assetType, 4)} worth ${pad(math.round(value))} from ${income.from}`,
-    );
+    if (income.taxTags.includes("prize")) {
+      log.debug(`Prize money goes on f1040s1.L8`);
+    } else {
+      totalIncome = math.add(totalIncome, value);
+      log.info(
+        `${income.date.split("T")[0]} Income of ${pad(math.round(income.quantity))} ` +
+        `${pad(income.assetType, 4)} worth ${pad(math.round(value))} from ${income.from}`,
+      );
+    }
   });
 
   f1040sc.L1 = round(totalIncome);
