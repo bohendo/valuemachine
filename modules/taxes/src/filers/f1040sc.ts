@@ -41,7 +41,7 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
   f1040sc.L7 = round(add(f1040sc.L5, f1040sc.L6));
 
   let otherExpenseIndex = 1;
-
+  let exchangeFees = "0";
   processExpenses(vmEvents, (expense: ExpenseEvent, value: string): void => {
     const tags = expense.taxTags;
     const message = `${expense.date.split("T")[0]} ` +
@@ -57,6 +57,9 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
       f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
       f1040sc.L48 = add(f1040sc.L48, value);
       otherExpenseIndex += 1;
+    } else if (expense.taxTags.includes(`exchange-fee`)) {
+      log.info(`${message}: L48 += Currency conversion`);
+      exchangeFees = add(exchangeFees, value);
     } else if (expense.taxTags.some(tag => tag.startsWith("f1040sc"))) {
       for (const row of [
         "L8", "L9", "L10", "L11", "L12",
@@ -72,6 +75,12 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
       }
     }
   });
+
+  if (math.gt(exchangeFees, "0")) {
+    f1040sc[`L48R${otherExpenseIndex}_desc`] = "Currency conversion";
+    f1040sc[`L48R${otherExpenseIndex}_amt`] = exchangeFees;
+    f1040sc.L48 = add(f1040sc.L48, exchangeFees);
+  }
 
   f1040sc.L27a = f1040sc.L48;
 

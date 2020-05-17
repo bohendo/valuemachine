@@ -66,6 +66,14 @@ export const emitTransferEvents = (
 
   if (["Income", "Expense"].includes(category)) {
     newEvent.taxTags = taxTags.concat(...transaction.tags);
+    if (
+      newEvent.to && (
+        addressBook.isCategory(AddressCategories.Exchange)(newEvent.to)  ||
+        newEvent.to.endsWith("exchange")
+      )
+    ) {
+      newEvent.taxTags = taxTags.concat("exchange-fee");
+    }
   }
 
   events.push(newEvent);

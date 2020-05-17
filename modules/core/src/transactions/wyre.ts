@@ -5,7 +5,7 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@finances/types";
-import { ContextLogger } from "@finances/utils";
+import { ContextLogger, math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
 import {
@@ -31,6 +31,9 @@ export const mergeWyreTransactions = (
       ["Created At"]: date,
       ["Dest Amount"]: destQuantity,
       ["Dest Currency"]: rawDestType,
+      ["Fees DAI"]: daiFees,
+      ["Fees ETH"]: ethFees,
+      ["Fees USD"]: usdFees,
       ["Source Amount"]: sourceQuantity,
       ["Source Currency"]: rawSourceType,
       ["Type"]: txType,
@@ -56,6 +59,8 @@ export const mergeWyreTransactions = (
       tags: [],
       transfers: [],
     } as Transaction;
+
+    // Push transfer depending on exchange/currency types
 
     if (txType === "EXCHANGE") {
       transaction.transfers.push({
@@ -133,7 +138,20 @@ export const mergeWyreTransactions = (
       transaction.description = sourceType === "USD"
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
         : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on sendwyre`;
+    }
 
+    // Add fees paid to exchange
+    const feeTransfer = {
+      category: TransferCategories.Expense,
+      from: "sendwyre-account",
+      to: "sendwyre-exchange",
+    };
+    if (math.gt(usdFees, "0")) {
+      transaction.transfers.push({ ...feeTransfer, assetType: "USD", quantity: usdFees });
+    } else if (math.gt(ethFees, "0")) {
+      transaction.transfers.push({ ...feeTransfer, assetType: "ETH", quantity: ethFees });
+    } else if (math.gt(daiFees, "0")) {
+      transaction.transfers.push({ ...feeTransfer, assetType: "DAI", quantity: daiFees });
     }
 
     log.debug(transaction.description);

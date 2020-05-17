@@ -1,5 +1,5 @@
 import { Transaction, TransactionSources, Logger, TransferCategories } from "@finances/types";
-import { ContextLogger } from "@finances/utils";
+import { ContextLogger, math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
 import {
@@ -7,6 +7,7 @@ import {
   mergeOffChainTransactions,
   shouldMergeOffChain,
 } from "./utils";
+
 import { getTransactionsError } from "../verify";
 
 export const mergeCoinbaseTransactions = (
@@ -25,6 +26,7 @@ export const mergeCoinbaseTransactions = (
       ["Asset"]: assetType,
       ["Quantity Transacted"]: quantity,
       ["Timestamp"]: date,
+      ["USD Fees"]: fees,
       ["Transaction Type"]: txType,
       ["USD Spot Price at Transaction"]: price,
       ["USD Total (inclusive of fees)"]: usdQuantity,
@@ -76,6 +78,16 @@ export const mergeCoinbaseTransactions = (
     }
 
     transaction.transfers.push({ assetType, category, from, quantity, to });
+
+    if (math.gt(fees, "0")) {
+      transaction.transfers.push({
+        assetType: "USD",
+        category: TransferCategories.Expense,
+        from: "coinbase-account",
+        quantity: fees,
+        to: "coinbase-exchange",
+      });
+    }
 
     log.debug(transaction.description);
     return transaction;
