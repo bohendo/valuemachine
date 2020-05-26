@@ -117,29 +117,28 @@ export const categorizeTransfer = (
         }
       }
 
-    // eg compound & makerdao stuff
+    // compound v2
+    } else if (isCategory(AddressCategories.CToken)(txLog.address)) {
+      const event = defiEvents.find(e => e.topic === txLog.topics[0]);
+      if (!event) { continue; }
+      const data = event.decode(txLog.data, txLog.topics);
+      // Withdraw
+      if (event.name === "Redeem" && math.eq(formatEther(data.redeemAmount), transfer.quantity)) {
+        transfer.category = TransferCategories.Withdraw;
+        if (transfer.from === AddressZero) {
+          transfer.from = txLog.address;
+        }
+      // Deposit
+      } else if (
+        event.name === "Mint" && math.eq(formatEther(data.mintAmount), transfer.quantity)
+      ) {
+        transfer.category = TransferCategories.Deposit;
+      }
+    // makerdao stuff
     } else if (isCategory(AddressCategories.Defi)(txLog.address)) {
 
       // update dai addresses address zero params for compound v2
-      if (isCategory(AddressCategories.CToken)(txLog.address)) {
-        const event = defiEvents.find(e => e.topic === txLog.topics[0]);
-        if (!event) { continue; }
-        const data = event.decode(txLog.data, txLog.topics);
-        // Withdraw
-        if (event.name === "Redeem" && math.eq(formatEther(data.redeemAmount), transfer.quantity)) {
-          transfer.category = TransferCategories.Withdraw;
-          if (transfer.from === AddressZero) {
-            transfer.from = txLog.address;
-          }
-        // Deposit
-        } else if (
-          event.name === "Mint" && math.eq(formatEther(data.mintAmount), transfer.quantity)
-        ) {
-          transfer.category = TransferCategories.Deposit;
-        }
-
-      // makerdao
-      } else if (
+      if (
         getName(txLog.address) === "mcd-vat" &&
         txLog.topics[0].slice(0,10) === vatInterface.functions.move.sighash
       ) {
