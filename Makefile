@@ -35,7 +35,7 @@ $(shell mkdir -p .flags)
 
 default: dev
 dev: proxy server taxes
-prod: client proxy server taxes
+prod: client proxy server-image taxes
 all: prod test-return example-return tax-return
 
 start: dev
@@ -159,6 +159,12 @@ webserver: client $(shell find ops/webserver $(find_options))
 	$(log_start)
 	docker build --file ops/webserver/nginx.dockerfile $(image_cache) --tag $(project)_webserver .
 	docker tag $(project)_webserver $(project)_webserver:$(commit)
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+server-image: server $(shell find modules/server/ops $(find_options))
+	$(log_start)
+	docker build --file modules/server/ops/Dockerfile $(image_cache) --tag $(project)_server .
+	docker tag $(project)_server $(project)_server:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################
