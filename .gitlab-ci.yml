@@ -1,0 +1,61 @@
+stages:
+ - build
+ - test
+ - deploy
+
+build:
+  image: docker:stable
+  stage: build
+  services:
+    - name: docker:dind
+      alias: localhost
+  script:
+    - apk add bash curl git jq make
+    - make pull-latest
+    - make prod
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - make push
+
+test:
+  image: docker:stable
+  stage: test
+  services:
+    - name: docker:dind
+      alias: localhost
+  script:
+    - apk add bash curl git jq make
+    - make pull-commit
+    - make start
+    - sleep 15
+    - make dls
+    - docker service logs --raw --tail 100 blog_server
+    - docker service logs --raw --tail 100 blog_proxy
+    - make test
+
+deploy:
+  image: docker:stable
+  stage: deploy
+  services:
+    - name: docker:dind
+      alias: localhost
+  only:
+    refs:
+      - master
+  script:
+    - apk add bash curl git jq make
+    - >
+      docker build --tag ssh-action ops/ssh-action;
+      docker run \
+        --env=FINANCES_DOMAIN_NAME=$FINANCES_DOMAIN_NAME \
+        --env=CI_COMMIT_SHA=$CI_COMMIT_SHA \
+        --env=CI_PROJECT_NAME=$CI_PROJECT_NAME \
+        --env=CI_REPOSITORY_URL=$CI_REPOSITORY_URL \
+        ssh-action $FINANCES_SERVER $SSH_KEY '
+          git checkout --force master;
+          git reset --hard $CI_COMMIT_SHA;
+          export FINANCES_DOMAIN_NAME="$FINANCES_DOMAIN_NAME";
+          make pull-commit;
+          make restart-prod;
+          docker container prune -f;
+          docker image ls -q | xargs docker image rm 2> /dev/null || true;
+        '

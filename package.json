@@ -6,7 +6,7 @@
     "type": "git",
     "url": "git+ssh://git@gitlab.com/bohendo/finances.git"
   },
-  "registry": "docker.io/bohendo",
+  "registry": "registry.gitlab.com",
   "author": "Bo & Shivani Henderson",
   "license": "ISC",
   "bugs": {
