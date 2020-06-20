@@ -138,6 +138,12 @@ proxy: $(shell find ops/proxy $(find_options))
 	docker tag $(project)_proxy $(project)_proxy:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
+webserver: client $(shell find ops/webserver $(find_options))
+	$(log_start)
+	docker build --file ops/webserver/nginx.dockerfile $(image_cache) --tag $(project)_webserver .
+	docker tag $(project)_webserver $(project)_webserver:$(commit)
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
 ########################################
 # Build tax return
 
