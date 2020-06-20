@@ -69,6 +69,23 @@ reset: stop
 	rm -f .cache/*/transactions.json
 	rm -f .flags/tax-return .flags/example-return .flags/test-return
 
+push: push-commit
+push-commit:
+	bash ops/push-images.sh $(commit)
+
+push-release:
+	bash ops/push-images.sh $(release)
+
+pull: pull-latest
+pull-latest:
+	bash ops/pull-images.sh latest
+
+pull-commit:
+	bash ops/pull-images.sh $(commit)
+
+pull-release:
+	bash ops/pull-images.sh $(release)
+
 mappings:
 	node modules/core/ops/update-mappings.js -y
 
