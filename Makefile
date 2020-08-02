@@ -98,6 +98,9 @@ ln:
 	ln -s .cache/personal/logs.json logs.json
 	ln -s .cache/personal/prices.json prices.json
 
+dls:
+	@docker service ls && echo '=====' && docker container ls -a
+
 test: taxes
 	$(docker_run) "cd modules/taxes && npm run test"
 
