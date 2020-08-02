@@ -68,7 +68,7 @@ echo "Using docker images ${project}_name:${version} "
 # Misc Config
 
 # docker images
-builder_image="${project}_builder"
+builder_image="${project}_builder:$version"
 
 common="networks:
       - '$project'
@@ -80,7 +80,7 @@ common="networks:
 ####################
 ## Proxy config
 
-proxy_image="${project}_proxy"
+proxy_image="${project}_proxy:$version"
 pull_if_unavailable "$proxy_image"
 
 if [[ -z "$FINANCES_DOMAINNAME" ]]
@@ -102,7 +102,7 @@ echo "Proxy configured"
 
 if [[ "$FINANCES_ENV" == "prod" ]]
 then
-  webserver_image="${project}_webserver"
+  webserver_image="${project}_webserver:$version"
   pull_if_unavailable "$webserver_image"
   webserver_url="webserver:80"
   webserver_service="webserver:
@@ -113,7 +113,7 @@ else
   webserver_url="webserver:3000"
   webserver_service="webserver:
     $common
-    image: '${project}_builder'
+    image: '${project}_builder:$version'
     entrypoint: bash
     command:
      - '-c'
@@ -131,13 +131,13 @@ server_port=8080;
 
 if [[ "$FINANCES_ENV" == "prod" ]]
 then
-  image_name="${project}_server"
+  image_name="${project}_server:$version"
   pull_if_unavailable "$image_name"
   server_image="image: $image_name
     volumes:
       - 'data:/data'"
 else
-  server_image="${project}_builder"
+  server_image="${project}_builder:$version"
   server_image="image: '${project}_builder'
     entrypoint: 'bash'
     command: 'modules/server/ops/entry.sh'
