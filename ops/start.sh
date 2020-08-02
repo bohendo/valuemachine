@@ -25,7 +25,7 @@ then source .env
 fi
 
 # alias env var to override what's in .env
-FINANCES_LOG_LEVEL="$LOG_LEVEL";
+FINANCES_LOG_LEVEL="${LOG_LEVEL:-$FINANCES_LOG_LEVEL}";
 
 ####################
 ## Docker registry & image version config
@@ -95,24 +95,67 @@ else
       - '443:443'"
 fi
 
+echo "Proxy configured"
+
 ####################
 ## Webserver config
 
-webserver_image="${project}_webserver"
-pull_if_unavailable "$webserver_image"
+if [[ "$FINANCES_ENV" == "prod" ]]
+then
+  webserver_image="${project}_webserver"
+  pull_if_unavailable "$webserver_image"
+  webserver_url="webserver:80"
+  webserver_service="webserver:
+    $common
+    image: '$webserver_image'"
+
+else
+  webserver_url="webserver:3000"
+  webserver_service="webserver:
+    $common
+    image: '${project}_builder'
+    entrypoint: bash
+    command:
+     - '-c'
+     - 'cd modules/client && npm run start'
+    volumes:
+      - '$root:/root'"
+fi
+
+echo "Webserver configured"
 
 ####################
 ## Server config
 
-server_image="${project}_server"
-pull_if_unavailable "$server_image"
-
 server_port=8080;
+
+if [[ "$FINANCES_ENV" == "prod" ]]
+then
+  image_name="${project}_server"
+  pull_if_unavailable "$image_name"
+  server_image="image: $image_name
+    volumes:
+      - 'data:/data'"
+else
+  server_image="${project}_builder"
+  server_image="image: '${project}_builder'
+    entrypoint: 'bash'
+    command: 'modules/server/ops/entry.sh'
+    ports:
+     - '$server_port:$server_port'
+    volumes:
+      - '$root:/root'
+      - 'data:/data'"
+fi
+
+echo "Server configured"
 
 ####################
 # Launch stack
 
-cat - > $root/${project}.docker-compose.yml <<EOF
+echo "Launching finances stack"
+
+cat - > $root/docker-compose.yml <<EOF
 version: '3.4'
 
 networks:
@@ -132,45 +175,29 @@ services:
     environment:
       FINANCES_DOMAINNAME: '$FINANCES_DOMAINNAME'
       FINANCES_EMAIL: '$FINANCES_EMAIL'
-      FINANCES_ETH_PROVIDER_URL: '$ETH_PROVIDER_URL'
-      FINANCES_MESSAGING_TCP_URL: 'nats:4222'
-      FINANCES_MESSAGING_WS_URL: 'nats:4221'
-      FINANCES_NODE_URL: 'node:$node_port'
+      FINANCES_SERVER_URL: 'server:$server_port'
+      FINANCES_WEBSERVER_URL: '$webserver_url'
     volumes:
       - 'certs:/etc/letsencrypt'
-
-  proxy:
-    image: '$proxy_image'
-    environment:
-      DOMAINNAME: '$FINANCES_DOMAIN_NAME'
-      EMAIL: '$FINANCES_EMAIL'
-      SERVER_URL: 'server:8080'
-      WEBSERVER_URL: 'webserver:3000'
-    ports:
-      - '80:80'
-      - '443:443'
-    volumes:
-      - 'certs:/etc/letsencrypt'
-
-  webserver:
-    image: '$webserver_image'
 
   server:
-    image: '$server_image'
-    entrypoint: 'bash -c "cd modules/server && bash ops/entry.sh"'
+    $common
+    $server_image
     environment:
       FINANCES_ADMIN_TOKEN: '$FINANCES_ADMIN_TOKEN'
       FINANCES_ETHERSCAN_KEY: '$FINANCES_ETHERSCAN_KEY'
       FINANCES_LOG_LEVEL: '$FINANCES_LOG_LEVEL'
       FINANCES_PORT: '$server_port'
-      NODE_ENV: 'development'
-    ports:
-      - '$server_port:$server_port'
-    volumes:
-      - 'data:/data'
+      NODE_ENV: '`
+        if [[ "$FINANCES_ENV" == "prod" ]]; then echo "production"; else echo "development"; fi
+      `'
+
+
+  $webserver_service
+
 EOF
 
-docker stack deploy -c $root/${project}.docker-compose.yml $project
+docker stack deploy -c $root/docker-compose.yml $project
 
 echo "The $project stack has been deployed, waiting for the proxy to start responding.."
 timeout=$(expr `date +%s` + 180)

@@ -24,6 +24,7 @@ modules/client/src/data
 modules/taxes/ops/fields/i*.fields
 modules/taxes/ops/forms/i*.pdf
 **/*.docker-compose.yml
+**/docker-compose.yml
 
 # Compiled output
 **/build/**

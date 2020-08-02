@@ -1,11 +1,10 @@
 {
   "name": "@finances/server",
   "version": "1.0.0",
-  "main": "index.js",
   "scripts": {
     "build": "webpack --config ops/webpack.config.js"
   },
-  "author": "",
+  "author": "bohendo & shivhendo",
   "license": "ISC",
   "dependencies": {
     "@finances/core": "1.0.0",

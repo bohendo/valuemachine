@@ -1,9 +1,13 @@
 #!/bin/bash
 
+export DOMAINNAME="${FINANCES_DOMAINNAME}"
+export EMAIL="${FINANCES_EMAIL}"
+export SERVER_URL="${FINANCES_SERVER_URL}"
+export WEBSERVER_URL="${FINANCES_WEBSERVER_URL}"
+
 echo "Proxy container launched in env:"
 echo "DOMAINNAME=$DOMAINNAME"
 echo "EMAIL=$EMAIL"
-echo "MODE=$MODE"
 echo "SERVER_URL=$SERVER_URL"
 echo "WEBSERVER_URL=$WEBSERVER_URL"
 

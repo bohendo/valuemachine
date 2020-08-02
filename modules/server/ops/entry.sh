@@ -3,7 +3,7 @@ set -e
 
 if [[ -d "modules/server" ]]
 then cd modules/server
-elif [[ ! -f "src/index.ts" && ! -f "dist/src/index.js" ]]
+elif [[ ! -f "src/index.ts" && ! -f "dist/bundle.js" ]]
 then echo "Fatal: couldn't find file to run" && exit 1
 fi
 

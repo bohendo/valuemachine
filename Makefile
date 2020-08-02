@@ -149,8 +149,7 @@ client-bundle: core $(shell find modules/client $(find_options))
 
 server-bundle: core $(shell find modules/server $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/server && npm run build"
-	$(docker_run) "touch modules/server/src/index.ts"
+	$(docker_run) "cd modules/server && npm run build && touch src/entry.ts"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################
