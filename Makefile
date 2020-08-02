@@ -85,11 +85,8 @@ purge: clean reset
 push:
 	bash ops/push-images.sh
 
-pull-latest:
-	bash ops/pull-images.sh latest
-
-pull-commit:
-	bash ops/pull-images.sh $(commit)
+pull:
+	bash ops/pull-images.sh
 
 mappings:
 	node modules/core/ops/update-mappings.js -y
