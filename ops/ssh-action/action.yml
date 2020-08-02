@@ -7,6 +7,9 @@ inputs:
   HOST:
     description: 'user@domainname:port of server to connect to'
     required: true
+  CMD:
+    description: 'Command to run on the remote server'
+    required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'

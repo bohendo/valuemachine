@@ -83,7 +83,7 @@ common="networks:
 proxy_image="${project}_proxy"
 pull_if_unavailable "$proxy_image"
 
-if [[ -z "$INDRA_DOMAINNAME" ]]
+if [[ -z "$FINANCES_DOMAINNAME" ]]
 then
   public_url="http://localhost:3000"
   proxy_ports="ports:

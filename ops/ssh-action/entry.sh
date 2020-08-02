@@ -26,23 +26,14 @@ echo $KEY_FOOTER >> $KEY_FILE
 chmod 400 $KEY_FILE
 
 # Manually substitute env var values into CMD
-# derived from https://stackoverflow.com/a/39530053
 subbed_cmd=$CMD
-oldIFS=$IFS
-unset IFS
-for var in $(compgen -e); do
-  if [[ "$var" == *"|"* || "${!var}" == *"|"* ]]
-  then
-    echo "Warning, env var $var contains a | character, skipping"
-    continue
+for var in `env`;
+do
+  if [[ "$var" == *"|"* ]]
+  then echo "Warning, env var ${var%=*} contains a | character, skipping" && continue
   fi
-  if [[ "$subbed_cmd" == *"$var"* ]]
-  then
-    echo "subbing env var: ${var}=${!var}"
-    subbed_cmd="`echo "$subbed_cmd" | sed 's|$'"$var"'|'"${!var}"'|g'`"
-  fi
+  subbed_cmd="`echo $subbed_cmd | sed 's|$'"${var%=*}"'|'"${var#*=}"'|g'`"
 done
-IFS=$oldIFS
 
 echo "Loaded ssh key with fingerprint:"
 ssh-keygen -lf $KEY_FILE
@@ -52,8 +43,8 @@ echo "Running subbed command: $subbed_cmd"
 exec ssh -i $KEY_FILE -o StrictHostKeyChecking=no $HOST "bash -s" <<EOF
   set -e;
   # Run CMD in an up-to-date repo
-  git clone https://github.com/ConnextProject/indra.git || true;
-  cd indra;
+  git clone $CI_REPOSITORY_URL || true;
+  cd $CI_PROJECT_NAME;
   git fetch --all --prune --tags;
   $subbed_cmd
   exit;
