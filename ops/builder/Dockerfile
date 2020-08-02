@@ -6,7 +6,7 @@ RUN apk add --no-cache --repository="http://dl-cdn.alpinelinux.org/alpine/v3.8/m
 RUN npm config set unsafe-perm true
 RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/ed77b63706ea721766a62ff22d3a251d8b4a6a30/wait-for-it.sh > /bin/wait-for && chmod +x /bin/wait-for
 RUN pip install --upgrade pip fdfgen
-RUN npm install --global npm@6.14.5
+RUN npm install --global npm@6.14.7
 RUN npm install -g lerna@3.22.1
 COPY entry.sh /entry.sh
 ENV PATH="./node_modules/.bin:${PATH}"

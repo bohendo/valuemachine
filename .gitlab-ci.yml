@@ -53,7 +53,7 @@ deploy:
           git checkout --force master;
           git reset --hard $CI_COMMIT_SHA;
           export FINANCES_DOMAIN_NAME="$FINANCES_DOMAIN_NAME";
-          make pull-commit;
+          make pull;
           make restart-prod;
           docker container prune -f;
           docker image ls -q | xargs docker image rm 2> /dev/null || true;

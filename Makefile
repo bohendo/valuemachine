@@ -21,6 +21,9 @@ id=$(shell if [[ "`uname`" == "Darwin" ]]; then echo 0:0; else echo $(my_id); fi
 interactive=$(shell if [[ -t 0 && -t 2 ]]; then echo "--interactive"; else echo ""; fi)
 docker_run=docker run --name=$(project)_builder $(interactive) --tty --rm --volume=$(cwd):/root $(project)_builder $(id)
 
+# Pool of images to pull cached layers from during docker build steps
+image_cache=$(shell if [[ "${CI_SERVER}" == "yes" ]]; then echo "--cache-from=$(project)_database:$(commit),$(project)_database,$(project)_ethprovider:$(commit),$(project)_ethprovider,$(project)_node:$(commit),$(project)_node,$(project)_proxy:$(commit),$(project)_proxy,$(project)_builder"; else echo ""; fi)
+
 # Helper functions
 startTime=.flags/.startTime
 totalTime=.flags/.totalTime
@@ -109,7 +112,7 @@ test: taxes
 
 builder: $(shell find ops/builder $(find_options))
 	$(log_start)
-	docker build --file ops/builder/Dockerfile --tag $(project)_builder:latest ops/builder
+	docker build --file ops/builder/Dockerfile $(image_cache) --tag $(project)_builder:latest ops/builder
 	docker tag $(project)_builder:latest $(project)_builder:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
