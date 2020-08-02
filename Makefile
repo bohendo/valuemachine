@@ -11,7 +11,6 @@ find_options=-type f -not -path "**/node_modules/**" -not -path "**/.*" -not -pa
 
 cwd=$(shell pwd)
 commit=$(shell git rev-parse HEAD | head -c 8)
-release=$(shell cat package.json | grep '"version"' | head -n 1 | cut -d '"' -f 4)
 
 # Setup docker run time
 # If on Linux, give the container our uid & gid so we know what to reset permissions to
