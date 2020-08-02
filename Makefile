@@ -76,22 +76,14 @@ reset: stop
 
 purge: clean reset
 
-push: push-commit
-push-commit:
-	bash ops/push-images.sh $(commit)
+push:
+	bash ops/push-images.sh
 
-push-release:
-	bash ops/push-images.sh $(release)
-
-pull: pull-latest
 pull-latest:
 	bash ops/pull-images.sh latest
 
 pull-commit:
 	bash ops/pull-images.sh $(commit)
-
-pull-release:
-	bash ops/pull-images.sh $(release)
 
 mappings:
 	node modules/core/ops/update-mappings.js -y
@@ -112,6 +104,7 @@ test: taxes
 builder: $(shell find ops/builder $(find_options))
 	$(log_start)
 	docker build --file ops/builder/Dockerfile --tag $(project)_builder:latest ops/builder
+	docker tag $(project)_builder:latest $(project)_builder:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 node-modules: builder $(shell find modules/*/package.json $(find_options))
