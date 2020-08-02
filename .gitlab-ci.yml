@@ -26,10 +26,9 @@ test:
     - apk add bash curl git jq make
     - make pull-commit
     - make start
-    - sleep 15
     - make dls
-    - docker service logs --raw --tail 100 blog_server
-    - docker service logs --raw --tail 100 blog_proxy
+    - docker service logs --raw --tail 100 finances_server
+    - docker service logs --raw --tail 100 finances_proxy
     - make test
 
 deploy:
