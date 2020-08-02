@@ -23,6 +23,7 @@ modules/client/src/data
 **/.rpt2_cache
 modules/taxes/ops/fields/i*.fields
 modules/taxes/ops/forms/i*.pdf
+**/*.docker-compose.yml
 
 # Compiled output
 **/build/**

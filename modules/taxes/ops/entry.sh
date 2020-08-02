@@ -16,9 +16,9 @@ fi
 
 echo "[entry.sh] Generating $basename tax-return data"
 
-dir="build/$basename"
-rm -rf $dir
-mkdir -p $dir/data $dir/pages
+build="build/$basename"
+rm -rf $build
+mkdir -p $build/data $build/pages
 
 node build/src/entry.js $input_file
 
@@ -26,23 +26,23 @@ echo "[entry.sh] Compiling tax return data into PDFs"
 
 echo "Building PDFs from form data..."
 
-for data_page in `ls $dir/data | sort -n`
+for data_page in `ls $build/data | sort -n`
 do
   page="`basename ${data_page%.json}`"
   form="${page#*_}"
-  json_data="$dir/data/$page.json"
+  json_data="$build/data/$page.json"
   fields="ops/fields/$form.fields"
-  fdf_data="$dir/data/$page.fdf"
+  fdf_data="$build/data/$page.fdf"
   empty_form="ops/forms/$form.pdf"
-  filled_form="$dir/pages/$page.pdf"
+  filled_form="$build/pages/$page.pdf"
   echo "  - python ops/fill-form.py $json_data $fields $fdf_data"
   python ops/fill-form.py $json_data $fields $fdf_data
   echo "  - pdftk $empty_form fill_form $fdf_data output $filled_form flatten"
   pdftk $empty_form fill_form $fdf_data output $filled_form flatten
 done
 
-all_pages="`find $dir/pages -type f | sort -t '/' -k 4 -n | tr '\n\r' ' '`"
+all_pages="`find $build/pages -type f | sort -t '/' -k 4 -n | tr '\n\r' ' '`"
 echo "Compiling pages: $all_pages"
-pdftk $all_pages cat output $dir/tax-return.pdf
+pdftk $all_pages cat output $build/tax-return.pdf
 
-ln -fs $dir/tax-return.pdf tax-return.pdf
+ln -fs $build/tax-return.pdf tax-return.pdf

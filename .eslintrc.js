@@ -4,6 +4,7 @@ module.exports = {
     "@typescript-eslint/interface-name-prefix": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "@typescript-eslint/no-empty-function": ["off"],
+    "@typescript-eslint/no-var-requires": ["off"],
     "comma-dangle": ["error", "always-multiline"],
     "max-len": ["warn", { code: 100, ignoreTemplateLiterals: true }],
     "no-async-promise-executor": ["off"],

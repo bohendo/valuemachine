@@ -7,11 +7,7 @@ RUN npm config set unsafe-perm true
 RUN npm install -g npm@6.14.0
 RUN pip install --upgrade pip fdfgen
 RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/ed77b63706ea721766a62ff22d3a251d8b4a6a30/wait-for-it.sh > /bin/wait-for && chmod +x /bin/wait-for
+COPY ops ops
+COPY dist dist
 
-COPY modules/server/package.json package.json
-RUN npm install > /dev/null 2>&1
-
-COPY modules/server/ops/entry.sh entry.sh
-COPY modules/server/dist dist
-
-ENTRYPOINT ["bash", "entry.sh"]
+ENTRYPOINT ["bash", "ops/entry.sh"]

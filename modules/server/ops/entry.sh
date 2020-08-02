@@ -23,8 +23,8 @@ then
     --polling-interval 1000 \
     --watch src \
     --exec ts-node \
-    ./src/index.ts
+    ./src/entry.ts
 else
   echo "Starting finances server in prod-mode"
-  exec node --no-deprecation dist/src/index.js
+  exec node --no-deprecation dist/bundle.js
 fi

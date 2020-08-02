@@ -5,8 +5,8 @@
 VPATH=.flags
 SHELL=/bin/bash
 
-dir=$(shell cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
-project=$(shell cat $(dir)/package.json | jq .name | tr -d '"')
+root=$(shell cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
+project=$(shell cat $(root)/package.json | jq .name | tr -d '"')
 find_options=-type f -not -path "**/node_modules/**" -not -path "**/.*" -not -path "**/build/**"
 
 cwd=$(shell pwd)
@@ -35,18 +35,23 @@ $(shell mkdir -p .flags)
 
 default: dev
 dev: proxy server taxes
-prod: client proxy server-image taxes
-all: prod test-return example-return tax-return
+prod: dev webserver
+all: prod
 
 start: dev
-	bash ops/start-dev.sh
+	bash ops/start.sh
+
+start-prod:
+	FINANCES_ENV=prod bash ops/start.sh
 
 stop:
 	bash ops/stop.sh
 
-restart:
-	bash ops/stop.sh
-	bash ops/start-dev.sh
+restart: dev stop
+	bash ops/start.sh
+
+restart-prod: stop
+	FINANCES_ENV=prod bash ops/start.sh
 
 backup: tax-return
 	rm -rf /tmp/taxes
@@ -68,6 +73,8 @@ reset: stop
 	rm -f .cache/*/state.json
 	rm -f .cache/*/transactions.json
 	rm -f .flags/tax-return .flags/example-return .flags/test-return
+
+purge: clean reset
 
 push: push-commit
 push-commit:
@@ -135,12 +142,12 @@ taxes: types utils core $(shell find modules/taxes $(find_options))
 	$(docker_run) "cd modules/taxes && tsc -p tsconfig.json"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-client: core $(shell find modules/client $(find_options))
+client-bundle: core $(shell find modules/client $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/client && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-server: core $(shell find modules/server $(find_options))
+server-bundle: core $(shell find modules/server $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/server && npm run build"
 	$(docker_run) "touch modules/server/src/index.ts"
@@ -155,15 +162,15 @@ proxy: $(shell find ops/proxy $(find_options))
 	docker tag $(project)_proxy $(project)_proxy:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-webserver: client $(shell find ops/webserver $(find_options))
+webserver: client-bundle $(shell find ops/webserver $(find_options))
 	$(log_start)
 	docker build --file ops/webserver/nginx.dockerfile $(image_cache) --tag $(project)_webserver .
 	docker tag $(project)_webserver $(project)_webserver:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-server-image: server $(shell find modules/server/ops $(find_options))
+server: server-bundle $(shell find modules/server/ops $(find_options))
 	$(log_start)
-	docker build --file modules/server/ops/Dockerfile $(image_cache) --tag $(project)_server .
+	docker build --file modules/server/ops/Dockerfile $(image_cache) --tag $(project)_server modules/server
 	docker tag $(project)_server $(project)_server:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
