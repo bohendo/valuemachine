@@ -34,8 +34,8 @@ $(shell mkdir -p .flags)
 # Command & Control Aliases
 
 default: dev
-dev: proxy server taxes
-prod: dev webserver
+dev: proxy taxes
+prod: dev server webserver
 all: prod
 
 start: dev
@@ -73,6 +73,9 @@ reset: stop
 	rm -f .cache/*/state.json
 	rm -f .cache/*/transactions.json
 	rm -f .flags/tax-return .flags/example-return .flags/test-return
+
+reset-images:
+	rm .flags/proxy .flags/server .flags/webserver
 
 purge: clean reset
 
@@ -154,16 +157,16 @@ proxy: $(shell find ops/proxy $(find_options))
 	docker tag $(project)_proxy $(project)_proxy:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-webserver: client-bundle $(shell find ops/webserver $(find_options))
-	$(log_start)
-	docker build --file ops/webserver/nginx.dockerfile $(image_cache) --tag $(project)_webserver .
-	docker tag $(project)_webserver $(project)_webserver:$(commit)
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
 server: server-bundle $(shell find modules/server/ops $(find_options))
 	$(log_start)
 	docker build --file modules/server/ops/Dockerfile $(image_cache) --tag $(project)_server modules/server
 	docker tag $(project)_server $(project)_server:$(commit)
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+webserver: client-bundle $(shell find ops/webserver $(find_options))
+	$(log_start)
+	docker build --file ops/webserver/nginx.dockerfile $(image_cache) --tag $(project)_webserver .
+	docker tag $(project)_webserver $(project)_webserver:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################
