@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 
 import axios from "axios";
 import {
@@ -12,10 +12,12 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -36,15 +38,11 @@ import {
   Address,
   AddressEntry,
   StoreKeys,
+  emptyProfile,
 } from "@finances/types";
 import { Wallet } from "ethers";
 
-import { store } from "../utils/cache";
-
-const tagsSelect = [
-  "active",
-  "proxy",
-];
+import { AccountContext } from "../accountContext";
 
 const addressCategories = [
   "self",
@@ -54,12 +52,7 @@ const addressCategories = [
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
-    '& > *': {
-      margin: theme.spacing(1),
-    },
-  },
-  chip: {
-      margin: 2,
+    margin: theme.spacing(1),
   },
   input: {
     margin: theme.spacing(1),
@@ -72,11 +65,10 @@ const AddListItem = (props: any) => {
   const [newAddressEntry, setNewAddressEntry] = useState({
     category: "self",
     name: "hot-wallet",
-    tags: ["active"],
   } as AddressEntry);
   const [newEntryError, setNewEntryError] = useState({ err: false, msg: "Add your ethereum address to fetch info"});
 
-  const { profile, setProfile } = props;
+  const accountContext = useContext(AccountContext);
 
   const classes = useStyles();
 
@@ -89,13 +81,12 @@ const AddListItem = (props: any) => {
     if (!newAddressEntry.address) {
       setNewEntryError({err: true, msg: "Required! Ethereum Address"})
     } else {
-      let i = profile.addressBook.findIndex(
+      let i = accountContext.profile.addressBook.findIndex(
         (o) => o.address.toLowerCase() === newAddressEntry.address.toLowerCase()
       );
       if (i < 0) {
-        const newProfile = {...profile, addressBook: [...profile.addressBook, newAddressEntry]}
-        setProfile(newProfile);
-        store.save(StoreKeys.Profile, newProfile);
+        const newProfile = {...accountContext.profile, addressBook: [...accountContext.profile.addressBook, newAddressEntry]}
+        accountContext.setProfile(newProfile);
       } else {
         setNewEntryError({err: true, msg: "Address already added"})
       }
@@ -103,11 +94,8 @@ const AddListItem = (props: any) => {
   };
 
   return (
-    <Card>
+    <Card className={classes.root}>
       <CardHeader title={"Add new Address"} />
-      <IconButton onClick={addNewAddress} >
-        <AddIcon />
-      </IconButton>
       <TextField
         error={newEntryError.err}
         id="address"
@@ -146,47 +134,27 @@ const AddListItem = (props: any) => {
         margin="normal"
         variant="outlined"
       />
-      <FormControl variant="outlined" className={classes.input}>
-        <InputLabel id="Tags">Tags</InputLabel>
-        <Select
-          labelId="tags-select-drop"
-          id="tags-select"
-          multiple
-          value={newAddressEntry.tags || []}
-          name="tags"
-          onChange={handleChange}
-          renderValue={(selected) => (
-            <div className={classes.chips}>
-              {(selected as string[]).map((value) => (
-                <Chip key={value} label={value} className={classes.chip} />
-              ))}
-            </div>
-          )}
-        >
-          {tagsSelect.map((name) => (
-            <MenuItem key={name} value={name}>
-              {name}
-            </MenuItem>
-          ))}
-        </Select>
-        <FormHelperText>Select relevant tags for this address</FormHelperText>
-      </FormControl>
+      <IconButton onClick={addNewAddress} >
+        <AddIcon />
+      </IconButton>
     </Card>
   )
 }
 
 const AddressList = (props: any) => {
-  const { category, chainData, profile, setChainData, setProfile, signer} = props;
+  const classes = useStyles();
+
+  const accountContext = useContext(AccountContext);
+  const { signer} = props;
   const [sync, setSync] = useState(false);
 
   const deleteAddress = (entry: AddressEntry) => {
     console.log(`Deleting ${JSON.stringify(entry)}`);
-    const newProfile = {...profile, addressBook: [...profile.addressBook]}
+    const newProfile = {...accountContext.profile, addressBook: [...accountContext.profile.addressBook]}
     let i = newProfile.addressBook.findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase())
     if (i >= 0) {
       newProfile.addressBook.splice(i,1)
-      setProfile(newProfile);
-      store.save(StoreKeys.Profile, newProfile);
+      accountContext.setProfile(newProfile);
     }
   };
 
@@ -201,8 +169,8 @@ const AddressList = (props: any) => {
       console.log(`attempt ${n++}:`, history);
       if (history.status === 200 && typeof history.data === "object") {
         console.log(`Got address history:`, history.data);
-        chainData.merge(history.data);
-        setChainData(chainData);
+        accountContext.chainData.merge(history.data);
+        accountContext.setChainData(accountContext.chainData);
         setSync(false);
         break;
       }
@@ -213,67 +181,54 @@ const AddressList = (props: any) => {
   };
 
   return (
-    <Card>
-      <CardHeader title={category + " Accounts"} />
-      <Divider />
+    <TableContainer className={classes.root} component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell> Action </TableCell>
             <TableCell> Eth Address </TableCell>
             <TableCell> Account name </TableCell>
-            <TableCell> Tags </TableCell>
-            <TableCell> Sync </TableCell>
+            <TableCell> Category </TableCell>
+            <TableCell> Action </TableCell>
           </TableRow>
         </TableHead>
 
         <TableBody>
-          { profile.addressBook.map((entry: AddressEntry, i: number) => {
-              if (entry.category === category.toLowerCase()) {
-                return (
-                  <TableRow key={i} >
-                    <TableCell>
-                      <IconButton onClick={() => deleteAddress(entry)} >
-                        <RemoveIcon />
-                      </IconButton>
-                    </TableCell>
-                    <TableCell> {entry.address} </TableCell>
-                    <TableCell> {entry.name} </TableCell>
-                    <TableCell> {entry.tags} </TableCell>
-                    <TableCell>
-
-                      <Button
-                        disabled={sync}
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        onClick={() => syncHistory(signer, entry.address)}
-                        startIcon={<SyncIcon />}
-                      >
-                        Sync
-                      </Button>
-
-                    
-                    </TableCell>
-                  </TableRow>
-                )
-              } else {
-                return null;
-              }
+          { accountContext.profile.addressBook.map((entry: AddressEntry, i: number) => {
+              return (
+                <TableRow key={i} >
+                  <TableCell> {entry.address} </TableCell>
+                  <TableCell> {entry.name} </TableCell>
+                  <TableCell> {entry.category} </TableCell>
+                  <TableCell>
+                    <IconButton color="secondary" onClick={() => deleteAddress(entry)} >
+                      <RemoveIcon />
+                    </IconButton>
+                    <IconButton
+                      disabled={sync}
+                      color="secondary"
+                      size="small"
+                      onClick={() => syncHistory(signer, entry.address)}
+                    >
+                      <SyncIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              )
           })}
         </TableBody>
       </Table>
-    </Card>
+    </TableContainer>
   )
 }
 
 export const AccountInfo: React.FC = (props: any) => {
   const classes = useStyles();
-  const { chainData, setChainData, profile, setProfile, signer } = props;
+  const accountContext = useContext(AccountContext);
+  const { signer } = props;
 
   const defaults = {
-    username: profile.username || "Default",
-    etherscanKey: profile.etherscanKey || "abc123",
+    username: accountContext.profile.username || "Default",
+    etherscanKey: accountContext.profile.etherscanKey || "abc123",
   };
 
   const registerProfile = useCallback(async () => {
@@ -281,33 +236,31 @@ export const AccountInfo: React.FC = (props: any) => {
       console.warn(`No signer available, can't register w/out one.`);
       return;
     }
-    if (!profile || !profile.etherscanKey) {
-      console.warn(`No api key provided, nothing to register. Personal=${JSON.stringify(profile)}`);
+    if (!accountContext.profile || !accountContext.profile.etherscanKey) {
+      console.warn(`No api key provided, nothing to register. Personal=${JSON.stringify(accountContext.profile)}`);
       return;
     }
-    const payload = { profile, signerAddress: signer.address };
+    const payload = { profile: accountContext.profile, signerAddress: signer.address };
     const sig = await signer.signMessage(JSON.stringify(payload));
     const res = await axios.post(`${window.location.origin}/api/profile`, { sig, payload });
     console.log(res);
-  }, [profile, signer]);
+  }, [accountContext.profile, signer]);
 
   const handleProfileChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.username = "${event.target.value}"`);
-    const newProfile = {...profile, username: event.target.value};
-    setProfile(newProfile);
-    store.save(StoreKeys.Profile, newProfile);
+    const newProfile = {...accountContext.profile, username: event.target.value};
+    accountContext.setProfile(newProfile);
   };
 
   const handleKeyChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.etherscanKey = "${event.target.value}"`);
-    const newProfile = {...profile, etherscanKey: event.target.value};
-    setProfile(newProfile);
-    store.save(StoreKeys.Profile, newProfile);
+    const newProfile = {...accountContext.profile, etherscanKey: event.target.value};
+    accountContext.setProfile(newProfile);
   };
 
   useEffect(() => {
     console.log(`Setting default profile values: ${JSON.stringify(defaults)}`);
-    setProfile(oldProfile => ({ ...defaults, ...oldProfile }));
+    accountContext.setProfile(oldProfile => ({ ...defaults, ...oldProfile }));
   }, []); // eslint-disable-line
 
   const resetData = (): void => {
@@ -315,10 +268,10 @@ export const AccountInfo: React.FC = (props: any) => {
       console.log(`Resetting data for ${key}`);
       store.save(key);
     });
-    setProfile(store.load(StoreKeys.Profile))
+    accountContext.setProfile(emptyProfile)
   };
 
-  console.log(profile);
+  console.log(accountContext.profile);
 
   return (
     <div className={classes.root}>
@@ -332,15 +285,6 @@ export const AccountInfo: React.FC = (props: any) => {
       >
         Reset Cached events
       </Button>
-      <Button
-        variant="contained"
-        color="primary"
-        size="small"
-        className={classes.button}
-        startIcon={<DownloadIcon />}
-      >
-        Download CSV
-      </Button>
       <Divider/>
 
       <Typography variant="h4">
@@ -353,7 +297,7 @@ export const AccountInfo: React.FC = (props: any) => {
         label="Profile Name"
         defaultValue={defaults.username}
         onChange={handleProfileChange}
-        helperText="Choose a name for your profile eg. Company ABC, Shiv G, etc."
+        helperText="Choose a name for your profile eg. Shiv Personal, etc."
         margin="normal"
         variant="outlined"
       />
@@ -381,10 +325,8 @@ export const AccountInfo: React.FC = (props: any) => {
         Register Profile
       </Button>
 
-      <AddressList category="Self" setProfile={setProfile} profile={profile} signer={signer} chainData={chainData} setChainData={setChainData} />
-      <AddressList category="Friend" setProfile={setProfile} profile={profile} signer={signer} chainData={chainData} setChainData={setChainData} />
-      <AddressList category="Family" setProfile={setProfile} profile={profile} signer={signer} chainData={chainData} setChainData={setChainData} />
-      <AddListItem category={"self"} profile={profile} setProfile={setProfile} signer={signer} chainData={chainData} setChainData={setChainData} />
+      <AddListItem signer={signer} />
+      <AddressList signer={signer} />
 
       <Divider/>
     </div>

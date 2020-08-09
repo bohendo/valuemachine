@@ -12,9 +12,11 @@ import {
 } from "@finances/types";
 
 import {
-  CssBaseline,
   Container,
+  CssBaseline,
   Theme,
+  ThemeProvider,
+  createMuiTheme,
   createStyles,
   makeStyles,
 } from '@material-ui/core';
@@ -25,33 +27,43 @@ import { NavBar } from "./components/NavBar";
 import { AccountInfo } from "./components/AccountInfo";
 import { Dashboard } from "./components/Dashboard";
 
+import { AccountContext } from "./accountContext";
 import { store } from "./utils/cache";
+
+const darkTheme = createMuiTheme({
+  palette: {
+    primary: {
+      main: "#deaa56",
+    },
+    secondary: {
+      main: "#e699a6",
+    },
+    type: "dark",
+  },
+});
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   appBarSpacer: theme.mixins.toolbar,
-  root: {
-    backgroundColor: "linen",
-    display: 'flex',
-  },
   container: {
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
   },
   main: {
     flexGrow: 1,
-    height: "100vh",
     overflow: "auto",
   },
 }));
 
 const App: React.FC = () => {
   const classes = useStyles();
+
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || emptyProfile);
   const [addressBook, setAddressBook] = useState({} as AddressBook);
   const [chainData, setChainData] = useState({} as ChainData);
   const [signer, setSigner] = useState({} as Wallet);
 
   useEffect(() => {
+    store.save(StoreKeys.Profile, profile);
     setAddressBook(getAddressBook(profile.addressBook));
   }, [profile]);
 
@@ -64,38 +76,30 @@ const App: React.FC = () => {
     setSigner(new Wallet(signerKey));
 
     // getChainData returns chain data access methods eg chainData.getAddressHistory
-    setChainData(getChainData({
-      console,
-      store,
-    }));
+    setChainData(getChainData({ console, store }));
 
   }, []);
 
   return (
-    <div className={classes.root}>
-      <CssBaseline />
-      <NavBar />
-      <main className={classes.main}>
-        <div className={classes.appBarSpacer} />
-        <Container maxWidth="lg" className={classes.container}>
-          <Switch>
-            <Route exact path="/">
-              <Dashboard addressBook={addressBook} chainData={chainData} />
-            </Route>
-            <Route exact path="/account">
-              <AccountInfo
-                addressBook={addressBook}
-                chainData={chainData}
-                profile={profile}
-                setChainData={setChainData}
-                setProfile={setProfile}
-                signer={signer}
-              />
-            </Route>
-          </Switch>
-        </Container>
-      </main>
-    </div>
+    <ThemeProvider theme={darkTheme}>
+      <AccountContext.Provider value={{profile, setProfile, addressBook, chainData, setChainData}}>
+        <CssBaseline />
+        <NavBar />
+        <main className={classes.main}>
+          <div className={classes.appBarSpacer} />
+          <Container maxWidth="lg" className={classes.container}>
+            <Switch>
+              <Route exact path="/">
+                <Dashboard />
+              </Route>
+              <Route exact path="/account">
+                <AccountInfo signer={signer} />
+              </Route>
+            </Switch>
+          </Container>
+        </main>
+      </AccountContext.Provider>
+    </ThemeProvider>
   );
 }
 
