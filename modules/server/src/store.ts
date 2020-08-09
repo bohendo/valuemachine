@@ -61,6 +61,9 @@ const load = (profile?: string) =>
 
 const save = (profile?: string) =>
   <T extends keyof StoreValues>(key: T, data: StoreValues[T]): void => {
+    if (!fs.existsSync(getDirName(profile))){
+      fs.mkdirSync(getDirName(profile));
+    }
     fs.writeFileSync(getFileName(key, profile), JSON.stringify(data, null, 2));
     cache[key] = data;
   };
