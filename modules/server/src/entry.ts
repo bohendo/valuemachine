@@ -115,7 +115,14 @@ app.post("/chaindata", async (req, res) => {
           syncing.splice(index, 1);
         }
         res(true);
-      }).catch(() => rej()),
+      }).catch((e) => {
+        log.warn(`Failed to sync history for ${payload.address}: ${e.stack}`);
+        const index = syncing.indexOf(payload.address);
+        if (index > -1) {
+          syncing.splice(index, 1);
+        }
+        rej(e);
+      }),
     ),
   ]).then((didSync: boolean) => {
     if (didSync) {
