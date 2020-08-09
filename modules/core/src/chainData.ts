@@ -79,27 +79,29 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     }
   };
 
-  const fetchHistory = async (action: string, address: Address): Promise<any[]> =>
-    (await axios.get(
+  const fetchHistory = async (action: string, address: Address): Promise<any[]> => {
+    const url =
       `https://api.etherscan.io/api?module=account&` +
       `action=${action}&` +
       `address=${address}&` +
-      `apikey=${etherscanKey}&sort=asc`,
-    )).data.result;
+      `apikey=${etherscanKey}&sort=asc`;
+    log.debug(`Fetching history from url: ${url}`);
+    return (await axios.get(url)).data.result;
+  };
 
-    // Beware of edge case: a tx makes 2 identical eth internal transfers and
-    // the to & from are both tracked accounts so we get these calls in the txHistory of both.
-    // We do want to include these two identical transfers so we can't naively dedup
-    // But we don't want a copy from both account's tx history so can't blindly push everything
-    const getDups = (oldList: any[], newElem: any): number =>
-      oldList.filter(oldElem =>
-        smeq(newElem.from, oldElem.from) &&
-        newElem.hash === oldElem.hash &&
-        smeq(newElem.to, oldElem.to) &&
-        (
-          newElem.value.includes(".") ? newElem.value : formatEther(newElem.value)
-        ) === oldElem.value,
-      ).length;
+  // Beware of edge case: a tx makes 2 identical eth internal transfers and
+  // the to & from are both tracked accounts so we get these calls in the txHistory of both.
+  // We do want to include these two identical transfers so we can't naively dedup
+  // But we don't want a copy from both account's tx history so can't blindly push everything
+  const getDups = (oldList: any[], newElem: any): number =>
+    oldList.filter(oldElem =>
+      smeq(newElem.from, oldElem.from) &&
+      newElem.hash === oldElem.hash &&
+      smeq(newElem.to, oldElem.to) &&
+      (
+        newElem.value.includes(".") ? newElem.value : formatEther(newElem.value)
+      ) === oldElem.value,
+    ).length;
 
   ////////////////////////////////////////
   // Exported Methods
@@ -253,7 +255,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       }
 
       log.debug(`💫 getting externaltxHistory..`);
-      const txHistory = await provider.getHistory(address);
+      const txHistory = await fetchHistory("txlist", address);
       for (const tx of txHistory) {
         if (tx && tx.hash && !json.transactions.find(existing => existing.hash === tx.hash)) {
           json.transactions.push({

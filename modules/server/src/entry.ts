@@ -78,7 +78,7 @@ app.post("/profile", (req, res) => {
   const logAndSend = getLogAndSend(res);
   const payload = req.body.payload;
   if (!payload.profile) {
-    logAndSend(`A profile must be provided`);
+    return logAndSend(`A profile must be provided`);
   }
   const userStore = getStore(payload.signerAddress);
   const oldProfile  = userStore.load(StoreKeys.Profile);
@@ -103,7 +103,6 @@ app.post("/chaindata", async (req, res) => {
   if (!profile.etherscanKey) {
     return logAndSend(`A profile must be registered first`);
   }
-  console.log(`Chain data is synced, returning address history`);
   syncing.push(payload.address);
   Promise.race([
     new Promise(res =>
