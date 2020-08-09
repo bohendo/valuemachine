@@ -54,8 +54,19 @@ export const getChainData = (params: ChainDataParams): ChainData => {
         : n.toString(),
     );
 
-  const toTimestamp = (tx: any): string =>
-    (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString();
+  const toTimestamp = (tx: any): string => {
+    const val = tx.timestamp || tx.timeStamp;
+    try {
+      if (val.match(/^[0-9]+$/)) {
+        return new Date(val * 1000).toISOString();
+      } else {
+        return new Date(val).toISOString();
+      }
+    } catch (e) {
+      log.error(`Failed to get timestamp from object: ${JSON.stringify(tx, null, 2)}: ${e.stack}`);
+      throw e;
+    }
+  };
 
   const toNum = (num: BigNumber | number): number =>
     parseInt(toBN(num.toString()).toString(), 10);
