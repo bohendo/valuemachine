@@ -12,10 +12,9 @@ import {
   TokenData,
 } from "@finances/types";
 import { ContextLogger, sm, smeq } from "@finances/utils";
-import axios from "axios";
 import { Contract } from "ethers";
 import { AddressZero } from "ethers/constants";
-import { EtherscanProvider } from "ethers/providers";
+import { EtherscanProvider, JsonRpcProvider, Provider } from "ethers/providers";
 import {
   BigNumber,
   bigNumberify,
@@ -24,6 +23,7 @@ import {
   hexlify,
   toUtf8String,
 } from "ethers/utils";
+import https from "https";
 
 import { getTokenAbi } from "./abi";
 import { getEthTransactionError } from "./verify";
@@ -54,8 +54,13 @@ export const getChainData = (params: ChainDataParams): ChainData => {
         : n.toString(),
     );
 
+  const toTimestamp = (tx: any): string =>
+    (new Date((tx.timestamp || tx.timeStamp) * 1000)).toISOString();
+
   const toNum = (num: BigNumber | number): number =>
     parseInt(toBN(num.toString()).toString(), 10);
+
+  const toHex = (num: BigNumber | number): string => hexlify(toBN(num));
 
   const toStr = (str: HexString | string): string =>
     str.startsWith("0x") ? toUtf8String(str).replace(/\u0000/g, "") : str;
@@ -66,8 +71,10 @@ export const getChainData = (params: ChainDataParams): ChainData => {
   const chrono = (d1: any, d2: any): number =>
     new Date(d1.timestamp || d1).getTime() - new Date(d2.timestamp || d2).getTime();
 
-  const getProvider = (key?: string): EtherscanProvider => {
-    if (!(key || etherscanKey)) {
+  const getProvider = (key?: string): Provider => {
+    if (process.env.FINANCES_ETH_PROVIDER) {
+      return new JsonRpcProvider(process.env.FINANCES_ETH_PROVIDER);
+    } else if (!(key || etherscanKey)) {
       throw new Error("To sync chain data, you must provide an etherscanKey");
     }
     return new EtherscanProvider("homestead", key || etherscanKey);
@@ -86,7 +93,32 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       `address=${address}&` +
       `apikey=${etherscanKey}&sort=asc`;
     log.debug(`Fetching history from url: ${url}`);
-    return (await axios.get(url)).data.result;
+    try {
+      return new Promise((resolve, reject) => {
+        const request = https.get(url, { timeout: 15_000 }, (response) => {
+          log.debug(`Request returned status code: ${response.statusCode}, waiting for data..`);
+          const length = parseInt(response.headers["content-length"], 10);
+          let data = "";
+          response.on("data", (d) => {
+            data += d;
+            log.debug(`Received data chunk of ${d.length} chars, ${length - data.length} left`);
+            if (data.length === length) {
+              log.debug(`Finished waiting for data! JSON.parsing & returning...`);
+              const result = JSON.parse(data).result;
+              log.debug(`Finished parsing! Returning data with ${result.length} entries`);
+              resolve(result);
+            }
+          });
+        });
+        request.on("error", (e) => {
+          log.error(`Https request threw an error: ${e.message || e}`);
+          reject(e);
+        });
+      });
+    } catch (e) {
+      log.warn(`Failed to fetch history: ${e.message || e}`);
+      throw e;
+    }
   };
 
   // Beware of edge case: a tx makes 2 identical eth internal transfers and
@@ -254,7 +286,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
         json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
       }
 
-      log.debug(`💫 getting externaltxHistory..`);
+      log.debug(`💫 getting externalTxHistory..`);
       const txHistory = await fetchHistory("txlist", address);
       for (const tx of txHistory) {
         if (tx && tx.hash && !json.transactions.find(existing => existing.hash === tx.hash)) {
@@ -262,11 +294,11 @@ export const getChainData = (params: ChainDataParams): ChainData => {
             block: tx.blockNumber,
             data: tx.data,
             from: sm(tx.from),
-            gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
-            gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
+            gasLimit: tx.gasLimit ? toHex(tx.gasLimit) : undefined,
+            gasPrice: tx.gasPrice ? toHex(tx.gasPrice) : undefined,
             hash: tx.hash,
             nonce: tx.nonce,
-            timestamp: (new Date(tx.timestamp * 1000)).toISOString(),
+            timestamp: toTimestamp(tx),
             to: tx.to ? sm(tx.to) : null,
             value: formatEther(tx.value),
           });
@@ -286,7 +318,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
           contractAddress: AddressZero,
           from: sm(call.from),
           hash: call.hash,
-          timestamp: (new Date((call.timestamp || call.timeStamp) * 1000)).toISOString(),
+          timestamp: toTimestamp(call),
           // Contracts creating contracts: if call.to is empty then this is a contract creation call
           // We got call from this address's history so it must be either the call.to or call.from
           to: ((call.to === "" || call.to === null) && !smeq(call.from, address))
@@ -313,7 +345,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
           contractAddress: sm(call.contractAddress),
           from: sm(call.from),
           hash: call.hash,
-          timestamp: (new Date((call.timestamp || call.timeStamp) * 1000)).toISOString(),
+          timestamp: toTimestamp(call),
           to: sm(call.to),
           value: formatEther(call.value),
         });
@@ -351,11 +383,11 @@ export const getChainData = (params: ChainDataParams): ChainData => {
         block: tx.blockNumber,
         data: tx.data,
         from: sm(tx.from),
-        gasLimit: tx.gasLimit ? hexlify(tx.gasLimit) : undefined,
-        gasPrice: tx.gasPrice ? hexlify(tx.gasPrice) : undefined,
+        gasLimit: tx.gasLimit ? toHex(tx.gasLimit) : undefined,
+        gasPrice: tx.gasPrice ? toHex(tx.gasPrice) : undefined,
         hash: tx.hash,
         nonce: tx.nonce,
-        timestamp: call.timestamp,
+        timestamp: toTimestamp(call),
         to: tx.to ? sm(tx.to) : null,
         value: formatEther(tx.value),
       };
@@ -377,7 +409,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       const index = json.transactions.findIndex(t => t.hash === tx.hash);
       log.info(`💫 getting logs for tx ${index}/${json.transactions.length} ${tx.hash}`);
       const receipt = await provider.getTransactionReceipt(tx.hash);
-      tx.gasUsed = hexlify(receipt.gasUsed);
+      tx.gasUsed = toHex(receipt.gasUsed);
       tx.index = receipt.transactionIndex;
       tx.logs = receipt.logs.map(log => ({
         address: sm(log.address),
