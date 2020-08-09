@@ -8,10 +8,12 @@ import {
   TransferCategories,
 } from "@finances/types";
 import { ContextLogger, math } from "@finances/utils";
-import { AddressZero } from "ethers/constants";
-import { formatEther } from "ethers/utils";
+import { constants, utils } from "ethers";
 
 import { exchangeEvents, daiJoinInterface, defiEvents, vatInterface } from "../abi";
+
+const AddressZero = constants.AddressZero;
+const formatEther = utils.formatEther;
 
 export const categorizeTransfer = (
   inputTransfer: Partial<Transfer>,

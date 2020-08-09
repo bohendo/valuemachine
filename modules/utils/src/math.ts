@@ -1,5 +1,7 @@
-import { MaxUint256, Zero } from "ethers/constants";
-import { BigNumber as BN, formatUnits, parseUnits } from "ethers/utils";
+import { constants, utils, BigNumber as BN } from "ethers";
+
+const { MaxUint256, Zero } = constants;
+const { formatUnits, parseUnits } = utils;
 
 ////////////////////////////////////////
 // Internal Helpers

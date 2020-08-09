@@ -1,10 +1,5 @@
 import { Address } from "@finances/types";
-import {
-  EventDescription,
-  EventFragment,
-  FunctionFragment,
-  Interface,
-} from "ethers/utils";
+import { utils } from "ethers";
 
 import cTokenAbi from "./cToken.json";
 import compoundAbi from "./compound.json";
@@ -16,6 +11,13 @@ import oasisDexAbi from "./oasisDex.json";
 import saiAbi from "./sai.json";
 import vatAbi from "./vat.json";
 import wethAbi from "./weth.json";
+
+const {
+  EventDescription,
+  EventFragment,
+  FunctionFragment,
+  Interface,
+} = utils;
 
 export const getTokenAbi = (address?: Address): Array<EventFragment | FunctionFragment> => !address
   ? erc20Abi as Array<EventFragment | FunctionFragment>

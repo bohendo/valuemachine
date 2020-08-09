@@ -2,10 +2,12 @@ import { StoreKeys } from "@finances/types";
 import { getAddressBook, getChainData } from "@finances/core";
 import { ContextLogger, LevelLogger } from "@finances/utils";
 import express from "express";
-import { getAddress, hexDataLength, isHexString, verifyMessage } from "ethers/utils";
+import { utils } from "ethers";
 
 import { getStore } from "./store";
 import { env } from "./env";
+
+const { getAddress, hexDataLength, isHexString, verifyMessage } = utils;
 
 const globalStore = getStore();
 const logger = new LevelLogger(env.logLevel);

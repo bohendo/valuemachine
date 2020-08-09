@@ -9,7 +9,7 @@
   "devDependencies": {
     "@finances/types": "1.0.0",
     "@types/node": "14.0.27",
-    "ethers": "4.0.46",
+    "ethers": "5.0.8",
     "typescript": "3.9.7"
   }
 }

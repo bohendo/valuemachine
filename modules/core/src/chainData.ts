@@ -12,21 +12,14 @@ import {
   TokenData,
 } from "@finances/types";
 import { ContextLogger, sm, smeq } from "@finances/utils";
-import { Contract } from "ethers";
-import { AddressZero } from "ethers/constants";
-import { EtherscanProvider, JsonRpcProvider, Provider } from "ethers/providers";
-import {
-  BigNumber,
-  bigNumberify,
-  BigNumberish,
-  formatEther,
-  hexlify,
-  toUtf8String,
-} from "ethers/utils";
+import { BigNumber, BigNumberish, Contract, constants, providers, utils  } from "ethers";
 import https from "https";
 
 import { getTokenAbi } from "./abi";
 import { getEthTransactionError } from "./verify";
+
+const { JsonRpcProvider, Provider } = providers;
+const { BigNumberish, formatEther, hexlify, toUtf8String } = utils;
 
 type ChainDataParams = {
   store?: Store;
@@ -48,7 +41,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
   // Internal Helper Functions
 
   const toBN = (n: BigNumberish | { _hex: HexString }): BigNumber =>
-    bigNumberify(
+    BigNumber.from(
       (n && (n as { _hex: HexString })._hex)
         ? (n as { _hex: HexString })._hex
         : n.toString(),
@@ -88,7 +81,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     } else if (!(key || etherscanKey)) {
       throw new Error("To sync chain data, you must provide an etherscanKey");
     }
-    return new EtherscanProvider("homestead", key || etherscanKey);
+    return new providers.EtherscanProvider("homestead", key || etherscanKey);
   };
 
   const assertStore = (): void => {
@@ -326,7 +319,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
         }
         json.calls.push({
           block: toNum(call.blockNumber),
-          contractAddress: AddressZero,
+          contractAddress: constants.AddressZero,
           from: sm(call.from),
           hash: call.hash,
           timestamp: toTimestamp(call),

@@ -8,7 +8,7 @@ import {
   TransferCategories,
 } from "@finances/types";
 import { ContextLogger, math } from "@finances/utils";
-import { AddressZero } from "ethers/constants";
+import { constants } from "ethers";
 
 import { categorizeTransfer } from "./categorizeTransfer";
 import { mergeFactory } from "./utils";
@@ -61,7 +61,7 @@ export const mergeEthCallTransactions = (
       }
 
       // We'll get internal token transfers from ethTx logs instead
-      if (call.contractAddress !== AddressZero) {
+      if (call.contractAddress !== constants.AddressZero) {
         return;
       }
 

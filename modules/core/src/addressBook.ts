@@ -6,7 +6,7 @@ import {
   Logger,
 } from "@finances/types";
 import { ContextLogger, sm, smeq } from "@finances/utils";
-import { getAddress } from "ethers/utils";
+import { utils } from "ethers";
 
 export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger): AddressBook => {
   const log = new ContextLogger("AddressBook", logger);
@@ -150,7 +150,7 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
   addressBook.forEach(row => {
     if (addresses.includes(sm(row.address))) {
       log.warn(`Address book has multiple entries for address ${row.address}`);
-    } else if (!getAddress(row.address)) {
+    } else if (!utils.getAddress(row.address)) {
       throw new Error(`Address book contains invalid address ${row.address}`);
     } else {
       addresses.push(sm(row.address));

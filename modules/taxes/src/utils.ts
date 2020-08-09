@@ -1,6 +1,6 @@
 import { Events, IncomeEvent, ExpenseEvent, EventTypes, TimestampString } from "@finances/types";
 import { ContextLogger, LevelLogger, math } from "@finances/utils";
-import { MaxUint256 } from "ethers/constants";
+import { constants } from "ethers";
 
 import { env } from "./env";
 
@@ -45,7 +45,7 @@ export const processExpenses = (
 };
 
 export const getIncomeTax = (taxableIncome: string, filingStatus: string): string => {
-  const inf = MaxUint256.toString();
+  const inf = constants.MaxUint256.toString();
   const taxBrackets19 = [
     { rate: "0.10", single: "9700",   joint: "19400",  head: "13850" },
     { rate: "0.12", single: "39475",  joint: "78950",  head: "52850" },

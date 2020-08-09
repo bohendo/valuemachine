@@ -9,15 +9,16 @@ import {
   TransferCategories,
 } from "@finances/types";
 import { ContextLogger, math } from "@finances/utils";
-
-import { AddressZero } from "ethers/constants";
-import { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } from "ethers/utils";
+import { constants, utils } from "ethers";
 
 import { tokenEvents } from "../abi";
+import { getTransactionsError } from "../verify";
 
 import { categorizeTransfer } from "./categorizeTransfer";
 import { mergeFactory } from "./utils";
-import { getTransactionsError } from "../verify";
+
+const { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } = utils;
+const { AddressZero } = constants;
 
 export const mergeEthTxTransactions = (
   oldTransactions: Transaction[],
@@ -136,7 +137,13 @@ export const mergeEthTxTransactions = (
             transfer.from = data.from || data.src;
             transfer.to = data.to || data.dst;
             transfer.category = TransferCategories.Transfer;
-            transaction.transfers.push(categorizeTransfer(transfer, tx.logs, tx.to, addressBook, logger));
+            transaction.transfers.push(categorizeTransfer(
+              transfer,
+              tx.logs,
+              tx.to,
+              addressBook,
+              logger,
+            ));
 
           } else if (assetType === "WETH" && eventI.name === "Deposit") {
             log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
