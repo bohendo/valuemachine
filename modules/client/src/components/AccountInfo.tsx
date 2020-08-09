@@ -12,10 +12,12 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TextField,
@@ -41,11 +43,6 @@ import { Wallet } from "ethers";
 
 import { store } from "../utils/cache";
 
-const tagsSelect = [
-  "active",
-  "proxy",
-];
-
 const addressCategories = [
   "self",
   "friend",
@@ -54,12 +51,7 @@ const addressCategories = [
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
-    '& > *': {
-      margin: theme.spacing(1),
-    },
-  },
-  chip: {
-      margin: 2,
+    margin: theme.spacing(1),
   },
   input: {
     margin: theme.spacing(1),
@@ -72,7 +64,6 @@ const AddListItem = (props: any) => {
   const [newAddressEntry, setNewAddressEntry] = useState({
     category: "self",
     name: "hot-wallet",
-    tags: ["active"],
   } as AddressEntry);
   const [newEntryError, setNewEntryError] = useState({ err: false, msg: "Add your ethereum address to fetch info"});
 
@@ -103,11 +94,8 @@ const AddListItem = (props: any) => {
   };
 
   return (
-    <Card>
+    <Card className={classes.root}>
       <CardHeader title={"Add new Address"} />
-      <IconButton onClick={addNewAddress} >
-        <AddIcon />
-      </IconButton>
       <TextField
         error={newEntryError.err}
         id="address"
@@ -146,37 +134,17 @@ const AddListItem = (props: any) => {
         margin="normal"
         variant="outlined"
       />
-      <FormControl variant="outlined" className={classes.input}>
-        <InputLabel id="Tags">Tags</InputLabel>
-        <Select
-          labelId="tags-select-drop"
-          id="tags-select"
-          multiple
-          value={newAddressEntry.tags || []}
-          name="tags"
-          onChange={handleChange}
-          renderValue={(selected) => (
-            <div className={classes.chips}>
-              {(selected as string[]).map((value) => (
-                <Chip key={value} label={value} className={classes.chip} />
-              ))}
-            </div>
-          )}
-        >
-          {tagsSelect.map((name) => (
-            <MenuItem key={name} value={name}>
-              {name}
-            </MenuItem>
-          ))}
-        </Select>
-        <FormHelperText>Select relevant tags for this address</FormHelperText>
-      </FormControl>
+      <IconButton onClick={addNewAddress} >
+        <AddIcon />
+      </IconButton>
     </Card>
   )
 }
 
 const AddressList = (props: any) => {
-  const { category, chainData, profile, setChainData, setProfile, signer} = props;
+  const classes = useStyles();
+
+  const { chainData, profile, setChainData, setProfile, signer} = props;
   const [sync, setSync] = useState(false);
 
   const deleteAddress = (entry: AddressEntry) => {
@@ -213,57 +181,43 @@ const AddressList = (props: any) => {
   };
 
   return (
-    <Card>
-      <CardHeader title={category + " Accounts"} />
-      <Divider />
+    <TableContainer className={classes.root} component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell> Action </TableCell>
             <TableCell> Eth Address </TableCell>
             <TableCell> Account name </TableCell>
-            <TableCell> Tags </TableCell>
-            <TableCell> Sync </TableCell>
+            <TableCell> Category </TableCell>
+            <TableCell> Action </TableCell>
           </TableRow>
         </TableHead>
 
         <TableBody>
           { profile.addressBook.map((entry: AddressEntry, i: number) => {
-              if (entry.category === category.toLowerCase()) {
-                return (
-                  <TableRow key={i} >
-                    <TableCell>
-                      <IconButton onClick={() => deleteAddress(entry)} >
-                        <RemoveIcon />
-                      </IconButton>
-                    </TableCell>
-                    <TableCell> {entry.address} </TableCell>
-                    <TableCell> {entry.name} </TableCell>
-                    <TableCell> {entry.tags} </TableCell>
-                    <TableCell>
-
-                      <Button
-                        disabled={sync}
-                        variant="contained"
-                        color="primary"
-                        size="small"
-                        onClick={() => syncHistory(signer, entry.address)}
-                        startIcon={<SyncIcon />}
-                      >
-                        Sync
-                      </Button>
-
-                    
-                    </TableCell>
-                  </TableRow>
-                )
-              } else {
-                return null;
-              }
+              return (
+                <TableRow key={i} >
+                  <TableCell> {entry.address} </TableCell>
+                  <TableCell> {entry.name} </TableCell>
+                  <TableCell> {entry.category} </TableCell>
+                  <TableCell>
+                    <IconButton color="secondary" onClick={() => deleteAddress(entry)} >
+                      <RemoveIcon />
+                    </IconButton>
+                    <IconButton
+                      disabled={sync}
+                      color="secondary"
+                      size="small"
+                      onClick={() => syncHistory(signer, entry.address)}
+                    >
+                      <SyncIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              )
           })}
         </TableBody>
       </Table>
-    </Card>
+    </TableContainer>
   )
 }
 
@@ -332,15 +286,6 @@ export const AccountInfo: React.FC = (props: any) => {
       >
         Reset Cached events
       </Button>
-      <Button
-        variant="contained"
-        color="primary"
-        size="small"
-        className={classes.button}
-        startIcon={<DownloadIcon />}
-      >
-        Download CSV
-      </Button>
       <Divider/>
 
       <Typography variant="h4">
@@ -353,7 +298,7 @@ export const AccountInfo: React.FC = (props: any) => {
         label="Profile Name"
         defaultValue={defaults.username}
         onChange={handleProfileChange}
-        helperText="Choose a name for your profile eg. Company ABC, Shiv G, etc."
+        helperText="Choose a name for your profile eg. Shiv Personal, etc."
         margin="normal"
         variant="outlined"
       />
@@ -381,10 +326,8 @@ export const AccountInfo: React.FC = (props: any) => {
         Register Profile
       </Button>
 
-      <AddressList category="Self" setProfile={setProfile} profile={profile} signer={signer} chainData={chainData} setChainData={setChainData} />
-      <AddressList category="Friend" setProfile={setProfile} profile={profile} signer={signer} chainData={chainData} setChainData={setChainData} />
-      <AddressList category="Family" setProfile={setProfile} profile={profile} signer={signer} chainData={chainData} setChainData={setChainData} />
-      <AddListItem category={"self"} profile={profile} setProfile={setProfile} signer={signer} chainData={chainData} setChainData={setChainData} />
+      <AddListItem profile={profile} setProfile={setProfile} signer={signer} chainData={chainData} setChainData={setChainData} />
+      <AddressList setProfile={setProfile} profile={profile} signer={signer} chainData={chainData} setChainData={setChainData} />
 
       <Divider/>
     </div>
