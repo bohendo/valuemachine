@@ -22,7 +22,7 @@ then
     --legacy-watch \
     --polling-interval 1000 \
     --watch src \
-    --exec ts-node \
+    --exec "node -r ts-node/register" \
     ./src/entry.ts
 else
   echo "Starting finances server in prod-mode"
