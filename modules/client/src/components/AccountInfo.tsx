@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 
 import axios from "axios";
 import {
@@ -38,10 +38,11 @@ import {
   Address,
   AddressEntry,
   StoreKeys,
+  emptyProfile,
 } from "@finances/types";
 import { Wallet } from "ethers";
 
-import { store } from "../utils/cache";
+import { AccountContext } from "../accountContext";
 
 const addressCategories = [
   "self",
@@ -67,7 +68,7 @@ const AddListItem = (props: any) => {
   } as AddressEntry);
   const [newEntryError, setNewEntryError] = useState({ err: false, msg: "Add your ethereum address to fetch info"});
 
-  const { profile, setProfile } = props;
+  const accountContext = useContext(AccountContext);
 
   const classes = useStyles();
 
@@ -80,13 +81,12 @@ const AddListItem = (props: any) => {
     if (!newAddressEntry.address) {
       setNewEntryError({err: true, msg: "Required! Ethereum Address"})
     } else {
-      let i = profile.addressBook.findIndex(
+      let i = accountContext.profile.addressBook.findIndex(
         (o) => o.address.toLowerCase() === newAddressEntry.address.toLowerCase()
       );
       if (i < 0) {
-        const newProfile = {...profile, addressBook: [...profile.addressBook, newAddressEntry]}
-        setProfile(newProfile);
-        store.save(StoreKeys.Profile, newProfile);
+        const newProfile = {...accountContext.profile, addressBook: [...accountContext.profile.addressBook, newAddressEntry]}
+        accountContext.setProfile(newProfile);
       } else {
         setNewEntryError({err: true, msg: "Address already added"})
       }
@@ -144,17 +144,17 @@ const AddListItem = (props: any) => {
 const AddressList = (props: any) => {
   const classes = useStyles();
 
-  const { chainData, profile, setChainData, setProfile, signer} = props;
+  const accountContext = useContext(AccountContext);
+  const { signer} = props;
   const [sync, setSync] = useState(false);
 
   const deleteAddress = (entry: AddressEntry) => {
     console.log(`Deleting ${JSON.stringify(entry)}`);
-    const newProfile = {...profile, addressBook: [...profile.addressBook]}
+    const newProfile = {...accountContext.profile, addressBook: [...accountContext.profile.addressBook]}
     let i = newProfile.addressBook.findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase())
     if (i >= 0) {
       newProfile.addressBook.splice(i,1)
-      setProfile(newProfile);
-      store.save(StoreKeys.Profile, newProfile);
+      accountContext.setProfile(newProfile);
     }
   };
 
@@ -169,8 +169,8 @@ const AddressList = (props: any) => {
       console.log(`attempt ${n++}:`, history);
       if (history.status === 200 && typeof history.data === "object") {
         console.log(`Got address history:`, history.data);
-        chainData.merge(history.data);
-        setChainData(chainData);
+        accountContext.chainData.merge(history.data);
+        accountContext.setChainData(accountContext.chainData);
         setSync(false);
         break;
       }
@@ -193,7 +193,7 @@ const AddressList = (props: any) => {
         </TableHead>
 
         <TableBody>
-          { profile.addressBook.map((entry: AddressEntry, i: number) => {
+          { accountContext.profile.addressBook.map((entry: AddressEntry, i: number) => {
               return (
                 <TableRow key={i} >
                   <TableCell> {entry.address} </TableCell>
@@ -223,11 +223,12 @@ const AddressList = (props: any) => {
 
 export const AccountInfo: React.FC = (props: any) => {
   const classes = useStyles();
-  const { chainData, setChainData, profile, setProfile, signer } = props;
+  const accountContext = useContext(AccountContext);
+  const { signer } = props;
 
   const defaults = {
-    username: profile.username || "Default",
-    etherscanKey: profile.etherscanKey || "abc123",
+    username: accountContext.profile.username || "Default",
+    etherscanKey: accountContext.profile.etherscanKey || "abc123",
   };
 
   const registerProfile = useCallback(async () => {
@@ -235,33 +236,31 @@ export const AccountInfo: React.FC = (props: any) => {
       console.warn(`No signer available, can't register w/out one.`);
       return;
     }
-    if (!profile || !profile.etherscanKey) {
-      console.warn(`No api key provided, nothing to register. Personal=${JSON.stringify(profile)}`);
+    if (!accountContext.profile || !accountContext.profile.etherscanKey) {
+      console.warn(`No api key provided, nothing to register. Personal=${JSON.stringify(accountContext.profile)}`);
       return;
     }
-    const payload = { profile, signerAddress: signer.address };
+    const payload = { profile: accountContext.profile, signerAddress: signer.address };
     const sig = await signer.signMessage(JSON.stringify(payload));
     const res = await axios.post(`${window.location.origin}/api/profile`, { sig, payload });
     console.log(res);
-  }, [profile, signer]);
+  }, [accountContext.profile, signer]);
 
   const handleProfileChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.username = "${event.target.value}"`);
-    const newProfile = {...profile, username: event.target.value};
-    setProfile(newProfile);
-    store.save(StoreKeys.Profile, newProfile);
+    const newProfile = {...accountContext.profile, username: event.target.value};
+    accountContext.setProfile(newProfile);
   };
 
   const handleKeyChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.etherscanKey = "${event.target.value}"`);
-    const newProfile = {...profile, etherscanKey: event.target.value};
-    setProfile(newProfile);
-    store.save(StoreKeys.Profile, newProfile);
+    const newProfile = {...accountContext.profile, etherscanKey: event.target.value};
+    accountContext.setProfile(newProfile);
   };
 
   useEffect(() => {
     console.log(`Setting default profile values: ${JSON.stringify(defaults)}`);
-    setProfile(oldProfile => ({ ...defaults, ...oldProfile }));
+    accountContext.setProfile(oldProfile => ({ ...defaults, ...oldProfile }));
   }, []); // eslint-disable-line
 
   const resetData = (): void => {
@@ -269,10 +268,10 @@ export const AccountInfo: React.FC = (props: any) => {
       console.log(`Resetting data for ${key}`);
       store.save(key);
     });
-    setProfile(store.load(StoreKeys.Profile))
+    accountContext.setProfile(emptyProfile)
   };
 
-  console.log(profile);
+  console.log(accountContext.profile);
 
   return (
     <div className={classes.root}>
@@ -326,8 +325,8 @@ export const AccountInfo: React.FC = (props: any) => {
         Register Profile
       </Button>
 
-      <AddListItem profile={profile} setProfile={setProfile} signer={signer} chainData={chainData} setChainData={setChainData} />
-      <AddressList setProfile={setProfile} profile={profile} signer={signer} chainData={chainData} setChainData={setChainData} />
+      <AddListItem signer={signer} />
+      <AddressList signer={signer} />
 
       <Divider/>
     </div>

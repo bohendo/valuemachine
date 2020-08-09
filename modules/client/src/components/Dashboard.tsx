@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 
 import {
   AssetTypes,
@@ -25,6 +25,7 @@ import { NetWorth } from './NetWorthGraph';
 import { EthTransactionLogs } from './TransactionLogs'
 
 import { inTypes, outTypes } from '../utils/utils';
+import { AccountContext } from "../accountContext";
 import { store } from '../utils/cache';
 
 export const Dashboard: React.FC = (props: any) => {
@@ -37,7 +38,8 @@ export const Dashboard: React.FC = (props: any) => {
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
   const [endDatePrice, setEndDatePrice] = useState({} as any[]);
 
-  const { addressBook, chainData } = props;
+  const accountContext = useContext(AccountContext);
+  //const { addressBook, chainData } = props;
 
   const logger = new LevelLogger(3);
   const prices = getPrices(store, logger);
@@ -52,7 +54,7 @@ export const Dashboard: React.FC = (props: any) => {
 
   useEffect(() => {
     (async () => {
-      if (Object.keys(addressBook).length === 0) {
+      if (Object.keys(accountContext.addressBook).length === 0) {
         setFinancialEvents([] as Event[]);
         setTransactions([] as Transaction[]);
         return;
@@ -60,13 +62,13 @@ export const Dashboard: React.FC = (props: any) => {
       const log = new ContextLogger("Dashboard", logger);
       let newTransactions = await mergeEthTransactions(
         [], // Could give transactions & this function will merge new txns into the existing array
-        addressBook,
-        chainData,
+        accountContext.addressBook,
+        accountContext.chainData,
         0, // Only consider merging transactions after this time
         logger,
       );
 
-      log.info(`address book contains ${addressBook.addresses.filter(addressBook.isSelf).length} self addresses`);
+      log.info(`address book contains ${accountContext.addressBook.addresses.filter(accountContext.addressBook.isSelf).length} self addresses`);
 
       for (let i = 0; i < newTransactions.length; i++) {
         const tx = newTransactions[i];
@@ -83,7 +85,7 @@ export const Dashboard: React.FC = (props: any) => {
       setTransactions(newTransactions);
       store.save(StoreKeys.Transactions, newTransactions);
 
-      const valueMachine = getValueMachine(addressBook, logger);
+      const valueMachine = getValueMachine(accountContext.addressBook, logger);
 
       let state = store.load(StoreKeys.State);
       let vmEvents = store.load(StoreKeys.Events);
@@ -111,7 +113,7 @@ export const Dashboard: React.FC = (props: any) => {
       setFinancialEvents(vmEvents);
 
     })();
-  }, [addressBook, chainData]);
+  }, [accountContext.addressBook, accountContext.chainData]);
 
   useEffect(() => {
     let totalByCategory = {};
@@ -214,7 +216,7 @@ export const Dashboard: React.FC = (props: any) => {
         <AssetDistribution totalByAssetType={totalByAssetType} date={endDate.toISOString()}/>
       </Grid>
       <Grid container>
-        <EthTransactionLogs addressBook={addressBook} transactions={transactions} />
+        <EthTransactionLogs transactions={transactions} />
       </Grid>
       <Grid item xs={12} md={12} lg={12}>
         <EventTable filteredTotalByCategory={filteredTotalByCategory} totalByAssetType={totalByAssetType}/>
