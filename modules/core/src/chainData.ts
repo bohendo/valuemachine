@@ -15,7 +15,7 @@ import { ContextLogger, sm, smeq } from "@finances/utils";
 import { BigNumber, BigNumberish, Contract, constants, providers, utils  } from "ethers";
 import https from "https";
 
-import { getTokenAbi } from "./abi";
+import { getTokenInterface } from "./abi";
 import { getEthTransactionError } from "./verify";
 
 const { JsonRpcProvider, Provider } = providers;
@@ -228,7 +228,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     log.info(`Fetching info for ${newlySupported.length} newly supported tokens`);
     for (const tokenAddress of newlySupported) {
       log.info(`Fetching info for token ${logProg(tokens, tokenAddress)}: ${tokenAddress}`);
-      const token = new Contract(tokenAddress, getTokenAbi(tokenAddress), provider);
+      const token = new Contract(tokenAddress, getTokenInterface(tokenAddress), provider);
       json.tokens[sm(tokenAddress)] = {
         decimals: toNum((await token.functions.decimals()) || 18),
         name: toStr((await token.functions.name()) || "Unknown"),
@@ -418,7 +418,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       tx.logs = receipt.logs.map(log => ({
         address: sm(log.address),
         data: log.data,
-        index: log.transactionLogIndex,
+        index: log.logIndex,
         topics: log.topics,
       }));
       // If a status field is proivided, awesome

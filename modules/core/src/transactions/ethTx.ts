@@ -9,7 +9,7 @@ import {
   TransferCategories,
 } from "@finances/types";
 import { ContextLogger, math } from "@finances/utils";
-import { constants, utils } from "ethers";
+import { BigNumber, constants, utils } from "ethers";
 
 import { tokenEvents } from "../abi";
 import { getTransactionsError } from "../verify";
@@ -17,7 +17,7 @@ import { getTransactionsError } from "../verify";
 import { categorizeTransfer } from "./categorizeTransfer";
 import { mergeFactory } from "./utils";
 
-const { bigNumberify, hexlify, formatEther, formatUnits, keccak256, RLP } = utils;
+const { hexlify, formatEther, formatUnits, keccak256, RLP } = utils;
 const { AddressZero } = constants;
 
 export const mergeEthTxTransactions = (
@@ -83,7 +83,7 @@ export const mergeEthTxTransactions = (
         transfers: [{
           assetType: "ETH",
           category: TransferCategories.Transfer,
-          fee: formatEther(bigNumberify(tx.gasUsed).mul(tx.gasPrice)),
+          fee: formatEther(BigNumber.from(tx.gasUsed).mul(tx.gasPrice)),
           from: tx.from.toLowerCase(),
           index: 0,
           quantity: tx.value,
@@ -116,7 +116,7 @@ export const mergeEthTxTransactions = (
         if (isToken(txLog.address)) {
 
           const assetType = getName(txLog.address).toUpperCase();
-          const eventI = tokenEvents.find(e => e.topic === txLog.topics[0]);
+          const eventI = tokenEvents.find(e => e.sigHash === txLog.topics[0]);
 
           if (!eventI) {
             log.debug(`Unable to identify ${assetType} event w topic: ${txLog.topics[0]}`);
