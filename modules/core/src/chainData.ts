@@ -302,7 +302,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       for (const tx of txHistory) {
         if (tx && tx.hash && !json.transactions.find(existing => existing.hash === tx.hash)) {
           json.transactions.push({
-            block: tx.blockNumber,
+            block: toNum(tx.blockNumber),
             data: tx.data,
             from: sm(tx.from),
             gasLimit: tx.gasLimit ? toHex(tx.gasLimit) : undefined,
@@ -325,7 +325,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
           continue;
         }
         json.calls.push({
-          block: parseInt(call.blockNumber.toString(), 10),
+          block: toNum(call.blockNumber),
           contractAddress: AddressZero,
           from: sm(call.from),
           hash: call.hash,
@@ -352,7 +352,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
           continue;
         }
         json.calls.push({
-          block: parseInt(call.blockNumber.toString(), 10),
+          block: toNum(call.blockNumber),
           contractAddress: sm(call.contractAddress),
           from: sm(call.from),
           hash: call.hash,
@@ -391,7 +391,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       const tx = await provider.getTransaction(call.hash);
       log.info(`✅ got transaction`);
       const transaction = {
-        block: tx.blockNumber,
+        block: toNum(tx.blockNumber),
         data: tx.data,
         from: sm(tx.from),
         gasLimit: tx.gasLimit ? toHex(tx.gasLimit) : undefined,
