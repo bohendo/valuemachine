@@ -111,7 +111,7 @@ app.post("/chaindata", async (req, res) => {
       setTimeout(() => res(false), 1000),
     ),
     new Promise((res, rej) =>
-      chainData.syncAddressHistory([payload.address], profile.etherscanKey).then(() => {
+      chainData.syncAddresses([payload.address], profile.etherscanKey).then(() => {
         const index = syncing.indexOf(payload.address);
         if (index > -1) {
           syncing.splice(index, 1);

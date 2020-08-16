@@ -20,7 +20,7 @@ export type Env = {
   logLevel: number;
   mode: Modes;
   outputFolder: string;
-  taxYear: string;
+  taxYear?: string;
   username: string;
 }
 

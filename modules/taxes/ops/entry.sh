@@ -22,6 +22,7 @@ mkdir -p $build/data $build/pages
 
 node build/src/entry.js $input_file
 
+echo "[entry.sh] JS parsing finished with exit code $?"
 echo "[entry.sh] Compiling tax return data into PDFs"
 
 echo "Building PDFs from form data..."

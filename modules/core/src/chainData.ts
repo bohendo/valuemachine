@@ -13,7 +13,7 @@ import {
 } from "@finances/types";
 import { ContextLogger, sm, smeq } from "@finances/utils";
 import { BigNumber, Contract, constants, providers, utils  } from "ethers";
-import https from "https";
+import axios from "axios";
 
 import { getTokenInterface } from "./abi";
 import { getEthTransactionError } from "./verify";
@@ -71,7 +71,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     str.startsWith("0x") ? toUtf8String(str).replace(/\u0000/g, "") : str;
 
   const logProg = (list: any[], elem: any): string =>
-    `${list.indexOf(elem)}/${list.length}`;
+    `${list.indexOf(elem)+1}/${list.length}`;
 
   const chrono = (d1: any, d2: any): number =>
     new Date(d1.timestamp || d1).getTime() - new Date(d2.timestamp || d2).getTime();
@@ -91,40 +91,13 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     }
   };
 
-  const fetchHistory = async (action: string, address: Address): Promise<any[]> => {
-    const url =
+  const fetchHistory = async (action: string, address: Address): Promise<any[]> =>
+    (await axios.get(
       `https://api.etherscan.io/api?module=account&` +
       `action=${action}&` +
       `address=${address}&` +
-      `apikey=${etherscanKey}&sort=asc`;
-    log.debug(`Fetching history from url: ${url}`);
-    try {
-      return new Promise((resolve, reject) => {
-        const request = https.get(url, { timeout: 15_000 }, (response) => {
-          log.debug(`Request returned status code: ${response.statusCode}, waiting for data..`);
-          const length = parseInt(response.headers["content-length"], 10);
-          let data = "";
-          response.on("data", (d) => {
-            data += d;
-            log.debug(`Received data chunk of ${d.length} chars, ${length - data.length} left`);
-            if (data.length === length) {
-              log.debug(`Finished waiting for data! JSON.parsing & returning...`);
-              const result = JSON.parse(data).result;
-              log.debug(`Finished parsing! Returning data with ${result.length} entries`);
-              resolve(result);
-            }
-          });
-        });
-        request.on("error", (e) => {
-          log.error(`Https request threw an error: ${e.message || e}`);
-          reject(e);
-        });
-      });
-    } catch (e) {
-      log.warn(`Failed to fetch history: ${e.message || e}`);
-      throw e;
-    }
-  };
+      `apikey=${etherscanKey}&sort=asc`,
+    )).data.result;
 
   // Beware of edge case: a tx makes 2 identical eth internal transfers and
   // the to & from are both tracked accounts so we get these calls in the txHistory of both.
@@ -239,134 +212,90 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     }
   };
 
-  const syncAddressHistory = async (userAddresses: Address[], key?: string): Promise<void> => {
+  const syncAddress = async (address: Address, key?: string): Promise<void> => {
     assertStore();
     const provider = getProvider(key);
-    const addresses = userAddresses.map(sm).filter(address => {
-      if (!json.addresses[address]) {
-        return true;
-      }
 
-      const lastAction = json.transactions
-        .filter(tx => json.addresses[address].history.some(hash => hash === tx.hash))
-        .map(tx => tx.timestamp)
-        .concat(
-          json.calls
-            .filter(call => smeq(call.to, address) || smeq(call.from, address))
-            .map(tx => tx.timestamp),
-        )
-        .sort(chrono).reverse()[0];
 
-      if (!lastAction) {
-        log.debug(`No activity detected for address ${address}`);
-        return true;
-      }
-
-      const hour = 60 * 60 * 1000;
-      const month = 30 * 24 * hour;
-
-      // Don't sync any addresses w no recent activity if they have been synced before
-      if (Date.now() - new Date(lastAction).getTime() > 6 * month) {
-        log.debug(`Skipping retired (${lastAction}) address ${address} bc data was already fetched`);
-        return false;
-      }
-
-      // Don't sync any active addresses if they've been synced recently
-      if (Date.now() - new Date(json.addresses[address].lastUpdated).getTime() < 12 * hour) {
-        log.debug(`Skipping active (${lastAction}) address ${address} bc it was recently synced.`);
-        return false;
-      }
-
-      return true;
-    });
-
-    // Fetch tx history for addresses that need to be updated
-
-    log.info(`Fetching tx history for ${addresses.length} out-of-date addresses`);
-    for (const address of addresses) {
-      // Find the most recent tx timestamp that involved any interaction w this address
-      log.info(`Fetching history for address ${logProg(addresses, address)}: ${address}`);
-
-      if (!json.addresses[address]) {
-        json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
-      }
-
-      log.debug(`💫 getting externalTxHistory..`);
-      const txHistory = await fetchHistory("txlist", address);
-      for (const tx of txHistory) {
-        if (tx && tx.hash && !json.transactions.find(existing => existing.hash === tx.hash)) {
-          json.transactions.push({
-            block: toNum(tx.blockNumber),
-            data: tx.data,
-            from: sm(tx.from),
-            gasLimit: tx.gasLimit ? toHex(tx.gasLimit) : undefined,
-            gasPrice: tx.gasPrice ? toHex(tx.gasPrice) : undefined,
-            hash: tx.hash,
-            nonce: tx.nonce,
-            timestamp: toTimestamp(tx),
-            to: tx.to ? sm(tx.to) : null,
-            value: formatEther(tx.value),
-          });
-        }
-      }
-
-      log.debug(`💫 getting internalTxHistory..`);
-      const oldEthCalls = JSON.parse(JSON.stringify(json.calls));
-      const ethCalls = await fetchHistory("txlistinternal", address);
-      for (const call of ethCalls) {
-        if (getDups(oldEthCalls, call) > 0) {
-          log.debug(`Skipping eth call, dup detected`);
-          continue;
-        }
-        json.calls.push({
-          block: toNum(call.blockNumber),
-          contractAddress: constants.AddressZero,
-          from: sm(call.from),
-          hash: call.hash,
-          timestamp: toTimestamp(call),
-          // Contracts creating contracts: if call.to is empty then this is a contract creation call
-          // We got call from this address's history so it must be either the call.to or call.from
-          to: ((call.to === "" || call.to === null) && !smeq(call.from, address))
-            ? address
-            : call.to ? sm(call.to) : null,
-          value: formatEther(call.value),
-        });
-      }
-
-      log.debug(`💫 getting tokenTxHistory..`);
-      const oldTknCalls = JSON.parse(JSON.stringify(json.calls));
-      const tknCalls = await fetchHistory("tokentx", address);
-      for (const call of tknCalls) {
-        if (!Object.keys(json.tokens).includes(call.contractAddress)) {
-          log.debug(`Skipping token call, unsupported token: ${call.contractAddress}`);
-          continue;
-        }
-        if (getDups(oldTknCalls, call) > 0) {
-          log.debug(`Skipping token call, dup detected`);
-          continue;
-        }
-        json.calls.push({
-          block: toNum(call.blockNumber),
-          contractAddress: sm(call.contractAddress),
-          from: sm(call.from),
-          hash: call.hash,
-          timestamp: toTimestamp(call),
-          to: sm(call.to),
-          value: formatEther(call.value),
-        });
-      }
-
-      json.addresses[address].history = Array.from(new Set([]
-        .concat(txHistory, ethCalls, tknCalls)
-        .map(tx => tx.hash)
-        .filter(hash => !!hash),
-      ));
-
-      json.addresses[address].lastUpdated = new Date().toISOString();
-
-      store.save(StoreKeys.ChainData, json);
-      log.debug(`📝 progress saved`);
+    if (!json.addresses[address]) {
+      json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
     }
+
+    log.debug(`💫 getting externalTxHistory..`);
+    const txHistory = await fetchHistory("txlist", address);
+    for (const tx of txHistory) {
+      if (tx && tx.hash && !json.transactions.find(existing => existing.hash === tx.hash)) {
+        json.transactions.push({
+          block: toNum(tx.blockNumber),
+          data: tx.data,
+          from: sm(tx.from),
+          gasLimit: tx.gasLimit ? toHex(tx.gasLimit) : undefined,
+          gasPrice: tx.gasPrice ? toHex(tx.gasPrice) : undefined,
+          hash: tx.hash,
+          nonce: tx.nonce,
+          timestamp: toTimestamp(tx),
+          to: tx.to ? sm(tx.to) : null,
+          value: formatEther(tx.value),
+        });
+      }
+    }
+
+    log.debug(`💫 getting internalTxHistory..`);
+    const oldEthCalls = JSON.parse(JSON.stringify(json.calls));
+    const ethCalls = await fetchHistory("txlistinternal", address);
+    for (const call of ethCalls) {
+      if (getDups(oldEthCalls, call) > 0) {
+        log.debug(`Skipping eth call, dup detected`);
+        continue;
+      }
+      json.calls.push({
+        block: toNum(call.blockNumber),
+        contractAddress: constants.AddressZero,
+        from: sm(call.from),
+        hash: call.hash,
+        timestamp: toTimestamp(call),
+        // Contracts creating contracts: if call.to is empty then this is a contract creation call
+        // We got call from this address's history so it must be either the call.to or call.from
+        to: ((call.to === "" || call.to === null) && !smeq(call.from, address))
+          ? address
+          : call.to ? sm(call.to) : null,
+        value: formatEther(call.value),
+      });
+    }
+
+    log.debug(`💫 getting tokenTxHistory..`);
+    const oldTknCalls = JSON.parse(JSON.stringify(json.calls));
+    const tknCalls = await fetchHistory("tokentx", address);
+    for (const call of tknCalls) {
+      if (!Object.keys(json.tokens).includes(call.contractAddress)) {
+        log.debug(`Skipping token call, unsupported token: ${call.contractAddress}`);
+        continue;
+      }
+      if (getDups(oldTknCalls, call) > 0) {
+        log.debug(`Skipping token call, dup detected`);
+        continue;
+      }
+      json.calls.push({
+        block: toNum(call.blockNumber),
+        contractAddress: sm(call.contractAddress),
+        from: sm(call.from),
+        hash: call.hash,
+        timestamp: toTimestamp(call),
+        to: sm(call.to),
+        value: formatEther(call.value),
+      });
+    }
+
+    json.addresses[address].history = Array.from(new Set([]
+      .concat(txHistory, ethCalls, tknCalls)
+      .map(tx => tx.hash)
+      .filter(hash => !!hash),
+    ));
+
+    json.addresses[address].lastUpdated = new Date().toISOString();
+
+    store.save(StoreKeys.ChainData, json);
+    log.debug(`📝 progress saved`);
 
     // Make sure all calls have transaction data associated with them
     // bc we might need to ignore calls if the tx receipt says it was reverted..
@@ -451,6 +380,55 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     store.save(StoreKeys.ChainData, json);
   };
 
+  const syncAddresses = async (userAddresses: Address[], key?: string): Promise<void> => {
+    const addresses = userAddresses.map(sm).filter(address => {
+      if (!json.addresses[address]) {
+        return true;
+      }
+
+      const lastAction = json.transactions
+        .filter(tx => json.addresses[address].history.some(hash => hash === tx.hash))
+        .map(tx => tx.timestamp)
+        .concat(
+          json.calls
+            .filter(call => smeq(call.to, address) || smeq(call.from, address))
+            .map(tx => tx.timestamp),
+        )
+        .sort(chrono).reverse()[0];
+
+      if (!lastAction) {
+        log.debug(`No activity detected for address ${address}`);
+        return true;
+      }
+
+      const hour = 60 * 60 * 1000;
+      const month = 30 * 24 * hour;
+
+      // Don't sync any addresses w no recent activity if they have been synced before
+      if (Date.now() - new Date(lastAction).getTime() > 6 * month) {
+        log.debug(`Skipping retired (${lastAction}) address ${address} bc data was already fetched`);
+        return false;
+      }
+
+      // Don't sync any active addresses if they've been synced recently
+      if (Date.now() - new Date(json.addresses[address].lastUpdated).getTime() < 12 * hour) {
+        log.debug(`Skipping active (${lastAction}) address ${address} bc it was recently synced.`);
+        return false;
+      }
+
+      return true;
+    });
+
+    // Fetch tx history for addresses that need to be updated
+
+    log.info(`Fetching tx history for ${addresses.length} out-of-date addresses`);
+    for (const address of addresses) {
+      // Find the most recent tx timestamp that involved any interaction w this address
+      log.info(`Fetching history for address ${logProg(addresses, address)}: ${address}`);
+      await syncAddress(address, key);
+    }
+  };
+
   ////////////////////////////////////////
   // One more bit of init code before returning
 
@@ -468,7 +446,8 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     getTokenData,
     json,
     merge,
-    syncAddressHistory,
+    syncAddress,
+    syncAddresses,
     syncTokenData,
   };
 };

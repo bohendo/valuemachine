@@ -43,7 +43,7 @@ export type TokenData = {
 export type ChainDataJson = {
   addresses: {
     [address: string]: {
-      history: HexString[]; /* List of txns involving this address */
+      history: HexString[]; /* List of tx hashes involving this address */
       lastUpdated: DateString;
     };
   };
@@ -61,7 +61,8 @@ export interface ChainData {
   getEthCalls: (testFn: (call: EthCall) => boolean) => EthCall[];
   json: ChainDataJson;
   merge: (newJson: ChainDataJson) => void;
-  syncAddressHistory: (addresses: Address[], key?: string) => Promise<void>;
+  syncAddresses: (addresses: Address[], key?: string) => Promise<void>;
+  syncAddress: (address: Address, key?: string) => Promise<void>;
   syncTokenData: (tokens: Address[], key?: string) => Promise<void>;
 }
 

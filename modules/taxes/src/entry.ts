@@ -34,7 +34,7 @@ const supportedForms = [
 ];
 
 const logAndExit = (msg: any): void => {
-  console.error(msg);
+  console.error(`Fatal: ${msg}`);
   process.exit(1);
 };
 process.on("uncaughtException", logAndExit);
@@ -48,7 +48,7 @@ process.on("SIGINT", logAndExit);
   const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as InputData;
   const logger = new LevelLogger(input.env.logLevel);
   const log = new ContextLogger("Taxes", logger);
-  const taxYear = math.round(math.sub(new Date().toISOString().split("-")[0], "1"), 0);
+  const taxYear = input.env.taxYear;
   log.info(`Generating ${taxYear} ${basename} tax return`);
 
   const outputFolder = `${process.cwd()}/build/${basename}/data`;
@@ -69,7 +69,14 @@ process.on("SIGINT", logAndExit);
 
   if (env.mode !== "test") {
     await chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
-    await chainData.syncAddressHistory(addressBook.addresses.filter(addressBook.isSelf));
+    log.info(`Syncing chain data..`);
+    try {
+      await chainData.syncAddresses(addressBook.addresses.filter(addressBook.isSelf));
+      log.info(`Success!`);
+    } catch (e) {
+      log.error(`Failure! ${e.stack}`);
+      process.exit(1);
+    }
   }
 
   const transactions = await getTransactions(
