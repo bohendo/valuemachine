@@ -23,12 +23,12 @@ export type EthTransaction = {
   from: Address;
   gasLimit: HexString;
   gasPrice: HexString;
-  gasUsed?: HexString;
+  gasUsed: HexString;
   hash: HexString;
-  index?: number;
-  logs?: EthTransactionLog[];
+  index: number;
+  logs: EthTransactionLog[];
   nonce: number;
-  status?: number | undefined;
+  status: number | undefined;
   timestamp: TimestampString;
   to: Address | null;
   value: DecimalString;
@@ -43,7 +43,7 @@ export type TokenData = {
 export type ChainDataJson = {
   addresses: {
     [address: string]: {
-      history: HexString[]; /* List of tx hashes involving this address */
+      history: HexString[]; /* List of tx hashes that interact with this address */
       lastUpdated: DateString;
     };
   };

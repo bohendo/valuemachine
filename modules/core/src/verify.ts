@@ -44,13 +44,12 @@ const getTypeError = (target: any, key: string, expected: string | string[]): st
 
 export const getEthTransactionError = (transaction: EthTransaction): string | null => {
   if (!transaction) {
-    return `Transaction is falsy: ${transaction}`;
+    return `Transaction is falsy: (typeof=${typeof transaction}) ${transaction}`;
   }
   for (const { key, expected } of [
     { key: "block", expected: "number" },
     { key: "data", expected: "string" },
     { key: "from", expected: "string" },
-    { key: "gasLimit", expected: "string" },
     { key: "gasPrice", expected: "string" },
     { key: "gasUsed", expected: "string" },
     { key: "hash", expected: "string" },
