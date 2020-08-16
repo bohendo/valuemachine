@@ -78,10 +78,10 @@ export const getChainData = (params: ChainDataParams): ChainData => {
 
   const getProvider = (key?: string): Provider => {
     if (process.env.FINANCES_ETH_PROVIDER) {
-      log.info(`Connecting eth provider to ${process.env.FINANCES_ETH_PROVIDER}`);
+      log.debug(`Connecting eth provider to ${process.env.FINANCES_ETH_PROVIDER}`);
       return new JsonRpcProvider(process.env.FINANCES_ETH_PROVIDER);
     } else {
-      log.info(`Connecting eth provider to etherscan`);
+      log.debug(`Connecting eth provider to etherscan`);
       return new providers.EtherscanProvider("homestead", key || etherscanKey);
     }
   };
@@ -390,7 +390,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     }
     for (const address of userAddresses) {
       log.info(`Syncing transactions for address ${logProg(userAddresses, address)}: ${address}`);
-      for (const hash of json.addresses[address].history) {
+      for (const hash of json.addresses[address] ? json.addresses[address].history : []) {
         await syncTransaction({ hash }, key);
       }
     }
