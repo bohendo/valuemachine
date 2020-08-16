@@ -12,14 +12,15 @@ import {
   TokenData,
 } from "@finances/types";
 import { ContextLogger, sm, smeq } from "@finances/utils";
-import { BigNumber, BigNumberish, Contract, constants, providers, utils  } from "ethers";
+import { BigNumber, Contract, constants, providers, utils  } from "ethers";
 import https from "https";
 
 import { getTokenInterface } from "./abi";
 import { getEthTransactionError } from "./verify";
 
-const { JsonRpcProvider, Provider } = providers;
-const { BigNumberish, formatEther, hexlify, toUtf8String } = utils;
+type Provider = providers.Provider;
+const { JsonRpcProvider } = providers;
+const { formatEther, hexlify, toUtf8String } = utils;
 
 type ChainDataParams = {
   store?: Store;
@@ -40,7 +41,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
   ////////////////////////////////////////
   // Internal Helper Functions
 
-  const toBN = (n: BigNumberish | { _hex: HexString }): BigNumber =>
+  const toBN = (n: BigNumber | number | string | { _hex: HexString }): BigNumber =>
     BigNumber.from(
       (n && (n as { _hex: HexString })._hex)
         ? (n as { _hex: HexString })._hex

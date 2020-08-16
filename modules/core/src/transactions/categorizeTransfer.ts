@@ -10,10 +10,10 @@ import {
 import { ContextLogger, math } from "@finances/utils";
 import { constants, utils } from "ethers";
 
-import { exchangeEvents, daiJoinInterface, defiEvents, vatInterface } from "../abi";
+import { exchangeInterface, daiJoinInterface, defiInterface, vatInterface } from "../abi";
 
 const AddressZero = constants.AddressZero;
-const formatEther = utils.formatEther;
+const { formatEther, Interface: { getEventTopic, getSighash } } = utils;
 
 export const categorizeTransfer = (
   inputTransfer: Partial<Transfer>,
@@ -107,9 +107,10 @@ export const categorizeTransfer = (
 
     // eg Oasis Dex
     if (isCategory(AddressCategories.Exchange)(txLog.address)) {
-      const event = exchangeEvents.find(e => e.topic === txLog.topics[0]);
+      const event = Object.values(exchangeInterface.events)
+        .find(e => getEventTopic(e) === txLog.topics[0]);
       if (event && event.name === "LogTake") {
-        const data = event.decode(txLog.data, txLog.topics);
+        const data = exchangeInterface.decodeEventLog(event, txLog.data, txLog.topics);
         if (math.eq(formatEther(data.take_amt), transfer.quantity)) {
           transfer.category = TransferCategories.SwapIn;
           break;
@@ -121,9 +122,10 @@ export const categorizeTransfer = (
 
     // compound v2
     } else if (isCategory(AddressCategories.CToken)(txLog.address)) {
-      const event = defiEvents.find(e => e.topic === txLog.topics[0]);
+      const event = Object.values(defiInterface.events)
+        .find(e => getEventTopic(e) === txLog.topics[0]);
       if (!event) { continue; }
-      const data = event.decode(txLog.data, txLog.topics);
+      const data = defiInterface.decodeEventLog(event, txLog.data, txLog.topics);
       // Withdraw
       if (event.name === "Redeem" && math.eq(formatEther(data.redeemAmount), transfer.quantity)) {
         transfer.category = TransferCategories.Withdraw;
@@ -142,7 +144,8 @@ export const categorizeTransfer = (
       // update dai addresses address zero params for compound v2
       if (
         getName(txLog.address) === "mcd-vat" &&
-        txLog.topics[0].slice(0,10) === vatInterface.functions.move.sighash
+        txLog.topics[0].slice(0,10) ===
+        getSighash(vatInterface.functions["move(address,address,uint256)"])
       ) {
         const src = "0x"+ txLog.topics[1].slice(26);
         const dst = "0x"+ txLog.topics[2].slice(26);
@@ -174,7 +177,7 @@ export const categorizeTransfer = (
 
       } else if (
         getName(txLog.address) === "mcd-dai-join" &&
-        txLog.topics[0].startsWith(daiJoinInterface.functions.exit.sighash)
+        txLog.topics[0].startsWith(getSighash(daiJoinInterface.functions["exit(address,uint256)"]))
       ) {
         const src = "0x" + txLog.topics[1].slice(26).toLowerCase();
         const dst = "0x" + txLog.topics[2].slice(26).toLowerCase();
@@ -192,9 +195,10 @@ export const categorizeTransfer = (
 
       // eg compound v1
       } else {
-        const event = defiEvents.find(e => e.topic === txLog.topics[0]);
+        const event = Object.values(defiInterface.events)
+          .find(e => getEventTopic(e) === txLog.topics[0]);
         if (!event) { continue; }
-        const data = event.decode(txLog.data, txLog.topics);
+        const data = defiInterface.decodeEventLog(event, txLog.data, txLog.topics);
         if (
           math.eq(formatEther(data.amount), transfer.quantity) &&
           getName(data.asset) === transfer.assetType

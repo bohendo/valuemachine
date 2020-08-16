@@ -11,13 +11,13 @@ import {
 import { ContextLogger, math } from "@finances/utils";
 import { BigNumber, constants, utils } from "ethers";
 
-import { tokenEvents } from "../abi";
+import { getTokenInterface } from "../abi";
 import { getTransactionsError } from "../verify";
 
 import { categorizeTransfer } from "./categorizeTransfer";
 import { mergeFactory } from "./utils";
 
-const { hexlify, formatEther, formatUnits, keccak256, RLP } = utils;
+const { hexlify, formatEther, formatUnits, keccak256, Interface: { getEventTopic }, RLP } = utils;
 const { AddressZero } = constants;
 
 export const mergeEthTxTransactions = (
@@ -116,26 +116,29 @@ export const mergeEthTxTransactions = (
         if (isToken(txLog.address)) {
 
           const assetType = getName(txLog.address).toUpperCase();
-          const eventI = tokenEvents.find(e => e.sigHash === txLog.topics[0]);
 
-          if (!eventI) {
+          const iface = getTokenInterface(txLog.address);
+
+          const event = Object.values(iface.events).find(e => getEventTopic(e) === txLog.topics[0]);
+
+          if (!event) {
             log.debug(`Unable to identify ${assetType} event w topic: ${txLog.topics[0]}`);
             continue;
           }
 
-          const data = eventI.decode(txLog.data, txLog.topics);
+          const args = iface.parseLog(txLog).args;
           const quantity = formatUnits(
-            data.value || data.wad || "0",
+            args.value || args.wad || "0",
             chainData.getTokenData(txLog.address).decimals,
           );
 
           const index = txLog.index;
           const transfer = { assetType, category: "Transfer", index, quantity } as Transfer;
 
-          if (eventI.name === "Transfer") {
-            log.debug(`${quantity} ${assetType} was transfered to ${data.to}`);
-            transfer.from = data.from || data.src;
-            transfer.to = data.to || data.dst;
+          if (event.name === "Transfer") {
+            log.debug(`${quantity} ${assetType} was transfered to ${args.to}`);
+            transfer.from = args.from || args.src;
+            transfer.to = args.to || args.dst;
             transfer.category = TransferCategories.Transfer;
             transaction.transfers.push(categorizeTransfer(
               transfer,
@@ -145,31 +148,31 @@ export const mergeEthTxTransactions = (
               logger,
             ));
 
-          } else if (assetType === "WETH" && eventI.name === "Deposit") {
-            log.debug(`Deposit by ${data.dst} minted ${quantity} ${assetType}`);
+          } else if (assetType === "WETH" && event.name === "Deposit") {
+            log.debug(`Deposit by ${args.dst} minted ${quantity} ${assetType}`);
             transfer.category = TransferCategories.SwapIn;
-            transaction.transfers.push({ ...transfer, from: txLog.address, to: data.dst });
+            transaction.transfers.push({ ...transfer, from: txLog.address, to: args.dst });
 
-          } else if (assetType === "WETH" && eventI.name === "Withdrawal") {
-            log.debug(`Withdraw by ${data.dst} burnt ${quantity} ${assetType}`);
+          } else if (assetType === "WETH" && event.name === "Withdrawal") {
+            log.debug(`Withdraw by ${args.dst} burnt ${quantity} ${assetType}`);
             transfer.category = TransferCategories.SwapOut;
-            transaction.transfers.push({ ...transfer, from: data.src, to: txLog.address });
+            transaction.transfers.push({ ...transfer, from: args.src, to: txLog.address });
 
-          } else if (assetType === "SAI" && eventI.name === "Mint") {
+          } else if (assetType === "SAI" && event.name === "Mint") {
             log.debug(`Minted ${quantity} ${assetType}`);
             transfer.category = TransferCategories.Borrow;
-            transaction.transfers.push({ ...transfer, from: AddressZero, to: data.guy });
+            transaction.transfers.push({ ...transfer, from: AddressZero, to: args.guy });
 
-          } else if (assetType === "SAI" && eventI.name === "Burn") {
+          } else if (assetType === "SAI" && event.name === "Burn") {
             log.debug(`Burnt ${quantity} ${assetType}`);
             transfer.category = TransferCategories.Repay;
-            transaction.transfers.push({ ...transfer, from: data.guy, to: AddressZero });
+            transaction.transfers.push({ ...transfer, from: args.guy, to: AddressZero });
 
-          } else if (eventI.name === "Approval") {
+          } else if (event.name === "Approval") {
             log.debug(`Skipping Approval event`);
 
-          } else if (eventI) {
-            log.warn(`Unknown ${assetType} event: ${JSON.stringify(eventI)}`);
+          } else if (event) {
+            log.warn(`Unknown ${assetType} event: ${JSON.stringify(event)}`);
           }
         }
       }

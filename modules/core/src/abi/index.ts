@@ -5,14 +5,28 @@ import cTokenAbi from "./cToken.json";
 import compoundAbi from "./compound.json";
 import daiAbi from "./dai.json";
 import daiJoinAbi from "./daiJoin.json";
-import erc20Abi from "./erc20.json";
+// import erc20Abi from "./erc20.json";
 import mkrAbi from "./mkr.json";
 import oasisDexAbi from "./oasisDex.json";
 import saiAbi from "./sai.json";
 import vatAbi from "./vat.json";
 import wethAbi from "./weth.json";
 
-type Fragment = utils.Fragment;
+const erc20Abi = [
+  "event Approval(address indexed from, address indexed to, uint amount)",
+  "event Transfer(address indexed from, address indexed to, uint amount)",
+  "function allowance(address owner, address spender) view returns (uint)",
+  "function approve(address spender, uint amount) returns (bool)",
+  "function balanceOf(address owner) view returns (uint)",
+  "function decimals() view returns (uint)",
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function totalSupply() view returns (uint)",
+  "function transfer(address recipient, uint amount)",
+  "function transferFrom(address sender, address recipient, uint amount)",
+];
+
+type EventFragment = utils.EventFragment;
 type Interface = utils.Interface;
 const { Interface } = utils;
 
@@ -28,24 +42,8 @@ export const getTokenInterface = (address?: Address): Interface => !address
   ? new Interface(wethAbi)
   : new Interface(erc20Abi);
 
-const getEvents = (abi: any): Fragment[] =>
-  Object.values((new Interface(abi)).events);
-
-export const vatInterface = new Interface(vatAbi);
 export const daiJoinInterface = new Interface(daiJoinAbi);
-
-export const defiEvents = [
-  compoundAbi,
-  cTokenAbi,
-].flatMap(getEvents) as Fragment[];
-
-export const exchangeEvents = [
-  oasisDexAbi,
-].flatMap(getEvents) as Fragment[];
-
-export const tokenEvents = [
-  daiAbi,
-  erc20Abi,
-  saiAbi,
-  wethAbi,
-].flatMap(getEvents) as Fragment[];
+export const defiInterface = new Interface(compoundAbi.concat(cTokenAbi));
+export const exchangeInterface = new Interface(oasisDexAbi);
+export const tokenEvents = new Interface([].concat([daiAbi, erc20Abi, saiAbi, wethAbi]));
+export const vatInterface = new Interface(vatAbi);
