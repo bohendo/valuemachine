@@ -6,7 +6,7 @@ module.exports = {
     "@typescript-eslint/no-empty-function": ["off"],
     "@typescript-eslint/no-var-requires": ["off"],
     "comma-dangle": ["error", "always-multiline"],
-    "max-len": ["warn", { code: 100, ignoreTemplateLiterals: true }],
+    "max-len": ["warn", { code: 100, ignoreStrings: true, ignoreTemplateLiterals: true }],
     "no-async-promise-executor": ["off"],
     "no-control-regex": ["off"],
     "no-undef": ["error"],
