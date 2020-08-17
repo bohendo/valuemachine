@@ -206,17 +206,18 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     );
     log.info(`Fetching info for ${newlySupported.length} newly supported tokens`);
     for (const tokenAddress of newlySupported) {
-      log.info(`Fetching info for token ${logProg(tokens, tokenAddress)}: ${tokenAddress}`);
+      log.info(`⏪ Sent request for token data ${logProg(tokens, tokenAddress)}: ${tokenAddress}`);
       const token = new Contract(tokenAddress, getTokenInterface(tokenAddress), provider);
       const [decimals, name, symbol] = await Promise.all([
         token.functions.decimals(),
         token.functions.name(),
         token.functions.symbol(),
       ]);
+      log.info(`➡️  Received data for ${name} [${symbol}] w ${decimals} decimals: ${tokenAddress}`);
       json.tokens[sm(tokenAddress)] = {
         decimals: toNum(decimals || 18),
-        name: toStr(name || "Unknown"),
-        symbol: toStr(symbol || "???"),
+        name: toStr(name[0] || "Unknown"),
+        symbol: toStr(symbol[0] || "???"),
       };
       store.save(StoreKeys.ChainData, json);
     }
@@ -320,7 +321,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       fetchHistory("tokentx", address),
     ]);
     const history = txHistory.concat(callHistory, tokenHistory).map(tx => tx.hash);
-    json.addresses[address] = { history, lastUpdated };
+    json.addresses[address].history = history;
     const oldEthCalls = JSON.parse(JSON.stringify(json.calls));
     for (const call of callHistory) {
       if (getDups(oldEthCalls, call) > 0) {
@@ -342,10 +343,13 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       });
     }
     store.save(StoreKeys.ChainData, json);
-    log.debug(`📝 Saved history for address ${address}`);
+    log.debug(`📝 Saved calls & history for address ${address}`);
     for (const hash of history) {
       await syncTransaction({ hash }, key);
     }
+    json.addresses[address].lastUpdated = lastUpdated;
+    store.save(StoreKeys.ChainData, json);
+    log.debug(`📝 Saved lastUpdated for address ${address}`);
     return;
   };
 
@@ -388,6 +392,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       log.info(`Fetching history for address ${logProg(addresses, address)}: ${address}`);
       await syncAddress(address, key);
     }
+    log.info(`Fetching tx data for ${userAddresses.length} addresses`);
     for (const address of userAddresses) {
       log.info(`Syncing transactions for address ${logProg(userAddresses, address)}: ${address}`);
       for (const hash of json.addresses[address] ? json.addresses[address].history : []) {
