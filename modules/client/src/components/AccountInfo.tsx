@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   CardHeader,
-  Chip,
   Divider,
   FormControl,
   FormHelperText,
@@ -30,7 +29,6 @@ import {
   AddCircle as AddIcon,
   Delete as DeleteIcon,
   Sync as SyncIcon,
-  GetApp as DownloadIcon,
   RemoveCircle as RemoveIcon,
   Save as SaveIcon,
 } from "@material-ui/icons";
@@ -40,6 +38,7 @@ import {
   StoreKeys,
   emptyProfile,
 } from "@finances/types";
+import { getEthTransactionError } from "@finances/core";
 import { Wallet } from "ethers";
 
 import { AccountContext } from "../accountContext";
@@ -165,11 +164,19 @@ const AddressList = (props: any) => {
 
     let n = 0
     while (true) {
-      const history = await axios.post(`${window.location.origin}/api/chaindata`, { sig, payload });
-      console.log(`attempt ${n++}:`, history);
-      if (history.status === 200 && typeof history.data === "object") {
-        console.log(`Got address history:`, history.data);
-        accountContext.chainData.merge(history.data);
+      const response = await axios.post(`${window.location.origin}/api/chaindata`, { sig, payload });
+      console.log(`attempt ${n++}:`, response);
+      if (response.status === 200 && typeof response.data === "object") {
+        const history = response.data
+        console.log(`Got address history:`, history);
+        history.transactions.forEach(tx => {
+          const error = getEthTransactionError(tx);
+          if (error) {
+            throw new Error(error);
+          }
+        });
+        console.log(`Address history verified, saving to accontContext`);
+        accountContext.chainData.merge(history);
         accountContext.setChainData(accountContext.chainData);
         setSync(false);
         break;

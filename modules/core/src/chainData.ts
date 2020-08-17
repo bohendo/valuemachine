@@ -180,7 +180,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
   };
 
   const getTokenData =  (token: Address): TokenData =>
-    JSON.parse(JSON.stringify(json.tokens[token]));
+    JSON.parse(JSON.stringify(json.tokens[token] || {}));
 
   const getEthTransaction = (hash: HexString): EthTransaction => {
     const ethTx = json.transactions.find(tx => tx.hash === hash);
@@ -355,7 +355,10 @@ export const getChainData = (params: ChainDataParams): ChainData => {
 
   const syncAddresses = async (userAddresses: Address[], key?: string): Promise<void> => {
     const addresses = userAddresses.map(sm).filter(address => {
-      if (!json.addresses[address]) {
+      if (
+        !json.addresses[address] ||
+        json.addresses[address].lastUpdated === new Date(0).toISOString()
+      ) {
         return true;
       }
       const lastAction = json.transactions

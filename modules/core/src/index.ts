@@ -10,3 +10,4 @@ export {
 export { getPrices } from "./prices";
 export { getState } from "./state";
 export { getValueMachine } from "./vm";
+export { getEthTransactionError } from "./verify";

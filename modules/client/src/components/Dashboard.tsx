@@ -9,6 +9,7 @@ import {
 } from "@finances/types";
 import { ContextLogger, LevelLogger } from "@finances/utils";
 import {
+  getEthTransactionError,
   getPrices,
   getValueMachine,
   mergeEthTransactions,
@@ -60,6 +61,17 @@ export const Dashboard: React.FC = (props: any) => {
         return;
       }
       const log = new ContextLogger("Dashboard", logger);
+      const txs = accountContext.chainData.json.transactions || [];
+
+      log.info(`Verifying ${txs.length} transactions...`);
+      txs.forEach(tx => {
+        const error = getEthTransactionError(tx);
+        if (error) {
+          throw new Error(error);
+        }
+      });
+
+      log.info(`Merging chain-data: ${JSON.stringify(accountContext.chainData, null, 2)}`);
       let newTransactions = await mergeEthTransactions(
         [], // Could give transactions & this function will merge new txns into the existing array
         accountContext.addressBook,
