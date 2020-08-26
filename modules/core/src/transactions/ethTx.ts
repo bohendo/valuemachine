@@ -127,8 +127,11 @@ export const mergeEthTxTransactions = (
           }
 
           const args = iface.parseLog(txLog).args;
+          // TODO: parseLog return type has changed, args is an array and needs more work
+          log.info(`This is parseLog: ${JSON.stringify(iface.parseLog(txLog))}`);
+          log.info(`These are the args received: ${JSON.stringify(args)}`);
           const quantity = formatUnits(
-            args.value || args.wad || "0",
+            args._value || args._wad || args.value || args.wad || "0",
             chainData.getTokenData(txLog.address).decimals,
           );
 
