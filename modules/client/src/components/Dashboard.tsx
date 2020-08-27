@@ -204,22 +204,16 @@ export const Dashboard: React.FC = (props: any) => {
   return (
     <Grid container spacing={3}>
       <Grid item xs={6} md={6} lg={6}>
-        <Typography>
-          Account Overview
-        </Typography>
+        <Typography> Account Overview </Typography>
       </Grid>
       <Grid item xs={6} md={6} lg={6}>
         <DateTime date={endDate} label="View Net Worth As of" setDate={setEndDate}/>
       </Grid>
       <Grid item xs={6} md={6} lg={6}>
-        <Typography>
-          Net Worth
-        </Typography>
+        <Typography> Net Worth </Typography>
       </Grid>
       <Grid item xs={6} md={6} lg={6}>
-        <Typography>
-          $ {netWorthSnapshot}
-        </Typography>
+        <Typography> $ {netWorthSnapshot} </Typography>
       </Grid>
       <Grid item xs={12} md={8} lg={9}>
         <NetWorth netWorthTimeline={netWorthTimeline} endDate={endDate}/>
