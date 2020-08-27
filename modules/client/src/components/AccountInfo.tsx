@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   CardHeader,
+  CircularProgress,
   Divider,
   FormControl,
   FormHelperText,
@@ -160,6 +161,7 @@ const AddressList = (props: any) => {
   const syncHistory = async (signer: Wallet, address: Address) => {
     setSync(true);
     const payload = { signerAddress: signer.address, address };
+    console.log(payload);
     const sig = await signer.signMessage(JSON.stringify(payload));
 
     let n = 0
@@ -218,6 +220,7 @@ const AddressList = (props: any) => {
                     >
                       <SyncIcon />
                     </IconButton>
+                    { sync ? <CircularProgress /> : null}
                   </TableCell>
                 </TableRow>
               )
