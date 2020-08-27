@@ -7,6 +7,10 @@ import { utils } from "ethers";
 import { getStore } from "./store";
 import { env } from "./env";
 
+const STATUS_SUCCESS = 200;
+const STATUS_NOT_FOUND = 404;
+const STATUS_ERR = 500;
+
 const { getAddress, hexDataLength, isHexString, verifyMessage } = utils;
 
 const globalStore = getStore();
@@ -22,9 +26,18 @@ chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
 ////////////////////////////////////////
 // Helper Functions
 
-const getLogAndSend = (res) => (message): void => {
-  log.info(`Sent: ${message}`);
-  res.send(message);
+const getLogAndSend = (res) => (message, code = 200): void => {
+  switch (code) {
+    case STATUS_SUCCESS:
+      log.info(`Sent: ${message}`);
+    case STATUS_NOT_FOUND:
+      log.warn(`${code} ${message}`);
+    case STATUS_ERR:
+      log.error(`${code} ${message}`);
+    default:
+      res.status(code).send(message);
+  }
+
   return;
 };
 
@@ -56,10 +69,10 @@ app.use((req, res, next) => {
   const { payload, sig } = req.body;
 
   if (!payload || !isValidAddress(payload.signerAddress)) {
-    return logAndSend("A payload with signerAddress must be provided");
+    return logAndSend("A payload with signerAddress must be provided", STATUS_ERR);
   }
   if (!sig) {
-    return logAndSend("A signature of the api key must be provided");
+    return logAndSend("A signature of the api key must be provided", STATUS_ERR);
   }
   try {
     const signer = verifyMessage(JSON.stringify(payload), sig);
@@ -67,7 +80,7 @@ app.use((req, res, next) => {
       throw new Error(`Expected signer address ${payload.signerAddress} but recovered ${signer}`);
     }
   } catch (e) {
-    return logAndSend(`Bad signature provided: ${e.message}`);
+    return logAndSend(`Bad signature provided: ${e.message}`, STATUS_ERR);
   }
 
   return next();
@@ -80,60 +93,68 @@ app.post("/profile", (req, res) => {
   const logAndSend = getLogAndSend(res);
   const payload = req.body.payload;
   if (!payload.profile) {
-    return logAndSend(`A profile must be provided`);
+    return logAndSend(`A profile must be provided`, STATUS_ERR);
   }
   const userStore = getStore(payload.signerAddress);
   const oldProfile  = userStore.load(StoreKeys.Profile);
   userStore.save(StoreKeys.Profile, { ...oldProfile, ...payload.profile });
-  return logAndSend(`Profile updated for ${payload.signerAddress}`);
+  return logAndSend(`Profile updated for ${payload.signerAddress}`, STATUS_SUCCESS);
 });
 
 app.post("/chaindata", async (req, res) => {
   const logAndSend = getLogAndSend(res);
   const payload = req.body.payload;
   if (!isValidAddress(payload.address)) {
-    return logAndSend(`A valid address must be provided, got ${payload.address}`);
+    return logAndSend(`A valid address must be provided, got ${payload.address}`, STATUS_ERR);
   }
   if (syncing.includes(payload.address)) {
-    return logAndSend(`Chain data for ${payload.address} is already syncing, please wait`);
+    return logAndSend(`Chain data for ${payload.address} is already syncing, please wait`, STATUS_SUCCESS);
   }
   const userStore = getStore(payload.signerAddress);
   const profile = userStore.load(StoreKeys.Profile);
   if (!profile) {
-    return logAndSend(`A profile must be registered first`);
+    return logAndSend(`A profile must be registered first`, STATUS_ERR);
   }
   if (!profile.etherscanKey) {
-    return logAndSend(`A profile must be registered first`);
+    return logAndSend(`A profile must be registered first`, STATUS_ERR);
   }
   syncing.push(payload.address);
   Promise.race([
-    new Promise(res =>
-      setTimeout(() => res(false), 1000),
-    ),
-    new Promise((res, rej) =>
-      chainData.syncAddresses([payload.address], profile.etherscanKey).then(() => {
+    new Promise((res, rej) => setTimeout(() => rej("TimeOut"), 10000)),
+    new Promise((res, rej) => chainData.syncAddresses([payload.address], profile.etherscanKey)
+      .then(() => {
         const index = syncing.indexOf(payload.address);
         if (index > -1) {
           syncing.splice(index, 1);
         }
         res(true);
-      }).catch((e) => {
+      })
+      .catch((e) => {
         log.warn(`Failed to sync history for ${payload.address}: ${e.stack}`);
         const index = syncing.indexOf(payload.address);
         if (index > -1) {
           syncing.splice(index, 1);
         }
-        rej(e);
+        rej(e.stack);
       }),
-    ),
-  ]).then((didSync: boolean) => {
-    if (didSync) {
-      log.info(`Chain data is synced, returning address history`);
-      res.json(chainData.getAddressHistory(payload.address).json);
-      return;
+    )
+  ]).then(
+    (didSync: boolean) => {
+      if (didSync) {
+        log.info(`Chain data is synced, returning address history`);
+        res.json(chainData.getAddressHistory(payload.address).json);
+        return;
+      }
+    },
+    (error: any) => {
+      if (error === "TimeOut") {
+        return logAndSend(`Chain data for ${payload.address} has started syncing, please wait`, STATUS_SUCCESS);
+      }
+      else {
+        return logAndSend(`Chain data for ${payload.address} failed to sync ${error}`, STATUS_ERR);
+      }
     }
-    return logAndSend(`Chain data for ${payload.address} has started syncing, please wait`);
-  }).catch(() => {
+  ).catch((e) => {
     log.warn(`Encountered an error while syncing history for ${payload.address}, try again.`);
     const index = syncing.indexOf(payload.address);
     if (index > -1) {
@@ -147,9 +168,7 @@ app.post("/chaindata", async (req, res) => {
 // End of pipeline
 
 app.use((req, res) => {
-  const code = 404;
-  log.warn(`${code} not found`);
-  return res.sendStatus(code);
+  return getLogAndSend(res)(`not found`, STATUS_NOT_FOUND);
 });
 
 app.listen(env.port, () => {
