@@ -168,6 +168,12 @@ const AddressList = (props: any) => {
     while (true) {
       const response = await axios.post(`${window.location.origin}/api/chaindata`, { sig, payload });
       console.log(`attempt ${n++}:`, response);
+      if (response.status === 200 && response.data.includes("failed to sync")) {
+        console.log("check api key");
+        setSync(false);
+        //TODO: set check api key alert
+        break;
+      }
       if (response.status === 200 && typeof response.data === "object") {
         const history = response.data
         console.log(`Got address history:`, history);
@@ -182,11 +188,10 @@ const AddressList = (props: any) => {
         accountContext.setChainData(accountContext.chainData);
         setSync(false);
         break;
+        //TODO: set finished sync alert
       }
       await new Promise(res => setTimeout(res, 3000));
     }
-
-    console.log(`Successfuly synced address history for ${address}`);
   };
 
   return (
