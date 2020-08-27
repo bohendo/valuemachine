@@ -14,6 +14,7 @@ import {
   MenuItem,
   Paper,
   Select,
+  Snackbar,
   Table,
   TableBody,
   TableCell,
@@ -33,6 +34,7 @@ import {
   RemoveCircle as RemoveIcon,
   Save as SaveIcon,
 } from "@material-ui/icons";
+//import { Alert } from "@material-ui/lab";
 import {
   Address,
   AddressEntry,
@@ -145,7 +147,7 @@ const AddressList = (props: any) => {
   const classes = useStyles();
 
   const accountContext = useContext(AccountContext);
-  const { signer} = props;
+  const { signer, setStatusAlert, statusAlert} = props;
   const [sync, setSync] = useState(false);
 
   const deleteAddress = (entry: AddressEntry) => {
@@ -166,32 +168,44 @@ const AddressList = (props: any) => {
 
     let n = 0
     while (true) {
-      const response = await axios.post(`${window.location.origin}/api/chaindata`, { sig, payload });
-      console.log(`attempt ${n++}:`, response);
-      if (response.status === 200 && response.data.includes("failed to sync")) {
-        console.log("check api key");
-        setSync(false);
-        //TODO: set check api key alert
-        break;
-      }
-      if (response.status === 200 && typeof response.data === "object") {
-        const history = response.data
-        console.log(`Got address history:`, history);
-        history.transactions.forEach(tx => {
-          const error = getEthTransactionError(tx);
-          if (error) {
-            throw new Error(error);
+      try {
+        const response = await axios.post(`${window.location.origin}/api/chaindata`, { sig, payload })
+        console.log(`attempt ${n++}:`, response);
+        // TODO: Do we need status check here?
+        if (response.status === 200 && typeof response.data === "object") {
+          const history = response.data
+          console.log(`Got address history:`, history);
+          history.transactions.forEach(tx => {
+            const error = getEthTransactionError(tx);
+            if (error) {
+              throw new Error(error);
+            }
+          });
+          console.log(`Address history verified, saving to accontContext`);
+          accountContext.chainData.merge(history);
+          accountContext.setChainData(accountContext.chainData);
+          setSync(false);
+          break;
+        }
+
+        await new Promise(res => setTimeout(res, 3000));
+      } catch(e) {
+          //TODO: set api key alert
+          console.log(e, e.response.data);
+          if (e.response && e.response.data.includes("Invalid API Key")) {
+            setStatusAlert({
+              open: true,
+              severity: "error",
+              message: "Please register with valid API key",
+            })
           }
-        });
-        console.log(`Address history verified, saving to accontContext`);
-        accountContext.chainData.merge(history);
-        accountContext.setChainData(accountContext.chainData);
-        setSync(false);
-        break;
-        //TODO: set finished sync alert
+          setSync(false);
+          break;
       }
-      await new Promise(res => setTimeout(res, 3000));
     }
+
+    // TODO: Set success alert message
+    //console.log(`Successfuly synced address history for ${address}`);
   };
 
   return (
@@ -240,6 +254,19 @@ export const AccountInfo: React.FC = (props: any) => {
   const classes = useStyles();
   const accountContext = useContext(AccountContext);
   const { signer } = props;
+
+  const [statusAlert, setStatusAlert] = useState({
+    open: false,
+    message: "",
+    severity: "info" as "info" | "error" | "warning" | "success"
+  });
+
+  const handleClose = () => {
+    setStatusAlert({
+      ...statusAlert,
+      open: false,
+    })
+  };
 
   const defaults = {
     username: accountContext.profile.username || "Default",
@@ -340,10 +367,19 @@ export const AccountInfo: React.FC = (props: any) => {
         Register Profile
       </Button>
 
-      <AddListItem signer={signer} />
-      <AddressList signer={signer} />
+      <AddListItem signer={signer} setStatusAlert={setStatusAlert} />
+      <AddressList signer={signer} statusAlert={statusAlert} setStatusAlert={setStatusAlert}/>
 
       <Divider/>
+      <Snackbar anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        open={statusAlert.open}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        message={statusAlert.message}
+      />
     </div>
   )
 }
