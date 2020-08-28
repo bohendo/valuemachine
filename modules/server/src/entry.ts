@@ -26,18 +26,13 @@ chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
 ////////////////////////////////////////
 // Helper Functions
 
-const getLogAndSend = (res) => (message, code = 200): void => {
-  switch (code) {
-    case STATUS_SUCCESS:
-      log.info(`Sent: ${message}`);
-    case STATUS_NOT_FOUND:
-      log.warn(`${code} ${message}`);
-    case STATUS_ERR:
-      log.error(`${code} ${message}`);
-    default:
-      res.status(code).send(message);
+const getLogAndSend = (res) => (message, code = STATUS_SUCCESS): void => {
+  if (code === STATUS_SUCCESS) {
+    log.info(`Success: ${message}`);
+  } else {
+    log.warn(`Error ${code}: ${message}`);
   }
-
+  res.status(code).send(message);
   return;
 };
 
@@ -95,10 +90,15 @@ app.post("/profile", (req, res) => {
   if (!payload.profile) {
     return logAndSend(`A profile must be provided`, STATUS_ERR);
   }
+  // Let the admin token act an etherscan key
+  if (payload.profile.etherscanKey === env.adminToken) {
+    log.info(`Admin token detected, using the server's api key`);
+    payload.profile.etherscanKey = env.etherscanKey;
+  }
   const userStore = getStore(payload.signerAddress);
   const oldProfile  = userStore.load(StoreKeys.Profile);
   userStore.save(StoreKeys.Profile, { ...oldProfile, ...payload.profile });
-  return logAndSend(`Profile updated for ${payload.signerAddress}`, STATUS_SUCCESS);
+  return logAndSend(`Profile updated for ${payload.signerAddress}`);
 });
 
 app.post("/chaindata", async (req, res) => {
@@ -108,16 +108,14 @@ app.post("/chaindata", async (req, res) => {
     return logAndSend(`A valid address must be provided, got ${payload.address}`, STATUS_ERR);
   }
   if (syncing.includes(payload.address)) {
-    return logAndSend(`Chain data for ${payload.address} is already syncing, please wait`, STATUS_SUCCESS);
+    return logAndSend(`Chain data for ${payload.address} is already syncing, please wait`);
   }
   const userStore = getStore(payload.signerAddress);
   const profile = userStore.load(StoreKeys.Profile);
-  if (!profile) {
-    return logAndSend(`A profile must be registered first`, STATUS_ERR);
+  if (!profile || !profile.etherscanKey) {
+    return logAndSend(`A profile with an etherscan API key must be registered first`, STATUS_ERR);
   }
-  if (!profile.etherscanKey) {
-    return logAndSend(`A profile must be registered first`, STATUS_ERR);
-  }
+  log.info(`Profile ${payload.address} has api key ${profile.etherscanKey}`);
   syncing.push(payload.address);
   Promise.race([
     new Promise((res, rej) => setTimeout(() => rej("TimeOut"), 10000)),
@@ -135,9 +133,9 @@ app.post("/chaindata", async (req, res) => {
         if (index > -1) {
           syncing.splice(index, 1);
         }
-        rej(e.stack);
+        rej(e);
       }),
-    )
+    ),
   ]).then(
     (didSync: boolean) => {
       if (didSync) {
@@ -148,20 +146,20 @@ app.post("/chaindata", async (req, res) => {
     },
     (error: any) => {
       if (error === "TimeOut") {
-        return logAndSend(`Chain data for ${payload.address} has started syncing, please wait`, STATUS_SUCCESS);
+        return logAndSend(`Chain data for ${payload.address} has started syncing, please wait`);
       }
       else {
         return logAndSend(`Chain data for ${payload.address} failed to sync ${error}`, STATUS_ERR);
       }
-    }
+    },
   ).catch((e) => {
-    log.warn(`Encountered an error while syncing history for ${payload.address}, try again.`);
+    log.warn(`Encountered an error while syncing history for ${payload.address}: ${e.message}`);
     const index = syncing.indexOf(payload.address);
     if (index > -1) {
       syncing.splice(index, 1);
     }
-
   });
+
 });
 
 ////////////////////////////////////////
