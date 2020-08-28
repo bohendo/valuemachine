@@ -127,13 +127,14 @@ export const mergeEthTxTransactions = (
           }
 
           const args = iface.parseLog(txLog).args;
-          // TODO: parseLog return type has changed, args is an array and needs more work
-          log.info(`This is parseLog: ${JSON.stringify(iface.parseLog(txLog))}`);
-          log.info(`These are the args received: ${JSON.stringify(args)}`);
-          const quantity = formatUnits(
-            args._value || args._wad || args.value || args.wad || "0",
-            chainData.getTokenData(txLog.address).decimals,
-          );
+          const quantityStr = args.amount || args.value || args.wad;
+          let quantity = "0";
+
+          if (quantityStr) {
+            quantity = formatUnits(quantityStr, chainData.getTokenData(txLog.address).decimals);
+          } else {
+            log.warn(`Couldn't find quantity in args: [${Object.keys(args)}]`);
+          }
 
           const index = txLog.index;
           const transfer = { assetType, category: "Transfer", index, quantity } as Transfer;

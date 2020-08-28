@@ -51,7 +51,8 @@ export const Dashboard: React.FC = (props: any) => {
       currentPrices[assetType] = await prices.getPrice(assetType, endDate.toISOString());
     })
     setEndDatePrice(currentPrices);
-  }, [endDate, prices]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endDate]);
 
   useEffect(() => {
     (async () => {
@@ -125,7 +126,8 @@ export const Dashboard: React.FC = (props: any) => {
       setFinancialEvents(vmEvents);
 
     })();
-  }, [accountContext.addressBook, accountContext.chainData, logger, prices]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accountContext.addressBook, accountContext.chainData]);
 
   useEffect(() => {
     let totalByCategory = {};
@@ -199,7 +201,8 @@ export const Dashboard: React.FC = (props: any) => {
       setNetWorthSnapshot(netWorthData[netWorthData.length - 1].networth);
     }
 
-  }, [financialEvents, endDate, endDatePrice]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [financialEvents, endDate]);
 
   return (
     <Grid container spacing={3}>
