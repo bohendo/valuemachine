@@ -42,7 +42,6 @@ import {
   emptyProfile,
 } from "@finances/types";
 import { getEthTransactionError } from "@finances/core";
-import { Wallet } from "ethers";
 
 import { AccountContext } from "../accountContext";
 
@@ -150,7 +149,7 @@ const AddressList = (props: any) => {
   const classes = useStyles();
 
   const accountContext = useContext(AccountContext);
-  const { signer, setStatusAlert} = props;
+  const { setStatusAlert} = props;
   const [sync, setSync] = useState(false);
 
   const deleteAddress = (entry: AddressEntry) => {
@@ -163,11 +162,11 @@ const AddressList = (props: any) => {
     }
   };
 
-  const syncHistory = async (signer: Wallet, address: Address) => {
+  const syncHistory = async (address: Address) => {
     setSync(true);
-    const payload = { signerAddress: signer.address, address };
+    const payload = { signerAddress: accountContext.signer.address, address };
     console.log(payload);
-    const sig = await signer.signMessage(JSON.stringify(payload));
+    const sig = await accountContext.signer.signMessage(JSON.stringify(payload));
 
     let n = 0
     while (true) {
@@ -238,7 +237,7 @@ const AddressList = (props: any) => {
                       disabled={sync}
                       color="secondary"
                       size="small"
-                      onClick={() => syncHistory(signer, entry.address)}
+                      onClick={() => syncHistory(entry.address)}
                     >
                       <SyncIcon />
                     </IconButton>
@@ -256,7 +255,6 @@ const AddressList = (props: any) => {
 export const AccountInfo: React.FC = (props: any) => {
   const classes = useStyles();
   const accountContext = useContext(AccountContext);
-  const { signer } = props;
 
   const [statusAlert, setStatusAlert] = useState({
     open: false,
@@ -277,7 +275,7 @@ export const AccountInfo: React.FC = (props: any) => {
   };
 
   const registerProfile = useCallback(async () => {
-    if (!signer) {
+    if (!accountContext.signer) {
       console.warn(`No signer available, can't register w/out one.`);
       return;
     }
@@ -285,11 +283,11 @@ export const AccountInfo: React.FC = (props: any) => {
       console.warn(`No api key provided, nothing to register. Personal=${JSON.stringify(accountContext.profile)}`);
       return;
     }
-    const payload = { profile: accountContext.profile, signerAddress: signer.address };
-    const sig = await signer.signMessage(JSON.stringify(payload));
+    const payload = { profile: accountContext.profile, signerAddress: accountContext.signer.address };
+    const sig = await accountContext.signer.signMessage(JSON.stringify(payload));
     const res = await axios.post(`${window.location.origin}/api/profile`, { sig, payload });
     console.log(res);
-  }, [accountContext.profile, signer]);
+  }, [accountContext.profile, accountContext.signer]);
 
   const handleProfileChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.username = "${event.target.value}"`);
@@ -370,8 +368,8 @@ export const AccountInfo: React.FC = (props: any) => {
         Register Profile
       </Button>
 
-      <AddListItem signer={signer} setStatusAlert={setStatusAlert} />
-      <AddressList signer={signer} setStatusAlert={setStatusAlert}/>
+      <AddListItem setStatusAlert={setStatusAlert} />
+      <AddressList setStatusAlert={setStatusAlert}/>
 
       <Divider/>
       <Snackbar

@@ -82,7 +82,7 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <AccountContext.Provider value={{profile, setProfile, addressBook, chainData, setChainData}}>
+      <AccountContext.Provider value={{profile, signer, setProfile, addressBook, chainData, setChainData}}>
         <CssBaseline />
         <NavBar />
         <main className={classes.main}>
@@ -93,7 +93,7 @@ const App: React.FC = () => {
                 <Dashboard />
               </Route>
               <Route exact path="/account">
-                <AccountInfo signer={signer} />
+                <AccountInfo />
               </Route>
             </Switch>
           </Container>
