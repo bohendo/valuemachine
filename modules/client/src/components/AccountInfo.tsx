@@ -34,7 +34,7 @@ import {
   RemoveCircle as RemoveIcon,
   Save as SaveIcon,
 } from "@material-ui/icons";
-//import { Alert } from "@material-ui/lab";
+import { Alert } from "@material-ui/lab";
 import {
   Address,
   AddressEntry,
@@ -60,6 +60,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(1),
     minWidth: 120,
     maxWidth: 300,
+  },
+  snackbar: {
+    width: "100%"
   },
 }));
 
@@ -196,7 +199,7 @@ const AddressList = (props: any) => {
             setStatusAlert({
               open: true,
               severity: "error",
-              message: "Please register with valid API key",
+              message: "Please register with valid etherscan API key",
             })
           }
           setSync(false);
@@ -371,15 +374,17 @@ export const AccountInfo: React.FC = (props: any) => {
       <AddressList signer={signer} statusAlert={statusAlert} setStatusAlert={setStatusAlert}/>
 
       <Divider/>
-      <Snackbar anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
+      <Snackbar
         open={statusAlert.open}
         autoHideDuration={6000}
         onClose={handleClose}
         message={statusAlert.message}
-      />
+        className={classes.snackbar}
+      >
+        <Alert onClose={handleClose} severity={statusAlert.severity}>
+          {statusAlert.message}
+        </Alert>
+      </Snackbar>
     </div>
   )
 }
