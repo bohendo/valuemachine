@@ -51,7 +51,7 @@ export const Dashboard: React.FC = (props: any) => {
       currentPrices[assetType] = await prices.getPrice(assetType, endDate.toISOString());
     })
     setEndDatePrice(currentPrices);
-  }, [endDate]);
+  }, [endDate, prices]);
 
   useEffect(() => {
     (async () => {
@@ -125,7 +125,7 @@ export const Dashboard: React.FC = (props: any) => {
       setFinancialEvents(vmEvents);
 
     })();
-  }, [accountContext.addressBook, accountContext.chainData]);
+  }, [accountContext.addressBook, accountContext.chainData, logger, prices]);
 
   useEffect(() => {
     let totalByCategory = {};
@@ -199,7 +199,7 @@ export const Dashboard: React.FC = (props: any) => {
       setNetWorthSnapshot(netWorthData[netWorthData.length - 1].networth);
     }
 
-  }, [financialEvents, endDate]);
+  }, [financialEvents, endDate, endDatePrice]);
 
   return (
     <Grid container spacing={3}>

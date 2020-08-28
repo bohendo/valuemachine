@@ -150,7 +150,7 @@ const AddressList = (props: any) => {
   const classes = useStyles();
 
   const accountContext = useContext(AccountContext);
-  const { signer, setStatusAlert, statusAlert} = props;
+  const { signer, setStatusAlert} = props;
   const [sync, setSync] = useState(false);
 
   const deleteAddress = (entry: AddressEntry) => {
@@ -226,12 +226,12 @@ const AddressList = (props: any) => {
         <TableBody>
           { accountContext.profile.addressBook.map((entry: AddressEntry, i: number) => {
               return (
-                <TableRow key={i} >
+                <TableRow key={i}>
                   <TableCell> {entry.address} </TableCell>
                   <TableCell> {entry.name} </TableCell>
                   <TableCell> {entry.category} </TableCell>
                   <TableCell>
-                    <IconButton color="secondary" onClick={() => deleteAddress(entry)} >
+                    <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
                       <RemoveIcon />
                     </IconButton>
                     <IconButton
@@ -371,7 +371,7 @@ export const AccountInfo: React.FC = (props: any) => {
       </Button>
 
       <AddListItem signer={signer} setStatusAlert={setStatusAlert} />
-      <AddressList signer={signer} statusAlert={statusAlert} setStatusAlert={setStatusAlert}/>
+      <AddressList signer={signer} setStatusAlert={setStatusAlert}/>
 
       <Divider/>
       <Snackbar
