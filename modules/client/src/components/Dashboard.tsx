@@ -72,7 +72,7 @@ export const Dashboard: React.FC = (props: any) => {
         }
       });
 
-      log.info(`Merging chain-data: ${JSON.stringify(accountContext.chainData, null, 2)}`);
+      log.debug(`Merging chain-data: ${JSON.stringify(accountContext.chainData, null, 2)}`);
       let newTransactions = await mergeEthTransactions(
         [], // Could give transactions & this function will merge new txns into the existing array
         accountContext.addressBook,
@@ -103,15 +103,22 @@ export const Dashboard: React.FC = (props: any) => {
       let state = store.load(StoreKeys.State);
       let vmEvents = store.load(StoreKeys.Events);
 
+      log.info(`Filtering out any transactions that came before ${state.lastUpdated}`);
       const filteredTransactions = newTransactions.filter(
         tx => new Date(tx.date).getTime() > new Date(state.lastUpdated).getTime(),
-      )
+      ).sort((tx1, tx2) => new Date(tx1.date).getTime() - new Date(tx2.date).getTime());
 
       log.info(`Processing ${filteredTransactions.length} new transactions of ${newTransactions.length} total`);
 
       let start = Date.now();
       for (const transaction of filteredTransactions) {
-        const [newState, newEvents] = valueMachine(state, transaction);
+        let newState, newEvents;
+        try {
+          [newState, newEvents] = valueMachine(state, transaction);
+          log.info(`Processed tx ${transaction.index}: ${transaction.description}`);
+        } catch (e) {
+          throw new Error(`Failed to apply tx ${JSON.stringify(transaction, null, 2)} to state: ${JSON.stringify(state, null, 2)}`);
+        }
         vmEvents = vmEvents.concat(...newEvents);
         state = newState;
         const chunk = 100;
