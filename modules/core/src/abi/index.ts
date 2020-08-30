@@ -1,6 +1,7 @@
-import { Address } from "@finances/types";
-import { smeq } from "@finances/utils";
+import { Address, AddressCategories } from "@finances/types";
 import { utils } from "ethers";
+
+import { getAddressBook } from "../addressBook";
 
 import cTokenAbi from "./cToken.json";
 import compoundAbi from "./compound.json";
@@ -16,17 +17,20 @@ import wethAbi from "./weth.json";
 type EventFragment = utils.EventFragment;
 type Interface = utils.Interface;
 const { Interface } = utils;
+const addressBook = getAddressBook([]);
 
 export const getTokenInterface = (address?: Address): Interface => !address
   ? new Interface(erc20Abi)
-  : smeq(address, "0x6b175474e89094c44da98b954eedeac495271d0f")
+  : addressBook.getName(address) === "DAI"
   ? new Interface(daiAbi)
-  : smeq(address, "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2")
+  : addressBook.getName(address) === "MKR"
   ? new Interface(mkrAbi)
-  : smeq(address, "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359")
+  : addressBook.getName(address) === "SAI"
   ? new Interface(saiAbi)
-  : smeq(address, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
+  : addressBook.getName(address) === "WETH"
   ? new Interface(wethAbi)
+  : addressBook.isCategory(AddressCategories.CToken)(address)
+  ? new Interface(cTokenAbi)
   : new Interface(erc20Abi);
 
 export const daiJoinInterface = new Interface(daiJoinAbi);

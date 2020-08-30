@@ -177,7 +177,7 @@ export const mergeEthTxTransactions = (
             log.debug(`Skipping Approval event`);
 
           } else if (event) {
-            log.warn(`Unknown ${assetType} event: ${JSON.stringify(event)}`);
+            log.warn(`Unknown ${assetType} event: ${event.format()}`);
           }
         }
       }
