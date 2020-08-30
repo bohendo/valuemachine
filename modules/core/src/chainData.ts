@@ -180,7 +180,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
   };
 
   const getTokenData =  (token: Address): TokenData =>
-    JSON.parse(JSON.stringify(json.tokens[token] || {}));
+    JSON.parse(JSON.stringify(json.tokens[sm(token)] || {}));
 
   const getEthTransaction = (hash: HexString): EthTransaction => {
     const ethTx = json.transactions.find(tx => tx.hash === hash);

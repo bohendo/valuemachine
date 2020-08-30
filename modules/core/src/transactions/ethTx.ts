@@ -8,7 +8,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { ContextLogger, math } from "@finances/utils";
+import { ContextLogger, math, sm } from "@finances/utils";
 import { BigNumber, constants, utils } from "ethers";
 
 import { getTokenInterface } from "../abi";
@@ -113,11 +113,12 @@ export const mergeEthTxTransactions = (
       log.debug(`${tx.value} ETH from ${tx.from} to ${tx.to}: ${transaction.transfers[0].category}`);
 
       for (const txLog of tx.logs) {
-        if (isToken(txLog.address)) {
+        const address = sm(txLog.address);
+        if (isToken(address)) {
 
-          const assetType = getName(txLog.address).toUpperCase();
+          const assetType = getName(address).toUpperCase();
 
-          const iface = getTokenInterface(txLog.address);
+          const iface = getTokenInterface(address);
 
           const event = Object.values(iface.events).find(e => getEventTopic(e) === txLog.topics[0]);
 
@@ -131,7 +132,7 @@ export const mergeEthTxTransactions = (
           let quantity = "0";
 
           if (quantityStr) {
-            quantity = formatUnits(quantityStr, chainData.getTokenData(txLog.address).decimals);
+            quantity = formatUnits(quantityStr, chainData.getTokenData(address).decimals);
           } else {
             log.warn(`Couldn't find quantity in args: [${Object.keys(args)}]`);
           }
@@ -155,12 +156,12 @@ export const mergeEthTxTransactions = (
           } else if (assetType === "WETH" && event.name === "Deposit") {
             log.debug(`Deposit by ${args.dst} minted ${quantity} ${assetType}`);
             transfer.category = TransferCategories.SwapIn;
-            transaction.transfers.push({ ...transfer, from: txLog.address, to: args.dst });
+            transaction.transfers.push({ ...transfer, from: address, to: args.dst });
 
           } else if (assetType === "WETH" && event.name === "Withdrawal") {
             log.debug(`Withdraw by ${args.dst} burnt ${quantity} ${assetType}`);
             transfer.category = TransferCategories.SwapOut;
-            transaction.transfers.push({ ...transfer, from: args.src, to: txLog.address });
+            transaction.transfers.push({ ...transfer, from: args.src, to: address });
 
           } else if (assetType === "SAI" && event.name === "Mint") {
             log.debug(`Minted ${quantity} ${assetType}`);
