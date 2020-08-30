@@ -10,10 +10,12 @@ export const inTypes = [
   EventTypes.Income,
   EventTypes.Mint,
   EventTypes.SwapIn,
+  EventTypes.Withdraw,
 ];
 
 export const outTypes = [
   EventTypes.Burn,
+  EventTypes.Deposit,
   EventTypes.Expense,
   EventTypes.GiftOut,
   EventTypes.Repay,
