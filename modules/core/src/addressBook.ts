@@ -8,7 +8,10 @@ import {
 import { ContextLogger, sm, smeq } from "@finances/utils";
 import { utils } from "ethers";
 
-export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger): AddressBook => {
+export const getAddressBook = (
+  userAddressBook: AddressBookJson = [],
+  logger?: Logger,
+): AddressBook => {
   const log = new ContextLogger("AddressBook", logger);
 
   ////////////////////////////////////////

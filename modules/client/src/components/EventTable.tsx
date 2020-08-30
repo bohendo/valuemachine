@@ -10,10 +10,18 @@ import {
   TableHead,
   TableRow,
 } from '@material-ui/core';
+import { getState } from "@finances/core";
 
 export const EventTable = (props: any) => {
 
-  const { filteredTotalByCategory, totalByAssetType } = props;
+  const { filteredTotalByCategory, state, totalByAssetType } = props;
+
+  let totals;
+  if (state) {
+    totals = getState(state).getNetWorth();
+  } else {
+    totals = {};
+  }
 
   if (!Object.keys(filteredTotalByCategory).length === 0) {
     return <> Loading! We will have event table shortly </>;
@@ -56,7 +64,7 @@ export const EventTable = (props: any) => {
             {
               Object.keys(totalByAssetType).map((assetType: string) => (
                 <TableCell align="right" key={assetType}>
-                  {_.round(totalByAssetType[assetType], 2) || 0}
+                  {_.round(totals[assetType] || "0.0", 2) || 0}
                 </TableCell>
               ))
             }

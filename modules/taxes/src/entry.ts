@@ -110,7 +110,7 @@ process.on("SIGINT", logAndExit);
   store.save(StoreKeys.State, state);
   store.save(StoreKeys.Events, vmEvents);
 
-  const finalState = getState(addressBook, state, logger);
+  const finalState = getState(state, addressBook, logger);
 
   log.debug(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
   log.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);

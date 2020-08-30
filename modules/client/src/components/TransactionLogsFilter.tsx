@@ -27,6 +27,12 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
+let allCategories = { all: true };
+Object.keys(TransferCategories).forEach(category => { allCategories[category] = false })
+
+let allAssets = { all: true };
+Object.keys(AssetTypes).forEach(asset => { allAssets[asset] = false })
+
 export const EthTransactionLogsFilter = (props: any) => {
   const { transactions, setFilteredTransactions } = props
 
@@ -35,12 +41,8 @@ export const EthTransactionLogsFilter = (props: any) => {
   const [startDate, setStartDate] = useState(new Date(0));
   const [endDate, setEndDate] = useState(new Date());
 
-  let allCategories = { all: true };
-  Object.keys(TransferCategories).forEach(category => { allCategories[category] = false })
   const [categories, setCategories] = useState(allCategories);
 
-  let allAssets = { all: true };
-  Object.keys(AssetTypes).forEach(asset => { allAssets[asset] = false })
   const [assets, setAssets] = useState(allAssets);
 
   const handleCategoryChange = (event: React.ChangeEvent<HTMLInputElement>) => {

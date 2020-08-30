@@ -1,5 +1,7 @@
 import {
   Address,
+  AddressCategories,
+  emptyState,
   AddressBook,
   AssetChunk,
   AssetTypes,
@@ -14,14 +16,24 @@ import {
 } from "@finances/types";
 import { ContextLogger, math } from "@finances/utils";
 
+import { getAddressBook } from "./addressBook";
+
 const { add, gt, round, sub } = math;
 
 export const getState = (
-  addressBook: AddressBook,
-  state: StateJson,
+  state: StateJson = emptyState,
+  givenAddressBook?: AddressBook,
   logger?: Logger,
 ): State => {
   const log = new ContextLogger("State", logger);
+
+  const addressBook = givenAddressBook || getAddressBook(
+    Object.keys(state.accounts).map(address => ({
+      name: address.substring(0, 10),
+      address,
+      category: AddressCategories.Self,
+    })),
+  );
 
   ////////////////////////////////////////
   // Run Init Code

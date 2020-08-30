@@ -39,11 +39,11 @@ import {
   Address,
   AddressEntry,
   StoreKeys,
-  emptyProfile,
 } from "@finances/types";
 import { getEthTransactionError } from "@finances/core";
 
 import { AccountContext } from "../accountContext";
+import { store } from '../utils/cache';
 
 const addressCategories = [
   "self",
@@ -311,7 +311,6 @@ export const AccountInfo: React.FC = (props: any) => {
       console.log(`Resetting data for ${key}`);
       store.save(key);
     });
-    accountContext.setProfile(emptyProfile)
   };
 
   console.log(accountContext.profile);

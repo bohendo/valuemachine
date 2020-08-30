@@ -3,7 +3,9 @@ import React, { useState, useContext, useEffect } from 'react';
 import {
   AssetTypes,
   Event,
+  emptyEvents,
   EventTypes,
+  emptyState,
   StoreKeys,
   Transaction,
 } from "@finances/types";
@@ -32,8 +34,11 @@ import { store } from '../utils/cache';
 export const Dashboard: React.FC = (props: any) => {
   const [endDate, setEndDate] = useState(new Date());
   const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
-  const [transactions, setTransactions] = useState([] as Transaction[]);
-  const [financialEvents, setFinancialEvents] = useState([] as Event[]);
+
+  const [financialTransactions, setFinancialTransactions] = useState([] as Transaction[]);
+  const [state, setState] = useState(emptyState);
+  const [financialEvents, setFinancialEvents] = useState(emptyEvents);
+
   const [netWorthSnapshot, setNetWorthSnapshot] = useState(0);
   const [netWorthTimeline, setNetWorthTimeline] = useState([] as any[]);
   const [totalByAssetType, setTotalByAssetType] = useState({} as {[assetType: string]: number});
@@ -57,8 +62,8 @@ export const Dashboard: React.FC = (props: any) => {
   useEffect(() => {
     (async () => {
       if (Object.keys(accountContext.addressBook).length === 0) {
-        setFinancialEvents([] as Event[]);
-        setTransactions([] as Transaction[]);
+        setFinancialEvents(emptyEvents);
+        setFinancialTransactions([] as Transaction[]);
         return;
       }
       const log = new ContextLogger("Dashboard", logger);
@@ -95,7 +100,7 @@ export const Dashboard: React.FC = (props: any) => {
         }
       }
 
-      setTransactions(newTransactions);
+      setFinancialTransactions(newTransactions);
       store.save(StoreKeys.Transactions, newTransactions);
 
       const valueMachine = getValueMachine(accountContext.addressBook, logger);
@@ -119,7 +124,7 @@ export const Dashboard: React.FC = (props: any) => {
         } catch (e) {
           throw new Error(`Failed to apply tx ${JSON.stringify(transaction, null, 2)} to state: ${JSON.stringify(state, null, 2)}: ${e.message}`);
         }
-        vmEvents = vmEvents.concat(...newEvents);
+        vmEvents.push(...newEvents);
         state = newState;
         const chunk = 100;
         if (transaction.index % chunk === 0) {
@@ -131,7 +136,7 @@ export const Dashboard: React.FC = (props: any) => {
       store.save(StoreKeys.State, state);
       store.save(StoreKeys.Events, vmEvents);
       setFinancialEvents(vmEvents);
-
+      setState(state);
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountContext.addressBook, accountContext.chainData]);
@@ -220,10 +225,14 @@ export const Dashboard: React.FC = (props: any) => {
         <AssetDistribution totalByAssetType={totalByAssetType} date={endDate.toISOString()}/>
       </Grid>
       <Grid container>
-        <EthTransactionLogs transactions={transactions} />
+        <EthTransactionLogs transactions={financialTransactions} />
       </Grid>
       <Grid item xs={12} md={12} lg={12}>
-        <EventTable filteredTotalByCategory={filteredTotalByCategory} totalByAssetType={totalByAssetType}/>
+        <EventTable
+          state={state}
+          filteredTotalByCategory={filteredTotalByCategory}
+          totalByAssetType={totalByAssetType}
+        />
       </Grid>
     </Grid>
   )

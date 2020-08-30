@@ -11,7 +11,7 @@ export type StateJson = {
 }
 
 export type NetWorth = {
-  [date: string]: DecimalString;
+  [assetType: string]: DecimalString;
 }
 
 export type StateBalances = {
