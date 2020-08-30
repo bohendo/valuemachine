@@ -150,7 +150,7 @@ const AddressList = (props: any) => {
 
   const accountContext = useContext(AccountContext);
   const { setStatusAlert} = props;
-  const [sync, setSync] = useState(false);
+  const [syncing, setSyncing] = useState({} as { [string]: boolean});
 
   const deleteAddress = (entry: AddressEntry) => {
     console.log(`Deleting ${JSON.stringify(entry)}`);
@@ -163,7 +163,7 @@ const AddressList = (props: any) => {
   };
 
   const syncHistory = async (address: Address) => {
-    setSync(true);
+    setSyncing({ ...syncing, [address]: true });
     const payload = { signerAddress: accountContext.signer.address, address };
     console.log(payload);
     const sig = await accountContext.signer.signMessage(JSON.stringify(payload));
@@ -186,7 +186,7 @@ const AddressList = (props: any) => {
           console.log(`Address history verified, saving to accontContext`);
           accountContext.chainData.merge(history);
           accountContext.setChainData(accountContext.chainData);
-          setSync(false);
+          setSyncing({ ...syncing, [address]: false });
           break;
         }
 
@@ -201,7 +201,7 @@ const AddressList = (props: any) => {
               message: "Please register with valid etherscan API key",
             })
           }
-          setSync(false);
+          setSyncing({ ...syncing, [adddress]: false});
           break;
       }
     }
@@ -234,14 +234,14 @@ const AddressList = (props: any) => {
                       <RemoveIcon />
                     </IconButton>
                     <IconButton
-                      disabled={sync}
+                      disabled={syncing[entry.address]}
                       color="secondary"
                       size="small"
                       onClick={() => syncHistory(entry.address)}
                     >
                       <SyncIcon />
                     </IconButton>
-                    { sync ? <CircularProgress /> : null}
+                    { syncing[entry.address] ? <CircularProgress /> : null}
                   </TableCell>
                 </TableRow>
               )
