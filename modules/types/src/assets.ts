@@ -3,8 +3,11 @@ import { enumify } from "./utils";
 
 export const AssetTypes = enumify({
   BAT: "BAT",
+  cDAI: "cDAI",
+  COMP: "COMP",
   DAI: "DAI",
   ETH: "ETH",
+  GEN: "GEN",
   INR: "INR",
   MKR: "MKR",
   SAI: "SAI",
