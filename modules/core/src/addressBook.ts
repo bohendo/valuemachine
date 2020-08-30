@@ -33,6 +33,7 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
     { name: "REP", address: "0xe94327d07fc17907b4db788e5adf2ed424addff6" },
     { name: "SAI", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
     { name: "SNT", address: "0x744d70fdbe2ba4cf95131626614a1763df805b9e" },
+    { name: "COMP", address: "0xc00e94cb662c3520282e6f5717214004a7f26888" },
     { name: "WETH", address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
   ].map(row => ({ ...row, category: AddressCategories.Erc20 })) as AddressBookJson;
 
@@ -58,6 +59,7 @@ export const getAddressBook = (userAddressBook: AddressBookJson, logger?: Logger
     { name: "uniswap-mkr", address: "0x2c4bd064b998838076fa341a83d007fc2fa50957" },
     { name: "uniswap-sai", address: "0x09cabec1ead1c0ba254b09efb3ee13841712be14" },
     { name: "uniswap-snx", address: "0x3958b4ec427f8fa24eb60f42821760e88d485f7f" },
+    { name: "uniswap-router", address: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d" },
   ].map(row => ({ ...row, category: AddressCategories.Exchange })) as AddressBookJson;
 
   const defi = [
