@@ -117,7 +117,7 @@ export const Dashboard: React.FC = (props: any) => {
           [newState, newEvents] = valueMachine(state, transaction);
           log.info(`Processed tx ${transaction.index}: ${transaction.description}`);
         } catch (e) {
-          throw new Error(`Failed to apply tx ${JSON.stringify(transaction, null, 2)} to state: ${JSON.stringify(state, null, 2)}`);
+          throw new Error(`Failed to apply tx ${JSON.stringify(transaction, null, 2)} to state: ${JSON.stringify(state, null, 2)}: ${e.message}`);
         }
         vmEvents = vmEvents.concat(...newEvents);
         state = newState;

@@ -1,4 +1,5 @@
 import { Address } from "@finances/types";
+import { smeq } from "@finances/utils";
 import { utils } from "ethers";
 
 import cTokenAbi from "./cToken.json";
@@ -18,13 +19,13 @@ const { Interface } = utils;
 
 export const getTokenInterface = (address?: Address): Interface => !address
   ? new Interface(erc20Abi)
-  : address === "0x6b175474e89094c44da98b954eedeac495271d0f"
+  : smeq(address, "0x6b175474e89094c44da98b954eedeac495271d0f")
   ? new Interface(daiAbi)
-  : address === "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2"
+  : smeq(address, "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2")
   ? new Interface(mkrAbi)
-  : address === "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359"
+  : smeq(address, "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359")
   ? new Interface(saiAbi)
-  : address === "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+  : smeq(address, "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2")
   ? new Interface(wethAbi)
   : new Interface(erc20Abi);
 

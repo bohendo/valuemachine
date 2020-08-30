@@ -68,7 +68,7 @@ export const mergeFactory = (opts: {
           }`);
         }
         if (delta > allowableTimeDiff) {
-          log.debug(`new transaction came way before transaction ${i}, moving on`);
+          // log.debug(`new transaction came way before transaction ${i}, moving on`);
           output.push(transaction);
           continue;
         }

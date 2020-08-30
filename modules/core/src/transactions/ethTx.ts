@@ -122,7 +122,7 @@ export const mergeEthTxTransactions = (
           const event = Object.values(iface.events).find(e => getEventTopic(e) === txLog.topics[0]);
 
           if (!event) {
-            log.debug(`Unable to identify ${assetType} event w topic: ${txLog.topics[0]}`);
+            log.warn(`Unable to identify ${assetType} event w topic: ${txLog.topics[0]}. Got events: ${Object.keys(iface.events)}`);
             continue;
           }
 
