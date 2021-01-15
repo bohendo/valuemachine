@@ -32,7 +32,8 @@ chmod 400 "$KEY_FILE"
 subbed_cmd=$CMD
 oldIFS=$IFS
 unset IFS
-for var in $(compgen -e); do
+for var in $(compgen -e | awk '{ print length, $0 }' | sort -nsr | cut -d" " -f2-)
+do
   if [[ "$var" == *"|"* || "${!var}" == *"|"* ]]
   then
     echo "Warning, env var $var contains a | character, skipping"
