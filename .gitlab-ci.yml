@@ -39,7 +39,7 @@ deploy:
       alias: localhost
   only:
     refs:
-      - master
+      - prod
   script:
     - apk add bash curl git jq make
     - >
@@ -51,7 +51,7 @@ deploy:
         --env=CI_PROJECT_NAMESPACE=$CI_PROJECT_NAMESPACE \
         --env=CI_REPOSITORY_URL=$CI_REPOSITORY_URL \
         ssh-action $FINANCES_SERVER $SSH_KEY '
-          git checkout --force master;
+          git checkout --force prod;
           git reset --hard $CI_COMMIT_SHA;
           export CI_PROJECT_NAMESPACE="$CI_PROJECT_NAMESPACE";
           export FINANCES_DOMAIN_NAME="$FINANCES_DOMAIN_NAME";
