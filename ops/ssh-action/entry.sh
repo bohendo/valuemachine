@@ -34,17 +34,14 @@ do
   if [[ "$var" == *"|"* ]]
   then echo "Warning, env var ${var%=*} contains a | character, skipping" && continue
   fi
-  key=${var%=*}
-  val=${var#*=}
-  # shellcheck disable=2001
-  subbed_cmd="$(echo "${subbed_cmd}" | sed 's|$'"$key"'|'"$val"'|g')"
+  echo "subbing env var: ${var}=${!var}"
+  subbed_cmd=${subbed_cmd//\$$var/${!var}}
 done
 
 echo "Loaded ssh key with fingerprint:"
 ssh-keygen -lf "$KEY_FILE"
 
 echo "Running subbed command: $subbed_cmd"
-echo "Not running test subbed command: ${subbed_cmd//$key/$val}"
 
 exec ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no "$HOST" "bash -s" <<EOF
   set -e;
