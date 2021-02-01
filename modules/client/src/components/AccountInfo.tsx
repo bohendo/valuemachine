@@ -35,15 +35,11 @@ import {
   Save as SaveIcon,
 } from "@material-ui/icons";
 import { Alert } from "@material-ui/lab";
-import {
-  Address,
-  AddressEntry,
-  emptyProfile,
-} from "@finances/types";
-import { getEthTransactionError } from "@finances/core";
+import { emptyProfile, } from "@finances/types";
 
 import { AccountContext } from "../accountContext";
 import { AddNewAddress } from "./AddNewAddress";
+import { AddressList } from "./AddressList";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -58,113 +54,6 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     width: "100%"
   },
 }));
-
-const AddressList = (props: any) => {
-  const classes = useStyles();
-
-  const accountContext = useContext(AccountContext);
-  const { setStatusAlert} = props;
-  const [syncing, setSyncing] = useState({} as { [string]: boolean});
-
-  const deleteAddress = (entry: AddressEntry) => {
-    console.log(`Deleting ${JSON.stringify(entry)}`);
-    const newProfile = {...accountContext.profile, addressBook: [...accountContext.profile.addressBook]}
-    let i = newProfile.addressBook.findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase())
-    if (i >= 0) {
-      newProfile.addressBook.splice(i,1)
-      //accountContext.setProfile(newProfile);
-    }
-  };
-
-  const syncHistory = async (address: Address) => {
-    setSyncing({ ...syncing, [address]: true });
-    const payload = { signerAddress: accountContext.signer.address, address };
-    console.log(payload);
-    const sig = await accountContext.signer.signMessage(JSON.stringify(payload));
-
-    let n = 0
-    while (true) {
-      try {
-        const response = await axios.post(`${window.location.origin}/api/chaindata`, { sig, payload })
-        console.log(`attempt ${n++}:`, response);
-        // TODO: Do we need status check here?
-        if (response.status === 200 && typeof response.data === "object") {
-          const history = response.data
-          console.log(`Got address history:`, history);
-          history.transactions.forEach(tx => {
-            const error = getEthTransactionError(tx);
-            if (error) {
-              throw new Error(error);
-            }
-          });
-          console.log(`Address history verified, saving to accontContext`);
-          accountContext.chainData.merge(history);
-          accountContext.setChainData(accountContext.chainData);
-          setSyncing({ ...syncing, [address]: false });
-          break;
-        }
-
-        await new Promise(res => setTimeout(res, 3000));
-      } catch(e) {
-          //TODO: set api key alert
-          console.log(e, e.response.data);
-          if (e.response && e.response.data.includes("Invalid API Key")) {
-            setStatusAlert({
-              open: true,
-              severity: "error",
-              message: "Please register with valid etherscan API key",
-            })
-          }
-          setSyncing({ ...syncing, [adddress]: false});
-          break;
-      }
-    }
-
-    // TODO: Set success alert message
-    //console.log(`Successfuly synced address history for ${address}`);
-  };
-
-  return (
-    <TableContainer className={classes.root} component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell> Eth Address </TableCell>
-            <TableCell> Account name </TableCell>
-            <TableCell> Category </TableCell>
-            <TableCell> Action </TableCell>
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          { accountContext.profile.addressBook.map((entry: AddressEntry, i: number) => {
-              return (
-                <TableRow key={i}>
-                  <TableCell> {entry.address} </TableCell>
-                  <TableCell> {entry.name} </TableCell>
-                  <TableCell> {entry.category} </TableCell>
-                  <TableCell>
-                    <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
-                      <RemoveIcon />
-                    </IconButton>
-                    <IconButton
-                      disabled={syncing[entry.address]}
-                      color="secondary"
-                      size="small"
-                      onClick={() => syncHistory(entry.address)}
-                    >
-                      <SyncIcon />
-                    </IconButton>
-                    { syncing[entry.address] ? <CircularProgress /> : null}
-                  </TableCell>
-                </TableRow>
-              )
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  )
-}
 
 export const AccountInfo = (props: any) => {
   const classes = useStyles();
@@ -271,12 +160,12 @@ export const AccountInfo = (props: any) => {
       </Button>
 
       <AddNewAddress setProfile={setProfile} />
-      <AddressList setStatusAlert={setStatusAlert}/>
+      <AddressList setProfile={setProfile}/>
 
       <Divider/>
       <Snackbar
         open={statusAlert.open}
-        autoHideDuration={6000}
+        autoHideDuration={6000}j
         onClose={handleClose}
         message={statusAlert.message}
         className={classes.snackbar}
