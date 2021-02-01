@@ -38,18 +38,12 @@ import { Alert } from "@material-ui/lab";
 import {
   Address,
   AddressEntry,
-  StoreKeys,
+  emptyProfile,
 } from "@finances/types";
 import { getEthTransactionError } from "@finances/core";
 
 import { AccountContext } from "../accountContext";
-import { store } from '../utils/cache';
-
-const addressCategories = [
-  "self",
-  "friend",
-  "family",
-]
+import { AddNewAddress } from "./AddNewAddress";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -65,86 +59,6 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-const AddListItem = (props: any) => {
-  const [newAddressEntry, setNewAddressEntry] = useState({
-    category: "self",
-    name: "hot-wallet",
-  } as AddressEntry);
-  const [newEntryError, setNewEntryError] = useState({ err: false, msg: "Add your ethereum address to fetch info"});
-
-  const accountContext = useContext(AccountContext);
-
-  const classes = useStyles();
-
-  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setNewAddressEntry({...newAddressEntry, [event.target.name]: event.target.value});
-    setNewEntryError({err: false, msg: "Add your ethereum address to fetch info"})
-  };
-
-  const addNewAddress = () => {
-    if (!newAddressEntry.address) {
-      setNewEntryError({err: true, msg: "Required! Ethereum Address"})
-    } else {
-      let i = accountContext.profile.addressBook.findIndex(
-        (o) => o.address.toLowerCase() === newAddressEntry.address.toLowerCase()
-      );
-      if (i < 0) {
-        const newProfile = {...accountContext.profile, addressBook: [...accountContext.profile.addressBook, newAddressEntry]}
-        accountContext.setProfile(newProfile);
-      } else {
-        setNewEntryError({err: true, msg: "Address already added"})
-      }
-    }
-  };
-
-  return (
-    <Card className={classes.root}>
-      <CardHeader title={"Add new Address"} />
-      <TextField
-        error={newEntryError.err}
-        id="address"
-        label="Eth Address"
-        defaultValue="0xabc..."
-        helperText={newEntryError.msg}
-        name="address"
-        onChange={handleChange}
-        margin="normal"
-        variant="outlined"
-      />
-      <FormControl variant="outlined" className={classes.input}>
-        <InputLabel id="Category">Category</InputLabel>
-        <Select
-          labelId="category-select-drop"
-          id="category-select"
-          value={newAddressEntry.category || "self"}
-          name="category"
-          onChange={handleChange}
-        >
-          {addressCategories.map((category) => (
-            <MenuItem key={category} value={category}>
-              {category}
-            </MenuItem>
-          ))}
-        </Select>
-        <FormHelperText>Select address category</FormHelperText>
-      </FormControl>
-      <TextField
-        id="name"
-        label="Account Name"
-        defaultValue="hot-wallet"
-        helperText="Give your account a nickname"
-        name="name"
-        onChange={handleChange}
-        margin="normal"
-        variant="outlined"
-      />
-      <IconButton onClick={addNewAddress} >
-        <AddIcon />
-      </IconButton>
-    </Card>
-  )
-}
-
 const AddressList = (props: any) => {
   const classes = useStyles();
 
@@ -158,7 +72,7 @@ const AddressList = (props: any) => {
     let i = newProfile.addressBook.findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase())
     if (i >= 0) {
       newProfile.addressBook.splice(i,1)
-      accountContext.setProfile(newProfile);
+      //accountContext.setProfile(newProfile);
     }
   };
 
@@ -252,9 +166,10 @@ const AddressList = (props: any) => {
   )
 }
 
-export const AccountInfo: React.FC = (props: any) => {
+export const AccountInfo = (props: any) => {
   const classes = useStyles();
   const accountContext = useContext(AccountContext);
+  const { saveProfile, setProfile } = props;
 
   const [statusAlert, setStatusAlert] = useState({
     open: false,
@@ -269,48 +184,38 @@ export const AccountInfo: React.FC = (props: any) => {
     })
   };
 
-  const defaults = {
+  const defaultProfile = {
     username: accountContext.profile.username || "Default",
-    etherscanKey: accountContext.profile.etherscanKey || "abc123",
+    infuraKey: accountContext.profile.infuraKey || "abc123",
+    addressBook: accountContext.profile.addressBook || [],
   };
 
-  const registerProfile = useCallback(async () => {
-    if (!accountContext.signer) {
-      console.warn(`No signer available, can't register w/out one.`);
-      return;
-    }
-    if (!accountContext.profile || !accountContext.profile.etherscanKey) {
-      console.warn(`No api key provided, nothing to register. Personal=${JSON.stringify(accountContext.profile)}`);
-      return;
-    }
-    const payload = { profile: accountContext.profile, signerAddress: accountContext.signer.address };
-    const sig = await accountContext.signer.signMessage(JSON.stringify(payload));
-    const res = await axios.post(`${window.location.origin}/api/profile`, { sig, payload });
-    console.log(res);
-  }, [accountContext.profile, accountContext.signer]);
+  const handleSave = () => {
+    let newProfile = {...accountContext.profile};
+    console.log(`Saving ${newProfile}`);
+    saveProfile();
+  }
 
-  const handleProfileChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleUsernameChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.username = "${event.target.value}"`);
     const newProfile = {...accountContext.profile, username: event.target.value};
-    accountContext.setProfile(newProfile);
+    setProfile(newProfile);
   };
 
   const handleKeyChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    console.log(`Set profile.etherscanKey = "${event.target.value}"`);
-    const newProfile = {...accountContext.profile, etherscanKey: event.target.value};
-    accountContext.setProfile(newProfile);
+    console.log(`Set profile.infuraKey = "${event.target.value}"`);
+    const newProfile = {...accountContext.profile, infuraKey: event.target.value};
+    setProfile(newProfile);
   };
 
   useEffect(() => {
-    console.log(`Setting default profile values: ${JSON.stringify(defaults)}`);
-    accountContext.setProfile(oldProfile => ({ ...defaults, ...oldProfile }));
+    console.log(`Setting default profile values: ${JSON.stringify(defaultProfile)}`);
+    setProfile(defaultProfile);
   }, []); // eslint-disable-line
 
   const resetData = (): void => {
-    [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events].forEach(key => {
-      console.log(`Resetting data for ${key}`);
-      store.save(key);
-    });
+    setProfile(emptyProfile);
+    saveProfile();
   };
 
   console.log(accountContext.profile);
@@ -321,7 +226,6 @@ export const AccountInfo: React.FC = (props: any) => {
         variant="contained"
         color="primary"
         size="small"
-        className={classes.button}
         onClick={resetData}
         startIcon={<DeleteIcon />}
       >
@@ -337,8 +241,8 @@ export const AccountInfo: React.FC = (props: any) => {
       <TextField
         id="profile-name"
         label="Profile Name"
-        defaultValue={defaults.username}
-        onChange={handleProfileChange}
+        defaultValue={defaultProfile.username}
+        onChange={handleUsernameChange}
         helperText="Choose a name for your profile eg. Shiv Personal, etc."
         margin="normal"
         variant="outlined"
@@ -348,8 +252,8 @@ export const AccountInfo: React.FC = (props: any) => {
 
       <TextField
         id="api-key"
-        label="Api Key"
-        defaultValue={defaults.etherscanKey}
+        label="Infura Key"
+        defaultValue={defaultProfile.infuraKey}
         onChange={handleKeyChange}
         helperText="Register an etherscan API Key to sync chain data"
         margin="normal"
@@ -360,14 +264,13 @@ export const AccountInfo: React.FC = (props: any) => {
         variant="contained"
         color="primary"
         size="small"
-        className={classes.button}
-        onClick={registerProfile}
+        onClick={handleSave}
         startIcon={<SaveIcon />}
       >
-        Register Profile
+        Save Profile
       </Button>
 
-      <AddListItem setStatusAlert={setStatusAlert} />
+      <AddNewAddress setProfile={setProfile} />
       <AddressList setStatusAlert={setStatusAlert}/>
 
       <Divider/>

@@ -5,6 +5,7 @@ export * from "./client";
 export * from "./events";
 export * from "./logger";
 export * from "./prices";
+export * from "./profile";
 export * from "./state";
 export * from "./store";
 export * from "./strings";
