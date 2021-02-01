@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 import {
-  AddressBook,
   StoreKeys,
   emptyProfile,
-  ProfileJson,
 } from "@finances/types";
 
 import {
@@ -16,7 +14,6 @@ import {
   createStyles,
   makeStyles,
 } from '@material-ui/core';
-import { Wallet } from "ethers";
 import { Route, Switch } from "react-router-dom";
 
 import { NavBar } from "./components/NavBar";
