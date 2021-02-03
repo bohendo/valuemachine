@@ -4,23 +4,29 @@ import {
   Grid,
   Typography,
 } from '@material-ui/core';
+import {  Profile } from "@finances/types";
 
 import { DateTime } from './DateTimePicker'
 
 import { AccountContext } from "../accountContext";
-import { getLiquidityPosition } from "../utils/utils";
+import { getCurrentLiquidityPositions } from "../utils/query";
+import { getProfile } from "../utils/profile";
 
 export const Dashboard: React.FC = (props: any) => {
   const [endDate, setEndDate] = useState(new Date());
   const [liquidityPosition, setLiquidityPosition] = useState(new Date());
   const accountContext = useContext(AccountContext);
+  const [profileInstance, setProfileInstance] = useState(getProfile(accountContext.profile) as Profile);
 
   useEffect(() => {
     (async () => {
-      let position = await getLiquidityPosition("0x9248cd1c76bad6d009bcbf7e49315f1f6400030b");
-      if (position) {
-        setLiquidityPosition(position);
+      
+      let positions = await getCurrentLiquidityPositions(profileInstance.getAddresses());
+      console.log(positions);
+      if (positions) {
+        setLiquidityPosition(positions);
       }
+      
     })();
   }, [])
 
