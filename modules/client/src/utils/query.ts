@@ -18,10 +18,8 @@ const execute = async (query: string, variable = {}) => {
   else return null;
 };
 
-export const getCurrentLiquidityPositions = (users: Address[]) => {
+export const getCurrentLiquidityPositions = async (users: Address[]) => {
 
-  console.log(JSON.stringify(users))
-  
   const query = `query{
     liquidityPositions (
       where: {
@@ -31,15 +29,43 @@ export const getCurrentLiquidityPositions = (users: Address[]) => {
     ) {
       pair{
         id
-        token0{
-          symbol
-        }
-        token1 {
-          symbol
-        }
       }
     }
   }`;
+
+  return execute(query);
+}
+
+// TODO: figure out what happens when all liquidity is removed and re-supplied later
+
+export const getPairLiquidityPositionSnapshots = async (users: Address[], pair: Address) => {
+
+  const query = `query{
+    liquidityPositionSnapshots (
+      where: {
+        user_in: ${JSON.stringify(users)}
+        liquidityTokenBalance_gt: 0
+        pair: "${pair}"
+      }
+    ) {
+      liquidityTokenBalance
+      reserve0
+      reserve1
+      liquidityTokenTotalSupply  
+    }
+    pair (id: "${pair}") {
+      reserve0
+      reserve1
+      reserveETH
+      totalSupply
+      token0{
+        symbol
+      }
+      token1 {
+        symbol
+      }
+    }
+  }`
 
   return execute(query);
 }
