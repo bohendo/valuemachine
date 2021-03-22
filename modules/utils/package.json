@@ -8,7 +8,7 @@
   "license": "ISC",
   "devDependencies": {
     "@finances/types": "1.0.0",
-    "@types/node": "14.0.27",
+    "@types/node": "14.14.35",
     "ethers": "5.0.8",
     "typescript": "3.9.7"
   }
