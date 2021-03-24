@@ -14,7 +14,6 @@ import saiAbi from "./sai.json";
 import vatAbi from "./vat.json";
 import wethAbi from "./weth.json";
 
-type EventFragment = utils.EventFragment;
 type Interface = utils.Interface;
 const { Interface } = utils;
 const addressBook = getAddressBook([]);
@@ -34,6 +33,6 @@ export const getTokenInterface = (address?: Address): Interface => !address
   : new Interface(erc20Abi);
 
 export const daiJoinInterface = new Interface(daiJoinAbi);
-export const defiInterface = new Interface(compoundAbi.concat(cTokenAbi));
+export const defiInterface = new Interface([...new Set(compoundAbi.concat(cTokenAbi))]);
 export const exchangeInterface = new Interface(oasisDexAbi);
 export const vatInterface = new Interface(vatAbi);
