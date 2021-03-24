@@ -10,8 +10,8 @@
     "@finances/core": "1.0.0",
     "@finances/types": "1.0.0",
     "@finances/utils": "1.0.0",
-    "axios": "0.19.2",
-    "ethers": "5.0.8",
+    "axios": "0.21.1",
+    "ethers": "5.0.32",
     "express": "4.17.1"
   },
   "devDependencies": {

@@ -12,7 +12,7 @@
     "@finances/core": "1.0.0",
     "@finances/types": "1.0.0",
     "@finances/utils": "1.0.0",
-    "ethers": "5.0.8"
+    "ethers": "5.0.32"
   },
   "devDependencies": {
     "@types/chai": "4.2.15",
