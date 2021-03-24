@@ -4,7 +4,7 @@
     "allowJs": true,
     "incremental": false,
     "isolatedModules": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "lib": [
       "dom",
       "dom.iterable",
