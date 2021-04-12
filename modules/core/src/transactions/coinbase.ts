@@ -1,5 +1,5 @@
 import { Transaction, TransactionSources, Logger, TransferCategories } from "@finances/types";
-import { ContextLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
 import {
@@ -13,10 +13,10 @@ import { getTransactionsError } from "../verify";
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
   coinbaseData: string,
-  lastUpdated,
+  lastUpdated: number,
   logger?: Logger,
 ): Transaction[] => {
-  const log = new ContextLogger("Coinbase", logger);
+  const log = logger.child({ module: "Coinbase" }); 
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const coinbaseTransactions = csv(
     coinbaseData,

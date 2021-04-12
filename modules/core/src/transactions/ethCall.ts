@@ -7,7 +7,7 @@ import {
   Logger,
   TransferCategories,
 } from "@finances/types";
-import { ContextLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 import { constants } from "ethers";
 
 import { categorizeTransfer } from "./categorizeTransfer";
@@ -22,7 +22,7 @@ export const mergeEthCallTransactions = (
   logger?: Logger,
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
-  const log = new ContextLogger("EthCall", logger);
+  const log = logger.child({ module: "EthCall" });
   const start = Date.now();
 
   const newEthCalls = chainData.getEthCalls(ethCall =>

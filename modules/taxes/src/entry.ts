@@ -7,7 +7,7 @@ import {
   getValueMachine,
 } from "@finances/core";
 import { ExpenseEvent, EventTypes, StoreKeys } from "@finances/types";
-import { ContextLogger, LevelLogger, math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
 import { store } from "./store";
 import { env, setEnv } from "./env";
@@ -46,8 +46,7 @@ process.on("SIGINT", logAndExit);
   const basename = process.argv[2].replace(".json", "");
 
   const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as InputData;
-  const logger = new LevelLogger(input.env.logLevel);
-  const log = new ContextLogger("Taxes", logger);
+  const log = getLogger(input.env.logLevel).child({ module: "Taxes" });
   const taxYear = input.env.taxYear;
   log.info(`Generating ${taxYear} ${basename} tax return`);
 
@@ -63,9 +62,9 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const addressBook = getAddressBook(input.addressBook, logger);
+  const addressBook = getAddressBook(input.addressBook, log);
 
-  const chainData = await getChainData({ store, logger, etherscanKey: input.env.etherscanKey });
+  const chainData = await getChainData({ store, logger: log, etherscanKey: input.env.etherscanKey });
 
   if (env.mode !== "test") {
     await chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
@@ -84,10 +83,10 @@ process.on("SIGINT", logAndExit);
     chainData,
     store,
     input.transactions,
-    logger,
+    log,
   );
 
-  const valueMachine = getValueMachine(addressBook, logger);
+  const valueMachine = getValueMachine(addressBook, log);
 
   let state = store.load(StoreKeys.State);
   let vmEvents = store.load(StoreKeys.Events);
@@ -110,7 +109,7 @@ process.on("SIGINT", logAndExit);
   store.save(StoreKeys.State, state);
   store.save(StoreKeys.Events, vmEvents);
 
-  const finalState = getState(state, addressBook, logger);
+  const finalState = getState(state, addressBook, log);
 
   log.debug(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
   log.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);

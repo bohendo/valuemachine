@@ -1,11 +1,10 @@
 import { AddressBook, Transaction, Logger, Event, StateJson } from "@finances/types";
-import { ContextLogger } from "@finances/utils";
 
 import { emitTransactionEvents, emitTransferEvents } from "./events";
 import { getState } from "./state";
 
 export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any => {
-  const log = new ContextLogger("ValueMachine", logger);
+  const log = logger.child({ module: "ValueMachine" });
   const { getName } = addressBook;
 
   return (oldState: StateJson, transaction: Transaction): [StateJson, Event[]] => {

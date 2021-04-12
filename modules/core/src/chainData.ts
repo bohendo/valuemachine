@@ -11,7 +11,7 @@ import {
   StoreKeys,
   TokenData,
 } from "@finances/types";
-import { ContextLogger, sm, smeq } from "@finances/utils";
+import { sm, smeq } from "@finances/utils";
 import { BigNumber, Contract, constants, providers, utils  } from "ethers";
 import axios from "axios";
 
@@ -31,7 +31,7 @@ type ChainDataParams = {
 
 export const getChainData = (params: ChainDataParams): ChainData => {
   const { store, logger, etherscanKey, chainDataJson } = params;
-  const log = new ContextLogger("ChainData", logger || console);
+  const log = logger?.child?.({ module: "ChainData" }) || console;
   const json = chainDataJson || (store ? store.load(StoreKeys.ChainData) : emptyChainData);
 
   log.info(`Loaded chain data containing ${
@@ -192,10 +192,10 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     return ethCall ? JSON.parse(JSON.stringify(ethCall)) : undefined;
   };
 
-  const getEthTransactions = (testFn: (tx: EthTransaction) => boolean): EthTransaction[] =>
+  const getEthTransactions = (testFn: (_tx: EthTransaction) => boolean): EthTransaction[] =>
     JSON.parse(JSON.stringify(json.transactions.filter(testFn)));
 
-  const getEthCalls = (testFn: (call: EthCall) => boolean): EthCall[] =>
+  const getEthCalls = (testFn: (_call: EthCall) => boolean): EthCall[] =>
     JSON.parse(JSON.stringify(json.calls.filter(testFn)));
 
   const syncTokenData = async (tokens: Address[], key?: string): Promise<void> => {

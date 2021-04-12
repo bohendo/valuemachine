@@ -1,5 +1,5 @@
 import { Events, IncomeEvent, ExpenseEvent, EventTypes, TimestampString } from "@finances/types";
-import { ContextLogger, LevelLogger, math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 import { constants } from "ethers";
 
 import { env } from "./env";
@@ -113,7 +113,8 @@ export const translate = (form, mappings): any => {
   for (const [key, value] of Object.entries(form)) {
     if (key === "default") { continue; }
     if (!mappings[key]) {
-      new ContextLogger("TranslateForms", new LevelLogger(env.logLevel))
+      getLogger(env.logLevel)
+        .child({ module: "TranslateForms" })
         .warn(`Key ${key} exists in output data but not in mappings`);
     }
     if (

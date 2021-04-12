@@ -15,7 +15,6 @@ import {
   StoreKeys,
   Transaction,
 } from "@finances/types";
-import { ContextLogger } from "@finances/utils";
 import * as fs from "fs";
 
 export const getTransactions = async (
@@ -25,7 +24,7 @@ export const getTransactions = async (
   extraTransactions: Array<Transaction | string>,
   logger: Logger = console,
 ): Promise<Transaction[]> => {
-  const log = new ContextLogger("GetTransactions", logger);
+  const log = logger.child({ module: "GetTransactions" });
 
   let transactions = store.load(StoreKeys.Transactions);
   const lastUpdated = transactions.length !== 0

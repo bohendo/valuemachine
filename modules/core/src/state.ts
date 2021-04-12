@@ -14,7 +14,7 @@ import {
   StateJson,
   TimestampString,
 } from "@finances/types";
-import { ContextLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 
 import { getAddressBook } from "./addressBook";
 
@@ -25,7 +25,7 @@ export const getState = (
   givenAddressBook?: AddressBook,
   logger?: Logger,
 ): State => {
-  const log = new ContextLogger("State", logger);
+  const log = logger.child({ module: "State" });
 
   const addressBook = givenAddressBook || getAddressBook(
     Object.keys(state.accounts).map(address => ({

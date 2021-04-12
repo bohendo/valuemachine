@@ -17,7 +17,7 @@ export type Modes = (typeof Modes)[keyof typeof Modes];
 
 export type Env = {
   etherscanKey: string;
-  logLevel: number;
+  logLevel: string;
   mode: Modes;
   outputFolder: string;
   taxYear?: string;

@@ -7,13 +7,12 @@ import {
   StoreKeys,
   TimestampString,
 } from "@finances/types";
-import { ContextLogger } from "@finances/utils";
 import axios from "axios";
 
 export const getPrices = (store: Store, logger: Logger, pricesJson?: PricesJson): Prices => {
   const json = pricesJson || store.load(StoreKeys.Prices);
   const save = (json: PricesJson): void => store.save(StoreKeys.Prices, json);
-  const log = new ContextLogger("Prices", logger);
+  const log = logger.child({ module: "Prices" });
 
   log.info(`Loaded prices for ${
     Object.keys(json).length

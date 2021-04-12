@@ -7,7 +7,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { ContextLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 import { constants, utils } from "ethers";
 
 import { exchangeInterface, daiJoinInterface, defiInterface, vatInterface } from "../abi";
@@ -24,7 +24,7 @@ export const categorizeTransfer = (
 ): Transfer => {
   const transfer = JSON.parse(JSON.stringify(inputTransfer));
   const { isCategory, isSelf, getName } = addressBook;
-  const log = new ContextLogger("CategorizeTransfer", logger);
+  const log = logger.child({ module: "CategorizeTransfer" }); 
 
   log.debug(`Categorizing transfer of ${transfer.quantity} from ${getName(transfer.from)} to ${getName(transfer.to)}`);
 

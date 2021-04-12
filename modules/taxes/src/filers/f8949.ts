@@ -1,5 +1,5 @@
 import { CapitalGainsEvent, Events, EventTypes } from "@finances/types";
-import { ContextLogger, LevelLogger, math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
 import { env } from "../env";
 import { Forms } from "../types";
@@ -11,7 +11,7 @@ const msPerDay = 1000 * 60 * 60 * 24;
 const msPerYear = msPerDay * 365;
 
 export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
-  const log = new ContextLogger("f8949", new LevelLogger(env.logLevel));
+  const log = getLogger(env.logLevel).child({ module: "f8949" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const f1040 = forms.f1040;
   let f8949 = forms.f8949;

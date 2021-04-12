@@ -5,7 +5,7 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@finances/types";
-import { ContextLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
 import {
@@ -21,7 +21,7 @@ export const mergeWyreTransactions = (
   lastUpdated: number,
   logger?: Logger,
 ): Transaction[] => {
-  const log = new ContextLogger("SendWyre", logger);
+  const log = logger.child({ module: "SendWyre" });
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const wyreTransactions = csv(
     wyreData,

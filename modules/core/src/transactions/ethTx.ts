@@ -8,7 +8,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { ContextLogger, math, sm } from "@finances/utils";
+import { math, sm } from "@finances/utils";
 import { BigNumber, constants, utils } from "ethers";
 
 import { getTokenInterface } from "../abi";
@@ -28,7 +28,7 @@ export const mergeEthTxTransactions = (
   logger?: Logger,
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
-  const log = new ContextLogger("EthTx", logger);
+  const log = logger.child({ module: "EthTx" });
   const start = Date.now();
 
   const newEthTxs = chainData.getEthTransactions(ethTx =>
@@ -43,7 +43,7 @@ export const mergeEthTxTransactions = (
 
   const merge = mergeFactory({
     allowableTimeDiff: 0,
-    log: new ContextLogger("MergeEthTx", logger),
+    log: logger.child({ module: "MergeEthTx" }),
     mergeTransactions: (): void => {
       throw new Error(`idk how to merge EthTxs`);
     },
@@ -62,7 +62,7 @@ export const mergeEthTxTransactions = (
         return;
       }
       const { getName, isToken } = addressBook;
-      const log = new ContextLogger(`EthTx ${tx.hash.substring(0, 8)}`, logger);
+      const log = logger.child({ module: `EthTx ${tx.hash.substring(0, 8)}` });
 
       if (!tx.logs) {
         throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);
