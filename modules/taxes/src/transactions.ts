@@ -5,6 +5,7 @@ import {
   mergeDigitalOceanTransactions,
   mergeEthTransactions,
   mergeWyreTransactions,
+  mergeWazrixTransactions,
 } from "@finances/core";
 import {
   AddressBook,
@@ -71,6 +72,13 @@ export const getTransactions = async (
         );
       } else if (source.toLowerCase().includes("wyre")) {
         transactions = mergeWyreTransactions(
+          transactions,
+          fs.readFileSync(source, "utf8"),
+          lastUpdated,
+          logger,
+        );
+      } else if (source.toLowerCase().includes("wazrix")) {
+        transactions = mergeWazrixTransactions(
           transactions,
           fs.readFileSync(source, "utf8"),
           lastUpdated,

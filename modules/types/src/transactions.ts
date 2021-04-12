@@ -13,6 +13,7 @@ export const TransactionSources = enumify({
   EthTx: "EthTx",
   Profile: "Profile",
   SendWyre: "SendWyre",
+  Wazrix: "Wazrix",
 });
 export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
 
