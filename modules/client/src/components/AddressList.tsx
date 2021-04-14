@@ -15,13 +15,14 @@ import {
 import {
   RemoveCircle as RemoveIcon,
 } from "@material-ui/icons";
-import { AddressEntry, } from "@finances/types";
+import { AddressEntry } from "@finances/types";
+
 import { AccountContext } from "../accountContext";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-    root: {
-      margin: theme.spacing(1),
-    },
+  root: {
+    margin: theme.spacing(1),
+  },
 }));
 
 export const AddressList = (props: any) => {
@@ -32,10 +33,14 @@ export const AddressList = (props: any) => {
 
   const deleteAddress = (entry: AddressEntry) => {
     console.log(`Deleting ${JSON.stringify(entry)}`);
-    const newProfile = {...accountContext.profile, addressBook: [...accountContext.profile.addressBook]}
-    let i = newProfile.addressBook.findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase())
+    const newProfile = {
+      ...accountContext.profile,
+      addressBook: [...accountContext.profile.addressBook],
+    };
+    const i = newProfile.addressBook
+      .findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase());
     if (i >= 0) {
-      newProfile.addressBook.splice(i,1)
+      newProfile.addressBook.splice(i,1);
       setProfile(newProfile);
     }
   };
@@ -54,21 +59,21 @@ export const AddressList = (props: any) => {
 
         <TableBody>
           { accountContext.profile.addressBook.map((entry: AddressEntry, i: number) => {
-              return (
-                <TableRow key={i}>
-                  <TableCell> {entry.address} </TableCell>
-                  <TableCell> {entry.name} </TableCell>
-                  <TableCell> {entry.category} </TableCell>
-                  <TableCell>
-                    <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
-                      <RemoveIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              )
+            return (
+              <TableRow key={i}>
+                <TableCell> {entry.address} </TableCell>
+                <TableCell> {entry.name} </TableCell>
+                <TableCell> {entry.category} </TableCell>
+                <TableCell>
+                  <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
+                    <RemoveIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            );
           })}
         </TableBody>
       </Table>
     </TableContainer>
-  )
-}
+  );
+};

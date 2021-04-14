@@ -7,9 +7,10 @@ import {
   Theme,
   makeStyles,
   createStyles,
-} from "@material-ui/core"
+} from "@material-ui/core";
 import { AddCircle as AddIcon } from "@material-ui/icons";
 import { AddressEntry } from "@finances/types";
+
 import { AccountContext } from "../accountContext";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -19,8 +20,8 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 export const AddNewAddress = (props: any) => {
-  const [newAddressEntry, setNewAddressEntry] = useState({ category: "Self", name: "hot-wallet", } as AddressEntry);
-  const [newEntryError, setNewEntryError] = useState({ err: false, msg: "Add your ethereum address to fetch info"});
+  const [newAddressEntry, setNewAddressEntry] = useState({ category: "Self", name: "hot-wallet" } as AddressEntry);
+  const [newEntryError, setNewEntryError] = useState({ err: false, msg: "Add your ethereum address to fetch info" });
 
   const { setProfile } = props;
   const accountContext = useContext(AccountContext);
@@ -28,22 +29,25 @@ export const AddNewAddress = (props: any) => {
   const classes = useStyles();
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setNewAddressEntry({...newAddressEntry, [event.target.name]: event.target.value});
-    setNewEntryError({err: false, msg: "Add your ethereum address to fetch info"})
+    setNewAddressEntry({ ...newAddressEntry, [event.target.name]: event.target.value });
+    setNewEntryError({ err: false, msg: "Add your ethereum address to fetch info" });
   };
 
   const addNewAddress = () => {
     if (!newAddressEntry.address) {
-      setNewEntryError({err: true, msg: "Required! Ethereum Address"})
+      setNewEntryError({ err: true, msg: "Required! Ethereum Address" });
     } else {
-      let i = accountContext.profile.addressBook.findIndex(
+      const i = accountContext.profile.addressBook.findIndex(
         (o) => o.address.toLowerCase() === newAddressEntry.address.toLowerCase()
       );
       if (i < 0) {
-        const newProfile = {...accountContext.profile, addressBook: [...accountContext.profile.addressBook, newAddressEntry]}
+        const newProfile = {
+          ...accountContext.profile,
+          addressBook: [...accountContext.profile.addressBook, newAddressEntry],
+        };
         setProfile(newProfile);
       } else {
-        setNewEntryError({err: true, msg: "Address already added"})
+        setNewEntryError({ err: true, msg: "Address already added" });
       }
     }
   };
@@ -76,5 +80,5 @@ export const AddNewAddress = (props: any) => {
         <AddIcon />
       </IconButton>
     </Card>
-  )
-}
+  );
+};

@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useState } from "react";
-
 import {
   Button,
   Divider,
@@ -9,15 +8,16 @@ import {
   Typography,
   createStyles,
   makeStyles,
-} from '@material-ui/core';
+} from "@material-ui/core";
 import {
   Delete as DeleteIcon,
   Save as SaveIcon,
 } from "@material-ui/icons";
 import { Alert } from "@material-ui/lab";
-import { emptyProfile, } from "@finances/types";
+import { emptyProfile } from "@finances/types";
 
 import { AccountContext } from "../accountContext";
+
 import { AddNewAddress } from "./AddNewAddress";
 import { AddressList } from "./AddressList";
 
@@ -50,7 +50,7 @@ export const AccountInfo = (props: any) => {
     setStatusAlert({
       ...statusAlert,
       open: false,
-    })
+    });
   };
 
   const defaultProfile = {
@@ -60,20 +60,20 @@ export const AccountInfo = (props: any) => {
   };
 
   const handleSave = () => {
-    let newProfile = {...accountContext.profile};
+    const newProfile = { ...accountContext.profile };
     console.log(`Saving ${newProfile}`);
     saveProfile();
-  }
+  };
 
   const handleUsernameChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.username = "${event.target.value}"`);
-    const newProfile = {...accountContext.profile, username: event.target.value};
+    const newProfile = { ...accountContext.profile, username: event.target.value };
     setProfile(newProfile);
   };
 
   const handleKeyChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.infuraKey = "${event.target.value}"`);
-    const newProfile = {...accountContext.profile, infuraKey: event.target.value};
+    const newProfile = { ...accountContext.profile, infuraKey: event.target.value };
     setProfile(newProfile);
   };
 
@@ -155,5 +155,5 @@ export const AccountInfo = (props: any) => {
         </Alert>
       </Snackbar>
     </div>
-  )
-}
+  );
+};

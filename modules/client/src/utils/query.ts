@@ -1,7 +1,7 @@
 import { Address } from "@finances/types";
 import axios from "axios";
 
-const uniSubgraphUrl = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
+const uniSubgraphUrl = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
 
 const execute = async (query: string, variable = {}) => {
   const response = await axios.post(uniSubgraphUrl, {
@@ -34,7 +34,7 @@ export const getCurrentLiquidityPositions = async (users: Address[]) => {
   }`;
 
   return execute(query);
-}
+};
 
 // TODO: figure out what happens when all liquidity is removed and re-supplied later
 
@@ -65,7 +65,7 @@ export const getPairLiquidityPositionSnapshots = async (users: Address[], pair: 
         symbol
       }
     }
-  }`
+  }`;
 
   return execute(query);
-}
+};

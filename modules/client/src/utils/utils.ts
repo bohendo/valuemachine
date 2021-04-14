@@ -4,7 +4,7 @@ import {
 import axios from "axios";
 
 const INDENT = 5;
-const uniSubgraphUrl = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
+const uniSubgraphUrl = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
 
 export const inTypes = [
   EventTypes.Borrow,
@@ -55,8 +55,8 @@ export const getLiquidityPosition = async (user: string) => {
   const result = (await axios.post(uniSubgraphUrl, { query, variable: {},
     crossdomain: true,
     headers: {
-    "Access-Control-Allow-Origin": "*",
-    "Content-Type": "json",
+      "Access-Control-Allow-Origin": "*",
+      "Content-Type": "json",
     }
   }));
 
@@ -64,4 +64,4 @@ export const getLiquidityPosition = async (user: string) => {
     return result.data.data;
   else return null;
   
-}
+};
