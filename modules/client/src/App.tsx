@@ -51,6 +51,7 @@ const App: React.FC = () => {
   console.log("profile", profile);
 
   useEffect(() => {
+    console.log(`Saving profile with ${profile.addressBook.length} address book entries`);
     store.save(StoreKeys.Profile, profile);
   }, [profile]);
 

@@ -1,47 +1,71 @@
 import React, { useEffect, useState } from "react";
 import {
+  Button,
   Card,
   CardHeader,
-  Button,
   createStyles,
   Divider,
   Grid,
+  IconButton,
   makeStyles,
   Snackbar,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   TextField,
   Theme,
   Typography,
 } from "@material-ui/core";
 import {
+  AddCircle as AddIcon,
+  GetApp as DownloadIcon,
+  RemoveCircle as RemoveIcon,
+  Sync as SyncIcon,
   Save as SaveIcon,
 } from "@material-ui/icons";
 import { Alert } from "@material-ui/lab";
-import { emptyProfile, ProfileJson } from "@finances/types";
+import { AddressEntry, emptyProfile, ProfileJson } from "@finances/types";
 import axios from "axios";
-
-import { AddNewAddress } from "./AddNewAddress";
-import { AddressList } from "./AddressList";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
     margin: theme.spacing(1),
-    padding: theme.spacing(1),
+    maxWidth: "98%",
   },
   input: {
     margin: theme.spacing(1),
     minWidth: 120,
     maxWidth: 300,
   },
+  exporter: {
+    marginBottom: theme.spacing(4),
+    marginLeft: theme.spacing(4),
+    marginRight: theme.spacing(4),
+    marginTop: theme.spacing(0),
+  },
   importer: {
-    margin: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+    marginLeft: theme.spacing(4),
+    marginRight: theme.spacing(4),
+    marginTop: theme.spacing(0),
   },
   snackbar: {
     width: "100%"
   },
   button: {
     marginBottom: theme.spacing(1.5),
+    marginLeft: theme.spacing(2),
+    marginRight: theme.spacing(2),
   },
 }));
+
+const emptyAddressEntry = {
+  address: "",
+  category: "self",
+  name: "",
+} as AddressEntry;
 
 export const AccountInfo = ({
   profile,
@@ -50,14 +74,16 @@ export const AccountInfo = ({
   profile: any;
   setProfile: (val: any) => void;
 }) => {
-  const [modified, setModified] = useState(false);
+  const [newAddressEntry, setNewAddressEntry] = useState(emptyAddressEntry);
+  const [newEntryError, setNewEntryError] = useState("");
+  const [addressModified, setAddressModified] = useState(false);
+  const [profileModified, setProfileModified] = useState(false);
   const [newProfile, setNewProfile] = useState(emptyProfile);
   const [statusAlert, setStatusAlert] = useState({
     open: false,
     message: "",
     severity: "info" as "info" | "error" | "warning" | "success"
   });
-
   const classes = useStyles();
 
   useEffect(() => {
@@ -66,11 +92,23 @@ export const AccountInfo = ({
 
   useEffect(() => {
     if (newProfile.username !== profile.username || newProfile.authToken !== profile.authToken) {
-      setModified(true);
+      setProfileModified(true);
     } else {
-      setModified(false);
+      setProfileModified(false);
     }
   }, [newProfile, profile]);
+
+  useEffect(() => {
+    if (
+      newAddressEntry.address !== emptyAddressEntry.address ||
+      newAddressEntry.category !== emptyAddressEntry.category ||
+      newAddressEntry.name !== emptyAddressEntry.name
+    ) {
+      setAddressModified(true);
+    } else {
+      setAddressModified(false);
+    }
+  }, [newAddressEntry]);
 
   const handleClose = () => {
     setStatusAlert({
@@ -125,11 +163,59 @@ export const AccountInfo = ({
           }
         });
         setNewProfile(oldVal => ({ ...oldVal, addressBook }));
-        // handleSave();
+        handleSave();
       } catch (e) {
         console.error(e);
       }
     };
+  };
+
+  const addNewAddress = () => {
+    if (!newAddressEntry.address) {
+      setNewEntryError("Address is required");
+    } else if (!newAddressEntry.address.match(/0x[a-fA-F0-9]{40}/)) {
+      setNewEntryError("Invalid address");
+    } else {
+      const i = profile.addressBook.findIndex(
+        (o) => o.address.toLowerCase() === newAddressEntry.address.toLowerCase()
+      );
+      if (i < 0) {
+        const newProfile = {
+          ...profile,
+          addressBook: [...profile.addressBook, {
+            ...newAddressEntry,
+            address: newAddressEntry.address.toLowerCase(),
+          }],
+        };
+        setProfile(newProfile);
+        setNewAddressEntry(emptyAddressEntry);
+      } else {
+        setNewEntryError("Address already added");
+      }
+    }
+  };
+
+  const handleAddressChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setNewAddressEntry({ ...newAddressEntry, [event.target.name]: event.target.value });
+    setNewEntryError("");
+  };
+
+  const deleteAddress = (entry: AddressEntry) => {
+    console.log(`Deleting ${JSON.stringify(entry)}`);
+    const newProfile = {
+      ...profile,
+      addressBook: [...profile.addressBook],
+    };
+    const i = newProfile.addressBook
+      .findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase());
+    if (i >= 0) {
+      newProfile.addressBook.splice(i,1);
+      setProfile(newProfile);
+    }
+  };
+
+  const syncAddress = (address: string) => {
+    console.log(`Syncing ${address}..`);
   };
 
   return (
@@ -141,7 +227,7 @@ export const AccountInfo = ({
 
       <Divider/>
 
-      <Grid alignContent="center" alignItems="center" container spacing={1}>
+      <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
 
         <Grid item>
           <TextField
@@ -169,7 +255,7 @@ export const AccountInfo = ({
           />
         </Grid>
 
-        {modified ?
+        {profileModified ?
           <Grid item>
             <Button
               className={classes.button}
@@ -188,22 +274,148 @@ export const AccountInfo = ({
       </Grid>
       <Divider/>
 
-      <Card className={classes.root}>
-        <CardHeader title={"Import Address Book From File"}/>
-        <input
-          className={classes.importer}
-          id="profile-importer"
-          accept="application/json"
-          type="file"
-          onChange={handleImport}
-        />
-      </Card>
+      <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
 
-      <AddNewAddress setProfile={setProfile} />
+        <Grid item md={8}>
+          <Card className={classes.root}>
+            <CardHeader title={"Add new Address"} />
+            <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
+              <Grid item md={6}>
+                <TextField
+                  autoComplete="off"
+                  value={newAddressEntry.name}
+                  helperText="Give your account a nickname"
+                  id="name"
+                  fullWidth
+                  label="Account Name"
+                  margin="normal"
+                  name="name"
+                  onChange={handleAddressChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item md={6}>
+                <TextField
+                  autoComplete="off"
+                  value={newAddressEntry.category}
+                  helperText={`Only "self" category can be synced`}
+                  id="category"
+                  fullWidth
+                  label="Category"
+                  margin="normal"
+                  name="category"
+                  onChange={handleAddressChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item md={6}>
+                <TextField
+                  autoComplete="off"
+                  value={newAddressEntry.address}
+                  error={!!newEntryError}
+                  helperText={newEntryError || "Add your ethereum address to fetch info"}
+                  id="address"
+                  fullWidth
+                  label="Eth Address"
+                  margin="normal"
+                  name="address"
+                  onChange={handleAddressChange}
+                  variant="outlined"
+                />
+              </Grid>
+              <Grid item md={6}>
 
-      <AddressList setProfile={setProfile}/>
+                {addressModified ?
+                  <Grid item>
+                    <Button
+                      className={classes.button}
+                      color="primary"
+                      onClick={addNewAddress}
+                      size="small"
+                      startIcon={<AddIcon />}
+                      variant="contained"
+                    >
+                      Save Address
+                    </Button>
+                  </Grid>
+                  : undefined
+                }
 
-      <Divider/>
+
+              </Grid>
+            </Grid>
+          </Card>
+        </Grid>
+
+        <Grid item md={4}>
+          <Card className={classes.root}>
+            <CardHeader title={"Import Address Book"}/>
+            <input
+              className={classes.importer}
+              id="profile-importer"
+              accept="application/json"
+              type="file"
+              onChange={handleImport}
+            />
+            <CardHeader title={"Export Address Book"}/>
+            <Button
+              className={classes.exporter}
+              color="primary"
+              onClick={() => console.log("Export functionality coming soon")}
+              size="small"
+              startIcon={<DownloadIcon />}
+              variant="contained"
+            >
+              Download
+            </Button>
+          </Card>
+        </Grid>
+
+      </Grid>
+
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell> Account name </TableCell>
+            <TableCell> Category </TableCell>
+            <TableCell> Eth Address </TableCell>
+            <TableCell> Actions </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {profile.addressBook
+            .sort((e1, e2) =>
+              // put self addresses first
+              (e1.category !== "self" && e2.category === "self") ? 1
+                : (e1.category === "self" && e2.category !== "self") ? -1
+                  // sort by category
+                  : (e1.category.toLowerCase() > e2.category.toLowerCase()) ? 1
+                    : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
+                      // then sort by name
+                      : (e1.name.toLowerCase() > e2.name.toLowerCase()) ? 1
+                        : (e1.name.toLowerCase() < e2.name.toLowerCase()) ? -1
+                          // then sort by address
+                          : (e1.address.toLowerCase() > e2.address.toLowerCase()) ? 1
+                            : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
+                              : 0
+            ).map((entry: AddressEntry, i: number) => (
+              <TableRow key={i}>
+                <TableCell> {entry.name} </TableCell>
+                <TableCell> {entry.category} </TableCell>
+                <TableCell> {entry.address} </TableCell>
+                <TableCell>
+                  <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
+                    <RemoveIcon />
+                  </IconButton>
+                  <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
+                    <SyncIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+        </TableBody>
+      </Table>
+
       <Snackbar
         open={statusAlert.open}
         autoHideDuration={6000}j
