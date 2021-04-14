@@ -1,8 +1,9 @@
 import { Transaction, TransactionSources, Logger, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
-import { mergeFactory } from "./utils";
 import { getTransactionsError } from "../verify";
+
+import { mergeFactory } from "./utils";
 
 export const mergeDigitalOceanTransactions = (
   oldTransactions: Transaction[],

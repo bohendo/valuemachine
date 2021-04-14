@@ -1,5 +1,4 @@
-import React from 'react';
-
+import React from "react";
 import {
   AppBar,
   IconButton,
@@ -8,7 +7,7 @@ import {
   Typography,
   createStyles,
   makeStyles,
-} from '@material-ui/core';
+} from "@material-ui/core";
 import {
   Home as HomeIcon,
   AccountCircle as AccountIcon,
@@ -65,5 +64,5 @@ export const NavBar = () => {
         </IconButton>
       </Toolbar>
     </AppBar>
-  )
-}
+  );
+};

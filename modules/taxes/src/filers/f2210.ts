@@ -106,12 +106,12 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const getCol = (date: TimestampString): string => {
     const time = new Date(date).getTime();
     return columns[
-        time < getTime("01", "01") ? -1
-      : time < getTime("01", "04") ? 0
-      : time < getTime("01", "06") ? 1
-      : time < getTime("01", "09") ? 2
-      : time < getTime("01", "01", +1) ? 3
-      : -1
+      time < getTime("01", "01") ? -1
+        : time < getTime("01", "04") ? 0
+          : time < getTime("01", "06") ? 1
+            : time < getTime("01", "09") ? 2
+              : time < getTime("01", "01", +1) ? 3
+                : -1
     ];
   };
 

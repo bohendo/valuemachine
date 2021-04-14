@@ -278,9 +278,9 @@ export const getChainData = (params: ChainDataParams): ChainData => {
           // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
           : toBN(response.gasLimit).gt(toBN(receipt.gasUsed)) ? 1
           // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-          : toBN(response.gasLimit).eq(toBN("21000")) ? 1
-          // Otherwise it PROBABLY failed
-          : 0,
+            : toBN(response.gasLimit).eq(toBN("21000")) ? 1
+            // Otherwise it PROBABLY failed
+              : 0,
       timestamp,
       to: response.to ? getAddress(response.to) : null,
       value: formatEther(response.value),
@@ -378,7 +378,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       const month = 30 * 24 * hour;
       // Don't sync any addresses w no recent activity if they have been synced before
       if (Date.now() - new Date(lastAction).getTime() > 6 * month) {
-        log.debug(`Skipping retired (${lastAction}) address ${address} bc data was already fetched`);
+        log.debug(`Skipping retired (${lastAction}) address ${address}, data was already fetched`);
         return false;
       }
       // Don't sync any active addresses if they've been synced recently

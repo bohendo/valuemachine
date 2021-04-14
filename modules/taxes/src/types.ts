@@ -13,6 +13,7 @@ export const Modes = enumify({
   profile: "profile",
   test: "test",
 });
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type Modes = (typeof Modes)[keyof typeof Modes];
 
 export type Env = {

@@ -1,6 +1,3 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
-
-import axios from "axios";
 import {
   Button,
   Card,
@@ -26,7 +23,7 @@ import {
   Typography,
   createStyles,
   makeStyles,
-} from '@material-ui/core';
+} from "@material-ui/core";
 import {
   AddCircle as AddIcon,
   Delete as DeleteIcon,
@@ -41,15 +38,17 @@ import {
   StoreKeys,
 } from "@finances/types";
 import { getEthTransactionError } from "@finances/core";
+import axios from "axios";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 
 import { AccountContext } from "../accountContext";
-import { store } from '../utils/cache';
+import { store } from "../utils/cache";
 
 const addressCategories = [
   "self",
   "friend",
   "family",
-]
+];
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -65,34 +64,40 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-const AddListItem = (props: any) => {
+const AddListItem = () => {
   const [newAddressEntry, setNewAddressEntry] = useState({
     category: "self",
     name: "hot-wallet",
   } as AddressEntry);
-  const [newEntryError, setNewEntryError] = useState({ err: false, msg: "Add your ethereum address to fetch info"});
+  const [newEntryError, setNewEntryError] = useState({
+    err: false,
+    msg: "Add your ethereum address to fetch info",
+  });
 
   const accountContext = useContext(AccountContext);
 
   const classes = useStyles();
 
   const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setNewAddressEntry({...newAddressEntry, [event.target.name]: event.target.value});
-    setNewEntryError({err: false, msg: "Add your ethereum address to fetch info"})
+    setNewAddressEntry({ ...newAddressEntry, [event.target.name]: event.target.value });
+    setNewEntryError({ err: false, msg: "Add your ethereum address to fetch info" });
   };
 
   const addNewAddress = () => {
     if (!newAddressEntry.address) {
-      setNewEntryError({err: true, msg: "Required! Ethereum Address"})
+      setNewEntryError({ err: true, msg: "Required! Ethereum Address" });
     } else {
-      let i = accountContext.profile.addressBook.findIndex(
+      const i = accountContext.profile.addressBook.findIndex(
         (o) => o.address.toLowerCase() === newAddressEntry.address.toLowerCase()
       );
       if (i < 0) {
-        const newProfile = {...accountContext.profile, addressBook: [...accountContext.profile.addressBook, newAddressEntry]}
+        const newProfile = {
+          ...accountContext.profile,
+          addressBook: [...accountContext.profile.addressBook, newAddressEntry],
+        };
         accountContext.setProfile(newProfile);
       } else {
-        setNewEntryError({err: true, msg: "Address already added"})
+        setNewEntryError({ err: true, msg: "Address already added" });
       }
     }
   };
@@ -142,22 +147,27 @@ const AddListItem = (props: any) => {
         <AddIcon />
       </IconButton>
     </Card>
-  )
-}
+  );
+};
 
 const AddressList = (props: any) => {
   const classes = useStyles();
 
   const accountContext = useContext(AccountContext);
-  const { setStatusAlert} = props;
-  const [syncing, setSyncing] = useState({} as { [string]: boolean});
+  const { setStatusAlert } = props;
+  const [syncing, setSyncing] = useState({} as { [key: string]: boolean});
 
   const deleteAddress = (entry: AddressEntry) => {
     console.log(`Deleting ${JSON.stringify(entry)}`);
-    const newProfile = {...accountContext.profile, addressBook: [...accountContext.profile.addressBook]}
-    let i = newProfile.addressBook.findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase())
+    const newProfile = {
+      ...accountContext.profile,
+      addressBook: [...accountContext.profile.addressBook],
+    };
+    const i = newProfile.addressBook.findIndex(
+      (o) => o.address.toLowerCase() === entry.address.toLowerCase(),
+    );
     if (i >= 0) {
-      newProfile.addressBook.splice(i,1)
+      newProfile.addressBook.splice(i, 1);
       accountContext.setProfile(newProfile);
     }
   };
@@ -168,14 +178,18 @@ const AddressList = (props: any) => {
     console.log(payload);
     const sig = await accountContext.signer.signMessage(JSON.stringify(payload));
 
-    let n = 0
+    let n = 0;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       try {
-        const response = await axios.post(`${window.location.origin}/api/chaindata`, { sig, payload })
+        const response = await axios.post(
+          `${window.location.origin}/api/chaindata`,
+          { sig, payload },
+        );
         console.log(`attempt ${n++}:`, response);
         // TODO: Do we need status check here?
         if (response.status === 200 && typeof response.data === "object") {
-          const history = response.data
+          const history = response.data;
           console.log(`Got address history:`, history);
           history.transactions.forEach(tx => {
             const error = getEthTransactionError(tx);
@@ -199,9 +213,9 @@ const AddressList = (props: any) => {
             open: true,
             severity: "error",
             message: "Please register with valid etherscan API key",
-          })
+          });
         }
-        setSyncing({ ...syncing, [adddress]: false});
+        setSyncing({ ...syncing, [accountContext.signer.address]: false });
         break;
       }
     }
@@ -223,36 +237,34 @@ const AddressList = (props: any) => {
         </TableHead>
 
         <TableBody>
-          { accountContext.profile.addressBook.map((entry: AddressEntry, i: number) => {
-              return (
-                <TableRow key={i}>
-                  <TableCell> {entry.address} </TableCell>
-                  <TableCell> {entry.name} </TableCell>
-                  <TableCell> {entry.category} </TableCell>
-                  <TableCell>
-                    <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
-                      <RemoveIcon />
-                    </IconButton>
-                    <IconButton
-                      disabled={syncing[entry.address]}
-                      color="secondary"
-                      size="small"
-                      onClick={() => syncHistory(entry.address)}
-                    >
-                      <SyncIcon />
-                    </IconButton>
-                    { syncing[entry.address] ? <CircularProgress /> : null}
-                  </TableCell>
-                </TableRow>
-              )
-          })}
+          {accountContext.profile.addressBook.map((entry: AddressEntry, i: number) => (
+            <TableRow key={i}>
+              <TableCell> {entry.address} </TableCell>
+              <TableCell> {entry.name} </TableCell>
+              <TableCell> {entry.category} </TableCell>
+              <TableCell>
+                <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
+                  <RemoveIcon />
+                </IconButton>
+                <IconButton
+                  disabled={syncing[entry.address]}
+                  color="secondary"
+                  size="small"
+                  onClick={() => syncHistory(entry.address)}
+                >
+                  <SyncIcon />
+                </IconButton>
+                { syncing[entry.address] ? <CircularProgress /> : null}
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </TableContainer>
-  )
-}
+  );
+};
 
-export const AccountInfo: React.FC = (props: any) => {
+export const AccountInfo: React.FC = () => {
   const classes = useStyles();
   const accountContext = useContext(AccountContext);
 
@@ -266,7 +278,7 @@ export const AccountInfo: React.FC = (props: any) => {
     setStatusAlert({
       ...statusAlert,
       open: false,
-    })
+    });
   };
 
   const defaults = {
@@ -280,10 +292,15 @@ export const AccountInfo: React.FC = (props: any) => {
       return;
     }
     if (!accountContext.profile || !accountContext.profile.etherscanKey) {
-      console.warn(`No api key provided, nothing to register. Personal=${JSON.stringify(accountContext.profile)}`);
+      console.warn(`No api key provided, nothing to register. Personal=${
+        JSON.stringify(accountContext.profile)
+      }`);
       return;
     }
-    const payload = { profile: accountContext.profile, signerAddress: accountContext.signer.address };
+    const payload = {
+      profile: accountContext.profile,
+      signerAddress: accountContext.signer.address,
+    };
     const sig = await accountContext.signer.signMessage(JSON.stringify(payload));
     const res = await axios.post(`${window.location.origin}/api/profile`, { sig, payload });
     console.log(res);
@@ -291,13 +308,13 @@ export const AccountInfo: React.FC = (props: any) => {
 
   const handleProfileChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.username = "${event.target.value}"`);
-    const newProfile = {...accountContext.profile, username: event.target.value};
+    const newProfile = { ...accountContext.profile, username: event.target.value };
     accountContext.setProfile(newProfile);
   };
 
   const handleKeyChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.etherscanKey = "${event.target.value}"`);
-    const newProfile = {...accountContext.profile, etherscanKey: event.target.value};
+    const newProfile = { ...accountContext.profile, etherscanKey: event.target.value };
     accountContext.setProfile(newProfile);
   };
 
@@ -383,5 +400,5 @@ export const AccountInfo: React.FC = (props: any) => {
         </Alert>
       </Snackbar>
     </div>
-  )
-}
+  );
+};

@@ -64,7 +64,11 @@ process.on("SIGINT", logAndExit);
 
   const addressBook = getAddressBook(input.addressBook, log);
 
-  const chainData = await getChainData({ store, logger: log, etherscanKey: input.env.etherscanKey });
+  const chainData = await getChainData({
+    etherscanKey: input.env.etherscanKey,
+    logger: log,
+    store,
+  });
 
   if (env.mode !== "test") {
     await chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
@@ -101,7 +105,9 @@ process.on("SIGINT", logAndExit);
     const chunk = 100;
     if (transaction.index % chunk === 0) {
       const diff = (Date.now() - start).toString();
-        log.info(`Processed transactions ${transaction.index - chunk}-${transaction.index} in ${diff} ms`);
+      log.info(`Processed transactions ${transaction.index - chunk}-${
+        transaction.index
+      } in ${diff} ms`);
       start = Date.now();
     }
 
@@ -148,7 +154,9 @@ process.on("SIGINT", logAndExit);
         return;
       }
       const isQualified = dividend.tags.includes("qualified");
-      log.info(`Adding ${isQualified ? "qualified " : ""}dividend of ${dividend.quantity} ${dividend.assetType} from ${dividend.source}`);
+      log.info(`Adding ${isQualified ? "qualified " : ""}dividend of ${dividend.quantity} ${
+        dividend.assetType
+      } from ${dividend.source}`);
       total.ordinary = math.add(total.ordinary, dividend.quantity);
       if (isQualified) {
         total.qualified = math.add(total.qualified, dividend.quantity);
@@ -177,10 +185,12 @@ process.on("SIGINT", logAndExit);
 
   if (env.mode !== "test") {
     for (const form of formsToFile.reverse()) {
+      // eslint-disable-next-line import/namespace
       if (!filers[form]) {
         log.warn(`No filer is available for form ${form}. Using unmodified user input.`);
         continue;
       }
+      // eslint-disable-next-line import/namespace
       output = filers[form](
         vmEvents.filter(vmEvent => vmEvent.date.startsWith(taxYear)),
         output,

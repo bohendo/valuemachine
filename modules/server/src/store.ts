@@ -1,3 +1,5 @@
+import fs from "fs";
+
 import {
   Store,
   StoreKeys,
@@ -5,7 +7,6 @@ import {
   emptyStore,
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
-import fs from "fs";
 
 import { env } from "./env";
 

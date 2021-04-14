@@ -26,7 +26,9 @@ export const categorizeTransfer = (
   const { isCategory, isSelf, getName } = addressBook;
   const log = logger.child({ module: "CategorizeTransfer" }); 
 
-  log.debug(`Categorizing transfer of ${transfer.quantity} from ${getName(transfer.from)} to ${getName(transfer.to)}`);
+  log.debug(`Categorizing transfer of ${transfer.quantity} from ${
+    getName(transfer.from)
+  } to ${getName(transfer.to)}`);
 
   if (isSelf(transfer.from)) {
 

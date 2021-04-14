@@ -1,19 +1,18 @@
 import {
-  DateString,
   Logger,
   Transaction,
   TransactionSources,
   TransferCategories,
 } from "@finances/types";
-import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
+
+import { getTransactionsError } from "../verify";
 
 import {
   mergeFactory,
   mergeOffChainTransactions,
   shouldMergeOffChain,
 } from "./utils";
-import { getTransactionsError } from "../verify";
 
 export const mergeWazrixTransactions = (
   oldTransactions: Transaction[],
@@ -85,7 +84,6 @@ export const mergeWazrixTransactions = (
     } else if (row["Trade"]) {
       const {
         ["Market"]: market,
-        ["Price"]: price,
         ["Volume"]: quantity,
         ["Total"]: inrQuantity,
         ["Trade"]: tradeType,
@@ -95,6 +93,14 @@ export const mergeWazrixTransactions = (
 
       // Assumes all markets are INR markets
       const currency = market.replace("INR", "");
+
+      transaction.transfers.push({
+        assetType: feeAsset,
+        category: TransferCategories.Transfer,
+        from: "wazrix-account",
+        quantity: feeAmount,
+        to: "wazrix-exchange",
+      });
 
       if (tradeType === "Buy") {
         transaction.transfers.push({
@@ -137,7 +143,7 @@ export const mergeWazrixTransactions = (
 
     }
     log.info(transaction.description);
-    return transaction
+    return transaction;
 
   }).filter(row => !!row);
 

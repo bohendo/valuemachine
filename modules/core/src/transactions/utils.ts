@@ -55,7 +55,9 @@ export const mergeFactory = (opts: {
     for (let i = 0; i < transactions.length; i++) {
       const transaction = transactions[i];
       if (!transaction || !transaction.date) {
-        throw new Error(`Trying to merge new transaction into ${i} ${JSON.stringify(transaction, null, 2)}`);
+        throw new Error(`Trying to merge new transaction into ${i} ${
+          JSON.stringify(transaction, null, 2)
+        }`);
       }
       if (newTransaction.date) {
         const delta =
@@ -79,7 +81,9 @@ export const mergeFactory = (opts: {
           return output;
         }
         log.debug(
-          `transaction ${i} "${transaction.description}" occured ${delta / 1000}s after "${newTransaction.description}"`,
+          `transaction ${i} "${transaction.description}" occured ${delta / 1000}s after "${
+            newTransaction.description
+          }"`,
         );
       }
 

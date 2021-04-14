@@ -1,10 +1,10 @@
-import React from 'react';
+import React from "react";
 import {
   Paper,
   Theme,
   createStyles,
   makeStyles,
-} from '@material-ui/core';
+} from "@material-ui/core";
 import {
   Chart,
   ArgumentAxis,
@@ -12,47 +12,47 @@ import {
   LineSeries,
   Title,
   Legend,
-} from '@devexpress/dx-react-chart-material-ui';
-import { scaleTime } from 'd3-scale';
+} from "@devexpress/dx-react-chart-material-ui";
+import { scaleTime } from "d3-scale";
 import {
   ArgumentScale,
-} from '@devexpress/dx-react-chart';
+} from "@devexpress/dx-react-chart";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
-    display: 'flex',
-    margin: 'auto',
-    flexDirection: 'row',
+    display: "flex",
+    margin: "auto",
+    flexDirection: "row",
   },
   label: {
     paddingTop: theme.spacing(1),
-    whiteSpace: 'nowrap',
+    whiteSpace: "nowrap",
   },
   item: {
-    flexDirection: 'column',
+    flexDirection: "column",
   },
   chart: {
-    paddingRight: '20px',
+    paddingRight: "20px",
   },
   title: {
-    whiteSpace: 'pre',
+    whiteSpace: "pre",
   },
 }));
 
 //const format = scale => scale.tickFormat(4, d => 10
-  //+ formatPower(Math.round(Math.log(d) / Math.LN10)));
+//+ formatPower(Math.round(Math.log(d) / Math.LN10)));
 
 const LegendRootBase = (props: any) => {
   const classes = useStyles();
-  return <Legend.Root {...props} className={classes.root} />
+  return <Legend.Root {...props} className={classes.root} />;
 };
 const LegendLabelBase = (props: any) => {
   const classes = useStyles();
-  return <Legend.Label className={classes.label} {...props} />
+  return <Legend.Label className={classes.label} {...props} />;
 };
 const LegendItemBase = (props: any) => {
   const classes = useStyles();
-  return <Legend.Item className={classes.item} {...props} />
+  return <Legend.Item className={classes.item} {...props} />;
 };
 
 const ValueLabel = (props: any) => {
@@ -67,14 +67,14 @@ const ValueLabel = (props: any) => {
 
 const TitleText = (props: any) => {
   const classes = useStyles();
-  return <Title.Text {...props} className={classes.title} />
+  return <Title.Text {...props} className={classes.title} />;
 };
 
 export const NetWorth = (props: any) => {
-  const { netWorthTimeline} = props;
+  const { netWorthTimeline } = props;
 
   if (!netWorthTimeline || netWorthTimeline.length === 0) {
-    return <> Will have net worth graph soon </>
+    return <> Will have net worth graph soon </>;
   }
 
   return (
@@ -94,15 +94,20 @@ export const NetWorth = (props: any) => {
           argumentField="date"
         />
         {/*<LineSeries name="Debt" valueField="debt" argumentField="date" />*/}
-        <Legend position="bottom" rootComponent={LegendRootBase} itemComponent={LegendItemBase} labelComponent={LegendLabelBase} />
+        <Legend
+          position="bottom"
+          rootComponent={LegendRootBase}
+          itemComponent={LegendItemBase}
+          labelComponent={LegendLabelBase}
+        />
         <Title
-          text={'NetWorth over time'}
+          text={"NetWorth over time"}
           textComponent={TitleText}
         />
       </Chart>
     </Paper>
   );
-}
+};
 
 /*
           <LineSeries

@@ -17,22 +17,23 @@ import { getLogger } from "@finances/utils";
 import {
   Grid,
   Typography,
-} from '@material-ui/core';
-import React, { useState, useContext, useEffect } from 'react';
+} from "@material-ui/core";
+import React, { useState, useContext, useEffect } from "react";
 
-import { AssetDistribution } from './AssetDistribution';
-import { DateTime } from './DateTimePicker'
-import { EventTable } from './EventTable'
-import { NetWorth } from './NetWorthGraph';
-import { EthTransactionLogs } from './TransactionLogs'
-
-import { inTypes, outTypes } from '../utils/utils';
+import { inTypes, outTypes } from "../utils/utils";
 import { AccountContext } from "../accountContext";
-import { store } from '../utils/cache';
+import { store } from "../utils/cache";
 
-export const Dashboard: React.FC = (props: any) => {
+import { AssetDistribution } from "./AssetDistribution";
+import { DateTime } from "./DateTimePicker";
+import { EventTable } from "./EventTable";
+import { NetWorth } from "./NetWorthGraph";
+import { EthTransactionLogs } from "./TransactionLogs";
+
+
+export const Dashboard: React.FC = () => {
   const [endDate, setEndDate] = useState(new Date());
-  const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as TotalByCategoryPerAssetType);
+  const [filteredTotalByCategory, setFilteredTotalByCategory] = useState({} as any);
 
   const [financialTransactions, setFinancialTransactions] = useState([] as Transaction[]);
   const [state, setState] = useState(emptyState);
@@ -50,10 +51,10 @@ export const Dashboard: React.FC = (props: any) => {
   const prices = getPrices(store, logger);
 
   useEffect(() => {
-    let currentPrices = {}
+    const currentPrices = {};
     Object.values(AssetTypes).forEach(async (assetType) => {
       currentPrices[assetType] = await prices.getPrice(assetType, endDate.toISOString());
-    })
+    });
     setEndDatePrice(currentPrices);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endDate]);
@@ -77,7 +78,7 @@ export const Dashboard: React.FC = (props: any) => {
       });
 
       log.debug(`Merging chain-data: ${JSON.stringify(accountContext.chainData, null, 2)}`);
-      let newTransactions = await mergeEthTransactions(
+      const newTransactions = await mergeEthTransactions(
         [], // Could give transactions & this function will merge new txns into the existing array
         accountContext.addressBook,
         accountContext.chainData,
@@ -85,7 +86,9 @@ export const Dashboard: React.FC = (props: any) => {
         logger,
       );
 
-      log.info(`address book contains ${accountContext.addressBook.addresses.filter(accountContext.addressBook.isSelf).length} self addresses`);
+      log.info(`address book contains ${
+        accountContext.addressBook.addresses.filter(accountContext.addressBook.isSelf).length
+      } self addresses`);
 
       for (let i = 0; i < newTransactions.length; i++) {
         const tx = newTransactions[i];
@@ -105,14 +108,16 @@ export const Dashboard: React.FC = (props: any) => {
       const valueMachine = getValueMachine(accountContext.addressBook, logger);
 
       let state = store.load(StoreKeys.State);
-      let vmEvents = store.load(StoreKeys.Events);
+      const vmEvents = store.load(StoreKeys.Events);
 
       log.info(`Filtering out any transactions that came before ${state.lastUpdated}`);
       const filteredTransactions = newTransactions.filter(
         tx => new Date(tx.date).getTime() > new Date(state.lastUpdated).getTime(),
       ).sort((tx1, tx2) => new Date(tx1.date).getTime() - new Date(tx2.date).getTime());
 
-      log.info(`Processing ${filteredTransactions.length} new transactions of ${newTransactions.length} total`);
+      log.info(`Processing ${filteredTransactions.length} new transactions of ${
+        newTransactions.length
+      } total`);
 
       let start = Date.now();
       for (const transaction of filteredTransactions) {
@@ -121,14 +126,18 @@ export const Dashboard: React.FC = (props: any) => {
           [newState, newEvents] = valueMachine(state, transaction);
           log.info(`Processed tx ${transaction.index}: ${transaction.description}`);
         } catch (e) {
-          throw new Error(`Failed to apply tx ${JSON.stringify(transaction, null, 2)} to state: ${JSON.stringify(state, null, 2)}: ${e.message}`);
+          throw new Error(`Failed to apply tx ${
+            JSON.stringify(transaction, null, 2)
+          } to state: ${JSON.stringify(state, null, 2)}: ${e.message}`);
         }
         vmEvents.push(...newEvents);
         state = newState;
         const chunk = 100;
         if (transaction.index % chunk === 0) {
           const diff = (Date.now() - start).toString();
-          log.info(`Processed transactions ${transaction.index - chunk}-${transaction.index} in ${diff} ms`);
+          log.info(`Processed transactions ${
+            transaction.index - chunk
+          }-${transaction.index} in ${diff} ms`);
           start = Date.now();
         }
       }
@@ -141,55 +150,62 @@ export const Dashboard: React.FC = (props: any) => {
   }, [accountContext.addressBook, accountContext.chainData]);
 
   useEffect(() => {
-    let totalByCategory = {};
-    let tempTotalByAssetType = {};
-    financialEvents.filter(event => new Date(event.date).getTime() <= endDate.getTime()).forEach((event: Event) => {
-      if (!event.assetType) return;
-      if (event.assetType.toLowerCase().startsWith('c')) {
-        return;
-      }
-      if (!totalByCategory[event.type]) {
-        totalByCategory[event.type] = {};
-        totalByCategory[event.type][event.assetType] = 0;
-      }
-      else if (!totalByCategory[event.type][event.assetType]) {
-        totalByCategory[event.type][event.assetType] = 0;
-      }
-      totalByCategory[event.type][event.assetType] += parseFloat(event.quantity);
+    const totalByCategory = {};
+    const tempTotalByAssetType = {};
+    financialEvents
+      .filter(event => new Date(event.date).getTime() <= endDate.getTime())
+      .forEach((event: Event) => {
+        if (!event.assetType) return;
+        if (event.assetType.toLowerCase().startsWith("c")) {
+          return;
+        }
+        if (!totalByCategory[event.type]) {
+          totalByCategory[event.type] = {};
+          totalByCategory[event.type][event.assetType] = 0;
+        }
+        else if (!totalByCategory[event.type][event.assetType]) {
+          totalByCategory[event.type][event.assetType] = 0;
+        }
+        totalByCategory[event.type][event.assetType] += parseFloat(event.quantity);
 
-      if (!tempTotalByAssetType[event.assetType]) {
-        tempTotalByAssetType[event.assetType] = 0;
-      }
-      if (inTypes.includes(event.type)) {
-        tempTotalByAssetType[event.assetType] += parseFloat(event.quantity);
-      } else if (outTypes.includes(event.type)) {
-        tempTotalByAssetType[event.assetType] -= parseFloat(event.quantity);
-      }
-    })
+        if (!tempTotalByAssetType[event.assetType]) {
+          tempTotalByAssetType[event.assetType] = 0;
+        }
+        if (inTypes.includes(event.type)) {
+          tempTotalByAssetType[event.assetType] += parseFloat(event.quantity);
+        } else if (outTypes.includes(event.type)) {
+          tempTotalByAssetType[event.assetType] -= parseFloat(event.quantity);
+        }
+      });
     setFilteredTotalByCategory(totalByCategory);
     setTotalByAssetType(tempTotalByAssetType);
 
     const netWorthEvents = financialEvents
       .filter(event => new Date(event.date).getTime() <= endDate.getTime())
-      .filter(event => event.type === EventTypes.NetWorth)
+      .filter(event => event.type === EventTypes.NetWorth);
 
     const recentPrices = {};
-    const netWorthData = netWorthEvents.map((event: Event, index: number) => {
-        let total = 0;
-        for (const assetType of Object.keys(event.assets)) {
-          recentPrices[assetType] = event.prices[assetType] || recentPrices[assetType];
-          total += parseFloat(event.assets[assetType]) * parseFloat(recentPrices[assetType]);
-        }
-        return { date: new Date(event.date), networth: total };
-      });
-
-    if (netWorthData.length > 0 && netWorthData[netWorthData.length -1].date.toDateString() !== endDate.toDateString()) {
+    const netWorthData = netWorthEvents.map((event: Event) => {
       let total = 0;
-      console.log('running this');
-      for (const assetType of Object.keys(netWorthEvents[netWorthEvents.length - 1].assets)) {
-        total += parseFloat(netWorthEvents[netWorthEvents.length - 1].assets[assetType]) * parseFloat(endDatePrice[assetType]);
+      for (const assetType of Object.keys(event.assets)) {
+        recentPrices[assetType] = event.prices[assetType] || recentPrices[assetType];
+        total += parseFloat(event.assets[assetType]) * parseFloat(recentPrices[assetType]);
       }
-      netWorthData.push({date: endDate, networth: total})
+      return { date: new Date(event.date), networth: total };
+    });
+
+    if (
+      netWorthData.length > 0 &&
+      netWorthData[netWorthData.length -1].date.toDateString() !== endDate.toDateString()
+    ) {
+      let total = 0;
+      console.log("running this");
+      for (const assetType of Object.keys(netWorthEvents[netWorthEvents.length - 1].assets)) {
+        total +=
+          parseFloat(netWorthEvents[netWorthEvents.length - 1].assets[assetType])
+          * parseFloat(endDatePrice[assetType]);
+      }
+      netWorthData.push({ date: endDate, networth: total });
     }
     console.log(recentPrices);
     console.log(netWorthEvents[netWorthEvents.length - 1]);
@@ -234,5 +250,5 @@ export const Dashboard: React.FC = (props: any) => {
         />
       </Grid>
     </Grid>
-  )
-}
+  );
+};

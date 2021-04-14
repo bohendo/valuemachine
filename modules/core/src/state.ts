@@ -92,10 +92,12 @@ export const getState = (
     let togo = quantity;
     while (gt(togo, "0")) {
       const chunk = getNextChunk(account, assetType);
-      log.debug(`Got next chunk of ${assetType} w ${togo} to go: ${JSON.stringify(chunk, null, 2)}`);
+      log.debug(chunk, `Got next chunk of ${assetType} w ${togo} to go`);
       if (!chunk) {
         output.forEach(chunk => putChunk(account, chunk)); // roll back changes so far
-        throw new Error(`${account} attempted to spend ${quantity} ${assetType} but they are missing ${togo}. All chunks: ${JSON.stringify(output)}.`);
+        throw new Error(`${account} attempted to spend ${quantity} ${
+          assetType
+        } but they are missing ${togo}. All chunks: ${JSON.stringify(output)}.`);
       }
       if (gt(chunk.quantity, togo)) {
         putChunk(account, { ...chunk, quantity: sub(chunk.quantity, togo) });

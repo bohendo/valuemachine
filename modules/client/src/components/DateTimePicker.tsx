@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 import {
   DateTimePicker,
   MuiPickersUtilsProvider
-} from '@material-ui/pickers';
-import DateFnsUtils from '@date-io/date-fns';
+} from "@material-ui/pickers";
+import DateFnsUtils from "@date-io/date-fns";
 
 export const DateTime = (props: any) => {
 
@@ -16,6 +16,6 @@ export const DateTime = (props: any) => {
         value={props.date}
         onChange={(date: any) => props.setDate(date)}
       />
-   </MuiPickersUtilsProvider>
+    </MuiPickersUtilsProvider>
   );
-}
+};

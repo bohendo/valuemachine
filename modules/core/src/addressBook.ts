@@ -180,10 +180,10 @@ export const getAddressBook = (
     !address
       ? ""
       : addressBook.find(row => smeq(row.address, address))
-      ? addressBook.find(row => smeq(row.address, address)).name
-      : address.startsWith("0x")
-      ? `${address.substring(0, 6)}..${address.substring(address.length - 4)}`
-      : address;
+        ? addressBook.find(row => smeq(row.address, address)).name
+        : address.startsWith("0x")
+          ? `${address.substring(0, 6)}..${address.substring(address.length - 4)}`
+          : address;
 
   return {
     addresses,

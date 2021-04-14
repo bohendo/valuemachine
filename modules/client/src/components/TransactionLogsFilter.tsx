@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { AssetTypes, Transaction, Transfer, TransferCategories } from '@finances/types';
+import React, { useState, useEffect } from "react";
+import { AssetTypes, Transaction, Transfer, TransferCategories } from "@finances/types";
 import { math } from "@finances/utils";
-
 import {
   Checkbox,
   Divider,
@@ -12,14 +11,14 @@ import {
   Theme,
   createStyles,
   makeStyles,
-} from '@material-ui/core';
+} from "@material-ui/core";
 
-import { DateTime } from './DateTimePicker'
+import { DateTime } from "./DateTimePicker";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      display: 'flex',
+      display: "flex",
     },
     formControl: {
       margin: theme.spacing(3),
@@ -27,14 +26,14 @@ const useStyles = makeStyles((theme: Theme) =>
   }),
 );
 
-let allCategories = { all: true };
-Object.keys(TransferCategories).forEach(category => { allCategories[category] = false })
+const allCategories = { all: true };
+Object.keys(TransferCategories).forEach(category => { allCategories[category] = false; });
 
-let allAssets = { all: true };
-Object.keys(AssetTypes).forEach(asset => { allAssets[asset] = false })
+const allAssets = { all: true };
+Object.keys(AssetTypes).forEach(asset => { allAssets[asset] = false; });
 
 export const EthTransactionLogsFilter = (props: any) => {
-  const { transactions, setFilteredTransactions } = props
+  const { transactions, setFilteredTransactions } = props;
 
   const classes = useStyles();
 
@@ -46,15 +45,15 @@ export const EthTransactionLogsFilter = (props: any) => {
   const [assets, setAssets] = useState(allAssets);
 
   const handleCategoryChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCategories({...categories, [event.target.name]: event.target.checked})
+    setCategories({ ...categories, [event.target.name]: event.target.checked });
   };
 
   const handleAssetChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAssets({...assets, [event.target.name]: event.target.checked})
+    setAssets({ ...assets, [event.target.name]: event.target.checked });
   };
 
   useEffect(() => {
-    let temp = [];
+    const temp = [];
 
     transactions.forEach((transaction: Transaction) => {
       if (
@@ -72,13 +71,14 @@ export const EthTransactionLogsFilter = (props: any) => {
             ...transfer,
             date: transaction.date,
             hash: transaction.hash,
-            value: parseFloat(transaction.prices[transfer.assetType]) * parseFloat(transfer.quantity)
-          })
+            value: parseFloat(transaction.prices[transfer.assetType])
+              * parseFloat(transfer.quantity)
+          });
         }
-      })
+      });
     });
 
-    setFilteredTransactions(temp)
+    setFilteredTransactions(temp);
   }, [transactions, startDate, endDate, categories, assets, setFilteredTransactions]);
 
   return (
@@ -125,5 +125,5 @@ export const EthTransactionLogsFilter = (props: any) => {
         </FormGroup>
       </FormControl>
     </>
-  )
-}
+  );
+};

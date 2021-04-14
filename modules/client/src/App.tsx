@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect } from "react";
 import {
   getAddressBook,
   getChainData,
@@ -10,7 +9,6 @@ import {
   StoreKeys,
   emptyProfile,
 } from "@finances/types";
-
 import {
   Container,
   CssBaseline,
@@ -19,14 +17,13 @@ import {
   createMuiTheme,
   createStyles,
   makeStyles,
-} from '@material-ui/core';
+} from "@material-ui/core";
 import { Wallet } from "ethers";
 import { Route, Switch } from "react-router-dom";
 
 import { NavBar } from "./components/NavBar";
 import { AccountInfo } from "./components/AccountInfo";
 import { Dashboard } from "./components/Dashboard";
-
 import { AccountContext } from "./accountContext";
 import { store } from "./utils/cache";
 
@@ -82,7 +79,9 @@ const App: React.FC = () => {
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <AccountContext.Provider value={{profile, signer, setProfile, addressBook, chainData, setChainData}}>
+      <AccountContext.Provider
+        value={{ profile, signer, setProfile, addressBook, chainData, setChainData }}
+      >
         <CssBaseline />
         <NavBar />
         <main className={classes.main}>
@@ -101,6 +100,6 @@ const App: React.FC = () => {
       </AccountContext.Provider>
     </ThemeProvider>
   );
-}
+};
 
 export default App;

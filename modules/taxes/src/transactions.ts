@@ -1,3 +1,5 @@
+import * as fs from "fs";
+
 import {
   getPrices,
   mergeCoinbaseTransactions,
@@ -16,7 +18,6 @@ import {
   StoreKeys,
   Transaction,
 } from "@finances/types";
-import * as fs from "fs";
 
 export const getTransactions = async (
   addressBook: AddressBook,

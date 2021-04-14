@@ -8,12 +8,13 @@ import {
 import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
+import { getTransactionsError } from "../verify";
+
 import {
   mergeFactory,
   mergeOffChainTransactions,
   shouldMergeOffChain,
 } from "./utils";
-import { getTransactionsError } from "../verify";
 
 export const mergeWyreTransactions = (
   oldTransactions: Transaction[],

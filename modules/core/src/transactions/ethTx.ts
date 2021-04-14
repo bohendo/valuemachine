@@ -110,7 +110,9 @@ export const mergeEthTxTransactions = (
         logger,
       );
 
-      log.debug(`${tx.value} ETH from ${tx.from} to ${tx.to}: ${transaction.transfers[0].category}`);
+      log.debug(`${tx.value} ETH from ${tx.from} to ${
+        tx.to
+      }: ${transaction.transfers[0].category}`);
 
       for (const txLog of tx.logs) {
         const address = sm(txLog.address);
@@ -123,7 +125,9 @@ export const mergeEthTxTransactions = (
           const event = Object.values(iface.events).find(e => getEventTopic(e) === txLog.topics[0]);
 
           if (!event) {
-            log.warn(`Unable to identify ${assetType} event w topic: ${txLog.topics[0]}. Got events: ${Object.keys(iface.events)}`);
+            log.warn(`Unable to identify ${assetType} event w topic: ${
+              txLog.topics[0]
+            }. Got events: ${Object.keys(iface.events)}`);
             continue;
           }
 
@@ -186,9 +190,13 @@ export const mergeEthTxTransactions = (
         throw new Error(`No transfers for EthTx: ${JSON.stringify(transaction, null, 2)}`);
       } else if (transaction.transfers.length === 1) {
         const { assetType, from, quantity, to } = transaction.transfers[0];
-        transaction.description = `${getName(from)} sent ${quantity} ${assetType} to ${getName(to)}`;
+        transaction.description = `${getName(from)} sent ${quantity} ${assetType} to ${
+          getName(to)
+        }`;
       } else {
-        transaction.description = `${getName(transaction.transfers[0].to)} made ${transaction.transfers.length} transfers`;
+        transaction.description = `${getName(transaction.transfers[0].to)} made ${
+          transaction.transfers.length
+        } transfers`;
       }
 
       log.debug(transaction.description);
@@ -215,6 +223,8 @@ export const mergeEthTxTransactions = (
   }
 
   const diff = (Date.now() - start).toString();
-  log.info(`Done processing eth txs in ${diff} ms (avg ${math.round(math.div(diff, newEthTxs.length.toString()))} ms/ethTx)`);
+  log.info(`Done processing eth txs in ${diff} ms (avg ${
+    math.round(math.div(diff, newEthTxs.length.toString()))
+  } ms/ethTx)`);
   return transactions;
 };

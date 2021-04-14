@@ -1,3 +1,5 @@
+import fs from "fs";
+
 import {
   Store,
   StoreKeys,
@@ -5,7 +7,6 @@ import {
   emptyStore,
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
-import fs from "fs";
 
 import { env } from "./env";
 
@@ -31,8 +32,8 @@ const cache: StoreValues = {
 const getDir = (): string => `${dirName}/${env.mode}`;
 
 const toFilename = (key: StoreKeys): string => `${getDir()}/${
-    key.replace(/[A-Z]/g, "-$&".toLowerCase()).replace(/^-/, "").toLowerCase()
-  }.json`;
+  key.replace(/[A-Z]/g, "-$&".toLowerCase()).replace(/^-/, "").toLowerCase()
+}.json`;
 
 const load = <T extends keyof StoreValues>(key: T): StoreValues[T] => {
   if (!cache[key]) {

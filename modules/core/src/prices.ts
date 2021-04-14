@@ -57,7 +57,7 @@ export const getPrices = (store: Store, logger: Logger, pricesJson?: PricesJson)
       try {
         json[date][asset] = response.market_data.current_price.usd.toString();
       } catch (e) {
-        throw new Error(`Couldn't get price, double check that ${asset} existed on ${coingeckoDate}`);
+        throw new Error(`Couldn't get price, make sure that ${asset} existed on ${coingeckoDate}`);
       }
       save(json);
     }
@@ -72,12 +72,12 @@ export const getPrices = (store: Store, logger: Logger, pricesJson?: PricesJson)
     ["USD", "DAI", "SAI"].includes(asset)
       ? "1"
       : "INR" === asset
-      ? "0.013"
-      : ["ETH", "WETH"].includes(asset)
-      ? await fetchPrice("ETH", date)
-      : asset.toUpperCase().startsWith("C")
-      ? "0" // skip compound tokens for now
-      : await fetchPrice(asset, date);
+        ? "0.013"
+        : ["ETH", "WETH"].includes(asset)
+          ? await fetchPrice("ETH", date)
+          : asset.toUpperCase().startsWith("C")
+            ? "0" // skip compound tokens for now
+            : await fetchPrice(asset, date);
 
 
   return { json, getPrice };
