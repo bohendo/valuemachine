@@ -18,10 +18,11 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
-import { NavBar } from "./components/NavBar";
+import { AccountContext } from "./accountContext";
 import { AccountInfo } from "./components/AccountInfo";
 import { Dashboard } from "./components/Dashboard";
-import { AccountContext } from "./accountContext";
+import { NavBar } from "./components/NavBar";
+import { Taxes } from "./components/Taxes";
 import { store } from "./utils/cache";
 
 const darkTheme = createMuiTheme({
@@ -87,6 +88,9 @@ const App: React.FC = () => {
                   profile={profile}
                   setProfile={setProfile}
                 />
+              </Route>
+              <Route exact path="/taxes">
+                <Taxes />
               </Route>
             </Switch>
           </Container>

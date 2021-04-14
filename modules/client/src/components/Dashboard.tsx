@@ -44,7 +44,7 @@ export const Dashboard: React.FC = () => {
   }, [liquidityPositions]);
 
   if (!liquiditySnapshots || Object.keys(liquiditySnapshots).length === 0) {
-    return (<div>Loading ...</div>);
+    return (<p>Dashboard is under construction, try again later</p>);
   }
 
   console.log(liquiditySnapshots);
