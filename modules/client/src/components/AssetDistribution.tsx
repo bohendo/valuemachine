@@ -5,6 +5,7 @@ import {
   Title,
 } from "@devexpress/dx-react-chart-material-ui";
 import { getPrices } from "@finances/core";
+import { getLogger } from "@finances/utils";
 import {
   Paper,
 } from "@material-ui/core";
@@ -47,7 +48,7 @@ export const AssetDistribution = (props: any) => {
   useEffect(() => {
     (async () => {
       const temp = [];
-      const prices = getPrices(store, console);
+      const prices = getPrices(store, getLogger("info"));
       for (const entry of Object.entries(totalByAssetType)) {
         if (entry[1] > 0 ) {
           const price = await prices.getPrice(entry[0], date);

@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@material-ui/core";
 import { getState } from "@finances/core";
+import { getLogger } from "@finances/utils";
 
 export const EventTable = (props: any) => {
 
@@ -18,7 +19,7 @@ export const EventTable = (props: any) => {
 
   let totals;
   if (state) {
-    totals = getState(state).getNetWorth();
+    totals = getState(state, undefined, getLogger("info")).getNetWorth();
   } else {
     totals = {};
   }
