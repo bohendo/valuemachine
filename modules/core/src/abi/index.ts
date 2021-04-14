@@ -27,7 +27,7 @@ export const getTokenInterface = (address?: Address): utils.Interface => !addres
         ? new Interface(saiAbi)
         : addressBook.getName(address) === "WETH"
           ? new Interface(wethAbi)
-          : addressBook.isCategory(AddressCategories.CToken)(address)
+          : addressBook.isCategory(AddressCategories.Compound)(address)
             ? new Interface(cTokenAbi)
             : new Interface(erc20Abi);
 
@@ -35,3 +35,6 @@ export const daiJoinInterface = new Interface(daiJoinAbi);
 export const defiInterface = new Interface([...new Set(compoundAbi.concat(cTokenAbi))]);
 export const exchangeInterface = new Interface(oasisDexAbi);
 export const vatInterface = new Interface(vatAbi);
+
+// Compound V1 addresses are available at:
+// https://github.com/compound-finance/compound-money-market/tree/master/networks

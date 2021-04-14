@@ -2,7 +2,7 @@ import { Address, HexString } from "./strings";
 import { enumify } from "./utils";
 
 export const AddressCategories = enumify({
-  CToken: "CToken",
+  Compound: "Compound",
   Cdp: "Cdp",
   Defi: "Defi",
   Erc20: "Erc20",

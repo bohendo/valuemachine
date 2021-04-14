@@ -1,5 +1,6 @@
 import {
   AddressBook,
+  AddressCategories,
   ChainData,
   Transaction,
   TransactionSources,
@@ -129,10 +130,20 @@ export const mergeEthTxTransactions = (
               txLog.topics[0]
             }. Got events: ${Object.keys(iface.events)}`);
             continue;
+          } else if (["AccrueInterest", "Approval"].includes(event.name)) {
+            log.debug(`Skipping ${event.name} event`);
+            continue;
           }
 
           const args = iface.parseLog(txLog).args;
-          const quantityStr = args.amount || args.value || args.wad;
+          const quantityStr = args.amount
+            || args.borrowAmount
+            || args.burnAmount
+            || args.mintAmount
+            || args.redeemAmount
+            || args.repayAmount
+            || args.value
+            || args.wad;
           let quantity = "0";
 
           if (quantityStr) {
@@ -157,28 +168,56 @@ export const mergeEthTxTransactions = (
               logger,
             ));
 
+          // WETH
           } else if (assetType === "WETH" && event.name === "Deposit") {
             log.debug(`Deposit by ${args.dst} minted ${quantity} ${assetType}`);
             transfer.category = TransferCategories.SwapIn;
             transaction.transfers.push({ ...transfer, from: address, to: args.dst });
-
           } else if (assetType === "WETH" && event.name === "Withdrawal") {
             log.debug(`Withdraw by ${args.dst} burnt ${quantity} ${assetType}`);
             transfer.category = TransferCategories.SwapOut;
             transaction.transfers.push({ ...transfer, from: args.src, to: address });
 
+          // MakerDAO SAI
           } else if (assetType === "SAI" && event.name === "Mint") {
             log.debug(`Minted ${quantity} ${assetType}`);
             transfer.category = TransferCategories.Borrow;
             transaction.transfers.push({ ...transfer, from: AddressZero, to: args.guy });
-
           } else if (assetType === "SAI" && event.name === "Burn") {
             log.debug(`Burnt ${quantity} ${assetType}`);
             transfer.category = TransferCategories.Repay;
             transaction.transfers.push({ ...transfer, from: args.guy, to: AddressZero });
 
-          } else if (event.name === "Approval") {
-            log.debug(`Skipping Approval event`);
+          // Compound V2 cETH
+          } else if (
+            addressBook.isCategory(AddressCategories.Compound)(address)
+          ) {
+            if (addressBook.getName(address) === "cETH") {
+              quantity = formatUnits(quantityStr, 18); // cETH decimals != ETH decimals
+              if (event.name === "Borrow") {
+                log.info(`Compound - Borrowed ${quantity} ETH`);
+                transaction.transfers.push({
+                  ...transfer,
+                  assetType: "ETH",
+                  category: TransferCategories.Borrow,
+                  from: address,
+                  to: args.borrower,
+                  quantity,
+                });
+              } else if (addressBook.getName(address) === "cETH" && event.name === "RepayBorrow") {
+                log.info(`Compound - Repaid ${quantity} ETH`);
+                transaction.transfers.push({
+                  ...transfer,
+                  assetType: "ETH",
+                  category: TransferCategories.Repay,
+                  from: args.borrower,
+                  to: address,
+                  quantity,
+                });
+              }
+            } else {
+              log.debug(`Compound - Ignoring ${event.name} ${quantity} ${assetType}`);
+            }
 
           } else if (event) {
             log.warn(`Unknown ${assetType} event: ${event.format()}`);
