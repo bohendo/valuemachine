@@ -6,7 +6,6 @@ import {
 import DateFnsUtils from "@date-io/date-fns";
 
 export const DateTime = (props: any) => {
-
   return (
     <MuiPickersUtilsProvider utils={DateFnsUtils}>
       <DateTimePicker
