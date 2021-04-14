@@ -443,14 +443,16 @@ export const AccountInfo = ({
                   <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
                     <RemoveIcon />
                   </IconButton>
-                  {!syncing[entry.address] ?
-                    <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
-                      <SyncIcon />
-                    </IconButton>
-                    : 
-                    <IconButton>
-                      <CircularProgress size={20}/>
-                    </IconButton>
+                  {entry.category === "self" ?
+                    !syncing[entry.address] ?
+                      <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
+                        <SyncIcon />
+                      </IconButton>
+                      : 
+                      <IconButton>
+                        <CircularProgress size={20}/>
+                      </IconButton>
+                    : undefined
                   }
                 </TableCell>
               </TableRow>
