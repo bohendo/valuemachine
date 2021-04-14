@@ -1,54 +1,25 @@
+import React, { useContext, useEffect, useState } from "react";
+
 import {
   Button,
-  Card,
-  CardHeader,
-  CircularProgress,
   Divider,
-  FormControl,
-  FormHelperText,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
   Snackbar,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Theme,
   Typography,
   createStyles,
   makeStyles,
-} from "@material-ui/core";
+} from '@material-ui/core';
 import {
-  AddCircle as AddIcon,
   Delete as DeleteIcon,
-  Sync as SyncIcon,
-  RemoveCircle as RemoveIcon,
   Save as SaveIcon,
 } from "@material-ui/icons";
 import { Alert } from "@material-ui/lab";
-import {
-  Address,
-  AddressEntry,
-  StoreKeys,
-} from "@finances/types";
-import { getEthTransactionError } from "@finances/core";
-import axios from "axios";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import { emptyProfile, } from "@finances/types";
 
 import { AccountContext } from "../accountContext";
-import { store } from "../utils/cache";
-
-const addressCategories = [
-  "self",
-  "friend",
-  "family",
-];
+import { AddNewAddress } from "./AddNewAddress";
+import { AddressList } from "./AddressList";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -64,209 +35,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-const AddListItem = () => {
-  const [newAddressEntry, setNewAddressEntry] = useState({
-    category: "self",
-    name: "hot-wallet",
-  } as AddressEntry);
-  const [newEntryError, setNewEntryError] = useState({
-    err: false,
-    msg: "Add your ethereum address to fetch info",
-  });
-
-  const accountContext = useContext(AccountContext);
-
-  const classes = useStyles();
-
-  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setNewAddressEntry({ ...newAddressEntry, [event.target.name]: event.target.value });
-    setNewEntryError({ err: false, msg: "Add your ethereum address to fetch info" });
-  };
-
-  const addNewAddress = () => {
-    if (!newAddressEntry.address) {
-      setNewEntryError({ err: true, msg: "Required! Ethereum Address" });
-    } else {
-      const i = accountContext.profile.addressBook.findIndex(
-        (o) => o.address.toLowerCase() === newAddressEntry.address.toLowerCase()
-      );
-      if (i < 0) {
-        const newProfile = {
-          ...accountContext.profile,
-          addressBook: [...accountContext.profile.addressBook, newAddressEntry],
-        };
-        accountContext.setProfile(newProfile);
-      } else {
-        setNewEntryError({ err: true, msg: "Address already added" });
-      }
-    }
-  };
-
-  return (
-    <Card className={classes.root}>
-      <CardHeader title={"Add new Address"} />
-      <TextField
-        error={newEntryError.err}
-        id="address"
-        label="Eth Address"
-        defaultValue="0xabc..."
-        helperText={newEntryError.msg}
-        name="address"
-        onChange={handleChange}
-        margin="normal"
-        variant="outlined"
-      />
-      <FormControl variant="outlined" className={classes.input}>
-        <InputLabel id="Category">Category</InputLabel>
-        <Select
-          labelId="category-select-drop"
-          id="category-select"
-          value={newAddressEntry.category || "self"}
-          name="category"
-          onChange={handleChange}
-        >
-          {addressCategories.map((category) => (
-            <MenuItem key={category} value={category}>
-              {category}
-            </MenuItem>
-          ))}
-        </Select>
-        <FormHelperText>Select address category</FormHelperText>
-      </FormControl>
-      <TextField
-        id="name"
-        label="Account Name"
-        defaultValue="hot-wallet"
-        helperText="Give your account a nickname"
-        name="name"
-        onChange={handleChange}
-        margin="normal"
-        variant="outlined"
-      />
-      <IconButton onClick={addNewAddress} >
-        <AddIcon />
-      </IconButton>
-    </Card>
-  );
-};
-
-const AddressList = (props: any) => {
-  const classes = useStyles();
-
-  const accountContext = useContext(AccountContext);
-  const { setStatusAlert } = props;
-  const [syncing, setSyncing] = useState({} as { [key: string]: boolean});
-
-  const deleteAddress = (entry: AddressEntry) => {
-    console.log(`Deleting ${JSON.stringify(entry)}`);
-    const newProfile = {
-      ...accountContext.profile,
-      addressBook: [...accountContext.profile.addressBook],
-    };
-    const i = newProfile.addressBook.findIndex(
-      (o) => o.address.toLowerCase() === entry.address.toLowerCase(),
-    );
-    if (i >= 0) {
-      newProfile.addressBook.splice(i, 1);
-      accountContext.setProfile(newProfile);
-    }
-  };
-
-  const syncHistory = async (address: Address) => {
-    setSyncing({ ...syncing, [address]: true });
-    const payload = { signerAddress: accountContext.signer.address, address };
-    console.log(payload);
-    const sig = await accountContext.signer.signMessage(JSON.stringify(payload));
-
-    let n = 0;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      try {
-        const response = await axios.post(
-          `${window.location.origin}/api/chaindata`,
-          { sig, payload },
-        );
-        console.log(`attempt ${n++}:`, response);
-        // TODO: Do we need status check here?
-        if (response.status === 200 && typeof response.data === "object") {
-          const history = response.data;
-          console.log(`Got address history:`, history);
-          history.transactions.forEach(tx => {
-            const error = getEthTransactionError(tx);
-            if (error) {
-              throw new Error(error);
-            }
-          });
-          console.log(`Address history verified, saving to accontContext`);
-          accountContext.chainData.merge(history);
-          accountContext.setChainData(accountContext.chainData);
-          setSyncing({ ...syncing, [address]: false });
-          break;
-        }
-
-        await new Promise(res => setTimeout(res, 3000));
-      } catch(e) {
-        //TODO: set api key alert
-        console.log(e, e.response.data);
-        if (e.response && e.response.data.includes("Invalid API Key")) {
-          setStatusAlert({
-            open: true,
-            severity: "error",
-            message: "Please register with valid etherscan API key",
-          });
-        }
-        setSyncing({ ...syncing, [accountContext.signer.address]: false });
-        break;
-      }
-    }
-
-    // TODO: Set success alert message
-    //console.log(`Successfuly synced address history for ${address}`);
-  };
-
-  return (
-    <TableContainer className={classes.root} component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell> Eth Address </TableCell>
-            <TableCell> Account name </TableCell>
-            <TableCell> Category </TableCell>
-            <TableCell> Action </TableCell>
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {accountContext.profile.addressBook.map((entry: AddressEntry, i: number) => (
-            <TableRow key={i}>
-              <TableCell> {entry.address} </TableCell>
-              <TableCell> {entry.name} </TableCell>
-              <TableCell> {entry.category} </TableCell>
-              <TableCell>
-                <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
-                  <RemoveIcon />
-                </IconButton>
-                <IconButton
-                  disabled={syncing[entry.address]}
-                  color="secondary"
-                  size="small"
-                  onClick={() => syncHistory(entry.address)}
-                >
-                  <SyncIcon />
-                </IconButton>
-                { syncing[entry.address] ? <CircularProgress /> : null}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-};
-
-export const AccountInfo: React.FC = () => {
+export const AccountInfo = (props: any) => {
   const classes = useStyles();
   const accountContext = useContext(AccountContext);
+  const { saveProfile, setProfile } = props;
 
   const [statusAlert, setStatusAlert] = useState({
     open: false,
@@ -278,56 +50,41 @@ export const AccountInfo: React.FC = () => {
     setStatusAlert({
       ...statusAlert,
       open: false,
-    });
+    })
   };
 
-  const defaults = {
+  const defaultProfile = {
     username: accountContext.profile.username || "Default",
-    etherscanKey: accountContext.profile.etherscanKey || "abc123",
+    infuraKey: accountContext.profile.infuraKey || "abc123",
+    addressBook: accountContext.profile.addressBook || [],
   };
 
-  const registerProfile = useCallback(async () => {
-    if (!accountContext.signer) {
-      console.warn(`No signer available, can't register w/out one.`);
-      return;
-    }
-    if (!accountContext.profile || !accountContext.profile.etherscanKey) {
-      console.warn(`No api key provided, nothing to register. Personal=${
-        JSON.stringify(accountContext.profile)
-      }`);
-      return;
-    }
-    const payload = {
-      profile: accountContext.profile,
-      signerAddress: accountContext.signer.address,
-    };
-    const sig = await accountContext.signer.signMessage(JSON.stringify(payload));
-    const res = await axios.post(`${window.location.origin}/api/profile`, { sig, payload });
-    console.log(res);
-  }, [accountContext.profile, accountContext.signer]);
+  const handleSave = () => {
+    let newProfile = {...accountContext.profile};
+    console.log(`Saving ${newProfile}`);
+    saveProfile();
+  }
 
-  const handleProfileChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleUsernameChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.username = "${event.target.value}"`);
-    const newProfile = { ...accountContext.profile, username: event.target.value };
-    accountContext.setProfile(newProfile);
+    const newProfile = {...accountContext.profile, username: event.target.value};
+    setProfile(newProfile);
   };
 
   const handleKeyChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    console.log(`Set profile.etherscanKey = "${event.target.value}"`);
-    const newProfile = { ...accountContext.profile, etherscanKey: event.target.value };
-    accountContext.setProfile(newProfile);
+    console.log(`Set profile.infuraKey = "${event.target.value}"`);
+    const newProfile = {...accountContext.profile, infuraKey: event.target.value};
+    setProfile(newProfile);
   };
 
   useEffect(() => {
-    console.log(`Setting default profile values: ${JSON.stringify(defaults)}`);
-    accountContext.setProfile(oldProfile => ({ ...defaults, ...oldProfile }));
+    console.log(`Setting default profile values: ${JSON.stringify(defaultProfile)}`);
+    setProfile(defaultProfile);
   }, []); // eslint-disable-line
 
   const resetData = (): void => {
-    [StoreKeys.Transactions, StoreKeys.State, StoreKeys.Events].forEach(key => {
-      console.log(`Resetting data for ${key}`);
-      store.save(key);
-    });
+    setProfile(emptyProfile);
+    saveProfile();
   };
 
   console.log(accountContext.profile);
@@ -338,7 +95,6 @@ export const AccountInfo: React.FC = () => {
         variant="contained"
         color="primary"
         size="small"
-        className={classes.button}
         onClick={resetData}
         startIcon={<DeleteIcon />}
       >
@@ -354,8 +110,8 @@ export const AccountInfo: React.FC = () => {
       <TextField
         id="profile-name"
         label="Profile Name"
-        defaultValue={defaults.username}
-        onChange={handleProfileChange}
+        defaultValue={defaultProfile.username}
+        onChange={handleUsernameChange}
         helperText="Choose a name for your profile eg. Shiv Personal, etc."
         margin="normal"
         variant="outlined"
@@ -365,8 +121,8 @@ export const AccountInfo: React.FC = () => {
 
       <TextField
         id="api-key"
-        label="Api Key"
-        defaultValue={defaults.etherscanKey}
+        label="Infura Key"
+        defaultValue={defaultProfile.infuraKey}
         onChange={handleKeyChange}
         helperText="Register an etherscan API Key to sync chain data"
         margin="normal"
@@ -377,20 +133,19 @@ export const AccountInfo: React.FC = () => {
         variant="contained"
         color="primary"
         size="small"
-        className={classes.button}
-        onClick={registerProfile}
+        onClick={handleSave}
         startIcon={<SaveIcon />}
       >
-        Register Profile
+        Save Profile
       </Button>
 
-      <AddListItem setStatusAlert={setStatusAlert} />
-      <AddressList setStatusAlert={setStatusAlert}/>
+      <AddNewAddress setProfile={setProfile} />
+      <AddressList setProfile={setProfile}/>
 
       <Divider/>
       <Snackbar
         open={statusAlert.open}
-        autoHideDuration={6000}
+        autoHideDuration={6000}j
         onClose={handleClose}
         message={statusAlert.message}
         className={classes.snackbar}
@@ -400,5 +155,5 @@ export const AccountInfo: React.FC = () => {
         </Alert>
       </Snackbar>
     </div>
-  );
-};
+  )
+}

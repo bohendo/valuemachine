@@ -1,11 +1,4 @@
-import React, { useState, useEffect } from "react";
 import {
-  getAddressBook,
-  getChainData,
-} from "@finances/core";
-import {
-  AddressBook,
-  ChainData,
   StoreKeys,
   emptyProfile,
 } from "@finances/types";
@@ -18,7 +11,7 @@ import {
   createStyles,
   makeStyles,
 } from "@material-ui/core";
-import { Wallet } from "ethers";
+import React, { useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
 import { NavBar } from "./components/NavBar";
@@ -55,33 +48,12 @@ const App: React.FC = () => {
   const classes = useStyles();
 
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || emptyProfile);
-  const [addressBook, setAddressBook] = useState({} as AddressBook);
-  const [chainData, setChainData] = useState({} as ChainData);
-  const [signer, setSigner] = useState({} as Wallet);
 
-  useEffect(() => {
-    store.save(StoreKeys.Profile, profile);
-    setAddressBook(getAddressBook(profile.addressBook));
-  }, [profile]);
-
-  useEffect(() => { 
-    let signerKey = localStorage.getItem("signerKey");
-    if (!signerKey) {
-      signerKey = Wallet.createRandom().privateKey;
-      localStorage.setItem("signerKey", signerKey);
-    }
-    setSigner(new Wallet(signerKey));
-
-    // getChainData returns chain data access methods eg chainData.getAddressHistory
-    setChainData(getChainData({ console, store }));
-
-  }, []);
+  const saveProfile = () => store.save(StoreKeys.Profile, profile);
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <AccountContext.Provider
-        value={{ profile, signer, setProfile, addressBook, chainData, setChainData }}
-      >
+      <AccountContext.Provider value={{ profile }}>
         <CssBaseline />
         <NavBar />
         <main className={classes.main}>
@@ -92,7 +64,7 @@ const App: React.FC = () => {
                 <Dashboard />
               </Route>
               <Route exact path="/account">
-                <AccountInfo />
+                <AccountInfo saveProfile={saveProfile} setProfile={setProfile} />
               </Route>
             </Switch>
           </Container>
