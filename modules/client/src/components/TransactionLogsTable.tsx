@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect } from "react";
 import {
   IconButton,
   Paper,
@@ -15,16 +14,13 @@ import {
   createStyles,
   makeStyles,
   useTheme,
-} from '@material-ui/core';
-
+} from "@material-ui/core";
 import {
   FirstPage as FirstPageIcon,
   KeyboardArrowLeft,
   KeyboardArrowRight,
   LastPage as LastPageIcon,
-} from '@material-ui/icons';
-
-import { TransferRow } from "../types";
+} from "@material-ui/icons";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles ({
@@ -73,36 +69,36 @@ const TablePaginationActions = (props: TablePaginationActionsProps) => {
         disabled={page === 0}
         aria-label="first page"
       >
-        {theme.direction === 'rtl' ? <LastPageIcon /> : <FirstPageIcon />}
+        {theme.direction === "rtl" ? <LastPageIcon /> : <FirstPageIcon />}
       </IconButton>
       <IconButton onClick={handleBackButtonClick} disabled={page === 0} aria-label="previous page">
-        {theme.direction === 'rtl' ? <KeyboardArrowRight /> : <KeyboardArrowLeft />}
+        {theme.direction === "rtl" ? <KeyboardArrowRight /> : <KeyboardArrowLeft />}
       </IconButton>
       <IconButton
         onClick={handleNextButtonClick}
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label="next page"
       >
-        {theme.direction === 'rtl' ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
+        {theme.direction === "rtl" ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
       </IconButton>
       <IconButton
         onClick={handleLastPageButtonClick}
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label="last page"
       >
-        {theme.direction === 'rtl' ? <FirstPageIcon /> : <LastPageIcon />}
+        {theme.direction === "rtl" ? <FirstPageIcon /> : <LastPageIcon />}
       </IconButton>
     </div>
   );
-}
+};
 
 export const EthTransactionLogsTable = (props: any) => {
-  const { addressBook, filteredTransactions } = props
+  const { addressBook, filteredTransactions } = props;
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
-    setPage(0)
+    setPage(0);
   }, [filteredTransactions]);
 
   const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
@@ -119,10 +115,10 @@ export const EthTransactionLogsTable = (props: any) => {
   const classes = useStyles();
 
   if (!addressBook.addresses || addressBook.addresses.length === 0) {
-    return <> Please Update your addresses to view your on chain finances </>
+    return <> Please Update your addresses to view your on chain finances </>;
   }
 
-  if (!filteredTransactions) return <> Loading transactions soon </>
+  if (!filteredTransactions) return <> Loading transactions soon </>;
 
   //console.log(filteredTransactions)
 
@@ -145,29 +141,29 @@ export const EthTransactionLogsTable = (props: any) => {
           {(rowsPerPage > 0
             ? filteredTransactions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : filteredTransactions
-          ).map((row: TransferRow, i: number) => (
-              <TableRow key={i}>
-                <TableCell> {row.date} </TableCell>
-                <TableCell> {row.category} </TableCell>
-                <TableCell> {row.quantity} </TableCell>
-                <TableCell> {row.assetType} </TableCell>
-                <TableCell> {row.value} </TableCell>
-                <TableCell> {addressBook.getName(row.from)} </TableCell>
-                <TableCell> {addressBook.getName(row.to)} </TableCell>
-                <TableCell> {row.hash} </TableCell>
-              </TableRow>
-            ))}
+          ).map((row: any, i: number) => (
+            <TableRow key={i}>
+              <TableCell> {row.date} </TableCell>
+              <TableCell> {row.category} </TableCell>
+              <TableCell> {row.quantity} </TableCell>
+              <TableCell> {row.assetType} </TableCell>
+              <TableCell> {row.value} </TableCell>
+              <TableCell> {addressBook.getName(row.from)} </TableCell>
+              <TableCell> {addressBook.getName(row.to)} </TableCell>
+              <TableCell> {row.hash} </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
         <TableFooter>
           <TableRow>
             <TablePagination
-              rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+              rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
               colSpan={6}
               count={filteredTransactions.length}
               rowsPerPage={rowsPerPage}
               page={page}
               SelectProps={{
-                inputProps: { 'aria-label': 'rows per page' },
+                inputProps: { "aria-label": "rows per page" },
                 native: true,
               }}
               onChangePage={handleChangePage}
@@ -178,6 +174,6 @@ export const EthTransactionLogsTable = (props: any) => {
         </TableFooter>
       </Table>
     </TableContainer>
-  )
-}
+  );
+};
 

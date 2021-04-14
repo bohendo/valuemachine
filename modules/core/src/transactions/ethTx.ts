@@ -1,5 +1,6 @@
 import {
   AddressBook,
+  AddressCategories,
   ChainData,
   Transaction,
   TransactionSources,
@@ -8,7 +9,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { ContextLogger, math, sm } from "@finances/utils";
+import { math, sm } from "@finances/utils";
 import { BigNumber, constants, utils } from "ethers";
 
 import { getTokenInterface } from "../abi";
@@ -28,7 +29,7 @@ export const mergeEthTxTransactions = (
   logger?: Logger,
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
-  const log = new ContextLogger("EthTx", logger);
+  const log = logger.child({ module: "EthTx" });
   const start = Date.now();
 
   const newEthTxs = chainData.getEthTransactions(ethTx =>
@@ -43,7 +44,7 @@ export const mergeEthTxTransactions = (
 
   const merge = mergeFactory({
     allowableTimeDiff: 0,
-    log: new ContextLogger("MergeEthTx", logger),
+    log: logger.child({ module: "MergeEthTx" }),
     mergeTransactions: (): void => {
       throw new Error(`idk how to merge EthTxs`);
     },
@@ -62,7 +63,7 @@ export const mergeEthTxTransactions = (
         return;
       }
       const { getName, isToken } = addressBook;
-      const log = new ContextLogger(`EthTx ${tx.hash.substring(0, 8)}`, logger);
+      const log = logger.child({ module: `EthTx ${tx.hash.substring(0, 8)}` });
 
       if (!tx.logs) {
         throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);
@@ -110,7 +111,9 @@ export const mergeEthTxTransactions = (
         logger,
       );
 
-      log.debug(`${tx.value} ETH from ${tx.from} to ${tx.to}: ${transaction.transfers[0].category}`);
+      log.debug(`${tx.value} ETH from ${tx.from} to ${
+        tx.to
+      }: ${transaction.transfers[0].category}`);
 
       for (const txLog of tx.logs) {
         const address = sm(txLog.address);
@@ -123,12 +126,24 @@ export const mergeEthTxTransactions = (
           const event = Object.values(iface.events).find(e => getEventTopic(e) === txLog.topics[0]);
 
           if (!event) {
-            log.warn(`Unable to identify ${assetType} event w topic: ${txLog.topics[0]}. Got events: ${Object.keys(iface.events)}`);
+            log.warn(`Unable to identify ${assetType} event w topic: ${
+              txLog.topics[0]
+            }. Got events: ${Object.keys(iface.events)}`);
+            continue;
+          } else if (["AccrueInterest", "Approval"].includes(event.name)) {
+            log.debug(`Skipping ${event.name} event`);
             continue;
           }
 
           const args = iface.parseLog(txLog).args;
-          const quantityStr = args.amount || args.value || args.wad;
+          const quantityStr = args.amount
+            || args.borrowAmount
+            || args.burnAmount
+            || args.mintAmount
+            || args.redeemAmount
+            || args.repayAmount
+            || args.value
+            || args.wad;
           let quantity = "0";
 
           if (quantityStr) {
@@ -153,28 +168,56 @@ export const mergeEthTxTransactions = (
               logger,
             ));
 
+          // WETH
           } else if (assetType === "WETH" && event.name === "Deposit") {
             log.debug(`Deposit by ${args.dst} minted ${quantity} ${assetType}`);
             transfer.category = TransferCategories.SwapIn;
             transaction.transfers.push({ ...transfer, from: address, to: args.dst });
-
           } else if (assetType === "WETH" && event.name === "Withdrawal") {
             log.debug(`Withdraw by ${args.dst} burnt ${quantity} ${assetType}`);
             transfer.category = TransferCategories.SwapOut;
             transaction.transfers.push({ ...transfer, from: args.src, to: address });
 
+          // MakerDAO SAI
           } else if (assetType === "SAI" && event.name === "Mint") {
             log.debug(`Minted ${quantity} ${assetType}`);
             transfer.category = TransferCategories.Borrow;
             transaction.transfers.push({ ...transfer, from: AddressZero, to: args.guy });
-
           } else if (assetType === "SAI" && event.name === "Burn") {
             log.debug(`Burnt ${quantity} ${assetType}`);
             transfer.category = TransferCategories.Repay;
             transaction.transfers.push({ ...transfer, from: args.guy, to: AddressZero });
 
-          } else if (event.name === "Approval") {
-            log.debug(`Skipping Approval event`);
+          // Compound V2 cETH
+          } else if (
+            addressBook.isCategory(AddressCategories.Compound)(address)
+          ) {
+            if (addressBook.getName(address) === "cETH") {
+              quantity = formatUnits(quantityStr, 18); // cETH decimals != ETH decimals
+              if (event.name === "Borrow") {
+                log.info(`Compound - Borrowed ${quantity} ETH`);
+                transaction.transfers.push({
+                  ...transfer,
+                  assetType: "ETH",
+                  category: TransferCategories.Borrow,
+                  from: address,
+                  to: args.borrower,
+                  quantity,
+                });
+              } else if (addressBook.getName(address) === "cETH" && event.name === "RepayBorrow") {
+                log.info(`Compound - Repaid ${quantity} ETH`);
+                transaction.transfers.push({
+                  ...transfer,
+                  assetType: "ETH",
+                  category: TransferCategories.Repay,
+                  from: args.borrower,
+                  to: address,
+                  quantity,
+                });
+              }
+            } else {
+              log.debug(`Compound - Ignoring ${event.name} ${quantity} ${assetType}`);
+            }
 
           } else if (event) {
             log.warn(`Unknown ${assetType} event: ${event.format()}`);
@@ -186,9 +229,13 @@ export const mergeEthTxTransactions = (
         throw new Error(`No transfers for EthTx: ${JSON.stringify(transaction, null, 2)}`);
       } else if (transaction.transfers.length === 1) {
         const { assetType, from, quantity, to } = transaction.transfers[0];
-        transaction.description = `${getName(from)} sent ${quantity} ${assetType} to ${getName(to)}`;
+        transaction.description = `${getName(from)} sent ${quantity} ${assetType} to ${
+          getName(to)
+        }`;
       } else {
-        transaction.description = `${getName(transaction.transfers[0].to)} made ${transaction.transfers.length} transfers`;
+        transaction.description = `${getName(transaction.transfers[0].to)} made ${
+          transaction.transfers.length
+        } transfers`;
       }
 
       log.debug(transaction.description);
@@ -215,6 +262,8 @@ export const mergeEthTxTransactions = (
   }
 
   const diff = (Date.now() - start).toString();
-  log.info(`Done processing eth txs in ${diff} ms (avg ${math.round(math.div(diff, newEthTxs.length.toString()))} ms/ethTx)`);
+  log.info(`Done processing eth txs in ${diff} ms (avg ${
+    math.round(math.div(diff, newEthTxs.length.toString()))
+  } ms/ethTx)`);
   return transactions;
 };

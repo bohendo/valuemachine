@@ -6,6 +6,7 @@ import { mergeEthCallTransactions } from "./ethCall";
 export { mergeCoinbaseTransactions } from "./coinbase";
 export { mergeDigitalOceanTransactions } from "./digitalocean";
 export { mergeWyreTransactions } from "./wyre";
+export { mergeWazrixTransactions } from "./wazrix";
 export { mergeDefaultTransactions } from "./utils";
 
 export const mergeEthTransactions = (

@@ -11,7 +11,7 @@ import {
   StoreKeys,
   TokenData,
 } from "@finances/types";
-import { ContextLogger, sm, smeq } from "@finances/utils";
+import { sm, smeq } from "@finances/utils";
 import { BigNumber, Contract, constants, providers, utils  } from "ethers";
 import axios from "axios";
 
@@ -31,7 +31,7 @@ type ChainDataParams = {
 
 export const getChainData = (params: ChainDataParams): ChainData => {
   const { store, logger, etherscanKey, chainDataJson } = params;
-  const log = new ContextLogger("ChainData", logger || console);
+  const log = logger?.child?.({ module: "ChainData" }) || console;
   const json = chainDataJson || (store ? store.load(StoreKeys.ChainData) : emptyChainData);
 
   log.info(`Loaded chain data containing ${
@@ -192,10 +192,10 @@ export const getChainData = (params: ChainDataParams): ChainData => {
     return ethCall ? JSON.parse(JSON.stringify(ethCall)) : undefined;
   };
 
-  const getEthTransactions = (testFn: (tx: EthTransaction) => boolean): EthTransaction[] =>
+  const getEthTransactions = (testFn: (_tx: EthTransaction) => boolean): EthTransaction[] =>
     JSON.parse(JSON.stringify(json.transactions.filter(testFn)));
 
-  const getEthCalls = (testFn: (call: EthCall) => boolean): EthCall[] =>
+  const getEthCalls = (testFn: (_call: EthCall) => boolean): EthCall[] =>
     JSON.parse(JSON.stringify(json.calls.filter(testFn)));
 
   const syncTokenData = async (tokens: Address[], key?: string): Promise<void> => {
@@ -278,9 +278,9 @@ export const getChainData = (params: ChainDataParams): ChainData => {
           // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
           : toBN(response.gasLimit).gt(toBN(receipt.gasUsed)) ? 1
           // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-          : toBN(response.gasLimit).eq(toBN("21000")) ? 1
-          // Otherwise it PROBABLY failed
-          : 0,
+            : toBN(response.gasLimit).eq(toBN("21000")) ? 1
+            // Otherwise it PROBABLY failed
+              : 0,
       timestamp,
       to: response.to ? getAddress(response.to) : null,
       value: formatEther(response.value),
@@ -378,7 +378,7 @@ export const getChainData = (params: ChainDataParams): ChainData => {
       const month = 30 * 24 * hour;
       // Don't sync any addresses w no recent activity if they have been synced before
       if (Date.now() - new Date(lastAction).getTime() > 6 * month) {
-        log.debug(`Skipping retired (${lastAction}) address ${address} bc data was already fetched`);
+        log.debug(`Skipping retired (${lastAction}) address ${address}, data was already fetched`);
         return false;
       }
       // Don't sync any active addresses if they've been synced recently

@@ -18,6 +18,7 @@ export const EventTypes = enumify({
   SwapOut: "SwapOut",
   Withdraw: "Withdraw",
 });
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type EventTypes = (typeof EventTypes)[keyof typeof EventTypes];
 
 type BaseEvent = {

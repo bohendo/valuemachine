@@ -13,23 +13,23 @@ export const Modes = enumify({
   profile: "profile",
   test: "test",
 });
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type Modes = (typeof Modes)[keyof typeof Modes];
 
 export type Env = {
   etherscanKey: string;
-  logLevel: number;
+  logLevel: string;
   mode: Modes;
   outputFolder: string;
   taxYear?: string;
   username: string;
 }
 
-export type InputData = {
+export type ProfileData = {
   addressBook?: AddressBookJson;
   dividends: Array<{ source: string; assetType: string; tags: string[]; quantity: string }>;
   expenses: Array<Partial<ExpenseEvent>>;
   env: Partial<Env>;
   transactions: Array<Transaction | string>;
-  formData: Forms;
-  forms: string[];
+  forms: Forms;
 }

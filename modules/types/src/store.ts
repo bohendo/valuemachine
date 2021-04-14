@@ -1,5 +1,4 @@
 import { enumify } from "./utils";
-
 import { ChainDataJson, emptyChainData } from "./chainData";
 import { EventsJson, emptyEvents } from "./events";
 import { PricesJson, emptyPrices } from "./prices";
@@ -15,6 +14,7 @@ export const StoreKeys = enumify({
   State: "State",
   Transactions: "Transactions",
 });
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type StoreKeys = (typeof StoreKeys)[keyof typeof StoreKeys];
 
 interface StoreTypeMap {

@@ -5,6 +5,7 @@ export {
   mergeCoinbaseTransactions,
   mergeDigitalOceanTransactions,
   mergeWyreTransactions,
+  mergeWazrixTransactions,
   mergeDefaultTransactions,
 } from "./transactions";
 export { getPrices } from "./prices";

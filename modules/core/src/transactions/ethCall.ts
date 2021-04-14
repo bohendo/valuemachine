@@ -7,12 +7,13 @@ import {
   Logger,
   TransferCategories,
 } from "@finances/types";
-import { ContextLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 import { constants } from "ethers";
+
+import { getTransactionsError } from "../verify";
 
 import { categorizeTransfer } from "./categorizeTransfer";
 import { mergeFactory } from "./utils";
-import { getTransactionsError } from "../verify";
 
 export const mergeEthCallTransactions = (
   oldTransactions: Transaction[],
@@ -22,7 +23,7 @@ export const mergeEthCallTransactions = (
   logger?: Logger,
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
-  const log = new ContextLogger("EthCall", logger);
+  const log = logger.child({ module: "EthCall" });
   const start = Date.now();
 
   const newEthCalls = chainData.getEthCalls(ethCall =>
@@ -35,17 +36,17 @@ export const mergeEthCallTransactions = (
   }
 
   const merge = mergeFactory({
-      allowableTimeDiff: 0,
-      log,
-      mergeTransactions: (transaction: Transaction, callTransaction: Transaction): Transaction => {
-        // tx logs and token calls return same data, add this tranfer iff this isn't the case
-        transaction.transfers.push(callTransaction.transfers[0]);
-        transaction.sources.push(TransactionSources.EthCall);
-        return transaction;
-      },
-      shouldMerge: (transaction: Transaction, callTransaction: Transaction): boolean =>
-        transaction.hash === callTransaction.hash,
-    });
+    allowableTimeDiff: 0,
+    log,
+    mergeTransactions: (transaction: Transaction, callTransaction: Transaction): Transaction => {
+      // tx logs and token calls return same data, add this tranfer iff this isn't the case
+      transaction.transfers.push(callTransaction.transfers[0]);
+      transaction.sources.push(TransactionSources.EthCall);
+      return transaction;
+    },
+    shouldMerge: (transaction: Transaction, callTransaction: Transaction): boolean =>
+      transaction.hash === callTransaction.hash,
+  });
 
   log.info(`Processing ${newEthCalls.length} new eth calls..`);
 
@@ -67,7 +68,7 @@ export const mergeEthCallTransactions = (
 
       const ethTx = chainData.getEthTransaction(call.hash);
       if (!ethTx) {
-        throw new Error(`No tx data for call ${call.hash}, did fetching chainData get interrupted?`);
+        throw new Error(`No tx data for call ${call.hash}, did fetching chainData ever finish?`);
       } else if (ethTx.status !== 1) {
         log.debug(`Skipping reverted call`);
         return;
@@ -100,8 +101,9 @@ export const mergeEthCallTransactions = (
       if (math.eq(quantity, "0")) {
         return;
       }
-      transaction.description =
-        `${addressBook.getName(from)} sent ${quantity} ETH to ${addressBook.getName(to)} (internal)`;
+      transaction.description = `${addressBook.getName(from)} sent ${quantity} ETH to ${
+        addressBook.getName(to)
+      } (internal)`;
 
       log.debug(transaction.description);
 
@@ -114,6 +116,8 @@ export const mergeEthCallTransactions = (
   }
 
   const diff = (Date.now() - start).toString();
-  log.info(`Done processing eth calls in ${diff} ms (avg ${math.round(math.div(diff, newEthCalls.length.toString()))} ms/ethCall)`);
+  log.info(`Done processing eth calls in ${diff} ms (avg ${
+    math.round(math.div(diff, newEthCalls.length.toString()))
+  } ms/ethCall)`);
   return transactions;
 };

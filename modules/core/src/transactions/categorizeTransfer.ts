@@ -7,7 +7,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { ContextLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 import { constants, utils } from "ethers";
 
 import { exchangeInterface, daiJoinInterface, defiInterface, vatInterface } from "../abi";
@@ -24,9 +24,11 @@ export const categorizeTransfer = (
 ): Transfer => {
   const transfer = JSON.parse(JSON.stringify(inputTransfer));
   const { isCategory, isSelf, getName } = addressBook;
-  const log = new ContextLogger("CategorizeTransfer", logger);
+  const log = logger.child({ module: "CategorizeTransfer" }); 
 
-  log.debug(`Categorizing transfer of ${transfer.quantity} from ${getName(transfer.from)} to ${getName(transfer.to)}`);
+  log.debug(`Categorizing transfer of ${transfer.quantity} from ${
+    getName(transfer.from)
+  } to ${getName(transfer.to)}`);
 
   if (isSelf(transfer.from)) {
 
@@ -73,12 +75,12 @@ export const categorizeTransfer = (
     return transfer;
 
   // deposit into compound v2
-  } else if (isCategory(AddressCategories.CToken)(transfer.to)) {
+  } else if (isCategory(AddressCategories.Compound)(transfer.to)) {
     transfer.category = TransferCategories.Deposit;
     return transfer;
 
   // withdraw from compound v2
-  } else if (isCategory(AddressCategories.CToken)(transfer.from)) {
+  } else if (isCategory(AddressCategories.Compound)(transfer.from)) {
     transfer.category = TransferCategories.Withdraw;
     return transfer;
 
@@ -121,7 +123,7 @@ export const categorizeTransfer = (
       }
 
     // compound v2
-    } else if (isCategory(AddressCategories.CToken)(txLog.address)) {
+    } else if (isCategory(AddressCategories.Compound)(txLog.address)) {
       const event = Object.values(defiInterface.events)
         .find(e => getEventTopic(e) === txLog.topics[0]);
       if (!event) { continue; }

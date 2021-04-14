@@ -5,14 +5,14 @@ import {
   AddressCategories,
   Logger,
 } from "@finances/types";
-import { ContextLogger, sm, smeq } from "@finances/utils";
+import { sm, smeq } from "@finances/utils";
 import { utils } from "ethers";
 
 export const getAddressBook = (
   userAddressBook: AddressBookJson = [],
   logger?: Logger,
 ): AddressBook => {
-  const log = new ContextLogger("AddressBook", logger);
+  const log = logger?.child?.({ module: "AddressBook" }) || console;
 
   ////////////////////////////////////////
   // Hardcoded Public Addresses
@@ -26,7 +26,7 @@ export const getAddressBook = (
     { name: "cUSD", address: "0x39aa39c021dfbae8fac545936693ac917d5e7563" },
     { name: "cWBTC", address: "0xc11b1268c1a384e55c48c2391d8d480264a3a7f4" },
     { name: "cZRX", address: "0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407" },
-  ].map(row => ({ ...row, category: AddressCategories.CToken })) as AddressBookJson;
+  ].map(row => ({ ...row, category: AddressCategories.Compound })) as AddressBookJson;
 
   const tokens = [
     { name: "BAT", address: "0x0d8775f648430679a709e98d2b0cb6250d2887ef" },
@@ -174,16 +174,16 @@ export const getAddressBook = (
   const isSelf = isCategory(AddressCategories.Self);
 
   const isToken = (address: Address): boolean =>
-    isCategory(AddressCategories.Erc20)(address) || isCategory(AddressCategories.CToken)(address);
+    isCategory(AddressCategories.Erc20)(address) || isCategory(AddressCategories.Compound)(address);
 
   const getName = (address: Address): string =>
     !address
       ? ""
       : addressBook.find(row => smeq(row.address, address))
-      ? addressBook.find(row => smeq(row.address, address)).name
-      : address.startsWith("0x")
-      ? `${address.substring(0, 6)}..${address.substring(address.length - 4)}`
-      : address;
+        ? addressBook.find(row => smeq(row.address, address)).name
+        : address.startsWith("0x")
+          ? `${address.substring(0, 6)}..${address.substring(address.length - 4)}`
+          : address;
 
   return {
     addresses,

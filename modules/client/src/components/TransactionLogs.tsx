@@ -1,11 +1,11 @@
-import React, { useState, useContext } from 'react';
-import { Event } from '@finances/types';
-
-import { Grid, } from '@material-ui/core';
+import React, { useState, useContext } from "react";
+import { Event } from "@finances/types";
+import { Grid } from "@material-ui/core";
 
 import { AccountContext } from "../accountContext";
-import { EthTransactionLogsTable } from './TransactionLogsTable'
-import { EthTransactionLogsFilter } from './TransactionLogsFilter'
+
+import { EthTransactionLogsTable } from "./TransactionLogsTable";
+import { EthTransactionLogsFilter } from "./TransactionLogsFilter";
 
 export const EthTransactionLogs = (props: any) => {
   const accountContext = useContext(AccountContext);
@@ -20,8 +20,11 @@ export const EthTransactionLogs = (props: any) => {
         />
       </Grid>
       <Grid item xs={12} md={9} lg={9}>
-        <EthTransactionLogsTable addressBook={accountContext.addressBook} filteredTransactions={filteredTransactions} />
+        <EthTransactionLogsTable
+          addressBook={accountContext.addressBook}
+          filteredTransactions={filteredTransactions}
+        />
       </Grid>
     </>
-  )
-}
+  );
+};

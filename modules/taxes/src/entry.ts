@@ -7,14 +7,14 @@ import {
   getValueMachine,
 } from "@finances/core";
 import { ExpenseEvent, EventTypes, StoreKeys } from "@finances/types";
-import { ContextLogger, LevelLogger, math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
 import { store } from "./store";
 import { env, setEnv } from "./env";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
 import { getTransactions } from "./transactions";
-import { InputData } from "./types";
+import { ProfileData } from "./types";
 import { emptyForm, mergeForms, translate } from "./utils";
 
 // Order of this list is important, it should follow the dependency graph.
@@ -45,9 +45,8 @@ process.on("SIGINT", logAndExit);
   const inputFile = `${process.cwd()}/${process.argv[2]}`;
   const basename = process.argv[2].replace(".json", "");
 
-  const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as InputData;
-  const logger = new LevelLogger(input.env.logLevel);
-  const log = new ContextLogger("Taxes", logger);
+  const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as ProfileData;
+  const log = getLogger(input.env.logLevel).child({ module: "Taxes" });
   const taxYear = input.env.taxYear;
   log.info(`Generating ${taxYear} ${basename} tax return`);
 
@@ -63,9 +62,13 @@ process.on("SIGINT", logAndExit);
   ////////////////////////////////////////
   // Step 1: Fetch & parse financial history
 
-  const addressBook = getAddressBook(input.addressBook, logger);
+  const addressBook = getAddressBook(input.addressBook, log);
 
-  const chainData = await getChainData({ store, logger, etherscanKey: input.env.etherscanKey });
+  const chainData = await getChainData({
+    etherscanKey: input.env.etherscanKey,
+    logger: log,
+    store,
+  });
 
   if (env.mode !== "test") {
     await chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
@@ -84,10 +87,10 @@ process.on("SIGINT", logAndExit);
     chainData,
     store,
     input.transactions,
-    logger,
+    log,
   );
 
-  const valueMachine = getValueMachine(addressBook, logger);
+  const valueMachine = getValueMachine(addressBook, log);
 
   let state = store.load(StoreKeys.State);
   let vmEvents = store.load(StoreKeys.Events);
@@ -102,7 +105,9 @@ process.on("SIGINT", logAndExit);
     const chunk = 100;
     if (transaction.index % chunk === 0) {
       const diff = (Date.now() - start).toString();
-        log.info(`Processed transactions ${transaction.index - chunk}-${transaction.index} in ${diff} ms`);
+      log.info(`Processed transactions ${transaction.index - chunk}-${
+        transaction.index
+      } in ${diff} ms`);
       start = Date.now();
     }
 
@@ -110,7 +115,7 @@ process.on("SIGINT", logAndExit);
   store.save(StoreKeys.State, state);
   store.save(StoreKeys.Events, vmEvents);
 
-  const finalState = getState(state, addressBook, logger);
+  const finalState = getState(state, addressBook, log);
 
   log.debug(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
   log.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
@@ -149,7 +154,9 @@ process.on("SIGINT", logAndExit);
         return;
       }
       const isQualified = dividend.tags.includes("qualified");
-      log.info(`Adding ${isQualified ? "qualified " : ""}dividend of ${dividend.quantity} ${dividend.assetType} from ${dividend.source}`);
+      log.info(`Adding ${isQualified ? "qualified " : ""}dividend of ${dividend.quantity} ${
+        dividend.assetType
+      } from ${dividend.source}`);
       total.ordinary = math.add(total.ordinary, dividend.quantity);
       if (isQualified) {
         total.qualified = math.add(total.qualified, dividend.quantity);
@@ -178,10 +185,12 @@ process.on("SIGINT", logAndExit);
 
   if (env.mode !== "test") {
     for (const form of formsToFile.reverse()) {
+      // eslint-disable-next-line import/namespace
       if (!filers[form]) {
         log.warn(`No filer is available for form ${form}. Using unmodified user input.`);
         continue;
       }
+      // eslint-disable-next-line import/namespace
       output = filers[form](
         vmEvents.filter(vmEvent => vmEvent.date.startsWith(taxYear)),
         output,

@@ -1,16 +1,17 @@
 import { AddressBook, Transaction, Logger, Event, StateJson } from "@finances/types";
-import { ContextLogger } from "@finances/utils";
 
 import { emitTransactionEvents, emitTransferEvents } from "./events";
 import { getState } from "./state";
 
 export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any => {
-  const log = new ContextLogger("ValueMachine", logger);
+  const log = logger.child({ module: "ValueMachine" });
   const { getName } = addressBook;
 
   return (oldState: StateJson, transaction: Transaction): [StateJson, Event[]] => {
     const state = getState(oldState, addressBook, logger);
-    log.debug(`Applying transaction ${transaction.index} from ${transaction.date}: ${transaction.description}`);
+    log.debug(`Applying transaction ${transaction.index} from ${
+      transaction.date
+    }: ${transaction.description}`);
     log.debug(`Applying transfers: ${
       JSON.stringify(transaction.transfers, null, 2)
     } to sub-state ${
@@ -50,7 +51,9 @@ export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any 
 
     for (const transfer of later) {
       const { assetType, fee, from, quantity, to } = transfer;
-      log.debug(`transfering ${quantity} ${assetType} from ${getName(from)} to ${getName(to)} (attempt 2)`);
+      log.debug(`transfering ${quantity} ${assetType} from ${getName(from)} to ${
+        getName(to)
+      } (attempt 2)`);
       if (fee) {
         const feeChunks = state.getChunks(from, assetType, fee, transaction);
         log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);

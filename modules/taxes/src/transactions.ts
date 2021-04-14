@@ -1,3 +1,5 @@
+import * as fs from "fs";
+
 import {
   getPrices,
   mergeCoinbaseTransactions,
@@ -5,6 +7,7 @@ import {
   mergeDigitalOceanTransactions,
   mergeEthTransactions,
   mergeWyreTransactions,
+  mergeWazrixTransactions,
 } from "@finances/core";
 import {
   AddressBook,
@@ -15,8 +18,6 @@ import {
   StoreKeys,
   Transaction,
 } from "@finances/types";
-import { ContextLogger } from "@finances/utils";
-import * as fs from "fs";
 
 export const getTransactions = async (
   addressBook: AddressBook,
@@ -25,7 +26,7 @@ export const getTransactions = async (
   extraTransactions: Array<Transaction | string>,
   logger: Logger = console,
 ): Promise<Transaction[]> => {
-  const log = new ContextLogger("GetTransactions", logger);
+  const log = logger.child({ module: "GetTransactions" });
 
   let transactions = store.load(StoreKeys.Transactions);
   const lastUpdated = transactions.length !== 0
@@ -72,6 +73,13 @@ export const getTransactions = async (
         );
       } else if (source.toLowerCase().includes("wyre")) {
         transactions = mergeWyreTransactions(
+          transactions,
+          fs.readFileSync(source, "utf8"),
+          lastUpdated,
+          logger,
+        );
+      } else if (source.toLowerCase().includes("wazrix")) {
+        transactions = mergeWazrixTransactions(
           transactions,
           fs.readFileSync(source, "utf8"),
           lastUpdated,

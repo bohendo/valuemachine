@@ -13,7 +13,9 @@ export const TransactionSources = enumify({
   EthTx: "EthTx",
   Profile: "Profile",
   SendWyre: "SendWyre",
+  Wazrix: "Wazrix",
 });
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
 
 export const TransferCategories = enumify({
@@ -32,6 +34,7 @@ export const TransferCategories = enumify({
   Transfer: "Transfer",
   Withdraw: "Withdraw",
 });
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type TransferCategories = (typeof TransferCategories)[keyof typeof TransferCategories];
 
 export type Transfer = {

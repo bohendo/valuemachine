@@ -1,5 +1,5 @@
 import { Event } from "@finances/types";
-import { ContextLogger, LevelLogger, math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
 import { env } from "../env";
 import { Forms } from "../types";
@@ -7,7 +7,7 @@ import { Forms } from "../types";
 const { add, eq, gt, lt, round } = math;
 
 export const f1040sd = (vmEvents: Event[], oldForms: Forms): Forms => {
-  const log = new ContextLogger("f1040sd", new LevelLogger(env.logLevel));
+  const log = getLogger(env.logLevel).child({ module: "f1040sd" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040sd } = forms;
 
@@ -28,9 +28,9 @@ export const f1040sd = (vmEvents: Event[], oldForms: Forms): Forms => {
 
     const shortType =
         f8949.P1C0_A ? "A"
-      : f8949.P1C0_B ? "B"
-      : f8949.P1C0_C ? "C"
-      : "?";
+          : f8949.P1C0_B ? "B"
+            : f8949.P1C0_C ? "C"
+              : "?";
 
     log.debug(`Short-term f8949 row: proceeds=${f8949.P1L2d} cost=${f8949.P1L2e} gain|loss=${f8949.P1L2h}`);
     totals[shortType].proceeds = add(totals[shortType].proceeds, f8949.P1L2d);
@@ -40,9 +40,9 @@ export const f1040sd = (vmEvents: Event[], oldForms: Forms): Forms => {
 
     const longType =
         f8949.P2C0_D ? "D"
-      : f8949.P2C0_E ? "E"
-      : f8949.P2C0_F ? "F"
-      : "?";
+          : f8949.P2C0_E ? "E"
+            : f8949.P2C0_F ? "F"
+              : "?";
 
     log.debug(`Long-term f8949 row: proceeds=${f8949.P2L2d} cost=${f8949.P2L2e} gain|loss=${f8949.P2L2h}`);
     totals[longType].proceeds = add(totals[longType].proceeds, f8949.P2L2d);

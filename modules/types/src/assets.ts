@@ -16,6 +16,7 @@ export const AssetTypes = enumify({
   USD: "USD",
   WETH: "WETH",
 });
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export type AssetTypes = (typeof AssetTypes)[keyof typeof AssetTypes];
 
 export type AssetChunk = {

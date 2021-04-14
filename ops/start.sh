@@ -14,23 +14,19 @@ docker network create --attachable --driver overlay $project 2> /dev/null || tru
 ####################
 # Load env vars
 
-FINANCES_ENV="${FINANCES_ENV:-dev}"
-
-if [[ -f "$FINANCES_ENV.env" ]]
-then source $FINANCES_ENV.env
-fi
-
+# shellcheck disable=SC1091
 if [[ -f ".env" ]]
 then source .env
 fi
 
 # alias env var to override what's in .env
+FINANCES_PROD="${FINANCES_PROD:-false}";
 FINANCES_LOG_LEVEL="${LOG_LEVEL:-$FINANCES_LOG_LEVEL}";
 
 ####################
 ## Docker registry & image version config
 
-if [[ "$FINANCES_ENV" == "prod" ]]
+if [[ "$FINANCES_PROD" == "true" ]]
 then version="`git rev-parse HEAD | head -c 8`"
 else version="latest"
 fi
@@ -100,7 +96,7 @@ echo "Proxy configured"
 ####################
 ## Webserver config
 
-if [[ "$FINANCES_ENV" == "prod" ]]
+if [[ "$FINANCES_PROD" == "true" ]]
 then
   webserver_image="${project}_webserver:$version"
   pull_if_unavailable "$webserver_image"
@@ -129,7 +125,7 @@ echo "Webserver configured"
 
 server_port=8080;
 
-if [[ "$FINANCES_ENV" == "prod" ]]
+if [[ "$FINANCES_PROD" == "true" ]]
 then
   image_name="${project}_server:$version"
   pull_if_unavailable "$image_name"
@@ -190,7 +186,7 @@ services:
       FINANCES_LOG_LEVEL: '$FINANCES_LOG_LEVEL'
       FINANCES_PORT: '$server_port'
       NODE_ENV: '`
-        if [[ "$FINANCES_ENV" == "prod" ]]; then echo "production"; else echo "development"; fi
+        if [[ "$FINANCES_PROD" == "true" ]]; then echo "production"; else echo "development"; fi
       `'
 
 

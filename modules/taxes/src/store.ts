@@ -1,18 +1,19 @@
+import fs from "fs";
+
 import {
   Store,
   StoreKeys,
   StoreValues,
   emptyStore,
 } from "@finances/types";
-import { ContextLogger, LevelLogger } from "@finances/utils";
-import fs from "fs";
+import { getLogger } from "@finances/utils";
 
 import { env } from "./env";
 
 ////////////////////////////////////////
 // Internal Data
 
-const log = new ContextLogger("Store", new LevelLogger(env.logLevel));
+const log = getLogger(env.logLevel).child({ module: "Store" });
 
 const dirName = `${process.cwd()}/../../.cache`;
 
@@ -31,8 +32,8 @@ const cache: StoreValues = {
 const getDir = (): string => `${dirName}/${env.mode}`;
 
 const toFilename = (key: StoreKeys): string => `${getDir()}/${
-    key.replace(/[A-Z]/g, "-$&".toLowerCase()).replace(/^-/, "").toLowerCase()
-  }.json`;
+  key.replace(/[A-Z]/g, "-$&".toLowerCase()).replace(/^-/, "").toLowerCase()
+}.json`;
 
 const load = <T extends keyof StoreValues>(key: T): StoreValues[T] => {
   if (!cache[key]) {

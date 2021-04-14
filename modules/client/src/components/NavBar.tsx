@@ -1,5 +1,4 @@
-import React from 'react';
-
+import React from "react";
 import {
   AppBar,
   IconButton,
@@ -8,10 +7,11 @@ import {
   Typography,
   createStyles,
   makeStyles,
-} from '@material-ui/core';
+} from "@material-ui/core";
 import {
   Home as HomeIcon,
   AccountCircle as AccountIcon,
+  Receipt as TaxesIcon,
 } from "@material-ui/icons";
 import { Link } from "react-router-dom";
 
@@ -56,6 +56,16 @@ export const NavBar = () => {
         <IconButton
           component={Link}
           edge="start"
+          to={"/taxes"}
+          className={classes.accountButton}
+          color="inherit"
+        >
+          <TaxesIcon />
+        </IconButton>
+
+        <IconButton
+          component={Link}
+          edge="start"
           to={"/account"}
           className={classes.accountButton}
           color="inherit"
@@ -63,7 +73,8 @@ export const NavBar = () => {
         >
           <AccountIcon />
         </IconButton>
+
       </Toolbar>
     </AppBar>
-  )
-}
+  );
+};

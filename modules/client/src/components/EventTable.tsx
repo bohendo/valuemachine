@@ -1,5 +1,5 @@
-import React from 'react';
-import _ from 'lodash';
+import React from "react";
+import _ from "lodash";
 import {
   Paper,
   Table,
@@ -9,8 +9,9 @@ import {
   TableFooter,
   TableHead,
   TableRow,
-} from '@material-ui/core';
+} from "@material-ui/core";
 import { getState } from "@finances/core";
+import { getLogger } from "@finances/utils";
 
 export const EventTable = (props: any) => {
 
@@ -18,7 +19,7 @@ export const EventTable = (props: any) => {
 
   let totals;
   if (state) {
-    totals = getState(state).getNetWorth();
+    totals = getState(state, undefined, getLogger("info")).getNetWorth();
   } else {
     totals = {};
   }
@@ -44,17 +45,17 @@ export const EventTable = (props: any) => {
           {Object.keys(filteredTotalByCategory).map(
             (row: string) => {
               return (
-              <TableRow key={row}>
-                <TableCell> {row} </TableCell>
-                {
-                  Object.keys(totalByAssetType).map((assetType: string) => (
-                    <TableCell align="right" key={assetType}>
-                     {_.round(filteredTotalByCategory[row][assetType], 2) || 0}
-                    </TableCell>
-                  ))
-                }
-              </TableRow>
-              )
+                <TableRow key={row}>
+                  <TableCell> {row} </TableCell>
+                  {
+                    Object.keys(totalByAssetType).map((assetType: string) => (
+                      <TableCell align="right" key={assetType}>
+                        {_.round(filteredTotalByCategory[row][assetType], 2) || 0}
+                      </TableCell>
+                    ))
+                  }
+                </TableRow>
+              );
             }
           )}
         </TableBody>
@@ -72,5 +73,5 @@ export const EventTable = (props: any) => {
         </TableFooter>
       </Table>
     </TableContainer>
-  )
-}
+  );
+};

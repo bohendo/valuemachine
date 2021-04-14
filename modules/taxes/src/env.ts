@@ -2,7 +2,7 @@ import { Env, Modes } from "./types";
 
 export const env = {
   etherscanKey: process.env.ETHERSCAN_KEY,
-  logLevel: parseInt(process.env.LOG_LEVEL || "3", 10),
+  logLevel: process.env.LOG_LEVEL || "info",
   mode: process.env.NODE_ENV || Modes.example,
   username: process.env.USERNAME || "default",
 } as Env;
