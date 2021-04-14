@@ -11,7 +11,7 @@ import {
   createStyles,
   makeStyles,
 } from "@material-ui/core";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
 import { NavBar } from "./components/NavBar";
@@ -48,8 +48,11 @@ const App: React.FC = () => {
   const classes = useStyles();
 
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || emptyProfile);
+  console.log("profile", profile);
 
-  const saveProfile = () => store.save(StoreKeys.Profile, profile);
+  useEffect(() => {
+    store.save(StoreKeys.Profile, profile);
+  }, [profile]);
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -64,7 +67,7 @@ const App: React.FC = () => {
                 <Dashboard />
               </Route>
               <Route exact path="/account">
-                <AccountInfo saveProfile={saveProfile} setProfile={setProfile} />
+                <AccountInfo profile={profile} setProfile={setProfile} />
               </Route>
             </Switch>
           </Container>

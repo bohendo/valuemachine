@@ -11,7 +11,7 @@ const STATUS_SUCCESS = 200;
 const STATUS_NOT_FOUND = 404;
 const STATUS_ERR = 500;
 
-const { getAddress, hexDataLength, isHexString, verifyMessage } = utils;
+const { hexDataLength, isHexString } = utils;
 
 const globalStore = getStore();
 const log = getLogger(env.logLevel).child({ module: "Entry" });
@@ -56,7 +56,7 @@ const isValidAddress = (value: any): boolean => {
 const syncing = [];
 
 ////////////////////////////////////////
-// First, verify payload signature
+// First, authenticate
 
 const app = express();
 app.use(express.json());
@@ -64,23 +64,12 @@ app.use(express.json());
 app.use((req, res, next) => {
   log.info(`${req.path} ${JSON.stringify(req.body.payload)}`);
   const logAndSend = getLogAndSend(res);
-  const { payload, sig } = req.body;
-
-  if (!payload || !isValidAddress(payload.signerAddress)) {
-    return logAndSend("A payload with signerAddress must be provided", STATUS_ERR);
+  const { authToken } = req.body;
+  if (authToken !== env.adminToken) {
+    log.warn(req.body, `Auth failed, provided token "${authToken}" doesn't match the adminToken`);
+    return logAndSend("Forbidden", 403);
   }
-  if (!sig) {
-    return logAndSend("A signature of the api key must be provided", STATUS_ERR);
-  }
-  try {
-    const signer = verifyMessage(JSON.stringify(payload), sig);
-    if (getAddress(signer) !== getAddress(payload.signerAddress)) {
-      throw new Error(`Expected signer address ${payload.signerAddress} but recovered ${signer}`);
-    }
-  } catch (e) {
-    return logAndSend(`Bad signature provided: ${e.message}`, STATUS_ERR);
-  }
-
+  log.info(`Auth succeeded for ${req.method} to ${req.path}`);
   return next();
 });
 
@@ -89,19 +78,14 @@ app.use((req, res, next) => {
 
 app.post("/profile", (req, res) => {
   const logAndSend = getLogAndSend(res);
-  const payload = req.body.payload;
-  if (!payload.profile) {
+  const profile = req.body;
+  if (!profile) {
     return logAndSend(`A profile must be provided`, STATUS_ERR);
   }
-  // Let the admin token act an etherscan key
-  if (payload.profile.etherscanKey === env.adminToken) {
-    log.info(`Admin token detected, using the server's api key`);
-    payload.profile.etherscanKey = env.etherscanKey;
-  }
-  const userStore = getStore(payload.signerAddress);
+  const userStore = getStore(profile.username);
   const oldProfile  = userStore.load(StoreKeys.Profile);
-  userStore.save(StoreKeys.Profile, { ...oldProfile, ...payload.profile });
-  return logAndSend(`Profile updated for ${payload.signerAddress}`);
+  userStore.save(StoreKeys.Profile, { ...oldProfile, ...profile });
+  return logAndSend(`Profile updated for ${profile.username}`);
 });
 
 app.post("/chaindata", async (req, res) => {
@@ -115,14 +99,14 @@ app.post("/chaindata", async (req, res) => {
   }
   const userStore = getStore(payload.signerAddress);
   const profile = userStore.load(StoreKeys.Profile);
-  if (!profile || !profile.etherscanKey) {
+  if (!profile || !profile.authToken) {
     return logAndSend(`A profile with an etherscan API key must be registered first`, STATUS_ERR);
   }
-  log.info(`Profile ${payload.address} has api key ${profile.etherscanKey}`);
+  log.info(`Profile ${payload.address} has api key ${profile.authToken}`);
   syncing.push(payload.address);
   Promise.race([
     new Promise((res, rej) => setTimeout(() => rej("TimeOut"), 10000)),
-    new Promise((res, rej) => chainData.syncAddresses([payload.address], profile.etherscanKey)
+    new Promise((res, rej) => chainData.syncAddresses([payload.address], profile.authToken)
       .then(() => {
         const index = syncing.indexOf(payload.address);
         if (index > -1) {

@@ -4,7 +4,7 @@ import { AddressBookJson } from "./addressBook";
 export type ProfileJson = {
   username: string;
   addressBook: AddressBookJson;
-  infuraKey: string;
+  authToken: string;
 }
 
 export interface Profile {
@@ -13,4 +13,4 @@ export interface Profile {
   getAddresses(): Address[];
 }
 
-export const emptyProfile = { username: "", addressBook: [], infuraKey: "" } as ProfileJson;
+export const emptyProfile = { username: "", addressBook: [], authToken: "" } as ProfileJson;
