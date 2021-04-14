@@ -192,17 +192,17 @@ const AddressList = (props: any) => {
 
         await new Promise(res => setTimeout(res, 3000));
       } catch(e) {
-          //TODO: set api key alert
-          console.log(e, e.response.data);
-          if (e.response && e.response.data.includes("Invalid API Key")) {
-            setStatusAlert({
-              open: true,
-              severity: "error",
-              message: "Please register with valid etherscan API key",
-            })
-          }
-          setSyncing({ ...syncing, [adddress]: false});
-          break;
+        //TODO: set api key alert
+        console.log(e, e.response.data);
+        if (e.response && e.response.data.includes("Invalid API Key")) {
+          setStatusAlert({
+            open: true,
+            severity: "error",
+            message: "Please register with valid etherscan API key",
+          })
+        }
+        setSyncing({ ...syncing, [adddress]: false});
+        break;
       }
     }
 

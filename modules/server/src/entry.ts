@@ -1,6 +1,6 @@
-import { StoreKeys } from "@finances/types";
 import { getAddressBook, getChainData } from "@finances/core";
-import { ContextLogger, LevelLogger } from "@finances/utils";
+import { StoreKeys } from "@finances/types";
+import { getLogger } from "@finances/utils";
 import express from "express";
 import { utils } from "ethers";
 
@@ -14,10 +14,13 @@ const STATUS_ERR = 500;
 const { getAddress, hexDataLength, isHexString, verifyMessage } = utils;
 
 const globalStore = getStore();
-const logger = new LevelLogger(env.logLevel);
-const log = new ContextLogger("Index", logger);
-const chainData = getChainData({ store: globalStore, logger, etherscanKey: env.etherscanKey  });
-const addressBook = getAddressBook([], logger);
+const log = getLogger(env.logLevel).child({ module: "Entry" });
+const chainData = getChainData({
+  etherscanKey: env.etherscanKey,
+  logger: log,
+  store: globalStore,
+});
+const addressBook = getAddressBook([], log);
 
 log.info(`Starting server in env: ${JSON.stringify(env, null, 2)}`);
 

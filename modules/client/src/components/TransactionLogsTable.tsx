@@ -24,8 +24,6 @@ import {
   LastPage as LastPageIcon,
 } from '@material-ui/icons';
 
-import { TransferRow } from "../types";
-
 const useStyles = makeStyles((theme: Theme) =>
   createStyles ({
     root: {
@@ -145,7 +143,7 @@ export const EthTransactionLogsTable = (props: any) => {
           {(rowsPerPage > 0
             ? filteredTransactions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             : filteredTransactions
-          ).map((row: TransferRow, i: number) => (
+          ).map((row: any, i: number) => (
               <TableRow key={i}>
                 <TableCell> {row.date} </TableCell>
                 <TableCell> {row.category} </TableCell>

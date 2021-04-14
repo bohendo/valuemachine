@@ -37,7 +37,7 @@ module.exports = {
   ],
   rules: {
     "@typescript-eslint/no-unused-vars": "off",
-    "comma-dangle": ["error", "only-multiline"],
+    "comma-dangle": ["warn", "only-multiline"],
     "import/order": [
       1,
       {
@@ -45,15 +45,17 @@ module.exports = {
         "newlines-between": "always",
       },
     ],
-    "indent": ["error", 2],
-    "max-len": ["error", 100],
+    "indent": ["warn", 2],
+    "max-len": ["warn", 100],
+    "no-constant-condition": ["warn"],
     "no-control-regex": ["off"],
     "no-loop-func": ["off"],
-    "no-undef": ["error"],
-    "no-var": ["error"],
-    "object-curly-spacing": ["error", "always"],
+    "no-undef": ["warn"],
+    "no-var": ["warn"],
+    "prefer-const": ["warn"],
+    "object-curly-spacing": ["warn", "always"],
     "quotes": ["warn", "double", { allowTemplateLiterals: true, avoidEscape: true }],
-    "semi": ["error", "always"],
+    "semi": ["warn", "always"],
     "unused-imports/no-unused-imports-ts": "warn",
     "unused-imports/no-unused-vars-ts": [
       "warn",

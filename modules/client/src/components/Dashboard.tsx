@@ -1,5 +1,9 @@
-import React, { useState, useContext, useEffect } from 'react';
-
+import {
+  getEthTransactionError,
+  getPrices,
+  getValueMachine,
+  mergeEthTransactions,
+} from "@finances/core";
 import {
   AssetTypes,
   Event,
@@ -9,17 +13,12 @@ import {
   StoreKeys,
   Transaction,
 } from "@finances/types";
-import { ContextLogger, LevelLogger } from "@finances/utils";
-import {
-  getEthTransactionError,
-  getPrices,
-  getValueMachine,
-  mergeEthTransactions,
-} from "@finances/core";
+import { getLogger } from "@finances/utils";
 import {
   Grid,
   Typography,
 } from '@material-ui/core';
+import React, { useState, useContext, useEffect } from 'react';
 
 import { AssetDistribution } from './AssetDistribution';
 import { DateTime } from './DateTimePicker'
@@ -47,7 +46,7 @@ export const Dashboard: React.FC = (props: any) => {
   const accountContext = useContext(AccountContext);
   //const { addressBook, chainData } = props;
 
-  const logger = new LevelLogger(3);
+  const logger = getLogger("info");
   const prices = getPrices(store, logger);
 
   useEffect(() => {
@@ -66,7 +65,7 @@ export const Dashboard: React.FC = (props: any) => {
         setFinancialTransactions([] as Transaction[]);
         return;
       }
-      const log = new ContextLogger("Dashboard", logger);
+      const log = logger.child({ module: "Dashboard" });
       const txs = accountContext.chainData.json.transactions || [];
 
       log.info(`Verifying ${txs.length} transactions...`);

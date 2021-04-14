@@ -4,7 +4,7 @@ import {
   StoreValues,
   emptyStore,
 } from "@finances/types";
-import { ContextLogger, LevelLogger } from "@finances/utils";
+import { getLogger } from "@finances/utils";
 import fs from "fs";
 
 import { env } from "./env";
@@ -12,7 +12,7 @@ import { env } from "./env";
 ////////////////////////////////////////
 // Internal Data
 
-const log = new ContextLogger("Store", new LevelLogger(env.logLevel));
+const log = getLogger(env.logLevel).child({ module: "Store" });
 
 const dirName = `/data`;
 
