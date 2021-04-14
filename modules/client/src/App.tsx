@@ -1,7 +1,10 @@
+import { getChainData } from "@finances/core";
 import {
   StoreKeys,
   emptyProfile,
+  emptyChainData,
 } from "@finances/types";
+import { getLogger } from "@finances/utils";
 import {
   Container,
   CssBaseline,
@@ -11,6 +14,7 @@ import {
   createStyles,
   makeStyles,
 } from "@material-ui/core";
+import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
@@ -48,16 +52,26 @@ const App: React.FC = () => {
   const classes = useStyles();
 
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || emptyProfile);
+  const [chainData] = useState(getChainData({ store, logger: getLogger("info") }));
   console.log("profile", profile);
 
   useEffect(() => {
     console.log(`Saving profile with ${profile.addressBook.length} address book entries`);
     store.save(StoreKeys.Profile, profile);
+    const authorization = `Basic ${btoa(`${profile.username}:${profile.authToken}`)}`;
+    axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
+      if (authRes.status === 200) {
+        console.log(`Successfully authorized with server for user ${profile.username}`);
+        axios.defaults.headers.common["authorization"] = authorization;
+      }
+    }).catch((err) => {
+      console.warn(`Auth token "${profile.authToken}" is invalid: ${err.message}`);
+    });
   }, [profile]);
 
   return (
     <ThemeProvider theme={darkTheme}>
-      <AccountContext.Provider value={{ profile }}>
+      <AccountContext.Provider value={{ chainData, profile }}>
         <CssBaseline />
         <NavBar />
         <main className={classes.main}>
@@ -68,7 +82,11 @@ const App: React.FC = () => {
                 <Dashboard />
               </Route>
               <Route exact path="/account">
-                <AccountInfo profile={profile} setProfile={setProfile} />
+                <AccountInfo
+                  chainData={chainData}
+                  profile={profile}
+                  setProfile={setProfile}
+                />
               </Route>
             </Switch>
           </Container>

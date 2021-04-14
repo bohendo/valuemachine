@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   CardHeader,
+  CircularProgress,
   createStyles,
   Divider,
   Grid,
@@ -51,6 +52,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     marginRight: theme.spacing(4),
     marginTop: theme.spacing(0),
   },
+  syncing: {
+    marginTop: theme.spacing(4),
+    marginLeft: theme.spacing(4),
+    marginRight: theme.spacing(4),
+  },
   snackbar: {
     width: "100%"
   },
@@ -68,22 +74,26 @@ const emptyAddressEntry = {
 } as AddressEntry;
 
 export const AccountInfo = ({
+  chainData,
   profile,
   setProfile,
 }: {
+  chainData: any;
   profile: any;
   setProfile: (val: any) => void;
 }) => {
-  const [newAddressEntry, setNewAddressEntry] = useState(emptyAddressEntry);
-  const [newEntryError, setNewEntryError] = useState("");
   const [addressModified, setAddressModified] = useState(false);
-  const [profileModified, setProfileModified] = useState(false);
+  const [newAddress, setNewAddress] = useState(emptyAddressEntry);
+  const [newAddressError, setNewAddressError] = useState("");
   const [newProfile, setNewProfile] = useState(emptyProfile);
+  const [newProfileError, setNewProfileError] = useState("");
+  const [profileModified, setProfileModified] = useState(false);
   const [statusAlert, setStatusAlert] = useState({
     open: false,
     message: "",
     severity: "info" as "info" | "error" | "warning" | "success"
   });
+  const [syncing, setSyncing] = useState({} as { [address: string]: boolean });
   const classes = useStyles();
 
   useEffect(() => {
@@ -100,15 +110,15 @@ export const AccountInfo = ({
 
   useEffect(() => {
     if (
-      newAddressEntry.address !== emptyAddressEntry.address ||
-      newAddressEntry.category !== emptyAddressEntry.category ||
-      newAddressEntry.name !== emptyAddressEntry.name
+      newAddress.address !== emptyAddressEntry.address ||
+      newAddress.category !== emptyAddressEntry.category ||
+      newAddress.name !== emptyAddressEntry.name
     ) {
       setAddressModified(true);
     } else {
       setAddressModified(false);
     }
-  }, [newAddressEntry]);
+  }, [newAddress]);
 
   const handleClose = () => {
     setStatusAlert({
@@ -119,27 +129,34 @@ export const AccountInfo = ({
 
   const handleSave = async () => {
     console.log(`Saving ${JSON.stringify(newProfile)}...`);
-    const res = await axios({
-      method: "POST",
-      url: "/api/profile",
-      data: newProfile,
-      headers: { "content-type": "application/json" },
+    const authorization = `Basic ${btoa(`${newProfile.username}:${newProfile.authToken}`)}`;
+    axios.get("/api/auth", { headers: { authorization } }).then(async () => {
+      const saveRes = await axios({
+        method: "POST",
+        url: "/api/profile",
+        data: newProfile,
+      });
+      if (saveRes.status === 200) {
+        setProfile(newProfile);
+      } else {
+        console.error(saveRes);
+      }
+    }).catch(() => {
+      setNewProfileError("Invalid Auth Token");
     });
-    if (res.status === 200) {
-      setProfile(newProfile);
-    } else {
-      console.warn(res);
-    }
+
   };
 
   const handleUsernameChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.username = "${event.target.value}"`);
     setNewProfile(oldProfile => ({ ...oldProfile, username: event.target.value }));
+    setNewProfileError("");
   };
 
   const handleAuthTokenChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     console.log(`Set profile.authToken = "${event.target.value}"`);
     setNewProfile(oldProfile => ({ ...oldProfile, authToken: event.target.value }));
+    setNewProfileError("");
   };
 
   const handleImport = (event) => {
@@ -171,33 +188,33 @@ export const AccountInfo = ({
   };
 
   const addNewAddress = () => {
-    if (!newAddressEntry.address) {
-      setNewEntryError("Address is required");
-    } else if (!newAddressEntry.address.match(/0x[a-fA-F0-9]{40}/)) {
-      setNewEntryError("Invalid address");
+    if (!newAddress.address) {
+      setNewAddressError("Address is required");
+    } else if (!newAddress.address.match(/0x[a-fA-F0-9]{40}/)) {
+      setNewAddressError("Invalid address");
     } else {
       const i = profile.addressBook.findIndex(
-        (o) => o.address.toLowerCase() === newAddressEntry.address.toLowerCase()
+        (o) => o.address.toLowerCase() === newAddress.address.toLowerCase()
       );
       if (i < 0) {
         const newProfile = {
           ...profile,
           addressBook: [...profile.addressBook, {
-            ...newAddressEntry,
-            address: newAddressEntry.address.toLowerCase(),
+            ...newAddress,
+            address: newAddress.address.toLowerCase(),
           }],
         };
         setProfile(newProfile);
-        setNewAddressEntry(emptyAddressEntry);
+        setNewAddress(emptyAddressEntry);
       } else {
-        setNewEntryError("Address already added");
+        setNewAddressError("Address already added");
       }
     }
   };
 
   const handleAddressChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setNewAddressEntry({ ...newAddressEntry, [event.target.name]: event.target.value });
-    setNewEntryError("");
+    setNewAddress({ ...newAddress, [event.target.name]: event.target.value });
+    setNewAddressError("");
   };
 
   const deleteAddress = (entry: AddressEntry) => {
@@ -214,9 +231,27 @@ export const AccountInfo = ({
     }
   };
 
-  const syncAddress = (address: string) => {
+  const syncAddress = async (address: string) => {
     console.log(`Syncing ${address}..`);
+    setSyncing({ ...syncing, [address]: true });
+    let n = 0;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const response = await axios.post(`/api/chaindata`, { address });
+      console.log(`attempt ${n++}:`, response);
+      if (response.status === 200 && typeof response.data === "object") {
+        const history = response.data;
+        console.log(`Got address history:`, history);
+        chainData.merge(history);
+        setSyncing({ ...syncing, [address]: false });
+        break;
+      }
+      await new Promise(res => setTimeout(res, 10_000));
+    }
+    // TODO: Set success alert message
+    console.log(`Successfuly synced address history for ${address}`);
   };
+
 
   return (
     <div className={classes.root}>
@@ -245,7 +280,8 @@ export const AccountInfo = ({
         <Grid item>
           <TextField
             autoComplete="off"
-            helperText="Register an auth token to sync chain data"
+            helperText={newProfileError || "Register an auth token to sync chain data"}
+            error={!!newProfileError}
             id="auth-token"
             label="Auth Token"
             margin="normal"
@@ -283,7 +319,7 @@ export const AccountInfo = ({
               <Grid item md={6}>
                 <TextField
                   autoComplete="off"
-                  value={newAddressEntry.name}
+                  value={newAddress.name}
                   helperText="Give your account a nickname"
                   id="name"
                   fullWidth
@@ -297,7 +333,7 @@ export const AccountInfo = ({
               <Grid item md={6}>
                 <TextField
                   autoComplete="off"
-                  value={newAddressEntry.category}
+                  value={newAddress.category}
                   helperText={`Only "self" category can be synced`}
                   id="category"
                   fullWidth
@@ -311,9 +347,9 @@ export const AccountInfo = ({
               <Grid item md={6}>
                 <TextField
                   autoComplete="off"
-                  value={newAddressEntry.address}
-                  error={!!newEntryError}
-                  helperText={newEntryError || "Add your ethereum address to fetch info"}
+                  value={newAddress.address}
+                  error={!!newAddressError}
+                  helperText={newAddressError || "Add your ethereum address to fetch info"}
                   id="address"
                   fullWidth
                   label="Eth Address"
@@ -407,9 +443,15 @@ export const AccountInfo = ({
                   <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
                     <RemoveIcon />
                   </IconButton>
-                  <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
-                    <SyncIcon />
-                  </IconButton>
+                  {!syncing[entry.address] ?
+                    <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
+                      <SyncIcon />
+                    </IconButton>
+                    : 
+                    <IconButton>
+                      <CircularProgress size={20}/>
+                    </IconButton>
+                  }
                 </TableCell>
               </TableRow>
             ))}

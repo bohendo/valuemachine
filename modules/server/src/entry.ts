@@ -4,6 +4,7 @@ import { getLogger } from "@finances/utils";
 import express from "express";
 import { utils } from "ethers";
 
+import { authRouter } from "./auth";
 import { getStore } from "./store";
 import { env } from "./env";
 
@@ -59,19 +60,11 @@ const syncing = [];
 // First, authenticate
 
 const app = express();
-app.use(express.json());
 
-app.use((req, res, next) => {
-  log.info(`${req.path} ${JSON.stringify(req.body.payload)}`);
-  const logAndSend = getLogAndSend(res);
-  const { authToken } = req.body;
-  if (authToken !== env.adminToken) {
-    log.warn(req.body, `Auth failed, provided token "${authToken}" doesn't match the adminToken`);
-    return logAndSend("Forbidden", 403);
-  }
-  log.info(`Auth succeeded for ${req.method} to ${req.path}`);
-  return next();
-});
+app.use(authRouter);
+app.get("/auth", (req, res) => { res.send("Success"); });
+
+app.use(express.json());
 
 ////////////////////////////////////////
 // Second, take requested action
@@ -90,33 +83,27 @@ app.post("/profile", (req, res) => {
 
 app.post("/chaindata", async (req, res) => {
   const logAndSend = getLogAndSend(res);
-  const payload = req.body.payload;
-  if (!isValidAddress(payload.address)) {
-    return logAndSend(`A valid address must be provided, got ${payload.address}`, STATUS_ERR);
+  const address = req.body.address;
+  if (!isValidAddress(address)) {
+    return logAndSend(`A valid address must be provided, got ${address}`, STATUS_ERR);
   }
-  if (syncing.includes(payload.address)) {
-    return logAndSend(`Chain data for ${payload.address} is already syncing, please wait`);
+  if (syncing.includes(address)) {
+    return logAndSend(`Chain data for ${address} is already syncing, please wait`);
   }
-  const userStore = getStore(payload.signerAddress);
-  const profile = userStore.load(StoreKeys.Profile);
-  if (!profile || !profile.authToken) {
-    return logAndSend(`A profile with an etherscan API key must be registered first`, STATUS_ERR);
-  }
-  log.info(`Profile ${payload.address} has api key ${profile.authToken}`);
-  syncing.push(payload.address);
+  syncing.push(address);
   Promise.race([
     new Promise((res, rej) => setTimeout(() => rej("TimeOut"), 10000)),
-    new Promise((res, rej) => chainData.syncAddresses([payload.address], profile.authToken)
+    new Promise((res, rej) => chainData.syncAddresses([address], env.etherscanKey)
       .then(() => {
-        const index = syncing.indexOf(payload.address);
+        const index = syncing.indexOf(address);
         if (index > -1) {
           syncing.splice(index, 1);
         }
         res(true);
       })
       .catch((e) => {
-        log.warn(`Failed to sync history for ${payload.address}: ${e.stack}`);
-        const index = syncing.indexOf(payload.address);
+        log.warn(`Failed to sync history for ${address}: ${e.stack}`);
+        const index = syncing.indexOf(address);
         if (index > -1) {
           syncing.splice(index, 1);
         }
@@ -127,21 +114,21 @@ app.post("/chaindata", async (req, res) => {
     (didSync: boolean) => {
       if (didSync) {
         log.info(`Chain data is synced, returning address history`);
-        res.json(chainData.getAddressHistory(payload.address).json);
+        res.json(chainData.getAddressHistory(address).json);
         return;
       }
     },
     (error: any) => {
       if (error === "TimeOut") {
-        return logAndSend(`Chain data for ${payload.address} has started syncing, please wait`);
+        return logAndSend(`Chain data for ${address} has started syncing, please wait`);
       }
       else {
-        return logAndSend(`Chain data for ${payload.address} failed to sync ${error}`, STATUS_ERR);
+        return logAndSend(`Chain data for ${address} failed to sync ${error}`, STATUS_ERR);
       }
     },
   ).catch((e) => {
-    log.warn(`Encountered an error while syncing history for ${payload.address}: ${e.message}`);
-    const index = syncing.indexOf(payload.address);
+    log.warn(`Encountered an error while syncing history for ${address}: ${e.message}`);
+    const index = syncing.indexOf(address);
     if (index > -1) {
       syncing.splice(index, 1);
     }
