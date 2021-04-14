@@ -61,7 +61,7 @@ export const AccountInfo = (props: any) => {
 
   const handleSave = () => {
     const newProfile = { ...accountContext.profile };
-    console.log(`Saving ${newProfile}`);
+    console.log(`Saving ${JSON.stringify(newProfile)}`);
     saveProfile();
   };
 

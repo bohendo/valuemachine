@@ -25,12 +25,11 @@ export type Env = {
   username: string;
 }
 
-export type InputData = {
+export type ProfileData = {
   addressBook?: AddressBookJson;
   dividends: Array<{ source: string; assetType: string; tags: string[]; quantity: string }>;
   expenses: Array<Partial<ExpenseEvent>>;
   env: Partial<Env>;
   transactions: Array<Transaction | string>;
-  formData: Forms;
-  forms: string[];
+  forms: Forms;
 }

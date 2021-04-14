@@ -14,7 +14,7 @@ import { env, setEnv } from "./env";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
 import { getTransactions } from "./transactions";
-import { InputData } from "./types";
+import { ProfileData } from "./types";
 import { emptyForm, mergeForms, translate } from "./utils";
 
 // Order of this list is important, it should follow the dependency graph.
@@ -45,7 +45,7 @@ process.on("SIGINT", logAndExit);
   const inputFile = `${process.cwd()}/${process.argv[2]}`;
   const basename = process.argv[2].replace(".json", "");
 
-  const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as InputData;
+  const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as ProfileData;
   const log = getLogger(input.env.logLevel).child({ module: "Taxes" });
   const taxYear = input.env.taxYear;
   log.info(`Generating ${taxYear} ${basename} tax return`);
