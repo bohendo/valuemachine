@@ -3,9 +3,10 @@ import express from "express";
 
 import { authRouter } from "./auth";
 import { chainDataRouter } from "./chaindata";
+import { env } from "./env";
+import { pricesRouter } from "./prices";
 import { profileRouter } from "./profile";
 import { transactionsRouter } from "./transactions";
-import { env } from "./env";
 import { getLogAndSend, STATUS_NOT_FOUND } from "./utils";
 
 const log = getLogger(env.logLevel).child({ module: "Entry" });
@@ -31,6 +32,7 @@ app.use(express.json());
 // Second, take requested action
 
 app.use("/chaindata", chainDataRouter);
+app.use("/prices", pricesRouter);
 app.use("/profile", profileRouter);
 app.use("/transactions", transactionsRouter);
 
