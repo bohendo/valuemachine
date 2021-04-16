@@ -14,7 +14,7 @@ const restrictedMethods = ["DELETE", "POST", "PUT"];
 const restrictedPaths = ["/auth", "/profile", "/chaindata", "/transactions"];
 
 authRouter.use((req, res, next) => {
-  if (restrictedPaths.includes(req.path) || restrictedMethods.includes(req.method)) {
+  if (restrictedPaths.some(p => req.path.startsWith(p)) || restrictedMethods.includes(req.method)) {
     const authHeader = req.headers[authHeaderKey];
     const authToken = Buffer.from(authHeader?.split?.(" ")?.[1] || [], "base64").toString("utf8");
     const username = authToken?.split(":")?.[0];

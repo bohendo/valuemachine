@@ -25,9 +25,13 @@ chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
 
 export const chainDataRouter = express.Router();
 
-chainDataRouter.post("/", async (req, res) => {
+chainDataRouter.get("/:address", async (req, res) => {
   const logAndSend = getLogAndSend(res);
-  const address = req.body.address;
+  const address = req.params.address;
+  if (address === "tokens") {
+    res.json(chainData.json.tokens);
+    return;
+  }
   if (!isValidAddress(address)) {
     return logAndSend(`A valid address must be provided, got ${address}`, STATUS_YOUR_BAD);
   }
