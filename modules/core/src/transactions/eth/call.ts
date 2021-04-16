@@ -45,6 +45,7 @@ export const mergeEthCallTransactions = (
     },
     shouldMerge: (transaction: Transaction, callTransaction: Transaction): boolean =>
       transaction.hash === callTransaction.hash,
+    isDuplicate: (): boolean => false,
   });
 
   log.info(`Processing ${newEthCalls.length} new eth calls..`);

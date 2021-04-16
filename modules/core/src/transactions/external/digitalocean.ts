@@ -1,7 +1,7 @@
 import { Transaction, TransactionSources, Logger, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
-import { mergeFactory } from "../utils";
+import { mergeFactory, isDuplicateOffChain } from "../utils";
 
 export const mergeDigitalOceanTransactions = (
   oldTransactions: Transaction[],
@@ -51,6 +51,7 @@ export const mergeDigitalOceanTransactions = (
       log,
       mergeTransactions: () => {},
       shouldMerge: () => false,
+      isDuplicate: isDuplicateOffChain,
     })(transactions, digitaloceanTransaction);
   });
 

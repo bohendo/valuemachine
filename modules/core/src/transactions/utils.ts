@@ -24,15 +24,15 @@ export const mergeDefaultTransactions = (
 
   const output = [] as Transaction[];
   for (let i = 0; i < transactions.length; i++) {
-    const transaction = transactions[i];
-    if (transaction.hash && input.hash && transaction.hash === input.hash) {
+    const oldTransaction = transactions[i];
+    if (oldTransaction.hash && input.hash && oldTransaction.hash === input.hash) {
       output.push({
-        ...transaction,
-        sources: Array.from(new Set([...transaction.sources, ...input.sources])),
-        tags: Array.from(new Set([...transaction.tags, ...input.tags])),
+        ...oldTransaction,
+        sources: Array.from(new Set([...oldTransaction.sources, ...input.sources])),
+        tags: Array.from(new Set([...oldTransaction.tags, ...input.tags])),
       });
     } else {
-      output.push(transaction);
+      output.push(oldTransaction);
     }
   }
   return output;
@@ -41,105 +41,122 @@ export const mergeDefaultTransactions = (
 export const mergeFactory = (opts: {
   allowableTimeDiff: number;
   mergeTransactions: any;
+  isDuplicate: any;
   shouldMerge: any;
   log: Logger;
 }) =>
   (transactions: Transaction[], newTransaction: Transaction): Transaction[] => {
-    const { allowableTimeDiff, mergeTransactions, shouldMerge, log } = opts;
+    const { allowableTimeDiff, isDuplicate, mergeTransactions, shouldMerge, log } = opts;
     const output = [] as Transaction[];
     for (let i = 0; i < transactions.length; i++) {
-      const transaction = transactions[i];
-      if (!transaction || !transaction.date) {
+      const oldTransaction = transactions[i];
+      if (!oldTransaction || !oldTransaction.date) {
         throw new Error(`Trying to merge new transaction into ${i} ${
-          JSON.stringify(transaction, null, 2)
+          JSON.stringify(oldTransaction, null, 2)
         }`);
       }
       if (newTransaction.date) {
         const delta =
-          new Date(newTransaction.date).getTime() - new Date(transaction.date).getTime();
+          new Date(newTransaction.date).getTime() - new Date(oldTransaction.date).getTime();
         if (isNaN(delta) || typeof delta !== "number") {
-          throw new Error(`Error parsing date delta (${delta}) for new transaction: ${
+          throw new Error(`Error parsing date delta (${delta}) for new oldTransaction: ${
             JSON.stringify(newTransaction, null, 2)
-          } and old transaction: ${
-            JSON.stringify(transaction, null, 2)
+          } and old oldTransaction: ${
+            JSON.stringify(oldTransaction, null, 2)
           }`);
         }
         if (delta > allowableTimeDiff) {
-          // log.debug(`new transaction came way before transaction ${i}, moving on`);
-          output.push(transaction);
+          // log.debug(`new oldTransaction came way before oldTransaction ${i}, moving on`);
+          output.push(oldTransaction);
           continue;
         }
         if (delta < -1 * allowableTimeDiff) {
-          log.debug(`new transaction came way after transaction ${i}, we're done`);
+          log.debug(`new transaction came way after oldTransaction ${i}, we're done`);
           output.push(newTransaction);
           output.push(...transactions.slice(i));
           return output;
         }
         log.debug(
-          `transaction ${i} "${transaction.description}" occured ${delta / 1000}s after "${
+          `transaction ${i} "${oldTransaction.description}" occured ${delta / 1000}s after "${
             newTransaction.description
           }"`,
         );
       }
 
-      if (shouldMerge(transaction, newTransaction)) {
-        const mergedTransaction = mergeTransactions(transaction, newTransaction);
-        log.debug(`Merged "${newTransaction.description}" into ${i} "${transaction.description}"`);
+      if (isDuplicate(oldTransaction, newTransaction)) {
+        log.warn(`Skipping duplicate transaction`);
+        return transactions;
+      } else if (shouldMerge(oldTransaction, newTransaction)) {
+        const mergedTransaction = mergeTransactions(oldTransaction, newTransaction);
+        log.debug(`Merged "${newTransaction.description}" into ${i} "${oldTransaction.description}"`);
         log.debug(`Yielding: ${JSON.stringify(mergedTransaction, null, 2)}`);
         output.push(mergedTransaction);
         output.push(...transactions.slice(i+1));
         return output;
       }
-      output.push(transaction);
+      output.push(oldTransaction);
     }
     output.push(newTransaction);
     return output;
   };
 
 export const mergeOffChainTransactions = (
-  transaction: Transaction,
-  ocTransaction: Transaction,
+  oldTransaction: Transaction,
+  newTransaction: Transaction,
 ): Transaction => {
-  const transfer = transaction.transfers[0];
-  const ocTransfer = ocTransaction.transfers[0];
+  const transfer = oldTransaction.transfers[0];
+  const newTransfer = newTransaction.transfers[0];
   const mergedTransfer = {
     ...transfer,
-    from: ocTransfer.from.startsWith("external")
+    from: newTransfer.from.startsWith("external")
       ? transfer.from
-      : ocTransfer.from,
-    to: ocTransfer.to.startsWith("external")
+      : newTransfer.from,
+    to: newTransfer.to.startsWith("external")
       ? transfer.to
-      : ocTransfer.to,
+      : newTransfer.to,
   };
   return {
-    ...transaction,
-    description: ocTransaction.description,
-    sources: Array.from(new Set([...transaction.sources, ...ocTransaction.sources])),
-    tags: Array.from(new Set([...transaction.tags, ...ocTransaction.tags])),
+    ...oldTransaction,
+    description: newTransaction.description,
+    sources: Array.from(new Set([...oldTransaction.sources, ...newTransaction.sources])),
+    tags: Array.from(new Set([...oldTransaction.tags, ...newTransaction.tags])),
     transfers: [mergedTransfer],
   };
 };
 
+export const isDuplicateOffChain = (
+  oldTransaction: Transaction,
+  newTransaction: Transaction,
+): boolean => {
+  if (oldTransaction.date !== newTransaction.date) {
+    return false;
+  } else if (oldTransaction.description !== newTransaction.description) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
 export const shouldMergeOffChain = (
-  transaction: Transaction,
-  ocTransaction: Transaction,
+  oldTransaction: Transaction,
+  newTransaction: Transaction,
 ): boolean => {
   const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
     lt(div(mul(diff(a1, a2), "200"), add(a1, a2)), "1");
 
   if (
     // assumes the deposit to/withdraw from exchange account doesn't interact w other contracts
-    transaction.transfers.length !== 1 ||
+    oldTransaction.transfers.length !== 1 ||
     // only simple off chain sends to the chain
-    ocTransaction.transfers.length !== 1
+    newTransaction.transfers.length !== 1
   ) {
     return false;
   }
-  const transfer = transaction.transfers[0];
-  const ocTransfer = ocTransaction.transfers[0];
+  const transfer = oldTransaction.transfers[0];
+  const newTransfer = newTransaction.transfers[0];
   if (
-    transfer.assetType === ocTransfer.assetType &&
-    amountsAreClose(transfer.quantity, ocTransfer.quantity)
+    transfer.assetType === newTransfer.assetType &&
+    amountsAreClose(transfer.quantity, newTransfer.quantity)
   ) {
     return true;
   }

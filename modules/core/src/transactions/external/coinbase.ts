@@ -3,6 +3,7 @@ import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
 import {
+  isDuplicateOffChain,
   mergeFactory,
   mergeOffChainTransactions,
   shouldMergeOffChain,
@@ -97,6 +98,7 @@ export const mergeCoinbaseTransactions = (
       log,
       mergeTransactions: mergeOffChainTransactions,
       shouldMerge: shouldMergeOffChain,
+      isDuplicate: isDuplicateOffChain,
     })(transactions, coinbaseTransaction);
   });
 

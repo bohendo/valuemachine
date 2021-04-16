@@ -30,6 +30,7 @@ type TransactionsParams = {
   transactionsJson?: TransactionsJson;
 };
 
+// Note: we must import chain data before off-chain stuff to ensure merges work properly
 export const getTransactions = (params: TransactionsParams): Transactions => {
   const { addressBook, store, logger, transactionsJson } = params;
   const log = (logger || getLogger()).child({ module: "Transactions" });

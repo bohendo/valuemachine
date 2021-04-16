@@ -12,6 +12,7 @@ import {
   mergeFactory,
   mergeOffChainTransactions,
   shouldMergeOffChain,
+  isDuplicateOffChain,
 } from "../utils";
 
 export const mergeWyreTransactions = (
@@ -154,19 +155,16 @@ export const mergeWyreTransactions = (
     return transaction;
   }).filter(row => !!row);
 
-
-  const mergeWyre = mergeFactory({
-    allowableTimeDiff: 15 * 60 * 1000,
-    log,
-    mergeTransactions: mergeOffChainTransactions,
-    shouldMerge: shouldMergeOffChain,
-  });
-
   log.info(`Merging ${wyreTransactions.length} new transactions from wyre`);
-
   wyreTransactions.forEach((wyreTransaction: Transaction): void => {
     log.debug(wyreTransaction.description);
-    transactions = mergeWyre(transactions, wyreTransaction);
+    transactions = mergeFactory({
+      allowableTimeDiff: 15 * 60 * 1000,
+      log,
+      mergeTransactions: mergeOffChainTransactions,
+      shouldMerge: shouldMergeOffChain,
+      isDuplicate: isDuplicateOffChain,
+    })(transactions, wyreTransaction);
   });
 
   return transactions;

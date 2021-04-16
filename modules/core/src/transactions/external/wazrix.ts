@@ -10,6 +10,7 @@ import {
   mergeFactory,
   mergeOffChainTransactions,
   shouldMergeOffChain,
+  isDuplicateOffChain,
 } from "../utils";
 
 export const mergeWazrixTransactions = (
@@ -141,18 +142,16 @@ export const mergeWazrixTransactions = (
 
   }).filter(row => !!row);
 
-  const mergeWazrix = mergeFactory({
-    allowableTimeDiff: 15 * 60 * 1000,
-    log,
-    mergeTransactions: mergeOffChainTransactions,
-    shouldMerge: shouldMergeOffChain,
-  });
-
   log.info(`Merging ${wazrixTransactions.length} new transactions from wazrix`);
-
   wazrixTransactions.forEach((wazrixTransaction: Transaction): void => {
     log.debug(wazrixTransaction.description);
-    transactions = mergeWazrix(transactions, wazrixTransaction);
+    transactions = mergeFactory({
+      allowableTimeDiff: 15 * 60 * 1000,
+      log,
+      mergeTransactions: mergeOffChainTransactions,
+      shouldMerge: shouldMergeOffChain,
+      isDuplicate: isDuplicateOffChain,
+    })(transactions, wazrixTransaction);
   });
 
   return transactions;

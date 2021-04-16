@@ -47,7 +47,8 @@ export const mergeEthTxTransactions = (
     mergeTransactions: (): void => {
       throw new Error(`idk how to merge EthTxs`);
     },
-    shouldMerge: (transaction: Transaction, txTransaction: Transaction): boolean =>
+    shouldMerge: (): boolean => false,
+    isDuplicate: (transaction: Transaction, txTransaction: Transaction): boolean =>
       transaction.hash === txTransaction.hash,
   });
 
