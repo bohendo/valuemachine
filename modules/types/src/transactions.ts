@@ -1,4 +1,5 @@
 import { AssetTypes } from "./assets";
+import { ChainData } from "./chainData";
 import { DecimalString, HexString, TimestampString } from "./strings";
 import { enumify } from "./utils";
 
@@ -57,8 +58,16 @@ export type Transaction = {
   tags: string[];
   transfers: Transfer[];
 }
-export type Transactions = Transaction[];
+export type TransactionsJson = Transaction[];
 
-export type TransactionsJson = Transactions;
+export type Transactions = {
+  json: TransactionsJson;
+  mergeChainData: (chainData: ChainData) => Promise<void>;
+  mergeCoinbase: (csvData: string) => Promise<void>;
+  mergeDigitalOcean: (csvData: string) => Promise<void>;
+  mergeWyre: (csvData: string) => Promise<void>;
+  mergeWazrix: (csvData: string) => Promise<void>;
+  mergeTransaction: (transactions: Partial<Transaction>) => Promise<void>;
+};
 
-export const emptyTransactions = [] as Transactions;
+export const emptyTransactions = [] as TransactionsJson;

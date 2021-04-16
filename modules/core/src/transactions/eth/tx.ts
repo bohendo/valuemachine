@@ -12,11 +12,11 @@ import {
 import { math, sm } from "@finances/utils";
 import { BigNumber, constants, utils } from "ethers";
 
-import { getTokenInterface } from "../abi";
-import { getTransactionsError } from "../verify";
+import { getTokenInterface } from "../../abi";
+import { getTransactionsError } from "../../verify";
+import { mergeFactory } from "../utils";
 
-import { categorizeTransfer } from "./categorizeTransfer";
-import { mergeFactory } from "./utils";
+import { categorizeTransfer } from "./categorize";
 
 const { hexlify, formatEther, formatUnits, keccak256, Interface: { getEventTopic }, RLP } = utils;
 const { AddressZero } = constants;

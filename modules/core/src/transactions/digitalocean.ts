@@ -1,8 +1,6 @@
 import { Transaction, TransactionSources, Logger, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
-import { getTransactionsError } from "../verify";
-
 import { mergeFactory } from "./utils";
 
 export const mergeDigitalOceanTransactions = (
@@ -58,11 +56,6 @@ export const mergeDigitalOceanTransactions = (
       shouldMerge: () => false,
     })(transactions, digitaloceanTransaction);
   });
-
-  const error = getTransactionsError(transactions);
-  if (error) {
-    throw new Error(error);
-  }
 
   return transactions;
 };

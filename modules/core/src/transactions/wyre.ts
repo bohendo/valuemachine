@@ -8,8 +8,6 @@ import {
 import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
-import { getTransactionsError } from "../verify";
-
 import {
   mergeFactory,
   mergeOffChainTransactions,
@@ -173,17 +171,6 @@ export const mergeWyreTransactions = (
     log.debug(wyreTransaction.description);
     transactions = mergeWyre(transactions, wyreTransaction);
   });
-
-  // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
-  // edge case is tricky to solve at source, just sort manually ffs
-  transactions = transactions.sort((e1: Transaction, e2: Transaction): number =>
-    new Date(e1.date).getTime() - new Date(e2.date).getTime(),
-  );
-
-  const error = getTransactionsError(transactions);
-  if (error) {
-    throw new Error(error);
-  }
 
   return transactions;
 };

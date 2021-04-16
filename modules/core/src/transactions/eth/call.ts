@@ -10,10 +10,10 @@ import {
 import { math } from "@finances/utils";
 import { constants } from "ethers";
 
-import { getTransactionsError } from "../verify";
+import { getTransactionsError } from "../../verify";
+import { mergeFactory } from "../utils";
 
-import { categorizeTransfer } from "./categorizeTransfer";
-import { mergeFactory } from "./utils";
+import { categorizeTransfer } from "./categorize";
 
 export const mergeEthCallTransactions = (
   oldTransactions: Transaction[],
