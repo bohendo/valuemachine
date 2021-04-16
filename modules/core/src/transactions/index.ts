@@ -9,15 +9,18 @@ import {
   Transactions,
   TransactionsJson,
 } from "@finances/types";
+import { getLogger } from "@finances/utils";
 
 import { getPrices } from "../prices";
 import { getTransactionsError } from "../verify";
 
 import { mergeEthTransactions } from "./eth";
-import { mergeCoinbaseTransactions } from "./coinbase";
-import { mergeDigitalOceanTransactions } from "./digitalocean";
-import { mergeWyreTransactions } from "./wyre";
-import { mergeWazrixTransactions } from "./wazrix";
+import {
+  mergeCoinbaseTransactions,
+  mergeDigitalOceanTransactions,
+  mergeWazrixTransactions,
+  mergeWyreTransactions,
+} from "./external";
 import { mergeDefaultTransactions } from "./utils";
 
 type TransactionsParams = {
@@ -29,7 +32,8 @@ type TransactionsParams = {
 
 export const getTransactions = (params: TransactionsParams): Transactions => {
   const { addressBook, store, logger, transactionsJson } = params;
-  const log = logger.child({ module: "Transactions" });
+  const log = (logger || getLogger()).child({ module: "Transactions" });
+  const prices = getPrices({ store, logger });
 
   let txns = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
 
@@ -53,7 +57,6 @@ export const getTransactions = (params: TransactionsParams): Transactions => {
 
     // Attach Prices
     log.debug(`Attaching price info to transactions`);
-    const prices = getPrices(store, logger);
     for (let i = 0; i < txns.length; i++) {
       const transaction = txns[i];
       const assets = Array.from(new Set(transaction.transfers.map(a => a.assetType)));
@@ -80,6 +83,7 @@ export const getTransactions = (params: TransactionsParams): Transactions => {
     }
 
     // Save to store
+    log.info(`Saving ${txns.length} transactions to storage`);
     store.save(StoreKeys.Transactions, txns);
   };
 
@@ -87,37 +91,38 @@ export const getTransactions = (params: TransactionsParams): Transactions => {
   // Exported Methods
 
   const mergeChainData = async (chainData: ChainData): Promise<void> => {
+    log.info(`Merging chain data containing ${chainData.json.transactions.length} txns`);
     txns = mergeEthTransactions(txns, addressBook, chainData, getLastUpdated(), log);
     await sync();
   };
 
   const mergeCoinbase = async (csvData: string): Promise<void> => {
-    txns = mergeCoinbaseTransactions(txns, csvData, getLastUpdated(), logger);
+    txns = mergeCoinbaseTransactions(txns, csvData, log);
     await sync();
   };
 
   const mergeDigitalOcean = async (csvData: string): Promise<void> => {
-    txns = mergeDigitalOceanTransactions(txns, csvData, getLastUpdated(), logger);
+    txns = mergeDigitalOceanTransactions(txns, csvData, log);
     await sync();
   };
 
   const mergeWyre = async (csvData: string): Promise<void> => {
-    txns = mergeWyreTransactions(txns, csvData, getLastUpdated(), logger);
+    txns = mergeWyreTransactions(txns, csvData, log);
     await sync();
   };
 
   const mergeWazrix = async (csvData: string): Promise<void> => {
-    txns = mergeWazrixTransactions(txns, csvData, getLastUpdated(), logger);
+    txns = mergeWazrixTransactions(txns, csvData, log);
     await sync();
   };
 
   const mergeTransaction = async (transaction: Partial<Transaction>): Promise<void> => {
-    txns = mergeDefaultTransactions(txns, transaction, getLastUpdated());
+    txns = mergeDefaultTransactions(txns, transaction);
     await sync();
   };
 
   return {
-    json: txns,
+    getAll: () => txns,
     mergeChainData,
     mergeCoinbase,
     mergeDigitalOcean,

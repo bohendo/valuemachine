@@ -61,7 +61,7 @@ export type Transaction = {
 export type TransactionsJson = Transaction[];
 
 export type Transactions = {
-  json: TransactionsJson;
+  getAll: () => TransactionsJson;
   mergeChainData: (chainData: ChainData) => Promise<void>;
   mergeCoinbase: (csvData: string) => Promise<void>;
   mergeDigitalOcean: (csvData: string) => Promise<void>;

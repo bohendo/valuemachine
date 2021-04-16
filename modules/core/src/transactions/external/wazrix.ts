@@ -10,19 +10,19 @@ import {
   mergeFactory,
   mergeOffChainTransactions,
   shouldMergeOffChain,
-} from "./utils";
+} from "../utils";
 
 export const mergeWazrixTransactions = (
   oldTransactions: Transaction[],
-  wazrixData: string,
-  lastUpdated: number,
-  logger?: Logger,
+  csvData: string,
+  logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: "Wazrix" });
-  log.debug(`Importing wazrix data: ${wazrixData}`);
+  log.info(`Processing ${csvData.split(`\n`).length} rows of waxrix data`);
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
+
   const wazrixTransactions = csv(
-    wazrixData,
+    csvData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
 
@@ -30,10 +30,6 @@ export const mergeWazrixTransactions = (
 
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
-    // Skip entries from before the lastUpdated date
-    if (new Date(date).getTime() <= lastUpdated) {
-      return null;
-    }
 
     const transaction = {
       date: (new Date(date)).toISOString(),
@@ -140,7 +136,7 @@ export const mergeWazrixTransactions = (
       }
 
     }
-    log.info(transaction.description);
+    log.debug(transaction.description);
     return transaction;
 
   }).filter(row => !!row);
@@ -152,7 +148,7 @@ export const mergeWazrixTransactions = (
     shouldMerge: shouldMergeOffChain,
   });
 
-  log.info(`Processing ${wazrixTransactions.length} new transactions from wazrix`);
+  log.info(`Merging ${wazrixTransactions.length} new transactions from wazrix`);
 
   wazrixTransactions.forEach((wazrixTransaction: Transaction): void => {
     log.debug(wazrixTransaction.description);

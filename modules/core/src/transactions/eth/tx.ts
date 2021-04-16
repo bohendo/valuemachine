@@ -13,7 +13,6 @@ import { math, sm } from "@finances/utils";
 import { BigNumber, constants, utils } from "ethers";
 
 import { getTokenInterface } from "../../abi";
-import { getTransactionsError } from "../../verify";
 import { mergeFactory } from "../utils";
 
 import { categorizeTransfer } from "./categorize";
@@ -26,7 +25,7 @@ export const mergeEthTxTransactions = (
   addressBook: AddressBook,
   chainData: ChainData,
   lastUpdated: number,
-  logger?: Logger,
+  logger: Logger,
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const log = logger.child({ module: "EthTx" });
@@ -255,11 +254,6 @@ export const mergeEthTxTransactions = (
       transactions = merge(transactions, transaction);
       return;
     });
-
-  const error = getTransactionsError(transactions);
-  if (error) {
-    throw new Error(error);
-  }
 
   const diff = (Date.now() - start).toString();
   log.info(`Done processing eth txs in ${diff} ms (avg ${

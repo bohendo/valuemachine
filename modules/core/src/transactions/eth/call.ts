@@ -10,7 +10,6 @@ import {
 import { math } from "@finances/utils";
 import { constants } from "ethers";
 
-import { getTransactionsError } from "../../verify";
 import { mergeFactory } from "../utils";
 
 import { categorizeTransfer } from "./categorize";
@@ -20,7 +19,7 @@ export const mergeEthCallTransactions = (
   addressBook: AddressBook,
   chainData: ChainData,
   lastUpdated: number,
-  logger?: Logger,
+  logger: Logger,
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const log = logger.child({ module: "EthCall" });
@@ -109,11 +108,6 @@ export const mergeEthCallTransactions = (
 
       transactions = merge(transactions, transaction);
     });
-
-  const error = getTransactionsError(transactions);
-  if (error) {
-    throw new Error(error);
-  }
 
   const diff = (Date.now() - start).toString();
   log.info(`Done processing eth calls in ${diff} ms (avg ${

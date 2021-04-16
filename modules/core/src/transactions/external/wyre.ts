@@ -12,18 +12,19 @@ import {
   mergeFactory,
   mergeOffChainTransactions,
   shouldMergeOffChain,
-} from "./utils";
+} from "../utils";
 
 export const mergeWyreTransactions = (
   oldTransactions: Transaction[],
-  wyreData: string,
-  lastUpdated: number,
-  logger?: Logger,
+  csvData: string,
+  logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: "SendWyre" });
+  log.info(`Processing ${csvData.split(`\n`).length} rows of wyre data`);
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
+
   const wyreTransactions = csv(
-    wyreData,
+    csvData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
     const {
@@ -37,10 +38,6 @@ export const mergeWyreTransactions = (
       ["Source Currency"]: rawSourceType,
       ["Type"]: txType,
     } = row;
-
-    if (new Date(date).getTime() <= lastUpdated) {
-      return null;
-    }
 
     const beforeDaiMigration = (date: DateString): boolean =>
       new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime();
@@ -165,7 +162,7 @@ export const mergeWyreTransactions = (
     shouldMerge: shouldMergeOffChain,
   });
 
-  log.info(`Processing ${wyreTransactions.length} new transactions from wyre`);
+  log.info(`Merging ${wyreTransactions.length} new transactions from wyre`);
 
   wyreTransactions.forEach((wyreTransaction: Transaction): void => {
     log.debug(wyreTransaction.description);

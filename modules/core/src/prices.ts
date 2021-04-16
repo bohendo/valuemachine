@@ -7,12 +7,21 @@ import {
   StoreKeys,
   TimestampString,
 } from "@finances/types";
+import { getLogger } from "@finances/utils";
 import axios from "axios";
 
-export const getPrices = (store: Store, logger: Logger, pricesJson?: PricesJson): Prices => {
+export const getPrices = ({
+  logger,
+  store,
+  pricesJson
+}: {
+  store: Store;
+  logger?: Logger;
+  pricesJson?: PricesJson;
+}): Prices => {
   const json = pricesJson || store.load(StoreKeys.Prices);
   const save = (json: PricesJson): void => store.save(StoreKeys.Prices, json);
-  const log = logger.child({ module: "Prices" });
+  const log = (logger || getLogger()).child({ module: "Prices" });
 
   log.info(`Loaded prices for ${
     Object.keys(json).length

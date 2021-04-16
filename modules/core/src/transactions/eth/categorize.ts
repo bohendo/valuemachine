@@ -20,7 +20,7 @@ export const categorizeTransfer = (
   txLogs: EthTransactionLog[],
   txTo: Address,
   addressBook: AddressBook,
-  logger?: Logger,
+  logger: Logger,
 ): Transfer => {
   const transfer = JSON.parse(JSON.stringify(inputTransfer));
   const { isCategory, isSelf, getName } = addressBook;

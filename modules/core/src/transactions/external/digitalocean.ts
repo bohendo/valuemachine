@@ -1,18 +1,19 @@
 import { Transaction, TransactionSources, Logger, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
-import { mergeFactory } from "./utils";
+import { mergeFactory } from "../utils";
 
 export const mergeDigitalOceanTransactions = (
   oldTransactions: Transaction[],
-  digitaloceanData: string,
-  lastUpdated: number,
-  logger?: Logger,
+  csvData: string,
+  logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: "DigitalOcean" });
+  log.info(`Processing ${csvData.split(`\n`).length} rows of digital ocean data`);
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
+
   const digitaloceanTransactions = csv(
-    digitaloceanData,
+    csvData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
     const {
@@ -20,10 +21,6 @@ export const mergeDigitalOceanTransactions = (
       ["USD"]: quantity,
       ["start"]: date,
     } = row;
-
-    if (new Date(date).getTime() <= lastUpdated) {
-      return null;
-    }
 
     const transaction = {
       date: (new Date(date)).toISOString(),
@@ -45,7 +42,7 @@ export const mergeDigitalOceanTransactions = (
     return transaction;
   }).filter(row => !!row);
 
-  log.info(`Loaded ${digitaloceanTransactions.length} new transactions from digitalocean`);
+  log.info(`Merging ${digitaloceanTransactions.length} new transactions from digitalocean`);
 
   digitaloceanTransactions.forEach((digitaloceanTransaction: Transaction): void => {
     log.debug(digitaloceanTransaction.description);

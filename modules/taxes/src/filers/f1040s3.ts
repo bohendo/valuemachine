@@ -1,12 +1,12 @@
 import { Event, EventTypes, ExpenseEvent } from "@finances/types";
-import { getLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 
-import { env } from "../env";
 import { Forms } from "../types";
+import { logger } from "../utils";
 
 export const f1040s3 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
-  const log = getLogger(env.logLevel).child({ module: "f1040s3" });
+  const log = logger.child({ module: "f1040s3" });
   const { f1040, f1040s3 } = forms;
 
   f1040s3.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;

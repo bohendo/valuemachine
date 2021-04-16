@@ -11,12 +11,7 @@ const { add, diff, div, lt, mul } = math;
 export const mergeDefaultTransactions = (
   transactions: Transaction[],
   source: Partial<Transaction>,
-  lastUpdated: number,
 ): Transaction[] => {
-  if (source && source.date && new Date(source.date).getTime() <= lastUpdated) {
-    return transactions;
-  }
-
   const castDefault = (transaction: Partial<Transaction>): Partial<Transaction> => ({
     prices: {},
     sources: [TransactionSources.Profile],

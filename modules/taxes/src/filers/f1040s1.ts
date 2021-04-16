@@ -1,12 +1,11 @@
 import { Event, IncomeEvent } from "@finances/types";
-import { getLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 
-import { env } from "../env";
 import { Forms } from "../types";
-import { processIncome } from "../utils";
+import { logger, processIncome } from "../utils";
 
 export const f1040s1 = (vmEvents: Event[], oldForms: Forms): Forms => {
-  const log = getLogger(env.logLevel).child({ module: "f1040s1" });
+  const log = logger.child({ module: "f1040s1" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1 } = forms;
 

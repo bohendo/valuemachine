@@ -13,6 +13,8 @@ export const mergeEthTransactions = (
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const start = new Date().getTime();
 
+  logger?.info(`Merging eth txns`);
+
   transactions = mergeEthTxTransactions(
     transactions,
     addressBook,
@@ -20,6 +22,8 @@ export const mergeEthTransactions = (
     lastUpdated,
     logger,
   );
+
+  logger?.info(`Merging eth calls`);
 
   transactions = mergeEthCallTransactions(
     transactions,
@@ -29,7 +33,7 @@ export const mergeEthTransactions = (
     logger,
   );
 
-  logger.info(`Processed ${chainData.json.transactions.length} txs & ${
+  logger?.info(`Processed ${chainData.json.transactions.length} txs & ${
     chainData.json.calls.length
   } calls in ${new Date().getTime() - start} ms`);
 
