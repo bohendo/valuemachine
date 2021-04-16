@@ -74,11 +74,9 @@ const emptyAddressEntry = {
 } as AddressEntry;
 
 export const AccountInfo = ({
-  chainData,
   profile,
   setProfile,
 }: {
-  chainData: any;
   profile: any;
   setProfile: (val: any) => void;
 }) => {
@@ -86,7 +84,8 @@ export const AccountInfo = ({
   const [newAddress, setNewAddress] = useState(emptyAddressEntry);
   const [newAddressError, setNewAddressError] = useState("");
   const [newProfile, setNewProfile] = useState(emptyProfile);
-  const [newProfileError, setNewProfileError] = useState("");
+  const [newTokenError, setNewTokenError] = useState("");
+  const [newUsernameError, setNewUsernameError] = useState("");
   const [profileModified, setProfileModified] = useState(false);
   const [statusAlert, setStatusAlert] = useState({
     open: false,
@@ -142,21 +141,28 @@ export const AccountInfo = ({
         console.error(saveRes);
       }
     }).catch(() => {
-      setNewProfileError("Invalid Auth Token");
+      setNewTokenError("Invalid Auth Token");
     });
 
   };
 
-  const handleUsernameChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    console.log(`Set profile.username = "${event.target.value}"`);
-    setNewProfile(oldProfile => ({ ...oldProfile, username: event.target.value }));
-    setNewProfileError("");
+  const handleUsernameChange = (event: React.ChangeEvent<{ value: string }>) => {
+    const username = event.target.value;
+    setNewProfile(oldProfile => ({ ...oldProfile, username }));
+    console.log(`Set profile.username = "${username}"`);
+    if (username.length < 1 || username.length > 32) {
+      setNewUsernameError("Username must be between 1 and 32 characters long");
+    } else if (username.match(/[^a-zA-Z0-9_-]/)) {
+      setNewUsernameError(`Username can only contain letters, numbers, _ and -`);
+    } else {
+      setNewUsernameError("");
+    }
   };
 
-  const handleAuthTokenChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleAuthTokenChange = (event: React.ChangeEvent<{ value: string }>) => {
     console.log(`Set profile.authToken = "${event.target.value}"`);
     setNewProfile(oldProfile => ({ ...oldProfile, authToken: event.target.value }));
-    setNewProfileError("");
+    setNewTokenError("");
   };
 
   const handleImport = (event) => {
@@ -242,7 +248,7 @@ export const AccountInfo = ({
       if (response.status === 200 && typeof response.data === "object") {
         const history = response.data;
         console.log(`Got address history:`, history);
-        chainData.merge(history);
+        // chainData.merge(history);
         setSyncing({ ...syncing, [address]: false });
         break;
       }
@@ -267,7 +273,8 @@ export const AccountInfo = ({
         <Grid item>
           <TextField
             autoComplete="off"
-            helperText="Choose a name for your profile"
+            helperText={newUsernameError || "Choose a name for your profile"}
+            error={!!newUsernameError}
             id="username"
             label="Username"
             margin="normal"
@@ -280,8 +287,8 @@ export const AccountInfo = ({
         <Grid item>
           <TextField
             autoComplete="off"
-            helperText={newProfileError || "Register an auth token to sync chain data"}
-            error={!!newProfileError}
+            helperText={newTokenError || "Register an auth token to sync chain data"}
+            error={!!newTokenError}
             id="auth-token"
             label="Auth Token"
             margin="normal"

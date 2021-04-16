@@ -16,10 +16,9 @@ const restrictedPaths = ["/auth", "/profile", "/chaindata"];
 authRouter.use((req, res, next) => {
   if (restrictedPaths.includes(req.path) || restrictedMethods.includes(req.method)) {
     const authHeader = req.headers[authHeaderKey];
-    const password = Buffer.from(
-      authHeader?.split?.(" ")?.[1] || [],
-      "base64",
-    ).toString("utf8").split(":")?.[1];
+    const authToken = Buffer.from(authHeader?.split?.(" ")?.[1] || [], "base64").toString("utf8");
+    const username = authToken?.split(":")?.[0];
+    const password = authToken?.split(":")?.[1];
     if (!password || password !== env.adminToken) {
       if (req.path === "/auth") {
         res.removeHeader("www-authenticate"); // prevents browser from popping up a login window.
@@ -47,6 +46,12 @@ authRouter.use((req, res, next) => {
           }
         }
       }
+      res.status(401).send("Unauthorized");
+    } else if (
+      !username || username.length < 1 || username.length > 32 ||
+      username.match(/[^a-zA-Z0-9_-]/)
+    ) {
+      log.warn(`Invalid username: "${username}"`);
       res.status(401).send("Unauthorized");
     } else {
       const username = Buffer.from(
