@@ -23,16 +23,18 @@ import {
 } from "./external";
 import { mergeDefaultTransactions } from "./utils";
 
-type TransactionsParams = {
-  addressBook: AddressBook;
-  store?: Store;
-  logger: Logger;
-  transactionsJson?: TransactionsJson;
-};
-
 // Note: we must import chain data before off-chain stuff to ensure merges work properly
-export const getTransactions = (params: TransactionsParams): Transactions => {
-  const { addressBook, store, logger, transactionsJson } = params;
+export const getTransactions = ({
+  addressBook,
+  logger,
+  store,
+  transactionsJson,
+}: {
+  addressBook: AddressBook;
+  logger?: Logger;
+  store?: Store;
+  transactionsJson?: TransactionsJson;
+}): Transactions => {
   const log = (logger || getLogger()).child({ module: "Transactions" });
   const prices = getPrices({ store, logger });
 
