@@ -12,11 +12,10 @@ import {
 import { math, sm } from "@finances/utils";
 import { BigNumber, constants, utils } from "ethers";
 
-import { getTokenInterface } from "../abi";
-import { getTransactionsError } from "../verify";
+import { getTokenInterface } from "../../abi";
+import { mergeFactory } from "../utils";
 
-import { categorizeTransfer } from "./categorizeTransfer";
-import { mergeFactory } from "./utils";
+import { categorizeTransfer } from "./categorize";
 
 const { hexlify, formatEther, formatUnits, keccak256, Interface: { getEventTopic }, RLP } = utils;
 const { AddressZero } = constants;
@@ -26,7 +25,7 @@ export const mergeEthTxTransactions = (
   addressBook: AddressBook,
   chainData: ChainData,
   lastUpdated: number,
-  logger?: Logger,
+  logger: Logger,
 ): Transaction[] => {
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
   const log = logger.child({ module: "EthTx" });
@@ -48,7 +47,8 @@ export const mergeEthTxTransactions = (
     mergeTransactions: (): void => {
       throw new Error(`idk how to merge EthTxs`);
     },
-    shouldMerge: (transaction: Transaction, txTransaction: Transaction): boolean =>
+    shouldMerge: (): boolean => false,
+    isDuplicate: (transaction: Transaction, txTransaction: Transaction): boolean =>
       transaction.hash === txTransaction.hash,
   });
 
@@ -255,11 +255,6 @@ export const mergeEthTxTransactions = (
       transactions = merge(transactions, transaction);
       return;
     });
-
-  const error = getTransactionsError(transactions);
-  if (error) {
-    throw new Error(error);
-  }
 
   const diff = (Date.now() - start).toString();
   log.info(`Done processing eth txs in ${diff} ms (avg ${

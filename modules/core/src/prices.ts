@@ -7,12 +7,21 @@ import {
   StoreKeys,
   TimestampString,
 } from "@finances/types";
+import { getLogger } from "@finances/utils";
 import axios from "axios";
 
-export const getPrices = (store: Store, logger: Logger, pricesJson?: PricesJson): Prices => {
+export const getPrices = ({
+  logger,
+  store,
+  pricesJson
+}: {
+  store: Store;
+  logger?: Logger;
+  pricesJson?: PricesJson;
+}): Prices => {
   const json = pricesJson || store.load(StoreKeys.Prices);
   const save = (json: PricesJson): void => store.save(StoreKeys.Prices, json);
-  const log = logger.child({ module: "Prices" });
+  const log = (logger || getLogger()).child({ module: "Prices" });
 
   log.info(`Loaded prices for ${
     Object.keys(json).length
@@ -50,14 +59,32 @@ export const getPrices = (store: Store, logger: Logger, pricesJson?: PricesJson)
 
       // DD-MM-YYYY
       const coingeckoDate = `${date.split("-")[2]}-${date.split("-")[1]}-${date.split("-")[0]}`;
-      log.info(`Fetching price of ${asset} on ${coingeckoDate}..`);
-      const response = (await axios(
-        `${coingeckoUrl}/coins/${coinId}/history?date=${coingeckoDate}`,
-      )).data;
+      log.info(`Fetching price of ${asset} on ${date}..`);
+      let response;
       try {
-        json[date][asset] = response.market_data.current_price.usd.toString();
+        response = (await axios.get(
+          `${coingeckoUrl}/coins/${coinId}/history?date=${coingeckoDate}`,
+          { timeout: 10000 },
+        )).data;
+      // Try one more time if we get a failure
       } catch (e) {
-        throw new Error(`Couldn't get price, make sure that ${asset} existed on ${coingeckoDate}`);
+        log.warn(e.message);
+        if (e.message.includes("timeout") || e.message.includes("EAI_AGAIN")) {
+          log.info(`Trying to fetch price of ${asset} on ${date} one more time..`);
+          response = (await axios.get(
+            `${coingeckoUrl}/coins/${coinId}/history?date=${coingeckoDate}`,
+            { timeout: 10000 },
+          )).data;
+        } else {
+          throw e;
+        }
+      }
+      try {
+        json[date][asset] = response.market_data.current_price.usd
+          .toString().replace(/(\.[0-9]{3})[0-9]+/, "$1");
+        log.info(`Success, 1 ${asset} was worth $${json[date][asset]} on ${date}`);
+      } catch (e) {
+        throw new Error(`Couldn't get price, make sure that ${asset} existed on ${date}`);
       }
       save(json);
     }

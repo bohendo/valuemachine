@@ -2,7 +2,6 @@ import { getChainData } from "@finances/core";
 import {
   StoreKeys,
   emptyProfile,
-  emptyChainData,
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
 import {
@@ -84,13 +83,12 @@ const App: React.FC = () => {
               </Route>
               <Route exact path="/account">
                 <AccountInfo
-                  chainData={chainData}
                   profile={profile}
                   setProfile={setProfile}
                 />
               </Route>
               <Route exact path="/taxes">
-                <Taxes />
+                <Taxes profile={profile} />
               </Route>
             </Switch>
           </Container>

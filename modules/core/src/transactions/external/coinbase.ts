@@ -2,25 +2,24 @@ import { Transaction, TransactionSources, Logger, TransferCategories } from "@fi
 import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
-import { getTransactionsError } from "../verify";
-
 import {
+  isDuplicateOffChain,
   mergeFactory,
   mergeOffChainTransactions,
   shouldMergeOffChain,
-} from "./utils";
-
+} from "../utils";
 
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
-  coinbaseData: string,
-  lastUpdated: number,
-  logger?: Logger,
+  csvData: string,
+  logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: "Coinbase" }); 
+  log.info(`Processing ${csvData.split(`\n`).length} rows of coinbase data`);
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
+
   const coinbaseTransactions = csv(
-    coinbaseData,
+    csvData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
     const {
@@ -32,10 +31,6 @@ export const mergeCoinbaseTransactions = (
       ["USD Spot Price at Transaction"]: price,
       ["USD Total (inclusive of fees)"]: usdQuantity,
     } = row;
-
-    if (new Date(date).getTime() <= lastUpdated) {
-      return null;
-    }
 
     const transaction = {
       date: (new Date(date)).toISOString(),
@@ -94,7 +89,7 @@ export const mergeCoinbaseTransactions = (
     return transaction;
   }).filter(row => !!row);
 
-  log.info(`Processing ${coinbaseTransactions.length} new transactions from coinbase`);
+  log.info(`Merging ${coinbaseTransactions.length} new transactions from coinbase`);
 
   coinbaseTransactions.forEach((coinbaseTransaction: Transaction): void => {
     log.debug(coinbaseTransaction.description);
@@ -103,19 +98,9 @@ export const mergeCoinbaseTransactions = (
       log,
       mergeTransactions: mergeOffChainTransactions,
       shouldMerge: shouldMergeOffChain,
+      isDuplicate: isDuplicateOffChain,
     })(transactions, coinbaseTransaction);
   });
-
-  // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
-  // edge case is tricky to solve at source, just sort manually ffs
-  transactions = transactions.sort((e1: Transaction, e2: Transaction): number =>
-    new Date(e1.date).getTime() - new Date(e2.date).getTime(),
-  );
-
-  const error = getTransactionsError(transactions);
-  if (error) {
-    throw new Error(error);
-  }
 
   return transactions;
 };

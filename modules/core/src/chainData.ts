@@ -11,7 +11,7 @@ import {
   StoreKeys,
   TokenData,
 } from "@finances/types";
-import { sm, smeq } from "@finances/utils";
+import { getLogger, sm, smeq } from "@finances/utils";
 import { BigNumber, Contract, constants, providers, utils  } from "ethers";
 import axios from "axios";
 
@@ -22,16 +22,18 @@ type Provider = providers.Provider;
 const { JsonRpcProvider } = providers;
 const { formatEther, getAddress, hexlify, toUtf8String } = utils;
 
-type ChainDataParams = {
-  store?: Store;
-  logger: Logger;
-  etherscanKey?: string;
+export const getChainData = ({
+  chainDataJson,
+  etherscanKey,
+  logger,
+  store,
+}: {
   chainDataJson?: ChainDataJson;
-};
-
-export const getChainData = (params: ChainDataParams): ChainData => {
-  const { store, logger, etherscanKey, chainDataJson } = params;
-  const log = logger?.child?.({ module: "ChainData" }) || console;
+  etherscanKey?: string;
+  logger?: Logger;
+  store?: Store;
+}): ChainData => {
+  const log = (logger || getLogger()).child?.({ module: "ChainData" });
   const json = chainDataJson || (store ? store.load(StoreKeys.ChainData) : emptyChainData);
 
   log.info(`Loaded chain data containing ${

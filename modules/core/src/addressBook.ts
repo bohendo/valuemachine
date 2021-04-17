@@ -5,14 +5,14 @@ import {
   AddressCategories,
   Logger,
 } from "@finances/types";
-import { sm, smeq } from "@finances/utils";
+import { getLogger, sm, smeq } from "@finances/utils";
 import { utils } from "ethers";
 
 export const getAddressBook = (
   userAddressBook: AddressBookJson = [],
   logger?: Logger,
 ): AddressBook => {
-  const log = logger?.child?.({ module: "AddressBook" }) || console;
+  const log = (logger || getLogger()).child?.({ module: "AddressBook" }) || console;
 
   ////////////////////////////////////////
   // Hardcoded Public Addresses

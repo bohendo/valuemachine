@@ -2,20 +2,20 @@ import fs from "fs";
 
 import {
   getAddressBook,
+  getTransactions,
   getChainData,
   getState,
   getValueMachine,
 } from "@finances/core";
 import { ExpenseEvent, EventTypes, StoreKeys } from "@finances/types";
-import { getLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 
 import { store } from "./store";
 import { env, setEnv } from "./env";
 import * as filers from "./filers";
 import { mappings, Forms } from "./mappings";
-import { getTransactions } from "./transactions";
 import { ProfileData } from "./types";
-import { emptyForm, mergeForms, translate } from "./utils";
+import { emptyForm, logger, mergeForms, translate } from "./utils";
 
 // Order of this list is important, it should follow the dependency graph.
 // ie: first no dependents, last no dependencies
@@ -33,8 +33,9 @@ const supportedForms = [
   "f8889",
 ];
 
-const logAndExit = (msg: any): void => {
+const logAndExit = (msg: any, extra?: any): void => {
   console.error(`Fatal: ${msg}`);
+  extra && console.error(extra);
   process.exit(1);
 };
 process.on("uncaughtException", logAndExit);
@@ -46,15 +47,15 @@ process.on("SIGINT", logAndExit);
   const basename = process.argv[2].replace(".json", "");
 
   const input = JSON.parse(fs.readFileSync(inputFile, { encoding: "utf8" })) as ProfileData;
-  const log = getLogger(input.env.logLevel).child({ module: "Taxes" });
+  const outputFolder = `${process.cwd()}/build/${basename}/data`;
+  setEnv({ ...input.env, outputFolder });
+
+  const log = logger.child({ module: "Taxes" });
   const taxYear = input.env.taxYear;
   log.info(`Generating ${taxYear} ${basename} tax return`);
 
-  const outputFolder = `${process.cwd()}/build/${basename}/data`;
-
   let output = {} as Forms;
 
-  setEnv({ ...input.env, outputFolder });
   log.debug(`Starting app in env: ${JSON.stringify(env)}`);
 
   const formsToFile = supportedForms.filter(form => Object.keys(input.forms).includes(form));
@@ -82,20 +83,35 @@ process.on("SIGINT", logAndExit);
     }
   }
 
-  const transactions = await getTransactions(
-    addressBook,
-    chainData,
-    store,
-    input.transactions,
-    log,
+  const transactions = getTransactions({ addressBook, store, logger: log });
+
+  await transactions.mergeChainData(
+    chainData.getAddressHistory(...addressBook.addresses.filter(addressBook.isSelf))
   );
 
-  const valueMachine = getValueMachine(addressBook, log);
+  for (const source of input.transactions || []) {
+    if (typeof source === "string" && source.endsWith(".csv")) {
+      if (source.toLowerCase().includes("coinbase")) {
+        await transactions.mergeCoinbase(fs.readFileSync(source, "utf8"));
+      } else if (source.toLowerCase().includes("digital-ocean")) {
+        await transactions.mergeDigitalOcean(fs.readFileSync(source, "utf8"));
+      } else if (source.toLowerCase().includes("wyre")) {
+        await transactions.mergeWyre(fs.readFileSync(source, "utf8"));
+      } else if (source.toLowerCase().includes("wazrix")) {
+        await transactions.mergeWazrix(fs.readFileSync(source, "utf8"));
+      } else {
+        throw new Error(`I don't know how to parse transactions from ${source}`);
+      }
+    } else if (typeof source !== "string") {
+      await transactions.mergeTransaction(source);
+    }
+  }
 
+  const valueMachine = getValueMachine(addressBook, log);
   let state = store.load(StoreKeys.State);
   let vmEvents = store.load(StoreKeys.Events);
   let start = Date.now();
-  for (const transaction of transactions.filter(
+  for (const transaction of transactions.getAll().filter(
     transaction => new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
   )) {
     const [newState, newEvents] = valueMachine(state, transaction);

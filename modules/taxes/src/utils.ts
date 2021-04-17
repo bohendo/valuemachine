@@ -4,6 +4,8 @@ import { constants } from "ethers";
 
 import { env } from "./env";
 
+export const logger = getLogger(env.logLevel);
+
 export const processIncome = (
   vmEvents: Events,
   callback: (event: IncomeEvent, value: string) => void,
@@ -113,9 +115,9 @@ export const translate = (form, mappings): any => {
   for (const [key, value] of Object.entries(form)) {
     if (key === "default") { continue; }
     if (!mappings[key]) {
-      getLogger(env.logLevel)
-        .child({ module: "TranslateForms" })
-        .warn(`Key ${key} exists in output data but not in mappings`);
+      logger.child({ module: "TranslateForms" }).warn(
+        `Key ${key} exists in output data but not in mappings`
+      );
     }
     if (
       !["_dec", "_int"].some(suffix => key.endsWith(suffix)) &&

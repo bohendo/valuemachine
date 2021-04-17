@@ -10,7 +10,7 @@ import {
 import { math } from "@finances/utils";
 import { constants, utils } from "ethers";
 
-import { exchangeInterface, daiJoinInterface, defiInterface, vatInterface } from "../abi";
+import { exchangeInterface, daiJoinInterface, defiInterface, vatInterface } from "../../abi";
 
 const AddressZero = constants.AddressZero;
 const { formatEther, Interface: { getEventTopic, getSighash } } = utils;
@@ -20,7 +20,7 @@ export const categorizeTransfer = (
   txLogs: EthTransactionLog[],
   txTo: Address,
   addressBook: AddressBook,
-  logger?: Logger,
+  logger: Logger,
 ): Transfer => {
   const transfer = JSON.parse(JSON.stringify(inputTransfer));
   const { isCategory, isSelf, getName } = addressBook;

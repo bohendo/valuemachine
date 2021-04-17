@@ -6,25 +6,24 @@ import {
 } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
-import { getTransactionsError } from "../verify";
-
 import {
   mergeFactory,
   mergeOffChainTransactions,
   shouldMergeOffChain,
-} from "./utils";
+  isDuplicateOffChain,
+} from "../utils";
 
 export const mergeWazrixTransactions = (
   oldTransactions: Transaction[],
-  wazrixData: string,
-  lastUpdated: number,
-  logger?: Logger,
+  csvData: string,
+  logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: "Wazrix" });
-  log.debug(`Importing wazrix data: ${wazrixData}`);
+  log.info(`Processing ${csvData.split(`\n`).length} rows of waxrix data`);
   let transactions = JSON.parse(JSON.stringify(oldTransactions));
+
   const wazrixTransactions = csv(
-    wazrixData,
+    csvData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
 
@@ -32,10 +31,6 @@ export const mergeWazrixTransactions = (
 
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
-    // Skip entries from before the lastUpdated date
-    if (new Date(date).getTime() <= lastUpdated) {
-      return null;
-    }
 
     const transaction = {
       date: (new Date(date)).toISOString(),
@@ -142,35 +137,22 @@ export const mergeWazrixTransactions = (
       }
 
     }
-    log.info(transaction.description);
+    log.debug(transaction.description);
     return transaction;
 
   }).filter(row => !!row);
 
-  const mergeWazrix = mergeFactory({
-    allowableTimeDiff: 15 * 60 * 1000,
-    log,
-    mergeTransactions: mergeOffChainTransactions,
-    shouldMerge: shouldMergeOffChain,
-  });
-
-  log.info(`Processing ${wazrixTransactions.length} new transactions from wazrix`);
-
+  log.info(`Merging ${wazrixTransactions.length} new transactions from wazrix`);
   wazrixTransactions.forEach((wazrixTransaction: Transaction): void => {
     log.debug(wazrixTransaction.description);
-    transactions = mergeWazrix(transactions, wazrixTransaction);
+    transactions = mergeFactory({
+      allowableTimeDiff: 15 * 60 * 1000,
+      log,
+      mergeTransactions: mergeOffChainTransactions,
+      shouldMerge: shouldMergeOffChain,
+      isDuplicate: isDuplicateOffChain,
+    })(transactions, wazrixTransaction);
   });
-
-  // The non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
-  // edge case is tricky to solve at source, just sort manually ffs
-  transactions = transactions.sort((e1: Transaction, e2: Transaction): number =>
-    new Date(e1.date).getTime() - new Date(e2.date).getTime(),
-  );
-
-  const error = getTransactionsError(transactions);
-  if (error) {
-    throw new Error(error);
-  }
 
   return transactions;
 };
