@@ -11,7 +11,13 @@ const authHeaderKey = "authorization";
 const authType = "Basic";
 
 const restrictedMethods = ["DELETE", "POST", "PUT"];
-const restrictedPaths = ["/auth", "/profile", "/chaindata", "/transactions"];
+const restrictedPaths = [
+  "/auth",
+  "/chaindata",
+  "/prices",
+  "/profile",
+  "/transactions",
+];
 
 authRouter.use((req, res, next) => {
   if (restrictedPaths.some(p => req.path.startsWith(p)) || restrictedMethods.includes(req.method)) {

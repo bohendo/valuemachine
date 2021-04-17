@@ -11,7 +11,7 @@ import {
 } from "./utils";
 
 const log = getLogger(env.logLevel).child({ module: "Prices" });
-const prices = getPrices({ store: globalStore, logger: log });
+export const prices = getPrices({ store: globalStore, logger: log });
 let syncing = false;
 
 export const pricesRouter = express.Router();
