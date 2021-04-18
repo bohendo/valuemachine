@@ -12,6 +12,7 @@ import {
   Home as HomeIcon,
   AccountCircle as AccountIcon,
   Receipt as TaxesIcon,
+  DateRange as TransactionsIcon,
 } from "@material-ui/icons";
 import { Link } from "react-router-dom";
 
@@ -61,6 +62,16 @@ export const NavBar = () => {
           color="inherit"
         >
           <TaxesIcon />
+        </IconButton>
+
+        <IconButton
+          component={Link}
+          edge="start"
+          to={"/transactions"}
+          className={classes.accountButton}
+          color="inherit"
+        >
+          <TransactionsIcon />
         </IconButton>
 
         <IconButton

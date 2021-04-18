@@ -1,5 +1,11 @@
 import { getAddressBook, getState, getValueMachine } from "@finances/core";
-import { CapitalGainsEvent, emptyState, emptyEvents, EventTypes } from "@finances/types";
+import {
+  CapitalGainsEvent,
+  emptyAddressBook,
+  emptyEvents,
+  emptyState,
+  EventTypes,
+} from "@finances/types";
 import {
   Button,
   CircularProgress,
@@ -19,9 +25,9 @@ import {
 } from "@material-ui/core";
 import {
   Sync as SyncIcon,
+  // GetApp as ImportIcon,
 } from "@material-ui/icons";
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
@@ -30,9 +36,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   spinner: {
     padding: "0",
   },
+  importer: {
+    margin: theme.spacing(4),
+  },
   selectUoA: {
-    margin: theme.spacing(1),
-    marginLeft: theme.spacing(3),
+    margin: theme.spacing(3),
     minWidth: 160,
   },
 
@@ -40,62 +48,35 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 export const Taxes = ({
   profile,
+  transactions,
 }: {
   profile: any;
+  transactions: any;
 }) => {
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
-  const [transactions, setTransactions] = useState([] as any);
+  const [addressBook, setAddressBook] = useState(emptyAddressBook);
   const [unitOfAccount, setUnitOfAccount] = useState("");
   const [capGainEvents, setCapGainEvents] = useState([] as any);
   const classes = useStyles();
 
+  useEffect(() => {
+    setAddressBook(getAddressBook(profile.addressBook));
+  }, [profile]);
+
   const handleUnitChange = (event: React.ChangeEvent<{ value: boolean }>) => {
-    console.log(`Setting unit base on event target:`, event.target);
+    console.log(`Setting unit bases on event target:`, event.target);
     setUnitOfAccount(event.target.value);
-  };
-
-  const syncTxns = () => {
-    if (!axios.defaults.headers.common.authorization) {
-      console.warn(`Auth header not set yet..`);
-      return;
-    }
-    setSyncing(old => ({ ...old, transactions: true }));
-    axios.get("/api/transactions").then((res) => {
-      console.log(`Successfully fetched transactions`, res.data);
-      setTransactions(res.data);
-      setSyncing(old => ({ ...old, transactions: false }));
-    }).catch(e => {
-      console.log(`Failed to fetch transactions`, e);
-      setSyncing(old => ({ ...old, transactions: false }));
-    });
-  };
-
-  const syncPrices = () => {
-    if (!axios.defaults.headers.common.authorization) {
-      console.warn(`Auth header not set yet..`);
-      return;
-    }
-    setSyncing(old => ({ ...old, prices: true }));
-    axios.get("/api/prices").then((res) => {
-      console.log(`Successfully fetched prices`, res.data);
-      setSyncing(old => ({ ...old, prices: false }));
-    }).catch(e => {
-      console.log(`Failed to fetch prices`, e);
-      setSyncing(old => ({ ...old, transactions: false }));
-    });
   };
 
   const processTxns = async () => {
     setSyncing(old => ({ ...old, state: true }));
     // Give sync state a chance to update
-    await new Promise(res => setTimeout(res, 200));
-
+    await new Promise(res => setTimeout(res, 100));
     // Process async so maybe it'll be less likely to freeze the foreground
     console.log(`Processing ${transactions.length} transactions`);
     // eslint-disable-next-line no-async-promise-executor
     const res = await new Promise(async res => {
       try {
-        const addressBook = getAddressBook(profile.addressBook);
         const valueMachine = getValueMachine(addressBook);
         // stringify/parse to ensure we don't update the imported objects directly
         let state = JSON.parse(JSON.stringify(emptyState));
@@ -114,7 +95,7 @@ export const Taxes = ({
               transaction.index
             } in ${diff} ms`);
             // Give the UI a split sec to re-render & make the hang more bearable
-            await new Promise(res => setTimeout(res, 200));
+            await new Promise(res => setTimeout(res, 100));
             start = Date.now();
           }
         }
@@ -131,7 +112,6 @@ export const Taxes = ({
         res([]);
       }
     });
-
     setCapGainEvents(res);
     setSyncing(old => ({ ...old, state: false }));
   };
@@ -144,32 +124,12 @@ export const Taxes = ({
 
       <Button
         className={classes.button}
-        disabled={syncing.prices}
-        onClick={syncPrices}
-        startIcon={syncing.prices ? <CircularProgress size={20} /> : <SyncIcon/>}
-        variant="outlined"
-      >
-        Sync Prices
-      </Button>
-
-      <Button
-        className={classes.button}
-        disabled={syncing.transactions}
-        onClick={syncTxns}
-        startIcon={syncing.transactions ? <CircularProgress size={20} /> : <SyncIcon/>}
-        variant="outlined"
-      >
-        Sync Transactions
-      </Button>
-
-      <Button
-        className={classes.button}
         disabled={syncing.state}
         onClick={processTxns}
         startIcon={syncing.state ? <CircularProgress size={20} /> : <SyncIcon/>}
         variant="outlined"
       >
-        Process Data
+        {`Process ${transactions.length} Transactions`}
       </Button>
 
       <Divider/>
@@ -193,10 +153,10 @@ export const Taxes = ({
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell> Date </TableCell>
+            <TableCell> Purchase Date </TableCell>
+            <TableCell> Sell Date </TableCell>
             <TableCell> Asset </TableCell>
             <TableCell> Amount </TableCell>
-            <TableCell> Purchase Date </TableCell>
             <TableCell> Purchase Price </TableCell>
             <TableCell> Sale Price </TableCell>
           </TableRow>
@@ -215,10 +175,10 @@ export const Taxes = ({
                       : 0
             ).map((evt: CapitalGainsEvent, i: number) => (
               <TableRow key={i}>
+                <TableCell> {evt.purchaseDate} </TableCell>
                 <TableCell> {evt.date} </TableCell>
                 <TableCell> {evt.assetType} </TableCell>
                 <TableCell> {evt.quantity} </TableCell>
-                <TableCell> {evt.purchaseDate} </TableCell>
                 <TableCell> {evt.purchasePrice} </TableCell>
                 <TableCell> {evt.assetPrice} </TableCell>
               </TableRow>

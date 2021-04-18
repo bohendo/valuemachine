@@ -22,6 +22,7 @@ import { AccountInfo } from "./components/AccountInfo";
 import { Dashboard } from "./components/Dashboard";
 import { NavBar } from "./components/NavBar";
 import { Taxes } from "./components/Taxes";
+import { Transactions } from "./components/Transactions";
 import { store } from "./utils/cache";
 
 const darkTheme = createMuiTheme({
@@ -50,6 +51,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const App: React.FC = () => {
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || emptyProfile);
+  const [transactions, setTransactions] = useState(store.load(StoreKeys.Transactions) || []);
   const [chainData] = useState(getChainData({ store, logger: getLogger("info") }));
   const classes = useStyles();
 
@@ -90,7 +92,17 @@ const App: React.FC = () => {
                 />
               </Route>
               <Route exact path="/taxes">
-                <Taxes profile={profile} />
+                <Taxes
+                  profile={profile}
+                  transactions={transactions}
+                />
+              </Route>
+              <Route exact path="/transactions">
+                <Transactions
+                  profile={profile}
+                  transactions={transactions}
+                  setTransactions={setTransactions}
+                />
               </Route>
             </Switch>
           </Container>

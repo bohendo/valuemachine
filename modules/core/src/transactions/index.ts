@@ -109,13 +109,13 @@ export const getTransactions = ({
     await sync();
   };
 
-  const mergeWyre = async (csvData: string): Promise<void> => {
-    txns = mergeWyreTransactions(txns, csvData, log);
+  const mergeWazrix = async (csvData: string): Promise<void> => {
+    txns = mergeWazrixTransactions(txns, csvData, log);
     await sync();
   };
 
-  const mergeWazrix = async (csvData: string): Promise<void> => {
-    txns = mergeWazrixTransactions(txns, csvData, log);
+  const mergeWyre = async (csvData: string): Promise<void> => {
+    txns = mergeWyreTransactions(txns, csvData, log);
     await sync();
   };
 
@@ -129,8 +129,8 @@ export const getTransactions = ({
     mergeChainData,
     mergeCoinbase,
     mergeDigitalOcean,
-    mergeWyre,
     mergeWazrix,
+    mergeWyre,
     mergeTransaction,
   };
 
