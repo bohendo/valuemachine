@@ -45,11 +45,10 @@ deploy:
     - >
       docker build --tag ssh-action ops/ssh-action;
       docker run \
-        --env=FINANCES_DOMAIN_NAME=$FINANCES_DOMAIN_NAME \
-        --env=CI_COMMIT_SHA=$CI_COMMIT_SHA \
-        --env=CI_PROJECT_NAME=$CI_PROJECT_NAME \
-        --env=CI_PROJECT_NAMESPACE=$CI_PROJECT_NAMESPACE \
-        --env=CI_REPOSITORY_URL=$CI_REPOSITORY_URL \
+        --env=GIT_BRANCH=prod \
+        --env=GIT_PROJECT_NAME=$CI_PROJECT_NAME \
+        --env=GIT_REMOTE=origin \
+        --env=GIT_REPOSITORY_URL=$CI_REPOSITORY_URL \
         ssh-action $SERVER_URL $SSH_KEY '
           make pull;
           make restart-prod;
