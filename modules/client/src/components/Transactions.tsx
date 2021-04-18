@@ -3,7 +3,10 @@ import {
   AddressBook,
   CapitalGainsEvent,
   Transactions,
+  TransactionsJson,
+  Transfer,
 } from "@finances/types";
+import { math } from "@finances/utils";
 import {
   Button,
   CircularProgress,
@@ -26,10 +29,8 @@ import {
   Sync as SyncIcon,
   // GetApp as ImportIcon,
 } from "@material-ui/icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-
-import { store } from "../utils";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
@@ -58,8 +59,31 @@ export const TransactionManager = ({
   setTransactions: (val: Transactions) => void;
 }) => {
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
+  const [filterSource, setFilterSource] = useState("");
+  const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
   const [importFileType, setImportFileType] = useState("");
   const classes = useStyles();
+
+  useEffect(() => {
+    setFilteredTxns(transactions.getAll()
+      .filter(tx =>
+        !filterSource || (tx?.sources || []).map(s => s.toLowerCase()).includes(filterSource)
+      ).sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
+        // Sort by date, newest first
+        (e1.date > e2.date) ? -1
+          : (e1.date < e2.date) ? 1
+            : 0
+      )
+    );
+  }, [transactions, filterSource]);
+
+  useEffect(() => {
+    console.log(`Filtered ${transactions.getAll().length} txns down to ${filteredTxns.length}`);
+  }, [transactions, filteredTxns]);
+
+  const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
+    setFilterSource(event.target.value);
+  };
 
   const handleFileTypeChange = (event: React.ChangeEvent<{ value: boolean }>) => {
     console.log(`Setting file type based on event target:`, event.target);
@@ -74,14 +98,10 @@ export const TransactionManager = ({
     setSyncing(old => ({ ...old, transactions: true }));
     axios.get("/api/transactions").then((res) => {
       console.log(`Successfully fetched transactions`, res.data);
-
-      res.data.forEach(transactions.mergeTransaction);
-
-      setTransactions(
-        // Get new object to trigger a re-render
-        getTransactions({ addressBook, transactionsJson: transactions.getAll(), store })
-      );
-
+      // TODO: below command crashes the page, find a better solution
+      // res.data.forEach(transactions.mergeTransaction);
+      // Get new object to trigger a re-render
+      setTransactions(getTransactions({ ...transactions.getParams(), transactionsJson: res.data }));
       setSyncing(old => ({ ...old, transactions: false }));
     }).catch(e => {
       console.log(`Failed to fetch transactions`, e);
@@ -122,10 +142,8 @@ export const TransactionManager = ({
         } else if (importFileType === "wyre") {
           transactions.mergeWyre(importedFile);
         }
-        setTransactions(
-          // Get new object to trigger a re-render
-          getTransactions({ addressBook, transactionsJson: transactions.getAll(), store })
-        );
+        // Get new object to trigger a re-render
+        setTransactions(getTransactions(transactions.getParams()));
       } catch (e) {
         console.error(e);
       }
@@ -188,8 +206,24 @@ export const TransactionManager = ({
 
       <Divider/>
 
+      <FormControl className={classes.selectUoA}>
+        <InputLabel id="select-filter-source">Filter Source</InputLabel>
+        <Select
+          labelId="select-filter-source"
+          id="select-filter-source"
+          value={filterSource || ""}
+          onChange={handleFilterChange}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          <MenuItem value={"wazrix"}>Wazrix</MenuItem>
+          <MenuItem value={"coinbase"}>Coinbase</MenuItem>
+          <MenuItem value={"ethtx"}>EthTx</MenuItem>
+          <MenuItem value={"ethcall"}>EthCall</MenuItem>
+        </Select>
+      </FormControl>
+
       <Typography align="center" variant="h4">
-        {`${transactions.getAll().length} Transactions`}
+        {`${filteredTxns.length} Transactions`}
       </Typography>
 
       <Table>
@@ -197,23 +231,50 @@ export const TransactionManager = ({
           <TableRow>
             <TableCell> Date </TableCell>
             <TableCell> Description </TableCell>
+            <TableCell> Hash </TableCell>
             <TableCell> Transfers </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {transactions.getAll()
-            .sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
-              // Sort by date, newest first
-              (e1.date > e2.date) ? -1
-                : (e1.date < e2.date) ? 1
-                  : 0
-            ).map((tx: CapitalGainsEvent, i: number) => (
-              <TableRow key={i}>
-                <TableCell> {tx.date} </TableCell>
-                <TableCell> {tx.description} </TableCell>
-                <TableCell> {tx.transfers.length} </TableCell>
-              </TableRow>
-            ))}
+          {filteredTxns.map((tx: CapitalGainsEvent, i: number) => (
+            <TableRow key={i}>
+              <TableCell> {tx.date.replace("T", " ").replace("Z", "")} </TableCell>
+              <TableCell> {tx.description} </TableCell>
+              <TableCell>
+                {tx.hash
+                  ? tx.hash.substring(0,6) + "..." + tx.hash.substring(tx.hash.length-4)
+                  : "N/A"
+                }
+              </TableCell>
+
+              <TableCell>
+
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell> Category </TableCell>
+                      <TableCell> Asset </TableCell>
+                      <TableCell> Amount </TableCell>
+                      <TableCell> From </TableCell>
+                      <TableCell> To </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {tx.transfers.map((transfer: Transfer, i: number) => (
+                      <TableRow key={i}>
+                        <TableCell> {transfer.category} </TableCell>
+                        <TableCell> {transfer.assetType} </TableCell>
+                        <TableCell> {math.round(transfer.quantity, 4)} </TableCell>
+                        <TableCell> {addressBook?.getName(transfer.from) || "?"} </TableCell>
+                        <TableCell> {addressBook?.getName(transfer.to) || "?"} </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
 

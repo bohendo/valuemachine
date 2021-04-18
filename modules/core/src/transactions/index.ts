@@ -42,15 +42,6 @@ export const getTransactions = ({
   ////////////////////////////////////////
   // Internal Helper Methods
 
-  const validate = () => {
-    const error = getTransactionsError(txns);
-    if (error) {
-      throw new Error(error);
-    } else {
-      log.debug("All transactions have been validated");
-    }
-  };
-
   const sync = () => {
     // A non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
     // This edge case is tricky to solve at source, just sort manually instead
@@ -60,6 +51,13 @@ export const getTransactions = ({
     // Reset Indicies
     let i = 1;
     txns.forEach(transaction => transaction.index = i++);
+    // Validate
+    const error = getTransactionsError(txns);
+    if (error) {
+      throw new Error(error);
+    } else {
+      log.debug("All transactions have been validated");
+    }
     // Save to store
     log.info(`Saving ${txns.length} transactions to storage`);
     store.save(StoreKeys.Transactions, txns);
@@ -94,31 +92,26 @@ export const getTransactions = ({
   const mergeChainData = async (chainData: ChainData): Promise<void> => {
     log.info(`Merging chain data containing ${chainData.json.transactions.length} txns`);
     txns = mergeEthTransactions(txns, addressBook, chainData, getLastUpdated(), log);
-    validate();
     sync();
   };
 
   const mergeCoinbase = async (csvData: string): Promise<void> => {
     txns = mergeCoinbaseTransactions(txns, csvData, log);
-    validate();
     sync();
   };
 
   const mergeDigitalOcean = async (csvData: string): Promise<void> => {
     txns = mergeDigitalOceanTransactions(txns, csvData, log);
-    validate();
     sync();
   };
 
   const mergeWazrix = async (csvData: string): Promise<void> => {
     txns = mergeWazrixTransactions(txns, csvData, log);
-    validate();
     sync();
   };
 
   const mergeWyre = async (csvData: string): Promise<void> => {
     txns = mergeWyreTransactions(txns, csvData, log);
-    validate();
     sync();
   };
 
