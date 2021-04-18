@@ -1,17 +1,20 @@
-import {
-  getAddressBook,
-  getState,
-  getValueMachine,
-} from "@finances/core";
-import {
-  StoreKeys,
-} from "@finances/types";
+import { getAddressBook, getState, getValueMachine } from "@finances/core";
+import { CapitalGainsEvent, EventTypes, StoreKeys } from "@finances/types";
 import {
   Button,
   CircularProgress,
-  Divider,
   createStyles,
+  Divider,
+  FormControl,
+  InputLabel,
   makeStyles,
+  MenuItem,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   Theme,
 } from "@material-ui/core";
 import {
@@ -24,11 +27,17 @@ import { store } from "../utils";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
-    margin: theme.spacing(1),
+    margin: theme.spacing(3),
   },
   spinner: {
     padding: "0",
-  }
+  },
+  selectUoA: {
+    margin: theme.spacing(1),
+    marginLeft: theme.spacing(3),
+    minWidth: 160,
+  },
+
 }));
 
 export const Taxes = ({
@@ -38,7 +47,14 @@ export const Taxes = ({
 }) => {
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
   const [transactions, setTransactions] = useState([] as any);
+  const [unitOfAccount, setUnitOfAccount] = useState("");
+  const [capGainEvents, setCapGainEvents] = useState([] as any);
   const classes = useStyles();
+
+  const handleUnitChange = (event: React.ChangeEvent<{ value: boolean }>) => {
+    console.log(`Setting unit base on event target:`, event.target);
+    setUnitOfAccount(event.target.value);
+  };
 
   const syncTxns = () => {
     if (!axios.defaults.headers.common.authorization) {
@@ -95,9 +111,17 @@ export const Taxes = ({
 
       const finalState = getState(state, addressBook);
 
-      console.debug(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
       console.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
-      console.info(`\nAccount balances: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
+      console.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
+
+      const capGains = [] as any;
+      vmEvents.forEach(e => {
+        if (e.type === EventTypes.CapitalGains) {
+          capGains.push(e);
+        }
+      });
+      console.log(`Found ${capGains.length} cap gains events`);
+      setCapGainEvents(capGains);
 
       console.log(`Done processing transactions`);
 
@@ -135,6 +159,22 @@ export const Taxes = ({
         Sync Transactions
       </Button>
 
+      <Divider/>
+
+      <FormControl className={classes.selectUoA}>
+        <InputLabel id="select-unit-of-account-label">Unit of Account</InputLabel>
+        <Select
+          labelId="select-unit-of-account-label"
+          id="select-unit-of-account"
+          value={unitOfAccount || ""}
+          onChange={handleUnitChange}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          <MenuItem value={"USD"}>USD</MenuItem>
+          <MenuItem value={"INR"}>INR</MenuItem>
+        </Select>
+      </FormControl>
+
       <Button
         className={classes.button}
         disabled={syncing.state}
@@ -147,15 +187,40 @@ export const Taxes = ({
 
       <Divider/>
 
-      <pre>
-        {JSON.stringify(transactions[0], null, 2)}
-      </pre>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell> Date </TableCell>
+            <TableCell> Asset </TableCell>
+            <TableCell> Amount </TableCell>
+            <TableCell> Purchase Date </TableCell>
+            <TableCell> Purchase Price </TableCell>
+            <TableCell> Sale Price </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {capGainEvents
+            .sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
+              // Sort by date, newest first
+              (e1.date > e2.date) ? -1
+                : (e1.date < e2.date) ? 1
+                  // Then by purchase date, oldest first
+                  : (e1.purchaseDate > e2.purchaseDate) ? 1
+                    : (e1.purchaseDate < e2.purchaseDate) ? -1
+                      : 0
+            ).map((evt: CapitalGainsEvent, i: number) => (
+              <TableRow key={i}>
+                <TableCell> {evt.date} </TableCell>
+                <TableCell> {evt.assetType} </TableCell>
+                <TableCell> {evt.quantity} </TableCell>
+                <TableCell> {evt.purchaseDate} </TableCell>
+                <TableCell> {evt.purchasePrice} </TableCell>
+                <TableCell> {evt.assetPrice} </TableCell>
+              </TableRow>
+            ))}
+        </TableBody>
+      </Table>
 
-      <Divider/>
-
-      <pre>
-        {JSON.stringify(transactions[1], null, 2)}
-      </pre>
     </>
   );
 };
