@@ -1,9 +1,8 @@
 import {
-  Address,
   AddressBook,
   AddressCategories,
   AssetChunk,
-  AssetTypes,
+  FiatAssets,
   Transaction,
   Events,
   EventTypes,
@@ -36,9 +35,8 @@ export const emitTransferEvents = (
   transaction: Transaction,
   transfer: Transfer,
 ): Events => {
-  const { isSelf, getName } = addressBook;
+  const { getName } = addressBook;
   const events = [];
-  const unitOfAccount = ["DAI", "SAI", "USD"];
   const { assetType, category, from, quantity, to } = transfer;
   const position = `#${transaction.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
   const taxTags = [];
@@ -46,8 +44,6 @@ export const emitTransferEvents = (
   if (shouldIgnore(transfer.to) || shouldIgnore(transfer.from)) {
     taxTags.push("ignore");
   }
-
-  const isAnySelf = (address: Address): boolean => isSelf(address) || address.endsWith("-account");
 
   const newEvent = {
     assetPrice: transaction.prices[assetType],
@@ -78,13 +74,16 @@ export const emitTransferEvents = (
 
   events.push(newEvent);
 
-  if (isAnySelf(from) && !isAnySelf(to) && gt(transfer.quantity, "0")) {
-    // maybe emit capital gain logs
-    if (
-      !unitOfAccount.includes(assetType) &&
-      Object.keys(AssetTypes).includes(assetType) &&
-      category === TransferCategories.SwapOut
-    ) {
+  if (
+    gt(transfer.quantity, "0")
+    && category === TransferCategories.SwapOut
+    && transaction.transfers.length >= 2
+  ) {
+    const soldFor = transaction.transfers.find(t => (
+      t.category === TransferCategories.SwapIn && Object.keys(FiatAssets).includes(t.assetType)
+    ))?.assetType;
+    if (soldFor) {
+      console.log(`Found capital gains event triggered by sell for ${soldFor}`);
       chunks.forEach(chunk => {
         events.push({
           assetPrice: transaction.prices[chunk.assetType],
@@ -94,6 +93,7 @@ export const emitTransferEvents = (
           purchaseDate: chunk.dateRecieved,
           purchasePrice: chunk.purchasePrice,
           quantity: chunk.quantity,
+          soldFor,
           type: EventTypes.CapitalGains,
         });
       });

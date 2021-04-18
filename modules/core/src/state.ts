@@ -62,6 +62,7 @@ export const getState = (
     if (
       Object.keys(AltChainAssets).includes(chunk.assetType)
       || Object.keys(FiatAssets).includes(chunk.assetType)
+      || !addressBook.isSelf(account)
     ) {
       log.debug(`Skipping external asset put`);
       return;
@@ -102,7 +103,7 @@ export const getState = (
         output.forEach(chunk => putChunk(account, chunk)); // roll back changes so far
         throw new Error(`${account} attempted to spend ${quantity} ${
           assetType
-        } but they are missing ${togo}. All chunks: ${JSON.stringify(output)}.`);
+        } on ${transaction.date} but it's missing ${togo}. All chunks: ${JSON.stringify(output)}.`);
       }
       if (gt(chunk.quantity, togo)) {
         putChunk(account, { ...chunk, quantity: sub(chunk.quantity, togo) });

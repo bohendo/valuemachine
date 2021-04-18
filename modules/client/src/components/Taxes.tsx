@@ -1,5 +1,5 @@
 import { getAddressBook, getState, getValueMachine } from "@finances/core";
-import { CapitalGainsEvent, EventTypes, StoreKeys } from "@finances/types";
+import { CapitalGainsEvent, emptyState, emptyEvents, EventTypes } from "@finances/types";
 import {
   Button,
   CircularProgress,
@@ -22,8 +22,6 @@ import {
 } from "@material-ui/icons";
 import React, { useState } from "react";
 import axios from "axios";
-
-import { store } from "../utils";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
@@ -66,6 +64,9 @@ export const Taxes = ({
       console.log(`Successfully fetched transactions`, res.data);
       setTransactions(res.data);
       setSyncing(old => ({ ...old, transactions: false }));
+    }).catch(e => {
+      console.log(`Failed to fetch transactions`, e);
+      setSyncing(old => ({ ...old, transactions: false }));
     });
   };
 
@@ -78,58 +79,60 @@ export const Taxes = ({
     axios.get("/api/prices").then((res) => {
       console.log(`Successfully fetched prices`, res.data);
       setSyncing(old => ({ ...old, prices: false }));
+    }).catch(e => {
+      console.log(`Failed to fetch prices`, e);
+      setSyncing(old => ({ ...old, transactions: false }));
     });
   };
 
-  const processTxns = () => {
+  const processTxns = async () => {
     setSyncing(old => ({ ...old, state: true }));
-    console.log(`Started processing ${transactions.length} transactions`);
+    // Give sync state a chance to update
+    await new Promise(res => setTimeout(res, 200));
 
-    try {
-      const addressBook = getAddressBook(profile.addressBook);
-      const valueMachine = getValueMachine(addressBook);
-      let state = store.load(StoreKeys.State);
-      let vmEvents = store.load(StoreKeys.Events);
-      let start = Date.now();
-      for (const transaction of transactions.filter(
-        transaction => new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
-      )) {
-        const [newState, newEvents] = valueMachine(state, transaction);
-        vmEvents = vmEvents.concat(...newEvents);
-        state = newState;
-        const chunk = 100;
-        if (transaction.index % chunk === 0) {
-          const diff = (Date.now() - start).toString();
-          console.info(`Processed transactions ${transaction.index - chunk}-${
-            transaction.index
-          } in ${diff} ms`);
-          start = Date.now();
+    // Process async so maybe it'll be less likely to freeze the foreground
+    console.log(`Processing ${transactions.length} transactions`);
+    // eslint-disable-next-line no-async-promise-executor
+    const res = await new Promise(async res => {
+      try {
+        const addressBook = getAddressBook(profile.addressBook);
+        const valueMachine = getValueMachine(addressBook);
+        // stringify/parse to ensure we don't update the imported objects directly
+        let state = JSON.parse(JSON.stringify(emptyState));
+        let vmEvents = JSON.parse(JSON.stringify(emptyEvents));
+        let start = Date.now();
+        for (const transaction of transactions.filter(transaction =>
+          new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
+        )) {
+          const [newState, newEvents] = valueMachine(state, transaction);
+          vmEvents = vmEvents.concat(...newEvents);
+          state = newState;
+          const chunk = 100;
+          if (transaction.index % chunk === 0) {
+            const diff = (Date.now() - start).toString();
+            console.info(`Processed transactions ${transaction.index - chunk}-${
+              transaction.index
+            } in ${diff} ms`);
+            // Give the UI a split sec to re-render & make the hang more bearable
+            await new Promise(res => setTimeout(res, 200));
+            start = Date.now();
+          }
         }
+        const finalState = getState(state, addressBook);
+        console.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
+        console.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
+        const capGains = vmEvents.filter(e => (e.type === EventTypes.CapitalGains));
+        console.log(`Found ${capGains.length} cap gains events`, capGains);
+        console.log(`Done processing transactions`);
+        res(capGains);
+      } catch (e) {
+        console.log(`Failed to process transactions`);
+        console.error(e);
+        res([]);
       }
-      store.save(StoreKeys.State, state);
-      store.save(StoreKeys.Events, vmEvents);
+    });
 
-      const finalState = getState(state, addressBook);
-
-      console.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
-      console.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
-
-      const capGains = [] as any;
-      vmEvents.forEach(e => {
-        if (e.type === EventTypes.CapitalGains) {
-          capGains.push(e);
-        }
-      });
-      console.log(`Found ${capGains.length} cap gains events`);
-      setCapGainEvents(capGains);
-
-      console.log(`Done processing transactions`);
-
-    } catch (e) {
-      console.log(`Failed to process transactions`);
-      console.error(e);
-    }
-
+    setCapGainEvents(res);
     setSyncing(old => ({ ...old, state: false }));
   };
 
@@ -159,6 +162,16 @@ export const Taxes = ({
         Sync Transactions
       </Button>
 
+      <Button
+        className={classes.button}
+        disabled={syncing.state}
+        onClick={processTxns}
+        startIcon={syncing.state ? <CircularProgress size={20} /> : <SyncIcon/>}
+        variant="outlined"
+      >
+        Process Data
+      </Button>
+
       <Divider/>
 
       <FormControl className={classes.selectUoA}>
@@ -175,16 +188,6 @@ export const Taxes = ({
         </Select>
       </FormControl>
 
-      <Button
-        className={classes.button}
-        disabled={syncing.state}
-        onClick={processTxns}
-        startIcon={syncing.state ? <CircularProgress size={20} /> : <SyncIcon/>}
-        variant="outlined"
-      >
-        Process Data
-      </Button>
-
       <Divider/>
 
       <Table>
@@ -200,7 +203,9 @@ export const Taxes = ({
         </TableHead>
         <TableBody>
           {capGainEvents
-            .sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
+            .filter((evt: CapitalGainsEvent) =>
+              !unitOfAccount || evt.soldFor === unitOfAccount
+            ).sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
               // Sort by date, newest first
               (e1.date > e2.date) ? -1
                 : (e1.date < e2.date) ? 1
