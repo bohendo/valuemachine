@@ -1,18 +1,20 @@
 import {
   Address,
-  AddressCategories,
-  emptyState,
   AddressBook,
+  AddressCategories,
+  AltChainAssets,
   AssetChunk,
   AssetTypes,
   DecimalString,
-  Transaction,
+  emptyState,
+  FiatAssets,
   Logger,
   NetWorth,
   State,
   StateBalances,
   StateJson,
   TimestampString,
+  Transaction,
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
@@ -57,8 +59,11 @@ export const getState = (
   const toJson = (): StateJson => state;
 
   const putChunk = (account: Address, chunk: AssetChunk): void => {
-    if (["BTC", "INR", "LTC", "USD"].includes(chunk.assetType) || !addressBook.isSelf(account)) {
-      log.debug(`Skipping off-chain or external asset put`);
+    if (
+      Object.keys(AltChainAssets).includes(chunk.assetType)
+      || Object.keys(FiatAssets).includes(chunk.assetType)
+    ) {
+      log.debug(`Skipping external asset put`);
       return;
     }
     log.debug(`Putting ${chunk.quantity} ${chunk.assetType} into account ${account}`);
@@ -74,8 +79,8 @@ export const getState = (
     quantity: DecimalString,
     transaction: Transaction,
   ): AssetChunk[] => {
-    if (assetType === "USD") {
-      log.debug(`Printing more USD`); // Everyone has infinite USD in the value machine
+    if (Object.keys(FiatAssets).includes(assetType)) {
+      log.debug(`Printing more ${assetType}, Brr!`); // In this value machine, anyone can print fiat.
       return [{ assetType, dateRecieved: new Date(0).toISOString(), purchasePrice: "1", quantity }];
     }
     // We assume nothing about the history of chunks coming to us from the outside
