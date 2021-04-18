@@ -51,12 +51,6 @@ deploy:
         --env=CI_PROJECT_NAMESPACE=$CI_PROJECT_NAMESPACE \
         --env=CI_REPOSITORY_URL=$CI_REPOSITORY_URL \
         ssh-action $SERVER_URL $SSH_KEY '
-          git checkout --force prod;
-          git reset --hard $CI_COMMIT_SHA;
-          export CI_PROJECT_NAMESPACE="$CI_PROJECT_NAMESPACE";
-          export FINANCES_DOMAIN_NAME="$FINANCES_DOMAIN_NAME";
           make pull;
           make restart-prod;
-          docker container prune -f;
-          docker image ls -q | xargs docker image rm 2> /dev/null || true;
         '

@@ -1,19 +1,56 @@
 #!/usr/bin/env bash
 set -e
 
-root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
-project="`cat $root/package.json | grep '"name":' | head -n 1 | cut -d '"' -f 4`"
-registryRoot="`cat $root/package.json | grep '"registry":' | head -n 1 | cut -d '"' -f 4`"
-organization="${CI_PROJECT_NAMESPACE:-`whoami`}"
-commit="`git rev-parse HEAD | head -c 8`"
+root=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )
+project=$(grep -m 1 '"name":' "$root/package.json" | cut -d '"' -f 4)
+registryRoot=$(grep -m 1 '"registry":' "$root/package.json" | cut -d '"' -f 4)
+organization="${CI_PROJECT_NAMESPACE:-$(whoami)}" # TODO: is there a better way to handle this?
+release=$(grep -m 1 '"version":' "$root/package.json" | cut -d '"' -f 4)
+commit=$(git rev-parse HEAD | head -c 8)
 
 registry="$registryRoot/$organization/$project"
 
-for image in builder proxy server webserver
+default_images=$(
+  echo 'builder webserver server proxy' |\
+    sed "s/^/${project}_/g" |\
+    sed "s/ / ${project}_/g"
+)
+
+# If given an arg like "image_name:version", then try to pull that version of image_name
+if [[ -n "$1" && "$1" == *:* ]]
+then
+  versions="${1#*:}"
+  images="${1%:*}"
+
+# Else parse first arg as versions and second as image names
+else
+  versions="${1:-latest $commit $release}"
+  images="${2:-$default_images}"
+fi
+
+for image in $images
 do
-  echo "Pulling image: $registry/${project}_$image:$commit"
-  docker pull $registry/${project}_$image:$commit || true
-  docker tag $registry/${project}_$image:$commit ${project}_$image:$commit || true
-  docker pull $registry/${project}_$image:latest || true
-  docker tag $registry/${project}_$image:latest ${project}_$image:latest || true
+  for version in $versions
+  do
+    name="$image:$version"
+    if grep -qs "$version" <<<"$(docker image ls | grep "$image\>")"
+    then echo "Image $name already exists locally"
+    else
+
+      if grep -qs "${project}_" <<<"$name"
+      then full_name="${registry%/}/$name"
+      else full_name="$name"
+      fi
+
+      echo "Pulling image: $full_name"
+      docker pull "$full_name" || true
+
+      if [[ "$name" != "$full_name" ]]
+      then
+        echo "Tagging image $full_name as $name"
+        docker tag "$full_name" "$name" || true
+      fi
+
+    fi
+  done
 done
