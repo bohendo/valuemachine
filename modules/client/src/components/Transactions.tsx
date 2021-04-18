@@ -1,7 +1,8 @@
-import { getAddressBook, getTransactions } from "@finances/core";
+import { getTransactions } from "@finances/core";
 import {
+  AddressBook,
   CapitalGainsEvent,
-  emptyAddressBook,
+  Transactions,
 } from "@finances/types";
 import {
   Button,
@@ -19,12 +20,13 @@ import {
   TableHead,
   TableRow,
   Theme,
+  Typography,
 } from "@material-ui/core";
 import {
   Sync as SyncIcon,
   // GetApp as ImportIcon,
 } from "@material-ui/icons";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 
 import { store } from "../utils";
@@ -46,20 +48,18 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 }));
 
-export const Transactions = ({
-  profile,
+export const TransactionManager = ({
+  addressBook,
+  transactions,
+  setTransactions,
 }: {
-  profile: any;
+  addressBook: AddressBook;
+  transactions: Transactions;
+  setTransactions: (val: Transactions) => void;
 }) => {
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
-  const [addressBook, setAddressBook] = useState(emptyAddressBook);
-  const [transactions, setTransactions] = useState([] as any);
   const [importFileType, setImportFileType] = useState("");
   const classes = useStyles();
-
-  useEffect(() => {
-    setAddressBook(getAddressBook(profile.addressBook));
-  }, [profile]);
 
   const handleFileTypeChange = (event: React.ChangeEvent<{ value: boolean }>) => {
     console.log(`Setting file type based on event target:`, event.target);
@@ -74,7 +74,14 @@ export const Transactions = ({
     setSyncing(old => ({ ...old, transactions: true }));
     axios.get("/api/transactions").then((res) => {
       console.log(`Successfully fetched transactions`, res.data);
-      setTransactions(res.data);
+
+      res.data.forEach(transactions.mergeTransaction);
+
+      setTransactions(
+        // Get new object to trigger a re-render
+        getTransactions({ addressBook, transactionsJson: transactions.getAll(), store })
+      );
+
       setSyncing(old => ({ ...old, transactions: false }));
     }).catch(e => {
       console.log(`Failed to fetch transactions`, e);
@@ -106,17 +113,19 @@ export const Transactions = ({
     reader.onload = () => {
       try {
         const importedFile = reader.result as string;
-        const txns = getTransactions({ transactionsJson: transactions, addressBook, store });
         if (importFileType === "coinbase") {
-          txns.mergeCoinbase(importedFile);
+          transactions.mergeCoinbase(importedFile);
         } else if (importFileType === "digitalocean") {
-          txns.mergeDigitalOcean(importedFile);
+          transactions.mergeDigitalOcean(importedFile);
         } else if (importFileType === "wazrix") {
-          txns.mergeWazrix(importedFile);
+          transactions.mergeWazrix(importedFile);
         } else if (importFileType === "wyre") {
-          txns.mergeWyre(importedFile);
+          transactions.mergeWyre(importedFile);
         }
-        setTransactions(txns.getAll());
+        setTransactions(
+          // Get new object to trigger a re-render
+          getTransactions({ addressBook, transactionsJson: transactions.getAll(), store })
+        );
       } catch (e) {
         console.error(e);
       }
@@ -125,9 +134,10 @@ export const Transactions = ({
 
   return (
     <>
-      <p>Welcome to the Transactions Page</p>
 
-      <Divider/>
+      <Typography variant="h3">
+        Transaction Explorer
+      </Typography>
 
       <Button
         className={classes.button}
@@ -178,7 +188,9 @@ export const Transactions = ({
 
       <Divider/>
 
-      <Divider/>
+      <Typography align="center" variant="h4">
+        {`${transactions.getAll().length} Transactions`}
+      </Typography>
 
       <Table>
         <TableHead>
@@ -189,7 +201,7 @@ export const Transactions = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {transactions
+          {transactions.getAll()
             .sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
               // Sort by date, newest first
               (e1.date > e2.date) ? -1

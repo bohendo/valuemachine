@@ -8,6 +8,19 @@ import { math } from "@finances/utils";
 
 const { add, diff, div, lt, mul } = math;
 
+export const isDuplicateOffChain = (
+  oldTransaction: Transaction,
+  newTransaction: Transaction,
+): boolean => {
+  if (oldTransaction.date !== newTransaction.date) {
+    return false;
+  } else if (oldTransaction.description !== newTransaction.description) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
 export const mergeDefaultTransactions = (
   transactions: Transaction[],
   source: Partial<Transaction>,
@@ -26,12 +39,13 @@ export const mergeDefaultTransactions = (
   for (let i = 0; i < transactions.length; i++) {
     const oldTransaction = transactions[i];
     if (oldTransaction.hash && input.hash && oldTransaction.hash === input.hash) {
+      // Merge sources & tags
       output.push({
         ...oldTransaction,
         sources: Array.from(new Set([...oldTransaction.sources, ...input.sources])),
         tags: Array.from(new Set([...oldTransaction.tags, ...input.tags])),
       });
-    } else {
+    } else if (!isDuplicateOffChain(oldTransaction, input as Transaction)) {
       output.push(oldTransaction);
     }
   }
@@ -122,19 +136,6 @@ export const mergeOffChainTransactions = (
     tags: Array.from(new Set([...oldTransaction.tags, ...newTransaction.tags])),
     transfers: [mergedTransfer],
   };
-};
-
-export const isDuplicateOffChain = (
-  oldTransaction: Transaction,
-  newTransaction: Transaction,
-): boolean => {
-  if (oldTransaction.date !== newTransaction.date) {
-    return false;
-  } else if (oldTransaction.description !== newTransaction.description) {
-    return false;
-  } else {
-    return true;
-  }
 };
 
 export const shouldMergeOffChain = (

@@ -1,13 +1,10 @@
 import {
-  AddressBook,
+  TransactionParams,
   AssetTypes,
   ChainData,
-  Logger,
-  Store,
   StoreKeys,
   Transaction,
   Transactions,
-  TransactionsJson,
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
 
@@ -29,12 +26,7 @@ export const getTransactions = ({
   logger,
   store,
   transactionsJson,
-}: {
-  addressBook: AddressBook;
-  logger?: Logger;
-  store?: Store;
-  transactionsJson?: TransactionsJson;
-}): Transactions => {
+}: TransactionParams): Transactions => {
   const log = (logger || getLogger()).child({ module: "Transactions" });
   const prices = getPrices({ store, logger });
 
@@ -50,16 +42,42 @@ export const getTransactions = ({
   ////////////////////////////////////////
   // Internal Helper Methods
 
-  const sync = async () => {
+  const validate = () => {
+    const error = getTransactionsError(txns);
+    if (error) {
+      throw new Error(error);
+    } else {
+      log.debug("All transactions have been validated");
+    }
+  };
 
+  const sync = () => {
     // A non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
     // This edge case is tricky to solve at source, just sort manually instead
     txns = txns.sort((e1: Transaction, e2: Transaction): number =>
       new Date(e1.date).getTime() - new Date(e2.date).getTime(),
     );
+    // Reset Indicies
+    let i = 1;
+    txns.forEach(transaction => transaction.index = i++);
+    // Save to store
+    log.info(`Saving ${txns.length} transactions to storage`);
+    store.save(StoreKeys.Transactions, txns);
+  };
 
+  ////////////////////////////////////////
+  // Exported Methods
+
+  const getParams = () => ({
+    addressBook,
+    logger,
+    store,
+    transactionsJson: txns,
+  });
+
+  const syncPrices = async () => {
     // Attach Prices
-    log.debug(`Attaching price info to transactions`);
+    log.info(`Attaching price info to transactions`);
     for (let i = 0; i < txns.length; i++) {
       const transaction = txns[i];
       const assets = Array.from(new Set(transaction.transfers.map(a => a.assetType)));
@@ -70,68 +88,55 @@ export const getTransactions = ({
         }
       }
     }
-    log.debug(`Transaction price info is up to date`);
-
-    // Reset Indicies
-    let i = 1;
-    txns.forEach(transaction => transaction.index = i++);
-    log.debug(`Transaction indicies have been reset`);
-
-    // Validate data
-    const error = getTransactionsError(txns);
-    if (error) {
-      throw new Error(error);
-    } else {
-      log.debug("All transactions have been validated");
-    }
-
-    // Save to store
-    log.info(`Saving ${txns.length} transactions to storage`);
-    store.save(StoreKeys.Transactions, txns);
+    log.info(`Transaction price info is up to date`);
   };
-
-  ////////////////////////////////////////
-  // Exported Methods
 
   const mergeChainData = async (chainData: ChainData): Promise<void> => {
     log.info(`Merging chain data containing ${chainData.json.transactions.length} txns`);
     txns = mergeEthTransactions(txns, addressBook, chainData, getLastUpdated(), log);
-    await sync();
+    validate();
+    sync();
   };
 
   const mergeCoinbase = async (csvData: string): Promise<void> => {
     txns = mergeCoinbaseTransactions(txns, csvData, log);
-    await sync();
+    validate();
+    sync();
   };
 
   const mergeDigitalOcean = async (csvData: string): Promise<void> => {
     txns = mergeDigitalOceanTransactions(txns, csvData, log);
-    await sync();
+    validate();
+    sync();
   };
 
   const mergeWazrix = async (csvData: string): Promise<void> => {
     txns = mergeWazrixTransactions(txns, csvData, log);
-    await sync();
+    validate();
+    sync();
   };
 
   const mergeWyre = async (csvData: string): Promise<void> => {
     txns = mergeWyreTransactions(txns, csvData, log);
-    await sync();
+    validate();
+    sync();
   };
 
   const mergeTransaction = async (transaction: Partial<Transaction>): Promise<void> => {
     txns = mergeDefaultTransactions(txns, transaction);
-    await sync();
+    sync();
   };
 
   return {
     getAll: () => txns,
+    getParams,
     mergeChainData,
     mergeCoinbase,
     mergeDigitalOcean,
+    mergeTransaction,
     mergeWazrix,
     mergeWyre,
-    mergeTransaction,
+    syncPrices,
   };
 
 };

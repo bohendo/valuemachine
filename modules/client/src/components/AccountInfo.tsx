@@ -35,6 +35,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(1),
     maxWidth: "98%",
   },
+  divider: {
+    marginBottom: theme.spacing(2),
+    marginTop: theme.spacing(2),
+  },
   input: {
     margin: theme.spacing(1),
     minWidth: 120,
@@ -263,10 +267,8 @@ export const AccountInfo = ({
     <div className={classes.root}>
 
       <Typography variant="h4">
-        Account Info
+        Profile
       </Typography>
-
-      <Divider/>
 
       <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
 
@@ -315,7 +317,11 @@ export const AccountInfo = ({
         }
 
       </Grid>
-      <Divider/>
+      <Divider className={classes.divider}/>
+
+      <Typography variant="h4">
+        Address Book
+      </Typography>
 
       <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
 

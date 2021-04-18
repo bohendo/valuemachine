@@ -1,7 +1,7 @@
-import { getAddressBook, getState, getValueMachine } from "@finances/core";
+import { getState, getValueMachine } from "@finances/core";
 import {
+  AddressBook,
   CapitalGainsEvent,
-  emptyAddressBook,
   emptyEvents,
   emptyState,
   EventTypes,
@@ -27,7 +27,7 @@ import {
   Sync as SyncIcon,
   // GetApp as ImportIcon,
 } from "@material-ui/icons";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
@@ -47,21 +47,16 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 export const Taxes = ({
-  profile,
+  addressBook,
   transactions,
 }: {
-  profile: any;
+  addressBook: AddressBook;
   transactions: any;
 }) => {
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
-  const [addressBook, setAddressBook] = useState(emptyAddressBook);
   const [unitOfAccount, setUnitOfAccount] = useState("");
   const [capGainEvents, setCapGainEvents] = useState([] as any);
   const classes = useStyles();
-
-  useEffect(() => {
-    setAddressBook(getAddressBook(profile.addressBook));
-  }, [profile]);
 
   const handleUnitChange = (event: React.ChangeEvent<{ value: boolean }>) => {
     console.log(`Setting unit bases on event target:`, event.target);

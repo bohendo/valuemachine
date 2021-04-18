@@ -10,9 +10,9 @@ import {
 } from "@material-ui/core";
 import {
   Home as HomeIcon,
-  AccountCircle as AccountIcon,
-  Receipt as TaxesIcon,
-  DateRange as TransactionsIcon,
+  RecentActors as AccountIcon,
+  AccountBalance as TaxesIcon,
+  Receipt as TransactionsIcon,
 } from "@material-ui/icons";
 import { Link } from "react-router-dom";
 
@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   homeButton: {
     marginRight: theme.spacing(2),
   },
-  accountButton: {
+  navButton: {
     marginLeft: theme.spacing(2),
   },
   title: {
@@ -58,7 +58,7 @@ export const NavBar = () => {
           component={Link}
           edge="start"
           to={"/taxes"}
-          className={classes.accountButton}
+          className={classes.navButton}
           color="inherit"
         >
           <TaxesIcon />
@@ -68,7 +68,7 @@ export const NavBar = () => {
           component={Link}
           edge="start"
           to={"/transactions"}
-          className={classes.accountButton}
+          className={classes.navButton}
           color="inherit"
         >
           <TransactionsIcon />
@@ -77,8 +77,8 @@ export const NavBar = () => {
         <IconButton
           component={Link}
           edge="start"
-          to={"/account"}
-          className={classes.accountButton}
+          to={"/profile"}
+          className={classes.navButton}
           color="inherit"
           aria-label="profile"
         >
