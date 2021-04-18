@@ -1,13 +1,9 @@
 import {
-  AddressBook,
-  AssetTypes,
+  TransactionParams,
   ChainData,
-  Logger,
-  Store,
   StoreKeys,
   Transaction,
   Transactions,
-  TransactionsJson,
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
 
@@ -29,12 +25,7 @@ export const getTransactions = ({
   logger,
   store,
   transactionsJson,
-}: {
-  addressBook: AddressBook;
-  logger?: Logger;
-  store?: Store;
-  transactionsJson?: TransactionsJson;
-}): Transactions => {
+}: TransactionParams): Transactions => {
   const log = (logger || getLogger()).child({ module: "Transactions" });
   const prices = getPrices({ store, logger });
 
@@ -50,41 +41,22 @@ export const getTransactions = ({
   ////////////////////////////////////////
   // Internal Helper Methods
 
-  const sync = async () => {
-
+  const sync = () => {
     // A non-zero allowableTimeDiff for exchange merges causes edge cases while insert-sorting
     // This edge case is tricky to solve at source, just sort manually instead
     txns = txns.sort((e1: Transaction, e2: Transaction): number =>
       new Date(e1.date).getTime() - new Date(e2.date).getTime(),
     );
-
-    // Attach Prices
-    log.debug(`Attaching price info to transactions`);
-    for (let i = 0; i < txns.length; i++) {
-      const transaction = txns[i];
-      const assets = Array.from(new Set(transaction.transfers.map(a => a.assetType)));
-      for (let j = 0; j < assets.length; j++) {
-        const assetType = assets[j] as AssetTypes;
-        if (!transaction.prices[assetType]) {
-          transaction.prices[assetType] = await prices.getPrice(assetType, transaction.date);
-        }
-      }
-    }
-    log.debug(`Transaction price info is up to date`);
-
     // Reset Indicies
     let i = 1;
     txns.forEach(transaction => transaction.index = i++);
-    log.debug(`Transaction indicies have been reset`);
-
-    // Validate data
+    // Validate
     const error = getTransactionsError(txns);
     if (error) {
       throw new Error(error);
     } else {
       log.debug("All transactions have been validated");
     }
-
     // Save to store
     log.info(`Saving ${txns.length} transactions to storage`);
     store.save(StoreKeys.Transactions, txns);
@@ -93,45 +65,70 @@ export const getTransactions = ({
   ////////////////////////////////////////
   // Exported Methods
 
+  const getParams = () => ({
+    addressBook,
+    logger,
+    store,
+    transactionsJson: txns,
+  });
+
+  const syncPrices = async () => {
+    // Attach Prices
+    log.info(`Attaching price info to transactions`);
+    for (const tx of txns) {
+      const assets = Array.from(new Set(tx.transfers.map(a => a.assetType)));
+      log.debug(`Checking price of ${assets.join(",")} on ${tx.date}`);
+      for (const assetType of assets) {
+        if (!tx.prices[assetType]) {
+          tx.prices[assetType] = await prices.getPrice(assetType, tx.date);
+        }
+        log.debug(`Price of ${assetType} on ${tx.date} was ${tx.prices[assetType]}`);
+      }
+    }
+    log.info(`Transaction price info is up to date`);
+  };
+
   const mergeChainData = async (chainData: ChainData): Promise<void> => {
     log.info(`Merging chain data containing ${chainData.json.transactions.length} txns`);
     txns = mergeEthTransactions(txns, addressBook, chainData, getLastUpdated(), log);
-    await sync();
+    sync();
   };
 
   const mergeCoinbase = async (csvData: string): Promise<void> => {
     txns = mergeCoinbaseTransactions(txns, csvData, log);
-    await sync();
+    sync();
   };
 
   const mergeDigitalOcean = async (csvData: string): Promise<void> => {
     txns = mergeDigitalOceanTransactions(txns, csvData, log);
-    await sync();
-  };
-
-  const mergeWyre = async (csvData: string): Promise<void> => {
-    txns = mergeWyreTransactions(txns, csvData, log);
-    await sync();
+    sync();
   };
 
   const mergeWazrix = async (csvData: string): Promise<void> => {
     txns = mergeWazrixTransactions(txns, csvData, log);
-    await sync();
+    sync();
+  };
+
+  const mergeWyre = async (csvData: string): Promise<void> => {
+    txns = mergeWyreTransactions(txns, csvData, log);
+    sync();
   };
 
   const mergeTransaction = async (transaction: Partial<Transaction>): Promise<void> => {
     txns = mergeDefaultTransactions(txns, transaction);
-    await sync();
+    sync();
   };
 
   return {
     getAll: () => txns,
+    getParams,
     mergeChainData,
     mergeCoinbase,
     mergeDigitalOcean,
-    mergeWyre,
-    mergeWazrix,
     mergeTransaction,
+    mergeWazrix,
+    mergeWyre,
+    syncPrices,
   };
 
 };

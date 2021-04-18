@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { AddressEntry, emptyProfile, ProfileJson } from "@finances/types";
 import {
   Button,
   Card,
@@ -27,13 +27,17 @@ import {
   Save as SaveIcon,
 } from "@material-ui/icons";
 import { Alert } from "@material-ui/lab";
-import { AddressEntry, emptyProfile, ProfileJson } from "@finances/types";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
     margin: theme.spacing(1),
     maxWidth: "98%",
+  },
+  divider: {
+    marginBottom: theme.spacing(2),
+    marginTop: theme.spacing(2),
   },
   input: {
     margin: theme.spacing(1),
@@ -243,7 +247,7 @@ export const AccountInfo = ({
     let n = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const response = await axios.post(`/api/chaindata`, { address });
+      const response = await axios.get(`/api/chaindata/${address}`);
       console.log(`attempt ${n++}:`, response);
       if (response.status === 200 && typeof response.data === "object") {
         const history = response.data;
@@ -263,10 +267,8 @@ export const AccountInfo = ({
     <div className={classes.root}>
 
       <Typography variant="h4">
-        Account Info
+        Profile
       </Typography>
-
-      <Divider/>
 
       <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
 
@@ -315,7 +317,11 @@ export const AccountInfo = ({
         }
 
       </Grid>
-      <Divider/>
+      <Divider className={classes.divider}/>
+
+      <Typography variant="h4">
+        Address Book
+      </Typography>
 
       <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
 

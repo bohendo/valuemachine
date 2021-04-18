@@ -91,7 +91,7 @@ export const mergeWazrixTransactions = (
 
       transaction.transfers.push({
         assetType: feeAsset,
-        category: TransferCategories.Transfer,
+        category: TransferCategories.Expense,
         from: "wazrix-account",
         quantity: feeAmount,
         to: "wazrix-exchange",

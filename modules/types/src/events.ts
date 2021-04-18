@@ -1,4 +1,4 @@
-import { AssetTypes } from "./assets";
+import { AssetTypes, FiatAssets } from "./assets";
 import { Address, DecimalString, TimestampString } from "./strings";
 import { enumify } from "./utils";
 
@@ -41,6 +41,7 @@ export type BurnEvent = BaseEvent & {
 }
 
 export type CapitalGainsEvent = BaseEvent & {
+  soldFor: keyof typeof FiatAssets;
   purchaseDate: TimestampString;
   purchasePrice: DecimalString;
   type: typeof EventTypes.CapitalGains;

@@ -117,7 +117,6 @@ process.on("SIGINT", logAndExit);
     const [newState, newEvents] = valueMachine(state, transaction);
     vmEvents = vmEvents.concat(...newEvents);
     state = newState;
-
     const chunk = 100;
     if (transaction.index % chunk === 0) {
       const diff = (Date.now() - start).toString();
@@ -126,7 +125,6 @@ process.on("SIGINT", logAndExit);
       } in ${diff} ms`);
       start = Date.now();
     }
-
   }
   store.save(StoreKeys.State, state);
   store.save(StoreKeys.Events, vmEvents);

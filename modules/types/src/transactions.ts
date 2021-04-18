@@ -1,6 +1,9 @@
+import { AddressBook } from "./addressBook";
 import { AssetTypes } from "./assets";
 import { ChainData } from "./chainData";
+import { Logger } from "./logger";
 import { DecimalString, HexString, TimestampString } from "./strings";
+import { Store } from "./store";
 import { enumify } from "./utils";
 
 ////////////////////////////////////////
@@ -60,14 +63,23 @@ export type Transaction = {
 }
 export type TransactionsJson = Transaction[];
 
+export type TransactionParams = {
+  addressBook: AddressBook;
+  logger?: Logger;
+  store?: Store;
+  transactionsJson?: TransactionsJson;
+};
+
 export type Transactions = {
   getAll: () => TransactionsJson;
+  getParams: () => TransactionParams;
   mergeChainData: (chainData: ChainData) => Promise<void>;
   mergeCoinbase: (csvData: string) => Promise<void>;
   mergeDigitalOcean: (csvData: string) => Promise<void>;
-  mergeWyre: (csvData: string) => Promise<void>;
-  mergeWazrix: (csvData: string) => Promise<void>;
   mergeTransaction: (transactions: Partial<Transaction>) => Promise<void>;
+  mergeWazrix: (csvData: string) => Promise<void>;
+  mergeWyre: (csvData: string) => Promise<void>;
+  syncPrices: () => Promise<void>;
 };
 
 export const emptyTransactions = [] as TransactionsJson;

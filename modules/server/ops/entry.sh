@@ -11,8 +11,11 @@ if [[ ! -d "/data" ]]
 then mkdir -p /data
 fi
 
-if [[ "$NODE_ENV" == "development" ]]
+if [[ "$FINANCES_PROD" == "true" ]]
 then
+  echo "Starting finances server in prod-mode"
+  exec node --no-deprecation dist/bundle.js
+else
   echo "Starting finances server in dev-mode"
   exec ./node_modules/.bin/nodemon \
     --delay 1 \
@@ -24,7 +27,4 @@ then
     --watch src \
     --exec "node -r ts-node/register" \
     ./src/entry.ts
-else
-  echo "Starting finances server in prod-mode"
-  exec node --no-deprecation dist/bundle.js
 fi

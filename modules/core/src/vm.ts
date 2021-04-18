@@ -1,4 +1,10 @@
-import { AddressBook, Transaction, Logger, Event, StateJson } from "@finances/types";
+import {
+  AddressBook,
+  Event,
+  Logger,
+  StateJson,
+  Transaction,
+} from "@finances/types";
 import { getLogger } from "@finances/utils";
 
 import { emitTransactionEvents, emitTransferEvents } from "./events";
@@ -50,6 +56,9 @@ export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any 
       }
     }
 
+    // TODO: instead of reordering transfers so balances never dip below zero,
+    // let them go negative only while a tx is being exectued
+    // after all transfers have been processed, only then assert that crypto balances are >=0
     for (const transfer of later) {
       const { assetType, fee, from, quantity, to } = transfer;
       log.debug(`transfering ${quantity} ${assetType} from ${getName(from)} to ${

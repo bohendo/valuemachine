@@ -1,13 +1,13 @@
 #!/bin/bash
 
-export DOMAINNAME="${FINANCES_DOMAINNAME}"
-export EMAIL="${FINANCES_EMAIL}"
-export SERVER_URL="${FINANCES_SERVER_URL}"
-export WEBSERVER_URL="${FINANCES_WEBSERVER_URL}"
+null_ui=localhost
 
-echo "Proxy container launched in env:"
+EMAIL="${EMAIL:-noreply@gmail.com}"
+WEBSERVER_URL="${WEBSERVER_URL:-$null_ui}"
+
 echo "DOMAINNAME=$DOMAINNAME"
 echo "EMAIL=$EMAIL"
+echo "Proxy container launched in env:"
 echo "SERVER_URL=$SERVER_URL"
 echo "WEBSERVER_URL=$WEBSERVER_URL"
 
@@ -22,27 +22,29 @@ loading_pid="$!"
 
 ########################################
 # Wait for downstream services to wake up
-# Define service hostnames & ports we depend on
 
 echo "waiting for $SERVER_URL..."
-wait-for -t 60 $SERVER_URL 2> /dev/null
-while ! curl -s $SERVER_URL > /dev/null
+wait-for -q -t 60 "$SERVER_URL" 2>&1 | sed '/nc: bad address/d'
+while ! curl -s "$SERVER_URL" > /dev/null
 do sleep 2
 done
 
 echo "waiting for $WEBSERVER_URL..."
-wait-for -t 60 $WEBSERVER_URL 2> /dev/null
-while ! curl -s $WEBSERVER_URL > /dev/null
+wait-for -q -t 60 "$WEBSERVER_URL" 2>&1 | sed '/nc: bad address/d'
+while ! curl -s "$WEBSERVER_URL" > /dev/null
 do sleep 2
 done
 
 # Kill the loading message server
 kill "$loading_pid" && pkill nc
 
+########################################
+# If no domain name provided, start up in http mode
+
 if [[ -z "$DOMAINNAME" ]]
 then
   cp /etc/ssl/cert.pem ca-certs.pem
-  echo "Entrypoint finished, executing haproxy..."; echo
+  echo "Entrypoint finished, executing haproxy in http mode..."; echo
   exec haproxy -db -f http.cfg
 fi
 
@@ -57,14 +59,14 @@ mkdir -p /var/www/letsencrypt
 if [[ "$DOMAINNAME" == "localhost" && ! -f "$certsdir/privkey.pem" ]]
 then
   echo "Developing locally, generating self-signed certs"
-  mkdir -p $certsdir
-  openssl req -x509 -newkey rsa:4096 -keyout $certsdir/privkey.pem -out $certsdir/fullchain.pem -days 365 -nodes -subj '/CN=localhost'
+  mkdir -p "$certsdir"
+  openssl req -x509 -newkey rsa:4096 -keyout "$certsdir/privkey.pem" -out "$certsdir/fullchain.pem" -days 365 -nodes -subj '/CN=localhost'
 fi
 
 if [[ ! -f "$certsdir/privkey.pem" ]]
 then
   echo "Couldn't find certs for $DOMAINNAME, using certbot to initialize those now.."
-  certbot certonly --standalone -m $EMAIL --agree-tos --no-eff-email -d $DOMAINNAME -n
+  certbot certonly --standalone -m "$EMAIL" --agree-tos --no-eff-email -d "$DOMAINNAME" -n --cert-name "$DOMAINNAME"
   code=$?
   if [[ "$code" -ne 0 ]]
   then
@@ -80,9 +82,7 @@ export CERTBOT_PORT=31820
 
 function copycerts {
   if [[ -f $certsdir/fullchain.pem && -f $certsdir/privkey.pem ]]
-  then cat $certsdir/fullchain.pem $certsdir/privkey.pem > "$DOMAINNAME.pem"
-  elif [[ -f "$certsdir-0001/fullchain.pem" && -f "$certsdir-0001/privkey.pem" ]]
-  then cat "$certsdir-0001/fullchain.pem" "$certsdir-0001/privkey.pem" > "$DOMAINNAME.pem"
+  then cat "$certsdir/fullchain.pem" "$certsdir/privkey.pem" > "$DOMAINNAME.pem"
   else
     echo "Couldn't find certs, freezing to debug"
     sleep 9999;
@@ -113,5 +113,5 @@ copycerts
 
 cp /etc/ssl/cert.pem ca-certs.pem
 
-echo "Entrypoint finished, executing haproxy..."; echo
+echo "Entrypoint finished, executing haproxy in https mode..."; echo
 exec haproxy -db -f https.cfg

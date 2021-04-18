@@ -47,6 +47,7 @@ module.exports = {
     ],
     "indent": ["warn", 2],
     "max-len": ["warn", 100, { ignoreStrings: true, ignoreTemplateLiterals: true }],
+    "no-async-promise-executor": ["warn"],
     "no-constant-condition": ["warn"],
     "no-control-regex": ["off"],
     "no-loop-func": ["off"],
