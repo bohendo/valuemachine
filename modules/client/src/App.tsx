@@ -49,10 +49,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 const App: React.FC = () => {
-  const classes = useStyles();
-
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || emptyProfile);
   const [chainData] = useState(getChainData({ store, logger: getLogger("info") }));
+  const classes = useStyles();
+
   console.log("profile", profile);
 
   useEffect(() => {
@@ -61,8 +61,10 @@ const App: React.FC = () => {
     const authorization = `Basic ${btoa(`${profile.username}:${profile.authToken}`)}`;
     axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
       if (authRes.status === 200) {
+        axios.defaults.headers.common.authorization = authorization;
         console.log(`Successfully authorized with server for user ${profile.username}`);
-        axios.defaults.headers.common["authorization"] = authorization;
+      } else {
+        console.log(`Unsuccessful authorization for user ${profile.username}`, authRes);
       }
     }).catch((err) => {
       console.warn(`Auth token "${profile.authToken}" is invalid: ${err.message}`);

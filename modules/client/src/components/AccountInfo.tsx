@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { AddressEntry, emptyProfile, ProfileJson } from "@finances/types";
 import {
   Button,
   Card,
@@ -27,8 +27,8 @@ import {
   Save as SaveIcon,
 } from "@material-ui/icons";
 import { Alert } from "@material-ui/lab";
-import { AddressEntry, emptyProfile, ProfileJson } from "@finances/types";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -243,7 +243,7 @@ export const AccountInfo = ({
     let n = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const response = await axios.post(`/api/chaindata`, { address });
+      const response = await axios.get(`/api/chaindata/${address}`);
       console.log(`attempt ${n++}:`, response);
       if (response.status === 200 && typeof response.data === "object") {
         const history = response.data;
