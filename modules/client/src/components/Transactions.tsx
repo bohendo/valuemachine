@@ -109,19 +109,21 @@ export const TransactionManager = ({
     });
   };
 
-  const syncPrices = () => {
+  const syncPrices = async () => {
     if (!axios.defaults.headers.common.authorization) {
       console.warn(`Auth header not set yet..`);
       return;
     }
     setSyncing(old => ({ ...old, prices: true }));
-    axios.get("/api/prices").then((res) => {
-      console.log(`Successfully fetched prices`, res.data);
-      setSyncing(old => ({ ...old, prices: false }));
-    }).catch(e => {
-      console.log(`Failed to fetch prices`, e);
-      setSyncing(old => ({ ...old, transactions: false }));
-    });
+    try {
+      await axios.get("/api/prices");
+      console.log(`Server has synced prices`);
+      await transactions.syncPrices();
+      console.log(`Client has synced prices`);
+    } catch (e) {
+      console.error(`Failed to sync prices`, e);
+    }
+    setSyncing(old => ({ ...old, prices: false }));
   };
 
   const handleImport = (event: any) => {
@@ -232,11 +234,12 @@ export const TransactionManager = ({
             <TableCell> Date </TableCell>
             <TableCell> Description </TableCell>
             <TableCell> Hash </TableCell>
+            <TableCell> Prices </TableCell>
             <TableCell> Transfers </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredTxns.map((tx: CapitalGainsEvent, i: number) => (
+          {filteredTxns.slice(0, 250).map((tx: CapitalGainsEvent, i: number) => (
             <TableRow key={i}>
               <TableCell> {tx.date.replace("T", " ").replace("Z", "")} </TableCell>
               <TableCell> {tx.description} </TableCell>
@@ -246,6 +249,7 @@ export const TransactionManager = ({
                   : "N/A"
                 }
               </TableCell>
+              <TableCell><pre> {JSON.stringify(tx.prices, null, 2)} </pre></TableCell>
 
               <TableCell>
 

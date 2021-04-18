@@ -1,6 +1,5 @@
 import {
   TransactionParams,
-  AssetTypes,
   ChainData,
   StoreKeys,
   Transaction,
@@ -76,14 +75,14 @@ export const getTransactions = ({
   const syncPrices = async () => {
     // Attach Prices
     log.info(`Attaching price info to transactions`);
-    for (let i = 0; i < txns.length; i++) {
-      const transaction = txns[i];
-      const assets = Array.from(new Set(transaction.transfers.map(a => a.assetType)));
-      for (let j = 0; j < assets.length; j++) {
-        const assetType = assets[j] as AssetTypes;
-        if (!transaction.prices[assetType]) {
-          transaction.prices[assetType] = await prices.getPrice(assetType, transaction.date);
+    for (const tx of txns) {
+      const assets = Array.from(new Set(tx.transfers.map(a => a.assetType)));
+      log.debug(`Checking price of ${assets.join(",")} on ${tx.date}`);
+      for (const assetType of assets) {
+        if (!tx.prices[assetType]) {
+          tx.prices[assetType] = await prices.getPrice(assetType, tx.date);
         }
+        log.debug(`Price of ${assetType} on ${tx.date} was ${tx.prices[assetType]}`);
       }
     }
     log.info(`Transaction price info is up to date`);
