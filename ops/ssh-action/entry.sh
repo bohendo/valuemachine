@@ -18,7 +18,7 @@ rm -f "$KEY_FILE" "$SSH_DIR/known_hosts"
 touch "$KEY_FILE" "$SSH_DIR/known_hosts"
 
 # Env vars strip out newlines so a naively loaded ssh key will be improperly formatted
-# Replace any existing header/footers with manually added ones that include proper newlines
+# Replace existing header/footers with manually added ones that include proper newlines
 {
   echo "$KEY_HEADER"
   echo "$SSH_KEY" | sed "s/$KEY_HEADER//" | sed "s/$KEY_FOOTER//" | tr -d '\n '
@@ -54,10 +54,12 @@ echo "Running subbed command: $subbed_cmd"
 
 exec ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no "$HOST" "bash -s" <<EOF
   set -e;
-  # Run CMD in an up-to-date repo
-  git clone $CI_REPOSITORY_URL || true;
-  cd $CI_PROJECT_NAME;
-  git fetch --all --prune --tags;
+  # Run CMD in an up-to-date repo;
+  git clone $GIT_REPOSITORY_URL || true;
+  cd $GIT_PROJECT_NAME;
+  git checkout --force $GIT_BRANCH;
+  git fetch $GIT_REMOTE --prune --tags;
+  git pull $GIT_REMOTE $GIT_BRANCH --force;
   $subbed_cmd
   exit;
 EOF
