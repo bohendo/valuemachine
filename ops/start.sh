@@ -104,7 +104,7 @@ bash "$root/ops/pull-images.sh" "$server_image"
 ########################################
 # Webserver config
 
-webserver_internal_port=3000
+webserver_internal_port=80
 
 if [[ "$FINANCES_PROD" == "true" ]]
 then
