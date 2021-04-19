@@ -207,6 +207,7 @@ done
 if [[ "$FINANCES_PROD" == "true" ]]
 then
   docker container prune --force;
+  echo "Removing ${project} images that aren't tagged as $commit or $semver or latest"
   mapfile -t imagesToRemove < <(docker image ls \
     | grep "${project}_" \
     | grep -v "$commit" \
