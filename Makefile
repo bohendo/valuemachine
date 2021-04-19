@@ -11,6 +11,7 @@ find_options=-type f -not -path "**/node_modules/**" -not -path "**/.*" -not -pa
 
 cwd=$(shell pwd)
 commit=$(shell git rev-parse HEAD | head -c 8)
+semver=v$(shell cat package.json | grep '"version":' | awk -F '"' '{print $$4}')
 
 # Setup docker run time
 # If on Linux, give the container our uid & gid so we know what to reset permissions to
@@ -81,11 +82,21 @@ reset-images:
 
 purge: clean reset
 
-push:
-	bash ops/push-images.sh
+push: push-commit
+push-commit:
+	bash ops/push-images.sh $(commit)
+push-semver:
+	bash ops/pull-images.sh $(commit)
+	bash ops/tag-images.sh $(semver)
+	bash ops/push-images.sh $(semver)
 
-pull:
-	bash ops/pull-images.sh
+pull: pull-latest
+pull-latest:
+	bash ops/pull-images.sh latest
+pull-commit:
+	bash ops/pull-images.sh $(commit)
+pull-semver:
+	bash ops/pull-images.sh $(semver)
 
 mappings:
 	node modules/core/ops/update-mappings.js -y

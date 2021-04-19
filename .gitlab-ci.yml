@@ -11,7 +11,7 @@ build:
       alias: localhost
   script:
     - apk add bash curl git jq make
-    - make pull
+    - make pull-latest
     - make prod
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - make push
@@ -24,7 +24,7 @@ test:
       alias: localhost
   script:
     - apk add bash curl git jq make
-    - make pull
+    - make pull-latest
     - make start-prod
     - make dls
     - docker service logs --raw --tail 100 finances_server
@@ -42,6 +42,9 @@ deploy:
       - prod
   script:
     - apk add bash curl git jq make
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - make pull-commit
+    - make push-semver
     - >
       docker build --tag ssh-action ops/ssh-action;
       docker run \
