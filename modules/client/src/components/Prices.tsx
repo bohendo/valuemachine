@@ -153,23 +153,23 @@ export const PriceManager = ({
         const date = tx.date.split("T")[0];
         const assets = Array.from(new Set([...tx.transfers.map(t => t.assetType)]));
         for (const asset of assets) {
-          if (!prices.getPrice(date, asset)) {
-            try {
+          try {
+            if (!prices.getPrice(date, asset)) {
               const res = await axios.get(`/api/prices/${asset}/${date}`, { timeout: 21000 });
               if (res.status === 200 && res.data) {
                 prices.setPrice(date, asset, res.data);
               } else {
                 await prices.syncPrice(date, asset);
               }
-            } catch (e) {
-              console.error(e);
             }
+          } catch (e) {
+            console.error(e);
           }
         }
         setPrices({ ...prices.json });
       }
     } catch (e) {
-      console.error(`Failed to sync prices`, e);
+      console.error(`Failed to sync prices:`, e);
     }
     setSyncing(false);
   };
