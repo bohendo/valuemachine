@@ -33,9 +33,7 @@ export const getPrices = ({
   // Internal helper functions
 
   const formatDate = (date: DateString | TimestampString): DateString => {
-    if (!date.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
-      throw new Error("Improperly formatted date");
-    } else if (isNaN((new Date(date)).getTime())) {
+    if (isNaN((new Date(date)).getTime())) {
       throw new Error("Invalid Date");
     } else if ((new Date(date)).getTime() > Date.now()) {
       throw new Error("Date is in the future");
@@ -133,6 +131,7 @@ export const getPrices = ({
     const date = formatDate(_date);
     if (!json[date]) json[date] = {};
     json[date][asset] = price;
+    save(json);
   };
 
   const syncPrice = async (

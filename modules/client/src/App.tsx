@@ -101,6 +101,7 @@ const App: React.FC = () => {
               <PriceManager
                 pricesJson={prices}
                 setPrices={setPrices}
+                transactions={transactions}
               />
             </Route>
 

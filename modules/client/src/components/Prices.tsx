@@ -1,5 +1,5 @@
 import { getPrices } from "@finances/core";
-import { AltChainAssets, EthereumAssets, Prices } from "@finances/types";
+import { AltChainAssets, EthereumAssets, PricesJson, TransactionsJson } from "@finances/types";
 import {
   Button,
   Card,
@@ -62,9 +62,11 @@ type PriceRow = {
 export const PriceManager = ({
   pricesJson,
   setPrices,
+  transactions,
 }: {
-  pricesJson: Prices;
-  setPrices: (val: Prices) => void;
+  pricesJson: PricesJson;
+  setPrices: (val: PricesJson) => void;
+  transactions: TransactionsJson,
 }) => {
   const [newPriceModified, setNewPriceModified] = useState(false);
   const [newPrice, setNewPrice] = useState(emptyPriceEntry);
@@ -95,32 +97,11 @@ export const PriceManager = ({
       });
     });
     setFilteredPrices(newFilteredPrices.sort((e1: PriceRow, e2: PriceRow): number => {
-      return e1.date > e2.date ? 1 : e1.date < e2.date ? -1
+      return e1.date > e2.date ? -1 : e1.date < e2.date ? 1
         : e1.asset > e2.asset ? 1 : e1.asset < e2.asset ? -1
           : 0;
     }));
   }, [pricesJson, filter]);
-
-  const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
-    setFilter(event.target.value);
-  };
-
-  const syncPrices = async () => {
-    if (!axios.defaults.headers.common.authorization) {
-      console.warn(`Auth header not set yet..`);
-      return;
-    }
-    setSyncing(true);
-    try {
-      await axios.get("/api/prices");
-      console.log(`Server has synced prices`);
-      // await transactions.syncPrices();
-      // console.log(`Client has synced prices`);
-    } catch (e) {
-      console.error(`Failed to sync prices`, e);
-    }
-    setSyncing(false);
-  };
 
   const handleAssetChange = (event: React.ChangeEvent<{ value: string }>) => {
     setNewPrice({ ...newPrice, asset: event.target.value });
@@ -130,6 +111,10 @@ export const PriceManager = ({
   const handlePriceChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setNewPrice({ ...newPrice, [event.target.name]: event.target.value });
     setNewPriceError("");
+  };
+
+  const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
+    setFilter(event.target.value);
   };
 
   const addNewPrice = async () => {
@@ -156,6 +141,37 @@ export const PriceManager = ({
       }
       setSyncing(false);
     }
+  };
+
+  const syncPrices = async () => {
+    if (!transactions) return;
+    try {
+      setSyncing(true);
+      console.log(`Syncing price data for ${transactions.length} transactions`);
+      const prices = getPrices({ pricesJson, store });
+      for (const tx of transactions) {
+        const date = tx.date.split("T")[0];
+        const assets = Array.from(new Set([...tx.transfers.map(t => t.assetType)]));
+        for (const asset of assets) {
+          if (!prices.getPrice(date, asset)) {
+            try {
+              const res = await axios.get(`/api/prices/${date}/${asset}`, { timeout: 21000 });
+              if (res.status === 200 && res.data) {
+                prices.setPrice(date, asset, res.data);
+              } else {
+                await prices.syncPrice(date, asset);
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        }
+        setPrices({ ...prices.json });
+      }
+    } catch (e) {
+      console.error(`Failed to sync prices`, e);
+    }
+    setSyncing(false);
   };
 
   return (
