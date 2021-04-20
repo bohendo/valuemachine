@@ -37,8 +37,6 @@ export const getPrices = ({
       throw new Error("Invalid Date");
     } else if ((new Date(date)).getTime() > Date.now()) {
       throw new Error("Date is in the future");
-    } else if ((new Date(date)).getDate() === (new Date()).getDate()) {
-      throw new Error("Date is today");
     }
     return (new Date(date)).toISOString().split("T")[0];
   };
