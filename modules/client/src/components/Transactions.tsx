@@ -96,15 +96,15 @@ export const TransactionManager = ({
       return;
     }
     setSyncing(old => ({ ...old, transactions: true }));
-    axios.get("/api/transactions").then((res) => {
+    axios.post("/api/transactions", { addressBook: addressBook.json }).then((res) => {
       console.log(`Successfully fetched transactions`, res.data);
       // TODO: below command crashes the page, find a better solution
       // res.data.forEach(transactions.mergeTransaction);
       // Get new object to trigger a re-render
       setTransactions(getTransactions({ ...transactions.getParams(), transactionsJson: res.data }));
       setSyncing(old => ({ ...old, transactions: false }));
-    }).catch(e => {
-      console.log(`Failed to fetch transactions`, e);
+    }).catch((e) => {
+      console.warn(`Failed to fetch transactions:`, e.response.data || e.message);
       setSyncing(old => ({ ...old, transactions: false }));
     });
   };

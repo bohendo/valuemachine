@@ -221,7 +221,9 @@ then
   for image in $(docker image ls -q | sort -u)
   do
     if ! grep -qs "$image" <<<"${imagesToKeep[*]}"
-    then docker image rm --force "$image"
+    then
+      # It's hard to detect images w dependents, just rm them & fail gracefully if not possible
+      docker image rm --force "$image" || true
     fi
   done
 fi

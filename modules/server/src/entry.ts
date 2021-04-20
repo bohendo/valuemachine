@@ -5,7 +5,6 @@ import { authRouter } from "./auth";
 import { chainDataRouter } from "./chaindata";
 import { env } from "./env";
 import { pricesRouter } from "./prices";
-import { profileRouter } from "./profile";
 import { transactionsRouter } from "./transactions";
 import { getLogAndSend, STATUS_NOT_FOUND } from "./utils";
 
@@ -33,7 +32,6 @@ app.use(express.json());
 
 app.use("/chaindata", chainDataRouter);
 app.use("/prices", pricesRouter);
-app.use("/profile", profileRouter);
 app.use("/transactions", transactionsRouter);
 
 ////////////////////////////////////////

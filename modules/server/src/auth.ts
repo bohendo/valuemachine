@@ -15,7 +15,6 @@ const restrictedPaths = [
   "/auth",
   "/chaindata",
   "/prices",
-  "/profile",
   "/transactions",
 ];
 

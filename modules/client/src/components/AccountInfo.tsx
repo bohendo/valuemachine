@@ -131,18 +131,13 @@ export const AccountInfo = ({
   };
 
   const handleSave = async () => {
-    console.log(`Saving ${JSON.stringify(newProfile)}...`);
+    console.log(`Validating profile creds for ${newProfile.username}:${newProfile.authToken}...`);
     const authorization = `Basic ${btoa(`${newProfile.username}:${newProfile.authToken}`)}`;
-    axios.get("/api/auth", { headers: { authorization } }).then(async () => {
-      const saveRes = await axios({
-        method: "POST",
-        url: "/api/profile",
-        data: newProfile,
-      });
-      if (saveRes.status === 200) {
+    axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
+      if (authRes.status === 200) {
         setProfile(newProfile);
       } else {
-        console.error(saveRes);
+        console.error(authRes);
       }
     }).catch(() => {
       setNewTokenError("Invalid Auth Token");
