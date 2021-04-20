@@ -140,7 +140,7 @@ export const AddressBook = ({
     const authorization = `Basic ${btoa(`${newProfile.username}:${newProfile.authToken}`)}`;
     axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
       if (authRes.status === 200) {
-        setProfile(newProfile);
+        setProfile({ ...newProfile });
       } else {
         console.error(authRes);
       }
@@ -189,7 +189,7 @@ export const AddressBook = ({
             addressBook.push(entry);
           }
         });
-        setNewProfile(oldVal => ({ ...oldVal, addressBook }));
+        setProfile(oldVal => ({ ...oldVal, addressBook }));
         handleSave();
       } catch (e) {
         console.error(e);
