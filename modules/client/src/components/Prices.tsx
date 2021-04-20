@@ -127,7 +127,7 @@ export const PriceManager = ({
       const prices = getPrices({ pricesJson, store });
       try {
         const res = await axios.get(
-          `/api/prices/${newPrice.date}/${newPrice.asset}`,
+          `/api/prices/${newPrice.asset}/${newPrice.date}`,
           { timeout: 21000 },
         );
         if (res.status === 200 && res.data) {
@@ -155,7 +155,7 @@ export const PriceManager = ({
         for (const asset of assets) {
           if (!prices.getPrice(date, asset)) {
             try {
-              const res = await axios.get(`/api/prices/${date}/${asset}`, { timeout: 21000 });
+              const res = await axios.get(`/api/prices/${asset}/${date}`, { timeout: 21000 });
               if (res.status === 200 && res.data) {
                 prices.setPrice(date, asset, res.data);
               } else {
