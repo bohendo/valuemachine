@@ -1,16 +1,19 @@
 import { AssetTypes } from "./assets";
 import { DecimalString, TimestampString } from "./strings";
 
+export type PriceList = {
+  [assetType: string]: DecimalString;
+};
+
 export type PricesJson = {
-  ids: { [assetType: string]: string };
-  [date: string]: {
-    [assetType: string]: DecimalString;
-  };
-}
+  [date: string]: PriceList;
+};
 
 export interface Prices {
-  getPrice(asset: AssetTypes, date: TimestampString): Promise<string>;
+  getPrice(date: TimestampString, asset: AssetTypes): string | undefined;
   json: PricesJson;
+  setPrice(date: TimestampString, asset: AssetTypes, price: DecimalString): void;
+  syncPrice(date: TimestampString, asset: AssetTypes): Promise<string>;
 }
 
-export const emptyPrices = { ids: {} } as PricesJson;
+export const emptyPrices = {} as PricesJson;

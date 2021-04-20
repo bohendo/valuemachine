@@ -30,6 +30,8 @@ import { Alert } from "@material-ui/lab";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
+import { HexString } from "./HexString";
+
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
     margin: theme.spacing(1),
@@ -69,6 +71,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
   },
+  syncAll: {
+    margin: theme.spacing(2),
+  },
 }));
 
 const emptyAddressEntry = {
@@ -77,7 +82,7 @@ const emptyAddressEntry = {
   name: "",
 } as AddressEntry;
 
-export const AccountInfo = ({
+export const AddressBook = ({
   profile,
   setProfile,
 }: {
@@ -257,6 +262,11 @@ export const AccountInfo = ({
     console.log(`Successfuly synced address history for ${address}`);
   };
 
+  const syncAll = async () => {
+    for (const entry of profile.addressBook) {
+      await syncAddress(entry.address);
+    }
+  };
 
   return (
     <div className={classes.root}>
@@ -318,7 +328,7 @@ export const AccountInfo = ({
         Address Book
       </Typography>
 
-      <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
+      <Grid alignContent="center" alignItems="center" justify="center" container spacing={1} className={classes.root}>
 
         <Grid item md={8}>
           <Card className={classes.root}>
@@ -368,7 +378,6 @@ export const AccountInfo = ({
                 />
               </Grid>
               <Grid item md={6}>
-
                 {addressModified ?
                   <Grid item>
                     <Button
@@ -384,8 +393,6 @@ export const AccountInfo = ({
                   </Grid>
                   : undefined
                 }
-
-
               </Grid>
             </Grid>
           </Card>
@@ -413,6 +420,22 @@ export const AccountInfo = ({
               Download
             </Button>
           </Card>
+
+          <Button
+            className={classes.syncAll}
+            color="primary"
+            onClick={syncAll}
+            size="medium"
+            disabled={Object.values(syncing).some(val => !!val)}
+            startIcon={Object.values(syncing).some(val => !!val)
+              ? <CircularProgress size={20} />
+              : <SyncIcon />
+            }
+            variant="contained"
+          >
+            Sync All
+          </Button>
+
         </Grid>
 
       </Grid>
@@ -446,7 +469,7 @@ export const AccountInfo = ({
               <TableRow key={i}>
                 <TableCell> {entry.name} </TableCell>
                 <TableCell> {entry.category} </TableCell>
-                <TableCell> {entry.address} </TableCell>
+                <TableCell> <HexString value={entry.address}/> </TableCell>
                 <TableCell>
                   <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
                     <RemoveIcon />

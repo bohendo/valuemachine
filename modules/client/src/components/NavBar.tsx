@@ -12,6 +12,7 @@ import {
   Home as HomeIcon,
   RecentActors as AccountIcon,
   AccountBalance as TaxesIcon,
+  LocalOffer as PricesIcon,
   Receipt as TransactionsIcon,
 } from "@material-ui/icons";
 import { Link } from "react-router-dom";
@@ -62,6 +63,16 @@ export const NavBar = () => {
           color="inherit"
         >
           <TaxesIcon />
+        </IconButton>
+
+        <IconButton
+          component={Link}
+          edge="start"
+          to={"/prices"}
+          className={classes.navButton}
+          color="inherit"
+        >
+          <PricesIcon />
         </IconButton>
 
         <IconButton

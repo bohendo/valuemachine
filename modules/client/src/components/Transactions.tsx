@@ -32,6 +32,8 @@ import {
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+import { HexString } from "./HexString";
+
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
     margin: theme.spacing(3),
@@ -58,14 +60,14 @@ export const TransactionManager = ({
   transactions: Transactions;
   setTransactions: (val: Transactions) => void;
 }) => {
-  const [syncing, setSyncing] = useState({ transactions: false, prices: false });
+  const [syncing, setSyncing] = useState(false);
   const [filterSource, setFilterSource] = useState("");
   const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
   const [importFileType, setImportFileType] = useState("");
   const classes = useStyles();
 
   useEffect(() => {
-    setFilteredTxns(transactions.getAll()
+    setFilteredTxns(transactions
       .filter(tx =>
         !filterSource || (tx?.sources || []).map(s => s.toLowerCase()).includes(filterSource)
       ).sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
@@ -78,7 +80,7 @@ export const TransactionManager = ({
   }, [transactions, filterSource]);
 
   useEffect(() => {
-    console.log(`Filtered ${transactions.getAll().length} txns down to ${filteredTxns.length}`);
+    console.log(`Filtered ${transactions.length} txns down to ${filteredTxns.length}`);
   }, [transactions, filteredTxns]);
 
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
@@ -95,35 +97,18 @@ export const TransactionManager = ({
       console.warn(`Auth header not set yet..`);
       return;
     }
-    setSyncing(old => ({ ...old, transactions: true }));
+    setSyncing(true);
     axios.post("/api/transactions", { addressBook: addressBook.json }).then((res) => {
       console.log(`Successfully fetched transactions`, res.data);
       // TODO: below command crashes the page, find a better solution
       // res.data.forEach(transactions.mergeTransaction);
       // Get new object to trigger a re-render
-      setTransactions(getTransactions({ ...transactions.getParams(), transactionsJson: res.data }));
-      setSyncing(old => ({ ...old, transactions: false }));
+      setTransactions(res.data);
+      setSyncing(false);
     }).catch((e) => {
       console.warn(`Failed to fetch transactions:`, e.response.data || e.message);
-      setSyncing(old => ({ ...old, transactions: false }));
+      setSyncing(false);
     });
-  };
-
-  const syncPrices = async () => {
-    if (!axios.defaults.headers.common.authorization) {
-      console.warn(`Auth header not set yet..`);
-      return;
-    }
-    setSyncing(old => ({ ...old, prices: true }));
-    try {
-      await axios.get("/api/prices");
-      console.log(`Server has synced prices`);
-      await transactions.syncPrices();
-      console.log(`Client has synced prices`);
-    } catch (e) {
-      console.error(`Failed to sync prices`, e);
-    }
-    setSyncing(old => ({ ...old, prices: false }));
   };
 
   const handleImport = (event: any) => {
@@ -134,18 +119,22 @@ export const TransactionManager = ({
     reader.readAsText(file);
     reader.onload = () => {
       try {
+        const txMethods = getTransactions({
+          addressBook,
+          transactionJson: transactions,
+        });
         const importedFile = reader.result as string;
         if (importFileType === "coinbase") {
-          transactions.mergeCoinbase(importedFile);
+          txMethods.mergeCoinbase(importedFile);
         } else if (importFileType === "digitalocean") {
-          transactions.mergeDigitalOcean(importedFile);
+          txMethods.mergeDigitalOcean(importedFile);
         } else if (importFileType === "wazrix") {
-          transactions.mergeWazrix(importedFile);
+          txMethods.mergeWazrix(importedFile);
         } else if (importFileType === "wyre") {
-          transactions.mergeWyre(importedFile);
+          txMethods.mergeWyre(importedFile);
         }
         // Get new object to trigger a re-render
-        setTransactions(getTransactions(transactions.getParams()));
+        setTransactions(txMethods.getAll());
       } catch (e) {
         console.error(e);
       }
@@ -161,19 +150,9 @@ export const TransactionManager = ({
 
       <Button
         className={classes.button}
-        disabled={syncing.prices}
-        onClick={syncPrices}
-        startIcon={syncing.prices ? <CircularProgress size={20} /> : <SyncIcon/>}
-        variant="outlined"
-      >
-        Sync Prices
-      </Button>
-
-      <Button
-        className={classes.button}
-        disabled={syncing.transactions}
+        disabled={syncing}
         onClick={syncTxns}
-        startIcon={syncing.transactions ? <CircularProgress size={20} /> : <SyncIcon/>}
+        startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
         variant="outlined"
       >
         Sync Transactions
@@ -234,7 +213,6 @@ export const TransactionManager = ({
             <TableCell> Date </TableCell>
             <TableCell> Description </TableCell>
             <TableCell> Hash </TableCell>
-            <TableCell> Prices </TableCell>
             <TableCell> Transfers </TableCell>
           </TableRow>
         </TableHead>
@@ -243,16 +221,9 @@ export const TransactionManager = ({
             <TableRow key={i}>
               <TableCell> {tx.date.replace("T", " ").replace("Z", "")} </TableCell>
               <TableCell> {tx.description} </TableCell>
-              <TableCell>
-                {tx.hash
-                  ? tx.hash.substring(0,6) + "..." + tx.hash.substring(tx.hash.length-4)
-                  : "N/A"
-                }
-              </TableCell>
-              <TableCell><pre> {JSON.stringify(tx.prices, null, 2)} </pre></TableCell>
+              <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
 
               <TableCell>
-
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -269,14 +240,24 @@ export const TransactionManager = ({
                         <TableCell> {transfer.category} </TableCell>
                         <TableCell> {transfer.assetType} </TableCell>
                         <TableCell> {math.round(transfer.quantity, 4)} </TableCell>
-                        <TableCell> {addressBook?.getName(transfer.from) || "?"} </TableCell>
-                        <TableCell> {addressBook?.getName(transfer.to) || "?"} </TableCell>
+                        <TableCell>
+                          <HexString
+                            display={addressBook?.getName(transfer.from)}
+                            value={transfer.from}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <HexString
+                            display={addressBook?.getName(transfer.to)}
+                            value={transfer.to}
+                          />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-
               </TableCell>
+
             </TableRow>
           ))}
         </TableBody>

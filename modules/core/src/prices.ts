@@ -1,5 +1,7 @@
 import {
+  AssetTypes,
   DateString,
+  DecimalString,
   Logger,
   Prices,
   PricesJson,
@@ -27,54 +29,66 @@ export const getPrices = ({
     Object.keys(json).length
   } dates from ${pricesJson ? "input" : "store"}`);
 
-  const fetchPrice = async (
-    asset: string,
-    timestamp: TimestampString,
-  ): Promise<string> => {
+  ////////////////////////////////////////
+  // Internal helper functions
 
-    const date = (timestamp.includes("T") ? timestamp.split("T")[0] : timestamp) as DateString;
-    const coingeckoUrl = "https://api.coingecko.com/api/v3";
-
-    if (!json[date]) {
-      json[date] = {};
+  const formatDate = (date: DateString | TimestampString): DateString => {
+    if (isNaN((new Date(date)).getTime())) {
+      throw new Error("Invalid Date");
+    } else if ((new Date(date)).getTime() > Date.now()) {
+      throw new Error("Date is in the future");
+    } else if ((new Date(date)).getDate() === (new Date()).getDate()) {
+      throw new Error("Date is today");
     }
+    return (new Date(date)).toISOString().split("T")[0];
+  };
 
-    if (!json[date][asset]) {
-
-      // get coin id
-      if (!json.ids[asset]) {
-        log.info(`Fetching coin id for ${asset}..`);
-        const coins = (await axios(`${coingeckoUrl}/coins/list`)).data;
-        const coin = coins.find(coin => coin.symbol.toLowerCase() === asset.toLowerCase());
-        if (!coin || !coin.id) {
-          throw new Error(`Asset ${asset} is not supported by coingecko`);
-        }
-        json.ids[asset] = coin.id;
-        save(json);
+  const getCoinGeckoPrice = async (
+    date: DateString,
+    asset: AssetTypes,
+  ): Promise<string> => {
+    // derived from output of https://api.coingecko.com/api/v3/coins/list
+    const getCoinId = (asset: AssetTypes): string | undefined => {
+      switch (asset.toUpperCase()) {
+      case "BAT": return "basic-attention-token";
+      case "BCH": return "bitcoin-cash";
+      case "BTC": return "bitcoin";
+      case "CDAI": return "cdai";
+      case "COMP": return "compound-governance-token";
+      case "DAI": return "dai";
+      case "ETH": return "ethereum";
+      case "GEN": return "daostack";
+      case "LTC": return "litecoin";
+      case "MKR": return "maker";
+      case "SAI": return "sai";
+      case "SNT": return "status";
+      case "SNX": return "havven";
+      case "UNI": return "uniswap";
+      case "WBTC": return "wrapped-bitcoin";
+      case "WETH": return "weth";
+      default: return undefined;
       }
-      const coinId = json.ids[asset];
-
-      // get coin price
-      // https://api.coingecko.com/api/v3/coins/bitcoin/history?date=30-12-2017
-
-      // DD-MM-YYYY
-      const coingeckoDate = `${date.split("-")[2]}-${date.split("-")[1]}-${date.split("-")[0]}`;
-      log.info(`Fetching price of ${asset} on ${date}..`);
+    };
+    const coinId = getCoinId(asset);
+    if (!coinId) throw new Error(`Asset "${asset}" is not supported`);
+    if (!json[date]) json[date] = {};
+    if (!json[date][asset]) {
+      // eg https://api.coingecko.com/api/v3/coins/bitcoin/history?date=30-12-2017
+      const coingeckoUrl = `https://api.coingecko.com/api/v3/coins/${
+        coinId 
+      }/history?date=${
+        `${date.split("-")[2]}-${date.split("-")[1]}-${date.split("-")[0]}`
+      }`;
+      log.info(`Fetching price of ${asset} on ${date} from ${coingeckoUrl}`);
       let response;
       try {
-        response = (await axios.get(
-          `${coingeckoUrl}/coins/${coinId}/history?date=${coingeckoDate}`,
-          { timeout: 10000 },
-        )).data;
+        response = (await axios.get(coingeckoUrl, { timeout: 10000 })).data;
       // Try one more time if we get a failure
       } catch (e) {
         log.warn(e.message);
         if (e.message.includes("timeout") || e.message.includes("EAI_AGAIN")) {
           log.info(`Trying to fetch price of ${asset} on ${date} one more time..`);
-          response = (await axios.get(
-            `${coingeckoUrl}/coins/${coinId}/history?date=${coingeckoDate}`,
-            { timeout: 10000 },
-          )).data;
+          response = (await axios.get(coingeckoUrl, { timeout: 10000 })).data;
         } else {
           throw e;
         }
@@ -84,28 +98,54 @@ export const getPrices = ({
           .toString().replace(/(\.[0-9]{3})[0-9]+/, "$1");
         log.info(`Success, 1 ${asset} was worth $${json[date][asset]} on ${date}`);
       } catch (e) {
-        throw new Error(`Couldn't get price, make sure that ${asset} existed on ${date}`);
+        log.warn(response);
+        throw new Error(`Price is not available, maybe ${asset} didn't exist on ${date}`);
       }
       save(json);
     }
-
     return json[date][asset];
   };
 
-  const getPrice = async (
-    asset: string,
-    date: string,
-  ): Promise<string> =>
-    ["USD", "DAI", "SAI"].includes(asset)
+  ////////////////////////////////////////
+  // External Methods
+
+  const getPrice = (
+    _date: DateString,
+    asset: AssetTypes,
+  ): string | undefined => {
+    const date = formatDate(_date);
+    return "USD" === asset
       ? "1"
       : "INR" === asset
-        ? "0.013"
+        ? "0.013" // TODO: get real INR price from somewhere?
         : ["ETH", "WETH"].includes(asset)
-          ? await fetchPrice("ETH", date)
-          : asset.toUpperCase().startsWith("C")
-            ? "0" // skip compound tokens for now
-            : await fetchPrice(asset, date);
+          ? json[date]?.["ETH"]
+          : json[date]?.[asset];
+  };
 
+  const setPrice = (
+    _date: DateString,
+    asset: AssetTypes,
+    price: DecimalString,
+  ): void => {
+    const date = formatDate(_date);
+    if (!json[date]) json[date] = {};
+    json[date][asset] = price;
+    save(json);
+  };
 
-  return { json, getPrice };
+  const syncPrice = async (
+    _date: DateString,
+    asset: AssetTypes,
+  ): Promise<string> => {
+    const date = formatDate(_date);
+    return getPrice(date, asset) || getCoinGeckoPrice(date, asset);
+  };
+
+  return {
+    getPrice,
+    json,
+    setPrice,
+    syncPrice,
+  };
 };

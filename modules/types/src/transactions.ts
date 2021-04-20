@@ -56,7 +56,6 @@ export type Transaction = {
   description: string;
   hash?: HexString;
   index: number;
-  prices: { [assetType: string]: DecimalString };
   sources: TransactionSources[];
   tags: string[];
   transfers: Transfer[];
@@ -79,7 +78,6 @@ export type Transactions = {
   mergeTransaction: (transactions: Partial<Transaction>) => Promise<void>;
   mergeWazrix: (csvData: string) => Promise<void>;
   mergeWyre: (csvData: string) => Promise<void>;
-  syncPrices: () => Promise<void>;
 };
 
 export const emptyTransactions = [] as TransactionsJson;

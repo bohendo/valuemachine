@@ -2,6 +2,7 @@ import {
   AddressBook,
   Event,
   Logger,
+  Prices,
   StateJson,
   Transaction,
 } from "@finances/types";
@@ -10,12 +11,20 @@ import { getLogger } from "@finances/utils";
 import { emitTransactionEvents, emitTransferEvents } from "./events";
 import { getState } from "./state";
 
-export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any => {
+export const getValueMachine = ({
+  addressBook,
+  prices,
+  logger,
+}: {
+  addressBook: AddressBook,
+  prices: Prices,
+  logger?: Logger
+}): any => {
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
   const { getName } = addressBook;
 
   return (oldState: StateJson, transaction: Transaction): [StateJson, Event[]] => {
-    const state = getState(oldState, addressBook, logger);
+    const state = getState({ stateJson: oldState, addressBook, prices, logger });
     log.debug(`Applying transaction ${transaction.index} from ${
       transaction.date
     }: ${transaction.description}`);
@@ -42,7 +51,7 @@ export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any 
         }
         chunks = state.getChunks(from, assetType, quantity, transaction);
         chunks.forEach(chunk => state.putChunk(to, chunk));
-        logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer));
+        logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer, prices));
       } catch (e) {
         log.debug(`Error while processing tx ${e.message}: ${JSON.stringify(transaction)}`);
         if (e.message.includes("attempted to spend")) {
@@ -70,7 +79,7 @@ export const getValueMachine = (addressBook: AddressBook, logger?: Logger): any 
       }
       const chunks = state.getChunks(from, assetType, quantity, transaction);
       chunks.forEach(chunk => state.putChunk(to, chunk));
-      logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer));
+      logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer, prices));
     }
 
     ////////////////////////////////////////

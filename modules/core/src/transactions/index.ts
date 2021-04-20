@@ -7,7 +7,6 @@ import {
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
 
-import { getPrices } from "../prices";
 import { getTransactionsError } from "../verify";
 
 import { mergeEthTransactions } from "./eth";
@@ -27,7 +26,6 @@ export const getTransactions = ({
   transactionsJson,
 }: TransactionParams): Transactions => {
   const log = (logger || getLogger()).child({ module: "Transactions" });
-  const prices = getPrices({ store, logger });
 
   let txns = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
 
@@ -72,22 +70,6 @@ export const getTransactions = ({
     transactionsJson: txns,
   });
 
-  const syncPrices = async () => {
-    // Attach Prices
-    log.info(`Attaching price info to transactions`);
-    for (const tx of txns) {
-      const assets = Array.from(new Set(tx.transfers.map(a => a.assetType)));
-      log.debug(`Checking price of ${assets.join(",")} on ${tx.date}`);
-      for (const assetType of assets) {
-        if (!tx.prices[assetType]) {
-          tx.prices[assetType] = await prices.getPrice(assetType, tx.date);
-        }
-        log.debug(`Price of ${assetType} on ${tx.date} was ${tx.prices[assetType]}`);
-      }
-    }
-    log.info(`Transaction price info is up to date`);
-  };
-
   const mergeChainData = async (chainData: ChainData): Promise<void> => {
     log.info(`Merging chain data containing ${chainData.json.transactions.length} txns`);
     txns = mergeEthTransactions(txns, addressBook, chainData, getLastUpdated(), log);
@@ -128,7 +110,6 @@ export const getTransactions = ({
     mergeTransaction,
     mergeWazrix,
     mergeWyre,
-    syncPrices,
   };
 
 };
