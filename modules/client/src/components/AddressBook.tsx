@@ -247,14 +247,18 @@ export const AddressBook = ({
     let n = 0;
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const response = await axios.get(`/api/chaindata/${address}`);
-      console.log(`attempt ${n++}:`, response);
-      if (response.status === 200 && typeof response.data === "object") {
-        const history = response.data;
-        console.log(`Got address history:`, history);
-        // chainData.merge(history);
-        setSyncing({ ...syncing, [address]: false });
-        break;
+      try {
+        const response = await axios.get(`/api/chaindata/${address}`);
+        console.log(`attempt ${n++}:`, response);
+        if (response.status === 200 && typeof response.data === "object") {
+          const history = response.data;
+          console.log(`Got address history:`, history);
+          // chainData.merge(history);
+          setSyncing({ ...syncing, [address]: false });
+          break;
+        }
+      } catch (e) {
+        console.warn(e.message);
       }
       await new Promise(res => setTimeout(res, 10_000));
     }
