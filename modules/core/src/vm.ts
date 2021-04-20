@@ -84,7 +84,7 @@ export const getValueMachine = ({
 
     ////////////////////////////////////////
 
-    logs.push(...emitTransactionEvents(addressBook, transaction, state, prices));
+    logs.push(...emitTransactionEvents(addressBook, transaction, state));
 
     state.touch(transaction.date);
 

@@ -23,7 +23,6 @@ export const EthereumAssets = enumify({
   DAI: "DAI",
   ETH: "ETH",
   GEN: "GEN",
-  INR: "INR",
   MKR: "MKR",
   SAI: "SAI",
   SNT: "SNT",

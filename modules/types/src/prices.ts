@@ -6,17 +6,14 @@ export type PriceList = {
 };
 
 export type PricesJson = {
-  ids: { [assetType: string]: string };
-  all: {
-    [date: string]: PriceList;
-  };
+  [date: string]: PriceList;
 };
 
 export interface Prices {
-  getAllPricesOn(date: TimestampString): PriceList;
   getPrice(date: TimestampString, asset: AssetTypes): string | undefined;
   json: PricesJson;
+  setPrice(date: TimestampString, asset: AssetTypes, price: DecimalString): void;
   syncPrice(date: TimestampString, asset: AssetTypes): Promise<string>;
 }
 
-export const emptyPrices = { all: {}, ids: {} } as PricesJson;
+export const emptyPrices = {} as PricesJson;

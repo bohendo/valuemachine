@@ -1,6 +1,5 @@
 import { getPrices } from "@finances/core";
-import { AssetTypes, Prices } from "@finances/types";
-import { math } from "@finances/utils";
+import { AltChainAssets, EthereumAssets, Prices } from "@finances/types";
 import {
   Button,
   Card,
@@ -31,6 +30,8 @@ import {
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+import { store } from "../utils";
+
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
     margin: theme.spacing(1),
@@ -38,13 +39,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
     margin: theme.spacing(3),
   },
-  spinner: {
-    padding: "0",
+  header: {
+    marginTop: theme.spacing(2),
   },
-  importer: {
-    margin: theme.spacing(4),
-  },
-  selectUoA: {
+  select: {
     margin: theme.spacing(3),
     minWidth: 160,
   },
@@ -54,6 +52,12 @@ const emptyPriceEntry = {
   date: "",
   asset: "",
 };
+
+type PriceRow = {
+  date: string;
+  asset: string;
+  price: string;
+}
 
 export const PriceManager = ({
   pricesJson,
@@ -67,7 +71,7 @@ export const PriceManager = ({
   const [newPriceError, setNewPriceError] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [filter, setFilter] = useState("");
-  const [filteredPrices, setFilteredPrices] = useState([] as any);
+  const [filteredPrices, setFilteredPrices] = useState([] as PriceRow);
   const classes = useStyles();
 
   useEffect(() => {
@@ -83,20 +87,19 @@ export const PriceManager = ({
 
   useEffect(() => {
     if (!pricesJson) return;
-    setFilteredPrices(
-      Object.entries(pricesJson).map(([key, val]) => {
-        if (key === "ids") return null;
-        return ({ date: key, prices: val });
-      }).filter(e => !!e)
-    );
+    const newFilteredPrices = [] as PriceRow[];
+    Object.entries(pricesJson).forEach(([date, priceEntry]) => {
+      if (Object.keys(priceEntry).length === 0) return null;
+      Object.entries(priceEntry).forEach(([asset, price]) => {
+        if (!filter || filter === asset) newFilteredPrices.push({ date, asset, price });
+      });
+    });
+    setFilteredPrices(newFilteredPrices.sort((e1: PriceRow, e2: PriceRow): number => {
+      return e1.date > e2.date ? 1 : e1.date < e2.date ? -1
+        : e1.asset > e2.asset ? 1 : e1.asset < e2.asset ? -1
+          : 0;
+    }));
   }, [pricesJson, filter]);
-
-  useEffect(() => {
-    if (!pricesJson) return;
-    console.log(`Filtered ${
-      Object.entries(pricesJson).length
-    } prices down to ${filteredPrices.length}`);
-  }, [pricesJson, filteredPrices]);
 
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilter(event.target.value);
@@ -136,9 +139,21 @@ export const PriceManager = ({
       setNewPriceError("Date is not in YYYY-MM-DD format");
     } else {
       setSyncing(true);
-      const prices = getPrices({ pricesJson });
-      await prices.syncPrice(newPrice.date, newPrice.asset);
-      setPrices(prices.json);
+      const prices = getPrices({ pricesJson, store });
+      try {
+        const res = await axios.get(
+          `/api/prices/${newPrice.date}/${newPrice.asset}`,
+          { timeout: 21000 },
+        );
+        if (res.status === 200 && res.data) {
+          prices.setPrice(newPrice.date, newPrice.asset, res.data);
+        } else {
+          await prices.syncPrice(newPrice.date, newPrice.asset);
+        }
+        setPrices({ ...prices.json });
+      } catch (e) {
+        console.error(e);
+      }
       setSyncing(false);
     }
   };
@@ -147,34 +162,8 @@ export const PriceManager = ({
     <>
 
       <Typography variant="h4">
-        Price Explorer
+        Price Manager
       </Typography>
-      <Divider/>
-
-      <Button
-        className={classes.button}
-        disabled={syncing}
-        onClick={syncPrices}
-        startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
-        variant="outlined"
-      >
-        Sync Prices
-      </Button>
-
-      <FormControl className={classes.selectUoA}>
-        <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
-        <Select
-          labelId="select-filter-asset"
-          id="select-filter-asset"
-          value={filter || ""}
-          onChange={handleFilterChange}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          <MenuItem value={"ETH"}>Wazrix</MenuItem>
-          <MenuItem value={"BTC"}>Coinbase</MenuItem>
-          <MenuItem value={"DAI"}>EthTx</MenuItem>
-        </Select>
-      </FormControl>
 
       <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
 
@@ -197,9 +186,8 @@ export const PriceManager = ({
                   variant="outlined"
                 />
               </Grid>
-
               <Grid item>
-                <FormControl className={classes.selectUoA}>
+                <FormControl className={classes.select}>
                   <InputLabel id="select-asset-type">AssetType</InputLabel>
                   <Select
                     labelId="select-asset-type"
@@ -208,72 +196,82 @@ export const PriceManager = ({
                     onChange={handleAssetChange}
                   >
                     <MenuItem value={""}>-</MenuItem>
-                    {Object.keys(AssetTypes).map(asset => (
+                    {Object.keys({ ...EthereumAssets, ...AltChainAssets }).map(asset => (
                       <MenuItem key={asset} value={asset}>{asset}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
               </Grid>
-
               <Grid item>
-                {newPriceModified ?
-                  <Grid item>
-                    <Button
-                      className={classes.button}
-                      color="primary"
-                      onClick={addNewPrice}
-                      size="small"
-                      startIcon={<AddIcon />}
-                      variant="contained"
-                    >
-                      Save Price
-                    </Button>
-                  </Grid>
-                  : undefined
-                }
+                <Grid item>
+                  <Button
+                    className={classes.button}
+                    color="primary"
+                    disabled={!newPriceModified || syncing}
+                    onClick={addNewPrice}
+                    size="small"
+                    startIcon={syncing ? <CircularProgress size={20} /> : <AddIcon/>}
+                    variant="contained"
+                  >
+                    Add Price
+                  </Button>
+                </Grid>
               </Grid>
             </Grid>
           </Card>
         </Grid>
+
+        <Grid item>
+          <Button
+            className={classes.button}
+            disabled={syncing}
+            onClick={syncPrices}
+            startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
+            variant="outlined"
+          >
+            Sync Prices
+          </Button>
+        </Grid>
+
       </Grid>
 
       <Divider/>
-      <Typography align="center" variant="h4">
-        {`${filteredPrices.length} Prices`}
+
+      <Typography variant="h4" className={classes.header}>
+        Price Explorer
       </Typography>
+
+      <FormControl className={classes.select}>
+        <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
+        <Select
+          labelId="select-filter-asset"
+          id="select-filter-asset"
+          value={filter || ""}
+          onChange={handleFilterChange}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {Object.keys({ ...EthereumAssets, ...AltChainAssets }).map(asset => (
+            <MenuItem key={asset} value={asset}>{asset}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
       <Divider/>
 
       <Table>
         <TableHead>
           <TableRow>
             <TableCell> Date </TableCell>
-            <TableCell> Prices </TableCell>
+            <TableCell> Asset </TableCell>
+            <TableCell> Price </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredPrices.slice(0, 250).map((price: any, i: number) => (
+          {filteredPrices.slice(0, 250).map((row: PriceRow, i: number) => (
             <TableRow key={i}>
-              <TableCell> {price.date.replace("T", " ").replace("Z", "")} </TableCell>
-              <TableCell>
-
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell> Asset </TableCell>
-                      <TableCell> Price </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {Object.entries(price.prices).map(([key, val], i: number) => (
-                      <TableRow key={i}>
-                        <TableCell> {key} </TableCell>
-                        <TableCell> {math.round(val, 4)} </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-
-              </TableCell>
+              <TableCell> {row.date.replace("T", " ").replace("Z", "")} </TableCell>
+              <TableCell> {row.asset} </TableCell>
+              <TableCell> ${row.price} </TableCell>
             </TableRow>
           ))}
         </TableBody>

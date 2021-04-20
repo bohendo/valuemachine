@@ -19,13 +19,11 @@ export const emitTransactionEvents = (
   addressBook: AddressBook,
   transaction: Transaction,
   state: State,
-  prices: Prices,
 ): Events => {
   const events = [];
   events.push({
     assets: state.getNetWorth(),
     date: transaction.date,
-    prices: prices.getAllPricesOn(transaction.date),
     type: EventTypes.NetWorth,
   });
   return events;
