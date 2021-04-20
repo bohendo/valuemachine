@@ -138,6 +138,7 @@ export const AccountInfo = ({
         method: "POST",
         url: "/api/profile",
         data: newProfile,
+        headers: { authorization },
       });
       if (saveRes.status === 200) {
         setProfile(newProfile);
