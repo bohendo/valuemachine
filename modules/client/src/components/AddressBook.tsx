@@ -368,7 +368,6 @@ export const AddressBook = ({
                 />
               </Grid>
               <Grid item md={6}>
-
                 {addressModified ?
                   <Grid item>
                     <Button
@@ -384,8 +383,6 @@ export const AddressBook = ({
                   </Grid>
                   : undefined
                 }
-
-
               </Grid>
             </Grid>
           </Card>

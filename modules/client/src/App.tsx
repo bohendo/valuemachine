@@ -1,8 +1,6 @@
-import { getAddressBook, getTransactions } from "@finances/core";
+import { getAddressBook } from "@finances/core";
 import {
   StoreKeys,
-  emptyProfile,
-  emptyPrices,
   emptyAddressBook,
 } from "@finances/types";
 import {
@@ -52,10 +50,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const App: React.FC = () => {
 
-  const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || emptyProfile);
+  const [profile, setProfile] = useState(store.load(StoreKeys.Profile));
+  const [prices, setPrices] = useState(store.load(StoreKeys.Prices));
+  const [transactions, setTransactions] = useState(store.load(StoreKeys.Transactions));
   const [addressBook, setAddressBook] = useState(emptyAddressBook);
-  const [prices, setPrices] = useState(store.load(StoreKeys.Prices) || emptyPrices);
-  const [transactions, setTransactions] = useState(getTransactions(({ store })));
 
   const classes = useStyles();
 
@@ -101,7 +99,7 @@ const App: React.FC = () => {
 
             <Route exact path="/prices">
               <PriceManager
-                prices={prices}
+                pricesJson={prices}
                 setPrices={setPrices}
               />
             </Route>

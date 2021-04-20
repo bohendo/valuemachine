@@ -1,13 +1,15 @@
-import { Prices } from "@finances/types";
+import { getPrices } from "@finances/core";
+import { AssetTypes, Prices } from "@finances/types";
 import { math } from "@finances/utils";
 import {
   Button,
+  Card,
+  CardHeader,
   CircularProgress,
-  createStyles,
   Divider,
   FormControl,
+  Grid,
   InputLabel,
-  makeStyles,
   MenuItem,
   Select,
   Table,
@@ -15,17 +17,24 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TextField,
   Theme,
   Typography,
+  createStyles,
+  makeStyles,
 } from "@material-ui/core";
 import {
   Sync as SyncIcon,
+  Add as AddIcon,
   // GetApp as ImportIcon,
 } from "@material-ui/icons";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
+  root: {
+    margin: theme.spacing(1),
+  },
   button: {
     margin: theme.spacing(3),
   },
@@ -41,34 +50,53 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
+const emptyPriceEntry = {
+  date: "",
+  asset: "",
+};
+
 export const PriceManager = ({
-  prices,
+  pricesJson,
   setPrices,
 }: {
-  prices: Prices;
+  pricesJson: Prices;
   setPrices: (val: Prices) => void;
 }) => {
-  const [syncing, setSyncing] = useState({ transactions: false, prices: false });
+  const [newPriceModified, setNewPriceModified] = useState(false);
+  const [newPrice, setNewPrice] = useState(emptyPriceEntry);
+  const [newPriceError, setNewPriceError] = useState("");
+  const [syncing, setSyncing] = useState(false);
   const [filter, setFilter] = useState("");
   const [filteredPrices, setFilteredPrices] = useState([] as any);
   const classes = useStyles();
 
   useEffect(() => {
-    if (!prices?.json) return;
+    if (
+      newPrice.date !== emptyPriceEntry.date ||
+      newPrice.asset !== emptyPriceEntry.asset
+    ) {
+      setNewPriceModified(true);
+    } else {
+      setNewPriceModified(false);
+    }
+  }, [newPrice]);
+
+  useEffect(() => {
+    if (!pricesJson) return;
     setFilteredPrices(
-      Object.entries(prices.json).map(([key, val]) => {
+      Object.entries(pricesJson).map(([key, val]) => {
         if (key === "ids") return null;
         return ({ date: key, prices: val });
       }).filter(e => !!e)
     );
-  }, [prices, filter]);
+  }, [pricesJson, filter]);
 
   useEffect(() => {
-    if (!prices?.json) return;
+    if (!pricesJson) return;
     console.log(`Filtered ${
-      Object.entries(prices.json).length
+      Object.entries(pricesJson).length
     } prices down to ${filteredPrices.length}`);
-  }, [prices, filteredPrices]);
+  }, [pricesJson, filteredPrices]);
 
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilter(event.target.value);
@@ -79,7 +107,7 @@ export const PriceManager = ({
       console.warn(`Auth header not set yet..`);
       return;
     }
-    setSyncing(old => ({ ...old, prices: true }));
+    setSyncing(true);
     try {
       await axios.get("/api/prices");
       console.log(`Server has synced prices`);
@@ -88,7 +116,31 @@ export const PriceManager = ({
     } catch (e) {
       console.error(`Failed to sync prices`, e);
     }
-    setSyncing(old => ({ ...old, prices: false }));
+    setSyncing(false);
+  };
+
+  const handleAssetChange = (event: React.ChangeEvent<{ value: string }>) => {
+    setNewPrice({ ...newPrice, asset: event.target.value });
+    setNewPriceError("");
+  };
+
+  const handlePriceChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setNewPrice({ ...newPrice, [event.target.name]: event.target.value });
+    setNewPriceError("");
+  };
+
+  const addNewPrice = async () => {
+    if (!newPrice.date) {
+      setNewPriceError("Date is required");
+    } else if (!newPrice.date.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
+      setNewPriceError("Date is not in YYYY-MM-DD format");
+    } else {
+      setSyncing(true);
+      const prices = getPrices({ pricesJson });
+      await prices.syncPrice(newPrice.date, newPrice.asset);
+      setPrices(prices.json);
+      setSyncing(false);
+    }
   };
 
   return (
@@ -101,9 +153,9 @@ export const PriceManager = ({
 
       <Button
         className={classes.button}
-        disabled={syncing.prices}
+        disabled={syncing}
         onClick={syncPrices}
-        startIcon={syncing.prices ? <CircularProgress size={20} /> : <SyncIcon/>}
+        startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
         variant="outlined"
       >
         Sync Prices
@@ -124,6 +176,68 @@ export const PriceManager = ({
         </Select>
       </FormControl>
 
+      <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
+
+        <Grid item>
+          <Card className={classes.root}>
+            <CardHeader title={"Add new Price"} />
+            <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
+              <Grid item>
+                <TextField
+                  autoComplete="off"
+                  error={!!newPriceError}
+                  fullWidth
+                  helperText={newPriceError || "YYYY-MM-DD"}
+                  id="new-price-date"
+                  label="Date"
+                  margin="normal"
+                  name="date"
+                  onChange={handlePriceChange}
+                  value={newPrice.date}
+                  variant="outlined"
+                />
+              </Grid>
+
+              <Grid item>
+                <FormControl className={classes.selectUoA}>
+                  <InputLabel id="select-asset-type">AssetType</InputLabel>
+                  <Select
+                    labelId="select-asset-type"
+                    id="select-asset-type"
+                    value={newPrice.asset || ""}
+                    onChange={handleAssetChange}
+                  >
+                    <MenuItem value={""}>-</MenuItem>
+                    {Object.keys(AssetTypes).map(asset => (
+                      <MenuItem key={asset} value={asset}>{asset}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item>
+                {newPriceModified ?
+                  <Grid item>
+                    <Button
+                      className={classes.button}
+                      color="primary"
+                      onClick={addNewPrice}
+                      size="small"
+                      startIcon={<AddIcon />}
+                      variant="contained"
+                    >
+                      Save Price
+                    </Button>
+                  </Grid>
+                  : undefined
+                }
+              </Grid>
+            </Grid>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Divider/>
       <Typography align="center" variant="h4">
         {`${filteredPrices.length} Prices`}
       </Typography>
