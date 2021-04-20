@@ -51,7 +51,6 @@ export const mergeWyreTransactions = (
     const transaction = {
       date: (new Date(date)).toISOString(),
       description: "",
-      prices: {},
       sources: [TransactionSources.SendWyre],
       tags: [],
       transfers: [],

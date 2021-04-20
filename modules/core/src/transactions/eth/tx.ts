@@ -78,7 +78,6 @@ export const mergeEthTxTransactions = (
       const transaction = {
         date: tx.timestamp,
         hash: tx.hash,
-        prices: {},
         sources: [TransactionSources.EthTx],
         tags: [],
         transfers: [{

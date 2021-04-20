@@ -2,9 +2,10 @@ import fs from "fs";
 
 import {
   getAddressBook,
-  getTransactions,
   getChainData,
+  getPrices,
   getState,
+  getTransactions,
   getValueMachine,
 } from "@finances/core";
 import { ExpenseEvent, EventTypes, StoreKeys } from "@finances/types";
@@ -64,6 +65,7 @@ process.on("SIGINT", logAndExit);
   // Step 1: Fetch & parse financial history
 
   const addressBook = getAddressBook(input.addressBook, log);
+  const prices = getPrices({ store, logger: log });
 
   const chainData = await getChainData({
     etherscanKey: input.env.etherscanKey,
@@ -107,16 +109,16 @@ process.on("SIGINT", logAndExit);
     }
   }
 
-  const valueMachine = getValueMachine(addressBook, log);
-  let state = store.load(StoreKeys.State);
+  const valueMachine = getValueMachine({ addressBook, prices, logger: log });
+  let stateJson = store.load(StoreKeys.State);
   let vmEvents = store.load(StoreKeys.Events);
   let start = Date.now();
   for (const transaction of transactions.getAll().filter(
-    transaction => new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
+    transaction => new Date(transaction.date).getTime() > new Date(stateJson.lastUpdated).getTime(),
   )) {
-    const [newState, newEvents] = valueMachine(state, transaction);
+    const [newState, newEvents] = valueMachine(stateJson, transaction);
     vmEvents = vmEvents.concat(...newEvents);
-    state = newState;
+    stateJson = newState;
     const chunk = 100;
     if (transaction.index % chunk === 0) {
       const diff = (Date.now() - start).toString();
@@ -126,10 +128,10 @@ process.on("SIGINT", logAndExit);
       start = Date.now();
     }
   }
-  store.save(StoreKeys.State, state);
+  store.save(StoreKeys.State, stateJson);
   store.save(StoreKeys.Events, vmEvents);
 
-  const finalState = getState(state, addressBook, log);
+  const finalState = getState({ stateJson, addressBook, prices, logger: log });
 
   log.debug(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
   log.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);

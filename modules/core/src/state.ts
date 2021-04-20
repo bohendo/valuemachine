@@ -1,7 +1,6 @@
 import {
   Address,
   AddressBook,
-  AddressCategories,
   AltChainAssets,
   AssetChunk,
   AssetTypes,
@@ -10,6 +9,7 @@ import {
   FiatAssets,
   Logger,
   NetWorth,
+  Prices,
   State,
   StateBalances,
   StateJson,
@@ -18,24 +18,23 @@ import {
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
-import { getAddressBook } from "./addressBook";
-
 const { add, gt, round, sub } = math;
 
-export const getState = (
-  state: StateJson = emptyState,
-  givenAddressBook?: AddressBook,
+export const getState = ({
+  addressBook,
+  logger,
+  prices,
+  stateJson,
+}: {
+  addressBook: AddressBook;
   logger?: Logger,
-): State => {
-  const log = (logger || getLogger()).child({ module: "State" });
+  prices: Prices,
+  stateJson?: StateJson;
+}): State => {
 
-  const addressBook = givenAddressBook || getAddressBook(
-    Object.keys(state.accounts).map(address => ({
-      name: address.substring(0, 10),
-      address,
-      category: AddressCategories.Self,
-    })),
-  );
+  const state = stateJson || emptyState;
+
+  const log = (logger || getLogger()).child({ module: "State" });
 
   ////////////////////////////////////////
   // Run Init Code
@@ -84,12 +83,12 @@ export const getState = (
       log.debug(`Printing more ${assetType}, Brr!`); // In this value machine, anyone can print fiat.
       return [{ assetType, dateRecieved: new Date(0).toISOString(), purchasePrice: "1", quantity }];
     }
-    // We assume nothing about the history of chunks coming to us from the outside
+    // We assume nothing about the history of chunks coming to us from external parties
     if (!addressBook.isSelf(account)) {
       return [{
         assetType,
         dateRecieved: transaction.date,
-        purchasePrice: transaction.prices[assetType],
+        purchasePrice: prices.getPrice(transaction.date, assetType),
         quantity,
       }];
     }

@@ -35,7 +35,6 @@ export const mergeWazrixTransactions = (
     const transaction = {
       date: (new Date(date)).toISOString(),
       description: "",
-      prices: {},
       sources: [TransactionSources.Wazrix],
       tags: [],
       transfers: [],

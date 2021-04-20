@@ -25,7 +25,6 @@ export const mergeDigitalOceanTransactions = (
     const transaction = {
       date: (new Date(date)).toISOString(),
       description: `Paid digital ocean for ${description}`,
-      prices: {},
       sources: [TransactionSources.DigitalOcean],
       tags: ["f1040sc-L20a"],
       transfers: [],

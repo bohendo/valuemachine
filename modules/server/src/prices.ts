@@ -24,11 +24,12 @@ pricesRouter.get("/", async (req, res) => {
   syncing = true;
   Promise.race([
     new Promise((res, rej) => setTimeout(() => rej("TimeOut"), 10000)),
+    // eslint-disable-next-line no-async-promise-executor
     new Promise(async (res, rej) => {
       try {
         for (const tx of chainData.json.transactions) {
           // TODO: check to address & maybe get price of token too
-          await prices.getPrice("ETH", tx.timestamp);
+          await prices.getPrice(tx.timestamp, "ETH");
         }
         syncing = false;
         res(true);

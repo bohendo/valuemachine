@@ -26,7 +26,6 @@ export const mergeDefaultTransactions = (
   source: Partial<Transaction>,
 ): Transaction[] => {
   const castDefault = (transaction: Partial<Transaction>): Partial<Transaction> => ({
-    prices: {},
     sources: [TransactionSources.Profile],
     tags: [],
     transfers: [],

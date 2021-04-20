@@ -1,6 +1,7 @@
 import {
   DateString,
   Logger,
+  PriceList,
   Prices,
   PricesJson,
   Store,
@@ -24,22 +25,25 @@ export const getPrices = ({
   const log = (logger || getLogger()).child({ module: "Prices" });
 
   log.info(`Loaded prices for ${
-    Object.keys(json).length
+    Object.keys(json.all).length
   } dates from ${pricesJson ? "input" : "store"}`);
 
   const fetchPrice = async (
-    asset: string,
     timestamp: TimestampString,
+    _asset: string,
   ): Promise<string> => {
+
+    // "unwrap" wrapped assets (TODO: do BTC & others too)
+    const asset = _asset === "WETH" ? "ETH" : _asset;
 
     const date = (timestamp.includes("T") ? timestamp.split("T")[0] : timestamp) as DateString;
     const coingeckoUrl = "https://api.coingecko.com/api/v3";
 
-    if (!json[date]) {
-      json[date] = {};
+    if (!json.all[date]) {
+      json.all[date] = {};
     }
 
-    if (!json[date][asset]) {
+    if (!json.all[date][asset]) {
 
       // get coin id
       if (!json.ids[asset]) {
@@ -80,32 +84,47 @@ export const getPrices = ({
         }
       }
       try {
-        json[date][asset] = response.market_data.current_price.usd
+        json.all[date][asset] = response.market_data.current_price.usd
           .toString().replace(/(\.[0-9]{3})[0-9]+/, "$1");
-        log.info(`Success, 1 ${asset} was worth $${json[date][asset]} on ${date}`);
+        log.info(`Success, 1 ${asset} was worth $${json.all[date][asset]} on ${date}`);
       } catch (e) {
         throw new Error(`Couldn't get price, make sure that ${asset} existed on ${date}`);
       }
       save(json);
     }
 
-    return json[date][asset];
+    return json.all[date][asset];
   };
 
-  const getPrice = async (
-    asset: string,
+  ////////////////////////////////////////
+  // External Methods
+
+  const getAllPricesOn = (
     date: string,
-  ): Promise<string> =>
+  ): PriceList => json.all[date] || {};
+
+  const getPrice = (
+    date: string,
+    asset: string,
+  ): string | undefined =>
     ["USD", "DAI", "SAI"].includes(asset)
       ? "1"
       : "INR" === asset
-        ? "0.013"
+        ? "0.013" // TODO: get real INR price from somewhere?
         : ["ETH", "WETH"].includes(asset)
-          ? await fetchPrice("ETH", date)
-          : asset.toUpperCase().startsWith("C")
-            ? "0" // skip compound tokens for now
-            : await fetchPrice(asset, date);
+          ? json.all[date]?.["ETH"]
+          : json.all[date]?.[asset];
 
+  const syncPrice = async (
+    date: string,
+    asset: string,
+  ): Promise<string> =>
+    getPrice(date, asset) || fetchPrice(date, asset);
 
-  return { json, getPrice };
+  return {
+    getAllPricesOn,
+    getPrice,
+    json,
+    syncPrice,
+  };
 };

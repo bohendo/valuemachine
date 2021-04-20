@@ -2,11 +2,12 @@ import {
   AddressBook,
   AddressCategories,
   AssetChunk,
-  FiatAssets,
-  Transaction,
-  Events,
   EventTypes,
+  Events,
+  FiatAssets,
+  Prices,
   State,
+  Transaction,
   Transfer,
   TransferCategories,
 } from "@finances/types";
@@ -18,12 +19,13 @@ export const emitTransactionEvents = (
   addressBook: AddressBook,
   transaction: Transaction,
   state: State,
+  prices: Prices,
 ): Events => {
   const events = [];
   events.push({
     assets: state.getNetWorth(),
     date: transaction.date,
-    prices: transaction.prices,
+    prices: prices.getAllPricesOn(transaction.date),
     type: EventTypes.NetWorth,
   });
   return events;
@@ -34,6 +36,7 @@ export const emitTransferEvents = (
   chunks: AssetChunk[],
   transaction: Transaction,
   transfer: Transfer,
+  prices: Prices,
 ): Events => {
   const { getName } = addressBook;
   const events = [];
@@ -46,7 +49,7 @@ export const emitTransferEvents = (
   }
 
   const newEvent = {
-    assetPrice: transaction.prices[assetType],
+    assetPrice: prices.getPrice(transaction.date, assetType),
     assetType: assetType,
     date: transaction.date,
     description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
@@ -86,7 +89,7 @@ export const emitTransferEvents = (
       console.log(`Found capital gains event triggered by sell for ${soldFor}`);
       chunks.forEach(chunk => {
         events.push({
-          assetPrice: transaction.prices[chunk.assetType],
+          assetPrice: prices.getPrice(transaction.date, chunk.assetType),
           assetType: chunk.assetType,
           date: transaction.date,
           description: `${round(chunk.quantity, 4)} ${chunk.assetType} ${position}`,

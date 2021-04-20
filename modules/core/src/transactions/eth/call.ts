@@ -77,7 +77,6 @@ export const mergeEthCallTransactions = (
       const transaction = {
         date: call.timestamp,
         hash: call.hash,
-        prices: {},
         sources: [TransactionSources.EthCall],
         tags: [],
         transfers: [{

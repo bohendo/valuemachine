@@ -28,13 +28,11 @@ export const mergeCoinbaseTransactions = (
       ["Timestamp"]: date,
       ["USD Fees"]: fees,
       ["Transaction Type"]: txType,
-      ["USD Spot Price at Transaction"]: price,
       ["USD Total (inclusive of fees)"]: usdQuantity,
     } = row;
 
     const transaction = {
       date: (new Date(date)).toISOString(),
-      prices: { [assetType]: price },
       sources: [TransactionSources.Coinbase],
       tags: [],
       transfers: [],
