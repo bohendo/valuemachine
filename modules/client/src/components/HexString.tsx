@@ -33,6 +33,7 @@ export const HexString = ({
       text={value}
     >
       <Tooltip arrow title={copied ? "Copied to clipboard" : value}>
+
         <Typography noWrap className={classes.label}>
           {
             display ||
@@ -41,6 +42,7 @@ export const HexString = ({
             </pre>
           }
         </Typography>
+
       </Tooltip>
     </CopyToClipboard>
   );

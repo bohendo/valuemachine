@@ -71,6 +71,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
   },
+  syncAll: {
+    margin: theme.spacing(2),
+  },
 }));
 
 const emptyAddressEntry = {
@@ -259,6 +262,11 @@ export const AddressBook = ({
     console.log(`Successfuly synced address history for ${address}`);
   };
 
+  const syncAll = async () => {
+    for (const entry of profile.addressBook) {
+      await syncAddress(entry.address);
+    }
+  };
 
   return (
     <div className={classes.root}>
@@ -320,7 +328,7 @@ export const AddressBook = ({
         Address Book
       </Typography>
 
-      <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
+      <Grid alignContent="center" alignItems="center" justify="center" container spacing={1} className={classes.root}>
 
         <Grid item md={8}>
           <Card className={classes.root}>
@@ -412,6 +420,22 @@ export const AddressBook = ({
               Download
             </Button>
           </Card>
+
+          <Button
+            className={classes.syncAll}
+            color="primary"
+            onClick={syncAll}
+            size="medium"
+            disabled={Object.values(syncing).some(val => !!val)}
+            startIcon={Object.values(syncing).some(val => !!val)
+              ? <CircularProgress size={20} />
+              : <SyncIcon />
+            }
+            variant="contained"
+          >
+            Sync All
+          </Button>
+
         </Grid>
 
       </Grid>
