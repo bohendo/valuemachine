@@ -176,10 +176,10 @@ server: server-bundle $(shell find modules/server/ops $(find_options))
 	docker tag $(project)_server $(project)_server:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-webserver: client-bundle $(shell find ops/webserver $(find_options))
+webserver: client-bundle $(shell find modules/client/ops $(find_options))
 	$(log_start)
-	docker build --file ops/webserver/nginx.dockerfile $(image_cache) --tag $(project)_webserver .
-	docker tag $(project)_webserver $(project)_webserver:$(commit)
+	docker build --file modules/client/ops/Dockerfile $(cache_from) --tag $(project)_webserver:latest modules/client
+	docker tag $(project)_webserver:latest $(project)_webserver:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################
