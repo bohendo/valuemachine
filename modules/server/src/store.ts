@@ -29,20 +29,20 @@ const cache: StoreValues = {
 ////////////////////////////////////////
 // Internal Functions
 
-const getDirName = (profile?: string): string => `${dirName}${profile ? `/${profile}`: ""}`;
+const getDirName = (username?: string): string => `${dirName}${username ? `/${username}`: ""}`;
 
-const getFileName = (key: StoreKeys, profile?: string): string =>
-  `${getDirName(profile)}/${
+const getFileName = (key: StoreKeys, username?: string): string =>
+  `${getDirName(username)}/${
     key.replace(/[A-Z]/g, "-$&".toLowerCase()).replace(/^-/, "").toLowerCase()
   }.json`;
 
-const load = (profile?: string) =>
+const load = (username?: string) =>
   <T extends keyof StoreValues>(key: T): StoreValues[T] => {
-    const filename = getFileName(key, profile);
+    const filename = getFileName(key, username);
     if (!cache[key]) {
       try {
-        if (!fs.existsSync(getDirName(profile))){
-          fs.mkdirSync(getDirName(profile));
+        if (!fs.existsSync(getDirName(username))){
+          fs.mkdirSync(getDirName(username));
         }
         log.info(`Loading ${key} cache from ${filename}`);
         cache[key] = JSON.parse(fs.readFileSync(filename, "utf8"));
@@ -60,19 +60,19 @@ const load = (profile?: string) =>
     return cache[key];
   };
 
-const save = (profile?: string) =>
+const save = (username?: string) =>
   <T extends keyof StoreValues>(key: T, data: StoreValues[T]): void => {
-    if (!fs.existsSync(getDirName(profile))){
-      fs.mkdirSync(getDirName(profile));
+    if (!fs.existsSync(getDirName(username))){
+      fs.mkdirSync(getDirName(username));
     }
-    fs.writeFileSync(getFileName(key, profile), JSON.stringify(data, null, 2));
+    fs.writeFileSync(getFileName(key, username), JSON.stringify(data, null, 2));
     cache[key] = data;
   };
 
 ////////////////////////////////////////
 // Exports
 
-export const getStore = (profile?: string): Store => ({
-  load: load(profile),
-  save: save(profile),
+export const getStore = (username?: string): Store => ({
+  load: load(username),
+  save: save(username),
 });

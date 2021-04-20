@@ -1,5 +1,4 @@
 import { getAddressBook, getTransactions } from "@finances/core";
-import { StoreKeys } from "@finances/types";
 import { getLogger } from "@finances/utils";
 import express from "express";
 
@@ -12,17 +11,17 @@ const log = getLogger(env.logLevel).child({ module: "Transactions" });
 
 export const transactionsRouter = express.Router();
 
-transactionsRouter.get("/", async (req, res) => {
+transactionsRouter.post("/", async (req, res) => {
   const logAndSend = getLogAndSend(res);
   const username = req.username;
-  if (!username) {
-    return logAndSend(`A username must be provided`, STATUS_YOUR_BAD);
+  const addressBookJson = req.body.addressBook;
+  if (!addressBookJson || !addressBookJson.length) {
+    return logAndSend(`A valid address book must be provided via POST body`, STATUS_YOUR_BAD);
   }
-  const userStore = getStore(username);
-  const profile  = userStore.load(StoreKeys.Profile);
-  const addressBook = getAddressBook(profile.addressBook, log);
+  const addressBook = getAddressBook(addressBookJson, log);
   const selfAddresses = addressBook.addresses.filter(a => addressBook.isSelf(a));
   log.info(`Found ${selfAddresses.length} self addreses for user ${username}`);
+  const userStore = getStore(username);
   const transactions = getTransactions({ addressBook, logger: log, store: userStore });
   await transactions.mergeChainData(
     chainData.getAddressHistory(...selfAddresses),
