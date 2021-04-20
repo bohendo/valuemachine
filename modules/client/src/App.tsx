@@ -2,6 +2,7 @@ import { getAddressBook, getTransactions } from "@finances/core";
 import {
   StoreKeys,
   emptyProfile,
+  emptyPrices,
   emptyAddressBook,
 } from "@finances/types";
 import {
@@ -17,9 +18,10 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
-import { AccountInfo } from "./components/AccountInfo";
+import { AddressBook } from "./components/AddressBook";
 import { Dashboard } from "./components/Dashboard";
 import { NavBar } from "./components/NavBar";
+import { PriceManager } from "./components/Prices";
 import { Taxes } from "./components/Taxes";
 import { TransactionManager } from "./components/Transactions";
 import { store } from "./utils/cache";
@@ -50,11 +52,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const App: React.FC = () => {
 
-  // TODO: separate out address book
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile) || emptyProfile);
   const [addressBook, setAddressBook] = useState(emptyAddressBook);
-
-  // TODO: use object instead of json data
+  const [prices, setPrices] = useState(store.load(StoreKeys.Prices) || emptyPrices);
   const [transactions, setTransactions] = useState(getTransactions(({ store })));
 
   const classes = useStyles();
@@ -93,9 +93,16 @@ const App: React.FC = () => {
             </Route>
 
             <Route exact path="/profile">
-              <AccountInfo
+              <AddressBook
                 profile={profile}
                 setProfile={setProfile}
+              />
+            </Route>
+
+            <Route exact path="/prices">
+              <PriceManager
+                prices={prices}
+                setPrices={setPrices}
               />
             </Route>
 

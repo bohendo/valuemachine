@@ -77,7 +77,7 @@ const emptyAddressEntry = {
   name: "",
 } as AddressEntry;
 
-export const AccountInfo = ({
+export const AddressBook = ({
   profile,
   setProfile,
 }: {
