@@ -60,6 +60,7 @@ export const getPrices = ({
       case "GEN": return "daostack";
       case "LTC": return "litecoin";
       case "MKR": return "maker";
+      case "REP": return "augur";
       case "SAI": return "sai";
       case "SNT": return "status";
       case "SNX": return "havven";
