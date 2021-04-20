@@ -70,7 +70,7 @@ export const Taxes = ({
     // Give sync state a chance to update
     await new Promise(res => setTimeout(res, 100));
     // Process async so maybe it'll be less likely to freeze the foreground
-    console.log(`Processing ${transactions.getAll().length} transactions`);
+    console.log(`Processing ${transactions.length} transactions`);
     // eslint-disable-next-line no-async-promise-executor
     const res = await new Promise(async res => {
       try {
@@ -79,7 +79,7 @@ export const Taxes = ({
         let state = store.load(StoreKeys.State);
         let vmEvents = store.load(StoreKeys.Events);
         let start = Date.now();
-        for (const transaction of transactions.getAll().filter(transaction =>
+        for (const transaction of transactions.filter(transaction =>
           new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
         )) {
           const [newState, newEvents] = valueMachine(state, transaction);
@@ -128,7 +128,7 @@ export const Taxes = ({
         startIcon={syncing.state ? <CircularProgress size={20} /> : <SyncIcon/>}
         variant="outlined"
       >
-        {`Process ${transactions.getAll().length} Transactions`}
+        {`Process ${transactions.length} Transactions`}
       </Button>
 
       <Divider/>

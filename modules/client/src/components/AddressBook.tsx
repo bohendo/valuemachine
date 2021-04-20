@@ -30,6 +30,8 @@ import { Alert } from "@material-ui/lab";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
+import { HexString } from "./HexString";
+
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
     margin: theme.spacing(1),
@@ -443,7 +445,7 @@ export const AddressBook = ({
               <TableRow key={i}>
                 <TableCell> {entry.name} </TableCell>
                 <TableCell> {entry.category} </TableCell>
-                <TableCell> {entry.address} </TableCell>
+                <TableCell> <HexString value={entry.address}/> </TableCell>
                 <TableCell>
                   <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
                     <RemoveIcon />

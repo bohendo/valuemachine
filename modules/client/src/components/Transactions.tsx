@@ -32,6 +32,8 @@ import {
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+import { HexString } from "./HexString";
+
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
     margin: theme.spacing(3),
@@ -219,15 +221,9 @@ export const TransactionManager = ({
             <TableRow key={i}>
               <TableCell> {tx.date.replace("T", " ").replace("Z", "")} </TableCell>
               <TableCell> {tx.description} </TableCell>
-              <TableCell>
-                {tx.hash
-                  ? tx.hash.substring(0,6) + "..." + tx.hash.substring(tx.hash.length-4)
-                  : "N/A"
-                }
-              </TableCell>
+              <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
 
               <TableCell>
-
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -244,14 +240,24 @@ export const TransactionManager = ({
                         <TableCell> {transfer.category} </TableCell>
                         <TableCell> {transfer.assetType} </TableCell>
                         <TableCell> {math.round(transfer.quantity, 4)} </TableCell>
-                        <TableCell> {addressBook?.getName(transfer.from) || "?"} </TableCell>
-                        <TableCell> {addressBook?.getName(transfer.to) || "?"} </TableCell>
+                        <TableCell>
+                          <HexString
+                            display={addressBook?.getName(transfer.from)}
+                            value={transfer.from}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <HexString
+                            display={addressBook?.getName(transfer.to)}
+                            value={transfer.to}
+                          />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-
               </TableCell>
+
             </TableRow>
           ))}
         </TableBody>
