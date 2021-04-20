@@ -100,7 +100,7 @@ export const getChainData = ({
       `address=${address}&` +
       `apikey=${etherscanKey}&sort=asc`;
     log.debug(`⏪ sent request for ${url}`);
-    const result = (await axios.get(url)).data.result;
+    const result = (await axios.get(url, { timeout: 10000 })).data.result;
     log.debug(`➡️  received ${result.length} results from ${url}`);
     return result;
   };
