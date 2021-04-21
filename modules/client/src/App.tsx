@@ -58,6 +58,10 @@ const App: React.FC = () => {
   const classes = useStyles();
 
   useEffect(() => {
+    store.save(StoreKeys.Transactions, transactions);
+  }, [transactions]);
+
+  useEffect(() => {
     setAddressBook(getAddressBook(profile.addressBook));
   }, [profile]);
 
