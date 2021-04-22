@@ -74,7 +74,6 @@ export const mergeTransaction = (
 
   // Merge simple eth txns
   } else if (source === TransactionSources.EthTx) {
-    log.info(`Analyzing new eth tx to see if it should be inserted or merged..`);
 
     // Does this list of txns already include the coresponding eth tx?
     const index = transactions.findIndex(tx => tx.hash === newTx.hash);
@@ -86,7 +85,7 @@ export const mergeTransaction = (
       if (newTx.transfers.length > 1) {
         transactions.push(newTx);
         transactions.sort(sortTransactions);
-        log.info(`Inserted multi-transfer eth tx into transactions list`);
+        log.info(`Inserted new multi-transfer eth tx: ${newTx.description}`);
         return transactions;
       }
       const transfer = newTx.transfers[0];

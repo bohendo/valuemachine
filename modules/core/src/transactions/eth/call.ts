@@ -18,27 +18,18 @@ export const mergeEthCallTransactions = (
   transactions: Transaction[],
   addressBook: AddressBook,
   chainData: ChainData,
-  lastUpdated: number,
   logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: "EthCall" });
-  const start = Date.now();
 
-  const newEthCalls = chainData.getEthCalls(ethCall =>
-    new Date(ethCall.timestamp).getTime() > lastUpdated,
-  );
-
-  if (newEthCalls.length === 0) {
+  if (chainData.json.calls.length === 0) {
     log.info(`No new eth call are available to merge`);
     return transactions;
   }
 
-  log.info(`Processing ${newEthCalls.length} new eth calls..`);
+  log.info(`Processing ${chainData.json.calls.length} new eth calls..`);
 
-  newEthCalls.sort(chrono).forEach((call: EthCall): void => {
-    if (new Date(call.timestamp).getTime() <= lastUpdated) {
-      return;
-    }
+  chainData.json.calls.sort(chrono).forEach((call: EthCall): void => {
 
     if (!(addressBook.isSelf(call.to) || addressBook.isSelf(call.from))){
       return;
@@ -51,7 +42,7 @@ export const mergeEthCallTransactions = (
 
     const ethTx = chainData.getEthTransaction(call.hash);
     if (!ethTx) {
-      throw new Error(`No tx data for call ${call.hash}, did fetching chainData ever finish?`);
+      throw new Error(`No tx data for call ${call.hash}, maybe chainData didn't finish downloading`);
     } else if (ethTx.status !== 1) {
       log.debug(`Skipping reverted call`);
       return;
@@ -76,7 +67,6 @@ export const mergeEthCallTransactions = (
       [],
       call.to,
       addressBook,
-      logger,
     );
 
     const { from, quantity, to } = transaction.transfers[0];
@@ -91,9 +81,5 @@ export const mergeEthCallTransactions = (
     mergeTransaction(transactions, transaction, log);
   });
 
-  const diff = (Date.now() - start).toString();
-  log.info(`Done processing eth calls in ${diff} ms (avg ${
-    math.round(math.div(diff, newEthCalls.length.toString()))
-  } ms/ethCall)`);
   return transactions;
 };

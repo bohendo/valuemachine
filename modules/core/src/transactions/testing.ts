@@ -1,40 +1,37 @@
 import { AddressZero, HashZero } from "@ethersproject/constants";
-import { ChainData, EthTransaction } from "@finances/types";
+import { ChainData, EthCalls, EthTransaction } from "@finances/types";
 import { getLogger } from "@finances/utils";
 
+import { getAddressBook } from "../addressBook";
 import { getChainData } from "../chainData";
 
 export const testLogger = getLogger("silent").child({ module: "TestUtils" });
 
-export const getFakeChainData = (tx: EthTransaction): ChainData => getChainData({
+export const AddressOne = "0x0000000000000000000000000000000000000001";
+export const AddressTwo = "0x0000000000000000000000000000000000000002";
+
+export const testAddressBook = getAddressBook(
+  [
+    { name: "test", category: "self", address: AddressZero },
+    { name: "test", category: "self", address: AddressOne },
+  ],
+  testLogger,
+);
+
+export const getTestChainData = (
+  transactions?: EthTransaction = [],
+  calls?: EthCalls = [],
+): ChainData => getChainData({
   logger: testLogger,
   chainDataJson: {
     addresses: {
-      [AddressZero]: {
+      [AddressOne]: {
         history: [HashZero],
         lastUpdated: new Date(0).toISOString(),
       }
     },
-    calls: [],
+    calls,
     tokens: {},
-    transactions: [
-      {
-        block: 10,
-        data: "0x",
-        from: AddressZero,
-        gasLimit: "0x100000",
-        gasPrice: "0x100000",
-        gasUsed: "0x1000",
-        hash: HashZero,
-        index: 1,
-        logs: [],
-        nonce: 0,
-        status: 1,
-        timestamp: "2000-01-01T00:00:00.000Z",
-        to: AddressZero,
-        value: "0.0",
-        ...tx,
-      },
-    ],
+    transactions,
   },
 });

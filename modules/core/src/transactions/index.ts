@@ -30,13 +30,6 @@ export const getTransactions = ({
 
   let txns = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
 
-  const getLastUpdated = () =>
-    txns.length !== 0 ? new Date(txns[txns.length - 1].date).getTime() : 0;
-
-  log.info(`Loaded ${txns.length} transactions from ${
-    transactionsJson ? "input" : store ? "store" : "default"
-  }, most recent was on ${getLastUpdated()}`);
-
   ////////////////////////////////////////
   // Internal Helper Methods
 
@@ -74,8 +67,7 @@ export const getTransactions = ({
   });
 
   const mergeChainData = async (chainData: ChainData): Promise<void> => {
-    log.info(`Merging chain data containing ${chainData.json.transactions.length} txns`);
-    txns = mergeEthTransactions(txns, addressBook, chainData, 0, log);
+    mergeEthTransactions(txns, addressBook, chainData, log);
     sync();
   };
 

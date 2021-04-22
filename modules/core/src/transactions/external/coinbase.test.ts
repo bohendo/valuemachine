@@ -1,9 +1,8 @@
-import { Transactions } from "@finances/types";
+import { HashZero } from "@ethersproject/constants";
+import { ChainData, Transactions } from "@finances/types";
 import { expect } from "@finances/utils";
-import { AddressZero } from "@ethersproject/constants";
 
-import { getAddressBook } from "../../addressBook";
-import { getFakeChainData, testLogger } from "../testing";
+import { AddressOne, AddressTwo, getTestChainData, testAddressBook, testLogger } from "../testing";
 import { getTransactions } from "../index";
 
 const log = testLogger.child({ module: "TestTransactions" });
@@ -16,14 +15,31 @@ const exampleCoinbaseCsv =
 `.replace(/, +/g, ",");
 
 describe("mergeCoinbase", () => {
-  const addressBook = getAddressBook(
-    [{ name: "test", category: "self", address: AddressZero }],
-    log
-  );
   let txns: Transactions;
+  let chainData: ChainData;
+  const timestamp = "2018-01-02T01:00:00Z";
+  const value = "1";
 
   beforeEach(() => {
-    txns = getTransactions({ addressBook, logger: log });
+    txns = getTransactions({ addressBook: testAddressBook, logger: log });
+    chainData = getTestChainData([
+      {
+        block: 10,
+        data: "0x",
+        from: AddressOne,
+        gasLimit: "0x100000",
+        gasPrice: "0x100000",
+        gasUsed: "0x1000",
+        hash: HashZero,
+        index: 1,
+        logs: [],
+        nonce: 0,
+        status: 1,
+        timestamp,
+        to: AddressTwo,
+        value,
+      },
+    ]);
   });
 
   it("should merge coinbase data multiple times without creaing duplicates", async () => {
@@ -36,10 +52,7 @@ describe("mergeCoinbase", () => {
 
   it("should merge coinbase receive/sends into a matching eth txn", async () => {
     expect(txns.getAll().length).to.equal(0);
-    txns.mergeChainData(getFakeChainData({
-      value: "1",
-      timestamp: "2018-01-02T01:00:00Z",
-    }));
+    txns.mergeChainData(chainData);
     expect(txns.getAll().length).to.equal(1);
     txns.mergeCoinbase(exampleCoinbaseCsv);
     expect(txns.getAll().length).to.equal(3);
@@ -52,16 +65,10 @@ describe("mergeCoinbase", () => {
     expect(txns.getAll().length).to.equal(0);
     txns.mergeCoinbase(exampleCoinbaseCsv);
     expect(txns.getAll().length).to.equal(3);
-    txns.mergeChainData(getFakeChainData({
-      value: "1",
-      timestamp: "2018-01-02T01:00:00Z",
-    }));
+    txns.mergeChainData(chainData);
     expect(txns.getAll().length).to.equal(3);
     // Re-merging shouldn't insert any duplicates
-    txns.mergeChainData(getFakeChainData({
-      value: "1",
-      timestamp: "2018-01-02T01:00:00Z",
-    }));
+    txns.mergeChainData(chainData);
     expect(txns.getAll().length).to.equal(3);
 
   });

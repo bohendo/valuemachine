@@ -2,7 +2,6 @@ import {
   Address,
   AddressBook,
   AddressCategories,
-  Logger,
   EthTransactionLog,
   Transfer,
   TransferCategories,
@@ -20,15 +19,9 @@ export const categorizeTransfer = (
   txLogs: EthTransactionLog[],
   txTo: Address,
   addressBook: AddressBook,
-  logger: Logger,
 ): Transfer => {
   const transfer = JSON.parse(JSON.stringify(inputTransfer));
   const { isCategory, isSelf, getName } = addressBook;
-  const log = logger.child({ module: "CategorizeTransfer" }); 
-
-  log.debug(`Categorizing transfer of ${transfer.quantity} from ${
-    getName(transfer.from)
-  } to ${getName(transfer.to)}`);
 
   if (isSelf(transfer.from)) {
 

@@ -1,41 +1,30 @@
 import { AddressBook, Logger, ChainData, Transaction } from "@finances/types";
 
-import { mergeEthTxTransactions } from "./tx";
-import { mergeEthCallTransactions } from "./call";
+import { mergeTransaction } from "../utils";
+
+import { parseEthTx } from "./tx";
 
 export const mergeEthTransactions = (
-  oldTransactions: Transaction[],
+  transactions: Transaction[],
   addressBook: AddressBook,
   chainData: ChainData,
-  lastUpdated = 0,
   logger?: Logger,
 ): Transaction[] => {
-  let transactions = JSON.parse(JSON.stringify(oldTransactions));
-  const start = new Date().getTime();
 
-  logger?.info(`Merging eth txns`);
-
-  transactions = mergeEthTxTransactions(
-    transactions,
-    addressBook,
-    chainData,
-    lastUpdated,
-    logger,
+  chainData.getEthTransactions(ethTx =>
+    !transactions.some(tx => tx.hash === ethTx.hash),
+  ).forEach(ethTx =>
+    mergeTransaction(
+      transactions,
+      parseEthTx(
+        ethTx,
+        addressBook,
+        chainData,
+        logger,
+      ),
+      logger,
+    )
   );
-
-  logger?.info(`Merging eth calls`);
-
-  transactions = mergeEthCallTransactions(
-    transactions,
-    addressBook,
-    chainData,
-    lastUpdated,
-    logger,
-  );
-
-  logger?.info(`Processed ${chainData.json.transactions.length} txs & ${
-    chainData.json.calls.length
-  } calls in ${new Date().getTime() - start} ms`);
 
   return transactions;
 };
