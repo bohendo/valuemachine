@@ -10,7 +10,7 @@ export const mergeDigitalOceanTransactions = (
 ): Transaction[] => {
   const log = logger.child({ module: "DigitalOcean" });
   log.info(`Processing ${csvData.split(`\n`).length} rows of digital ocean data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).map(row => {
+  csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
     const {
       ["description"]: description,
@@ -23,7 +23,7 @@ export const mergeDigitalOceanTransactions = (
       sources: [TransactionSources.DigitalOcean],
       tags: ["f1040sc-L20a"],
       transfers: [],
-    };
+    } as Transaction;
     transaction.transfers.push({
       assetType: "USD",
       category: TransferCategories.Expense,
@@ -31,9 +31,12 @@ export const mergeDigitalOceanTransactions = (
       quantity: quantity.replace("$", ""),
       to: "digitalocean",
     });
-    return transaction;
 
-  }).filter(row => !!row).forEach(mergeTransaction(oldTransactions, log));
+    log.info(transaction.description);
+    log.debug(transaction, "Parsed row into transaction:");
+    mergeTransaction(oldTransactions, transaction, log);
+  });
+
   return oldTransactions;
 };
 

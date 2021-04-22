@@ -1,6 +1,8 @@
 import {
   Transaction,
   TransactionSources,
+  EthCall,
+  EthTransaction,
   Logger,
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
@@ -23,17 +25,17 @@ const datesAreClose = (tx1: Transaction, tx2: Transaction) =>
     (1000 * 60 * 30).toString()
   );
 
+export const chrono = (e1: EthCall | EthTransaction, e2: EthCall | EthTransaction): number =>
+  new Date(e1.timestamp).getTime() - new Date(e2.timestamp).getTime();
+
 // tricky tx w 2 eth calls: 0x0c27ccc265e5a944c05eca6820268a86af2ed8bd5517c8b83560517af56e7f91
 // We could check chainData to see how many eth calls are associated w this tx
-
-type curriedFn = (newTx: Transaction) => Transaction[];
 
 // This fn ought to modifiy the old list of txns IN PLACE and also return the updated tx list
 export const mergeTransaction = (
   transactions: Transaction[],
-  logger: Logger,
-): curriedFn => (
   newTx: Transaction,
+  logger: Logger,
 ): Transaction[] => {
   let log = (logger || getLogger()).child({ module: "MergeTx" });
 

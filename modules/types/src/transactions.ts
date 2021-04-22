@@ -54,7 +54,7 @@ export type Transaction = {
   date: TimestampString;
   description: string;
   hash?: HexString;
-  index: number;
+  index?: number;
   sources: TransactionSources[];
   tags: string[];
   transfers: Transfer[];

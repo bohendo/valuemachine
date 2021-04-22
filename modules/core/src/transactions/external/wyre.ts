@@ -17,7 +17,7 @@ export const mergeWyreTransactions = (
 ): Transaction[] => {
   const log = logger.child({ module: "SendWyre" });
   log.info(`Processing ${csvData.split(`\n`).length} rows of wyre data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).map(row => {
+  csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
     const {
       ["Created At"]: date,
@@ -141,9 +141,10 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({ ...feeTransfer, assetType: "DAI", quantity: daiFees });
     }
 
-    log.debug(transaction.description);
-    return transaction;
+    log.info(transaction.description);
+    log.debug(transaction, "Parsed row into transaction:");
+    mergeTransaction(oldTransactions, transaction, log);
 
-  }).filter(row => !!row).forEach(mergeTransaction(oldTransactions, log));
+  });
   return oldTransactions;
 };

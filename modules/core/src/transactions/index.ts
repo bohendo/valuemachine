@@ -100,12 +100,12 @@ export const getTransactions = ({
   };
 
   const mergeTransactions = async (transactions: TransactionsJson): Promise<void> => {
-    transactions.forEach(mergeTx(txns, log));
+    transactions.forEach(tx => mergeTx(txns, tx, log));
     sync();
   };
 
   const mergeTransaction = async (transaction: Transaction): Promise<void> => {
-    mergeTx(txns, log)(transaction);
+    mergeTx(txns, transaction, log);
     sync();
   };
 

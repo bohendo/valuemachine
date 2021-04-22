@@ -6,7 +6,7 @@ import { getAddressBook } from "../../addressBook";
 import { getFakeChainData, testLogger } from "../testing";
 import { getTransactions } from "../index";
 
-const log = testLogger.child({ level: "debug", module: "TestTransactions" });
+const log = testLogger.child({ module: "TestTransactions" });
 
 const exampleCoinbaseCsv =
 `Timestamp,           Transaction Type,Asset,Quantity Transacted,USD Spot Price at Transaction,USD Subtotal,USD Total (inclusive of fees),USD Fees,Notes
@@ -15,7 +15,7 @@ const exampleCoinbaseCsv =
 2018-01-03T01:00:00Z, Sell,            ETH,  1.0,                600.00,                       600.00,      590.00,                       10.00,   Sold 1.0000 ETH for $590.00 USD
 `.replace(/, +/g, ",");
 
-describe.only("mergeCoinbase", () => {
+describe("mergeCoinbase", () => {
   const addressBook = getAddressBook(
     [{ name: "test", category: "self", address: AddressZero }],
     log
