@@ -12,7 +12,7 @@ export const getAddressBook = (
   userAddressBook: AddressBookJson = [],
   logger?: Logger,
 ): AddressBook => {
-  const log = (logger || getLogger()).child?.({ module: "AddressBook" }) || console;
+  const log = (logger || getLogger()).child({ module: "AddressBook" });
 
   ////////////////////////////////////////
   // Hardcoded Public Addresses

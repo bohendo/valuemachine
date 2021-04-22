@@ -31,9 +31,7 @@ export const mergeDefaultTransactions = (
     transfers: [],
     ...transaction,
   });
-
   const input = castDefault(source);
-
   const output = [] as Transaction[];
   for (let i = 0; i < transactions.length; i++) {
     const oldTransaction = transactions[i];
@@ -95,7 +93,6 @@ export const mergeFactory = (opts: {
           }"`,
         );
       }
-
       if (isDuplicate(oldTransaction, newTransaction)) {
         log.warn(`Skipping duplicate transaction`);
         return transactions;
@@ -143,7 +140,6 @@ export const shouldMergeOffChain = (
 ): boolean => {
   const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
     lt(div(mul(diff(a1, a2), "200"), add(a1, a2)), "1");
-
   if (
     // assumes the deposit to/withdraw from exchange account doesn't interact w other contracts
     oldTransaction.transfers.length !== 1 ||

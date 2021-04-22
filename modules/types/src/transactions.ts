@@ -10,7 +10,6 @@ import { enumify } from "./utils";
 // Transactions
 
 export const TransactionSources = enumify({
-  CoinGecko: "CoinGecko",
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
   EthCall: "EthCall",
@@ -76,6 +75,7 @@ export type Transactions = {
   mergeCoinbase: (csvData: string) => Promise<void>;
   mergeDigitalOcean: (csvData: string) => Promise<void>;
   mergeTransaction: (transactions: Partial<Transaction>) => Promise<void>;
+  mergeTransactions: (transactions: TransactionsJson) => Promise<void>;
   mergeWazrix: (csvData: string) => Promise<void>;
   mergeWyre: (csvData: string) => Promise<void>;
 };

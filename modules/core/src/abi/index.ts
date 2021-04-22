@@ -1,4 +1,5 @@
 import { Address, AddressCategories } from "@finances/types";
+import { getLogger } from "@finances/utils";
 import { utils } from "ethers";
 
 import { getAddressBook } from "../addressBook";
@@ -15,7 +16,7 @@ import vatAbi from "./vat.json";
 import wethAbi from "./weth.json";
 
 const { Interface } = utils;
-const addressBook = getAddressBook([]);
+const addressBook = getAddressBook([], getLogger("warn"));
 
 export const getTokenInterface = (address?: Address): utils.Interface => !address
   ? new Interface(erc20Abi)

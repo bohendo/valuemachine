@@ -1,5 +1,6 @@
 import {
   TransactionParams,
+  TransactionsJson,
   ChainData,
   StoreKeys,
   Transaction,
@@ -55,9 +56,11 @@ export const getTransactions = ({
     } else {
       log.debug("All transactions have been validated");
     }
-    // Save to store
-    log.info(`Saving ${txns.length} transactions to storage`);
-    store.save(StoreKeys.Transactions, txns);
+    if (store) {
+      // Save to store
+      log.info(`Saving ${txns.length} transactions to storage`);
+      store.save(StoreKeys.Transactions, txns);
+    }
   };
 
   ////////////////////////////////////////
@@ -96,6 +99,13 @@ export const getTransactions = ({
     sync();
   };
 
+  const mergeTransactions = async (transactions: TransactionsJson): Promise<void> => {
+    transactions.forEach(tx => {
+      txns = mergeDefaultTransactions(txns, tx);
+    });
+    sync();
+  };
+
   const mergeTransaction = async (transaction: Partial<Transaction>): Promise<void> => {
     txns = mergeDefaultTransactions(txns, transaction);
     sync();
@@ -108,6 +118,7 @@ export const getTransactions = ({
     mergeCoinbase,
     mergeDigitalOcean,
     mergeTransaction,
+    mergeTransactions,
     mergeWazrix,
     mergeWyre,
   };
