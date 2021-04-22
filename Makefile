@@ -135,22 +135,22 @@ node-modules: builder $(shell find modules/*/package.json $(find_options))
 
 types: node-modules $(shell find modules/types $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/types && tsc -p tsconfig.json"
+	$(docker_run) "cd modules/types && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 utils: node-modules $(shell find modules/utils $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/utils && tsc -p tsconfig.json"
+	$(docker_run) "cd modules/utils && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 core: types utils $(shell find modules/core $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/core && tsc -p tsconfig.json"
+	$(docker_run) "cd modules/core && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 taxes: types utils core $(shell find modules/taxes $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/taxes && tsc -p tsconfig.json"
+	$(docker_run) "cd modules/taxes && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 client-bundle: core $(shell find modules/client $(find_options))

@@ -6,6 +6,9 @@
   "types": "build/src/index.d.ts",
   "author": "",
   "license": "ISC",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
   "dependencies": {
     "chai": "4.3.4",
     "chai-as-promised": "7.1.1",
