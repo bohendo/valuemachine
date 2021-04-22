@@ -12,10 +12,9 @@ import { enumify } from "./utils";
 export const TransactionSources = enumify({
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
-  EthCall: "EthCall",
   EthTx: "EthTx",
   Profile: "Profile",
-  SendWyre: "SendWyre",
+  Wyre: "Wyre",
   Wazrix: "Wazrix",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare

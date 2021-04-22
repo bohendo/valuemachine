@@ -1,5 +1,5 @@
-import { AddressZero, HashZero } from "@ethersproject/constants";
-import { ChainData, EthCalls, EthTransaction } from "@finances/types";
+import { HashZero } from "@ethersproject/constants";
+import { AddressCategories, ChainData, EthCall, EthTransaction } from "@finances/types";
 import { getLogger } from "@finances/utils";
 
 import { getAddressBook } from "../addressBook";
@@ -12,15 +12,15 @@ export const AddressTwo = "0x0000000000000000000000000000000000000002";
 
 export const testAddressBook = getAddressBook(
   [
-    { name: "test", category: "self", address: AddressZero },
-    { name: "test", category: "self", address: AddressOne },
+    { name: "test-self-1", category: AddressCategories.Self, address: AddressOne },
+    { name: "test-self-2", category: AddressCategories.Self, address: AddressTwo },
   ],
   testLogger,
 );
 
 export const getTestChainData = (
-  transactions?: EthTransaction = [],
-  calls?: EthCalls = [],
+  transactions = [] as EthTransaction[],
+  calls = [] as EthCall[],
 ): ChainData => getChainData({
   logger: testLogger,
   chainDataJson: {

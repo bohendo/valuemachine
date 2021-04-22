@@ -46,34 +46,13 @@ export const mergeTransaction = (
   const source = newTx.sources[0];
   log = logger.child({ module: `Merge${source}` });
 
-
-  // Merge simple internal eth calls
-  if (source === TransactionSources.EthCall) {
-    if (newTx.transfers.length > 1) {
-      log.warn(newTx.transfers, `New eth call has more than 1 transfer, skipping:`);
-      return transactions;
-    }
-    // Does this list of txns already include the coresponding eth tx?
-    const index = transactions.findIndex(tx => tx.hash === newTx.hash);
-    // This is the first time we encountered this eth tx, insert it
-    if (index < 0) {
-      // TODO: are there any external txns present that this should be merged into?
-      transactions.push(newTx);
-      transactions.sort(sortTransactions);
-      log.debug(`Inserted new eth call into transactions list`);
-      return transactions;
-    }
-    // An eth tx with this hash already exists, merge this eth call into it
-    transactions[index].transfers.push(newTx.transfers[0]);
-    transactions[index].sources = getUnique([
-      ...transactions[index].sources,
-      TransactionSources.EthCall,
-    ]) as TransactionSources[];
-    log.debug(`Merged new eth call into transactions list at index ${index}`);
+  if (newTx.transfers.length === 0) {
+    log.info(`Skipping new tx with zero transfers`);
     return transactions;
+  }
 
   // Merge simple eth txns
-  } else if (source === TransactionSources.EthTx) {
+  if (source === TransactionSources.EthTx) {
 
     // Does this list of txns already include the coresponding eth tx?
     const index = transactions.findIndex(tx => tx.hash === newTx.hash);

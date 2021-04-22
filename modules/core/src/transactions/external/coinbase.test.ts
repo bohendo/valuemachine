@@ -14,7 +14,7 @@ const exampleCoinbaseCsv =
 2018-01-03T01:00:00Z, Sell,            ETH,  1.0,                600.00,                       600.00,      590.00,                       10.00,   Sold 1.0000 ETH for $590.00 USD
 `.replace(/, +/g, ",");
 
-describe("mergeCoinbase", () => {
+describe("Merge Coinbase", () => {
   let txns: Transactions;
   let chainData: ChainData;
   const timestamp = "2018-01-02T01:00:00Z";

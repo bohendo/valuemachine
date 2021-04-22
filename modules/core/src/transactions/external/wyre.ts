@@ -15,7 +15,7 @@ export const mergeWyreTransactions = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const log = logger.child({ module: "SendWyre" });
+  const log = logger.child({ module: "Wyre" });
   log.info(`Processing ${csvData.split(`\n`).length} rows of wyre data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
@@ -42,7 +42,7 @@ export const mergeWyreTransactions = (
     const transaction = {
       date: (new Date(date)).toISOString(),
       description: "",
-      sources: [TransactionSources.SendWyre],
+      sources: [TransactionSources.Wyre],
       tags: [],
       transfers: [],
     } as Transaction;

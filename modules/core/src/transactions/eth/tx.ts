@@ -57,13 +57,13 @@ export const parseEthTx = (
   } as Transaction;
 
   if (tx.status !== 1) {
-    log.debug(`setting reverted tx to have zero quantity`);
     transaction.transfers[0].quantity = "0";
     transaction.description = `${getName(tx.from)} sent failed tx`;
-    if (addressBook.isSelf(transaction.transfers[0].from)) {
-      return transaction;
+    if (!addressBook.isSelf(transaction.transfers[0].from)) {
+      transaction.transfers = [];
     }
-    return;
+    log.debug(transaction, `Parsed a reverted eth tx`);
+    return transaction;
   }
 
   transaction.transfers[0] = categorizeTransfer(
@@ -75,30 +75,42 @@ export const parseEthTx = (
 
   // Add internal eth calls to the transfers array
   chainData.getEthCalls((call: EthCall) => call.hash === tx.hash).forEach((call: EthCall) => {
-    // We'll get internal token transfers from ethTx logs instead
-    if (call.contractAddress !== constants.AddressZero) {
-      return;
+    if (
+      // Ignore non-eth transfers, we'll get those by parsing logs instead
+      call.contractAddress === constants.AddressZero
+      // Calls that don't interact with self addresses don't matter
+      && (addressBook.isSelf(call.to) || addressBook.isSelf(call.from))
+      // Calls with zero value don't matter
+      && math.gt(call.value, "0")
+    ) {
+      transaction.transfers.push(categorizeTransfer(
+        {
+          assetType: "ETH",
+          category: TransferCategories.Transfer,
+          index: -1, // index is unknown for internal eth transfers
+          from: sm(call.from),
+          quantity: call.value,
+          to: sm(call.to),
+        },
+        [],
+        call.to,
+        addressBook,
+      ));
     }
-    // Calls that don't interact with self addresses don't matter
-    if (!(addressBook.isSelf(call.to) || addressBook.isSelf(call.from))){
-      return;
+  });
+
+  // Sort transfers so that eth calls are first and incoming are before outgoing ones
+  // This makes underflows less likely during VM processesing
+  transaction.transfers.sort((t1: Transfer, t2: Transfer): number => {
+    if (t1.index !== t2.index) {
+      return t2.index - t1.index;
+    } else if (!addressBook.isSelf(t1.from) && addressBook.isSelf(t2.from)) {
+      return -1;
+    } else if (addressBook.isSelf(t1.from) && !addressBook.isSelf(t2.from)) {
+      return 1;
+    } else {
+      return 0;
     }
-    // Calls with zero value don't matter
-    if (math.eq(call.value, "0")) {
-      return;
-    }
-    transaction.transfers.push(categorizeTransfer(
-      {
-        assetType: "ETH",
-        category: TransferCategories.Transfer,
-        from: sm(call.from),
-        quantity: call.value,
-        to: sm(call.to),
-      },
-      [],
-      call.to,
-      addressBook,
-    ));
   });
 
   for (const txLog of tx.logs) {
@@ -210,20 +222,16 @@ export const parseEthTx = (
     }
   }
 
-  if (transaction.transfers.length === 0) {
-    throw new Error(`No transfers for EthTx: ${JSON.stringify(transaction, null, 2)}`);
-  } else if (transaction.transfers.length === 1) {
+  if (transaction.transfers.length === 1) {
     const { assetType, from, quantity, to } = transaction.transfers[0];
     transaction.description = `${getName(from)} sent ${quantity} ${assetType} to ${
       getName(to)
     }`;
   } else {
-    transaction.description = `${getName(transaction.transfers[0].to)} made ${
+    transaction.description = `Tx to ${getName(transaction.transfers[0].to)} made ${
       transaction.transfers.length
     } transfers`;
   }
-
-  log.debug(transaction.description);
 
   transaction.transfers = transaction.transfers
     .filter(transfer => addressBook.isSelf(transfer.to) || addressBook.isSelf(transfer.from))
@@ -233,9 +241,6 @@ export const parseEthTx = (
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);
 
-  if (transaction.transfers.length === 0) {
-    return;
-  }
-
+  log.debug(transaction, `Parsed eth tx`);
   return transaction;
 };

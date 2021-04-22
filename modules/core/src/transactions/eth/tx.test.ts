@@ -5,9 +5,9 @@ import { expect } from "@finances/utils";
 import { AddressOne, AddressTwo, getTestChainData, testAddressBook, testLogger } from "../testing";
 import { getTransactions } from "../index";
 
-const log = testLogger.child({ module: "TestTransactions" });
+const log = testLogger.child({ level: "debug", module: "TestTransactions" });
 
-describe("merge eth calls", () => {
+describe("Merge chain data", () => {
   let txns: Transactions;
   let chainData: ChainData;
 
@@ -39,7 +39,8 @@ describe("merge eth calls", () => {
         timestamp: "2000-01-01T01:00:00.000Z",
         to: AddressOne,
         value: "0.4"
-      },{
+      },
+      {
         block: 10,
         contractAddress: AddressZero,
         from: AddressOne,
@@ -47,7 +48,8 @@ describe("merge eth calls", () => {
         timestamp: "2000-01-01T01:00:00.000Z",
         to: AddressTwo,
         value: "0.1"
-      },{
+      },
+      {
         block: 10,
         contractAddress: AddressZero,
         from: AddressOne,
@@ -55,7 +57,7 @@ describe("merge eth calls", () => {
         timestamp: "2000-01-01T01:00:00.000Z",
         to: AddressTwo,
         value: "0.1"
-      }
+      },
     ]);
   });
 
