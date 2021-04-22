@@ -111,8 +111,10 @@ ln:
 dls:
 	@docker service ls && echo '=====' && docker container ls -a
 
-test: taxes
-	$(docker_run) "cd modules/taxes && npm run test"
+test-core: core
+	bash ops/test-unit.sh core test
+watch-core: core
+	bash ops/test-unit.sh core watch
 
 ########################################
 # Common Prerequisites
