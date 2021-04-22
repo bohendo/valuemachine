@@ -7,18 +7,19 @@ import { getTransactions } from "../index";
 
 const log = testLogger.child({ module: "TestTransactions" });
 
+const timestamp = "2018-01-02T01:00:00Z";
+const value = "1.3141592653589793";
+
 const exampleCoinbaseCsv =
-`Timestamp,           Transaction Type,Asset,Quantity Transacted,USD Spot Price at Transaction,USD Subtotal,USD Total (inclusive of fees),USD Fees,Notes
-2018-01-01T01:00:00Z, Buy,             BTC,  0.1,                1500.00,                      150.00,      165.00,                       15.00,   Bought 0.0300 BTC for $165.00 USD
-2018-01-02T01:00:00Z, Receive,         ETH,  1.0,                650.00,                       "",          "",                           "",      Received 1.0000 ETH from an external account
-2018-01-03T01:00:00Z, Sell,            ETH,  1.0,                600.00,                       600.00,      590.00,                       10.00,   Sold 1.0000 ETH for $590.00 USD
+`Timestamp,           Transaction Type,Asset,Quantity Transacted,      USD Spot Price at Transaction,USD Subtotal,USD Total (inclusive of fees),USD Fees,Notes
+2018-01-01T01:00:00Z, Buy,             BTC,  0.1,                      1500.00,                      150.00,      165.00,                       15.00,   Bought 0.0300 BTC for $165.00 USD
+${timestamp.replace("00Z", "30Z")}, Receive, ETH, ${value.substring(0, 10)},650.00,                  "",          "",                           "",      Received 1.0000 ETH from an external account
+2018-01-03T01:00:00Z, Sell,            ETH,  1.0,                      600.00,                       600.00,      590.00,                       10.00,   Sold 1.0000 ETH for $590.00 USD
 `.replace(/, +/g, ",");
 
 describe("Merge Coinbase", () => {
   let txns: Transactions;
   let chainData: ChainData;
-  const timestamp = "2018-01-02T01:00:00Z";
-  const value = "1";
 
   beforeEach(() => {
     txns = getTransactions({ addressBook: testAddressBook, logger: log });

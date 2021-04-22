@@ -9,7 +9,7 @@ export const mergeDigitalOceanTransactions = (
   logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: "DigitalOcean" });
-  log.info(`Processing ${csvData.split(`\n`).length} rows of digital ocean data`);
+  log.info(`Processing ${csvData.split(`\n`).length - 2} rows of digital ocean data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
     const {
@@ -32,11 +32,10 @@ export const mergeDigitalOceanTransactions = (
       to: "digitalocean",
     });
 
-    log.info(transaction.description);
     log.debug(transaction, "Parsed row into transaction:");
     mergeTransaction(oldTransactions, transaction, log);
-  });
 
+  });
   return oldTransactions;
 };
 

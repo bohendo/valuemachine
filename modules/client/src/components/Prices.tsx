@@ -25,6 +25,7 @@ import {
 import {
   Sync as SyncIcon,
   Add as AddIcon,
+  Delete as ClearIcon,
   // GetApp as ImportIcon,
 } from "@material-ui/icons";
 import React, { useEffect, useState } from "react";
@@ -174,6 +175,10 @@ export const PriceManager = ({
     setSyncing(false);
   };
 
+  const clearPrices = () => {
+    setPrices({});
+  };
+
   return (
     <>
 
@@ -245,7 +250,16 @@ export const PriceManager = ({
             startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
             variant="outlined"
           >
-            Sync Prices
+            {`Sync Prices for ${transactions.length} Transactions`}
+          </Button>
+          <Button
+            className={classes.button}
+            disabled={!Object.keys(pricesJson).length}
+            onClick={clearPrices}
+            startIcon={<ClearIcon/>}
+            variant="outlined"
+          >
+            Clear Prices
           </Button>
         </Grid>
 

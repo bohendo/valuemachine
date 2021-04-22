@@ -18,7 +18,6 @@ import {
 } from "./external";
 import { mergeTransaction } from "./utils";
 
-// Note: we must import chain data before off-chain stuff to ensure merges work properly
 export const getTransactions = ({
   addressBook,
   logger,
@@ -28,6 +27,10 @@ export const getTransactions = ({
   const log = (logger || getLogger()).child({ module: "Transactions" });
 
   const json = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
+
+  log.info(`Loaded transaction data containing ${
+    json.length
+  } transactions from ${transactionsJson ? "input" : store ? "store" : "default"}`);
 
   ////////////////////////////////////////
   // Internal Helper Methods
@@ -57,7 +60,7 @@ export const getTransactions = ({
     const newEthTxns = chainData.getEthTransactions(ethTx =>
       !json.some(tx => tx.hash === ethTx.hash),
     );
-    log.info(`Merging ${newEthTxns.length} new eth transactions.`);
+    log.info(`Merging ${newEthTxns.length} new eth transactions`);
     newEthTxns.forEach(ethTx =>
       mergeTransaction(
         json,
@@ -94,8 +97,10 @@ export const getTransactions = ({
   };
 
   const mergeTransactions = async (transactions: TransactionsJson): Promise<void> => {
+    log.info(`Merging ${transactions.length} new txs into ${json.length} existing txs`);
     transactions.forEach(tx => mergeTransaction(json, tx, log));
     sync();
+    log.info(`Successful merge, now we have ${json.length} txs`);
   };
 
   return {

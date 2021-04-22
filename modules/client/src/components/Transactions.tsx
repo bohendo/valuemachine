@@ -4,9 +4,10 @@ import {
   CapitalGainsEvent,
   Transactions,
   TransactionsJson,
+  TransactionSources,
   Transfer,
 } from "@finances/types";
-import { math } from "@finances/utils";
+import { getLogger, math, sm } from "@finances/utils";
 import {
   Button,
   CircularProgress,
@@ -27,6 +28,7 @@ import {
 } from "@material-ui/core";
 import {
   Sync as SyncIcon,
+  Delete as ClearIcon,
   // GetApp as ImportIcon,
 } from "@material-ui/icons";
 import React, { useEffect, useState } from "react";
@@ -69,7 +71,10 @@ export const TransactionManager = ({
   useEffect(() => {
     setFilteredTxns(transactions
       .filter(tx =>
-        !filterSource || (tx?.sources || []).map(s => s.toLowerCase()).includes(filterSource)
+        !filterSource
+        || (tx?.sources || []).map(s => s.toLowerCase()).includes(filterSource)
+        || tx.transfers.some(t => sm(addressBook.getName(t.from)).startsWith(sm(filterSource)))
+        || tx.transfers.some(t => sm(addressBook.getName(t.to)).startsWith(sm(filterSource)))
       ).sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
         // Sort by date, newest first
         (e1.date > e2.date) ? -1
@@ -77,7 +82,7 @@ export const TransactionManager = ({
             : 0
       )
     );
-  }, [transactions, filterSource]);
+  }, [addressBook, transactions, filterSource]);
 
   useEffect(() => {
     console.log(`Filtered ${transactions.length} txns down to ${filteredTxns.length}`);
@@ -92,6 +97,16 @@ export const TransactionManager = ({
     setImportFileType(event.target.value);
   };
 
+  const resetTxns = () => {
+    axios.delete("/api/transactions").then(res => {
+      console.log(`Successfully cleared tx data from server`, res);
+      setTransactions([]);
+    }).catch(e => {
+      console.log(`Unsuccessfully cleared tx data from server`, e);
+      setTransactions([]);
+    });
+  };
+
   const syncTxns = () => {
     if (!axios.defaults.headers.common.authorization) {
       console.warn(`Auth header not set yet..`);
@@ -99,11 +114,14 @@ export const TransactionManager = ({
     }
     setSyncing(true);
     axios.post("/api/transactions", { addressBook: addressBook.json }).then((res) => {
-      console.log(`Successfully fetched transactions`, res.data);
-      // TODO: below command crashes the page, find a better solution
-      // res.data.forEach(transactions.mergeTransaction);
-      // Get new object to trigger a re-render
-      setTransactions(res.data);
+      console.log(`Successfully fetched ${res.data?.length || 0} transactions`, res.data);
+      const txMethods = getTransactions({
+        addressBook,
+        transactionsJson: transactions,
+        logger: getLogger("info"),
+      });
+      txMethods.mergeTransactions(res.data);
+      setTransactions([...txMethods.json]);
       setSyncing(false);
     }).catch((e) => {
       console.warn(`Failed to fetch transactions:`, e.response.data || e.message);
@@ -121,7 +139,8 @@ export const TransactionManager = ({
       try {
         const txMethods = getTransactions({
           addressBook,
-          transactionJson: transactions,
+          transactionsJson: transactions,
+          logger: getLogger("info"),
         });
         const importedFile = reader.result as string;
         if (importFileType === "coinbase") {
@@ -133,8 +152,7 @@ export const TransactionManager = ({
         } else if (importFileType === "wyre") {
           txMethods.mergeWyre(importedFile);
         }
-        // Get new object to trigger a re-render
-        setTransactions(txMethods.json);
+        setTransactions([...txMethods.json]);
       } catch (e) {
         console.error(e);
       }
@@ -155,7 +173,17 @@ export const TransactionManager = ({
         startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
         variant="outlined"
       >
-        Sync Transactions
+        Sync Chain Data Transactions
+      </Button>
+
+      <Button
+        className={classes.button}
+        disabled={!transactions.length}
+        onClick={resetTxns}
+        startIcon={<ClearIcon/>}
+        variant="outlined"
+      >
+        Clear Transactions
       </Button>
 
       <Divider/>
@@ -196,10 +224,9 @@ export const TransactionManager = ({
           onChange={handleFilterChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          <MenuItem value={"wazrix"}>Wazrix</MenuItem>
-          <MenuItem value={"coinbase"}>Coinbase</MenuItem>
-          <MenuItem value={"ethtx"}>EthTx</MenuItem>
-          <MenuItem value={"ethcall"}>EthCall</MenuItem>
+          {Object.keys(TransactionSources).map(source => (
+            <MenuItem key={source} value={source}>{source}</MenuItem>
+          ))};
         </Select>
       </FormControl>
 
@@ -217,7 +244,7 @@ export const TransactionManager = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredTxns.slice(0, 250).map((tx: CapitalGainsEvent, i: number) => (
+          {filteredTxns.slice(0, 750).map((tx: CapitalGainsEvent, i: number) => (
             <TableRow key={i}>
               <TableCell> {tx.date.replace("T", " ").replace("Z", "")} </TableCell>
               <TableCell> {tx.description} </TableCell>

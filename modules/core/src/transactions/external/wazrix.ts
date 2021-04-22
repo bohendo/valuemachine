@@ -14,7 +14,7 @@ export const mergeWazrixTransactions = (
   logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: "Wazrix" });
-  log.info(`Processing ${csvData.split(`\n`).length} rows of waxrix data`);
+  log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
     const date = row["Date"];
@@ -126,7 +126,7 @@ export const mergeWazrixTransactions = (
       }
 
     }
-    log.info(transaction.description);
+
     log.debug(transaction, "Parsed row into transaction:");
     mergeTransaction(oldTransactions, transaction, log);
 

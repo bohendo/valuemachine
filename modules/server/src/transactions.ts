@@ -1,4 +1,5 @@
 import { getAddressBook, getTransactions } from "@finances/core";
+import { StoreKeys } from "@finances/types";
 import { getLogger } from "@finances/utils";
 import express from "express";
 
@@ -35,3 +36,10 @@ transactionsRouter.post("/", async (req, res) => {
   }
 });
 
+transactionsRouter.delete("/", async (req, res) => {
+  const logAndSend = getLogAndSend(res);
+  const username = req.username;
+  const userStore = getStore(username);
+  userStore.save(StoreKeys.Transactions, []);
+  logAndSend(`Cleared transaction data for ${username}`);
+});

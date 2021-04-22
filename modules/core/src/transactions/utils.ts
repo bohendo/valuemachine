@@ -1,13 +1,15 @@
 import {
-  Transaction,
-  TransactionSources,
+  DecimalString,
   EthCall,
   EthTransaction,
   Logger,
+  TimestampString,
+  Transaction,
+  TransactionSources,
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
-const { eq, diff, lt } = math;
+const { diff, lt } = math;
 
 const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
   new Date(tx1.date).getTime() === new Date(tx2.date).getTime()
@@ -17,19 +19,17 @@ const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
 const getUnique = (array: string[]): string[] =>
   Array.from(new Set([...array]));
 
-const datesAreClose = (tx1: Transaction, tx2: Transaction) =>
+const datesAreClose = (ts1: TimestampString, ts2: TimestampString, wiggleRoom = `${1000 * 60 * 30}`) =>
   lt(
-    diff(
-      new Date(tx1.date).getTime().toString(), new Date(tx2.date).getTime().toString()
-    ),
-    (1000 * 60 * 30).toString()
+    diff(new Date(ts1).getTime().toString(), new Date(ts2).getTime().toString()),
+    wiggleRoom,
   );
+
+const quantitiesAreClose = (q1: DecimalString, q2: DecimalString, wiggleRoom = "0.000001") =>
+  lt(diff(q1, q2), wiggleRoom);
 
 export const chrono = (e1: EthCall | EthTransaction, e2: EthCall | EthTransaction): number =>
   new Date(e1.timestamp).getTime() - new Date(e2.timestamp).getTime();
-
-// tricky tx w 2 eth calls: 0x0c27ccc265e5a944c05eca6820268a86af2ed8bd5517c8b83560517af56e7f91
-// We could check chainData to see how many eth calls are associated w this tx
 
 // This fn ought to modifiy the old list of txns IN PLACE and also return the updated tx list
 export const mergeTransaction = (
@@ -40,14 +40,14 @@ export const mergeTransaction = (
   let log = (logger || getLogger()).child({ module: "MergeTx" });
 
   if (newTx.sources.length > 1) {
-    log.warn(newTx.sources, `New transaction has more than 1 source, skipping:`);
+    log.warn(newTx, `Skipped new tx with ${newTx.sources.length} sources`);
     return transactions;
   }
   const source = newTx.sources[0];
   log = logger.child({ module: `Merge${source}` });
 
   if (newTx.transfers.length === 0) {
-    log.info(`Skipping new tx with zero transfers`);
+    log.debug(newTx, `Skipped new tx with zero transfers`);
     return transactions;
   }
 
@@ -77,16 +77,16 @@ export const mergeTransaction = (
         && !tx.sources.includes(source)
         // This tx has a transfer with same asset type & quantity as this new tx
         && tx.transfers.some(t =>
-          t.assetType === transfer.assetType && eq(t.quantity, transfer.quantity)
+          t.assetType === transfer.assetType && quantitiesAreClose(t.quantity, transfer.quantity)
         )
         // Existing tx & new tx have timestamps within 30 mins of each other
-        && datesAreClose(tx, newTx)
+        && datesAreClose(tx.date, newTx.date)
       );
 
       if (mergeCandidateIndex < 0) {
         transactions.push(newTx);
         transactions.sort(sortTransactions);
-        log.info(`Inserted eth tx w no merge candidates into transactions list`);
+        log.info(`Inserted new eth tx: ${newTx.description}`);
         return transactions;
       }
 
@@ -112,15 +112,15 @@ export const mergeTransaction = (
         ]) as TransactionSources[],
         tags: getUnique([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
       };
+
       log.info(
         transactions[mergeCandidateIndex],
-        `Merged new eth tx into transactions[${mergeCandidateIndex}] yielding:`,
+        `Merged transactions[${mergeCandidateIndex}] w new eth tx: ${newTx.description}`,
       );
-
       return transactions;
     }
 
-    log.info(`This eth tx already exists in the transactions list, skipping`);
+    log.info(`Skipping duplicate eth tx: ${newTx.description}`);
     return transactions;
   }
 
@@ -128,9 +128,9 @@ export const mergeTransaction = (
   // Does the tx list already include this external tx?
   const dupCandidates = transactions
     .filter(tx => tx.sources.includes(source))
-    .filter(tx => datesAreClose(tx, newTx) && tx.description === newTx.description);
+    .filter(tx => datesAreClose(tx.date, newTx.date) && tx.description === newTx.description);
   if (dupCandidates.length > 0) {
-    log.warn(dupCandidates, `Looks like this external tx has already been merged`);
+    log.info(`Skipping duplicate external tx: ${newTx.description}`);
     return transactions;
   }
 
@@ -138,7 +138,7 @@ export const mergeTransaction = (
   if (newTx.transfers.length > 1) {
     transactions.push(newTx);
     transactions.sort(sortTransactions);
-    log.info(`Inserted multi-transfer external tx into transactions list`);
+    log.info(`Inserted new multi-transfer external tx: ${newTx.description}`);
     return transactions;
   }
   const transfer = newTx.transfers[0];
@@ -151,16 +151,16 @@ export const mergeTransaction = (
     && !tx.sources.includes(source)
     // Existing tx has a transfer with same asset type & quantity as this new tx
     && tx.transfers.some(t =>
-      t.assetType === transfer.assetType && eq(t.quantity, transfer.quantity)
+      t.assetType === transfer.assetType && quantitiesAreClose(t.quantity, transfer.quantity)
     )
     // Existing tx & new tx have timestamps within 30 mins of each other
-    && datesAreClose(tx, newTx)
+    && datesAreClose(tx.date, newTx.date)
   );
 
   if (mergeCandidateIndex < 0) {
     transactions.push(newTx);
     transactions.sort(sortTransactions);
-    log.info(`Inserted external tx w no merge candidates into transactions list`);
+    log.info(`Inserted new external tx: ${newTx.description}`);
     return transactions;
   }
 
@@ -185,9 +185,10 @@ export const mergeTransaction = (
     ]) as TransactionSources[],
     tags: getUnique([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
   };
+
   log.info(
     transactions[mergeCandidateIndex],
-    `Merged new tx into transactions[${mergeCandidateIndex}] yielding:`,
+    `Merged transactions[${mergeCandidateIndex}] into new external tx: ${newTx.description}`,
   );
 
   return transactions;
