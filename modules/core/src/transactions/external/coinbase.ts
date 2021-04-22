@@ -2,12 +2,7 @@ import { Transaction, TransactionSources, Logger, TransferCategories } from "@fi
 import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
-import {
-  isDuplicateOffChain,
-  mergeFactory,
-  mergeOffChainTransactions,
-  shouldMergeOffChain,
-} from "../utils";
+import { mergeTransaction } from "../utils";
 
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
@@ -15,20 +10,16 @@ export const mergeCoinbaseTransactions = (
   logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: "Coinbase" }); 
-  log.info(`Processing ${csvData.split(`\n`).length} rows of coinbase data`);
-  let transactions = JSON.parse(JSON.stringify(oldTransactions));
+  log.info(`Processing ${csvData.split(`\n`).length - 2} rows of coinbase data`);
+  csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
-  const coinbaseTransactions = csv(
-    csvData,
-    { columns: true, skip_empty_lines: true },
-  ).map(row => {
     const {
+      ["Timestamp"]: date,
+      ["Transaction Type"]: txType,
       ["Asset"]: assetType,
       ["Quantity Transacted"]: quantity,
-      ["Timestamp"]: date,
-      ["USD Fees"]: fees,
-      ["Transaction Type"]: txType,
       ["USD Total (inclusive of fees)"]: usdQuantity,
+      ["USD Fees"]: fees,
     } = row;
 
     const transaction = {
@@ -83,23 +74,10 @@ export const mergeCoinbaseTransactions = (
       });
     }
 
-    log.debug(transaction.description);
-    return transaction;
-  }).filter(row => !!row);
+    log.debug(transaction, "Parsed row into transaction:");
+    mergeTransaction(oldTransactions, transaction, log);
 
-  log.info(`Merging ${coinbaseTransactions.length} new transactions from coinbase`);
-
-  coinbaseTransactions.forEach((coinbaseTransaction: Transaction): void => {
-    log.debug(coinbaseTransaction.description);
-    transactions = mergeFactory({
-      allowableTimeDiff: 15 * 60 * 1000,
-      log,
-      mergeTransactions: mergeOffChainTransactions,
-      shouldMerge: shouldMergeOffChain,
-      isDuplicate: isDuplicateOffChain,
-    })(transactions, coinbaseTransaction);
   });
-
-  return transactions;
+  return oldTransactions;
 };
 

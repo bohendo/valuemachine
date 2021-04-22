@@ -5,6 +5,10 @@
   "author": "Bo & Shiv Henderson",
   "license": "MIT",
   "homepage": "https://gitlab.com/bohendo/taxes#readme",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"
+  },
   "dependencies": {
     "@finances/types": "1.0.0",
     "@finances/utils": "1.0.0",
@@ -15,6 +19,7 @@
   },
   "devDependencies": {
     "@types/node": "14.14.41",
-    "typescript": "4.2.4"
+    "typescript": "4.2.4",
+    "ts-mocha": "8.0.0"
   }
 }

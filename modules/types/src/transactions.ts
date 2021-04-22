@@ -10,13 +10,11 @@ import { enumify } from "./utils";
 // Transactions
 
 export const TransactionSources = enumify({
-  CoinGecko: "CoinGecko",
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
-  EthCall: "EthCall",
   EthTx: "EthTx",
-  Profile: "Profile",
-  SendWyre: "SendWyre",
+  External: "External",
+  Wyre: "Wyre",
   Wazrix: "Wazrix",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -55,7 +53,7 @@ export type Transaction = {
   date: TimestampString;
   description: string;
   hash?: HexString;
-  index: number;
+  index?: number;
   sources: TransactionSources[];
   tags: string[];
   transfers: Transfer[];
@@ -70,12 +68,11 @@ export type TransactionParams = {
 };
 
 export type Transactions = {
-  getAll: () => TransactionsJson;
-  getParams: () => TransactionParams;
+  json: TransactionsJson;
   mergeChainData: (chainData: ChainData) => Promise<void>;
   mergeCoinbase: (csvData: string) => Promise<void>;
   mergeDigitalOcean: (csvData: string) => Promise<void>;
-  mergeTransaction: (transactions: Partial<Transaction>) => Promise<void>;
+  mergeTransactions: (transactions: TransactionsJson) => Promise<void>;
   mergeWazrix: (csvData: string) => Promise<void>;
   mergeWyre: (csvData: string) => Promise<void>;
 };

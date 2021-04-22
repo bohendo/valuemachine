@@ -12,7 +12,7 @@ export const getAddressBook = (
   userAddressBook: AddressBookJson = [],
   logger?: Logger,
 ): AddressBook => {
-  const log = (logger || getLogger()).child?.({ module: "AddressBook" }) || console;
+  const log = (logger || getLogger()).child({ module: "AddressBook" });
 
   ////////////////////////////////////////
   // Hardcoded Public Addresses
@@ -37,6 +37,7 @@ export const getAddressBook = (
     { name: "SAI", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
     { name: "SNT", address: "0x744d70fdbe2ba4cf95131626614a1763df805b9e" },
     { name: "COMP", address: "0xc00e94cb662c3520282e6f5717214004a7f26888" },
+    { name: "USDT", address: "0xdac17f958d2ee523a2206206994597c13d831ec7" },
     { name: "WETH", address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
   ].map(row => ({ ...row, category: AddressCategories.Erc20 })) as AddressBookJson;
 

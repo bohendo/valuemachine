@@ -29,6 +29,7 @@ export const EthereumAssets = enumify({
   SNT: "SNT",
   SNX: "SNX",
   UNI: "UNI",
+  USDT: "USDT",
   WETH: "WETH",
   WBTC: "WBTC",
 });

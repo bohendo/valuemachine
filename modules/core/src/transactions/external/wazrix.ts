@@ -6,12 +6,7 @@ import {
 } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
-import {
-  mergeFactory,
-  mergeOffChainTransactions,
-  shouldMergeOffChain,
-  isDuplicateOffChain,
-} from "../utils";
+import { mergeTransaction } from "../utils";
 
 export const mergeWazrixTransactions = (
   oldTransactions: Transaction[],
@@ -19,13 +14,8 @@ export const mergeWazrixTransactions = (
   logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: "Wazrix" });
-  log.info(`Processing ${csvData.split(`\n`).length} rows of waxrix data`);
-  let transactions = JSON.parse(JSON.stringify(oldTransactions));
-
-  const wazrixTransactions = csv(
-    csvData,
-    { columns: true, skip_empty_lines: true },
-  ).map(row => {
+  log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
+  csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
     const date = row["Date"];
 
@@ -136,23 +126,11 @@ export const mergeWazrixTransactions = (
       }
 
     }
-    log.debug(transaction.description);
-    return transaction;
 
-  }).filter(row => !!row);
+    log.debug(transaction, "Parsed row into transaction:");
+    mergeTransaction(oldTransactions, transaction, log);
 
-  log.info(`Merging ${wazrixTransactions.length} new transactions from wazrix`);
-  wazrixTransactions.forEach((wazrixTransaction: Transaction): void => {
-    log.debug(wazrixTransaction.description);
-    transactions = mergeFactory({
-      allowableTimeDiff: 15 * 60 * 1000,
-      log,
-      mergeTransactions: mergeOffChainTransactions,
-      shouldMerge: shouldMergeOffChain,
-      isDuplicate: isDuplicateOffChain,
-    })(transactions, wazrixTransaction);
   });
-
-  return transactions;
+  return oldTransactions;
 };
 

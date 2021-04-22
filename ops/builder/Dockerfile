@@ -1,13 +1,15 @@
-FROM node:12.16.1-alpine3.11
+FROM node:14.15.4-alpine3.12
 WORKDIR /root
 ENV HOME /root
-RUN apk add --update --no-cache bash curl git jq make openssl py-pip python
+ENV PATH ./node_modules/.bin:/root/node_modules/.bin:$PATH
+RUN apk add --update --no-cache bash curl g++ gcc git jq make openssl py-pip python3
 RUN apk add --no-cache --repository="http://dl-cdn.alpinelinux.org/alpine/v3.8/main" --repository="http://dl-cdn.alpinelinux.org/alpine/v3.8/community" pdftk
-RUN npm config set unsafe-perm true
 RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/ed77b63706ea721766a62ff22d3a251d8b4a6a30/wait-for-it.sh > /bin/wait-for && chmod +x /bin/wait-for
 RUN pip install --upgrade pip fdfgen
-RUN npm install --global npm@6.14.7
+RUN npm config set unsafe-perm true && npm install -g npm@6.14.11
 RUN npm install -g lerna@3.22.1
+
+COPY test.sh /test.sh
 COPY entry.sh /entry.sh
-ENV PATH="./node_modules/.bin:${PATH}"
+
 ENTRYPOINT ["bash", "/entry.sh"]

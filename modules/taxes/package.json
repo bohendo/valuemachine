@@ -6,6 +6,7 @@
   "author": "",
   "license": "ISC",
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "test": "ts-mocha --bail --check-leaks --exit src/**/*.spec.ts"
   },
   "dependencies": {

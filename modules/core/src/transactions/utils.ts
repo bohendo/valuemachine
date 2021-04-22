@@ -1,164 +1,196 @@
 import {
   DecimalString,
+  EthCall,
+  EthTransaction,
+  Logger,
+  TimestampString,
   Transaction,
   TransactionSources,
-  Logger,
 } from "@finances/types";
-import { math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
-const { add, diff, div, lt, mul } = math;
+const { diff, lt } = math;
 
-export const isDuplicateOffChain = (
-  oldTransaction: Transaction,
-  newTransaction: Transaction,
-): boolean => {
-  if (oldTransaction.date !== newTransaction.date) {
-    return false;
-  } else if (oldTransaction.description !== newTransaction.description) {
-    return false;
-  } else {
-    return true;
-  }
-};
+const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
+  new Date(tx1.date).getTime() === new Date(tx2.date).getTime()
+    ? tx1.index - tx2.index
+    : new Date(tx1.date).getTime() - new Date(tx2.date).getTime();
 
-export const mergeDefaultTransactions = (
+const getUnique = (array: string[]): string[] =>
+  Array.from(new Set([...array]));
+
+const datesAreClose = (ts1: TimestampString, ts2: TimestampString, wiggleRoom = `${1000 * 60 * 30}`) =>
+  lt(
+    diff(new Date(ts1).getTime().toString(), new Date(ts2).getTime().toString()),
+    wiggleRoom,
+  );
+
+const quantitiesAreClose = (q1: DecimalString, q2: DecimalString, wiggleRoom = "0.000001") =>
+  lt(diff(q1, q2), wiggleRoom);
+
+export const chrono = (e1: EthCall | EthTransaction, e2: EthCall | EthTransaction): number =>
+  new Date(e1.timestamp).getTime() - new Date(e2.timestamp).getTime();
+
+// This fn ought to modifiy the old list of txns IN PLACE and also return the updated tx list
+export const mergeTransaction = (
   transactions: Transaction[],
-  source: Partial<Transaction>,
+  newTx: Transaction,
+  logger: Logger,
 ): Transaction[] => {
-  const castDefault = (transaction: Partial<Transaction>): Partial<Transaction> => ({
-    sources: [TransactionSources.Profile],
-    tags: [],
-    transfers: [],
-    ...transaction,
-  });
+  let log = (logger || getLogger()).child({ module: "MergeTx" });
 
-  const input = castDefault(source);
-
-  const output = [] as Transaction[];
-  for (let i = 0; i < transactions.length; i++) {
-    const oldTransaction = transactions[i];
-    if (oldTransaction.hash && input.hash && oldTransaction.hash === input.hash) {
-      // Merge sources & tags
-      output.push({
-        ...oldTransaction,
-        sources: Array.from(new Set([...oldTransaction.sources, ...input.sources])),
-        tags: Array.from(new Set([...oldTransaction.tags, ...input.tags])),
-      });
-    } else if (!isDuplicateOffChain(oldTransaction, input as Transaction)) {
-      output.push(oldTransaction);
-    }
+  if (newTx.sources.length > 1) {
+    log.warn(newTx, `Skipped new tx with ${newTx.sources.length} sources`);
+    return transactions;
   }
-  return output;
-};
+  const source = newTx.sources[0];
+  log = logger.child({ module: `Merge${source}` });
 
-export const mergeFactory = (opts: {
-  allowableTimeDiff: number;
-  mergeTransactions: any;
-  isDuplicate: any;
-  shouldMerge: any;
-  log: Logger;
-}) =>
-  (transactions: Transaction[], newTransaction: Transaction): Transaction[] => {
-    const { allowableTimeDiff, isDuplicate, mergeTransactions, shouldMerge, log } = opts;
-    const output = [] as Transaction[];
-    for (let i = 0; i < transactions.length; i++) {
-      const oldTransaction = transactions[i];
-      if (!oldTransaction || !oldTransaction.date) {
-        throw new Error(`Trying to merge new transaction into ${i} ${
-          JSON.stringify(oldTransaction, null, 2)
-        }`);
-      }
-      if (newTransaction.date) {
-        const delta =
-          new Date(newTransaction.date).getTime() - new Date(oldTransaction.date).getTime();
-        if (isNaN(delta) || typeof delta !== "number") {
-          throw new Error(`Error parsing date delta (${delta}) for new oldTransaction: ${
-            JSON.stringify(newTransaction, null, 2)
-          } and old oldTransaction: ${
-            JSON.stringify(oldTransaction, null, 2)
-          }`);
-        }
-        if (delta > allowableTimeDiff) {
-          // log.debug(`new oldTransaction came way before oldTransaction ${i}, moving on`);
-          output.push(oldTransaction);
-          continue;
-        }
-        if (delta < -1 * allowableTimeDiff) {
-          log.debug(`new transaction came way after oldTransaction ${i}, we're done`);
-          output.push(newTransaction);
-          output.push(...transactions.slice(i));
-          return output;
-        }
-        log.debug(
-          `transaction ${i} "${oldTransaction.description}" occured ${delta / 1000}s after "${
-            newTransaction.description
-          }"`,
-        );
-      }
+  if (newTx.transfers.length === 0) {
+    log.debug(newTx, `Skipped new tx with zero transfers`);
+    return transactions;
+  }
 
-      if (isDuplicate(oldTransaction, newTransaction)) {
-        log.warn(`Skipping duplicate transaction`);
+  // Merge simple eth txns
+  if (source === TransactionSources.EthTx) {
+
+    // Does this list of txns already include the coresponding eth tx?
+    const index = transactions.findIndex(tx => tx.hash === newTx.hash);
+
+    // This is the first time we've encountered this eth tx
+    if (index < 0) {
+
+      // Mergable eth txns can only contain one transfer
+      if (newTx.transfers.length > 1) {
+        transactions.push(newTx);
+        transactions.sort(sortTransactions);
+        log.info(`Inserted new multi-transfer eth tx: ${newTx.description}`);
         return transactions;
-      } else if (shouldMerge(oldTransaction, newTransaction)) {
-        const mergedTransaction = mergeTransactions(oldTransaction, newTransaction);
-        log.debug(`Merged "${newTransaction.description}" into ${i} "${oldTransaction.description}"`);
-        log.debug(`Yielding: ${JSON.stringify(mergedTransaction, null, 2)}`);
-        output.push(mergedTransaction);
-        output.push(...transactions.slice(i+1));
-        return output;
       }
-      output.push(oldTransaction);
+      const transfer = newTx.transfers[0];
+
+      const mergeCandidateIndex = transactions.findIndex(tx =>
+        // This tx only has one transfer
+        // (matching an eth tx to a mult-transfer external tx is not supported yet)
+        tx.transfers.length === 1
+        // This tx hasn't had this eth tx merged into it yet
+        && !tx.sources.includes(source)
+        // This tx has a transfer with same asset type & quantity as this new tx
+        && tx.transfers.some(t =>
+          t.assetType === transfer.assetType && quantitiesAreClose(t.quantity, transfer.quantity)
+        )
+        // Existing tx & new tx have timestamps within 30 mins of each other
+        && datesAreClose(tx.date, newTx.date)
+      );
+
+      if (mergeCandidateIndex < 0) {
+        transactions.push(newTx);
+        transactions.sort(sortTransactions);
+        log.info(`Inserted new eth tx: ${newTx.description}`);
+        return transactions;
+      }
+
+      // The old transfer came from an exteranl source
+      const oldTransfer = transactions[mergeCandidateIndex].transfers[0];
+
+      transactions[mergeCandidateIndex].transfers[0] = {
+        ...oldTransfer,
+        from: transfer.from.startsWith("external")
+          ? oldTransfer.from
+          : transfer.from,
+        to: transfer.to.startsWith("external")
+          ? oldTransfer.to
+          : transfer.to,
+      };
+      // Keep the external txn's description instead of the eth txn's
+      transactions[mergeCandidateIndex] = {
+        ...transactions[mergeCandidateIndex],
+        ...newTx,
+        sources: getUnique([
+          ...transactions[mergeCandidateIndex].sources,
+          ...newTx.sources
+        ]) as TransactionSources[],
+        tags: getUnique([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
+      };
+
+      log.info(
+        transactions[mergeCandidateIndex],
+        `Merged transactions[${mergeCandidateIndex}] w new eth tx: ${newTx.description}`,
+      );
+      return transactions;
     }
-    output.push(newTransaction);
-    return output;
-  };
 
-export const mergeOffChainTransactions = (
-  oldTransaction: Transaction,
-  newTransaction: Transaction,
-): Transaction => {
-  const transfer = oldTransaction.transfers[0];
-  const newTransfer = newTransaction.transfers[0];
-  const mergedTransfer = {
-    ...transfer,
-    from: newTransfer.from.startsWith("external")
-      ? transfer.from
-      : newTransfer.from,
-    to: newTransfer.to.startsWith("external")
-      ? transfer.to
-      : newTransfer.to,
-  };
-  return {
-    ...oldTransaction,
-    description: newTransaction.description,
-    sources: Array.from(new Set([...oldTransaction.sources, ...newTransaction.sources])),
-    tags: Array.from(new Set([...oldTransaction.tags, ...newTransaction.tags])),
-    transfers: [mergedTransfer],
-  };
-};
-
-export const shouldMergeOffChain = (
-  oldTransaction: Transaction,
-  newTransaction: Transaction,
-): boolean => {
-  const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
-    lt(div(mul(diff(a1, a2), "200"), add(a1, a2)), "1");
-
-  if (
-    // assumes the deposit to/withdraw from exchange account doesn't interact w other contracts
-    oldTransaction.transfers.length !== 1 ||
-    // only simple off chain sends to the chain
-    newTransaction.transfers.length !== 1
-  ) {
-    return false;
+    log.info(`Skipping duplicate eth tx: ${newTx.description}`);
+    return transactions;
   }
-  const transfer = oldTransaction.transfers[0];
-  const newTransfer = newTransaction.transfers[0];
-  if (
-    transfer.assetType === newTransfer.assetType &&
-    amountsAreClose(transfer.quantity, newTransfer.quantity)
-  ) {
-    return true;
+
+  // Merge external txns
+  // Does the tx list already include this external tx?
+  const dupCandidates = transactions
+    .filter(tx => tx.sources.includes(source))
+    .filter(tx => datesAreClose(tx.date, newTx.date) && tx.description === newTx.description);
+  if (dupCandidates.length > 0) {
+    log.info(`Skipping duplicate external tx: ${newTx.description}`);
+    return transactions;
   }
-  return false;
+
+  // Mergable external txns can only contain one transfer
+  if (newTx.transfers.length > 1) {
+    transactions.push(newTx);
+    transactions.sort(sortTransactions);
+    log.info(`Inserted new multi-transfer external tx: ${newTx.description}`);
+    return transactions;
+  }
+  const transfer = newTx.transfers[0];
+
+  const mergeCandidateIndex = transactions.findIndex(tx =>
+    // Existing tx only has one transfer
+    // (transfer to external account in same tx as a contract interaction is not supported)
+    tx.transfers.length === 1
+    // Existing tx hasn't had this external tx merged into it yet
+    && !tx.sources.includes(source)
+    // Existing tx has a transfer with same asset type & quantity as this new tx
+    && tx.transfers.some(t =>
+      t.assetType === transfer.assetType && quantitiesAreClose(t.quantity, transfer.quantity)
+    )
+    // Existing tx & new tx have timestamps within 30 mins of each other
+    && datesAreClose(tx.date, newTx.date)
+  );
+
+  if (mergeCandidateIndex < 0) {
+    transactions.push(newTx);
+    transactions.sort(sortTransactions);
+    log.info(`Inserted new external tx: ${newTx.description}`);
+    return transactions;
+  }
+
+  const oldTransfer = transactions[mergeCandidateIndex].transfers[0];
+
+  transactions[mergeCandidateIndex].transfers[0] = {
+    ...oldTransfer,
+    from: transfer.from.startsWith("external")
+      ? oldTransfer.from
+      : transfer.from,
+    to: transfer.to.startsWith("external")
+      ? oldTransfer.to
+      : transfer.to,
+  };
+  transactions[mergeCandidateIndex] = {
+    ...newTx,
+    ...transactions[mergeCandidateIndex],
+    description: newTx.description,
+    sources: getUnique([
+      ...transactions[mergeCandidateIndex].sources,
+      ...newTx.sources
+    ]) as TransactionSources[],
+    tags: getUnique([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
+  };
+
+  log.info(
+    transactions[mergeCandidateIndex],
+    `Merged transactions[${mergeCandidateIndex}] into new external tx: ${newTx.description}`,
+  );
+
+  return transactions;
+
 };

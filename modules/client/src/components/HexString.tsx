@@ -28,21 +28,14 @@ export const HexString = ({
     <CopyToClipboard
       onCopy={() => {
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setTimeout(() => setCopied(false), 1500);
       }}
       text={value}
     >
       <Tooltip arrow title={copied ? "Copied to clipboard" : value}>
-
         <Typography noWrap className={classes.label}>
-          {
-            display ||
-            <pre className={classes.pre}>
-              {`${value.substring(0, 6)}..${value.substring(value.length - 4)}`}
-            </pre>
-          }
+          {display || `${value.substring(0, 6)}..${value.substring(value.length - 4)}`}
         </Typography>
-
       </Tooltip>
     </CopyToClipboard>
   );

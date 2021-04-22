@@ -76,7 +76,6 @@ export const getTransactionsError = (transactions: Transaction[]): string | null
       { key: "description", expected: "string" },
       { key: "hash", expected: "string?" },
       { key: "index", expected: "number?" },
-      { key: "prices", expected: "object" },
       { key: "sources", expected: "string[]" },
       { key: "tags", expected: "string[]" },
       { key: "transfers", expected: "object[]" },
