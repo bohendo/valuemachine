@@ -41,7 +41,7 @@ export const parseEthTx = (
   }
 
   const transaction = {
-    date: tx.timestamp.split(".")[0],
+    date: (new Date(tx.timestamp)).toISOString(),
     hash: tx.hash,
     sources: [TransactionSources.EthTx],
     tags: [],
