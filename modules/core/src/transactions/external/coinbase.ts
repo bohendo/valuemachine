@@ -2,12 +2,7 @@ import { Transaction, TransactionSources, Logger, TransferCategories } from "@fi
 import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
-import {
-  isDuplicateOffChain,
-  mergeFactory,
-  mergeOffChainTransactions,
-  shouldMergeOffChain,
-} from "../utils";
+import { mergeTransaction } from "../utils";
 
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
@@ -16,7 +11,6 @@ export const mergeCoinbaseTransactions = (
 ): Transaction[] => {
   const log = logger.child({ module: "Coinbase" }); 
   log.info(`Processing ${csvData.split(`\n`).length} rows of coinbase data`);
-  let transactions = JSON.parse(JSON.stringify(oldTransactions));
 
   const coinbaseTransactions = csv(
     csvData,
@@ -85,22 +79,14 @@ export const mergeCoinbaseTransactions = (
     }
 
     log.info(transaction.description);
+    log.debug(transaction, "Parsed coinbase row into transaction:");
     return transaction;
   }).filter(row => !!row);
 
   log.info(`Merging ${coinbaseTransactions.length} new transactions from coinbase`);
 
-  coinbaseTransactions.forEach((coinbaseTransaction: Transaction): void => {
-    log.debug(coinbaseTransaction.description);
-    transactions = mergeFactory({
-      allowableTimeDiff: 15 * 60 * 1000,
-      log,
-      mergeTransactions: mergeOffChainTransactions,
-      shouldMerge: shouldMergeOffChain,
-      isDuplicate: isDuplicateOffChain,
-    })(transactions, coinbaseTransaction);
-  });
+  coinbaseTransactions.forEach(mergeTransaction(oldTransactions, log));
 
-  return transactions;
+  return oldTransactions;
 };
 

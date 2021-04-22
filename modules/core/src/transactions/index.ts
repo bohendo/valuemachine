@@ -75,7 +75,7 @@ export const getTransactions = ({
 
   const mergeChainData = async (chainData: ChainData): Promise<void> => {
     log.info(`Merging chain data containing ${chainData.json.transactions.length} txns`);
-    txns = mergeEthTransactions(txns, addressBook, chainData, getLastUpdated(), log);
+    txns = mergeEthTransactions(txns, addressBook, chainData, 0, log);
     sync();
   };
 

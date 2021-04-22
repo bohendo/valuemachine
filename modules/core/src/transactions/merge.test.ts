@@ -1,14 +1,14 @@
 import { Transactions } from "@finances/types";
-import { expect, getLogger } from "@finances/utils";
+import { expect } from "@finances/utils";
 import { AddressZero } from "@ethersproject/constants";
 
 import { getAddressBook } from "../addressBook";
 
-import { getFakeChainData } from "./testing";
+import { getFakeChainData, testLogger } from "./testing";
 
 import { getTransactions } from "./index";
 
-const log = getLogger("info").child({ module: "TestTransactions" });
+const log = testLogger.child({ module: "TestTransactions" });
 
 describe("transactions merge", () => {
   const addressBook = getAddressBook(

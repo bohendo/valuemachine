@@ -13,7 +13,7 @@ import { math, sm } from "@finances/utils";
 import { BigNumber, constants, utils } from "ethers";
 
 import { getTokenInterface } from "../../abi";
-import { mergeFactory } from "../utils";
+import { mergeTransaction } from "../utils";
 
 import { categorizeTransfer } from "./categorize";
 
@@ -40,17 +40,6 @@ export const mergeEthTxTransactions = (
     log.info(`Done processing ${newEthTxs.length} new eth txs`);
     return transactions;
   }
-
-  const merge = mergeFactory({
-    allowableTimeDiff: 0,
-    log: logger.child({ module: "MergeEthTx" }),
-    mergeTransactions: (): void => {
-      throw new Error(`idk how to merge EthTxs`);
-    },
-    shouldMerge: (): boolean => false,
-    isDuplicate: (transaction: Transaction, txTransaction: Transaction): boolean =>
-      transaction.hash === txTransaction.hash,
-  });
 
   log.info(`Processing ${newEthTxs.length} new eth txs..`);
   newEthTxs
@@ -96,7 +85,7 @@ export const mergeEthTxTransactions = (
         transaction.transfers[0].quantity = "0";
         transaction.description = `${getName(tx.from)} sent failed tx`;
         if (addressBook.isSelf(transaction.transfers[0].from)) {
-          transactions = merge(transactions, transaction);
+          transactions = mergeTransaction(transactions, log)(transaction);
           return;
         }
         return;
@@ -251,7 +240,7 @@ export const mergeEthTxTransactions = (
         return;
       }
 
-      transactions = merge(transactions, transaction);
+      transactions = mergeTransaction(transactions, log)(transaction);
       return;
     });
 

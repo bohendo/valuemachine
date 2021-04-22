@@ -10,7 +10,7 @@ import {
 import { math } from "@finances/utils";
 import { constants } from "ethers";
 
-import { mergeFactory } from "../utils";
+import { mergeTransaction } from "../utils";
 
 import { categorizeTransfer } from "./categorize";
 
@@ -30,23 +30,9 @@ export const mergeEthCallTransactions = (
   );
 
   if (newEthCalls.length === 0) {
-    log.info(`Done processing ${newEthCalls.length} new eth calls`);
+    log.info(`No new eth call are available to merge`);
     return transactions;
   }
-
-  const merge = mergeFactory({
-    allowableTimeDiff: 0,
-    log,
-    mergeTransactions: (transaction: Transaction, callTransaction: Transaction): Transaction => {
-      // tx logs and token calls return same data, add this tranfer iff this isn't the case
-      transaction.transfers.push(callTransaction.transfers[0]);
-      transaction.sources.push(TransactionSources.EthCall);
-      return transaction;
-    },
-    shouldMerge: (transaction: Transaction, callTransaction: Transaction): boolean =>
-      transaction.hash === callTransaction.hash,
-    isDuplicate: (): boolean => false,
-  });
 
   log.info(`Processing ${newEthCalls.length} new eth calls..`);
 
@@ -106,7 +92,7 @@ export const mergeEthCallTransactions = (
 
       log.debug(transaction.description);
 
-      transactions = merge(transactions, transaction);
+      transactions = mergeTransaction(transactions, log)(transaction);
     });
 
   const diff = (Date.now() - start).toString();
