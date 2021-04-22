@@ -17,7 +17,7 @@ import {
   mergeWazrixTransactions,
   mergeWyreTransactions,
 } from "./external";
-import { mergeDefaultTransactions } from "./utils";
+import { mergeTransaction as mergeTx } from "./utils";
 
 // Note: we must import chain data before off-chain stuff to ensure merges work properly
 export const getTransactions = ({
@@ -100,14 +100,12 @@ export const getTransactions = ({
   };
 
   const mergeTransactions = async (transactions: TransactionsJson): Promise<void> => {
-    transactions.forEach(tx => {
-      txns = mergeDefaultTransactions(txns, tx);
-    });
+    transactions.forEach(mergeTx(txns, log));
     sync();
   };
 
-  const mergeTransaction = async (transaction: Partial<Transaction>): Promise<void> => {
-    txns = mergeDefaultTransactions(txns, transaction);
+  const mergeTransaction = async (transaction: Transaction): Promise<void> => {
+    mergeTx(txns, log)(transaction);
     sync();
   };
 

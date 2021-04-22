@@ -11,12 +11,8 @@ export const mergeCoinbaseTransactions = (
 ): Transaction[] => {
   const log = logger.child({ module: "Coinbase" }); 
   log.info(`Processing ${csvData.split(`\n`).length} rows of coinbase data`);
+  csv(csvData, { columns: true, skip_empty_lines: true }).map(row => {
 
-  const coinbaseTransactions = csv(
-    csvData,
-    { columns: true, skip_empty_lines: true },
-  ).map(row => {
-    log.debug(row, `Analyzing row:`);
     const {
       ["Timestamp"]: date,
       ["Transaction Type"]: txType,
@@ -81,12 +77,8 @@ export const mergeCoinbaseTransactions = (
     log.info(transaction.description);
     log.debug(transaction, "Parsed coinbase row into transaction:");
     return transaction;
-  }).filter(row => !!row);
 
-  log.info(`Merging ${coinbaseTransactions.length} new transactions from coinbase`);
-
-  coinbaseTransactions.forEach(mergeTransaction(oldTransactions, log));
-
+  }).filter(row => !!row).forEach(mergeTransaction(oldTransactions, log));
   return oldTransactions;
 };
 

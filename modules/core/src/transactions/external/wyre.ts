@@ -8,12 +8,7 @@ import {
 import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
-import {
-  mergeFactory,
-  mergeOffChainTransactions,
-  shouldMergeOffChain,
-  isDuplicateOffChain,
-} from "../utils";
+import { mergeTransaction } from "../utils";
 
 export const mergeWyreTransactions = (
   oldTransactions: Transaction[],
@@ -22,12 +17,8 @@ export const mergeWyreTransactions = (
 ): Transaction[] => {
   const log = logger.child({ module: "SendWyre" });
   log.info(`Processing ${csvData.split(`\n`).length} rows of wyre data`);
-  let transactions = JSON.parse(JSON.stringify(oldTransactions));
+  csv(csvData, { columns: true, skip_empty_lines: true }).map(row => {
 
-  const wyreTransactions = csv(
-    csvData,
-    { columns: true, skip_empty_lines: true },
-  ).map(row => {
     const {
       ["Created At"]: date,
       ["Dest Amount"]: destQuantity,
@@ -152,19 +143,7 @@ export const mergeWyreTransactions = (
 
     log.debug(transaction.description);
     return transaction;
-  }).filter(row => !!row);
 
-  log.info(`Merging ${wyreTransactions.length} new transactions from wyre`);
-  wyreTransactions.forEach((wyreTransaction: Transaction): void => {
-    log.debug(wyreTransaction.description);
-    transactions = mergeFactory({
-      allowableTimeDiff: 15 * 60 * 1000,
-      log,
-      mergeTransactions: mergeOffChainTransactions,
-      shouldMerge: shouldMergeOffChain,
-      isDuplicate: isDuplicateOffChain,
-    })(transactions, wyreTransaction);
-  });
-
-  return transactions;
+  }).filter(row => !!row).forEach(mergeTransaction(oldTransactions, log));
+  return oldTransactions;
 };

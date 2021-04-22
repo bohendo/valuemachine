@@ -1,38 +1,49 @@
 import {
-  DecimalString,
   Transaction,
   TransactionSources,
   Logger,
 } from "@finances/types";
-import { math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
-const { add, eq, diff, div, lt, mul } = math;
+const { eq, diff, lt } = math;
 
-export const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
+const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
   new Date(tx1.date).getTime() === new Date(tx2.date).getTime()
     ? tx1.index - tx2.index
     : new Date(tx1.date).getTime() - new Date(tx2.date).getTime();
 
-export const getUnique = (array: string[]) =>
+const getUnique = (array: string[]): string[] =>
   Array.from(new Set([...array]));
+
+const datesAreClose = (tx1: Transaction, tx2: Transaction) =>
+  lt(
+    diff(
+      new Date(tx1.date).getTime().toString(), new Date(tx2.date).getTime().toString()
+    ),
+    (1000 * 60 * 30).toString()
+  );
 
 // tricky tx w 2 eth calls: 0x0c27ccc265e5a944c05eca6820268a86af2ed8bd5517c8b83560517af56e7f91
 // We could check chainData to see how many eth calls are associated w this tx
+
+type curriedFn = (newTx: Transaction) => Transaction[];
 
 // This fn ought to modifiy the old list of txns IN PLACE and also return the updated tx list
 export const mergeTransaction = (
   transactions: Transaction[],
   logger: Logger,
-): any => (
+): curriedFn => (
   newTx: Transaction,
 ): Transaction[] => {
-  const log = logger.child({ module: "MergeTx" });
+  let log = (logger || getLogger()).child({ module: "MergeTx" });
 
   if (newTx.sources.length > 1) {
     log.warn(newTx.sources, `New transaction has more than 1 source, skipping:`);
     return transactions;
   }
   const source = newTx.sources[0];
+  log = logger.child({ module: `Merge${source}` });
+
 
   // Merge simple internal eth calls
   if (source === TransactionSources.EthCall) {
@@ -55,7 +66,7 @@ export const mergeTransaction = (
     transactions[index].sources = getUnique([
       ...transactions[index].sources,
       TransactionSources.EthCall,
-    ]);
+    ]) as TransactionSources[];
     log.debug(`Merged new eth call into transactions list at index ${index}`);
     return transactions;
 
@@ -65,6 +76,7 @@ export const mergeTransaction = (
 
     // Does this list of txns already include the coresponding eth tx?
     const index = transactions.findIndex(tx => tx.hash === newTx.hash);
+
     // This is the first time we've encountered this eth tx
     if (index < 0) {
 
@@ -88,9 +100,7 @@ export const mergeTransaction = (
           t.assetType === transfer.assetType && eq(t.quantity, transfer.quantity)
         )
         // Existing tx & new tx have timestamps within 30 mins of each other
-        && diff(
-          new Date(tx.date).getTime().toString() - new Date(newTx.date).getTime().toString()
-        ) < 1000 * 60 * 30
+        && datesAreClose(tx, newTx)
       );
 
       if (mergeCandidateIndex < 0) {
@@ -115,7 +125,11 @@ export const mergeTransaction = (
       // Keep the external txn's description instead of the eth txn's
       transactions[mergeCandidateIndex] = {
         ...transactions[mergeCandidateIndex],
-        sources: getUnique([...transactions[mergeCandidateIndex].sources, ...newTx.sources]),
+        ...newTx,
+        sources: getUnique([
+          ...transactions[mergeCandidateIndex].sources,
+          ...newTx.sources
+        ]) as TransactionSources[],
         tags: getUnique([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
       };
       log.info(
@@ -124,9 +138,9 @@ export const mergeTransaction = (
       );
 
       return transactions;
-
     }
-    log.debug(`This eth tx already exists in the transactions list, skipping`);
+
+    log.info(`This eth tx already exists in the transactions list, skipping`);
     return transactions;
   }
 
@@ -134,7 +148,7 @@ export const mergeTransaction = (
   // Does the tx list already include this external tx?
   const dupCandidates = transactions
     .filter(tx => tx.sources.includes(source))
-    .filter(tx => tx.date === newTx.date && tx.description === newTx.description);
+    .filter(tx => datesAreClose(tx, newTx) && tx.description === newTx.description);
   if (dupCandidates.length > 0) {
     log.warn(dupCandidates, `Looks like this external tx has already been merged`);
     return transactions;
@@ -160,9 +174,7 @@ export const mergeTransaction = (
       t.assetType === transfer.assetType && eq(t.quantity, transfer.quantity)
     )
     // Existing tx & new tx have timestamps within 30 mins of each other
-    && diff(
-      new Date(tx.date).getTime().toString() - new Date(newTx.date).getTime().toString()
-    ) < 1000 * 60 * 30
+    && datesAreClose(tx, newTx)
   );
 
   if (mergeCandidateIndex < 0) {
@@ -184,9 +196,13 @@ export const mergeTransaction = (
       : transfer.to,
   };
   transactions[mergeCandidateIndex] = {
+    ...newTx,
     ...transactions[mergeCandidateIndex],
     description: newTx.description,
-    sources: getUnique([...transactions[mergeCandidateIndex].sources, ...newTx.sources]),
+    sources: getUnique([
+      ...transactions[mergeCandidateIndex].sources,
+      ...newTx.sources
+    ]) as TransactionSources[],
     tags: getUnique([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
   };
   log.info(
@@ -196,155 +212,4 @@ export const mergeTransaction = (
 
   return transactions;
 
-};
-
-export const isDuplicateOffChain = (
-  oldTransaction: Transaction,
-  newTransaction: Transaction,
-): boolean => {
-  if (oldTransaction.date !== newTransaction.date) {
-    return false;
-  } else if (oldTransaction.description !== newTransaction.description) {
-    return false;
-  } else {
-    return true;
-  }
-};
-
-export const mergeFactory = (opts: {
-  allowableTimeDiff: number;
-  mergeTransactions: any;
-  isDuplicate: any;
-  shouldMerge: any;
-  log: Logger;
-}) =>
-  (transactions: Transaction[], newTransaction: Transaction): Transaction[] => {
-    const { allowableTimeDiff, isDuplicate, mergeTransactions, shouldMerge, log } = opts;
-    const output = [] as Transaction[];
-    for (let i = 0; i < transactions.length; i++) {
-      const oldTransaction = transactions[i];
-      if (!oldTransaction || !oldTransaction.date) {
-        throw new Error(`Trying to merge new transaction into ${i} ${
-          JSON.stringify(oldTransaction, null, 2)
-        }`);
-      }
-      if (newTransaction.date) {
-        const delta =
-          new Date(newTransaction.date).getTime() - new Date(oldTransaction.date).getTime();
-        if (isNaN(delta) || typeof delta !== "number") {
-          throw new Error(`Error parsing date delta (${delta}) for new oldTransaction: ${
-            JSON.stringify(newTransaction, null, 2)
-          } and old oldTransaction: ${
-            JSON.stringify(oldTransaction, null, 2)
-          }`);
-        }
-        if (delta > allowableTimeDiff) {
-          // log.debug(`new oldTransaction came way before oldTransaction ${i}, moving on`);
-          output.push(oldTransaction);
-          continue;
-        }
-        if (delta < -1 * allowableTimeDiff) {
-          log.debug(`new transaction came way after oldTransaction ${i}, we're done`);
-          output.push(newTransaction);
-          output.push(...transactions.slice(i));
-          return output;
-        }
-        log.debug(
-          `transaction ${i} "${oldTransaction.description}" occured ${delta / 1000}s after "${
-            newTransaction.description
-          }"`,
-        );
-      }
-      if (isDuplicate(oldTransaction, newTransaction)) {
-        log.warn(`Skipping duplicate transaction`);
-        return transactions;
-      } else if (shouldMerge(oldTransaction, newTransaction)) {
-        const mergedTransaction = mergeTransactions(oldTransaction, newTransaction);
-        log.debug(`Merged "${newTransaction.description}" into ${i} "${oldTransaction.description}"`);
-        log.debug(`Yielding: ${JSON.stringify(mergedTransaction, null, 2)}`);
-        output.push(mergedTransaction);
-        output.push(...transactions.slice(i+1));
-        return output;
-      }
-      output.push(oldTransaction);
-    }
-    output.push(newTransaction);
-    return output;
-  };
-
-export const mergeOffChainTransactions = (
-  oldTransaction: Transaction,
-  newTransaction: Transaction,
-): Transaction => {
-  const transfer = oldTransaction.transfers[0];
-  const newTransfer = newTransaction.transfers[0];
-  const mergedTransfer = {
-    ...transfer,
-    from: newTransfer.from.startsWith("external")
-      ? transfer.from
-      : newTransfer.from,
-    to: newTransfer.to.startsWith("external")
-      ? transfer.to
-      : newTransfer.to,
-  };
-  return {
-    ...oldTransaction,
-    description: newTransaction.description,
-    sources: Array.from(new Set([...oldTransaction.sources, ...newTransaction.sources])),
-    tags: Array.from(new Set([...oldTransaction.tags, ...newTransaction.tags])),
-    transfers: [mergedTransfer],
-  };
-};
-
-export const shouldMergeOffChain = (
-  oldTransaction: Transaction,
-  newTransaction: Transaction,
-): boolean => {
-  const amountsAreClose = (a1: DecimalString, a2: DecimalString): boolean =>
-    lt(div(mul(diff(a1, a2), "200"), add(a1, a2)), "1");
-  if (
-    // assumes the deposit to/withdraw from exchange account doesn't interact w other contracts
-    oldTransaction.transfers.length !== 1 ||
-    // only simple off chain sends to the chain
-    newTransaction.transfers.length !== 1
-  ) {
-    return false;
-  }
-  const transfer = oldTransaction.transfers[0];
-  const newTransfer = newTransaction.transfers[0];
-  if (
-    transfer.assetType === newTransfer.assetType &&
-    amountsAreClose(transfer.quantity, newTransfer.quantity)
-  ) {
-    return true;
-  }
-  return false;
-};
-
-export const mergeDefaultTransactions = (
-  transactions: Transaction[],
-  source: Partial<Transaction>,
-): Transaction[] => {
-  const castDefault = (transaction: Partial<Transaction>): Partial<Transaction> => ({
-    sources: [TransactionSources.Profile],
-    tags: [],
-    transfers: [],
-    ...transaction,
-  });
-  const input = castDefault(source);
-  const output = [] as Transaction[];
-  for (let i = 0; i < transactions.length; i++) {
-    const oldTransaction = transactions[i];
-    if (oldTransaction.hash && input.hash && oldTransaction.hash === input.hash) {
-      // Merge sources & tags
-      output.push({
-        ...oldTransaction,
-        sources: Array.from(new Set([...oldTransaction.sources, ...input.sources])),
-        tags: Array.from(new Set([...oldTransaction.tags, ...input.tags])),
-      });
-    } else if (!isDuplicateOffChain(oldTransaction, input as Transaction)) {
-      output.push(oldTransaction);
-    }
-  }
-  return output;
 };

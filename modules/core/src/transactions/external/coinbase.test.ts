@@ -43,12 +43,21 @@ describe.only("mergeCoinbase", () => {
     expect(txns.getAll().length).to.equal(1);
     txns.mergeCoinbase(exampleCoinbaseCsv);
     expect(txns.getAll().length).to.equal(3);
+    // Re-merging shouldn't insert any duplicates
+    txns.mergeCoinbase(exampleCoinbaseCsv);
+    expect(txns.getAll().length).to.equal(3);
   });
 
-  it.only("should merge an eth txn into a matching coinbase receive/send", async () => {
+  it("should merge an eth txn into a matching coinbase receive/send", async () => {
     expect(txns.getAll().length).to.equal(0);
     txns.mergeCoinbase(exampleCoinbaseCsv);
     expect(txns.getAll().length).to.equal(3);
+    txns.mergeChainData(getFakeChainData({
+      value: "1",
+      timestamp: "2018-01-02T01:00:00Z",
+    }));
+    expect(txns.getAll().length).to.equal(3);
+    // Re-merging shouldn't insert any duplicates
     txns.mergeChainData(getFakeChainData({
       value: "1",
       timestamp: "2018-01-02T01:00:00Z",
