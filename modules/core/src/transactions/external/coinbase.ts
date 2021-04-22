@@ -22,13 +22,14 @@ export const mergeCoinbaseTransactions = (
     csvData,
     { columns: true, skip_empty_lines: true },
   ).map(row => {
+    log.debug(row, `Analyzing row:`);
     const {
+      ["Timestamp"]: date,
+      ["Transaction Type"]: txType,
       ["Asset"]: assetType,
       ["Quantity Transacted"]: quantity,
-      ["Timestamp"]: date,
-      ["USD Fees"]: fees,
-      ["Transaction Type"]: txType,
       ["USD Total (inclusive of fees)"]: usdQuantity,
+      ["USD Fees"]: fees,
     } = row;
 
     const transaction = {
@@ -83,7 +84,7 @@ export const mergeCoinbaseTransactions = (
       });
     }
 
-    log.debug(transaction.description);
+    log.info(transaction.description);
     return transaction;
   }).filter(row => !!row);
 
