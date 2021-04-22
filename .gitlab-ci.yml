@@ -29,7 +29,7 @@ test:
     - make dls
     - docker service logs --raw --tail 100 finances_server
     - docker service logs --raw --tail 100 finances_proxy
-    - make test
+    - make test-core
 
 deploy:
   image: docker:stable

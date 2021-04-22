@@ -5,7 +5,7 @@ import { expect } from "@finances/utils";
 import { AddressOne, AddressTwo, getTestChainData, testAddressBook, testLogger } from "../testing";
 import { getTransactions } from "../index";
 
-const log = testLogger.child({ level: "debug", module: "TestTransactions" });
+const log = testLogger.child({ module: "TestTransactions" });
 
 describe("Merge chain data", () => {
   let txns: Transactions;
@@ -62,20 +62,20 @@ describe("Merge chain data", () => {
   });
 
   it("should merge chain data successfully", async () => {
-    expect(txns.getAll().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
     txns.mergeChainData(chainData);
-    expect(txns.getAll().length).to.equal(1);
-    expect(txns.getAll()[0].transfers.length).to.equal(4);
+    expect(txns.json.length).to.equal(1);
+    expect(txns.json[0].transfers.length).to.equal(4);
   });
 
   it("should merge chain data multiple times without creaing duplicates", async () => {
-    expect(txns.getAll().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
     txns.mergeChainData(chainData);
-    expect(txns.getAll().length).to.equal(1);
-    expect(txns.getAll()[0].transfers.length).to.equal(4);
+    expect(txns.json.length).to.equal(1);
+    expect(txns.json[0].transfers.length).to.equal(4);
     txns.mergeChainData(chainData);
-    expect(txns.getAll().length).to.equal(1);
-    expect(txns.getAll()[0].transfers.length).to.equal(4);
+    expect(txns.json.length).to.equal(1);
+    expect(txns.json[0].transfers.length).to.equal(4);
   });
 
 });

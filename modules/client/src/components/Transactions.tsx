@@ -134,7 +134,7 @@ export const TransactionManager = ({
           txMethods.mergeWyre(importedFile);
         }
         // Get new object to trigger a re-render
-        setTransactions(txMethods.getAll());
+        setTransactions(txMethods.json);
       } catch (e) {
         console.error(e);
       }

@@ -43,33 +43,33 @@ describe("Merge Coinbase", () => {
   });
 
   it("should merge coinbase data multiple times without creaing duplicates", async () => {
-    expect(txns.getAll().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
     txns.mergeCoinbase(exampleCoinbaseCsv);
-    expect(txns.getAll().length).to.equal(3);
+    expect(txns.json.length).to.equal(3);
     txns.mergeCoinbase(exampleCoinbaseCsv);
-    expect(txns.getAll().length).to.equal(3);
+    expect(txns.json.length).to.equal(3);
   });
 
   it("should merge coinbase receive/sends into a matching eth txn", async () => {
-    expect(txns.getAll().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
     txns.mergeChainData(chainData);
-    expect(txns.getAll().length).to.equal(1);
+    expect(txns.json.length).to.equal(1);
     txns.mergeCoinbase(exampleCoinbaseCsv);
-    expect(txns.getAll().length).to.equal(3);
+    expect(txns.json.length).to.equal(3);
     // Re-merging shouldn't insert any duplicates
     txns.mergeCoinbase(exampleCoinbaseCsv);
-    expect(txns.getAll().length).to.equal(3);
+    expect(txns.json.length).to.equal(3);
   });
 
   it("should merge an eth txn into a matching coinbase receive/send", async () => {
-    expect(txns.getAll().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
     txns.mergeCoinbase(exampleCoinbaseCsv);
-    expect(txns.getAll().length).to.equal(3);
+    expect(txns.json.length).to.equal(3);
     txns.mergeChainData(chainData);
-    expect(txns.getAll().length).to.equal(3);
+    expect(txns.json.length).to.equal(3);
     // Re-merging shouldn't insert any duplicates
     txns.mergeChainData(chainData);
-    expect(txns.getAll().length).to.equal(3);
+    expect(txns.json.length).to.equal(3);
 
   });
 

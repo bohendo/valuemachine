@@ -27,8 +27,8 @@ transactionsRouter.post("/", async (req, res) => {
     await transactions.mergeChainData(
       chainData.getAddressHistory(...selfAddresses),
     );
-    log.info(`Returning ${transactions.getAll().length} transactions`);
-    res.json(transactions.getAll());
+    log.info(`Returning ${transactions.json.length} transactions`);
+    res.json(transactions.json);
   } catch (e) {
     log.warn(e);
     logAndSend("Error syncing transactions", STATUS_MY_BAD);

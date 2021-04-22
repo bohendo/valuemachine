@@ -105,7 +105,7 @@ process.on("SIGINT", logAndExit);
         throw new Error(`I don't know how to parse transactions from ${source}`);
       }
     } else if (typeof source !== "string") {
-      await transactions.mergeTransaction(source);
+      await transactions.mergeTransactions([source]);
     }
   }
 
@@ -113,7 +113,7 @@ process.on("SIGINT", logAndExit);
   let stateJson = store.load(StoreKeys.State);
   let vmEvents = store.load(StoreKeys.Events);
   let start = Date.now();
-  for (const transaction of transactions.getAll().filter(
+  for (const transaction of transactions.json.filter(
     transaction => new Date(transaction.date).getTime() > new Date(stateJson.lastUpdated).getTime(),
   )) {
     const [newState, newEvents] = valueMachine(stateJson, transaction);

@@ -13,7 +13,7 @@ export const TransactionSources = enumify({
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
   EthTx: "EthTx",
-  Profile: "Profile",
+  External: "External",
   Wyre: "Wyre",
   Wazrix: "Wazrix",
 });
@@ -68,12 +68,10 @@ export type TransactionParams = {
 };
 
 export type Transactions = {
-  getAll: () => TransactionsJson;
-  getParams: () => TransactionParams;
+  json: TransactionsJson;
   mergeChainData: (chainData: ChainData) => Promise<void>;
   mergeCoinbase: (csvData: string) => Promise<void>;
   mergeDigitalOcean: (csvData: string) => Promise<void>;
-  mergeTransaction: (transactions: Partial<Transaction>) => Promise<void>;
   mergeTransactions: (transactions: TransactionsJson) => Promise<void>;
   mergeWazrix: (csvData: string) => Promise<void>;
   mergeWyre: (csvData: string) => Promise<void>;
