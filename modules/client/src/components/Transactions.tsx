@@ -246,7 +246,7 @@ export const TransactionManager = ({
         <TableBody>
           {filteredTxns.slice(0, 750).map((tx: CapitalGainsEvent, i: number) => (
             <TableRow key={i}>
-              <TableCell> {tx.date.replace("T", " ").replace("Z", "")} </TableCell>
+              <TableCell> {tx.date.replace("T", " ")} </TableCell>
               <TableCell> {tx.description} </TableCell>
               <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
 
