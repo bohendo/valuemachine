@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "14.14.41",
+    "@types/node": "15.0.1",
     "pino": "6.11.3",
     "typescript": "4.2.4"
   }
