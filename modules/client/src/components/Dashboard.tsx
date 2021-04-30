@@ -1,12 +1,14 @@
-import React, { useState, useContext, useEffect } from "react";
-import { BigNumber as BN } from "ethers";
-import {  Profile } from "@finances/types";
+import React /*, { useState, useContext, useEffect }*/ from "react";
+// import { BigNumber as BN } from "ethers";
+// import {  Profile } from "@finances/types";
 
-import { AccountContext } from "../accountContext";
-import { getCurrentLiquidityPositions, getPairLiquidityPositionSnapshots } from "../utils/query";
-import { getProfile } from "../utils/profile";
+// import { AccountContext } from "../accountContext";
+// import { getCurrentLiquidityPositions, getPairLiquidityPositionSnapshots } from "../utils/query";
+// import { getProfile } from "../utils/profile";
 
 export const Dashboard: React.FC = () => {
+  return (<p>Dashboard is under construction, try again later</p>);
+  /*
   const [liquidityPositions, _setLiquidityPositions] = useState([]);
   const [liquiditySnapshots, setLiquiditySnapshots] = useState({});
   const accountContext = useContext(AccountContext);
@@ -68,4 +70,5 @@ export const Dashboard: React.FC = () => {
       })}
     </>
   );
+  */
 };
