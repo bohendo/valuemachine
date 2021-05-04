@@ -380,12 +380,12 @@ export const getChainData = ({
       const month = 30 * 24 * hour;
       // Don't sync any addresses w no recent activity if they have been synced before
       if (Date.now() - new Date(lastAction).getTime() > 6 * month) {
-        log.debug(`Not skipping retired (${lastAction}) address ${address}`);
+        log.warn(`Skipping retired (${lastAction}) address ${address}`);
         return true;
       }
       // Don't sync any active addresses if they've been synced recently
       if (Date.now() - new Date(json.addresses[address].lastUpdated).getTime() < 12 * hour) {
-        log.debug(`Not skipping active (${lastAction}) address ${address}`);
+        log.warn(`Skipping active (${lastAction}) address ${address}`);
         return true;
       }
       return true;

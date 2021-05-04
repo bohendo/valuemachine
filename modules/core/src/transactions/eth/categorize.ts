@@ -133,6 +133,7 @@ export const categorizeTransfer = (
       ) {
         transfer.category = TransferCategories.Deposit;
       }
+
     // makerdao stuff
     } else if (isCategory(AddressCategories.Defi)(txLog.address)) {
 

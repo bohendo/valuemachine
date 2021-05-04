@@ -1,5 +1,11 @@
 import { getPrices } from "@finances/core";
-import { AltChainAssets, EthereumAssets, PricesJson, TransactionsJson } from "@finances/types";
+import {
+  AltChainAssets,
+  EthereumAssets,
+  FiatAssets,
+  PricesJson,
+  TransactionsJson,
+} from "@finances/types";
 import { smeq } from "@finances/utils";
 import {
   Button,
@@ -76,9 +82,8 @@ export const PriceManager = ({
   const [syncing, setSyncing] = useState(false);
   const [filter, setFilter] = useState("");
   const [filteredPrices, setFilteredPrices] = useState([] as PriceRow);
+  const [uoa, setUoa] = useState("USD");
   const classes = useStyles();
-
-  const uoa = "USD";
 
   useEffect(() => {
     if (
@@ -96,8 +101,8 @@ export const PriceManager = ({
     const newFilteredPrices = [] as PriceRow[];
     Object.entries(pricesJson).forEach(([date, priceEntry]) => {
       if (Object.keys(priceEntry).length === 0) return null;
-      if (Object.keys(priceEntry[uoa]).length === 0) return null;
-      Object.entries(priceEntry[uoa]).forEach(([asset, price]) => {
+      if (Object.keys(priceEntry[uoa] || {}).length === 0) return null;
+      Object.entries(priceEntry[uoa] || {}).forEach(([asset, price]) => {
         if (!filter || smeq(filter, asset)) newFilteredPrices.push({ date, asset, price });
       });
     });
@@ -106,7 +111,11 @@ export const PriceManager = ({
         : e1.asset > e2.asset ? 1 : e1.asset < e2.asset ? -1
           : 0;
     }));
-  }, [pricesJson, filter]);
+  }, [uoa, pricesJson, filter]);
+
+  const handleUoaChange = (event: React.ChangeEvent<{ value: string }>) => {
+    setUoa(event.target.value);
+  };
 
   const handleAssetChange = (event: React.ChangeEvent<{ value: string }>) => {
     setNewPrice({ ...newPrice, asset: event.target.value });
@@ -129,10 +138,10 @@ export const PriceManager = ({
       setNewPriceError("Date is not in YYYY-MM-DD format");
     } else {
       setSyncing(true);
-      const prices = getPrices({ pricesJson, store });
+      const prices = getPrices({ pricesJson, store, unitOfAccount: uoa });
       try {
         const res = await axios.get(
-          `/api/prices/${newPrice.asset}/${newPrice.date}`,
+          `/api/prices/${uoa}/${newPrice.asset}/${newPrice.date}`,
           { timeout: 21000 },
         );
         if (res.status === 200 && res.data) {
@@ -153,14 +162,14 @@ export const PriceManager = ({
     try {
       setSyncing(true);
       console.log(`Syncing price data for ${transactions.length} transactions`);
-      const prices = getPrices({ pricesJson, store });
+      const prices = getPrices({ pricesJson, store, unitOfAccount: uoa });
       for (const tx of transactions) {
         const date = tx.date.split("T")[0];
         const assets = Array.from(new Set([...tx.transfers.map(t => t.assetType)]));
         for (const asset of assets) {
           try {
             if (!prices.getPrice(date, asset)) {
-              const res = await axios.get(`/api/prices/${asset}/${date}`, { timeout: 21000 });
+              const res = await axios.get(`/api/prices/${uoa}/${asset}/${date}`, { timeout: 21000 });
               if (res.status === 200 && res.data) {
                 prices.setPrice(date, asset, res.data);
               } else {
@@ -243,6 +252,25 @@ export const PriceManager = ({
                 </Grid>
               </Grid>
             </Grid>
+          </Card>
+        </Grid>
+
+        <Grid item>
+          <Card className={classes.root}>
+            <CardHeader title={"Set Unit of Account"} />
+            <FormControl className={classes.select}>
+              <InputLabel id="select-asset-type">AssetType</InputLabel>
+              <Select
+                labelId="select-uoa"
+                id="select-uoa"
+                value={uoa || ""}
+                onChange={handleUoaChange}
+              >
+                {Object.keys({ ...FiatAssets }).map(asset => (
+                  <MenuItem key={asset} value={asset}>{asset}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Card>
         </Grid>
 

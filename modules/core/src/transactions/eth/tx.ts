@@ -225,16 +225,15 @@ export const parseEthTx = (
 
   transaction.transfers = transaction.transfers
     .filter(transfer => addressBook.isSelf(transfer.to) || addressBook.isSelf(transfer.from))
-    // Make sure all addresses are lower-case
-    .map(transfer => ({ ...transfer, to: sm(transfer.to) }))
-    .map(transfer => ({ ...transfer, from: sm(transfer.from) }))
+    // Make sure addresses are lower-case
+    .map(transfer => ({ ...transfer, from: sm(transfer.from), to: sm(transfer.to) }))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);
 
   ////////////////////////////////////////
   // Set a user-friendly tx description
 
-  // Set default description
+  // Default description
   transaction.description = `${getName(tx.to)} made ${transaction.transfers.length} transfers`;
 
   if (transaction.transfers.length === 0) {

@@ -10,13 +10,13 @@ import {
 } from "./utils";
 
 const log = getLogger(env.logLevel).child({ module: "Prices" });
-export const prices = getPrices({ store: globalStore, logger: log });
 
 export const pricesRouter = express.Router();
 
-pricesRouter.get("/:asset/:date", async (req, res) => {
+pricesRouter.get("/:uoa/:asset/:date", async (req, res) => {
   const logAndSend = getLogAndSend(res);
-  const { asset, date } = req.params;
+  const { asset, date, uoa } = req.params;
+  const prices = getPrices({ store: globalStore, logger: log, unitOfAccount: uoa });
   try {
     const price = await prices.syncPrice(date, asset);
     logAndSend(price);
