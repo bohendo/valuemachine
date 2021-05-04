@@ -54,7 +54,7 @@ export const getPrices = ({
       case "BAT": return "basic-attention-token";
       case "BCH": return "bitcoin-cash";
       case "BTC": return "bitcoin";
-      case "CDAI": return "cdai";
+      case "CHERRY": return "cherry";
       case "COMP": return "compound-governance-token";
       case "DAI": return "dai";
       case "ETH": return "ethereum";
@@ -65,9 +65,13 @@ export const getPrices = ({
       case "SAI": return "sai";
       case "SNT": return "status";
       case "SNX": return "havven";
+      case "SNX-OLD": return "havven";
       case "UNI": return "uniswap";
+      case "USDC": return "usd-coin";
+      case "USDT": return "tether";
       case "WBTC": return "wrapped-bitcoin";
       case "WETH": return "weth";
+      case "YFI": return "yearn-finance";
       default: return undefined;
       }
     };

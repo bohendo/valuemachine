@@ -1,5 +1,6 @@
 import { getPrices } from "@finances/core";
 import { AltChainAssets, EthereumAssets, PricesJson, TransactionsJson } from "@finances/types";
+import { smeq } from "@finances/utils";
 import {
   Button,
   Card,
@@ -97,7 +98,7 @@ export const PriceManager = ({
       if (Object.keys(priceEntry).length === 0) return null;
       if (Object.keys(priceEntry[uoa]).length === 0) return null;
       Object.entries(priceEntry[uoa]).forEach(([asset, price]) => {
-        if (!filter || filter === asset) newFilteredPrices.push({ date, asset, price });
+        if (!filter || smeq(filter, asset)) newFilteredPrices.push({ date, asset, price });
       });
     });
     setFilteredPrices(newFilteredPrices.sort((e1: PriceRow, e2: PriceRow): number => {

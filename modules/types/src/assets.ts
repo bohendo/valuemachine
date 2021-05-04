@@ -21,7 +21,7 @@ export type AltChainAssets = (typeof AltChainAssets)[keyof typeof AltChainAssets
 
 export const EthereumAssets = enumify({
   BAT: "BAT",
-  cDAI: "cDAI",
+  CHERRY: "CHERRY",
   COMP: "COMP",
   DAI: "DAI",
   ETH: "ETH",
@@ -31,10 +31,15 @@ export const EthereumAssets = enumify({
   SAI: "SAI",
   SNT: "SNT",
   SNX: "SNX",
+  ["SNX-old"]: "SNX-old",
+  sUSD: "sUSD",
+  TORN: "TORN",
   UNI: "UNI",
+  USDC: "USDC",
   USDT: "USDT",
-  WETH: "WETH",
   WBTC: "WBTC",
+  WETH: "WETH",
+  YFI: "YFI",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type EthereumAssets = (typeof EthereumAssets)[keyof typeof EthereumAssets];

@@ -19,7 +19,7 @@ export const getAddressBook = (
 
   const tokens = [
     { name: "BAT", address: "0x0d8775f648430679a709e98d2b0cb6250d2887ef" },
-    { name: "CHERRY-old", address: "0x4ecb692b0fedecd7b486b4c99044392784877e8c" },
+    { name: "CHERRY", address: "0x4ecb692b0fedecd7b486b4c99044392784877e8c" },
     { name: "COMP", address: "0xc00e94cb662c3520282e6f5717214004a7f26888" },
     { name: "DAI", address: "0x6b175474e89094c44da98b954eedeac495271d0f" },
     { name: "GEN", address: "0x543ff227f64aa17ea132bf9886cab5db55dcaddf" },
