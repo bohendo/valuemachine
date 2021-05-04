@@ -15,15 +15,18 @@ import axios from "axios";
 export const getPrices = ({
   logger,
   store,
-  pricesJson
+  pricesJson,
+  unitOfAccount,
 }: {
   store: Store;
   logger?: Logger;
   pricesJson?: PricesJson;
+  unitOfAccount?: AssetTypes;
 }): Prices => {
   const json = pricesJson || store.load(StoreKeys.Prices);
   const save = (json: PricesJson): void => store.save(StoreKeys.Prices, json);
   const log = (logger || getLogger()).child({ module: "Prices" });
+  const uoa = unitOfAccount || AssetTypes.USD;
 
   log.info(`Loaded prices for ${
     Object.keys(json).length
@@ -71,7 +74,8 @@ export const getPrices = ({
     const coinId = getCoinId(asset);
     if (!coinId) throw new Error(`Asset "${asset}" is not supported`);
     if (!json[date]) json[date] = {};
-    if (!json[date][asset]) {
+    if (!json[date][uoa]) json[date][uoa] = {};
+    if (!json[date][uoa][asset]) {
       // eg https://api.coingecko.com/api/v3/coins/bitcoin/history?date=30-12-2017
       const coingeckoUrl = `https://api.coingecko.com/api/v3/coins/${
         coinId 
@@ -93,16 +97,19 @@ export const getPrices = ({
         }
       }
       try {
-        json[date][asset] = response.market_data.current_price.usd
-          .toString().replace(/(\.[0-9]{3})[0-9]+/, "$1");
-        log.info(`Success, 1 ${asset} was worth $${json[date][asset]} on ${date}`);
+        json[date][uoa][asset] =
+          response?.market_data?.current_price?.[uoa.toLowerCase()]
+            .toString().replace(/(\.[0-9]{3})[0-9]+/, "$1");
+        log.info(`Success, 1 ${asset} was worth ${
+          json[date][uoa][asset]
+        } ${uoa} on ${date}`);
       } catch (e) {
         log.warn(response);
         throw new Error(`Price is not available, maybe ${asset} didn't exist on ${date}`);
       }
       save(json);
     }
-    return json[date][asset];
+    return json[date][uoa][asset];
   };
 
   ////////////////////////////////////////
@@ -118,8 +125,8 @@ export const getPrices = ({
       : "INR" === asset
         ? "0.013" // TODO: get real INR price from somewhere?
         : ["ETH", "WETH"].includes(asset)
-          ? json[date]?.["ETH"]
-          : json[date]?.[asset];
+          ? json[date]?.[uoa]?.["ETH"]
+          : json[date]?.[uoa]?.[asset];
   };
 
   const setPrice = (
@@ -129,7 +136,8 @@ export const getPrices = ({
   ): void => {
     const date = formatDate(_date);
     if (!json[date]) json[date] = {};
-    json[date][asset] = price;
+    if (!json[date][uoa]) json[date][uoa] = {};
+    json[date][uoa][asset] = price;
     save(json);
   };
 

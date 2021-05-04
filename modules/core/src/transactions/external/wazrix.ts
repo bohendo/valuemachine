@@ -23,7 +23,7 @@ export const mergeWazrixTransactions = (
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
 
     const transaction = {
-      date: (new Date(date)).toISOString(),
+      date: (new Date(date.replace(" ", "T") + "+05:30")).toISOString(),
       description: "",
       sources: [TransactionSources.Wazrix],
       tags: [],

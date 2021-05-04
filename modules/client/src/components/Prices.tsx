@@ -77,6 +77,8 @@ export const PriceManager = ({
   const [filteredPrices, setFilteredPrices] = useState([] as PriceRow);
   const classes = useStyles();
 
+  const uoa = "USD";
+
   useEffect(() => {
     if (
       newPrice.date !== emptyPriceEntry.date ||
@@ -93,7 +95,8 @@ export const PriceManager = ({
     const newFilteredPrices = [] as PriceRow[];
     Object.entries(pricesJson).forEach(([date, priceEntry]) => {
       if (Object.keys(priceEntry).length === 0) return null;
-      Object.entries(priceEntry).forEach(([asset, price]) => {
+      if (Object.keys(priceEntry[uoa]).length === 0) return null;
+      Object.entries(priceEntry[uoa]).forEach(([asset, price]) => {
         if (!filter || filter === asset) newFilteredPrices.push({ date, asset, price });
       });
     });
@@ -293,7 +296,7 @@ export const PriceManager = ({
           <TableRow>
             <TableCell> Date </TableCell>
             <TableCell> Asset </TableCell>
-            <TableCell> Price </TableCell>
+            <TableCell> Price ({uoa}) </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -301,7 +304,7 @@ export const PriceManager = ({
             <TableRow key={i}>
               <TableCell> {row.date.replace("T", " ").replace("Z", "")} </TableCell>
               <TableCell> {row.asset} </TableCell>
-              <TableCell> ${row.price} </TableCell>
+              <TableCell> {row.price} </TableCell>
             </TableRow>
           ))}
         </TableBody>

@@ -2,8 +2,11 @@ import { DecimalString, TimestampString } from "./strings";
 import { enumify } from "./utils";
 
 export const FiatAssets = enumify({
-  USD: "USD",
+  CZK: "CZK",
+  EUR: "EUR",
+  GBP: "GBP",
   INR: "INR",
+  USD: "USD",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type FiatAssets = (typeof FiatAssets)[keyof typeof FiatAssets];
