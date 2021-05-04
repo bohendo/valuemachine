@@ -39,6 +39,11 @@ export const mergeTransaction = (
 ): Transaction[] => {
   let log = (logger || getLogger()).child({ module: "MergeTx" });
 
+  if (!newTx?.transfers?.length) {
+    log.warn(newTx, `Skipping tx without any transfers`);
+    return transactions;
+  }
+
   if (newTx.sources.length > 1) {
     log.warn(newTx, `Skipped new tx with ${newTx.sources.length} sources`);
     return transactions;

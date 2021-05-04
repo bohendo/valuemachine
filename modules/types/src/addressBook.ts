@@ -1,18 +1,32 @@
 import { Address, HexString } from "./strings";
 import { enumify } from "./utils";
 
-export const AddressCategories = enumify({
-  Compound: "Compound",
-  Cdp: "Cdp",
-  Defi: "Defi",
-  Erc20: "Erc20",
-  Exchange: "Exchange",
+export const ExternalCategories = enumify({
   Family: "Family",
   Friend: "Friend",
   Ignore: "Ignore",
   Private: "Private",
   Public: "Public",
   Self: "Self",
+});
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type ExternalCategories = (typeof ExternalCategories)[keyof typeof ExternalCategories];
+
+export const DeFiCategories = enumify({
+  Compound: "Compound",
+  Defi: "Defi",
+  Erc20: "Erc20",
+  Exchange: "Exchange",
+  MakerDAO: "MakerDAO",
+  Uniswap: "Uniswap",
+  Yearn: "Yearn",
+});
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type DeFiCategories = (typeof DeFiCategories)[keyof typeof DeFiCategories];
+
+export const AddressCategories = enumify({
+  ...DeFiCategories,
+  ...ExternalCategories,
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type AddressCategories = (typeof AddressCategories)[keyof typeof AddressCategories];

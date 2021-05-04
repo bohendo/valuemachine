@@ -50,7 +50,7 @@ export const parseEthTx = (
       category: TransferCategories.Transfer,
       fee: formatEther(BigNumber.from(tx.gasUsed).mul(tx.gasPrice)),
       from: sm(tx.from),
-      index: 0,
+      index: -2, // ensure the initiating transaction comes first in transfer list
       quantity: tx.value,
       to: sm(tx.to),
     }],

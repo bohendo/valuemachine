@@ -37,9 +37,11 @@ export const getAddressBook = (
     { name: "REP", address: "0xe94327d07fc17907b4db788e5adf2ed424addff6" },
     { name: "SAI", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
     { name: "SNT", address: "0x744d70fdbe2ba4cf95131626614a1763df805b9e" },
+    { name: "UNI", address: "0xd3d2e2692501a5c9ca623199d38826e513033a17" },
     { name: "USDC", address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" },
     { name: "USDT", address: "0xdac17f958d2ee523a2206206994597c13d831ec7" },
     { name: "WETH", address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
+    { name: "WBTC", address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599" },
   ].map(row => ({ ...row, category: AddressCategories.Erc20 })) as AddressBookJson;
 
   const exchanges = [
@@ -56,19 +58,18 @@ export const getAddressBook = (
     { name: "oasis-proxy", address: "0x793ebbe21607e4f04788f89c7a9b97320773ec59" },
     { name: "opensea", address: "0x7be8076f4ea4a4ad08075c2508e481d6c946d12b" },
     { name: "scd-mcd-migration", address: "0xc73e0383f3aff3215e6f04b0331d58cecf0ab849" },
-    { name: "tornado", address: "0xb541fc07bc7619fd4062a54d96268525cbc6ffef" },
-    { name: "tornado-mixer", address: "0x94a1b5cdb22c43faab4abeb5c74999895464ddaf" },
-    { name: "uniswap-cdai", address: "0x45a2fdfed7f7a2c791fb1bdf6075b83fad821dde" },
-    { name: "uniswap-dai", address: "0x2a1530c4c41db0b0b2bb646cb5eb1a67b7158667" },
-    { name: "uniswap-gen", address: "0x26cc0eab6cb650b0db4d0d0da8cb5bf69f4ad692" },
-    { name: "uniswap-mkr", address: "0x2c4bd064b998838076fa341a83d007fc2fa50957" },
-    { name: "uniswap-sai", address: "0x09cabec1ead1c0ba254b09efb3ee13841712be14" },
-    { name: "uniswap-snx", address: "0x3958b4ec427f8fa24eb60f42821760e88d485f7f" },
+    { name: "uniswap-v1-cdai", address: "0x45a2fdfed7f7a2c791fb1bdf6075b83fad821dde" },
+    { name: "uniswap-v1-dai", address: "0x2a1530c4c41db0b0b2bb646cb5eb1a67b7158667" },
+    { name: "uniswap-v1-gen", address: "0x26cc0eab6cb650b0db4d0d0da8cb5bf69f4ad692" },
+    { name: "uniswap-v1-mkr", address: "0x2c4bd064b998838076fa341a83d007fc2fa50957" },
+    { name: "uniswap-v1-sai", address: "0x09cabec1ead1c0ba254b09efb3ee13841712be14" },
+    { name: "uniswap-v1-snx", address: "0x3958b4ec427f8fa24eb60f42821760e88d485f7f" },
+    { name: "uniswap-eth-dai", address: "0xa478c2975ab1ea89e8196811f51a7b7ade33eb11" },
+    { name: "uniswap-eth-wbtc", address: "0xbb2b8038a1640196fbe3e38816f3e67cba72d940" },
     { name: "uniswap-router", address: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d" },
   ].map(row => ({ ...row, category: AddressCategories.Exchange })) as AddressBookJson;
 
   const defi = [
-    { name: "zk-money", address: "0x737901bea3eeb88459df9ef1be8ff3ae1b42a2ba" },
     { name: "compound", address: "0x3fda67f7583380e67ef93072294a7fac882fd7e7" },
     { name: "compound", address: "0xf859a1ad94bcf445a406b892ef0d3082f4174088" },
     { name: "compound-comptroller", address: "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b" },
@@ -86,6 +87,9 @@ export const getAddressBook = (
     { name: "scd-gem-pit", address: "0x69076e44a9c70a67d5b79d95795aba299083c275" },
     { name: "scd-tub", address: "0x448a5065aebb8e423f0896e6c5d525c040f59af3" },
     { name: "spankbank", address: "0x1ecb60873e495ddfa2a13a8f4140e490dd574e6f" },
+    { name: "tornado", address: "0xb541fc07bc7619fd4062a54d96268525cbc6ffef" },
+    { name: "tornado-mixer", address: "0x94a1b5cdb22c43faab4abeb5c74999895464ddaf" },
+    { name: "zk-money", address: "0x737901bea3eeb88459df9ef1be8ff3ae1b42a2ba" },
   ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
   const external = [
