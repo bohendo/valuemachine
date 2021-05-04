@@ -30,13 +30,14 @@ export const getAddressBook = (
 
   const tokens = [
     { name: "BAT", address: "0x0d8775f648430679a709e98d2b0cb6250d2887ef" },
+    { name: "COMP", address: "0xc00e94cb662c3520282e6f5717214004a7f26888" },
     { name: "DAI", address: "0x6b175474e89094c44da98b954eedeac495271d0f" },
     { name: "GEN", address: "0x543ff227f64aa17ea132bf9886cab5db55dcaddf" },
     { name: "MKR", address: "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2" },
     { name: "REP", address: "0xe94327d07fc17907b4db788e5adf2ed424addff6" },
     { name: "SAI", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
     { name: "SNT", address: "0x744d70fdbe2ba4cf95131626614a1763df805b9e" },
-    { name: "COMP", address: "0xc00e94cb662c3520282e6f5717214004a7f26888" },
+    { name: "USDC", address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" },
     { name: "USDT", address: "0xdac17f958d2ee523a2206206994597c13d831ec7" },
     { name: "WETH", address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
   ].map(row => ({ ...row, category: AddressCategories.Erc20 })) as AddressBookJson;
@@ -67,6 +68,7 @@ export const getAddressBook = (
   ].map(row => ({ ...row, category: AddressCategories.Exchange })) as AddressBookJson;
 
   const defi = [
+    { name: "zk-money", address: "0x737901bea3eeb88459df9ef1be8ff3ae1b42a2ba" },
     { name: "compound", address: "0x3fda67f7583380e67ef93072294a7fac882fd7e7" },
     { name: "compound", address: "0xf859a1ad94bcf445a406b892ef0d3082f4174088" },
     { name: "compound-comptroller", address: "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b" },

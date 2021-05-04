@@ -222,17 +222,6 @@ export const parseEthTx = (
     }
   }
 
-  if (transaction.transfers.length === 1) {
-    const { assetType, from, quantity, to } = transaction.transfers[0];
-    transaction.description = `${getName(from)} sent ${quantity} ${assetType} to ${
-      getName(to)
-    }`;
-  } else {
-    transaction.description = `Tx to ${getName(transaction.transfers[0].to)} made ${
-      transaction.transfers.length
-    } transfers`;
-  }
-
   transaction.transfers = transaction.transfers
     .filter(transfer => addressBook.isSelf(transfer.to) || addressBook.isSelf(transfer.from))
     // Make sure all addresses are lower-case
@@ -240,6 +229,22 @@ export const parseEthTx = (
     .map(transfer => ({ ...transfer, from: sm(transfer.from) }))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);
+
+  if (transaction.transfers.length === 0) {
+    log.warn(transaction, `Eth transaction has zero transfers`);
+    return transaction;
+
+  } else if (transaction.transfers.length === 1) {
+    const { assetType, from, quantity, to } = transaction.transfers[0];
+    transaction.description = `${getName(from)} sent ${quantity} ${assetType} to ${
+      getName(to)
+    }`;
+
+  } else {
+    transaction.description = `Tx to ${getName(transaction.transfers[0].to)} made ${
+      transaction.transfers.length
+    } transfers`;
+  }
 
   log.debug(transaction, `Parsed eth tx`);
   return transaction;
