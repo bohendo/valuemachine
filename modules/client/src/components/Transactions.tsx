@@ -8,11 +8,14 @@ import {
   Transfer,
 } from "@finances/types";
 import { getLogger, math, sm, smeq } from "@finances/utils";
+import Collapse from "@material-ui/core/Collapse";
+import IconButton from "@material-ui/core/IconButton";
 import {
   Button,
   CircularProgress,
   createStyles,
   Divider,
+  Paper,
   FormControl,
   InputLabel,
   makeStyles,
@@ -20,6 +23,7 @@ import {
   Select,
   Table,
   TableBody,
+  TableContainer,
   TableCell,
   TableHead,
   TableRow,
@@ -27,6 +31,10 @@ import {
   Theme,
   Typography,
 } from "@material-ui/core";
+import TablePagination from "@material-ui/core/TablePagination";
+import Box from "@material-ui/core/Box";
+import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import {
   Sync as SyncIcon,
   Delete as ClearIcon,
@@ -38,6 +46,11 @@ import axios from "axios";
 import { HexString } from "./HexString";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
+  row: {
+    "& > *": {
+      borderBottom: "unset",
+    },
+  },
   button: {
     margin: theme.spacing(3),
   },
@@ -51,6 +64,14 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(3),
     minWidth: 160,
   },
+  title: {
+    marginX: theme.spacing(3),
+    marginBottom: theme.spacing(0),
+    paddingTop: theme.spacing(3),
+  },
+  dateFilter: {
+    margin: theme.spacing(2),
+  },
 }));
 
 type DateInput = {
@@ -60,6 +81,81 @@ type DateInput = {
 };
 
 const emptyDateInput = { value: "", display: "", error: "" } as DateInput;
+
+const TransactionRow = ({
+  addressBook,
+  key,
+  tx,
+}: {
+  addressBook: AddressBook;
+  key: number;
+  tx: CapitalGainsEvent;
+}) => {
+  const [open, setOpen] = useState(false);
+  const classes = useStyles();
+
+  return (
+    <React.Fragment>
+
+      <TableRow key={key} className={classes.row}>
+        <TableCell> {tx.date.replace("T", " ")} </TableCell>
+        <TableCell> {tx.description} </TableCell>
+        <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
+        <TableCell onClick={() => setOpen(!open)}>
+          {`${tx.transfers.length} transfer${tx.transfers.length === 1 ? "" : "s"}`}
+          <IconButton aria-label="expand row" size="small" >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+      </TableRow>
+
+      <TableRow >
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box marginBottom={2} marginX={12}>
+              <Typography variant="h6" gutterBottom component="div">
+                Transfers
+              </Typography>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell><strong> Category </strong></TableCell>
+                    <TableCell><strong> Asset </strong></TableCell>
+                    <TableCell><strong> Amount </strong></TableCell>
+                    <TableCell><strong> From </strong></TableCell>
+                    <TableCell><strong> To </strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {tx.transfers.map((transfer: Transfer, i: number) => (
+                    <TableRow key={i}>
+                      <TableCell> {transfer.category} </TableCell>
+                      <TableCell> {transfer.assetType} </TableCell>
+                      <TableCell> {math.round(transfer.quantity, 4)} </TableCell>
+                      <TableCell>
+                        <HexString
+                          display={addressBook?.getName(transfer.from)}
+                          value={transfer.from}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <HexString
+                          display={addressBook?.getName(transfer.to)}
+                          value={transfer.to}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+
+    </React.Fragment>
+  );
+};
 
 export const TransactionManager = ({
   addressBook,
@@ -71,6 +167,8 @@ export const TransactionManager = ({
   setTransactions: (val: Transactions) => void;
 }) => {
   const [syncing, setSyncing] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(50);
 
   const [filterAccount, setFilterAccount] = useState("");
   const [filterEndDate, setFilterEndDate] = useState(emptyDateInput);
@@ -78,6 +176,7 @@ export const TransactionManager = ({
   const [filterStartDate, setFilterStartDate] = useState(emptyDateInput);
 
   const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
+
   const [importFileType, setImportFileType] = useState("");
   const classes = useStyles();
 
@@ -115,11 +214,24 @@ export const TransactionManager = ({
             : 0
       )
 
-      // Truncate (TODO: replace this w proper pagination)
-      .slice(0, 100)
+      // Truncate
+      
 
     );
-  }, [addressBook, transactions, filterAccount, filterSource, filterStartDate, filterEndDate]);
+  }, [
+    addressBook, transactions,
+    filterAccount, filterSource, filterStartDate, filterEndDate,
+    page, rowsPerPage,
+  ]);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
 
   const changeFilterSource = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterSource(event.target.value);
@@ -212,7 +324,7 @@ export const TransactionManager = ({
   };
 
   return (
-    <>
+    <React.Fragment>
 
       <Typography variant="h3">
         Transaction Explorer
@@ -280,7 +392,6 @@ export const TransactionManager = ({
         </Select>
       </FormControl>
 
-
       <FormControl className={classes.selectUoA}>
         <InputLabel id="select-filter-source">Filter Source</InputLabel>
         <Select
@@ -296,10 +407,9 @@ export const TransactionManager = ({
         </Select>
       </FormControl>
 
-
-
       <TextField
         autoComplete="off"
+        className={classes.dateFilter}
         error={!!filterStartDate.error}
         helperText={filterStartDate.error || "YYYY-MM-DD"}
         id="filter-start-date"
@@ -313,6 +423,7 @@ export const TransactionManager = ({
 
       <TextField
         autoComplete="off"
+        className={classes.dateFilter}
         error={!!filterEndDate.error}
         helperText={filterEndDate.error || "YYYY-MM-DD"}
         id="filter-end-date"
@@ -324,71 +435,55 @@ export const TransactionManager = ({
         variant="outlined"
       />
 
+      <Paper>
 
+        <Typography align="center" variant="h4" className={classes.title} component="div">
+          {filteredTxns.length === transactions.length
+            ? `${filteredTxns.length} Transactions`
+            : `${filteredTxns.length} of ${transactions.length} Transactions`
+          }
+        </Typography>
 
-      <Typography align="center" variant="h4">
-        {filteredTxns.length === transactions.length
-          ? `${filteredTxns.length} Transactions`
-          : `${filteredTxns.length} of ${transactions.length} Transactions`
-        }
-      </Typography>
+        <TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[25, 50, 100, 250]}
+            component="div"
+            count={filteredTxns.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+          />
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell><strong> Date </strong></TableCell>
+                <TableCell><strong> Description </strong></TableCell>
+                <TableCell><strong> Hash </strong></TableCell>
+                <TableCell><strong> Transfers </strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredTxns
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((tx: CapitalGainsEvent, i: number) => (
+                  <TransactionRow addressBook={addressBook} key={i} tx={tx} />
+                ))
+              }
+            </TableBody>
+          </Table>
+          <TablePagination
+            rowsPerPageOptions={[25, 50, 100, 250]}
+            component="div"
+            count={filteredTxns.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+          />
+        </TableContainer>
+      </Paper>
 
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell> Date </TableCell>
-            <TableCell> Description </TableCell>
-            <TableCell> Hash </TableCell>
-            <TableCell> Transfers </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredTxns.map((tx: CapitalGainsEvent, i: number) => (
-            <TableRow key={i}>
-              <TableCell> {tx.date.replace("T", " ")} </TableCell>
-              <TableCell> {tx.description} </TableCell>
-              <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
-
-              <TableCell>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell> Category </TableCell>
-                      <TableCell> Asset </TableCell>
-                      <TableCell> Amount </TableCell>
-                      <TableCell> From </TableCell>
-                      <TableCell> To </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {tx.transfers.map((transfer: Transfer, i: number) => (
-                      <TableRow key={i}>
-                        <TableCell> {transfer.category} </TableCell>
-                        <TableCell> {transfer.assetType} </TableCell>
-                        <TableCell> {math.round(transfer.quantity, 4)} </TableCell>
-                        <TableCell>
-                          <HexString
-                            display={addressBook?.getName(transfer.from)}
-                            value={transfer.from}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <HexString
-                            display={addressBook?.getName(transfer.to)}
-                            value={transfer.to}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableCell>
-
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-    </>
+    </React.Fragment>
   );
 };
