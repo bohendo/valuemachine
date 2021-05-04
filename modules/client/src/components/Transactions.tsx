@@ -7,7 +7,7 @@ import {
   TransactionSources,
   Transfer,
 } from "@finances/types";
-import { getLogger, math, sm } from "@finances/utils";
+import { getLogger, math, sm, smeq } from "@finances/utils";
 import {
   Button,
   CircularProgress,
@@ -23,6 +23,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TextField,
   Theme,
   Typography,
 } from "@material-ui/core";
@@ -50,8 +51,15 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(3),
     minWidth: 160,
   },
-
 }));
+
+type DateInput = {
+  value: string;
+  display: string;
+  error: string;
+};
+
+const emptyDateInput = { value: "", display: "", error: "" } as DateInput;
 
 export const TransactionManager = ({
   addressBook,
@@ -63,33 +71,82 @@ export const TransactionManager = ({
   setTransactions: (val: Transactions) => void;
 }) => {
   const [syncing, setSyncing] = useState(false);
+
+  const [filterAccount, setFilterAccount] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState(emptyDateInput);
   const [filterSource, setFilterSource] = useState("");
+  const [filterStartDate, setFilterStartDate] = useState(emptyDateInput);
+
   const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
   const [importFileType, setImportFileType] = useState("");
   const classes = useStyles();
 
   useEffect(() => {
+    if (filterEndDate.error || filterStartDate.error) return;
     setFilteredTxns(transactions
+
+      // Filter Start Date
       .filter(tx =>
+        !filterStartDate.value
+        || new Date(tx.date).getTime() >= new Date(filterStartDate.value).getTime()
+
+      // Filter End Date
+      ).filter(tx =>
+        !filterEndDate.value
+        || new Date(tx.date).getTime() <= new Date(filterEndDate.value).getTime()
+
+      // Filter account
+      ).filter(tx =>
+        !filterAccount
+        || tx.transfers.some(t => smeq(t.from, filterAccount))
+        || tx.transfers.some(t => smeq(t.to, filterAccount))
+
+      // Filter Source
+      ).filter(tx =>
         !filterSource
-        || (tx?.sources || []).map(s => s.toLowerCase()).includes(filterSource)
+        || (tx?.sources || []).map(sm).includes(sm(filterSource))
         || tx.transfers.some(t => sm(addressBook.getName(t.from)).startsWith(sm(filterSource)))
         || tx.transfers.some(t => sm(addressBook.getName(t.to)).startsWith(sm(filterSource)))
+
+      // Sort by date w most recent first
       ).sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
-        // Sort by date, newest first
         (e1.date > e2.date) ? -1
           : (e1.date < e2.date) ? 1
             : 0
       )
+
+      // Truncate (TODO: replace this w proper pagination)
+      .slice(0, 100)
+
     );
-  }, [addressBook, transactions, filterSource]);
+  }, [addressBook, transactions, filterAccount, filterSource, filterStartDate, filterEndDate]);
 
-  useEffect(() => {
-    console.log(`Filtered ${transactions.length} txns down to ${filteredTxns.length}`);
-  }, [transactions, filteredTxns]);
-
-  const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
+  const changeFilterSource = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterSource(event.target.value);
+  };
+
+  const changeFilterDate = (event: React.ChangeEvent<{ value: string }>) => {
+    const display = event.target.value;
+    let error, value;
+    if (display.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
+      value = display;
+      error = "";
+    } else if (display === "") {
+      value = "";
+      error = "";
+    } else {
+      value = "";
+      error = "Format date as YYYY-MM-DD";
+    }
+    if (event.target.name === "filter-start-date") {
+      setFilterStartDate({ display, value, error });
+    } else {
+      setFilterEndDate({ display, value, error });
+    }
+  };
+
+  const changeFilterAccount = (event: React.ChangeEvent<{ value: string }>) => {
+    setFilterAccount(event.target.value);
   };
 
   const handleFileTypeChange = (event: React.ChangeEvent<{ value: boolean }>) => {
@@ -98,13 +155,8 @@ export const TransactionManager = ({
   };
 
   const resetTxns = () => {
-    axios.delete("/api/transactions").then(res => {
-      console.log(`Successfully cleared tx data from server`, res);
-      setTransactions([]);
-    }).catch(e => {
-      console.log(`Unsuccessfully cleared tx data from server`, e);
-      setTransactions([]);
-    });
+    setTransactions([]);
+    console.log(`Successfully cleared tx data from localstorage`);
   };
 
   const syncTxns = () => {
@@ -186,8 +238,6 @@ export const TransactionManager = ({
         Clear Transactions
       </Button>
 
-      <Divider/>
-
       <FormControl className={classes.selectUoA}>
         <InputLabel id="select-file-type-label">File Type</InputLabel>
         <Select
@@ -216,12 +266,28 @@ export const TransactionManager = ({
       <Divider/>
 
       <FormControl className={classes.selectUoA}>
+        <InputLabel id="select-filter-source">Filter Account</InputLabel>
+        <Select
+          labelId="select-filter-source"
+          id="select-filter-source"
+          value={filterAccount || ""}
+          onChange={changeFilterAccount}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {Object.values(addressBook?.json || []).filter(account => account.category === "self").map(account => (
+            <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
+          ))};
+        </Select>
+      </FormControl>
+
+
+      <FormControl className={classes.selectUoA}>
         <InputLabel id="select-filter-source">Filter Source</InputLabel>
         <Select
           labelId="select-filter-source"
           id="select-filter-source"
           value={filterSource || ""}
-          onChange={handleFilterChange}
+          onChange={changeFilterSource}
         >
           <MenuItem value={""}>-</MenuItem>
           {Object.keys(TransactionSources).map(source => (
@@ -230,8 +296,41 @@ export const TransactionManager = ({
         </Select>
       </FormControl>
 
+
+
+      <TextField
+        autoComplete="off"
+        error={!!filterStartDate.error}
+        helperText={filterStartDate.error || "YYYY-MM-DD"}
+        id="filter-start-date"
+        label="Filter Start Date"
+        margin="normal"
+        name="filter-start-date"
+        onChange={changeFilterDate}
+        value={filterStartDate.display || ""}
+        variant="outlined"
+      />
+
+      <TextField
+        autoComplete="off"
+        error={!!filterEndDate.error}
+        helperText={filterEndDate.error || "YYYY-MM-DD"}
+        id="filter-end-date"
+        label="Filter End Date"
+        margin="normal"
+        name="filter-end-date"
+        onChange={changeFilterDate}
+        value={filterEndDate.display || ""}
+        variant="outlined"
+      />
+
+
+
       <Typography align="center" variant="h4">
-        {`${filteredTxns.length} Transactions`}
+        {filteredTxns.length === transactions.length
+          ? `${filteredTxns.length} Transactions`
+          : `${filteredTxns.length} of ${transactions.length} Transactions`
+        }
       </Typography>
 
       <Table>
@@ -244,7 +343,7 @@ export const TransactionManager = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {filteredTxns.slice(0, 750).map((tx: CapitalGainsEvent, i: number) => (
+          {filteredTxns.map((tx: CapitalGainsEvent, i: number) => (
             <TableRow key={i}>
               <TableCell> {tx.date.replace("T", " ")} </TableCell>
               <TableCell> {tx.description} </TableCell>
