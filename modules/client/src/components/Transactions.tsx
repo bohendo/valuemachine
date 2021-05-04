@@ -65,9 +65,14 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     minWidth: 160,
   },
   title: {
-    marginX: theme.spacing(3),
     marginBottom: theme.spacing(0),
-    paddingTop: theme.spacing(3),
+  },
+  container: {
+    maxWidth: "100%",
+  },
+  paper: {
+    minWidth: "402px",
+    padding: theme.spacing(2),
   },
   dateFilter: {
     margin: theme.spacing(2),
@@ -84,11 +89,9 @@ const emptyDateInput = { value: "", display: "", error: "" } as DateInput;
 
 const TransactionRow = ({
   addressBook,
-  key,
   tx,
 }: {
   addressBook: AddressBook;
-  key: number;
   tx: CapitalGainsEvent;
 }) => {
   const [open, setOpen] = useState(false);
@@ -97,7 +100,7 @@ const TransactionRow = ({
   return (
     <React.Fragment>
 
-      <TableRow key={key} className={classes.row}>
+      <TableRow className={classes.row}>
         <TableCell> {tx.date.replace("T", " ")} </TableCell>
         <TableCell> {tx.description} </TableCell>
         <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
@@ -109,10 +112,10 @@ const TransactionRow = ({
         </TableCell>
       </TableRow>
 
-      <TableRow >
+      <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box marginBottom={2} marginX={12}>
+            <Box mb={2} mx={4}>
               <Typography variant="h6" gutterBottom component="div">
                 Transfers
               </Typography>
@@ -168,7 +171,7 @@ export const TransactionManager = ({
 }) => {
   const [syncing, setSyncing] = useState(false);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(50);
+  const [rowsPerPage, setRowsPerPage] = React.useState(25);
 
   const [filterAccount, setFilterAccount] = useState("");
   const [filterEndDate, setFilterEndDate] = useState(emptyDateInput);
@@ -435,7 +438,7 @@ export const TransactionManager = ({
         variant="outlined"
       />
 
-      <Paper>
+      <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
           {filteredTxns.length === transactions.length
