@@ -19,7 +19,11 @@ const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
 const getUnique = (array: string[]): string[] =>
   Array.from(new Set([...array]));
 
-const datesAreClose = (ts1: TimestampString, ts2: TimestampString, wiggleRoom = `${1000 * 60 * 30}`) =>
+const datesAreClose = (
+  ts1: TimestampString,
+  ts2: TimestampString,
+  wiggleRoom = `${1000 * 60 * 30}`,
+) =>
   lt(
     diff(new Date(ts1).getTime().toString(), new Date(ts2).getTime().toString()),
     wiggleRoom,
