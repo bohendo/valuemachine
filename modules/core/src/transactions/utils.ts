@@ -139,8 +139,10 @@ export const mergeTransaction = (
     return transactions;
   }
 
+  const nNonzeroTransfers = newTx.transfers.filter(t => math.gt(t.quantity, "0")).length;
+
   // Mergable external txns can only contain one transfer
-  if (newTx.transfers.length > 1) {
+  if (nNonzeroTransfers > 1) {
     transactions.push(newTx);
     transactions.sort(sortTransactions);
     log.info(`Inserted new multi-transfer external tx: ${newTx.description}`);
@@ -151,7 +153,7 @@ export const mergeTransaction = (
   const mergeCandidateIndex = transactions.findIndex(tx =>
     // Existing tx only has one transfer
     // (transfer to external account in same tx as a contract interaction is not supported)
-    tx.transfers.length === 1
+    nNonzeroTransfers === 1
     // Existing tx hasn't had this external tx merged into it yet
     && !tx.sources.includes(source)
     // Existing tx has a transfer with same asset type & quantity as this new tx
