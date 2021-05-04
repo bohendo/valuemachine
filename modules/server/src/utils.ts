@@ -16,9 +16,9 @@ export const globalStore = getStore();
 
 export const getLogAndSend = (res) => (message, code = STATUS_SUCCESS): void => {
   if (code === STATUS_SUCCESS) {
-    log.info(`Success: ${message}`);
+    log.child({ module: "Send" }).info(`Success: ${message}`);
   } else {
-    log.warn(`Error ${code}: ${message}`);
+    log.child({ module: "Send" }).warn(`Error ${code}: ${message}`);
   }
   res.status(code).send(message);
   return;

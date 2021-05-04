@@ -99,8 +99,8 @@ process.on("SIGINT", logAndExit);
         await transactions.mergeDigitalOcean(fs.readFileSync(source, "utf8"));
       } else if (source.toLowerCase().includes("wyre")) {
         await transactions.mergeWyre(fs.readFileSync(source, "utf8"));
-      } else if (source.toLowerCase().includes("wazrix")) {
-        await transactions.mergeWazrix(fs.readFileSync(source, "utf8"));
+      } else if (source.toLowerCase().includes("wazirx")) {
+        await transactions.mergeWazirx(fs.readFileSync(source, "utf8"));
       } else {
         throw new Error(`I don't know how to parse transactions from ${source}`);
       }

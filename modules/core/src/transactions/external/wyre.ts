@@ -53,20 +53,20 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({
         assetType: sourceType,
         category: TransferCategories.SwapOut,
-        from: "sendwyre-account",
+        from: "wyre-account",
         quantity: sourceQuantity,
-        to: "sendwyre-exchange",
+        to: "wyre-exchange",
       });
       transaction.transfers.push({
         assetType: destType,
         category: TransferCategories.SwapIn,
-        from: "sendwyre-exchange",
+        from: "wyre-exchange",
         quantity: destQuantity,
-        to: "sendwyre-account",
+        to: "wyre-account",
       });
       transaction.description = sourceType === "USD"
-        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
-        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on sendwyre`;
+        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
+        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on wyre`;
 
     } else if (txType === "INCOMING" && destType === sourceType) {
       transaction.transfers.push({
@@ -74,9 +74,9 @@ export const mergeWyreTransactions = (
         category: TransferCategories.Transfer,
         from: "external-account",
         quantity: destQuantity,
-        to: "sendwyre-account",
+        to: "wyre-account",
       });
-      transaction.description = `Deposit ${destQuantity} ${destType} into sendwyre`;
+      transaction.description = `Deposit ${destQuantity} ${destType} into wyre`;
 
     } else if (txType === "INCOMING" && destType !== sourceType) {
       transaction.transfers.push({
@@ -84,54 +84,54 @@ export const mergeWyreTransactions = (
         category: TransferCategories.SwapOut,
         from: "external-account",
         quantity: sourceQuantity,
-        to: "sendwyre-exchange",
+        to: "wyre-exchange",
       });
       transaction.transfers.push({
         assetType: destType,
         category: TransferCategories.SwapIn,
-        from: "sendwyre-exchange",
+        from: "wyre-exchange",
         quantity: destQuantity,
-        to: "sendwyre-account",
+        to: "wyre-account",
       });
       transaction.description = sourceType === "USD"
-        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
-        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on sendwyre`;
+        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
+        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on wyre`;
 
     } else if (txType === "OUTGOING" && destType === sourceType) {
       transaction.transfers.push({
         assetType: destType,
         category: TransferCategories.Transfer,
-        from: "sendwyre-account",
+        from: "wyre-account",
         quantity: destQuantity,
         to: "external-account",
       });
-      transaction.description = `Withdraw ${destQuantity} ${destType} out of sendwyre`;
+      transaction.description = `Withdraw ${destQuantity} ${destType} out of wyre`;
 
     } else if (txType === "OUTGOING" && destType !== sourceType) {
       transaction.transfers.push({
         assetType: sourceType,
         category: TransferCategories.SwapOut,
-        from: "sendwyre-account",
+        from: "wyre-account",
         quantity: sourceQuantity,
-        to: "sendwyre-exchange",
+        to: "wyre-exchange",
       });
       transaction.transfers.push({
         assetType: destType,
         category: TransferCategories.SwapIn,
-        from: "sendwyre-exchange",
+        from: "wyre-exchange",
         quantity: destQuantity,
         to: "external-account",
       });
       transaction.description = sourceType === "USD"
-        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on sendwyre`
-        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on sendwyre`;
+        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
+        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on wyre`;
     }
 
     // Add fees paid to exchange
     const feeTransfer = {
       category: TransferCategories.Expense,
-      from: "sendwyre-account",
-      to: "sendwyre-exchange",
+      from: "wyre-account",
+      to: "wyre-exchange",
     };
     if (math.gt(usdFees, "0")) {
       transaction.transfers.push({ ...feeTransfer, assetType: "USD", quantity: usdFees });

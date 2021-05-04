@@ -19,7 +19,11 @@ const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
 const getUnique = (array: string[]): string[] =>
   Array.from(new Set([...array]));
 
-const datesAreClose = (ts1: TimestampString, ts2: TimestampString, wiggleRoom = `${1000 * 60 * 30}`) =>
+const datesAreClose = (
+  ts1: TimestampString,
+  ts2: TimestampString,
+  wiggleRoom = `${1000 * 60 * 30}`,
+) =>
   lt(
     diff(new Date(ts1).getTime().toString(), new Date(ts2).getTime().toString()),
     wiggleRoom,
@@ -39,17 +43,17 @@ export const mergeTransaction = (
 ): Transaction[] => {
   let log = (logger || getLogger()).child({ module: "MergeTx" });
 
+  if (!newTx?.transfers?.length) {
+    log.debug(newTx, `Skipped new tx with zero transfers`);
+    return transactions;
+  }
+
   if (newTx.sources.length > 1) {
     log.warn(newTx, `Skipped new tx with ${newTx.sources.length} sources`);
     return transactions;
   }
   const source = newTx.sources[0];
   log = logger.child({ module: `Merge${source}` });
-
-  if (newTx.transfers.length === 0) {
-    log.debug(newTx, `Skipped new tx with zero transfers`);
-    return transactions;
-  }
 
   // Merge simple eth txns
   if (source === TransactionSources.EthTx) {
@@ -120,7 +124,8 @@ export const mergeTransaction = (
       return transactions;
     }
 
-    log.info(`Skipping duplicate eth tx: ${newTx.description}`);
+    log.info(`Replaced duplicate eth tx: ${newTx.description}`);
+    transactions[index] = newTx;
     return transactions;
   }
 
@@ -128,14 +133,14 @@ export const mergeTransaction = (
   // Does the tx list already include this external tx?
   const dupCandidates = transactions
     .filter(tx => tx.sources.includes(source))
-    .filter(tx => datesAreClose(tx.date, newTx.date) && tx.description === newTx.description);
+    .filter(tx => datesAreClose(tx.date, newTx.date, "1") && tx.description === newTx.description);
   if (dupCandidates.length > 0) {
     log.info(`Skipping duplicate external tx: ${newTx.description}`);
     return transactions;
   }
 
   // Mergable external txns can only contain one transfer
-  if (newTx.transfers.length > 1) {
+  if (newTx.transfers.filter(t => math.gt(t.quantity, "0")).length > 1) {
     transactions.push(newTx);
     transactions.sort(sortTransactions);
     log.info(`Inserted new multi-transfer external tx: ${newTx.description}`);
@@ -146,7 +151,7 @@ export const mergeTransaction = (
   const mergeCandidateIndex = transactions.findIndex(tx =>
     // Existing tx only has one transfer
     // (transfer to external account in same tx as a contract interaction is not supported)
-    tx.transfers.length === 1
+    tx.transfers.filter(t => math.gt(t.quantity, "0")).length === 1
     // Existing tx hasn't had this external tx merged into it yet
     && !tx.sources.includes(source)
     // Existing tx has a transfer with same asset type & quantity as this new tx
@@ -184,6 +189,7 @@ export const mergeTransaction = (
       ...newTx.sources
     ]) as TransactionSources[],
     tags: getUnique([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
+    date: newTx.date,
   };
 
   log.info(

@@ -15,7 +15,7 @@ export const TransactionSources = enumify({
   EthTx: "EthTx",
   External: "External",
   Wyre: "Wyre",
-  Wazrix: "Wazrix",
+  Wazirx: "Wazirx",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
@@ -73,7 +73,7 @@ export type Transactions = {
   mergeCoinbase: (csvData: string) => Promise<void>;
   mergeDigitalOcean: (csvData: string) => Promise<void>;
   mergeTransactions: (transactions: TransactionsJson) => Promise<void>;
-  mergeWazrix: (csvData: string) => Promise<void>;
+  mergeWazirx: (csvData: string) => Promise<void>;
   mergeWyre: (csvData: string) => Promise<void>;
 };
 

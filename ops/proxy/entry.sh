@@ -5,16 +5,16 @@ null_ui=localhost
 EMAIL="${EMAIL:-noreply@gmail.com}"
 WEBSERVER_URL="${WEBSERVER_URL:-$null_ui}"
 
+echo "Proxy container launched in env:"
 echo "DOMAINNAME=$DOMAINNAME"
 echo "EMAIL=$EMAIL"
-echo "Proxy container launched in env:"
 echo "SERVER_URL=$SERVER_URL"
 echo "WEBSERVER_URL=$WEBSERVER_URL"
 
 # Provide a message indicating that we're still waiting for everything to wake up
 function loading_msg {
   while true # unix.stackexchange.com/a/37762
-  do echo -e "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\nWaiting for App to wake up" | nc -lk -p 80
+  do echo -e "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\nWaiting for app to wake up" | nc -lk -p 80
   done > /dev/null
 }
 loading_msg &

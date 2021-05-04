@@ -17,6 +17,7 @@ ${timestamp.replace("00Z", "30Z")}, Receive, ETH, ${value.substring(0, 10)},650.
 2018-01-03T01:00:00Z, Sell,            ETH,  1.0,                      600.00,                       600.00,      590.00,                       10.00,   Sold 1.0000 ETH for $590.00 USD
 `.replace(/, +/g, ",");
 
+// TODO: test ERC20 txns, make sure the zero-quantity transfer isn't preventing merge
 describe("Merge Coinbase", () => {
   let txns: Transactions;
   let chainData: ChainData;
@@ -71,7 +72,6 @@ describe("Merge Coinbase", () => {
     // Re-merging shouldn't insert any duplicates
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(3);
-
   });
 
 });

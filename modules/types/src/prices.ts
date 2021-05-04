@@ -2,7 +2,9 @@ import { AssetTypes } from "./assets";
 import { DecimalString, TimestampString } from "./strings";
 
 export type PriceList = {
-  [assetType: string]: DecimalString;
+  [unitOfAccount: string]: {
+    [assetType: string]: DecimalString; // UoA per asset
+  };
 };
 
 export type PricesJson = {
