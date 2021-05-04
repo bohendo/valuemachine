@@ -127,6 +127,7 @@ const TransactionRow = ({
                     <TableCell><strong> Amount </strong></TableCell>
                     <TableCell><strong> From </strong></TableCell>
                     <TableCell><strong> To </strong></TableCell>
+                    <TableCell><strong> Index </strong></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -147,6 +148,7 @@ const TransactionRow = ({
                           value={transfer.to}
                         />
                       </TableCell>
+                      <TableCell> {transfer.index} </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

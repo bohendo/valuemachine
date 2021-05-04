@@ -23,20 +23,20 @@ export const categorizeTransfer = (
   const transfer = JSON.parse(JSON.stringify(inputTransfer));
   const { isCategory, isSelf, getName } = addressBook;
 
-  if (isSelf(transfer.from)) {
-
-    // Doesn't matter if self-to-self
-    if (isSelf(transfer.to)) {
-      return transfer;
-    } else {
-      transfer.category = TransferCategories.Expense;
-    }
-
-  } else if (isSelf(transfer.to)) {
+  // Set defaults based on whether sender/recipient are self addresses
+  if (isSelf(transfer.from) && !isSelf(transfer.to)) {
+    transfer.category = TransferCategories.Expense;
+  } else if (!isSelf(transfer.from) && isSelf(transfer.to)) {
     transfer.category = TransferCategories.Income;
+  } else if (
+    (!isSelf(transfer.from) && !isSelf(transfer.to)) ||
+    (isSelf(transfer.from) && isSelf(transfer.to))
+  ) {
+    transfer.category = TransferCategories.Ignore;
+  }
 
-    // Doesn't matter if self-to-self or external-to-external
-  } else {
+  if (math.eq(transfer.quantity, "0") && math.gt(transfer.fee, "0")) {
+    transfer.category = TransferCategories.Expense;
     return transfer;
   }
 

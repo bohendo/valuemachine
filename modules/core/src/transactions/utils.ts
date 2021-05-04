@@ -40,7 +40,7 @@ export const mergeTransaction = (
   let log = (logger || getLogger()).child({ module: "MergeTx" });
 
   if (!newTx?.transfers?.length) {
-    log.warn(newTx, `Skipping tx without any transfers`);
+    log.debug(newTx, `Skipped new tx with zero transfers`);
     return transactions;
   }
 
@@ -50,11 +50,6 @@ export const mergeTransaction = (
   }
   const source = newTx.sources[0];
   log = logger.child({ module: `Merge${source}` });
-
-  if (newTx.transfers.length === 0) {
-    log.debug(newTx, `Skipped new tx with zero transfers`);
-    return transactions;
-  }
 
   // Merge simple eth txns
   if (source === TransactionSources.EthTx) {
@@ -125,7 +120,8 @@ export const mergeTransaction = (
       return transactions;
     }
 
-    log.info(`Skipping duplicate eth tx: ${newTx.description}`);
+    log.info(`Replaced duplicate eth tx: ${newTx.description}`);
+    transactions[index] = newTx;
     return transactions;
   }
 
