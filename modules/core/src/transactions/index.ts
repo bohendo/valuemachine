@@ -13,7 +13,7 @@ import { parseEthTx } from "./eth";
 import {
   mergeCoinbaseTransactions,
   mergeDigitalOceanTransactions,
-  mergeWazrixTransactions,
+  mergeWazirxTransactions,
   mergeWyreTransactions,
 } from "./external";
 import { mergeTransaction } from "./utils";
@@ -86,8 +86,8 @@ export const getTransactions = ({
     sync();
   };
 
-  const mergeWazrix = async (csvData: string): Promise<void> => {
-    mergeWazrixTransactions(json, csvData, log);
+  const mergeWazirx = async (csvData: string): Promise<void> => {
+    mergeWazirxTransactions(json, csvData, log);
     sync();
   };
 
@@ -109,7 +109,7 @@ export const getTransactions = ({
     mergeCoinbase,
     mergeDigitalOcean,
     mergeTransactions,
-    mergeWazrix,
+    mergeWazirx,
     mergeWyre,
   };
 

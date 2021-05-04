@@ -8,12 +8,12 @@ import csv from "csv-parse/lib/sync";
 
 import { mergeTransaction } from "../utils";
 
-export const mergeWazrixTransactions = (
+export const mergeWazirxTransactions = (
   oldTransactions: Transaction[],
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const log = logger.child({ module: "Wazrix" });
+  const log = logger.child({ module: "Wazirx" });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
@@ -23,9 +23,9 @@ export const mergeWazrixTransactions = (
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
 
     const transaction = {
-      date: (new Date(date.replace(" ", "T") + "+05:30")).toISOString(),
+      date: (new Date(date)).toISOString(),
       description: "",
-      sources: [TransactionSources.Wazrix],
+      sources: [TransactionSources.Wazirx],
       tags: [],
       transfers: [],
     } as Transaction;
@@ -48,20 +48,20 @@ export const mergeWazrixTransactions = (
           category: TransferCategories.Transfer,
           from: "external-account",
           quantity,
-          to: "wazrix-account",
+          to: "wazirx-account",
         });
-        transaction.description = `Deposit ${quantity} ${currency} in to wazrix`;
+        transaction.description = `Deposit ${quantity} ${currency} in to wazirx`;
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
           assetType: currency,
           category: TransferCategories.Transfer,
-          from: "wazrix-account",
+          from: "wazirx-account",
           quantity,
           to: "external-account",
         });
-        transaction.description = `Withdraw ${quantity} ${currency} out of wazrix`;
+        transaction.description = `Withdraw ${quantity} ${currency} out of wazirx`;
       } else {
-        log.warn(`Invalid Wazrix tx type: ${txType}`);
+        log.warn(`Invalid Wazirx tx type: ${txType}`);
         return null;
       }
 
@@ -81,47 +81,47 @@ export const mergeWazrixTransactions = (
       transaction.transfers.push({
         assetType: feeAsset,
         category: TransferCategories.Expense,
-        from: "wazrix-account",
+        from: "wazirx-account",
         quantity: feeAmount,
-        to: "wazrix-exchange",
+        to: "wazirx-exchange",
       });
 
       if (tradeType === "Buy") {
         transaction.transfers.push({
           assetType: "INR",
           category: TransferCategories.SwapOut,
-          from: "wazrix-account",
+          from: "wazirx-account",
           quantity: inrQuantity,
-          to: "wazrix-exchange",
+          to: "wazirx-exchange",
         });
         transaction.transfers.push({
           assetType: currency,
           category: TransferCategories.SwapIn,
-          from: "wazrix-exchange",
+          from: "wazirx-exchange",
           quantity: quantity,
-          to: "wazrix-account",
+          to: "wazirx-account",
         });
-        transaction.description = `Buy ${quantity} ${currency} for ${inrQuantity} INR on wazrix`;
+        transaction.description = `Buy ${quantity} ${currency} for ${inrQuantity} INR on wazirx`;
 
       } else if (tradeType === "Sell") {
         transaction.transfers.push({
           assetType: currency,
           category: TransferCategories.SwapOut,
-          from: "wazrix-account",
+          from: "wazirx-account",
           quantity: quantity,
-          to: "wazrix-exchange",
+          to: "wazirx-exchange",
         });
         transaction.transfers.push({
           assetType: "INR",
           category: TransferCategories.SwapIn,
-          from: "wazrix-exchange",
+          from: "wazirx-exchange",
           quantity: inrQuantity,
-          to: "wazrix-account",
+          to: "wazirx-account",
         });
-        transaction.description = `Sell ${quantity} ${currency} for ${inrQuantity} INR on wazrix`;
+        transaction.description = `Sell ${quantity} ${currency} for ${inrQuantity} INR on wazirx`;
 
       } else {
-        log.warn(`Invalid Wazrix trade type: ${tradeType}`);
+        log.warn(`Invalid Wazirx trade type: ${tradeType}`);
         return null;
       }
 

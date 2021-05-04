@@ -316,8 +316,8 @@ export const TransactionManager = ({
           txMethods.mergeCoinbase(importedFile);
         } else if (importFileType === "digitalocean") {
           txMethods.mergeDigitalOcean(importedFile);
-        } else if (importFileType === "wazrix") {
-          txMethods.mergeWazrix(importedFile);
+        } else if (importFileType === "wazirx") {
+          txMethods.mergeWazirx(importedFile);
         } else if (importFileType === "wyre") {
           txMethods.mergeWyre(importedFile);
         }
@@ -367,7 +367,7 @@ export const TransactionManager = ({
           <MenuItem value={"coinbase"}>Coinbase</MenuItem>
           <MenuItem value={"digitalocean"}>Digital Ocean</MenuItem>
           <MenuItem value={"wyre"}>Wyre</MenuItem>
-          <MenuItem value={"wazrix"}>Wazrix</MenuItem>
+          <MenuItem value={"wazirx"}>Wazirx</MenuItem>
         </Select>
       </FormControl>
 
