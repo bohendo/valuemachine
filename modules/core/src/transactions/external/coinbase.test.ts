@@ -71,7 +71,6 @@ describe("Merge Coinbase", () => {
     // Re-merging shouldn't insert any duplicates
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(3);
-
   });
 
 });

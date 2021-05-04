@@ -133,7 +133,7 @@ export const mergeTransaction = (
   // Does the tx list already include this external tx?
   const dupCandidates = transactions
     .filter(tx => tx.sources.includes(source))
-    .filter(tx => datesAreClose(tx.date, newTx.date, "0") && tx.description === newTx.description);
+    .filter(tx => datesAreClose(tx.date, newTx.date, "1") && tx.description === newTx.description);
   if (dupCandidates.length > 0) {
     log.info(`Skipping duplicate external tx: ${newTx.description}`);
     return transactions;
@@ -191,6 +191,7 @@ export const mergeTransaction = (
       ...newTx.sources
     ]) as TransactionSources[],
     tags: getUnique([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
+    date: newTx.date,
   };
 
   log.info(
