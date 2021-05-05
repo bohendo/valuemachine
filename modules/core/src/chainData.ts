@@ -322,7 +322,9 @@ export const getChainData = ({
       fetchHistory("txlistinternal", address),
       fetchHistory("tokentx", address),
     ]);
-    const history = txHistory.concat(callHistory, tokenHistory).map(tx => tx.hash).sort();
+    const history = Array.from(new Set(
+      txHistory.concat(callHistory, tokenHistory).map(tx => tx.hash)
+    )).sort();
     json.addresses[address].history = history;
     const oldEthCalls = JSON.parse(JSON.stringify(json.calls));
     for (const call of callHistory) {
