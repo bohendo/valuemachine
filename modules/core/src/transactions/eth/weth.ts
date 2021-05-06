@@ -49,22 +49,23 @@ export const parseWeth = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: tag });
+  const { getName } = addressBook;
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     if (address === weth.address) {
       const assetType = AssetTypes.WETH;
-      const event = Object.values(weth.events).find(e =>
-        weth.inerface.getEventTopic(e) === txLog.topics[0]
+      const event = Object.values(weth.interface.events).find(e =>
+        weth.interface.getEventTopic(e) === txLog.topics[0]
       );
-      log.info(`Found a ${tag} ${event.name} event`);
-      const args = weth.parseLog(txLog).args;
+      log.info(`Found ${tag} ${event.name} event`);
+      const args = weth.interface.parseLog(txLog).args;
       const amount = formatUnits(args.wad, chainData.getTokenData(address).decimals);
       const index = txLog.index || 1;
 
       if (event.name === "Deposit") {
         if (smeq(ethTx.to, weth.address)) {
-          tx.description = `Swapped ${amount} ETH for WETH`;
+          tx.description = `${getName(args.dst)} swapped ${amount} ETH for WETH`;
         }
         tx.tags = getUnique([tag, ...tx.tags]);
         tx.transfers.push({
@@ -75,11 +76,11 @@ export const parseWeth = (
           quantity: amount,
           to: args.dst,
         });
-        // TODO: update eth transfer category to swap out
+        tx.transfers[0].category = TransferCategories.SwapOut;
 
       } else if (event.name === "Withdrawal") {
         if (smeq(ethTx.to, weth.address)) {
-          tx.description = `Swapped ${amount} WETH for ETH`;
+          tx.description = `${getName(args.src)} swapped ${amount} WETH for ETH`;
         }
         tx.tags = getUnique([tag, ...tx.tags]);
         tx.transfers.push({
@@ -90,7 +91,11 @@ export const parseWeth = (
           quantity: amount,
           to: address,
         });
-        // TODO: update eth call category to swap in
+        const swapIn = tx.transfers.findIndex(t =>
+          t.assetType === AssetTypes.ETH && t.quantity === amount
+        );
+        tx.transfers[swapIn].category = TransferCategories.SwapIn;
+        tx.transfers[swapIn].index = index;
 
       } else if (event.name === "Transfer" || event.name === "Approve") {
         log.debug(`Skipping ${tag} event: ${event.name}`);

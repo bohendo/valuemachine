@@ -1,8 +1,8 @@
-import { keccak256 } from "@ethersproject/keccak256";
 import { BigNumber } from "@ethersproject/bignumber";
-import { AddressZero } from "@ethersproject/constants";
-import { encode } from "@ethersproject/rlp";
 import { hexlify } from "@ethersproject/bytes";
+import { AddressZero } from "@ethersproject/constants";
+import { keccak256 } from "@ethersproject/keccak256";
+import { encode } from "@ethersproject/rlp";
 import { formatEther } from "@ethersproject/units";
 import {
   AddressBook,
@@ -43,6 +43,7 @@ export const parseEthTx = (
 
   const { getName } = addressBook;
   const log = logger.child({ module: `Eth${ethTx.hash.substring(0, 8)}` });
+  // log.debug(ethTx, `Parsing eth tx`);
 
   if (!ethTx.logs) {
     throw new Error(`Missing logs for tx ${ethTx.hash}, did fetchChainData get interrupted?`);

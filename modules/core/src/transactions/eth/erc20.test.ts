@@ -49,7 +49,7 @@ describe("ERC20 & Internal Transfers", () => {
 
   it("should parse erc20 transfers", async () => {
     const chainData = getTestChainData([
-      getTestEthTx({ to: tokenAddress, logs: [
+      getTestEthTx({ from: sender, to: tokenAddress, logs: [
         {
           address: tokenAddress,
           data: quantityHex,
@@ -86,7 +86,7 @@ describe("ERC20 & Internal Transfers", () => {
 
   it("should parse erc20 approvals", async () => {
     const chainData = getTestChainData([
-      getTestEthTx({ to: tokenAddress, logs: [
+      getTestEthTx({ from: sender, to: tokenAddress, logs: [
         {
           address: tokenAddress,
           data: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",

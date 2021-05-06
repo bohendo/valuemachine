@@ -64,20 +64,16 @@ export const parseERC20 = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: tag });
-  const { getName, isToken } = addressBook;
+  const { getName } = addressBook;
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     const event = Object.values(iface.events).find(e =>
       Interface.getEventTopic(e) === txLog.topics[0]
     );
-    if (
-      erc20Addresses.some(a => smeq(a.address, address))
-      || !isToken(address)
-      || event
-    ) {
+    if (event) {
       const assetType = getName(address) as AssetTypes;
-      log.info(`Found an ERC20 ${event.name} event for ${assetType}`);
+      log.info(`Found ${tag} ${event.name} event for ${assetType}`);
 
       const args = iface.parseLog(txLog).args;
       const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
