@@ -34,13 +34,12 @@ export const makerAddresses = [
 
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
-export const getMakerParser = (
+export const parseMaker = (
+  tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
-): any => (
-  tx: Transaction,
 ): Transaction => {
   const log = logger.child({ module: tag });
 
@@ -70,5 +69,6 @@ export const getMakerParser = (
   }
   */
 
+  // log.debug(tx, `Done parsing ${tag}`);
   return tx;
 };

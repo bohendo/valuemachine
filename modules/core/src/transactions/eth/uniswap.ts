@@ -39,13 +39,12 @@ const addresses = [
 
 ].map(row => ({ ...row, category: AddressCategories.Uniswap })) as AddressBookJson;
 
-export const getUniswapParser = (
+export const parseUniswap = (
+  tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
-): any => (
-  tx: Transaction,
 ): Transaction => {
   const log = logger.child({ module: tag });
   const { getName } = addressBook;
@@ -102,5 +101,6 @@ export const getUniswapParser = (
     }
   }
 
+  // log.debug(tx, `Done parsing ${tag}`);
   return tx;
 };

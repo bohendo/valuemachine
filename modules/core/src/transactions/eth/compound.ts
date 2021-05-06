@@ -44,13 +44,12 @@ export const compoundAddresses = [
   ...compoundV2Tokens,
 ].map(row => ({ ...row, category: AddressCategories.Compound })) as AddressBookJson;
 
-export const getCompoundParser = (
+export const parseCompound = (
+  tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
-): any => (
-  tx: Transaction,
 ): Transaction => {
   const log = logger.child({ module: tag });
 
@@ -104,10 +103,12 @@ export const getCompoundParser = (
       }
     }
   }
+
   */
 
   log.info(`Compound tx detected!`);
   tx.tags = getUnique([tag, ...tx.tags]);
 
+  // log.debug(tx, `Done parsing ${tag}`);
   return tx;
 };

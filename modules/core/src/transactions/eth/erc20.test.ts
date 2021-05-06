@@ -18,7 +18,7 @@ import { getTransactions } from "../index";
 const log = testLogger.child({ module: "TestTransactions" });
 const toBytes32 = (decstr: string): string => hexZeroPad(parseUnits(decstr, 18), 32);
 
-describe("Parse erc20 & internal transfers", () => {
+describe("ERC20 & Internal Transfers", () => {
   let txns: Transactions;
   const quantity = "3.14";
   const quantityHex = toBytes32(quantity);
@@ -29,11 +29,11 @@ describe("Parse erc20 & internal transfers", () => {
     txns = getTransactions({ addressBook: testAddressBook, logger: log });
   });
 
-  it("should merge eth calls w/out generating dups", async () => {
+  it("should parse eth calls w/out generating dups", async () => {
     const chainData = getTestChainData([
       getTestEthTx({ from: sender, to: recipient, value: "0.2" })
     ], [
-      getTestEthCall({ to: sender, value: "0.4" }),
+      getTestEthCall({ from: recipient, to: sender, value: "0.4" }),
       getTestEthCall({ from: sender, to: recipient, value: "0.1" }),
       getTestEthCall({ from: sender, to: recipient, value: "0.1" }),
     ]);
@@ -47,24 +47,20 @@ describe("Parse erc20 & internal transfers", () => {
     expect(txns.json[0].transfers.length).to.equal(4);
   });
 
-  it("should parse erc20 transfers successfully", async () => {
+  it("should parse erc20 transfers", async () => {
     const chainData = getTestChainData([
-      getTestEthTx({
-        from: sender,
-        to: tokenAddress,
-        logs: [
-          {
-            address: tokenAddress,
-            data: quantityHex,
-            index: 100,
-            topics: [
-              "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-              `0x000000000000000000000000${sender.replace("0x", "")}`,
-              `0x000000000000000000000000${recipient.replace("0x", "")}`
-            ]
-          }
-        ],
-      })
+      getTestEthTx({ to: tokenAddress, logs: [
+        {
+          address: tokenAddress,
+          data: quantityHex,
+          index: 100,
+          topics: [
+            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+            `0x000000000000000000000000${sender.replace("0x", "")}`,
+            `0x000000000000000000000000${recipient.replace("0x", "")}`
+          ]
+        }
+      ] })
     ]);
     expect(txns.json.length).to.equal(0);
     txns.mergeChainData(chainData);
@@ -88,24 +84,20 @@ describe("Parse erc20 & internal transfers", () => {
     expect(txns.json[0].transfers.length).to.equal(2);
   });
 
-  it("should parse erc20 approvals successfully", async () => {
+  it("should parse erc20 approvals", async () => {
     const chainData = getTestChainData([
-      getTestEthTx({
-        from: sender,
-        to: tokenAddress,
-        logs: [
-          {
-            address: tokenAddress,
-            data: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-            index: 10,
-            topics: [
-              "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
-              `0x000000000000000000000000${sender.replace("0x", "")}`,
-              `0x000000000000000000000000${recipient.replace("0x", "")}`
-            ]
-          },
-        ],
-      })
+      getTestEthTx({ to: tokenAddress, logs: [
+        {
+          address: tokenAddress,
+          data: "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          index: 10,
+          topics: [
+            "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
+            `0x000000000000000000000000${sender.replace("0x", "")}`,
+            `0x000000000000000000000000${recipient.replace("0x", "")}`
+          ]
+        },
+      ] })
     ]);
     expect(txns.json.length).to.equal(0);
     txns.mergeChainData(chainData);
@@ -116,7 +108,6 @@ describe("Parse erc20 & internal transfers", () => {
     expect(tx.description.toLowerCase()).to.include("approve");
     expect(tx.description).to.include(testAddressBook.getName(tokenAddress));
     expect(tx.description).to.include(testAddressBook.getName(sender));
-
   });
 
 });

@@ -42,7 +42,7 @@ export const erc20Addresses = [
   { name: "ZRX", address: "0xe41d2489571d322189246dafa5ebde1f4699f498" },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
-const ERC20 = new Interface([
+const iface = new Interface([
   "event Approval(address indexed from, address indexed to, uint amount)",
   "event Transfer(address indexed from, address indexed to, uint amount)",
   "function allowance(address owner, address spender) view returns (uint)",
@@ -56,21 +56,19 @@ const ERC20 = new Interface([
   "function transferFrom(address sender, address recipient, uint amount)"
 ]);
 
-export const getERC20Parser = (
+export const parseERC20 = (
+  tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
-) => (
-  tx: Transaction,
 ): Transaction => {
   const log = logger.child({ module: tag });
   const { getName, isToken } = addressBook;
 
-
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
-    const event = Object.values(ERC20.events).find(e =>
+    const event = Object.values(iface.events).find(e =>
       Interface.getEventTopic(e) === txLog.topics[0]
     );
     if (
@@ -81,13 +79,15 @@ export const getERC20Parser = (
       const assetType = getName(address) as AssetTypes;
       log.info(`Found an ERC20 ${event.name} event for ${assetType}`);
 
-      const args = ERC20.parseLog(txLog).args;
+      const args = iface.parseLog(txLog).args;
       const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
 
       if (event.name === "Transfer") {
-        tx.description = `${getName(args.from)} transfered ${
-          round(amount, 4)
-        } ${assetType} to ${getName(args.to)}`;
+        if (smeq(ethTx.to, address)) {
+          tx.description = `${getName(args.from)} transfered ${
+            round(amount, 4)
+          } ${assetType} to ${getName(args.to)}`;
+        }
         tx.tags = getUnique([tag, ...tx.tags]);
         tx.transfers.push({
           assetType,
@@ -99,30 +99,21 @@ export const getERC20Parser = (
         });
 
       } else if (event.name === "Approval") {
-        const amt = round(amount, 2);
-        tx.description = `${getName(ethTx.from)} approved ${getName(args.to)} to spend ${
-          amt.length > 6 ? "a lot of" : amt
-        } ${assetType}`;
+        if (smeq(ethTx.to, address)) {
+          const amt = round(amount, 2);
+          tx.description = `${getName(args.from)} approved ${getName(args.to)} to spend ${
+            amt.length > 6 ? "a lot of" : amt
+          } ${assetType}`;
+        }
         tx.tags = getUnique([tag, ...tx.tags]);
 
       } else {
         log.warn(event, `Unknown ${assetType} event`);
       }
 
-      /* WETH
-      } else if (assetType === "WETH" && event.name === "Deposit") {
-        log.debug(`Deposit by ${args.dst} minted ${quantity} ${assetType}`);
-        transfer.category = TransferCategories.SwapIn;
-        tx.transfers.push({ ...transfer, from: address, to: args.dst });
-      } else if (assetType === "WETH" && event.name === "Withdrawal") {
-        log.debug(`Withdraw by ${args.dst} burnt ${quantity} ${assetType}`);
-        transfer.category = TransferCategories.SwapOut;
-        tx.transfers.push({ ...transfer, from: args.src, to: address });
-      }
-      */
-
     }
   }
 
+  // log.debug(tx, `Done parsing ${tag}`);
   return tx;
 };

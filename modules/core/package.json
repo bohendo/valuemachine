@@ -13,6 +13,7 @@
     "@ethersproject/abi": "5.1.2",
     "@ethersproject/bignumber": "5.1.1",
     "@ethersproject/bytes": "5.1.0",
+    "@ethersproject/contracts": "5.1.1",
     "@ethersproject/keccak256": "5.1.0",
     "@ethersproject/rlp": "5.1.0",
     "@ethersproject/units": "5.1.0",

@@ -16,20 +16,22 @@ import {
 } from "@finances/types";
 import { math, sm } from "@finances/utils";
 
-import { getERC20Parser } from "./erc20";
-import { getCompoundParser } from "./compound";
-import { getMakerParser } from "./maker";
-import { getUniswapParser } from "./uniswap";
-import { getYearnParser } from "./yearn";
+import { parseCompound } from "./compound";
+import { parseERC20 } from "./erc20";
+import { parseMaker } from "./maker";
+import { parseUniswap } from "./uniswap";
+import { parseWeth } from "./weth";
+import { parseYearn } from "./yearn";
 
 const { gt, eq, round } = math;
 
 const appParsers = [
-  getERC20Parser, // ERC20 should come first bc others depend on it
-  getCompoundParser,
-  getMakerParser,
-  getUniswapParser,
-  getYearnParser,
+  parseERC20, // ERC20 should come first bc others depend on it
+  parseWeth,
+  parseCompound,
+  parseMaker,
+  parseUniswap,
+  parseYearn,
 ];
 
 export const parseEthTx = (
@@ -125,9 +127,13 @@ export const parseEthTx = (
   }
 
   // Activate pipeline of app-specific parsers
-  appParsers
-    .map(parserGetter => parserGetter(ethTx, addressBook, chainData, log))
-    .forEach(parser => tx = parser(tx));
+  appParsers.forEach(parser => {
+    try {
+      tx = parser(tx, ethTx, addressBook, chainData, log);
+    } catch (e) {
+      log.warn(e);
+    }
+  });
 
   tx.transfers = tx.transfers
     // Filter out no-op transfers

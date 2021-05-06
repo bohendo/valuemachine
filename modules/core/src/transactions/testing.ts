@@ -23,7 +23,7 @@ export const testAddressBook = getAddressBook(
 export const getTestEthTx = (ethTx?: Partial<EthTransaction>): EthTransaction => ({
   block: 1,
   data: "0x",
-  from: AddressZero,
+  from: AddressOne,
   gasLimit: "0x100000",
   gasPrice: "0x100000",
   gasUsed: "0x1000",
@@ -41,7 +41,7 @@ export const getTestEthTx = (ethTx?: Partial<EthTransaction>): EthTransaction =>
 export const getTestEthCall = (ethCall?: Partial<EthCall>): EthCall => ({
   block: 1,
   contractAddress: AddressZero,
-  from: AddressZero,
+  from: AddressOne,
   hash: HashZero,
   timestamp: "2000-01-01T01:00:00.000Z",
   to: AddressZero,

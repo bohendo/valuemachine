@@ -21,7 +21,7 @@ const toBytes32 = (decstr: string): string => hexZeroPad(parseUnits(decstr, 18),
 
 const rm0x = (str: string): string => str.replace(/^0x/, "");
 
-describe("Parse compound txns", () => {
+describe.skip("Parse compound txns", () => {
   let txns: Transactions;
   const quantity = "3.14";
   const quantityHex = toBytes32(quantity);

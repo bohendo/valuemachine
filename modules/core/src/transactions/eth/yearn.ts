@@ -37,13 +37,12 @@ export const yearnAddresses = [
 
 ].map(row => ({ ...row, category: AddressCategories.Yearn })) as AddressBookJson;
 
-export const getYearnParser = (
+export const parseYearn = (
+  tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
-): any => (
-  tx: Transaction,
 ): Transaction => {
   const log = logger.child({ module: tag });
 
@@ -52,5 +51,6 @@ export const getYearnParser = (
     tx.tags = getUnique([tag, ...tx.tags]);
   }
 
+  // log.debug(tx, `Done parsing ${tag}`);
   return tx;
 };
