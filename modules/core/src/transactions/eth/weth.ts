@@ -58,6 +58,7 @@ export const parseWeth = (
       const event = Object.values(weth.interface.events).find(e =>
         weth.interface.getEventTopic(e) === txLog.topics[0]
       );
+      if (!event) continue;
       log.info(`Found ${tag} ${event.name} event`);
       const args = weth.interface.parseLog(txLog).args;
       const amount = formatUnits(args.wad, chainData.getTokenData(address).decimals);
@@ -79,9 +80,6 @@ export const parseWeth = (
         tx.transfers[0].category = TransferCategories.SwapOut;
 
       } else if (event.name === "Withdrawal") {
-        if (smeq(ethTx.to, weth.address)) {
-          tx.description = `${getName(args.src)} swapped ${amount} WETH for ETH`;
-        }
         tx.tags = getUnique([tag, ...tx.tags]);
         tx.transfers.push({
           assetType,
@@ -94,8 +92,15 @@ export const parseWeth = (
         const swapIn = tx.transfers.findIndex(t =>
           t.assetType === AssetTypes.ETH && t.quantity === amount
         );
-        tx.transfers[swapIn].category = TransferCategories.SwapIn;
-        tx.transfers[swapIn].index = index;
+        if (swapIn >= 0) {
+          tx.transfers[swapIn].category = TransferCategories.SwapIn;
+          tx.transfers[swapIn].index = index;
+          if (smeq(ethTx.to, weth.address)) {
+            tx.description = `${getName(args.src)} swapped ${amount} WETH for ETH`;
+          }
+        } else {
+          log.warn(ethTx, `Couldn't find an associated SwapIn eth call`);
+        }
 
       } else if (event.name === "Transfer" || event.name === "Approve") {
         log.debug(`Skipping ${tag} event: ${event.name}`);

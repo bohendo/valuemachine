@@ -1,3 +1,5 @@
+import { Contract } from "@ethersproject/contracts";
+import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressBookJson,
@@ -6,18 +8,20 @@ import {
   EthTransaction,
   Logger,
   Transaction,
+  Transfer,
+  TransferCategories,
 } from "@finances/types";
-import { smeq } from "@finances/utils";
+import { math, sm, smeq } from "@finances/utils";
 
 import { getUnique } from "../utils";
 
 const tag = "Compound";
 
-export const compoundV1 = [
+export const compoundV1Addresses = [
   { name: "compound-v1", address: "0x3fda67f7583380e67ef93072294a7fac882fd7e7" },
 ];
 
-export const compoundV2 = [
+export const compoundV2Addresses = [
   { name: "compound-maximillion", address: "0xf859a1ad94bcf445a406b892ef0d3082f4174088" },
   { name: "compound-comptroller", address: "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b" },
 ];
@@ -38,11 +42,23 @@ export const compoundV2Tokens = [
   { name: "cZRX", address: "0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407" },
 ];
 
+const compoundV1 = new Contract(compoundV1Addresses[0].address, [
+  "event BorrowRepaid(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
+  "event BorrowTaken(address account, address asset, uint256 amount, uint256 startingBalance, uint256 borrowAmountWithFee, uint256 newBalance)",
+  "event EquityWithdrawn(address asset, uint256 equityAvailableBefore, uint256 amount, address owner)",
+  "event SupplyReceived(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
+  "event SupplyWithdrawn(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
+]);
+
 export const compoundAddresses = [
-  ...compoundV1,
-  ...compoundV2,
+  ...compoundV1Addresses,
+  ...compoundV2Addresses,
   ...compoundV2Tokens,
 ].map(row => ({ ...row, category: AddressCategories.Compound })) as AddressBookJson;
+
+const associatedTransfer = (assetType: string, quantity: string) =>
+  (transfer: Transfer): boolean =>
+    smeq(transfer.assetType, assetType) && math.eq(transfer.quantity, quantity);
 
 export const parseCompound = (
   tx: Transaction,
@@ -52,62 +68,80 @@ export const parseCompound = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: tag });
+  const { getName } = addressBook;
 
-  // Move on if this ethTx doesn't interact with compound
-  if (
-    !compoundAddresses.some(a => smeq(a.address, ethTx.to))
-    && !compoundAddresses.some(a =>
-      tx.transfers.some(t => smeq(t.to, a.address) || smeq(t.from, a.address))
-    )
-  ) {
-    return tx;
-  }
-
-  /*
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
-    if (isToken(address)) {
-      const assetType = getName(address);
-      const iface = getTokenInterface(address);
-      const event = Object.values(iface.events).find(e => getEventTopic(e) === txLog.topics[0]);
-      // Compound V2 cETH
-      if (
-        addressBook.isCategory(AddressCategories.Compound)(address)
-      ) {
-        if (addressBook.getName(address) === "cETH") {
-          quantity = formatUnits(quantityStr, 18); // cETH decimals != ETH decimals
-          if (event.name === "Borrow") {
-            log.info(`Compound - Borrowed ${quantity} ETH`);
-            tx.transfers.push({
-              ...transfer,
-              assetType: "ETH",
-              category: TransferCategories.Borrow,
-              from: address,
-              to: args.borrower,
-              quantity,
-            });
-          } else if (addressBook.getName(address) === "cETH" && event.name === "RepayBorrow") {
-            log.info(`Compound - Repaid ${quantity} ETH`);
-            tx.transfers.push({
-              ...transfer,
-              assetType: "ETH",
-              category: TransferCategories.Repay,
-              from: args.borrower,
-              to: address,
-              quantity,
-            });
+
+    // Compound V1
+    if (smeq(address, compoundV1.address)) {
+      const event = Object.values(compoundV1.interface.events).find(e =>
+        compoundV1.interface.getEventTopic(e) === txLog.topics[0]
+      );
+      if (!event) continue;
+      log.info(`Found ${tag}V1 ${event.name} event`);
+      const args = compoundV1.interface.parseLog(txLog).args;
+      const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
+      const assetType = getName(args.asset);
+
+      if (event.name === "SupplyReceived") {
+        const deposit = tx.transfers.findIndex(associatedTransfer(assetType, amount));
+        if (deposit >= 0) {
+          tx.transfers[deposit].category = TransferCategories.Deposit;
+          tx.tags = getUnique([tag, ...tx.tags]);
+          if (smeq(ethTx.to, compoundV1.address)) {
+            tx.description = `${getName(ethTx.from)} deposited ${amount} ${assetType} into ${tag}V1`;
           }
         } else {
-          log.debug(`Compound - Ignoring ${event.name} ${quantity} ${assetType}`);
+          log.warn(tx.transfers, `Couldn't find an associated deposit transfer`);
         }
+
+      } else if (event.name === "SupplyWithdrawn") {
+        const withdraw = tx.transfers.findIndex(associatedTransfer(assetType, amount));
+        if (withdraw >= 0) {
+          tx.transfers[withdraw].category = TransferCategories.Withdraw;
+          tx.tags = getUnique([tag, ...tx.tags]);
+          if (smeq(ethTx.to, compoundV1.address)) {
+            tx.description = `${getName(ethTx.from)} withdrew ${amount} ${assetType} from ${tag}V1`;
+          }
+        } else {
+          log.warn(tx.transfers, `Couldn't find a transfer of ${amount} ${assetType}`);
+        }
+
+      } else if (event.name === "BorrowTaken") {
+        const borrow = tx.transfers.findIndex(associatedTransfer(assetType, amount));
+        if (borrow >= 0) {
+          tx.transfers[borrow].category = TransferCategories.Borrow;
+          tx.tags = getUnique([tag, ...tx.tags]);
+          if (smeq(ethTx.to, compoundV1.address)) {
+            tx.description = `${getName(ethTx.from)} borrowed ${amount} ${assetType} from ${tag}V1`;
+          }
+        } else {
+          log.warn(tx.transfers, `Couldn't find an associated borrow transfer`);
+        }
+
+      } else if (event.name === "BorrowRepaid") {
+        const repay = tx.transfers.findIndex(associatedTransfer(assetType, amount));
+        if (repay >= 0) {
+          tx.transfers[repay].category = TransferCategories.Repay;
+          tx.tags = getUnique([tag, ...tx.tags]);
+          if (smeq(ethTx.to, compoundV1.address)) {
+            tx.description = `${getName(ethTx.from)} repaid ${amount} ${assetType} to ${tag}V1`;
+          }
+        } else {
+          log.warn(tx.transfers, `Couldn't find an associated repay transfer`);
+        }
+
+      } else if (event.name === "EquityWithdrawn") {
+        log.debug(`Skipping ${event.name} event for ${tag}V1`);
       }
+
+    // Compound V2
+    } else if (compoundAddresses.some(a => smeq(address, a.address))) {
+      log.info(`Found ${tag}V2 event`);
     }
+
   }
-
-  */
-
-  log.info(`Compound tx detected!`);
-  tx.tags = getUnique([tag, ...tx.tags]);
 
   // log.debug(tx, `Done parsing ${tag}`);
   return tx;

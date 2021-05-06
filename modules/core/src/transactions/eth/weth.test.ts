@@ -36,6 +36,7 @@ describe("Weth", () => {
       getTestEthTx({ from: sender, to: wethAddress, value: quantity, logs: [{
         address: wethAddress,
         data: quantityHex,
+        index: 5,
         topics: [
           "0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c",
           `0x000000000000000000000000${sender.replace("0x", "")}`,
