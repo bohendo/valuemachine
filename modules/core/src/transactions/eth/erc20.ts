@@ -37,14 +37,17 @@ export const getERC20Parser = (
   chainData: ChainData,
   logger: Logger,
 ): any => (
-  [ethTx, tx]: IntermediateEthTx, 
+  { ethTx, tx }: IntermediateEthTx, 
 ): IntermediateEthTx => {
   const log = logger.child({ module: tag });
 
-  if (erc20Addresses.some(a => smeq(a.address, ethTx.to))) {
+  if (
+    erc20Addresses.some(a => smeq(a.address, ethTx.to))
+    || addressBook.isToken(ethTx.to)
+  ) {
     log.info(`ERC20 tx detected!`);
     tx.tags = getUnique([tag, ...tx.tags]);
   }
 
-  return [ethTx, tx];
+  return { ethTx, tx };
 };

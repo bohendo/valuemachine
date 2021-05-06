@@ -11,17 +11,17 @@ import { getLogger, math } from "@finances/utils";
 
 const { diff, lt } = math;
 
-export type IntermediateEthTx = [
-  EthTransaction,
-  Transaction,
-];
+export type IntermediateEthTx = {
+  ethTx: EthTransaction,
+  tx: Transaction,
+};
 
 const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
   new Date(tx1.date).getTime() === new Date(tx2.date).getTime()
     ? tx1.index - tx2.index
     : new Date(tx1.date).getTime() - new Date(tx2.date).getTime();
 
-const getUnique = (array: string[]): string[] =>
+export const getUnique = (array: string[]): string[] =>
   Array.from(new Set([...array]));
 
 const datesAreClose = (

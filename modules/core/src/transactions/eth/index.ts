@@ -25,53 +25,53 @@ const { hexlify, formatEther, formatUnits, keccak256, Interface: { getEventTopic
 const { AddressZero } = constants;
 
 export const parseEthTx = (
-  tx: EthTransaction,
+  ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
 
   const { getName, isToken } = addressBook;
-  const log = logger.child({ module: `Eth${tx.hash.substring(0, 8)}` });
+  const log = logger.child({ module: `Eth${ethTx.hash.substring(0, 8)}` });
 
-  if (!tx.logs) {
-    throw new Error(`Missing logs for tx ${tx.hash}, did fetchChainData get interrupted?`);
+  if (!ethTx.logs) {
+    throw new Error(`Missing logs for tx ${ethTx.hash}, did fetchChainData get interrupted?`);
   }
 
-  if (tx.to === null) {
+  if (ethTx.to === null) {
     // derived from: https://ethereum.stackexchange.com/a/46960
-    tx.to = `0x${keccak256(RLP.encode([tx.from, hexlify(tx.nonce)])).substring(26)}`;
-    log.debug(`new contract deployed to ${tx.to}`);
+    ethTx.to = `0x${keccak256(RLP.encode([ethTx.from, hexlify(ethTx.nonce)])).substring(26)}`;
+    log.debug(`new contract deployed to ${ethTx.to}`);
   }
 
-  let transaction = {
-    date: (new Date(tx.timestamp)).toISOString(),
-    hash: tx.hash,
+  let tx = {
+    date: (new Date(ethTx.timestamp)).toISOString(),
+    hash: ethTx.hash,
     sources: [TransactionSources.EthTx],
     tags: [],
     transfers: [{
       assetType: "ETH",
       category: TransferCategories.Transfer,
-      fee: formatEther(BigNumber.from(tx.gasUsed).mul(tx.gasPrice)),
-      from: sm(tx.from),
-      index: -1, // ensure the initiating transaction comes first in transfer list
-      quantity: tx.value,
-      to: sm(tx.to),
+      fee: formatEther(BigNumber.from(ethTx.gasUsed).mul(ethTx.gasPrice)),
+      from: sm(ethTx.from),
+      index: -1, // ensure the initiating tx comes first in transfer list
+      quantity: ethTx.value,
+      to: sm(ethTx.to),
     }],
   } as Transaction;
 
-  if (tx.status !== 1) {
-    transaction.transfers[0].quantity = "0";
-    transaction.description = `${getName(tx.from)} sent failed tx`;
-    if (!addressBook.isSelf(transaction.transfers[0].from)) {
-      transaction.transfers = [];
+  if (ethTx.status !== 1) {
+    tx.transfers[0].quantity = "0";
+    tx.description = `${getName(ethTx.from)} sent failed tx`;
+    if (!addressBook.isSelf(tx.transfers[0].from)) {
+      tx.transfers = [];
     }
-    log.debug(transaction, `Parsed a reverted eth tx`);
-    return transaction;
+    log.debug(tx, `Parsed a reverted eth tx`);
+    return tx;
   }
 
   // Add internal eth calls to the transfers array
-  chainData.getEthCalls((call: EthCall) => call.hash === tx.hash).forEach((call: EthCall) => {
+  chainData.getEthCalls((call: EthCall) => call.hash === ethTx.hash).forEach((call: EthCall) => {
     if (
       // Ignore non-eth transfers, we'll get those by parsing logs instead
       call.contractAddress === constants.AddressZero
@@ -80,26 +80,21 @@ export const parseEthTx = (
       // Calls with zero value don't matter
       && math.gt(call.value, "0")
     ) {
-      transaction.transfers.push(
-        {
-          assetType: "ETH",
-          category: TransferCategories.Transfer,
-          // Internal eth transfers have no index, put incoming transfers first & outgoing last
-          // This makes underflows less likely during VM processesing
-          index: addressBook.isSelf(call.to) ? 0 : 10000,
-          from: sm(call.from),
-          quantity: call.value,
-          to: sm(call.to),
-        },
-        [],
-        call.to,
-        addressBook,
-      );
+      tx.transfers.push({
+        assetType: "ETH",
+        category: TransferCategories.Transfer,
+        // Internal eth transfers have no index, put incoming transfers first & outgoing last
+        // This makes underflows less likely during VM processesing
+        index: addressBook.isSelf(call.to) ? 0 : 10000,
+        from: sm(call.from),
+        quantity: call.value,
+        to: sm(call.to),
+      });
     }
   });
 
   // Sort transfers so that eth calls are first and incoming are before outgoing ones
-  transaction.transfers.sort((t1: Transfer, t2: Transfer): number => {
+  tx.transfers.sort((t1: Transfer, t2: Transfer): number => {
     if (t1.index !== t2.index) {
       return t2.index - t1.index;
     } else if (!addressBook.isSelf(t1.from) && addressBook.isSelf(t2.from)) {
@@ -111,25 +106,24 @@ export const parseEthTx = (
     }
   });
 
-  const parsers = [
+  let prevTx = { ethTx, tx };
+  for (const parser of [
     getERC20Parser,
     getCompoundParser,
     getMakerParser,
     getUniswapParser,
     getYearnParser,
-  ].map(parserGetter => parserGetter(addressBook, chainData, log));
-
-  let prevTx = [tx, transaction];
-  for (const parser of parsers) {
+  ].map(parserGetter => parserGetter(addressBook, chainData, log))) {
     prevTx = parser(prevTx);
   }
-  [tx, transaction] = prevTx;
+  ethTx = prevTx.ethTx;
+  tx = prevTx.tx;
 
-  for (const txLog of tx.logs) {
+  for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     if (isToken(address)) {
 
-      const assetType = getName(address).toUpperCase();
+      const assetType = getName(address);
 
       const iface = getTokenInterface(address);
 
@@ -145,7 +139,12 @@ export const parseEthTx = (
         continue;
       }
 
-      const args = iface.parseLog(txLog).args;
+      let args;
+      try {
+        args = iface.parseLog(txLog).args;
+      } catch (e) {
+        log.warn(`Oh no: ${e.message}`);
+      }
       const quantityStr = args.amount
         || args.borrowAmount
         || args.burnAmount
@@ -170,27 +169,27 @@ export const parseEthTx = (
         transfer.from = args.from || args.src;
         transfer.to = args.to || args.dst;
         transfer.category = TransferCategories.Transfer;
-        transaction.transfers.push(transfer);
+        tx.transfers.push(transfer);
 
       // WETH
       } else if (assetType === "WETH" && event.name === "Deposit") {
         log.debug(`Deposit by ${args.dst} minted ${quantity} ${assetType}`);
         transfer.category = TransferCategories.SwapIn;
-        transaction.transfers.push({ ...transfer, from: address, to: args.dst });
+        tx.transfers.push({ ...transfer, from: address, to: args.dst });
       } else if (assetType === "WETH" && event.name === "Withdrawal") {
         log.debug(`Withdraw by ${args.dst} burnt ${quantity} ${assetType}`);
         transfer.category = TransferCategories.SwapOut;
-        transaction.transfers.push({ ...transfer, from: args.src, to: address });
+        tx.transfers.push({ ...transfer, from: args.src, to: address });
 
       // MakerDAO SAI
       } else if (assetType === "SAI" && event.name === "Mint") {
         log.debug(`Minted ${quantity} ${assetType}`);
         transfer.category = TransferCategories.Borrow;
-        transaction.transfers.push({ ...transfer, from: AddressZero, to: args.guy });
+        tx.transfers.push({ ...transfer, from: AddressZero, to: args.guy });
       } else if (assetType === "SAI" && event.name === "Burn") {
         log.debug(`Burnt ${quantity} ${assetType}`);
         transfer.category = TransferCategories.Repay;
-        transaction.transfers.push({ ...transfer, from: args.guy, to: AddressZero });
+        tx.transfers.push({ ...transfer, from: args.guy, to: AddressZero });
 
       // Compound V2 cETH
       } else if (
@@ -200,7 +199,7 @@ export const parseEthTx = (
           quantity = formatUnits(quantityStr, 18); // cETH decimals != ETH decimals
           if (event.name === "Borrow") {
             log.info(`Compound - Borrowed ${quantity} ETH`);
-            transaction.transfers.push({
+            tx.transfers.push({
               ...transfer,
               assetType: "ETH",
               category: TransferCategories.Borrow,
@@ -210,7 +209,7 @@ export const parseEthTx = (
             });
           } else if (addressBook.getName(address) === "cETH" && event.name === "RepayBorrow") {
             log.info(`Compound - Repaid ${quantity} ETH`);
-            transaction.transfers.push({
+            tx.transfers.push({
               ...transfer,
               assetType: "ETH",
               category: TransferCategories.Repay,
@@ -229,7 +228,7 @@ export const parseEthTx = (
     }
   }
 
-  transaction.transfers = transaction.transfers
+  tx.transfers = tx.transfers
     .filter(transfer => addressBook.isSelf(transfer.to) || addressBook.isSelf(transfer.from))
     // Make sure addresses are lower-case
     .map(transfer => ({ ...transfer, from: sm(transfer.from), to: sm(transfer.to) }))
@@ -240,88 +239,88 @@ export const parseEthTx = (
   // Set a user-friendly tx description
 
   // Default description
-  transaction.description = `${getName(tx.to)} made ${transaction.transfers.length} transfers`;
+  tx.description = `${getName(ethTx.to)} made ${tx.transfers.length} transfers`;
 
-  if (transaction.transfers.length === 0) {
-    log.warn(transaction, `Eth transaction has zero transfers`);
-    return transaction;
+  if (tx.transfers.length === 0) {
+    log.warn(tx, `Eth transaction has zero transfers`);
+    return tx;
 
-  } else if (transaction.transfers.length === 1) {
-    const transfer = transaction.transfers[0];
+  } else if (tx.transfers.length === 1) {
+    const transfer = tx.transfers[0];
     // ERC20 approval
-    if (tx.data.startsWith("0x095ea7b3")) {
-      transaction.description = `${getName(transfer.from)} approved spending for ${
+    if (ethTx.data.startsWith("0x095ea7b3")) {
+      tx.description = `${getName(transfer.from)} approved spending for ${
         getName(transfer.to)
       }`;
     } else if (!math.eq("0", transfer.quantity)) {
-      transaction.description = `${getName(transfer.from)} transfered ${
+      tx.description = `${getName(transfer.from)} transfered ${
         math.round(transfer.quantity, 4)
       } ${transfer.assetType} to ${getName(transfer.to)}`;
-    } else if (tx.data.length > 2) {
-      transaction.description = `${getName(transfer.from)} called a method on ${
+    } else if (ethTx.data.length > 2) {
+      tx.description = `${getName(transfer.from)} called a method on ${
         getName(transfer.to)
       }`;
     } else {
-      transaction.description = `${getName(transfer.from)} did nothing`;
+      tx.description = `${getName(transfer.from)} did nothing`;
     }
 
   // ERC20 transfer
   } else if (
-    transaction.transfers.length === 2 &&
-    (tx.data.startsWith("0xa9059cbb") || math.eq("0", transaction.transfers[0].quantity))
+    tx.transfers.length === 2 &&
+    (ethTx.data.startsWith("0xa9059cbb") || math.eq("0", tx.transfers[0].quantity))
   ) {
-    const transfer = transaction.transfers[1];
-    transaction.description = `${getName(transfer.from)} transfered ${
+    const transfer = tx.transfers[1];
+    tx.description = `${getName(transfer.from)} transfered ${
       math.round(transfer.quantity, 4)
     } ${transfer.assetType} to ${getName(transfer.to)}`;
 
   // Uniswap swaps & deposit/withdraw liquidity
   } else if (
-    getName(tx.to).startsWith("uniswap-router")
+    getName(ethTx.to).startsWith("uniswap-router")
   ) {
-    if (transaction.transfers.length === 3) {
+    if (tx.transfers.length === 3) {
       if (
-        addressBook.isSelf(transaction.transfers[1].to) &&
-        !addressBook.isSelf(transaction.transfers[2].to)
+        addressBook.isSelf(tx.transfers[1].to) &&
+        !addressBook.isSelf(tx.transfers[2].to)
       ) {
-        transaction.description = `${getName(tx.from)} swapped ${
-          math.round(transaction.transfers[2].quantity, 4)
-        } ${transaction.transfers[2].assetType} for ${
-          math.round(transaction.transfers[1].quantity, 4)
-        } ${transaction.transfers[1].assetType}`;
+        tx.description = `${getName(ethTx.from)} swapped ${
+          math.round(tx.transfers[2].quantity, 4)
+        } ${tx.transfers[2].assetType} for ${
+          math.round(tx.transfers[1].quantity, 4)
+        } ${tx.transfers[1].assetType}`;
       } else if (
-        !addressBook.isSelf(transaction.transfers[1].to) &&
-        addressBook.isSelf(transaction.transfers[2].to)
+        !addressBook.isSelf(tx.transfers[1].to) &&
+        addressBook.isSelf(tx.transfers[2].to)
       ) {
-        transaction.description = `${getName(tx.from)} swapped ${
-          math.round(transaction.transfers[1].quantity, 4)
-        } ${transaction.transfers[1].assetType} for ${
-          math.round(transaction.transfers[2].quantity, 4)
-        } ${transaction.transfers[2].assetType}`;
+        tx.description = `${getName(ethTx.from)} swapped ${
+          math.round(tx.transfers[1].quantity, 4)
+        } ${tx.transfers[1].assetType} for ${
+          math.round(tx.transfers[2].quantity, 4)
+        } ${tx.transfers[2].assetType}`;
       }
-    } else if (transaction.transfers.length === 4) {
+    } else if (tx.transfers.length === 4) {
       if (
-        addressBook.isSelf(transaction.transfers[1].to) &&
-        addressBook.isSelf(transaction.transfers[2].to)
+        addressBook.isSelf(tx.transfers[1].to) &&
+        addressBook.isSelf(tx.transfers[2].to)
       ) {
-        transaction.description = `${getName(tx.from)} withdrew ${
-          math.round(transaction.transfers[1].quantity, 4)
-        } ${transaction.transfers[1].assetType} and ${
-          math.round(transaction.transfers[2].quantity, 4)
-        } ${transaction.transfers[2].assetType} from Uniswap`;
+        tx.description = `${getName(ethTx.from)} withdrew ${
+          math.round(tx.transfers[1].quantity, 4)
+        } ${tx.transfers[1].assetType} and ${
+          math.round(tx.transfers[2].quantity, 4)
+        } ${tx.transfers[2].assetType} from Uniswap`;
       } else if (
-        !addressBook.isSelf(transaction.transfers[1].to) &&
-        !addressBook.isSelf(transaction.transfers[2].to)
+        !addressBook.isSelf(tx.transfers[1].to) &&
+        !addressBook.isSelf(tx.transfers[2].to)
       ) {
-        transaction.description = `${getName(tx.from)} deposited ${
-          math.round(transaction.transfers[1].quantity, 4)
-        } ${transaction.transfers[1].assetType} and ${
-          math.round(transaction.transfers[2].quantity, 4)
-        } ${transaction.transfers[2].assetType} into Uniswap`;
+        tx.description = `${getName(ethTx.from)} deposited ${
+          math.round(tx.transfers[1].quantity, 4)
+        } ${tx.transfers[1].assetType} and ${
+          math.round(tx.transfers[2].quantity, 4)
+        } ${tx.transfers[2].assetType} into Uniswap`;
       }
     }
   }
 
-  log.debug(transaction, `Parsed eth tx`);
-  return transaction;
+  log.debug(tx, `Parsed eth tx`);
+  return tx;
 };

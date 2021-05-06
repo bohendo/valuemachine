@@ -30,14 +30,14 @@ export const makerAddresses = [
   { name: "oasis-old", address: "0xb7ac09c2c0217b07d7c103029b4918a2c401eecb" },
   { name: "oasis-proxy", address: "0x793ebbe21607e4f04788f89c7a9b97320773ec59" },
 
-].map(row => ({ ...row, category: AddressCategories.Maker })) as AddressBookJson;
+].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 export const getMakerParser = (
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
 ): any => (
-  [ethTx, tx]: IntermediateEthTx, 
+  { ethTx, tx }: IntermediateEthTx, 
 ): IntermediateEthTx => {
   const log = logger.child({ module: tag });
 
@@ -46,5 +46,5 @@ export const getMakerParser = (
     tx.tags = getUnique([tag, ...tx.tags]);
   }
 
-  return [ethTx, tx];
+  return { ethTx, tx };
 };

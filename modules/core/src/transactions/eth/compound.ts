@@ -39,7 +39,7 @@ export const getCompoundParser = (
   chainData: ChainData,
   logger: Logger,
 ): any => (
-  [ethTx, tx]: IntermediateEthTx, 
+  { ethTx, tx }: IntermediateEthTx, 
 ): IntermediateEthTx => {
   const log = logger.child({ module: tag });
 
@@ -48,7 +48,5 @@ export const getCompoundParser = (
     tx.tags = getUnique([tag, ...tx.tags]);
   }
 
-  return [ethTx, tx];
+  return { ethTx, tx };
 };
-
-

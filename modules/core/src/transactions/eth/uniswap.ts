@@ -42,7 +42,7 @@ export const getUniswapParser = (
   chainData: ChainData,
   logger: Logger,
 ): any => (
-  [ethTx, tx]: IntermediateEthTx, 
+  { ethTx, tx }: IntermediateEthTx, 
 ): IntermediateEthTx => {
   const log = logger.child({ module: tag });
   const { getName } = addressBook;
@@ -99,5 +99,5 @@ export const getUniswapParser = (
     }
   }
 
-  return [ethTx, tx];
+  return { ethTx, tx };
 };

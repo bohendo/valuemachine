@@ -37,7 +37,7 @@ export const getAddressBook = (
     { name: "WBTC", address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599" },
     { name: "WETH", address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
     { name: "YFI", address: "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e" },
-  ].map(row => ({ ...row, category: AddressCategories.Erc20 })) as AddressBookJson;
+  ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
   // https://compound.finance/docs#networks
   const cTokens = [
@@ -247,7 +247,7 @@ export const getAddressBook = (
   const isSelf = isCategory(AddressCategories.Self);
 
   const isToken = (address: Address): boolean =>
-    isCategory(AddressCategories.Erc20)(address)
+    isCategory(AddressCategories.ERC20)(address)
       || isCategory(AddressCategories.Compound)(address)
       || isCategory(AddressCategories.Uniswap)(address)
       || isCategory(AddressCategories.Yearn)(address);
