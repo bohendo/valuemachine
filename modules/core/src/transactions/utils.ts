@@ -11,11 +11,6 @@ import { getLogger, math } from "@finances/utils";
 
 const { diff, lt } = math;
 
-export type IntermediateEthTx = {
-  ethTx: EthTransaction,
-  tx: Transaction,
-};
-
 const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
   new Date(tx1.date).getTime() === new Date(tx2.date).getTime()
     ? tx1.index - tx2.index

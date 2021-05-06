@@ -3,11 +3,13 @@ import {
   AddressBookJson,
   AddressCategories,
   ChainData,
+  EthTransaction,
   Logger,
+  Transaction,
 } from "@finances/types";
 import { math, smeq } from "@finances/utils";
 
-import { getUnique, IntermediateEthTx } from "../utils";
+import { getUnique } from "../utils";
 
 const tag = "Uniswap";
 const addresses = [
@@ -38,12 +40,13 @@ const addresses = [
 ].map(row => ({ ...row, category: AddressCategories.Uniswap })) as AddressBookJson;
 
 export const getUniswapParser = (
+  ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
 ): any => (
-  { ethTx, tx }: IntermediateEthTx, 
-): IntermediateEthTx => {
+  tx: Transaction,
+): Transaction => {
   const log = logger.child({ module: tag });
   const { getName } = addressBook;
 
@@ -99,5 +102,5 @@ export const getUniswapParser = (
     }
   }
 
-  return { ethTx, tx };
+  return tx;
 };

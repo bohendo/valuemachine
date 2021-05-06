@@ -3,11 +3,13 @@ import {
   AddressBookJson,
   AddressCategories,
   ChainData,
+  EthTransaction,
   Logger,
+  Transaction,
 } from "@finances/types";
 import { smeq } from "@finances/utils";
 
-import { getUnique, IntermediateEthTx } from "../utils";
+import { getUnique } from "../utils";
 
 const tag = "Yearn";
 export const yearnAddresses = [
@@ -36,12 +38,13 @@ export const yearnAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.Yearn })) as AddressBookJson;
 
 export const getYearnParser = (
+  ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
 ): any => (
-  { ethTx, tx }: IntermediateEthTx, 
-): IntermediateEthTx => {
+  tx: Transaction,
+): Transaction => {
   const log = logger.child({ module: tag });
 
   if (yearnAddresses.some(a => smeq(a.address, ethTx.to))) {
@@ -49,5 +52,5 @@ export const getYearnParser = (
     tx.tags = getUnique([tag, ...tx.tags]);
   }
 
-  return { ethTx, tx };
+  return tx;
 };

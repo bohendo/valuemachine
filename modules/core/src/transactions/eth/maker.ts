@@ -3,11 +3,13 @@ import {
   AddressBookJson,
   AddressCategories,
   ChainData,
+  EthTransaction,
   Logger,
+  Transaction,
 } from "@finances/types";
 import { smeq } from "@finances/utils";
 
-import { getUnique, IntermediateEthTx } from "../utils";
+import { getUnique } from "../utils";
 
 const tag = "Maker";
 export const makerAddresses = [
@@ -33,12 +35,13 @@ export const makerAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 export const getMakerParser = (
+  ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
 ): any => (
-  { ethTx, tx }: IntermediateEthTx, 
-): IntermediateEthTx => {
+  tx: Transaction,
+): Transaction => {
   const log = logger.child({ module: tag });
 
   if (makerAddresses.some(a => smeq(a.address, ethTx.to))) {
@@ -46,5 +49,26 @@ export const getMakerParser = (
     tx.tags = getUnique([tag, ...tx.tags]);
   }
 
-  return { ethTx, tx };
+  /*
+  for (const txLog of ethTx.logs) {
+    const address = sm(txLog.address);
+    if (isToken(address)) {
+      const assetType = getName(address);
+      const iface = getTokenInterface(address);
+      const event = Object.values(iface.events).find(e => getEventTopic(e) === txLog.topics[0]);
+      // MakerDAO SAI
+      if (assetType === "SAI" && event.name === "Mint") {
+        log.debug(`Minted ${quantity} ${assetType}`);
+        transfer.category = TransferCategories.Borrow;
+        tx.transfers.push({ ...transfer, from: AddressZero, to: args.guy });
+      } else if (assetType === "SAI" && event.name === "Burn") {
+        log.debug(`Burnt ${quantity} ${assetType}`);
+        transfer.category = TransferCategories.Repay;
+        tx.transfers.push({ ...transfer, from: args.guy, to: AddressZero });
+      }
+    }
+  }
+  */
+
+  return tx;
 };
