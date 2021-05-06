@@ -7,7 +7,7 @@ import { getTransactions } from "../index";
 
 const log = testLogger.child({ module: "TestTransactions" });
 
-describe("Merge chain data", () => {
+describe("Parse internal transfers", () => {
   let txns: Transactions;
   let chainData: ChainData;
 
@@ -61,14 +61,19 @@ describe("Merge chain data", () => {
     ]);
   });
 
-  it("should merge chain data successfully", async () => {
+  it("should merge chain data w eth calls successfully", async () => {
     expect(txns.json.length).to.equal(0);
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     expect(txns.json[0].transfers.length).to.equal(4);
   });
 
-  it("should merge chain data multiple times without creaing duplicates", async () => {
+  it("should merge chain data w erc20 transfers successfully", async () => {
+    expect(txns.json.length).to.equal(0);
+    // TODO: implement
+  });
+
+  it("should merge eth calls multiple times without creaing duplicates", async () => {
     expect(txns.json.length).to.equal(0);
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
