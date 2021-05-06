@@ -15,10 +15,10 @@ import {
 } from "../testing";
 import { getTransactions } from "../index";
 
-const log = testLogger.child({ level: "debug", module: "TestTransactions" });
+const log = testLogger.child({ module: "TestTransactions" });
 const toBytes32 = (decstr: string): string => hexZeroPad(parseUnits(decstr, 18), 32);
 
-describe.only("Parse erc20 & internal transfers", () => {
+describe("Parse erc20 & internal transfers", () => {
   let txns: Transactions;
   const quantity = "3.14";
   const quantityHex = toBytes32(quantity);

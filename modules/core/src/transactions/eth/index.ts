@@ -1,7 +1,7 @@
 import { keccak256 } from "@ethersproject/keccak256";
 import { BigNumber } from "@ethersproject/bignumber";
 import { AddressZero } from "@ethersproject/constants";
-import { RLP } from "@ethersproject/rlp";
+import { encode } from "@ethersproject/rlp";
 import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
 import {
@@ -66,7 +66,7 @@ export const parseEthTx = (
   if (ethTx.to === null) {
     // derived from: https://ethereum.stackexchange.com/a/46960
     const newContract = sm(`0x${
-      keccak256(RLP.encode([ethTx.from, hexlify(ethTx.nonce)])).substring(26)
+      keccak256(encode([ethTx.from, hexlify(ethTx.nonce)])).substring(26)
     }`);
     tx.transfers[0].to = newContract;
     tx.description = `${getName(ethTx.from)} created a new contract: ${newContract}`;

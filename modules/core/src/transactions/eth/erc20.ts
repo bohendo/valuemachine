@@ -4,6 +4,7 @@ import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
+  AssetTypes,
   ChainData,
   EthTransaction,
   Logger,
@@ -77,7 +78,7 @@ export const getERC20Parser = (
       || !isToken(address)
       || event
     ) {
-      const assetType = getName(address);
+      const assetType = getName(address) as AssetTypes;
       log.info(`Found an ERC20 ${event.name} event for ${assetType}`);
 
       const args = ERC20.parseLog(txLog).args;
