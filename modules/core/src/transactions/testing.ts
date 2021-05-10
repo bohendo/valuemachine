@@ -1,11 +1,27 @@
+import fs from "fs";
+import path from "path";
+
 import { AddressZero, HashZero } from "@ethersproject/constants";
-import { AddressCategories, ChainData, EthCall, EthTransaction } from "@finances/types";
+import {
+  AddressCategories,
+  ChainData,
+  EthCall,
+  EthTransaction,
+  Store,
+  StoreKeys,
+} from "@finances/types";
 import { getLogger } from "@finances/utils";
 
 import { getAddressBook } from "../addressBook";
 import { getChainData } from "../chainData";
 
-export const testLogger = getLogger("silent").child({ module: "TestUtils" });
+const env = {
+  logLevel: process.env.LOG_LEVEL || "silent",
+  etherscanKey: process.env.ETHERSCAN_KEY || "",
+};
+
+export const testLogger = getLogger(env.logLevel).child({ module: "TestUtils" });
+testLogger.info(env, `Starting tests in env`);
 
 export const AddressOne = "0x0000000000000000000000000000000000000001";
 export const AddressTwo = "0x0000000000000000000000000000000000000002";
@@ -66,3 +82,29 @@ export const getTestChainData = (
     transactions,
   },
 });
+
+export const getRealChainData = async (txHash: string): Promise<ChainData> => {
+  const filepath = path.join(__dirname, "./eth/testChainData.json");
+  const testStore = {
+    load: (key: StoreKeys): any => {
+      if (key === StoreKeys.ChainData) {
+        return JSON.parse(fs.readFileSync(filepath, "utf8"));
+      } else {
+        throw new Error(`Test store has not implemented key ${key}`);
+      }
+    },
+    save: (key: StoreKeys, data: any): void => {
+      if (key === StoreKeys.ChainData) {
+        fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
+      } else {
+        throw new Error(`Test store has not implemented key ${key}`);
+      }
+    },
+  } as Store;
+  const chainData = getChainData({
+    logger: testLogger,
+    store: testStore,
+  });
+  await chainData.syncTransaction({ hash: txHash }, env.etherscanKey);
+  return getTestChainData([chainData.getEthTransaction(txHash)]);
+};

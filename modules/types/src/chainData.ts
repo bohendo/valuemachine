@@ -64,6 +64,7 @@ export interface ChainData {
   syncAddresses: (addresses: Address[], key?: string) => Promise<void>;
   syncAddress: (address: Address, key?: string) => Promise<void>;
   syncTokenData: (tokens: Address[], key?: string) => Promise<void>;
+  syncTransaction: (tx: Partial<EthTransaction | EthCall>, key?: string) => Promise<void>;
 }
 
 export const emptyChainData = {

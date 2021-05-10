@@ -36,6 +36,11 @@ export const getChainData = ({
   const log = (logger || getLogger()).child?.({ module: "ChainData" });
   const json = chainDataJson || (store ? store.load(StoreKeys.ChainData) : emptyChainData);
 
+  if (!json.addresses) json.addresses = {};
+  if (!json.calls) json.calls = [];
+  if (!json.tokens) json.tokens = {};
+  if (!json.transactions) json.transactions = [];
+
   log.info(`Loaded chain data containing ${
     json.transactions.length
   } EthTxs from ${chainDataJson ? "input" : store ? "store" : "default"}`);
@@ -431,5 +436,6 @@ export const getChainData = ({
     syncAddress,
     syncAddresses,
     syncTokenData,
+    syncTransaction,
   };
 };
