@@ -1,5 +1,6 @@
 import { Interface } from "@ethersproject/abi";
 import { BigNumber } from "@ethersproject/bignumber";
+import { hexlify, stripZeros } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -74,6 +75,16 @@ const tokenInterface = new Interface([
 const tubInterface = new Interface([
   "event LogNewCup(address indexed lad, bytes32 cup)",
   "event LogNote(bytes4 indexed sig, address indexed guy, bytes32 indexed foo, bytes32 indexed bar, uint256 wad, bytes fax) anonymous",
+  "function join(uint256 wad)",
+  "function exit(uint256 wad)",
+  "function open() returns (bytes32 cup)",
+  "function give(bytes32 cup, address guy)",
+  "function lock(bytes32 cup, uint256 wad)",
+  "function free(bytes32 cup, uint256 wad)",
+  "function draw(bytes32 cup, uint256 wad)",
+  "function wipe(bytes32 cup, uint256 wad)",
+  "function shut(bytes32 cup)",
+  "function bite(bytes32 cup)",
 ]);
 
 ////////////////////////////////////////
@@ -86,7 +97,7 @@ export const makerParser = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: source });
+  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
   const { getName } = addressBook;
 
   if (machineAddresses.some(e => smeq(e.address, ethTx.to))) {
@@ -114,7 +125,6 @@ export const makerParser = (
       const index = txLog.index || 1;
 
       if (event.name === "Mint") {
-        log.debug(`Minted ${amount} ${assetType}`);
         tx.transfers.push({
           assetType,
           category: smeq(address, pethAddress)
@@ -128,11 +138,15 @@ export const makerParser = (
         // If peth, categorize the matching deposit as swap out
         if (smeq(address, pethAddress)) {
           const swapOut = tx.transfers.findIndex(t => t.assetType === AssetTypes.WETH);
-          tx.transfers[swapOut].category = TransferCategories.SwapOut;
-          if (smeq(ethTx.to, tubAddress)) {
-            tx.description = `${getName(args.guy)} swapped ${
-              round(tx.transfers[swapOut].quantity)
-            } WETH for ${round(amount)} PETH`;
+          if (swapOut >= 0) {
+            tx.transfers[swapOut].category = TransferCategories.SwapOut;
+            if (smeq(ethTx.to, tubAddress)) {
+              tx.description = `${getName(args.guy)} swapped ${
+                round(tx.transfers[swapOut].quantity, 4)
+              } WETH for ${round(amount, 4)} PETH`;
+            }
+          } else {
+            log.warn(ethTx, `Couldn't find an associated SwapOut WETH transfer`);
           }
         } else {
           if (smeq(ethTx.to, tubAddress)) {
@@ -141,7 +155,6 @@ export const makerParser = (
         }
 
       } else if (event.name === "Burn") {
-        log.debug(`Burnt ${amount} ${assetType}`);
         tx.transfers.push({
           assetType,
           category: smeq(address, pethAddress)
@@ -158,18 +171,25 @@ export const makerParser = (
           if (swapIn >= 0) {
             tx.transfers[swapIn].category = TransferCategories.SwapIn;
             if (smeq(ethTx.to, tubAddress)) {
-              tx.description = `${getName(args.guy)} swapped ${round(amount)} PETH for ${
-                round(tx.transfers[swapIn].quantity)
+              tx.description = `${getName(args.guy)} swapped ${round(amount, 4)} PETH for ${
+                round(tx.transfers[swapIn].quantity, 4)
               } WETH`;
             }
           } else {
             log.warn(ethTx, `Couldn't find an associated SwapIn WETH transfer`);
           }
         } else {
+          const fee = tx.transfers.findIndex(t => t.assetType === AssetTypes.MKR);
+          if (fee >= 0) {
+            tx.transfers[fee].category = TransferCategories.Expense;
+          } else {
+            log.warn(ethTx, `Couldn't find an associated fee MKR transfer`);
+          }
           if (smeq(ethTx.to, tubAddress)) {
             tx.description = `${getName(args.guy)} repayed ${round(amount)} ${assetType}`;
           }
         }
+
       }
 
     ////////////////////////////////////////
@@ -178,12 +198,50 @@ export const makerParser = (
       const event = Object.values(tubInterface.events).find(e =>
         tubInterface.getEventTopic(e) === txLog.topics[0]
       );
-      if (!event) continue;
-      const args = tubInterface.parseLog(txLog).args;
-      if (event.name === "LogNewCup") {
-        if (smeq(ethTx.to, tubAddress)) {
-          tx.description = `${getName(args.lad)} opened new CDP #${BigNumber.from(args.cup)}`;
+      if (event?.name === "LogNewCup" && smeq(ethTx.to, tubAddress)) {
+        const args = tubInterface.parseLog(txLog).args;
+        tx.description = `${getName(args.lad)} opened new CDP #${BigNumber.from(args.cup)}`;
+        continue;
+      }
+      const fnCall = Object.values(tubInterface.functions).find(e =>
+        txLog.topics[0].startsWith(tubInterface.getSighash(e))
+      );
+      if (!fnCall) continue;
+      log.info(`Found Tub ${fnCall.name} function call`);
+      const actor = getName(hexlify(stripZeros(txLog.topics[1])));
+      const cup = BigNumber.from(hexlify(stripZeros(txLog.topics[2])));
+
+      if (fnCall.name === "give" && smeq(ethTx.to, tubAddress)) {
+        const recipient = hexlify(stripZeros(txLog.topics[3]));
+        tx.description = `${actor} gave CDP #${cup} to ${getName(recipient)}`;
+
+      } else if (fnCall.name === "bite" && smeq(ethTx.to, tubAddress)) {
+        tx.description = `${actor} bit CDP #${cup}`;
+
+      } else if (fnCall.name === "shut" && smeq(ethTx.to, tubAddress)) {
+        tx.description = `${actor} shut CDP #${cup}`;
+
+      // Categorize PETH transfer as deposit or withdraw
+      } else if (fnCall.name === "lock" || fnCall.name === "free") {
+        const amount = formatUnits(txLog.topics[3], chainData.getTokenData(address).decimals);
+        const assetType = AssetTypes.PETH;
+        const transfer = tx.transfers.findIndex(t => t.assetType === assetType);
+        if (smeq(tx.transfers[transfer].to, tubAddress)) {
+          tx.transfers[transfer].category = TransferCategories.Deposit;
+          if (smeq(ethTx.to, tubAddress)) {
+            tx.description = `${getName(tx.transfers[transfer].from)} deposited ${
+              round(amount, 4)
+            } ${assetType}`;
+          }
+        } else if (smeq(tx.transfers[transfer].from, tubAddress)) {
+          tx.transfers[transfer].category = TransferCategories.Withdraw;
+          if (smeq(ethTx.to, tubAddress)) {
+            tx.description = `${getName(tx.transfers[transfer].to)} withdrew ${
+              round(amount, 4)
+            } ${assetType}`;
+          }
         }
+
       }
 
     }

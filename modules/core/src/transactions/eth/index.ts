@@ -82,6 +82,7 @@ export const parseEthTx = (
     const newContract = sm(`0x${
       keccak256(encode([ethTx.from, hexlify(ethTx.nonce)])).substring(26)
     }`);
+    ethTx.to = newContract; // overwrite to make later steps simpler
     tx.transfers[0].to = newContract;
     tx.description = `${getName(ethTx.from)} created a new contract: ${newContract}`;
     log.info(`Detected a newly created contract`);

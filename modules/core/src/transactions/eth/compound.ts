@@ -174,23 +174,29 @@ export const compoundParser = (
       if (!event) continue;
       log.info(`Found ${source}V2 ${event.name} event`);
       const args = cTokenInterface.parseLog(txLog).args;
-      const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
+      const amount = formatUnits(args.amount || "0x00", chainData.getTokenData(address).decimals);
       const assetType = getName(args.asset);
 
       // If Mint then we deposited & are recieving cTokens in return
       if (event.name === "Mint") {
-        log.info(`Deposited ${amount} ${assetType} into ${source}V1`);
+        log.info(`Deposited ${amount} ${assetType} into ${source}V2`);
         // TODO
 
       // If Burn then we withdrew & are returning our cTokens
       } else if (event.name === "Burn") {
-        log.info(`Withdrew ${amount} ${assetType} from ${source}V1`);
+        log.info(`Withdrew ${amount} ${assetType} from ${source}V2`);
         // TODO
 
-      } else if (event.name === "AccrueInterest") {
-        log.debug(`Skipping ${event.name} event for ${source}V1`);
+      } else if (
+        event.name === "AccrueInterest" ||
+        event.name === "Transfer" ||
+        event.name === "Approval" ||
+        event.name === "Redeem"
+      ) {
+        log.debug(`Skipping ${event.name} event for ${source}V2`);
+
       } else {
-        log.warn(`Unknown event for ${source}V1: ${event.name}`);
+        log.warn(`Unknown event for ${source}V2: ${event.name}`);
       }
 
     }

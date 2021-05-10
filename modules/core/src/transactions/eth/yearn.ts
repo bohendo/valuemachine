@@ -64,7 +64,7 @@ export const yearnParser = (
 ): Transaction => {
   const log = logger.child({ module: source });
 
-  if (yearnAddresses.some(a => smeq(a.address, ethTx.to))) {
+  if (yearnAddresses.some(entry => smeq(ethTx.to, entry.address))) {
     log.info(`Yearn tx detected!`);
     tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
   }

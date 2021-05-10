@@ -99,7 +99,7 @@ export const wethParser = (
           log.warn(ethTx, `Couldn't find an associated SwapIn eth call`);
         }
 
-      } else if (event.name === "Transfer" || event.name === "Approve") {
+      } else if (event.name === "Transfer" || event.name === "Approval") {
         log.debug(`Skipping ${source} event: ${event.name}`);
 
       } else {
