@@ -13,7 +13,7 @@ import {
 } from "../testing";
 import { getTransactions } from "../index";
 
-import { compoundV1Addresses } from "./compound";
+import { compoundAddresses } from "./compound";
 
 const log = testLogger.child({ module: `Test${TransactionSources.Compound}` });
 
@@ -26,7 +26,7 @@ describe(TransactionSources.Compound, () => {
   const quantity = "3.14";
   const quantityHex = toBytes32(quantity);
   const sender = AddressOne;
-  const compoundV1Address = compoundV1Addresses[0].address;
+  const compoundV1Address = compoundAddresses.find(e => e.name.endsWith("v1")).address;
 
   beforeEach(() => {
     txns = getTransactions({ addressBook: testAddressBook, logger: log });

@@ -16,22 +16,33 @@ import {
 } from "@finances/types";
 import { math, sm } from "@finances/utils";
 
-import { parseCompound } from "./compound";
-import { parseERC20 } from "./erc20";
-import { parseMaker } from "./maker";
-import { parseUniswap } from "./uniswap";
-import { parseWeth } from "./weth";
-import { parseYearn } from "./yearn";
+import { compoundAddresses, compoundParser } from "./compound";
+import { erc20Addresses, erc20Parser } from "./erc20";
+import { makerAddresses, makerParser } from "./maker";
+import { uniswapAddresses, uniswapParser } from "./uniswap";
+import { wethAddresses, wethParser } from "./weth";
+import { yearnAddresses, yearnParser } from "./yearn";
+
+export const publicAddresses = [
+  ...compoundAddresses,
+  ...erc20Addresses,
+  ...makerAddresses,
+  ...uniswapAddresses,
+  ...wethAddresses,
+  ...yearnAddresses,
+];
 
 const { gt, eq, round } = math;
 
+// Order matters!
+// Complex parsers usually depend on simple ones so put ERC20 & weth first
 const appParsers = [
-  parseERC20, // ERC20 should come first bc others depend on it
-  parseWeth,
-  parseCompound,
-  parseMaker,
-  parseUniswap,
-  parseYearn,
+  erc20Parser,
+  wethParser,
+  compoundParser,
+  makerParser,
+  uniswapParser,
+  yearnParser,
 ];
 
 export const parseEthTx = (

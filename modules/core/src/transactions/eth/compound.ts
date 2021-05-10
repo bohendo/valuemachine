@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { Contract } from "@ethersproject/contracts";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -19,17 +18,18 @@ import { getUnique } from "../utils";
 
 const source = TransactionSources.Compound;
 
-export const compoundV1Addresses = [
-  { name: "compound-v1", address: "0x3fda67f7583380e67ef93072294a7fac882fd7e7" },
-];
+////////////////////////////////////////
+/// Addresses
 
-export const compoundV2Addresses = [
+const compoundV1Address = "0x3fda67f7583380e67ef93072294a7fac882fd7e7";
+
+const machineryAddresses = [
+  { name: "compound-v1", address: compoundV1Address },
   { name: "compound-maximillion", address: "0xf859a1ad94bcf445a406b892ef0d3082f4174088" },
   { name: "compound-comptroller", address: "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b" },
-];
+].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
-// https://compound.finance/docs#networks
-export const compoundV2Tokens = [
+const cTokenAddresses = [
   { name: "cBAT", address: "0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e" },
   { name: "cCOMP", address: "0x70e36f6bf80a52b3b46b3af8e106cc0ed743e8e4" },
   { name: "cDAI", address: "0x5d3a536e4d6dbd6114cc1ead35777bab948e3643" },
@@ -42,9 +42,22 @@ export const compoundV2Tokens = [
   { name: "cWBTC", address: "0xc11b1268c1a384e55c48c2391d8d480264a3a7f4" },
   { name: "cWBTCv2", address: "0xccf4429db6322d5c611ee964527d42e5d685dd6a" },
   { name: "cZRX", address: "0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407" },
-];
+].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
-const compoundV1 = new Contract(compoundV1Addresses[0].address, [
+const govTokenAddresses = [
+  { name: "COMP", address: "0xc00e94cb662c3520282e6f5717214004a7f26888" },
+].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+
+export const compoundAddresses = [
+  ...cTokenAddresses,
+  ...govTokenAddresses,
+  ...machineryAddresses,
+] as AddressBookJson;
+
+////////////////////////////////////////
+/// Interfaces
+
+const compoundV1Interface = new Interface([
   "event BorrowRepaid(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
   "event BorrowTaken(address account, address asset, uint256 amount, uint256 startingBalance, uint256 borrowAmountWithFee, uint256 newBalance)",
   "event EquityWithdrawn(address asset, uint256 equityAvailableBefore, uint256 amount, address owner)",
@@ -65,17 +78,14 @@ const cTokenInterface = new Interface([
   "event Transfer(address indexed from, address indexed to, uint256 amount)",
 ]);
 
-export const compoundAddresses = [
-  ...compoundV1Addresses,
-  ...compoundV2Addresses,
-  ...compoundV2Tokens,
-].map(row => ({ ...row, category: AddressCategories.Compound })) as AddressBookJson;
+////////////////////////////////////////
+/// Parser
 
 const associatedTransfer = (assetType: string, quantity: string) =>
   (transfer: Transfer): boolean =>
     smeq(transfer.assetType, assetType) && math.eq(transfer.quantity, quantity);
 
-export const parseCompound = (
+export const compoundParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
@@ -89,13 +99,13 @@ export const parseCompound = (
     const address = sm(txLog.address);
 
     // Compound V1
-    if (smeq(address, compoundV1.address)) {
-      const event = Object.values(compoundV1.interface.events).find(e =>
-        compoundV1.interface.getEventTopic(e) === txLog.topics[0]
+    if (smeq(address, compoundV1Address)) {
+      const event = Object.values(compoundV1Interface.events).find(e =>
+        compoundV1Interface.getEventTopic(e) === txLog.topics[0]
       );
       if (!event) continue;
       log.info(`Found ${source}V1 ${event.name} event`);
-      const args = compoundV1.interface.parseLog(txLog).args;
+      const args = compoundV1Interface.parseLog(txLog).args;
       const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
       const assetType = getName(args.asset);
 
@@ -104,7 +114,7 @@ export const parseCompound = (
         if (deposit >= 0) {
           tx.transfers[deposit].category = TransferCategories.Deposit;
           tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1.address)) {
+          if (smeq(ethTx.to, compoundV1Address)) {
             tx.description = `${getName(ethTx.from)} deposited ${amount} ${assetType} into ${source}V1`;
           }
         } else {
@@ -116,7 +126,7 @@ export const parseCompound = (
         if (withdraw >= 0) {
           tx.transfers[withdraw].category = TransferCategories.Withdraw;
           tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1.address)) {
+          if (smeq(ethTx.to, compoundV1Address)) {
             tx.description = `${getName(ethTx.from)} withdrew ${amount} ${assetType} from ${source}V1`;
           }
         } else {
@@ -128,7 +138,7 @@ export const parseCompound = (
         if (borrow >= 0) {
           tx.transfers[borrow].category = TransferCategories.Borrow;
           tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1.address)) {
+          if (smeq(ethTx.to, compoundV1Address)) {
             tx.description = `${getName(ethTx.from)} borrowed ${amount} ${assetType} from ${source}V1`;
           }
         } else {
@@ -140,7 +150,7 @@ export const parseCompound = (
         if (repay >= 0) {
           tx.transfers[repay].category = TransferCategories.Repay;
           tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1.address)) {
+          if (smeq(ethTx.to, compoundV1Address)) {
             tx.description = `${getName(ethTx.from)} repaid ${amount} ${assetType} to ${source}V1`;
           }
         } else {
@@ -155,7 +165,7 @@ export const parseCompound = (
 
     // Compound V2
     } else if (
-      compoundV2Tokens.some(a => smeq(address, a.address))
+      cTokenAddresses.some(a => smeq(address, a.address))
     ) {
       log.info(`Found ${source}V2 event`);
       const event = Object.values(cTokenInterface.events).find(e =>
