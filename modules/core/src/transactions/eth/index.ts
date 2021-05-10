@@ -61,7 +61,7 @@ export const parseEthTx = (
       from: sm(ethTx.from),
       index: -1, // ensure the initiating tx comes first in transfer list
       quantity: ethTx.value,
-      to: sm(ethTx.to),
+      to: sm(ethTx.to || ""),
     }],
   } as Transaction;
 

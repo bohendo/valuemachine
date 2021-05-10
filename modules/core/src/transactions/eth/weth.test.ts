@@ -1,6 +1,11 @@
 import { hexZeroPad } from "@ethersproject/bytes";
 import { parseUnits } from "@ethersproject/units";
-import { AssetTypes, Transactions, TransferCategories } from "@finances/types";
+import {
+  AssetTypes,
+  Transactions,
+  TransactionSources,
+  TransferCategories,
+} from "@finances/types";
 import { expect } from "@finances/utils";
 
 import {
@@ -18,7 +23,7 @@ import { wethAddresses } from "./weth";
 const log = testLogger.child({ module: "TestTransactions" });
 const toBytes32 = (decstr: string): string => hexZeroPad(parseUnits(decstr, 18), 32);
 
-describe("Weth", () => {
+describe(TransactionSources.Weth, () => {
   let txns: Transactions;
   const quantity = "3.14";
   const quantityHex = toBytes32(quantity);
@@ -45,7 +50,7 @@ describe("Weth", () => {
     ]));
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.tags).to.include("Weth");
+    expect(tx.sources).to.include(TransactionSources.Weth);
     expect(tx.transfers.length).to.equal(2);
     expect(tx.description.toLowerCase()).to.include("swap");
     expect(tx.description).to.include(testAddressBook.getName(sender));
@@ -86,7 +91,7 @@ describe("Weth", () => {
     ]));
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.tags).to.include("Weth");
+    expect(tx.sources).to.include(TransactionSources.Weth);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.description.toLowerCase()).to.include("swap");
     expect(tx.description).to.include(testAddressBook.getName(sender));

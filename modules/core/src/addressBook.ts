@@ -1,3 +1,4 @@
+import { AddressZero } from "@ethersproject/constants";
 import {
   Address,
   AddressBook,
@@ -154,6 +155,7 @@ export const getAddressBook = (
 
   // Addresses that we can transfer to/from
   const external = [
+    { name: "void", address: AddressZero },
     { name: "ENS", address: "0x314159265dd8dbb310642f98f50c066173c1259b" },
     { name: "ENS-registrar", address: "0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" },
     { name: "ENS-registrar", address: "0xb22c1c159d12461ea124b0deb4b5b93020e6ad16" },

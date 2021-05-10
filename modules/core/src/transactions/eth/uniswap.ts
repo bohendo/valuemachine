@@ -6,12 +6,14 @@ import {
   EthTransaction,
   Logger,
   Transaction,
+  TransactionSources,
 } from "@finances/types";
 import { math, smeq } from "@finances/utils";
 
 import { getUnique } from "../utils";
 
-const tag = "Uniswap";
+const source = TransactionSources.Uniswap;
+
 const addresses = [
 
   // Version 1 Contracts
@@ -46,12 +48,12 @@ export const parseUniswap = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: tag });
+  const log = logger.child({ module: source });
   const { getName } = addressBook;
 
   if (addresses.some(a => smeq(a.address, ethTx.to))) {
     log.info(`Uni tx detected!`);
-    tx.tags = getUnique([tag, ...tx.tags]);
+    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
   }
 
   // Uniswap swaps & deposit/withdraw liquidity
@@ -101,6 +103,6 @@ export const parseUniswap = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${tag}`);
+  // log.debug(tx, `Done parsing ${source}`);
   return tx;
 };

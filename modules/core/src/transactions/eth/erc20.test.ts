@@ -1,6 +1,6 @@
 import { hexZeroPad } from "@ethersproject/bytes";
 import { parseUnits } from "@ethersproject/units";
-import { Transactions, TransferCategories } from "@finances/types";
+import { Transactions, TransactionSources, TransferCategories } from "@finances/types";
 import { expect } from "@finances/utils";
 
 import {
@@ -15,10 +15,10 @@ import {
 } from "../testing";
 import { getTransactions } from "../index";
 
-const log = testLogger.child({ module: "TestTransactions" });
+const log = testLogger.child({ module: `Test${TransactionSources.ERC20}` });
 const toBytes32 = (decstr: string): string => hexZeroPad(parseUnits(decstr, 18), 32);
 
-describe("ERC20 & Internal Transfers", () => {
+describe(TransactionSources.ERC20, () => {
   let txns: Transactions;
   const quantity = "3.14";
   const quantityHex = toBytes32(quantity);
@@ -65,7 +65,7 @@ describe("ERC20 & Internal Transfers", () => {
     expect(txns.json.length).to.equal(0);
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
-    expect(txns.json[0].tags).to.include("ERC20");
+    expect(txns.json[0].sources).to.include(TransactionSources.ERC20);
     expect(txns.json[0].transfers.length).to.equal(2);
     expect(txns.json[0].description.toLowerCase()).to.include("transfer");
     expect(txns.json[0].description).to.include(quantity);
@@ -103,7 +103,7 @@ describe("ERC20 & Internal Transfers", () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.tags).to.include("ERC20");
+    expect(tx.sources).to.include(TransactionSources.ERC20);
     expect(tx.transfers.length).to.equal(1);
     expect(tx.description.toLowerCase()).to.include("approve");
     expect(tx.description).to.include(testAddressBook.getName(tokenAddress));

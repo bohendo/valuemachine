@@ -9,6 +9,7 @@ import {
   EthTransaction,
   Logger,
   Transaction,
+  TransactionSources,
   TransferCategories,
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
@@ -17,7 +18,8 @@ import { getUnique } from "../utils";
 
 const { round } = math;
 
-const tag = "ERC20";
+const source = TransactionSources.ERC20;
+
 export const erc20Addresses = [
   { name: "BAT", address: "0x0d8775f648430679a709e98d2b0cb6250d2887ef" },
   { name: "CHERRY", address: "0x4ecb692b0fedecd7b486b4c99044392784877e8c" },
@@ -63,7 +65,7 @@ export const parseERC20 = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: tag });
+  const log = logger.child({ module: source });
   const { getName, isSelf, isToken } = addressBook;
 
   for (const txLog of ethTx.logs) {
@@ -78,7 +80,7 @@ export const parseERC20 = (
       if (!isSelf(args.from) && !isSelf(args.to)) continue;
       const assetType = getName(address) as AssetTypes;
       const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
-      log.info(`Found ${tag} ${event.name} event for ${assetType}`);
+      log.info(`Found ${source} ${event.name} event for ${assetType}`);
 
       if (event.name === "Transfer") {
         if (smeq(ethTx.to, address)) {
@@ -86,7 +88,7 @@ export const parseERC20 = (
             round(amount, 4)
           } ${assetType} to ${getName(args.to)}`;
         }
-        tx.tags = getUnique([tag, ...tx.tags]);
+        tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
         tx.transfers.push({
           assetType,
           category: TransferCategories.Transfer,
@@ -103,7 +105,7 @@ export const parseERC20 = (
             amt.length > 6 ? "a lot of" : amt
           } ${assetType}`;
         }
-        tx.tags = getUnique([tag, ...tx.tags]);
+        tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
 
       } else {
         log.warn(event, `Unknown ${assetType} event`);
@@ -112,6 +114,6 @@ export const parseERC20 = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${tag}`);
+  // log.debug(tx, `Done parsing ${source}`);
   return tx;
 };

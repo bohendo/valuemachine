@@ -6,12 +6,14 @@ import {
   EthTransaction,
   Logger,
   Transaction,
+  TransactionSources,
 } from "@finances/types";
 import { smeq } from "@finances/utils";
 
 import { getUnique } from "../utils";
 
-const tag = "Yearn";
+const source = TransactionSources.Yearn;
+
 export const yearnAddresses = [
 
   // yTokens
@@ -44,13 +46,13 @@ export const parseYearn = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: tag });
+  const log = logger.child({ module: source });
 
   if (yearnAddresses.some(a => smeq(a.address, ethTx.to))) {
     log.info(`Yearn tx detected!`);
-    tx.tags = getUnique([tag, ...tx.tags]);
+    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
   }
 
-  // log.debug(tx, `Done parsing ${tag}`);
+  // log.debug(tx, `Done parsing ${source}`);
   return tx;
 };

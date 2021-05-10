@@ -9,13 +9,15 @@ import {
   EthTransaction,
   Logger,
   Transaction,
+  TransactionSources,
   TransferCategories,
 } from "@finances/types";
 import { sm, smeq } from "@finances/utils";
 
 import { getUnique } from "../utils";
 
-const tag = "Weth";
+const source = TransactionSources.Weth;
+
 export const erc20Addresses = [
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
@@ -48,18 +50,18 @@ export const parseWeth = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: tag });
+  const log = logger.child({ module: source });
   const { getName } = addressBook;
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
-    if (address === weth.address) {
+    if (smeq(address, weth.address)) {
       const assetType = AssetTypes.WETH;
       const event = Object.values(weth.interface.events).find(e =>
         weth.interface.getEventTopic(e) === txLog.topics[0]
       );
       if (!event) continue;
-      log.info(`Found ${tag} ${event.name} event`);
+      log.info(`Found ${source} ${event.name} event`);
       const args = weth.interface.parseLog(txLog).args;
       const amount = formatUnits(args.wad, chainData.getTokenData(address).decimals);
       const index = txLog.index || 1;
@@ -68,7 +70,7 @@ export const parseWeth = (
         if (smeq(ethTx.to, weth.address)) {
           tx.description = `${getName(args.dst)} swapped ${amount} ETH for WETH`;
         }
-        tx.tags = getUnique([tag, ...tx.tags]);
+        tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
         tx.transfers.push({
           assetType,
           category: TransferCategories.SwapIn,
@@ -80,7 +82,7 @@ export const parseWeth = (
         tx.transfers[0].category = TransferCategories.SwapOut;
 
       } else if (event.name === "Withdrawal") {
-        tx.tags = getUnique([tag, ...tx.tags]);
+        tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
         tx.transfers.push({
           assetType,
           category: TransferCategories.SwapOut,
@@ -103,15 +105,15 @@ export const parseWeth = (
         }
 
       } else if (event.name === "Transfer" || event.name === "Approve") {
-        log.debug(`Skipping ${tag} event: ${event.name}`);
+        log.debug(`Skipping ${source} event: ${event.name}`);
 
       } else {
-        log.warn(`Unknown ${tag} event: ${event.name}`);
+        log.warn(`Unknown ${source} event: ${event.name}`);
       }
 
     }
   }
 
-  // log.debug(tx, `Done parsing ${tag}`);
+  // log.debug(tx, `Done parsing ${source}`);
   return tx;
 };

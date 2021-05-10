@@ -1,3 +1,4 @@
+import { Interface } from "@ethersproject/abi";
 import { Contract } from "@ethersproject/contracts";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -8,6 +9,7 @@ import {
   EthTransaction,
   Logger,
   Transaction,
+  TransactionSources,
   Transfer,
   TransferCategories,
 } from "@finances/types";
@@ -15,7 +17,7 @@ import { math, sm, smeq } from "@finances/utils";
 
 import { getUnique } from "../utils";
 
-const tag = "Compound";
+const source = TransactionSources.Compound;
 
 export const compoundV1Addresses = [
   { name: "compound-v1", address: "0x3fda67f7583380e67ef93072294a7fac882fd7e7" },
@@ -50,6 +52,19 @@ const compoundV1 = new Contract(compoundV1Addresses[0].address, [
   "event SupplyWithdrawn(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
 ]);
 
+const cTokenInterface = new Interface([
+  "event AccrueInterest(uint256 cashPrior, uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows)",
+  "event AccrueInterest(uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows)",
+  "event Approval(address indexed owner, address indexed spender, uint256 amount)",
+  "event Borrow(address borrower, uint256 borrowAmount, uint256 accountBorrows, uint256 totalBorrows)",
+  "event Mint(address minter, uint256 mintAmount, uint256 mintTokens)",
+  "event Redeem(address redeemer, uint256 redeemAmount, uint256 redeemTokens)",
+  "event RepayBorrow(address payer, address borrower, uint256 repayAmount, uint256 accountBorrows, uint256 totalBorrows)",
+  "event ReservesAdded(address benefactor, uint256 addAmount, uint256 newTotalReserves)",
+  "event ReservesReduced(address admin, uint256 reduceAmount, uint256 newTotalReserves)",
+  "event Transfer(address indexed from, address indexed to, uint256 amount)",
+]);
+
 export const compoundAddresses = [
   ...compoundV1Addresses,
   ...compoundV2Addresses,
@@ -67,7 +82,7 @@ export const parseCompound = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: tag });
+  const log = logger.child({ module: source });
   const { getName } = addressBook;
 
   for (const txLog of ethTx.logs) {
@@ -79,7 +94,7 @@ export const parseCompound = (
         compoundV1.interface.getEventTopic(e) === txLog.topics[0]
       );
       if (!event) continue;
-      log.info(`Found ${tag}V1 ${event.name} event`);
+      log.info(`Found ${source}V1 ${event.name} event`);
       const args = compoundV1.interface.parseLog(txLog).args;
       const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
       const assetType = getName(args.asset);
@@ -88,9 +103,9 @@ export const parseCompound = (
         const deposit = tx.transfers.findIndex(associatedTransfer(assetType, amount));
         if (deposit >= 0) {
           tx.transfers[deposit].category = TransferCategories.Deposit;
-          tx.tags = getUnique([tag, ...tx.tags]);
+          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
           if (smeq(ethTx.to, compoundV1.address)) {
-            tx.description = `${getName(ethTx.from)} deposited ${amount} ${assetType} into ${tag}V1`;
+            tx.description = `${getName(ethTx.from)} deposited ${amount} ${assetType} into ${source}V1`;
           }
         } else {
           log.warn(tx.transfers, `Couldn't find an associated deposit transfer`);
@@ -100,9 +115,9 @@ export const parseCompound = (
         const withdraw = tx.transfers.findIndex(associatedTransfer(assetType, amount));
         if (withdraw >= 0) {
           tx.transfers[withdraw].category = TransferCategories.Withdraw;
-          tx.tags = getUnique([tag, ...tx.tags]);
+          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
           if (smeq(ethTx.to, compoundV1.address)) {
-            tx.description = `${getName(ethTx.from)} withdrew ${amount} ${assetType} from ${tag}V1`;
+            tx.description = `${getName(ethTx.from)} withdrew ${amount} ${assetType} from ${source}V1`;
           }
         } else {
           log.warn(tx.transfers, `Couldn't find a transfer of ${amount} ${assetType}`);
@@ -112,9 +127,9 @@ export const parseCompound = (
         const borrow = tx.transfers.findIndex(associatedTransfer(assetType, amount));
         if (borrow >= 0) {
           tx.transfers[borrow].category = TransferCategories.Borrow;
-          tx.tags = getUnique([tag, ...tx.tags]);
+          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
           if (smeq(ethTx.to, compoundV1.address)) {
-            tx.description = `${getName(ethTx.from)} borrowed ${amount} ${assetType} from ${tag}V1`;
+            tx.description = `${getName(ethTx.from)} borrowed ${amount} ${assetType} from ${source}V1`;
           }
         } else {
           log.warn(tx.transfers, `Couldn't find an associated borrow transfer`);
@@ -124,25 +139,54 @@ export const parseCompound = (
         const repay = tx.transfers.findIndex(associatedTransfer(assetType, amount));
         if (repay >= 0) {
           tx.transfers[repay].category = TransferCategories.Repay;
-          tx.tags = getUnique([tag, ...tx.tags]);
+          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
           if (smeq(ethTx.to, compoundV1.address)) {
-            tx.description = `${getName(ethTx.from)} repaid ${amount} ${assetType} to ${tag}V1`;
+            tx.description = `${getName(ethTx.from)} repaid ${amount} ${assetType} to ${source}V1`;
           }
         } else {
           log.warn(tx.transfers, `Couldn't find an associated repay transfer`);
         }
 
       } else if (event.name === "EquityWithdrawn") {
-        log.debug(`Skipping ${event.name} event for ${tag}V1`);
+        log.debug(`Skipping ${event.name} event for ${source}V1`);
+      } else {
+        log.debug(`Unknown event for ${source}V1: ${event.name}`);
       }
 
     // Compound V2
-    } else if (compoundAddresses.some(a => smeq(address, a.address))) {
-      log.info(`Found ${tag}V2 event`);
+    } else if (
+      compoundV2Tokens.some(a => smeq(address, a.address))
+    ) {
+      log.info(`Found ${source}V2 event`);
+      const event = Object.values(cTokenInterface.events).find(e =>
+        cTokenInterface.getEventTopic(e) === txLog.topics[0]
+      );
+      if (!event) continue;
+      log.info(`Found ${source}V2 ${event.name} event`);
+      const args = cTokenInterface.parseLog(txLog).args;
+      const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
+      const assetType = getName(args.asset);
+
+      // If Mint then we deposited & are recieving cTokens in return
+      if (event.name === "Mint") {
+        log.info(`Deposited ${amount} ${assetType} into ${source}V1`);
+        // TODO
+
+      // If Burn then we withdrew & are returning our cTokens
+      } else if (event.name === "Burn") {
+        log.info(`Withdrew ${amount} ${assetType} from ${source}V1`);
+        // TODO
+
+      } else if (event.name === "AccrueInterest") {
+        log.debug(`Skipping ${event.name} event for ${source}V1`);
+      } else {
+        log.warn(`Unknown event for ${source}V1: ${event.name}`);
+      }
+
     }
 
   }
 
-  // log.debug(tx, `Done parsing ${tag}`);
+  // log.debug(tx, `Done parsing ${source}`);
   return tx;
 };

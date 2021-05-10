@@ -9,13 +9,31 @@ import { enumify } from "./utils";
 ////////////////////////////////////////
 // Transactions
 
-export const TransactionSources = enumify({
+export const ExternalSources = enumify({
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
-  EthTx: "EthTx",
   External: "External",
   Wyre: "Wyre",
   Wazirx: "Wazirx",
+});
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type ExternalSources = (typeof ExternalSources)[keyof typeof ExternalSources];
+
+export const OnchainSources = enumify({
+  Compound: "Compound",
+  ERC20: "ERC20",
+  EthTx: "EthTx",
+  Maker: "Maker",
+  Uniswap: "Uniswap",
+  Weth: "Weth",
+  Yearn: "Yearn",
+});
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type OnchainSources = (typeof OnchainSources)[keyof typeof OnchainSources];
+
+export const TransactionSources = enumify({
+  ...ExternalSources,
+  ...OnchainSources,
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
