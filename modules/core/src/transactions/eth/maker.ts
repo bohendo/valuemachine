@@ -206,7 +206,7 @@ export const makerParser = (
       const fnCall = Object.values(tubInterface.functions).find(e =>
         txLog.topics[0].startsWith(tubInterface.getSighash(e))
       );
-      if (!fnCall) continue;
+      if (!fnCall || fnCall.name === "open") continue;
       log.info(`Found Tub ${fnCall.name} function call`);
       const actor = getName(hexlify(stripZeros(txLog.topics[1])));
       const cup = BigNumber.from(hexlify(stripZeros(txLog.topics[2])));
