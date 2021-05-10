@@ -64,19 +64,21 @@ export const parseERC20 = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: tag });
-  const { getName } = addressBook;
+  const { getName, isSelf, isToken } = addressBook;
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     const event = Object.values(iface.events).find(e =>
       Interface.getEventTopic(e) === txLog.topics[0]
     );
-    if (event) {
-      const assetType = getName(address) as AssetTypes;
-      log.info(`Found ${tag} ${event.name} event for ${assetType}`);
-
+    // Only parse known, ERC20 compliant tokens
+    if (event && isToken(address)) {
       const args = iface.parseLog(txLog).args;
+      // Skip transfers that don't concern self accounts
+      if (!isSelf(args.from) && !isSelf(args.to)) continue;
+      const assetType = getName(address) as AssetTypes;
       const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
+      log.info(`Found ${tag} ${event.name} event for ${assetType}`);
 
       if (event.name === "Transfer") {
         if (smeq(ethTx.to, address)) {
