@@ -22,7 +22,7 @@ export const getTokenInterface = (address?: Address): utils.Interface => !addres
   ? new Interface(erc20Abi)
   : addressBook.getName(address) === "DAI"
     ? new Interface(daiAbi)
-    : addressBook.getName(address) === "MKR"
+    : addressBook.getName(address) === "MKR" || addressBook.getName(address) === "PETH"
       ? new Interface(mkrAbi)
       : addressBook.getName(address) === "SAI"
         ? new Interface(saiAbi)

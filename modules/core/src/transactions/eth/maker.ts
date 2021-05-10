@@ -1,4 +1,5 @@
 import { Interface } from "@ethersproject/abi";
+import { BigNumber } from "@ethersproject/bignumber";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -13,9 +14,11 @@ import {
   Transaction,
   TransactionSources,
 } from "@finances/types";
-import { sm, smeq } from "@finances/utils";
+import { math, sm, smeq } from "@finances/utils";
 
 import { getUnique } from "../utils";
+
+const { round } = math;
 
 // MCD was launched on Nov 18th 2019
 
@@ -25,6 +28,7 @@ const source = TransactionSources.Maker;
 /// Addresses
 
 const tubAddress = "0x448a5065aebb8e423f0896e6c5d525c040f59af3";
+const pethAddress = "0xf53ad2c6851052a81b42133467480961b2321c09";
 
 const machineAddresses = [
   { name: "maker-proxy-registry", address: "0x4678f0a6958e4d2bc4f1baf7bc52e8f3564f3fe4" },
@@ -42,7 +46,7 @@ const machineAddresses = [
 
 const tokenAddresses = [
   { name: "SAI", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
-  { name: "PETH", address: "0xf53ad2c6851052a81b42133467480961b2321c09" },
+  { name: "PETH", address: pethAddress },
   { name: "DAI", address: "0x6b175474e89094c44da98b954eedeac495271d0f" },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
@@ -108,28 +112,64 @@ export const makerParser = (
       const args = tokenInterface.parseLog(txLog).args;
       const amount = formatUnits(args.wad, chainData.getTokenData(address).decimals);
       const index = txLog.index || 1;
+
       if (event.name === "Mint") {
         log.debug(`Minted ${amount} ${assetType}`);
         tx.transfers.push({
           assetType,
-          category: TransferCategories.Borrow,
+          category: smeq(address, pethAddress)
+            ? TransferCategories.SwapIn
+            : TransferCategories.Borrow,
           from: AddressZero,
           index,
           quantity: amount,
           to: args.guy,
         });
-        tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+        // If peth, categorize the matching deposit as swap out
+        if (smeq(address, pethAddress)) {
+          const swapOut = tx.transfers.findIndex(t => t.assetType === AssetTypes.WETH);
+          tx.transfers[swapOut].category = TransferCategories.SwapOut;
+          if (smeq(ethTx.to, tubAddress)) {
+            tx.description = `${getName(args.guy)} swapped ${
+              round(tx.transfers[swapOut].quantity)
+            } WETH for ${round(amount)} PETH`;
+          }
+        } else {
+          if (smeq(ethTx.to, tubAddress)) {
+            tx.description = `${getName(args.guy)} borrowed ${round(amount)} ${assetType}`;
+          }
+        }
+
       } else if (event.name === "Burn") {
         log.debug(`Burnt ${amount} ${assetType}`);
         tx.transfers.push({
           assetType,
-          category: TransferCategories.Repay,
+          category: smeq(address, pethAddress)
+            ? TransferCategories.SwapOut
+            : TransferCategories.Repay,
           from: args.guy,
           index,
           quantity: amount,
           to: AddressZero,
         });
-        tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+        // If peth, categorize the matching withdraw as swap in
+        if (smeq(address, pethAddress)) {
+          const swapIn = tx.transfers.findIndex(t => t.assetType === AssetTypes.WETH);
+          if (swapIn >= 0) {
+            tx.transfers[swapIn].category = TransferCategories.SwapIn;
+            if (smeq(ethTx.to, tubAddress)) {
+              tx.description = `${getName(args.guy)} swapped ${round(amount)} PETH for ${
+                round(tx.transfers[swapIn].quantity)
+              } WETH`;
+            }
+          } else {
+            log.warn(ethTx, `Couldn't find an associated SwapIn WETH transfer`);
+          }
+        } else {
+          if (smeq(ethTx.to, tubAddress)) {
+            tx.description = `${getName(args.guy)} repayed ${round(amount)} ${assetType}`;
+          }
+        }
       }
 
     ////////////////////////////////////////
@@ -142,7 +182,7 @@ export const makerParser = (
       const args = tubInterface.parseLog(txLog).args;
       if (event.name === "LogNewCup") {
         if (smeq(ethTx.to, tubAddress)) {
-          tx.description = `${getName(args.lad)} opened new CDP #${args.cup}`;
+          tx.description = `${getName(args.lad)} opened new CDP #${BigNumber.from(args.cup)}`;
         }
       }
 
