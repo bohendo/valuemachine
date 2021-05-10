@@ -14,11 +14,11 @@
     "chai-as-promised": "7.1.1",
     "ethers": "5.1.4",
     "pino": "6.11.3",
-    "pino-pretty": "4.7.1"
+    "pino-pretty": "4.8.0"
   },
   "devDependencies": {
     "@finances/types": "1.0.0",
-    "@types/node": "15.0.1",
+    "@types/node": "15.0.2",
     "typescript": "4.2.4"
   }
 }

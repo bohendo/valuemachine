@@ -10,6 +10,13 @@
     "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"
   },
   "dependencies": {
+    "@ethersproject/abi": "5.1.2",
+    "@ethersproject/bignumber": "5.1.1",
+    "@ethersproject/bytes": "5.1.0",
+    "@ethersproject/contracts": "5.1.1",
+    "@ethersproject/keccak256": "5.1.0",
+    "@ethersproject/rlp": "5.1.0",
+    "@ethersproject/units": "5.1.0",
     "@finances/types": "1.0.0",
     "@finances/utils": "1.0.0",
     "@openzeppelin/contracts": "4.1.0",
@@ -18,7 +25,7 @@
     "ethers": "5.1.4"
   },
   "devDependencies": {
-    "@types/node": "15.0.1",
+    "@types/node": "15.0.2",
     "typescript": "4.2.4",
     "ts-mocha": "8.0.0"
   }

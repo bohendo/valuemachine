@@ -18,6 +18,8 @@ import {
 } from "./external";
 import { mergeTransaction } from "./utils";
 
+export { publicAddresses } from "./eth";
+
 export const getTransactions = ({
   addressBook,
   logger,

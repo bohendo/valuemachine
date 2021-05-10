@@ -18,7 +18,7 @@ ${timestamp.replace("00Z", "30Z")}, Receive, ETH, ${value.substring(0, 10)},650.
 `.replace(/, +/g, ",");
 
 // TODO: test ERC20 txns, make sure the zero-quantity transfer isn't preventing merge
-describe("Merge Coinbase", () => {
+describe("Coinbase", () => {
   let txns: Transactions;
   let chainData: ChainData;
 

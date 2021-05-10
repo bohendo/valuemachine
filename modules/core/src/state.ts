@@ -102,7 +102,9 @@ export const getState = ({
         output.forEach(chunk => putChunk(account, chunk)); // roll back changes so far
         throw new Error(`${account} attempted to spend ${quantity} ${
           assetType
-        } on ${transaction.date} but it's missing ${togo}. All chunks: ${JSON.stringify(output)}.`);
+        } on ${transaction.date} but it's missing ${togo}. Tx: ${
+          JSON.stringify(transaction, null, 2)
+        } All chunks: ${JSON.stringify(output)}.`);
       }
       if (gt(chunk.quantity, togo)) {
         putChunk(account, { ...chunk, quantity: sub(chunk.quantity, togo) });

@@ -36,6 +36,11 @@ export const getChainData = ({
   const log = (logger || getLogger()).child?.({ module: "ChainData" });
   const json = chainDataJson || (store ? store.load(StoreKeys.ChainData) : emptyChainData);
 
+  if (!json.addresses) json.addresses = {};
+  if (!json.calls) json.calls = [];
+  if (!json.tokens) json.tokens = {};
+  if (!json.transactions) json.transactions = [];
+
   log.info(`Loaded chain data containing ${
     json.transactions.length
   } EthTxs from ${chainDataJson ? "input" : store ? "store" : "default"}`);
@@ -70,7 +75,9 @@ export const getChainData = ({
   const toHex = (num: BigNumber | number): string => hexlify(toBN(num));
 
   const toStr = (str: HexString | string): string =>
-    str.startsWith("0x") ? toUtf8String(str).replace(/\u0000/g, "") : str;
+    str.startsWith("0x") && !str.replace(/^0x/, "").match(/[^0-9a-fA-F]/)
+      ? toUtf8String(str).replace(/\u0000/g, "")
+      : str;
 
   const logProg = (list: any[], elem: any): string =>
     `${list.indexOf(elem)+1}/${list.length}`;
@@ -210,17 +217,16 @@ export const getChainData = ({
     for (const tokenAddress of newlySupported) {
       log.info(`⏪ Sent request for token data ${logProg(tokens, tokenAddress)}: ${tokenAddress}`);
       const token = new Contract(tokenAddress, getTokenInterface(tokenAddress), provider);
-      const [decimals, name, symbol] = await Promise.all([
+      const [rawDecimals, rawName, rawSymbol] = await Promise.all([
         token.functions.decimals(),
         token.functions.name(),
         token.functions.symbol(),
       ]);
+      const name = toStr(rawName[0] || "Unknown");
+      const symbol = toStr(rawSymbol[0] || "???");
+      const decimals = toNum(rawDecimals || 18);
       log.info(`➡️  Received data for ${name} [${symbol}] w ${decimals} decimals: ${tokenAddress}`);
-      json.tokens[sm(tokenAddress)] = {
-        decimals: toNum(decimals || 18),
-        name: toStr(name[0] || "Unknown"),
-        symbol: toStr(symbol[0] || "???"),
-      };
+      json.tokens[sm(tokenAddress)] = { decimals, name, symbol };
       store.save(StoreKeys.ChainData, json);
     }
   };
@@ -431,5 +437,6 @@ export const getChainData = ({
     syncAddress,
     syncAddresses,
     syncTokenData,
+    syncTransaction,
   };
 };

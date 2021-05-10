@@ -15,7 +15,7 @@
     "express": "4.17.1"
   },
   "devDependencies": {
-    "@types/node": "15.0.1",
+    "@types/node": "15.0.2",
     "babel-loader": "8.2.2",
     "nodemon": "2.0.7",
     "ts-loader": "8.1.0",

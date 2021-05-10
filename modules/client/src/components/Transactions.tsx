@@ -187,17 +187,19 @@ export const TransactionManager = ({
 
   useEffect(() => {
     if (filterEndDate.error || filterStartDate.error) return;
+    const getDate = (timestamp: string): string =>
+      (new Date(timestamp)).toISOString().split("T")[0];
     setFilteredTxns(transactions
 
       // Filter Start Date
       .filter(tx =>
         !filterStartDate.value
-        || new Date(tx.date).getTime() >= new Date(filterStartDate.value).getTime()
+        || getDate(tx.date) >= getDate(filterStartDate.value)
 
       // Filter End Date
       ).filter(tx =>
         !filterEndDate.value
-        || new Date(tx.date).getTime() <= new Date(filterEndDate.value).getTime()
+        || getDate(tx.date) <= getDate(filterEndDate.value)
 
       // Filter account
       ).filter(tx =>

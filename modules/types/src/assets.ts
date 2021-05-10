@@ -27,12 +27,12 @@ export const EthereumAssets = enumify({
   ETH: "ETH",
   GEN: "GEN",
   MKR: "MKR",
+  PETH: "PETH",
   REP: "REP",
   SAI: "SAI",
   SNT: "SNT",
   SNX: "SNX",
-  ["SNX-old"]: "SNX-old",
-  sUSD: "sUSD",
+  SNXv1: "SNXv1",
   TORN: "TORN",
   UNI: "UNI",
   USDC: "USDC",
@@ -40,6 +40,7 @@ export const EthereumAssets = enumify({
   WBTC: "WBTC",
   WETH: "WETH",
   YFI: "YFI",
+  sUSD: "sUSD",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type EthereumAssets = (typeof EthereumAssets)[keyof typeof EthereumAssets];

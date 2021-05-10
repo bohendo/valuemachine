@@ -16,7 +16,7 @@ const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
     ? tx1.index - tx2.index
     : new Date(tx1.date).getTime() - new Date(tx2.date).getTime();
 
-const getUnique = (array: string[]): string[] =>
+export const getUnique = (array: string[]): string[] =>
   Array.from(new Set([...array]));
 
 const datesAreClose = (
@@ -44,19 +44,15 @@ export const mergeTransaction = (
   let log = (logger || getLogger()).child({ module: "MergeTx" });
 
   if (!newTx?.transfers?.length) {
-    log.debug(newTx, `Skipped new tx with zero transfers`);
+    log.debug(`Skipped new tx with zero transfers`);
     return transactions;
   }
 
-  if (newTx.sources.length > 1) {
-    log.warn(newTx, `Skipped new tx with ${newTx.sources.length} sources`);
-    return transactions;
-  }
-  const source = newTx.sources[0];
-  log = logger.child({ module: `Merge${source}` });
+  const sources = newTx.sources;
+  log = logger.child({ module: `Merge${sources.join("")}` });
 
   // Merge simple eth txns
-  if (source === TransactionSources.EthTx) {
+  if (sources.includes(TransactionSources.EthTx)) {
 
     // Does this list of txns already include the coresponding eth tx?
     const index = transactions.findIndex(tx => tx.hash === newTx.hash);
@@ -78,7 +74,7 @@ export const mergeTransaction = (
         // (matching an eth tx to a mult-transfer external tx is not supported yet)
         tx.transfers.length === 1
         // This tx hasn't had this eth tx merged into it yet
-        && !tx.sources.includes(source)
+        && !tx.sources.some(source => sources.includes(source))
         // This tx has a transfer with same asset type & quantity as this new tx
         && tx.transfers.some(t =>
           t.assetType === transfer.assetType && quantitiesAreClose(t.quantity, transfer.quantity)
@@ -132,7 +128,7 @@ export const mergeTransaction = (
   // Merge external txns
   // Does the tx list already include this external tx?
   const dupCandidates = transactions
-    .filter(tx => tx.sources.includes(source))
+    .filter(tx => tx.sources.some(source => sources.includes(source)))
     .filter(tx => datesAreClose(tx.date, newTx.date, "1") && tx.description === newTx.description);
   if (dupCandidates.length > 0) {
     log.info(`Skipping duplicate external tx: ${newTx.description}`);
@@ -153,7 +149,7 @@ export const mergeTransaction = (
     // (transfer to external account in same tx as a contract interaction is not supported)
     tx.transfers.filter(t => math.gt(t.quantity, "0")).length === 1
     // Existing tx hasn't had this external tx merged into it yet
-    && !tx.sources.includes(source)
+    && !tx.sources.some(source => sources.includes(source))
     // Existing tx has a transfer with same asset type & quantity as this new tx
     && tx.transfers.some(t =>
       t.assetType === transfer.assetType && quantitiesAreClose(t.quantity, transfer.quantity)

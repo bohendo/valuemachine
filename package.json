@@ -1,6 +1,6 @@
 {
   "name": "finances",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "description": "financial dashboard + tax tools",
   "repository": {
     "type": "git",
@@ -14,9 +14,9 @@
   },
   "homepage": "https://gitlab.com/bohendo/finances#readme",
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "4.22.0",
-    "@typescript-eslint/parser": "4.22.0",
-    "eslint": "7.25.0",
+    "@typescript-eslint/eslint-plugin": "4.22.1",
+    "@typescript-eslint/parser": "4.22.1",
+    "eslint": "7.26.0",
     "eslint-plugin-import": "2.22.1",
     "eslint-plugin-react": "7.23.2",
     "eslint-plugin-unused-imports": "1.1.1"

@@ -15,7 +15,7 @@ export type ExternalCategories = (typeof ExternalCategories)[keyof typeof Extern
 export const DeFiCategories = enumify({
   Compound: "Compound",
   Defi: "Defi",
-  Erc20: "Erc20",
+  ERC20: "ERC20",
   Exchange: "Exchange",
   MakerDAO: "MakerDAO",
   Uniswap: "Uniswap",

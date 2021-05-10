@@ -1,5 +1,6 @@
 import {
   AddressBook,
+  AssetTypes,
   Event,
   Logger,
   Prices,
@@ -41,6 +42,13 @@ export const getValueMachine = ({
     const later = [];
     for (const transfer of transaction.transfers) {
       const { assetType, fee, from, quantity, to } = transfer;
+      if (
+        !Object.values(AssetTypes).includes(assetType) &&
+        !addressBook.isToken(assetType)
+      ) {
+        log.debug(`Skipping transfer of unsupported token: ${assetType}`);
+        continue;
+      }
       log.debug(`transfering ${quantity} ${assetType} from ${getName(from)} to ${getName(to)}`);
       let feeChunks;
       let chunks;
