@@ -1,7 +1,7 @@
 import { Interface } from "@ethersproject/abi";
 import { BigNumber } from "@ethersproject/bignumber";
 import { hexlify, stripZeros } from "@ethersproject/bytes";
-import { AddressZero } from "@ethersproject/constants";
+import { AddressZero, HashZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -19,7 +19,7 @@ import { math, sm, smeq } from "@finances/utils";
 
 import { getUnique, quantitiesAreClose } from "../utils";
 
-const { div, gt, round } = math;
+const { abs, div, gt, round } = math;
 
 const source = TransactionSources.Maker;
 
@@ -32,6 +32,7 @@ const potAddress = "0x197e90f9fad81970ba7976f33cbd77088e5d7cf7";
 const pethAddress = "0xf53ad2c6851052a81b42133467480961b2321c09";
 const saiCageAddress = "0x9fdc15106da755f9ffd5b0ba9854cfb89602e0fd";
 const mcdMigrationAddress = "0xc73e0383f3aff3215e6f04b0331d58cecf0ab849";
+const managerAddress = "0x5ef30b9986345249bc32d8928b7ee64de9435e39";
 
 const proxyAddresses = [
   { name: "maker-proxy-registry", address: "0x4678f0a6958e4d2bc4f1baf7bc52e8f3564f3fe4" },
@@ -52,6 +53,7 @@ const machineAddresses = [
   { name: "mcd-pot", address: potAddress },
   { name: "mcd-sai-join", address: "0xad37fd42185ba63009177058208dd1be4b136e6b" },
   { name: "mcd-vat", address: vatAddress },
+  { name: "mcd-manager", address: managerAddress },
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const tokenAddresses = [
@@ -168,6 +170,7 @@ export const makerParser = (
   const { getName, isProxy, isSelf } = addressBook;
   // log.debug(tx, `Parsing in-progress tx`);
 
+  const ethish = [AssetTypes.WETH, AssetTypes.ETH, AssetTypes.PETH] as AssetTypes[];
 
   const isSelfy = (address: string): boolean =>
     isSelf(address) || (isSelf(ethTx.from) && isProxy(address) && smeq(address, ethTx.to));
@@ -391,7 +394,6 @@ export const makerParser = (
 
       // Categorize PETH transfer as deposit or withdraw
       } else if (fnCall.name === "lock" || fnCall.name === "free") {
-        const ethish = [AssetTypes.WETH, AssetTypes.ETH, AssetTypes.PETH] as AssetTypes[];
         // Can't match on amounts bc PETH amount !== W/ETH amount
         const transfer = tx.transfers.findIndex(t =>
           ethish.includes(t.assetType) &&
@@ -401,12 +403,12 @@ export const makerParser = (
         if (transfer >= 0 ) {
           if (isSelf(tx.transfers[transfer].from)) {
             tx.transfers[transfer].category = TransferCategories.Deposit;
-            tx.description = `${getName(ethTx.from)} deposited ${
+            tx.description = `${getName(tx.transfers[transfer].from)} deposited ${
               round(tx.transfers[transfer].quantity, 4)
             } ${tx.transfers[transfer].assetType} into CDP`;
           } else if (isSelf(tx.transfers[transfer].to)) {
             tx.transfers[transfer].category = TransferCategories.Withdraw;
-            tx.description = `${getName(ethTx.from)} withdrew ${
+            tx.description = `${getName(tx.transfers[transfer].to)} withdrew ${
               round(tx.transfers[transfer].quantity, 4)
             } ${tx.transfers[transfer].assetType} from CDP`;
           }
@@ -424,13 +426,88 @@ export const makerParser = (
       }
 
     ////////////////////////////////////////
-    // MCD Vat
+    // MCD Vat aka CDP manager
     } else if (smeq(address, vatAddress)) {
       const fnCall = Object.values(vatInterface.functions).find(e =>
         txLog.topics[0].startsWith(vatInterface.getSighash(e))
       );
-      if (!fnCall || fnCall.name === "open") continue;
-      log.info(`Found Vat ${fnCall.name} (${txLog.topics[0].substring(0,10)}) function call`);
+      if (!fnCall) continue;
+      const args = txLog.data
+        .substring(2 + 64 + 64 + 8)
+        .match(/.{1,64}/g)
+        .filter(e => e !== "0".repeat(64 - 8))
+        .map(s => `0x${s}`)
+        .map(str => str === HashZero ? "0x00" : str.startsWith("0x000000000000000000000000")
+          ? `0x${str.substring(26)}`
+          : str
+        );
+      log.debug(`Found Vat call ${txLog.topics[0].substring(0,10)}: ${fnCall.name}(${
+        args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
+      })`);
+
+      // Deposit Collateral
+      if (fnCall.name === "slip") {
+        // NOTE: Hacky fix assumes that the joiner calls transfer immediately after slip
+        // slip accepts ilk which is a bytes32 that maps to the token address, not super useful
+        const asset = ethTx.logs.find(l => l.index === txLog.index + 1).address;
+        if (!asset) {
+          log.warn(`Unable to find the token address for ilk ${args[0]}`);
+          continue;
+        }
+        const wad = formatUnits(
+          BigNumber.from(args[2] || "0x00").fromTwos(256),
+          chainData.getTokenData(asset)?.decimals || 18,
+        );
+        const assetType = getName(asset) as AssetTypes;
+        log.info(`Found a change in CDP collateral of about ${wad} ${assetType}`);
+        const transfer = tx.transfers.findIndex(transfer =>
+          (
+            smeq(transfer.assetType, assetType) || (
+              ethish.includes(assetType) && ethish.includes(transfer.assetType)
+            )
+          ) && quantitiesAreClose(transfer.quantity, abs(wad), div(abs(wad), "10"))
+        );
+        if (transfer >= 0) {
+          if (gt(wad, "0")) {
+            tx.transfers[transfer].category = TransferCategories.Deposit;
+            tx.description = `${getName(tx.transfers[transfer].from)} deposited ${
+              round(wad, 4)
+            } ${assetType} into CDP`;
+          } else {
+            tx.transfers[transfer].category = TransferCategories.Withdraw;
+            tx.description = `${getName(tx.transfers[transfer].to)} withdrew ${
+              round(abs(wad), 4)
+            } ${assetType} from CDP`;
+          }
+        } else {
+          log.warn(`Unable to find transfer of about ${wad} ${assetType}`);
+        }
+
+      // Borrow/Repay DAI
+      } else if (fnCall.name === "frob") {
+        const dart = formatUnits(BigNumber.from(args[5] || "0x00").fromTwos(256));
+        log.info(`Found a change in CDP debt of about ${round(dart)} DAI`);
+        const transfer = tx.transfers.findIndex(transfer =>
+          transfer.assetType === AssetTypes.DAI
+          && quantitiesAreClose(transfer.quantity, abs(dart), div(abs(dart), "10"))
+        );
+        if (transfer >= 0) {
+          if (gt(dart, "0")) {
+            tx.transfers[transfer].category = TransferCategories.Borrow;
+            tx.description = `${getName(tx.transfers[transfer].to)} borrowed ${
+              round(tx.transfers[transfer].quantity)
+            } DAI from CDP`;
+          } else {
+            tx.transfers[transfer].category = TransferCategories.Repay;
+            tx.description = `${getName(tx.transfers[transfer].from)} repayed ${
+              round(tx.transfers[transfer].quantity)
+            } DAI into CDP`;
+          }
+        } else {
+          log.warn(`Unable to find transfer of about ${dart} DAI`);
+        }
+
+      }
 
     ////////////////////////////////////////
     // MCD Pot
@@ -439,18 +516,19 @@ export const makerParser = (
         txLog.topics[0].startsWith(potInterface.getSighash(e))
       );
       if (!fnCall || fnCall.name === "open") continue;
-      log.info(`Found Pot ${fnCall.name} (${txLog.topics[0].substring(0,10)}) function call`);
+      log.debug(`Found Pot ${fnCall.name} (${txLog.topics[0].substring(0,10)}) function call`);
 
       if (fnCall.name === "join") {
         const amount = formatUnits(hexlify(stripZeros(txLog.topics[2])), 18);
+        log.info(`wiggle room ${div(amount, "10")}`);
         const transfer = tx.transfers.findIndex(t =>
           t.assetType === AssetTypes.DAI &&
           t.category === TransferCategories.Transfer &&
-          quantitiesAreClose(t.quantity, amount, div(amount, "100"))
+          quantitiesAreClose(t.quantity, amount, div(amount, "10"))
         );
         if (transfer >= 0) {
           tx.transfers[transfer].category = TransferCategories.Deposit;
-          tx.description = `${getName(ethTx.from)} deposited ${
+          tx.description = `${getName(tx.transfers[transfer].from)} deposited ${
             round(tx.transfers[transfer].quantity)
           } DAI into DSR`;
         } else {
@@ -462,11 +540,11 @@ export const makerParser = (
         const transfer = tx.transfers.findIndex(t =>
           t.assetType === AssetTypes.DAI &&
           t.category === TransferCategories.Transfer &&
-          quantitiesAreClose(t.quantity, amount, div(amount, "100"))
+          quantitiesAreClose(t.quantity, amount, div(amount, "10"))
         );
         if (transfer >= 0) {
           tx.transfers[transfer].category = TransferCategories.Withdraw;
-          tx.description = `${getName(ethTx.from)} withdrew ${
+          tx.description = `${getName(tx.transfers[transfer].to)} withdrew ${
             round(tx.transfers[transfer].quantity)
           } DAI from DSR`;
         } else {

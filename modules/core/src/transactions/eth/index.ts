@@ -153,7 +153,11 @@ export const parseEthTx = (
 
   tx.transfers = tx.transfers
     // Filter out no-op transfers
-    .filter(transfer => addressBook.isSelf(transfer.to) || addressBook.isSelf(transfer.from))
+    .filter(transfer => (
+      addressBook.isSelf(transfer.to) || addressBook.isSelf(transfer.from)
+    ) && (
+      gt(transfer.quantity, "0") || gt(transfer.fee || "0", "0")
+    ))
     // Make sure all eth addresses are lower-case
     .map(transfer => ({ ...transfer, from: sm(transfer.from), to: sm(transfer.to) }))
     // sort by index
