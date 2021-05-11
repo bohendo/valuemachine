@@ -6,7 +6,7 @@ import { chainData } from "./chaindata";
 import { env } from "./env";
 import { getLogAndSend, STATUS_YOUR_BAD, STATUS_MY_BAD } from "./utils";
 
-const log = getLogger(env.logLevel).child({ level: "warn", module: "Transactions" });
+const log = getLogger(env.logLevel).child({ module: "Transactions" });
 
 export const transactionsRouter = express.Router();
 

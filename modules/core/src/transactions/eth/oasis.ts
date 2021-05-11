@@ -156,8 +156,7 @@ export const oasisParser = (
     }
   }
 
-  if (!inAsset || !outAsset) {
-    log.debug(`No Oasis interactions: inAsset=${inAsset} & outAsset=${outAsset}`);
+  if (!tx.sources.includes(source)) {
     return tx;
   }
 
