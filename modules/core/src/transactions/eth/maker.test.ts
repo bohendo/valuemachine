@@ -97,6 +97,23 @@ describe(TransactionSources.Maker, () => {
     expect(swapOut.category).to.equal(TransferCategories.SwapOut);
   });
 
-  // TODO: it("should handle a deposit via proxy", async () => {});
+  it("should handle a SAI to DAI migration", async () => {
+    addressBook.newAddress(
+      "0x1057bea69c9add11c6e3de296866aff98366cfe3",
+      AddressCategories.Self,
+      "test-self",
+    );
+    const chainData = await getRealChainData(
+      "0x20de49f7742cd25eaa75b4d09158f45b72ff7d847a250b4b60c9f33ac00bd759"
+    );
+    txns.mergeChainData(chainData);
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
+    expect(tx.transfers.length).to.equal(3);
+    const swapOut = tx.transfers[1];
+    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    const swapIn = tx.transfers[2];
+    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+  });
 
 });
