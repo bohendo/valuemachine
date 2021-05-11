@@ -29,7 +29,7 @@ const datesAreClose = (
     wiggleRoom,
   );
 
-const quantitiesAreClose = (q1: DecimalString, q2: DecimalString, wiggleRoom = "0.000001") =>
+export const quantitiesAreClose = (q1: DecimalString, q2: DecimalString, wiggleRoom = "0.000001") =>
   lt(diff(q1, q2), wiggleRoom);
 
 export const chrono = (e1: EthCall | EthTransaction, e2: EthCall | EthTransaction): number =>

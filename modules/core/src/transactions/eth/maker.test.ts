@@ -8,7 +8,7 @@ import { expect } from "@finances/utils";
 
 import {
   getRealChainData,
-  testAddressBook,
+  getTestAddressBook,
   testLogger,
 } from "../testing";
 import { getTransactions } from "../index";
@@ -20,17 +20,19 @@ const log = testLogger.child({ module: "TestTransactions" });
 describe(TransactionSources.Maker, () => {
   let txns: Transactions;
   const tubAddress = makerAddresses.find(e => e.name === "scd-tub").address;
+  let addressBook;
 
   beforeEach(() => {
-    txns = getTransactions({ addressBook: testAddressBook, logger: log });
+    addressBook = getTestAddressBook();
+    txns = getTransactions({ addressBook, logger: log });
     expect(txns.json.length).to.equal(0);
   });
 
   it("should parse a SAI borrow", async () => {
-    testAddressBook.newAddress(
+    addressBook.newAddress(
       "0x213fe7e177160991829a4d0a598a848d2448f384",
       AddressCategories.Self,
-      "test-self-tmp",
+      "test-self",
     );
     const chainData = await getRealChainData(
       "0x39ac4111ceaac95a9eee278b05ca38db3142a188bb33d5aa1c646546fc8d31c6"
@@ -42,18 +44,5 @@ describe(TransactionSources.Maker, () => {
     expect(txns.json[0].transfers[0].category).to.equal(TransferCategories.Expense);
     expect(txns.json[0].transfers[0].to).to.equal(tubAddress);
   });
-
-  /*
-  it("should handle repaying SAI and withdrawing ETH", async () => {});
-  it("should handle migration of SAI to DAI", async () => {});
-  it("should handle depositng ETH and borrowing DAI", async () => {});
-  it("should handle repaying DAI and withdrawing ETH", async () => {});
-  it("should handle deposits into Dai Savings Rate", async () => {
-    // eg 0x622431660cb6ee607e12ad077c8bf9f83f5f8cf495dbc919d55e9edcaebe22e0
-  });
-  it("should handle withdrawals from Dai Savings Rate", async () => {
-    // eg withdrawal: 0xa4b3389bd29cc186451a6c79ea5d9b9422e4fcca931a5d76ca431041c8744d30
-  });
-  */
 
 });

@@ -24,6 +24,7 @@ export const OnchainSources = enumify({
   ERC20: "ERC20",
   EthTx: "EthTx",
   Maker: "Maker",
+  Oasis: "Oasis",
   Uniswap: "Uniswap",
   Weth: "Weth",
   Yearn: "Yearn",

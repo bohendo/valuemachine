@@ -188,10 +188,14 @@ export const compoundParser = (
         // TODO
 
       } else if (
-        event.name === "AccrueInterest" ||
-        event.name === "Transfer" ||
-        event.name === "Approval" ||
-        event.name === "Redeem"
+        [
+          "AccrueInterest",
+          "Approval",
+          "Borrow",
+          "Redeem",
+          "RepayBorrow",
+          "Transfer",
+        ].includes(event.name)
       ) {
         log.debug(`Skipping ${event.name} event for ${source}V2`);
 

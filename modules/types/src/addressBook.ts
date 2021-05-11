@@ -46,6 +46,7 @@ export interface AddressBook {
   getName(address: Address): string;
   isCategory(category: AddressCategories): (address: Address) => boolean;
   isPresent(address: Address): boolean;
+  isProxy(address: Address): boolean;
   isSelf(address: Address): boolean;
   isToken(address: Address): boolean;
   json: AddressBookJson;

@@ -50,7 +50,6 @@ export const getAddressBook = (
     { name: "escrowed-erc20-bouncer", address: "0x2e225cf684a48f1de8eba5c56f1715c6f6c6b518" },
     { name: "eternal-storage-proxy", address: "0x4aa42145aa6ebf72e164c9bbc74fbd3788045016" },
     { name: "eth2-deposit", address: "0x00000000219ab540356cbb839cbe05303d7705fa" },
-    { name: "eth2dai", address: "0x39755357759ce0d7f32dc8dc45414cca409ae24e" },
     { name: "etherdelta", address: "0x8d12a197cb00d4747a1fe03395095ce2a5cc6819" },
     { name: "genesis-alpha", address: "0x294f999356ed03347c7a23bcbcf8d33fa41dc830" },
     { name: "genesis-alpha", address: "0xa3f5411cfc9eee0dd108bf0d07433b6dd99037f1" },
@@ -69,10 +68,6 @@ export const getAddressBook = (
     { name: "kickback", address: "0x80bf9ba97bc7a54fe70ef42d9c941b0574319d1d" },
     { name: "kyber-old", address: "0x9ae49c0d7f8f9ef4b864e004fe86ac8294e20950" },
     { name: "kyber-proxy", address: "0x818e6fecd516ecc3849daf6845e3ec868087b755" },
-    { name: "oasis", address: "0x794e6e91555438afc3ccf1c5076a74f42133d08d" },
-    { name: "oasis-old", address: "0x14fbca95be7e99c15cc2996c6c9d841e54b79425" },
-    { name: "oasis-old", address: "0xb7ac09c2c0217b07d7c103029b4918a2c401eecb" },
-    { name: "oasis-proxy", address: "0x793ebbe21607e4f04788f89c7a9b97320773ec59" },
     { name: "opensea", address: "0x7be8076f4ea4a4ad08075c2508e481d6c946d12b" },
     { name: "publicresolver", address: "0xd3ddccdd3b25a8a7423b5bee360a42146eb4baf3" },
     { name: "redeemer", address: "0x236e077f979f4ccb5f9a9e0163728fe2e743a56d" },
@@ -150,6 +145,8 @@ export const getAddressBook = (
 
   const isPresent = (address: Address): boolean => addresses.includes(sm(address));
 
+  const isProxy = isCategory(AddressCategories.Proxy);
+
   const isSelf = isCategory(AddressCategories.Self);
 
   const isToken = (address: Address): boolean =>
@@ -177,6 +174,7 @@ export const getAddressBook = (
     getName,
     isCategory,
     isPresent,
+    isProxy,
     isSelf,
     isToken,
     json: userAddressBook,

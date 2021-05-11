@@ -30,12 +30,13 @@ const source = TransactionSources.Maker;
 
 const tubAddress = "0x448a5065aebb8e423f0896e6c5d525c040f59af3";
 const pethAddress = "0xf53ad2c6851052a81b42133467480961b2321c09";
-const proxyFactory = "0xa26e15c895efc0616177b7c1e7270a4c7d51c997";
-const proxyRegistry = "0x4678f0a6958e4d2bc4f1baf7bc52e8f3564f3fe4";
+
+const proxyAddresses = [
+  { name: "maker-proxy-registry", address: "0x4678f0a6958e4d2bc4f1baf7bc52e8f3564f3fe4" },
+  { name: "maker-proxy-factory", address: "0xa26e15c895efc0616177b7c1e7270a4c7d51c997" },
+].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const machineAddresses = [
-  { name: "maker-proxy-registry", address: proxyRegistry },
-  { name: "maker-proxy-factory", address: proxyFactory },
   // Single-collateral DAI
   { name: "scd-gem-pit", address: "0x69076e44a9c70a67d5b79d95795aba299083c275" },
   { name: "scd-tub", address: tubAddress },
@@ -60,6 +61,7 @@ const govTokenAddresses = [
 
 export const makerAddresses = [
   ...machineAddresses,
+  ...proxyAddresses,
   ...tokenAddresses,
   ...govTokenAddresses,
 ] as AddressBookJson;
@@ -114,32 +116,29 @@ export const makerParser = (
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
-
     if (machineAddresses.some(e => smeq(e.address, address))) {
       tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
     }
 
     ////////////////////////////////////////
     // Proxies
-    if (smeq(address, proxyRegistry) || smeq(address, proxyFactory)) {
+    if (proxyAddresses.some(e => smeq(address, e.address))) {
       const event = Object.values(proxyInterface.events).find(e =>
         proxyInterface.getEventTopic(e) === txLog.topics[0]
       );
       if (event?.name === "Created") {
         const args = proxyInterface.parseLog(txLog).args;
-        const proxy = args?.proxy;
-        const owner = args?.owner;
-        if (!proxy || !owner) {
-          log.warn(event, `Couldn't find proxy or owner addresses in creation event`);
-          continue;
-        }
+        const proxy = sm(args.proxy);
+        const owner = sm(args.owner);
         if (!addressBook.isPresent(proxy)) {
           log.info(`Found CDP proxy creation, adding ${proxy} to our addressBook`);
           addressBook.newAddress(sm(proxy), AddressCategories.Proxy, "CDP");
         } else {
           log.info(`Found CDP proxy creation but ${proxy} is already in our addressBook`);
         }
-        tx.description = `${getName(owner)} created a new CDP proxy`;
+        if (proxyAddresses.some(e => smeq(e.address, ethTx.to))) {
+          tx.description = `${getName(owner)} created a new CDP proxy`;
+        }
       }
     }
 
@@ -234,7 +233,11 @@ export const makerParser = (
         } else {
           // Handle MKR fee (or find the stable-coins spent to buy MKR)
           const fee = tx.transfers.findIndex(t =>
-            t.category === TransferCategories.Transfer && isSelf(t.from) &&
+            ([
+              TransferCategories.SwapOut,
+              TransferCategories.Transfer
+            ] as TransferCategories[]).includes(t.category)
+            && isSelf(t.from) &&
             ([AssetTypes.MKR, AssetTypes.SAI, AssetTypes.DAI] as AssetTypes[]).includes(t.assetType)
           );
           if (fee >= 0) {

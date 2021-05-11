@@ -19,6 +19,7 @@ import { math, sm } from "@finances/utils";
 import { compoundAddresses, compoundParser } from "./compound";
 import { erc20Addresses, erc20Parser } from "./erc20";
 import { makerAddresses, makerParser } from "./maker";
+import { oasisAddresses, oasisParser } from "./oasis";
 import { uniswapAddresses, uniswapParser } from "./uniswap";
 import { wethAddresses, wethParser } from "./weth";
 import { yearnAddresses, yearnParser } from "./yearn";
@@ -27,6 +28,7 @@ export const publicAddresses = [
   ...compoundAddresses,
   ...erc20Addresses,
   ...makerAddresses,
+  ...oasisAddresses,
   ...uniswapAddresses,
   ...wethAddresses,
   ...yearnAddresses,
@@ -39,8 +41,9 @@ const { gt, eq, round } = math;
 const appParsers = [
   erc20Parser,
   wethParser,
-  compoundParser,
+  oasisParser,
   makerParser,
+  compoundParser,
   uniswapParser,
   yearnParser,
 ];
