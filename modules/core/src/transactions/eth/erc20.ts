@@ -68,8 +68,13 @@ export const erc20Parser = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: source });
-  const { getName, isSelf, isToken } = addressBook;
+  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const { getName, isProxy, isSelf, isToken } = addressBook;
+
+  const isSelfy = (address: string): boolean =>
+    isSelf(address) || (
+      isSelf(ethTx.from) && isProxy(address) && smeq(address, ethTx.to)
+    );
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
@@ -79,13 +84,16 @@ export const erc20Parser = (
     // Only parse known, ERC20 compliant tokens
     if (event && isToken(address)) {
       const args = iface.parseLog(txLog).args;
-      // Skip transfers that don't concern self accounts
-      if (!isSelf(args.from) && !isSelf(args.to)) continue;
       const assetType = getName(address) as AssetTypes;
+      // Skip transfers that don't concern self accounts
+      if (!isSelfy(args.from) && !isSelfy(args.to)) {
+        log.debug(`Skipping ${assetType} ${event.name} that doesn't involve us`);
+        continue;
+      }
       const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
-      log.info(`Found ${source} ${event.name} event for ${assetType}`);
 
       if (event.name === "Transfer") {
+        log.info(`Parsing ${source} ${event.name} event for ${assetType}`);
         if (smeq(ethTx.to, address)) {
           tx.description = `${getName(args.from)} transfered ${
             round(amount, 4)
@@ -102,6 +110,7 @@ export const erc20Parser = (
         });
 
       } else if (event.name === "Approval") {
+        log.info(`Parsing ${source} ${event.name} event for ${assetType}`);
         if (smeq(ethTx.to, address)) {
           const amt = round(amount, 2);
           tx.description = `${getName(args.from)} approved ${getName(args.to)} to spend ${

@@ -12,10 +12,11 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@finances/types";
-import { sm, smeq } from "@finances/utils";
+import { math, sm, smeq } from "@finances/utils";
 
 import { getUnique } from "../utils";
 
+const { round } = math;
 const source = TransactionSources.Weth;
 
 ////////////////////////////////////////
@@ -45,8 +46,8 @@ export const wethParser = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: source });
-  const { getName } = addressBook;
+  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const { getName, isSelf } = addressBook;
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
@@ -56,12 +57,17 @@ export const wethParser = (
         weth.interface.getEventTopic(e) === txLog.topics[0]
       );
       if (!event) continue;
-      log.info(`Found ${source} ${event.name} event`);
       const args = weth.interface.parseLog(txLog).args;
       const amount = formatUnits(args.wad, chainData.getTokenData(address).decimals);
       const index = txLog.index || 1;
 
       if (event.name === "Deposit") {
+        if (!isSelf(args.dst)) {
+          log.debug(`Skipping ${assetType} ${event.name} that doesn't involve us`);
+          continue;
+        } else {
+          log.info(`Parsing ${source} ${event.name} event of amount ${round(amount)}`);
+        }
         if (smeq(ethTx.to, weth.address)) {
           tx.description = `${getName(args.dst)} swapped ${amount} ETH for WETH`;
         }
@@ -77,6 +83,12 @@ export const wethParser = (
         tx.transfers[0].category = TransferCategories.SwapOut;
 
       } else if (event.name === "Withdrawal") {
+        if (!isSelf(args.src)) {
+          log.debug(`Skipping ${assetType} ${event.name} that doesn't involve us`);
+          continue;
+        } else {
+          log.info(`Parsing ${source} ${event.name} event of amount ${round(amount)}`);
+        }
         tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
         tx.transfers.push({
           assetType,
@@ -100,10 +112,9 @@ export const wethParser = (
         }
 
       } else if (event.name === "Transfer" || event.name === "Approval") {
-        log.debug(`Skipping ${source} event: ${event.name}`);
-
+        log.debug(`Skipping ${source} ${event.name} that was already processed`);
       } else {
-        log.warn(`Unknown ${source} event: ${event.name}`);
+        log.warn(event, `Unknown ${source} event`);
       }
 
     }

@@ -18,6 +18,7 @@ export const DeFiCategories = enumify({
   ERC20: "ERC20",
   Exchange: "Exchange",
   MakerDAO: "MakerDAO",
+  Proxy: "Proxy",
   Uniswap: "Uniswap",
   Yearn: "Yearn",
 });
@@ -43,8 +44,11 @@ export type AddressBookJson = Array<AddressEntry>;
 export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
-  json: AddressBookJson;
   isCategory(category: AddressCategories): (address: Address) => boolean;
+  isPresent(address: Address): boolean;
+  isProxy(address: Address): boolean;
   isSelf(address: Address): boolean;
   isToken(address: Address): boolean;
+  json: AddressBookJson;
+  newAddress(name: string, category: AddressCategories, address: Address): void;
 }

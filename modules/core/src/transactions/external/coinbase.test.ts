@@ -2,7 +2,7 @@ import { HashZero } from "@ethersproject/constants";
 import { ChainData, Transactions } from "@finances/types";
 import { expect } from "@finances/utils";
 
-import { AddressOne, AddressTwo, getTestChainData, testAddressBook, testLogger } from "../testing";
+import { AddressOne, AddressTwo, getTestChainData, getTestAddressBook, testLogger } from "../testing";
 import { getTransactions } from "../index";
 
 const log = testLogger.child({ module: "TestTransactions" });
@@ -19,11 +19,13 @@ ${timestamp.replace("00Z", "30Z")}, Receive, ETH, ${value.substring(0, 10)},650.
 
 // TODO: test ERC20 txns, make sure the zero-quantity transfer isn't preventing merge
 describe("Coinbase", () => {
+  let addressBook;
   let txns: Transactions;
   let chainData: ChainData;
 
   beforeEach(() => {
-    txns = getTransactions({ addressBook: testAddressBook, logger: log });
+    addressBook = getTestAddressBook();
+    txns = getTransactions({ addressBook, logger: log });
     chainData = getTestChainData([
       {
         block: 10,

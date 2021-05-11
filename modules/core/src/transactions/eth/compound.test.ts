@@ -7,7 +7,7 @@ import {
   AddressOne,
   getTestChainData,
   getTestEthTx,
-  testAddressBook,
+  getTestAddressBook,
   testLogger,
   testToken,
 } from "../testing";
@@ -22,6 +22,7 @@ const toBytes32 = (decstr: string): string => hexZeroPad(parseUnits(decstr, 18),
 const rm0x = (str: string): string => str.replace(/^0x/, "");
 
 describe(TransactionSources.Compound, () => {
+  let addressBook;
   let txns: Transactions;
   const quantity = "3.14";
   const quantityHex = toBytes32(quantity);
@@ -29,7 +30,8 @@ describe(TransactionSources.Compound, () => {
   const compoundV1Address = compoundAddresses.find(e => e.name.endsWith("v1")).address;
 
   beforeEach(() => {
-    txns = getTransactions({ addressBook: testAddressBook, logger: log });
+    addressBook = getTestAddressBook();
+    txns = getTransactions({ addressBook, logger: log });
   });
 
   // eg 0x4bd1cb92d370a3b69b697e606e905d76a003b28c1605d2e46c9a887202b72ae0
@@ -67,7 +69,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);
     expect(tx.description.toLowerCase()).to.include("deposit");
-    expect(tx.description).to.include(testAddressBook.getName(sender));
+    expect(tx.description).to.include(addressBook.getName(sender));
   });
 
   // eg 0x1ebdcb2989fe980c40bbce3e68a9d74832ab67a4a0ded2be503ec61335e4bad6
@@ -105,7 +107,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Withdraw);
     expect(tx.description.toLowerCase()).to.include("withdrew");
-    expect(tx.description).to.include(testAddressBook.getName(sender));
+    expect(tx.description).to.include(addressBook.getName(sender));
   });
 
   // it("should handle borrows from compound v1", async () => {});
@@ -147,7 +149,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);
     expect(tx.description.toLowerCase()).to.include("deposit");
-    expect(tx.description).to.include(testAddressBook.getName(sender));
+    expect(tx.description).to.include(addressBook.getName(sender));
   });
 
   // eg 0x9105678815630bf456b4af5e13de9e5e970e25bb3a8849a74953d833d2a9e499

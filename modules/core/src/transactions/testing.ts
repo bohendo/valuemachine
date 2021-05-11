@@ -3,6 +3,8 @@ import path from "path";
 
 import { AddressZero, HashZero } from "@ethersproject/constants";
 import {
+  AddressBook,
+  AddressBookJson,
   AddressCategories,
   ChainData,
   EthCall,
@@ -27,15 +29,16 @@ export const AddressOne = "0x0000000000000000000000000000000000000001";
 export const AddressTwo = "0x0000000000000000000000000000000000000002";
 export const testToken = "0x0000000000000000000000000000000000000003";
 
-export const testAddressBook = getAddressBook(
-  [
-    { name: "test-self-1", category: AddressCategories.Self, address: AddressOne },
-    { name: "test-self-2", category: AddressCategories.Self, address: AddressTwo },
-    { name: "test-self-213", category: AddressCategories.Self, address: "0x213fe7e177160991829a4d0a598a848d2448f384" },
-    { name: "test-token", category: AddressCategories.ERC20, address: testToken },
-  ],
-  testLogger,
-);
+export const getTestAddressBook = (addressBook: AddressBookJson = []): AddressBook =>
+  getAddressBook(
+    [
+      { name: "test-self-1", category: AddressCategories.Self, address: AddressOne },
+      { name: "test-self-2", category: AddressCategories.Self, address: AddressTwo },
+      { name: "test-token", category: AddressCategories.ERC20, address: testToken },
+      ...addressBook,
+    ],
+    testLogger,
+  );
 
 export const getTestEthTx = (ethTx?: Partial<EthTransaction>): EthTransaction => ({
   block: 1,
