@@ -1,4 +1,9 @@
-import { Transactions, TransactionSources, TransferCategories } from "@finances/types";
+import {
+  AddressCategories,
+  Transactions,
+  TransactionSources,
+  TransferCategories,
+} from "@finances/types";
 import { expect } from "@finances/utils";
 
 import {
@@ -22,9 +27,15 @@ describe(TransactionSources.Maker, () => {
   });
 
   it("should parse a SAI borrow", async () => {
+    testAddressBook.newAddress(
+      "0x213fe7e177160991829a4d0a598a848d2448f384",
+      AddressCategories.Self,
+      "test-self-tmp",
+    );
     const chainData = await getRealChainData(
       "0x39ac4111ceaac95a9eee278b05ca38db3142a188bb33d5aa1c646546fc8d31c6"
     );
+    log.info(chainData);
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     expect(txns.json[0].transfers.length).to.equal(2);

@@ -16,6 +16,9 @@
 modules/client/src/data
 
 # Cache
+modules/core/src/transactions/testChainData.json
+
+# Cache
 **/.cache
 **/.config
 **/.git

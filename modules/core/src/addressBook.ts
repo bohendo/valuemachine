@@ -148,6 +148,8 @@ export const getAddressBook = (
   const isCategory = (category: AddressCategories) => (address: Address): boolean =>
     isInnerCategory(category)(address) || isTagged(category)(address);
 
+  const isPresent = (address: Address): boolean => addresses.includes(sm(address));
+
   const isSelf = isCategory(AddressCategories.Self);
 
   const isToken = (address: Address): boolean =>
@@ -162,12 +164,22 @@ export const getAddressBook = (
           ? `${address.substring(0, 6)}..${address.substring(address.length - 4)}`
           : address;
 
+  const newAddress = (address: Address, category: AddressCategories, name?: string): void => {
+    if (!addresses.includes(sm(address))) {
+      addressBook.push({ address, category, name: name || getName(address) });
+      addresses.push(address);
+      addresses.sort();
+    }
+  };
+
   return {
     addresses,
     getName,
-    json: userAddressBook,
     isCategory,
+    isPresent,
     isSelf,
     isToken,
+    json: userAddressBook,
+    newAddress,
   };
 };

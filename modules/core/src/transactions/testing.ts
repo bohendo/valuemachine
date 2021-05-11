@@ -31,7 +31,6 @@ export const testAddressBook = getAddressBook(
   [
     { name: "test-self-1", category: AddressCategories.Self, address: AddressOne },
     { name: "test-self-2", category: AddressCategories.Self, address: AddressTwo },
-    { name: "test-self-213", category: AddressCategories.Self, address: "0x213fe7e177160991829a4d0a598a848d2448f384" },
     { name: "test-token", category: AddressCategories.ERC20, address: testToken },
   ],
   testLogger,
