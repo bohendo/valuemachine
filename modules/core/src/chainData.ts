@@ -1,3 +1,11 @@
+import { getAddress } from "@ethersproject/address";
+import { BigNumber } from "@ethersproject/bignumber";
+import { hexlify } from "@ethersproject/bytes";
+import { AddressZero } from "@ethersproject/constants";
+import { Contract } from "@ethersproject/contracts";
+import { EtherscanProvider, JsonRpcProvider, Provider } from "@ethersproject/providers";
+import { toUtf8String } from "@ethersproject/strings";
+import { formatEther } from "@ethersproject/units";
 import {
   Address,
   emptyChainData,
@@ -11,16 +19,11 @@ import {
   StoreKeys,
   TokenData,
 } from "@finances/types";
-import { getLogger, sm, smeq } from "@finances/utils";
-import { BigNumber, Contract, constants, providers, utils  } from "ethers";
+import { getLogger, sm, smeq, toBN } from "@finances/utils";
 import axios from "axios";
 
 import { getTokenInterface } from "./abi";
 import { getEthTransactionError } from "./verify";
-
-type Provider = providers.Provider;
-const { JsonRpcProvider } = providers;
-const { formatEther, getAddress, hexlify, toUtf8String } = utils;
 
 export const getChainData = ({
   chainDataJson,
@@ -47,13 +50,6 @@ export const getChainData = ({
 
   ////////////////////////////////////////
   // Internal Helper Functions
-
-  const toBN = (n: BigNumber | number | string | { _hex: HexString }): BigNumber =>
-    BigNumber.from(
-      (n && (n as { _hex: HexString })._hex)
-        ? (n as { _hex: HexString })._hex
-        : n.toString(),
-    );
 
   const toTimestamp = (tx: any): string => {
     const val = `${tx.timestamp || tx.timeStamp}`;
@@ -91,7 +87,7 @@ export const getChainData = ({
       return new JsonRpcProvider(process.env.FINANCES_ETH_PROVIDER);
     } else {
       log.debug(`Connecting eth provider to etherscan`);
-      return new providers.EtherscanProvider("homestead", key || etherscanKey);
+      return new EtherscanProvider("homestead", key || etherscanKey);
     }
   };
 
@@ -340,7 +336,7 @@ export const getChainData = ({
       }
       json.calls.push({
         block: toNum(call.blockNumber),
-        contractAddress: constants.AddressZero,
+        contractAddress: AddressZero,
         from: sm(call.from),
         hash: call.hash,
         timestamp: toTimestamp(call),

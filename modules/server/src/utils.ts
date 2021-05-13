@@ -1,10 +1,9 @@
+import { hexDataLength, isHexString } from "@ethersproject/bytes";
 import { getLogger } from "@finances/utils";
-import { utils } from "ethers";
 
 import { env } from "./env";
 import { getStore } from "./store";
 
-const { hexDataLength, isHexString } = utils;
 const log = getLogger(env.logLevel).child({ module: "Utils" });
 
 export const STATUS_SUCCESS = 200;

@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { BigNumber } from "@ethersproject/bignumber";
 import { hexlify, stripZeros } from "@ethersproject/bytes";
 import { AddressZero, HashZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
@@ -16,7 +15,7 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+import { math, sm, smeq, toBN } from "@finances/utils";
 
 import { getUnique, quantitiesAreClose } from "../utils";
 

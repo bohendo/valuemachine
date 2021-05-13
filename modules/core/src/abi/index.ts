@@ -1,6 +1,6 @@
+import { Interface } from "@ethersproject/abi";
 import { Address, AddressCategories } from "@finances/types";
 import { getLogger } from "@finances/utils";
-import { utils } from "ethers";
 
 import { getAddressBook } from "../addressBook";
 
@@ -15,10 +15,9 @@ import saiAbi from "./sai.json";
 import vatAbi from "./vat.json";
 import wethAbi from "./weth.json";
 
-const { Interface } = utils;
 const addressBook = getAddressBook([], getLogger("warn"));
 
-export const getTokenInterface = (address?: Address): utils.Interface => !address
+export const getTokenInterface = (address?: Address): Interface => !address
   ? new Interface(erc20Abi)
   : addressBook.getName(address) === "DAI"
     ? new Interface(daiAbi)

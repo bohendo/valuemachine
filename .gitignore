@@ -2,13 +2,14 @@
 **/*.log
 **/*.tar.gz
 **/.env
+**/addressBook.json
 **/chain-data.json
 **/docs/**
 **/events.json
 **/joint.json
 **/personal.json
-**/addressBook.json
 **/prices.json
+**/private.test.ts
 **/separate.json
 **/state.json
 **/tax-return.pdf

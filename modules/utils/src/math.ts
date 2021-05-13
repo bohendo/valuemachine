@@ -1,7 +1,7 @@
-import { constants, utils, BigNumber as BN } from "ethers";
-
-const { MaxUint256, Zero } = constants;
-const { formatUnits, parseUnits } = utils;
+import { BigNumber as BN } from "@ethersproject/bignumber";
+import { MaxUint256, Zero } from "@ethersproject/constants";
+import { formatUnits, parseUnits } from "@ethersproject/units";
+import { HexString } from "@finances/types";
 
 ////////////////////////////////////////
 // Internal Helpers
@@ -19,6 +19,13 @@ const roundInt = (decStr: string): string =>
 
 ////////////////////////////////////////
 // Exports
+
+export const toBN = (n: BN | number | string | { _hex: HexString }): BN =>
+  BN.from(
+    (n && (n as { _hex: HexString })._hex)
+      ? (n as { _hex: HexString })._hex
+      : n.toString(),
+  );
 
 export const eq = (a, b): boolean => toWad(a).eq(toWad(b));
 export const gt = (a, b): boolean => toWad(a).gt(toWad(b));

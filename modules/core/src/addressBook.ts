@@ -1,3 +1,4 @@
+import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import {
   Address,
@@ -7,7 +8,6 @@ import {
   Logger,
 } from "@finances/types";
 import { getLogger, sm, smeq } from "@finances/utils";
-import { utils } from "ethers";
 
 import { publicAddresses } from "./transactions";
 
@@ -128,7 +128,7 @@ export const getAddressBook = (
   addressBook.forEach(row => {
     if (addresses.includes(sm(row.address))) {
       log.warn(`Address book has multiple entries for address ${row.address}`);
-    } else if (!utils.getAddress(row.address)) {
+    } else if (!getAddress(row.address)) {
       throw new Error(`Address book contains invalid address ${row.address}`);
     } else {
       addresses.push(sm(row.address));

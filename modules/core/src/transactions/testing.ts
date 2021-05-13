@@ -87,8 +87,11 @@ export const getTestChainData = (
   },
 });
 
-export const getRealChainData = async (txHash: string): Promise<ChainData> => {
-  const filepath = path.join(__dirname, "./testChainData.json");
+export const getRealChainData = async (
+  txHash: string,
+  _filepath = "./testChainData.json",
+): Promise<ChainData> => {
+  const filepath = path.join(__dirname, _filepath);
   const testStore = {
     load: (key: StoreKeys): any => {
       if (key === StoreKeys.ChainData) {
