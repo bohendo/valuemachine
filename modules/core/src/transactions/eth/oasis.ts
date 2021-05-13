@@ -15,7 +15,7 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { getUnique, quantitiesAreClose } from "../utils";
+import { getUnique, parseEvent, quantitiesAreClose } from "../utils";
 
 const { add, round } = math;
 const source = TransactionSources.Oasis;
@@ -95,28 +95,24 @@ export const oasisParser = (
     const address = sm(txLog.address);
     if (machineAddresses.some(e => smeq(e.address, address))) {
       tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-      const event = Object.values(oasisInterface.events).find(e =>
-        oasisInterface.getEventTopic(e) === txLog.topics[0]
-      );
-      if (!event) continue;
-      const args = oasisInterface.parseLog(txLog).args;
+      const event = parseEvent(oasisInterface, txLog);
 
       if (event.name === "LogTake") {
         log.info(`Parsing ${source} ${event.name} event`);
         let inAmt, inGem, outAmt, outGem;
         // ethTx.to might be a proxy which counts as self as far as this logic is concerned
-        if (isSelfy(args.maker)) {
-          actor = actor || args.maker;
-          inGem = getName(args.buy_gem);
-          outGem = getName(args.pay_gem);
-          inAmt = formatUnits(args.buy_amt, chainData.getTokenData(address).decimals);
-          outAmt = formatUnits(args.pay_amt, chainData.getTokenData(address).decimals);
-        } else if (isSelfy(args.taker)) {
-          actor = actor || args.taker;
-          inGem = getName(args.pay_gem);
-          outGem = getName(args.buy_gem);
-          inAmt = formatUnits(args.pay_amt, chainData.getTokenData(address).decimals);
-          outAmt = formatUnits(args.buy_amt, chainData.getTokenData(address).decimals);
+        if (isSelfy(event.args.maker)) {
+          actor = actor || event.args.maker;
+          inGem = getName(event.args.buy_gem);
+          outGem = getName(event.args.pay_gem);
+          inAmt = formatUnits(event.args.buy_amt, chainData.getTokenData(address).decimals);
+          outAmt = formatUnits(event.args.pay_amt, chainData.getTokenData(address).decimals);
+        } else if (isSelfy(event.args.taker)) {
+          actor = actor || event.args.taker;
+          inGem = getName(event.args.pay_gem);
+          outGem = getName(event.args.buy_gem);
+          inAmt = formatUnits(event.args.pay_amt, chainData.getTokenData(address).decimals);
+          outAmt = formatUnits(event.args.buy_amt, chainData.getTokenData(address).decimals);
         } else {
           continue;
         }
@@ -150,7 +146,7 @@ export const oasisParser = (
         inTotal = add(inTotal, inAmt);
         outTotal = add(outTotal, outAmt);
       } else {
-        log.debug(`Skipping ${source} ${event.name} event`);
+        log.debug(`Skipping ${source} ${event.name || "Unknown"} event`);
       }
 
     }

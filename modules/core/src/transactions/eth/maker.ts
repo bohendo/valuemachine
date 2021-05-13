@@ -17,7 +17,7 @@ import {
 } from "@finances/types";
 import { math, sm, smeq, toBN } from "@finances/utils";
 
-import { getUnique, quantitiesAreClose } from "../utils";
+import { getUnique, parseEvent, quantitiesAreClose } from "../utils";
 
 const { abs, diff, div, eq, gt, round } = math;
 
@@ -25,6 +25,8 @@ const source = TransactionSources.Maker;
 
 ////////////////////////////////////////
 /// Addresses
+
+const saiAddress = "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359";
 
 const tubAddress = "0x448a5065aebb8e423f0896e6c5d525c040f59af3";
 const vatAddress = "0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b";
@@ -57,7 +59,7 @@ const machineAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const tokenAddresses = [
-  { name: "SAI", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
+  { name: "SAI", address: saiAddress },
   { name: "PETH", address: pethAddress },
   { name: "DAI", address: "0x6b175474e89094c44da98b954eedeac495271d0f" },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
@@ -169,8 +171,8 @@ const proxyInterface = new Interface([
 
 const parseLogNote = (
   iface: Interface,
-  ethLog: EthTransactionLog
-): { name: string; args: string[]} => ({
+  ethLog: EthTransactionLog,
+): { name: string; args: string[]; } => ({
   name: Object.values(iface.functions).find(e =>
     ethLog.topics[0].startsWith(iface.getSighash(e))
   )?.name,
@@ -227,6 +229,7 @@ export const makerParser = (
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
+    const index = txLog.index || 1;
     if (machineAddresses.some(e => smeq(e.address, address))) {
       tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
     }
@@ -234,13 +237,10 @@ export const makerParser = (
     ////////////////////////////////////////
     // Proxy Managers
     if (proxyAddresses.some(e => smeq(address, e.address))) {
-      const event = Object.values(proxyInterface.events).find(e =>
-        proxyInterface.getEventTopic(e) === txLog.topics[0]
-      );
+      const event = parseEvent(proxyInterface, txLog);
       if (event?.name === "Created") {
-        const args = proxyInterface.parseLog(txLog).args;
-        const proxy = sm(args.proxy);
-        const owner = sm(args.owner);
+        const proxy = sm(event.args.proxy);
+        const owner = sm(event.args.owner);
         if (!addressBook.isPresent(proxy)) {
           log.info(`Found CDP proxy creation, adding ${proxy} to our addressBook`);
           addressBook.newAddress(sm(proxy), AddressCategories.Proxy, "CDP");
@@ -257,14 +257,10 @@ export const makerParser = (
     // PETH/SAI/DAI
     if (tokenAddresses.some(e => smeq(e.address, address))) {
       const assetType = getName(address) as AssetTypes;
-      const event = Object.values(tokenInterface.events).find(e =>
-        tokenInterface.getEventTopic(e) === txLog.topics[0]
-      );
-      if (!event) continue;
-      const args = tokenInterface.parseLog(txLog).args;
-      const wad = formatUnits(args.wad, chainData.getTokenData(address).decimals);
-      const index = txLog.index || 1;
-      if (!isSelf(args.guy)) {
+      const event = parseEvent(tokenInterface, txLog);
+      if (!event.name) continue;
+      const wad = formatUnits(event.args.wad, chainData.getTokenData(address).decimals);
+      if (!isSelf(event.args.guy)) {
         log.debug(`Skipping ${assetType} ${event.name} event that doesn't involve us`);
         continue;
       }
@@ -278,7 +274,7 @@ export const makerParser = (
           from: AddressZero,
           index,
           quantity: wad,
-          to: args.guy,
+          to: event.args.guy,
         });
       } else if (event.name === "Burn") {
         log.info(`Parsing ${assetType} ${event.name} event`);
@@ -287,7 +283,7 @@ export const makerParser = (
           category: smeq(address, pethAddress)
             ? TransferCategories.SwapOut
             : TransferCategories.Repay,
-          from: args.guy,
+          from: event.args.guy,
           index,
           quantity: wad,
           to: tubAddress,
@@ -311,7 +307,7 @@ export const makerParser = (
       if (logNote.name === "slip") {
         // NOTE: Hacky fix assumes that the joiner calls transfer immediately after slip
         // slip accepts ilk which is a bytes32 that maps to the token address, not super useful
-        const asset = ethTx.logs.find(l => l.index === txLog.index + 1).address;
+        const asset = ethTx.logs.find(l => l.index === index + 1).address;
         if (!asset) {
           log.warn(`Vat.${logNote.name}: Couldn't find a token address for ilk ${logNote.args[0]}`);
           continue;
@@ -420,11 +416,9 @@ export const makerParser = (
     // SCD Cage
     // During global settlement, the cage is used to redeem no-longer-stable-coins for collateral
     } else if (smeq(address, saiCageAddress)) {
-      const event = Object.values(cageInterface.events)
-        .find(e => cageInterface.getEventTopic(e) === txLog.topics[0]);
+      const event = parseEvent(cageInterface, txLog);
       if (event?.name === "FreeCash") {
-        const args = cageInterface.parseLog(txLog).args;
-        const wad = formatUnits(args[1], 18);
+        const wad = formatUnits(event.args[1], 18);
         log.info(`Parsing SaiCage FreeCash event for ${wad} ETH`);
         const swapOut = tx.transfers.find(t =>
           t.assetType === AssetTypes.SAI
@@ -457,12 +451,9 @@ export const makerParser = (
     ////////////////////////////////////////
     // SCD Tub
     } else if (smeq(address, tubAddress)) {
-      const event = Object.values(tubInterface.events).find(e =>
-        tubInterface.getEventTopic(e) === txLog.topics[0]
-      );
+      const event = parseEvent(tubInterface, txLog);
       if (event?.name === "LogNewCup") {
-        const args = tubInterface.parseLog(txLog).args;
-        tx.description = `${getName(args.lad)} opened new CDP #${toBN(args.cup)}`;
+        tx.description = `${getName(event.args.lad)} opened new CDP #${toBN(event.args.cup)}`;
         continue;
       }
       const logNote = parseLogNote(tubInterface, txLog);
@@ -573,26 +564,61 @@ export const makerParser = (
       } else if (logNote.name === "draw") {
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         tx.description = `${getName(ethTx.from)} borrowed ${round(wad)} SAI from CDP`;
+        const borrow = tx.transfers.filter(t =>
+          isSelf(t.to)
+          && t.assetType === AssetTypes.SAI
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.Borrow, // parse duplicate log notes again
+          ] as TransferCategories[]).includes(t.category)
+        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        if (borrow) {
+          borrow.category = TransferCategories.Borrow;
+        } else if (!ethTx.logs.find(l =>
+          l.index > index
+          && smeq(l.address, saiAddress)
+          && parseEvent(tokenInterface, l).name === "Mint"
+        )) {
+          // Only warn if there is NOT an upcoming SAI mint evet
+          log.warn(`Tub.${logNote.name}: Couldn't find a SAI transfer of ${wad}`);
+        }
 
       // SAI -> CDP
       } else if (logNote.name === "wipe") {
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         tx.description = `${getName(ethTx.from)} repayed ${round(wad)} SAI to CDP`;
+        const repay = tx.transfers.filter(t =>
+          isSelf(t.from)
+          && t.assetType === AssetTypes.SAI
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.Repay, // parse duplicate log notes again
+          ] as TransferCategories[]).includes(t.category)
+        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        if (repay) {
+          repay.category = TransferCategories.Repay;
+        } else if (!ethTx.logs.find(l =>
+          l.index > index
+          && smeq(l.address, saiAddress)
+          && parseEvent(tokenInterface, l).name === "Burn"
+        )) {
+          log.warn(`Tub.${logNote.name}: Couldn't find a SAI transfer of ${wad}`);
+        }
         // Handle MKR fee (or find the stable-coins spent to buy MKR)
-        const feeAsset = [AssetTypes.MKR, AssetTypes.SAI, AssetTypes.DAI] as AssetTypes[];
-        const fee = tx.transfers.findIndex(t =>
-          ([
+        const feeAsset = [AssetTypes.MKR, AssetTypes.SAI] as AssetTypes[];
+        const fee = tx.transfers.find(t =>
+          isSelf(t.from)
+          && feeAsset.includes(t.assetType)
+          && ([
             TransferCategories.SwapOut, // Maybe we gave our fee to OasisDex to swap for MKR
             TransferCategories.Expense, // parse duplicate log notes again
             TransferCategories.Transfer
           ] as TransferCategories[]).includes(t.category)
-          && isSelf(t.from) &&
-          feeAsset.includes(t.assetType)
         );
-        if (fee >= 0) {
-          tx.transfers[fee].category = TransferCategories.Expense;
+        if (fee) {
+          fee.category = TransferCategories.Expense;
         } else {
-          log.warn(`Tub.${logNote.name}: Couldn't find a MKR/SAI/DAI fee`);
+          log.warn(`Tub.${logNote.name}: Couldn't find a MKR/SAI fee`);
         }
 
       }
