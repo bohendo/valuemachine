@@ -14,9 +14,9 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { getUnique, parseEvent } from "../utils";
+import { getUnique, parseEvent, quantitiesAreClose } from "../utils";
 
-const { eq, round } = math;
+const { div, round } = math;
 
 const source = TransactionSources.Compound;
 
@@ -24,10 +24,11 @@ const source = TransactionSources.Compound;
 /// Addresses
 
 const compoundV1Address = "0x3fda67f7583380e67ef93072294a7fac882fd7e7";
+const maxiAddress = "0xf859a1ad94bcf445a406b892ef0d3082f4174088";
 
 const machineryAddresses = [
   { name: "compound-v1", address: compoundV1Address },
-  { name: "compound-maximillion", address: "0xf859a1ad94bcf445a406b892ef0d3082f4174088" },
+  { name: "compound-maximillion", address: maxiAddress },
   { name: "compound-comptroller", address: "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b" },
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
@@ -83,9 +84,12 @@ const cTokenInterface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
+const cTokenDecimals = 8;
+
 const associatedTransfer = (assetType: string, quantity: string) =>
   (transfer: Transfer): boolean =>
-    smeq(transfer.assetType, assetType) && eq(transfer.quantity, quantity);
+    smeq(transfer.assetType, assetType)
+      && quantitiesAreClose(transfer.quantity, quantity, div(quantity, "100"));
 
 export const compoundParser = (
   tx: Transaction,
@@ -94,114 +98,189 @@ export const compoundParser = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: source });
+  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
   const { getName } = addressBook;
+
+  if (compoundAddresses.some(e => smeq(e.address, ethTx.to))) {
+    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+  }
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
+    if (compoundAddresses.some(e => smeq(e.address, address))) {
+      tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+    }
 
+    ////////////////////////////////////////
     // Compound V1
     if (smeq(address, compoundV1Address)) {
       const event = parseEvent(compoundV1Interface, txLog);
       log.info(`Found ${source}V1 ${event.name} event`);
-      const amount = formatUnits(event.args.amount, chainData.getTokenData(address).decimals);
-      const assetType = getName(event.args.asset);
-
-      if (event.name === "SupplyReceived") {
-        const deposit = tx.transfers.findIndex(associatedTransfer(assetType, amount));
-        if (deposit >= 0) {
-          tx.transfers[deposit].category = TransferCategories.Deposit;
-          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1Address)) {
-            tx.description = `${getName(ethTx.from)} deposited ${round(amount)} ${assetType} into ${source}V1`;
-          }
-        } else {
-          log.warn(tx.transfers, `Couldn't find an associated deposit transfer`);
-        }
-
-      } else if (event.name === "SupplyWithdrawn") {
-        const withdraw = tx.transfers.findIndex(associatedTransfer(assetType, amount));
-        if (withdraw >= 0) {
-          tx.transfers[withdraw].category = TransferCategories.Withdraw;
-          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1Address)) {
-            tx.description = `${getName(ethTx.from)} withdrew ${round(amount)} ${assetType} from ${source}V1`;
-          }
-        } else {
-          log.warn(tx.transfers, `Couldn't find a transfer of ${amount} ${assetType}`);
-        }
-
-      } else if (event.name === "BorrowTaken") {
-        const borrow = tx.transfers.findIndex(associatedTransfer(assetType, amount));
-        if (borrow >= 0) {
-          tx.transfers[borrow].category = TransferCategories.Borrow;
-          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1Address)) {
-            tx.description = `${getName(ethTx.from)} borrowed ${amount} ${assetType} from ${source}V1`;
-          }
-        } else {
-          log.warn(tx.transfers, `Couldn't find an associated borrow transfer`);
-        }
-
-      } else if (event.name === "BorrowRepaid") {
-        const repay = tx.transfers.findIndex(associatedTransfer(assetType, amount));
-        if (repay >= 0) {
-          tx.transfers[repay].category = TransferCategories.Repay;
-          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1Address)) {
-            tx.description = `${getName(ethTx.from)} repaid ${amount} ${assetType} to ${source}V1`;
-          }
-        } else {
-          log.warn(tx.transfers, `Couldn't find an associated repay transfer`);
-        }
-
-      } else if (event.name === "EquityWithdrawn") {
-        log.debug(`Skipping ${event.name} event for ${source}V1`);
-      } else {
-        log.debug(`Unknown event for ${source}V1: ${event.name}`);
-      }
-
-    // Compound V2
-    } else if (
-      cTokenAddresses.some(a => smeq(address, a.address))
-    ) {
-      const event = parseEvent(cTokenInterface, txLog);
-      if (!event.name) continue;
-      log.info(`Found ${source}V2 ${event.name} event`);
       const amount = formatUnits(
-        event.args.amount || "0x00",
-        chainData.getTokenData(address).decimals,
+        event.args.amount,
+        chainData.getTokenData(event.args.asset)?.decimals || 18,
       );
       const assetType = getName(event.args.asset);
 
-      // If Mint then we deposited & are recieving cTokens in return
-      if (event.name === "Mint") {
-        log.info(`Deposited ${amount} ${assetType} into ${source}V2`);
-        // TODO
+      if (event.name === "SupplyReceived") {
+        const deposit = tx.transfers.find(associatedTransfer(assetType, amount));
+        if (deposit) {
+          deposit.category = TransferCategories.Deposit;
+        } else {
+          log.warn(tx.transfers, `Can't find an associated deposit transfer`);
+        }
+        if (smeq(ethTx.to, address)) {
+          tx.description = `${getName(ethTx.from)} deposited ${
+            round(amount)
+          } ${assetType} into ${source}V1`;
+        }
 
-      // If Burn then we withdrew & are returning our cTokens
-      } else if (event.name === "Burn") {
-        log.info(`Withdrew ${amount} ${assetType} from ${source}V2`);
-        // TODO
+      } else if (event.name === "SupplyWithdrawn") {
+        const withdraw = tx.transfers.find(associatedTransfer(assetType, amount));
+        if (withdraw) {
+          withdraw.category = TransferCategories.Withdraw;
+        } else {
+          log.warn(tx.transfers, `Can't find a transfer of ${amount} ${assetType}`);
+        }
+        if (smeq(ethTx.to, address) || smeq(ethTx.to, maxiAddress)) {
+          tx.description = `${getName(ethTx.from)} withdrew ${
+            round(amount)
+          } ${assetType} from ${source}V1`;
+        }
 
-      } else if (
-        [
-          "AccrueInterest",
-          "Approval",
-          "Borrow",
-          "Redeem",
-          "RepayBorrow",
-          "Transfer",
-        ].includes(event.name)
-      ) {
-        log.debug(`Skipping ${event.name} event for ${source}V2`);
+      } else if (event.name === "BorrowTaken") {
+        const borrow = tx.transfers.find(associatedTransfer(assetType, amount));
+        if (borrow) {
+          borrow.category = TransferCategories.Borrow;
+        } else {
+          log.warn(tx.transfers, `Can't find an associated borrow transfer`);
+        }
+        if (smeq(ethTx.to, address)) {
+          tx.description = `${getName(ethTx.from)} borrowed ${
+            round(amount)
+          } ${assetType} from ${source}V1`;
+        }
+
+      } else if (event.name === "BorrowRepaid") {
+        const repay = tx.transfers.find(associatedTransfer(assetType, amount));
+        if (repay) {
+          repay.category = TransferCategories.Repay;
+        } else {
+          log.warn(tx.transfers, `Can't find an associated repay transfer`);
+        }
+        if (smeq(ethTx.to, address) || smeq(ethTx.to, maxiAddress)) {
+          tx.description = `${getName(ethTx.from)} repaid ${
+            round(amount)
+          } ${assetType} to ${source}V1`;
+        }
 
       } else {
-        log.warn(`Unknown event for ${source}V2: ${event.name}`);
+        log.debug(`Skipping ${source}V1 ${event.name} event`);
+      }
+
+    ////////////////////////////////////////
+    // Compound V2: cTokens
+    } else if (cTokenAddresses.some(a => smeq(address, a.address))) {
+      const event = parseEvent(cTokenInterface, txLog);
+      if (!event.name) continue;
+      const assetType = getName(address).replace(/^c/, "");
+
+      // Deposit
+      if (event.name === "Mint") {
+        log.info(`Parsing ${getName(address)} ${event.name} event`);
+        const tokenAmt = formatUnits(
+          event.args.mintAmount,
+          chainData.getTokenData(assetType)?.decimals || 18,
+        );
+        const cTokenAmt = formatUnits(event.args.mintTokens, cTokenDecimals);
+        const swapOut = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        if (swapOut) {
+          swapOut.category = TransferCategories.SwapOut;
+        } else {
+          log.warn(`${event.name}: Can't find swapOut of ${tokenAmt} ${assetType}`);
+        }
+        const swapIn = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
+        if (swapIn) {
+          swapIn.category = TransferCategories.SwapIn;
+        } else {
+          log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${getName(address)}`);
+        }
+        if (smeq(ethTx.to, address)) {
+          tx.description = `${getName(ethTx.from)} deposited ${
+            round(tokenAmt)
+          } ${assetType} into ${source}`;
+        }
+
+      // Withdraw
+      } else if (event.name === "Redeem") {
+        log.info(`Parsing ${getName(address)} ${event.name} event`);
+        const tokenAmt = formatUnits(
+          event.args.redeemAmount,
+          chainData.getTokenData(assetType)?.decimals || 18,
+        );
+        const cTokenAmt = formatUnits(event.args.redeemTokens, cTokenDecimals);
+        const swapOut = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
+        if (swapOut) {
+          swapOut.category = TransferCategories.SwapOut;
+        } else {
+          log.warn(`${event.name}: Can't find swapOut of ${cTokenAmt} ${getName(address)}`);
+        }
+        const swapIn = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        if (swapIn) {
+          swapIn.category = TransferCategories.SwapIn;
+        } else {
+          log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${assetType}`);
+        }
+        if (smeq(ethTx.to, address) || smeq(ethTx.to, maxiAddress)) {
+          tx.description = `${getName(ethTx.from)} withdrew ${
+            round(tokenAmt)
+          } ${assetType} from ${source}`;
+        }
+
+      // Borrow
+      } else if (event.name === "Borrow") {
+        log.info(`Parsing ${getName(address)} ${event.name} event`);
+        const tokenAmt = formatUnits(
+          event.args.borrowAmount,
+          chainData.getTokenData(assetType)?.decimals || 18,
+        );
+        const borrow = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        if (borrow) {
+          borrow.category = TransferCategories.Borrow;
+        } else {
+          log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${assetType}`);
+        }
+        if (smeq(ethTx.to, address) || smeq(ethTx.to, maxiAddress)) {
+          tx.description = `${getName(ethTx.from)} borrowed ${
+            round(tokenAmt)
+          } ${assetType} to ${getName(address)}`;
+        }
+
+      // Repay
+      } else if (event.name === "RepayBorrow") {
+        log.info(`Parsing ${getName(address)} ${event.name} event`);
+        const tokenAmt = formatUnits(
+          event.args.repayAmount,
+          chainData.getTokenData(assetType)?.decimals || 18,
+        );
+        const repay = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        if (repay) {
+          repay.category = TransferCategories.Repay;
+        } else {
+          log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${assetType}`);
+        }
+        if (smeq(ethTx.to, address) || smeq(ethTx.to, maxiAddress)) {
+          tx.description = `${getName(ethTx.from)} repayed ${
+            round(tokenAmt)
+          } ${assetType} to ${getName(address)}`;
+        }
+
+
+      } else {
+        log.debug(`Skipping ${source} ${event.name} event`);
       }
 
     }
-
   }
 
   // log.debug(tx, `Done parsing ${source}`);

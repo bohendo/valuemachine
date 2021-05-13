@@ -14,7 +14,7 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { getUnique } from "../utils";
+import { getUnique, parseEvent } from "../utils";
 
 const { round } = math;
 
@@ -44,7 +44,7 @@ export const erc20Addresses = [
 ////////////////////////////////////////
 /// ABIs
 
-const iface = new Interface([
+const erc20Interface = new Interface([
   "event Approval(address indexed from, address indexed to, uint amount)",
   "event Transfer(address indexed from, address indexed to, uint amount)",
   "function allowance(address owner, address spender) view returns (uint)",
@@ -73,46 +73,46 @@ export const erc20Parser = (
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
-    const event = Object.values(iface.events).find(e =>
-      Interface.getEventTopic(e) === txLog.topics[0]
-    );
     // Only parse known, ERC20 compliant tokens
-    if (event && isToken(address)) {
-      const args = iface.parseLog(txLog).args;
+    if (isToken(address)) {
+      const event = parseEvent(erc20Interface, txLog);
+      if (!event.name) continue;
+      tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
       const assetType = getName(address) as AssetTypes;
       // Skip transfers that don't concern self accounts
-      if (!isSelf(args.from) && !isSelf(args.to)) {
+      if (!isSelf(event.args.from) && !isSelf(event.args.to)) {
         log.debug(`Skipping ${assetType} ${event.name} that doesn't involve us`);
         continue;
       }
-      const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
+      const amount = formatUnits(
+        event.args.amount,
+        chainData.getTokenData(address)?.decimals || 18,
+      );
 
       if (event.name === "Transfer") {
-        log.info(`Parsing ${source} ${event.name} event for ${assetType}`);
-        if (smeq(ethTx.to, address)) {
-          tx.description = `${getName(args.from)} transfered ${
-            round(amount, 4)
-          } ${assetType} to ${getName(args.to)}`;
-        }
-        tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+        log.info(`Parsing ${source} ${event.name} of ${amount} ${assetType}`);
         tx.transfers.push({
           assetType,
           category: TransferCategories.Transfer,
-          from: args.from,
+          from: event.args.from,
           index: txLog.index,
           quantity: amount,
-          to: args.to,
+          to: event.args.to,
         });
+        if (smeq(ethTx.to, address)) {
+          tx.description = `${getName(event.args.from)} transfered ${
+            round(amount, 4)
+          } ${assetType} to ${getName(event.args.to)}`;
+        }
 
       } else if (event.name === "Approval") {
         log.info(`Parsing ${source} ${event.name} event for ${assetType}`);
         if (smeq(ethTx.to, address)) {
           const amt = round(amount, 2);
-          tx.description = `${getName(args.from)} approved ${getName(args.to)} to spend ${
-            amt.length > 6 ? "a lot of" : amt
-          } ${assetType}`;
+          tx.description = `${getName(event.args.from)} approved ${
+            getName(event.args.to)
+          } to spend ${amt.length > 6 ? "a lot of" : amt} ${assetType}`;
         }
-        tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
 
       } else {
         log.warn(event, `Unknown ${assetType} event`);

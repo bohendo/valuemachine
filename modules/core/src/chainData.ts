@@ -1,6 +1,6 @@
 import { getAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
-import { hexlify } from "@ethersproject/bytes";
+import { hexlify, isHexString } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
 import { Contract } from "@ethersproject/contracts";
 import { EtherscanProvider, JsonRpcProvider, Provider } from "@ethersproject/providers";
@@ -184,8 +184,14 @@ export const getChainData = ({
     });
   };
 
-  const getTokenData =  (token: Address): TokenData =>
-    JSON.parse(JSON.stringify(json.tokens[sm(token)] || {}));
+  // Accepts either a token address or symbol
+  const getTokenData =  (token: Address | string): TokenData =>
+    JSON.parse(JSON.stringify(
+      (token.startsWith("0x") && isHexString(token)
+        ? json.tokens[sm(token)]
+        : Object.values(json.tokens).find(t => smeq(t.symbol, token))
+      ) || {}
+    ));
 
   const getEthTransaction = (hash: HexString): EthTransaction => {
     const ethTx = json.transactions.find(tx => tx.hash === hash);

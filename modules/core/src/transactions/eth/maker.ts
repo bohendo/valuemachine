@@ -209,17 +209,18 @@ export const makerParser = (
   ////////////////////////////////////////
   // SCD -> MCD Migration
   if (smeq(ethTx.to, mcdMigrationAddress)) {
+    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
     const swapOut = tx.transfers.findIndex(t => t.assetType === AssetTypes.SAI);
     if (swapOut >= 0) {
       tx.transfers[swapOut].category = TransferCategories.SwapOut;
     } else {
-      log.warn(`Couldn't find a SwapOut SAI transfer`);
+      log.warn(`Can't find a SwapOut SAI transfer`);
     }
     const swapIn = tx.transfers.findIndex(t => t.assetType === AssetTypes.DAI);
     if (swapIn >= 0) {
       tx.transfers[swapIn].category = TransferCategories.SwapIn;
     } else {
-      log.warn(`Couldn't find an associated SwapIn DAI transfer`);
+      log.warn(`Can't find an associated SwapIn DAI transfer`);
     }
     tx.description = `${getName(ethTx.from)} migrated ${
       round(tx.transfers[swapOut].quantity)
@@ -261,11 +262,11 @@ export const makerParser = (
       if (!event.name) continue;
       const wad = formatUnits(event.args.wad, chainData.getTokenData(address).decimals);
       if (!isSelf(event.args.guy)) {
-        log.debug(`Skipping ${assetType} ${event.name} event that doesn't involve us`);
+        log.debug(`Skipping ${assetType} ${event.name} that doesn't involve us`);
         continue;
       }
       if (event.name === "Mint") {
-        log.info(`Parsing ${assetType} ${event.name} event`);
+        log.info(`Parsing ${assetType} ${event.name} of ${wad}`);
         tx.transfers.push({
           assetType,
           category: smeq(address, pethAddress)
@@ -277,7 +278,7 @@ export const makerParser = (
           to: event.args.guy,
         });
       } else if (event.name === "Burn") {
-        log.info(`Parsing ${assetType} ${event.name} event`);
+        log.info(`Parsing ${assetType} ${event.name} of ${wad}`);
         tx.transfers.push({
           assetType,
           category: smeq(address, pethAddress)
@@ -309,7 +310,7 @@ export const makerParser = (
         // slip accepts ilk which is a bytes32 that maps to the token address, not super useful
         const asset = ethTx.logs.find(l => l.index === index + 1).address;
         if (!asset) {
-          log.warn(`Vat.${logNote.name}: Couldn't find a token address for ilk ${logNote.args[0]}`);
+          log.warn(`Vat.${logNote.name}: Can't find a token address for ilk ${logNote.args[0]}`);
           continue;
         }
         const wad = formatUnits(
@@ -338,7 +339,7 @@ export const makerParser = (
             } ${assetType} from CDP`;
           }
         } else {
-          log.warn(`Vat.${logNote.name}: Couldn't find a ${assetType} transfer of about ${wad}`);
+          log.warn(`Vat.${logNote.name}: Can't find a ${assetType} transfer of about ${wad}`);
         }
 
       // Borrow/Repay DAI
@@ -366,7 +367,7 @@ export const makerParser = (
             } DAI into CDP`;
           }
         } else {
-          log.warn(`Vat.${logNote.name}: Couldn't find a DAI transfer of about ${dart}`);
+          log.warn(`Vat.${logNote.name}: Can't find a DAI transfer of about ${dart}`);
         }
       }
 
@@ -392,7 +393,7 @@ export const makerParser = (
             round(tx.transfers[transfer].quantity)
           } DAI into DSR`;
         } else {
-          log.warn(`Pot.${logNote.name}: Couldn't find a DAI transfer of about ${wad}`);
+          log.warn(`Pot.${logNote.name}: Can't find a DAI transfer of about ${wad}`);
         }
 
       } else if (logNote.name === "exit") {
@@ -408,7 +409,7 @@ export const makerParser = (
             round(tx.transfers[transfer].quantity)
           } DAI from DSR`;
         } else {
-          log.warn(`Pot.${logNote.name}: Couldn't find a DAI transfer of about ${wad}`);
+          log.warn(`Pot.${logNote.name}: Can't find a DAI transfer of about ${wad}`);
         }
       }
 
@@ -429,7 +430,7 @@ export const makerParser = (
         if (swapOut) {
           swapOut.category = TransferCategories.SwapOut;
         } else {
-          log.warn(`Cage.${event.name}: Couldn't find any SAI transfer`);
+          log.warn(`Cage.${event.name}: Can't find any SAI transfer`);
         }
         const swapIn = tx.transfers.find(t =>
           t.assetType === AssetTypes.ETH
@@ -441,7 +442,7 @@ export const makerParser = (
           swapIn.category = TransferCategories.SwapIn;
           swapIn.index = swapOut.index + 0.1;
         } else {
-          log.warn(`Cage.${event.name}: Couldn't find an ETH transfer of ${wad}`);
+          log.warn(`Cage.${event.name}: Can't find an ETH transfer of ${wad}`);
         }
         tx.description = `${getName(ethTx.from)} redeemed ${
           round(swapOut.quantity, 4)
@@ -492,7 +493,7 @@ export const makerParser = (
           }
         } else if (smeq(ethTx.to, tubAddress)) {
           // Not a problem if we're interacting via a cdp proxy bc this wouldn't interact w self
-          log.warn(`Tub.${logNote.name}: Couldn't find a WETH transfer of ${wad}`);
+          log.warn(`Tub.${logNote.name}: Can't find a WETH transfer of ${wad}`);
         }
 
       // PETH -> WETH: Categorize WETH transfer as a swap in
@@ -515,7 +516,7 @@ export const makerParser = (
           }
         } else if (smeq(ethTx.to, tubAddress)) {
           // Not a problem if we're interacting via a cdp proxy bc this wouldn't interact w self
-          log.warn(`Tub.${logNote.name}: Couldn't find a WETH transfer of ${wad}`);
+          log.warn(`Tub.${logNote.name}: Can't find a WETH transfer of ${wad}`);
         }
 
       // PETH -> CDP: Categorize PETH transfer as deposit
@@ -536,7 +537,7 @@ export const makerParser = (
             round(transfer.quantity, 4)
           } ${transfer.assetType} into CDP`;
         } else {
-          log.warn(`Tub.${logNote.name}: Couldn't find a P/W/ETH transfer of about ${wad}`);
+          log.warn(`Tub.${logNote.name}: Can't find a P/W/ETH transfer of about ${wad}`);
         }
 
       // PETH <- CDP: Categorize PETH transfer as withdraw
@@ -557,7 +558,7 @@ export const makerParser = (
             round(transfer.quantity, 4)
           } ${transfer.assetType} from CDP`;
         } else {
-          log.warn(`Tub.${logNote.name}: Couldn't find a PETH transfer of about ${wad}`);
+          log.warn(`Tub.${logNote.name}: Can't find a PETH transfer of about ${wad}`);
         }
 
       // SAI <- CDP
@@ -580,7 +581,7 @@ export const makerParser = (
           && parseEvent(tokenInterface, l).name === "Mint"
         )) {
           // Only warn if there is NOT an upcoming SAI mint evet
-          log.warn(`Tub.${logNote.name}: Couldn't find a SAI transfer of ${wad}`);
+          log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
         }
 
       // SAI -> CDP
@@ -602,7 +603,7 @@ export const makerParser = (
           && smeq(l.address, saiAddress)
           && parseEvent(tokenInterface, l).name === "Burn"
         )) {
-          log.warn(`Tub.${logNote.name}: Couldn't find a SAI transfer of ${wad}`);
+          log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
         }
         // Handle MKR fee (or find the stable-coins spent to buy MKR)
         const feeAsset = [AssetTypes.MKR, AssetTypes.SAI] as AssetTypes[];
@@ -618,7 +619,7 @@ export const makerParser = (
         if (fee) {
           fee.category = TransferCategories.Expense;
         } else {
-          log.warn(`Tub.${logNote.name}: Couldn't find a MKR/SAI fee`);
+          log.warn(`Tub.${logNote.name}: Can't find a MKR/SAI fee`);
         }
 
       }
