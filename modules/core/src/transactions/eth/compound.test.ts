@@ -112,6 +112,20 @@ describe(TransactionSources.Compound, () => {
     expect(tx.description).to.include(withdraw.assetType);
   });
 
+  it("should handle compound v2 market entries", async () => {
+    const selfAddress = "0x1057bea69c9add11c6e3de296866aff98366cfe3";
+    const txHash = "0x998aedf25aeb6657ffd1d16dbff963a41a20ea42fd6740264b9f492fe0623eea";
+    addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
+    const chainData = await getRealChainData(txHash);
+    txns.mergeChainData(chainData);
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
+    expect(tx.sources).to.include(TransactionSources.Compound);
+    expect(tx.transfers.length).to.equal(1);
+    expect(tx.description).to.include(addressBook.getName(selfAddress));
+    expect(tx.description).to.include("enter");
+  });
+
   it("should handle borrows from compound v2", async () => {
     const selfAddress = "0x1057bea69c9add11c6e3de296866aff98366cfe3";
     const txHash = "0x032e9d84b07fdd3e546b44b4fa034d1b470e927188df9594af7e5d656588aad0";

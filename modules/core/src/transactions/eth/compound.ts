@@ -25,11 +25,16 @@ const source = TransactionSources.Compound;
 
 const compoundV1Address = "0x3fda67f7583380e67ef93072294a7fac882fd7e7";
 const maxiAddress = "0xf859a1ad94bcf445a406b892ef0d3082f4174088";
+const compAddress = "0xc00e94cb662c3520282e6f5717214004a7f26888";
+
+// The following is a proxy address
+// Comptroller implementation is currently at 0xbe7616b06f71e363a310aa8ce8ad99654401ead7
+const comptrollerAddress = "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b";
 
 const machineryAddresses = [
   { name: "compound-v1", address: compoundV1Address },
-  { name: "compound-maximillion", address: maxiAddress },
-  { name: "compound-comptroller", address: "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b" },
+  { name: "maximillion", address: maxiAddress },
+  { name: "comptroller", address: comptrollerAddress },
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const cTokenAddresses = [
@@ -48,7 +53,7 @@ const cTokenAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 const govTokenAddresses = [
-  { name: "COMP", address: "0xc00e94cb662c3520282e6f5717214004a7f26888" },
+  { name: "COMP", address: compAddress },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 export const compoundAddresses = [
@@ -66,6 +71,27 @@ const compoundV1Interface = new Interface([
   "event EquityWithdrawn(address asset, uint256 equityAvailableBefore, uint256 amount, address owner)",
   "event SupplyReceived(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
   "event SupplyWithdrawn(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
+]);
+
+const comptrollerInterface = new Interface([
+  "event ActionPaused(address cToken, string action, bool pauseState)",
+  "event ActionPaused(string action, bool pauseState)",
+  "event CompGranted(address recipient, uint256 amount)",
+  "event CompSpeedUpdated(address indexed cToken, uint256 newSpeed)",
+  "event ContributorCompSpeedUpdated(address indexed contributor, uint256 newSpeed)",
+  "event DistributedBorrowerComp(address indexed cToken, address indexed borrower, uint256 compDelta, uint256 compBorrowIndex)",
+  "event DistributedSupplierComp(address indexed cToken, address indexed supplier, uint256 compDelta, uint256 compSupplyIndex)",
+  "event Failure(uint256 error, uint256 info, uint256 detail)",
+  "event MarketEntered(address cToken, address account)",
+  "event MarketExited(address cToken, address account)",
+  "event MarketListed(address cToken)",
+  "event NewBorrowCap(address indexed cToken, uint256 newBorrowCap)",
+  "event NewBorrowCapGuardian(address oldBorrowCapGuardian, address newBorrowCapGuardian)",
+  "event NewCloseFactor(uint256 oldCloseFactorMantissa, uint256 newCloseFactorMantissa)",
+  "event NewCollateralFactor(address cToken, uint256 oldCollateralFactorMantissa, uint256 newCollateralFactorMantissa)",
+  "event NewLiquidationIncentive(uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa)",
+  "event NewPauseGuardian(address oldPauseGuardian, address newPauseGuardian)",
+  "event NewPriceOracle(address oldPriceOracle, address newPriceOracle)",
 ]);
 
 const cTokenInterface = new Interface([
@@ -99,7 +125,7 @@ export const compoundParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName } = addressBook;
+  const { getName, isSelf } = addressBook;
 
   if (compoundAddresses.some(e => smeq(e.address, ethTx.to))) {
     tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
@@ -129,11 +155,9 @@ export const compoundParser = (
         } else {
           log.warn(tx.transfers, `Can't find an associated deposit transfer`);
         }
-        if (smeq(ethTx.to, address)) {
-          tx.description = `${getName(ethTx.from)} deposited ${
-            round(amount)
-          } ${assetType} into ${source}V1`;
-        }
+        tx.description = `${getName(ethTx.from)} deposited ${
+          round(amount)
+        } ${assetType} into ${source}V1`;
 
       } else if (event.name === "SupplyWithdrawn") {
         const withdraw = tx.transfers.find(associatedTransfer(assetType, amount));
@@ -142,11 +166,9 @@ export const compoundParser = (
         } else {
           log.warn(tx.transfers, `Can't find a transfer of ${amount} ${assetType}`);
         }
-        if (smeq(ethTx.to, address) || smeq(ethTx.to, maxiAddress)) {
-          tx.description = `${getName(ethTx.from)} withdrew ${
-            round(amount)
-          } ${assetType} from ${source}V1`;
-        }
+        tx.description = `${getName(ethTx.from)} withdrew ${
+          round(amount)
+        } ${assetType} from ${source}V1`;
 
       } else if (event.name === "BorrowTaken") {
         const borrow = tx.transfers.find(associatedTransfer(assetType, amount));
@@ -155,11 +177,9 @@ export const compoundParser = (
         } else {
           log.warn(tx.transfers, `Can't find an associated borrow transfer`);
         }
-        if (smeq(ethTx.to, address)) {
-          tx.description = `${getName(ethTx.from)} borrowed ${
-            round(amount)
-          } ${assetType} from ${source}V1`;
-        }
+        tx.description = `${getName(ethTx.from)} borrowed ${
+          round(amount)
+        } ${assetType} from ${source}V1`;
 
       } else if (event.name === "BorrowRepaid") {
         const repay = tx.transfers.find(associatedTransfer(assetType, amount));
@@ -168,14 +188,39 @@ export const compoundParser = (
         } else {
           log.warn(tx.transfers, `Can't find an associated repay transfer`);
         }
-        if (smeq(ethTx.to, address) || smeq(ethTx.to, maxiAddress)) {
-          tx.description = `${getName(ethTx.from)} repaid ${
-            round(amount)
-          } ${assetType} to ${source}V1`;
-        }
+        tx.description = `${getName(ethTx.from)} repaid ${
+          round(amount)
+        } ${assetType} to ${source}V1`;
 
       } else {
         log.debug(`Skipping ${source}V1 ${event.name} event`);
+      }
+
+    ////////////////////////////////////////
+    // Compound V2: Comptroller
+    } else if (smeq(comptrollerAddress, address)) {
+      const event = parseEvent(comptrollerInterface, txLog);
+      if (event.name === "MarketEntered") {
+        tx.description = `${getName(ethTx.from)} entered market for ${getName(event.args.cToken)}`;
+      }
+
+    ////////////////////////////////////////
+    // Compound V2: COMP gov token
+    } else if (smeq(compAddress, address)) {
+      const event = parseEvent(cTokenInterface, txLog);
+      if (event.name === "Transfer") {
+        if (isSelf(event.args.to) && smeq(event.args.from, comptrollerAddress)) {
+          const amount = formatUnits(
+            event.args.amount,
+            chainData.getTokenData(address)?.decimals || 18,
+          );
+          const income = tx.transfers.find(associatedTransfer("COMP", amount));
+          if (income) {
+            income.category = TransferCategories.Income;
+          } else {
+            log.warn(`${event.name}: Can't find income of ${amount} COMP`);
+          }
+        }
       }
 
     ////////////////////////////////////////
@@ -205,11 +250,9 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${getName(address)}`);
         }
-        if (smeq(ethTx.to, address)) {
-          tx.description = `${getName(ethTx.from)} deposited ${
-            round(tokenAmt)
-          } ${assetType} into ${source}`;
-        }
+        tx.description = `${getName(ethTx.from)} deposited ${
+          round(tokenAmt)
+        } ${assetType} into ${source}`;
 
       // Withdraw
       } else if (event.name === "Redeem") {
@@ -231,11 +274,9 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${assetType}`);
         }
-        if (smeq(ethTx.to, address) || smeq(ethTx.to, maxiAddress)) {
-          tx.description = `${getName(ethTx.from)} withdrew ${
-            round(tokenAmt)
-          } ${assetType} from ${source}`;
-        }
+        tx.description = `${getName(ethTx.from)} withdrew ${
+          round(tokenAmt)
+        } ${assetType} from ${source}`;
 
       // Borrow
       } else if (event.name === "Borrow") {
@@ -250,11 +291,9 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${assetType}`);
         }
-        if (smeq(ethTx.to, address) || smeq(ethTx.to, maxiAddress)) {
-          tx.description = `${getName(ethTx.from)} borrowed ${
-            round(tokenAmt)
-          } ${assetType} to ${getName(address)}`;
-        }
+        tx.description = `${getName(ethTx.from)} borrowed ${
+          round(tokenAmt)
+        } ${assetType} from ${getName(address)}`;
 
       // Repay
       } else if (event.name === "RepayBorrow") {
@@ -269,11 +308,9 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${assetType}`);
         }
-        if (smeq(ethTx.to, address) || smeq(ethTx.to, maxiAddress)) {
-          tx.description = `${getName(ethTx.from)} repayed ${
-            round(tokenAmt)
-          } ${assetType} to ${getName(address)}`;
-        }
+        tx.description = `${getName(ethTx.from)} repayed ${
+          round(tokenAmt)
+        } ${assetType} to ${getName(address)}`;
 
 
       } else {
