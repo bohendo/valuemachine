@@ -68,9 +68,6 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${source} ${event.name} event of amount ${round(amount)}`);
         }
-        if (smeq(ethTx.to, weth.address)) {
-          tx.description = `${getName(args.dst)} swapped ${amount} ETH for WETH`;
-        }
         tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
         tx.transfers.push({
           assetType,
@@ -80,7 +77,27 @@ export const wethParser = (
           quantity: amount,
           to: args.dst,
         });
-        tx.transfers[0].category = TransferCategories.SwapOut;
+        const swapOut = tx.transfers.findIndex(t =>
+          t.assetType === AssetTypes.ETH && t.quantity === amount
+          && isSelf(t.from) && smeq(t.to, address)
+        );
+        if (swapOut >= 0) {
+          tx.transfers[swapOut].category = TransferCategories.SwapOut;
+          tx.transfers[swapOut].index = index - 0.1;
+          if (smeq(ethTx.to, weth.address)) {
+            tx.description = `${getName(args.dst)} swapped ${amount} ETH for WETH`;
+          }
+          // If there's a same-value eth transfer to the swap recipient, index it before
+          const transfer = tx.transfers.findIndex(t =>
+            t.assetType === AssetTypes.ETH && t.quantity === amount
+            && smeq(t.to, tx.transfers[swapOut].from)
+          );
+          if (transfer >= 0) {
+            tx.transfers[transfer].index = index - 0.2;
+          }
+        } else {
+          log.warn(`Couldn't find an eth call associated w deposit of ${amount} WETH`);
+        }
 
       } else if (event.name === "Withdrawal") {
         if (!isSelf(args.src)) {
@@ -100,21 +117,30 @@ export const wethParser = (
         });
         const swapIn = tx.transfers.findIndex(t =>
           t.assetType === AssetTypes.ETH && t.quantity === amount
+          && isSelf(t.to) && smeq(t.from, address)
         );
         if (swapIn >= 0) {
           tx.transfers[swapIn].category = TransferCategories.SwapIn;
-          tx.transfers[swapIn].index = index;
+          tx.transfers[swapIn].index = index + 0.1;
           if (smeq(ethTx.to, weth.address)) {
             tx.description = `${getName(args.src)} swapped ${amount} WETH for ETH`;
           }
+          // If there's a same-value eth transfer from the swap recipient, index it after
+          const transfer = tx.transfers.findIndex(t =>
+            t.assetType === AssetTypes.ETH && t.quantity === amount
+            && smeq(t.from, tx.transfers[swapIn].to)
+          );
+          if (transfer >= 0) {
+            tx.transfers[transfer].index = index + 0.2;
+          }
         } else {
-          log.warn(ethTx, `Couldn't find an associated SwapIn eth call`);
+          log.warn(`Couldn't find an eth call associated w withdrawal of ${amount} WETH`);
         }
 
       } else if (event.name === "Transfer" || event.name === "Approval") {
         log.debug(`Skipping ${source} ${event.name} that was already processed`);
       } else {
-        log.warn(event, `Unknown ${source} event`);
+        log.warn(`Unknown ${source} event`);
       }
 
     }

@@ -69,12 +69,7 @@ export const erc20Parser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName, isProxy, isSelf, isToken } = addressBook;
-
-  const isSelfy = (address: string): boolean =>
-    isSelf(address) || (
-      isSelf(ethTx.from) && isProxy(address) && smeq(address, ethTx.to)
-    );
+  const { getName, isSelf, isToken } = addressBook;
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
@@ -86,7 +81,7 @@ export const erc20Parser = (
       const args = iface.parseLog(txLog).args;
       const assetType = getName(address) as AssetTypes;
       // Skip transfers that don't concern self accounts
-      if (!isSelfy(args.from) && !isSelfy(args.to)) {
+      if (!isSelf(args.from) && !isSelf(args.to)) {
         log.debug(`Skipping ${assetType} ${event.name} that doesn't involve us`);
         continue;
       }
