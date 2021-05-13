@@ -28,21 +28,23 @@ describe(TransactionSources.Maker, () => {
     expect(txns.json.length).to.equal(0);
   });
 
-  it("should handle a SAI borrow", async () => {
+  it("should handle a WETH to PETH swap", async () => {
     addressBook.newAddress(
       "0x213fe7e177160991829a4d0a598a848d2448f384",
       AddressCategories.Self,
       "test-self",
     );
     const chainData = await getRealChainData(
-      "0x39ac4111ceaac95a9eee278b05ca38db3142a188bb33d5aa1c646546fc8d31c6"
+      "0x25441cec88c76e0f3a00b9ecbcc803f8cd8aff9de358e39c6b3f44dfdafd2aed"
     );
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.transfers.length).to.equal(2);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
-    expect(tx.transfers[0].to).to.equal(tubAddress);
+    expect(tx.transfers.length).to.equal(3);
+    const swapOut = tx.transfers[1];
+    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    const swapIn = tx.transfers[2];
+    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle a PETH withdrawal with duplicate events", async () => {
@@ -62,6 +64,23 @@ describe(TransactionSources.Maker, () => {
     expect(withdraw.category).to.equal(TransferCategories.Withdraw);
   });
 
+  it("should handle a SAI borrow", async () => {
+    addressBook.newAddress(
+      "0x213fe7e177160991829a4d0a598a848d2448f384",
+      AddressCategories.Self,
+      "test-self",
+    );
+    const chainData = await getRealChainData(
+      "0x39ac4111ceaac95a9eee278b05ca38db3142a188bb33d5aa1c646546fc8d31c6"
+    );
+    txns.mergeChainData(chainData);
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
+    expect(tx.transfers.length).to.equal(2);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
+    expect(tx.transfers[0].to).to.equal(tubAddress);
+  });
+
   it("should handle a SAI repayment", async () => {
     addressBook.newAddress(
       "0x213fe7e177160991829a4d0a598a848d2448f384",
@@ -79,8 +98,7 @@ describe(TransactionSources.Maker, () => {
     expect(repay.category).to.equal(TransferCategories.Repay);
   });
 
-  // TODO: add the associated internal eth transfer
-  it("should handle a SAI cashout", async () => {
+  it("should handle a SAI cage cashout", async () => {
     addressBook.newAddress(
       "0x50509324beedeaf5ae19186a6cc2c30631a98d97",
       AddressCategories.Self,
@@ -89,12 +107,23 @@ describe(TransactionSources.Maker, () => {
     const chainData = await getRealChainData(
       "0xa2920b7319c62fa7d2bf5072a292972fe74af5f452d905495da1fb0d28bba86b"
     );
+    chainData.merge({ transactions: [], tokens: {}, addresses: {}, calls: [{
+      block: 12099407,
+      contractAddress: "0x0000000000000000000000000000000000000000",
+      from: "0x9fdc15106da755f9ffd5b0ba9854cfb89602e0fd",
+      hash: "0xa2920b7319c62fa7d2bf5072a292972fe74af5f452d905495da1fb0d28bba86b",
+      timestamp: "2021-03-24T04:14:59.000Z",
+      to: "0x50509324beedeaf5ae19186a6cc2c30631a98d97",
+      value: "0.052855519437617299"
+    }] });
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.transfers.length).to.equal(2);
+    expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
     expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    const swapIn = tx.transfers[2];
+    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle a SAI to DAI migration", async () => {
