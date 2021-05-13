@@ -98,18 +98,18 @@ describe(TransactionSources.Weth, () => {
     expect(tx.description.toLowerCase()).to.include("swap");
     expect(tx.description).to.include(addressBook.getName(sender));
     expect(tx.description).to.include(quantity);
-    const swapIn = tx.transfers[1];
-    expect(swapIn.assetType).to.equal(AssetTypes.ETH);
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
-    expect(swapIn.from).to.equal(wethAddress);
-    expect(swapIn.to).to.equal(sender);
-    expect(swapIn.quantity).to.equal(quantity);
-    const swapOut = tx.transfers[2];
+    const swapOut = tx.transfers[1];
     expect(swapOut.assetType).to.equal(AssetTypes.WETH);
     expect(swapOut.category).to.equal(TransferCategories.SwapOut);
     expect(swapOut.from).to.equal(sender);
     expect(swapOut.to).to.equal(wethAddress);
     expect(swapOut.quantity).to.equal(quantity);
+    const swapIn = tx.transfers[2];
+    expect(swapIn.assetType).to.equal(AssetTypes.ETH);
+    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.from).to.equal(wethAddress);
+    expect(swapIn.to).to.equal(sender);
+    expect(swapIn.quantity).to.equal(quantity);
   });
 
 });

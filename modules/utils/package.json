@@ -10,15 +10,18 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@ethersproject/bignumber": "5.1.1",
+    "@ethersproject/constants": "5.1.0",
+    "@ethersproject/units": "5.1.0",
     "chai": "4.3.4",
     "chai-as-promised": "7.1.1",
-    "ethers": "5.1.4",
     "pino": "6.11.3",
     "pino-pretty": "4.8.0"
   },
   "devDependencies": {
     "@finances/types": "1.0.0",
     "@types/node": "15.0.2",
+    "ethers": "5.1.4",
     "typescript": "4.2.4"
   }
 }

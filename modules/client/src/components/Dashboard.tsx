@@ -1,6 +1,6 @@
 import React /*, { useState, useContext, useEffect }*/ from "react";
-// import { BigNumber as BN } from "ethers";
-// import {  Profile } from "@finances/types";
+// import { Profile } from "@finances/types";
+// import { toBN } from "@finances/utils";
 
 // import { AccountContext } from "../accountContext";
 // import { getCurrentLiquidityPositions, getPairLiquidityPositionSnapshots } from "../utils/query";
@@ -62,7 +62,7 @@ export const Dashboard: React.FC = () => {
 
         return (<> 
           Pair: {liquidityInfo.pairStats.token0.symbol} - {liquidityInfo.pairStats.token1.symbol}
-          Orignal Supply Balance: {BN.from(liqTokenBal).div(liqTokenTotalAtSupply)}
+          Orignal Supply Balance: {toBN(liqTokenBal).div(liqTokenTotalAtSupply)}
           Orignal Supply Value:
             ETH: 
         </>);

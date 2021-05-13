@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { BigNumber } from "@ethersproject/bignumber";
 import { hexlify, stripZeros } from "@ethersproject/bytes";
 import { AddressZero, HashZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
@@ -16,16 +15,18 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+import { math, sm, smeq, toBN } from "@finances/utils";
 
-import { getUnique, quantitiesAreClose } from "../utils";
+import { getUnique, parseEvent, quantitiesAreClose } from "../utils";
 
-const { abs, div, gt, round } = math;
+const { abs, diff, div, eq, gt, round } = math;
 
 const source = TransactionSources.Maker;
 
 ////////////////////////////////////////
 /// Addresses
+
+const saiAddress = "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359";
 
 const tubAddress = "0x448a5065aebb8e423f0896e6c5d525c040f59af3";
 const vatAddress = "0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b";
@@ -58,7 +59,7 @@ const machineAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const tokenAddresses = [
-  { name: "SAI", address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
+  { name: "SAI", address: saiAddress },
   { name: "PETH", address: pethAddress },
   { name: "DAI", address: "0x6b175474e89094c44da98b954eedeac495271d0f" },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
@@ -98,6 +99,14 @@ const tubInterface = new Interface([
   "function wipe(bytes32 cup, uint256 wad)",
   "function shut(bytes32 cup)",
   "function bite(bytes32 cup)",
+]);
+
+const cageInterface = new Interface([
+  "event FreeCash(address sender, uint256 amount)",
+  "function freeCash(uint256 wad) returns (uint256 cashoutBalance)",
+  "function sai() view returns (address)",
+  "function tap() view returns (address)",
+  "function weth() view returns (address)"
 ]);
 
 const vatInterface = new Interface([
@@ -162,8 +171,8 @@ const proxyInterface = new Interface([
 
 const parseLogNote = (
   iface: Interface,
-  ethLog: EthTransactionLog
-): { name: string; args: string[]} => ({
+  ethLog: EthTransactionLog,
+): { name: string; args: string[]; } => ({
   name: Object.values(iface.functions).find(e =>
     ethLog.topics[0].startsWith(iface.getSighash(e))
   )?.name,
@@ -188,31 +197,30 @@ export const makerParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName, isProxy, isSelf } = addressBook;
+  const { getName, isSelf } = addressBook;
   // log.debug(tx, `Parsing in-progress tx`);
 
   const ethish = [AssetTypes.WETH, AssetTypes.ETH, AssetTypes.PETH] as AssetTypes[];
-
-  const isSelfy = (address: string): boolean =>
-    isSelf(address) || (isSelf(ethTx.from) && isProxy(address) && smeq(address, ethTx.to));
 
   if (machineAddresses.some(e => smeq(e.address, ethTx.to))) {
     tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
   }
 
+  ////////////////////////////////////////
   // SCD -> MCD Migration
   if (smeq(ethTx.to, mcdMigrationAddress)) {
+    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
     const swapOut = tx.transfers.findIndex(t => t.assetType === AssetTypes.SAI);
     if (swapOut >= 0) {
       tx.transfers[swapOut].category = TransferCategories.SwapOut;
     } else {
-      log.warn(`Couldn't find a SwapOut SAI transfer`);
+      log.warn(`Can't find a SwapOut SAI transfer`);
     }
     const swapIn = tx.transfers.findIndex(t => t.assetType === AssetTypes.DAI);
     if (swapIn >= 0) {
       tx.transfers[swapIn].category = TransferCategories.SwapIn;
     } else {
-      log.warn(`Couldn't find an associated SwapIn DAI transfer`);
+      log.warn(`Can't find an associated SwapIn DAI transfer`);
     }
     tx.description = `${getName(ethTx.from)} migrated ${
       round(tx.transfers[swapOut].quantity)
@@ -222,20 +230,18 @@ export const makerParser = (
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
+    const index = txLog.index || 1;
     if (machineAddresses.some(e => smeq(e.address, address))) {
       tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
     }
 
     ////////////////////////////////////////
-    // Proxies
+    // Proxy Managers
     if (proxyAddresses.some(e => smeq(address, e.address))) {
-      const event = Object.values(proxyInterface.events).find(e =>
-        proxyInterface.getEventTopic(e) === txLog.topics[0]
-      );
+      const event = parseEvent(proxyInterface, txLog);
       if (event?.name === "Created") {
-        const args = proxyInterface.parseLog(txLog).args;
-        const proxy = sm(args.proxy);
-        const owner = sm(args.owner);
+        const proxy = sm(event.args.proxy);
+        const owner = sm(event.args.owner);
         if (!addressBook.isPresent(proxy)) {
           log.info(`Found CDP proxy creation, adding ${proxy} to our addressBook`);
           addressBook.newAddress(sm(proxy), AddressCategories.Proxy, "CDP");
@@ -249,220 +255,44 @@ export const makerParser = (
     }
 
     ////////////////////////////////////////
-    // Tokens
+    // PETH/SAI/DAI
     if (tokenAddresses.some(e => smeq(e.address, address))) {
       const assetType = getName(address) as AssetTypes;
-      const event = Object.values(tokenInterface.events).find(e =>
-        tokenInterface.getEventTopic(e) === txLog.topics[0]
-      );
-      if (!event) continue;
-      const args = tokenInterface.parseLog(txLog).args;
-      const amount = formatUnits(args.wad, chainData.getTokenData(address).decimals);
-      const index = txLog.index || 1;
-
-      ////////////////////////////////////////
-      // PETH
-      if (smeq(address, pethAddress) && isSelf(args.guy)) {
-        if (event.name === "Mint") {
-          tx.transfers.push({
-            assetType,
-            category: TransferCategories.SwapIn,
-            from: AddressZero,
-            index,
-            quantity: amount,
-            to: args.guy,
-          });
-          const swapOut = tx.transfers.findIndex(t => t.assetType === AssetTypes.WETH);
-          if (swapOut >= 0) {
-            tx.transfers[swapOut].category = TransferCategories.SwapOut;
-            tx.description = `${getName(ethTx.from)} swapped ${
-              round(tx.transfers[swapOut].quantity, 4)
-            } WETH for ${round(amount, 4)} PETH`;
-          } else {
-            log.warn(`Couldn't find an associated SwapOut WETH transfer`);
-          }
-
-        } else if (event.name === "Burn") {
-          tx.transfers.push({
-            assetType,
-            category: TransferCategories.SwapOut,
-            from: args.guy,
-            index,
-            quantity: amount,
-            to: AddressZero,
-          });
-          const swapIn = tx.transfers.findIndex(t => t.assetType === AssetTypes.WETH);
-          if (swapIn >= 0) {
-            tx.transfers[swapIn].category = TransferCategories.SwapIn;
-            tx.description = `${getName(ethTx.from)} swapped ${round(amount, 4)} PETH for ${
-              round(tx.transfers[swapIn].quantity, 4)
-            } WETH`;
-          } else {
-            log.warn(`Couldn't find an associated SwapIn WETH transfer`);
-          }
-        }
-
-      ////////////////////////////////////////
-      // SAI/DAI
-      } else {
-        if (event.name === "Mint") {
-          log.info(`Parsing ${assetType} ${event.name} event`);
-          if (isSelf(args.guy)) {
-            tx.transfers.push({
-              assetType,
-              category: TransferCategories.Borrow,
-              from: AddressZero,
-              index,
-              quantity: amount,
-              to: args.guy,
-            });
-          // If args.guy aka from is not self, then categorize the tx from proxy->self
-          // TODO: move this to tub logNote parser?
-          } else {
-            const fromProxy = tx.transfers.findIndex(t =>
-              isSelf(t.to) && t.assetType === assetType && t.quantity === amount
-            );
-            if (fromProxy >= 0) {
-              tx.transfers[fromProxy].category = TransferCategories.Borrow;
-            } else {
-              log.warn(`Couldn't match ${assetType} ${event.name} to an action taken by self`);
-            }
-          }
-          tx.description = `${getName(ethTx.from)} borrowed ${round(amount)} ${assetType} from CDP`;
-
-        } else if (event.name === "Burn") {
-          log.info(`Parsing ${assetType} ${event.name} event`);
-          if (isSelf(args.guy)) {
-            tx.transfers.push({
-              assetType,
-              category: TransferCategories.Repay,
-              from: args.guy,
-              index,
-              quantity: amount,
-              to: AddressZero,
-            });
-          // During global settlement, the cage is used to redeem no-longer-stable-coins for gems
-          } else if (smeq(args.guy, saiCageAddress)) {
-            const swapOut = tx.transfers.findIndex(t =>
-              gt(t.quantity, "0") && t.assetType === AssetTypes.SAI
-            );
-            if (swapOut >= 0) {
-              tx.transfers[swapOut].category = TransferCategories.SwapOut;
-            } else {
-              log.warn(`Couldn't find a SwapOut SAI transfer to associate w cashout`);
-            }
-            const swapIn = tx.transfers.findIndex(t =>
-              gt(t.quantity, "0") && t.assetType === AssetTypes.ETH
-            );
-            if (swapIn >= 0) {
-              tx.transfers[swapIn].category = TransferCategories.SwapIn;
-            } else {
-              log.warn(`Couldn't find a SwapIn ETH transfer to associate w cashout`);
-            }
-            tx.description = `${getName(ethTx.from)} redeemed ${round(amount, 4)} SAI for ${
-              swapIn >= 0 ? round(tx.transfers[swapIn].quantity, 4) : "some"
-            } ETH`;
-          // If neither self nor cage is burning, then categorize the tx from self->proxy
-          } else {
-            // TODO: move this to tub logNote parser?
-            log.info(`Looking for proxy/self interaction`);
-            const toProxy = tx.transfers.findIndex(t =>
-              t.assetType === assetType && t.quantity === amount
-            );
-            if (toProxy >= 0) {
-              tx.transfers[toProxy].category = TransferCategories.Repay;
-            } else if (!isProxy(ethTx.to)) {
-              log.warn(`Couldn't match ${assetType} ${event.name} to an action taken by self`);
-            }
-          }
-          if (!smeq(args.guy, saiCageAddress)) {
-            // Handle MKR fee (or find the stable-coins spent to buy MKR)
-            const feeAsset = [AssetTypes.MKR, AssetTypes.SAI, AssetTypes.DAI] as AssetTypes[];
-            const fee = tx.transfers.findIndex(t =>
-              ([
-                TransferCategories.SwapOut, // Maybe we gave our fee to OasisDex to swap for MKR
-                TransferCategories.Transfer
-              ] as TransferCategories[]).includes(t.category)
-              && isSelfy(t.from) &&
-              feeAsset.includes(t.assetType)
-            );
-            if (fee >= 0) {
-              tx.transfers[fee].category = TransferCategories.Expense;
-            } else {
-              log.warn(`Couldn't find an associated MKR/SAI/DAI fee`);
-            }
-            tx.description = `${getName(ethTx.from)} repayed ${round(amount)} ${assetType} to CDP`;
-          }
-
-        } else if (["Approval", "Transfer"].includes(event.name)) {
-          log.debug(`Skipping ${event.name} event from ${assetType}`);
-        } else {
-          log.warn(`Unknown ${event.name} event from ${assetType}`);
-        }
-      }
-
-    ////////////////////////////////////////
-    // SCD Tub
-    } else if (smeq(address, tubAddress)) {
-      const event = Object.values(tubInterface.events).find(e =>
-        tubInterface.getEventTopic(e) === txLog.topics[0]
-      );
-      if (event?.name === "LogNewCup") {
-        const args = tubInterface.parseLog(txLog).args;
-        tx.description = `${getName(args.lad)} opened new CDP #${BigNumber.from(args.cup)}`;
+      const event = parseEvent(tokenInterface, txLog);
+      if (!event.name) continue;
+      const wad = formatUnits(event.args.wad, chainData.getTokenData(address).decimals);
+      if (!isSelf(event.args.guy)) {
+        log.debug(`Skipping ${assetType} ${event.name} that doesn't involve us`);
         continue;
       }
-      const logNote = parseLogNote(tubInterface, txLog);
-      if (!logNote.name || logNote.name === "open") continue;
-      log.debug(`Found Tub call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
-        logNote.args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
-      })`);
-
-      // TODO: use ethers.utils.getAddress
-      const actor = getName(hexlify(stripZeros(logNote.args[0])));
-      const cup = BigNumber.from(hexlify(stripZeros(logNote.args[1])));
-
-      if (logNote.name === "give") {
-        const recipient = hexlify(stripZeros(logNote.args[2]));
-        tx.description = `${actor} gave CDP #${cup} to ${getName(recipient)}`;
-
-      } else if (logNote.name === "bite") {
-        tx.description = `${actor} bit CDP #${cup}`;
-
-      } else if (logNote.name === "shut") {
-        tx.description = `${actor} shut CDP #${cup}`;
-
-      // Categorize PETH transfer as deposit or withdraw
-      } else if (logNote.name === "lock" || logNote.name === "free") {
-        // Can't match on amounts bc PETH amount !== W/ETH amount
-        const transfer = tx.transfers.findIndex(t =>
-          ethish.includes(t.assetType) &&
-          t.category === TransferCategories.Transfer &&
-          (isSelf(t.to) || isSelf(t.from))
-        );
-        if (transfer >= 0 ) {
-          if (isSelf(tx.transfers[transfer].from)) {
-            tx.transfers[transfer].category = TransferCategories.Deposit;
-            tx.description = `${getName(tx.transfers[transfer].from)} deposited ${
-              round(tx.transfers[transfer].quantity, 4)
-            } ${tx.transfers[transfer].assetType} into CDP`;
-          } else if (isSelf(tx.transfers[transfer].to)) {
-            tx.transfers[transfer].category = TransferCategories.Withdraw;
-            tx.description = `${getName(tx.transfers[transfer].to)} withdrew ${
-              round(tx.transfers[transfer].quantity, 4)
-            } ${tx.transfers[transfer].assetType} from CDP`;
-          }
-        } else {
-          // Sometimes there are duplicate lock/free events
-          const desired = [TransferCategories.Deposit, TransferCategories.Withdraw];
-          const transfer = tx.transfers.findIndex(t =>
-            ethish.includes(t.assetType) && (desired as TransferCategories[]).includes(t.category)
-          );
-          if (transfer < 0) {
-            log.warn(`Couldn't find a transfer assocated with CDP ${logNote.name}`);
-          }
-        }
-
+      if (event.name === "Mint") {
+        log.info(`Parsing ${assetType} ${event.name} of ${wad}`);
+        tx.transfers.push({
+          assetType,
+          category: smeq(address, pethAddress)
+            ? TransferCategories.SwapIn
+            : TransferCategories.Borrow,
+          from: AddressZero,
+          index,
+          quantity: wad,
+          to: event.args.guy,
+        });
+      } else if (event.name === "Burn") {
+        log.info(`Parsing ${assetType} ${event.name} of ${wad}`);
+        tx.transfers.push({
+          assetType,
+          category: smeq(address, pethAddress)
+            ? TransferCategories.SwapOut
+            : TransferCategories.Repay,
+          from: event.args.guy,
+          index,
+          quantity: wad,
+          to: tubAddress,
+        });
+      } else if (["Approval", "Transfer"].includes(event.name)) {
+        log.debug(`Skipping ${event.name} event from ${assetType}`);
+      } else {
+        log.warn(`Unknown ${event.name} event from ${assetType}`);
       }
 
     ////////////////////////////////////////
@@ -478,13 +308,13 @@ export const makerParser = (
       if (logNote.name === "slip") {
         // NOTE: Hacky fix assumes that the joiner calls transfer immediately after slip
         // slip accepts ilk which is a bytes32 that maps to the token address, not super useful
-        const asset = ethTx.logs.find(l => l.index === txLog.index + 1).address;
+        const asset = ethTx.logs.find(l => l.index === index + 1).address;
         if (!asset) {
-          log.warn(`Unable to find the token address for ilk ${logNote.args[0]}`);
+          log.warn(`Vat.${logNote.name}: Can't find a token address for ilk ${logNote.args[0]}`);
           continue;
         }
         const wad = formatUnits(
-          BigNumber.from(logNote.args[2] || "0x00").fromTwos(256),
+          toBN(logNote.args[2] || "0x00").fromTwos(256),
           chainData.getTokenData(asset)?.decimals || 18,
         );
         const assetType = getName(asset) as AssetTypes;
@@ -509,12 +339,16 @@ export const makerParser = (
             } ${assetType} from CDP`;
           }
         } else {
-          log.warn(`Unable to find transfer of about ${wad} ${assetType}`);
+          log.warn(`Vat.${logNote.name}: Can't find a ${assetType} transfer of about ${wad}`);
         }
 
       // Borrow/Repay DAI
       } else if (logNote.name === "frob") {
-        const dart = formatUnits(BigNumber.from(logNote.args[5] || "0x00").fromTwos(256));
+        const dart = formatUnits(toBN(logNote.args[5] || "0x00").fromTwos(256));
+        if (eq(dart, "0")) {
+          log.debug(`Vat.${logNote.name}: Skipping zero-value change in CDP debt`);
+          continue;
+        }
         log.info(`Found a change in CDP debt of about ${round(dart)} DAI`);
         const transfer = tx.transfers.findIndex(transfer =>
           transfer.assetType === AssetTypes.DAI
@@ -533,7 +367,7 @@ export const makerParser = (
             } DAI into CDP`;
           }
         } else {
-          log.warn(`Unable to find transfer of about ${dart} DAI`);
+          log.warn(`Vat.${logNote.name}: Can't find a DAI transfer of about ${dart}`);
         }
       }
 
@@ -547,7 +381,7 @@ export const makerParser = (
       })`);
 
       if (logNote.name === "join") {
-        const wad = formatUnits(hexlify(stripZeros(txLog.topics[2])), 18);
+        const wad = formatUnits(hexlify(stripZeros(logNote.args[0])), 18);
         const transfer = tx.transfers.findIndex(t =>
           t.assetType === AssetTypes.DAI &&
           t.category === TransferCategories.Transfer &&
@@ -559,11 +393,11 @@ export const makerParser = (
             round(tx.transfers[transfer].quantity)
           } DAI into DSR`;
         } else {
-          log.warn(`Unable to find matching ${wad} DAI transfer for SDR deposit`);
+          log.warn(`Pot.${logNote.name}: Can't find a DAI transfer of about ${wad}`);
         }
 
       } else if (logNote.name === "exit") {
-        const wad = formatUnits(hexlify(stripZeros(txLog.topics[2])), 18);
+        const wad = formatUnits(hexlify(stripZeros(logNote.args[0])), 18);
         const transfer = tx.transfers.findIndex(t =>
           t.assetType === AssetTypes.DAI &&
           t.category === TransferCategories.Transfer &&
@@ -575,7 +409,217 @@ export const makerParser = (
             round(tx.transfers[transfer].quantity)
           } DAI from DSR`;
         } else {
-          log.warn(`Unable to find matching ${wad} DAI transfer for SDR deposit`);
+          log.warn(`Pot.${logNote.name}: Can't find a DAI transfer of about ${wad}`);
+        }
+      }
+
+    ////////////////////////////////////////
+    // SCD Cage
+    // During global settlement, the cage is used to redeem no-longer-stable-coins for collateral
+    } else if (smeq(address, saiCageAddress)) {
+      const event = parseEvent(cageInterface, txLog);
+      if (event?.name === "FreeCash") {
+        const wad = formatUnits(event.args[1], 18);
+        log.info(`Parsing SaiCage FreeCash event for ${wad} ETH`);
+        const swapOut = tx.transfers.find(t =>
+          t.assetType === AssetTypes.SAI
+          && isSelf(t.from)
+          && smeq(t.to, saiCageAddress)
+          && gt(t.quantity, "0")
+        );
+        if (swapOut) {
+          swapOut.category = TransferCategories.SwapOut;
+        } else {
+          log.warn(`Cage.${event.name}: Can't find any SAI transfer`);
+        }
+        const swapIn = tx.transfers.find(t =>
+          t.assetType === AssetTypes.ETH
+          && isSelf(t.to)
+          && smeq(t.from, saiCageAddress)
+          && quantitiesAreClose(t.quantity, wad, div(wad, "100"))
+        );
+        if (swapIn) {
+          swapIn.category = TransferCategories.SwapIn;
+          swapIn.index = swapOut.index + 0.1;
+        } else {
+          log.warn(`Cage.${event.name}: Can't find an ETH transfer of ${wad}`);
+        }
+        tx.description = `${getName(ethTx.from)} redeemed ${
+          round(swapOut.quantity, 4)
+        } SAI for ${round(wad, 4)} ETH`;
+      }
+
+    ////////////////////////////////////////
+    // SCD Tub
+    } else if (smeq(address, tubAddress)) {
+      const event = parseEvent(tubInterface, txLog);
+      if (event?.name === "LogNewCup") {
+        tx.description = `${getName(event.args.lad)} opened new CDP #${toBN(event.args.cup)}`;
+        continue;
+      }
+      const logNote = parseLogNote(tubInterface, txLog);
+      if (!logNote.name || logNote.name === "open") continue;
+      log.debug(`Found Tub call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
+        logNote.args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
+      })`);
+
+      if (logNote.name === "give") {
+        const recipient = hexlify(stripZeros(logNote.args[2]));
+        tx.description = `${getName(logNote.args[0])} gave CDP #${toBN(logNote.args[1])} to ${getName(recipient)}`;
+
+      } else if (logNote.name === "bite") {
+        tx.description = `${getName(logNote.args[0])} bit CDP #${toBN(logNote.args[1])}`;
+
+      } else if (logNote.name === "shut") {
+        tx.description = `${getName(logNote.args[0])} shut CDP #${toBN(logNote.args[1])}`;
+
+      // WETH -> PETH: Categorize WETH transfer as a swap out
+      } else if (logNote.name === "join") {
+        const wad = formatUnits(logNote.args[1], 18);
+        // Get the WETH transfer with the quantity that's closest to the wad
+        const transfer = tx.transfers.filter(t =>
+          t.assetType === AssetTypes.WETH
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.SwapOut, // re-handle dup calls instead of logging warning
+          ] as TransferCategories[]).includes(t.category)
+        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        if (transfer) {
+          transfer.category = TransferCategories.SwapOut;
+          if (smeq(ethTx.to, tubAddress)) {
+            tx.description = `${getName(ethTx.from)} swapped ${
+              round(transfer.quantity, 4)
+            } WETH for ${round(wad, 4)} PETH`;
+          }
+        } else if (smeq(ethTx.to, tubAddress)) {
+          // Not a problem if we're interacting via a cdp proxy bc this wouldn't interact w self
+          log.warn(`Tub.${logNote.name}: Can't find a WETH transfer of ${wad}`);
+        }
+
+      // PETH -> WETH: Categorize WETH transfer as a swap in
+      } else if (logNote.name === "exit") {
+        const wad = formatUnits(logNote.args[1], 18);
+        // Get the WETH transfer with the quantity that's closest to the wad
+        const transfer = tx.transfers.filter(t =>
+          t.assetType === AssetTypes.WETH
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.SwapIn, // re-handle dup calls instead of logging warning
+          ] as TransferCategories[]).includes(t.category)
+        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        if (transfer) {
+          transfer.category = TransferCategories.SwapIn;
+          if (smeq(ethTx.to, tubAddress)) {
+            tx.description = `${getName(ethTx.from)} swapped ${
+              round(wad, 4)
+            } PETH for ${round(transfer.quantity, 4)} WETH`;
+          }
+        } else if (smeq(ethTx.to, tubAddress)) {
+          // Not a problem if we're interacting via a cdp proxy bc this wouldn't interact w self
+          log.warn(`Tub.${logNote.name}: Can't find a WETH transfer of ${wad}`);
+        }
+
+      // PETH -> CDP: Categorize PETH transfer as deposit
+      } else if (logNote.name === "lock") {
+        const wad = formatUnits(hexlify(stripZeros(logNote.args[1])), 18);
+        const transfer = tx.transfers.filter(t =>
+          ethish.includes(t.assetType)
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.Deposit, // handle dup lock calls the same way
+          ] as TransferCategories[]).includes(t.category)
+          && (smeq(tubAddress, t.to) || isSelf(t.from))
+        // PETH wad !== W/ETH wad but the closest match is probably the one we want
+        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        if (transfer) {
+          transfer.category = TransferCategories.Deposit;
+          tx.description = `${getName(transfer.from)} deposited ${
+            round(transfer.quantity, 4)
+          } ${transfer.assetType} into CDP`;
+        } else {
+          log.warn(`Tub.${logNote.name}: Can't find a P/W/ETH transfer of about ${wad}`);
+        }
+
+      // PETH <- CDP: Categorize PETH transfer as withdraw
+      } else if (logNote.name === "free") {
+        const wad = formatUnits(hexlify(stripZeros(logNote.args[1])), 18);
+        const transfer = tx.transfers.filter(t =>
+          ethish.includes(t.assetType)
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.Withdraw, // handle dup free calls the same way
+          ] as TransferCategories[]).includes(t.category)
+          && (smeq(tubAddress, t.from) || isSelf(t.to))
+        // PETH wad !== W/ETH wad but the closest match is probably the one we want
+        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        if (transfer) {
+          transfer.category = TransferCategories.Withdraw;
+          tx.description = `${getName(transfer.to)} withdrew ${
+            round(transfer.quantity, 4)
+          } ${transfer.assetType} from CDP`;
+        } else {
+          log.warn(`Tub.${logNote.name}: Can't find a PETH transfer of about ${wad}`);
+        }
+
+      // SAI <- CDP
+      } else if (logNote.name === "draw") {
+        const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
+        tx.description = `${getName(ethTx.from)} borrowed ${round(wad)} SAI from CDP`;
+        const borrow = tx.transfers.filter(t =>
+          isSelf(t.to)
+          && t.assetType === AssetTypes.SAI
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.Borrow, // parse duplicate log notes again
+          ] as TransferCategories[]).includes(t.category)
+        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        if (borrow) {
+          borrow.category = TransferCategories.Borrow;
+        } else if (!ethTx.logs.find(l =>
+          l.index > index
+          && smeq(l.address, saiAddress)
+          && parseEvent(tokenInterface, l).name === "Mint"
+        )) {
+          // Only warn if there is NOT an upcoming SAI mint evet
+          log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
+        }
+
+      // SAI -> CDP
+      } else if (logNote.name === "wipe") {
+        const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
+        tx.description = `${getName(ethTx.from)} repayed ${round(wad)} SAI to CDP`;
+        const repay = tx.transfers.filter(t =>
+          isSelf(t.from)
+          && t.assetType === AssetTypes.SAI
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.Repay, // parse duplicate log notes again
+          ] as TransferCategories[]).includes(t.category)
+        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        if (repay) {
+          repay.category = TransferCategories.Repay;
+        } else if (!ethTx.logs.find(l =>
+          l.index > index
+          && smeq(l.address, saiAddress)
+          && parseEvent(tokenInterface, l).name === "Burn"
+        )) {
+          log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
+        }
+        // Handle MKR fee (or find the stable-coins spent to buy MKR)
+        const feeAsset = [AssetTypes.MKR, AssetTypes.SAI] as AssetTypes[];
+        const fee = tx.transfers.find(t =>
+          isSelf(t.from)
+          && feeAsset.includes(t.assetType)
+          && ([
+            TransferCategories.SwapOut, // Maybe we gave our fee to OasisDex to swap for MKR
+            TransferCategories.Expense, // parse duplicate log notes again
+            TransferCategories.Transfer
+          ] as TransferCategories[]).includes(t.category)
+        );
+        if (fee) {
+          fee.category = TransferCategories.Expense;
+        } else {
+          log.warn(`Tub.${logNote.name}: Can't find a MKR/SAI fee`);
         }
 
       }

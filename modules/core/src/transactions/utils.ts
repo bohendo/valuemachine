@@ -1,7 +1,9 @@
+import { Interface } from "@ethersproject/abi";
 import {
   DecimalString,
   EthCall,
   EthTransaction,
+  EthTransactionLog,
   Logger,
   TimestampString,
   Transaction,
@@ -11,29 +13,25 @@ import { getLogger, math } from "@finances/utils";
 
 const { diff, lt } = math;
 
-const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
-  new Date(tx1.date).getTime() === new Date(tx2.date).getTime()
-    ? tx1.index - tx2.index
-    : new Date(tx1.date).getTime() - new Date(tx2.date).getTime();
-
 export const getUnique = (array: string[]): string[] =>
   Array.from(new Set([...array]));
-
-const datesAreClose = (
-  ts1: TimestampString,
-  ts2: TimestampString,
-  wiggleRoom = `${1000 * 60 * 30}`,
-) =>
-  lt(
-    diff(new Date(ts1).getTime().toString(), new Date(ts2).getTime().toString()),
-    wiggleRoom,
-  );
 
 export const quantitiesAreClose = (q1: DecimalString, q2: DecimalString, wiggleRoom = "0.000001") =>
   lt(diff(q1, q2), wiggleRoom);
 
 export const chrono = (e1: EthCall | EthTransaction, e2: EthCall | EthTransaction): number =>
   new Date(e1.timestamp).getTime() - new Date(e2.timestamp).getTime();
+
+export const parseEvent = (
+  iface: Interface,
+  ethLog: EthTransactionLog,
+): { name: string; args: { [key: string]: string }; } => {
+  const name = Object.values(iface.events).find(e =>
+    iface.getEventTopic(e) === ethLog.topics[0]
+  )?.name;
+  const args = name ? iface.parseLog(ethLog).args : [];
+  return { name, args };
+};
 
 // This fn ought to modifiy the old list of txns IN PLACE and also return the updated tx list
 export const mergeTransaction = (
@@ -42,6 +40,21 @@ export const mergeTransaction = (
   logger: Logger,
 ): Transaction[] => {
   let log = (logger || getLogger()).child({ module: "MergeTx" });
+
+  const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
+    new Date(tx1.date).getTime() === new Date(tx2.date).getTime()
+      ? tx1.index - tx2.index
+      : new Date(tx1.date).getTime() - new Date(tx2.date).getTime();
+
+  const datesAreClose = (
+    ts1: TimestampString,
+    ts2: TimestampString,
+    wiggleRoom = `${1000 * 60 * 30}`,
+  ) =>
+    lt(
+      diff(new Date(ts1).getTime().toString(), new Date(ts2).getTime().toString()),
+      wiggleRoom,
+    );
 
   if (!newTx?.transfers?.length) {
     log.debug(`Skipped new tx with zero transfers`);

@@ -14,7 +14,9 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { getUnique } from "../utils";
+import { getUnique, parseEvent, quantitiesAreClose } from "../utils";
+
+const { div, round } = math;
 
 const source = TransactionSources.Compound;
 
@@ -22,11 +24,17 @@ const source = TransactionSources.Compound;
 /// Addresses
 
 const compoundV1Address = "0x3fda67f7583380e67ef93072294a7fac882fd7e7";
+const maxiAddress = "0xf859a1ad94bcf445a406b892ef0d3082f4174088";
+const compAddress = "0xc00e94cb662c3520282e6f5717214004a7f26888";
+
+// The following is a proxy address
+// Comptroller implementation is currently at 0xbe7616b06f71e363a310aa8ce8ad99654401ead7
+const comptrollerAddress = "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b";
 
 const machineryAddresses = [
   { name: "compound-v1", address: compoundV1Address },
-  { name: "compound-maximillion", address: "0xf859a1ad94bcf445a406b892ef0d3082f4174088" },
-  { name: "compound-comptroller", address: "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b" },
+  { name: "maximillion", address: maxiAddress },
+  { name: "comptroller", address: comptrollerAddress },
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const cTokenAddresses = [
@@ -45,7 +53,7 @@ const cTokenAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 const govTokenAddresses = [
-  { name: "COMP", address: "0xc00e94cb662c3520282e6f5717214004a7f26888" },
+  { name: "COMP", address: compAddress },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 export const compoundAddresses = [
@@ -65,6 +73,27 @@ const compoundV1Interface = new Interface([
   "event SupplyWithdrawn(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
 ]);
 
+const comptrollerInterface = new Interface([
+  "event ActionPaused(address cToken, string action, bool pauseState)",
+  "event ActionPaused(string action, bool pauseState)",
+  "event CompGranted(address recipient, uint256 amount)",
+  "event CompSpeedUpdated(address indexed cToken, uint256 newSpeed)",
+  "event ContributorCompSpeedUpdated(address indexed contributor, uint256 newSpeed)",
+  "event DistributedBorrowerComp(address indexed cToken, address indexed borrower, uint256 compDelta, uint256 compBorrowIndex)",
+  "event DistributedSupplierComp(address indexed cToken, address indexed supplier, uint256 compDelta, uint256 compSupplyIndex)",
+  "event Failure(uint256 error, uint256 info, uint256 detail)",
+  "event MarketEntered(address cToken, address account)",
+  "event MarketExited(address cToken, address account)",
+  "event MarketListed(address cToken)",
+  "event NewBorrowCap(address indexed cToken, uint256 newBorrowCap)",
+  "event NewBorrowCapGuardian(address oldBorrowCapGuardian, address newBorrowCapGuardian)",
+  "event NewCloseFactor(uint256 oldCloseFactorMantissa, uint256 newCloseFactorMantissa)",
+  "event NewCollateralFactor(address cToken, uint256 oldCollateralFactorMantissa, uint256 newCollateralFactorMantissa)",
+  "event NewLiquidationIncentive(uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa)",
+  "event NewPauseGuardian(address oldPauseGuardian, address newPauseGuardian)",
+  "event NewPriceOracle(address oldPriceOracle, address newPriceOracle)",
+]);
+
 const cTokenInterface = new Interface([
   "event AccrueInterest(uint256 cashPrior, uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows)",
   "event AccrueInterest(uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows)",
@@ -81,9 +110,12 @@ const cTokenInterface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
+const cTokenDecimals = 8;
+
 const associatedTransfer = (assetType: string, quantity: string) =>
   (transfer: Transfer): boolean =>
-    smeq(transfer.assetType, assetType) && math.eq(transfer.quantity, quantity);
+    smeq(transfer.assetType, assetType)
+      && quantitiesAreClose(transfer.quantity, quantity, div(quantity, "100"));
 
 export const compoundParser = (
   tx: Transaction,
@@ -92,119 +124,200 @@ export const compoundParser = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: source });
-  const { getName } = addressBook;
+  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const { getName, isSelf } = addressBook;
+
+  if (compoundAddresses.some(e => smeq(e.address, ethTx.to))) {
+    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+  }
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
+    if (compoundAddresses.some(e => smeq(e.address, address))) {
+      tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+    }
 
+    ////////////////////////////////////////
     // Compound V1
     if (smeq(address, compoundV1Address)) {
-      const event = Object.values(compoundV1Interface.events).find(e =>
-        compoundV1Interface.getEventTopic(e) === txLog.topics[0]
-      );
-      if (!event) continue;
+      const event = parseEvent(compoundV1Interface, txLog);
       log.info(`Found ${source}V1 ${event.name} event`);
-      const args = compoundV1Interface.parseLog(txLog).args;
-      const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
-      const assetType = getName(args.asset);
+      const amount = formatUnits(
+        event.args.amount,
+        chainData.getTokenData(event.args.asset)?.decimals || 18,
+      );
+      const assetType = getName(event.args.asset);
 
       if (event.name === "SupplyReceived") {
-        const deposit = tx.transfers.findIndex(associatedTransfer(assetType, amount));
-        if (deposit >= 0) {
-          tx.transfers[deposit].category = TransferCategories.Deposit;
-          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1Address)) {
-            tx.description = `${getName(ethTx.from)} deposited ${amount} ${assetType} into ${source}V1`;
-          }
+        const deposit = tx.transfers.find(associatedTransfer(assetType, amount));
+        if (deposit) {
+          deposit.category = TransferCategories.Deposit;
         } else {
-          log.warn(tx.transfers, `Couldn't find an associated deposit transfer`);
+          log.warn(tx.transfers, `Can't find an associated deposit transfer`);
         }
+        tx.description = `${getName(ethTx.from)} deposited ${
+          round(amount)
+        } ${assetType} into ${source}V1`;
 
       } else if (event.name === "SupplyWithdrawn") {
-        const withdraw = tx.transfers.findIndex(associatedTransfer(assetType, amount));
-        if (withdraw >= 0) {
-          tx.transfers[withdraw].category = TransferCategories.Withdraw;
-          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1Address)) {
-            tx.description = `${getName(ethTx.from)} withdrew ${amount} ${assetType} from ${source}V1`;
-          }
+        const withdraw = tx.transfers.find(associatedTransfer(assetType, amount));
+        if (withdraw) {
+          withdraw.category = TransferCategories.Withdraw;
         } else {
-          log.warn(tx.transfers, `Couldn't find a transfer of ${amount} ${assetType}`);
+          log.warn(tx.transfers, `Can't find a transfer of ${amount} ${assetType}`);
         }
+        tx.description = `${getName(ethTx.from)} withdrew ${
+          round(amount)
+        } ${assetType} from ${source}V1`;
 
       } else if (event.name === "BorrowTaken") {
-        const borrow = tx.transfers.findIndex(associatedTransfer(assetType, amount));
-        if (borrow >= 0) {
-          tx.transfers[borrow].category = TransferCategories.Borrow;
-          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1Address)) {
-            tx.description = `${getName(ethTx.from)} borrowed ${amount} ${assetType} from ${source}V1`;
-          }
+        const borrow = tx.transfers.find(associatedTransfer(assetType, amount));
+        if (borrow) {
+          borrow.category = TransferCategories.Borrow;
         } else {
-          log.warn(tx.transfers, `Couldn't find an associated borrow transfer`);
+          log.warn(tx.transfers, `Can't find an associated borrow transfer`);
         }
+        tx.description = `${getName(ethTx.from)} borrowed ${
+          round(amount)
+        } ${assetType} from ${source}V1`;
 
       } else if (event.name === "BorrowRepaid") {
-        const repay = tx.transfers.findIndex(associatedTransfer(assetType, amount));
-        if (repay >= 0) {
-          tx.transfers[repay].category = TransferCategories.Repay;
-          tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-          if (smeq(ethTx.to, compoundV1Address)) {
-            tx.description = `${getName(ethTx.from)} repaid ${amount} ${assetType} to ${source}V1`;
-          }
+        const repay = tx.transfers.find(associatedTransfer(assetType, amount));
+        if (repay) {
+          repay.category = TransferCategories.Repay;
         } else {
-          log.warn(tx.transfers, `Couldn't find an associated repay transfer`);
+          log.warn(tx.transfers, `Can't find an associated repay transfer`);
         }
+        tx.description = `${getName(ethTx.from)} repaid ${
+          round(amount)
+        } ${assetType} to ${source}V1`;
 
-      } else if (event.name === "EquityWithdrawn") {
-        log.debug(`Skipping ${event.name} event for ${source}V1`);
       } else {
-        log.debug(`Unknown event for ${source}V1: ${event.name}`);
+        log.debug(`Skipping ${source}V1 ${event.name} event`);
       }
 
-    // Compound V2
-    } else if (
-      cTokenAddresses.some(a => smeq(address, a.address))
-    ) {
-      log.info(`Found ${source}V2 event`);
-      const event = Object.values(cTokenInterface.events).find(e =>
-        cTokenInterface.getEventTopic(e) === txLog.topics[0]
-      );
-      if (!event) continue;
-      log.info(`Found ${source}V2 ${event.name} event`);
-      const args = cTokenInterface.parseLog(txLog).args;
-      const amount = formatUnits(args.amount || "0x00", chainData.getTokenData(address).decimals);
-      const assetType = getName(args.asset);
+    ////////////////////////////////////////
+    // Compound V2: Comptroller
+    } else if (smeq(comptrollerAddress, address)) {
+      const event = parseEvent(comptrollerInterface, txLog);
+      if (event.name === "MarketEntered") {
+        tx.description = `${getName(ethTx.from)} entered market for ${getName(event.args.cToken)}`;
+      }
 
-      // If Mint then we deposited & are recieving cTokens in return
+    ////////////////////////////////////////
+    // Compound V2: COMP gov token
+    } else if (smeq(compAddress, address)) {
+      const event = parseEvent(cTokenInterface, txLog);
+      if (event.name === "Transfer") {
+        if (isSelf(event.args.to) && smeq(event.args.from, comptrollerAddress)) {
+          const amount = formatUnits(
+            event.args.amount,
+            chainData.getTokenData(address)?.decimals || 18,
+          );
+          const income = tx.transfers.find(associatedTransfer("COMP", amount));
+          if (income) {
+            income.category = TransferCategories.Income;
+          } else {
+            log.warn(`${event.name}: Can't find income of ${amount} COMP`);
+          }
+        }
+      }
+
+    ////////////////////////////////////////
+    // Compound V2: cTokens
+    } else if (cTokenAddresses.some(a => smeq(address, a.address))) {
+      const event = parseEvent(cTokenInterface, txLog);
+      if (!event.name) continue;
+      const assetType = getName(address).replace(/^c/, "");
+
+      // Deposit
       if (event.name === "Mint") {
-        log.info(`Deposited ${amount} ${assetType} into ${source}V2`);
-        // TODO
+        log.info(`Parsing ${getName(address)} ${event.name} event`);
+        const tokenAmt = formatUnits(
+          event.args.mintAmount,
+          chainData.getTokenData(assetType)?.decimals || 18,
+        );
+        const cTokenAmt = formatUnits(event.args.mintTokens, cTokenDecimals);
+        const swapOut = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        if (swapOut) {
+          swapOut.category = TransferCategories.SwapOut;
+        } else {
+          log.warn(`${event.name}: Can't find swapOut of ${tokenAmt} ${assetType}`);
+        }
+        const swapIn = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
+        if (swapIn) {
+          swapIn.category = TransferCategories.SwapIn;
+        } else {
+          log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${getName(address)}`);
+        }
+        tx.description = `${getName(ethTx.from)} deposited ${
+          round(tokenAmt)
+        } ${assetType} into ${source}`;
 
-      // If Burn then we withdrew & are returning our cTokens
-      } else if (event.name === "Burn") {
-        log.info(`Withdrew ${amount} ${assetType} from ${source}V2`);
-        // TODO
+      // Withdraw
+      } else if (event.name === "Redeem") {
+        log.info(`Parsing ${getName(address)} ${event.name} event`);
+        const tokenAmt = formatUnits(
+          event.args.redeemAmount,
+          chainData.getTokenData(assetType)?.decimals || 18,
+        );
+        const cTokenAmt = formatUnits(event.args.redeemTokens, cTokenDecimals);
+        const swapOut = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
+        if (swapOut) {
+          swapOut.category = TransferCategories.SwapOut;
+        } else {
+          log.warn(`${event.name}: Can't find swapOut of ${cTokenAmt} ${getName(address)}`);
+        }
+        const swapIn = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        if (swapIn) {
+          swapIn.category = TransferCategories.SwapIn;
+        } else {
+          log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${assetType}`);
+        }
+        tx.description = `${getName(ethTx.from)} withdrew ${
+          round(tokenAmt)
+        } ${assetType} from ${source}`;
 
-      } else if (
-        [
-          "AccrueInterest",
-          "Approval",
-          "Borrow",
-          "Redeem",
-          "RepayBorrow",
-          "Transfer",
-        ].includes(event.name)
-      ) {
-        log.debug(`Skipping ${event.name} event for ${source}V2`);
+      // Borrow
+      } else if (event.name === "Borrow") {
+        log.info(`Parsing ${getName(address)} ${event.name} event`);
+        const tokenAmt = formatUnits(
+          event.args.borrowAmount,
+          chainData.getTokenData(assetType)?.decimals || 18,
+        );
+        const borrow = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        if (borrow) {
+          borrow.category = TransferCategories.Borrow;
+        } else {
+          log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${assetType}`);
+        }
+        tx.description = `${getName(ethTx.from)} borrowed ${
+          round(tokenAmt)
+        } ${assetType} from ${getName(address)}`;
+
+      // Repay
+      } else if (event.name === "RepayBorrow") {
+        log.info(`Parsing ${getName(address)} ${event.name} event`);
+        const tokenAmt = formatUnits(
+          event.args.repayAmount,
+          chainData.getTokenData(assetType)?.decimals || 18,
+        );
+        const repay = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        if (repay) {
+          repay.category = TransferCategories.Repay;
+        } else {
+          log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${assetType}`);
+        }
+        tx.description = `${getName(ethTx.from)} repayed ${
+          round(tokenAmt)
+        } ${assetType} to ${getName(address)}`;
+
 
       } else {
-        log.warn(`Unknown event for ${source}V2: ${event.name}`);
+        log.debug(`Skipping ${source} ${event.name} event`);
       }
 
     }
-
   }
 
   // log.debug(tx, `Done parsing ${source}`);
