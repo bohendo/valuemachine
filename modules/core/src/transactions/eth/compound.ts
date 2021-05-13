@@ -14,7 +14,9 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { getUnique } from "../utils";
+import { getUnique, parseEvent } from "../utils";
+
+const { eq, round } = math;
 
 const source = TransactionSources.Compound;
 
@@ -83,7 +85,7 @@ const cTokenInterface = new Interface([
 
 const associatedTransfer = (assetType: string, quantity: string) =>
   (transfer: Transfer): boolean =>
-    smeq(transfer.assetType, assetType) && math.eq(transfer.quantity, quantity);
+    smeq(transfer.assetType, assetType) && eq(transfer.quantity, quantity);
 
 export const compoundParser = (
   tx: Transaction,
@@ -100,14 +102,10 @@ export const compoundParser = (
 
     // Compound V1
     if (smeq(address, compoundV1Address)) {
-      const event = Object.values(compoundV1Interface.events).find(e =>
-        compoundV1Interface.getEventTopic(e) === txLog.topics[0]
-      );
-      if (!event) continue;
+      const event = parseEvent(compoundV1Interface, txLog);
       log.info(`Found ${source}V1 ${event.name} event`);
-      const args = compoundV1Interface.parseLog(txLog).args;
-      const amount = formatUnits(args.amount, chainData.getTokenData(address).decimals);
-      const assetType = getName(args.asset);
+      const amount = formatUnits(event.args.amount, chainData.getTokenData(address).decimals);
+      const assetType = getName(event.args.asset);
 
       if (event.name === "SupplyReceived") {
         const deposit = tx.transfers.findIndex(associatedTransfer(assetType, amount));
@@ -115,7 +113,7 @@ export const compoundParser = (
           tx.transfers[deposit].category = TransferCategories.Deposit;
           tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
           if (smeq(ethTx.to, compoundV1Address)) {
-            tx.description = `${getName(ethTx.from)} deposited ${amount} ${assetType} into ${source}V1`;
+            tx.description = `${getName(ethTx.from)} deposited ${round(amount)} ${assetType} into ${source}V1`;
           }
         } else {
           log.warn(tx.transfers, `Couldn't find an associated deposit transfer`);
@@ -127,7 +125,7 @@ export const compoundParser = (
           tx.transfers[withdraw].category = TransferCategories.Withdraw;
           tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
           if (smeq(ethTx.to, compoundV1Address)) {
-            tx.description = `${getName(ethTx.from)} withdrew ${amount} ${assetType} from ${source}V1`;
+            tx.description = `${getName(ethTx.from)} withdrew ${round(amount)} ${assetType} from ${source}V1`;
           }
         } else {
           log.warn(tx.transfers, `Couldn't find a transfer of ${amount} ${assetType}`);
@@ -167,15 +165,14 @@ export const compoundParser = (
     } else if (
       cTokenAddresses.some(a => smeq(address, a.address))
     ) {
-      log.info(`Found ${source}V2 event`);
-      const event = Object.values(cTokenInterface.events).find(e =>
-        cTokenInterface.getEventTopic(e) === txLog.topics[0]
-      );
-      if (!event) continue;
+      const event = parseEvent(cTokenInterface, txLog);
+      if (!event.name) continue;
       log.info(`Found ${source}V2 ${event.name} event`);
-      const args = cTokenInterface.parseLog(txLog).args;
-      const amount = formatUnits(args.amount || "0x00", chainData.getTokenData(address).decimals);
-      const assetType = getName(args.asset);
+      const amount = formatUnits(
+        event.args.amount || "0x00",
+        chainData.getTokenData(address).decimals,
+      );
+      const assetType = getName(event.args.asset);
 
       // If Mint then we deposited & are recieving cTokens in return
       if (event.name === "Mint") {
