@@ -94,7 +94,7 @@ export const parseEthTx = (
   // Detect failed transactions
   if (ethTx.status !== 1) {
     tx.transfers[0].quantity = "0";
-    tx.description = `${getName(ethTx.from)} sent failed tx`;
+    tx.description = `${getName(ethTx.from)} sent failed tx to ${getName(ethTx.to)}`;
     if (!addressBook.isSelf(tx.transfers[0].from)) {
       tx.transfers = [];
     }

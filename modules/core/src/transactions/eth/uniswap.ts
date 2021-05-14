@@ -45,8 +45,10 @@ const v2MarketAddresses = [
   { name: "UniV2-ETH-AAVE", address: "0xdfc14d2af169b0d36c4eff567ada9b2e0cae044f" },
   { name: "UniV2-ETH-cDAI", address: "0x9896bd979f9da57857322cc15e154222c4658a5a" },
   { name: "UniV2-ETH-CHERRY", address: "0x7b7a444e59851439a09426f4047c8cead7b3b6b9" },
+  { name: "UniV2-ETH-COMP", address: "0xcffdded873554f362ac02f8fb1f02e5ada10516f" },
   { name: "UniV2-ETH-DAI", address: "0xa478c2975ab1ea89e8196811f51a7b7ade33eb11" },
   { name: "UniV2-ETH-FEI", address: "0x94b0a3d511b6ecdb17ebf877278ab030acb0a878" },
+  { name: "UniV2-ETH-GEN", address: "0xf37ed742819ec006b0802df5c2b0e9132f22c625" },
   { name: "UniV2-ETH-MKR", address: "0xc2adda861f89bbb333c90c492cb837741916a225" },
   { name: "UniV2-ETH-RAI", address: "0x8ae720a71622e824f576b4a8c03031066548a3b1" },
   { name: "UniV2-ETH-TORN", address: "0x0c722a487876989af8a05fffb6e32e45cc23fb3a" },
@@ -260,14 +262,28 @@ export const uniswapParser = (
           ] as TransferCategories[]).includes(transfer.category)
       );
       if (!withdraw) {
-        log.warn(`${subsrc} ${event.name} couldn't find a withdraw to ${address}`);
+        log.warn(`${subsrc} ${event.name} couldn't find a withdraw from staking pool}`);
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
       withdraw.category = TransferCategories.Withdraw;
-      tx.description = `${getName(ethTx.from)} deposited ${
+      const income = tx.transfers.find((transfer: Transfer): boolean =>
+        isSelf(transfer.to)
+          && stakingAddresses.some(e => smeq(transfer.from, e.address))
+          && transfer.assetType === AssetTypes.UNI
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.Income,
+          ] as TransferCategories[]).includes(transfer.category)
+      );
+      if (!income) {
+        log.warn(`${subsrc} ${event.name} couldn't find income from staking pool`);
+        continue;
+      }
+      income.category = TransferCategories.Income;
+      tx.description = `${getName(ethTx.from)} withdrew ${
         withdraw.assetType
-      } into ${subsrc} staking pool`;
+      } from ${subsrc} staking pool`;
 
     } else {
       log.debug(`Skipping ${subsrc} ${event.name}`);

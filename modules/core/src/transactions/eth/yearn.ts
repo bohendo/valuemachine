@@ -8,7 +8,7 @@ import {
   Transaction,
   TransactionSources,
 } from "@finances/types";
-import { smeq } from "@finances/utils";
+import { sm, smeq } from "@finances/utils";
 
 import { getUnique } from "../utils";
 
@@ -64,9 +64,13 @@ export const yearnParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: source });
+  const { getName } = addressBook;
 
-  if (yearnAddresses.some(entry => smeq(ethTx.to, entry.address))) {
-    log.info(`Yearn tx detected!`);
+  for (const txLog of ethTx.logs.filter(
+    l => yearnAddresses.some(e => smeq(e.address, l.address))
+  )) {
+    const address = sm(txLog.address);
+    log.info(`Yearn tx interacted w ${getName(address)}`);
     tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
   }
 
