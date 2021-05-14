@@ -1,5 +1,6 @@
 import { Interface } from "@ethersproject/abi";
 import {
+  AssetTypes,
   AddressBook,
   AddressBookJson,
   AddressCategories,
@@ -42,6 +43,8 @@ const v1MarketAddresses = [
 
 const v2MarketAddresses = [
   { name: "UniV2-ETH-AAVE", address: "0xdfc14d2af169b0d36c4eff567ada9b2e0cae044f" },
+  { name: "UniV2-ETH-cDAI", address: "0x9896bd979f9da57857322cc15e154222c4658a5a" },
+  { name: "UniV2-ETH-CHERRY", address: "0x7b7a444e59851439a09426f4047c8cead7b3b6b9" },
   { name: "UniV2-ETH-DAI", address: "0xa478c2975ab1ea89e8196811f51a7b7ade33eb11" },
   { name: "UniV2-ETH-FEI", address: "0x94b0a3d511b6ecdb17ebf877278ab030acb0a878" },
   { name: "UniV2-ETH-MKR", address: "0xc2adda861f89bbb333c90c492cb837741916a225" },
@@ -53,11 +56,24 @@ const v2MarketAddresses = [
   { name: "UniV2-ETH-WBTC", address: "0xbb2b8038a1640196fbe3e38816f3e67cba72d940" },
   { name: "UniV2-ETH-YFI", address: "0x2fdbadf3c4d5a8666bc06645b8358ab803996e28" },
   { name: "UniV2-ETH-ycrvUSD", address: "0x55df969467ebdf954fe33470ed9c3c0f8fab0816" },
+  { name: "UniV2-DAI-USDC", address: "0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5" },
+  { name: "UniV2-USDC-GRT", address: "0xdfa42ba0130425b21a1568507b084cc246fb0c8f" },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
+const stakingAddresses = [
+  { name: "UniV2-Stake-ETH-USDC", address: "0x7fba4b8dc5e7616e59622806932dbea72537a56b" },
+  { name: "UniV2-Stake-ETH-USDT", address: "0x6c3e4cb2e96b01f4b866965a91ed4437839a121a" },
+].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+
+const airdropAddresses = [
+  { name: "UNI-airdropper", address: "0x090d4613473dee047c3f2706764f49e0821d256e" },
+].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+
 export const uniswapAddresses = [
+  ...airdropAddresses,
   ...govTokenAddresses,
   ...routerAddresses,
+  ...stakingAddresses,
   ...v1MarketAddresses,
   ...v2MarketAddresses,
 ];
@@ -81,6 +97,17 @@ const uniswapV2Interface = new Interface([
   "event Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to)",
   "event Sync(uint112 reserve0, uint112 reserve1)",
   "event Transfer(address indexed from, address indexed to, uint256 value)",
+]);
+
+const stakingInterface = new Interface([
+  "event RewardAdded(uint256 reward)",
+  "event RewardPaid(address indexed user, uint256 reward)",
+  "event Staked(address indexed user, uint256 amount)",
+  "event Withdrawn(address indexed user, uint256 amount)",
+]);
+
+const airdropInterface = new Interface([
+  "event Claimed(uint256 index, address account, uint256 amount)",
 ]);
 
 ////////////////////////////////////////
@@ -128,7 +155,7 @@ export const uniswapParser = (
     const index = txLog.index || 1;
     tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
 
-    // Parse v1 or v2 events
+    // Parse events
     let subsrc, event;
     if (v2MarketAddresses.some(e => smeq(e.address, address))) {
       subsrc = `${source}V2`;
@@ -136,11 +163,19 @@ export const uniswapParser = (
     } else if (v1MarketAddresses.some(e => smeq(e.address, address))) {
       subsrc = `${source}V1`;
       event = parseEvent(uniswapV1Interface, txLog);
+    } else if (stakingAddresses.some(e => smeq(e.address, address))) {
+      subsrc = `${source}V2`;
+      event = parseEvent(stakingInterface, txLog);
+    } else if (airdropAddresses.some(e => smeq(e.address, address))) {
+      subsrc = `${source}V2`;
+      event = parseEvent(airdropInterface, txLog);
     } else {
       log.debug(`Skipping ${getName(address)} event`);
       continue;
     }
 
+    ////////////////////////////////////////
+    // Swaps & Liquidity Deposit/Withdrawal
     if ([
       "EthPurchase", "TokenPurchase", "AddLiquidity", "RemoveLiquidity", // V1
       "Swap", "Mint", "Burn", // V2
@@ -175,6 +210,65 @@ export const uniswapParser = (
       } else {
         log.warn(`Missing ${event.name} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
       }
+
+    ////////////////////////////////////////
+    // UNI Airdrop
+    } else if (event.name === "Claimed") {
+      const airdrop = tx.transfers.find((transfer: Transfer): boolean =>
+        isSelf(transfer.to)
+          && airdropAddresses.some(e => smeq(transfer.from, e.address))
+          && transfer.assetType === AssetTypes.UNI
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.Income,
+          ] as TransferCategories[]).includes(transfer.category)
+      );
+      airdrop.category = TransferCategories.Income;
+      tx.description = `${getName(airdrop.to)} recieved an airdrop of ${
+        round(airdrop.quantity)
+      } ${airdrop.assetType} from ${subsrc}`;
+
+    ////////////////////////////////////////
+    // UNI Mining Pool
+    } else if (event.name === "Staked") {
+      const deposit = tx.transfers.find((transfer: Transfer): boolean =>
+        isSelf(transfer.from)
+          && stakingAddresses.some(e => smeq(transfer.to, e.address))
+          && v2MarketAddresses.some(e => getName(e.address) === transfer.assetType)
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.Deposit,
+          ] as TransferCategories[]).includes(transfer.category)
+      );
+      if (!deposit) {
+        log.warn(`${subsrc} ${event.name} couldn't find a deposit to ${address}`);
+        continue;
+      }
+      log.info(`Parsing ${subsrc} ${event.name}`);
+      deposit.category = TransferCategories.Deposit;
+      tx.description = `${getName(ethTx.from)} deposited ${
+        deposit.assetType
+      } into ${subsrc} staking pool`;
+    } else if (event.name === "Withdrawn") {
+      const withdraw = tx.transfers.find((transfer: Transfer): boolean =>
+        isSelf(transfer.to)
+          && stakingAddresses.some(e => smeq(transfer.from, e.address))
+          && v2MarketAddresses.some(e => getName(e.address) === transfer.assetType)
+          && ([
+            TransferCategories.Transfer,
+            TransferCategories.Withdraw,
+          ] as TransferCategories[]).includes(transfer.category)
+      );
+      if (!withdraw) {
+        log.warn(`${subsrc} ${event.name} couldn't find a withdraw to ${address}`);
+        continue;
+      }
+      log.info(`Parsing ${subsrc} ${event.name}`);
+      withdraw.category = TransferCategories.Withdraw;
+      tx.description = `${getName(ethTx.from)} deposited ${
+        withdraw.assetType
+      } into ${subsrc} staking pool`;
+
     } else {
       log.debug(`Skipping ${subsrc} ${event.name}`);
     }

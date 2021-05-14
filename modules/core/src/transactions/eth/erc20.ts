@@ -29,6 +29,7 @@ export const erc20Addresses = [
   { name: "BAT", address: "0x0d8775f648430679a709e98d2b0cb6250d2887ef" },
   { name: "CHERRY", address: "0x4ecb692b0fedecd7b486b4c99044392784877e8c" },
   { name: "GEN", address: "0x543ff227f64aa17ea132bf9886cab5db55dcaddf" },
+  { name: "GRT", address: "0xc944e90c64b2c07662a292be6244bdf05cda44a7" },
   { name: "REP", address: "0xe94327d07fc17907b4db788e5adf2ed424addff6" },
   { name: "REPv1", address: "0x1985365e9f78359a9b6ad760e32412f4a445e862" },
   { name: "SNT", address: "0x744d70fdbe2ba4cf95131626614a1763df805b9e" },
@@ -114,7 +115,7 @@ export const erc20Parser = (
           const amt = round(amount, 2);
           tx.description = `${getName(event.args.from)} approved ${
             getName(event.args.to)
-          } to spend ${amt.length > 6 ? "a lot of" : amt} ${assetType}`;
+          } to spend ${amt.length > 10 ? "a lot of" : amt} ${assetType}`;
         }
 
       } else {
