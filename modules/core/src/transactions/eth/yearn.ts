@@ -28,6 +28,7 @@ const machineryAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const yTokenAddresses = [
+  { name: "ycrvUSD", address: "0xdf5e0e81dff6faf3a7e52ba697820c5e32d806a8" },
   { name: "yBUSDv3", address: "0x04bc0ab673d88ae9dbc9da2380cb6b79c4bca9ae" },
   { name: "yDAIv2", address: "0x16de59092dae5ccf4a1e6439d611fd0653f0bd01" },
   { name: "yDAIv3", address: "0xc2cb1040220768554cf699b0d863a3cd4324ce32" },

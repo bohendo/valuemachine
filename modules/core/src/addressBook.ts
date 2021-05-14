@@ -63,7 +63,6 @@ export const getAddressBook = (
     { name: "gitcoin-grant", address: "0x8ba1f109551bd432803012645ac136ddd64dba72" },
     { name: "gitcoin-grant", address: "0xa153b8891e77f1ae037026514c927530d877fab8" },
     { name: "gitcoin-grant", address: "0xcbec15583a21c3ddad5fab658be5b4fe85df730b" },
-    { name: "human-standard-token", address: "0x42d6622dece394b54999fbd73d108123806f6a18" },
     { name: "idex", address: "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208" },
     { name: "idle-dai", address: "0x10ec0d497824e342bcb0edce00959142aaa766dd" },
     { name: "kickback", address: "0x80bf9ba97bc7a54fe70ef42d9c941b0574319d1d" },

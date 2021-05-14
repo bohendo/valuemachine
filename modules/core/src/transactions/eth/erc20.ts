@@ -1,4 +1,5 @@
 import { Interface } from "@ethersproject/abi";
+import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -33,7 +34,9 @@ export const erc20Addresses = [
   { name: "SNT", address: "0x744d70fdbe2ba4cf95131626614a1763df805b9e" },
   { name: "SNX", address: "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f" },
   { name: "SNXv1", address: "0xc011a72400e58ecd99ee497cf89e3775d4bd732f" },
+  { name: "SPANK", address: "0x42d6622dece394b54999fbd73d108123806f6a18" },
   { name: "sUSD", address: "0x57ab1ec28d129707052df4df418d58a2d46d5f51" },
+  { name: "sUSDv1", address: "0x57ab1e02fee23774580c119740129eac7081e9d3" },
   { name: "TORN", address: "0x77777feddddffc19ff86db637967013e6c6a116c" },
   { name: "USDC", address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" },
   { name: "USDT", address: "0xdac17f958d2ee523a2206206994597c13d831ec7" },
@@ -94,10 +97,10 @@ export const erc20Parser = (
         tx.transfers.push({
           assetType,
           category: TransferCategories.Transfer,
-          from: event.args.from,
+          from: event.args.from === AddressZero ? address : event.args.from,
           index: txLog.index,
           quantity: amount,
-          to: event.args.to,
+          to: event.args.to === AddressZero ? address : event.args.to,
         });
         if (smeq(ethTx.to, address)) {
           tx.description = `${getName(event.args.from)} transfered ${
