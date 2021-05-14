@@ -8,7 +8,7 @@ import {
   Transaction,
   TransactionSources,
 } from "@finances/types";
-import { math, smeq } from "@finances/utils";
+import { math, sm, smeq } from "@finances/utils";
 
 import { getUnique } from "../utils";
 
@@ -17,7 +17,7 @@ const source = TransactionSources.Uniswap;
 ////////////////////////////////////////
 /// Addresses
 
-const machineAddresses = [
+const defiAddresses = [
   { name: "UniV2-router", address: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d" },
   { name: "UniV1-cDAI", address: "0x45a2fdfed7f7a2c791fb1bdf6075b83fad821dde" },
   { name: "UniV1-DAI", address: "0x2a1530c4c41db0b0b2bb646cb5eb1a67b7158667" },
@@ -47,7 +47,7 @@ const govTokenAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 export const uniswapAddresses = [
-  ...machineAddresses,
+  ...defiAddresses,
   ...tokenAddresses,
   ...govTokenAddresses,
 ];
@@ -67,9 +67,16 @@ export const uniswapParser = (
   const log = logger.child({ module: source });
   const { getName } = addressBook;
 
-  if (machineAddresses.some(a => smeq(a.address, ethTx.to))) {
-    log.info(`Uni tx detected!`);
+  if (uniswapAddresses.some(a => smeq(a.address, ethTx.to))) {
     tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+  }
+
+  for (const txLog of ethTx.logs) {
+    const address = sm(txLog.address);
+    if (uniswapAddresses.some(a => smeq(a.address, address))) {
+      log.info(`Found Uniswap Tx`);
+      tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+    }
   }
 
   // Uniswap swaps & deposit/withdraw liquidity
