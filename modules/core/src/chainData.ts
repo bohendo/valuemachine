@@ -219,17 +219,23 @@ export const getChainData = ({
     for (const tokenAddress of newlySupported) {
       log.info(`⏪ Sent request for token data ${logProg(tokens, tokenAddress)}: ${tokenAddress}`);
       const token = new Contract(tokenAddress, getTokenInterface(tokenAddress), provider);
-      const [rawDecimals, rawName, rawSymbol] = await Promise.all([
-        token.functions.decimals(),
-        token.functions.name(),
-        token.functions.symbol(),
-      ]);
-      const name = toStr(rawName[0] || "Unknown");
-      const symbol = toStr(rawSymbol[0] || "???");
+      let rawDecimals, rawName, rawSymbol;
+      try {
+        [rawDecimals, rawName, rawSymbol] = await Promise.all([
+          token.functions.decimals(),
+          token.functions.name(),
+          token.functions.symbol(),
+        ]);
+      } catch (e) {
+        log.error(`Failed to fetch data for ${tokenAddress}`);
+        log.error(e.message);
+      }
+      const name = toStr(rawName?.[0] || "Unknown");
+      const symbol = toStr(rawSymbol?.[0] || "???");
       const decimals = toNum(rawDecimals || 18);
-      log.info(`➡️  Received data for ${name} [${symbol}] w ${decimals} decimals: ${tokenAddress}`);
       json.tokens[sm(tokenAddress)] = { decimals, name, symbol };
       store.save(StoreKeys.ChainData, json);
+      log.info(`Saved data for ${name} [${symbol}] w ${decimals} decimals: ${tokenAddress}`);
     }
   };
 

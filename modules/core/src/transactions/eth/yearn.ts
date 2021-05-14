@@ -8,7 +8,7 @@ import {
   Transaction,
   TransactionSources,
 } from "@finances/types";
-import { smeq } from "@finances/utils";
+import { sm, smeq } from "@finances/utils";
 
 import { getUnique } from "../utils";
 
@@ -28,6 +28,7 @@ const machineryAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const yTokenAddresses = [
+  { name: "ycrvUSD", address: "0xdf5e0e81dff6faf3a7e52ba697820c5e32d806a8" },
   { name: "yBUSDv3", address: "0x04bc0ab673d88ae9dbc9da2380cb6b79c4bca9ae" },
   { name: "yDAIv2", address: "0x16de59092dae5ccf4a1e6439d611fd0653f0bd01" },
   { name: "yDAIv3", address: "0xc2cb1040220768554cf699b0d863a3cd4324ce32" },
@@ -63,9 +64,13 @@ export const yearnParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: source });
+  const { getName } = addressBook;
 
-  if (yearnAddresses.some(entry => smeq(ethTx.to, entry.address))) {
-    log.info(`Yearn tx detected!`);
+  for (const txLog of ethTx.logs.filter(
+    l => yearnAddresses.some(e => smeq(e.address, l.address))
+  )) {
+    const address = sm(txLog.address);
+    log.info(`Yearn tx interacted w ${getName(address)}`);
     tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
   }
 
