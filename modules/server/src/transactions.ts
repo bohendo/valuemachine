@@ -12,6 +12,7 @@ export const transactionsRouter = express.Router();
 
 transactionsRouter.post("/", async (req, res) => {
   const logAndSend = getLogAndSend(res);
+  const start = Date.now();
   const addressBookJson = req.body.addressBook;
   if (!addressBookJson || !addressBookJson.length) {
     return logAndSend(`A valid address book must be provided via POST body`, STATUS_YOUR_BAD);
@@ -24,8 +25,10 @@ transactionsRouter.post("/", async (req, res) => {
     await transactions.mergeChainData(
       chainData.getAddressHistory(...selfAddresses),
     );
-    log.info(`Returning ${transactions.json.length} transactions`);
     res.json(transactions.json);
+    log.info(`Returned ${transactions.json.length} transactions at a rate of ${
+      Math.round(100 * (Date.now() - start)/transactions.json.length) / 100
+    } ms/tx`);
   } catch (e) {
     log.warn(e);
     logAndSend("Error syncing transactions", STATUS_MY_BAD);
