@@ -39,7 +39,7 @@ export const mergeWazirxTransactions = (
       } = row;
 
       if (currency === "INR") {
-        log.warn(`Skipping INR ${txType}`);
+        log.debug(`Skipping INR ${txType}`);
         return null;
       }
 

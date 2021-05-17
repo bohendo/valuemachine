@@ -80,7 +80,7 @@ export const getState = ({
     transaction: Transaction,
   ): AssetChunk[] => {
     if (Object.keys(FiatAssets).includes(assetType)) {
-      log.debug(`Printing more ${assetType}, Brr!`); // In this value machine, anyone can print fiat.
+      log.debug(`Printing more ${assetType}, Brr!`); // In this value machine, anyone can print fiat
       return [{ assetType, dateRecieved: new Date(0).toISOString(), purchasePrice: "1", quantity }];
     }
     // We assume nothing about the history of chunks coming to us from external parties

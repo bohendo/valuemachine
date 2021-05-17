@@ -39,6 +39,8 @@ export const getValueMachine = ({
     ////////////////////////////////////////
     // VM Core
 
+    // Get swapsIn & swapsOut to determine each assetChunk's full history
+
     const later = [];
     for (const transfer of transaction.transfers) {
       const { assetType, fee, from, quantity, to } = transfer;
