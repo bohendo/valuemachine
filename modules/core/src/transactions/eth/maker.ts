@@ -550,8 +550,18 @@ export const makerParser = (
             TransferCategories.Withdraw, // handle dup free calls the same way
           ] as TransferCategories[]).includes(t.category)
           && (smeq(tubAddress, t.from) || isSelf(t.to))
-        // PETH wad !== W/ETH wad but the closest match is probably the one we want
-        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        ).sort(
+          // PETH wad !== W/ETH wad but the closest match is probably the one we want
+          (t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1
+        ).sort((t1, t2) =>
+          // First try to match a PETH transfer
+          (t1.assetType === AssetTypes.PETH && t2.assetType !== AssetTypes.PETH) ? -1
+            // Second try to match a WETH transfer
+            : (t1.assetType === AssetTypes.WETH && t2.assetType !== AssetTypes.WETH) ? -1
+              // Last try to match an ETH transfer
+              : (t1.assetType === AssetTypes.ETH && t2.assetType !== AssetTypes.ETH) ? -1
+                : 0
+        )[0];
         if (transfer) {
           transfer.category = TransferCategories.Withdraw;
           tx.description = `${getName(transfer.to)} withdrew ${
