@@ -12,7 +12,7 @@ import {
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
-const { diff, lt } = math;
+const { diff, div, lt } = math;
 
 export const getUnique = (array: string[]): string[] =>
   Array.from(new Set([...array]));
@@ -34,7 +34,7 @@ export const parseEvent = (
   return { name, args };
 };
 
-export const isHash = (str: string): boolean => isHexString(str) && hexDataLength(str) === 32;
+// export const isHash = (str: string): boolean => isHexString(str) && hexDataLength(str) === 32;
 
 // This fn ought to modifiy the old list of txns IN PLACE and also return the updated tx list
 export const mergeTransaction = (
@@ -68,7 +68,7 @@ export const mergeTransaction = (
   log = logger.child({ module: `Merge${sources.join("")}` });
 
   // Merge simple eth txns
-  if (isHash(newTx.hash)) {
+  if (newTx.hash) {
 
     // Does this list of txns already include the coresponding eth tx?
     const index = transactions.findIndex(tx => tx.hash === newTx.hash);
@@ -90,10 +90,11 @@ export const mergeTransaction = (
         // (matching an eth tx to a mult-transfer external tx is not supported yet)
         tx.transfers.length === 1
         // This isn't an eth tx
-        && !isHash(tx.hash)
+        && !tx.hash
         // This tx has a transfer with same asset type & quantity as this new tx
         && tx.transfers.some(t =>
-          t.assetType === transfer.assetType && quantitiesAreClose(t.quantity, transfer.quantity)
+          t.assetType === transfer.assetType &&
+          quantitiesAreClose(t.quantity, transfer.quantity, div(transfer.quantity, "100"))
         )
         // Existing tx & new tx have timestamps within 30 mins of each other
         && datesAreClose(tx.date, newTx.date)
@@ -106,18 +107,7 @@ export const mergeTransaction = (
         return transactions;
       }
 
-      // The old transfer came from an exteranl source
-      const oldTransfer = transactions[mergeCandidateIndex].transfers[0];
-
-      transactions[mergeCandidateIndex].transfers[0] = {
-        ...oldTransfer,
-        from: transfer.from.startsWith("external")
-          ? oldTransfer.from
-          : transfer.from,
-        to: transfer.to.startsWith("external")
-          ? oldTransfer.to
-          : transfer.to,
-      };
+      transactions[mergeCandidateIndex].transfers[0] = transfer;
       // Keep the external txn's description instead of the eth txn's
       transactions[mergeCandidateIndex] = {
         ...transactions[mergeCandidateIndex],
@@ -168,7 +158,8 @@ export const mergeTransaction = (
     && !tx.sources.some(source => sources.includes(source))
     // Existing tx has a transfer with same asset type & quantity as this new tx
     && tx.transfers.some(t =>
-      t.assetType === transfer.assetType && quantitiesAreClose(t.quantity, transfer.quantity)
+      t.assetType === transfer.assetType &&
+      quantitiesAreClose(t.quantity, transfer.quantity, div(transfer.quantity, "100"))
     )
     // Existing tx & new tx have timestamps within 30 mins of each other
     && datesAreClose(tx.date, newTx.date)
@@ -181,21 +172,10 @@ export const mergeTransaction = (
     return transactions;
   }
 
-  const oldTransfer = transactions[mergeCandidateIndex].transfers[0];
-
-  transactions[mergeCandidateIndex].transfers[0] = {
-    ...oldTransfer,
-    from: transfer.from.startsWith("external")
-      ? oldTransfer.from
-      : transfer.from,
-    to: transfer.to.startsWith("external")
-      ? oldTransfer.to
-      : transfer.to,
-  };
   transactions[mergeCandidateIndex] = {
     ...newTx,
     ...transactions[mergeCandidateIndex],
-    description: newTx.description,
+    description: transactions[mergeCandidateIndex].description,
     sources: getUnique([
       ...transactions[mergeCandidateIndex].sources,
       ...newTx.sources
