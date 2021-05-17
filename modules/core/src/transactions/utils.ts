@@ -1,4 +1,5 @@
 import { Interface } from "@ethersproject/abi";
+import { isHexString, hexDataLength } from "@ethersproject/bytes";
 import {
   DecimalString,
   EthCall,
@@ -33,6 +34,8 @@ export const parseEvent = (
   return { name, args };
 };
 
+export const isHash = (str: string): boolean => isHexString(str) && hexDataLength(str) === 32;
+
 // This fn ought to modifiy the old list of txns IN PLACE and also return the updated tx list
 export const mergeTransaction = (
   transactions: Transaction[],
@@ -65,7 +68,7 @@ export const mergeTransaction = (
   log = logger.child({ module: `Merge${sources.join("")}` });
 
   // Merge simple eth txns
-  if (sources.includes(TransactionSources.EthTx)) {
+  if (isHash(newTx.hash)) {
 
     // Does this list of txns already include the coresponding eth tx?
     const index = transactions.findIndex(tx => tx.hash === newTx.hash);
@@ -77,7 +80,7 @@ export const mergeTransaction = (
       if (newTx.transfers.length > 1) {
         transactions.push(newTx);
         transactions.sort(sortTransactions);
-        log.info(`Inserted new multi-transfer eth tx: ${newTx.description}`);
+        log.debug(`Inserted new multi-transfer eth tx: ${newTx.description}`);
         return transactions;
       }
       const transfer = newTx.transfers[0];
@@ -86,8 +89,8 @@ export const mergeTransaction = (
         // This tx only has one transfer
         // (matching an eth tx to a mult-transfer external tx is not supported yet)
         tx.transfers.length === 1
-        // This tx hasn't had this eth tx merged into it yet
-        && !tx.sources.some(source => sources.includes(source))
+        // This isn't an eth tx
+        && !isHash(tx.hash)
         // This tx has a transfer with same asset type & quantity as this new tx
         && tx.transfers.some(t =>
           t.assetType === transfer.assetType && quantitiesAreClose(t.quantity, transfer.quantity)
@@ -99,7 +102,7 @@ export const mergeTransaction = (
       if (mergeCandidateIndex < 0) {
         transactions.push(newTx);
         transactions.sort(sortTransactions);
-        log.info(`Inserted new eth tx: ${newTx.description}`);
+        log.debug(`Inserted new eth tx: ${newTx.description}`);
         return transactions;
       }
 
@@ -133,7 +136,7 @@ export const mergeTransaction = (
       return transactions;
     }
 
-    log.info(`Replaced duplicate eth tx: ${newTx.description}`);
+    log.debug(`Replaced duplicate eth tx: ${newTx.description}`);
     transactions[index] = newTx;
     return transactions;
   }
@@ -144,7 +147,7 @@ export const mergeTransaction = (
     .filter(tx => tx.sources.some(source => sources.includes(source)))
     .filter(tx => datesAreClose(tx.date, newTx.date, "1") && tx.description === newTx.description);
   if (dupCandidates.length > 0) {
-    log.info(`Skipping duplicate external tx: ${newTx.description}`);
+    log.debug(`Skipping duplicate external tx: ${newTx.description}`);
     return transactions;
   }
 
@@ -152,7 +155,7 @@ export const mergeTransaction = (
   if (newTx.transfers.filter(t => math.gt(t.quantity, "0")).length > 1) {
     transactions.push(newTx);
     transactions.sort(sortTransactions);
-    log.info(`Inserted new multi-transfer external tx: ${newTx.description}`);
+    log.debug(`Inserted new multi-transfer external tx: ${newTx.description}`);
     return transactions;
   }
   const transfer = newTx.transfers[0];
@@ -174,7 +177,7 @@ export const mergeTransaction = (
   if (mergeCandidateIndex < 0) {
     transactions.push(newTx);
     transactions.sort(sortTransactions);
-    log.info(`Inserted new external tx: ${newTx.description}`);
+    log.debug(`Inserted new external tx: ${newTx.description}`);
     return transactions;
   }
 
@@ -201,6 +204,7 @@ export const mergeTransaction = (
     date: newTx.date,
   };
 
+  transactions.sort(sortTransactions);
   log.info(
     transactions[mergeCandidateIndex],
     `Merged transactions[${mergeCandidateIndex}] into new external tx: ${newTx.description}`,

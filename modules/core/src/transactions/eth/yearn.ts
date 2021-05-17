@@ -63,7 +63,7 @@ export const yearnParser = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: source });
+  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
   const { getName } = addressBook;
 
   for (const txLog of ethTx.logs.filter(

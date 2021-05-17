@@ -66,7 +66,7 @@ export const parseEthTx = (
   let tx = {
     date: (new Date(ethTx.timestamp)).toISOString(),
     hash: ethTx.hash,
-    sources: [TransactionSources.EthTx],
+    sources: [],
     tags: [],
     transfers: [{
       assetType: "ETH",
@@ -125,23 +125,6 @@ export const parseEthTx = (
     }
   });
 
-  // Set a default tx description
-  if (tx.transfers.length > 1) {
-    tx.description = `${getName(ethTx.to)} made ${tx.transfers.length} transfers`;
-  } else {
-    if (!eq("0", tx.transfers[0].quantity)) {
-      tx.description = `${getName(tx.transfers[0].from)} transfered ${
-        round(tx.transfers[0].quantity, 4)
-      } ${tx.transfers[0].assetType} to ${getName(tx.transfers[0].to)}`;
-    } else if (ethTx.data.length > 2) {
-      tx.description = `${getName(tx.transfers[0].from)} called a method on ${
-        getName(tx.transfers[0].to)
-      }`;
-    } else {
-      tx.description = `${getName(tx.transfers[0].from)} did nothing`;
-    }
-  }
-
   // Activate pipeline of app-specific parsers
   appParsers.forEach(parser => {
     try {
@@ -150,6 +133,11 @@ export const parseEthTx = (
       log.warn(e);
     }
   });
+
+  // Give a default eth-related source if no app-specific parsers were triggered
+  if (!tx.sources.length) {
+    tx.sources.push(TransactionSources.EthTx);
+  }
 
   tx.transfers = tx.transfers
     // Filter out no-op transfers
@@ -162,6 +150,27 @@ export const parseEthTx = (
     .map(transfer => ({ ...transfer, from: sm(transfer.from), to: sm(transfer.to) }))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);
+
+  // Set a default tx description
+  if (!tx.description) {
+    if (tx.transfers.length < 1) {
+      tx.description = `${getName(ethTx.from)} did nothing`;
+    } else if (tx.transfers.length > 1) {
+      tx.description = `${getName(ethTx.to)} made ${tx.transfers.length} transfers`;
+    } else {
+      if (!eq("0", tx.transfers[0]?.quantity)) {
+        tx.description = `${getName(tx.transfers[0].from)} transfered ${
+          round(tx.transfers[0].quantity, 4)
+        } ${tx.transfers[0].assetType} to ${getName(tx.transfers[0].to)}`;
+      } else if (ethTx.data.length > 2) {
+        tx.description = `${getName(tx.transfers[0].from)} called a method on ${
+          getName(tx.transfers[0].to)
+        }`;
+      } else {
+        tx.description = `${getName(tx.transfers[0].from)} did nothing`;
+      }
+    }
+  }
 
   log.debug(tx, `Parsed eth tx`);
   return tx;
