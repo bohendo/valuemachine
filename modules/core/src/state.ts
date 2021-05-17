@@ -32,7 +32,7 @@ export const getState = ({
   stateJson?: StateJson;
 }): State => {
 
-  const state = stateJson || emptyState;
+  const state = stateJson || JSON.parse(JSON.stringify(emptyState));
 
   const log = (logger || getLogger()).child({ module: "State" });
 
@@ -100,6 +100,7 @@ export const getState = ({
       log.debug(chunk, `Got next chunk of ${assetType} w ${togo} to go`);
       if (!chunk) {
         output.forEach(chunk => putChunk(account, chunk)); // roll back changes so far
+        // Should we just log a warning & continue w balances going negative?!
         throw new Error(`${account} attempted to spend ${quantity} ${
           assetType
         } on ${transaction.date} but it's missing ${togo}. Tx: ${

@@ -21,12 +21,14 @@ export const emitTransactionEvents = (
   state: State,
 ): Events => {
   const events = [];
+  // Add swap event?
+  const networth = state.getNetWorth();
+  if (!Object.keys(networth).length) return events;
   events.push({
     assets: state.getNetWorth(),
     date: transaction.date,
     type: EventTypes.NetWorth,
   });
-  // Add swap event
   return events;
 };
 

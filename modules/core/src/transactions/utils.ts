@@ -34,7 +34,7 @@ export const parseEvent = (
   return { name, args };
 };
 
-// export const isHash = (str: string): boolean => isHexString(str) && hexDataLength(str) === 32;
+export const isHash = (str: string): boolean => isHexString(str) && hexDataLength(str) === 32;
 
 // This fn ought to modifiy the old list of txns IN PLACE and also return the updated tx list
 export const mergeTransaction = (
@@ -68,7 +68,7 @@ export const mergeTransaction = (
   log = logger.child({ module: `Merge${sources.join("")}` });
 
   // Merge simple eth txns
-  if (newTx.hash) {
+  if (isHash(newTx.hash)) {
 
     // Does this list of txns already include the coresponding eth tx?
     const index = transactions.findIndex(tx => tx.hash === newTx.hash);
@@ -90,7 +90,7 @@ export const mergeTransaction = (
         // (matching an eth tx to a mult-transfer external tx is not supported yet)
         tx.transfers.length === 1
         // This isn't an eth tx
-        && !tx.hash
+        && !isHash(tx.hash)
         // This tx has a transfer with same asset type & quantity as this new tx
         && tx.transfers.some(t =>
           t.assetType === transfer.assetType &&
@@ -133,9 +133,14 @@ export const mergeTransaction = (
 
   // Merge external txns
   // Does the tx list already include this external tx?
-  const dupCandidates = transactions
-    .filter(tx => tx.sources.some(source => sources.includes(source)))
-    .filter(tx => datesAreClose(tx.date, newTx.date, "1") && tx.description === newTx.description);
+  const dupCandidates = transactions.filter(tx =>
+    tx.sources.some(source => sources.includes(source))
+    && datesAreClose(tx.date, newTx.date, "1")
+    && tx.transfers.some(t1 => newTx.transfers.some(t2 =>
+      t1.assetType === t2.assetType &&
+      quantitiesAreClose(t1.quantity, t2.quantity, div(t2.quantity, "100"))
+    ))
+  );
   if (dupCandidates.length > 0) {
     log.debug(`Skipping duplicate external tx: ${newTx.description}`);
     return transactions;

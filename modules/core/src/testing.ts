@@ -14,8 +14,8 @@ import {
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
 
-import { getAddressBook } from "../addressBook";
-import { getChainData } from "../chainData";
+import { getAddressBook } from "./addressBook";
+import { getChainData } from "./chainData";
 
 const env = {
   logLevel: process.env.LOG_LEVEL || "silent",

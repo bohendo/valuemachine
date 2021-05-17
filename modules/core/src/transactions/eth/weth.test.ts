@@ -15,7 +15,7 @@ import {
   getTestEthCall,
   getTestAddressBook,
   testLogger,
-} from "../testing";
+} from "../../testing";
 import { getTransactions } from "../index";
 
 import { wethAddresses } from "./weth";

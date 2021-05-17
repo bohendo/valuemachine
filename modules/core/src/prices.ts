@@ -1,6 +1,7 @@
 import {
   AssetTypes,
   DateString,
+  emptyPrices,
   DecimalString,
   Logger,
   Prices,
@@ -23,8 +24,8 @@ export const getPrices = ({
   pricesJson?: PricesJson;
   unitOfAccount?: AssetTypes;
 }): Prices => {
-  const json = pricesJson || store.load(StoreKeys.Prices);
-  const save = (json: PricesJson): void => store.save(StoreKeys.Prices, json);
+  const json = pricesJson || store?.load(StoreKeys.Prices) || emptyPrices;
+  const save = (json: PricesJson): void => store?.save(StoreKeys.Prices, json);
   const log = (logger || getLogger()).child({ module: "Prices" });
   const uoa = unitOfAccount || AssetTypes.USD;
 

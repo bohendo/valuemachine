@@ -6,6 +6,7 @@ import {
   Prices,
   StateJson,
   Transaction,
+  TransferCategories,
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
 
@@ -40,6 +41,11 @@ export const getValueMachine = ({
     // VM Core
 
     // Get swapsIn & swapsOut to determine each assetChunk's full history
+    const swapsIn = transaction.transfers.filter(t => t.category === TransferCategories.SwapIn);
+    const swapsOut = transaction.transfers.filter(t => t.category === TransferCategories.SwapOut);
+    if (swapsIn.length && swapsOut.length) {
+      log.info(`Found some swaps`);
+    }
 
     const later = [];
     for (const transfer of transaction.transfers) {

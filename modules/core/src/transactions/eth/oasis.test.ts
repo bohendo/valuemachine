@@ -10,7 +10,7 @@ import {
   getRealChainData,
   getTestAddressBook,
   testLogger,
-} from "../testing";
+} from "../../testing";
 import { getTransactions } from "../index";
 
 const log = testLogger.child({ module: "TestTransactions" });
