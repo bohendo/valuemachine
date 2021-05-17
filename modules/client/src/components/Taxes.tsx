@@ -1,7 +1,8 @@
-import { getState, getValueMachine } from "@finances/core";
+import { getPrices, getState, getValueMachine } from "@finances/core";
 import {
   AddressBook,
   CapitalGainsEvent,
+  PricesJson,
   StoreKeys,
   EventTypes,
   Transactions,
@@ -50,9 +51,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 export const Taxes = ({
   addressBook,
+  pricesJson,
   transactions,
 }: {
   addressBook: AddressBook;
+  pricesJson: PricesJson;
   transactions: Transactions;
 }) => {
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
@@ -66,6 +69,10 @@ export const Taxes = ({
   };
 
   const processTxns = async () => {
+    if (!addressBook) {
+      console.warn("No address book", addressBook);
+      return;
+    }
     setSyncing(old => ({ ...old, state: true }));
     // Give sync state a chance to update
     await new Promise(res => setTimeout(res, 100));
@@ -74,7 +81,8 @@ export const Taxes = ({
     // eslint-disable-next-line no-async-promise-executor
     const res = await new Promise(async res => {
       try {
-        const valueMachine = getValueMachine(addressBook);
+        const prices = getPrices({ pricesJson, store, unitOfAccount });
+        const valueMachine = getValueMachine({ addressBook, prices });
         // stringify/parse to ensure we don't update the imported objects directly
         let state = store.load(StoreKeys.State);
         let vmEvents = store.load(StoreKeys.Events);
@@ -96,7 +104,7 @@ export const Taxes = ({
             start = Date.now();
           }
         }
-        const finalState = getState(state, addressBook);
+        const finalState = getState({ stateJson: state, addressBook, prices });
         store.save(StoreKeys.State, state);
         store.save(StoreKeys.Events, vmEvents);
         console.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);

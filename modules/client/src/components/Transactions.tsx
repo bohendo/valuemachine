@@ -1,7 +1,7 @@
 import { getTransactions } from "@finances/core";
 import {
   AddressBook,
-  CapitalGainsEvent,
+  Transaction,
   Transactions,
   TransactionsJson,
   TransactionSources,
@@ -71,7 +71,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     maxWidth: "100%",
   },
   paper: {
-    minWidth: "402px",
+    minWidth: "750px",
     padding: theme.spacing(2),
   },
   dateFilter: {
@@ -92,7 +92,7 @@ const TransactionRow = ({
   tx,
 }: {
   addressBook: AddressBook;
-  tx: CapitalGainsEvent;
+  tx: Transaction;
 }) => {
   const [open, setOpen] = useState(false);
   const classes = useStyles();
@@ -104,6 +104,7 @@ const TransactionRow = ({
         <TableCell> {tx.date.replace("T", " ")} </TableCell>
         <TableCell> {tx.description} </TableCell>
         <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
+        <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell onClick={() => setOpen(!open)}>
           {`${tx.transfers.length} transfer${tx.transfers.length === 1 ? "" : "s"}`}
           <IconButton aria-label="expand row" size="small" >
@@ -215,7 +216,7 @@ export const TransactionManager = ({
         || tx.transfers.some(t => sm(addressBook.getName(t.to)).startsWith(sm(filterSource)))
 
       // Sort by date w most recent first
-      ).sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
+      ).sort((e1: Transaction, e2: Transaction) =>
         (e1.date > e2.date) ? -1
           : (e1.date < e2.date) ? 1
             : 0
@@ -467,13 +468,14 @@ export const TransactionManager = ({
                 <TableCell><strong> Date </strong></TableCell>
                 <TableCell><strong> Description </strong></TableCell>
                 <TableCell><strong> Hash </strong></TableCell>
+                <TableCell><strong> Sources </strong></TableCell>
                 <TableCell><strong> Transfers </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredTxns
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((tx: CapitalGainsEvent, i: number) => (
+                .map((tx: Transaction, i: number) => (
                   <TransactionRow addressBook={addressBook} key={i} tx={tx} />
                 ))
               }
