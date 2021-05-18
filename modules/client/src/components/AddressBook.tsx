@@ -1,31 +1,32 @@
 import { AddressEntry, emptyProfile, ProfileJson } from "@finances/types";
-import {
-  Button,
-  Card,
-  CardHeader,
-  CircularProgress,
-  createStyles,
-  Divider,
-  Grid,
-  IconButton,
-  makeStyles,
-  Snackbar,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Theme,
-  Typography,
-} from "@material-ui/core";
-import {
-  AddCircle as AddIcon,
-  GetApp as DownloadIcon,
-  RemoveCircle as RemoveIcon,
-  Sync as SyncIcon,
-  Save as SaveIcon,
-} from "@material-ui/icons";
+import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardHeader from "@material-ui/core/CardHeader";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Divider from "@material-ui/core/Divider";
+import FormControl from "@material-ui/core/FormControl";
+import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Paper from "@material-ui/core/Paper";
+import Select from "@material-ui/core/Select";
+import Snackbar from "@material-ui/core/Snackbar";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableContainer from "@material-ui/core/TableContainer";
+import TableHead from "@material-ui/core/TableHead";
+import TablePagination from "@material-ui/core/TablePagination";
+import TableRow from "@material-ui/core/TableRow";
+import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
+import AddIcon from "@material-ui/icons/AddCircle";
+import DownloadIcon from "@material-ui/icons/GetApp";
+import RemoveIcon from "@material-ui/icons/RemoveCircle";
+import SaveIcon from "@material-ui/icons/Save";
+import SyncIcon from "@material-ui/icons/Sync";
 import { Alert } from "@material-ui/lab";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
@@ -37,9 +38,17 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(1),
     maxWidth: "98%",
   },
+  paper: {
+    minWidth: "500px",
+    padding: theme.spacing(2),
+  },
   divider: {
     marginBottom: theme.spacing(2),
     marginTop: theme.spacing(2),
+  },
+  select: {
+    margin: theme.spacing(3),
+    minWidth: 160,
   },
   input: {
     margin: theme.spacing(1),
@@ -71,6 +80,12 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
   },
+  title: {
+    margin: theme.spacing(2),
+  },
+  subtitle: {
+    margin: theme.spacing(2),
+  },
   syncAll: {
     margin: theme.spacing(2),
   },
@@ -89,12 +104,15 @@ export const AddressBook = ({
   profile: any;
   setProfile: (val: any) => void;
 }) => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(25);
+  const [filteredAddresses, setFilteredAddresses] = useState([]);
+  const [filterCategory, setFilterCategory] = useState("");
   const [addressModified, setAddressModified] = useState(false);
   const [newAddress, setNewAddress] = useState(emptyAddressEntry);
   const [newAddressError, setNewAddressError] = useState("");
   const [newProfile, setNewProfile] = useState(emptyProfile);
   const [newTokenError, setNewTokenError] = useState("");
-  const [newUsernameError, setNewUsernameError] = useState("");
   const [profileModified, setProfileModified] = useState(false);
   const [statusAlert, setStatusAlert] = useState({
     open: false,
@@ -105,11 +123,17 @@ export const AddressBook = ({
   const classes = useStyles();
 
   useEffect(() => {
+    setFilteredAddresses(profile.addressBook.filter(entry =>
+      !filterCategory || entry.category === filterCategory
+    ));
+  }, [profile, filterCategory]);
+
+  useEffect(() => {
     setNewProfile(profile);
   }, [profile]);
 
   useEffect(() => {
-    if (newProfile.username !== profile.username || newProfile.authToken !== profile.authToken) {
+    if (newProfile.authToken !== profile.authToken) {
       setProfileModified(true);
     } else {
       setProfileModified(false);
@@ -136,8 +160,8 @@ export const AddressBook = ({
   };
 
   const handleSave = async () => {
-    console.log(`Validating profile creds for ${newProfile.username}:${newProfile.authToken}...`);
-    const authorization = `Basic ${btoa(`${newProfile.username}:${newProfile.authToken}`)}`;
+    console.log(`Validating profile creds for anon:${newProfile.authToken}...`);
+    const authorization = `Basic ${btoa(`anon:${newProfile.authToken}`)}`;
     axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
       if (authRes.status === 200) {
         setProfile({ ...newProfile });
@@ -148,19 +172,6 @@ export const AddressBook = ({
       setNewTokenError("Invalid Auth Token");
     });
 
-  };
-
-  const handleUsernameChange = (event: React.ChangeEvent<{ value: string }>) => {
-    const username = event.target.value;
-    setNewProfile(oldProfile => ({ ...oldProfile, username }));
-    console.log(`Set profile.username = "${username}"`);
-    if (username.length < 1 || username.length > 32) {
-      setNewUsernameError("Username must be between 1 and 32 characters long");
-    } else if (username.match(/[^a-zA-Z0-9_-]/)) {
-      setNewUsernameError(`Username can only contain letters, numbers, _ and -`);
-    } else {
-      setNewUsernameError("");
-    }
   };
 
   const handleAuthTokenChange = (event: React.ChangeEvent<{ value: string }>) => {
@@ -272,28 +283,27 @@ export const AddressBook = ({
     }
   };
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
+
+  const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
+    setFilterCategory(event.target.value);
+  };
+
   return (
     <div className={classes.root}>
 
-      <Typography variant="h4">
-        Profile
+      <Typography variant="h4" className={classes.subtitle}>
+        Authentication
       </Typography>
 
       <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
-
-        <Grid item>
-          <TextField
-            autoComplete="off"
-            helperText={newUsernameError || "Choose a name for your profile"}
-            error={!!newUsernameError}
-            id="username"
-            label="Username"
-            margin="normal"
-            onChange={handleUsernameChange}
-            value={newProfile.username}
-            variant="outlined"
-          />
-        </Grid>
 
         <Grid item>
           <TextField
@@ -326,10 +336,10 @@ export const AddressBook = ({
         }
 
       </Grid>
-      <Divider className={classes.divider}/>
 
-      <Typography variant="h4">
-        Address Book
+      <Divider/>
+      <Typography variant="h4" className={classes.subtitle}>
+        Manage Address Book
       </Typography>
 
       <Grid alignContent="center" alignItems="center" justify="center" container spacing={1} className={classes.root}>
@@ -444,56 +454,107 @@ export const AddressBook = ({
 
       </Grid>
 
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell> Account name </TableCell>
-            <TableCell> Category </TableCell>
-            <TableCell> Eth Address </TableCell>
-            <TableCell> Actions </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {profile.addressBook
-            .sort((e1, e2) =>
-              // put self addresses first
-              (e1.category !== "self" && e2.category === "self") ? 1
-                : (e1.category === "self" && e2.category !== "self") ? -1
-                  // sort by category
-                  : (e1.category.toLowerCase() > e2.category.toLowerCase()) ? 1
-                    : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
-                      // then sort by name
-                      : (e1.name.toLowerCase() > e2.name.toLowerCase()) ? 1
-                        : (e1.name.toLowerCase() < e2.name.toLowerCase()) ? -1
-                          // then sort by address
-                          : (e1.address.toLowerCase() > e2.address.toLowerCase()) ? 1
-                            : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
-                              : 0
-            ).map((entry: AddressEntry, i: number) => (
-              <TableRow key={i}>
-                <TableCell> {entry.name} </TableCell>
-                <TableCell> {entry.category} </TableCell>
-                <TableCell> <HexString value={entry.address}/> </TableCell>
-                <TableCell>
-                  <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
-                    <RemoveIcon />
-                  </IconButton>
-                  {entry.category === "self" ?
-                    !syncing[entry.address] ?
-                      <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
-                        <SyncIcon />
-                      </IconButton>
-                      : 
-                      <IconButton>
-                        <CircularProgress size={20}/>
-                      </IconButton>
-                    : undefined
-                  }
-                </TableCell>
+      <Divider/>
+      <Typography variant="h4" className={classes.subtitle}>
+        Address Book Filters
+      </Typography>
+
+      <FormControl className={classes.select}>
+        <InputLabel id="select-filter-category">Filter Category</InputLabel>
+        <Select
+          labelId="select-filter-category"
+          id="select-filter-category"
+          value={filterCategory || ""}
+          onChange={handleFilterChange}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {Array.from(new Set(profile.addressBook.map(entry => entry.category))).map(cat => (
+            <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <Paper className={classes.paper}>
+
+        <Typography align="center" variant="h4" className={classes.title} component="div">
+          {filteredAddresses.length === profile.addressBook.length
+            ? `${filteredAddresses.length} Addresses`
+            : `${filteredAddresses.length} of ${profile.addressBook.length} Addresses`
+          }
+        </Typography>
+
+        <TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[25, 50, 100, 250]}
+            component="div"
+            count={filteredAddresses.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+          />
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell> Account name </TableCell>
+                <TableCell> Category </TableCell>
+                <TableCell> Eth Address </TableCell>
+                <TableCell> Actions </TableCell>
               </TableRow>
-            ))}
-        </TableBody>
-      </Table>
+            </TableHead>
+            <TableBody>
+              {filteredAddresses
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .sort((e1, e2) =>
+                  // put self addresses first
+                  (e1.category !== "self" && e2.category === "self") ? 1
+                    : (e1.category === "self" && e2.category !== "self") ? -1
+                      // sort by category
+                      : (e1.category.toLowerCase() > e2.category.toLowerCase()) ? 1
+                        : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
+                          // then sort by name
+                          : (e1.name.toLowerCase() > e2.name.toLowerCase()) ? 1
+                            : (e1.name.toLowerCase() < e2.name.toLowerCase()) ? -1
+                              // then sort by address
+                              : (e1.address.toLowerCase() > e2.address.toLowerCase()) ? 1
+                                : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
+                                  : 0
+                ).map((entry: AddressEntry, i: number) => (
+                  <TableRow key={i}>
+                    <TableCell> {entry.name} </TableCell>
+                    <TableCell> {entry.category} </TableCell>
+                    <TableCell> <HexString value={entry.address}/> </TableCell>
+                    <TableCell>
+                      <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
+                        <RemoveIcon />
+                      </IconButton>
+                      {entry.category === "self" ?
+                        !syncing[entry.address] ?
+                          <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
+                            <SyncIcon />
+                          </IconButton>
+                          :
+                          <IconButton>
+                            <CircularProgress size={20}/>
+                          </IconButton>
+                        : undefined
+                      }
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            rowsPerPageOptions={[25, 50, 100, 250]}
+            component="div"
+            count={filteredAddresses.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+          />
+        </TableContainer>
+      </Paper>
 
       <Snackbar
         open={statusAlert.open}

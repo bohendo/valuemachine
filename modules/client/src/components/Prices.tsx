@@ -53,6 +53,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(3),
     minWidth: 160,
   },
+  title: {
+    margin: theme.spacing(2),
+  },
   subtitle: {
     margin: theme.spacing(2),
   },
