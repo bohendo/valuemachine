@@ -12,7 +12,7 @@ import {
   getTestAddressBook,
   testLogger,
   testToken as tokenAddress,
-} from "../testing";
+} from "../../testing";
 import { getTransactions } from "../index";
 
 const log = testLogger.child({ module: `Test${TransactionSources.ERC20}` });

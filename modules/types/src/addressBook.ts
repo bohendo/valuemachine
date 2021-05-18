@@ -13,14 +13,10 @@ export const ExternalCategories = enumify({
 export type ExternalCategories = (typeof ExternalCategories)[keyof typeof ExternalCategories];
 
 export const DeFiCategories = enumify({
-  Compound: "Compound",
   Defi: "Defi",
   ERC20: "ERC20",
   Exchange: "Exchange",
-  MakerDAO: "MakerDAO",
   Proxy: "Proxy",
-  Uniswap: "Uniswap",
-  Yearn: "Yearn",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type DeFiCategories = (typeof DeFiCategories)[keyof typeof DeFiCategories];

@@ -1,6 +1,7 @@
 import {
   AssetTypes,
   DateString,
+  emptyPrices,
   DecimalString,
   Logger,
   Prices,
@@ -23,10 +24,10 @@ export const getPrices = ({
   pricesJson?: PricesJson;
   unitOfAccount?: AssetTypes;
 }): Prices => {
-  const json = pricesJson || store.load(StoreKeys.Prices);
-  const save = (json: PricesJson): void => store.save(StoreKeys.Prices, json);
+  const json = pricesJson || store?.load(StoreKeys.Prices) || emptyPrices;
+  const save = (json: PricesJson): void => store?.save(StoreKeys.Prices, json);
   const log = (logger || getLogger()).child({ module: "Prices" });
-  const uoa = unitOfAccount || AssetTypes.USD;
+  const defaultUoa = unitOfAccount || AssetTypes.USD;
 
   log.info(`Loaded prices for ${
     Object.keys(json).length
@@ -47,8 +48,10 @@ export const getPrices = ({
   const getCoinGeckoPrice = async (
     date: DateString,
     asset: AssetTypes,
+    givenUoa: AssetTypes,
   ): Promise<string> => {
     // derived from output of https://api.coingecko.com/api/v3/coins/list
+    const uoa = givenUoa || defaultUoa;
     const getCoinId = (asset: AssetTypes): string | undefined => {
       switch (asset.toUpperCase()) {
       case "BAT": return "basic-attention-token";
@@ -116,29 +119,47 @@ export const getPrices = ({
     return json[date][uoa][asset];
   };
 
+  /* TODO
+  const innerGetPrice = (
+    date: DateString,
+    asset: AssetTypes,
+    uoa: AssetTypes,
+  ): string | undefined => {
+    if (!json[date]) return undefined;
+    if (json[date]?.[uoa]?.[asset]) return json[date]?.[uoa]?.[asset];
+    if (json[date]?.[uoa]) {
+      for (const [subAsset, subPrice] of Object.entries(json[date][uoa])) {
+        const innerPrice = innerGetPrice(date, asset, subAsset);
+        if (innerPrice) {
+        }
+      }
+    }
+  }
+  */
+
   ////////////////////////////////////////
   // External Methods
 
   const getPrice = (
-    _date: DateString,
+    rawDate: DateString,
     asset: AssetTypes,
+    givenUoa?: AssetTypes,
   ): string | undefined => {
-    const date = formatDate(_date);
-    return "USD" === asset
-      ? "1"
-      : "INR" === asset
-        ? "0.013" // TODO: get real INR price from somewhere?
-        : ["ETH", "WETH"].includes(asset)
-          ? json[date]?.[uoa]?.["ETH"]
-          : json[date]?.[uoa]?.[asset];
+    const date = formatDate(rawDate);
+    const uoa = givenUoa || defaultUoa;
+    const ethish = ["ETH", "WETH"];
+    if (asset === uoa || (ethish.includes(asset) && ethish.includes(uoa))) return "1";
+    return json[date]?.[uoa]?.[asset];
   };
 
   const setPrice = (
-    _date: DateString,
-    asset: AssetTypes,
     price: DecimalString,
+    rawDate: DateString,
+    asset: AssetTypes,
+    givenUoa?: AssetTypes,
   ): void => {
-    const date = formatDate(_date);
+    const date = formatDate(rawDate);
+    const uoa = givenUoa || defaultUoa;
     if (!json[date]) json[date] = {};
     if (!json[date][uoa]) json[date][uoa] = {};
     json[date][uoa][asset] = price;
@@ -146,11 +167,13 @@ export const getPrices = ({
   };
 
   const syncPrice = async (
-    _date: DateString,
+    rawDate: DateString,
     asset: AssetTypes,
+    givenUoa: AssetTypes,
   ): Promise<string> => {
-    const date = formatDate(_date);
-    return getPrice(date, asset) || getCoinGeckoPrice(date, asset);
+    const date = formatDate(rawDate);
+    const uoa = givenUoa || defaultUoa;
+    return getPrice(date, asset, uoa) || getCoinGeckoPrice(date, asset, uoa);
   };
 
   return {

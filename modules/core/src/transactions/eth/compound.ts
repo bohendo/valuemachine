@@ -14,7 +14,7 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { getUnique, parseEvent, quantitiesAreClose } from "../utils";
+import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
 
 const { div, round } = math;
 
@@ -128,13 +128,13 @@ export const compoundParser = (
   const { getName, isSelf } = addressBook;
 
   if (compoundAddresses.some(e => smeq(e.address, ethTx.to))) {
-    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
   }
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     if (compoundAddresses.some(e => smeq(e.address, address))) {
-      tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
     }
 
     ////////////////////////////////////////
@@ -239,17 +239,19 @@ export const compoundParser = (
         );
         const cTokenAmt = formatUnits(event.args.mintTokens, cTokenDecimals);
         const swapOut = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        const swapIn = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
         if (swapOut) {
           swapOut.category = TransferCategories.SwapOut;
         } else {
           log.warn(`${event.name}: Can't find swapOut of ${tokenAmt} ${assetType}`);
         }
-        const swapIn = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
         if (swapIn) {
           swapIn.category = TransferCategories.SwapIn;
         } else {
           log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${getName(address)}`);
         }
+        tx.prices[swapOut.assetType] = tx.prices[swapOut.assetType] || {};
+        tx.prices[swapOut.assetType][swapIn.assetType] = div(swapOut.quantity, swapIn.quantity);
         tx.description = `${getName(ethTx.from)} deposited ${
           round(tokenAmt)
         } ${assetType} into ${source}`;
@@ -263,17 +265,19 @@ export const compoundParser = (
         );
         const cTokenAmt = formatUnits(event.args.redeemTokens, cTokenDecimals);
         const swapOut = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
+        const swapIn = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
         if (swapOut) {
           swapOut.category = TransferCategories.SwapOut;
         } else {
           log.warn(`${event.name}: Can't find swapOut of ${cTokenAmt} ${getName(address)}`);
         }
-        const swapIn = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
         if (swapIn) {
           swapIn.category = TransferCategories.SwapIn;
         } else {
           log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${assetType}`);
         }
+        tx.prices[swapIn.assetType] = tx.prices[swapIn.assetType] || {};
+        tx.prices[swapIn.assetType][swapOut.assetType] = div(swapIn.quantity, swapOut.quantity);
         tx.description = `${getName(ethTx.from)} withdrew ${
           round(tokenAmt)
         } ${assetType} from ${source}`;

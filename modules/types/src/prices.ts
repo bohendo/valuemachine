@@ -3,7 +3,7 @@ import { DecimalString, TimestampString } from "./strings";
 
 export type PriceList = {
   [unitOfAccount: string]: {
-    [assetType: string]: DecimalString; // UoA per asset
+    [assetType: string]: DecimalString; // number of UoA per asset
   };
 };
 
@@ -12,10 +12,10 @@ export type PricesJson = {
 };
 
 export interface Prices {
-  getPrice(date: TimestampString, asset: AssetTypes): string | undefined;
   json: PricesJson;
-  setPrice(date: TimestampString, asset: AssetTypes, price: DecimalString): void;
-  syncPrice(date: TimestampString, asset: AssetTypes): Promise<string>;
+  getPrice(date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): string | undefined;
+  setPrice(price: DecimalString, date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): void;
+  syncPrice(date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): Promise<string>;
 }
 
 export const emptyPrices = {} as PricesJson;

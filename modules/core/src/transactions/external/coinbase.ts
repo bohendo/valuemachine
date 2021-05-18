@@ -4,6 +4,8 @@ import csv from "csv-parse/lib/sync";
 
 import { mergeTransaction } from "../utils";
 
+const { gt, round } = math;
+
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
   csvData: string,
@@ -33,11 +35,11 @@ export const mergeCoinbaseTransactions = (
 
     if (txType === "Send") {
       [from, to, category] = ["coinbase-account", "external-account", TransferCategories.Transfer];
-      transaction.description = `Withdraw ${quantity} ${assetType} out of coinbase`;
+      transaction.description = `Withdrew ${round(quantity)} ${assetType} out of coinbase`;
 
     } else if (txType === "Receive") {
       [from, to, category] = ["external-account", "coinbase-account", TransferCategories.Transfer];
-      transaction.description = `Deposit ${quantity} ${assetType} into coinbase`;
+      transaction.description = `Deposited ${round(quantity)} ${assetType} into coinbase`;
 
     } else if (txType === "Sell") {
       [from, to, category] = ["coinbase-account", "coinbase-exchange", TransferCategories.SwapOut];
@@ -48,7 +50,7 @@ export const mergeCoinbaseTransactions = (
         quantity: usdQuantity,
         to: "coinbase-account",
       });
-      transaction.description = `Sell ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
+      transaction.description = `Sold ${round(quantity)} ${assetType} for ${usdQuantity} USD on coinbase`;
 
     } else if (txType === "Buy") {
       [from, to, category] = ["coinbase-exchange", "coinbase-account", TransferCategories.SwapIn];
@@ -59,12 +61,12 @@ export const mergeCoinbaseTransactions = (
         quantity: usdQuantity,
         to: "coinbase-exchange",
       });
-      transaction.description = `Buy ${quantity} ${assetType} for ${usdQuantity} USD on coinbase`;
+      transaction.description = `Bought ${round(quantity)} ${assetType} for ${usdQuantity} USD on coinbase`;
     }
 
     transaction.transfers.push({ assetType, category, from, quantity, to });
 
-    if (math.gt(fees, "0")) {
+    if (gt(fees, "0")) {
       transaction.transfers.push({
         assetType: "USD",
         category: TransferCategories.Expense,

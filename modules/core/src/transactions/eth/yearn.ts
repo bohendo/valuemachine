@@ -10,7 +10,7 @@ import {
 } from "@finances/types";
 import { sm, smeq } from "@finances/utils";
 
-import { getUnique } from "../utils";
+import { rmDups } from "../utils";
 
 const source = TransactionSources.Yearn;
 
@@ -63,7 +63,7 @@ export const yearnParser = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: source });
+  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
   const { getName } = addressBook;
 
   for (const txLog of ethTx.logs.filter(
@@ -71,7 +71,7 @@ export const yearnParser = (
   )) {
     const address = sm(txLog.address);
     log.info(`Yearn tx interacted w ${getName(address)}`);
-    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
   }
 
   // log.debug(tx, `Done parsing ${source}`);

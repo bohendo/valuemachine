@@ -10,10 +10,13 @@ import {
   getRealChainData,
   getTestAddressBook,
   testLogger,
-} from "../testing";
+} from "../../testing";
 import { getTransactions } from "../index";
 
-const log = testLogger.child({ module: `Test${TransactionSources.Uniswap}` });
+const log = testLogger.child({
+  // level: "debug",
+  module: `Test${TransactionSources.Uniswap}`,
+});
 
 describe(TransactionSources.Uniswap, () => {
   let txns: Transactions;

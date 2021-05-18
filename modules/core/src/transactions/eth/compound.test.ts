@@ -10,10 +10,13 @@ import {
   getRealChainData,
   getTestAddressBook,
   testLogger,
-} from "../testing";
+} from "../../testing";
 import { getTransactions } from "../index";
 
-const log = testLogger.child({ module: `Test${TransactionSources.Compound}` });
+const log = testLogger.child({
+  // level: "debug",
+  module: `Test${TransactionSources.Compound}`,
+});
 
 describe(TransactionSources.Compound, () => {
   let addressBook;
@@ -83,6 +86,9 @@ describe(TransactionSources.Compound, () => {
     expect(tx.description).to.include("deposit");
     expect(tx.description).to.include(math.round(deposit.quantity));
     expect(tx.description).to.include(deposit.assetType);
+    expect(tx.prices).to.be.ok;
+    expect(tx.prices.DAI).to.be.ok;
+    expect(tx.prices.DAI.cDAI).to.be.a("string");
   });
 
   it("should handle withdrawals from compound v2", async () => {
@@ -110,6 +116,9 @@ describe(TransactionSources.Compound, () => {
     expect(tx.description).to.include("withdr");
     expect(tx.description).to.include(math.round(withdraw.quantity));
     expect(tx.description).to.include(withdraw.assetType);
+    expect(tx.prices).to.be.ok;
+    expect(tx.prices.DAI).to.be.ok;
+    expect(tx.prices.DAI.cDAI).to.be.a("string");
   });
 
   it("should handle compound v2 market entries", async () => {

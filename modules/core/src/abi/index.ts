@@ -1,5 +1,5 @@
 import { Interface } from "@ethersproject/abi";
-import { Address, AddressCategories } from "@finances/types";
+import { Address } from "@finances/types";
 import { getLogger } from "@finances/utils";
 
 import { getAddressBook } from "../addressBook";
@@ -27,9 +27,7 @@ export const getTokenInterface = (address?: Address): Interface => !address
         ? new Interface(saiAbi)
         : addressBook.getName(address) === "WETH"
           ? new Interface(wethAbi)
-          : addressBook.isCategory(AddressCategories.Compound)(address)
-            ? new Interface(cTokenAbi)
-            : new Interface(erc20Abi);
+          : new Interface(erc20Abi);
 
 export const daiJoinInterface = new Interface(daiJoinAbi);
 export const defiInterface = new Interface([...new Set(compoundAbi.concat(cTokenAbi))]);

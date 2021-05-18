@@ -2,7 +2,7 @@ import { HashZero } from "@ethersproject/constants";
 import { ChainData, Transactions } from "@finances/types";
 import { expect } from "@finances/utils";
 
-import { AddressOne, AddressTwo, getTestChainData, getTestAddressBook, testLogger } from "../testing";
+import { AddressOne, AddressTwo, getTestChainData, getTestAddressBook, testLogger } from "../../testing";
 import { getTransactions } from "../index";
 
 const log = testLogger.child({ module: "TestTransactions" });
@@ -59,9 +59,11 @@ describe("Coinbase", () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     txns.mergeCoinbase(exampleCoinbaseCsv);
+    log.info(txns.json);
     expect(txns.json.length).to.equal(3);
     // Re-merging shouldn't insert any duplicates
     txns.mergeCoinbase(exampleCoinbaseCsv);
+    log.info(txns.json);
     expect(txns.json.length).to.equal(3);
   });
 

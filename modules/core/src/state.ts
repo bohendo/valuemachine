@@ -32,7 +32,7 @@ export const getState = ({
   stateJson?: StateJson;
 }): State => {
 
-  const state = stateJson || emptyState;
+  const state = stateJson || JSON.parse(JSON.stringify(emptyState));
 
   const log = (logger || getLogger()).child({ module: "State" });
 
@@ -80,7 +80,7 @@ export const getState = ({
     transaction: Transaction,
   ): AssetChunk[] => {
     if (Object.keys(FiatAssets).includes(assetType)) {
-      log.debug(`Printing more ${assetType}, Brr!`); // In this value machine, anyone can print fiat.
+      log.debug(`Printing more ${assetType}, Brr!`); // In this value machine, anyone can print fiat
       return [{ assetType, dateRecieved: new Date(0).toISOString(), purchasePrice: "1", quantity }];
     }
     // We assume nothing about the history of chunks coming to us from external parties
@@ -100,6 +100,7 @@ export const getState = ({
       log.debug(chunk, `Got next chunk of ${assetType} w ${togo} to go`);
       if (!chunk) {
         output.forEach(chunk => putChunk(account, chunk)); // roll back changes so far
+        // Should we just log a warning & continue w balances going negative?!
         throw new Error(`${account} attempted to spend ${quantity} ${
           assetType
         } on ${transaction.date} but it's missing ${togo}. Tx: ${

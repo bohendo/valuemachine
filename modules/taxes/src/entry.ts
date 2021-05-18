@@ -8,7 +8,7 @@ import {
   getTransactions,
   getValueMachine,
 } from "@finances/core";
-import { ExpenseEvent, EventTypes, StoreKeys } from "@finances/types";
+import { emptyState, ExpenseEvent, EventTypes, StoreKeys } from "@finances/types";
 import { math } from "@finances/utils";
 
 import { store } from "./store";
@@ -87,10 +87,10 @@ process.on("SIGINT", logAndExit);
 
   const transactions = getTransactions({ addressBook, store, logger: log });
 
+  /*
   await transactions.mergeChainData(
     chainData.getAddressHistory(...addressBook.addresses.filter(addressBook.isSelf))
   );
-
   for (const source of input.transactions || []) {
     if (typeof source === "string" && source.endsWith(".csv")) {
       if (source.toLowerCase().includes("coinbase")) {
@@ -108,10 +108,11 @@ process.on("SIGINT", logAndExit);
       await transactions.mergeTransactions([source]);
     }
   }
+  */
 
   const valueMachine = getValueMachine({ addressBook, prices, logger: log });
-  let stateJson = store.load(StoreKeys.State);
-  let vmEvents = store.load(StoreKeys.Events);
+  let stateJson = emptyState;
+  let vmEvents = [];
   let start = Date.now();
   for (const transaction of transactions.json.filter(
     transaction => new Date(transaction.date).getTime() > new Date(stateJson.lastUpdated).getTime(),
@@ -121,14 +122,14 @@ process.on("SIGINT", logAndExit);
     stateJson = newState;
     const chunk = 100;
     if (transaction.index % chunk === 0) {
-      const diff = (Date.now() - start).toString();
+      const diff = Date.now() - start;
       log.info(`Processed transactions ${transaction.index - chunk}-${
         transaction.index
-      } in ${diff} ms`);
+      } at a rate of ${diff/chunk} ms/tx`);
       start = Date.now();
     }
   }
-  store.save(StoreKeys.State, stateJson);
+  // store.save(StoreKeys.State, stateJson);
   store.save(StoreKeys.Events, vmEvents);
 
   const finalState = getState({ stateJson, addressBook, prices, logger: log });

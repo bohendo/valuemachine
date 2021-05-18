@@ -39,7 +39,7 @@ export const mergeWazirxTransactions = (
       } = row;
 
       if (currency === "INR") {
-        log.warn(`Skipping INR ${txType}`);
+        log.debug(`Skipping INR ${txType}`);
         return null;
       }
 
@@ -51,7 +51,7 @@ export const mergeWazirxTransactions = (
           quantity,
           to: "wazirx-account",
         });
-        transaction.description = `Deposit ${quantity} ${currency} in to wazirx`;
+        transaction.description = `Deposited ${quantity} ${currency} into Wazirx`;
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
           assetType: currency,
@@ -60,7 +60,7 @@ export const mergeWazirxTransactions = (
           quantity,
           to: "external-account",
         });
-        transaction.description = `Withdraw ${quantity} ${currency} out of wazirx`;
+        transaction.description = `Withdrew ${quantity} ${currency} from Wazirx`;
       } else {
         log.warn(`Invalid Wazirx tx type: ${txType}`);
         return null;

@@ -1,45 +1,38 @@
 import { getTransactions } from "@finances/core";
 import {
   AddressBook,
-  CapitalGainsEvent,
+  Transaction,
   Transactions,
   TransactionsJson,
   TransactionSources,
   Transfer,
 } from "@finances/types";
 import { getLogger, math, sm, smeq } from "@finances/utils";
-import Collapse from "@material-ui/core/Collapse";
-import IconButton from "@material-ui/core/IconButton";
-import {
-  Button,
-  CircularProgress,
-  createStyles,
-  Divider,
-  Paper,
-  FormControl,
-  InputLabel,
-  makeStyles,
-  MenuItem,
-  Select,
-  Table,
-  TableBody,
-  TableContainer,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Theme,
-  Typography,
-} from "@material-ui/core";
-import TablePagination from "@material-ui/core/TablePagination";
+import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
+import Button from "@material-ui/core/Button";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Collapse from "@material-ui/core/Collapse";
+import Divider from "@material-ui/core/Divider";
+import FormControl from "@material-ui/core/FormControl";
+import IconButton from "@material-ui/core/IconButton";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Paper from "@material-ui/core/Paper";
+import Select from "@material-ui/core/Select";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableContainer from "@material-ui/core/TableContainer";
+import TableHead from "@material-ui/core/TableHead";
+import TablePagination from "@material-ui/core/TablePagination";
+import TableRow from "@material-ui/core/TableRow";
+import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
-import {
-  Sync as SyncIcon,
-  Delete as ClearIcon,
-  // GetApp as ImportIcon,
-} from "@material-ui/icons";
+import SyncIcon from "@material-ui/icons/Sync";
+import ClearIcon from "@material-ui/icons/Delete";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -67,11 +60,14 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   title: {
     marginBottom: theme.spacing(0),
   },
+  subtitle: {
+    margin: theme.spacing(2),
+  },
   container: {
     maxWidth: "100%",
   },
   paper: {
-    minWidth: "402px",
+    minWidth: "750px",
     padding: theme.spacing(2),
   },
   dateFilter: {
@@ -84,7 +80,6 @@ type DateInput = {
   display: string;
   error: string;
 };
-
 const emptyDateInput = { value: "", display: "", error: "" } as DateInput;
 
 const TransactionRow = ({
@@ -92,18 +87,17 @@ const TransactionRow = ({
   tx,
 }: {
   addressBook: AddressBook;
-  tx: CapitalGainsEvent;
+  tx: Transaction;
 }) => {
   const [open, setOpen] = useState(false);
   const classes = useStyles();
-
   return (
     <React.Fragment>
-
       <TableRow className={classes.row}>
         <TableCell> {tx.date.replace("T", " ")} </TableCell>
         <TableCell> {tx.description} </TableCell>
         <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
+        <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell onClick={() => setOpen(!open)}>
           {`${tx.transfers.length} transfer${tx.transfers.length === 1 ? "" : "s"}`}
           <IconButton aria-label="expand row" size="small" >
@@ -111,7 +105,6 @@ const TransactionRow = ({
           </IconButton>
         </TableCell>
       </TableRow>
-
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
@@ -157,7 +150,6 @@ const TransactionRow = ({
           </Collapse>
         </TableCell>
       </TableRow>
-
     </React.Fragment>
   );
 };
@@ -215,20 +207,16 @@ export const TransactionManager = ({
         || tx.transfers.some(t => sm(addressBook.getName(t.to)).startsWith(sm(filterSource)))
 
       // Sort by date w most recent first
-      ).sort((e1: CapitalGainsEvent, e2: CapitalGainsEvent) =>
+      ).sort((e1: Transaction, e2: Transaction) =>
         (e1.date > e2.date) ? -1
           : (e1.date < e2.date) ? 1
             : 0
+
       )
-
-      // Truncate
-      
-
     );
   }, [
     addressBook, transactions,
     filterAccount, filterSource, filterStartDate, filterEndDate,
-    page, rowsPerPage,
   ]);
 
   const handleChangePage = (event, newPage) => {
@@ -337,6 +325,11 @@ export const TransactionManager = ({
         Transaction Explorer
       </Typography>
 
+      <Divider/>
+      <Typography variant="h4" className={classes.subtitle}>
+        Management
+      </Typography>
+
       <Button
         className={classes.button}
         disabled={syncing}
@@ -383,6 +376,9 @@ export const TransactionManager = ({
       />
 
       <Divider/>
+      <Typography variant="h4" className={classes.subtitle}>
+        Filters
+      </Typography>
 
       <FormControl className={classes.selectUoA}>
         <InputLabel id="select-filter-source">Filter Account</InputLabel>
@@ -467,13 +463,14 @@ export const TransactionManager = ({
                 <TableCell><strong> Date </strong></TableCell>
                 <TableCell><strong> Description </strong></TableCell>
                 <TableCell><strong> Hash </strong></TableCell>
+                <TableCell><strong> Sources </strong></TableCell>
                 <TableCell><strong> Transfers </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredTxns
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((tx: CapitalGainsEvent, i: number) => (
+                .map((tx: Transaction, i: number) => (
                   <TransactionRow addressBook={addressBook} key={i} tx={tx} />
                 ))
               }

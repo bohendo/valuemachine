@@ -17,7 +17,7 @@ import {
 } from "@finances/types";
 import { math, sm, smeq, toBN } from "@finances/utils";
 
-import { getUnique, parseEvent, quantitiesAreClose } from "../utils";
+import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
 
 const { abs, diff, div, eq, gt, round } = math;
 
@@ -203,27 +203,32 @@ export const makerParser = (
   const ethish = [AssetTypes.WETH, AssetTypes.ETH, AssetTypes.PETH] as AssetTypes[];
 
   if (machineAddresses.some(e => smeq(e.address, ethTx.to))) {
-    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
   }
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
   if (smeq(ethTx.to, mcdMigrationAddress)) {
-    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
-    const swapOut = tx.transfers.findIndex(t => t.assetType === AssetTypes.SAI);
-    if (swapOut >= 0) {
-      tx.transfers[swapOut].category = TransferCategories.SwapOut;
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+    const swapOut = tx.transfers.find(t => t.assetType === AssetTypes.SAI);
+    const swapIn = tx.transfers.find(t => t.assetType === AssetTypes.DAI);
+    if (swapOut) {
+      swapOut.category = TransferCategories.SwapOut;
     } else {
       log.warn(`Can't find a SwapOut SAI transfer`);
     }
-    const swapIn = tx.transfers.findIndex(t => t.assetType === AssetTypes.DAI);
-    if (swapIn >= 0) {
-      tx.transfers[swapIn].category = TransferCategories.SwapIn;
+    if (swapIn) {
+      swapIn.category = TransferCategories.SwapIn;
     } else {
       log.warn(`Can't find an associated SwapIn DAI transfer`);
     }
+    log.info(swapOut, "swapOut");
+    tx.prices[swapIn.assetType] = tx.prices[swapIn.assetType] || {};
+    tx.prices[swapIn.assetType][swapOut.assetType] = div(swapIn.quantity, swapOut.quantity);
+    tx.prices[swapOut.assetType] = tx.prices[swapOut.assetType] || {};
+    tx.prices[swapOut.assetType][swapIn.assetType] = div(swapOut.quantity, swapIn.quantity);
     tx.description = `${getName(ethTx.from)} migrated ${
-      round(tx.transfers[swapOut].quantity)
+      round(swapOut.quantity)
     } SAI to DAI`;
     return tx;
   }
@@ -232,7 +237,7 @@ export const makerParser = (
     const address = sm(txLog.address);
     const index = txLog.index || 1;
     if (machineAddresses.some(e => smeq(e.address, address))) {
-      tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
     }
 
     ////////////////////////////////////////
@@ -267,28 +272,72 @@ export const makerParser = (
       }
       if (event.name === "Mint") {
         log.info(`Parsing ${assetType} ${event.name} of ${wad}`);
-        tx.transfers.push({
-          assetType,
-          category: smeq(address, pethAddress)
-            ? TransferCategories.SwapIn
-            : TransferCategories.Borrow,
-          from: AddressZero,
-          index,
-          quantity: wad,
-          to: event.args.guy,
-        });
+        if (smeq(address, pethAddress)) {
+          const swapIn = {
+            assetType,
+            category: TransferCategories.SwapIn,
+            from: tubAddress,
+            index,
+            quantity: wad,
+            to: event.args.guy,
+          };
+          tx.transfers.push(swapIn);
+          const swapOut = tx.transfers.filter(t =>
+            t.assetType === AssetTypes.WETH
+            && ([
+              TransferCategories.Transfer,
+              TransferCategories.SwapOut, // re-handle dup calls instead of logging warning
+            ] as TransferCategories[]).includes(t.category)
+          ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+          if (swapOut) {
+            tx.prices[swapOut.assetType] = tx.prices[swapOut.assetType] || {};
+            tx.prices[swapOut.assetType][swapIn.assetType] = div(swapOut.quantity, swapIn.quantity);
+          }
+        } else {
+          tx.transfers.push({
+            assetType,
+            category: TransferCategories.Borrow,
+            from: AddressZero,
+            index,
+            quantity: wad,
+            to: event.args.guy,
+          });
+        }
+
       } else if (event.name === "Burn") {
         log.info(`Parsing ${assetType} ${event.name} of ${wad}`);
-        tx.transfers.push({
-          assetType,
-          category: smeq(address, pethAddress)
-            ? TransferCategories.SwapOut
-            : TransferCategories.Repay,
-          from: event.args.guy,
-          index,
-          quantity: wad,
-          to: tubAddress,
-        });
+        if (smeq(address, pethAddress)) {
+          const swapOut = {
+            assetType,
+            category: TransferCategories.SwapOut,
+            from: event.args.guy,
+            index,
+            quantity: wad,
+            to: tubAddress,
+          };
+          tx.transfers.push(swapOut);
+          const swapIn = tx.transfers.filter(t =>
+            t.assetType === AssetTypes.WETH
+            && ([
+              TransferCategories.Transfer,
+              TransferCategories.SwapIn, // re-handle dup calls instead of logging warning
+            ] as TransferCategories[]).includes(t.category)
+          ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+          if (swapIn) {
+            tx.prices[swapIn.assetType] = tx.prices[swapIn.assetType] || {};
+            tx.prices[swapIn.assetType][swapOut.assetType] = div(swapIn.quantity, swapOut.quantity);
+          }
+        } else {
+          tx.transfers.push({
+            assetType,
+            category: TransferCategories.Repay,
+            from: AddressZero,
+            index,
+            quantity: wad,
+            to: event.args.guy,
+          });
+        }
+
       } else if (["Approval", "Transfer"].includes(event.name)) {
         log.debug(`Skipping ${event.name} event from ${assetType}`);
       } else {
@@ -427,23 +476,27 @@ export const makerParser = (
           && smeq(t.to, saiCageAddress)
           && gt(t.quantity, "0")
         );
-        if (swapOut) {
-          swapOut.category = TransferCategories.SwapOut;
-        } else {
-          log.warn(`Cage.${event.name}: Can't find any SAI transfer`);
-        }
         const swapIn = tx.transfers.find(t =>
           t.assetType === AssetTypes.ETH
           && isSelf(t.to)
           && smeq(t.from, saiCageAddress)
           && quantitiesAreClose(t.quantity, wad, div(wad, "100"))
         );
+        if (swapOut) {
+          swapOut.category = TransferCategories.SwapOut;
+        } else {
+          log.warn(`Cage.${event.name}: Can't find any SAI transfer`);
+        }
         if (swapIn) {
           swapIn.category = TransferCategories.SwapIn;
           swapIn.index = swapOut.index + 0.1;
         } else {
           log.warn(`Cage.${event.name}: Can't find an ETH transfer of ${wad}`);
         }
+        tx.prices[swapIn.assetType] = tx.prices[swapIn.assetType] || {};
+        tx.prices[swapIn.assetType][swapOut.assetType] = div(swapIn.quantity, swapOut.quantity);
+        tx.prices[swapOut.assetType] = tx.prices[swapOut.assetType] || {};
+        tx.prices[swapOut.assetType][swapIn.assetType] = div(swapOut.quantity, swapIn.quantity);
         tx.description = `${getName(ethTx.from)} redeemed ${
           round(swapOut.quantity, 4)
         } SAI for ${round(wad, 4)} ETH`;
@@ -477,18 +530,18 @@ export const makerParser = (
       } else if (logNote.name === "join") {
         const wad = formatUnits(logNote.args[1], 18);
         // Get the WETH transfer with the quantity that's closest to the wad
-        const transfer = tx.transfers.filter(t =>
+        const swapOut = tx.transfers.filter(t =>
           t.assetType === AssetTypes.WETH
           && ([
             TransferCategories.Transfer,
             TransferCategories.SwapOut, // re-handle dup calls instead of logging warning
           ] as TransferCategories[]).includes(t.category)
         ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
-        if (transfer) {
-          transfer.category = TransferCategories.SwapOut;
+        if (swapOut) {
+          swapOut.category = TransferCategories.SwapOut;
           if (smeq(ethTx.to, tubAddress)) {
             tx.description = `${getName(ethTx.from)} swapped ${
-              round(transfer.quantity, 4)
+              round(swapOut.quantity, 4)
             } WETH for ${round(wad, 4)} PETH`;
           }
         } else if (smeq(ethTx.to, tubAddress)) {
@@ -500,19 +553,19 @@ export const makerParser = (
       } else if (logNote.name === "exit") {
         const wad = formatUnits(logNote.args[1], 18);
         // Get the WETH transfer with the quantity that's closest to the wad
-        const transfer = tx.transfers.filter(t =>
+        const swapIn = tx.transfers.filter(t =>
           t.assetType === AssetTypes.WETH
           && ([
             TransferCategories.Transfer,
             TransferCategories.SwapIn, // re-handle dup calls instead of logging warning
           ] as TransferCategories[]).includes(t.category)
         ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
-        if (transfer) {
-          transfer.category = TransferCategories.SwapIn;
+        if (swapIn) {
+          swapIn.category = TransferCategories.SwapIn;
           if (smeq(ethTx.to, tubAddress)) {
             tx.description = `${getName(ethTx.from)} swapped ${
               round(wad, 4)
-            } PETH for ${round(transfer.quantity, 4)} WETH`;
+            } PETH for ${round(swapIn.quantity, 4)} WETH`;
           }
         } else if (smeq(ethTx.to, tubAddress)) {
           // Not a problem if we're interacting via a cdp proxy bc this wouldn't interact w self
@@ -550,8 +603,18 @@ export const makerParser = (
             TransferCategories.Withdraw, // handle dup free calls the same way
           ] as TransferCategories[]).includes(t.category)
           && (smeq(tubAddress, t.from) || isSelf(t.to))
-        // PETH wad !== W/ETH wad but the closest match is probably the one we want
-        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        ).sort(
+          // PETH wad !== W/ETH wad but the closest match is probably the one we want
+          (t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1
+        ).sort((t1, t2) =>
+          // First try to match a PETH transfer
+          (t1.assetType === AssetTypes.PETH && t2.assetType !== AssetTypes.PETH) ? -1
+            // Second try to match a WETH transfer
+            : (t1.assetType === AssetTypes.WETH && t2.assetType !== AssetTypes.WETH) ? -1
+              // Last try to match an ETH transfer
+              : (t1.assetType === AssetTypes.ETH && t2.assetType !== AssetTypes.ETH) ? -1
+                : 0
+        )[0];
         if (transfer) {
           transfer.category = TransferCategories.Withdraw;
           tx.description = `${getName(transfer.to)} withdrew ${

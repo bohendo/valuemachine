@@ -52,6 +52,7 @@ const App: React.FC = () => {
 
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile));
   const [prices, setPrices] = useState(store.load(StoreKeys.Prices));
+  const [events, setEvents] = useState(store.load(StoreKeys.Events));
   const [transactions, setTransactions] = useState(store.load(StoreKeys.Transactions));
   const [addressBook, setAddressBook] = useState(emptyAddressBook);
 
@@ -60,6 +61,10 @@ const App: React.FC = () => {
   useEffect(() => {
     store.save(StoreKeys.Transactions, transactions);
   }, [transactions]);
+
+  useEffect(() => {
+    store.save(StoreKeys.Events, events);
+  }, [events]);
 
   useEffect(() => {
     setAddressBook(getAddressBook(profile.addressBook));
@@ -120,7 +125,10 @@ const App: React.FC = () => {
             <Route exact path="/taxes">
               <Taxes
                 addressBook={addressBook}
+                pricesJson={prices}
                 transactions={transactions}
+                events={events}
+                setEvents={setEvents}
               />
             </Route>
 

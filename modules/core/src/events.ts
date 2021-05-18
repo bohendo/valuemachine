@@ -13,7 +13,7 @@ import {
 } from "@finances/types";
 import { math } from "@finances/utils";
 
-const { gt, round } = math;
+const { eq, gt, round } = math;
 
 export const emitTransactionEvents = (
   addressBook: AddressBook,
@@ -21,6 +21,9 @@ export const emitTransactionEvents = (
   state: State,
 ): Events => {
   const events = [];
+  // Add swap event?
+  const networth = state.getNetWorth();
+  if (!Object.keys(networth).length) return events;
   events.push({
     assets: state.getNetWorth(),
     date: transaction.date,
@@ -39,6 +42,9 @@ export const emitTransferEvents = (
   const { getName } = addressBook;
   const events = [];
   const { assetType, category, from, quantity, to } = transfer;
+  if (eq(quantity, "0")) {
+    return events;
+  }
   const position = `#${transaction.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
   const taxTags = [];
   const shouldIgnore = addressBook.isCategory(AddressCategories.Ignore);
@@ -55,13 +61,12 @@ export const emitTransferEvents = (
     type: category as EventTypes,
   } as any;
 
-  if (["Borrow", "Burn", "GiftOut", "Income", "SwapIn", "Withdraw"].includes(category)) {
-    newEvent.from = addressBook.getName(from);
-  } else if (["Deposit", "Expense", "GiftIn", "Mint", "Repay", "SwapOut"].includes(category)) {
-    newEvent.to = addressBook.getName(to);
-  }
-
   if (["Income", "Expense"].includes(category)) {
+    if (["Income"].includes(category)) {
+      newEvent.from = addressBook.getName(from);
+    } else if (["Expense"].includes(category)) {
+      newEvent.to = addressBook.getName(to);
+    }
     newEvent.taxTags = taxTags.concat(...transaction.tags);
     if (
       newEvent.to && (
@@ -71,9 +76,8 @@ export const emitTransferEvents = (
     ) {
       newEvent.taxTags = taxTags.concat("exchange-fee");
     }
+    events.push(newEvent);
   }
-
-  events.push(newEvent);
 
   if (
     gt(transfer.quantity, "0")
@@ -84,7 +88,6 @@ export const emitTransferEvents = (
       t.category === TransferCategories.SwapIn && Object.keys(FiatAssets).includes(t.assetType)
     ))?.assetType;
     if (soldFor) {
-      console.log(`Found capital gains event triggered by sell for ${soldFor}`);
       chunks.forEach(chunk => {
         events.push({
           assetPrice: prices.getPrice(transaction.date, chunk.assetType),

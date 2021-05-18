@@ -7,34 +7,29 @@ import {
   TransactionsJson,
 } from "@finances/types";
 import { smeq } from "@finances/utils";
-import {
-  Button,
-  Card,
-  CardHeader,
-  CircularProgress,
-  Divider,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Theme,
-  Typography,
-  createStyles,
-  makeStyles,
-} from "@material-ui/core";
-import {
-  Sync as SyncIcon,
-  Add as AddIcon,
-  Delete as ClearIcon,
-  // GetApp as ImportIcon,
-} from "@material-ui/icons";
+import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardHeader from "@material-ui/core/CardHeader";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Divider from "@material-ui/core/Divider";
+import FormControl from "@material-ui/core/FormControl";
+import Grid from "@material-ui/core/Grid";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Paper from "@material-ui/core/Paper";
+import Select from "@material-ui/core/Select";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableContainer from "@material-ui/core/TableContainer";
+import TableHead from "@material-ui/core/TableHead";
+import TablePagination from "@material-ui/core/TablePagination";
+import TableRow from "@material-ui/core/TableRow";
+import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
+import SyncIcon from "@material-ui/icons/Sync";
+import ClearIcon from "@material-ui/icons/Delete";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -50,22 +45,38 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   header: {
     marginTop: theme.spacing(2),
   },
+  paper: {
+    minWidth: "500px",
+    padding: theme.spacing(2),
+  },
   select: {
     margin: theme.spacing(3),
     minWidth: 160,
   },
+  title: {
+    margin: theme.spacing(2),
+  },
+  subtitle: {
+    margin: theme.spacing(2),
+  },
+  dateFilter: {
+    margin: theme.spacing(2),
+  },
 }));
-
-const emptyPriceEntry = {
-  date: "",
-  asset: "",
-};
 
 type PriceRow = {
   date: string;
   asset: string;
   price: string;
 }
+
+type DateInput = {
+  value: string;
+  display: string;
+  error: string;
+};
+
+const emptyDateInput = { value: "", display: "", error: "" } as DateInput;
 
 export const PriceManager = ({
   pricesJson,
@@ -76,34 +87,27 @@ export const PriceManager = ({
   setPrices: (val: PricesJson) => void;
   transactions: TransactionsJson,
 }) => {
-  const [newPriceModified, setNewPriceModified] = useState(false);
-  const [newPrice, setNewPrice] = useState(emptyPriceEntry);
-  const [newPriceError, setNewPriceError] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState(false);
-  const [filter, setFilter] = useState("");
+  const [filterAsset, setFilterAsset] = useState("");
+  const [filterDate, setFilterDate] = useState(emptyDateInput);
   const [filteredPrices, setFilteredPrices] = useState([] as PriceRow);
   const [uoa, setUoa] = useState("USD");
   const classes = useStyles();
 
   useEffect(() => {
-    if (
-      newPrice.date !== emptyPriceEntry.date ||
-      newPrice.asset !== emptyPriceEntry.asset
-    ) {
-      setNewPriceModified(true);
-    } else {
-      setNewPriceModified(false);
-    }
-  }, [newPrice]);
-
-  useEffect(() => {
     if (!pricesJson) return;
+    if (filterDate.error) return;
     const newFilteredPrices = [] as PriceRow[];
     Object.entries(pricesJson).forEach(([date, priceEntry]) => {
+      if (filterDate.value && filterDate.value !== date) return null;
       if (Object.keys(priceEntry).length === 0) return null;
       if (Object.keys(priceEntry[uoa] || {}).length === 0) return null;
       Object.entries(priceEntry[uoa] || {}).forEach(([asset, price]) => {
-        if (!filter || smeq(filter, asset)) newFilteredPrices.push({ date, asset, price });
+        if (!filterAsset || smeq(filterAsset, asset)) {
+          newFilteredPrices.push({ date, asset, price });
+        }
       });
     });
     setFilteredPrices(newFilteredPrices.sort((e1: PriceRow, e2: PriceRow): number => {
@@ -111,50 +115,23 @@ export const PriceManager = ({
         : e1.asset > e2.asset ? 1 : e1.asset < e2.asset ? -1
           : 0;
     }));
-  }, [uoa, pricesJson, filter]);
+  }, [uoa, pricesJson, filterAsset, filterDate]);
 
   const handleUoaChange = (event: React.ChangeEvent<{ value: string }>) => {
     setUoa(event.target.value);
   };
 
-  const handleAssetChange = (event: React.ChangeEvent<{ value: string }>) => {
-    setNewPrice({ ...newPrice, asset: event.target.value });
-    setNewPriceError("");
-  };
-
-  const handlePriceChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    setNewPrice({ ...newPrice, [event.target.name]: event.target.value });
-    setNewPriceError("");
-  };
-
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
-    setFilter(event.target.value);
+    setFilterAsset(event.target.value);
   };
 
-  const addNewPrice = async () => {
-    if (!newPrice.date) {
-      setNewPriceError("Date is required");
-    } else if (!newPrice.date.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
-      setNewPriceError("Date is not in YYYY-MM-DD format");
-    } else {
-      setSyncing(true);
-      const prices = getPrices({ pricesJson, store, unitOfAccount: uoa });
-      try {
-        const res = await axios.get(
-          `/api/prices/${uoa}/${newPrice.asset}/${newPrice.date}`,
-          { timeout: 21000 },
-        );
-        if (res.status === 200 && res.data) {
-          prices.setPrice(newPrice.date, newPrice.asset, res.data);
-        } else {
-          await prices.syncPrice(newPrice.date, newPrice.asset);
-        }
-        setPrices({ ...prices.json });
-      } catch (e) {
-        console.error(e);
-      }
-      setSyncing(false);
-    }
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
   };
 
   const syncPrices = async () => {
@@ -168,12 +145,21 @@ export const PriceManager = ({
         const assets = Array.from(new Set([...tx.transfers.map(t => t.assetType)]));
         for (const asset of assets) {
           try {
+            /* TODO
+            Object.entries(tx.prices).forEach(
+              ([tmpUoa, tmpPrices]) => Object.entries(tmpPrices).forEach(
+                ([tmpAsset, tmpPrice) => {
+                  prices.setPrice(tmpPrice, date, tmpAsset, tmpUoa);
+                }
+              )
+            )
+            */
             if (!prices.getPrice(date, asset)) {
               const res = await axios.get(`/api/prices/${uoa}/${asset}/${date}`, { timeout: 21000 });
               if (res.status === 200 && res.data) {
-                prices.setPrice(date, asset, res.data);
+                prices.setPrice(res.data, date, asset, uoa);
               } else {
-                await prices.syncPrice(date, asset);
+                await prices.syncPrice(date, asset, uoa);
               }
             }
           } catch (e) {
@@ -188,6 +174,22 @@ export const PriceManager = ({
     setSyncing(false);
   };
 
+  const changeFilterDate = (event: React.ChangeEvent<{ value: string }>) => {
+    const display = event.target.value;
+    let error, value;
+    if (display.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
+      value = display;
+      error = "";
+    } else if (display === "") {
+      value = "";
+      error = "";
+    } else {
+      value = "";
+      error = "Format date as YYYY-MM-DD";
+    }
+    setFilterDate({ display, value, error });
+  };
+
   const clearPrices = () => {
     setPrices({});
   };
@@ -195,65 +197,16 @@ export const PriceManager = ({
   return (
     <>
 
-      <Typography variant="h4">
-        Price Manager
+      <Typography variant="h3">
+        Price Explorer
+      </Typography>
+
+      <Divider/>
+      <Typography variant="h4" className={classes.subtitle}>
+        Management
       </Typography>
 
       <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
-
-        <Grid item>
-          <Card className={classes.root}>
-            <CardHeader title={"Add new Price"} />
-            <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
-              <Grid item>
-                <TextField
-                  autoComplete="off"
-                  error={!!newPriceError}
-                  fullWidth
-                  helperText={newPriceError || "YYYY-MM-DD"}
-                  id="new-price-date"
-                  label="Date"
-                  margin="normal"
-                  name="date"
-                  onChange={handlePriceChange}
-                  value={newPrice.date}
-                  variant="outlined"
-                />
-              </Grid>
-              <Grid item>
-                <FormControl className={classes.select}>
-                  <InputLabel id="select-asset-type">AssetType</InputLabel>
-                  <Select
-                    labelId="select-asset-type"
-                    id="select-asset-type"
-                    value={newPrice.asset || ""}
-                    onChange={handleAssetChange}
-                  >
-                    <MenuItem value={""}>-</MenuItem>
-                    {Object.keys({ ...EthereumAssets, ...AltChainAssets }).map(asset => (
-                      <MenuItem key={asset} value={asset}>{asset}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item>
-                <Grid item>
-                  <Button
-                    className={classes.button}
-                    color="primary"
-                    disabled={!newPriceModified || syncing}
-                    onClick={addNewPrice}
-                    size="small"
-                    startIcon={syncing ? <CircularProgress size={20} /> : <AddIcon/>}
-                    variant="contained"
-                  >
-                    Add Price
-                  </Button>
-                </Grid>
-              </Grid>
-            </Grid>
-          </Card>
-        </Grid>
 
         <Grid item>
           <Card className={classes.root}>
@@ -282,7 +235,7 @@ export const PriceManager = ({
             startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
             variant="outlined"
           >
-            {`Sync Prices for ${transactions.length} Transactions`}
+            {`Sync ${uoa} Prices for ${transactions.length} Transactions`}
           </Button>
           <Button
             className={classes.button}
@@ -298,9 +251,8 @@ export const PriceManager = ({
       </Grid>
 
       <Divider/>
-
-      <Typography variant="h4" className={classes.header}>
-        Price Explorer
+      <Typography variant="h4" className={classes.subtitle}>
+        Filters
       </Typography>
 
       <FormControl className={classes.select}>
@@ -308,7 +260,7 @@ export const PriceManager = ({
         <Select
           labelId="select-filter-asset"
           id="select-filter-asset"
-          value={filter || ""}
+          value={filterAsset || ""}
           onChange={handleFilterChange}
         >
           <MenuItem value={""}>-</MenuItem>
@@ -318,26 +270,69 @@ export const PriceManager = ({
         </Select>
       </FormControl>
 
+      <TextField
+        autoComplete="off"
+        className={classes.dateFilter}
+        error={!!filterDate.error}
+        helperText={filterDate.error || "YYYY-MM-DD"}
+        id="filter-date"
+        label="Filter Date"
+        margin="normal"
+        name="filter-date"
+        onChange={changeFilterDate}
+        value={filterDate.display || ""}
+        variant="outlined"
+      />
+
       <Divider/>
 
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell> Date </TableCell>
-            <TableCell> Asset </TableCell>
-            <TableCell> Price ({uoa}) </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {filteredPrices.slice(0, 250).map((row: PriceRow, i: number) => (
-            <TableRow key={i}>
-              <TableCell> {row.date.replace("T", " ").replace("Z", "")} </TableCell>
-              <TableCell> {row.asset} </TableCell>
-              <TableCell> {row.price} </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Paper className={classes.paper}>
+
+        <Typography align="center" variant="h4" className={classes.title} component="div">
+          {`${filteredPrices.length} Prices`}
+        </Typography>
+
+        <TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[25, 50, 100, 250]}
+            component="div"
+            count={filteredPrices.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+          />
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell> Date </TableCell>
+                <TableCell> Asset </TableCell>
+                <TableCell> Price ({uoa}) </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredPrices
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row: PriceRow, i: number) => (
+                  <TableRow key={i}>
+                    <TableCell> {row.date.replace("T", " ").replace("Z", "")} </TableCell>
+                    <TableCell> {row.asset} </TableCell>
+                    <TableCell> {row.price} </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            rowsPerPageOptions={[25, 50, 100, 250]}
+            component="div"
+            count={filteredPrices.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onChangePage={handleChangePage}
+            onChangeRowsPerPage={handleChangeRowsPerPage}
+          />
+        </TableContainer>
+      </Paper>
 
     </>
   );
