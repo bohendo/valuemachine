@@ -13,7 +13,7 @@ import {
 } from "@finances/types";
 import { math } from "@finances/utils";
 
-const { gt, round } = math;
+const { eq, gt, round } = math;
 
 export const emitTransactionEvents = (
   addressBook: AddressBook,
@@ -42,6 +42,9 @@ export const emitTransferEvents = (
   const { getName } = addressBook;
   const events = [];
   const { assetType, category, from, quantity, to } = transfer;
+  if (eq(quantity, "0")) {
+    return events;
+  }
   const position = `#${transaction.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
   const taxTags = [];
   const shouldIgnore = addressBook.isCategory(AddressCategories.Ignore);
