@@ -142,12 +142,21 @@ export const PriceManager = ({
         const assets = Array.from(new Set([...tx.transfers.map(t => t.assetType)]));
         for (const asset of assets) {
           try {
+            /* TODO
+            Object.entries(tx.prices).forEach(
+              ([tmpUoa, tmpPrices]) => Object.entries(tmpPrices).forEach(
+                ([tmpAsset, tmpPrice) => {
+                  prices.setPrice(tmpPrice, date, tmpAsset, tmpUoa);
+                }
+              )
+            )
+            */
             if (!prices.getPrice(date, asset)) {
               const res = await axios.get(`/api/prices/${uoa}/${asset}/${date}`, { timeout: 21000 });
               if (res.status === 200 && res.data) {
-                prices.setPrice(date, asset, res.data);
+                prices.setPrice(res.data, date, asset, uoa);
               } else {
-                await prices.syncPrice(date, asset);
+                await prices.syncPrice(date, asset, uoa);
               }
             }
           } catch (e) {
@@ -223,7 +232,7 @@ export const PriceManager = ({
             startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
             variant="outlined"
           >
-            {`Sync Prices for ${transactions.length} Transactions`}
+            {`Sync ${uoa} Prices for ${transactions.length} Transactions`}
           </Button>
           <Button
             className={classes.button}
