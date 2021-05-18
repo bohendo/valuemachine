@@ -40,7 +40,6 @@ export const erc20Addresses = [
   { name: "SPANK", address: "0x42d6622dece394b54999fbd73d108123806f6a18" },
   { name: "sUSD", address: "0x57ab1ec28d129707052df4df418d58a2d46d5f51" },
   { name: "sUSDv1", address: "0x57ab1e02fee23774580c119740129eac7081e9d3" },
-  { name: "TORN", address: "0x77777feddddffc19ff86db637967013e6c6a116c" },
   { name: "USDC", address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" },
   { name: "USDT", address: "0xdac17f958d2ee523a2206206994597c13d831ec7" },
   { name: "WBTC", address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599" },

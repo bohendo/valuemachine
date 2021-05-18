@@ -26,6 +26,7 @@ export const OnchainSources = enumify({
   EthTx: "EthTx",
   Maker: "Maker",
   Oasis: "Oasis",
+  Tornado: "Tornado",
   Uniswap: "Uniswap",
   Weth: "Weth",
   Yearn: "Yearn",

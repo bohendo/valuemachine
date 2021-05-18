@@ -20,6 +20,7 @@ import { compoundAddresses, compoundParser } from "./compound";
 import { erc20Addresses, erc20Parser } from "./erc20";
 import { makerAddresses, makerParser } from "./maker";
 import { oasisAddresses, oasisParser } from "./oasis";
+import { tornadoAddresses, tornadoParser } from "./tornado";
 import { uniswapAddresses, uniswapParser } from "./uniswap";
 import { wethAddresses, wethParser } from "./weth";
 import { yearnAddresses, yearnParser } from "./yearn";
@@ -29,6 +30,7 @@ export const publicAddresses = [
   ...erc20Addresses,
   ...makerAddresses,
   ...oasisAddresses,
+  ...tornadoAddresses,
   ...uniswapAddresses,
   ...wethAddresses,
   ...yearnAddresses,
@@ -46,6 +48,7 @@ const appParsers = [
   compoundParser,
   uniswapParser,
   yearnParser,
+  tornadoParser,
 ];
 
 export const parseEthTx = (
