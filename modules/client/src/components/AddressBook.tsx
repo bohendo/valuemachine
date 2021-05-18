@@ -1,9 +1,17 @@
-import { AddressEntry, emptyProfile, ProfileJson } from "@finances/types";
+import {
+  AddressCategories,
+  AddressEntry,
+  emptyProfile,
+  ProfileJson
+} from "@finances/types";
+import { smeq } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import Collapse from "@material-ui/core/Collapse";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
@@ -26,6 +34,7 @@ import AddIcon from "@material-ui/icons/AddCircle";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import RemoveIcon from "@material-ui/icons/RemoveCircle";
 import SaveIcon from "@material-ui/icons/Save";
+import EditIcon from "@material-ui/icons/Edit";
 import SyncIcon from "@material-ui/icons/Sync";
 import { Alert } from "@material-ui/lab";
 import axios from "axios";
@@ -93,9 +102,191 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const emptyAddressEntry = {
   address: "",
-  category: "self",
+  category: "",
   name: "",
 } as AddressEntry;
+
+const AddressRow = ({
+  index,
+  editAddress,
+  entry,
+  syncAddress,
+  syncing,
+}: {
+  index: number;
+  editAddress: any;
+  entry: AddressEntry;
+  syncAddress: any;
+  syncing: any;
+}) => {
+  const [editMode, setEditMode] = useState(false);
+  const [newEntry, setNewEntry] = useState({});
+  const [entryModified, setEntryModified] = useState(false);
+  const [newEntryError, setNewEntryError] = useState("");
+  const classes = useStyles();
+
+  const handleEntryChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setNewEntry({ ...newEntry, [event.target.name]: event.target.value });
+    setNewEntryError("");
+  };
+
+  useEffect(() => {
+    setNewEntry(JSON.parse(JSON.stringify(entry)));
+  }, [entry]);
+
+  useEffect(() => {
+    if (
+      newEntry.address !== entry.address ||
+      newEntry.category !== entry.category ||
+      newEntry.name !== entry.name
+    ) {
+      setEntryModified(true);
+    } else {
+      setEntryModified(false);
+    }
+  }, [newEntry, entry]);
+
+  const toggleEditMode = () => {
+    setNewEntry(JSON.parse(JSON.stringify(entry)));
+    setEditMode(!editMode);
+  };
+
+  const handleEdit = () => {
+    editAddress(index, newEntry);
+    setEditMode(false);
+  };
+
+  const handleDelete = () => {
+    editAddress(index, newEntry, true);
+    setEditMode(false);
+  };
+
+  return (
+    <React.Fragment>
+      <TableRow>
+        <TableCell> {entry.name} </TableCell>
+        <TableCell> {entry.category} </TableCell>
+        <TableCell> <HexString value={entry.address}/> </TableCell>
+        <TableCell>
+          <IconButton color="secondary" onClick={toggleEditMode}>
+            <EditIcon />
+          </IconButton>
+        </TableCell>
+        <TableCell>
+          {entry.category === AddressCategories.Self ?
+            !syncing[entry.address] ?
+              <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
+                <SyncIcon />
+              </IconButton>
+              :
+              <IconButton>
+                <CircularProgress size={20}/>
+              </IconButton>
+            : undefined
+          }
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={editMode} timeout="auto" unmountOnExit>
+            <Box my={2} mx={4}>
+              <Typography variant="h6" gutterBottom component="div">
+                Edit Address
+              </Typography>
+
+              <Grid
+                alignContent="center"
+                alignItems="center"
+                container
+                spacing={1}
+                className={classes.root}
+              >
+                <Grid item md={6}>
+                  <TextField
+                    autoComplete="off"
+                    value={newEntry.name}
+                    helperText="Give your account a nickname"
+                    id="name"
+                    fullWidth
+                    label="Account Name"
+                    margin="normal"
+                    name="name"
+                    onChange={handleEntryChange}
+                    variant="outlined"
+                  />
+                </Grid>
+
+                <FormControl className={classes.select}>
+                  <InputLabel id="select-new-category">Category</InputLabel>
+                  <Select
+                    labelId={`select-${entry.address}-category`}
+                    id={`select-${entry.address}-category`}
+                    name="category"
+                    value={newEntry.category || ""}
+                    onChange={handleEntryChange}
+                  >
+                    <MenuItem value={""}>-</MenuItem>
+                    {Object.keys(AddressCategories).map((cat, i) => (
+                      <MenuItem key={i} value={cat}>{cat}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <Grid item md={6}>
+                  <TextField
+                    autoComplete="off"
+                    value={newEntry.address}
+                    error={!!newEntryError}
+                    helperText={newEntryError || "Add your ethereum address to fetch info"}
+                    id="address"
+                    fullWidth
+                    label="Eth Address"
+                    margin="normal"
+                    name="address"
+                    onChange={handleEntryChange}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid item md={3}>
+                  <Grid item>
+                    <Button
+                      className={classes.button}
+                      color="primary"
+                      onClick={handleDelete}
+                      size="small"
+                      startIcon={<RemoveIcon />}
+                      variant="contained"
+                    >
+                      Delete Address
+                    </Button>
+                  </Grid>
+                </Grid>
+                <Grid item md={3}>
+                  {entryModified ?
+                    <Grid item>
+                      <Button
+                        className={classes.button}
+                        color="primary"
+                        onClick={handleEdit}
+                        size="small"
+                        startIcon={<AddIcon />}
+                        variant="contained"
+                      >
+                        Save Address
+                      </Button>
+                    </Grid>
+                    : undefined
+                  }
+                </Grid>
+              </Grid>
+
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </React.Fragment>
+  );
+};
 
 export const AddressBook = ({
   profile,
@@ -238,16 +429,18 @@ export const AddressBook = ({
     setNewAddressError("");
   };
 
-  const deleteAddress = (entry: AddressEntry) => {
-    console.log(`Deleting ${JSON.stringify(entry)}`);
+  const editAddress = (index: number, newEntry: AddressEntry, del = false) => {
+    console.log(`${del ? "Deleting" : "Updating"} ${JSON.stringify(newEntry)}`);
     const newProfile = {
       ...profile,
       addressBook: [...profile.addressBook],
     };
-    const i = newProfile.addressBook
-      .findIndex((o) => o.address.toLowerCase() === entry.address.toLowerCase());
-    if (i >= 0) {
-      newProfile.addressBook.splice(i,1);
+    if (index >= 0) {
+      if (del) {
+        newProfile.addressBook.splice(index,1);
+      } else {
+        newProfile.addressBook[index] = newEntry;
+      }
       setProfile(newProfile);
     }
   };
@@ -278,7 +471,7 @@ export const AddressBook = ({
   };
 
   const syncAll = async () => {
-    for (const entry of profile.addressBook.filter(e => e.category === "self")) {
+    for (const entry of profile.addressBook.filter(e => e.category === AddressCategories.Sefl)) {
       await syncAddress(entry.address);
     }
   };
@@ -342,12 +535,24 @@ export const AddressBook = ({
         Manage Address Book
       </Typography>
 
-      <Grid alignContent="center" alignItems="center" justify="center" container spacing={1} className={classes.root}>
-
+      <Grid
+        alignContent="center"
+        alignItems="center"
+        justify="center"
+        container
+        spacing={1}
+        className={classes.root}
+      >
         <Grid item md={8}>
           <Card className={classes.root}>
             <CardHeader title={"Add new Address"} />
-            <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
+            <Grid
+              alignContent="center"
+              alignItems="center"
+              container
+              spacing={1}
+              className={classes.root}
+            >
               <Grid item md={6}>
                 <TextField
                   autoComplete="off"
@@ -362,20 +567,23 @@ export const AddressBook = ({
                   variant="outlined"
                 />
               </Grid>
-              <Grid item md={6}>
-                <TextField
-                  autoComplete="off"
-                  value={newAddress.category}
-                  helperText={`Only "self" category can be synced`}
-                  id="category"
-                  fullWidth
-                  label="Category"
-                  margin="normal"
+
+              <FormControl className={classes.select}>
+                <InputLabel id="select-new-category">Category</InputLabel>
+                <Select
+                  labelId="select-new-category"
+                  id="select-new-category"
                   name="category"
+                  value={newAddress.category || ""}
                   onChange={handleAddressChange}
-                  variant="outlined"
-                />
-              </Grid>
+                >
+                  <MenuItem value={""}>-</MenuItem>
+                  {Object.keys(AddressCategories).map((cat, i) => (
+                    <MenuItem key={i} value={cat}>{cat}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
               <Grid item md={6}>
                 <TextField
                   autoComplete="off"
@@ -468,7 +676,7 @@ export const AddressBook = ({
           onChange={handleFilterChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(profile.addressBook.map(entry => entry.category))).map(cat => (
+          {Array.from(new Set(profile.addressBook.map(e => e.category))).map(cat => (
             <MenuItem key={cat} value={cat}>{cat}</MenuItem>
           ))}
         </Select>
@@ -499,7 +707,8 @@ export const AddressBook = ({
                 <TableCell> Account name </TableCell>
                 <TableCell> Category </TableCell>
                 <TableCell> Eth Address </TableCell>
-                <TableCell> Actions </TableCell>
+                <TableCell> Edit </TableCell>
+                <TableCell> Sync </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -507,8 +716,14 @@ export const AddressBook = ({
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .sort((e1, e2) =>
                   // put self addresses first
-                  (e1.category !== "self" && e2.category === "self") ? 1
-                    : (e1.category === "self" && e2.category !== "self") ? -1
+                  (
+                    e1.category !== AddressCategories.Self &&
+                    e2.category === AddressCategories.Self
+                  ) ? 1
+                    : (
+                      e1.category === AddressCategories.Self &&
+                      e2.category !== AddressCategories.Self
+                    ) ? -1
                       // sort by category
                       : (e1.category.toLowerCase() > e2.category.toLowerCase()) ? 1
                         : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
@@ -520,27 +735,15 @@ export const AddressBook = ({
                                 : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
                                   : 0
                 ).map((entry: AddressEntry, i: number) => (
-                  <TableRow key={i}>
-                    <TableCell> {entry.name} </TableCell>
-                    <TableCell> {entry.category} </TableCell>
-                    <TableCell> <HexString value={entry.address}/> </TableCell>
-                    <TableCell>
-                      <IconButton color="secondary" onClick={() => deleteAddress(entry)}>
-                        <RemoveIcon />
-                      </IconButton>
-                      {entry.category === "self" ?
-                        !syncing[entry.address] ?
-                          <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
-                            <SyncIcon />
-                          </IconButton>
-                          :
-                          <IconButton>
-                            <CircularProgress size={20}/>
-                          </IconButton>
-                        : undefined
-                      }
-                    </TableCell>
-                  </TableRow>
+                  <AddressRow
+                    key={i}
+                    index={profile.addressBook.findIndex(e => smeq(e.address, entry.address))}
+                    editAddress={editAddress}
+                    entry={entry}
+                    syncAddress={syncAddress}
+                    syncing={syncing}
+                  />
+
                 ))}
             </TableBody>
           </Table>

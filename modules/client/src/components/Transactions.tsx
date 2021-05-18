@@ -91,10 +91,8 @@ const TransactionRow = ({
 }) => {
   const [open, setOpen] = useState(false);
   const classes = useStyles();
-
   return (
     <React.Fragment>
-
       <TableRow className={classes.row}>
         <TableCell> {tx.date.replace("T", " ")} </TableCell>
         <TableCell> {tx.description} </TableCell>
@@ -107,7 +105,6 @@ const TransactionRow = ({
           </IconButton>
         </TableCell>
       </TableRow>
-
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
@@ -153,7 +150,6 @@ const TransactionRow = ({
           </Collapse>
         </TableCell>
       </TableRow>
-
     </React.Fragment>
   );
 };
