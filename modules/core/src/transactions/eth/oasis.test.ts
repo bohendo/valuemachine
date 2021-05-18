@@ -13,7 +13,10 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
-const log = testLogger.child({ module: "TestTransactions" });
+const log = testLogger.child({
+  // level: "debug",
+  module: "TestTransactions",
+});
 
 describe(TransactionSources.Oasis, () => {
   let txns: Transactions;

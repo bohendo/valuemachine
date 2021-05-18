@@ -3,7 +3,7 @@ import { DecimalString, TimestampString } from "./strings";
 
 export type PriceList = {
   [unitOfAccount: string]: {
-    [assetType: string]: DecimalString; // UoA per asset
+    [assetType: string]: DecimalString; // number of UoA per asset
   };
 };
 

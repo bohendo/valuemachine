@@ -14,7 +14,7 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { getUnique, parseEvent } from "../utils";
+import { rmDups, parseEvent } from "../utils";
 
 const { round } = math;
 const source = TransactionSources.Weth;
@@ -67,7 +67,9 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${source} ${event.name} of amount ${round(amount)}`);
         }
-        tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+        tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+        tx.prices[AssetTypes.ETH] = tx.prices[AssetTypes.ETH] || {};
+        tx.prices[AssetTypes.ETH][AssetTypes.WETH] = "1";
         tx.transfers.push({
           assetType,
           category: TransferCategories.SwapIn,
@@ -105,7 +107,9 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${source} ${event.name} of amount ${round(amount)}`);
         }
-        tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+        tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+        tx.prices[AssetTypes.ETH] = tx.prices[AssetTypes.ETH] || {};
+        tx.prices[AssetTypes.ETH][AssetTypes.WETH] = "1";
         tx.transfers.push({
           assetType,
           category: TransferCategories.SwapOut,

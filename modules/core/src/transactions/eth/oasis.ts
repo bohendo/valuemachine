@@ -15,9 +15,9 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { getUnique, parseEvent, quantitiesAreClose } from "../utils";
+import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
 
-const { add, round } = math;
+const { add, div, round, sub } = math;
 const source = TransactionSources.Oasis;
 
 ////////////////////////////////////////
@@ -94,7 +94,7 @@ export const oasisParser = (
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     if (machineAddresses.some(e => smeq(e.address, address))) {
-      tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
       const event = parseEvent(oasisInterface, txLog);
 
       if (event.name === "LogTake") {
@@ -128,17 +128,17 @@ export const oasisParser = (
           outAsset = outGem;
         }
 
-        const inIndex = tx.transfers.findIndex(findSwap(inAmt, inAsset));
-        if (inIndex >= 0) {
-          tx.transfers[inIndex].category = TransferCategories.SwapIn;
+        const swapIn = tx.transfers.find(findSwap(inAmt, inAsset));
+        if (swapIn) {
+          swapIn.category = TransferCategories.SwapIn;
         } else {
           log.debug(`Can't find swap in transfer for ${inAmt} ${inAsset}`);
         }
 
-        const outIndex = tx.transfers.findIndex(findSwap(outAmt, outAsset));
-        if (outIndex >= 0) {
-          tx.transfers[outIndex].category = TransferCategories.SwapOut;
-          outAsset = tx.transfers[outIndex].assetType;
+        const swapOut = tx.transfers.find(findSwap(outAmt, outAsset));
+        if (swapOut) {
+          swapOut.category = TransferCategories.SwapOut;
+          outAsset = swapOut.assetType;
         } else {
           log.debug(`Can't find swap out transfer for ${outAmt} ${outAsset}`);
         }
@@ -156,22 +156,52 @@ export const oasisParser = (
     return tx;
   }
 
-  const inIndex = tx.transfers.findIndex(findSwap(inTotal, inAsset));
-  if (inIndex >= 0) {
-    tx.transfers[inIndex].category = TransferCategories.SwapIn;
-    inAsset = tx.transfers[inIndex].assetType;
+  const swapIn = tx.transfers.find(findSwap(inTotal, inAsset));
+  if (swapIn) {
+    swapIn.category = TransferCategories.SwapIn;
+    inAsset = swapIn.assetType;
   } else {
     log.debug(`Can't find swap in transfer for ${inTotal} ${inAsset}`);
   }
-
-  const outIndex = tx.transfers.findIndex(findSwap(outTotal, outAsset));
-  if (outIndex >= 0) {
-    tx.transfers[outIndex].category = TransferCategories.SwapOut;
-    outAsset = tx.transfers[outIndex].assetType;
+  const swapOut = tx.transfers.find(findSwap(outTotal, outAsset));
+  if (swapOut) {
+    swapOut.category = TransferCategories.SwapOut;
+    outAsset = swapOut.assetType;
   } else {
     log.debug(`Can't find swap out transfer for ${outTotal} ${outAsset}`);
   }
 
+  ////////////////////////////////////////
+  // Set prices
+  const swapsIn = tx.transfers.filter(t => t.category === TransferCategories.SwapIn);
+  const swapsOut = tx.transfers.filter(t => t.category === TransferCategories.SwapOut);
+  const assetsOut = rmDups(swapsOut.map(swap => swap.assetType));
+  const assetsIn = rmDups(
+    swapsIn
+      .map(swap => swap.assetType)
+      // If some input asset was refunded, remove this from the output asset list
+      .filter(asset => !assetsOut.includes(asset))
+  );
+  const sum = (acc, cur) => add(acc, cur.quantity);
+  if (assetsIn.length === 1 && assetsOut.length === 1) {
+    const amtIn = sub(
+      swapsIn.reduce(sum, "0"),
+      // Subtract refund if present
+      swapsOut.filter(swap => swap.assetType === assetsIn[0]).reduce(sum, "0"),
+    );
+    const amtOut = swapsOut
+      .filter(swap => swap.assetType !== assetsIn[0])
+      .reduce(sum, "0");
+    tx.prices[assetsIn[0]] = tx.prices[assetsIn[0]] || {};
+    tx.prices[assetsIn[0]][assetsOut[0]] = div(amtIn, amtOut);
+    tx.prices[assetsOut[0]] = tx.prices[assetsOut[0]] || {};
+    tx.prices[assetsOut[0]][assetsIn[0]] = div(amtOut, amtIn);
+  } else {
+    log.warn(`Unable to get prices from swap w input=${assetsIn} & output=${assetsOut}`);
+  }
+
+  ////////////////////////////////////////
+  // Set description
   const description = `${getName(actor)} swapped ${
     round(outTotal)} ${outAsset
   } for ${

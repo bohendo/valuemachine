@@ -14,7 +14,7 @@ import { getLogger, math } from "@finances/utils";
 
 const { diff, div, lt } = math;
 
-export const getUnique = (array: string[]): string[] =>
+export const rmDups = (array: string[]): string[] =>
   Array.from(new Set([...array]));
 
 export const quantitiesAreClose = (q1: DecimalString, q2: DecimalString, wiggleRoom = "0.000001") =>
@@ -112,11 +112,11 @@ export const mergeTransaction = (
       transactions[mergeCandidateIndex] = {
         ...transactions[mergeCandidateIndex],
         ...newTx,
-        sources: getUnique([
+        sources: rmDups([
           ...transactions[mergeCandidateIndex].sources,
           ...newTx.sources
         ]) as TransactionSources[],
-        tags: getUnique([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
+        tags: rmDups([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
       };
 
       log.info(
@@ -181,11 +181,11 @@ export const mergeTransaction = (
     ...newTx,
     ...transactions[mergeCandidateIndex],
     description: transactions[mergeCandidateIndex].description,
-    sources: getUnique([
+    sources: rmDups([
       ...transactions[mergeCandidateIndex].sources,
       ...newTx.sources
     ]) as TransactionSources[],
-    tags: getUnique([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
+    tags: rmDups([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
     date: newTx.date,
   };
 

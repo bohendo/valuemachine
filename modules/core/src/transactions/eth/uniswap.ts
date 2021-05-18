@@ -14,9 +14,9 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { getUnique, parseEvent } from "../utils";
+import { rmDups, parseEvent } from "../utils";
 
-const { round } = math;
+const { add, div, mul, round, sub } = math;
 const source = TransactionSources.Uniswap;
 
 ////////////////////////////////////////
@@ -155,7 +155,7 @@ export const uniswapParser = (
   )) {
     const address = sm(txLog.address);
     const index = txLog.index || 1;
-    tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
 
     // Parse events
     let subsrc, event;
@@ -177,7 +177,7 @@ export const uniswapParser = (
     }
 
     ////////////////////////////////////////
-    // Swaps & Liquidity Deposit/Withdrawal
+    // Core Uniswap Interactions: swap, deposit liq, withdraw liq
     if ([
       "EthPurchase", "TokenPurchase", "AddLiquidity", "RemoveLiquidity", // V1
       "Swap", "Mint", "Burn", // V2
@@ -191,24 +191,100 @@ export const uniswapParser = (
       swaps.in.map(swap => { swap.category = TransferCategories.SwapIn; return swap; });
       swaps.out.map(swap => { swap.category = TransferCategories.SwapOut; return swap; });
       swaps.in.forEach(swap => { swap.index = swap.index || index; });
+      swaps.out.forEach(swap => { swap.index = swap.index || index; });
+      const assetsOut = rmDups(swaps.out.map(swap => swap.assetType));
+      const assetsIn = rmDups(
+        swaps.in
+          .map(swap => swap.assetType)
+          // If some input asset was refunded, remove this from the output asset list
+          .filter(asset => !assetsOut.includes(asset))
+      );
+      const sum = (acc, cur) => add(acc, cur.quantity);
+
+      ////////////////////////////////////////
+      // Swaps
       if (["Swap", "EthPurchase", "TokenPurchase"].includes(event.name)) {
         tx.description = `${getName(ethTx.from)} swapped ${
           round(swaps.out[0].quantity)
         } ${swaps.out[0].assetType}${swaps.out.length > 1 ? ", etc" : ""} for ${
           round(swaps.in[0].quantity)
         } ${swaps.in[0].assetType}${swaps.in.length > 1 ? ", etc" : ""} via ${subsrc}`;
+        // Set prices
+        if (assetsIn.length === 1 && assetsOut.length === 1) {
+          const amtIn = sub(
+            swaps.in.reduce(sum, "0"),
+            // Subtract refund if present
+            swaps.out.filter(swap => swap.assetType === assetsIn[0]).reduce(sum, "0"),
+          );
+          const amtOut = swaps.out
+            .filter(swap => swap.assetType !== assetsIn[0])
+            .reduce(sum, "0");
+          tx.prices[assetsIn[0]] = tx.prices[assetsIn[0]] || {};
+          tx.prices[assetsIn[0]][assetsOut[0]] = div(amtIn, amtOut);
+          tx.prices[assetsOut[0]] = tx.prices[assetsOut[0]] || {};
+          tx.prices[assetsOut[0]][assetsIn[0]] = div(amtOut, amtIn);
+        } else {
+          log.warn(`Unable to get prices from swap w input=${assetsIn} & output=${assetsOut}`);
+        }
+
+      ////////////////////////////////////////
+      // Deposit Liquidity
       } else if (["Mint", "AddLiquidity"].includes(event.name)) {
         tx.description = `${getName(ethTx.from)} deposited ${
           round(swaps.out[0].quantity)
         } ${swaps.out[0].assetType} and ${
           round(swaps.out[1].quantity)
         } ${swaps.out[1].assetType} into ${subsrc}`;
+        if (assetsOut.length === 2 && assetsIn.length === 1) {
+          const amtsOut = assetsOut.map(asset => sub(
+            swaps.out.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+            // Subtract refund if present
+            swaps.in.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+          ));
+          const amtIn = swaps.in
+            .filter(swap => !assetsOut.includes(swap.assetType))
+            .reduce(sum, "0");
+          // Get prices of the two liq inputs relative to each other
+          tx.prices[assetsOut[0]] = tx.prices[assetsOut[0]] || {};
+          tx.prices[assetsOut[0]][assetsOut[1]] = div(amtsOut[0], amtsOut[1]);
+          tx.prices[assetsOut[1]] = tx.prices[assetsOut[1]] || {};
+          tx.prices[assetsOut[1]][assetsOut[0]] = div(amtsOut[1], amtsOut[0]);
+          // Get prices of the liq tokens relative to each input
+          tx.prices[assetsOut[0]][assetsIn[0]] = div(mul(amtsOut[0], "2"), amtIn);
+          tx.prices[assetsOut[1]][assetsIn[0]] = div(mul(amtsOut[1], "2"), amtIn);
+        } else {
+          log.warn(`Unable to get prices from deposit w input=${assetsIn} & output=${assetsOut}`);
+        }
+
+      ////////////////////////////////////////
+      // Withdraw Liquidity
       } else if (["Burn", "RemoveLiquidity"].includes(event.name)) {
         tx.description = `${getName(ethTx.from)} withdrew ${
           round(swaps.in[0].quantity)
         } ${swaps.in[0].assetType} and ${
           round(swaps.in[1].quantity)
         } ${swaps.in[1].assetType} from ${subsrc}`;
+        if (assetsIn.length === 2 && assetsOut.length === 1) {
+          const amtsIn = assetsIn.map(asset => sub(
+            swaps.in.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+            // Subtract refund if present
+            swaps.out.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+          ));
+          const amtOut = swaps.out
+            .filter(swap => !assetsIn.includes(swap.assetType))
+            .reduce(sum, "0");
+          // Get prices of the two liq inputs relative to each other
+          tx.prices[assetsIn[0]] = tx.prices[assetsIn[0]] || {};
+          tx.prices[assetsIn[0]][assetsIn[1]] = div(amtsIn[0], amtsIn[1]);
+          tx.prices[assetsIn[1]] = tx.prices[assetsIn[1]] || {};
+          tx.prices[assetsIn[1]][assetsIn[0]] = div(amtsIn[1], amtsIn[0]);
+          // Get prices of the liq tokens relative to each input
+          tx.prices[assetsIn[0]][assetsOut[0]] = div(mul(amtsIn[0], "2"), amtOut);
+          tx.prices[assetsIn[1]][assetsOut[0]] = div(mul(amtsIn[1], "2"), amtOut);
+        } else {
+          log.warn(`Unable to get prices from deposit w input=${assetsOut} & input=${assetsIn}`);
+        }
+
       } else {
         log.warn(`Missing ${event.name} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
       }
@@ -231,7 +307,7 @@ export const uniswapParser = (
       } ${airdrop.assetType} from ${subsrc}`;
 
     ////////////////////////////////////////
-    // UNI Mining Pool
+    // UNI Mining Pool Deposit
     } else if (event.name === "Staked") {
       const deposit = tx.transfers.find((transfer: Transfer): boolean =>
         isSelf(transfer.from)
@@ -251,6 +327,9 @@ export const uniswapParser = (
       tx.description = `${getName(ethTx.from)} deposited ${
         deposit.assetType
       } into ${subsrc} staking pool`;
+
+    ////////////////////////////////////////
+    // UNI Mining Pool Withdraw
     } else if (event.name === "Withdrawn") {
       const withdraw = tx.transfers.find((transfer: Transfer): boolean =>
         isSelf(transfer.to)

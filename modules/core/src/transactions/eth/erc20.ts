@@ -15,7 +15,7 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { getUnique, parseEvent } from "../utils";
+import { rmDups, parseEvent } from "../utils";
 
 const { round } = math;
 
@@ -83,7 +83,7 @@ export const erc20Parser = (
     if (isToken(address)) {
       const event = parseEvent(erc20Interface, txLog);
       if (!event.name) continue;
-      tx.sources = getUnique([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
       const assetType = getName(address) as AssetTypes;
       // Skip transfers that don't concern self accounts
       if (!isSelf(event.args.from) && !isSelf(event.args.to)) {

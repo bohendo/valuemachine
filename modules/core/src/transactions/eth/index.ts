@@ -66,6 +66,7 @@ export const parseEthTx = (
   let tx = {
     date: (new Date(ethTx.timestamp)).toISOString(),
     hash: ethTx.hash,
+    prices: {},
     sources: [],
     tags: [],
     transfers: [{

@@ -105,8 +105,8 @@ export const Taxes = ({
           }
         }
         const finalState = getState({ stateJson: state, addressBook, prices });
-        store.save(StoreKeys.State, state);
-        store.save(StoreKeys.Events, vmEvents);
+        // store.save(StoreKeys.State, state);
+        // store.save(StoreKeys.Events, vmEvents);
         console.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
         console.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
         const capGains = vmEvents.filter(e => (e.type === EventTypes.CapitalGains));
