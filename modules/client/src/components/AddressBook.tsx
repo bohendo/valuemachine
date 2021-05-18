@@ -399,6 +399,15 @@ export const AddressBook = ({
     };
   };
 
+  const handleExport = () => {
+    const output = JSON.stringify({ addressBook: profile.addressBook }, null, 2);
+    const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
+    const a = document.createElement("a");
+    a.href = "data:" + data;
+    a.download = "addressBook.json";
+    a.click();
+  };
+
   const addNewAddress = () => {
     if (!newAddress.address) {
       setNewAddressError("Address is required");
@@ -634,7 +643,7 @@ export const AddressBook = ({
             <Button
               className={classes.exporter}
               color="primary"
-              onClick={() => console.log("Export functionality coming soon")}
+              onClick={handleExport}
               size="small"
               startIcon={<DownloadIcon />}
               variant="contained"
