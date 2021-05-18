@@ -108,15 +108,16 @@ export const tornadoParser = (
     tx.description = `${getName(withdraw.to)} withdrew ${amt} ${asset} from ${source}`;
   });
 
-  // Deal with TORN & vTORN interactions
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     if (govTokenAddresses.some(e => smeq(e.address, address))) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+      // Handle vTORN airdrop
       if (smeq(address, voucherAddress) && smeq(ethTx.from, airdropperAddress)) {
         const airdrop = tx.transfers.find(t =>
           isSelf(t.to) && t.assetType === getName(voucherAddress)
         );
+        // The real on-chain from is an ephemeral multi-send contract
         airdrop.from = airdropperAddress;
         airdrop.category = TransferCategories.Income;
         tx.description = `${getName(airdrop.to)} recieved an airdrop of ${
