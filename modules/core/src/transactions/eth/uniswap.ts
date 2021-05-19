@@ -211,20 +211,23 @@ export const uniswapParser = (
         } ${swaps.in[0].assetType}${swaps.in.length > 1 ? ", etc" : ""} via ${subsrc}`;
         // Set prices
         if (assetsIn.length === 1 && assetsOut.length === 1) {
-          const amtIn = sub(
-            swaps.in.reduce(sum, "0"),
+
+          const amtOut = sub(
+            swaps.out.reduce(sum, "0"),
             // Subtract refund if present
-            swaps.out.filter(swap => swap.assetType === assetsIn[0]).reduce(sum, "0"),
+            swaps.in.filter(swap => swap.assetType === assetsOut[0]).reduce(sum, "0"),
           );
-          const amtOut = swaps.out
-            .filter(swap => swap.assetType !== assetsIn[0])
+
+          const amtIn = swaps.in
+            .filter(swap => swap.assetType !== assetsOut[0])
             .reduce(sum, "0");
-          tx.prices[assetsIn[0]] = tx.prices[assetsIn[0]] || {};
-          tx.prices[assetsIn[0]][assetsOut[0]] = div(amtIn, amtOut);
+
           tx.prices[assetsOut[0]] = tx.prices[assetsOut[0]] || {};
           tx.prices[assetsOut[0]][assetsIn[0]] = div(amtOut, amtIn);
+          tx.prices[assetsIn[0]] = tx.prices[assetsIn[0]] || {};
+          tx.prices[assetsIn[0]][assetsOut[0]] = div(amtIn, amtOut);
         } else {
-          log.warn(`Unable to get prices from swap w input=${assetsIn} & output=${assetsOut}`);
+          log.warn(`Unable to get prices from swap w input=${assetsOut} & input=${assetsIn}`);
         }
 
       ////////////////////////////////////////
