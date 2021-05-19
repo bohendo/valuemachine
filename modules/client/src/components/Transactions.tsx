@@ -151,7 +151,7 @@ const TransactionRow = ({
   );
 };
 
-export const TransactionManager = ({
+export const TransactionExplorer = ({
   addressBook,
   transactions,
   setTransactions,

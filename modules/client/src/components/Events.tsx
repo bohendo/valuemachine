@@ -57,7 +57,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 }));
 
-export const Taxes = ({
+export const EventExplorer = ({
   addressBook,
   events,
   setEvents,
@@ -256,8 +256,7 @@ export const Taxes = ({
                 <TableCell><strong> Asset </strong></TableCell>
                 <TableCell><strong> Amount </strong></TableCell>
                 <TableCell><strong> Price </strong></TableCell>
-                <TableCell><strong> Purchase Date </strong></TableCell>
-                <TableCell><strong> Purchase Price </strong></TableCell>
+                <TableCell><strong> Description </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -278,8 +277,7 @@ export const Taxes = ({
                     <TableCell> {evt.assetType} </TableCell>
                     <TableCell> {math.round(evt.quantity, 4)} </TableCell>
                     <TableCell> {evt.assetPrice} </TableCell>
-                    <TableCell> {evt.purchaseDate} </TableCell>
-                    <TableCell> {evt.purchasePrice} </TableCell>
+                    <TableCell> {evt.description} </TableCell>
                   </TableRow>
                 ))}
             </TableBody>
