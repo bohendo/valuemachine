@@ -91,7 +91,7 @@ export const parseEthTx = (
     }`);
     ethTx.to = newContract; // overwrite to make later steps simpler
     tx.transfers[0].to = newContract;
-    tx.description = `${getName(ethTx.from)} created a new contract: ${newContract}`;
+    tx.description = `${getName(ethTx.from)} created a new contract: ${getName(newContract)}`;
     log.info(`Detected a newly created contract`);
   }
 

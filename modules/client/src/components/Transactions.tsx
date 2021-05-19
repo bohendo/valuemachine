@@ -1,6 +1,7 @@
 import { getTransactions } from "@finances/core";
 import {
   AddressBook,
+  AddressCategories,
   Transaction,
   Transactions,
   TransactionsJson,
@@ -63,11 +64,8 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   subtitle: {
     margin: theme.spacing(2),
   },
-  container: {
-    maxWidth: "100%",
-  },
   paper: {
-    minWidth: "750px",
+    minWidth: "850px",
     padding: theme.spacing(2),
   },
   dateFilter: {
@@ -94,11 +92,11 @@ const TransactionRow = ({
   return (
     <React.Fragment>
       <TableRow className={classes.row}>
-        <TableCell> {tx.date.replace("T", " ")} </TableCell>
+        <TableCell> {tx.date.replace("T", " ").replace(".000Z", "")} </TableCell>
         <TableCell> {tx.description} </TableCell>
         <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
-        <TableCell onClick={() => setOpen(!open)}>
+        <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
           {`${tx.transfers.length} transfer${tx.transfers.length === 1 ? "" : "s"}`}
           <IconButton aria-label="expand row" size="small" >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -108,7 +106,7 @@ const TransactionRow = ({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box mb={2} mx={4}>
+            <Box pb={2} px={4}>
               <Typography variant="h6" gutterBottom component="div">
                 Transfers
               </Typography>
@@ -154,7 +152,7 @@ const TransactionRow = ({
   );
 };
 
-export const TransactionManager = ({
+export const TransactionExplorer = ({
   addressBook,
   transactions,
   setTransactions,
@@ -389,9 +387,12 @@ export const TransactionManager = ({
           onChange={changeFilterAccount}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.values(addressBook?.json || []).filter(account => account.category === "self").map(account => (
-            <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
-          ))};
+          {Object.values(addressBook?.json || [])
+            .filter(account => account.category === AddressCategories.Self)
+            .map(account => (
+              <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
+            ))
+          };
         </Select>
       </FormControl>
 

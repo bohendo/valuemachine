@@ -14,7 +14,7 @@ export const f1040s1 = (vmEvents: Event[], oldForms: Forms): Forms => {
 
   let prizeMoney = "0";
   processIncome(vmEvents, (income: IncomeEvent, value: string): void => {
-    if (income.taxTags.includes("prize")) {
+    if (income.tags.includes("prize")) {
       prizeMoney = math.add(prizeMoney, value);
       log.info(`Adding income of ${value} from ${income.description}`);
     }

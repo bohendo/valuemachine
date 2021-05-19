@@ -6,7 +6,6 @@ import {
   Prices,
   StateJson,
   Transaction,
-  TransferCategories,
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
 
@@ -17,11 +16,14 @@ export const getValueMachine = ({
   addressBook,
   prices,
   logger,
+  unitOfAccount,
 }: {
   addressBook: AddressBook,
   prices: Prices,
   logger?: Logger
+  unitOfAccount?: AssetTypes,
 }): any => {
+  const uoa = unitOfAccount || AssetTypes.ETH;
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
   const { getName } = addressBook;
 
@@ -40,17 +42,6 @@ export const getValueMachine = ({
     ////////////////////////////////////////
     // VM Core
 
-    // Get swapsIn & swapsOut to determine each assetChunk's full history
-    const swapsIn = transaction.transfers.filter(t => t.category === TransferCategories.SwapIn);
-    const swapsOut = transaction.transfers.filter(t => t.category === TransferCategories.SwapOut);
-    if (swapsIn.length && swapsOut.length) {
-      log.debug(`Found some swaps`);
-    } else if (swapsIn.length && !swapsOut.length) {
-      log.warn(`Found swaps in but no matching swaps out`);
-    } else if (!swapsIn.length && swapsOut.length) {
-      log.warn(`Found swaps out but no matching swaps in`);
-    }
-
     const later = [];
     for (const transfer of transaction.transfers) {
       const { assetType, fee, from, quantity, to } = transfer;
@@ -66,12 +57,20 @@ export const getValueMachine = ({
       let chunks;
       try {
         if (fee) {
-          feeChunks = state.getChunks(from, assetType, fee, transaction);
+          feeChunks = state.getChunks(from, assetType, fee, transaction, unitOfAccount);
           log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
         }
-        chunks = state.getChunks(from, assetType, quantity, transaction);
+        chunks = state.getChunks(from, assetType, quantity, transaction, unitOfAccount);
         chunks.forEach(chunk => state.putChunk(to, chunk));
-        logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer, prices));
+        logs.push(...emitTransferEvents(
+          addressBook,
+          chunks,
+          transaction,
+          transfer,
+          prices,
+          uoa,
+          log,
+        ));
       } catch (e) {
         log.debug(`Error while processing tx ${e.message}: ${JSON.stringify(transaction)}`);
         if (e.message.includes("attempted to spend")) {
@@ -94,17 +93,17 @@ export const getValueMachine = ({
         getName(to)
       } (attempt 2)`);
       if (fee) {
-        const feeChunks = state.getChunks(from, assetType, fee, transaction);
+        const feeChunks = state.getChunks(from, assetType, fee, transaction, unitOfAccount);
         log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
       }
-      const chunks = state.getChunks(from, assetType, quantity, transaction);
+      const chunks = state.getChunks(from, assetType, quantity, transaction, unitOfAccount);
       chunks.forEach(chunk => state.putChunk(to, chunk));
       logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer, prices));
     }
 
     ////////////////////////////////////////
 
-    logs.push(...emitTransactionEvents(addressBook, transaction, state));
+    logs.push(...emitTransactionEvents(addressBook, transaction, state, log));
 
     state.touch(transaction.date);
 

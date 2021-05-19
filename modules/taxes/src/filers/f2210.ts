@@ -124,12 +124,12 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
 
   // Get business expenses & tax payments
   processExpenses(vmEvents, (event: ExpenseEvent, value: string): void => {
-    if (event.taxTags.some(tag => tag.startsWith("f1040sc"))) {
+    if (event.tags.some(tag => tag.startsWith("f1040sc"))) {
       expenses[getCol(event.date)] = math.add(
         expenses[getCol(event.date)],
         math.round(value),
       );
-    } else if (event.taxTags.includes("f1040s3.L8")) {
+    } else if (event.tags.includes("f1040s3.L8")) {
       allPayments.push({ date: new Date(event.date).getTime(), value });
       payments[getCol(event.date)] = math.add(
         payments[getCol(event.date)],

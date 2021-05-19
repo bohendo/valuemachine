@@ -2,17 +2,21 @@ import { getPrices, getState, getValueMachine } from "@finances/core";
 import {
   AddressBook,
   emptyState,
+  Event,
   Events,
   EventTypes,
   PricesJson,
   Transactions,
 } from "@finances/types";
 import { math } from "@finances/utils";
-import Button from "@material-ui/core/Button";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import Box from "@material-ui/core/Box";
+import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import Collapse from "@material-ui/core/Collapse";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
+import IconButton from "@material-ui/core/IconButton";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
@@ -25,6 +29,8 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
 import React, { useEffect, useState } from "react";
 
@@ -57,7 +63,105 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 }));
 
-export const Taxes = ({
+const SimpleTable = ({
+  data,
+}: {
+  data: any;
+}) => {
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell><strong> Key </strong></TableCell>
+          <TableCell><strong> Value </strong></TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {Object.entries(data).map(([key, value]: string[], i: number) => (
+          <TableRow key={i}>
+            <TableCell> {key} </TableCell>
+            <TableCell> {value} </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+};
+
+const EventRow = ({
+  event,
+}: {
+  event: Event;
+}) => {
+  const [open, setOpen] = useState(false);
+  const swapToStr = (swaps) =>
+    Object.entries(swaps).map(([key, val]) => `${val} ${key}`).join(" and ");
+  const pricesToDisplay = (prices) => {
+    const output = {};
+    const targets = new Set();
+    Object.entries(prices).forEach(([uoa, entry]) => {
+      Object.entries(entry).forEach(([asset, price]) => {
+        targets.add(asset);
+        output[`${asset} Price`] = output[`${asset} Price`] || [];
+        output[`${asset} Price`].push(`${math.round(price, 4)} ${uoa}`);
+      });
+    });
+    Object.keys(output).forEach(key => {
+      output[key] = output[key].join(" or ");
+    });
+    return output;
+  };
+  return (
+    <React.Fragment>
+      <TableRow>
+        <TableCell> {event.date.replace("T", " ").replace(".000Z", "")} </TableCell>
+        <TableCell> {event.type} </TableCell>
+        <TableCell> {event.description} </TableCell>
+        <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
+          Details
+          <IconButton aria-label="expand row" size="small" >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box pb={2} px={4}>
+              <Typography variant="h6" gutterBottom component="div">
+                {`${event.type} Details`}
+              </Typography>
+              <SimpleTable data={
+                event.type === EventTypes.Expense ? {
+                  Asset: event.assetType,
+                  Amount: math.round(event.quantity, 4),
+                  Recipient: event.to,
+                } : event.type === EventTypes.Income ? {
+                  Asset: event.assetType,
+                  Amount: math.round(event.quantity, 4),
+                  Source: event.from,
+                } : event.type === EventTypes.CapitalGains ? {
+                  asset: event.assetType,
+                  amount: math.round(event.quantity, 4),
+                  purchaseDate: event.purchaseDate.replace("T", " ").replace(".000Z", ""),
+                  purchasePrice: event.purchasePrice,
+                  saleDate: event.date.replace("T", " ").replace(".000Z", ""),
+                  salePrice: event.assetPrice,
+                } : event.type === EventTypes.Trade ? {
+                  ["Exact Give"]: swapToStr(event.swapsOut),
+                  ["Exact Take"]: swapToStr(event.swapsIn),
+                  ...pricesToDisplay(event.prices),
+                } : {}
+              }/>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </React.Fragment>
+  );
+};
+
+export const EventExplorer = ({
   addressBook,
   events,
   setEvents,
@@ -73,7 +177,7 @@ export const Taxes = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
-  const [unitOfAccount, setUnitOfAccount] = useState("");
+  const [unitOfAccount, setUnitOfAccount] = useState("ETH");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as any);
@@ -84,6 +188,15 @@ export const Taxes = ({
     setFilteredEvents(events.filter(event =>
       (!filterAsset || event.assetType === filterAsset)
       && (!filterType || event.type === filterType)
+    ).sort((e1: Events, e2: Events) =>
+      // Sort by date, newest first
+      (e1.date > e2.date) ? -1
+        : (e1.date < e2.date) ? 1
+          // Then by purchase date, oldest first
+          : (e1.purchaseDate > e2.purchaseDate) ? 1
+            : (e1.purchaseDate < e2.purchaseDate) ? -1
+              : 0
+
     ));
   }, [events, filterAsset, filterType]);
 
@@ -114,7 +227,7 @@ export const Taxes = ({
     const res = await new Promise(async res => {
       try {
         const prices = getPrices({ pricesJson, store, unitOfAccount });
-        const valueMachine = getValueMachine({ addressBook, prices });
+        const valueMachine = getValueMachine({ addressBook, prices, unitOfAccount });
         // stringify/parse to ensure we don't update the imported objects directly
         let state = JSON.parse(JSON.stringify(emptyState));
         let vmEvents = [];
@@ -175,10 +288,10 @@ export const Taxes = ({
         <Select
           labelId="select-unit-of-account-label"
           id="select-unit-of-account"
-          value={unitOfAccount || ""}
+          value={unitOfAccount || "ETH"}
           onChange={handleUnitChange}
         >
-          <MenuItem value={""}>-</MenuItem>
+          <MenuItem value={"ETH"}>ETH</MenuItem>
           <MenuItem value={"USD"}>USD</MenuItem>
           <MenuItem value={"INR"}>INR</MenuItem>
         </Select>
@@ -223,7 +336,7 @@ export const Taxes = ({
           onChange={handleFilterTypeChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(events.map(e => e.type))).map((type, i) => (
+          {Object.keys(EventTypes).map((type, i) => (
             <MenuItem key={i} value={type}>{type}</MenuItem>
           ))}
         </Select>
@@ -253,34 +366,15 @@ export const Taxes = ({
               <TableRow>
                 <TableCell><strong> Date </strong></TableCell>
                 <TableCell><strong> Type </strong></TableCell>
-                <TableCell><strong> Asset </strong></TableCell>
-                <TableCell><strong> Amount </strong></TableCell>
-                <TableCell><strong> Price </strong></TableCell>
-                <TableCell><strong> Purchase Date </strong></TableCell>
-                <TableCell><strong> Purchase Price </strong></TableCell>
+                <TableCell><strong> Description </strong></TableCell>
+                <TableCell><strong> Details </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredEvents
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .sort((e1: Events, e2: Events) =>
-                  // Sort by date, newest first
-                  (e1.date > e2.date) ? -1
-                    : (e1.date < e2.date) ? 1
-                      // Then by purchase date, oldest first
-                      : (e1.purchaseDate > e2.purchaseDate) ? 1
-                        : (e1.purchaseDate < e2.purchaseDate) ? -1
-                          : 0
-                ).map((evt: Events, i: number) => (
-                  <TableRow key={i}>
-                    <TableCell> {evt.date.replace("T", " ")} </TableCell>
-                    <TableCell> {evt.type} </TableCell>
-                    <TableCell> {evt.assetType} </TableCell>
-                    <TableCell> {math.round(evt.quantity, 4)} </TableCell>
-                    <TableCell> {evt.assetPrice} </TableCell>
-                    <TableCell> {evt.purchaseDate} </TableCell>
-                    <TableCell> {evt.purchasePrice} </TableCell>
-                  </TableRow>
+                .map((event: Events, i: number) => (
+                  <EventRow key={i} event={event} />
                 ))}
             </TableBody>
           </Table>
