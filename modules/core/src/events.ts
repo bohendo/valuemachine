@@ -2,6 +2,7 @@ import {
   AddressBook,
   AddressCategories,
   AssetChunk,
+  AssetTypes,
   Events,
   EventTypes,
   Logger,
@@ -92,7 +93,10 @@ export const emitTransferEvents = (
   transaction: Transaction,
   transfer: Transfer,
   prices: Prices,
+  uoa: AssetTypes = AssetTypes.ETH,
+  logger?: Logger,
 ): Events => {
+  const log = (logger || getLogger()).child({ module: "TransferEvent" });
   const { getName } = addressBook;
   const events = [];
   const { assetType, category, from, quantity, to } = transfer;
@@ -106,7 +110,7 @@ export const emitTransferEvents = (
   }
 
   const newEvent = {
-    assetPrice: prices.getPrice(transaction.date, assetType),
+    assetPrice: prices.getPrice(transaction.date, assetType, uoa),
     assetType: assetType,
     date: transaction.date,
     quantity,
@@ -118,46 +122,57 @@ export const emitTransferEvents = (
     newEvent.from = from;
     newEvent.description = `Recieved ${round(quantity)} ${assetType} from ${getName(from)} `;
     events.push(newEvent);
+
   } else if (category === TransferCategories.Expense) {
     newEvent.to = to;
     newEvent.description = `Paid ${round(quantity)} ${assetType} to ${getName(to)} `;
     events.push(newEvent);
+
   } else if (category === TransferCategories.Borrow) {
     newEvent.from = from;
     newEvent.description = `Borrowed ${round(quantity)} ${assetType} from ${getName(from)} `;
     events.push(newEvent);
+
   } else if (category === TransferCategories.Repay) {
     newEvent.to = to;
     newEvent.description = `Repaied ${round(quantity)} ${assetType} to ${getName(to)} `;
     events.push(newEvent);
+
   } else if (category === TransferCategories.Deposit) {
     newEvent.to = to;
-    newEvent.description = `Deposited ${round(quantity)} ${assetType} from ${getName(to)} `;
+    newEvent.description = `Deposited ${round(quantity)} ${assetType} to ${getName(to)} `;
     events.push(newEvent);
+
   } else if (category === TransferCategories.Withdraw) {
     newEvent.from = from;
     newEvent.description = `Withdrew ${round(quantity)} ${assetType} from ${getName(from)} `;
     events.push(newEvent);
-  } else if (category === TransferCategories.SwapOut && gt(transfer.quantity, "0")) {
 
+  } else if (category === TransferCategories.SwapOut && gt(transfer.quantity, "0")) {
     chunks.forEach(chunk => {
-      const currentPrice = prices.getPrice(transaction.date, chunk.assetType);
+      const currentPrice = prices.getPrice(transaction.date, chunk.assetType, uoa);
+      if (!currentPrice) {
+        log.warn(`Price in units of ${uoa} is unavailable for ${assetType} on ${transaction.date}`);
+      }
       const purchaseValue = mul(chunk.quantity, chunk.purchasePrice);
       const saleValue = mul(chunk.quantity, currentPrice);
       const gain = sub(saleValue, purchaseValue); // is negative if capital loss
-      events.push({
-        assetPrice: currentPrice,
-        assetType: chunk.assetType,
-        date: transaction.date,
-        description: `Capital Gained  ${round(chunk.quantity, 4)} ${chunk.assetType}`,
-        gain,
-        purchaseDate: chunk.dateRecieved,
-        purchasePrice: chunk.purchasePrice,
-        quantity: chunk.quantity,
-        type: EventTypes.CapitalGains,
-      });
+      if (gt(gain, "0")) {
+        events.push({
+          assetPrice: currentPrice,
+          assetType: chunk.assetType,
+          date: transaction.date,
+          description: `${round(chunk.quantity)} ${chunk.assetType} ${
+            gt(gain, "0") ? "gained" : "lost"
+          } ${round(gain)} ${uoa} of value since we got it on ${chunk.dateRecieved}`,
+          gain,
+          purchaseDate: chunk.dateRecieved,
+          purchasePrice: chunk.purchasePrice,
+          quantity: chunk.quantity,
+          type: EventTypes.CapitalGains,
+        });
+      }
     });
-
   }
 
   return events;

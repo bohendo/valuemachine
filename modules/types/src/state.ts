@@ -28,6 +28,7 @@ export interface State {
     assetType: AssetTypes,
     quantity: DecimalString,
     tx: Transaction,
+    uoa: AssetTypes,
   ): AssetChunk[];
   getNetWorth(): NetWorth;
   getRelevantBalances(tx: Transaction): StateBalances;

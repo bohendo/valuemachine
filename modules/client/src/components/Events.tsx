@@ -96,7 +96,6 @@ const EventRow = ({
   const [open, setOpen] = useState(false);
   const swapToStr = (swaps) =>
     Object.entries(swaps).map(([key, val]) => `${val} ${key}`).join(" and ");
-
   const pricesToDisplay = (prices) => {
     const output = {};
     const targets = new Set();
@@ -112,7 +111,6 @@ const EventRow = ({
     });
     return output;
   };
-
   return (
     <React.Fragment>
       <TableRow>
@@ -179,7 +177,7 @@ export const EventExplorer = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
-  const [unitOfAccount, setUnitOfAccount] = useState("");
+  const [unitOfAccount, setUnitOfAccount] = useState("ETH");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as any);
@@ -229,7 +227,7 @@ export const EventExplorer = ({
     const res = await new Promise(async res => {
       try {
         const prices = getPrices({ pricesJson, store, unitOfAccount });
-        const valueMachine = getValueMachine({ addressBook, prices });
+        const valueMachine = getValueMachine({ addressBook, prices, unitOfAccount });
         // stringify/parse to ensure we don't update the imported objects directly
         let state = JSON.parse(JSON.stringify(emptyState));
         let vmEvents = [];
@@ -290,10 +288,10 @@ export const EventExplorer = ({
         <Select
           labelId="select-unit-of-account-label"
           id="select-unit-of-account"
-          value={unitOfAccount || ""}
+          value={unitOfAccount || "ETH"}
           onChange={handleUnitChange}
         >
-          <MenuItem value={""}>-</MenuItem>
+          <MenuItem value={"ETH"}>ETH</MenuItem>
           <MenuItem value={"USD"}>USD</MenuItem>
           <MenuItem value={"INR"}>INR</MenuItem>
         </Select>
