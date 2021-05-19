@@ -31,7 +31,7 @@ import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+// import axios from "axios";
 
 import { store } from "../utils";
 
@@ -136,38 +136,15 @@ export const PriceManager = ({
 
   const syncPrices = async () => {
     if (!transactions) return;
+    setSyncing(true);
+    console.log(`Syncing price data for ${transactions.length} transactions`);
     try {
-      setSyncing(true);
-      console.log(`Syncing price data for ${transactions.length} transactions`);
       const prices = getPrices({ pricesJson, store, unitOfAccount: uoa });
       for (const tx of transactions) {
-        const date = tx.date.split("T")[0];
-        const assets = Array.from(new Set([...tx.transfers.map(t => t.assetType)]));
-        for (const asset of assets) {
-          try {
-            /* TODO
-            Object.entries(tx.prices).forEach(
-              ([tmpUoa, tmpPrices]) => Object.entries(tmpPrices).forEach(
-                ([tmpAsset, tmpPrice) => {
-                  prices.setPrice(tmpPrice, date, tmpAsset, tmpUoa);
-                }
-              )
-            )
-            */
-            if (!prices.getPrice(date, asset)) {
-              const res = await axios.get(`/api/prices/${uoa}/${asset}/${date}`, { timeout: 21000 });
-              if (res.status === 200 && res.data) {
-                prices.setPrice(res.data, date, asset, uoa);
-              } else {
-                await prices.syncPrice(date, asset, uoa);
-              }
-            }
-          } catch (e) {
-            console.error(e);
-          }
-        }
-        setPrices({ ...prices.json });
+        // TODO: use axios to get price from server somehow
+        prices.syncTransaction(tx, uoa);
       }
+      setPrices({ ...prices.json });
     } catch (e) {
       console.error(`Failed to sync prices:`, e);
     }

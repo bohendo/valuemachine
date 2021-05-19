@@ -1,5 +1,6 @@
 import { AssetTypes } from "./assets";
 import { DecimalString, TimestampString } from "./strings";
+import { Transaction } from "./transactions";
 
 export type PriceList = {
   [unitOfAccount: string]: {
@@ -16,6 +17,7 @@ export interface Prices {
   getPrice(date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): string | undefined;
   setPrice(price: DecimalString, date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): void;
   syncPrice(date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): Promise<string>;
+  syncTransaction(tx: Transaction, givenUoa?: AssetTypes): Promise<void>;
 }
 
 export const emptyPrices = {} as PricesJson;

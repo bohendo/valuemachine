@@ -1,5 +1,6 @@
 import {
   AssetTypes,
+  EthereumAssets,
   DateString,
   emptyPrices,
   DecimalString,
@@ -9,6 +10,7 @@ import {
   Store,
   StoreKeys,
   TimestampString,
+  Transaction,
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
 import axios from "axios";
@@ -44,6 +46,9 @@ export const getPrices = ({
     }
     return (new Date(date)).toISOString().split("T")[0];
   };
+
+  // TODO: add uniswap subgraph apis to get ETH-DEFI pairs
+  // Then we can use coingecko only for ETH-FIAT pairs
 
   const getCoinGeckoPrice = async (
     date: DateString,
@@ -176,10 +181,37 @@ export const getPrices = ({
     return getPrice(date, asset, uoa) || getCoinGeckoPrice(date, asset, uoa);
   };
 
+  const syncTransaction = async (
+    tx: Transaction,
+    givenUoa?: AssetTypes,
+  ): Promise<void> => {
+    const date = formatDate(tx.date);
+    const uoa = givenUoa || defaultUoa || AssetTypes.ETH;
+    const assets = Array.from(new Set([...tx.transfers.map(t => t.assetType)]));
+    for (const asset of assets) {
+      try {
+        Object.entries(tx.prices).forEach(
+          ([tmpUoa, tmpPrices]) => Object.entries(tmpPrices).forEach(
+            ([tmpAsset, tmpPrice]) => {
+              setPrice(tmpPrice, date, tmpAsset as AssetTypes, tmpUoa as AssetTypes);
+            }
+          )
+        );
+        if (Object.keys(EthereumAssets).includes(asset)) {
+          syncPrice(date, asset, AssetTypes.ETH);
+        }
+        syncPrice(date, asset, uoa);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
   return {
     getPrice,
     json,
     setPrice,
     syncPrice,
+    syncTransaction,
   };
 };

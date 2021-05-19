@@ -21,7 +21,7 @@ export const getValueMachine = ({
   addressBook: AddressBook,
   prices: Prices,
   logger?: Logger
-  unitOfAccount: AssetTypes,
+  unitOfAccount?: AssetTypes,
 }): any => {
   const uoa = unitOfAccount || AssetTypes.ETH;
   const log = (logger || getLogger()).child({ module: "ValueMachine" });

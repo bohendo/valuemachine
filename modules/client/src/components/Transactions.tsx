@@ -1,6 +1,7 @@
 import { getTransactions } from "@finances/core";
 import {
   AddressBook,
+  AddressCategories,
   Transaction,
   Transactions,
   TransactionsJson,
@@ -386,9 +387,12 @@ export const TransactionExplorer = ({
           onChange={changeFilterAccount}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.values(addressBook?.json || []).filter(account => account.category === "self").map(account => (
-            <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
-          ))};
+          {Object.values(addressBook?.json || [])
+            .filter(account => account.category === AddressCategories.Self)
+            .map(account => (
+              <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
+            ))
+          };
         </Select>
       </FormControl>
 
