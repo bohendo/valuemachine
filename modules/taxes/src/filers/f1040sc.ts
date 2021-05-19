@@ -18,7 +18,7 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
 
   let totalIncome = "0";
   processIncome(vmEvents, (income: IncomeEvent, value: string): void => {
-    if (income.taxTags.includes("prize")) {
+    if (income.tags.includes("prize")) {
       log.debug(`Prize money goes on f1040s1.L8`);
     } else {
       totalIncome = math.add(totalIncome, value);
@@ -42,7 +42,7 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
   let otherExpenseIndex = 1;
   let exchangeFees = "0";
   processExpenses(vmEvents, (expense: ExpenseEvent, value: string): void => {
-    const tags = expense.taxTags;
+    const tags = expense.tags;
     const message = `${expense.date.split("T")[0]} ` +
       `Expense of ${pad(math.round(expense.quantity), 8)} ${pad(expense.assetType, 4)} ` +
       `to ${expense.to}`;
@@ -56,10 +56,10 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
       f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
       f1040sc.L48 = add(f1040sc.L48, value);
       otherExpenseIndex += 1;
-    } else if (expense.taxTags.includes(`exchange-fee`)) {
+    } else if (expense.tags.includes(`exchange-fee`)) {
       log.info(`${message}: L48 += Currency conversion`);
       exchangeFees = add(exchangeFees, value);
-    } else if (expense.taxTags.some(tag => tag.startsWith("f1040sc"))) {
+    } else if (expense.tags.some(tag => tag.startsWith("f1040sc"))) {
       for (const row of [
         "L8", "L9", "L10", "L11", "L12",
         "L13", "L14", "L15", "L16a", "L16b",

@@ -4,7 +4,6 @@ import {
   AssetChunk,
   Events,
   EventTypes,
-  FiatAssets,
   Logger,
   Prices,
   State,
@@ -16,7 +15,7 @@ import { getLogger, math } from "@finances/utils";
 
 import { rmDups } from "./transactions/utils";
 
-const { add, eq, gt, mul, round  } = math;
+const { add, eq, gt, mul, round, sub  } = math;
 
 export const emitTransactionEvents = (
   addressBook: AddressBook,
@@ -100,63 +99,65 @@ export const emitTransferEvents = (
   if (eq(quantity, "0")) {
     return events;
   }
-  const position = `#${transaction.index || "?"}${transfer.index ? `.${transfer.index}` : "" }`;
-  const taxTags = [];
+  const tags = [];
   const shouldIgnore = addressBook.isCategory(AddressCategories.Ignore);
   if (shouldIgnore(transfer.to) || shouldIgnore(transfer.from)) {
-    taxTags.push("ignore");
+    tags.push("ignore");
   }
 
   const newEvent = {
     assetPrice: prices.getPrice(transaction.date, assetType),
     assetType: assetType,
     date: transaction.date,
-    description: `${round(quantity)} ${assetType} to ${getName(to)} ${position}`,
     quantity,
+    tags: transaction.tags,
     type: category as EventTypes,
   } as any;
 
-  if (["Income", "Expense"].includes(category)) {
-    if (["Income"].includes(category)) {
-      newEvent.from = addressBook.getName(from);
-    } else if (["Expense"].includes(category)) {
-      newEvent.to = addressBook.getName(to);
-    }
-    newEvent.taxTags = taxTags.concat(...transaction.tags);
-    if (
-      newEvent.to && (
-        addressBook.isCategory(AddressCategories.Exchange)(newEvent.to)  ||
-        newEvent.to.endsWith("exchange")
-      )
-    ) {
-      newEvent.taxTags = taxTags.concat("exchange-fee");
-    }
+  if (category === TransferCategories.Income) {
+    newEvent.from = from;
+    newEvent.description = `Recieved ${round(quantity)} ${assetType} from ${getName(from)} `;
     events.push(newEvent);
-  }
+  } else if (category === TransferCategories.Expense) {
+    newEvent.to = to;
+    newEvent.description = `Paid ${round(quantity)} ${assetType} to ${getName(to)} `;
+    events.push(newEvent);
+  } else if (category === TransferCategories.Borrow) {
+    newEvent.from = from;
+    newEvent.description = `Borrowed ${round(quantity)} ${assetType} from ${getName(from)} `;
+    events.push(newEvent);
+  } else if (category === TransferCategories.Repay) {
+    newEvent.to = to;
+    newEvent.description = `Repaied ${round(quantity)} ${assetType} to ${getName(to)} `;
+    events.push(newEvent);
+  } else if (category === TransferCategories.Deposit) {
+    newEvent.to = to;
+    newEvent.description = `Deposited ${round(quantity)} ${assetType} from ${getName(to)} `;
+    events.push(newEvent);
+  } else if (category === TransferCategories.Withdraw) {
+    newEvent.from = from;
+    newEvent.description = `Withdrew ${round(quantity)} ${assetType} from ${getName(from)} `;
+    events.push(newEvent);
+  } else if (category === TransferCategories.SwapOut && gt(transfer.quantity, "0")) {
 
-  if (
-    gt(transfer.quantity, "0")
-    && category === TransferCategories.SwapOut
-    && transaction.transfers.length >= 2
-  ) {
-    const soldFor = transaction.transfers.find(t => (
-      t.category === TransferCategories.SwapIn && Object.keys(FiatAssets).includes(t.assetType)
-    ))?.assetType;
-    if (soldFor) {
-      chunks.forEach(chunk => {
-        events.push({
-          assetPrice: prices.getPrice(transaction.date, chunk.assetType),
-          assetType: chunk.assetType,
-          date: transaction.date,
-          description: `${round(chunk.quantity, 4)} ${chunk.assetType} ${position}`,
-          purchaseDate: chunk.dateRecieved,
-          purchasePrice: chunk.purchasePrice,
-          quantity: chunk.quantity,
-          soldFor,
-          type: EventTypes.CapitalGains,
-        });
+    chunks.forEach(chunk => {
+      const currentPrice = prices.getPrice(transaction.date, chunk.assetType);
+      const purchaseValue = mul(chunk.quantity, chunk.purchasePrice);
+      const saleValue = mul(chunk.quantity, currentPrice);
+      const gain = sub(saleValue, purchaseValue); // is negative if capital loss
+      events.push({
+        assetPrice: currentPrice,
+        assetType: chunk.assetType,
+        date: transaction.date,
+        description: `Capital Gained  ${round(chunk.quantity, 4)} ${chunk.assetType}`,
+        gain,
+        purchaseDate: chunk.dateRecieved,
+        purchasePrice: chunk.purchasePrice,
+        quantity: chunk.quantity,
+        type: EventTypes.CapitalGains,
       });
-    }
+    });
+
   }
 
   return events;

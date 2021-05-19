@@ -13,13 +13,13 @@ export const processIncome = (
   vmEvents.filter(event =>
     event.type === EventTypes.Income &&
     math.gt(event.quantity, "0") &&
-    !event.taxTags.includes("ignore"),
+    !event.tags.includes("ignore"),
   ).forEach((income: IncomeEvent): void => {
     let value = math.mul(income.quantity, income.assetPrice);
-    if (income.taxTags.includes("ignore")) {
+    if (income.tags.includes("ignore")) {
       return;
-    } else if (income.taxTags.some(tag => tag.startsWith("multiply-"))) {
-      const tag = income.taxTags.find(tag => tag.startsWith("multiply-"));
+    } else if (income.tags.some(tag => tag.startsWith("multiply-"))) {
+      const tag = income.tags.find(tag => tag.startsWith("multiply-"));
       const multiplier = tag.split("-")[1];
       value = math.mul(value, multiplier);
     }
@@ -34,11 +34,11 @@ export const processExpenses = (
   vmEvents.filter(event =>
     event.type === EventTypes.Expense &&
     math.gt(event.quantity, "0") &&
-    !event.taxTags.includes("ignore"),
+    !event.tags.includes("ignore"),
   ).forEach((event: ExpenseEvent): void => {
     let value = math.round(math.mul(event.quantity, event.assetPrice));
-    if (event.taxTags.some(tag => tag.startsWith("multiply-"))) {
-      const tag = event.taxTags.find(tag => tag.startsWith("multiply-"));
+    if (event.tags.some(tag => tag.startsWith("multiply-"))) {
+      const tag = event.tags.find(tag => tag.startsWith("multiply-"));
       const multiplier = tag.split("-")[1];
       value = math.mul(value, multiplier);
     }

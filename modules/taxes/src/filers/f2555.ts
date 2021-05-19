@@ -32,7 +32,7 @@ export const f2555 = (vmEvents: Event[], oldForms: Forms): Forms => {
     totalIncome = math.add(totalIncome, value);
   });
   processExpenses(vmEvents, (expense: ExpenseEvent, value: string): void => {
-    if (expense.taxTags.some(tag => tag.startsWith("f1040sc"))) {
+    if (expense.tags.some(tag => tag.startsWith("f1040sc"))) {
       totalExpenses = math.add(totalExpenses, value);
     }
   });

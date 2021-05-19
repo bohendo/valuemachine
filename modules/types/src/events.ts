@@ -1,4 +1,4 @@
-import { AssetTypes, FiatAssets } from "./assets";
+import { AssetTypes } from "./assets";
 import { Address, DecimalString, TimestampString } from "./strings";
 import { PriceList } from "./prices";
 import { enumify } from "./utils";
@@ -23,6 +23,7 @@ type BaseEvent = {
   date: TimestampString;
   description: string;
   quantity: DecimalString;
+  tags: string[];
   type: EventTypes;
 }
 
@@ -32,7 +33,7 @@ export type BorrowEvent = BaseEvent & {
 }
 
 export type CapitalGainsEvent = BaseEvent & {
-  soldFor: keyof typeof FiatAssets;
+  gain: DecimalString;
   purchaseDate: TimestampString;
   purchasePrice: DecimalString;
   type: typeof EventTypes.CapitalGains;
@@ -44,14 +45,12 @@ export type DepositEvent = BaseEvent & {
 }
 
 export type ExpenseEvent = BaseEvent & {
-  taxTags: string[];
   to: Address;
   type: typeof EventTypes.Expense;
 }
 
 export type IncomeEvent = BaseEvent & {
   from: Address;
-  taxTags: string[];
   type: typeof EventTypes.Income;
 }
 

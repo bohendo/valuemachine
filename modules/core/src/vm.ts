@@ -6,7 +6,6 @@ import {
   Prices,
   StateJson,
   Transaction,
-  TransferCategories,
 } from "@finances/types";
 import { getLogger } from "@finances/utils";
 

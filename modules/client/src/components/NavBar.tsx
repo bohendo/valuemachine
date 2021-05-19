@@ -58,7 +58,7 @@ export const NavBar = () => {
         <IconButton
           component={Link}
           edge="start"
-          to={"/taxes"}
+          to={"/events"}
           className={classes.navButton}
           color="inherit"
         >

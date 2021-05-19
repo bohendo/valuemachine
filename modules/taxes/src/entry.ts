@@ -189,7 +189,7 @@ process.on("SIGINT", logAndExit);
         assetType: "USD",
         assetPrice: "1",
         to: "merchant",
-        taxTags: [],
+        tags: [],
         type: EventTypes.Expense,
         ...expense,
       } as ExpenseEvent);
