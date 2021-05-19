@@ -24,7 +24,7 @@ export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
   const trades = [];
   vmEvents
     .filter(vmEvent => vmEvent.type === EventTypes.CapitalGains)
-    .filter(vmEvent => !eq(round(vmEvent.quantity, 4), "0"))
+    .filter((vmEvent: CapitalGainsEvent) => !eq(round(vmEvent.quantity, 4), "0"))
     .filter((trade: CapitalGainsEvent) => getDate(trade.date) !== getDate(trade.purchaseDate))
     .forEach((trade: CapitalGainsEvent): void => {
       const dup = trades.findIndex(merged =>

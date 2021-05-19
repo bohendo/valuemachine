@@ -20,7 +20,7 @@ export const f1040s3 = (vmEvents: Event[], oldForms: Forms): Forms => {
   vmEvents
     .filter(event => event.type === EventTypes.Expense)
     .filter((event: ExpenseEvent) => event.taxTags.includes("f1040s3.L8"))
-    .forEach(event => {
+    .forEach((event: ExpenseEvent) => {
       log.info(`Including tax payment of ${event.quantity} on ${event.date}`);
       f1040s3.L8 = math.add(f1040s3.L8, event.quantity);
     });

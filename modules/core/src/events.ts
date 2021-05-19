@@ -2,26 +2,30 @@ import {
   AddressBook,
   AddressCategories,
   AssetChunk,
-  EventTypes,
   Events,
+  EventTypes,
   FiatAssets,
+  Logger,
   Prices,
   State,
   Transaction,
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
-const { eq, gt, round } = math;
+import { rmDups } from "./transactions/utils";
+
+const { add, eq, gt, mul, round  } = math;
 
 export const emitTransactionEvents = (
   addressBook: AddressBook,
   transaction: Transaction,
   state: State,
+  logger?: Logger,
 ): Events => {
+  const log = (logger || getLogger()).child({ module: "TransactionEvent" });
   const events = [];
-  // Add swap event?
   const networth = state.getNetWorth();
   if (!Object.keys(networth).length) return events;
   events.push({
@@ -29,6 +33,57 @@ export const emitTransactionEvents = (
     date: transaction.date,
     type: EventTypes.NetWorth,
   });
+  // Add trade event
+
+  // Get swapsIn & swapsOut to determine each assetChunk's full history
+  const swapsIn = transaction.transfers.filter(t => t.category === TransferCategories.SwapIn);
+  const swapsOut = transaction.transfers.filter(t => t.category === TransferCategories.SwapOut);
+  if (swapsIn.length && swapsOut.length) {
+    const sum = (acc, cur) => add(acc, cur.quantity);
+    const assetsOut = rmDups(swapsOut.map(swap => swap.assetType));
+    const assetsIn = rmDups(
+      swapsIn
+        .map(swap => swap.assetType)
+        // If some input asset was refunded, remove this from the output asset list
+        .filter(asset => !assetsOut.includes(asset))
+    );
+    const amtsOut = assetsOut.map(asset =>
+      swapsIn
+        .filter(swap => swap.assetType === asset)
+        .map(swap => ({ ...swap, quantity: mul(swap.quantity, "-1") })) // subtract refunds
+        .concat(
+          swapsOut.filter(swap => swap.assetType === asset)
+        ).reduce(sum, "0")
+    );
+    const amtsIn = assetsIn.map(asset =>
+      swapsIn.filter(swap => swap.assetType === asset).reduce(sum, "0")
+    );
+    const inputs = {};
+    assetsIn.forEach((asset, index) => {
+      inputs[asset] = amtsIn[index];
+    });
+    const outputs = {};
+    assetsOut.forEach((asset, index) => {
+      outputs[asset] = amtsOut[index];
+    });
+    events.push({
+      date: transaction.date,
+      description: `Traded ${
+        assetsOut.map((asset, i) => `${round(amtsOut[i])} ${asset}`).join(" & ")
+      } for ${
+        assetsIn.map((asset, i) => `${round(amtsIn[i])} ${asset}`).join(" & ")
+      }`,
+      prices: transaction.prices || {},
+      swapsIn: inputs,
+      swapsOut: outputs,
+      type: EventTypes.Trade,
+    });
+  } else if (swapsIn.length && !swapsOut.length) {
+    log.warn(swapsIn, `Can't find swaps out to match swaps in`);
+  } else if (!swapsIn.length && swapsOut.length) {
+    log.warn(swapsOut, `Can't find swaps in to match swaps out`);
+  }
+
   return events;
 };
 
