@@ -47,10 +47,6 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(1),
     maxWidth: "98%",
   },
-  paper: {
-    minWidth: "500px",
-    padding: theme.spacing(2),
-  },
   divider: {
     marginBottom: theme.spacing(2),
     marginTop: theme.spacing(2),
@@ -97,6 +93,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
   syncAll: {
     margin: theme.spacing(2),
+  },
+  paper: {
+    minWidth: "600px",
+    padding: theme.spacing(2),
   },
 }));
 
@@ -189,7 +189,7 @@ const AddressRow = ({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={editMode} timeout="auto" unmountOnExit>
-            <Box my={2} mx={4}>
+            <Box py={2} px={4} >
               <Typography variant="h6" gutterBottom component="div">
                 Edit Address
               </Typography>
@@ -710,14 +710,14 @@ export const AddressBook = ({
             onChangePage={handleChangePage}
             onChangeRowsPerPage={handleChangeRowsPerPage}
           />
-          <Table>
+          <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell> Account name </TableCell>
-                <TableCell> Category </TableCell>
-                <TableCell> Eth Address </TableCell>
-                <TableCell> Edit </TableCell>
-                <TableCell> Sync </TableCell>
+                <TableCell><strong> Account name </strong></TableCell>
+                <TableCell><strong> Category </strong></TableCell>
+                <TableCell><strong> Eth Address </strong></TableCell>
+                <TableCell><strong> Edit </strong></TableCell>
+                <TableCell><strong> Sync </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
