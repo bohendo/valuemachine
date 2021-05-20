@@ -1,5 +1,6 @@
 import {
   AddressBook,
+  AssetTypes,
   Transfer,
   AddressBookJson,
   AddressCategories,
@@ -15,6 +16,7 @@ import { math, sm, smeq } from "@finances/utils";
 import { rmDups } from "../utils";
 
 const { round } = math;
+const { TORN, vTORN } = AssetTypes;
 
 const source = TransactionSources.Tornado;
 
@@ -26,11 +28,11 @@ const voucherAddress = "0x3efa30704d2b8bbac821307230376556cf8cc39e";
 
 const miscAddresses = [
   { name: "vTORN-airdropper", address: airdropperAddress },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const govTokenAddresses = [
-  { name: "TORN", address: "0x77777feddddffc19ff86db637967013e6c6a116c" },
-  { name: "vTORN", address: voucherAddress },
+  { name: TORN, address: "0x77777feddddffc19ff86db637967013e6c6a116c" },
+  { name: vTORN, address: voucherAddress },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 const mixerAddresses = [

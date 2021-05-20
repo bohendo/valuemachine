@@ -18,6 +18,7 @@ import { math, sm, smeq } from "@finances/utils";
 import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
 
 const { add, div, round, sub } = math;
+const { ETH, WETH } = AssetTypes;
 const source = TransactionSources.Oasis;
 
 ////////////////////////////////////////
@@ -79,7 +80,7 @@ export const oasisParser = (
       isSelf(ethTx.from) && isProxy(address) && smeq(address, ethTx.to)
     );
 
-  const ethish = [AssetTypes.WETH, AssetTypes.ETH] as AssetTypes[];
+  const ethish = [WETH, ETH] as AssetTypes[];
   const findSwap = (quantity: string, asset: AssetTypes) => (transfer: Transfer): boolean =>
     transfer.category === TransferCategories.Transfer && (
       ethish.includes(asset) ? ethish.includes(transfer.assetType) : transfer.assetType === asset
