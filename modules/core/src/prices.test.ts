@@ -6,12 +6,12 @@ import { getRealChainData, getTestAddressBook, testLogger } from "./testing";
 import { getTransactions } from "./transactions";
 
 const log = testLogger.child({
-  level: "debug",
+  level: "info",
   module: "TestPrices",
 });
 
 const { mul, round } = math;
-const { DAI, USD, ETH, PETH, SPANK, sUSDv1, WETH } = AssetTypes;
+const { DAI, USD, ETH, cDAI, MKR, SPANK, sUSDv1 } = AssetTypes;
 
 describe.only("Prices", () => {
   let addressBook: AddressBook;
@@ -24,6 +24,27 @@ describe.only("Prices", () => {
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
     txns = getTransactions({ addressBook, logger: log });
+  });
+
+  it("should set & get prices", async () => {
+    const usdPerEth = "1234";
+    const ethPerDai = "0.0008";
+    const ethPerMkr = "1.234";
+    const daiPerCDai = "0.02041";
+    prices.setPrice(usdPerEth, date, ETH, USD);
+    expect(round(prices.getPrice(date, ETH, USD))).to.equal(round(usdPerEth));
+    prices.setPrice(ethPerDai, date, DAI, ETH);
+    expect(round(prices.getPrice(date, DAI, ETH))).to.equal(round(ethPerDai));
+    prices.setPrice(ethPerMkr, date, MKR, ETH);
+    expect(round(prices.getPrice(date, MKR, ETH))).to.equal(round(ethPerMkr));
+    prices.setPrice(daiPerCDai, date, cDAI, DAI);
+    expect(round(prices.getPrice(date, cDAI, DAI))).to.equal(round(daiPerCDai));
+    log.info(prices.json, `All prices on ${date}`);
+    expect(
+      round(prices.getPrice(date, cDAI, USD))
+    ).to.equal(
+      round(mul(usdPerEth, ethPerDai, daiPerCDai))
+    );
   });
 
   it("should sync prices for a transaction from before Uniswap v1", async () => {
@@ -40,7 +61,7 @@ describe.only("Prices", () => {
     expect(prices.getPrice(tx.date, SPANK, USD)).to.be.ok;
   });
 
-  it.only("should sync prices for a transaction from before Uniswap v2", async () => {
+  it("should sync prices for a transaction from before Uniswap v2", async () => {
     const selfAddress = "0x1057bea69c9add11c6e3de296866aff98366cfe3";
     const txHash = "0xc30ef4493bae45ca817faaf122ba48276dc196f48cd3e7d154fd7266db0860db";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
@@ -48,12 +69,14 @@ describe.only("Prices", () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    await prices.syncTransaction(tx, ETH);
-    log.info(prices.json, "All price data");
-    expect(prices.getPrice(tx.date, sUSDv1, ETH)).to.be.ok;
+    prices.setPrice("224.13487737180202", tx.date, ETH, USD);
+    prices.setPrice("1.0011585884975858", tx.date, DAI, USD);
     await prices.syncTransaction(tx, USD);
     log.info(prices.json, "All price data");
     expect(prices.getPrice(tx.date, sUSDv1, USD)).to.be.ok;
+    await prices.syncTransaction(tx, ETH);
+    log.info(prices.json, "All price data");
+    expect(prices.getPrice(tx.date, sUSDv1, ETH)).to.be.ok;
   });
 
   it("should sync prices for a transaction", async () => {
@@ -64,27 +87,10 @@ describe.only("Prices", () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    prices.syncTransaction(tx, ETH);
+    await prices.syncTransaction(tx, ETH);
     expect(prices.getPrice(tx.date, DAI, ETH)).to.be.ok;
-    prices.syncTransaction(tx, USD);
+    await prices.syncTransaction(tx, USD);
     expect(prices.getPrice(tx.date, DAI, USD)).to.be.ok;
-  });
-
-  it("should set & get prices", async () => {
-    const usdPerEth = "1234";
-    const ethPerWeth = "1.00";
-    const wethPerPeth = "1.01";
-    prices.setPrice(wethPerPeth, date, PETH, WETH);
-    expect(round(prices.getPrice(date, PETH, WETH))).to.equal(round(wethPerPeth));
-    prices.setPrice(usdPerEth, date, WETH, ETH);
-    expect(round(prices.getPrice(date, WETH, ETH))).to.equal(round(ethPerWeth));
-    prices.setPrice(usdPerEth, date, ETH, USD);
-    expect(round(prices.getPrice(date, ETH, USD))).to.equal(round(usdPerEth));
-    expect(
-      round(prices.getPrice(date, PETH, USD))
-    ).to.equal(
-      round(mul(wethPerPeth, ethPerWeth, usdPerEth))
-    );
   });
 
 });

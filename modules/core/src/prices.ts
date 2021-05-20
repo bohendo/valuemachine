@@ -17,7 +17,7 @@ import axios from "axios";
 
 import { v1MarketAddresses } from "./transactions/eth/uniswap";
 
-const { div } = math;
+const { div, mul } = math;
 const {
   BAT, BCH, BTC, CHERRY, COMP, DAI, ETH, GEN, LTC, MKR, REP,
   SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
@@ -34,7 +34,9 @@ export const getPrices = ({
   pricesJson?: PricesJson;
   unitOfAccount?: AssetTypes;
 }): Prices => {
-  const json = pricesJson || store?.load(StoreKeys.Prices) || emptyPrices;
+  const json = pricesJson
+    || store?.load(StoreKeys.Prices)
+    || JSON.parse(JSON.stringify(emptyPrices));
   const save = (json: PricesJson): void => store?.save(StoreKeys.Prices, json);
   const log = (logger || getLogger()).child({ module: "Prices" });
 
@@ -77,6 +79,71 @@ export const getPrices = ({
       }
     }
     return response;
+  };
+
+  // Given an asset, get a list of other assets that we already have exchange rates for
+  const getNeighbors = (date: DateString, asset: AssetTypes): AssetTypes[] => {
+    const neighbors = new Set();
+    Object.keys(json[date] || {}).forEach(a1 => {
+      Object.keys(json[date]?.[a1] || {}).forEach(a2 => {
+        if (a1 === asset && a2 !== asset) neighbors.add(a2);
+        if (a2 === asset && a1 !== asset) neighbors.add(a1);
+      });
+    });
+    return Array.from(neighbors) as AssetTypes[];
+  };
+
+  // https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Algorithm
+  const getPath = (date: DateString, start: AssetTypes, target: AssetTypes): AssetTypes[] => {
+    const unvisited = new Set();
+    Object.keys(json[date] || {}).forEach(a1 => {
+      unvisited.add(a1);
+      Object.keys(json[date]?.[a1] || {}).forEach(a2 => {
+        unvisited.add(a2);
+      });
+    });
+    const distances = {} as { [to: string]: { distance: number; path: AssetTypes[]; } };
+    for (const val of unvisited.values() as IterableIterator<AssetTypes>) {
+      distances[val] = {
+        distance: val === start ? 0 : Infinity,
+        path: [start],
+      };
+    }
+    log.debug(distances, "Starting distances");
+    let current = start;
+    let pathToCurrent = distances[current].path;
+    while (current) {
+      const neighbors = getNeighbors(date, current).filter(node => unvisited.has(node));
+      log.debug(`Checking unvisited neighbors of ${current}: ${neighbors.join(", ")}`);
+      let closest;
+      for (const neighbor of neighbors) {
+        const oldDistance = distances[neighbor].distance;
+        const oldPathToNeighbor = distances[neighbor].path;
+        const newPathToNeighbor = pathToCurrent.concat([neighbor]);
+        const newDistance = newPathToNeighbor.length - 1;
+        distances[neighbor] = {
+          distance: newDistance < oldDistance ? newDistance : oldDistance,
+          path: newDistance < oldDistance ? newPathToNeighbor : oldPathToNeighbor,
+        };
+        if (!closest || distances[neighbor].distance < distances[closest].distance) {
+          closest = neighbor;
+        }
+      }
+      unvisited.delete(current);
+      if (!closest || distances[closest].distance === Infinity) {
+        log.warn(json[date], `No exchange-rate-path exists between ${start} and ${target}`);
+        return [];
+      } else if (closest === target) {
+        pathToCurrent = distances[closest].path;
+        break; // Done!
+      } else {
+        current = closest;
+        pathToCurrent = distances[current].path;
+      }
+    }
+    log.info(`Found a path from ${start} to ${target}: ${pathToCurrent.join(", ")}`);
+    log.debug(distances, "Final distances");
+    return pathToCurrent;
   };
 
   ////////////////////////////////////////
@@ -271,8 +338,24 @@ export const getPrices = ({
     const UoA = formatUoa(givenUoa);
     log.info(`Getting ${UoA} price of ${asset} on ${date}..`);
     if (asset === UoA || (ethish.includes(asset) && ethish.includes(UoA))) return "1";
-    // TODO: fancier djikstra graph search
-    return json[date]?.[UoA]?.[asset];
+    if (json[date]?.[UoA]?.[asset]) return json[date][UoA][asset];
+    if (json[date]?.[asset]?.[UoA]) return div("1", json[date][UoA][asset]);
+    const path = getPath(date, UoA, asset);
+    if (!path.length) return undefined;
+    let price = "1"; 
+    let prev;
+    path.forEach(step => {
+      if (prev) {
+        if (json[date]?.[prev]?.[step]) {
+          price = mul(price, json[date]?.[prev]?.[step]);
+        } else if (json[date]?.[step]?.[prev]) {
+          price = mul(price, div("1", json[date]?.[step]?.[prev]));
+        }
+        log.info(`Got price of ${step}: ${price} ${UoA}`);
+      }
+      prev = step;
+    });
+    return price;
   };
 
   const setPrice = (
