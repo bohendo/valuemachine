@@ -42,9 +42,8 @@ const getTokenInterface = (address?: Address): Interface => new Interface(
     : [
       "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", // SAI
       "0xf53ad2c6851052a81b42133467480961b2321c09", // PETH
-      "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
       "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
-    ].includes(address) ? bytesAbi : stringAbi
+    ].includes(sm(address)) ? bytesAbi : stringAbi
 );
 
 export const getChainData = ({
@@ -251,7 +250,15 @@ export const getChainData = ({
       } catch (e) {
         log.error(`Failed to fetch data for ${tokenAddress}`);
         log.error(e.message);
+        if (e.message.includes("EAI_AGAIN") || e.message.toLowerCase().includes("timeout")) {
+          // Skip this token for now & try to fetch it again later when internet is more reliable
+          continue;
+        }
+        // Else it's prob not possible to fetch, just save the defaults for an unknown token
       }
+      log.info(`rawName=${rawName}`);
+      log.info(`rawSymbol=${rawSymbol}`);
+      log.info(`rawDecimals=${rawDecimals}`);
       const name = toStr(rawName?.[0] || "Unknown");
       const symbol = toStr(rawSymbol?.[0] || "???");
       const decimals = toNum(rawDecimals || 18);
