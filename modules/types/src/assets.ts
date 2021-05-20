@@ -35,6 +35,7 @@ export const EthereumAssets = enumify({
   SNXv1: "SNXv1",
   SPANK: "SPANK",
   sUSD: "sUSD",
+  sUSDv1: "sUSDv1",
   TORN: "TORN",
   UNI: "UNI",
   USDC: "USDC",

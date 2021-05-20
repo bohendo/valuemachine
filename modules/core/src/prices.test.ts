@@ -11,7 +11,7 @@ const log = testLogger.child({
 });
 
 const { mul, round } = math;
-const { DAI, USD, ETH, PETH, SPANK, sUSD, WETH } = AssetTypes;
+const { DAI, USD, ETH, PETH, SPANK, sUSDv1, WETH } = AssetTypes;
 
 describe.only("Prices", () => {
   let addressBook: AddressBook;
@@ -49,9 +49,11 @@ describe.only("Prices", () => {
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
     await prices.syncTransaction(tx, ETH);
-    expect(prices.getPrice(tx.date, sUSD, ETH)).to.be.ok;
+    log.info(prices.json, "All price data");
+    expect(prices.getPrice(tx.date, sUSDv1, ETH)).to.be.ok;
     await prices.syncTransaction(tx, USD);
-    expect(prices.getPrice(tx.date, sUSD, USD)).to.be.ok;
+    log.info(prices.json, "All price data");
+    expect(prices.getPrice(tx.date, sUSDv1, USD)).to.be.ok;
   });
 
   it("should sync prices for a transaction", async () => {
