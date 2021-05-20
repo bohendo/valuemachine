@@ -16,8 +16,12 @@ export interface Prices {
   json: PricesJson;
   getPrice(date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): string | undefined;
   setPrice(price: DecimalString, date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): void;
-  syncPrice(date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): Promise<string>;
-  syncTransaction(tx: Transaction, givenUoa?: AssetTypes): Promise<void>;
+  syncPrice(
+    date: TimestampString,
+    asset: AssetTypes,
+    uoa?: AssetTypes,
+  ): Promise<string | undefined>;
+  syncTransaction(tx: Transaction, uoa?: AssetTypes): Promise<void>;
 }
 
 export const emptyPrices = {} as PricesJson;

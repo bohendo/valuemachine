@@ -21,27 +21,73 @@ const source = TransactionSources.Uniswap;
 
 ////////////////////////////////////////
 /// Addresses
+//
+const factoryAddresses = [
+  { name: "UniswapFactoryV1", address: "0xc0a47dfe034b400b47bdad5fecda2621de6c4d95" },
+  { name: "UniswapFactoryV2", address: "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f" },
+  { name: "UniswapFactoryV3", address: "0x1f98431c8ad98523631ae4a59f267346ea31f984" },
+].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const routerAddresses = [
-  { name: "UniswapV2", address: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d" },
+  { name: "UniswapRouterV2", address: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d" },
+  { name: "UniswapRouterV3", address: "0xe592427a0aece92de3edee1f18e0157c05861564" },
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const govTokenAddresses = [
   { name: "UNI", address: "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984" },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
-const v1MarketAddresses = [
-  { name: "UniV1-cDAI", address: "0x45a2fdfed7f7a2c791fb1bdf6075b83fad821dde" },
-  { name: "UniV1-DAI", address: "0x2a1530c4c41db0b0b2bb646cb5eb1a67b7158667" },
-  { name: "UniV1-GEN", address: "0x26cc0eab6cb650b0db4d0d0da8cb5bf69f4ad692" },
-  { name: "UniV1-MKR", address: "0x2c4bd064b998838076fa341a83d007fc2fa50957" },
-  { name: "UniV1-SAI", address: "0x09cabec1ead1c0ba254b09efb3ee13841712be14" },
-  { name: "UniV1-SPANK", address: "0x4e395304655f0796bc3bc63709db72173b9ddf98" },
-  { name: "UniV1-SNX", address: "0x3958b4ec427f8fa24eb60f42821760e88d485f7f" },
-  { name: "UniV1-sUSD", address: "0xb944d13b2f4047fc7bd3f7013bcf01b115fb260d" },
+const airdropAddresses = [
+  { name: "UNI-airdropper", address: "0x090d4613473dee047c3f2706764f49e0821d256e" },
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
-const v2MarketAddresses = [
+const stakingAddresses = [
+  { name: "UniV2-Stake-ETH-USDC", address: "0x7fba4b8dc5e7616e59622806932dbea72537a56b" },
+  { name: "UniV2-Stake-ETH-USDT", address: "0x6c3e4cb2e96b01f4b866965a91ed4437839a121a" },
+].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+
+export const v1MarketAddresses = [
+  { name: "UniV1-aDAI", address: "0x7cfab87aac0899c093235b342ac0e5b1acf159eb" },
+  { name: "UniV1-AMPL", address: "0x042dbbdc27f75d277c3d99efe327db21bc4fde75" },
+  { name: "UniV1-ANT", address: "0x077d52b047735976dfda76fef74d4d988ac25196" },
+  { name: "UniV1-BAT", address: "0x2e642b8d59b45a1d8c5aef716a84ff44ea665914" },
+  { name: "UniV1-cDAI", address: "0x34e89740adf97c3a9d3f63cc2ce4a914382c230b" },
+  { name: "UniV1-cSAI", address: "0x45a2fdfed7f7a2c791fb1bdf6075b83fad821dde" },
+  { name: "UniV1-DAI", address: "0x2a1530c4c41db0b0b2bb646cb5eb1a67b7158667" },
+  { name: "UniV1-DGX", address: "0xb92de8b30584392af27726d5ce04ef3c4e5c9924" },
+  { name: "UniV1-ENJ", address: "0xb99a23b1a4585fc56d0ec3b76528c27cad427473" },
+  { name: "UniV1-FOAM", address: "0xf79cb3bea83bd502737586a6e8b133c378fd1ff2" },
+  { name: "UniV1-GEN", address: "0x26cc0eab6cb650b0db4d0d0da8cb5bf69f4ad692" },
+  { name: "UniV1-GNO", address: "0xe8e45431b93215566ba923a7e611b7342ea954df" },
+  { name: "UniV1-HEX", address: "0x05cde89ccfa0ada8c88d5a23caaa79ef129e7883" },
+  { name: "UniV1-imBTC", address: "0xffcf45b540e6c9f094ae656d2e34ad11cdfdb187" },
+  { name: "UniV1-LINK", address: "0xf173214c720f58e03e194085b1db28b50acdeead" },
+  { name: "UniV1-LOOM", address: "0x417cb32bc991fbbdcae230c7c4771cc0d69daa6b" },
+  { name: "UniV1-LPT", address: "0xc4a1c45d5546029fd57128483ae65b56124bfa6a" },
+  { name: "UniV1-LRC", address: "0xa539baaa3aca455c986bb1e25301cef936ce1b65" },
+  { name: "UniV1-MANA", address: "0xc6581ce3a005e2801c1e0903281bbd318ec5b5c2" },
+  { name: "UniV1-MKR", address: "0x2c4bd064b998838076fa341a83d007fc2fa50957" },
+  { name: "UniV1-RDN", address: "0x7d03cecb36820b4666f45e1b4ca2538724db271c" },
+  { name: "UniV1-REN", address: "0x43892992b0b102459e895b88601bb2c76736942c" },
+  { name: "UniV1-REP", address: "0x48b04d2a05b6b604d8d5223fd1984f191ded51af" },
+  { name: "UniV1-SAI", address: "0x09cabec1ead1c0ba254b09efb3ee13841712be14" },
+  { name: "UniV1-sETH", address: "0xe9cf7887b93150d4f2da7dfc6d502b216438f244" },
+  { name: "UniV1-SNT", address: "0x1aec8f11a7e78dc22477e91ed924fab46e3a88fd" },
+  { name: "UniV1-SNX", address: "0x3958b4ec427f8fa24eb60f42821760e88d485f7f" },
+  { name: "UniV1-SNXv1", address: "0x8da198a049426bfcf1522b0dc52f84beda6e38ff" },
+  { name: "UniV1-SOCKS", address: "0x22d8432cc7aa4f8712a655fc4cdfb1baec29fca9" },
+  { name: "UniV1-SPANK", address: "0x4e395304655f0796bc3bc63709db72173b9ddf98" },
+  { name: "UniV1-sUSD", address: "0xb944d13b2f4047fc7bd3f7013bcf01b115fb260d" },
+  { name: "UniV1-sUSDv1", address: "0xa1ecdcca26150cf69090280ee2ee32347c238c7b" },
+  { name: "UniV1-TUSD", address: "0x5048b9d01097498fd72f3f14bc9bc74a5aac8fa7" },
+  { name: "UniV1-UMA", address: "0x6264c8d158f32bd8c01b8a0102b57dfcfcfb8561" },
+  { name: "UniV1-USDC", address: "0x97dec872013f6b5fb443861090ad931542878126" },
+  { name: "UniV1-WBTC", address: "0x4d2f5cfba55ae412221182d8475bc85799a5644b" },
+  { name: "UniV1-WETH", address: "0xa2881a90bf33f03e7a3f803765cd2ed5c8928dfb" },
+  { name: "UniV1-ZRX", address: "0xae76c84c9262cdb9abc0c2c8888e62db8e22a0bf" },
+].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+
+export const v2MarketAddresses = [
   { name: "UniV2-ETH-AAVE", address: "0xdfc14d2af169b0d36c4eff567ada9b2e0cae044f" },
   { name: "UniV2-ETH-cDAI", address: "0x9896bd979f9da57857322cc15e154222c4658a5a" },
   { name: "UniV2-ETH-CHERRY", address: "0x7b7a444e59851439a09426f4047c8cead7b3b6b9" },
@@ -62,17 +108,9 @@ const v2MarketAddresses = [
   { name: "UniV2-USDC-GRT", address: "0xdfa42ba0130425b21a1568507b084cc246fb0c8f" },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
-const stakingAddresses = [
-  { name: "UniV2-Stake-ETH-USDC", address: "0x7fba4b8dc5e7616e59622806932dbea72537a56b" },
-  { name: "UniV2-Stake-ETH-USDT", address: "0x6c3e4cb2e96b01f4b866965a91ed4437839a121a" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
-
-const airdropAddresses = [
-  { name: "UNI-airdropper", address: "0x090d4613473dee047c3f2706764f49e0821d256e" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
-
 export const uniswapAddresses = [
   ...airdropAddresses,
+  ...factoryAddresses,
   ...govTokenAddresses,
   ...routerAddresses,
   ...stakingAddresses,

@@ -6,14 +6,14 @@ import { getRealChainData, getTestAddressBook, testLogger } from "./testing";
 import { getTransactions } from "./transactions";
 
 const log = testLogger.child({
-  // level: "debug",
+  level: "debug",
   module: "TestPrices",
 });
 
 const { mul, round } = math;
-const { DAI, USD, ETH, PETH, WETH } = AssetTypes;
+const { DAI, USD, ETH, PETH, SPANK, sUSD, WETH } = AssetTypes;
 
-describe.skip("Prices", () => {
+describe.only("Prices", () => {
   let addressBook: AddressBook;
   let prices: Prices;
   let txns: Transactions;
@@ -24,6 +24,34 @@ describe.skip("Prices", () => {
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
     txns = getTransactions({ addressBook, logger: log });
+  });
+
+  it("should sync prices for a transaction from before Uniswap v1", async () => {
+    const selfAddress = "0xada083a3c06ee526f827b43695f2dcff5c8c892b";
+    const txHash = "0x3b384ecabf0bc6578c27c0a12d9561865f7fe8259d11ec53e9d22c692b415798";
+    addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
+    const chainData = await getRealChainData(txHash);
+    txns.mergeChainData(chainData);
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
+    await prices.syncTransaction(tx, ETH);
+    expect(prices.getPrice(tx.date, SPANK, ETH)).to.be.ok;
+    await prices.syncTransaction(tx, USD);
+    expect(prices.getPrice(tx.date, SPANK, USD)).to.be.ok;
+  });
+
+  it.only("should sync prices for a transaction from before Uniswap v2", async () => {
+    const selfAddress = "0x1057bea69c9add11c6e3de296866aff98366cfe3";
+    const txHash = "0xc30ef4493bae45ca817faaf122ba48276dc196f48cd3e7d154fd7266db0860db";
+    addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
+    const chainData = await getRealChainData(txHash);
+    txns.mergeChainData(chainData);
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
+    await prices.syncTransaction(tx, ETH);
+    expect(prices.getPrice(tx.date, sUSD, ETH)).to.be.ok;
+    await prices.syncTransaction(tx, USD);
+    expect(prices.getPrice(tx.date, sUSD, USD)).to.be.ok;
   });
 
   it("should sync prices for a transaction", async () => {
