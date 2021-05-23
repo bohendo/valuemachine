@@ -3,10 +3,11 @@ import {
   AltChainAssets,
   EthereumAssets,
   FiatAssets,
+  Prices,
   PricesJson,
   TransactionsJson,
 } from "@finances/types";
-import { smeq } from "@finances/utils";
+import { math, smeq } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
@@ -62,13 +63,15 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   dateFilter: {
     margin: theme.spacing(2),
   },
+  subtable: {
+    maxWidth: "100%",
+    // overflow: "scroll",
+  },
+  subtableCell: {
+    maxWidth: "100px",
+    // overflow: "scroll",
+  },
 }));
-
-type PriceRow = {
-  date: string;
-  asset: string;
-  price: string;
-}
 
 type DateInput = {
   value: string;
@@ -80,42 +83,45 @@ const emptyDateInput = { value: "", display: "", error: "" } as DateInput;
 
 export const PriceManager = ({
   pricesJson,
-  setPrices,
+  setPricesJson,
   transactions,
 }: {
   pricesJson: PricesJson;
-  setPrices: (val: PricesJson) => void;
+  setPricesJson: (val: PricesJson) => void;
   transactions: TransactionsJson,
 }) => {
+  const [prices, setPrices] = useState({} as Prices);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState(false);
   const [filterAsset, setFilterAsset] = useState("");
   const [filterDate, setFilterDate] = useState(emptyDateInput);
-  const [filteredPrices, setFilteredPrices] = useState([] as PriceRow);
+  const [filteredPrices, setFilteredPrices] = useState({} as PricesJson);
   const [uoa, setUoa] = useState("USD");
   const classes = useStyles();
 
   useEffect(() => {
-    if (!pricesJson) return;
+    if (!pricesJson || !Object.keys(prices).length) return;
     if (filterDate.error) return;
-    const newFilteredPrices = [] as PriceRow[];
-    Object.entries(pricesJson).forEach(([date, priceEntry]) => {
-      if (filterDate.value && filterDate.value !== date) return null;
-      if (Object.keys(priceEntry).length === 0) return null;
-      if (Object.keys(priceEntry[uoa] || {}).length === 0) return null;
-      Object.entries(priceEntry[uoa] || {}).forEach(([asset, price]) => {
+    const newFilteredPrices = {} as PricesJson;
+    Object.entries(pricesJson).forEach(([date, priceList]) => {
+      if (filterDate.value && filterDate.value !== date.split("T")[0]) return null;
+      if (Object.keys(priceList).length === 0) return null;
+      if (Object.keys(priceList[uoa] || {}).length === 0) return null;
+      Object.entries(priceList[uoa] || {}).forEach(([asset, _price]) => {
         if (!filterAsset || smeq(filterAsset, asset)) {
-          newFilteredPrices.push({ date, asset, price });
+          newFilteredPrices[date] = newFilteredPrices[date] || {};
+          newFilteredPrices[date][uoa] = newFilteredPrices[date][uoa] || {};
+          newFilteredPrices[date][uoa][asset] = prices.getPrice(date, asset);
         }
       });
     });
-    setFilteredPrices(newFilteredPrices.sort((e1: PriceRow, e2: PriceRow): number => {
-      return e1.date > e2.date ? -1 : e1.date < e2.date ? 1
-        : e1.asset > e2.asset ? 1 : e1.asset < e2.asset ? -1
-          : 0;
-    }));
-  }, [uoa, pricesJson, filterAsset, filterDate]);
+    setFilteredPrices(newFilteredPrices);
+  }, [uoa, prices, pricesJson, filterAsset, filterDate]);
+
+  useEffect(() => {
+    setPrices(getPrices({ pricesJson, store, unitOfAccount: uoa }));
+  }, [pricesJson, uoa]);
 
   const handleUoaChange = (event: React.ChangeEvent<{ value: string }>) => {
     setUoa(event.target.value);
@@ -139,12 +145,11 @@ export const PriceManager = ({
     setSyncing(true);
     console.log(`Syncing price data for ${transactions.length} transactions`);
     try {
-      const prices = getPrices({ pricesJson, store, unitOfAccount: uoa });
       for (const tx of transactions) {
         // TODO: use axios to get price from server somehow
         prices.syncTransaction(tx, uoa);
       }
-      setPrices({ ...prices.json });
+      setPricesJson({ ...prices.json });
     } catch (e) {
       console.error(`Failed to sync prices:`, e);
     }
@@ -168,8 +173,17 @@ export const PriceManager = ({
   };
 
   const clearPrices = () => {
-    setPrices({});
+    setPricesJson({});
   };
+
+  const countPrices = (input: PricesJson): number =>
+    Object.values(input).reduce((output, uoa) => {
+      return output + Object.values(uoa).reduce((inter, asset) => {
+        return inter + Object.values(asset).length;
+      }, 0);
+    }, 0);
+
+  const byAsset = (e1, e2) => (e1[0] < e2[0]) ? -1 : 1;
 
   return (
     <>
@@ -266,14 +280,17 @@ export const PriceManager = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {`${filteredPrices.length} Prices`}
+          {countPrices(filteredPrices) === countPrices(pricesJson)
+            ? `${countPrices(filteredPrices)} Prices`
+            : `${countPrices(filteredPrices)} of ${countPrices(pricesJson)} Prices`
+          }
         </Typography>
 
         <TableContainer>
           <TablePagination
             rowsPerPageOptions={[25, 50, 100, 250]}
             component="div"
-            count={filteredPrices.length}
+            count={Object.keys(filteredPrices).length}
             rowsPerPage={rowsPerPage}
             page={page}
             onChangePage={handleChangePage}
@@ -283,18 +300,44 @@ export const PriceManager = ({
             <TableHead>
               <TableRow>
                 <TableCell> Date </TableCell>
-                <TableCell> Asset </TableCell>
-                <TableCell> Price ({uoa}) </TableCell>
+                <TableCell> Prices ({uoa}) </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredPrices
+              {Object.entries(filteredPrices)
+                .sort((e1, e2) => new Date(e2[0]).getTime() - new Date(e1[0]).getTime())
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row: PriceRow, i: number) => (
+                .map(([date, list], i: number) => (
                   <TableRow key={i}>
-                    <TableCell> {row.date.replace("T", " ").replace("Z", "")} </TableCell>
-                    <TableCell> {row.asset} </TableCell>
-                    <TableCell> {row.price} </TableCell>
+                    <TableCell style={{ minWidth: "120px" }}>
+                      {date.replace("T", " ").replace("Z", "")}
+                    </TableCell>
+                    <TableCell>
+                      <Table className={classes.subtable}>
+                        <TableHead>
+                          <TableRow>
+                            {Object.entries(list[uoa])
+                              .sort(byAsset)
+                              .map(e => e[0])
+                              .map(asset => (
+                                <TableCell style={{ width: "120px" }} key={asset}>
+                                  <strong> {asset} </strong>
+                                </TableCell>
+                              ))}
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {Object.entries(list[uoa])
+                            .sort(byAsset)
+                            .map(e => e[1])
+                            .map((price, i) => (
+                              <TableCell style={{ width: "120px" }} key={i}>
+                                {math.round(price, 3)}
+                              </TableCell>
+                            ))}
+                        </TableBody>
+                      </Table>
+                    </TableCell>
                   </TableRow>
                 ))}
             </TableBody>
@@ -302,7 +345,7 @@ export const PriceManager = ({
           <TablePagination
             rowsPerPageOptions={[25, 50, 100, 250]}
             component="div"
-            count={filteredPrices.length}
+            count={Object.keys(filteredPrices).length}
             rowsPerPage={rowsPerPage}
             page={page}
             onChangePage={handleChangePage}
