@@ -21,7 +21,7 @@ export interface Prices {
     asset: AssetTypes,
     uoa?: AssetTypes,
   ): Promise<string | undefined>;
-  syncTransaction(tx: Transaction, uoa?: AssetTypes): Promise<void>;
+  syncTransaction(tx: Transaction, uoa?: AssetTypes): Promise<PriceList>;
 }
 
 export const emptyPrices = {} as PricesJson;

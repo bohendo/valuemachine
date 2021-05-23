@@ -1,5 +1,6 @@
 import { getPrices } from "@finances/core";
 import {
+  AssetTypes,
   AltChainAssets,
   EthereumAssets,
   FiatAssets,
@@ -32,7 +33,7 @@ import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
 import React, { useEffect, useState } from "react";
-// import axios from "axios";
+import axios from "axios";
 
 import { store } from "../utils";
 
@@ -63,8 +64,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   dateFilter: {
     margin: theme.spacing(2),
   },
+  table: {
+    maxWidth: "98%",
+  },
   subtable: {
-    maxWidth: "100%",
+    maxWidth: "98%",
     // overflow: "scroll",
   },
   subtableCell: {
@@ -97,7 +101,7 @@ export const PriceManager = ({
   const [filterAsset, setFilterAsset] = useState("");
   const [filterDate, setFilterDate] = useState(emptyDateInput);
   const [filteredPrices, setFilteredPrices] = useState({} as PricesJson);
-  const [uoa, setUoa] = useState("USD");
+  const [uoa, setUoa] = useState(AssetTypes.ETH);
   const classes = useStyles();
 
   useEffect(() => {
@@ -108,11 +112,11 @@ export const PriceManager = ({
       if (filterDate.value && filterDate.value !== date.split("T")[0]) return null;
       if (Object.keys(priceList).length === 0) return null;
       if (Object.keys(priceList[uoa] || {}).length === 0) return null;
-      Object.entries(priceList[uoa] || {}).forEach(([asset, _price]) => {
+      Object.entries(priceList[uoa] || {}).forEach(([asset, price]) => {
         if (!filterAsset || smeq(filterAsset, asset)) {
           newFilteredPrices[date] = newFilteredPrices[date] || {};
           newFilteredPrices[date][uoa] = newFilteredPrices[date][uoa] || {};
-          newFilteredPrices[date][uoa][asset] = prices.getPrice(date, asset);
+          newFilteredPrices[date][uoa][asset] = price;
         }
       });
     });
@@ -141,15 +145,25 @@ export const PriceManager = ({
   };
 
   const syncPrices = async () => {
-    if (!transactions) return;
+    if (!transactions) {
+      console.warn(`No transactions to sync`);
+      return;
+    }
     setSyncing(true);
     console.log(`Syncing price data for ${transactions.length} transactions`);
     try {
+      const res = await axios({
+        method: "post",
+        url: `/api/prices/${uoa}`,
+        data: { transaction: transactions[0] },
+      });
+      /*
       for (const tx of transactions) {
-        // TODO: use axios to get price from server somehow
         prices.syncTransaction(tx, uoa);
       }
       setPricesJson({ ...prices.json });
+      */
+      console.log(res.data, "got response from syncing prices for tx[0]");
     } catch (e) {
       console.error(`Failed to sync prices:`, e);
     }
@@ -210,7 +224,7 @@ export const PriceManager = ({
                 value={uoa || ""}
                 onChange={handleUoaChange}
               >
-                {Object.keys({ ...FiatAssets }).map(asset => (
+                {Object.keys({ ...FiatAssets }).concat(["ETH"]).map(asset => (
                   <MenuItem key={asset} value={asset}>{asset}</MenuItem>
                 ))}
               </Select>
@@ -296,7 +310,7 @@ export const PriceManager = ({
             onChangePage={handleChangePage}
             onChangeRowsPerPage={handleChangeRowsPerPage}
           />
-          <Table>
+          <Table className={classes.table}>
             <TableHead>
               <TableRow>
                 <TableCell> Date </TableCell>

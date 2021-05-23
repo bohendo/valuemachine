@@ -464,6 +464,7 @@ export const getPrices = ({
     if (!json[date][UoA][asset]) {
       let price = getPrice(date, asset, UoA);
       if (price) {
+        // If we needed
         json[date][UoA][asset] = price;
         save(json);
         return json[date][UoA][asset];
@@ -486,35 +487,46 @@ export const getPrices = ({
     return json[date][UoA][asset];
   };
 
+  // Returns subset of prices relevant to this tx
   const syncTransaction = async (
     tx: Transaction,
     givenUoa?: AssetTypes,
-  ): Promise<void> => {
+  ): Promise<PriceList> => {
     const date = formatDate(tx.date);
     const UoA = formatUoa(givenUoa);
     const assets = Array.from(new Set([...tx.transfers.map(t => t.assetType)]));
+    const priceList = {} as PriceList;
+    priceList[UoA] = priceList[UoA] || {};
     for (const asset of assets) {
       try {
+        // Set exchange rates based on this transaction's swaps in & out
         Object.entries(getSwapPrices(tx)).forEach(
-          ([tmpUoa, tmpPrices]) => Object.entries(tmpPrices).forEach(
-            ([tmpAsset, tmpPrice]) => {
+          ([tmpUoa, tmpPrices]: string[]) => Object.entries(tmpPrices).forEach(
+            ([tmpAsset, tmpPrice]: string[]) => {
               setPrice(
                 tmpPrice as DecimalString,
                 date as DateString,
                 tmpAsset as AssetTypes,
                 tmpUoa as AssetTypes,
               );
+              priceList[tmpUoa] = priceList[tmpUoa] || {};
+              priceList[tmpUoa][tmpAsset] = tmpPrice;
             }
           )
         );
+        // TODO: If we have a rate for 2 non-ETH Etheum assets (eg DAI/cDAI),
+        // check which one is has a more liquid uniswap pool
+        // has a more reliable exchange rate & sync prices for that pair (eg fetch ETH/DAI)
+        // then calculate the exchange rate of the other (eg ETH/cDAI = ETH/DAI * DAI/cDAI)
         if (Object.keys(EthereumAssets).includes(asset)) {
-          await syncPrice(date, asset, AssetTypes.ETH);
+          priceList[AssetTypes.ETH][asset] = await syncPrice(date, asset, AssetTypes.ETH);
         }
-        await syncPrice(date, asset, UoA);
+        priceList[UoA][asset] = await syncPrice(date, asset, UoA);
       } catch (e) {
         console.error(e);
       }
     }
+    return priceList;
   };
 
   return {
