@@ -1,23 +1,25 @@
 import {
   AssetTypes,
-  EthereumAssets,
   DateString,
-  emptyPrices,
   DecimalString,
+  emptyPrices,
+  EthereumAssets,
   Logger,
+  PriceList,
   Prices,
   PricesJson,
   Store,
   StoreKeys,
   TimestampString,
   Transaction,
+  TransferCategories,
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 import axios from "axios";
 
 import { v1MarketAddresses } from "./transactions/eth/uniswap";
 
-const { div, mul } = math;
+const { add, div, mul, sub } = math;
 const {
   BAT, BCH, BTC, CHERRY, COMP, DAI, ETH, GEN, LTC, MKR, REP,
   SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
@@ -48,6 +50,9 @@ export const getPrices = ({
 
   ////////////////////////////////////////
   // Internal helper functions
+
+  const rmDups = (array: string[]): string[] =>
+    Array.from(new Set([...array]));
 
   const formatDate = (date: DateString | TimestampString): DateString => {
     if (isNaN((new Date(date)).getTime())) {
@@ -247,8 +252,12 @@ export const getPrices = ({
     if (time < uniV1Launch) {
       return undefined;
 
-    } else if (UoA === ETH && time < uniV2Launch) {
-      return await getUniswapV1Price(date, asset);
+    } else if (time < uniV2Launch) {
+      if (UoA === ETH) {
+        return await getUniswapV1Price(date, asset);
+      } else {
+        return undefined;
+      }
 
     } else if (time < uniV3Launch) {
       if (UoA === ETH) {
@@ -324,6 +333,75 @@ export const getPrices = ({
       log.warn(`Price is not available, maybe ${asset} didn't exist on ${date}`);
     }
     return price;
+  };
+
+  const getSwapPrices = async (tx: Transaction): Promise<PriceList> => {
+    const prices = {};
+    const swapsIn = tx.transfers.filter(t => t.category === TransferCategories.SwapIn);
+    const swapsOut = tx.transfers.filter(t => t.category === TransferCategories.SwapOut);
+    const assetsOut = rmDups(swapsOut.map(swap => swap.assetType));
+    const assetsIn = rmDups(
+      swapsIn
+        .map(swap => swap.assetType)
+        // If some input asset was refunded, remove this from the output asset list
+        .filter(asset => !assetsOut.includes(asset))
+    );
+    const sum = (acc, cur) => add(acc, cur.quantity);
+
+    if (assetsIn.length === 1 && assetsOut.length === 1) {
+      const amtOut = sub(
+        swapsOut.reduce(sum, "0"),
+        // Subtract refund if present
+        swapsIn.filter(swap => swap.assetType === assetsOut[0]).reduce(sum, "0"),
+      );
+      const amtIn = swapsIn
+        .filter(swap => swap.assetType !== assetsOut[0])
+        .reduce(sum, "0");
+      prices[assetsOut[0]] = prices[assetsOut[0]] || {};
+      prices[assetsOut[0]][assetsIn[0]] = div(amtOut, amtIn);
+      prices[assetsIn[0]] = prices[assetsIn[0]] || {};
+      prices[assetsIn[0]][assetsOut[0]] = div(amtIn, amtOut);
+
+    } else if (assetsIn.length === 2 && assetsOut.length === 1) {
+      const amtsIn = assetsIn.map(asset => sub(
+        swapsIn.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+        // Subtract refund if present
+        swapsOut.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+      ));
+      const amtOut = swapsOut
+        .filter(swap => !assetsIn.includes(swap.assetType))
+        .reduce(sum, "0");
+      // Get prices of the two liq inputs relative to each other
+      prices[assetsIn[0]] = prices[assetsIn[0]] || {};
+      prices[assetsIn[0]][assetsIn[1]] = div(amtsIn[0], amtsIn[1]);
+      prices[assetsIn[1]] = prices[assetsIn[1]] || {};
+      prices[assetsIn[1]][assetsIn[0]] = div(amtsIn[1], amtsIn[0]);
+      // Get prices of the liq tokens relative to each input
+      prices[assetsIn[0]][assetsOut[0]] = div(mul(amtsIn[0], "2"), amtOut);
+      prices[assetsIn[1]][assetsOut[0]] = div(mul(amtsIn[1], "2"), amtOut);
+
+    } else if (assetsOut.length === 2 && assetsIn.length === 1) {
+      const amtsOut = assetsOut.map(asset => sub(
+        swapsOut.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+        // Subtract refund if present
+        swapsIn.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+      ));
+      const amtIn = swapsIn
+        .filter(swap => !assetsOut.includes(swap.assetType))
+        .reduce(sum, "0");
+      // Get prices of the two liq inputs relative to each other
+      prices[assetsOut[0]] = prices[assetsOut[0]] || {};
+      prices[assetsOut[0]][assetsOut[1]] = div(amtsOut[0], amtsOut[1]);
+      prices[assetsOut[1]] = prices[assetsOut[1]] || {};
+      prices[assetsOut[1]][assetsOut[0]] = div(amtsOut[1], amtsOut[0]);
+      // Get prices of the liq tokens relative to each input
+      prices[assetsOut[0]][assetsIn[0]] = div(mul(amtsOut[0], "2"), amtIn);
+      prices[assetsOut[1]][assetsIn[0]] = div(mul(amtsOut[1], "2"), amtIn);
+
+    } else {
+      log.warn(`Unable to get prices from swaps w input=${assetsIn} & output=${assetsOut}`);
+    }
+    return prices;
   };
 
   ////////////////////////////////////////
@@ -417,10 +495,15 @@ export const getPrices = ({
     const assets = Array.from(new Set([...tx.transfers.map(t => t.assetType)]));
     for (const asset of assets) {
       try {
-        Object.entries(tx.prices).forEach(
+        Object.entries(getSwapPrices(tx)).forEach(
           ([tmpUoa, tmpPrices]) => Object.entries(tmpPrices).forEach(
             ([tmpAsset, tmpPrice]) => {
-              setPrice(tmpPrice, date, tmpAsset as AssetTypes, tmpUoa as AssetTypes);
+              setPrice(
+                tmpPrice as DecimalString,
+                date as DateString,
+                tmpAsset as AssetTypes,
+                tmpUoa as AssetTypes,
+              );
             }
           )
         );
