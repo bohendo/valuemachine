@@ -223,7 +223,6 @@ export const makerParser = (
     } else {
       log.warn(`Can't find an associated SwapIn DAI transfer`);
     }
-    log.info(swapOut, "swapOut");
     tx.prices[swapIn.assetType] = tx.prices[swapIn.assetType] || {};
     tx.prices[swapIn.assetType][swapOut.assetType] = div(swapIn.quantity, swapOut.quantity);
     tx.prices[swapOut.assetType] = tx.prices[swapOut.assetType] || {};

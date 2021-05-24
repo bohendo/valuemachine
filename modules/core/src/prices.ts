@@ -4,6 +4,7 @@ import {
   DecimalString,
   emptyPrices,
   EthereumAssets,
+  FiatAssets,
   Logger,
   PriceList,
   Prices,
@@ -17,12 +18,12 @@ import {
 import { getLogger, math } from "@finances/utils";
 import axios from "axios";
 
-import { v1MarketAddresses } from "./transactions/eth/uniswap";
+import { v1MarketAddresses, v2MarketAddresses } from "./transactions/eth/uniswap";
 
-const { add, div, mul, sub } = math;
+const { add, div, eq, gt, mul, sub } = math;
 const {
   BAT, BCH, BTC, CHERRY, COMP, DAI, ETH, GEN, GNO, LTC, MKR, OMG,
-  REP, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
+  REP, REPv1, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
 } = AssetTypes;
 
 export const getPrices = ({
@@ -122,12 +123,11 @@ export const getPrices = ({
       });
       return count;
     };
-    if (!unvisited.has(start) || !countPrices(date, start)) {
-      log.warn(`No prices exist for ${start} so no path exists from ${start} to ${target}`);
-      return [];
-    }
-    if (!unvisited.has(target) || !countPrices(date, target)) {
-      log.warn(`No prices exist for ${target} so no path exists from ${start} to ${target}`);
+    if (
+      !unvisited.has(start) || !unvisited.has(target) ||
+      !countPrices(date, start) || !countPrices(date, target)
+    ) {
+      log.info(`${target} to ${start} exchange rate is unavailable on ${date}`);
       return [];
     }
     const distances = {} as { [to: string]: { distance: number; path: AssetTypes[]; } };
@@ -138,7 +138,7 @@ export const getPrices = ({
       };
     }
     let current = start;
-    const branches = [] as string[];
+    const branches = [] as AssetTypes[];
     let pathToCurrent = distances[current].path;
     while (current) {
       const neighbors = getNeighbors(date, current).filter(node => unvisited.has(node));
@@ -170,7 +170,7 @@ export const getPrices = ({
         } else {
           // Are there any other unvisited nodes to check?
           if (!branches.length || unvisited.size === 0) {
-            log.warn(json[date], `No exchange-rate-path exists between ${start} and ${target}`);
+            log.info(json[date], `No exchange-rate-path exists between ${start} and ${target}`);
             log.debug(distances, `Final distances from ${start} to ${target}`);
             return [];
           } else {
@@ -193,56 +193,162 @@ export const getPrices = ({
     return pathToCurrent;
   };
 
+  const getSwapPrices = (tx: Transaction): PriceList => {
+    const prices = {};
+    const swapsIn = tx.transfers.filter(t => t.category === TransferCategories.SwapIn);
+    const swapsOut = tx.transfers.filter(t => t.category === TransferCategories.SwapOut);
+    const assetsOut = rmDups(swapsOut.map(swap => swap.assetType));
+    const assetsIn = rmDups(
+      swapsIn
+        .map(swap => swap.assetType)
+        // If some input asset was refunded, remove this from the output asset list
+        .filter(asset => !assetsOut.includes(asset))
+    );
+    const sum = (acc, cur) => add(acc, cur.quantity);
+    if (assetsIn.length === 0 && assetsOut.length === 0) {
+      log.debug(`No swaps detected`);
+      return prices;
+    } else if (assetsIn.length === 1 && assetsOut.length === 1) {
+      log.info(`Parsing swap w 1 asset out (${assetsOut}) & 1 in (${assetsIn})`);
+      const amtOut = sub(
+        swapsOut.reduce(sum, "0"),
+        // Subtract refund if present
+        swapsIn.filter(swap => swap.assetType === assetsOut[0]).reduce(sum, "0"),
+      );
+      const amtIn = swapsIn
+        .filter(swap => swap.assetType !== assetsOut[0])
+        .reduce(sum, "0");
+      prices[assetsOut[0]] = prices[assetsOut[0]] || {};
+      prices[assetsOut[0]][assetsIn[0]] = div(amtOut, amtIn);
+      prices[assetsIn[0]] = prices[assetsIn[0]] || {};
+      prices[assetsIn[0]][assetsOut[0]] = div(amtIn, amtOut);
+    } else if (assetsIn.length === 2 && assetsOut.length === 1) {
+      log.info(`Parsing swap w 1 asset out (${assetsOut}) & 2 in (${assetsIn})`);
+      const amtsIn = assetsIn.map(asset => sub(
+        swapsIn.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+        // Subtract refund if present
+        swapsOut.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+      ));
+      const amtOut = swapsOut
+        .filter(swap => !assetsIn.includes(swap.assetType))
+        .reduce(sum, "0");
+      // Get prices of the two liq inputs relative to each other
+      prices[assetsIn[0]] = prices[assetsIn[0]] || {};
+      prices[assetsIn[0]][assetsIn[1]] = div(amtsIn[0], amtsIn[1]);
+      prices[assetsIn[1]] = prices[assetsIn[1]] || {};
+      prices[assetsIn[1]][assetsIn[0]] = div(amtsIn[1], amtsIn[0]);
+      // Get prices of the liq tokens relative to each input
+      prices[assetsIn[0]][assetsOut[0]] = div(mul(amtsIn[0], "2"), amtOut);
+      prices[assetsIn[1]][assetsOut[0]] = div(mul(amtsIn[1], "2"), amtOut);
+    } else if (assetsOut.length === 2 && assetsIn.length === 1) {
+      log.info(`Parsing swap w 2 assets out (${assetsOut}) & 1 in (${assetsIn})`);
+      const amtsOut = assetsOut.map(asset => sub(
+        swapsOut.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+        // Subtract refund if present
+        swapsIn.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+      ));
+      const amtIn = swapsIn
+        .filter(swap => !assetsOut.includes(swap.assetType))
+        .reduce(sum, "0");
+      // Get prices of the two liq inputs relative to each other
+      prices[assetsOut[0]] = prices[assetsOut[0]] || {};
+      prices[assetsOut[0]][assetsOut[1]] = div(amtsOut[0], amtsOut[1]);
+      prices[assetsOut[1]] = prices[assetsOut[1]] || {};
+      prices[assetsOut[1]][assetsOut[0]] = div(amtsOut[1], amtsOut[0]);
+      // Get prices of the liq tokens relative to each input
+      prices[assetsOut[0]][assetsIn[0]] = div(mul(amtsOut[0], "2"), amtIn);
+      prices[assetsOut[1]][assetsIn[0]] = div(mul(amtsOut[1], "2"), amtIn);
+    } else {
+      log.warn(`Unable to get prices from swap w input=${assetsIn} & output=${assetsOut}`);
+    }
+    log.debug(prices, `Got prices for tx swaps`);
+    return prices;
+  };
+
+  const setPrice = (
+    price: DecimalString,
+    rawDate: DateString,
+    asset: AssetTypes,
+    givenUoa?: AssetTypes,
+  ): void => {
+    const date = formatDate(rawDate);
+    const UoA = formatUoa(givenUoa);
+    if (!json[date]) json[date] = {};
+    if (!json[date][UoA]) json[date][UoA] = {};
+    json[date][UoA][asset] = formatPrice(price);
+    save(json);
+  };
+
   ////////////////////////////////////////
   // Price Oracles
 
-  // Uni v3 was launched on May 4th 2021
-  // Uni v2 was launched on May 4th 2020
-
-  const getUniswapV2Price = async (
+  const getCoinGeckoPrice = async (
     date: DateString,
     asset: AssetTypes,
-    UoA: AssetTypes,
+    givenUoa: AssetTypes,
   ): Promise<string | undefined> => {
-    const pairId = v1MarketAddresses.find(market =>
-      (market.name.includes(`-${asset}-`) || market.name.endsWith(`-${asset}`)) &&
-      (market.name.includes(`-${UoA}-`) || market.name.endsWith(`-${UoA}`))
-    )?.address;
-    if (!pairId) {
-      log.warn(`Asset pair ${asset}-${UoA} is not available on UniswapV2`);
+    // derived from output of https://api.coingecko.com/api/v3/coins/list
+    const UoA = formatUoa(givenUoa);
+    const getCoinId = (asset: AssetTypes): string | undefined => {
+      switch (asset) {
+      case BAT: return "basic-attention-token";
+      case BCH: return "bitcoin-cash";
+      case BTC: return "bitcoin";
+      case CHERRY: return "cherry";
+      case COMP: return "compound-governance-token";
+      case DAI: return "dai";
+      case ETH: return "ethereum";
+      case GEN: return "daostack";
+      case GNO: return "gnosis";
+      case LTC: return "litecoin";
+      case MKR: return "maker";
+      case OMG: return "omisego";
+      case REP: return "augur";
+      case REPv1: return "augur";
+      case SAI: return "sai";
+      case SNT: return "status";
+      case SNX: return "havven";
+      case SNXv1: return "havven";
+      case SPANK: return "spankchain";
+      case UNI: return "uniswap";
+      case USDC: return "usd-coin";
+      case USDT: return "tether";
+      case WBTC: return "wrapped-bitcoin";
+      case WETH: return "weth";
+      case YFI: return "yearn-finance";
+      default: return undefined;
+      }
+    };
+    const coinId = getCoinId(asset);
+    if (!coinId) {
+      log.warn(`Asset "${asset}" is not available on CoinGecko`);
       return undefined;
     }
-    log.info(`Fetching ${UoA} price of ${asset} on ${date} from UniswapV2 market ${pairId}`);
-    const url = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
-    const attempt = async () => (await axios({ url, method: "post", timeout: 10000, data: {
-      query: `{
-        exchangeHistoricalDatas(
-          where: {
-            timestamp_lt: ${Math.round(new Date(date).getTime()/1000)}, 
-            exchangeAddress: "${pairId}"
-          },
-          first: 1,
-          orderBy: timestamp,
-          orderDirection: desc
-        ) {
-          timestamp
-          price
-        }
-      }`
-    } })).data.data;
+    // eg https://api.coingecko.com/api/v3/coins/bitcoin/history?date=30-12-2017
+    const coingeckoUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/history?date=${
+      `${date.split("-")[2]}-${date.split("-")[1]}-${date.split("-")[0]}`
+    }`;
+    log.info(`Fetching ${UoA} price of ${asset} on ${date} from ${coingeckoUrl}`);
+    const attempt = async () => (await axios.get(coingeckoUrl, { timeout: 10000 })).data;
     let price;
     try {
       const response = await retry(attempt);
-      log.debug(response, "Got uniswap v1 response");
-      price = response?.exchangeHistoricalDatas?.[0]?.price;
+      price = response?.market_data?.current_price?.[UoA.toLowerCase()]?.toString();
+      // Might as well set other fiat currency prices since they've already been fetched
+      Object.keys(FiatAssets).forEach(fiat => {
+        const otherPrice = response?.market_data?.current_price?.[fiat.toLowerCase()]?.toString();
+        if (otherPrice) {
+          log.debug(`Also setting ${asset} price on ${date} wrt ${fiat}: ${otherPrice}`);
+          setPrice(otherPrice, date, asset, fiat as AssetTypes);
+        }
+      });
     } catch (e) {
       log.error(e.message);
     }
-    if (!price) {
-      log.warn(`Price is not available, maybe ${asset} didn't exist in UniswapV1 on ${date}`);
-      return undefined;
+    if (!price || eq(price, "0")) {
+      log.warn(`Could not fetch ${asset} price from CoinGecko on ${date}`);
     }
-    return div("1", price);
+    return price;
   };
 
   const getUniswapV1Price = async (
@@ -281,8 +387,54 @@ export const getPrices = ({
     } catch (e) {
       log.error(e.message);
     }
-    if (!price) {
-      log.warn(`Price is not available, maybe ${asset} didn't exist in UniswapV1 on ${date}`);
+    if (!price || eq(price, "0")) {
+      log.warn(`Could not fetch ${asset} price from UniswapV1 on ${date}`);
+      return undefined;
+    }
+    return div("1", price);
+  };
+
+  const getUniswapV2Price = async (
+    date: DateString,
+    asset: AssetTypes,
+    UoA: AssetTypes,
+  ): Promise<string | undefined> => {
+    const pairId = v2MarketAddresses.find(market =>
+      (market.name.includes(`-${asset}-`) || market.name.endsWith(`-${asset}`)) &&
+      (market.name.includes(`-${UoA}-`) || market.name.endsWith(`-${UoA}`))
+    )?.address;
+    if (!pairId) {
+      log.warn(`Asset pair ${asset}-${UoA} is not available on UniswapV2`);
+      return undefined;
+    }
+    log.info(`Fetching ${UoA} price of ${asset} on ${date} from UniswapV2 market ${pairId}`);
+    const url = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
+    const attempt = async () => (await axios({ url, method: "post", timeout: 10000, data: {
+      query: `{
+        exchangeHistoricalDatas(
+          where: {
+            timestamp_lt: ${Math.round(new Date(date).getTime()/1000)}, 
+            exchangeAddress: "${pairId}"
+          },
+          first: 1,
+          orderBy: timestamp,
+          orderDirection: desc
+        ) {
+          timestamp
+          price
+        }
+      }`
+    } })).data.data;
+    let price;
+    try {
+      const response = await retry(attempt);
+      log.debug(response, "Got uniswap v2 response");
+      price = response?.exchangeHistoricalDatas?.[0]?.price;
+    } catch (e) {
+      log.error(e.message);
+    }
+    if (!price || eq(price, "0")) {
+      log.warn(`Could not fetch ${asset} price from UniswapV2 on ${date}`);
       return undefined;
     }
     return div("1", price);
@@ -299,18 +451,15 @@ export const getPrices = ({
     const uniV3Launch = new Date("2021-05-04").getTime();
     const time = new Date(date).getTime();
     const UoA = formatUoa(givenUoa);
-
     // Uniswap was not deployed yet, can't fetch price
     if (time < uniV1Launch) {
       return undefined;
-
     } else if (time < uniV2Launch) {
       if (UoA === ETH) {
         return await getUniswapV1Price(date, asset);
       } else {
         return undefined;
       }
-
     } else if (time < uniV3Launch) {
       if (UoA === ETH) {
         return await getUniswapV1Price(date, asset)
@@ -319,7 +468,6 @@ export const getPrices = ({
         return await getUniswapV2Price(date, asset, UoA);
       }
     }
-
     // All uniswap versions are available
     // TODO: use the one with best liquidity?
     // Or should we average all available prices?
@@ -332,157 +480,6 @@ export const getPrices = ({
       return await getUniswapV2Price(date, asset, UoA);
       //|| await getUniswapV3Price(date, asset, ETH);
     }
-  };
-
-  const getCoinGeckoPrice = async (
-    date: DateString,
-    asset: AssetTypes,
-    givenUoa: AssetTypes,
-  ): Promise<string | undefined> => {
-    // derived from output of https://api.coingecko.com/api/v3/coins/list
-    const UoA = formatUoa(givenUoa);
-    const getCoinId = (asset: AssetTypes): string | undefined => {
-      switch (asset) {
-      case BAT: return "basic-attention-token";
-      case BCH: return "bitcoin-cash";
-      case BTC: return "bitcoin";
-      case CHERRY: return "cherry";
-      case COMP: return "compound-governance-token";
-      case DAI: return "dai";
-      case ETH: return "ethereum";
-      case GEN: return "daostack";
-      case GNO: return "gnosis";
-      case LTC: return "litecoin";
-      case MKR: return "maker";
-      case OMG: return "omisego";
-      case REP: return "augur";
-      case SAI: return "sai";
-      case SNT: return "status";
-      case SNX: return "havven";
-      case SNXv1: return "havven";
-      case SPANK: return "spankchain";
-      case UNI: return "uniswap";
-      case USDC: return "usd-coin";
-      case USDT: return "tether";
-      case WBTC: return "wrapped-bitcoin";
-      case WETH: return "weth";
-      case YFI: return "yearn-finance";
-      default: return undefined;
-      }
-    };
-    const coinId = getCoinId(asset);
-    if (!coinId) {
-      log.warn(`Asset "${asset}" is not available on CoinGecko`);
-      return undefined;
-    }
-    // eg https://api.coingecko.com/api/v3/coins/bitcoin/history?date=30-12-2017
-    const coingeckoUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/history?date=${
-      `${date.split("-")[2]}-${date.split("-")[1]}-${date.split("-")[0]}`
-    }`;
-    log.info(`Fetching ${UoA} price of ${asset} on ${date} from ${coingeckoUrl}`);
-    const attempt = async () => (await axios.get(coingeckoUrl, { timeout: 10000 })).data;
-    let price;
-    try {
-      const response = await retry(attempt);
-      price = response?.market_data?.current_price?.[UoA.toLowerCase()].toString();
-    } catch (e) {
-      log.error(e.message);
-    }
-    if (!price) {
-      log.warn(`Price is not available, maybe ${asset} didn't exist on ${date}`);
-    }
-    return price;
-  };
-
-  const getSwapPrices = (tx: Transaction): PriceList => {
-    const prices = {};
-    const swapsIn = tx.transfers.filter(t => t.category === TransferCategories.SwapIn);
-    const swapsOut = tx.transfers.filter(t => t.category === TransferCategories.SwapOut);
-    const assetsOut = rmDups(swapsOut.map(swap => swap.assetType));
-    const assetsIn = rmDups(
-      swapsIn
-        .map(swap => swap.assetType)
-        // If some input asset was refunded, remove this from the output asset list
-        .filter(asset => !assetsOut.includes(asset))
-    );
-    const sum = (acc, cur) => add(acc, cur.quantity);
-
-    if (assetsIn.length === 0 && assetsOut.length === 0) {
-      log.debug(`No swaps detected`);
-      return prices;
-
-    } else if (assetsIn.length === 1 && assetsOut.length === 1) {
-      log.info(`Parsing swap w 1 asset out (${assetsOut}) & 1 in (${assetsIn})`);
-      const amtOut = sub(
-        swapsOut.reduce(sum, "0"),
-        // Subtract refund if present
-        swapsIn.filter(swap => swap.assetType === assetsOut[0]).reduce(sum, "0"),
-      );
-      const amtIn = swapsIn
-        .filter(swap => swap.assetType !== assetsOut[0])
-        .reduce(sum, "0");
-      prices[assetsOut[0]] = prices[assetsOut[0]] || {};
-      prices[assetsOut[0]][assetsIn[0]] = div(amtOut, amtIn);
-      prices[assetsIn[0]] = prices[assetsIn[0]] || {};
-      prices[assetsIn[0]][assetsOut[0]] = div(amtIn, amtOut);
-
-    } else if (assetsIn.length === 2 && assetsOut.length === 1) {
-      log.info(`Parsing swap w 1 asset out (${assetsOut}) & 2 in (${assetsIn})`);
-      const amtsIn = assetsIn.map(asset => sub(
-        swapsIn.filter(swap => swap.assetType === asset).reduce(sum, "0"),
-        // Subtract refund if present
-        swapsOut.filter(swap => swap.assetType === asset).reduce(sum, "0"),
-      ));
-      const amtOut = swapsOut
-        .filter(swap => !assetsIn.includes(swap.assetType))
-        .reduce(sum, "0");
-      // Get prices of the two liq inputs relative to each other
-      prices[assetsIn[0]] = prices[assetsIn[0]] || {};
-      prices[assetsIn[0]][assetsIn[1]] = div(amtsIn[0], amtsIn[1]);
-      prices[assetsIn[1]] = prices[assetsIn[1]] || {};
-      prices[assetsIn[1]][assetsIn[0]] = div(amtsIn[1], amtsIn[0]);
-      // Get prices of the liq tokens relative to each input
-      prices[assetsIn[0]][assetsOut[0]] = div(mul(amtsIn[0], "2"), amtOut);
-      prices[assetsIn[1]][assetsOut[0]] = div(mul(amtsIn[1], "2"), amtOut);
-
-    } else if (assetsOut.length === 2 && assetsIn.length === 1) {
-      log.info(`Parsing swap w 2 assets out (${assetsOut}) & 1 in (${assetsIn})`);
-      const amtsOut = assetsOut.map(asset => sub(
-        swapsOut.filter(swap => swap.assetType === asset).reduce(sum, "0"),
-        // Subtract refund if present
-        swapsIn.filter(swap => swap.assetType === asset).reduce(sum, "0"),
-      ));
-      const amtIn = swapsIn
-        .filter(swap => !assetsOut.includes(swap.assetType))
-        .reduce(sum, "0");
-      // Get prices of the two liq inputs relative to each other
-      prices[assetsOut[0]] = prices[assetsOut[0]] || {};
-      prices[assetsOut[0]][assetsOut[1]] = div(amtsOut[0], amtsOut[1]);
-      prices[assetsOut[1]] = prices[assetsOut[1]] || {};
-      prices[assetsOut[1]][assetsOut[0]] = div(amtsOut[1], amtsOut[0]);
-      // Get prices of the liq tokens relative to each input
-      prices[assetsOut[0]][assetsIn[0]] = div(mul(amtsOut[0], "2"), amtIn);
-      prices[assetsOut[1]][assetsIn[0]] = div(mul(amtsOut[1], "2"), amtIn);
-
-    } else {
-      log.warn(`Unable to get prices from swap w input=${assetsIn} & output=${assetsOut}`);
-    }
-    log.debug(prices, `Got prices for tx swaps`);
-    return prices;
-  };
-
-  const setPrice = (
-    price: DecimalString,
-    rawDate: DateString,
-    asset: AssetTypes,
-    givenUoa?: AssetTypes,
-  ): void => {
-    const date = formatDate(rawDate);
-    const UoA = formatUoa(givenUoa);
-    if (!json[date]) json[date] = {};
-    if (!json[date][UoA]) json[date][UoA] = {};
-    json[date][UoA][asset] = formatPrice(price);
-    save(json);
   };
 
   ////////////////////////////////////////
@@ -520,7 +517,7 @@ export const getPrices = ({
     log.debug(`Getting ${UoA} price of ${asset} on ${date}..`);
     if (asset === UoA || (ethish.includes(asset) && ethish.includes(UoA))) return "1";
     if (json[date]?.[UoA]?.[asset]) return formatPrice(json[date][UoA][asset]);
-    if (json[date]?.[asset]?.[UoA]) return formatPrice(div("1", json[date][UoA][asset]));
+    if (json[date]?.[asset]?.[UoA]) return formatPrice(div("1", json[date][asset][UoA]));
     const path = getPath(date, UoA, asset);
     if (!path.length) return undefined;
     let price = "1"; 
@@ -549,7 +546,7 @@ export const getPrices = ({
             typeof asset === "string" &&
             typeof UoA === "string"
           ) {
-            log.info(`Merging ${UoA} price for ${asset} on ${date}: ${price}`);
+            log.debug(`Merging ${UoA} price for ${asset} on ${date}: ${price}`);
             setPrice(
               price as DecimalString,
               date as DateString,
@@ -585,7 +582,15 @@ export const getPrices = ({
         price = await getUniswapPrice(date, asset, UoA);
       }
       if (!price) {
-        price = await getCoinGeckoPrice(date, asset, UoA);
+        if (Object.keys(FiatAssets).includes(asset)) {
+          const inversePrice = await getCoinGeckoPrice(date, UoA, asset);
+          if (inversePrice && gt(inversePrice, "0")) {
+            price = div("1", inversePrice);
+            log.debug(`Got ${asset} per ${UoA} price & inversed it to ${price}`);
+          }
+        } else {
+          price = await getCoinGeckoPrice(date, asset, UoA);
+        }
       }
       if (price) {
         setPrice(math.round(price, 18).replace(/0+$/, ""), date, asset, UoA);
@@ -629,7 +634,7 @@ export const getPrices = ({
         // then calculate the exchange rate of the other (eg ETH/cDAI = ETH/DAI * DAI/cDAI)
         await syncPrice(date, asset, AssetTypes.ETH);
       } catch (e) {
-        console.error(e);
+        log.error(e);
       }
     }
     // Then, if UoA isn't ETH, sync all FIAT/DEFI prices from FIAT/ETH * ETH/DEFI
@@ -640,7 +645,7 @@ export const getPrices = ({
           priceList[UoA][asset] = await syncPrice(date, asset, UoA);
         }
       } catch (e) {
-        console.error(e);
+        log.error(e);
       }
     }
     return { [date]: priceList };

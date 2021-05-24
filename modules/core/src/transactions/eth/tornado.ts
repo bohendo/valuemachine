@@ -11,28 +11,26 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+import { math, smeq } from "@finances/utils";
 
 import { rmDups } from "../utils";
 
 const { round } = math;
-const { TORN, vTORN } = AssetTypes;
+const { TORN } = AssetTypes;
 
 const source = TransactionSources.Tornado;
 
 ////////////////////////////////////////
 /// Addresses
 
-const airdropperAddress = "0x4e7b3769921c8dfbdb3d1b4c73558db079a180c7";
-const voucherAddress = "0x3efa30704d2b8bbac821307230376556cf8cc39e";
-
+// vTORN has no value so don't treat it like a real asset
 const miscAddresses = [
-  { name: "vTORN-airdropper", address: airdropperAddress },
+  { name: "vTORN-airdropper", address: "0x4e7b3769921c8dfbdb3d1b4c73558db079a180c7" },
+  { name: "vTORN", address: "0x3efa30704d2b8bbac821307230376556cf8cc39e" },
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const govTokenAddresses = [
   { name: TORN, address: "0x77777feddddffc19ff86db637967013e6c6a116c" },
-  { name: vTORN, address: voucherAddress },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 const mixerAddresses = [
@@ -109,25 +107,6 @@ export const tornadoParser = (
     log.info(`Found withdraw of ${amt} ${asset} from ${source}`);
     tx.description = `${getName(withdraw.to)} withdrew ${amt} ${asset} from ${source}`;
   });
-
-  for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
-    if (govTokenAddresses.some(e => smeq(e.address, address))) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
-      // Handle vTORN airdrop
-      if (smeq(address, voucherAddress) && smeq(ethTx.from, airdropperAddress)) {
-        const airdrop = tx.transfers.find(t =>
-          isSelf(t.to) && t.assetType === getName(voucherAddress)
-        );
-        // The real on-chain from is an ephemeral multi-send contract
-        airdrop.from = airdropperAddress;
-        airdrop.category = TransferCategories.Income;
-        tx.description = `${getName(airdrop.to)} recieved an airdrop of ${
-          round(airdrop.quantity)
-        } vTORN`;
-      }
-    }
-  }
 
   // log.debug(tx, `Done parsing ${source}`);
   return tx;

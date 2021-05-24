@@ -164,7 +164,7 @@ export const PriceManager = ({
             url: `/api/prices/${uoa}`,
             data: { transaction },
           });
-          console.log(res.data, `got prices for transaction ${i}`);
+          console.log(res.data, `synced prices for transaction ${i}`);
           prices.merge(res.data);
           setPricesJson({ ...prices.json });
         }
