@@ -518,6 +518,7 @@ export const getPrices = ({
         // check which one is has a more liquid uniswap pool
         // has a more reliable exchange rate & sync prices for that pair (eg fetch ETH/DAI)
         // then calculate the exchange rate of the other (eg ETH/cDAI = ETH/DAI * DAI/cDAI)
+        priceList[AssetTypes.ETH] = priceList[AssetTypes.ETH] || {};
         if (Object.keys(EthereumAssets).includes(asset)) {
           priceList[AssetTypes.ETH][asset] = await syncPrice(date, asset, AssetTypes.ETH);
         }
