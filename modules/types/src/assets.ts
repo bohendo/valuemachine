@@ -117,17 +117,17 @@ export const EthereumAssets = enumify({
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type EthereumAssets = (typeof EthereumAssets)[keyof typeof EthereumAssets];
 
-export const AssetTypes = enumify({
+export const Assets = enumify({
   ...FiatAssets,
   ...AltChainAssets,
   ...EthereumAssets,
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export type AssetTypes = (typeof AssetTypes)[keyof typeof AssetTypes];
+export type Assets = (typeof Assets)[keyof typeof Assets];
 
 export type AssetChunk = {
-  assetType: AssetTypes;
+  asset: Assets;
   dateRecieved: TimestampString;
-  purchasePrice: DecimalString; /* units of account (USD/DAI) per 1 assetType */
+  purchasePrice: DecimalString; /* units of account (USD/DAI) per 1 asset */
   quantity: DecimalString;
 };

@@ -85,7 +85,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("deposit");
     expect(tx.description).to.include(math.round(deposit.quantity));
-    expect(tx.description).to.include(deposit.assetType);
+    expect(tx.description).to.include(deposit.asset);
   });
 
   it("should handle withdrawals from compound v2", async () => {
@@ -112,7 +112,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("withdr");
     expect(tx.description).to.include(math.round(withdraw.quantity));
-    expect(tx.description).to.include(withdraw.assetType);
+    expect(tx.description).to.include(withdraw.asset);
   });
 
   it("should handle compound v2 market entries", async () => {
@@ -159,7 +159,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("borrow");
     expect(tx.description).to.include(math.round(borrow.quantity));
-    expect(tx.description).to.include(borrow.assetType);
+    expect(tx.description).to.include(borrow.asset);
   });
 
   it("should handle repayments to compound v2", async () => {
@@ -184,7 +184,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("repay");
     expect(tx.description).to.include(math.round(repay.quantity));
-    expect(tx.description).to.include(repay.assetType);
+    expect(tx.description).to.include(repay.asset);
   });
 
 });

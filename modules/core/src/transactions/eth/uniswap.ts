@@ -1,6 +1,6 @@
 import { Interface } from "@ethersproject/abi";
 import {
-  AssetTypes,
+  Assets,
   AddressBook,
   AddressBookJson,
   AddressCategories,
@@ -25,7 +25,7 @@ const { UNI,
   UniV2_MKR_ETH, UniV2_PICKLE_ETH, UniV2_RAI_ETH, UniV2_REN_ETH, UniV2_SHIB_ETH, UniV2_SNX_ETH,
   UniV2_sUSD_ETH, UniV2_SUSHI_ETH, UniV2_TORN_ETH, UniV2_UNI_ETH, UniV2_USDC_DSD, UniV2_USDC_ETH,
   UniV2_USDC_GRT, UniV2_USDC_USDT, UniV2_WBTC_ETH, UniV2_WBTC_USDC, UniV2_WDOGE_ETH, UniV2_YFI_ETH,
-} = AssetTypes;
+} = Assets;
 const source = TransactionSources.Uniswap;
 
 ////////////////////////////////////////
@@ -214,9 +214,9 @@ export const uniswapParser = (
         ] as TransferCategories[]).includes(transfer.category)
     );
     // SwapIn entries for assets that don't exist in swapsOut should come first
-    const ofType = asset => swap => swap.assetType === asset;
+    const ofType = asset => swap => swap.asset === asset;
     swapsIn.sort((s1, s2) =>
-      swapsOut.filter(ofType(s1.assetType)).length - swapsOut.filter(ofType(s2.assetType)).length
+      swapsOut.filter(ofType(s1.asset)).length - swapsOut.filter(ofType(s2.asset)).length
     );
     return { in: swapsIn, out: swapsOut };
   };
@@ -269,27 +269,27 @@ export const uniswapParser = (
       if (["Swap", "EthPurchase", "TokenPurchase"].includes(event.name)) {
         tx.description = `${getName(ethTx.from)} swapped ${
           round(swaps.out[0].quantity)
-        } ${swaps.out[0].assetType}${swaps.out.length > 1 ? ", etc" : ""} for ${
+        } ${swaps.out[0].asset}${swaps.out.length > 1 ? ", etc" : ""} for ${
           round(swaps.in[0].quantity)
-        } ${swaps.in[0].assetType}${swaps.in.length > 1 ? ", etc" : ""} via ${subsrc}`;
+        } ${swaps.in[0].asset}${swaps.in.length > 1 ? ", etc" : ""} via ${subsrc}`;
 
       ////////////////////////////////////////
       // Deposit Liquidity
       } else if (["Mint", "AddLiquidity"].includes(event.name)) {
         tx.description = `${getName(ethTx.from)} deposited ${
           round(swaps.out[0].quantity)
-        } ${swaps.out[0].assetType} and ${
+        } ${swaps.out[0].asset} and ${
           round(swaps.out[1].quantity)
-        } ${swaps.out[1].assetType} into ${subsrc}`;
+        } ${swaps.out[1].asset} into ${subsrc}`;
 
       ////////////////////////////////////////
       // Withdraw Liquidity
       } else if (["Burn", "RemoveLiquidity"].includes(event.name)) {
         tx.description = `${getName(ethTx.from)} withdrew ${
           round(swaps.in[0].quantity)
-        } ${swaps.in[0].assetType} and ${
+        } ${swaps.in[0].asset} and ${
           round(swaps.in[1].quantity)
-        } ${swaps.in[1].assetType} from ${subsrc}`;
+        } ${swaps.in[1].asset} from ${subsrc}`;
 
       } else {
         log.warn(`Missing ${event.name} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
@@ -301,7 +301,7 @@ export const uniswapParser = (
       const airdrop = tx.transfers.find((transfer: Transfer): boolean =>
         isSelf(transfer.to)
           && airdropAddresses.some(e => smeq(transfer.from, e.address))
-          && transfer.assetType === UNI
+          && transfer.asset === UNI
           && ([
             TransferCategories.Transfer,
             TransferCategories.Income,
@@ -310,7 +310,7 @@ export const uniswapParser = (
       airdrop.category = TransferCategories.Income;
       tx.description = `${getName(airdrop.to)} recieved an airdrop of ${
         round(airdrop.quantity)
-      } ${airdrop.assetType} from ${subsrc}`;
+      } ${airdrop.asset} from ${subsrc}`;
 
     ////////////////////////////////////////
     // UNI Mining Pool Deposit
@@ -318,7 +318,7 @@ export const uniswapParser = (
       const deposit = tx.transfers.find((transfer: Transfer): boolean =>
         isSelf(transfer.from)
           && stakingAddresses.some(e => smeq(transfer.to, e.address))
-          && v2MarketAddresses.some(e => getName(e.address) === transfer.assetType)
+          && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
           && ([
             TransferCategories.Transfer,
             TransferCategories.Deposit,
@@ -331,7 +331,7 @@ export const uniswapParser = (
       log.info(`Parsing ${subsrc} ${event.name}`);
       deposit.category = TransferCategories.Deposit;
       tx.description = `${getName(ethTx.from)} deposited ${
-        deposit.assetType
+        deposit.asset
       } into ${subsrc} staking pool`;
 
     ////////////////////////////////////////
@@ -340,7 +340,7 @@ export const uniswapParser = (
       const withdraw = tx.transfers.find((transfer: Transfer): boolean =>
         isSelf(transfer.to)
           && stakingAddresses.some(e => smeq(transfer.from, e.address))
-          && v2MarketAddresses.some(e => getName(e.address) === transfer.assetType)
+          && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
           && ([
             TransferCategories.Transfer,
             TransferCategories.Withdraw,
@@ -355,7 +355,7 @@ export const uniswapParser = (
       const income = tx.transfers.find((transfer: Transfer): boolean =>
         isSelf(transfer.to)
           && stakingAddresses.some(e => smeq(transfer.from, e.address))
-          && transfer.assetType === UNI
+          && transfer.asset === UNI
           && ([
             TransferCategories.Transfer,
             TransferCategories.Income,
@@ -367,7 +367,7 @@ export const uniswapParser = (
       }
       income.category = TransferCategories.Income;
       tx.description = `${getName(ethTx.from)} withdrew ${
-        withdraw.assetType
+        withdraw.asset
       } from ${subsrc} staking pool`;
 
     } else {

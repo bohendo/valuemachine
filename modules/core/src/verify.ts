@@ -88,7 +88,7 @@ export const getTransactionsError = (transactions: Transaction[]): string | null
 
     for (const transfer of transaction.transfers) {
       for (const { key, expected } of [
-        { key: "assetType", expected: "string" },
+        { key: "asset", expected: "string" },
         { key: "category", expected: "string" },
         { key: "fee", expected: "string?" },
         { key: "from", expected: "string" },

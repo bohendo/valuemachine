@@ -44,9 +44,9 @@ describe(TransactionSources.Maker, () => {
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("swap");
     expect(tx.description).to.include(math.round(swapIn.quantity));
-    expect(tx.description).to.include(swapIn.assetType);
+    expect(tx.description).to.include(swapIn.asset);
     expect(tx.description).to.include(math.round(swapOut.quantity));
-    expect(tx.description).to.include(swapOut.assetType);
+    expect(tx.description).to.include(swapOut.asset);
   });
 
   it("should handle a PETH withdrawal with duplicate events", async () => {
@@ -124,9 +124,9 @@ describe(TransactionSources.Maker, () => {
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("redeem");
     expect(tx.description).to.include(math.round(swapIn.quantity));
-    expect(tx.description).to.include(swapIn.assetType);
+    expect(tx.description).to.include(swapIn.asset);
     expect(tx.description).to.include(math.round(swapOut.quantity));
-    expect(tx.description).to.include(swapOut.assetType);
+    expect(tx.description).to.include(swapOut.asset);
   });
 
   it("should handle a SAI to DAI migration", async () => {
@@ -145,8 +145,8 @@ describe(TransactionSources.Maker, () => {
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("migrat");
     expect(tx.description).to.include(math.round(swapIn.quantity));
-    expect(tx.description).to.include(swapIn.assetType);
-    expect(tx.description).to.include(swapOut.assetType);
+    expect(tx.description).to.include(swapIn.asset);
+    expect(tx.description).to.include(swapOut.asset);
   });
 
   it("should handle a DAI deposit to DSR", async () => {
@@ -165,7 +165,7 @@ describe(TransactionSources.Maker, () => {
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("deposit");
     expect(tx.description).to.include(math.round(deposit.quantity));
-    expect(tx.description).to.include(deposit.assetType);
+    expect(tx.description).to.include(deposit.asset);
   });
 
 });

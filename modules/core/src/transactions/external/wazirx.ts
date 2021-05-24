@@ -45,7 +45,7 @@ export const mergeWazirxTransactions = (
 
       if (txType === "Deposit") {
         transaction.transfers.push({
-          assetType: currency,
+          asset: currency,
           category: TransferCategories.Transfer,
           from: "external-account",
           quantity,
@@ -54,7 +54,7 @@ export const mergeWazirxTransactions = (
         transaction.description = `Deposited ${quantity} ${currency} into Wazirx`;
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
-          assetType: currency,
+          asset: currency,
           category: TransferCategories.Transfer,
           from: "wazirx-account",
           quantity,
@@ -80,7 +80,7 @@ export const mergeWazirxTransactions = (
       const currency = market.replace("INR", "");
 
       transaction.transfers.push({
-        assetType: feeAsset,
+        asset: feeAsset,
         category: TransferCategories.Expense,
         from: "wazirx-account",
         quantity: feeAmount,
@@ -89,14 +89,14 @@ export const mergeWazirxTransactions = (
 
       if (tradeType === "Buy") {
         transaction.transfers.push({
-          assetType: "INR",
+          asset: "INR",
           category: TransferCategories.SwapOut,
           from: "wazirx-account",
           quantity: inrQuantity,
           to: "wazirx-exchange",
         });
         transaction.transfers.push({
-          assetType: currency,
+          asset: currency,
           category: TransferCategories.SwapIn,
           from: "wazirx-exchange",
           quantity: quantity,
@@ -106,14 +106,14 @@ export const mergeWazirxTransactions = (
 
       } else if (tradeType === "Sell") {
         transaction.transfers.push({
-          assetType: currency,
+          asset: currency,
           category: TransferCategories.SwapOut,
           from: "wazirx-account",
           quantity: quantity,
           to: "wazirx-exchange",
         });
         transaction.transfers.push({
-          assetType: "INR",
+          asset: "INR",
           category: TransferCategories.SwapIn,
           from: "wazirx-exchange",
           quantity: inrQuantity,

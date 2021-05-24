@@ -1,4 +1,4 @@
-import { AddressBook, AddressCategories, AssetTypes, Prices, Transactions } from "@finances/types";
+import { AddressBook, AddressCategories, Assets, Prices, Transactions } from "@finances/types";
 import { expect, math } from "@finances/utils";
 
 import { getPrices } from "./prices";
@@ -11,7 +11,7 @@ const log = testLogger.child({
 });
 
 const { mul, round } = math;
-const { DAI, USD, ETH, cDAI, MKR, SPANK, sUSDv1 } = AssetTypes;
+const { DAI, USD, ETH, cDAI, MKR, SPANK, sUSDv1 } = Assets;
 
 describe("Prices", () => {
   let addressBook: AddressBook;

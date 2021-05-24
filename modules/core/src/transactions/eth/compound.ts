@@ -4,7 +4,7 @@ import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
-  AssetTypes,
+  Assets,
   ChainData,
   EthTransaction,
   Logger,
@@ -20,7 +20,7 @@ import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
 const { div, round } = math;
 const {
   COMP, cBAT, cCOMP, cDAI, cETH, cREP, cSAI, cUNI, cUSDC, cUSDT, cWBTC, cWBTCv2, cZRX
-} = AssetTypes;
+} = Assets;
 
 const source = TransactionSources.Compound;
 
@@ -116,9 +116,9 @@ const cTokenInterface = new Interface([
 
 const cTokenDecimals = 8;
 
-const associatedTransfer = (assetType: string, quantity: string) =>
+const associatedTransfer = (asset: string, quantity: string) =>
   (transfer: Transfer): boolean =>
-    smeq(transfer.assetType, assetType)
+    smeq(transfer.asset, asset)
       && quantitiesAreClose(transfer.quantity, quantity, div(quantity, "100"));
 
 export const compoundParser = (
@@ -150,10 +150,10 @@ export const compoundParser = (
         event.args.amount,
         chainData.getTokenData(event.args.asset)?.decimals || 18,
       );
-      const assetType = getName(event.args.asset);
+      const asset = getName(event.args.asset);
 
       if (event.name === "SupplyReceived") {
-        const deposit = tx.transfers.find(associatedTransfer(assetType, amount));
+        const deposit = tx.transfers.find(associatedTransfer(asset, amount));
         if (deposit) {
           deposit.category = TransferCategories.Deposit;
         } else {
@@ -161,21 +161,21 @@ export const compoundParser = (
         }
         tx.description = `${getName(ethTx.from)} deposited ${
           round(amount)
-        } ${assetType} into ${source}V1`;
+        } ${asset} into ${source}V1`;
 
       } else if (event.name === "SupplyWithdrawn") {
-        const withdraw = tx.transfers.find(associatedTransfer(assetType, amount));
+        const withdraw = tx.transfers.find(associatedTransfer(asset, amount));
         if (withdraw) {
           withdraw.category = TransferCategories.Withdraw;
         } else {
-          log.warn(tx.transfers, `Can't find a transfer of ${amount} ${assetType}`);
+          log.warn(tx.transfers, `Can't find a transfer of ${amount} ${asset}`);
         }
         tx.description = `${getName(ethTx.from)} withdrew ${
           round(amount)
-        } ${assetType} from ${source}V1`;
+        } ${asset} from ${source}V1`;
 
       } else if (event.name === "BorrowTaken") {
-        const borrow = tx.transfers.find(associatedTransfer(assetType, amount));
+        const borrow = tx.transfers.find(associatedTransfer(asset, amount));
         if (borrow) {
           borrow.category = TransferCategories.Borrow;
         } else {
@@ -183,10 +183,10 @@ export const compoundParser = (
         }
         tx.description = `${getName(ethTx.from)} borrowed ${
           round(amount)
-        } ${assetType} from ${source}V1`;
+        } ${asset} from ${source}V1`;
 
       } else if (event.name === "BorrowRepaid") {
-        const repay = tx.transfers.find(associatedTransfer(assetType, amount));
+        const repay = tx.transfers.find(associatedTransfer(asset, amount));
         if (repay) {
           repay.category = TransferCategories.Repay;
         } else {
@@ -194,7 +194,7 @@ export const compoundParser = (
         }
         tx.description = `${getName(ethTx.from)} repaid ${
           round(amount)
-        } ${assetType} to ${source}V1`;
+        } ${asset} to ${source}V1`;
 
       } else {
         log.debug(`Skipping ${source}V1 ${event.name} event`);
@@ -232,22 +232,22 @@ export const compoundParser = (
     } else if (cTokenAddresses.some(a => smeq(address, a.address))) {
       const event = parseEvent(cTokenInterface, txLog);
       if (!event.name) continue;
-      const assetType = getName(address).replace(/^c/, "");
+      const asset = getName(address).replace(/^c/, "");
 
       // Deposit
       if (event.name === "Mint") {
         log.info(`Parsing ${getName(address)} ${event.name} event`);
         const tokenAmt = formatUnits(
           event.args.mintAmount,
-          chainData.getTokenData(assetType)?.decimals || 18,
+          chainData.getTokenData(asset)?.decimals || 18,
         );
         const cTokenAmt = formatUnits(event.args.mintTokens, cTokenDecimals);
-        const swapOut = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        const swapOut = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         const swapIn = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
         if (swapOut) {
           swapOut.category = TransferCategories.SwapOut;
         } else {
-          log.warn(`${event.name}: Can't find swapOut of ${tokenAmt} ${assetType}`);
+          log.warn(`${event.name}: Can't find swapOut of ${tokenAmt} ${asset}`);
         }
         if (swapIn) {
           swapIn.category = TransferCategories.SwapIn;
@@ -256,18 +256,18 @@ export const compoundParser = (
         }
         tx.description = `${getName(ethTx.from)} deposited ${
           round(tokenAmt)
-        } ${assetType} into ${source}`;
+        } ${asset} into ${source}`;
 
       // Withdraw
       } else if (event.name === "Redeem") {
         log.info(`Parsing ${getName(address)} ${event.name} event`);
         const tokenAmt = formatUnits(
           event.args.redeemAmount,
-          chainData.getTokenData(assetType)?.decimals || 18,
+          chainData.getTokenData(asset)?.decimals || 18,
         );
         const cTokenAmt = formatUnits(event.args.redeemTokens, cTokenDecimals);
         const swapOut = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
-        const swapIn = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        const swapIn = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (swapOut) {
           swapOut.category = TransferCategories.SwapOut;
         } else {
@@ -276,45 +276,45 @@ export const compoundParser = (
         if (swapIn) {
           swapIn.category = TransferCategories.SwapIn;
         } else {
-          log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${assetType}`);
+          log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${asset}`);
         }
         tx.description = `${getName(ethTx.from)} withdrew ${
           round(tokenAmt)
-        } ${assetType} from ${source}`;
+        } ${asset} from ${source}`;
 
       // Borrow
       } else if (event.name === "Borrow") {
         log.info(`Parsing ${getName(address)} ${event.name} event`);
         const tokenAmt = formatUnits(
           event.args.borrowAmount,
-          chainData.getTokenData(assetType)?.decimals || 18,
+          chainData.getTokenData(asset)?.decimals || 18,
         );
-        const borrow = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        const borrow = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (borrow) {
           borrow.category = TransferCategories.Borrow;
         } else {
-          log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${assetType}`);
+          log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
         tx.description = `${getName(ethTx.from)} borrowed ${
           round(tokenAmt)
-        } ${assetType} from ${getName(address)}`;
+        } ${asset} from ${getName(address)}`;
 
       // Repay
       } else if (event.name === "RepayBorrow") {
         log.info(`Parsing ${getName(address)} ${event.name} event`);
         const tokenAmt = formatUnits(
           event.args.repayAmount,
-          chainData.getTokenData(assetType)?.decimals || 18,
+          chainData.getTokenData(asset)?.decimals || 18,
         );
-        const repay = tx.transfers.find(associatedTransfer(assetType, tokenAmt));
+        const repay = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (repay) {
           repay.category = TransferCategories.Repay;
         } else {
-          log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${assetType}`);
+          log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
         tx.description = `${getName(ethTx.from)} repayed ${
           round(tokenAmt)
-        } ${assetType} to ${getName(address)}`;
+        } ${asset} to ${getName(address)}`;
 
 
       } else {

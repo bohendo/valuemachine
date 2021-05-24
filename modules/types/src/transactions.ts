@@ -1,5 +1,5 @@
 import { AddressBook } from "./addressBook";
-import { AssetTypes } from "./assets";
+import { Assets } from "./assets";
 import { ChainData } from "./chainData";
 import { Logger } from "./logger";
 import { DecimalString, HexString, TimestampString } from "./strings";
@@ -60,7 +60,7 @@ export const TransferCategories = enumify({
 export type TransferCategories = (typeof TransferCategories)[keyof typeof TransferCategories];
 
 export type Transfer = {
-  assetType: AssetTypes;
+  asset: Assets;
   category: TransferCategories;
   fee?: DecimalString;
   from: HexString;

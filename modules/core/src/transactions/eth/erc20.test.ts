@@ -75,7 +75,7 @@ describe(TransactionSources.ERC20, () => {
     expect(txns.json[0].description).to.include(addressBook.getName(sender));
     expect(txns.json[0].description).to.include(addressBook.getName(recipient));
     const tokenTransfer = txns.json[0].transfers[1];
-    expect(tokenTransfer.assetType).to.equal(addressBook.getName(tokenAddress));
+    expect(tokenTransfer.asset).to.equal(addressBook.getName(tokenAddress));
     expect(tokenTransfer.quantity).to.equal(quantity);
     expect(tokenTransfer.from).to.equal(sender);
     expect(tokenTransfer.to).to.equal(recipient);

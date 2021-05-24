@@ -1,6 +1,6 @@
 import {
   AddressBook,
-  AssetTypes,
+  Assets,
   Transfer,
   AddressBookJson,
   AddressCategories,
@@ -16,7 +16,7 @@ import { math, smeq } from "@finances/utils";
 import { rmDups } from "../utils";
 
 const { round } = math;
-const { TORN } = AssetTypes;
+const { TORN } = Assets;
 
 const source = TransactionSources.Tornado;
 
@@ -95,7 +95,7 @@ export const tornadoParser = (
   deposits.forEach(deposit => {
     deposit.category = TransferCategories.Deposit;
     const amt = round(deposit.quantity);
-    const asset = deposit.assetType;
+    const asset = deposit.asset;
     log.info(`Found deposit of ${amt} ${asset} to ${source}`);
     tx.description = `${getName(deposit.from)} deposited ${amt} ${asset} into ${source}`;
   });
@@ -103,7 +103,7 @@ export const tornadoParser = (
   withdraws.forEach(withdraw => {
     withdraw.category = TransferCategories.Withdraw;
     const amt = round(withdraw.quantity);
-    const asset = withdraw.assetType;
+    const asset = withdraw.asset;
     log.info(`Found withdraw of ${amt} ${asset} from ${source}`);
     tx.description = `${getName(withdraw.to)} withdrew ${amt} ${asset} from ${source}`;
   });

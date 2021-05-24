@@ -5,7 +5,7 @@ import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
-  AssetTypes,
+  Assets,
   ChainData,
   EthTransaction,
   Logger,
@@ -21,7 +21,7 @@ const { round } = math;
 const {
   BAT, CHERRY, GEN, GNO, GRT, OMG, REP, REPv1, SNT, SNX,
   SNXv1, SPANK, sUSD, sUSDv1, USDC, USDT, WBTC, ZRX,
-} = AssetTypes;
+} = Assets;
 
 const source = TransactionSources.ERC20;
 
@@ -87,10 +87,10 @@ export const erc20Parser = (
       const event = parseEvent(erc20Interface, txLog);
       if (!event.name) continue;
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
-      const assetType = getName(address) as AssetTypes;
+      const asset = getName(address) as Assets;
       // Skip transfers that don't concern self accounts
       if (!isSelf(event.args.from) && !isSelf(event.args.to)) {
-        log.debug(`Skipping ${assetType} ${event.name} that doesn't involve us`);
+        log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
         continue;
       }
       const amount = formatUnits(
@@ -99,9 +99,9 @@ export const erc20Parser = (
       );
 
       if (event.name === "Transfer") {
-        log.info(`Parsing ${source} ${event.name} of ${amount} ${assetType}`);
+        log.info(`Parsing ${source} ${event.name} of ${amount} ${asset}`);
         tx.transfers.push({
-          assetType,
+          asset,
           category: TransferCategories.Transfer,
           from: event.args.from === AddressZero ? address : event.args.from,
           index: txLog.index,
@@ -111,20 +111,20 @@ export const erc20Parser = (
         if (smeq(ethTx.to, address)) {
           tx.description = `${getName(event.args.from)} transfered ${
             round(amount, 4)
-          } ${assetType} to ${getName(event.args.to)}`;
+          } ${asset} to ${getName(event.args.to)}`;
         }
 
       } else if (event.name === "Approval") {
-        log.info(`Parsing ${source} ${event.name} event for ${assetType}`);
+        log.info(`Parsing ${source} ${event.name} event for ${asset}`);
         if (smeq(ethTx.to, address)) {
           const amt = round(amount, 2);
           tx.description = `${getName(event.args.from)} approved ${
             getName(event.args.to)
-          } to spend ${amt.length > 10 ? "a lot of" : amt} ${assetType}`;
+          } to spend ${amt.length > 10 ? "a lot of" : amt} ${asset}`;
         }
 
       } else {
-        log.warn(event, `Unknown ${assetType} event`);
+        log.warn(event, `Unknown ${asset} event`);
       }
 
     }

@@ -125,7 +125,7 @@ const TransactionRow = ({
                   {tx.transfers.map((transfer: Transfer, i: number) => (
                     <TableRow key={i}>
                       <TableCell> {transfer.category} </TableCell>
-                      <TableCell> {transfer.assetType} </TableCell>
+                      <TableCell> {transfer.asset} </TableCell>
                       <TableCell> {math.round(transfer.quantity, 4)} </TableCell>
                       <TableCell>
                         <HexString

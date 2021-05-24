@@ -1,5 +1,5 @@
 import {
-  AssetTypes,
+  Assets,
   DateString,
   DecimalString,
   emptyPrices,
@@ -24,7 +24,7 @@ const { add, div, eq, gt, mul, sub } = math;
 const {
   BAT, BCH, BTC, CHERRY, COMP, DAI, ETH, GEN, GNO, LTC, MKR, OMG,
   REP, REPv1, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
-} = AssetTypes;
+} = Assets;
 
 export const getPrices = ({
   logger,
@@ -35,7 +35,7 @@ export const getPrices = ({
   store: Store;
   logger?: Logger;
   pricesJson?: PricesJson;
-  unit?: AssetTypes;
+  unit?: Assets;
 }): Prices => {
   const json = pricesJson
     || store?.load(StoreKeys.Prices)
@@ -43,7 +43,7 @@ export const getPrices = ({
   const save = (json: PricesJson): void => store?.save(StoreKeys.Prices, json);
   const log = (logger || getLogger()).child({ module: "Prices" });
 
-  const ethish = [ETH, WETH] as AssetTypes[];
+  const ethish = [ETH, WETH] as Assets[];
 
   log.debug(`Loaded prices for ${
     Object.keys(json).length
@@ -72,8 +72,8 @@ export const getPrices = ({
   };
 
   // Never use WETH as unit, use ETH instead
-  const formatUnit = (givenUnit: AssetTypes): AssetTypes => {
-    const unit = givenUnit || defaultUnit || AssetTypes.ETH;
+  const formatUnit = (givenUnit: Assets): Assets => {
+    const unit = givenUnit || defaultUnit || Assets.ETH;
     return unit === WETH ? ETH : unit;
   };
 
@@ -95,7 +95,7 @@ export const getPrices = ({
   };
 
   // Given an asset, get a list of other assets that we already have exchange rates for
-  const getNeighbors = (date: DateString, asset: AssetTypes): AssetTypes[] => {
+  const getNeighbors = (date: DateString, asset: Assets): Assets[] => {
     const neighbors = new Set();
     Object.keys(json[date] || {}).forEach(a1 => {
       Object.keys(json[date]?.[a1] || {}).forEach(a2 => {
@@ -103,10 +103,10 @@ export const getPrices = ({
         if (a2 === asset && a1 !== asset) neighbors.add(a1);
       });
     });
-    return Array.from(neighbors) as AssetTypes[];
+    return Array.from(neighbors) as Assets[];
   };
 
-  const getPath = (date: DateString, start: AssetTypes, target: AssetTypes): AssetTypes[] => {
+  const getPath = (date: DateString, start: Assets, target: Assets): Assets[] => {
     const unvisited = new Set();
     Object.keys(json[date] || {}).forEach(a1 => {
       unvisited.add(a1);
@@ -114,7 +114,7 @@ export const getPrices = ({
         unvisited.add(a2);
       });
     });
-    const countPrices = (date: DateString, asset?: AssetTypes): number => {
+    const countPrices = (date: DateString, asset?: Assets): number => {
       let count = 0;
       Object.keys(json[date] || {}).forEach(a1 => {
         Object.keys(json[date]?.[a1] || {}).forEach(a2 => {
@@ -130,15 +130,15 @@ export const getPrices = ({
       log.info(`${target} to ${start} exchange rate is unavailable on ${date}`);
       return [];
     }
-    const distances = {} as { [to: string]: { distance: number; path: AssetTypes[]; } };
-    for (const val of unvisited.values() as IterableIterator<AssetTypes>) {
+    const distances = {} as { [to: string]: { distance: number; path: Assets[]; } };
+    for (const val of unvisited.values() as IterableIterator<Assets>) {
       distances[val] = {
         distance: val === start ? 0 : Infinity,
         path: [start],
       };
     }
     let current = start;
-    const branches = [] as AssetTypes[];
+    const branches = [] as Assets[];
     let pathToCurrent = distances[current].path;
     while (current) {
       const neighbors = getNeighbors(date, current).filter(node => unvisited.has(node));
@@ -197,10 +197,10 @@ export const getPrices = ({
     const prices = {};
     const swapsIn = tx.transfers.filter(t => t.category === TransferCategories.SwapIn);
     const swapsOut = tx.transfers.filter(t => t.category === TransferCategories.SwapOut);
-    const assetsOut = rmDups(swapsOut.map(swap => swap.assetType));
+    const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
     const assetsIn = rmDups(
       swapsIn
-        .map(swap => swap.assetType)
+        .map(swap => swap.asset)
         // If some input asset was refunded, remove this from the output asset list
         .filter(asset => !assetsOut.includes(asset))
     );
@@ -213,10 +213,10 @@ export const getPrices = ({
       const amtOut = sub(
         swapsOut.reduce(sum, "0"),
         // Subtract refund if present
-        swapsIn.filter(swap => swap.assetType === assetsOut[0]).reduce(sum, "0"),
+        swapsIn.filter(swap => swap.asset === assetsOut[0]).reduce(sum, "0"),
       );
       const amtIn = swapsIn
-        .filter(swap => swap.assetType !== assetsOut[0])
+        .filter(swap => swap.asset !== assetsOut[0])
         .reduce(sum, "0");
       prices[assetsOut[0]] = prices[assetsOut[0]] || {};
       prices[assetsOut[0]][assetsIn[0]] = div(amtOut, amtIn);
@@ -225,12 +225,12 @@ export const getPrices = ({
     } else if (assetsIn.length === 2 && assetsOut.length === 1) {
       log.info(`Parsing swap w 1 asset out (${assetsOut}) & 2 in (${assetsIn})`);
       const amtsIn = assetsIn.map(asset => sub(
-        swapsIn.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+        swapsIn.filter(swap => swap.asset === asset).reduce(sum, "0"),
         // Subtract refund if present
-        swapsOut.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+        swapsOut.filter(swap => swap.asset === asset).reduce(sum, "0"),
       ));
       const amtOut = swapsOut
-        .filter(swap => !assetsIn.includes(swap.assetType))
+        .filter(swap => !assetsIn.includes(swap.asset))
         .reduce(sum, "0");
       // Get prices of the two liq inputs relative to each other
       prices[assetsIn[0]] = prices[assetsIn[0]] || {};
@@ -243,12 +243,12 @@ export const getPrices = ({
     } else if (assetsOut.length === 2 && assetsIn.length === 1) {
       log.info(`Parsing swap w 2 assets out (${assetsOut}) & 1 in (${assetsIn})`);
       const amtsOut = assetsOut.map(asset => sub(
-        swapsOut.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+        swapsOut.filter(swap => swap.asset === asset).reduce(sum, "0"),
         // Subtract refund if present
-        swapsIn.filter(swap => swap.assetType === asset).reduce(sum, "0"),
+        swapsIn.filter(swap => swap.asset === asset).reduce(sum, "0"),
       ));
       const amtIn = swapsIn
-        .filter(swap => !assetsOut.includes(swap.assetType))
+        .filter(swap => !assetsOut.includes(swap.asset))
         .reduce(sum, "0");
       // Get prices of the two liq inputs relative to each other
       prices[assetsOut[0]] = prices[assetsOut[0]] || {};
@@ -268,8 +268,8 @@ export const getPrices = ({
   const setPrice = (
     price: DecimalString,
     rawDate: DateString,
-    asset: AssetTypes,
-    givenUnit?: AssetTypes,
+    asset: Assets,
+    givenUnit?: Assets,
   ): void => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
@@ -284,12 +284,12 @@ export const getPrices = ({
 
   const getCoinGeckoPrice = async (
     date: DateString,
-    asset: AssetTypes,
-    givenUnit: AssetTypes,
+    asset: Assets,
+    givenUnit: Assets,
   ): Promise<string | undefined> => {
     // derived from output of https://api.coingecko.com/api/v3/coins/list
     const unit = formatUnit(givenUnit);
-    const getCoinId = (asset: AssetTypes): string | undefined => {
+    const getCoinId = (asset: Assets): string | undefined => {
       switch (asset) {
       case BAT: return "basic-attention-token";
       case BCH: return "bitcoin-cash";
@@ -335,11 +335,12 @@ export const getPrices = ({
       const response = await retry(attempt);
       price = response?.market_data?.current_price?.[unit.toLowerCase()]?.toString();
       // Might as well set other fiat currency prices since they've already been fetched
+      // TODO: This is nice server-side but should prob be disabled client-side
       Object.keys(FiatAssets).forEach(fiat => {
         const otherPrice = response?.market_data?.current_price?.[fiat.toLowerCase()]?.toString();
         if (otherPrice) {
           log.debug(`Also setting ${asset} price on ${date} wrt ${fiat}: ${otherPrice}`);
-          setPrice(otherPrice, date, asset, fiat as AssetTypes);
+          setPrice(otherPrice, date, asset, fiat as Assets);
         }
       });
     } catch (e) {
@@ -353,7 +354,7 @@ export const getPrices = ({
 
   const getUniswapV1Price = async (
     date: DateString,
-    asset: AssetTypes,
+    asset: Assets,
   ): Promise<string | undefined> => {
     // TODO: support non-ETH units by getting asset-ETH + unit-ETH prices?
     if (asset === ETH) return "1";
@@ -396,8 +397,8 @@ export const getPrices = ({
 
   const getUniswapV2Price = async (
     date: DateString,
-    asset: AssetTypes,
-    unit: AssetTypes,
+    asset: Assets,
+    unit: Assets,
   ): Promise<string | undefined> => {
     const pairId = v2MarketAddresses.find(market =>
       (market.name.includes(`-${asset}-`) || market.name.endsWith(`-${asset}`)) &&
@@ -443,8 +444,8 @@ export const getPrices = ({
   // Aggregator for all versions of uniswap
   const getUniswapPrice = async (
     date: DateString,
-    asset: AssetTypes,
-    givenUnit: AssetTypes,
+    asset: Assets,
+    givenUnit: Assets,
   ): Promise<string | undefined> => {
     const uniV1Launch = new Date("2018-11-02").getTime();
     const uniV2Launch = new Date("2020-05-04").getTime();
@@ -486,10 +487,10 @@ export const getPrices = ({
   // External Methods
 
   const getCount = (
-    unit?: AssetTypes,
+    unit?: Assets,
     date?: DateString,
   ): number => {
-    const countPrices = (d: DateString, u?: AssetTypes): number => {
+    const countPrices = (d: DateString, u?: Assets): number => {
       let count = 0;
       Object.keys(json[d] || {}).forEach(tmpunit => {
         if (!u || u === tmpunit) {
@@ -509,8 +510,8 @@ export const getPrices = ({
 
   const getPrice = (
     rawDate: DateString,
-    asset: AssetTypes,
-    givenUnit?: AssetTypes,
+    asset: Assets,
+    givenUnit?: Assets,
   ): string | undefined => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
@@ -550,8 +551,8 @@ export const getPrices = ({
             setPrice(
               price as DecimalString,
               date as DateString,
-              asset as AssetTypes,
-              unit as AssetTypes,
+              asset as Assets,
+              unit as Assets,
             );
           } else {
             log.warn(`NOT merging ${unit} price for ${asset} on ${date}: ${price}`);
@@ -563,8 +564,8 @@ export const getPrices = ({
 
   const syncPrice = async (
     rawDate: DateString,
-    asset: AssetTypes,
-    givenUnit?: AssetTypes,
+    asset: Assets,
+    givenUnit?: Assets,
   ): Promise<string | undefined> => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
@@ -603,7 +604,7 @@ export const getPrices = ({
   // Returns subset of prices relevant to this tx
   const syncTransaction = async (
     tx: Transaction,
-    givenUnit?: AssetTypes,
+    givenUnit?: Assets,
   ): Promise<PricesJson> => {
     const date = formatDate(tx.date);
     const unit = formatUnit(givenUnit);
@@ -615,8 +616,8 @@ export const getPrices = ({
         setPrice(
           tmpPrice as DecimalString,
           date as DateString,
-          tmpAsset as AssetTypes,
-          tmpUnit as AssetTypes,
+          tmpAsset as Assets,
+          tmpUnit as Assets,
         );
         if (unit === tmpUnit && tmpAsset !== unit) {
           priceList[unit] = priceList[unit] || {};
@@ -624,7 +625,7 @@ export const getPrices = ({
         }
       });
     });
-    const assets = Array.from(new Set([...tx.transfers.map(t => t.assetType)]));
+    const assets = Array.from(new Set([...tx.transfers.map(t => t.asset)]));
     // First, sync all ETH/DEFI prices
     for (const asset of assets.filter(a => Object.keys(EthereumAssets).includes(a))) {
       try {
@@ -632,7 +633,7 @@ export const getPrices = ({
         // check which one is has a more liquid uniswap pool
         // has a more reliable exchange rate & sync prices for that pair (eg fetch ETH/DAI)
         // then calculate the exchange rate of the other (eg ETH/cDAI = ETH/DAI * DAI/cDAI)
-        await syncPrice(date, asset, AssetTypes.ETH);
+        await syncPrice(date, asset, Assets.ETH);
       } catch (e) {
         log.error(e);
       }

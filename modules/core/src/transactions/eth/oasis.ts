@@ -4,7 +4,7 @@ import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
-  AssetTypes,
+  Assets,
   ChainData,
   EthTransaction,
   Logger,
@@ -18,7 +18,7 @@ import { math, sm, smeq } from "@finances/utils";
 import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
 
 const { add, round } = math;
-const { ETH, WETH } = AssetTypes;
+const { ETH, WETH } = Assets;
 const source = TransactionSources.Oasis;
 
 ////////////////////////////////////////
@@ -80,10 +80,10 @@ export const oasisParser = (
       isSelf(ethTx.from) && isProxy(address) && smeq(address, ethTx.to)
     );
 
-  const ethish = [WETH, ETH] as AssetTypes[];
-  const findSwap = (quantity: string, asset: AssetTypes) => (transfer: Transfer): boolean =>
+  const ethish = [WETH, ETH] as Assets[];
+  const findSwap = (quantity: string, asset: Assets) => (transfer: Transfer): boolean =>
     transfer.category === TransferCategories.Transfer && (
-      ethish.includes(asset) ? ethish.includes(transfer.assetType) : transfer.assetType === asset
+      ethish.includes(asset) ? ethish.includes(transfer.asset) : transfer.asset === asset
     ) && quantitiesAreClose(quantity, transfer.quantity);
 
   let actor = isSelf(ethTx.from) ? ethTx.from : undefined;
@@ -139,7 +139,7 @@ export const oasisParser = (
         const swapOut = tx.transfers.find(findSwap(outAmt, outAsset));
         if (swapOut) {
           swapOut.category = TransferCategories.SwapOut;
-          outAsset = swapOut.assetType;
+          outAsset = swapOut.asset;
         } else {
           log.debug(`Can't find swap out transfer for ${outAmt} ${outAsset}`);
         }
@@ -160,14 +160,14 @@ export const oasisParser = (
   const swapIn = tx.transfers.find(findSwap(inTotal, inAsset));
   if (swapIn) {
     swapIn.category = TransferCategories.SwapIn;
-    inAsset = swapIn.assetType;
+    inAsset = swapIn.asset;
   } else {
     log.debug(`Can't find swap in transfer for ${inTotal} ${inAsset}`);
   }
   const swapOut = tx.transfers.find(findSwap(outTotal, outAsset));
   if (swapOut) {
     swapOut.category = TransferCategories.SwapOut;
-    outAsset = swapOut.assetType;
+    outAsset = swapOut.asset;
   } else {
     log.debug(`Can't find swap out transfer for ${outTotal} ${outAsset}`);
   }

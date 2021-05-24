@@ -2,7 +2,7 @@ import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
-  AssetTypes,
+  Assets,
   ChainData,
   EthTransaction,
   Logger,
@@ -17,7 +17,7 @@ const source = TransactionSources.Yearn;
 const { YFI,
   ycrvUSD, yBUSDv3, yDAIv2, yDAIv3, ysUSDTv2, yTUSDv2,
   yUSDCv2, yUSDCv3, yUSDTv2, yUSDTv3, yWBTCv2
-} = AssetTypes;
+} = Assets;
 
 ////////////////////////////////////////
 /// Addresses

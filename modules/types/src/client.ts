@@ -1,10 +1,10 @@
 import { TimestampString } from "./strings";
 
 export type AssetTotal = {
-  [assetType: string]: [number, number, number];
+  [asset: string]: [number, number, number];
 }
 
-export type TotalByCategoryPerAssetType = {
+export type TotalByCategoryPerAsset = {
   [category: string]: AssetTotal;
 }
 

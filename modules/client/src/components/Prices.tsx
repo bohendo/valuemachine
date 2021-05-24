@@ -1,6 +1,6 @@
 import { getPrices } from "@finances/core";
 import {
-  AssetTypes,
+  Assets,
   AltChainAssets,
   EthereumAssets,
   FiatAssets,
@@ -101,7 +101,7 @@ export const PriceManager = ({
   const [filterAsset, setFilterAsset] = useState("");
   const [filterDate, setFilterDate] = useState(emptyDateInput);
   const [filteredPrices, setFilteredPrices] = useState({} as PricesJson);
-  const [unit, setUnit] = useState(AssetTypes.ETH);
+  const [unit, setUnit] = useState(Assets.ETH);
   const classes = useStyles();
 
   useEffect(() => {
@@ -155,7 +155,7 @@ export const PriceManager = ({
       for (const i in transactions) {
         const transaction = transactions[i];
         // Only sync via server if we're missing some prices
-        const missing = Array.from(new Set([...transaction.transfers.map(t => t.assetType)]))
+        const missing = Array.from(new Set([...transaction.transfers.map(t => t.asset)]))
           .map(asset => prices.getPrice(transaction.date, asset))
           .filter(p => !p).length;
         if (missing > 0) {
@@ -222,7 +222,7 @@ export const PriceManager = ({
           <Card className={classes.root}>
             <CardHeader title={"Set Unit of Account"} />
             <FormControl className={classes.select}>
-              <InputLabel id="select-asset-type">AssetType</InputLabel>
+              <InputLabel id="select-asset-type">Asset</InputLabel>
               <Select
                 labelId="select-unit"
                 id="select-unit"

@@ -39,9 +39,9 @@ const pointComponent = (props: any) => {
 };
 
 export const AssetDistribution = (props: any) => {
-  const [data, setData] = useState([] as { assetType: string; total: number; totalUSD: number; }[]);
+  const [data, setData] = useState([] as { asset: string; total: number; totalUSD: number; }[]);
   const {
-    totalByAssetType,
+    totalByAsset,
     date,
   } = props;
 
@@ -49,15 +49,15 @@ export const AssetDistribution = (props: any) => {
     (async () => {
       const temp = [];
       const prices = getPrices(store, getLogger("info"));
-      for (const entry of Object.entries(totalByAssetType)) {
+      for (const entry of Object.entries(totalByAsset)) {
         if (entry[1] > 0 ) {
           const price = await prices.getPrice(entry[0], date);
-          temp.push({ assetType: entry[0], total: entry[1] * price });
+          temp.push({ asset: entry[0], total: entry[1] * price });
         }
       }
       setData(temp);
     })();
-  }, [date, totalByAssetType]);
+  }, [date, totalByAsset]);
 
   if (!data || data.length === 0) return (<> Will have asset distribution soon </>);
 
@@ -68,7 +68,7 @@ export const AssetDistribution = (props: any) => {
       >
         <PieSeries
           valueField="total"
-          argumentField="assetType"
+          argumentField="asset"
           outerRadius={1}
           pointComponent={pointComponent}
         />

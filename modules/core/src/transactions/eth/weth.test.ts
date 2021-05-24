@@ -1,7 +1,7 @@
 import { hexZeroPad } from "@ethersproject/bytes";
 import { parseUnits } from "@ethersproject/units";
 import {
-  AssetTypes,
+  Assets,
   Transactions,
   TransactionSources,
   TransferCategories,
@@ -58,13 +58,13 @@ describe(TransactionSources.Weth, () => {
     expect(tx.description).to.include(addressBook.getName(sender));
     expect(tx.description).to.include(quantity);
     const swapOut = tx.transfers[0];
-    expect(swapOut.assetType).to.equal(AssetTypes.ETH);
+    expect(swapOut.asset).to.equal(Assets.ETH);
     expect(swapOut.category).to.equal(TransferCategories.SwapOut);
     expect(swapOut.from).to.equal(sender);
     expect(swapOut.to).to.equal(wethAddress);
     expect(swapOut.quantity).to.equal(quantity);
     const swapIn = tx.transfers[1];
-    expect(swapIn.assetType).to.equal(AssetTypes.WETH);
+    expect(swapIn.asset).to.equal(Assets.WETH);
     expect(swapIn.category).to.equal(TransferCategories.SwapIn);
     expect(swapIn.from).to.equal(wethAddress);
     expect(swapIn.to).to.equal(sender);
@@ -99,13 +99,13 @@ describe(TransactionSources.Weth, () => {
     expect(tx.description).to.include(addressBook.getName(sender));
     expect(tx.description).to.include(quantity);
     const swapOut = tx.transfers[1];
-    expect(swapOut.assetType).to.equal(AssetTypes.WETH);
+    expect(swapOut.asset).to.equal(Assets.WETH);
     expect(swapOut.category).to.equal(TransferCategories.SwapOut);
     expect(swapOut.from).to.equal(sender);
     expect(swapOut.to).to.equal(wethAddress);
     expect(swapOut.quantity).to.equal(quantity);
     const swapIn = tx.transfers[2];
-    expect(swapIn.assetType).to.equal(AssetTypes.ETH);
+    expect(swapIn.asset).to.equal(Assets.ETH);
     expect(swapIn.category).to.equal(TransferCategories.SwapIn);
     expect(swapIn.from).to.equal(wethAddress);
     expect(swapIn.to).to.equal(sender);

@@ -133,15 +133,15 @@ const EventRow = ({
               </Typography>
               <SimpleTable data={
                 event.type === EventTypes.Expense ? {
-                  Asset: event.assetType,
+                  Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
                   Recipient: event.to,
                 } : event.type === EventTypes.Income ? {
-                  Asset: event.assetType,
+                  Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
                   Source: event.from,
                 } : event.type === EventTypes.CapitalGains ? {
-                  asset: event.assetType,
+                  asset: event.asset,
                   amount: math.round(event.quantity, 4),
                   purchaseDate: event.purchaseDate.replace("T", " ").replace(".000Z", ""),
                   purchasePrice: event.purchasePrice,
@@ -186,7 +186,7 @@ export const EventExplorer = ({
   useEffect(() => {
     console.log(`Filtering out all but ${filterAsset} assets`);
     setFilteredEvents(events.filter(event =>
-      (!filterAsset || event.assetType === filterAsset)
+      (!filterAsset || event.asset === filterAsset)
       && (!filterType || event.type === filterType)
     ).sort((e1: Events, e2: Events) =>
       // Sort by date, newest first
@@ -321,7 +321,7 @@ export const EventExplorer = ({
           onChange={handleFilterAssetChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(events.map(e => e.assetType))).map((asset, i) => (
+          {Array.from(new Set(events.map(e => e.asset))).map((asset, i) => (
             <MenuItem key={i} value={asset}>{asset}</MenuItem>
           ))}
         </Select>

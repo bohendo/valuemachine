@@ -25,7 +25,7 @@ export const mergeDigitalOceanTransactions = (
       transfers: [],
     } as Transaction;
     transaction.transfers.push({
-      assetType: "USD",
+      asset: "USD",
       category: TransferCategories.Expense,
       from: "digitalocean-account",
       quantity: quantity.replace("$", ""),
