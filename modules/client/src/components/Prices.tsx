@@ -101,7 +101,7 @@ export const PriceManager = ({
   const [filterAsset, setFilterAsset] = useState("");
   const [filterDate, setFilterDate] = useState(emptyDateInput);
   const [filteredPrices, setFilteredPrices] = useState({} as PricesJson);
-  const [uoa, setUoa] = useState(AssetTypes.ETH);
+  const [unit, setUnit] = useState(AssetTypes.ETH);
   const classes = useStyles();
 
   useEffect(() => {
@@ -111,24 +111,24 @@ export const PriceManager = ({
     Object.entries(pricesJson).forEach(([date, priceList]) => {
       if (filterDate.value && filterDate.value !== date.split("T")[0]) return null;
       if (Object.keys(priceList).length === 0) return null;
-      if (Object.keys(priceList[uoa] || {}).length === 0) return null;
-      Object.entries(priceList[uoa] || {}).forEach(([asset, price]) => {
+      if (Object.keys(priceList[unit] || {}).length === 0) return null;
+      Object.entries(priceList[unit] || {}).forEach(([asset, price]) => {
         if (!filterAsset || smeq(filterAsset, asset)) {
           newFilteredPrices[date] = newFilteredPrices[date] || {};
-          newFilteredPrices[date][uoa] = newFilteredPrices[date][uoa] || {};
-          newFilteredPrices[date][uoa][asset] = price;
+          newFilteredPrices[date][unit] = newFilteredPrices[date][unit] || {};
+          newFilteredPrices[date][unit][asset] = price;
         }
       });
     });
     setFilteredPrices(newFilteredPrices);
-  }, [uoa, prices, pricesJson, filterAsset, filterDate]);
+  }, [unit, prices, pricesJson, filterAsset, filterDate]);
 
   useEffect(() => {
-    setPrices(getPrices({ pricesJson, store, unitOfAccount: uoa }));
-  }, [pricesJson, uoa]);
+    setPrices(getPrices({ pricesJson, store, unit }));
+  }, [pricesJson, unit]);
 
-  const handleUoaChange = (event: React.ChangeEvent<{ value: string }>) => {
-    setUoa(event.target.value);
+  const handleUnitChange = (event: React.ChangeEvent<{ value: string }>) => {
+    setUnit(event.target.value);
   };
 
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
@@ -161,7 +161,7 @@ export const PriceManager = ({
         if (missing > 0) {
           const res = await axios({
             method: "post",
-            url: `/api/prices/${uoa}`,
+            url: `/api/prices/${unit}`,
             data: { transaction },
           });
           console.log(res.data, `synced prices for transaction ${i}`);
@@ -196,8 +196,8 @@ export const PriceManager = ({
   };
 
   const countPrices = (input: PricesJson): number =>
-    Object.values(input).reduce((output, uoa) => {
-      return output + Object.values(uoa).reduce((inter, asset) => {
+    Object.values(input).reduce((output, unit) => {
+      return output + Object.values(unit).reduce((inter, asset) => {
         return inter + Object.values(asset).length;
       }, 0);
     }, 0);
@@ -224,10 +224,10 @@ export const PriceManager = ({
             <FormControl className={classes.select}>
               <InputLabel id="select-asset-type">AssetType</InputLabel>
               <Select
-                labelId="select-uoa"
-                id="select-uoa"
-                value={uoa || ""}
-                onChange={handleUoaChange}
+                labelId="select-unit"
+                id="select-unit"
+                value={unit || ""}
+                onChange={handleUnitChange}
               >
                 {Object.keys({ ...FiatAssets }).concat(["ETH"]).map(asset => (
                   <MenuItem key={asset} value={asset}>{asset}</MenuItem>
@@ -245,7 +245,7 @@ export const PriceManager = ({
             startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
             variant="outlined"
           >
-            {`Sync ${uoa} Prices for ${transactions.length} Transactions`}
+            {`Sync ${unit} Prices for ${transactions.length} Transactions`}
           </Button>
           <Button
             className={classes.button}
@@ -299,9 +299,9 @@ export const PriceManager = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {countPrices(filteredPrices) === prices.getCount?.(uoa)
-            ? `${countPrices(filteredPrices)} ${uoa} Prices`
-            : `${countPrices(filteredPrices)} of ${prices.getCount?.(uoa)} ${uoa} Prices`
+          {countPrices(filteredPrices) === prices.getCount?.(unit)
+            ? `${countPrices(filteredPrices)} ${unit} Prices`
+            : `${countPrices(filteredPrices)} of ${prices.getCount?.(unit)} ${unit} Prices`
           }
         </Typography>
 
@@ -319,7 +319,7 @@ export const PriceManager = ({
             <TableHead>
               <TableRow>
                 <TableCell> Date </TableCell>
-                <TableCell> Prices ({uoa}) </TableCell>
+                <TableCell> Prices ({unit}) </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -335,7 +335,7 @@ export const PriceManager = ({
                       <Table className={classes.subtable}>
                         <TableHead>
                           <TableRow>
-                            {Object.entries(list[uoa] || {})
+                            {Object.entries(list[unit] || {})
                               .sort(byAsset)
                               .map(e => e[0])
                               .map(asset => (
@@ -347,7 +347,7 @@ export const PriceManager = ({
                         </TableHead>
                         <TableBody>
                           <TableRow>
-                            {Object.entries(list[uoa] || {})
+                            {Object.entries(list[unit] || {})
                               .sort(byAsset)
                               .map(e => e[1])
                               .map((price, i) => (

@@ -16,11 +16,11 @@ const log = getLogger(env.logLevel).child({
 
 export const pricesRouter = express.Router();
 
-pricesRouter.get("/:uoa/:asset/:date", async (req, res) => {
+pricesRouter.get("/:unit/:asset/:date", async (req, res) => {
   const logAndSend = getLogAndSend(res);
-  const { asset, date, uoa } = req.params;
-  log.info(`Got request for ${uoa} price of ${asset} on ${date}`);
-  const prices = getPrices({ store: globalStore, logger: log, unitOfAccount: uoa });
+  const { asset, date, unit } = req.params;
+  log.info(`Got request for ${unit} price of ${asset} on ${date}`);
+  const prices = getPrices({ store: globalStore, logger: log, unit: unit });
   try {
     const price = await prices.syncPrice(date, asset);
     logAndSend(price);
@@ -30,12 +30,12 @@ pricesRouter.get("/:uoa/:asset/:date", async (req, res) => {
   }
 });
 
-pricesRouter.post("/:uoa", async (req, res) => {
+pricesRouter.post("/:unit", async (req, res) => {
   const logAndSend = getLogAndSend(res);
-  const { uoa } = req.params;
+  const { unit } = req.params;
   const { transaction } = req.body;
-  log.info(`Got request for ${uoa} prices for transaction on ${transaction.date}`);
-  const prices = getPrices({ store: globalStore, logger: log, unitOfAccount: uoa });
+  log.info(`Got request for ${unit} prices for transaction on ${transaction.date}`);
+  const prices = getPrices({ store: globalStore, logger: log, unit: unit });
   try {
     const priceList = await prices.syncTransaction(transaction);
     logAndSend(priceList);

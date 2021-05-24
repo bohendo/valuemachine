@@ -92,7 +92,7 @@ export const emitTransferEvents = (
   transaction: Transaction,
   transfer: Transfer,
   prices: Prices,
-  uoa: AssetTypes = AssetTypes.ETH,
+  unit: AssetTypes = AssetTypes.ETH,
   logger?: Logger,
 ): Events => {
   const log = (logger || getLogger()).child({ module: "TransferEvent" });
@@ -109,7 +109,7 @@ export const emitTransferEvents = (
   }
 
   const newEvent = {
-    assetPrice: prices.getPrice(transaction.date, assetType, uoa),
+    assetPrice: prices.getPrice(transaction.date, assetType, unit),
     assetType: assetType,
     date: transaction.date,
     quantity,
@@ -149,9 +149,9 @@ export const emitTransferEvents = (
 
   } else if (category === TransferCategories.SwapOut && gt(transfer.quantity, "0")) {
     chunks.forEach(chunk => {
-      const currentPrice = prices.getPrice(transaction.date, chunk.assetType, uoa);
+      const currentPrice = prices.getPrice(transaction.date, chunk.assetType, unit);
       if (!currentPrice) {
-        log.warn(`Price in units of ${uoa} is unavailable for ${assetType} on ${transaction.date}`);
+        log.warn(`Price in units of ${unit} is unavailable for ${assetType} on ${transaction.date}`);
       }
       const purchaseValue = mul(chunk.quantity, chunk.purchasePrice);
       const saleValue = mul(chunk.quantity, currentPrice);
@@ -163,7 +163,7 @@ export const emitTransferEvents = (
           date: transaction.date,
           description: `${round(chunk.quantity)} ${chunk.assetType} ${
             gt(gain, "0") ? "gained" : "lost"
-          } ${round(gain)} ${uoa} of value since we got it on ${chunk.dateRecieved}`,
+          } ${round(gain)} ${unit} of value since we got it on ${chunk.dateRecieved}`,
           gain,
           purchaseDate: chunk.dateRecieved,
           purchasePrice: chunk.purchasePrice,

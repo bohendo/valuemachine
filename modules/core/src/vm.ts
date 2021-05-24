@@ -16,14 +16,14 @@ export const getValueMachine = ({
   addressBook,
   prices,
   logger,
-  unitOfAccount,
+  unit: defaultUnit,
 }: {
   addressBook: AddressBook,
   prices: Prices,
   logger?: Logger
-  unitOfAccount?: AssetTypes,
+  unit?: AssetTypes,
 }): any => {
-  const uoa = unitOfAccount || AssetTypes.ETH;
+  const unit = defaultUnit || AssetTypes.ETH;
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
   const { getName } = addressBook;
 
@@ -57,10 +57,10 @@ export const getValueMachine = ({
       let chunks;
       try {
         if (fee) {
-          feeChunks = state.getChunks(from, assetType, fee, transaction, unitOfAccount);
+          feeChunks = state.getChunks(from, assetType, fee, transaction, unit);
           log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
         }
-        chunks = state.getChunks(from, assetType, quantity, transaction, unitOfAccount);
+        chunks = state.getChunks(from, assetType, quantity, transaction, unit);
         chunks.forEach(chunk => state.putChunk(to, chunk));
         logs.push(...emitTransferEvents(
           addressBook,
@@ -68,7 +68,7 @@ export const getValueMachine = ({
           transaction,
           transfer,
           prices,
-          uoa,
+          unit,
           log,
         ));
       } catch (e) {
@@ -93,10 +93,10 @@ export const getValueMachine = ({
         getName(to)
       } (attempt 2)`);
       if (fee) {
-        const feeChunks = state.getChunks(from, assetType, fee, transaction, unitOfAccount);
+        const feeChunks = state.getChunks(from, assetType, fee, transaction, unit);
         log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
       }
-      const chunks = state.getChunks(from, assetType, quantity, transaction, unitOfAccount);
+      const chunks = state.getChunks(from, assetType, quantity, transaction, unit);
       chunks.forEach(chunk => state.putChunk(to, chunk));
       logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer, prices));
     }

@@ -3,8 +3,8 @@ import { DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
 
 export type PriceList = {
-  [unitOfAccount: string]: {
-    [assetType: string]: DecimalString; // number of UoA per asset
+  [unit: string]: {
+    [assetType: string]: DecimalString; // number of units per asset
   };
 };
 
@@ -14,15 +14,15 @@ export type PricesJson = {
 
 export interface Prices {
   json: PricesJson;
-  getCount(UoA?: AssetTypes, date?: TimestampString): number;
-  getPrice(date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): string | undefined;
+  getCount(unit?: AssetTypes, date?: TimestampString): number;
+  getPrice(date: TimestampString, asset: AssetTypes, unit?: AssetTypes): string | undefined;
   merge(prices: PricesJson): void;
   syncPrice(
     date: TimestampString,
     asset: AssetTypes,
-    uoa?: AssetTypes,
+    unit?: AssetTypes,
   ): Promise<string | undefined>;
-  syncTransaction(tx: Transaction, uoa?: AssetTypes): Promise<PricesJson>;
+  syncTransaction(tx: Transaction, unit?: AssetTypes): Promise<PricesJson>;
 }
 
 export const emptyPrices = {} as PricesJson;

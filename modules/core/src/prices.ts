@@ -30,12 +30,12 @@ export const getPrices = ({
   logger,
   store,
   pricesJson,
-  unitOfAccount,
+  unit: defaultUnit,
 }: {
   store: Store;
   logger?: Logger;
   pricesJson?: PricesJson;
-  unitOfAccount?: AssetTypes;
+  unit?: AssetTypes;
 }): Prices => {
   const json = pricesJson
     || store?.load(StoreKeys.Prices)
@@ -71,10 +71,10 @@ export const getPrices = ({
     return (new Date(date)).toISOString().split("T")[0];
   };
 
-  // Never use WETH as UoA, use ETH instead
-  const formatUoa = (givenUoa: AssetTypes): AssetTypes => {
-    const UoA = givenUoa || unitOfAccount || AssetTypes.ETH;
-    return UoA === WETH ? ETH : UoA;
+  // Never use WETH as unit, use ETH instead
+  const formatUnit = (givenUnit: AssetTypes): AssetTypes => {
+    const unit = givenUnit || defaultUnit || AssetTypes.ETH;
+    return unit === WETH ? ETH : unit;
   };
 
   const retry = async (attempt: () => Promise<any>): Promise<any> => {
@@ -269,13 +269,13 @@ export const getPrices = ({
     price: DecimalString,
     rawDate: DateString,
     asset: AssetTypes,
-    givenUoa?: AssetTypes,
+    givenUnit?: AssetTypes,
   ): void => {
     const date = formatDate(rawDate);
-    const UoA = formatUoa(givenUoa);
+    const unit = formatUnit(givenUnit);
     if (!json[date]) json[date] = {};
-    if (!json[date][UoA]) json[date][UoA] = {};
-    json[date][UoA][asset] = formatPrice(price);
+    if (!json[date][unit]) json[date][unit] = {};
+    json[date][unit][asset] = formatPrice(price);
     save(json);
   };
 
@@ -285,10 +285,10 @@ export const getPrices = ({
   const getCoinGeckoPrice = async (
     date: DateString,
     asset: AssetTypes,
-    givenUoa: AssetTypes,
+    givenUnit: AssetTypes,
   ): Promise<string | undefined> => {
     // derived from output of https://api.coingecko.com/api/v3/coins/list
-    const UoA = formatUoa(givenUoa);
+    const unit = formatUnit(givenUnit);
     const getCoinId = (asset: AssetTypes): string | undefined => {
       switch (asset) {
       case BAT: return "basic-attention-token";
@@ -328,12 +328,12 @@ export const getPrices = ({
     const coingeckoUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/history?date=${
       `${date.split("-")[2]}-${date.split("-")[1]}-${date.split("-")[0]}`
     }`;
-    log.info(`Fetching ${UoA} price of ${asset} on ${date} from ${coingeckoUrl}`);
+    log.info(`Fetching ${unit} price of ${asset} on ${date} from ${coingeckoUrl}`);
     const attempt = async () => (await axios.get(coingeckoUrl, { timeout: 10000 })).data;
     let price;
     try {
       const response = await retry(attempt);
-      price = response?.market_data?.current_price?.[UoA.toLowerCase()]?.toString();
+      price = response?.market_data?.current_price?.[unit.toLowerCase()]?.toString();
       // Might as well set other fiat currency prices since they've already been fetched
       Object.keys(FiatAssets).forEach(fiat => {
         const otherPrice = response?.market_data?.current_price?.[fiat.toLowerCase()]?.toString();
@@ -355,7 +355,7 @@ export const getPrices = ({
     date: DateString,
     asset: AssetTypes,
   ): Promise<string | undefined> => {
-    // TODO: support non-ETH UoAs by getting asset-ETH + UoA-ETH prices?
+    // TODO: support non-ETH units by getting asset-ETH + unit-ETH prices?
     if (asset === ETH) return "1";
     const assetId = v1MarketAddresses.find(market => market.name.endsWith(asset))?.address;
     if (!assetId) {
@@ -397,17 +397,17 @@ export const getPrices = ({
   const getUniswapV2Price = async (
     date: DateString,
     asset: AssetTypes,
-    UoA: AssetTypes,
+    unit: AssetTypes,
   ): Promise<string | undefined> => {
     const pairId = v2MarketAddresses.find(market =>
       (market.name.includes(`-${asset}-`) || market.name.endsWith(`-${asset}`)) &&
-      (market.name.includes(`-${UoA}-`) || market.name.endsWith(`-${UoA}`))
+      (market.name.includes(`-${unit}-`) || market.name.endsWith(`-${unit}`))
     )?.address;
     if (!pairId) {
-      log.warn(`Asset pair ${asset}-${UoA} is not available on UniswapV2`);
+      log.warn(`Asset pair ${asset}-${unit} is not available on UniswapV2`);
       return undefined;
     }
-    log.info(`Fetching ${UoA} price of ${asset} on ${date} from UniswapV2 market ${pairId}`);
+    log.info(`Fetching ${unit} price of ${asset} on ${date} from UniswapV2 market ${pairId}`);
     const url = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
     const attempt = async () => (await axios({ url, method: "post", timeout: 10000, data: {
       query: `{
@@ -444,40 +444,40 @@ export const getPrices = ({
   const getUniswapPrice = async (
     date: DateString,
     asset: AssetTypes,
-    givenUoa: AssetTypes,
+    givenUnit: AssetTypes,
   ): Promise<string | undefined> => {
     const uniV1Launch = new Date("2018-11-02").getTime();
     const uniV2Launch = new Date("2020-05-04").getTime();
     const uniV3Launch = new Date("2021-05-04").getTime();
     const time = new Date(date).getTime();
-    const UoA = formatUoa(givenUoa);
+    const unit = formatUnit(givenUnit);
     // Uniswap was not deployed yet, can't fetch price
     if (time < uniV1Launch) {
       return undefined;
     } else if (time < uniV2Launch) {
-      if (UoA === ETH) {
+      if (unit === ETH) {
         return await getUniswapV1Price(date, asset);
       } else {
         return undefined;
       }
     } else if (time < uniV3Launch) {
-      if (UoA === ETH) {
+      if (unit === ETH) {
         return await getUniswapV1Price(date, asset)
           || await getUniswapV2Price(date, asset, ETH);
       } else {
-        return await getUniswapV2Price(date, asset, UoA);
+        return await getUniswapV2Price(date, asset, unit);
       }
     }
     // All uniswap versions are available
     // TODO: use the one with best liquidity?
     // Or should we average all available prices?
     // Or use a liquidity-weighted average?! Fancy
-    if (UoA === ETH) {
+    if (unit === ETH) {
       return await getUniswapV1Price(date, asset)
         || await getUniswapV2Price(date, asset, ETH);
       //|| await getUniswapV3Price(date, asset, ETH);
     } else {
-      return await getUniswapV2Price(date, asset, UoA);
+      return await getUniswapV2Price(date, asset, unit);
       //|| await getUniswapV3Price(date, asset, ETH);
     }
   };
@@ -486,23 +486,23 @@ export const getPrices = ({
   // External Methods
 
   const getCount = (
-    UoA?: AssetTypes,
+    unit?: AssetTypes,
     date?: DateString,
   ): number => {
     const countPrices = (d: DateString, u?: AssetTypes): number => {
       let count = 0;
-      Object.keys(json[d] || {}).forEach(tmpUoA => {
-        if (!u || u === tmpUoA) {
-          count += Object.keys(json[d]?.[tmpUoA] || {}).length;
+      Object.keys(json[d] || {}).forEach(tmpunit => {
+        if (!u || u === tmpunit) {
+          count += Object.keys(json[d]?.[tmpunit] || {}).length;
         }
       });
       return count;
     };
     if (date) {
-      return countPrices(date, UoA);
+      return countPrices(date, unit);
     } else {
       return Object.keys(json).reduce((acc, date) => {
-        return acc + countPrices(date, UoA);
+        return acc + countPrices(date, unit);
       }, 0);
     }
   };
@@ -510,15 +510,15 @@ export const getPrices = ({
   const getPrice = (
     rawDate: DateString,
     asset: AssetTypes,
-    givenUoa?: AssetTypes,
+    givenUnit?: AssetTypes,
   ): string | undefined => {
     const date = formatDate(rawDate);
-    const UoA = formatUoa(givenUoa);
-    log.debug(`Getting ${UoA} price of ${asset} on ${date}..`);
-    if (asset === UoA || (ethish.includes(asset) && ethish.includes(UoA))) return "1";
-    if (json[date]?.[UoA]?.[asset]) return formatPrice(json[date][UoA][asset]);
-    if (json[date]?.[asset]?.[UoA]) return formatPrice(div("1", json[date][asset][UoA]));
-    const path = getPath(date, UoA, asset);
+    const unit = formatUnit(givenUnit);
+    log.debug(`Getting ${unit} price of ${asset} on ${date}..`);
+    if (asset === unit || (ethish.includes(asset) && ethish.includes(unit))) return "1";
+    if (json[date]?.[unit]?.[asset]) return formatPrice(json[date][unit][asset]);
+    if (json[date]?.[asset]?.[unit]) return formatPrice(div("1", json[date][asset][unit]));
+    const path = getPath(date, unit, asset);
     if (!path.length) return undefined;
     let price = "1"; 
     let prev;
@@ -529,7 +529,7 @@ export const getPrices = ({
         } else if (json[date]?.[step]?.[prev]) {
           price = mul(price, div("1", json[date]?.[step]?.[prev]));
         }
-        log.info(`Got price of ${step}: ${formatPrice(price)} ${UoA}`);
+        log.info(`Got price of ${step}: ${formatPrice(price)} ${unit}`);
       }
       prev = step;
     });
@@ -538,23 +538,23 @@ export const getPrices = ({
 
   const merge = (prices: PricesJson): void => {
     Object.entries(prices).forEach(([date, priceList]) => {
-      Object.entries(priceList).forEach(([UoA, prices]) => {
+      Object.entries(priceList).forEach(([unit, prices]) => {
         Object.entries(prices).forEach(([asset, price]) => {
           if (
             typeof price === "string" &&
             typeof date === "string" &&
             typeof asset === "string" &&
-            typeof UoA === "string"
+            typeof unit === "string"
           ) {
-            log.debug(`Merging ${UoA} price for ${asset} on ${date}: ${price}`);
+            log.debug(`Merging ${unit} price for ${asset} on ${date}: ${price}`);
             setPrice(
               price as DecimalString,
               date as DateString,
               asset as AssetTypes,
-              UoA as AssetTypes,
+              unit as AssetTypes,
             );
           } else {
-            log.warn(`NOT merging ${UoA} price for ${asset} on ${date}: ${price}`);
+            log.warn(`NOT merging ${unit} price for ${asset} on ${date}: ${price}`);
           }
         });
       });
@@ -564,63 +564,63 @@ export const getPrices = ({
   const syncPrice = async (
     rawDate: DateString,
     asset: AssetTypes,
-    givenUoa?: AssetTypes,
+    givenUnit?: AssetTypes,
   ): Promise<string | undefined> => {
     const date = formatDate(rawDate);
-    const UoA = formatUoa(givenUoa);
-    if (asset === UoA || (ethish.includes(asset) && ethish.includes(UoA))) return "1";
-    log.info(`Syncing ${UoA} price of ${asset} on ${date}`);
+    const unit = formatUnit(givenUnit);
+    if (asset === unit || (ethish.includes(asset) && ethish.includes(unit))) return "1";
+    log.info(`Syncing ${unit} price of ${asset} on ${date}`);
     if (!json[date]) json[date] = {};
-    if (!json[date][UoA]) json[date][UoA] = {};
-    if (!json[date][UoA][asset]) {
-      let price = getPrice(date, asset, UoA);
+    if (!json[date][unit]) json[date][unit] = {};
+    if (!json[date][unit][asset]) {
+      let price = getPrice(date, asset, unit);
       if (
         !price &&
         Object.keys(EthereumAssets).includes(asset) &&
-        Object.keys(EthereumAssets).includes(UoA)
+        Object.keys(EthereumAssets).includes(unit)
       ) {
-        price = await getUniswapPrice(date, asset, UoA);
+        price = await getUniswapPrice(date, asset, unit);
       }
       if (!price) {
         if (Object.keys(FiatAssets).includes(asset)) {
-          const inversePrice = await getCoinGeckoPrice(date, UoA, asset);
+          const inversePrice = await getCoinGeckoPrice(date, unit, asset);
           if (inversePrice && gt(inversePrice, "0")) {
             price = div("1", inversePrice);
-            log.debug(`Got ${asset} per ${UoA} price & inversed it to ${price}`);
+            log.debug(`Got ${asset} per ${unit} price & inversed it to ${price}`);
           }
         } else {
-          price = await getCoinGeckoPrice(date, asset, UoA);
+          price = await getCoinGeckoPrice(date, asset, unit);
         }
       }
       if (price) {
-        setPrice(math.round(price, 18).replace(/0+$/, ""), date, asset, UoA);
-        log.info(`Synced price on ${date}: 1 ${asset} = ${json[date][UoA][asset]} ${UoA}`);
+        setPrice(math.round(price, 18).replace(/0+$/, ""), date, asset, unit);
+        log.info(`Synced price on ${date}: 1 ${asset} = ${json[date][unit][asset]} ${unit}`);
       }
     }
-    return json[date][UoA][asset];
+    return json[date][unit][asset];
   };
 
   // Returns subset of prices relevant to this tx
   const syncTransaction = async (
     tx: Transaction,
-    givenUoa?: AssetTypes,
+    givenUnit?: AssetTypes,
   ): Promise<PricesJson> => {
     const date = formatDate(tx.date);
-    const UoA = formatUoa(givenUoa);
+    const unit = formatUnit(givenUnit);
     const priceList = {} as PriceList;
     // Set exchange rates based on this transaction's swaps in & out
-    Object.entries(getSwapPrices(tx)).forEach(([tmpUoa, tmpPrices]) => {
+    Object.entries(getSwapPrices(tx)).forEach(([tmpUnit, tmpPrices]) => {
       Object.entries(tmpPrices).forEach(([tmpAsset, tmpPrice]) => {
-        log.debug(`Found swap price on ${date} for ${tmpAsset} of ${tmpPrice} ${tmpUoa}`);
+        log.debug(`Found swap price on ${date} for ${tmpAsset} of ${tmpPrice} ${tmpUnit}`);
         setPrice(
           tmpPrice as DecimalString,
           date as DateString,
           tmpAsset as AssetTypes,
-          tmpUoa as AssetTypes,
+          tmpUnit as AssetTypes,
         );
-        if (UoA === tmpUoa && tmpAsset !== UoA) {
-          priceList[UoA] = priceList[UoA] || {};
-          priceList[UoA][tmpAsset] = tmpPrice;
+        if (unit === tmpUnit && tmpAsset !== unit) {
+          priceList[unit] = priceList[unit] || {};
+          priceList[unit][tmpAsset] = tmpPrice;
         }
       });
     });
@@ -637,12 +637,12 @@ export const getPrices = ({
         log.error(e);
       }
     }
-    // Then, if UoA isn't ETH, sync all FIAT/DEFI prices from FIAT/ETH * ETH/DEFI
+    // Then, if unit isn't ETH, sync all FIAT/DEFI prices from FIAT/ETH * ETH/DEFI
     for (const asset of assets) {
       try {
-        if (asset !== UoA) {
-          priceList[UoA] = priceList[UoA] || {};
-          priceList[UoA][asset] = await syncPrice(date, asset, UoA);
+        if (asset !== unit) {
+          priceList[unit] = priceList[unit] || {};
+          priceList[unit][asset] = await syncPrice(date, asset, unit);
         }
       } catch (e) {
         log.error(e);

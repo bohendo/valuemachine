@@ -78,7 +78,7 @@ export const getState = ({
     assetType: AssetTypes,
     quantity: DecimalString,
     transaction: Transaction,
-    uoa: AssetTypes,
+    unit: AssetTypes,
   ): AssetChunk[] => {
     if (Object.keys(FiatAssets).includes(assetType)) {
       log.debug(`Printing more ${assetType}, Brr!`); // In this value machine, anyone can print fiat
@@ -86,9 +86,9 @@ export const getState = ({
     }
     // We assume nothing about the history of chunks coming to us from external parties
     if (!addressBook.isSelf(account)) {
-      const purchasePrice = prices.getPrice(transaction.date, assetType, uoa);
+      const purchasePrice = prices.getPrice(transaction.date, assetType, unit);
       if (!purchasePrice) {
-        log.warn(`Price in units of ${uoa} is unavailable for ${assetType} on ${transaction.date}`);
+        log.warn(`Price in units of ${unit} is unavailable for ${assetType} on ${transaction.date}`);
       }
       return [{
         assetType,
