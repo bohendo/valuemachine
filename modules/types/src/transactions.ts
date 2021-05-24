@@ -2,7 +2,6 @@ import { AddressBook } from "./addressBook";
 import { AssetTypes } from "./assets";
 import { ChainData } from "./chainData";
 import { Logger } from "./logger";
-import { PriceList } from "./prices";
 import { DecimalString, HexString, TimestampString } from "./strings";
 import { Store } from "./store";
 import { enumify } from "./utils";
@@ -75,7 +74,6 @@ export type Transaction = {
   description: string;
   hash?: HexString;
   index?: number;
-  prices?: PriceList;
   sources: TransactionSources[];
   tags: string[];
   transfers: Transfer[];

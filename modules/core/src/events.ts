@@ -73,7 +73,6 @@ export const emitTransactionEvents = (
       } for ${
         assetsIn.map((asset, i) => `${round(amtsIn[i])} ${asset}`).join(" & ")
       }`,
-      prices: transaction.prices || {},
       swapsIn: inputs,
       swapsOut: outputs,
       type: EventTypes.Trade,

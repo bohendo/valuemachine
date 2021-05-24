@@ -254,8 +254,6 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${getName(address)}`);
         }
-        tx.prices[swapOut.assetType] = tx.prices[swapOut.assetType] || {};
-        tx.prices[swapOut.assetType][swapIn.assetType] = div(swapOut.quantity, swapIn.quantity);
         tx.description = `${getName(ethTx.from)} deposited ${
           round(tokenAmt)
         } ${assetType} into ${source}`;
@@ -280,8 +278,6 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${assetType}`);
         }
-        tx.prices[swapIn.assetType] = tx.prices[swapIn.assetType] || {};
-        tx.prices[swapIn.assetType][swapOut.assetType] = div(swapIn.quantity, swapOut.quantity);
         tx.description = `${getName(ethTx.from)} withdrew ${
           round(tokenAmt)
         } ${assetType} from ${source}`;

@@ -223,10 +223,6 @@ export const makerParser = (
     } else {
       log.warn(`Can't find an associated SwapIn DAI transfer`);
     }
-    tx.prices[swapIn.assetType] = tx.prices[swapIn.assetType] || {};
-    tx.prices[swapIn.assetType][swapOut.assetType] = div(swapIn.quantity, swapOut.quantity);
-    tx.prices[swapOut.assetType] = tx.prices[swapOut.assetType] || {};
-    tx.prices[swapOut.assetType][swapIn.assetType] = div(swapOut.quantity, swapIn.quantity);
     tx.description = `${getName(ethTx.from)} migrated ${
       round(swapOut.quantity)
     } SAI to DAI`;
@@ -282,17 +278,6 @@ export const makerParser = (
             to: event.args.guy,
           };
           tx.transfers.push(swapIn);
-          const swapOut = tx.transfers.filter(t =>
-            t.assetType === WETH
-            && ([
-              TransferCategories.Transfer,
-              TransferCategories.SwapOut, // re-handle dup calls instead of logging warning
-            ] as TransferCategories[]).includes(t.category)
-          ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
-          if (swapOut) {
-            tx.prices[swapOut.assetType] = tx.prices[swapOut.assetType] || {};
-            tx.prices[swapOut.assetType][swapIn.assetType] = div(swapOut.quantity, swapIn.quantity);
-          }
         } else {
           tx.transfers.push({
             assetType,
@@ -316,17 +301,6 @@ export const makerParser = (
             to: tubAddress,
           };
           tx.transfers.push(swapOut);
-          const swapIn = tx.transfers.filter(t =>
-            t.assetType === WETH
-            && ([
-              TransferCategories.Transfer,
-              TransferCategories.SwapIn, // re-handle dup calls instead of logging warning
-            ] as TransferCategories[]).includes(t.category)
-          ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
-          if (swapIn) {
-            tx.prices[swapIn.assetType] = tx.prices[swapIn.assetType] || {};
-            tx.prices[swapIn.assetType][swapOut.assetType] = div(swapIn.quantity, swapOut.quantity);
-          }
         } else {
           tx.transfers.push({
             assetType,
@@ -493,10 +467,6 @@ export const makerParser = (
         } else {
           log.warn(`Cage.${event.name}: Can't find an ETH transfer of ${wad}`);
         }
-        tx.prices[swapIn.assetType] = tx.prices[swapIn.assetType] || {};
-        tx.prices[swapIn.assetType][swapOut.assetType] = div(swapIn.quantity, swapOut.quantity);
-        tx.prices[swapOut.assetType] = tx.prices[swapOut.assetType] || {};
-        tx.prices[swapOut.assetType][swapIn.assetType] = div(swapOut.quantity, swapIn.quantity);
         tx.description = `${getName(ethTx.from)} redeemed ${
           round(swapOut.quantity, 4)
         } SAI for ${round(wad, 4)} ETH`;

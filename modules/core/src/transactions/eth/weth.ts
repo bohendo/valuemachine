@@ -69,8 +69,6 @@ export const wethParser = (
           log.info(`Parsing ${source} ${event.name} of amount ${round(amount)}`);
         }
         tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
-        tx.prices[ETH] = tx.prices[ETH] || {};
-        tx.prices[ETH][WETH] = "1";
         tx.transfers.push({
           assetType,
           category: TransferCategories.SwapIn,
@@ -109,8 +107,6 @@ export const wethParser = (
           log.info(`Parsing ${source} ${event.name} of amount ${round(amount)}`);
         }
         tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
-        tx.prices[ETH] = tx.prices[ETH] || {};
-        tx.prices[ETH][WETH] = "1";
         tx.transfers.push({
           assetType,
           category: TransferCategories.SwapOut,

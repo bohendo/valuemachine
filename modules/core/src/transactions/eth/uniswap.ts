@@ -16,7 +16,7 @@ import { math, sm, smeq } from "@finances/utils";
 
 import { rmDups, parseEvent } from "../utils";
 
-const { add, div, mul, round, sub } = math;
+const { round } = math;
 const { UNI,
   UniV2_1INCH_ETH, UniV2_AAVE_ETH, UniV2_COMP_ETH, UniV2_CREAM_ETH, UniV2_DAI_ETH, UniV2_DAI_USDC,
   UniV2_DPI_ETH, UniV2_ESD_USDC, UniV2_ETH_AMPL, UniV2_ETH_cDAI, UniV2_ETH_CHERRY, UniV2_ETH_CRV,
@@ -263,14 +263,6 @@ export const uniswapParser = (
       swaps.out.map(swap => { swap.category = TransferCategories.SwapOut; return swap; });
       swaps.in.forEach(swap => { swap.index = swap.index || index; });
       swaps.out.forEach(swap => { swap.index = swap.index || index; });
-      const assetsOut = rmDups(swaps.out.map(swap => swap.assetType));
-      const assetsIn = rmDups(
-        swaps.in
-          .map(swap => swap.assetType)
-          // If some input asset was refunded, remove this from the output asset list
-          .filter(asset => !assetsOut.includes(asset))
-      );
-      const sum = (acc, cur) => add(acc, cur.quantity);
 
       ////////////////////////////////////////
       // Swaps
@@ -280,23 +272,6 @@ export const uniswapParser = (
         } ${swaps.out[0].assetType}${swaps.out.length > 1 ? ", etc" : ""} for ${
           round(swaps.in[0].quantity)
         } ${swaps.in[0].assetType}${swaps.in.length > 1 ? ", etc" : ""} via ${subsrc}`;
-        // Set prices
-        if (assetsIn.length === 1 && assetsOut.length === 1) {
-          const amtOut = sub(
-            swaps.out.reduce(sum, "0"),
-            // Subtract refund if present
-            swaps.in.filter(swap => swap.assetType === assetsOut[0]).reduce(sum, "0"),
-          );
-          const amtIn = swaps.in
-            .filter(swap => swap.assetType !== assetsOut[0])
-            .reduce(sum, "0");
-          tx.prices[assetsOut[0]] = tx.prices[assetsOut[0]] || {};
-          tx.prices[assetsOut[0]][assetsIn[0]] = div(amtOut, amtIn);
-          tx.prices[assetsIn[0]] = tx.prices[assetsIn[0]] || {};
-          tx.prices[assetsIn[0]][assetsOut[0]] = div(amtIn, amtOut);
-        } else {
-          log.warn(`Unable to get prices from swap w input=${assetsOut} & input=${assetsIn}`);
-        }
 
       ////////////////////////////////////////
       // Deposit Liquidity
@@ -306,26 +281,6 @@ export const uniswapParser = (
         } ${swaps.out[0].assetType} and ${
           round(swaps.out[1].quantity)
         } ${swaps.out[1].assetType} into ${subsrc}`;
-        if (assetsOut.length === 2 && assetsIn.length === 1) {
-          const amtsOut = assetsOut.map(asset => sub(
-            swaps.out.filter(swap => swap.assetType === asset).reduce(sum, "0"),
-            // Subtract refund if present
-            swaps.in.filter(swap => swap.assetType === asset).reduce(sum, "0"),
-          ));
-          const amtIn = swaps.in
-            .filter(swap => !assetsOut.includes(swap.assetType))
-            .reduce(sum, "0");
-          // Get prices of the two liq inputs relative to each other
-          tx.prices[assetsOut[0]] = tx.prices[assetsOut[0]] || {};
-          tx.prices[assetsOut[0]][assetsOut[1]] = div(amtsOut[0], amtsOut[1]);
-          tx.prices[assetsOut[1]] = tx.prices[assetsOut[1]] || {};
-          tx.prices[assetsOut[1]][assetsOut[0]] = div(amtsOut[1], amtsOut[0]);
-          // Get prices of the liq tokens relative to each input
-          tx.prices[assetsOut[0]][assetsIn[0]] = div(mul(amtsOut[0], "2"), amtIn);
-          tx.prices[assetsOut[1]][assetsIn[0]] = div(mul(amtsOut[1], "2"), amtIn);
-        } else {
-          log.warn(`Unable to get prices from deposit w input=${assetsIn} & output=${assetsOut}`);
-        }
 
       ////////////////////////////////////////
       // Withdraw Liquidity
@@ -335,26 +290,6 @@ export const uniswapParser = (
         } ${swaps.in[0].assetType} and ${
           round(swaps.in[1].quantity)
         } ${swaps.in[1].assetType} from ${subsrc}`;
-        if (assetsIn.length === 2 && assetsOut.length === 1) {
-          const amtsIn = assetsIn.map(asset => sub(
-            swaps.in.filter(swap => swap.assetType === asset).reduce(sum, "0"),
-            // Subtract refund if present
-            swaps.out.filter(swap => swap.assetType === asset).reduce(sum, "0"),
-          ));
-          const amtOut = swaps.out
-            .filter(swap => !assetsIn.includes(swap.assetType))
-            .reduce(sum, "0");
-          // Get prices of the two liq inputs relative to each other
-          tx.prices[assetsIn[0]] = tx.prices[assetsIn[0]] || {};
-          tx.prices[assetsIn[0]][assetsIn[1]] = div(amtsIn[0], amtsIn[1]);
-          tx.prices[assetsIn[1]] = tx.prices[assetsIn[1]] || {};
-          tx.prices[assetsIn[1]][assetsIn[0]] = div(amtsIn[1], amtsIn[0]);
-          // Get prices of the liq tokens relative to each input
-          tx.prices[assetsIn[0]][assetsOut[0]] = div(mul(amtsIn[0], "2"), amtOut);
-          tx.prices[assetsIn[1]][assetsOut[0]] = div(mul(amtsIn[1], "2"), amtOut);
-        } else {
-          log.warn(`Unable to get prices from deposit w input=${assetsOut} & input=${assetsIn}`);
-        }
 
       } else {
         log.warn(`Missing ${event.name} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
