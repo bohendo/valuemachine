@@ -85,7 +85,7 @@ export const getPrices = ({
     } catch (e) {
       log.warn(e.message);
       if (e.message.toLowerCase().includes("timeout") || e.message.includes("EAI_AGAIN")) {
-        log.info(`Trying to fetch price one more time..`);
+        log.debug(`Trying to fetch price one more time..`);
         response = await attempt();
       } else {
         throw e;
@@ -146,7 +146,7 @@ export const getPrices = ({
       let closest;
       if (!branches.includes(current) && neighbors.length > 1) {
         branches.push(current);
-        log.info(`New branch set at ${current}`);
+        log.debug(`New branch set at ${current}`);
       }
       for (const neighbor of neighbors) {
         const oldDistance = distances[neighbor].distance;
@@ -176,7 +176,7 @@ export const getPrices = ({
           } else {
             // Return to the start?
             current = branches.pop();
-            log.info(`Returning to prev branch at ${current}`);
+            log.debug(`Returning to prev branch at ${current}`);
             pathToCurrent = distances[current].path;
           }
         }
@@ -530,7 +530,7 @@ export const getPrices = ({
         } else if (json[date]?.[step]?.[prev]) {
           price = mul(price, div("1", json[date]?.[step]?.[prev]));
         }
-        log.info(`Got price of ${step}: ${formatPrice(price)} ${unit}`);
+        log.debug(`Got price of ${step}: ${formatPrice(price)} ${unit}`);
       }
       prev = step;
     });
@@ -570,7 +570,7 @@ export const getPrices = ({
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
     if (asset === unit || (ethish.includes(asset) && ethish.includes(unit))) return "1";
-    log.info(`Syncing ${unit} price of ${asset} on ${date}`);
+    log.debug(`Syncing ${unit} price of ${asset} on ${date}`);
     if (!json[date]) json[date] = {};
     if (!json[date][unit]) json[date][unit] = {};
     if (!json[date][unit][asset]) {

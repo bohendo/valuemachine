@@ -167,6 +167,11 @@ export const PriceManager = ({
           console.log(res.data, `synced prices for transaction ${i}`);
           prices.merge(res.data);
           setPricesJson({ ...prices.json });
+        } else {
+          // If not missing, make sure the price is saved directly w/out needing to path search
+          Array.from(new Set([...transaction.transfers.map(t => t.asset)])).forEach(asset =>
+            prices.syncPrice(transaction.date, asset)
+          );
         }
       }
     } catch (e) {
