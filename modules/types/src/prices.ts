@@ -14,14 +14,15 @@ export type PricesJson = {
 
 export interface Prices {
   json: PricesJson;
+  getCount(UoA?: AssetTypes, date?: TimestampString): number;
   getPrice(date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): string | undefined;
-  setPrice(price: DecimalString, date: TimestampString, asset: AssetTypes, uoa?: AssetTypes): void;
+  merge(prices: PricesJson): void;
   syncPrice(
     date: TimestampString,
     asset: AssetTypes,
     uoa?: AssetTypes,
   ): Promise<string | undefined>;
-  syncTransaction(tx: Transaction, uoa?: AssetTypes): Promise<PriceList>;
+  syncTransaction(tx: Transaction, uoa?: AssetTypes): Promise<PricesJson>;
 }
 
 export const emptyPrices = {} as PricesJson;

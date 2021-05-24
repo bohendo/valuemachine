@@ -6,7 +6,7 @@ import { getRealChainData, getTestAddressBook, testLogger } from "./testing";
 import { getTransactions } from "./transactions";
 
 const log = testLogger.child({
-  // level: "info",
+  // level: "debug",
   module: "TestPrices",
 });
 
@@ -31,13 +31,21 @@ describe("Prices", () => {
     const ethPerDai = "0.0008";
     const ethPerMkr = "1.234";
     const daiPerCDai = "0.02041";
-    prices.setPrice(usdPerEth, date, ETH, USD);
+    prices.merge({ [date]: {
+      USD: {
+        ETH: usdPerEth,
+      },
+      ETH: {
+        DAI: ethPerDai,
+        MKR: ethPerMkr,
+      },
+      DAI: {
+        cDAI: daiPerCDai,
+      },
+    } });
     expect(round(prices.getPrice(date, ETH, USD))).to.equal(round(usdPerEth));
-    prices.setPrice(ethPerDai, date, DAI, ETH);
     expect(round(prices.getPrice(date, DAI, ETH))).to.equal(round(ethPerDai));
-    prices.setPrice(ethPerMkr, date, MKR, ETH);
     expect(round(prices.getPrice(date, MKR, ETH))).to.equal(round(ethPerMkr));
-    prices.setPrice(daiPerCDai, date, cDAI, DAI);
     expect(round(prices.getPrice(date, cDAI, DAI))).to.equal(round(daiPerCDai));
     log.info(prices.json, `All prices on ${date}`);
     expect(
@@ -45,6 +53,49 @@ describe("Prices", () => {
     ).to.equal(
       round(mul(usdPerEth, ethPerDai, daiPerCDai))
     );
+  });
+
+  // This price graph is adversarial to ensure it's a worst-case that requires backtracking
+  it("should find a proper path between prices", async () => {
+    prices.merge({ [date]: {
+      ETH: {
+        "PETH": "1.01324835228845479",
+        "DAI": "0.0022106382659755107",
+        "AETH": "1",
+      },
+      AETH: {
+        "BETH": "1",
+      },
+      BETH: {
+        "CETH": "1",
+      },
+      FETH: {
+        "TEST": "1",
+      },
+      WETHy: {
+        "WTEST": "1",
+      },
+      cDAI: {
+        "acDAI": "1",
+      },
+      PETH: {
+        "FETH": "1",
+        "WETHy": "0.986924871618559309940522374665122283",
+      },
+      DAI: {
+        "cDAI": "0.02",
+        "SAI": "1",
+      },
+      SAI: {
+        // "PETH": "458.351041816119249543",
+        "MKR": "569.877871353024680810695929796535270104",
+      },
+      MKR: {
+        "SAI": "0.00175476194158191084713006669037875",
+      },
+    } });
+    log.info(prices.json, `All prices`);
+    expect(prices.getPrice(date, "CETH", ETH)).to.be.ok;
   });
 
   // Tests that require network calls might be fragile, skip them for now
@@ -69,8 +120,12 @@ describe("Prices", () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    prices.setPrice("224.13487737180202", tx.date, ETH, USD);
-    prices.setPrice("1.0011585884975858", tx.date, DAI, USD);
+    prices.merge({ [tx.date]: {
+      USD: {
+        ETH: "224.13487737180202",
+        DAI: "1.0011585884975858",
+      }
+    } });
     await prices.syncTransaction(tx, USD);
     log.info(prices.json, "All price data");
     expect(prices.getPrice(tx.date, sUSDv1, USD)).to.be.ok;
