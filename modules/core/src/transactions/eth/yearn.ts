@@ -2,6 +2,7 @@ import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
+  Assets,
   ChainData,
   EthTransaction,
   Logger,
@@ -13,6 +14,10 @@ import { sm, smeq } from "@finances/utils";
 import { rmDups } from "../utils";
 
 const source = TransactionSources.Yearn;
+const { YFI,
+  ycrvUSD, yBUSDv3, yDAIv2, yDAIv3, ysUSDTv2, yTUSDv2,
+  yUSDCv2, yUSDCv3, yUSDTv2, yUSDTv3, yWBTCv2
+} = Assets;
 
 ////////////////////////////////////////
 /// Addresses
@@ -28,21 +33,21 @@ const machineryAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const yTokenAddresses = [
-  { name: "ycrvUSD", address: "0xdf5e0e81dff6faf3a7e52ba697820c5e32d806a8" },
-  { name: "yBUSDv3", address: "0x04bc0ab673d88ae9dbc9da2380cb6b79c4bca9ae" },
-  { name: "yDAIv2", address: "0x16de59092dae5ccf4a1e6439d611fd0653f0bd01" },
-  { name: "yDAIv3", address: "0xc2cb1040220768554cf699b0d863a3cd4324ce32" },
-  { name: "ysUSDTv2", address: "0xf61718057901f84c4eec4339ef8f0d86d2b45600" },
-  { name: "yTUSDv2", address: "0x73a052500105205d34daf004eab301916da8190f" },
-  { name: "yUSDCv2", address: "0xd6ad7a6750a7593e092a9b218d66c0a814a3436e" },
-  { name: "yUSDCv3", address: "0x26ea744e5b887e5205727f55dfbe8685e3b21951" },
-  { name: "yUSDTv2", address: "0x83f798e925bcd4017eb265844fddabb448f1707d" },
-  { name: "yUSDTv3", address: "0xe6354ed5bc4b393a5aad09f21c46e101e692d447" },
-  { name: "yWBTCv2", address: "0x04aa51bbcb46541455ccf1b8bef2ebc5d3787ec9" },
+  { name: ycrvUSD, address: "0xdf5e0e81dff6faf3a7e52ba697820c5e32d806a8" },
+  { name: yBUSDv3, address: "0x04bc0ab673d88ae9dbc9da2380cb6b79c4bca9ae" },
+  { name: yDAIv2, address: "0x16de59092dae5ccf4a1e6439d611fd0653f0bd01" },
+  { name: yDAIv3, address: "0xc2cb1040220768554cf699b0d863a3cd4324ce32" },
+  { name: ysUSDTv2, address: "0xf61718057901f84c4eec4339ef8f0d86d2b45600" },
+  { name: yTUSDv2, address: "0x73a052500105205d34daf004eab301916da8190f" },
+  { name: yUSDCv2, address: "0xd6ad7a6750a7593e092a9b218d66c0a814a3436e" },
+  { name: yUSDCv3, address: "0x26ea744e5b887e5205727f55dfbe8685e3b21951" },
+  { name: yUSDTv2, address: "0x83f798e925bcd4017eb265844fddabb448f1707d" },
+  { name: yUSDTv3, address: "0xe6354ed5bc4b393a5aad09f21c46e101e692d447" },
+  { name: yWBTCv2, address: "0x04aa51bbcb46541455ccf1b8bef2ebc5d3787ec9" },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 const govTokenAddresses = [
-  { name: "YFI", address: "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e" },
+  { name: YFI, address: "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e" },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 export const yearnAddresses = [

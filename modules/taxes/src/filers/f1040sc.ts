@@ -24,7 +24,7 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
       totalIncome = math.add(totalIncome, value);
       log.info(
         `${income.date.split("T")[0]} Income of ${pad(math.round(income.quantity))} ` +
-        `${pad(income.assetType, 4)} worth ${pad(math.round(value))} from ${income.from}`,
+        `${pad(income.asset, 4)} worth ${pad(math.round(value))} from ${income.from}`,
       );
     }
   });
@@ -44,7 +44,7 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
   processExpenses(vmEvents, (expense: ExpenseEvent, value: string): void => {
     const tags = expense.tags;
     const message = `${expense.date.split("T")[0]} ` +
-      `Expense of ${pad(math.round(expense.quantity), 8)} ${pad(expense.assetType, 4)} ` +
+      `Expense of ${pad(math.round(expense.quantity), 8)} ${pad(expense.asset, 4)} ` +
       `to ${expense.to}`;
     const otherExpenseKey = "f1040sc-L48:";
     if (tags.some(tag => tag.startsWith(otherExpenseKey))) {

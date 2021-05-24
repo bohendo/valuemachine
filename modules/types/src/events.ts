@@ -1,6 +1,5 @@
-import { AssetTypes } from "./assets";
+import { Assets } from "./assets";
 import { Address, DecimalString, TimestampString } from "./strings";
-import { PriceList } from "./prices";
 import { enumify } from "./utils";
 
 export const EventTypes = enumify({
@@ -19,7 +18,7 @@ export type EventTypes = (typeof EventTypes)[keyof typeof EventTypes];
 
 type BaseEvent = {
   assetPrice: DecimalString;
-  assetType: AssetTypes;
+  asset: Assets;
   date: TimestampString;
   description: string;
   quantity: DecimalString;
@@ -67,16 +66,14 @@ export type WithdrawEvent = BaseEvent & {
 export type TradeEvent = {
   date: TimestampString;
   description: string;
-  prices: PriceList;
-  swapsIn: { [assetType: string]: DecimalString };
-  swapsOut: { [assetType: string]: DecimalString };
+  swapsIn: { [asset: string]: DecimalString };
+  swapsOut: { [asset: string]: DecimalString };
   type: typeof EventTypes.Trade;
 }
 
 export type NetWorthEvent = {
-  assets: { [assetType: string]: DecimalString };
+  assets: { [asset: string]: DecimalString };
   date: TimestampString;
-  prices: { [assetType: string]: DecimalString };
   quantity: DecimalString;
   type: typeof EventTypes.NetWorth;
 }

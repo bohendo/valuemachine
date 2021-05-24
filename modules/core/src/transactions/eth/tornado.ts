@@ -1,5 +1,6 @@
 import {
   AddressBook,
+  Assets,
   Transfer,
   AddressBookJson,
   AddressCategories,
@@ -10,27 +11,26 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+import { math, smeq } from "@finances/utils";
 
 import { rmDups } from "../utils";
 
 const { round } = math;
+const { TORN } = Assets;
 
 const source = TransactionSources.Tornado;
 
 ////////////////////////////////////////
 /// Addresses
 
-const airdropperAddress = "0x4e7b3769921c8dfbdb3d1b4c73558db079a180c7";
-const voucherAddress = "0x3efa30704d2b8bbac821307230376556cf8cc39e";
-
+// vTORN has no value so don't treat it like a real asset
 const miscAddresses = [
-  { name: "vTORN-airdropper", address: airdropperAddress },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+  { name: "vTORN-airdropper", address: "0x4e7b3769921c8dfbdb3d1b4c73558db079a180c7" },
+  { name: "vTORN", address: "0x3efa30704d2b8bbac821307230376556cf8cc39e" },
+].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const govTokenAddresses = [
-  { name: "TORN", address: "0x77777feddddffc19ff86db637967013e6c6a116c" },
-  { name: "vTORN", address: voucherAddress },
+  { name: TORN, address: "0x77777feddddffc19ff86db637967013e6c6a116c" },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 const mixerAddresses = [
@@ -95,7 +95,7 @@ export const tornadoParser = (
   deposits.forEach(deposit => {
     deposit.category = TransferCategories.Deposit;
     const amt = round(deposit.quantity);
-    const asset = deposit.assetType;
+    const asset = deposit.asset;
     log.info(`Found deposit of ${amt} ${asset} to ${source}`);
     tx.description = `${getName(deposit.from)} deposited ${amt} ${asset} into ${source}`;
   });
@@ -103,29 +103,10 @@ export const tornadoParser = (
   withdraws.forEach(withdraw => {
     withdraw.category = TransferCategories.Withdraw;
     const amt = round(withdraw.quantity);
-    const asset = withdraw.assetType;
+    const asset = withdraw.asset;
     log.info(`Found withdraw of ${amt} ${asset} from ${source}`);
     tx.description = `${getName(withdraw.to)} withdrew ${amt} ${asset} from ${source}`;
   });
-
-  for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
-    if (govTokenAddresses.some(e => smeq(e.address, address))) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
-      // Handle vTORN airdrop
-      if (smeq(address, voucherAddress) && smeq(ethTx.from, airdropperAddress)) {
-        const airdrop = tx.transfers.find(t =>
-          isSelf(t.to) && t.assetType === getName(voucherAddress)
-        );
-        // The real on-chain from is an ephemeral multi-send contract
-        airdrop.from = airdropperAddress;
-        airdrop.category = TransferCategories.Income;
-        tx.description = `${getName(airdrop.to)} recieved an airdrop of ${
-          round(airdrop.quantity)
-        } vTORN`;
-      }
-    }
-  }
 
   // log.debug(tx, `Done parsing ${source}`);
   return tx;

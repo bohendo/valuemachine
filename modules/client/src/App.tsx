@@ -51,7 +51,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 const App: React.FC = () => {
 
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile));
-  const [prices, setPrices] = useState(store.load(StoreKeys.Prices));
+  const [pricesJson, setPricesJson] = useState(store.load(StoreKeys.Prices));
   const [events, setEvents] = useState(store.load(StoreKeys.Events));
   const [transactions, setTransactions] = useState(store.load(StoreKeys.Transactions));
   const [addressBook, setAddressBook] = useState(emptyAddressBook);
@@ -108,8 +108,8 @@ const App: React.FC = () => {
 
             <Route exact path="/prices">
               <PriceManager
-                pricesJson={prices}
-                setPrices={setPrices}
+                pricesJson={pricesJson}
+                setPricesJson={setPricesJson}
                 transactions={transactions}
               />
             </Route>
@@ -125,7 +125,7 @@ const App: React.FC = () => {
             <Route exact path="/events">
               <EventExplorer
                 addressBook={addressBook}
-                pricesJson={prices}
+                pricesJson={pricesJson}
                 transactions={transactions}
                 events={events}
                 setEvents={setEvents}

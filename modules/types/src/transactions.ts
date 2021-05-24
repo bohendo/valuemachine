@@ -1,8 +1,7 @@
 import { AddressBook } from "./addressBook";
-import { AssetTypes } from "./assets";
+import { Assets } from "./assets";
 import { ChainData } from "./chainData";
 import { Logger } from "./logger";
-import { PriceList } from "./prices";
 import { DecimalString, HexString, TimestampString } from "./strings";
 import { Store } from "./store";
 import { enumify } from "./utils";
@@ -61,7 +60,7 @@ export const TransferCategories = enumify({
 export type TransferCategories = (typeof TransferCategories)[keyof typeof TransferCategories];
 
 export type Transfer = {
-  assetType: AssetTypes;
+  asset: Assets;
   category: TransferCategories;
   fee?: DecimalString;
   from: HexString;
@@ -75,7 +74,6 @@ export type Transaction = {
   description: string;
   hash?: HexString;
   index?: number;
-  prices?: PriceList;
   sources: TransactionSources[];
   tags: string[];
   transfers: Transfer[];

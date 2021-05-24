@@ -2,7 +2,7 @@ import {
   AddressBook,
   AddressCategories,
   AssetChunk,
-  AssetTypes,
+  Assets,
   Events,
   EventTypes,
   Logger,
@@ -40,23 +40,23 @@ export const emitTransactionEvents = (
   const swapsOut = transaction.transfers.filter(t => t.category === TransferCategories.SwapOut);
   if (swapsIn.length && swapsOut.length) {
     const sum = (acc, cur) => add(acc, cur.quantity);
-    const assetsOut = rmDups(swapsOut.map(swap => swap.assetType));
+    const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
     const assetsIn = rmDups(
       swapsIn
-        .map(swap => swap.assetType)
+        .map(swap => swap.asset)
         // If some input asset was refunded, remove this from the output asset list
         .filter(asset => !assetsOut.includes(asset))
     );
     const amtsOut = assetsOut.map(asset =>
       swapsIn
-        .filter(swap => swap.assetType === asset)
+        .filter(swap => swap.asset === asset)
         .map(swap => ({ ...swap, quantity: mul(swap.quantity, "-1") })) // subtract refunds
         .concat(
-          swapsOut.filter(swap => swap.assetType === asset)
+          swapsOut.filter(swap => swap.asset === asset)
         ).reduce(sum, "0")
     );
     const amtsIn = assetsIn.map(asset =>
-      swapsIn.filter(swap => swap.assetType === asset).reduce(sum, "0")
+      swapsIn.filter(swap => swap.asset === asset).reduce(sum, "0")
     );
     const inputs = {};
     assetsIn.forEach((asset, index) => {
@@ -73,7 +73,6 @@ export const emitTransactionEvents = (
       } for ${
         assetsIn.map((asset, i) => `${round(amtsIn[i])} ${asset}`).join(" & ")
       }`,
-      prices: transaction.prices || {},
       swapsIn: inputs,
       swapsOut: outputs,
       type: EventTypes.Trade,
@@ -93,13 +92,13 @@ export const emitTransferEvents = (
   transaction: Transaction,
   transfer: Transfer,
   prices: Prices,
-  uoa: AssetTypes = AssetTypes.ETH,
+  unit: Assets = Assets.ETH,
   logger?: Logger,
 ): Events => {
   const log = (logger || getLogger()).child({ module: "TransferEvent" });
   const { getName } = addressBook;
   const events = [];
-  const { assetType, category, from, quantity, to } = transfer;
+  const { asset, category, from, quantity, to } = transfer;
   if (eq(quantity, "0")) {
     return events;
   }
@@ -110,8 +109,8 @@ export const emitTransferEvents = (
   }
 
   const newEvent = {
-    assetPrice: prices.getPrice(transaction.date, assetType, uoa),
-    assetType: assetType,
+    assetPrice: prices.getPrice(transaction.date, asset, unit),
+    asset: asset,
     date: transaction.date,
     quantity,
     tags: transaction.tags,
@@ -120,39 +119,39 @@ export const emitTransferEvents = (
 
   if (category === TransferCategories.Income) {
     newEvent.from = from;
-    newEvent.description = `Recieved ${round(quantity)} ${assetType} from ${getName(from)} `;
+    newEvent.description = `Recieved ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
 
   } else if (category === TransferCategories.Expense) {
     newEvent.to = to;
-    newEvent.description = `Paid ${round(quantity)} ${assetType} to ${getName(to)} `;
+    newEvent.description = `Paid ${round(quantity)} ${asset} to ${getName(to)} `;
     events.push(newEvent);
 
   } else if (category === TransferCategories.Borrow) {
     newEvent.from = from;
-    newEvent.description = `Borrowed ${round(quantity)} ${assetType} from ${getName(from)} `;
+    newEvent.description = `Borrowed ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
 
   } else if (category === TransferCategories.Repay) {
     newEvent.to = to;
-    newEvent.description = `Repaied ${round(quantity)} ${assetType} to ${getName(to)} `;
+    newEvent.description = `Repaied ${round(quantity)} ${asset} to ${getName(to)} `;
     events.push(newEvent);
 
   } else if (category === TransferCategories.Deposit) {
     newEvent.to = to;
-    newEvent.description = `Deposited ${round(quantity)} ${assetType} to ${getName(to)} `;
+    newEvent.description = `Deposited ${round(quantity)} ${asset} to ${getName(to)} `;
     events.push(newEvent);
 
   } else if (category === TransferCategories.Withdraw) {
     newEvent.from = from;
-    newEvent.description = `Withdrew ${round(quantity)} ${assetType} from ${getName(from)} `;
+    newEvent.description = `Withdrew ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
 
   } else if (category === TransferCategories.SwapOut && gt(transfer.quantity, "0")) {
     chunks.forEach(chunk => {
-      const currentPrice = prices.getPrice(transaction.date, chunk.assetType, uoa);
+      const currentPrice = prices.getPrice(transaction.date, chunk.asset, unit);
       if (!currentPrice) {
-        log.warn(`Price in units of ${uoa} is unavailable for ${assetType} on ${transaction.date}`);
+        log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${transaction.date}`);
       }
       const purchaseValue = mul(chunk.quantity, chunk.purchasePrice);
       const saleValue = mul(chunk.quantity, currentPrice);
@@ -160,11 +159,11 @@ export const emitTransferEvents = (
       if (gt(gain, "0")) {
         events.push({
           assetPrice: currentPrice,
-          assetType: chunk.assetType,
+          asset: chunk.asset,
           date: transaction.date,
-          description: `${round(chunk.quantity)} ${chunk.assetType} ${
+          description: `${round(chunk.quantity)} ${chunk.asset} ${
             gt(gain, "0") ? "gained" : "lost"
-          } ${round(gain)} ${uoa} of value since we got it on ${chunk.dateRecieved}`,
+          } ${round(gain)} ${unit} of value since we got it on ${chunk.dateRecieved}`,
           gain,
           purchaseDate: chunk.dateRecieved,
           purchasePrice: chunk.purchasePrice,

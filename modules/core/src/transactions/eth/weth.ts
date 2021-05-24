@@ -4,7 +4,7 @@ import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
-  AssetTypes,
+  Assets,
   ChainData,
   EthTransaction,
   Logger,
@@ -17,6 +17,7 @@ import { math, sm, smeq } from "@finances/utils";
 import { rmDups, parseEvent } from "../utils";
 
 const { round } = math;
+const { ETH, WETH } = Assets;
 const source = TransactionSources.Weth;
 
 ////////////////////////////////////////
@@ -25,7 +26,7 @@ const source = TransactionSources.Weth;
 const wethAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
 
 export const wethAddresses = [
-  { name: "WETH", address: wethAddress },
+  { name: WETH, address: wethAddress },
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 ////////////////////////////////////////
@@ -54,7 +55,7 @@ export const wethParser = (
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     if (smeq(address, wethAddress)) {
-      const assetType = AssetTypes.WETH;
+      const asset = WETH;
       const event = parseEvent(wethInterface, txLog);
       if (!event.name) continue;
       const amount = formatUnits(event.args.wad, chainData.getTokenData(address).decimals);
@@ -62,16 +63,14 @@ export const wethParser = (
 
       if (event.name === "Deposit") {
         if (!isSelf(event.args.dst)) {
-          log.debug(`Skipping ${assetType} ${event.name} that doesn't involve us`);
+          log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
           continue;
         } else {
           log.info(`Parsing ${source} ${event.name} of amount ${round(amount)}`);
         }
         tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
-        tx.prices[AssetTypes.ETH] = tx.prices[AssetTypes.ETH] || {};
-        tx.prices[AssetTypes.ETH][AssetTypes.WETH] = "1";
         tx.transfers.push({
-          assetType,
+          asset,
           category: TransferCategories.SwapIn,
           from: address,
           index,
@@ -79,7 +78,7 @@ export const wethParser = (
           to: event.args.dst,
         });
         const swapOut = tx.transfers.findIndex(t =>
-          t.assetType === AssetTypes.ETH && t.quantity === amount
+          t.asset === ETH && t.quantity === amount
           && isSelf(t.from) && smeq(t.to, address)
         );
         if (swapOut >= 0) {
@@ -90,7 +89,7 @@ export const wethParser = (
           }
           // If there's a same-value eth transfer to the swap recipient, index it before
           const transfer = tx.transfers.findIndex(t =>
-            t.assetType === AssetTypes.ETH && t.quantity === amount
+            t.asset === ETH && t.quantity === amount
             && smeq(t.to, tx.transfers[swapOut].from)
           );
           if (transfer >= 0) {
@@ -102,16 +101,14 @@ export const wethParser = (
 
       } else if (event.name === "Withdrawal") {
         if (!isSelf(event.args.src)) {
-          log.debug(`Skipping ${assetType} ${event.name} that doesn't involve us`);
+          log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
           continue;
         } else {
           log.info(`Parsing ${source} ${event.name} of amount ${round(amount)}`);
         }
         tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
-        tx.prices[AssetTypes.ETH] = tx.prices[AssetTypes.ETH] || {};
-        tx.prices[AssetTypes.ETH][AssetTypes.WETH] = "1";
         tx.transfers.push({
-          assetType,
+          asset,
           category: TransferCategories.SwapOut,
           from: event.args.src,
           index,
@@ -119,7 +116,7 @@ export const wethParser = (
           to: address,
         });
         const swapIn = tx.transfers.findIndex(t =>
-          t.assetType === AssetTypes.ETH && t.quantity === amount
+          t.asset === ETH && t.quantity === amount
           && isSelf(t.to) && smeq(t.from, address)
         );
         if (swapIn >= 0) {
@@ -130,7 +127,7 @@ export const wethParser = (
           }
           // If there's a same-value eth transfer from the swap recipient, index it after
           const transfer = tx.transfers.findIndex(t =>
-            t.assetType === AssetTypes.ETH && t.quantity === amount
+            t.asset === ETH && t.quantity === amount
             && smeq(t.from, tx.transfers[swapIn].to)
           );
           if (transfer >= 0) {

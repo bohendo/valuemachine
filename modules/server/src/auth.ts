@@ -64,7 +64,7 @@ authRouter.use((req, res, next) => {
         "base64",
       ).toString("utf8").split(":")?.[0];
       req.username = username;
-      log.info(`Successfully authenticated ${username} for a ${req.method} to ${req.path}`);
+      log.debug(`Successfully authenticated ${username} for a ${req.method} to ${req.path}`);
       next();
     }
   } else {

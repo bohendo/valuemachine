@@ -1,4 +1,4 @@
-import { AssetChunk, AssetTypes } from "./assets";
+import { AssetChunk, Assets } from "./assets";
 import { Transaction } from "./transactions";
 import { Address, DecimalString, TimestampString } from "./strings";
 
@@ -11,24 +11,24 @@ export type StateJson = {
 }
 
 export type NetWorth = {
-  [assetType: string]: DecimalString;
+  [asset: string]: DecimalString;
 }
 
 export type StateBalances = {
   [account: string]: {
-    [assetType: string]: DecimalString;
+    [asset: string]: DecimalString;
   };
 }
 
 export interface State {
   getAllBalances(): StateBalances;
-  getBalance(account: string, assetType: AssetTypes): DecimalString;
+  getBalance(account: string, asset: Assets): DecimalString;
   getChunks(
     account: Address,
-    assetType: AssetTypes,
+    asset: Assets,
     quantity: DecimalString,
     tx: Transaction,
-    uoa: AssetTypes,
+    unit: Assets,
   ): AssetChunk[];
   getNetWorth(): NetWorth;
   getRelevantBalances(tx: Transaction): StateBalances;

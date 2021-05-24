@@ -1,3 +1,4 @@
+import { Interface } from "@ethersproject/abi";
 import { getAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { hexlify, isHexString } from "@ethersproject/bytes";
@@ -22,8 +23,28 @@ import {
 import { getLogger, sm, smeq, toBN } from "@finances/utils";
 import axios from "axios";
 
-import { getTokenInterface } from "./abi";
 import { getEthTransactionError } from "./verify";
+
+const stringAbi = [
+  "function decimals() view returns (uint)",
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+];
+
+const bytesAbi = [
+  "function decimals() view returns (uint256)",
+  "function name() view returns (bytes32)",
+  "function symbol() view returns (bytes32)",
+];
+
+const getTokenInterface = (address?: Address): Interface => new Interface(
+  !address ? stringAbi
+    : [
+      "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", // SAI
+      "0xf53ad2c6851052a81b42133467480961b2321c09", // PETH
+      "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
+    ].includes(sm(address)) ? bytesAbi : stringAbi
+);
 
 export const getChainData = ({
   chainDataJson,
@@ -229,7 +250,15 @@ export const getChainData = ({
       } catch (e) {
         log.error(`Failed to fetch data for ${tokenAddress}`);
         log.error(e.message);
+        if (e.message.includes("EAI_AGAIN") || e.message.toLowerCase().includes("timeout")) {
+          // Skip this token for now & try to fetch it again later when internet is more reliable
+          continue;
+        }
+        // Else it's prob not possible to fetch, just save the defaults for an unknown token
       }
+      log.info(`rawName=${rawName}`);
+      log.info(`rawSymbol=${rawSymbol}`);
+      log.info(`rawDecimals=${rawDecimals}`);
       const name = toStr(rawName?.[0] || "Unknown");
       const symbol = toStr(rawSymbol?.[0] || "???");
       const decimals = toNum(rawDecimals || 18);

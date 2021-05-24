@@ -1,12 +1,14 @@
 import { getPrices } from "@finances/core";
 import {
+  Assets,
   AltChainAssets,
   EthereumAssets,
   FiatAssets,
+  Prices,
   PricesJson,
   TransactionsJson,
 } from "@finances/types";
-import { smeq } from "@finances/utils";
+import { math, smeq } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
@@ -31,7 +33,7 @@ import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
 import React, { useEffect, useState } from "react";
-// import axios from "axios";
+import axios from "axios";
 
 import { store } from "../utils";
 
@@ -46,7 +48,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     marginTop: theme.spacing(2),
   },
   paper: {
-    minWidth: "500px",
+    minWidth: "550px",
     padding: theme.spacing(2),
   },
   select: {
@@ -62,13 +64,18 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   dateFilter: {
     margin: theme.spacing(2),
   },
+  table: {
+    maxWidth: "98%",
+  },
+  subtable: {
+    maxWidth: "98%",
+    // overflow: "scroll",
+  },
+  subtableCell: {
+    maxWidth: "100px",
+    // overflow: "scroll",
+  },
 }));
-
-type PriceRow = {
-  date: string;
-  asset: string;
-  price: string;
-}
 
 type DateInput = {
   value: string;
@@ -80,45 +87,48 @@ const emptyDateInput = { value: "", display: "", error: "" } as DateInput;
 
 export const PriceManager = ({
   pricesJson,
-  setPrices,
+  setPricesJson,
   transactions,
 }: {
   pricesJson: PricesJson;
-  setPrices: (val: PricesJson) => void;
+  setPricesJson: (val: PricesJson) => void;
   transactions: TransactionsJson,
 }) => {
+  const [prices, setPrices] = useState({} as Prices);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState(false);
   const [filterAsset, setFilterAsset] = useState("");
   const [filterDate, setFilterDate] = useState(emptyDateInput);
-  const [filteredPrices, setFilteredPrices] = useState([] as PriceRow);
-  const [uoa, setUoa] = useState("USD");
+  const [filteredPrices, setFilteredPrices] = useState({} as PricesJson);
+  const [unit, setUnit] = useState(Assets.ETH);
   const classes = useStyles();
 
   useEffect(() => {
-    if (!pricesJson) return;
+    if (!pricesJson || !Object.keys(prices).length) return;
     if (filterDate.error) return;
-    const newFilteredPrices = [] as PriceRow[];
-    Object.entries(pricesJson).forEach(([date, priceEntry]) => {
-      if (filterDate.value && filterDate.value !== date) return null;
-      if (Object.keys(priceEntry).length === 0) return null;
-      if (Object.keys(priceEntry[uoa] || {}).length === 0) return null;
-      Object.entries(priceEntry[uoa] || {}).forEach(([asset, price]) => {
+    const newFilteredPrices = {} as PricesJson;
+    Object.entries(pricesJson).forEach(([date, priceList]) => {
+      if (filterDate.value && filterDate.value !== date.split("T")[0]) return null;
+      if (Object.keys(priceList).length === 0) return null;
+      if (Object.keys(priceList[unit] || {}).length === 0) return null;
+      Object.entries(priceList[unit] || {}).forEach(([asset, price]) => {
         if (!filterAsset || smeq(filterAsset, asset)) {
-          newFilteredPrices.push({ date, asset, price });
+          newFilteredPrices[date] = newFilteredPrices[date] || {};
+          newFilteredPrices[date][unit] = newFilteredPrices[date][unit] || {};
+          newFilteredPrices[date][unit][asset] = price;
         }
       });
     });
-    setFilteredPrices(newFilteredPrices.sort((e1: PriceRow, e2: PriceRow): number => {
-      return e1.date > e2.date ? -1 : e1.date < e2.date ? 1
-        : e1.asset > e2.asset ? 1 : e1.asset < e2.asset ? -1
-          : 0;
-    }));
-  }, [uoa, pricesJson, filterAsset, filterDate]);
+    setFilteredPrices(newFilteredPrices);
+  }, [unit, prices, pricesJson, filterAsset, filterDate]);
 
-  const handleUoaChange = (event: React.ChangeEvent<{ value: string }>) => {
-    setUoa(event.target.value);
+  useEffect(() => {
+    setPrices(getPrices({ pricesJson, store, unit }));
+  }, [pricesJson, unit]);
+
+  const handleUnitChange = (event: React.ChangeEvent<{ value: string }>) => {
+    setUnit(event.target.value);
   };
 
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
@@ -135,16 +145,35 @@ export const PriceManager = ({
   };
 
   const syncPrices = async () => {
-    if (!transactions) return;
+    if (!transactions) {
+      console.warn(`No transactions to sync`);
+      return;
+    }
     setSyncing(true);
     console.log(`Syncing price data for ${transactions.length} transactions`);
     try {
-      const prices = getPrices({ pricesJson, store, unitOfAccount: uoa });
-      for (const tx of transactions) {
-        // TODO: use axios to get price from server somehow
-        prices.syncTransaction(tx, uoa);
+      for (const i in transactions) {
+        const transaction = transactions[i];
+        // Only sync via server if we're missing some prices
+        const missing = Array.from(new Set([...transaction.transfers.map(t => t.asset)]))
+          .map(asset => prices.getPrice(transaction.date, asset))
+          .filter(p => !p).length;
+        if (missing > 0) {
+          const res = await axios({
+            method: "post",
+            url: `/api/prices/${unit}`,
+            data: { transaction },
+          });
+          console.log(res.data, `synced prices for transaction ${i}`);
+          prices.merge(res.data);
+          setPricesJson({ ...prices.json });
+        } else {
+          // If not missing, make sure the price is saved directly w/out needing to path search
+          Array.from(new Set([...transaction.transfers.map(t => t.asset)])).forEach(asset =>
+            prices.syncPrice(transaction.date, asset)
+          );
+        }
       }
-      setPrices({ ...prices.json });
     } catch (e) {
       console.error(`Failed to sync prices:`, e);
     }
@@ -168,8 +197,17 @@ export const PriceManager = ({
   };
 
   const clearPrices = () => {
-    setPrices({});
+    setPricesJson({});
   };
+
+  const countPrices = (input: PricesJson): number =>
+    Object.values(input).reduce((output, unit) => {
+      return output + Object.values(unit).reduce((inter, asset) => {
+        return inter + Object.values(asset).length;
+      }, 0);
+    }, 0);
+
+  const byAsset = (e1, e2) => (e1[0] < e2[0]) ? -1 : 1;
 
   return (
     <>
@@ -189,14 +227,14 @@ export const PriceManager = ({
           <Card className={classes.root}>
             <CardHeader title={"Set Unit of Account"} />
             <FormControl className={classes.select}>
-              <InputLabel id="select-asset-type">AssetType</InputLabel>
+              <InputLabel id="select-asset-type">Asset</InputLabel>
               <Select
-                labelId="select-uoa"
-                id="select-uoa"
-                value={uoa || ""}
-                onChange={handleUoaChange}
+                labelId="select-unit"
+                id="select-unit"
+                value={unit || ""}
+                onChange={handleUnitChange}
               >
-                {Object.keys({ ...FiatAssets }).map(asset => (
+                {Object.keys({ ...FiatAssets }).concat(["ETH"]).map(asset => (
                   <MenuItem key={asset} value={asset}>{asset}</MenuItem>
                 ))}
               </Select>
@@ -212,7 +250,7 @@ export const PriceManager = ({
             startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
             variant="outlined"
           >
-            {`Sync ${uoa} Prices for ${transactions.length} Transactions`}
+            {`Sync ${unit} Prices for ${transactions.length} Transactions`}
           </Button>
           <Button
             className={classes.button}
@@ -266,35 +304,66 @@ export const PriceManager = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {`${filteredPrices.length} Prices`}
+          {countPrices(filteredPrices) === prices.getCount?.(unit)
+            ? `${countPrices(filteredPrices)} ${unit} Prices`
+            : `${countPrices(filteredPrices)} of ${prices.getCount?.(unit)} ${unit} Prices`
+          }
         </Typography>
 
         <TableContainer>
           <TablePagination
             rowsPerPageOptions={[25, 50, 100, 250]}
             component="div"
-            count={filteredPrices.length}
+            count={Object.keys(filteredPrices).length}
             rowsPerPage={rowsPerPage}
             page={page}
             onChangePage={handleChangePage}
             onChangeRowsPerPage={handleChangeRowsPerPage}
           />
-          <Table>
+          <Table className={classes.table}>
             <TableHead>
               <TableRow>
                 <TableCell> Date </TableCell>
-                <TableCell> Asset </TableCell>
-                <TableCell> Price ({uoa}) </TableCell>
+                <TableCell> Prices ({unit}) </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredPrices
+              {Object.entries(filteredPrices)
+                .sort((e1, e2) => new Date(e2[0]).getTime() - new Date(e1[0]).getTime())
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row: PriceRow, i: number) => (
+                .map(([date, list], i: number) => (
                   <TableRow key={i}>
-                    <TableCell> {row.date.replace("T", " ").replace("Z", "")} </TableCell>
-                    <TableCell> {row.asset} </TableCell>
-                    <TableCell> {row.price} </TableCell>
+                    <TableCell style={{ width: "120px" }}><strong>
+                      {date.replace("T", " ").replace("Z", "")}
+                    </strong></TableCell>
+                    <TableCell>
+                      <Table className={classes.subtable}>
+                        <TableHead>
+                          <TableRow>
+                            {Object.entries(list[unit] || {})
+                              .sort(byAsset)
+                              .map(e => e[0])
+                              .map(asset => (
+                                <TableCell style={{ maxWidth: "120px" }} key={asset}>
+                                  <strong> {asset} </strong>
+                                </TableCell>
+                              ))}
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          <TableRow>
+                            {Object.entries(list[unit] || {})
+                              .sort(byAsset)
+                              .map(e => e[1])
+                              .map((price, i) => (
+                                <TableCell style={{ maxWidth: "120px" }} key={i}>
+                                  {math.sigfigs(price, 3)}
+                                </TableCell>
+                              ))}
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </TableCell>
                   </TableRow>
                 ))}
             </TableBody>
@@ -302,7 +371,7 @@ export const PriceManager = ({
           <TablePagination
             rowsPerPageOptions={[25, 50, 100, 250]}
             component="div"
-            count={filteredPrices.length}
+            count={Object.keys(filteredPrices).length}
             rowsPerPage={rowsPerPage}
             page={page}
             onChangePage={handleChangePage}

@@ -1,6 +1,6 @@
 import {
   AddressBook,
-  AssetTypes,
+  Assets,
   Event,
   Logger,
   Prices,
@@ -16,14 +16,14 @@ export const getValueMachine = ({
   addressBook,
   prices,
   logger,
-  unitOfAccount,
+  unit: defaultUnit,
 }: {
   addressBook: AddressBook,
   prices: Prices,
   logger?: Logger
-  unitOfAccount?: AssetTypes,
+  unit?: Assets,
 }): any => {
-  const uoa = unitOfAccount || AssetTypes.ETH;
+  const unit = defaultUnit || Assets.ETH;
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
   const { getName } = addressBook;
 
@@ -44,23 +44,23 @@ export const getValueMachine = ({
 
     const later = [];
     for (const transfer of transaction.transfers) {
-      const { assetType, fee, from, quantity, to } = transfer;
+      const { asset, fee, from, quantity, to } = transfer;
       if (
-        !Object.values(AssetTypes).includes(assetType) &&
-        !addressBook.isToken(assetType)
+        !Object.values(Assets).includes(asset) &&
+        !addressBook.isToken(asset)
       ) {
-        log.debug(`Skipping transfer of unsupported token: ${assetType}`);
+        log.debug(`Skipping transfer of unsupported token: ${asset}`);
         continue;
       }
-      log.debug(`transfering ${quantity} ${assetType} from ${getName(from)} to ${getName(to)}`);
+      log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${getName(to)}`);
       let feeChunks;
       let chunks;
       try {
         if (fee) {
-          feeChunks = state.getChunks(from, assetType, fee, transaction, unitOfAccount);
-          log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
+          feeChunks = state.getChunks(from, asset, fee, transaction, unit);
+          log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${asset}`);
         }
-        chunks = state.getChunks(from, assetType, quantity, transaction, unitOfAccount);
+        chunks = state.getChunks(from, asset, quantity, transaction, unit);
         chunks.forEach(chunk => state.putChunk(to, chunk));
         logs.push(...emitTransferEvents(
           addressBook,
@@ -68,7 +68,7 @@ export const getValueMachine = ({
           transaction,
           transfer,
           prices,
-          uoa,
+          unit,
           log,
         ));
       } catch (e) {
@@ -88,15 +88,15 @@ export const getValueMachine = ({
     // let them go negative only while a tx is being exectued
     // after all transfers have been processed, only then assert that crypto balances are >=0
     for (const transfer of later) {
-      const { assetType, fee, from, quantity, to } = transfer;
-      log.debug(`transfering ${quantity} ${assetType} from ${getName(from)} to ${
+      const { asset, fee, from, quantity, to } = transfer;
+      log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${
         getName(to)
       } (attempt 2)`);
       if (fee) {
-        const feeChunks = state.getChunks(from, assetType, fee, transaction, unitOfAccount);
-        log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${assetType}`);
+        const feeChunks = state.getChunks(from, asset, fee, transaction, unit);
+        log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${asset}`);
       }
-      const chunks = state.getChunks(from, assetType, quantity, transaction, unitOfAccount);
+      const chunks = state.getChunks(from, asset, quantity, transaction, unit);
       chunks.forEach(chunk => state.putChunk(to, chunk));
       logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer, prices));
     }

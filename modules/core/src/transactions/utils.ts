@@ -93,7 +93,7 @@ export const mergeTransaction = (
         && !isHash(tx.hash)
         // This tx has a transfer with same asset type & quantity as this new tx
         && tx.transfers.some(t =>
-          t.assetType === transfer.assetType &&
+          t.asset === transfer.asset &&
           quantitiesAreClose(t.quantity, transfer.quantity, div(transfer.quantity, "100"))
         )
         // Existing tx & new tx have timestamps within 30 mins of each other
@@ -137,7 +137,7 @@ export const mergeTransaction = (
     tx.sources.some(source => sources.includes(source))
     && datesAreClose(tx.date, newTx.date, "1")
     && tx.transfers.some(t1 => newTx.transfers.some(t2 =>
-      t1.assetType === t2.assetType &&
+      t1.asset === t2.asset &&
       quantitiesAreClose(t1.quantity, t2.quantity, div(t2.quantity, "100"))
     ))
   );
@@ -163,7 +163,7 @@ export const mergeTransaction = (
     && !tx.sources.some(source => sources.includes(source))
     // Existing tx has a transfer with same asset type & quantity as this new tx
     && tx.transfers.some(t =>
-      t.assetType === transfer.assetType &&
+      t.asset === transfer.asset &&
       quantitiesAreClose(t.quantity, transfer.quantity, div(transfer.quantity, "100"))
     )
     // Existing tx & new tx have timestamps within 30 mins of each other

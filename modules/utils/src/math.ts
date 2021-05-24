@@ -6,16 +6,24 @@ import { HexString } from "@finances/types";
 ////////////////////////////////////////
 // Internal Helpers
 
-const fromWad = (n: BN | string): string => formatUnits((n || "0").toString(), 18);
+const precision = 36;
 
-const toWad = (n: BN | string): BN => parseUnits((n || "0").toString(), 18);
+const fromRay = (n: BN | string): string => formatUnits((n || "0").toString(), precision);
+
+const toRay = (n: BN | string): BN => {
+  const str = (n || "0").toString();
+  if (!str.includes(".")) return parseUnits(str, precision);
+  const split = str.split(".");
+  // Truncate decimals to prevent underflow errors (will NOT round excess precision properly)
+  return parseUnits(`${split[0]}.${split[1].substring(0, precision)}`, precision);
+};
 
 const floor = (decStr: string): string => decStr.substring(0, decStr.indexOf("."));
 
 const roundInt = (decStr: string): string => 
-  toWad(decStr).lt(toWad("0"))
-    ? floor(fromWad(toWad(decStr).sub(toWad("0.5"))).toString())
-    : floor(fromWad(toWad(decStr).add(toWad("0.5"))).toString());
+  toRay(decStr).lt(toRay("0"))
+    ? floor(fromRay(toRay(decStr).sub(toRay("0.5"))).toString())
+    : floor(fromRay(toRay(decStr).add(toRay("0.5"))).toString());
 
 ////////////////////////////////////////
 // Exports
@@ -27,9 +35,9 @@ export const toBN = (n: BN | number | string | { _hex: HexString }): BN =>
       : n.toString(),
   );
 
-export const eq = (a, b): boolean => toWad(a).eq(toWad(b));
-export const gt = (a, b): boolean => toWad(a).gt(toWad(b));
-export const lt = (a, b): boolean => toWad(a).lt(toWad(b));
+export const eq = (a, b): boolean => toRay(a).eq(toRay(b));
+export const gt = (a, b): boolean => toRay(a).gt(toRay(b));
+export const lt = (a, b): boolean => toRay(a).lt(toRay(b));
 
 export const max = (...lon: string[]): string =>
   lon.reduce(
@@ -44,34 +52,35 @@ export const min = (...lon: string[]): string =>
   );
 
 export const add = (...lon: string[]): string =>
-  lon.reduce((sum, current) => fromWad(toWad(sum).add(toWad(current))), "0");
+  lon.reduce((sum, current) => fromRay(toRay(sum).add(toRay(current))), "0");
 
 export const mul = (...lon: string[]): string =>
   lon.reduce(
-    (product, current) => fromWad(roundInt(fromWad(toWad(product).mul(toWad(current))))),
+    (product, current) => fromRay(roundInt(fromRay(toRay(product).mul(toRay(current))))),
     "1",
   );
 
 export const div = (a: string, b: string): string =>
-  fromWad(toWad(toWad(a)).div(toWad(b)));
+  fromRay(toRay(toRay(a)).div(toRay(b)));
 
 export const sub = (a: string, b: string): string =>
-  fromWad(toWad(a).sub(toWad(b)));
+  fromRay(toRay(a).sub(toRay(b)));
 
 export const subToZero = (a: string, b: string): string => {
-  const diff = toWad(a).sub(toWad(b));
-  return diff.gt(Zero) ? fromWad(diff) : "0";
+  const diff = toRay(a).sub(toRay(b));
+  return diff.gt(Zero) ? fromRay(diff) : "0";
 };
 
 export const abs = (a: string): string =>
-  toWad(a).gt(Zero) ? a : mul(a, "-1");
+  toRay(a).gt(Zero) ? a : mul(a, "-1");
 
 // absolute value of subtracting a and b
 export const diff = (a: string, b: string): string =>
   abs(sub(a, b));
 
+// Round to n decimal places
 export const round = (decStr: string, n = 2): string => {
-  if (!n) { return roundInt(decStr); }
+  if (n <= 0) { return roundInt(decStr); }
   const power = `1${"0".repeat(n)}`;
   let out = div(roundInt(mul(decStr, power)), power);
   // Pad with extra zeros if needed
@@ -81,4 +90,12 @@ export const round = (decStr: string, n = 2): string => {
   }
   // console.log(`Rounded ${decStr} to ${n || 0} decimals: ${out}`);
   return out;
+};
+
+// Round so that there are at least n significant figures available
+export const sigfigs = (decStr: string, n = 3): string => {
+  if (!decStr.includes(".") || decStr.split(".")[0] !== "0") { return round(decStr, n); }
+  const dec = decStr.split(".")[1];
+  const leadingZeros = dec.length - dec.replace(/^0+/, "").length;
+  return round(decStr, leadingZeros + n);
 };

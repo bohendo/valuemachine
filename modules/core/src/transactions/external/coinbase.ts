@@ -18,7 +18,7 @@ export const mergeCoinbaseTransactions = (
     const {
       ["Timestamp"]: date,
       ["Transaction Type"]: txType,
-      ["Asset"]: assetType,
+      ["Asset"]: asset,
       ["Quantity Transacted"]: quantity,
       ["USD Total (inclusive of fees)"]: usdQuantity,
       ["USD Fees"]: fees,
@@ -35,40 +35,40 @@ export const mergeCoinbaseTransactions = (
 
     if (txType === "Send") {
       [from, to, category] = ["coinbase-account", "external-account", TransferCategories.Transfer];
-      transaction.description = `Withdrew ${round(quantity)} ${assetType} out of coinbase`;
+      transaction.description = `Withdrew ${round(quantity)} ${asset} out of coinbase`;
 
     } else if (txType === "Receive") {
       [from, to, category] = ["external-account", "coinbase-account", TransferCategories.Transfer];
-      transaction.description = `Deposited ${round(quantity)} ${assetType} into coinbase`;
+      transaction.description = `Deposited ${round(quantity)} ${asset} into coinbase`;
 
     } else if (txType === "Sell") {
       [from, to, category] = ["coinbase-account", "coinbase-exchange", TransferCategories.SwapOut];
       transaction.transfers.push({
-        assetType: "USD",
+        asset: "USD",
         category: TransferCategories.SwapIn,
         from: "coinbase-exchange",
         quantity: usdQuantity,
         to: "coinbase-account",
       });
-      transaction.description = `Sold ${round(quantity)} ${assetType} for ${usdQuantity} USD on coinbase`;
+      transaction.description = `Sold ${round(quantity)} ${asset} for ${usdQuantity} USD on coinbase`;
 
     } else if (txType === "Buy") {
       [from, to, category] = ["coinbase-exchange", "coinbase-account", TransferCategories.SwapIn];
       transaction.transfers.push({
-        assetType: "USD",
+        asset: "USD",
         category: TransferCategories.SwapOut,
         from: "coinbase-account",
         quantity: usdQuantity,
         to: "coinbase-exchange",
       });
-      transaction.description = `Bought ${round(quantity)} ${assetType} for ${usdQuantity} USD on coinbase`;
+      transaction.description = `Bought ${round(quantity)} ${asset} for ${usdQuantity} USD on coinbase`;
     }
 
-    transaction.transfers.push({ assetType, category, from, quantity, to });
+    transaction.transfers.push({ asset, category, from, quantity, to });
 
     if (gt(fees, "0")) {
       transaction.transfers.push({
-        assetType: "USD",
+        asset: "USD",
         category: TransferCategories.Expense,
         from: "coinbase-account",
         quantity: fees,

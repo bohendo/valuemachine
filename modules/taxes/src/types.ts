@@ -27,7 +27,7 @@ export type Env = {
 
 export type ProfileData = {
   addressBook?: AddressBookJson;
-  dividends: Array<{ source: string; assetType: string; tags: string[]; quantity: string }>;
+  dividends: Array<{ source: string; asset: string; tags: string[]; quantity: string }>;
   expenses: Array<Partial<ExpenseEvent>>;
   env: Partial<Env>;
   transactions: Array<Transaction | string>;

@@ -69,11 +69,10 @@ export const parseEthTx = (
   let tx = {
     date: (new Date(ethTx.timestamp)).toISOString(),
     hash: ethTx.hash,
-    prices: {},
     sources: [],
     tags: [],
     transfers: [{
-      assetType: "ETH",
+      asset: "ETH",
       category: gt(ethTx.value, "0") ? TransferCategories.Transfer : TransferCategories.Expense,
       fee: formatEther(BigNumber.from(ethTx.gasUsed).mul(ethTx.gasPrice)),
       from: sm(ethTx.from),
@@ -117,7 +116,7 @@ export const parseEthTx = (
       && gt(call.value, "0")
     ) {
       tx.transfers.push({
-        assetType: "ETH",
+        asset: "ETH",
         category: TransferCategories.Transfer,
         // Internal eth transfers have no index, put incoming transfers first & outgoing last
         // This makes underflows less likely during VM processesing
@@ -165,7 +164,7 @@ export const parseEthTx = (
       if (!eq("0", tx.transfers[0]?.quantity)) {
         tx.description = `${getName(tx.transfers[0].from)} transfered ${
           round(tx.transfers[0].quantity, 4)
-        } ${tx.transfers[0].assetType} to ${getName(tx.transfers[0].to)}`;
+        } ${tx.transfers[0].asset} to ${getName(tx.transfers[0].to)}`;
       } else if (ethTx.data.length > 2) {
         tx.description = `${getName(tx.transfers[0].from)} called a method on ${
           getName(tx.transfers[0].to)

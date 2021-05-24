@@ -54,7 +54,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   importer: {
     margin: theme.spacing(4),
   },
-  selectUoA: {
+  select: {
     margin: theme.spacing(3),
     minWidth: 160,
   },
@@ -125,7 +125,7 @@ const TransactionRow = ({
                   {tx.transfers.map((transfer: Transfer, i: number) => (
                     <TableRow key={i}>
                       <TableCell> {transfer.category} </TableCell>
-                      <TableCell> {transfer.assetType} </TableCell>
+                      <TableCell> {transfer.asset} </TableCell>
                       <TableCell> {math.round(transfer.quantity, 4)} </TableCell>
                       <TableCell>
                         <HexString
@@ -348,7 +348,7 @@ export const TransactionExplorer = ({
         Clear Transactions
       </Button>
 
-      <FormControl className={classes.selectUoA}>
+      <FormControl className={classes.select}>
         <InputLabel id="select-file-type-label">File Type</InputLabel>
         <Select
           labelId="select-file-type-label"
@@ -378,7 +378,7 @@ export const TransactionExplorer = ({
         Filters
       </Typography>
 
-      <FormControl className={classes.selectUoA}>
+      <FormControl className={classes.select}>
         <InputLabel id="select-filter-source">Filter Account</InputLabel>
         <Select
           labelId="select-filter-source"
@@ -396,7 +396,7 @@ export const TransactionExplorer = ({
         </Select>
       </FormControl>
 
-      <FormControl className={classes.selectUoA}>
+      <FormControl className={classes.select}>
         <InputLabel id="select-filter-source">Filter Source</InputLabel>
         <Select
           labelId="select-filter-source"

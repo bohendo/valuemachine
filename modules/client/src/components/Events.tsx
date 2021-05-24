@@ -99,11 +99,11 @@ const EventRow = ({
   const pricesToDisplay = (prices) => {
     const output = {};
     const targets = new Set();
-    Object.entries(prices).forEach(([uoa, entry]) => {
+    Object.entries(prices).forEach(([unit, entry]) => {
       Object.entries(entry).forEach(([asset, price]) => {
         targets.add(asset);
         output[`${asset} Price`] = output[`${asset} Price`] || [];
-        output[`${asset} Price`].push(`${math.round(price, 4)} ${uoa}`);
+        output[`${asset} Price`].push(`${math.round(price, 4)} ${unit}`);
       });
     });
     Object.keys(output).forEach(key => {
@@ -133,15 +133,15 @@ const EventRow = ({
               </Typography>
               <SimpleTable data={
                 event.type === EventTypes.Expense ? {
-                  Asset: event.assetType,
+                  Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
                   Recipient: event.to,
                 } : event.type === EventTypes.Income ? {
-                  Asset: event.assetType,
+                  Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
                   Source: event.from,
                 } : event.type === EventTypes.CapitalGains ? {
-                  asset: event.assetType,
+                  asset: event.asset,
                   amount: math.round(event.quantity, 4),
                   purchaseDate: event.purchaseDate.replace("T", " ").replace(".000Z", ""),
                   purchasePrice: event.purchasePrice,
@@ -177,7 +177,7 @@ export const EventExplorer = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
-  const [unitOfAccount, setUnitOfAccount] = useState("ETH");
+  const [unit, setUnit] = useState("ETH");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as any);
@@ -186,7 +186,7 @@ export const EventExplorer = ({
   useEffect(() => {
     console.log(`Filtering out all but ${filterAsset} assets`);
     setFilteredEvents(events.filter(event =>
-      (!filterAsset || event.assetType === filterAsset)
+      (!filterAsset || event.asset === filterAsset)
       && (!filterType || event.type === filterType)
     ).sort((e1: Events, e2: Events) =>
       // Sort by date, newest first
@@ -210,7 +210,7 @@ export const EventExplorer = ({
 
   const handleUnitChange = (event: React.ChangeEvent<{ value: boolean }>) => {
     console.log(`Setting unit bases on event target:`, event.target);
-    setUnitOfAccount(event.target.value);
+    setUnit(event.target.value);
   };
 
   const processTxns = async () => {
@@ -226,8 +226,8 @@ export const EventExplorer = ({
     // eslint-disable-next-line no-async-promise-executor
     const res = await new Promise(async res => {
       try {
-        const prices = getPrices({ pricesJson, store, unitOfAccount });
-        const valueMachine = getValueMachine({ addressBook, prices, unitOfAccount });
+        const prices = getPrices({ pricesJson, store, unit });
+        const valueMachine = getValueMachine({ addressBook, prices, unit });
         // stringify/parse to ensure we don't update the imported objects directly
         let state = JSON.parse(JSON.stringify(emptyState));
         let vmEvents = [];
@@ -288,7 +288,7 @@ export const EventExplorer = ({
         <Select
           labelId="select-unit-of-account-label"
           id="select-unit-of-account"
-          value={unitOfAccount || "ETH"}
+          value={unit || "ETH"}
           onChange={handleUnitChange}
         >
           <MenuItem value={"ETH"}>ETH</MenuItem>
@@ -321,7 +321,7 @@ export const EventExplorer = ({
           onChange={handleFilterAssetChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(events.map(e => e.assetType))).map((asset, i) => (
+          {Array.from(new Set(events.map(e => e.asset))).map((asset, i) => (
             <MenuItem key={i} value={asset}>{asset}</MenuItem>
           ))}
         </Select>

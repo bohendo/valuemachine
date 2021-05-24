@@ -24,7 +24,7 @@ describe("VM", () => {
   let state: State;
   let vm: any;
   let txns: Transactions;
-  const assetType = "ETH";
+  const asset = "ETH";
 
   beforeEach(() => {
     addressBook = getTestAddressBook();
@@ -62,7 +62,7 @@ describe("VM", () => {
     expect(getState({
       addressBook,
       stateJson: newState
-    }).getBalance(AddressOne, assetType)).to.equal(value);
+    }).getBalance(AddressOne, asset)).to.equal(value);
   });
 
 });

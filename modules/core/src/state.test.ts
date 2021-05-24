@@ -20,7 +20,7 @@ describe("State", () => {
   let state: State;
   let txns: Transactions;
   const amt = "100";
-  const assetType = "TEST";
+  const asset = "TEST";
 
   beforeEach(() => {
     addressBook = getTestAddressBook();
@@ -35,7 +35,7 @@ describe("State", () => {
     expect(Object.keys(state.getAllBalances()).length).to.equal(0);
 
     state.putChunk(AddressOne, {
-      assetType: assetType,
+      asset: asset,
       dateRecieved: new Date().toISOString(),
       purchasePrice: "1.02",
       quantity: amt,
@@ -46,11 +46,11 @@ describe("State", () => {
 
   it("should get all balances", async () => {
     const allBal = state.getAllBalances();
-    expect(math.eq(allBal[AddressOne][assetType], amt)).to.be.true;
+    expect(math.eq(allBal[AddressOne][asset], amt)).to.be.true;
   });
 
   it("should get an account's balance", async () => {
-    const bal = state.getBalance(AddressOne, assetType);
+    const bal = state.getBalance(AddressOne, asset);
     expect(math.eq(bal, amt)).to.be.true;
   });
 
@@ -58,15 +58,15 @@ describe("State", () => {
     const testAmt = "3.14";
     const chunks = state.getChunks(
       AddressOne,
-      assetType,
+      asset,
       testAmt,
       { date: new Date().toISOString() } as Transaction,
     );
     log.info(chunks, "chunks");
     expect(chunks.length).to.equal(1);
-    expect(chunks[0].assetType).to.equal(assetType);
+    expect(chunks[0].asset).to.equal(asset);
     expect(chunks[0].quantity).to.equal(testAmt);
-    expect(state.getBalance(AddressOne, assetType)).to.equal(math.sub(amt, testAmt));
+    expect(state.getBalance(AddressOne, asset)).to.equal(math.sub(amt, testAmt));
   });
 
 });

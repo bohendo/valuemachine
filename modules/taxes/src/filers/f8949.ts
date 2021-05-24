@@ -28,7 +28,7 @@ export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
     .filter((trade: CapitalGainsEvent) => getDate(trade.date) !== getDate(trade.purchaseDate))
     .forEach((trade: CapitalGainsEvent): void => {
       const dup = trades.findIndex(merged =>
-        merged.assetType === trade.assetType &&
+        merged.asset === trade.asset &&
         getDate(merged.date) === getDate(trade.date) &&
         getDate(merged.purchaseDate) === getDate(trade.purchaseDate),
       );
@@ -68,14 +68,14 @@ export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
     subF8949.P2C0_F = longTerm.length > 0;
     const parseTrade = getCell => (trade: CapitalGainsEvent, index: number): void => {
       const i = index + 1;
-      const description = `${round(trade.quantity, 4)} ${trade.assetType}`;
+      const description = `${round(trade.quantity, 4)} ${trade.asset}`;
       const proceeds = round(mul(trade.quantity, trade.assetPrice));
       const cost = round(mul(trade.quantity, trade.purchasePrice));
       const gainOrLoss = sub(proceeds, cost);
       const pad = (str: string, n = 9): string => str.padStart(n, " ");
       log.info(
         `${trade.date.split("T")[0]} Sold ${pad(math.round(trade.quantity, 3))} ` +
-        `${pad(trade.assetType, 4)} for ${pad(proceeds)} - ` + 
+        `${pad(trade.asset, 4)} for ${pad(proceeds)} - ` + 
         `${pad(cost)} = ${pad(gainOrLoss)} profit`,
       );
       subF8949[getCell(i, "a")] = description;

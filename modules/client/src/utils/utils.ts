@@ -1,6 +1,3 @@
-import {
-  EventTypes,
-} from "@finances/types";
 import axios from "axios";
 
 const INDENT = 5;

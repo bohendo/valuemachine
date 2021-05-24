@@ -167,12 +167,12 @@ process.on("SIGINT", logAndExit);
   if (input.dividends && input.dividends.length > 0) {
     const total = { qualified: "0", ordinary: "0" };
     input.dividends.forEach(dividend => {
-      if (dividend.assetType !== "USD") {
+      if (dividend.asset !== "USD") {
         return;
       }
       const isQualified = dividend.tags.includes("qualified");
       log.info(`Adding ${isQualified ? "qualified " : ""}dividend of ${dividend.quantity} ${
-        dividend.assetType
+        dividend.asset
       } from ${dividend.source}`);
       total.ordinary = math.add(total.ordinary, dividend.quantity);
       if (isQualified) {
@@ -186,7 +186,7 @@ process.on("SIGINT", logAndExit);
   if (input.expenses && input.expenses.length > 0) {
     input.expenses.forEach(expense => {
       vmEvents.push({
-        assetType: "USD",
+        asset: "USD",
         assetPrice: "1",
         to: "merchant",
         tags: [],
