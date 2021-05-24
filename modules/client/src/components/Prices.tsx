@@ -152,18 +152,23 @@ export const PriceManager = ({
     setSyncing(true);
     console.log(`Syncing price data for ${transactions.length} transactions`);
     try {
-      const res = await axios({
-        method: "post",
-        url: `/api/prices/${uoa}`,
-        data: { transaction: transactions[0] },
-      });
-      /*
-      for (const tx of transactions) {
-        prices.syncTransaction(tx, uoa);
+      for (const i in transactions) {
+        const transaction = transactions[i];
+        // Only sync via server if we're missing some prices
+        const missing = Array.from(new Set([...transaction.transfers.map(t => t.assetType)]))
+          .map(asset => prices.getPrice(transaction.date, asset))
+          .filter(p => !p).length;
+        if (missing > 0) {
+          const res = await axios({
+            method: "post",
+            url: `/api/prices/${uoa}`,
+            data: { transaction },
+          });
+          console.log(res.data, `got prices for transaction ${i}`);
+          prices.merge(res.data);
+          setPricesJson({ ...prices.json });
+        }
       }
-      setPricesJson({ ...prices.json });
-      */
-      console.log(res.data, "got response from syncing prices for tx[0]");
     } catch (e) {
       console.error(`Failed to sync prices:`, e);
     }
@@ -294,9 +299,9 @@ export const PriceManager = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {countPrices(filteredPrices) === countPrices(pricesJson)
-            ? `${countPrices(filteredPrices)} Prices`
-            : `${countPrices(filteredPrices)} of ${countPrices(pricesJson)} Prices`
+          {countPrices(filteredPrices) === prices.getCount?.(uoa)
+            ? `${countPrices(filteredPrices)} ${uoa} Prices`
+            : `${countPrices(filteredPrices)} of ${prices.getCount?.(uoa)} ${uoa} Prices`
           }
         </Typography>
 
@@ -330,7 +335,7 @@ export const PriceManager = ({
                       <Table className={classes.subtable}>
                         <TableHead>
                           <TableRow>
-                            {Object.entries(list[uoa])
+                            {Object.entries(list[uoa] || {})
                               .sort(byAsset)
                               .map(e => e[0])
                               .map(asset => (
@@ -341,14 +346,16 @@ export const PriceManager = ({
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          {Object.entries(list[uoa])
-                            .sort(byAsset)
-                            .map(e => e[1])
-                            .map((price, i) => (
-                              <TableCell style={{ width: "120px" }} key={i}>
-                                {math.round(price, 3)}
-                              </TableCell>
-                            ))}
+                          <TableRow>
+                            {Object.entries(list[uoa] || {})
+                              .sort(byAsset)
+                              .map(e => e[1])
+                              .map((price, i) => (
+                                <TableCell style={{ width: "120px" }} key={i}>
+                                  {math.sigfigs(price, 3)}
+                                </TableCell>
+                              ))}
+                          </TableRow>
                         </TableBody>
                       </Table>
                     </TableCell>
