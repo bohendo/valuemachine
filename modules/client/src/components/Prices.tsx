@@ -48,7 +48,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     marginTop: theme.spacing(2),
   },
   paper: {
-    minWidth: "500px",
+    minWidth: "550px",
     padding: theme.spacing(2),
   },
   select: {
@@ -328,9 +328,9 @@ export const PriceManager = ({
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map(([date, list], i: number) => (
                   <TableRow key={i}>
-                    <TableCell style={{ minWidth: "120px" }}>
+                    <TableCell style={{ width: "120px" }}><strong>
                       {date.replace("T", " ").replace("Z", "")}
-                    </TableCell>
+                    </strong></TableCell>
                     <TableCell>
                       <Table className={classes.subtable}>
                         <TableHead>
@@ -339,7 +339,7 @@ export const PriceManager = ({
                               .sort(byAsset)
                               .map(e => e[0])
                               .map(asset => (
-                                <TableCell style={{ width: "120px" }} key={asset}>
+                                <TableCell style={{ maxWidth: "120px" }} key={asset}>
                                   <strong> {asset} </strong>
                                 </TableCell>
                               ))}
@@ -351,7 +351,7 @@ export const PriceManager = ({
                               .sort(byAsset)
                               .map(e => e[1])
                               .map((price, i) => (
-                                <TableCell style={{ width: "120px" }} key={i}>
+                                <TableCell style={{ maxWidth: "120px" }} key={i}>
                                   {math.sigfigs(price, 3)}
                                 </TableCell>
                               ))}
