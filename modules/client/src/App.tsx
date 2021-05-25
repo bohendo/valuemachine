@@ -73,7 +73,7 @@ const App: React.FC = () => {
   useEffect(() => {
     console.log(`Saving profile with ${profile.addressBook.length} address book entries`);
     store.save(StoreKeys.Profile, profile);
-    const authorization = `Basic ${btoa(`${profile.username}:${profile.authToken}`)}`;
+    const authorization = `Basic ${btoa(`${profile.username || "anon"}:${profile.authToken}`)}`;
     axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
       if (authRes.status === 200) {
         axios.defaults.headers.common.authorization = authorization;
