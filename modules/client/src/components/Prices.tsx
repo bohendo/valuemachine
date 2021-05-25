@@ -28,7 +28,6 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
-import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
@@ -36,6 +35,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 import { store } from "../store";
+
+import { InputDate } from "./InputDate";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -77,14 +78,6 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-type DateInput = {
-  value: string;
-  display: string;
-  error: string;
-};
-
-const emptyDateInput = { value: "", display: "", error: "" } as DateInput;
-
 export const PriceManager = ({
   pricesJson,
   setPricesJson,
@@ -99,17 +92,16 @@ export const PriceManager = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState(false);
   const [filterAsset, setFilterAsset] = useState("");
-  const [filterDate, setFilterDate] = useState(emptyDateInput);
+  const [filterDate, setFilterDate] = useState("");
   const [filteredPrices, setFilteredPrices] = useState({} as PricesJson);
   const [unit, setUnit] = useState(Assets.ETH);
   const classes = useStyles();
 
   useEffect(() => {
     if (!pricesJson || !Object.keys(prices).length) return;
-    if (filterDate.error) return;
     const newFilteredPrices = {} as PricesJson;
     Object.entries(pricesJson).forEach(([date, priceList]) => {
-      if (filterDate.value && filterDate.value !== date.split("T")[0]) return null;
+      if (filterDate && filterDate !== date.split("T")[0]) return null;
       if (Object.keys(priceList).length === 0) return null;
       if (Object.keys(priceList[unit] || {}).length === 0) return null;
       Object.entries(priceList[unit] || {}).forEach(([asset, price]) => {
@@ -178,22 +170,6 @@ export const PriceManager = ({
       console.error(`Failed to sync prices:`, e);
     }
     setSyncing(false);
-  };
-
-  const changeFilterDate = (event: React.ChangeEvent<{ value: string }>) => {
-    const display = event.target.value;
-    let error, value;
-    if (display.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
-      value = display;
-      error = "";
-    } else if (display === "") {
-      value = "";
-      error = "";
-    } else {
-      value = "";
-      error = "Format date as YYYY-MM-DD";
-    }
-    setFilterDate({ display, value, error });
   };
 
   const clearPrices = () => {
@@ -285,18 +261,9 @@ export const PriceManager = ({
         </Select>
       </FormControl>
 
-      <TextField
-        autoComplete="off"
-        className={classes.dateFilter}
-        error={!!filterDate.error}
-        helperText={filterDate.error || "YYYY-MM-DD"}
-        id="filter-date"
+      <InputDate
         label="Filter Date"
-        margin="normal"
-        name="filter-date"
-        onChange={changeFilterDate}
-        value={filterDate.display || ""}
-        variant="outlined"
+        setDate={setFilterDate}
       />
 
       <Divider/>

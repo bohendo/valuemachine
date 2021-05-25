@@ -179,6 +179,6 @@ export const Dashboard: React.FC = ({
 }: {
   addressBook: AddressBook;
 }) => {
-  console.log(`We have ${addressBook.addresses.length} addresses`);
+  console.log(`We have ${addressBook?.addresses?.length} addresses`);
   return (<p>Dashboard is under construction, try again later</p>);
 };
