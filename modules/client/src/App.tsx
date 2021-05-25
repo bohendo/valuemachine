@@ -22,7 +22,7 @@ import { NavBar } from "./components/NavBar";
 import { PriceManager } from "./components/Prices";
 import { EventExplorer } from "./components/Events";
 import { TransactionExplorer } from "./components/Transactions";
-import { store } from "./utils/cache";
+import { store } from "./store";
 
 const darkTheme = createMuiTheme({
   palette: {
@@ -96,7 +96,9 @@ const App: React.FC = () => {
           <Switch>
 
             <Route exact path="/">
-              <Dashboard />
+              <Dashboard
+                addressBook={addressBook}
+              />
             </Route>
 
             <Route exact path="/profile">

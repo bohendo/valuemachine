@@ -34,7 +34,7 @@ import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
 import React, { useEffect, useState } from "react";
 
-import { store } from "../utils";
+import { store } from "../store";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {

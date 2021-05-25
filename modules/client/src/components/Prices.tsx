@@ -35,7 +35,7 @@ import ClearIcon from "@material-ui/icons/Delete";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-import { store } from "../utils";
+import { store } from "../store";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
