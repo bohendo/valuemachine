@@ -62,7 +62,6 @@ export type TransferCategories = (typeof TransferCategories)[keyof typeof Transf
 export type Transfer = {
   asset: Assets;
   category: TransferCategories;
-  fee?: DecimalString;
   from: HexString;
   index?: number;
   quantity: DecimalString;

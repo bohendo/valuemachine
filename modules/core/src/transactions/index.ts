@@ -16,7 +16,7 @@ import {
   mergeWazirxTransactions,
   mergeWyreTransactions,
 } from "./external";
-import { mergeTransaction } from "./utils";
+import { mergeTransaction } from "./merge";
 
 export { publicAddresses } from "./eth";
 

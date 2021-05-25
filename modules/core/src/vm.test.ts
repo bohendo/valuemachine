@@ -1,7 +1,8 @@
 import { AddressZero, HashZero } from "@ethersproject/constants";
 import {
-  Prices,
+  Assets,
   ChainData,
+  Prices,
   State,
   Transactions,
 } from "@finances/types";
@@ -24,7 +25,7 @@ describe("VM", () => {
   let state: State;
   let vm: any;
   let txns: Transactions;
-  const asset = "ETH";
+  const asset = Assets.ETH;
 
   beforeEach(() => {
     addressBook = getTestAddressBook();

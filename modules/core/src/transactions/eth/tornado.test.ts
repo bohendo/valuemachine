@@ -36,8 +36,8 @@ describe(TransactionSources.Tornado, () => {
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
     expect(tx.sources).to.include(TransactionSources.Tornado);
-    expect(tx.transfers.length).to.equal(1);
-    const deposit = tx.transfers[0];
+    expect(tx.transfers.length).to.equal(2);
+    const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(TransferCategories.Deposit);
     expect(tx.description).to.include("deposit");
     expect(tx.description).to.include(math.round(deposit.quantity));

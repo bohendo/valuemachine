@@ -178,8 +178,8 @@ describe(TransactionSources.Compound, () => {
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
     expect(tx.sources).to.include(TransactionSources.Compound);
-    expect(tx.transfers.length).to.equal(1);
-    const repay = tx.transfers[0];
+    expect(tx.transfers.length).to.equal(2);
+    const repay = tx.transfers[1];
     expect(repay.category).to.equal(TransferCategories.Repay);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("repay");

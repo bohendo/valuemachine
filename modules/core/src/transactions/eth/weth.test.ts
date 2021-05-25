@@ -20,7 +20,10 @@ import { getTransactions } from "../index";
 
 import { wethAddresses } from "./weth";
 
-const log = testLogger.child({ module: "TestTransactions" });
+const log = testLogger.child({
+  // level: "debug",
+  module: "TestTransactions",
+});
 const toBytes32 = (decstr: string): string => hexZeroPad(parseUnits(decstr, 18), 32);
 
 describe(TransactionSources.Weth, () => {
@@ -53,17 +56,17 @@ describe(TransactionSources.Weth, () => {
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
     expect(tx.sources).to.include(TransactionSources.Weth);
-    expect(tx.transfers.length).to.equal(2);
+    expect(tx.transfers.length).to.equal(3);
     expect(tx.description.toLowerCase()).to.include("swap");
     expect(tx.description).to.include(addressBook.getName(sender));
     expect(tx.description).to.include(quantity);
-    const swapOut = tx.transfers[0];
+    const swapOut = tx.transfers[1];
     expect(swapOut.asset).to.equal(Assets.ETH);
     expect(swapOut.category).to.equal(TransferCategories.SwapOut);
     expect(swapOut.from).to.equal(sender);
     expect(swapOut.to).to.equal(wethAddress);
     expect(swapOut.quantity).to.equal(quantity);
-    const swapIn = tx.transfers[1];
+    const swapIn = tx.transfers[2];
     expect(swapIn.asset).to.equal(Assets.WETH);
     expect(swapIn.category).to.equal(TransferCategories.SwapIn);
     expect(swapIn.from).to.equal(wethAddress);
