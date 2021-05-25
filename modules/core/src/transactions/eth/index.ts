@@ -87,6 +87,13 @@ export const parseEthTx = (
     });
   }
 
+  // Detect failed transactions
+  if (ethTx.status !== 1) {
+    tx.description = `${getName(ethTx.from)} sent failed tx to ${getName(ethTx.to)}`;
+    log.info(`Detected a failed tx`);
+    return tx;
+  }
+
   // Transaction Value
   if (gt(ethTx.value, "0") && (isSelf(ethTx.to) || isSelf(ethTx.from))) {
     tx.transfers.push({
@@ -109,17 +116,6 @@ export const parseEthTx = (
     tx.transfers[0].to = newContract;
     tx.description = `${getName(ethTx.from)} created a new contract: ${getName(newContract)}`;
     log.info(`Detected a newly created contract`);
-  }
-
-  // Detect failed transactions
-  if (ethTx.status !== 1) {
-    tx.transfers[0].quantity = "0";
-    tx.description = `${getName(ethTx.from)} sent failed tx to ${getName(ethTx.to)}`;
-    if (!isSelf(tx.transfers[0].from)) {
-      tx.transfers = [];
-    }
-    log.info(`Detected a failed tx`);
-    return tx;
   }
 
   // Add internal eth calls to the transfers array

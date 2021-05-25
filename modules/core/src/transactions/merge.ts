@@ -39,7 +39,7 @@ export const mergeTransaction = (
     return transactions;
   }
 
-  const isSimple = transfer => transfer.category === TransferCategories.Transfer;
+  const isSimple = transfer => transfer?.category === TransferCategories.Transfer;
 
   const sources = newTx.sources;
   log = logger.child({ module: `Merge${sources.join("")}` });
