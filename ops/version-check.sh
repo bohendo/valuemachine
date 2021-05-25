@@ -46,7 +46,7 @@ function cleanup {
   do mv -vf "$backup" "${backup%.backup}"
   done
 }
-trap cleanup SIGINT
+trap cleanup SIGINT EXIT
 
 ########################################
 ## Execute
