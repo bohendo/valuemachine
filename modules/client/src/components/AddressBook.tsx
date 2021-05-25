@@ -480,7 +480,7 @@ export const AddressBook = ({
   };
 
   const syncAll = async () => {
-    for (const entry of profile.addressBook.filter(e => e.category === AddressCategories.Sefl)) {
+    for (const entry of profile.addressBook.filter(e => e.category === AddressCategories.Self)) {
       await syncAddress(entry.address);
     }
   };
