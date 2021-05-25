@@ -2,6 +2,7 @@ import { getTransactions } from "@finances/core";
 import {
   AddressBook,
   AddressCategories,
+  Assets,
   Transaction,
   Transactions,
   TransactionsJson,
@@ -85,7 +86,9 @@ const TransactionRow = ({
   return (
     <React.Fragment>
       <TableRow className={classes.row}>
-        <TableCell> {tx.date.replace("T", " ").replace(".000Z", "")} </TableCell>
+        <TableCell> {
+          (new Date(tx.date)).toISOString().replace("T", " ").replace(".000Z", "")
+        } </TableCell>
         <TableCell> {tx.description} </TableCell>
         <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
@@ -159,6 +162,7 @@ export const TransactionExplorer = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
 
   const [filterAccount, setFilterAccount] = useState("");
+  const [filterAsset, setFilterAsset] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
   const [filterSource, setFilterSource] = useState("");
   const [filterStartDate, setFilterStartDate] = useState("");
@@ -168,9 +172,24 @@ export const TransactionExplorer = ({
   const [importFileType, setImportFileType] = useState("");
   const classes = useStyles();
 
+  const hasAccount = (account: string) => (tx: Transaction): boolean =>
+    !account
+    || tx.transfers.some(t => smeq(t.from, account))
+    || tx.transfers.some(t => smeq(t.to, account));
+
+  const hasAsset = (asset: Assets) => (tx: Transaction): boolean =>
+    !asset || tx.transfers.some(t => smeq(t.asset, asset));
+
+  const hasSource = (source: TransactionSources) => (tx: Transaction): boolean =>
+    !source
+    || (tx?.sources || []).map(sm).includes(sm(source))
+    || tx.transfers.some(t => sm(addressBook.getName(t.from)).startsWith(sm(source)))
+    || tx.transfers.some(t => sm(addressBook.getName(t.to)).startsWith(sm(source)));
+
   useEffect(() => {
     const getDate = (timestamp: string): string =>
       (new Date(timestamp)).toISOString().split("T")[0];
+
     setFilteredTxns(transactions
 
       // Filter Start Date
@@ -183,18 +202,14 @@ export const TransactionExplorer = ({
         !filterEndDate
         || getDate(tx.date) <= getDate(filterEndDate)
 
+      // Filter Asset
+      ).filter(hasAsset(filterAsset)
+
       // Filter account
-      ).filter(tx =>
-        !filterAccount
-        || tx.transfers.some(t => smeq(t.from, filterAccount))
-        || tx.transfers.some(t => smeq(t.to, filterAccount))
+      ).filter(hasAccount(filterAccount)
 
       // Filter Source
-      ).filter(tx =>
-        !filterSource
-        || (tx?.sources || []).map(sm).includes(sm(filterSource))
-        || tx.transfers.some(t => sm(addressBook.getName(t.from)).startsWith(sm(filterSource)))
-        || tx.transfers.some(t => sm(addressBook.getName(t.to)).startsWith(sm(filterSource)))
+      ).filter(hasSource(filterSource)
 
       // Sort by date w most recent first
       ).sort((e1: Transaction, e2: Transaction) =>
@@ -204,9 +219,10 @@ export const TransactionExplorer = ({
 
       )
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     addressBook, transactions,
-    filterAccount, filterSource, filterStartDate, filterEndDate,
+    filterAccount, filterAsset, filterSource, filterStartDate, filterEndDate,
   ]);
 
   const handleChangePage = (event, newPage) => {
@@ -224,6 +240,10 @@ export const TransactionExplorer = ({
 
   const changeFilterAccount = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterAccount(event.target.value);
+  };
+
+  const changeFilterAsset = (event: React.ChangeEvent<{ value: string }>) => {
+    setFilterAsset(event.target.value);
   };
 
   const handleFileTypeChange = (event: React.ChangeEvent<{ value: boolean }>) => {
@@ -361,8 +381,27 @@ export const TransactionExplorer = ({
           <MenuItem value={""}>-</MenuItem>
           {Object.values(addressBook?.json || [])
             .filter(account => account.category === AddressCategories.Self)
+            .filter(account => filteredTxns.some(hasAccount(account.address)))
             .map(account => (
               <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
+            ))
+          };
+        </Select>
+      </FormControl>
+
+      <FormControl className={classes.select}>
+        <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
+        <Select
+          labelId="select-filter-asset"
+          id="select-filter-asset"
+          value={filterAsset || ""}
+          onChange={changeFilterAsset}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {Object.keys(Assets)
+            .filter(asset => filteredTxns.some(hasAsset(asset)))
+            .map(asset => (
+              <MenuItem key={asset} value={asset}>{asset}</MenuItem>
             ))
           };
         </Select>
@@ -377,20 +416,23 @@ export const TransactionExplorer = ({
           onChange={changeFilterSource}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(TransactionSources).map(source => (
-            <MenuItem key={source} value={source}>{source}</MenuItem>
-          ))};
+          {Object.keys(TransactionSources)
+            .filter(source => filteredTxns.some(hasSource(source)))
+            .map(source => (
+              <MenuItem key={source} value={source}>{source}</MenuItem>
+            ))
+          };
         </Select>
       </FormControl>
 
       <InputDate
-        label="Filter Start Date"
-        setDate={setFilterStartDate}
+        label="Filter End Date"
+        setDate={setFilterEndDate}
       />
 
       <InputDate
-        label="Filter End Date"
-        setDate={setFilterEndDate}
+        label="Filter Start Date"
+        setDate={setFilterStartDate}
       />
 
       <Paper className={classes.paper}>

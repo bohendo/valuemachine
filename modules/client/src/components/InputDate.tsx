@@ -34,7 +34,7 @@ export const InputDate = ({
         value = "";
         error = "Date is invalid";
       } else {
-        value = display;
+        value = display + "T01:00:00.000Z";
         error = "";
       }
     } else if (display === "") {

@@ -171,7 +171,9 @@ export const parseEthTx = (
   if (!tx.description) {
     const transfers = tx.transfers.filter(t => t.category === TransferCategories.Transfer);
     if (transfers.length < 1) {
-      tx.description = `${getName(ethTx.from)} did nothing`;
+      tx.description = ethTx.data.length > 3
+        ? `${getName(ethTx.from)} called a method on ${getName(ethTx.to)}`
+        : `${getName(ethTx.from)} did nothing`;
     } else if (transfers.length > 1) {
       tx.description = `${getName(ethTx.to)} made ${transfers.length} transfers`;
     } else {
@@ -187,7 +189,7 @@ export const parseEthTx = (
           getName(transfer.to)
         }`;
       } else {
-        tx.description = `${getName(transfer.from)} did nothing`;
+        tx.description = `${getName(ethTx.from)} did nothing`;
       }
     }
   }

@@ -96,12 +96,12 @@ const EventRow = ({
 }) => {
   const [open, setOpen] = useState(false);
   const swapToStr = (swaps) =>
-    Object.entries(swaps).map(([key, val]) => `${val} ${key}`).join(" and ");
+    Object.entries(swaps || {}).map(([key, val]) => `${val} ${key}`).join(" and ");
   const pricesToDisplay = (prices) => {
     const output = {};
     const targets = new Set();
-    Object.entries(prices).forEach(([unit, entry]) => {
-      Object.entries(entry).forEach(([asset, price]) => {
+    Object.entries(prices || {}).forEach(([unit, entry]) => {
+      Object.entries(entry || {}).forEach(([asset, price]) => {
         targets.add(asset);
         output[`${asset} Price`] = output[`${asset} Price`] || [];
         output[`${asset} Price`].push(`${math.round(price, 4)} ${unit}`);
@@ -186,7 +186,6 @@ export const EventExplorer = ({
   const classes = useStyles();
 
   useEffect(() => {
-    console.log(`Filtering out all but ${filterAsset} assets`);
     setFilteredEvents(events.filter(event =>
       (!filterAsset || event.asset === filterAsset)
       && (!filterType || event.type === filterType)

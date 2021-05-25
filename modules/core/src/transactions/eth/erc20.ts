@@ -19,8 +19,8 @@ import { rmDups, parseEvent } from "../utils";
 
 const { round } = math;
 const {
-  BAT, CHERRY, GEN, GNO, GRT, OMG, REP, REPv1, SNT, SNX,
-  SNXv1, SPANK, sUSD, sUSDv1, USDC, USDT, WBTC, ZRX,
+  BAT, CHERRY, GEN, GNO, GRT, OMG, REP, REPv2, SNT,
+  SNX, SNXv1, SPANK, sUSD, sUSDv1, USDC, USDT, WBTC, ZRX,
 } = Assets;
 
 const source = TransactionSources.ERC20;
@@ -36,8 +36,10 @@ export const erc20Addresses = [
   { name: GNO, address: "0x6810e776880c02933d47db1b9fc05908e5386b96" },
   { name: GRT, address: "0xc944e90c64b2c07662a292be6244bdf05cda44a7" },
   { name: OMG, address: "0xd26114cd6ee289accf82350c8d8487fedb8a0c07" },
-  { name: REP, address: "0xe94327d07fc17907b4db788e5adf2ed424addff6" },
-  { name: REPv1, address: "0x1985365e9f78359a9b6ad760e32412f4a445e862" },
+  // re v0 -> v1 migration: https://medium.com/@AugurProject/augur-launches-794fa7f88c6a
+  { name: REP, address: "0xe94327d07fc17907b4db788e5adf2ed424addff6" }, // version 0
+  { name: REP, address: "0x1985365e9f78359a9b6ad760e32412f4a445e862" }, // version 1
+  { name: REPv2, address: "0x221657776846890989a759ba2973e427dff5c9bb" }, // version 2
   { name: SNT, address: "0x744d70fdbe2ba4cf95131626614a1763df805b9e" },
   { name: SNX, address: "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f" },
   { name: SNXv1, address: "0xc011a72400e58ecd99ee497cf89e3775d4bd732f" },
@@ -99,7 +101,7 @@ export const erc20Parser = (
       );
 
       if (event.name === "Transfer") {
-        log.info(`Parsing ${source} ${event.name} of ${amount} ${asset}`);
+        log.debug(`Parsing ${source} ${event.name} of ${amount} ${asset}`);
         tx.transfers.push({
           asset,
           category: TransferCategories.Transfer,
@@ -115,7 +117,7 @@ export const erc20Parser = (
         }
 
       } else if (event.name === "Approval") {
-        log.info(`Parsing ${source} ${event.name} event for ${asset}`);
+        log.debug(`Parsing ${source} ${event.name} event for ${asset}`);
         if (smeq(ethTx.to, address)) {
           const amt = round(amount, 2);
           tx.description = `${getName(event.args.from)} approved ${
