@@ -2,6 +2,7 @@ import { getTransactions } from "@finances/core";
 import {
   AddressBook,
   AddressCategories,
+  Assets,
   Transaction,
   Transactions,
   TransactionsJson,
@@ -28,7 +29,6 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
-import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
@@ -38,6 +38,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 import { HexString } from "./HexString";
+import { InputDate } from "./InputDate";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   row: {
@@ -73,13 +74,6 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-type DateInput = {
-  value: string;
-  display: string;
-  error: string;
-};
-const emptyDateInput = { value: "", display: "", error: "" } as DateInput;
-
 const TransactionRow = ({
   addressBook,
   tx,
@@ -92,7 +86,9 @@ const TransactionRow = ({
   return (
     <React.Fragment>
       <TableRow className={classes.row}>
-        <TableCell> {tx.date.replace("T", " ").replace(".000Z", "")} </TableCell>
+        <TableCell> {
+          (new Date(tx.date)).toISOString().replace("T", " ").replace(".000Z", "")
+        } </TableCell>
         <TableCell> {tx.description} </TableCell>
         <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
@@ -166,43 +162,54 @@ export const TransactionExplorer = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
 
   const [filterAccount, setFilterAccount] = useState("");
-  const [filterEndDate, setFilterEndDate] = useState(emptyDateInput);
+  const [filterAsset, setFilterAsset] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
   const [filterSource, setFilterSource] = useState("");
-  const [filterStartDate, setFilterStartDate] = useState(emptyDateInput);
+  const [filterStartDate, setFilterStartDate] = useState("");
 
   const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
 
   const [importFileType, setImportFileType] = useState("");
   const classes = useStyles();
 
+  const hasAccount = (account: string) => (tx: Transaction): boolean =>
+    !account
+    || tx.transfers.some(t => smeq(t.from, account))
+    || tx.transfers.some(t => smeq(t.to, account));
+
+  const hasAsset = (asset: Assets) => (tx: Transaction): boolean =>
+    !asset || tx.transfers.some(t => smeq(t.asset, asset));
+
+  const hasSource = (source: TransactionSources) => (tx: Transaction): boolean =>
+    !source
+    || (tx?.sources || []).map(sm).includes(sm(source))
+    || tx.transfers.some(t => sm(addressBook.getName(t.from)).startsWith(sm(source)))
+    || tx.transfers.some(t => sm(addressBook.getName(t.to)).startsWith(sm(source)));
+
   useEffect(() => {
-    if (filterEndDate.error || filterStartDate.error) return;
     const getDate = (timestamp: string): string =>
       (new Date(timestamp)).toISOString().split("T")[0];
+
     setFilteredTxns(transactions
 
       // Filter Start Date
       .filter(tx =>
-        !filterStartDate.value
-        || getDate(tx.date) >= getDate(filterStartDate.value)
+        !filterStartDate
+        || getDate(tx.date) >= getDate(filterStartDate)
 
       // Filter End Date
       ).filter(tx =>
-        !filterEndDate.value
-        || getDate(tx.date) <= getDate(filterEndDate.value)
+        !filterEndDate
+        || getDate(tx.date) <= getDate(filterEndDate)
+
+      // Filter Asset
+      ).filter(hasAsset(filterAsset)
 
       // Filter account
-      ).filter(tx =>
-        !filterAccount
-        || tx.transfers.some(t => smeq(t.from, filterAccount))
-        || tx.transfers.some(t => smeq(t.to, filterAccount))
+      ).filter(hasAccount(filterAccount)
 
       // Filter Source
-      ).filter(tx =>
-        !filterSource
-        || (tx?.sources || []).map(sm).includes(sm(filterSource))
-        || tx.transfers.some(t => sm(addressBook.getName(t.from)).startsWith(sm(filterSource)))
-        || tx.transfers.some(t => sm(addressBook.getName(t.to)).startsWith(sm(filterSource)))
+      ).filter(hasSource(filterSource)
 
       // Sort by date w most recent first
       ).sort((e1: Transaction, e2: Transaction) =>
@@ -212,9 +219,10 @@ export const TransactionExplorer = ({
 
       )
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     addressBook, transactions,
-    filterAccount, filterSource, filterStartDate, filterEndDate,
+    filterAccount, filterAsset, filterSource, filterStartDate, filterEndDate,
   ]);
 
   const handleChangePage = (event, newPage) => {
@@ -230,28 +238,12 @@ export const TransactionExplorer = ({
     setFilterSource(event.target.value);
   };
 
-  const changeFilterDate = (event: React.ChangeEvent<{ value: string }>) => {
-    const display = event.target.value;
-    let error, value;
-    if (display.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
-      value = display;
-      error = "";
-    } else if (display === "") {
-      value = "";
-      error = "";
-    } else {
-      value = "";
-      error = "Format date as YYYY-MM-DD";
-    }
-    if (event.target.name === "filter-start-date") {
-      setFilterStartDate({ display, value, error });
-    } else {
-      setFilterEndDate({ display, value, error });
-    }
-  };
-
   const changeFilterAccount = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterAccount(event.target.value);
+  };
+
+  const changeFilterAsset = (event: React.ChangeEvent<{ value: string }>) => {
+    setFilterAsset(event.target.value);
   };
 
   const handleFileTypeChange = (event: React.ChangeEvent<{ value: boolean }>) => {
@@ -379,18 +371,37 @@ export const TransactionExplorer = ({
       </Typography>
 
       <FormControl className={classes.select}>
-        <InputLabel id="select-filter-source">Filter Account</InputLabel>
+        <InputLabel id="select-filter-account">Filter Account</InputLabel>
         <Select
-          labelId="select-filter-source"
-          id="select-filter-source"
+          labelId="select-filter-account"
+          id="select-filter-account"
           value={filterAccount || ""}
           onChange={changeFilterAccount}
         >
           <MenuItem value={""}>-</MenuItem>
           {Object.values(addressBook?.json || [])
             .filter(account => account.category === AddressCategories.Self)
+            .filter(account => filteredTxns.some(hasAccount(account.address)))
             .map(account => (
               <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
+            ))
+          };
+        </Select>
+      </FormControl>
+
+      <FormControl className={classes.select}>
+        <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
+        <Select
+          labelId="select-filter-asset"
+          id="select-filter-asset"
+          value={filterAsset || ""}
+          onChange={changeFilterAsset}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {Object.keys(Assets)
+            .filter(asset => filteredTxns.some(hasAsset(asset)))
+            .map(asset => (
+              <MenuItem key={asset} value={asset}>{asset}</MenuItem>
             ))
           };
         </Select>
@@ -405,38 +416,23 @@ export const TransactionExplorer = ({
           onChange={changeFilterSource}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(TransactionSources).map(source => (
-            <MenuItem key={source} value={source}>{source}</MenuItem>
-          ))};
+          {Object.keys(TransactionSources)
+            .filter(source => filteredTxns.some(hasSource(source)))
+            .map(source => (
+              <MenuItem key={source} value={source}>{source}</MenuItem>
+            ))
+          };
         </Select>
       </FormControl>
 
-      <TextField
-        autoComplete="off"
-        className={classes.dateFilter}
-        error={!!filterStartDate.error}
-        helperText={filterStartDate.error || "YYYY-MM-DD"}
-        id="filter-start-date"
-        label="Filter Start Date"
-        margin="normal"
-        name="filter-start-date"
-        onChange={changeFilterDate}
-        value={filterStartDate.display || ""}
-        variant="outlined"
+      <InputDate
+        label="Filter End Date"
+        setDate={setFilterEndDate}
       />
 
-      <TextField
-        autoComplete="off"
-        className={classes.dateFilter}
-        error={!!filterEndDate.error}
-        helperText={filterEndDate.error || "YYYY-MM-DD"}
-        id="filter-end-date"
-        label="Filter End Date"
-        margin="normal"
-        name="filter-end-date"
-        onChange={changeFilterDate}
-        value={filterEndDate.display || ""}
-        variant="outlined"
+      <InputDate
+        label="Filter Start Date"
+        setDate={setFilterStartDate}
       />
 
       <Paper className={classes.paper}>

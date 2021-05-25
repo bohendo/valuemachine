@@ -44,7 +44,7 @@ export const EthereumAssets = enumify({
   OMG: "OMG",
   PETH: "PETH",
   REP: "REP",
-  REPv1: "REPv1",
+  REPv2: "REPv2",
   SAI: "SAI",
   SNT: "SNT",
   SNX: "SNX",

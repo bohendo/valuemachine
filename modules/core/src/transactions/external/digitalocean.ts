@@ -1,7 +1,7 @@
 import { Transaction, TransactionSources, Logger, TransferCategories } from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
-import { mergeTransaction } from "../utils";
+import { mergeTransaction } from "../merge";
 
 export const mergeDigitalOceanTransactions = (
   oldTransactions: Transaction[],

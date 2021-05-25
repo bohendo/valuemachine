@@ -44,7 +44,7 @@ export const getValueMachine = ({
 
     const later = [];
     for (const transfer of transaction.transfers) {
-      const { asset, fee, from, quantity, to } = transfer;
+      const { asset, from, quantity, to } = transfer;
       if (
         !Object.values(Assets).includes(asset) &&
         !addressBook.isToken(asset)
@@ -53,13 +53,8 @@ export const getValueMachine = ({
         continue;
       }
       log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${getName(to)}`);
-      let feeChunks;
       let chunks;
       try {
-        if (fee) {
-          feeChunks = state.getChunks(from, asset, fee, transaction, unit);
-          log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${asset}`);
-        }
         chunks = state.getChunks(from, asset, quantity, transaction, unit);
         chunks.forEach(chunk => state.putChunk(to, chunk));
         logs.push(...emitTransferEvents(
@@ -74,9 +69,6 @@ export const getValueMachine = ({
       } catch (e) {
         log.debug(`Error while processing tx ${e.message}: ${JSON.stringify(transaction)}`);
         if (e.message.includes("attempted to spend")) {
-          if (feeChunks) {
-            feeChunks.forEach(chunk => state.putChunk(from, chunk));
-          }
           later.push(transfer);
         } else {
           throw e;
@@ -88,14 +80,10 @@ export const getValueMachine = ({
     // let them go negative only while a tx is being exectued
     // after all transfers have been processed, only then assert that crypto balances are >=0
     for (const transfer of later) {
-      const { asset, fee, from, quantity, to } = transfer;
+      const { asset, from, quantity, to } = transfer;
       log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${
         getName(to)
       } (attempt 2)`);
-      if (fee) {
-        const feeChunks = state.getChunks(from, asset, fee, transaction, unit);
-        log.debug(`Dropping ${feeChunks.length} chunks to cover fees of ${fee} ${asset}`);
-      }
       const chunks = state.getChunks(from, asset, quantity, transaction, unit);
       chunks.forEach(chunk => state.putChunk(to, chunk));
       logs.push(...emitTransferEvents(addressBook, chunks, transaction, transfer, prices));

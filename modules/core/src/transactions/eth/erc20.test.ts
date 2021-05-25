@@ -42,11 +42,11 @@ describe(TransactionSources.ERC20, () => {
     expect(txns.json.length).to.equal(0);
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
-    expect(txns.json[0].transfers.length).to.equal(4);
+    expect(txns.json[0].transfers.length).to.equal(5);
     // Run again to ensure no dups are generated
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
-    expect(txns.json[0].transfers.length).to.equal(4);
+    expect(txns.json[0].transfers.length).to.equal(5);
   });
 
   it("should parse erc20 transfers", async () => {

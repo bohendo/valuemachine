@@ -1,4 +1,5 @@
 import {
+  Assets,
   DateString,
   Logger,
   Transaction,
@@ -8,7 +9,9 @@ import {
 import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
-import { mergeTransaction } from "../utils";
+import { mergeTransaction } from "../merge";
+
+const { DAI, ETH, SAI, USD } = Assets;
 
 export const mergeWyreTransactions = (
   oldTransactions: Transaction[],
@@ -34,8 +37,8 @@ export const mergeWyreTransactions = (
     const beforeDaiMigration = (date: DateString): boolean =>
       new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime();
 
-    const destType = beforeDaiMigration(date) && rawDestType === "DAI" ? "SAI" : rawDestType;
-    const sourceType = beforeDaiMigration(date) && rawSourceType === "DAI" ? "SAI" : rawDestType;
+    const destType = beforeDaiMigration(date) && rawDestType === DAI ? SAI : rawDestType;
+    const sourceType = beforeDaiMigration(date) && rawSourceType === DAI ? SAI : rawDestType;
 
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
@@ -64,7 +67,7 @@ export const mergeWyreTransactions = (
         quantity: destQuantity,
         to: "wyre-account",
       });
-      transaction.description = sourceType === "USD"
+      transaction.description = sourceType === USD
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
         : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on wyre`;
 
@@ -93,7 +96,7 @@ export const mergeWyreTransactions = (
         quantity: destQuantity,
         to: "wyre-account",
       });
-      transaction.description = sourceType === "USD"
+      transaction.description = sourceType === USD
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
         : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on wyre`;
 
@@ -122,7 +125,7 @@ export const mergeWyreTransactions = (
         quantity: destQuantity,
         to: "external-account",
       });
-      transaction.description = sourceType === "USD"
+      transaction.description = sourceType === USD
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
         : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on wyre`;
     }
@@ -134,11 +137,11 @@ export const mergeWyreTransactions = (
       to: "wyre-exchange",
     };
     if (math.gt(usdFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: "USD", quantity: usdFees });
+      transaction.transfers.push({ ...feeTransfer, asset: USD, quantity: usdFees });
     } else if (math.gt(ethFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: "ETH", quantity: ethFees });
+      transaction.transfers.push({ ...feeTransfer, asset: ETH, quantity: ethFees });
     } else if (math.gt(daiFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: "DAI", quantity: daiFees });
+      transaction.transfers.push({ ...feeTransfer, asset: DAI, quantity: daiFees });
     }
 
     log.debug(transaction, "Parsed row into transaction:");

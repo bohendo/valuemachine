@@ -23,7 +23,7 @@ import { v1MarketAddresses, v2MarketAddresses } from "./transactions/eth/uniswap
 const { add, div, eq, gt, mul, sub } = math;
 const {
   BAT, BCH, BTC, CHERRY, COMP, DAI, ETH, GEN, GNO, LTC, MKR, OMG,
-  REP, REPv1, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
+  REP, REPv2, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
 } = Assets;
 
 export const getPrices = ({
@@ -304,7 +304,7 @@ export const getPrices = ({
       case MKR: return "maker";
       case OMG: return "omisego";
       case REP: return "augur";
-      case REPv1: return "augur";
+      case REPv2: return "augur";
       case SAI: return "sai";
       case SNT: return "status";
       case SNX: return "havven";

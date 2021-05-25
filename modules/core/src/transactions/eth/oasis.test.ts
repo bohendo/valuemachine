@@ -72,11 +72,11 @@ describe(TransactionSources.Oasis, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.transfers.length).to.equal(2);
+    expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(TransactionSources.Oasis);
-    const swapOut = tx.transfers[0];
+    const swapOut = tx.transfers[1];
     expect(swapOut.category).to.equal(TransferCategories.SwapOut);
-    const swapIn = tx.transfers[1];
+    const swapIn = tx.transfers[2];
     expect(swapIn.category).to.equal(TransferCategories.SwapIn);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include(TransactionSources.Oasis);

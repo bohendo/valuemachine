@@ -5,7 +5,10 @@ import { expect } from "@finances/utils";
 import { AddressOne, AddressTwo, getTestChainData, getTestAddressBook, testLogger } from "../../testing";
 import { getTransactions } from "../index";
 
-const log = testLogger.child({ module: "TestTransactions" });
+const log = testLogger.child({
+  // level: "debug",
+  module: "TestTransactions",
+});
 
 const timestamp = "2018-01-02T01:00:00Z";
 const value = "1.3141592653589793";
@@ -25,24 +28,22 @@ describe("Coinbase", () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    chainData = getTestChainData([
-      {
-        block: 10,
-        data: "0x",
-        from: AddressOne,
-        gasLimit: "0x100000",
-        gasPrice: "0x100000",
-        gasUsed: "0x1000",
-        hash: HashZero,
-        index: 1,
-        logs: [],
-        nonce: 0,
-        status: 1,
-        timestamp,
-        to: AddressTwo,
-        value,
-      },
-    ]);
+    chainData = getTestChainData([{
+      block: 10,
+      data: "0x",
+      from: AddressOne,
+      gasLimit: "0x100000",
+      gasPrice: "0x100000",
+      gasUsed: "0x1000",
+      hash: HashZero,
+      index: 1,
+      logs: [],
+      nonce: 0,
+      status: 1,
+      timestamp,
+      to: AddressTwo,
+      value,
+    }]);
   });
 
   it("should merge coinbase data multiple times without creaing duplicates", async () => {

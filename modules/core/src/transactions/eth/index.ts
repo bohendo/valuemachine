@@ -6,6 +6,7 @@ import { encode } from "@ethersproject/rlp";
 import { formatEther } from "@ethersproject/units";
 import {
   AddressBook,
+  Assets,
   ChainData,
   EthCall,
   EthTransaction,
@@ -58,7 +59,7 @@ export const parseEthTx = (
   logger: Logger,
 ): Transaction => {
 
-  const { getName } = addressBook;
+  const { getName, isSelf } = addressBook;
   const log = logger.child({ module: `Eth${ethTx.hash.substring(0, 8)}` });
   // log.debug(ethTx, `Parsing eth tx`);
 
@@ -71,16 +72,39 @@ export const parseEthTx = (
     hash: ethTx.hash,
     sources: [],
     tags: [],
-    transfers: [{
-      asset: "ETH",
-      category: gt(ethTx.value, "0") ? TransferCategories.Transfer : TransferCategories.Expense,
-      fee: formatEther(BigNumber.from(ethTx.gasUsed).mul(ethTx.gasPrice)),
-      from: sm(ethTx.from),
-      index: -1, // ensure the initiating tx comes first in transfer list
-      quantity: ethTx.value,
-      to: sm(ethTx.to || ""),
-    }],
+    transfers: [],
   } as Transaction;
+
+  // Transaction Fee
+  if (isSelf(ethTx.from)) {
+    tx.transfers.push({
+      asset: Assets.ETH,
+      category: TransferCategories.Expense,
+      from: sm(ethTx.from),
+      index: -1,
+      quantity: formatEther(BigNumber.from(ethTx.gasUsed).mul(ethTx.gasPrice)),
+      to: AddressZero, // 
+    });
+  }
+
+  // Detect failed transactions
+  if (ethTx.status !== 1) {
+    tx.description = `${getName(ethTx.from)} sent failed tx to ${getName(ethTx.to)}`;
+    log.info(`Detected a failed tx`);
+    return tx;
+  }
+
+  // Transaction Value
+  if (gt(ethTx.value, "0") && (isSelf(ethTx.to) || isSelf(ethTx.from))) {
+    tx.transfers.push({
+      asset: Assets.ETH,
+      category: TransferCategories.Transfer,
+      from: sm(ethTx.from),
+      index: 0,
+      quantity: ethTx.value,
+      to: sm(ethTx.to),
+    });
+  }
 
   // Detect contract creations
   if (ethTx.to === null) {
@@ -94,33 +118,22 @@ export const parseEthTx = (
     log.info(`Detected a newly created contract`);
   }
 
-  // Detect failed transactions
-  if (ethTx.status !== 1) {
-    tx.transfers[0].quantity = "0";
-    tx.description = `${getName(ethTx.from)} sent failed tx to ${getName(ethTx.to)}`;
-    if (!addressBook.isSelf(tx.transfers[0].from)) {
-      tx.transfers = [];
-    }
-    log.info(`Detected a failed tx`);
-    return tx;
-  }
-
   // Add internal eth calls to the transfers array
   chainData.getEthCalls((call: EthCall) => call.hash === ethTx.hash).forEach((call: EthCall) => {
     if (
-      // Ignore non-eth transfers, we'll get those by parsing logs instead
+      // Ignore non-eth transfers, we'll get those by parsing tx logs instead
       call.contractAddress === AddressZero
       // Calls that don't interact with self addresses don't matter
-      && (addressBook.isSelf(call.to) || addressBook.isSelf(call.from))
+      && (isSelf(call.to) || isSelf(call.from))
       // Calls with zero value don't matter
       && gt(call.value, "0")
     ) {
       tx.transfers.push({
-        asset: "ETH",
+        asset: Assets.ETH,
         category: TransferCategories.Transfer,
         // Internal eth transfers have no index, put incoming transfers first & outgoing last
         // This makes underflows less likely during VM processesing
-        index: addressBook.isSelf(call.to) ? 0 : 10000,
+        index: isSelf(call.to) ? 1 : 10000,
         from: sm(call.from),
         quantity: call.value,
         to: sm(call.to),
@@ -145,9 +158,9 @@ export const parseEthTx = (
   tx.transfers = tx.transfers
     // Filter out no-op transfers
     .filter(transfer => (
-      addressBook.isSelf(transfer.to) || addressBook.isSelf(transfer.from)
+      isSelf(transfer.to) || isSelf(transfer.from)
     ) && (
-      gt(transfer.quantity, "0") || gt(transfer.fee || "0", "0")
+      gt(transfer.quantity, "0")
     ))
     // Make sure all eth addresses are lower-case
     .map(transfer => ({ ...transfer, from: sm(transfer.from), to: sm(transfer.to) }))
@@ -156,21 +169,27 @@ export const parseEthTx = (
 
   // Set a default tx description
   if (!tx.description) {
-    if (tx.transfers.length < 1) {
-      tx.description = `${getName(ethTx.from)} did nothing`;
-    } else if (tx.transfers.length > 1) {
-      tx.description = `${getName(ethTx.to)} made ${tx.transfers.length} transfers`;
+    const transfers = tx.transfers.filter(t => t.category === TransferCategories.Transfer);
+    if (transfers.length < 1) {
+      tx.description = ethTx.data.length > 3
+        ? `${getName(ethTx.from)} called a method on ${getName(ethTx.to)}`
+        : `${getName(ethTx.from)} did nothing`;
+    } else if (transfers.length > 1) {
+      tx.description = `${getName(ethTx.to)} made ${transfers.length} transfers`;
     } else {
-      if (!eq("0", tx.transfers[0]?.quantity)) {
-        tx.description = `${getName(tx.transfers[0].from)} transfered ${
-          round(tx.transfers[0].quantity, 4)
-        } ${tx.transfers[0].asset} to ${getName(tx.transfers[0].to)}`;
+      const transfer = transfers[0];
+      if (!transfer) {
+        tx.description = `${getName(transfer.from)} did nothing`;
+      } else if (!eq("0", transfer.quantity)) {
+        tx.description = `${getName(transfer.from)} transfered ${
+          round(transfer.quantity, 4)
+        } ${transfer.asset} to ${getName(transfer.to)}`;
       } else if (ethTx.data.length > 2) {
-        tx.description = `${getName(tx.transfers[0].from)} called a method on ${
-          getName(tx.transfers[0].to)
+        tx.description = `${getName(transfer.from)} called a method on ${
+          getName(transfer.to)
         }`;
       } else {
-        tx.description = `${getName(tx.transfers[0].from)} did nothing`;
+        tx.description = `${getName(ethTx.from)} did nothing`;
       }
     }
   }

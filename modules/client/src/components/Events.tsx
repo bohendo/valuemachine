@@ -1,6 +1,7 @@
 import { getPrices, getState, getValueMachine } from "@finances/core";
 import {
   AddressBook,
+  Assets,
   emptyState,
   Event,
   Events,
@@ -34,7 +35,7 @@ import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
 import React, { useEffect, useState } from "react";
 
-import { store } from "../utils";
+import { store } from "../store";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
@@ -95,12 +96,12 @@ const EventRow = ({
 }) => {
   const [open, setOpen] = useState(false);
   const swapToStr = (swaps) =>
-    Object.entries(swaps).map(([key, val]) => `${val} ${key}`).join(" and ");
+    Object.entries(swaps || {}).map(([key, val]) => `${val} ${key}`).join(" and ");
   const pricesToDisplay = (prices) => {
     const output = {};
     const targets = new Set();
-    Object.entries(prices).forEach(([unit, entry]) => {
-      Object.entries(entry).forEach(([asset, price]) => {
+    Object.entries(prices || {}).forEach(([unit, entry]) => {
+      Object.entries(entry || {}).forEach(([asset, price]) => {
         targets.add(asset);
         output[`${asset} Price`] = output[`${asset} Price`] || [];
         output[`${asset} Price`].push(`${math.round(price, 4)} ${unit}`);
@@ -167,24 +168,24 @@ export const EventExplorer = ({
   setEvents,
   pricesJson,
   transactions,
+  unit,
 }: {
   addressBook: AddressBook;
   events: Events;
   setEvents: (events: any) => void;
   pricesJson: PricesJson;
   transactions: Transactions;
+  unit: Assets;
 }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
-  const [unit, setUnit] = useState("ETH");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as any);
   const classes = useStyles();
 
   useEffect(() => {
-    console.log(`Filtering out all but ${filterAsset} assets`);
     setFilteredEvents(events.filter(event =>
       (!filterAsset || event.asset === filterAsset)
       && (!filterType || event.type === filterType)
@@ -206,11 +207,6 @@ export const EventExplorer = ({
 
   const handleFilterTypeChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterType(event.target.value);
-  };
-
-  const handleUnitChange = (event: React.ChangeEvent<{ value: boolean }>) => {
-    console.log(`Setting unit bases on event target:`, event.target);
-    setUnit(event.target.value);
   };
 
   const processTxns = async () => {
@@ -282,20 +278,6 @@ export const EventExplorer = ({
       <Typography variant="h4" className={classes.subtitle}>
         Management
       </Typography>
-
-      <FormControl className={classes.select}>
-        <InputLabel id="select-unit-of-account-label">Unit of Account</InputLabel>
-        <Select
-          labelId="select-unit-of-account-label"
-          id="select-unit-of-account"
-          value={unit || "ETH"}
-          onChange={handleUnitChange}
-        >
-          <MenuItem value={"ETH"}>ETH</MenuItem>
-          <MenuItem value={"USD"}>USD</MenuItem>
-          <MenuItem value={"INR"}>INR</MenuItem>
-        </Select>
-      </FormControl>
 
       <Button
         className={classes.button}

@@ -2,7 +2,7 @@ import { Transaction, TransactionSources, Logger, TransferCategories } from "@fi
 import { math } from "@finances/utils";
 import csv from "csv-parse/lib/sync";
 
-import { mergeTransaction } from "../utils";
+import { mergeTransaction } from "../merge";
 
 const { gt, round } = math;
 

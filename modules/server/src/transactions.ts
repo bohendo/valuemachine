@@ -27,8 +27,8 @@ transactionsRouter.post("/", async (req, res) => {
     );
     res.json(transactions.json);
     log.info(`Returned ${transactions.json.length} transactions at a rate of ${
-      Math.round(100 * (Date.now() - start)/transactions.json.length) / 100
-    } ms/tx`);
+      Math.round((100000 * transactions.json.length)/(Date.now() - start)) / 100
+    } tx/sec`);
   } catch (e) {
     log.warn(e);
     logAndSend("Error syncing transactions", STATUS_MY_BAD);

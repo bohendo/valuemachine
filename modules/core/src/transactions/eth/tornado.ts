@@ -23,7 +23,7 @@ const source = TransactionSources.Tornado;
 ////////////////////////////////////////
 /// Addresses
 
-// vTORN has no value so don't treat it like a real asset
+// vTORN is non-transferrable so is not an ERC20
 const miscAddresses = [
   { name: "vTORN-airdropper", address: "0x4e7b3769921c8dfbdb3d1b4c73558db079a180c7" },
   { name: "vTORN", address: "0x3efa30704d2b8bbac821307230376556cf8cc39e" },
@@ -34,6 +34,8 @@ const govTokenAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 const mixerAddresses = [
+  { name: "tornado-proxy", address: "0x905b63fff465b9ffbf41dea908ceb12478ec7601" }, // old
+  { name: "tornado-proxy", address: "0x722122df12d4e14e13ac3b6895a86e84145b6967" }, // new
   { name: "tornado-relayer", address: "0xb541fc07bc7619fd4062a54d96268525cbc6ffef" },
   { name: "tornado-dai-100", address: "0xd4b88df4d29f5cedd6857912842cff3b20c8cfa3" },
   { name: "tornado-dai-1000", address: "0xfd8610d20aa15b7b2e3be39b396a1bc3516c7144" },
@@ -50,9 +52,9 @@ const mixerAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 export const tornadoAddresses = [
-  ...mixerAddresses,
-  ...miscAddresses,
   ...govTokenAddresses,
+  ...miscAddresses,
+  ...mixerAddresses,
 ];
 
 ////////////////////////////////////////

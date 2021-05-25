@@ -1,5 +1,6 @@
 import { getAddressBook } from "@finances/core";
 import {
+  Assets,
   StoreKeys,
   emptyAddressBook,
 } from "@finances/types";
@@ -22,7 +23,7 @@ import { NavBar } from "./components/NavBar";
 import { PriceManager } from "./components/Prices";
 import { EventExplorer } from "./components/Events";
 import { TransactionExplorer } from "./components/Transactions";
-import { store } from "./utils/cache";
+import { store } from "./store";
 
 const darkTheme = createMuiTheme({
   palette: {
@@ -55,6 +56,7 @@ const App: React.FC = () => {
   const [events, setEvents] = useState(store.load(StoreKeys.Events));
   const [transactions, setTransactions] = useState(store.load(StoreKeys.Transactions));
   const [addressBook, setAddressBook] = useState(emptyAddressBook);
+  const [unit, setUnit] = useState(profile.unit || Assets.ETH);
 
   const classes = useStyles();
 
@@ -69,6 +71,14 @@ const App: React.FC = () => {
   useEffect(() => {
     setAddressBook(getAddressBook(profile.addressBook));
   }, [profile]);
+
+  useEffect(() => {
+    const newProfile = { ...profile, unit };
+    console.log(`Saving new profile w units of ${unit}`);
+    setProfile(newProfile);
+    store.save(StoreKeys.Profile, newProfile);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unit]);
 
   useEffect(() => {
     console.log(`Saving profile with ${profile.addressBook.length} address book entries`);
@@ -89,28 +99,22 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <NavBar />
+      <NavBar unit={unit} setUnit={setUnit} />
       <main className={classes.main}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
           <Switch>
 
             <Route exact path="/">
-              <Dashboard />
+              <Dashboard
+                addressBook={addressBook}
+              />
             </Route>
 
             <Route exact path="/profile">
               <AddressBook
                 profile={profile}
                 setProfile={setProfile}
-              />
-            </Route>
-
-            <Route exact path="/prices">
-              <PriceManager
-                pricesJson={pricesJson}
-                setPricesJson={setPricesJson}
-                transactions={transactions}
               />
             </Route>
 
@@ -122,6 +126,15 @@ const App: React.FC = () => {
               />
             </Route>
 
+            <Route exact path="/prices">
+              <PriceManager
+                pricesJson={pricesJson}
+                setPricesJson={setPricesJson}
+                transactions={transactions}
+                unit={unit}
+              />
+            </Route>
+
             <Route exact path="/events">
               <EventExplorer
                 addressBook={addressBook}
@@ -129,6 +142,7 @@ const App: React.FC = () => {
                 transactions={transactions}
                 events={events}
                 setEvents={setEvents}
+                unit={unit}
               />
             </Route>
 
