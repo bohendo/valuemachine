@@ -3,7 +3,6 @@ import {
   Assets,
   AltChainAssets,
   EthereumAssets,
-  FiatAssets,
   Prices,
   PricesJson,
   TransactionsJson,
@@ -11,8 +10,6 @@ import {
 import { math, smeq } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
@@ -82,10 +79,12 @@ export const PriceManager = ({
   pricesJson,
   setPricesJson,
   transactions,
+  unit,
 }: {
   pricesJson: PricesJson;
   setPricesJson: (val: PricesJson) => void;
   transactions: TransactionsJson,
+  unit: Assets,
 }) => {
   const [prices, setPrices] = useState({} as Prices);
   const [page, setPage] = useState(0);
@@ -94,7 +93,6 @@ export const PriceManager = ({
   const [filterAsset, setFilterAsset] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [filteredPrices, setFilteredPrices] = useState({} as PricesJson);
-  const [unit, setUnit] = useState(Assets.ETH);
   const classes = useStyles();
 
   useEffect(() => {
@@ -118,10 +116,6 @@ export const PriceManager = ({
   useEffect(() => {
     setPrices(getPrices({ pricesJson, store, unit }));
   }, [pricesJson, unit]);
-
-  const handleUnitChange = (event: React.ChangeEvent<{ value: string }>) => {
-    setUnit(event.target.value);
-  };
 
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterAsset(event.target.value);
@@ -198,25 +192,6 @@ export const PriceManager = ({
       </Typography>
 
       <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
-
-        <Grid item>
-          <Card className={classes.root}>
-            <CardHeader title={"Set Unit of Account"} />
-            <FormControl className={classes.select}>
-              <InputLabel id="select-asset-type">Asset</InputLabel>
-              <Select
-                labelId="select-unit"
-                id="select-unit"
-                value={unit || ""}
-                onChange={handleUnitChange}
-              >
-                {Object.keys({ ...FiatAssets }).concat(["ETH"]).map(asset => (
-                  <MenuItem key={asset} value={asset}>{asset}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Card>
-        </Grid>
 
         <Grid item>
           <Button

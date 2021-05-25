@@ -1,5 +1,6 @@
 import { getAddressBook } from "@finances/core";
 import {
+  Assets,
   StoreKeys,
   emptyAddressBook,
 } from "@finances/types";
@@ -55,6 +56,7 @@ const App: React.FC = () => {
   const [events, setEvents] = useState(store.load(StoreKeys.Events));
   const [transactions, setTransactions] = useState(store.load(StoreKeys.Transactions));
   const [addressBook, setAddressBook] = useState(emptyAddressBook);
+  const [unit, setUnit] = useState(profile.unit || Assets.ETH);
 
   const classes = useStyles();
 
@@ -69,6 +71,14 @@ const App: React.FC = () => {
   useEffect(() => {
     setAddressBook(getAddressBook(profile.addressBook));
   }, [profile]);
+
+  useEffect(() => {
+    const newProfile = { ...profile, unit };
+    console.log(`Saving new profile w units of ${unit}`);
+    setProfile(newProfile);
+    store.save(StoreKeys.Profile, newProfile);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unit]);
 
   useEffect(() => {
     console.log(`Saving profile with ${profile.addressBook.length} address book entries`);
@@ -89,7 +99,7 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <NavBar />
+      <NavBar unit={unit} setUnit={setUnit} />
       <main className={classes.main}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
@@ -108,19 +118,20 @@ const App: React.FC = () => {
               />
             </Route>
 
-            <Route exact path="/prices">
-              <PriceManager
-                pricesJson={pricesJson}
-                setPricesJson={setPricesJson}
-                transactions={transactions}
-              />
-            </Route>
-
             <Route exact path="/transactions">
               <TransactionExplorer
                 addressBook={addressBook}
                 transactions={transactions}
                 setTransactions={setTransactions}
+              />
+            </Route>
+
+            <Route exact path="/prices">
+              <PriceManager
+                pricesJson={pricesJson}
+                setPricesJson={setPricesJson}
+                transactions={transactions}
+                unit={unit}
               />
             </Route>
 
@@ -131,6 +142,7 @@ const App: React.FC = () => {
                 transactions={transactions}
                 events={events}
                 setEvents={setEvents}
+                unit={unit}
               />
             </Route>
 

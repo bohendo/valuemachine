@@ -1,16 +1,11 @@
-import { Address } from "./strings";
+import { Assets } from "./assets";
 import { AddressBookJson } from "./addressBook";
 
+// TODO: move this into client bc nothing else needs it
 export type ProfileJson = {
-  username: string;
+  unit: Assets;
   addressBook: AddressBookJson;
   authToken: string;
 }
 
-export interface Profile {
-  // TODO: add profile functions here
-  json: ProfileJson;
-  getAddresses(): Address[];
-}
-
-export const emptyProfile = { username: "", addressBook: [], authToken: "" } as ProfileJson;
+export const emptyProfile = { unit: Assets.ETH, addressBook: [], authToken: "" } as ProfileJson;
