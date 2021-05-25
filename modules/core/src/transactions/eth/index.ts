@@ -169,21 +169,25 @@ export const parseEthTx = (
 
   // Set a default tx description
   if (!tx.description) {
-    if (tx.transfers.length < 1) {
+    const transfers = tx.transfers.filter(t => t.category === TransferCategories.Transfer);
+    if (transfers.length < 1) {
       tx.description = `${getName(ethTx.from)} did nothing`;
-    } else if (tx.transfers.length > 1) {
-      tx.description = `${getName(ethTx.to)} made ${tx.transfers.length} transfers`;
+    } else if (transfers.length > 1) {
+      tx.description = `${getName(ethTx.to)} made ${transfers.length} transfers`;
     } else {
-      if (!eq("0", tx.transfers[0]?.quantity)) {
-        tx.description = `${getName(tx.transfers[0].from)} transfered ${
-          round(tx.transfers[0].quantity, 4)
-        } ${tx.transfers[0].asset} to ${getName(tx.transfers[0].to)}`;
+      const transfer = transfers[0];
+      if (!transfer) {
+        tx.description = `${getName(transfer.from)} did nothing`;
+      } else if (!eq("0", transfer.quantity)) {
+        tx.description = `${getName(transfer.from)} transfered ${
+          round(transfer.quantity, 4)
+        } ${transfer.asset} to ${getName(transfer.to)}`;
       } else if (ethTx.data.length > 2) {
-        tx.description = `${getName(tx.transfers[0].from)} called a method on ${
-          getName(tx.transfers[0].to)
+        tx.description = `${getName(transfer.from)} called a method on ${
+          getName(transfer.to)
         }`;
       } else {
-        tx.description = `${getName(tx.transfers[0].from)} did nothing`;
+        tx.description = `${getName(transfer.from)} did nothing`;
       }
     }
   }
