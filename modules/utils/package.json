@@ -10,9 +10,9 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@ethersproject/bignumber": "5.1.1",
-    "@ethersproject/constants": "5.1.0",
-    "@ethersproject/units": "5.1.0",
+    "@ethersproject/bignumber": "5.2.0",
+    "@ethersproject/constants": "5.2.0",
+    "@ethersproject/units": "5.2.0",
     "chai": "4.3.4",
     "chai-as-promised": "7.1.1",
     "pino": "6.11.3",
