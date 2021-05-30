@@ -13,8 +13,6 @@ export const EventTypes = enumify({
   Withdraw: "Withdraw",
 
   Trade: "Trade",
-  CapitalGains: "CapitalGains",
-  CapitalLoss: "CapitalLoss",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type EventTypes = (typeof EventTypes)[keyof typeof EventTypes];
@@ -66,24 +64,19 @@ export type TradeEvent = {
   description: string;
   swapsIn: { [asset: string]: DecimalString };
   swapsOut: { [asset: string]: DecimalString };
+  tags?: string[];
+  capitalChanges: Array<{
+    asset: Assets;
+    quantity: DecimalString;
+    currentPrice: DecimalString;
+    receivePrice: DecimalString;
+    receiveDate: TimestampString;
+  }>
   type: typeof EventTypes.Trade;
-}
-export type CapitalGainsEvent = BaseEvent & {
-  change: DecimalString;
-  purchaseDate: TimestampString;
-  purchasePrice: DecimalString;
-  type: typeof EventTypes.CapitalGains;
-}
-export type CapitalLossEvent = BaseEvent & {
-  change: DecimalString;
-  purchaseDate: TimestampString;
-  purchasePrice: DecimalString;
-  type: typeof EventTypes.CapitalGains;
 }
 
 export type Event =
   | BorrowEvent
-  | CapitalGainsEvent
   | DepositEvent
   | ExpenseEvent
   | IncomeEvent

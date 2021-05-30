@@ -5,79 +5,15 @@ import {
   Assets,
   Events,
   EventTypes,
-  Logger,
   Prices,
-  State,
   Transaction,
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { getLogger, math } from "@finances/utils";
+import { math } from "@finances/utils";
 
-import { rmDups } from "./transactions/utils";
-
-const { abs, add, eq, gt, mul, round, sigfigs, sub  } = math;
-const { Income, Expense, SwapIn, SwapOut, Deposit, Withdraw, Borrow, Repay } = TransferCategories;
-
-export const emitTransactionEvents = (
-  addressBook: AddressBook,
-  transaction: Transaction,
-  state: State,
-  logger?: Logger,
-): Events => {
-  const log = (logger || getLogger()).child({ module: "TransactionEvent" });
-  const events = [];
-
-  // Get swapsIn & swapsOut to determine each assetChunk's full history
-  const swapsIn = transaction.transfers.filter(t => t.category === SwapIn);
-  const swapsOut = transaction.transfers.filter(t => t.category === SwapOut);
-  if (swapsIn.length && swapsOut.length) {
-    const sum = (acc, cur) => add(acc, cur.quantity);
-    const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
-    const assetsIn = rmDups(
-      swapsIn
-        .map(swap => swap.asset)
-        // If some input asset was refunded, remove this from the output asset list
-        .filter(asset => !assetsOut.includes(asset))
-    );
-    const amtsOut = assetsOut.map(asset =>
-      swapsIn
-        .filter(swap => swap.asset === asset)
-        .map(swap => ({ ...swap, quantity: mul(swap.quantity, "-1") })) // subtract refunds
-        .concat(
-          swapsOut.filter(swap => swap.asset === asset)
-        ).reduce(sum, "0")
-    );
-    const amtsIn = assetsIn.map(asset =>
-      swapsIn.filter(swap => swap.asset === asset).reduce(sum, "0")
-    );
-    const inputs = {};
-    assetsIn.forEach((asset, index) => {
-      inputs[asset] = amtsIn[index];
-    });
-    const outputs = {};
-    assetsOut.forEach((asset, index) => {
-      outputs[asset] = amtsOut[index];
-    });
-    events.push({
-      date: transaction.date,
-      description: `Traded ${
-        assetsOut.map((asset, i) => `${round(amtsOut[i])} ${asset}`).join(" & ")
-      } for ${
-        assetsIn.map((asset, i) => `${round(amtsIn[i])} ${asset}`).join(" & ")
-      }`,
-      swapsIn: inputs,
-      swapsOut: outputs,
-      type: EventTypes.Trade,
-    });
-  } else if (swapsIn.length && !swapsOut.length) {
-    log.warn(swapsIn, `Can't find swaps out to match swaps in`);
-  } else if (!swapsIn.length && swapsOut.length) {
-    log.warn(swapsOut, `Can't find swaps in to match swaps out`);
-  }
-
-  return events;
-};
+const { eq, round  } = math;
+const { Income, Expense, Deposit, Withdraw, Borrow, Repay } = TransferCategories;
 
 export const emitTransferEvents = (
   addressBook: AddressBook,
@@ -86,9 +22,7 @@ export const emitTransferEvents = (
   transfer: Transfer,
   prices: Prices,
   unit: Assets = Assets.ETH,
-  logger?: Logger,
 ): Events => {
-  const log = (logger || getLogger()).child({ module: "TransferEvent" });
   const { getName } = addressBook;
   const events = [];
   const { asset, category, from, quantity, to } = transfer;
@@ -140,33 +74,6 @@ export const emitTransferEvents = (
     newEvent.description = `Withdrew ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
 
-  } else if (category === SwapOut && gt(transfer.quantity, "0")) {
-    chunks.forEach(chunk => {
-      const currentPrice = prices.getPrice(transaction.date, chunk.asset, unit);
-      if (currentPrice) {
-        const purchaseValue = mul(chunk.quantity, chunk.purchasePrice);
-        const saleValue = mul(chunk.quantity, currentPrice);
-        const change = sub(saleValue, purchaseValue); // is negative if capital loss
-        const isGain = gt(change, "0");
-        if (!eq(change, "0")) {
-          events.push({
-            assetPrice: currentPrice,
-            asset: chunk.asset,
-            date: transaction.date,
-            description: `${round(chunk.quantity)} ${chunk.asset} ${
-              isGain ? "gained" : "lost"
-            } ${sigfigs(abs(change))} ${unit} of value since we got it on ${chunk.dateRecieved}`,
-            change,
-            purchaseDate: chunk.dateRecieved,
-            purchasePrice: chunk.purchasePrice,
-            quantity: chunk.quantity,
-            type: isGain ? EventTypes.CapitalGains : EventTypes.CapitalLoss,
-          });
-        }
-      } else {
-        log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${transaction.date}`);
-      }
-    });
   }
 
   return events;

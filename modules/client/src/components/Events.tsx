@@ -37,6 +37,8 @@ import React, { useEffect, useState } from "react";
 
 import { store } from "../store";
 
+const { add, mul, sub } = math;
+
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
     margin: theme.spacing(3),
@@ -141,16 +143,12 @@ const EventRow = ({
                   Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
                   Source: event.from,
-                } : [EventTypes.CapitalLoss, EventTypes.CapitalGains].includes(event.type) ? {
-                  asset: event.asset,
-                  amount: math.round(event.quantity, 4),
-                  purchaseDate: event.purchaseDate.replace("T", " ").replace(".000Z", ""),
-                  purchasePrice: event.purchasePrice,
-                  saleDate: event.date.replace("T", " ").replace(".000Z", ""),
-                  salePrice: event.assetPrice,
                 } : event.type === EventTypes.Trade ? {
                   ["Exact Give"]: swapToStr(event.swapsOut),
                   ["Exact Take"]: swapToStr(event.swapsIn),
+                  ["Capital Change"]: event.capitalChanges.reduce((acc, capChange) => add(acc, (
+                    mul(capChange.quantity, sub(capChange.currentPrice, capChange.receivePrice))
+                  )), "0"),
                   ...pricesToDisplay(event.prices),
                 } : {}
               }/>
