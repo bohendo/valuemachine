@@ -16,7 +16,7 @@
     "chai": "4.3.4",
     "chai-as-promised": "7.1.1",
     "pino": "6.11.3",
-    "pino-pretty": "4.8.0"
+    "pino-pretty": "5.0.1"
   },
   "devDependencies": {
     "@finances/types": "1.0.0",
