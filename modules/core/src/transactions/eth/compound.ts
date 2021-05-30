@@ -15,7 +15,7 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
+import { rmDups, parseEvent, valuesAreClose } from "../utils";
 
 const { div, round } = math;
 const {
@@ -120,7 +120,7 @@ const cTokenDecimals = 8;
 const associatedTransfer = (asset: string, quantity: string) =>
   (transfer: Transfer): boolean =>
     smeq(transfer.asset, asset)
-      && quantitiesAreClose(transfer.quantity, quantity, div(quantity, "100"));
+      && valuesAreClose(transfer.quantity, quantity, div(quantity, "100"));
 
 export const compoundParser = (
   tx: Transaction,

@@ -20,7 +20,7 @@ import {
 } from "@finances/types";
 import { math, sm, smeq, toBN } from "@finances/utils";
 
-import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
+import { rmDups, parseEvent, valuesAreClose } from "../utils";
 
 const { abs, diff, div, eq, gt, round } = math;
 const { DAI, ETH, MKR, PETH, SAI, WETH } = Assets;
@@ -359,7 +359,7 @@ export const makerParser = (
             smeq(transfer.asset, asset) || (
               ethish.includes(asset) && ethish.includes(transfer.asset)
             )
-          ) && quantitiesAreClose(transfer.quantity, abs(wad), div(abs(wad), "10"))
+          ) && valuesAreClose(transfer.quantity, abs(wad), div(abs(wad), "10"))
         );
         if (transfer >= 0) {
           if (gt(wad, "0")) {
@@ -387,7 +387,7 @@ export const makerParser = (
         log.info(`Found a change in CDP debt of about ${round(dart)} DAI`);
         const transfer = tx.transfers.findIndex(transfer =>
           transfer.asset === DAI
-          && quantitiesAreClose(transfer.quantity, abs(dart), div(abs(dart), "10"))
+          && valuesAreClose(transfer.quantity, abs(dart), div(abs(dart), "10"))
         );
         if (transfer >= 0) {
           if (gt(dart, "0")) {
@@ -420,7 +420,7 @@ export const makerParser = (
         const deposit = tx.transfers.find(t =>
           t.asset === DAI &&
           t.category === Expense &&
-          quantitiesAreClose(t.quantity, wad, div(wad, "10"))
+          valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (deposit) {
           deposit.category = Deposit;
@@ -436,7 +436,7 @@ export const makerParser = (
         const withdraw = tx.transfers.find(t =>
           t.asset === DAI &&
           t.category === Income &&
-          quantitiesAreClose(t.quantity, wad, div(wad, "10"))
+          valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (withdraw) {
           withdraw.category = Withdraw;
@@ -466,7 +466,7 @@ export const makerParser = (
           t.asset === ETH
           && isSelf(t.to)
           && smeq(t.from, saiCageAddress)
-          && quantitiesAreClose(t.quantity, wad, div(wad, "100"))
+          && valuesAreClose(t.quantity, wad, div(wad, "100"))
         );
         if (swapOut) {
           swapOut.category = SwapOut;

@@ -1,8 +1,7 @@
-import { HashZero } from "@ethersproject/constants";
-import { ChainData, Transactions } from "@finances/types";
+import { Transactions } from "@finances/types";
 import { expect } from "@finances/utils";
 
-import { AddressOne, AddressTwo, getTestChainData, getTestAddressBook, testLogger } from "../../testing";
+import { getTestAddressBook, testLogger } from "../../testing";
 import { getTransactions } from "../index";
 
 const log = testLogger.child({
@@ -23,58 +22,17 @@ ${timestamp.replace("00Z", "30Z")}, Receive, ETH, ${value.substring(0, 10)},650.
 describe("Coinbase", () => {
   let addressBook;
   let txns: Transactions;
-  let chainData: ChainData;
 
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    chainData = getTestChainData([{
-      block: 10,
-      data: "0x",
-      from: AddressOne,
-      gasLimit: "0x100000",
-      gasPrice: "0x100000",
-      gasUsed: "0x1000",
-      hash: HashZero,
-      index: 1,
-      logs: [],
-      nonce: 0,
-      status: 1,
-      timestamp,
-      to: AddressTwo,
-      value,
-    }]);
+    expect(txns.json.length).to.equal(0);
   });
 
   it("should merge coinbase data multiple times without creaing duplicates", async () => {
-    expect(txns.json.length).to.equal(0);
     txns.mergeCoinbase(exampleCoinbaseCsv);
     expect(txns.json.length).to.equal(3);
     txns.mergeCoinbase(exampleCoinbaseCsv);
-    expect(txns.json.length).to.equal(3);
-  });
-
-  it("should merge coinbase receive/sends into a matching eth txn", async () => {
-    expect(txns.json.length).to.equal(0);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    txns.mergeCoinbase(exampleCoinbaseCsv);
-    log.info(txns.json);
-    expect(txns.json.length).to.equal(3);
-    // Re-merging shouldn't insert any duplicates
-    txns.mergeCoinbase(exampleCoinbaseCsv);
-    log.info(txns.json);
-    expect(txns.json.length).to.equal(3);
-  });
-
-  it("should merge an eth txn into a matching coinbase receive/send", async () => {
-    expect(txns.json.length).to.equal(0);
-    txns.mergeCoinbase(exampleCoinbaseCsv);
-    expect(txns.json.length).to.equal(3);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(3);
-    // Re-merging shouldn't insert any duplicates
-    txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(3);
   });
 

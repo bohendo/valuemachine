@@ -16,7 +16,7 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
+import { rmDups, parseEvent, valuesAreClose } from "../utils";
 
 const { add, round } = math;
 const { ETH, WETH } = Assets;
@@ -86,7 +86,7 @@ export const oasisParser = (
   const findSwap = (quantity: string, asset: Assets) => (transfer: Transfer): boolean =>
     (([Income, Expense] as TransferCategory[]).includes(transfer.category)) && (
       ethish.includes(asset) ? ethish.includes(transfer.asset) : transfer.asset === asset
-    ) && quantitiesAreClose(quantity, transfer.quantity);
+    ) && valuesAreClose(quantity, transfer.quantity);
 
   let actor = isSelf(ethTx.from) ? ethTx.from : undefined;
   let inAsset;

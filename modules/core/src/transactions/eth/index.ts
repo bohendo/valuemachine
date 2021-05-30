@@ -178,17 +178,14 @@ export const parseEthTx = (
 
   // Set a default tx description
   if (!tx.description) {
-    const transfers = tx.transfers.filter(t => 
-      t.category === Income || (t.category === Expense && t.to !== AddressZero)
-    );
-    if (transfers.length < 1) {
+    if (tx.transfers.length === 1) {
       tx.description = ethTx.data.length > 3
         ? `${getName(ethTx.from)} called a method on ${getName(ethTx.to)}`
         : `${getName(ethTx.from)} did nothing`;
-    } else if (transfers.length > 1) {
-      tx.description = `${getName(ethTx.to)} made ${transfers.length} transfers`;
+    } else if (tx.transfers.length > 2) {
+      tx.description = `${getName(ethTx.to)} made ${tx.transfers.length} transfers`;
     } else {
-      const transfer = transfers[0];
+      const transfer = tx.transfers[1];
       if (!transfer) {
         tx.description = `${getName(transfer.from)} did nothing`;
       } else if (!eq("0", transfer.quantity)) {
