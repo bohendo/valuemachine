@@ -27,11 +27,6 @@ export const emitTransactionEvents = (
 ): Events => {
   const log = (logger || getLogger()).child({ module: "TransactionEvent" });
   const events = [];
-  const networth = state.getNetWorth();
-  if (!Object.keys(networth).length) return events;
-
-  // TODO: merge net worth snapshot into other events
-  // events.push({assets: state.getNetWorth(), date: transaction.date, type: EventTypes.NetWorth});
 
   // Get swapsIn & swapsOut to determine each assetChunk's full history
   const swapsIn = transaction.transfers.filter(t => t.category === SwapIn);

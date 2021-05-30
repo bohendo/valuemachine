@@ -247,7 +247,7 @@ export const EventExplorer = ({
         const finalState = getState({ stateJson: state, addressBook, prices });
         console.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
         console.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
-        res(vmEvents.filter(e => (e.type !== EventTypes.NetWorth)));
+        res(vmEvents);
       } catch (e) {
         console.log(`Failed to process transactions`);
         console.error(e);
