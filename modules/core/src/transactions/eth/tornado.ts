@@ -10,6 +10,7 @@ import {
   Transaction,
   TransactionSources,
   TransferCategories,
+  TransferCategory,
 } from "@finances/types";
 import { math, smeq } from "@finances/utils";
 
@@ -17,6 +18,7 @@ import { rmDups } from "../utils";
 
 const { round } = math;
 const { TORN } = Assets;
+const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 
 const source = TransactionSources.Tornado;
 
@@ -75,19 +77,13 @@ export const tornadoParser = (
   const deposits = tx.transfers.filter((transfer: Transfer): boolean =>
     isSelf(transfer.from)
       && mixerAddresses.some(e => smeq(transfer.to, e.address))
-      && ([
-        TransferCategories.Transfer,
-        TransferCategories.Deposit,
-      ] as TransferCategories[]).includes(transfer.category)
+      && ([Expense, Deposit] as TransferCategory[]).includes(transfer.category)
   );
 
   const withdraws = tx.transfers.filter((transfer: Transfer): boolean =>
     isSelf(transfer.to)
       && mixerAddresses.some(e => smeq(transfer.from, e.address))
-      && ([
-        TransferCategories.Transfer, 
-        TransferCategories.Withdraw,
-      ] as TransferCategories[]).includes(transfer.category)
+      && ([Income, Withdraw] as TransferCategory[]).includes(transfer.category)
   );
 
   if (deposits.length || withdraws.length) {
@@ -95,7 +91,7 @@ export const tornadoParser = (
   }
 
   deposits.forEach(deposit => {
-    deposit.category = TransferCategories.Deposit;
+    deposit.category = Deposit;
     const amt = round(deposit.quantity);
     const asset = deposit.asset;
     log.info(`Found deposit of ${amt} ${asset} to ${source}`);
@@ -103,7 +99,7 @@ export const tornadoParser = (
   });
 
   withdraws.forEach(withdraw => {
-    withdraw.category = TransferCategories.Withdraw;
+    withdraw.category = Withdraw;
     const amt = round(withdraw.quantity);
     const asset = withdraw.asset;
     log.info(`Found withdraw of ${amt} ${asset} from ${source}`);

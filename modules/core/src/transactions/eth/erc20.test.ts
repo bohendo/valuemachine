@@ -79,7 +79,7 @@ describe(TransactionSources.ERC20, () => {
     expect(tokenTransfer.quantity).to.equal(quantity);
     expect(tokenTransfer.from).to.equal(sender);
     expect(tokenTransfer.to).to.equal(recipient);
-    expect(tokenTransfer.category).to.equal(TransferCategories.Transfer);
+    expect(tokenTransfer.category).to.equal(TransferCategories.Internal);
     // Run again to ensure no dups are generated
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);

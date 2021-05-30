@@ -17,6 +17,7 @@ import { getLogger, math } from "@finances/utils";
 import { rmDups } from "./transactions/utils";
 
 const { abs, add, eq, gt, mul, round, sigfigs, sub  } = math;
+const { Income, Expense, SwapIn, SwapOut, Deposit, Withdraw, Borrow, Repay } = TransferCategories;
 
 export const emitTransactionEvents = (
   addressBook: AddressBook,
@@ -28,16 +29,13 @@ export const emitTransactionEvents = (
   const events = [];
   const networth = state.getNetWorth();
   if (!Object.keys(networth).length) return events;
-  events.push({
-    assets: state.getNetWorth(),
-    date: transaction.date,
-    type: EventTypes.NetWorth,
-  });
-  // Add trade event
+
+  // TODO: merge net worth snapshot into other events
+  // events.push({assets: state.getNetWorth(), date: transaction.date, type: EventTypes.NetWorth});
 
   // Get swapsIn & swapsOut to determine each assetChunk's full history
-  const swapsIn = transaction.transfers.filter(t => t.category === TransferCategories.SwapIn);
-  const swapsOut = transaction.transfers.filter(t => t.category === TransferCategories.SwapOut);
+  const swapsIn = transaction.transfers.filter(t => t.category === SwapIn);
+  const swapsOut = transaction.transfers.filter(t => t.category === SwapOut);
   if (swapsIn.length && swapsOut.length) {
     const sum = (acc, cur) => add(acc, cur.quantity);
     const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
@@ -117,61 +115,61 @@ export const emitTransferEvents = (
     type: category as EventTypes,
   } as any;
 
-  if (category === TransferCategories.Income) {
+  if (category === Income) {
     newEvent.from = from;
     newEvent.description = `Recieved ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
 
-  } else if (category === TransferCategories.Expense) {
+  } else if (category === Expense) {
     newEvent.to = to;
     newEvent.description = `Paid ${round(quantity)} ${asset} to ${getName(to)} `;
     events.push(newEvent);
 
-  } else if (category === TransferCategories.Borrow) {
+  } else if (category === Borrow) {
     newEvent.from = from;
     newEvent.description = `Borrowed ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
 
-  } else if (category === TransferCategories.Repay) {
+  } else if (category === Repay) {
     newEvent.to = to;
     newEvent.description = `Repaied ${round(quantity)} ${asset} to ${getName(to)} `;
     events.push(newEvent);
 
-  } else if (category === TransferCategories.Deposit) {
+  } else if (category === Deposit) {
     newEvent.to = to;
     newEvent.description = `Deposited ${round(quantity)} ${asset} to ${getName(to)} `;
     events.push(newEvent);
 
-  } else if (category === TransferCategories.Withdraw) {
+  } else if (category === Withdraw) {
     newEvent.from = from;
     newEvent.description = `Withdrew ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
 
-  } else if (category === TransferCategories.SwapOut && gt(transfer.quantity, "0")) {
+  } else if (category === SwapOut && gt(transfer.quantity, "0")) {
     chunks.forEach(chunk => {
       const currentPrice = prices.getPrice(transaction.date, chunk.asset, unit);
-      if (!currentPrice) {
+      if (currentPrice) {
+        const purchaseValue = mul(chunk.quantity, chunk.purchasePrice);
+        const saleValue = mul(chunk.quantity, currentPrice);
+        const change = sub(saleValue, purchaseValue); // is negative if capital loss
+        const isGain = gt(change, "0");
+        if (!eq(change, "0")) {
+          events.push({
+            assetPrice: currentPrice,
+            asset: chunk.asset,
+            date: transaction.date,
+            description: `${round(chunk.quantity)} ${chunk.asset} ${
+              isGain ? "gained" : "lost"
+            } ${sigfigs(abs(change))} ${unit} of value since we got it on ${chunk.dateRecieved}`,
+            change,
+            purchaseDate: chunk.dateRecieved,
+            purchasePrice: chunk.purchasePrice,
+            quantity: chunk.quantity,
+            type: isGain ? EventTypes.CapitalGains : EventTypes.CapitalLoss,
+          });
+        }
+      } else {
         log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${transaction.date}`);
-        return events;
-      }
-      const purchaseValue = mul(chunk.quantity, chunk.purchasePrice);
-      const saleValue = mul(chunk.quantity, currentPrice);
-      const change = sub(saleValue, purchaseValue); // is negative if capital loss
-      const isGain = gt(change, "0");
-      if (!eq(change, "0")) {
-        events.push({
-          assetPrice: currentPrice,
-          asset: chunk.asset,
-          date: transaction.date,
-          description: `${round(chunk.quantity)} ${chunk.asset} ${
-            isGain ? "gained" : "lost"
-          } ${sigfigs(abs(change))} ${unit} of value since we got it on ${chunk.dateRecieved}`,
-          change,
-          purchaseDate: chunk.dateRecieved,
-          purchasePrice: chunk.purchasePrice,
-          quantity: chunk.quantity,
-          type: isGain ? EventTypes.CapitalGains : EventTypes.CapitalLoss,
-        });
       }
     });
   }

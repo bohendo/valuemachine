@@ -8,6 +8,8 @@ import csv from "csv-parse/lib/sync";
 
 import { mergeTransaction } from "../merge";
 
+const { Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
+
 export const mergeWazirxTransactions = (
   oldTransactions: Transaction[],
   csvData: string,
@@ -46,7 +48,7 @@ export const mergeWazirxTransactions = (
       if (txType === "Deposit") {
         transaction.transfers.push({
           asset: currency,
-          category: TransferCategories.Transfer,
+          category: Deposit,
           from: "external-account",
           quantity,
           to: "wazirx-account",
@@ -55,7 +57,7 @@ export const mergeWazirxTransactions = (
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
           asset: currency,
-          category: TransferCategories.Transfer,
+          category: Withdraw,
           from: "wazirx-account",
           quantity,
           to: "external-account",
@@ -81,7 +83,7 @@ export const mergeWazirxTransactions = (
 
       transaction.transfers.push({
         asset: feeAsset,
-        category: TransferCategories.Expense,
+        category: Expense,
         from: "wazirx-account",
         quantity: feeAmount,
         to: "wazirx-exchange",
@@ -90,14 +92,14 @@ export const mergeWazirxTransactions = (
       if (tradeType === "Buy") {
         transaction.transfers.push({
           asset: "INR",
-          category: TransferCategories.SwapOut,
+          category: SwapOut,
           from: "wazirx-account",
           quantity: inrQuantity,
           to: "wazirx-exchange",
         });
         transaction.transfers.push({
           asset: currency,
-          category: TransferCategories.SwapIn,
+          category: SwapIn,
           from: "wazirx-exchange",
           quantity: quantity,
           to: "wazirx-account",
@@ -107,14 +109,14 @@ export const mergeWazirxTransactions = (
       } else if (tradeType === "Sell") {
         transaction.transfers.push({
           asset: currency,
-          category: TransferCategories.SwapOut,
+          category: SwapOut,
           from: "wazirx-account",
           quantity: quantity,
           to: "wazirx-exchange",
         });
         transaction.transfers.push({
           asset: "INR",
-          category: TransferCategories.SwapIn,
+          category: SwapIn,
           from: "wazirx-exchange",
           quantity: inrQuantity,
           to: "wazirx-account",

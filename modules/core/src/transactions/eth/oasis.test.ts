@@ -13,6 +13,7 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
+const { Expense, SwapIn, SwapOut } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
   module: "TestTransactions",
@@ -41,11 +42,11 @@ describe(TransactionSources.Oasis, () => {
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include(TransactionSources.Oasis);
     const base = tx.transfers[0];
-    expect(base.category).to.equal(TransferCategories.Expense);
+    expect(base.category).to.equal(Expense);
     const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.category).to.equal(SwapIn);
   });
 
   it("should handle a v1 sell", async () => {
@@ -61,7 +62,7 @@ describe(TransactionSources.Oasis, () => {
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include(TransactionSources.Oasis);
     const swapIn = tx.transfers[0];
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.category).to.equal(SwapIn);
   });
 
   it("should handle a swap via proxy", async () => {
@@ -75,9 +76,9 @@ describe(TransactionSources.Oasis, () => {
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(TransactionSources.Oasis);
     const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.category).to.equal(SwapIn);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include(TransactionSources.Oasis);
   });

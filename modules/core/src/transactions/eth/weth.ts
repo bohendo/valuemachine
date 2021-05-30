@@ -18,6 +18,7 @@ import { rmDups, parseEvent } from "../utils";
 
 const { round } = math;
 const { ETH, WETH } = Assets;
+const { SwapIn, SwapOut } = TransferCategories;
 const source = TransactionSources.Weth;
 
 ////////////////////////////////////////
@@ -71,7 +72,7 @@ export const wethParser = (
         tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
         tx.transfers.push({
           asset,
-          category: TransferCategories.SwapIn,
+          category: SwapIn,
           from: address,
           index,
           quantity: amount,
@@ -82,7 +83,7 @@ export const wethParser = (
           && isSelf(t.from) && smeq(t.to, address)
         );
         if (swapOut >= 0) {
-          tx.transfers[swapOut].category = TransferCategories.SwapOut;
+          tx.transfers[swapOut].category = SwapOut;
           tx.transfers[swapOut].index = index - 0.1;
           if (smeq(ethTx.to, wethAddress)) {
             tx.description = `${getName(event.args.dst)} swapped ${amount} ETH for WETH`;
@@ -109,7 +110,7 @@ export const wethParser = (
         tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
         tx.transfers.push({
           asset,
-          category: TransferCategories.SwapOut,
+          category: SwapOut,
           from: event.args.src,
           index,
           quantity: amount,
@@ -120,7 +121,7 @@ export const wethParser = (
           && isSelf(t.to) && smeq(t.from, address)
         );
         if (swapIn >= 0) {
-          tx.transfers[swapIn].category = TransferCategories.SwapIn;
+          tx.transfers[swapIn].category = SwapIn;
           tx.transfers[swapIn].index = index + 0.1;
           if (smeq(ethTx.to, wethAddress)) {
             tx.description = `${getName(event.args.src)} swapped ${amount} WETH for ETH`;

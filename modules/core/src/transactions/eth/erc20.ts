@@ -22,6 +22,7 @@ const {
   BAT, CHERRY, GEN, GNO, GRT, OMG, REP, REPv2, SNT,
   SNX, SNXv1, SPANK, sUSD, sUSDv1, USDC, USDT, WBTC, ZRX,
 } = Assets;
+const { Expense, Income, Internal, Unknown } = TransferCategories;
 
 const source = TransactionSources.ERC20;
 
@@ -102,14 +103,13 @@ export const erc20Parser = (
 
       if (event.name === "Transfer") {
         log.debug(`Parsing ${source} ${event.name} of ${amount} ${asset}`);
-        tx.transfers.push({
-          asset,
-          category: TransferCategories.Transfer,
-          from: event.args.from === AddressZero ? address : event.args.from,
-          index: txLog.index,
-          quantity: amount,
-          to: event.args.to === AddressZero ? address : event.args.to,
-        });
+        const from = event.args.from === AddressZero ? address : event.args.from;
+        const to = event.args.to === AddressZero ? address : event.args.to;
+        const category = isSelf(from) && isSelf(to) ? Internal
+          : isSelf(from) && !isSelf(to) ? Expense
+            : isSelf(to) && !isSelf(from) ? Income
+              : Unknown;
+        tx.transfers.push({ asset, category, from, index: txLog.index, quantity: amount, to });
         if (smeq(ethTx.to, address)) {
           tx.description = `${getName(event.args.from)} transfered ${
             round(amount, 4)

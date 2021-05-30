@@ -12,6 +12,7 @@ import csv from "csv-parse/lib/sync";
 import { mergeTransaction } from "../merge";
 
 const { DAI, ETH, SAI, USD } = Assets;
+const { Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
 
 export const mergeWyreTransactions = (
   oldTransactions: Transaction[],
@@ -55,14 +56,14 @@ export const mergeWyreTransactions = (
     if (txType === "EXCHANGE") {
       transaction.transfers.push({
         asset: sourceType,
-        category: TransferCategories.SwapOut,
+        category: SwapOut,
         from: "wyre-account",
         quantity: sourceQuantity,
         to: "wyre-exchange",
       });
       transaction.transfers.push({
         asset: destType,
-        category: TransferCategories.SwapIn,
+        category: SwapIn,
         from: "wyre-exchange",
         quantity: destQuantity,
         to: "wyre-account",
@@ -74,7 +75,7 @@ export const mergeWyreTransactions = (
     } else if (txType === "INCOMING" && destType === sourceType) {
       transaction.transfers.push({
         asset: destType,
-        category: TransferCategories.Transfer,
+        category: Deposit,
         from: "external-account",
         quantity: destQuantity,
         to: "wyre-account",
@@ -84,14 +85,14 @@ export const mergeWyreTransactions = (
     } else if (txType === "INCOMING" && destType !== sourceType) {
       transaction.transfers.push({
         asset: sourceType,
-        category: TransferCategories.SwapOut,
+        category: SwapOut,
         from: "external-account",
         quantity: sourceQuantity,
         to: "wyre-exchange",
       });
       transaction.transfers.push({
         asset: destType,
-        category: TransferCategories.SwapIn,
+        category: SwapIn,
         from: "wyre-exchange",
         quantity: destQuantity,
         to: "wyre-account",
@@ -103,7 +104,7 @@ export const mergeWyreTransactions = (
     } else if (txType === "OUTGOING" && destType === sourceType) {
       transaction.transfers.push({
         asset: destType,
-        category: TransferCategories.Transfer,
+        category: Withdraw,
         from: "wyre-account",
         quantity: destQuantity,
         to: "external-account",
@@ -113,14 +114,14 @@ export const mergeWyreTransactions = (
     } else if (txType === "OUTGOING" && destType !== sourceType) {
       transaction.transfers.push({
         asset: sourceType,
-        category: TransferCategories.SwapOut,
+        category: SwapOut,
         from: "wyre-account",
         quantity: sourceQuantity,
         to: "wyre-exchange",
       });
       transaction.transfers.push({
         asset: destType,
-        category: TransferCategories.SwapIn,
+        category: SwapIn,
         from: "wyre-exchange",
         quantity: destQuantity,
         to: "external-account",
@@ -132,7 +133,7 @@ export const mergeWyreTransactions = (
 
     // Add fees paid to exchange
     const feeTransfer = {
-      category: TransferCategories.Expense,
+      category: Expense,
       from: "wyre-account",
       to: "wyre-exchange",
     };

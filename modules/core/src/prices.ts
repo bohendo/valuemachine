@@ -25,7 +25,7 @@ const {
   BAT, BCH, BTC, CHERRY, COMP, DAI, ETH, GEN, GNO, LTC, MKR, OMG,
   REP, REPv2, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
 } = Assets;
-
+const { SwapIn, SwapOut } = TransferCategories;
 export const getPrices = ({
   logger,
   store,
@@ -195,8 +195,8 @@ export const getPrices = ({
 
   const getSwapPrices = (tx: Transaction): PriceList => {
     const prices = {};
-    const swapsIn = tx.transfers.filter(t => t.category === TransferCategories.SwapIn);
-    const swapsOut = tx.transfers.filter(t => t.category === TransferCategories.SwapOut);
+    const swapsIn = tx.transfers.filter(t => t.category === SwapIn);
+    const swapsOut = tx.transfers.filter(t => t.category === SwapOut);
     const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
     const assetsIn = rmDups(
       swapsIn

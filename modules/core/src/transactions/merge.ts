@@ -1,15 +1,18 @@
+import { AddressZero } from "@ethersproject/constants";
 import {
   Logger,
   TimestampString,
   Transaction,
   TransactionSources,
   TransferCategories,
+  TransferCategory,
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
 import { isHash, rmDups, quantitiesAreClose } from "./utils";
 
 const { diff, div, lt } = math;
+const { Income, Expense, Deposit, Withdraw, Internal } = TransferCategories;
 
 // This fn ought to modifiy the old list of txns IN PLACE and also return the updated tx list
 export const mergeTransaction = (
@@ -39,8 +42,6 @@ export const mergeTransaction = (
     return transactions;
   }
 
-  const isSimple = transfer => transfer?.category === TransferCategories.Transfer;
-
   const sources = newTx.sources;
   log = logger.child({ module: `Merge${sources.join("")}` });
 
@@ -50,23 +51,27 @@ export const mergeTransaction = (
     // Does this list of txns already include the coresponding eth tx?
     const index = transactions.findIndex(tx => tx.hash === newTx.hash);
 
+    // Eth txns can only be merged with external Deposit/Withdraw transfers
+    const isMergable = transfer =>
+      ([Deposit, Withdraw] as TransferCategory[]).includes(transfer?.category);
+
     // This is the first time we've encountered this eth tx
     if (index < 0) {
 
-      // Mergable eth txns can only contain one transfer
-      if (newTx.transfers.filter(isSimple).length > 1) {
+      // Mergable eth txns can only contain one deposit/withdrawal
+      if (newTx.transfers.filter(isMergable).length > 1) {
         transactions.push(newTx);
         transactions.sort(sortTransactions);
         log.debug(`Inserted new multi-transfer eth tx: ${newTx.description}`);
         return transactions;
       }
-      const index = newTx.transfers.findIndex(isSimple);
+      const index = newTx.transfers.findIndex(isMergable);
       const transfer = newTx.transfers[index];
 
       const mergeCandidateIndex = transactions.findIndex(tx =>
         // This tx only has one transfer
         // (matching an eth tx to a mult-transfer external tx is not supported yet)
-        tx.transfers.filter(isSimple).length === 1
+        tx.transfers.filter(isMergable).length === 1
         // This isn't an eth tx
         && !isHash(tx.hash)
         // This tx has a transfer with same asset type & quantity as this new tx
@@ -109,6 +114,12 @@ export const mergeTransaction = (
     return transactions;
   }
 
+  // External txns can only be merged with eth Income/Expense events
+  // or maybe Internal if exchange address is tagged as self
+  const isMergable = transfer =>
+    ([Income, Expense, Internal] as TransferCategory[]).includes(transfer?.category)
+    && transfer.to !== AddressZero; // disqualify tx fees
+
   // Merge external txns
   // Does the tx list already include this external tx?
   const dupCandidates = transactions.filter(tx =>
@@ -134,9 +145,8 @@ export const mergeTransaction = (
   const transfer = newTx.transfers[0];
 
   const mergeCandidateIndex = transactions.findIndex(tx =>
-    // Existing tx only has one transfer
-    // (transfer to external account in same tx as a contract interaction is not supported)
-    tx.transfers.filter(isSimple).length === 1
+    // Existing tx only has one deposit/withdrawal
+    tx.transfers.filter(isMergable).length === 1
     // Existing tx hasn't had this external tx merged into it yet
     && !tx.sources.some(source => sources.includes(source))
     // Existing tx has a transfer with same asset type & quantity as this new tx

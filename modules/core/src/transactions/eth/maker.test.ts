@@ -13,6 +13,7 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
+const { Expense, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
   module: "TestTransactions",
@@ -38,9 +39,9 @@ describe(TransactionSources.Maker, () => {
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.category).to.equal(SwapIn);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("swap");
     expect(tx.description).to.include(math.round(swapIn.quantity));
@@ -59,7 +60,7 @@ describe(TransactionSources.Maker, () => {
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(2);
     const withdraw = tx.transfers[1];
-    expect(withdraw.category).to.equal(TransferCategories.Withdraw);
+    expect(withdraw.category).to.equal(Withdraw);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("withdr");
     expect(tx.description).to.include(math.round(withdraw.quantity));
@@ -75,7 +76,7 @@ describe(TransactionSources.Maker, () => {
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(2);
     const borrow = tx.transfers[1];
-    expect(borrow.category).to.equal(TransferCategories.Borrow);
+    expect(borrow.category).to.equal(Borrow);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("borrow");
     expect(tx.description).to.include(math.round(borrow.quantity));
@@ -91,9 +92,9 @@ describe(TransactionSources.Maker, () => {
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
     const repay = tx.transfers[1];
-    expect(repay.category).to.equal(TransferCategories.Repay);
+    expect(repay.category).to.equal(Repay);
     const fee = tx.transfers[2];
-    expect(fee.category).to.equal(TransferCategories.Expense);
+    expect(fee.category).to.equal(Expense);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("repay");
     expect(tx.description).to.include(math.round(repay.quantity));
@@ -118,9 +119,9 @@ describe(TransactionSources.Maker, () => {
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.category).to.equal(SwapIn);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("redeem");
     expect(tx.description).to.include(math.round(swapIn.quantity));
@@ -139,9 +140,9 @@ describe(TransactionSources.Maker, () => {
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.category).to.equal(SwapIn);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("migrat");
     expect(tx.description).to.include(math.round(swapIn.quantity));
@@ -161,7 +162,7 @@ describe(TransactionSources.Maker, () => {
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(TransferCategories.Deposit);
+    expect(deposit.category).to.equal(Deposit);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("deposit");
     expect(tx.description).to.include(math.round(deposit.quantity));

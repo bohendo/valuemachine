@@ -13,6 +13,7 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
+const { Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
   module: `Test${TransactionSources.Compound}`,
@@ -38,7 +39,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.sources).to.include(TransactionSources.Compound);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(TransferCategories.Deposit);
+    expect(deposit.category).to.equal(Deposit);
     expect(tx.description).to.include("deposit");
     expect(tx.description).to.include(math.round(deposit.quantity));
     expect(tx.description).to.include(addressBook.getName(selfAddress));
@@ -55,7 +56,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.sources).to.include(TransactionSources.Compound);
     expect(tx.transfers.length).to.equal(2);
     const withdraw = tx.transfers[1];
-    expect(withdraw.category).to.equal(TransferCategories.Withdraw);
+    expect(withdraw.category).to.equal(Withdraw);
     expect(tx.description).to.include("withdr");
     expect(tx.description).to.include(math.round(withdraw.quantity));
     expect(tx.description).to.include(addressBook.getName(selfAddress));
@@ -79,9 +80,9 @@ describe(TransactionSources.Compound, () => {
     expect(tx.sources).to.include(TransactionSources.Compound);
     expect(tx.transfers.length).to.equal(3);
     const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(TransferCategories.SwapOut);
+    expect(deposit.category).to.equal(SwapOut);
     const cToken = tx.transfers[2];
-    expect(cToken.category).to.equal(TransferCategories.SwapIn);
+    expect(cToken.category).to.equal(SwapIn);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("deposit");
     expect(tx.description).to.include(math.round(deposit.quantity));
@@ -106,9 +107,9 @@ describe(TransactionSources.Compound, () => {
     expect(tx.sources).to.include(TransactionSources.Compound);
     expect(tx.transfers.length).to.equal(3);
     const withdraw = tx.transfers[1];
-    expect(withdraw.category).to.equal(TransferCategories.SwapIn);
+    expect(withdraw.category).to.equal(SwapIn);
     const cToken = tx.transfers[2];
-    expect(cToken.category).to.equal(TransferCategories.SwapOut);
+    expect(cToken.category).to.equal(SwapOut);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("withdr");
     expect(tx.description).to.include(math.round(withdraw.quantity));
@@ -155,7 +156,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.sources).to.include(TransactionSources.Compound);
     expect(tx.transfers.length).to.equal(2);
     const borrow = tx.transfers[1];
-    expect(borrow.category).to.equal(TransferCategories.Borrow);
+    expect(borrow.category).to.equal(Borrow);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("borrow");
     expect(tx.description).to.include(math.round(borrow.quantity));
@@ -180,7 +181,7 @@ describe(TransactionSources.Compound, () => {
     expect(tx.sources).to.include(TransactionSources.Compound);
     expect(tx.transfers.length).to.equal(2);
     const repay = tx.transfers[1];
-    expect(repay.category).to.equal(TransferCategories.Repay);
+    expect(repay.category).to.equal(Repay);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("repay");
     expect(tx.description).to.include(math.round(repay.quantity));

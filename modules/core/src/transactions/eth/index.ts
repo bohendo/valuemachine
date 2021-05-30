@@ -5,6 +5,7 @@ import { keccak256 } from "@ethersproject/keccak256";
 import { encode } from "@ethersproject/rlp";
 import { formatEther } from "@ethersproject/units";
 import {
+  Address,
   AddressBook,
   Assets,
   ChainData,
@@ -14,6 +15,7 @@ import {
   Transaction,
   TransactionSources,
   TransferCategories,
+  TransferCategory,
 } from "@finances/types";
 import { math, sm } from "@finances/utils";
 
@@ -52,16 +54,23 @@ const appParsers = [
   tornadoParser,
 ];
 
+const { Expense, Income, Internal, Unknown } = TransferCategories;
+
 export const parseEthTx = (
   ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-
   const { getName, isSelf } = addressBook;
   const log = logger.child({ module: `Eth${ethTx.hash.substring(0, 8)}` });
   // log.debug(ethTx, `Parsing eth tx`);
+
+  const getSimpleCategory = (to: Address, from: Address): TransferCategory =>
+    (isSelf(to) && isSelf(from)) ? Internal
+      : (isSelf(from) && !isSelf(to)) ? Expense
+        : (isSelf(to) && !isSelf(from)) ? Income
+          : Unknown;
 
   if (!ethTx.logs) {
     throw new Error(`Missing logs for tx ${ethTx.hash}, did fetchChainData get interrupted?`);
@@ -79,11 +88,11 @@ export const parseEthTx = (
   if (isSelf(ethTx.from)) {
     tx.transfers.push({
       asset: Assets.ETH,
-      category: TransferCategories.Expense,
+      category: Expense,
       from: sm(ethTx.from),
       index: -1,
       quantity: formatEther(BigNumber.from(ethTx.gasUsed).mul(ethTx.gasPrice)),
-      to: AddressZero, // 
+      to: AddressZero, // Is there any point is specifiying the coinbase address here?
     });
   }
 
@@ -98,7 +107,7 @@ export const parseEthTx = (
   if (gt(ethTx.value, "0") && (isSelf(ethTx.to) || isSelf(ethTx.from))) {
     tx.transfers.push({
       asset: Assets.ETH,
-      category: TransferCategories.Transfer,
+      category: getSimpleCategory(ethTx.to, ethTx.from),
       from: sm(ethTx.from),
       index: 0,
       quantity: ethTx.value,
@@ -130,7 +139,7 @@ export const parseEthTx = (
     ) {
       tx.transfers.push({
         asset: Assets.ETH,
-        category: TransferCategories.Transfer,
+        category: getSimpleCategory(call.to, call.from),
         // Internal eth transfers have no index, put incoming transfers first & outgoing last
         // This makes underflows less likely during VM processesing
         index: isSelf(call.to) ? 1 : 10000,
@@ -169,7 +178,9 @@ export const parseEthTx = (
 
   // Set a default tx description
   if (!tx.description) {
-    const transfers = tx.transfers.filter(t => t.category === TransferCategories.Transfer);
+    const transfers = tx.transfers.filter(t => 
+      t.category === Income || (t.category === Expense && t.to !== AddressZero)
+    );
     if (transfers.length < 1) {
       tx.description = ethTx.data.length > 3
         ? `${getName(ethTx.from)} called a method on ${getName(ethTx.to)}`

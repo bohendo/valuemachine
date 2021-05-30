@@ -20,6 +20,7 @@ import { getTransactions } from "../index";
 
 import { wethAddresses } from "./weth";
 
+const { SwapIn, SwapOut } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
   module: "TestTransactions",
@@ -62,13 +63,13 @@ describe(TransactionSources.Weth, () => {
     expect(tx.description).to.include(quantity);
     const swapOut = tx.transfers[1];
     expect(swapOut.asset).to.equal(Assets.ETH);
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(swapOut.category).to.equal(SwapOut);
     expect(swapOut.from).to.equal(sender);
     expect(swapOut.to).to.equal(wethAddress);
     expect(swapOut.quantity).to.equal(quantity);
     const swapIn = tx.transfers[2];
     expect(swapIn.asset).to.equal(Assets.WETH);
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.category).to.equal(SwapIn);
     expect(swapIn.from).to.equal(wethAddress);
     expect(swapIn.to).to.equal(sender);
     expect(swapIn.quantity).to.equal(quantity);
@@ -103,13 +104,13 @@ describe(TransactionSources.Weth, () => {
     expect(tx.description).to.include(quantity);
     const swapOut = tx.transfers[1];
     expect(swapOut.asset).to.equal(Assets.WETH);
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(swapOut.category).to.equal(SwapOut);
     expect(swapOut.from).to.equal(sender);
     expect(swapOut.to).to.equal(wethAddress);
     expect(swapOut.quantity).to.equal(quantity);
     const swapIn = tx.transfers[2];
     expect(swapIn.asset).to.equal(Assets.ETH);
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.category).to.equal(SwapIn);
     expect(swapIn.from).to.equal(wethAddress);
     expect(swapIn.to).to.equal(sender);
     expect(swapIn.quantity).to.equal(quantity);
