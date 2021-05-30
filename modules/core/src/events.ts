@@ -16,7 +16,7 @@ import { getLogger, math } from "@finances/utils";
 
 import { rmDups } from "./transactions/utils";
 
-const { add, eq, gt, mul, round, sub  } = math;
+const { abs, add, eq, gt, mul, round, sigfigs, sub  } = math;
 
 export const emitTransactionEvents = (
   addressBook: AddressBook,
@@ -152,23 +152,25 @@ export const emitTransferEvents = (
       const currentPrice = prices.getPrice(transaction.date, chunk.asset, unit);
       if (!currentPrice) {
         log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${transaction.date}`);
+        return events;
       }
       const purchaseValue = mul(chunk.quantity, chunk.purchasePrice);
       const saleValue = mul(chunk.quantity, currentPrice);
-      const gain = sub(saleValue, purchaseValue); // is negative if capital loss
-      if (gt(gain, "0")) {
+      const change = sub(saleValue, purchaseValue); // is negative if capital loss
+      const isGain = gt(change, "0");
+      if (!eq(change, "0")) {
         events.push({
           assetPrice: currentPrice,
           asset: chunk.asset,
           date: transaction.date,
           description: `${round(chunk.quantity)} ${chunk.asset} ${
-            gt(gain, "0") ? "gained" : "lost"
-          } ${round(gain)} ${unit} of value since we got it on ${chunk.dateRecieved}`,
-          gain,
+            isGain ? "gained" : "lost"
+          } ${sigfigs(abs(change))} ${unit} of value since we got it on ${chunk.dateRecieved}`,
+          change,
           purchaseDate: chunk.dateRecieved,
           purchasePrice: chunk.purchasePrice,
           quantity: chunk.quantity,
-          type: EventTypes.CapitalGains,
+          type: isGain ? EventTypes.CapitalGains : EventTypes.CapitalLoss,
         });
       }
     });

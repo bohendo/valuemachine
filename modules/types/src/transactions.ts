@@ -12,12 +12,18 @@ import { enumify } from "./utils";
 export const ExternalSources = enumify({
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
-  External: "External",
   Wyre: "Wyre",
   Wazirx: "Wazirx",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type ExternalSources = (typeof ExternalSources)[keyof typeof ExternalSources];
+
+export const Jurisdictions = {
+  Coinbase: Assets.USD,
+  DigitalOcean: Assets.USD,
+  Wyre: Assets.USD,
+  Wazirx: Assets.INR,
+};
 
 export const OnchainSources = enumify({
   Compound: "Compound",
@@ -41,20 +47,20 @@ export const TransactionSources = enumify({
 export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
 
 export const TransferCategories = enumify({
-  Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
-  Burn: "Burn",
-  Deposit: "Deposit", // eg dai->dsr or eth->compound
+  Transfer: "Transfer", // TODO: rename to Internal
+
   Expense: "Expense",
-  GiftIn: "GiftIn",
-  GiftOut: "GiftOut",
   Income: "Income",
-  Ignore: "Ignore",
-  Mint: "Mint",
-  Repay: "Repay",
+
   SwapIn: "SwapIn",
   SwapOut: "SwapOut",
-  Transfer: "Transfer",
+
+  Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
+  Repay: "Repay",
+
+  Deposit: "Deposit", // eg dai->dsr or eth->compound
   Withdraw: "Withdraw",
+
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type TransferCategories = (typeof TransferCategories)[keyof typeof TransferCategories];

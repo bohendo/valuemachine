@@ -47,6 +47,7 @@ export const getState = ({
   // Internal Functions
 
   const getNextChunk = (account: Address, asset: Assets): AssetChunk => {
+    // TODO: find the one w smallest/largest change in value since we got it
     const index = state.accounts[account].findIndex(chunk => chunk.asset === asset);
     if (index === -1) return undefined;
     return state.accounts[account].splice(index, 1)[0];
@@ -63,6 +64,7 @@ export const getState = ({
       || Object.keys(FiatAssets).includes(chunk.asset)
       || !addressBook.isSelf(account)
     ) {
+      // TODO: put into getName(address) account if it's in the DeFi category
       log.debug(`Skipping external asset put`);
       return;
     }

@@ -141,7 +141,7 @@ const EventRow = ({
                   Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
                   Source: event.from,
-                } : event.type === EventTypes.CapitalGains ? {
+                } : [EventTypes.CapitalLoss, EventTypes.CapitalGains].includes(event.type) ? {
                   asset: event.asset,
                   amount: math.round(event.quantity, 4),
                   purchaseDate: event.purchaseDate.replace("T", " ").replace(".000Z", ""),
@@ -234,14 +234,13 @@ export const EventExplorer = ({
           const [newState, newEvents] = valueMachine(state, transaction);
           vmEvents = vmEvents.concat(...newEvents);
           state = newState;
+          // Give the UI a split sec to re-render & make the hang more bearable
+          await new Promise(res => setTimeout(res, 5));
           const chunk = 100;
           if (transaction.index % chunk === 0) {
-            const diff = (Date.now() - start).toString();
             console.info(`Processed transactions ${transaction.index - chunk}-${
               transaction.index
-            } in ${diff} ms`);
-            // Give the UI a split sec to re-render & make the hang more bearable
-            await new Promise(res => setTimeout(res, 100));
+            } at a rate of ${Math.round((100000*chunk)/(Date.now() - start))/100} tx/sec`);
             start = Date.now();
           }
         }

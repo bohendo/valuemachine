@@ -5,6 +5,7 @@ import { enumify } from "./utils";
 export const EventTypes = enumify({
   Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
   CapitalGains: "CapitalGains",
+  CapitalLoss: "CapitalLoss",
   Deposit: "Deposit", // eg dai->dsr or eth->compound
   Expense: "Expense",
   Income: "Income",
@@ -32,7 +33,14 @@ export type BorrowEvent = BaseEvent & {
 }
 
 export type CapitalGainsEvent = BaseEvent & {
-  gain: DecimalString;
+  change: DecimalString;
+  purchaseDate: TimestampString;
+  purchasePrice: DecimalString;
+  type: typeof EventTypes.CapitalGains;
+}
+
+export type CapitalLossEvent = BaseEvent & {
+  change: DecimalString;
   purchaseDate: TimestampString;
   purchasePrice: DecimalString;
   type: typeof EventTypes.CapitalGains;
