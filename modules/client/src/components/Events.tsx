@@ -208,10 +208,12 @@ export const EventExplorer = ({
   setEvents,
   pricesJson,
   transactions,
+  setState,
   unit,
 }: {
   addressBook: AddressBook;
   events: Events;
+  setState: (state: any) => void;
   setEvents: (events: any) => void;
   pricesJson: PricesJson;
   transactions: Transactions;
@@ -288,14 +290,15 @@ export const EventExplorer = ({
         const finalState = getState({ stateJson: state, addressBook, prices });
         console.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
         console.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
-        res(vmEvents);
+        res([finalState.toJson(), vmEvents]);
       } catch (e) {
         console.log(`Failed to process transactions`);
         console.error(e);
         res([]);
       }
     });
-    setEvents(res);
+    setState(res[0]);
+    setEvents(res[1]);
     setSyncing(old => ({ ...old, state: false }));
   };
 
