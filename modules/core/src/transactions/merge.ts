@@ -31,15 +31,6 @@ const datesAreClose = (
     wiggleRoom,
   );
 
-// External txns can only be merged with eth transaction that include a Income/Expense transfer
-const isMergableEth = transfer =>
-  ([Income, Expense] as TransferCategory[]).includes(transfer?.category)
-  && transfer.to !== AddressZero; // disqualify tx fees
-
-// Eth txns can only be merged with external transactions that include a Deposit/Withdraw transfer
-const isMergableExt = transfer =>
-  ([Deposit, Withdraw] as TransferCategory[]).includes(transfer?.category);
-
 ////////////////////////////////////////
 // Exported Function
 // NOTE: This fn modifies the given list of transactions IN PLACE
@@ -71,19 +62,23 @@ export const mergeTransaction = (
       return transactions;
     }
 
-    // Mergable eth txns can only contain one mergable transfer
-    const transfers = newTx.transfers.filter(isMergableEth);
+    // Mergable eth txns can only contain one notable transfer
+    const transfers = newTx.transfers.filter(transfer =>
+      ([Income, Expense] as TransferCategory[]).includes(transfer.category)
+      && transfer.to !== AddressZero
+    );
     if (transfers.length !== 1) {
       transactions.push(newTx);
       transactions.sort(chrono);
-      log.debug(`Inserted eth tx w ${transfers.length} mergable transfers: ${newTx.description}`);
+      log.debug(`Inserted new eth tx w ${transfers.length} mergable transfers: ${newTx.description}`);
       return transactions;
     }
     const ethTransfer = transfers[0];
 
     // Does this transfer have the same asset & similar quantity as the new eth tx
     const isMergable = (transfer: Transfer): boolean => 
-      isMergableExt(transfer)
+      ((transfer.category === Deposit && ethTransfer.category === Expense) ||
+       (transfer.category === Withdraw && ethTransfer.category === Income))
       && transfer.asset === ethTransfer.asset
       && valuesAreClose(
         transfer.quantity,
@@ -158,7 +153,8 @@ export const mergeTransaction = (
 
     // Does this transfer have the same asset & similar quantity as the new external tx
     const isMergable = (transfer: Transfer): boolean => 
-      isMergableEth(transfer)
+      ((extTransfer.category === Deposit && transfer.category === Expense) ||
+       (extTransfer.category === Withdraw && transfer.category === Income))
       && transfer.asset === extTransfer.asset
       && valuesAreClose(
         transfer.quantity,

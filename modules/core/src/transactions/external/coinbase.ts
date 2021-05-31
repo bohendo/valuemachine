@@ -31,6 +31,10 @@ export const mergeCoinbaseTransactions = (
       ["USD Fees"]: fees,
     } = row;
 
+    const account = "coinbase-account";
+    const exchange = TransactionSources.Coinbase;
+    const external = "external-account";
+
     const transaction = {
       date: (new Date(date)).toISOString(),
       sources: [TransactionSources.Coinbase],
@@ -41,32 +45,32 @@ export const mergeCoinbaseTransactions = (
     let [from, to, category] = ["", "", Unknown as TransferCategory];
 
     if (txType === "Send") {
-      [from, to, category] = ["coinbase-account", "external-account", Withdraw];
+      [from, to, category] = [account, external, Withdraw];
       transaction.description = `Withdrew ${round(quantity)} ${asset} out of coinbase`;
 
     } else if (txType === "Receive") {
-      [from, to, category] = ["external-account", "coinbase-account", Deposit];
+      [from, to, category] = [external, account, Deposit];
       transaction.description = `Deposited ${round(quantity)} ${asset} into coinbase`;
 
     } else if (txType === "Sell") {
-      [from, to, category] = ["coinbase-account", "coinbase-exchange", SwapOut];
+      [from, to, category] = [account, exchange, SwapOut];
       transaction.transfers.push({
         asset: "USD",
         category: SwapIn,
-        from: "coinbase-exchange",
+        from: exchange,
         quantity: usdQuantity,
-        to: "coinbase-account",
+        to: account,
       });
       transaction.description = `Sold ${round(quantity)} ${asset} for ${usdQuantity} USD on coinbase`;
 
     } else if (txType === "Buy") {
-      [from, to, category] = ["coinbase-exchange", "coinbase-account", SwapIn];
+      [from, to, category] = [exchange, account, SwapIn];
       transaction.transfers.push({
         asset: "USD",
         category: SwapOut,
-        from: "coinbase-account",
+        from: account,
         quantity: usdQuantity,
-        to: "coinbase-exchange",
+        to: exchange,
       });
       transaction.description = `Bought ${round(quantity)} ${asset} for ${usdQuantity} USD on coinbase`;
     }
@@ -77,9 +81,9 @@ export const mergeCoinbaseTransactions = (
       transaction.transfers.push({
         asset: "USD",
         category: Expense,
-        from: "coinbase-account",
+        from: account,
         quantity: fees,
-        to: "coinbase-exchange",
+        to: exchange,
       });
     }
 

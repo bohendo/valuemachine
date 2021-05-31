@@ -1,7 +1,6 @@
 import {
   AddressBook,
   Assets,
-  Transfer,
   AddressBookJson,
   AddressCategories,
   ChainData,
@@ -74,37 +73,42 @@ export const tornadoParser = (
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
-  const deposits = tx.transfers.filter((transfer: Transfer): boolean =>
+  let isTornadoTx = false;
+
+  // NOTE: if we want to figure out which pool we're mixing in, we'll have to compare amounts
+  // The tx itself appears to have no info re the target pool
+
+  tx.transfers.filter(transfer =>
     isSelf(transfer.from)
       && mixerAddresses.some(e => smeq(transfer.to, e.address))
       && ([Expense, Deposit] as TransferCategory[]).includes(transfer.category)
-  );
-
-  const withdraws = tx.transfers.filter((transfer: Transfer): boolean =>
-    isSelf(transfer.to)
-      && mixerAddresses.some(e => smeq(transfer.from, e.address))
-      && ([Income, Withdraw] as TransferCategory[]).includes(transfer.category)
-  );
-
-  if (deposits.length || withdraws.length) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
-  }
-
-  deposits.forEach(deposit => {
+  ).forEach(deposit => {
+    isTornadoTx = true;
     deposit.category = Deposit;
+    deposit.to = source;
     const amt = round(deposit.quantity);
     const asset = deposit.asset;
     log.info(`Found deposit of ${amt} ${asset} to ${source}`);
     tx.description = `${getName(deposit.from)} deposited ${amt} ${asset} into ${source}`;
   });
 
-  withdraws.forEach(withdraw => {
+  tx.transfers.filter(transfer =>
+    isSelf(transfer.to)
+      && mixerAddresses.some(e => smeq(transfer.from, e.address))
+      && ([Income, Withdraw] as TransferCategory[]).includes(transfer.category)
+  ).forEach(withdraw => {
+    isTornadoTx = true;
     withdraw.category = Withdraw;
+    withdraw.from = source;
     const amt = round(withdraw.quantity);
     const asset = withdraw.asset;
     log.info(`Found withdraw of ${amt} ${asset} from ${source}`);
     tx.description = `${getName(withdraw.to)} withdrew ${amt} ${asset} from ${source}`;
   });
+
+  if (isTornadoTx) {
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+  }
 
   // log.debug(tx, `Done parsing ${source}`);
   return tx;

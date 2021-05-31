@@ -172,7 +172,11 @@ export const parseEthTx = (
       gt(transfer.quantity, "0")
     ))
     // Make sure all eth addresses are lower-case
-    .map(transfer => ({ ...transfer, from: sm(transfer.from), to: sm(transfer.to) }))
+    .map(transfer => ({
+      ...transfer,
+      from: transfer.from.startsWith("0x") ? sm(transfer.from) : transfer.from,
+      to: transfer.to.startsWith("0x") ? sm(transfer.to) : transfer.to,
+    }))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);
 

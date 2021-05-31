@@ -255,8 +255,14 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      swaps.in.map(swap => { swap.category = SwapIn; return swap; });
-      swaps.out.map(swap => { swap.category = SwapOut; return swap; });
+      swaps.in.forEach(swap => {
+        swap.category = SwapIn;
+        swap.from = address;
+      });
+      swaps.out.forEach(swap => {
+        swap.category = SwapOut;
+        swap.to = address;
+      });
       swaps.in.forEach(swap => { swap.index = swap.index || index; });
       swaps.out.forEach(swap => { swap.index = swap.index || index; });
 
@@ -318,6 +324,7 @@ export const uniswapParser = (
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
       deposit.category = Deposit;
+      deposit.to = address;
       tx.description = `${getName(ethTx.from)} deposited ${
         deposit.asset
       } into ${subsrc} staking pool`;
@@ -337,6 +344,7 @@ export const uniswapParser = (
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
       withdraw.category = Withdraw;
+      withdraw.from = address;
       tx.description = `${getName(ethTx.from)} withdrew ${
         withdraw.asset
       } from ${subsrc} staking pool`;

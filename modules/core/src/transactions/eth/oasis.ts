@@ -134,6 +134,7 @@ export const oasisParser = (
         const swapIn = tx.transfers.find(findSwap(inAmt, inAsset));
         if (swapIn) {
           swapIn.category = SwapIn;
+          swapIn.from = address;
         } else {
           log.debug(`Can't find swap in transfer for ${inAmt} ${inAsset}`);
         }
@@ -141,6 +142,7 @@ export const oasisParser = (
         const swapOut = tx.transfers.find(findSwap(outAmt, outAsset));
         if (swapOut) {
           swapOut.category = SwapOut;
+          swapOut.to = address;
           outAsset = swapOut.asset;
         } else {
           log.debug(`Can't find swap out transfer for ${outAmt} ${outAsset}`);

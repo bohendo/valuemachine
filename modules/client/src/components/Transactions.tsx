@@ -189,6 +189,7 @@ export const TransactionExplorer = ({
   useEffect(() => {
     const getDate = (timestamp: string): string =>
       (new Date(timestamp)).toISOString().split("T")[0];
+    setPage(0);
     setFilteredTxns(transactions
       .filter(tx => !filterStartDate || getDate(tx.date) >= getDate(filterStartDate))
       .filter(tx => !filterEndDate || getDate(tx.date) <= getDate(filterEndDate))

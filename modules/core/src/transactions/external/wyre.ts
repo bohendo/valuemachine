@@ -35,6 +35,10 @@ export const mergeWyreTransactions = (
       ["Type"]: txType,
     } = row;
 
+    const account = "wyre-account";
+    const exchange = TransactionSources.Wyre;
+    const external = "external-account";
+
     const beforeDaiMigration = (date: DateString): boolean =>
       new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime();
 
@@ -57,16 +61,16 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({
         asset: sourceType,
         category: SwapOut,
-        from: "wyre-account",
+        from: account,
         quantity: sourceQuantity,
-        to: "wyre-exchange",
+        to: exchange,
       });
       transaction.transfers.push({
         asset: destType,
         category: SwapIn,
-        from: "wyre-exchange",
+        from: exchange,
         quantity: destQuantity,
-        to: "wyre-account",
+        to: account,
       });
       transaction.description = sourceType === USD
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
@@ -76,9 +80,9 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({
         asset: destType,
         category: Deposit,
-        from: "external-account",
+        from: external,
         quantity: destQuantity,
-        to: "wyre-account",
+        to: account,
       });
       transaction.description = `Deposit ${destQuantity} ${destType} into wyre`;
 
@@ -86,16 +90,16 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({
         asset: sourceType,
         category: SwapOut,
-        from: "external-account",
+        from: external,
         quantity: sourceQuantity,
-        to: "wyre-exchange",
+        to: exchange,
       });
       transaction.transfers.push({
         asset: destType,
         category: SwapIn,
-        from: "wyre-exchange",
+        from: exchange,
         quantity: destQuantity,
-        to: "wyre-account",
+        to: account,
       });
       transaction.description = sourceType === USD
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
@@ -105,9 +109,9 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({
         asset: destType,
         category: Withdraw,
-        from: "wyre-account",
+        from: account,
         quantity: destQuantity,
-        to: "external-account",
+        to: external,
       });
       transaction.description = `Withdraw ${destQuantity} ${destType} out of wyre`;
 
@@ -115,16 +119,16 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({
         asset: sourceType,
         category: SwapOut,
-        from: "wyre-account",
+        from: account,
         quantity: sourceQuantity,
-        to: "wyre-exchange",
+        to: exchange,
       });
       transaction.transfers.push({
         asset: destType,
         category: SwapIn,
-        from: "wyre-exchange",
+        from: exchange,
         quantity: destQuantity,
-        to: "external-account",
+        to: external,
       });
       transaction.description = sourceType === USD
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
@@ -134,8 +138,8 @@ export const mergeWyreTransactions = (
     // Add fees paid to exchange
     const feeTransfer = {
       category: Expense,
-      from: "wyre-account",
-      to: "wyre-exchange",
+      from: account,
+      to: exchange,
     };
     if (math.gt(usdFees, "0")) {
       transaction.transfers.push({ ...feeTransfer, asset: USD, quantity: usdFees });

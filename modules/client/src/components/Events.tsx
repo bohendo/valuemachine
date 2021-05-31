@@ -164,6 +164,25 @@ const EventRow = ({
                   Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
                   Source: event.from,
+
+                } : event.type === EventTypes.Deposit ? {
+                  Asset: event.asset,
+                  Amount: math.round(event.quantity, 4),
+                  Recipient: event.to,
+                } : event.type === EventTypes.Withdraw ? {
+                  Asset: event.asset,
+                  Amount: math.round(event.quantity, 4),
+                  Source: event.from,
+
+                } : event.type === EventTypes.Repay ? {
+                  Asset: event.asset,
+                  Amount: math.round(event.quantity, 4),
+                  Recipient: event.to,
+                } : event.type === EventTypes.Borrow ? {
+                  Asset: event.asset,
+                  Amount: math.round(event.quantity, 4),
+                  Source: event.from,
+
                 } : event.type === EventTypes.Trade ? {
                   ["Exact Give"]: swapToStr(event.outputs),
                   ["Exact Take"]: swapToStr(event.inputs),
@@ -203,6 +222,7 @@ export const EventExplorer = ({
   const classes = useStyles();
 
   useEffect(() => {
+    setPage(0);
     setFilteredEvents(events.filter(event =>
       (!filterAsset || event.asset === filterAsset)
       && (!filterType || event.type === filterType)
