@@ -37,7 +37,7 @@ import React, { useEffect, useState } from "react";
 
 import { store } from "../store";
 
-const { mul, sub } = math;
+const { add, mul, round, sub } = math;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
@@ -186,6 +186,10 @@ const EventRow = ({
                 } : event.type === EventTypes.Trade ? {
                   ["Exact Give"]: swapToStr(event.outputs),
                   ["Exact Take"]: swapToStr(event.inputs),
+                  ["Total Capital Change"]: round(event.spentChunks?.reduce((sum, chunk) => add(
+                    sum,
+                    mul(chunk.quantity, sub(chunk.receivePrice, event?.price?.[chunk.asset])),
+                  ), "0")),
                   ...pricesToDisplay(event.prices),
                   ...chunksToDisplay(event.spentChunks, event.prices),
                 } : {}
