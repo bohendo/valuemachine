@@ -17,7 +17,7 @@ import { emitTransferEvents } from "./events";
 import { getState } from "./state";
 import { rmDups } from "./transactions/utils";
 
-const { SwapIn, SwapOut } = TransferCategories;
+const { Deposit, Internal, SwapIn, SwapOut } = TransferCategories;
 const { add, mul, round } = math;
 
 export const getValueMachine = ({
@@ -126,6 +126,12 @@ export const getValueMachine = ({
       log.warn(swapsOut, `Can't find swaps in to match swaps out`);
       later.push(...swapsOut);
     }
+
+    ////////////////////
+    // Create special accounts
+    transaction.transfers.filter(
+      t => ([Deposit, Internal] as TransferCategory[]).includes(t.category)
+    ).forEach(transfer => state.createAccount(transfer.to));
 
     ////////////////////
     // Simple Transfers Attempt 1
