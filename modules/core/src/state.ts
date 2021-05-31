@@ -181,6 +181,7 @@ export const getState = ({
   const getAllBalances = (): StateBalances => {
     const output = {} as StateBalances;
     for (const account of Object.keys(state.accounts)) {
+      const name = addressBook.getName(account);
       const assets = state.accounts[account].reduce((acc, cur) => {
         if (!acc.includes(cur.asset)) {
           acc.push(cur.asset);
@@ -188,8 +189,8 @@ export const getState = ({
         return acc;
       }, []);
       for (const asset of assets) {
-        output[account] = output[account] || {};
-        output[account][asset] = getBalance(account, asset);
+        output[name] = output[name] || {};
+        output[name][asset] = getBalance(account, asset);
       }
     }
     return output;
