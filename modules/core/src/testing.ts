@@ -27,13 +27,15 @@ testLogger.info(env, `Starting tests in env`);
 
 export const AddressOne = "0x0000000000000000000000000000000000000001";
 export const AddressTwo = "0x0000000000000000000000000000000000000002";
-export const testToken = "0x0000000000000000000000000000000000000003";
+export const AddressThree = "0x0000000000000000000000000000000000000003";
+export const testToken = "0x0000000000000000000000000000000000000004";
 
 export const getTestAddressBook = (addressBook: AddressBookJson = []): AddressBook =>
   getAddressBook(
     [
       { name: "test-self-1", category: AddressCategories.Self, address: AddressOne },
       { name: "test-self-2", category: AddressCategories.Self, address: AddressTwo },
+      { name: "test-3", category: AddressCategories.Self, address: AddressThree },
       { name: "test-token", category: AddressCategories.ERC20, address: testToken },
       ...addressBook,
     ],

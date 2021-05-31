@@ -7,12 +7,12 @@ import {
 } from "@finances/types";
 import { expect } from "@finances/utils";
 
-import { AddressOne, AddressTwo, testLogger } from "../testing";
+import { AddressOne, AddressThree, testLogger } from "../testing";
 
 import { mergeTransaction } from "./merge";
 
 const { ETH } = Assets;
-const { Expense, Internal, Deposit } = TransferCategories;
+const { Expense, Deposit } = TransferCategories;
 const { Coinbase, EthTx } = TransactionSources;
 const log = testLogger.child({
   // level: "debug",
@@ -56,14 +56,14 @@ const getEthTx = (): Transaction => ({
     },
     {
       asset: ETH,
-      category: Internal,
+      category: Expense,
       from: AddressOne,
       index: 0,
       quantity: value,
-      to: AddressTwo,
+      to: AddressThree,
     }
   ],
-  description: "test-self-1 transfered 1.3142 ETH to test-self-2",
+  description: "test-self-1 transfered 1.3142 ETH to test-3",
 });
 
 describe("Merge", () => {

@@ -15,7 +15,7 @@ import { getLogger, math } from "@finances/utils";
 import { chrono, isHash, rmDups, valuesAreClose } from "./utils";
 
 const { div } = math;
-const { Income, Expense, Deposit, Withdraw, Internal } = TransferCategories;
+const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 
 ////////////////////////////////////////
 // Internal Helper Functions
@@ -32,9 +32,8 @@ const datesAreClose = (
   );
 
 // External txns can only be merged with eth transaction that include a Income/Expense transfer
-// or maybe Internal if the exchange address is tagged as self
 const isMergableEth = transfer =>
-  ([Income, Expense, Internal] as TransferCategory[]).includes(transfer?.category)
+  ([Income, Expense] as TransferCategory[]).includes(transfer?.category)
   && transfer.to !== AddressZero; // disqualify tx fees
 
 // Eth txns can only be merged with external transactions that include a Deposit/Withdraw transfer
@@ -68,6 +67,7 @@ export const mergeTransaction = (
     if (index >= 0) { // If this is NOT the first time we've encountered this eth tx
       log.debug(`Replaced duplicate eth tx: ${newTx.description}`);
       transactions[index] = newTx;
+      transactions.sort(chrono);
       return transactions;
     }
 

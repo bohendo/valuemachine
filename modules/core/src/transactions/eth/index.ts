@@ -179,15 +179,22 @@ export const parseEthTx = (
   // Set a default tx description
   if (!tx.description) {
     if (tx.transfers.length === 1) {
-      tx.description = ethTx.data.length > 3
-        ? `${getName(ethTx.from)} called a method on ${getName(ethTx.to)}`
-        : `${getName(ethTx.from)} did nothing`;
+      const transfer = tx.transfers[0];
+      if (transfer.to === AddressZero) { // if the only transfer is a tx fee
+        tx.description = ethTx.data.length > 3
+          ? `${getName(ethTx.from)} called a method on ${getName(ethTx.to)}`
+          : `${getName(ethTx.from)} did nothing`;
+      } else {
+        tx.description = `${getName(transfer.from)} transfered ${
+          round(transfer.quantity, 4)
+        } ${transfer.asset} to ${getName(transfer.to)}`;
+      }
     } else if (tx.transfers.length > 2) {
       tx.description = `${getName(ethTx.to)} made ${tx.transfers.length} transfers`;
     } else {
       const transfer = tx.transfers[1];
       if (!transfer) {
-        tx.description = `${getName(transfer.from)} did nothing`;
+        tx.description = `${getName(ethTx.from)} did nothing`;
       } else if (!eq("0", transfer.quantity)) {
         tx.description = `${getName(transfer.from)} transfered ${
           round(transfer.quantity, 4)

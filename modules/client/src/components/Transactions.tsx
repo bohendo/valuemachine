@@ -189,34 +189,14 @@ export const TransactionExplorer = ({
   useEffect(() => {
     const getDate = (timestamp: string): string =>
       (new Date(timestamp)).toISOString().split("T")[0];
-
     setFilteredTxns(transactions
-
-      // Filter Start Date
-      .filter(tx =>
-        !filterStartDate
-        || getDate(tx.date) >= getDate(filterStartDate)
-
-      // Filter End Date
-      ).filter(tx =>
-        !filterEndDate
-        || getDate(tx.date) <= getDate(filterEndDate)
-
-      // Filter Asset
-      ).filter(hasAsset(filterAsset)
-
-      // Filter account
-      ).filter(hasAccount(filterAccount)
-
-      // Filter Source
-      ).filter(hasSource(filterSource)
-
-      // Sort by date w most recent first
-      ).sort((e1: Transaction, e2: Transaction) =>
-        (e1.date > e2.date) ? -1
-          : (e1.date < e2.date) ? 1
-            : 0
-
+      .filter(tx => !filterStartDate || getDate(tx.date) >= getDate(filterStartDate))
+      .filter(tx => !filterEndDate || getDate(tx.date) <= getDate(filterEndDate))
+      .filter(hasAsset(filterAsset))
+      .filter(hasAccount(filterAccount))
+      .filter(hasSource(filterSource))
+      .sort((e1: Transaction, e2: Transaction) =>
+        (e1.date > e2.date) ? -1 : (e1.date < e2.date) ? 1 : 0
       )
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -381,7 +361,8 @@ export const TransactionExplorer = ({
           <MenuItem value={""}>-</MenuItem>
           {Object.values(addressBook?.json || [])
             .filter(account => account.category === AddressCategories.Self)
-            .filter(account => filteredTxns.some(hasAccount(account.address)))
+            // TODO: the following line crashes the page when txns are cleared
+            // .filter(account => filteredTxns.some(hasAccount(account.address)))
             .map(account => (
               <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
             ))
@@ -399,7 +380,8 @@ export const TransactionExplorer = ({
         >
           <MenuItem value={""}>-</MenuItem>
           {Object.keys(Assets)
-            .filter(asset => filteredTxns.some(hasAsset(asset)))
+            // TODO: the following line crashes the page when txns are cleared
+            // .filter(asset => filteredTxns.some(hasAsset(asset)))
             .map(asset => (
               <MenuItem key={asset} value={asset}>{asset}</MenuItem>
             ))
@@ -417,7 +399,8 @@ export const TransactionExplorer = ({
         >
           <MenuItem value={""}>-</MenuItem>
           {Object.keys(TransactionSources)
-            .filter(source => filteredTxns.some(hasSource(source)))
+            // TODO: the following line crashes the page when txns are cleared
+            // .filter(source => filteredTxns?.some(hasSource(source)))
             .map(source => (
               <MenuItem key={source} value={source}>{source}</MenuItem>
             ))
