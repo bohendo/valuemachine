@@ -37,7 +37,7 @@ import React, { useEffect, useState } from "react";
 
 import { store } from "../store";
 
-const { add, mul, sub } = math;
+const { mul, sub } = math;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
@@ -93,27 +93,48 @@ const SimpleTable = ({
 
 const EventRow = ({
   event,
+  unit,
 }: {
   event: Event;
+  unit: Assets;
 }) => {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (event && open) console.log(event);
+  }, [event, open]);
+
   const swapToStr = (swaps) =>
     Object.entries(swaps || {}).map(([key, val]) => `${val} ${key}`).join(" and ");
+
+  const chunksToDisplay = (chunks, prices) => {
+    const output = {};
+    for (const i in chunks) {
+      const chunk = chunks[i];
+      const index = parseInt(i, 10) + 1;
+      output[`Chunk ${index}`] = `${chunk.quantity} ${chunk.asset}`;
+      output[`Chunk ${index} Recieve Date`] = chunk.receiveDate;
+      output[`Chunk ${index} Recieve Price`] = chunk.receivePrice;
+      output[`Chunk ${index} Capital Change`] = `${mul(
+        chunk.quantity,
+        sub(prices[chunk.asset], chunk.receivePrice),
+      ).substring(0, 20)} ${unit}`;
+    }
+    return output;
+  };
+
   const pricesToDisplay = (prices) => {
     const output = {};
-    const targets = new Set();
-    Object.entries(prices || {}).forEach(([unit, entry]) => {
-      Object.entries(entry || {}).forEach(([asset, price]) => {
-        targets.add(asset);
-        output[`${asset} Price`] = output[`${asset} Price`] || [];
-        output[`${asset} Price`].push(`${math.round(price, 4)} ${unit}`);
-      });
+    Object.entries(prices || {}).forEach(([asset, price]) => {
+      output[`${asset} Price`] = output[`${asset} Price`] || [];
+      output[`${asset} Price`].push(`${math.round(price, 4)} ${unit}`);
     });
     Object.keys(output).forEach(key => {
       output[key] = output[key].join(" or ");
     });
     return output;
   };
+
   return (
     <React.Fragment>
       <TableRow>
@@ -144,12 +165,10 @@ const EventRow = ({
                   Amount: math.round(event.quantity, 4),
                   Source: event.from,
                 } : event.type === EventTypes.Trade ? {
-                  ["Exact Give"]: swapToStr(event.swapsOut),
-                  ["Exact Take"]: swapToStr(event.swapsIn),
-                  ["Capital Change"]: event.capitalChanges.reduce((acc, capChange) => add(acc, (
-                    mul(capChange.quantity, sub(capChange.currentPrice, capChange.receivePrice))
-                  )), "0"),
+                  ["Exact Give"]: swapToStr(event.outputs),
+                  ["Exact Take"]: swapToStr(event.inputs),
                   ...pricesToDisplay(event.prices),
+                  ...chunksToDisplay(event.spentChunks, event.prices),
                 } : {}
               }/>
             </Box>
@@ -353,7 +372,7 @@ export const EventExplorer = ({
               {filteredEvents
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((event: Events, i: number) => (
-                  <EventRow key={i} event={event} />
+                  <EventRow key={i} event={event} unit={unit} />
                 ))}
             </TableBody>
           </Table>

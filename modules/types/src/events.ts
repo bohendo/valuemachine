@@ -1,4 +1,4 @@
-import { Assets } from "./assets";
+import { Assets, AssetChunk } from "./assets";
 import { Address, DecimalString, TimestampString } from "./strings";
 import { enumify } from "./utils";
 
@@ -62,16 +62,11 @@ export type WithdrawEvent = BaseEvent & {
 export type TradeEvent = {
   date: TimestampString;
   description: string;
-  swapsIn: { [asset: string]: DecimalString };
-  swapsOut: { [asset: string]: DecimalString };
+  inputs: { [asset: string]: DecimalString };
+  outputs: { [asset: string]: DecimalString };
+  prices: { [asset: string]: DecimalString };
+  spentChunks: AssetChunk[];
   tags?: string[];
-  capitalChanges: Array<{
-    asset: Assets;
-    quantity: DecimalString;
-    currentPrice: DecimalString;
-    receivePrice: DecimalString;
-    receiveDate: TimestampString;
-  }>
   type: typeof EventTypes.Trade;
 }
 

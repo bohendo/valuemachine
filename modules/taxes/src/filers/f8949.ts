@@ -1,13 +1,22 @@
-import { CapitalGainsEvent, Events, EventTypes } from "@finances/types";
+import { TradeEvent, Events, EventTypes } from "@finances/types";
 import { math } from "@finances/utils";
 
 import { Forms } from "../types";
 import { logger, toFormDate } from "../utils";
 
-const { add, eq, gt, mul, round, sub } = math;
+const { add, gt, mul, round, sub } = math;
 
 const msPerDay = 1000 * 60 * 60 * 24;
 const msPerYear = msPerDay * 365;
+
+type Trade = {
+  date: string;
+  purchaseDate: string;
+  asset: string;
+  assetPrice: string;
+  receivePrice: string;
+  quantity: string;
+};
 
 export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
   const log = logger.child({ module: "f8949" });
@@ -20,22 +29,22 @@ export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
 
   const getDate = (timestamp: string): string => timestamp.split("T")[0];
 
-  // Merge trades w the same recieved & sold dates
-  const trades = [];
+  // Merge trades w the same received & sold dates
+  const trades = [] as Trade[];
   vmEvents
-    .filter(vmEvent => vmEvent.type === EventTypes.CapitalGains)
-    .filter((vmEvent: CapitalGainsEvent) => !eq(round(vmEvent.quantity, 4), "0"))
-    .filter((trade: CapitalGainsEvent) => getDate(trade.date) !== getDate(trade.purchaseDate))
-    .forEach((trade: CapitalGainsEvent): void => {
-      const dup = trades.findIndex(merged =>
-        merged.asset === trade.asset &&
-        getDate(merged.date) === getDate(trade.date) &&
-        getDate(merged.purchaseDate) === getDate(trade.purchaseDate),
-      );
-      if (dup !== -1) {
-        trades[dup].quantity = add(trades[dup].quantity, trade.quantity);
-      } else {
-        trades.push(trade);
+    .filter(vmEvent => vmEvent.type === EventTypes.Trade)
+    .forEach((vmEvent: TradeEvent): void => {
+      if (vmEvent.spentChunks.length) {
+        for (const chunk of vmEvent.spentChunks) {
+          trades.push({
+            date: getDate(vmEvent.date),
+            asset: chunk.asset,
+            receivePrice: chunk.receivePrice,
+            assetPrice: vmEvent.prices[chunk.asset],
+            purchaseDate: chunk.receiveDate,
+            quantity: chunk.quantity,
+          });
+        }
       }
     });
 
@@ -44,7 +53,7 @@ export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
   const columns = ["d", "e", "g", "h"];
   const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
-  const isLongTerm = (trade: CapitalGainsEvent): boolean => 
+  const isLongTerm = (trade: Trade): boolean => 
     (new Date(trade.date).getTime() - new Date(trade.purchaseDate).getTime()) >= msPerYear;
 
   const chunkify = (list: any[]): any[][] => list.map(
@@ -66,11 +75,11 @@ export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
     const subF8949 = {} as any;
     subF8949.P1C0_C = shortTerm.length > 0;
     subF8949.P2C0_F = longTerm.length > 0;
-    const parseTrade = getCell => (trade: CapitalGainsEvent, index: number): void => {
+    const parseTrade = getCell => (trade: Trade, index: number): void => {
       const i = index + 1;
       const description = `${round(trade.quantity, 4)} ${trade.asset}`;
       const proceeds = round(mul(trade.quantity, trade.assetPrice));
-      const cost = round(mul(trade.quantity, trade.purchasePrice));
+      const cost = round(mul(trade.quantity, trade.receivePrice));
       const gainOrLoss = sub(proceeds, cost);
       const pad = (str: string, n = 9): string => str.padStart(n, " ");
       log.info(

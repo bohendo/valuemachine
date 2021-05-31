@@ -36,8 +36,8 @@ describe("State", () => {
 
     state.putChunk(AddressOne, {
       asset: asset,
-      dateRecieved: new Date().toISOString(),
-      purchasePrice: "1.02",
+      receiveDate: new Date().toISOString(),
+      receivePrice: "1.02",
       quantity: amt,
     });
     expect(Object.keys(state.getAllBalances()).length).to.equal(1);

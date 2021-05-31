@@ -71,7 +71,7 @@ export const getState = ({
     log.debug(`Putting ${chunk.quantity} ${chunk.asset} into account ${account}`);
     state.accounts[account].push(chunk);
     state.accounts[account].sort((chunk1, chunk2) =>
-      new Date(chunk1.dateRecieved).getTime() - new Date(chunk2.dateRecieved).getTime(),
+      new Date(chunk1.receiveDate).getTime() - new Date(chunk2.receiveDate).getTime(),
     );
   };
 
@@ -84,18 +84,18 @@ export const getState = ({
   ): AssetChunk[] => {
     if (Object.keys(FiatAssets).includes(asset)) {
       log.debug(`Printing more ${asset}, Brr!`); // In this value machine, anyone can print fiat
-      return [{ asset, dateRecieved: new Date(0).toISOString(), purchasePrice: "1", quantity }];
+      return [{ asset, receiveDate: new Date(0).toISOString(), receivePrice: "1", quantity }];
     }
     // We assume nothing about the history of chunks coming to us from external parties
     if (!addressBook.isSelf(account)) {
-      const purchasePrice = prices.getPrice(transaction.date, asset, unit);
-      if (!purchasePrice) {
+      const receivePrice = prices.getPrice(transaction.date, asset, unit);
+      if (!receivePrice) {
         log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${transaction.date}`);
       }
       return [{
         asset,
-        dateRecieved: transaction.date,
-        purchasePrice,
+        receiveDate: transaction.date,
+        receivePrice,
         quantity,
       }];
     }

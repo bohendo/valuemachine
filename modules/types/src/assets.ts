@@ -127,7 +127,7 @@ export type Assets = (typeof Assets)[keyof typeof Assets];
 
 export type AssetChunk = {
   asset: Assets;
-  dateRecieved: TimestampString;
-  purchasePrice: DecimalString; /* units of account (USD/DAI) per 1 asset */
   quantity: DecimalString;
+  receiveDate: TimestampString;
+  receivePrice: DecimalString;
 };

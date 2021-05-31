@@ -6,6 +6,7 @@ import {
   Logger,
   Prices,
   StateJson,
+  TradeEvent,
   Transaction,
   TransferCategories,
   TransferCategory,
@@ -17,7 +18,7 @@ import { getState } from "./state";
 import { rmDups } from "./transactions/utils";
 
 const { SwapIn, SwapOut } = TransferCategories;
-const { eq, add, mul, round } = math;
+const { add, mul, round } = math;
 
 export const getValueMachine = ({
   addressBook,
@@ -54,17 +55,23 @@ export const getValueMachine = ({
 
     ////////////////////
     // Trades
+    const tradeEvent = {
+      date: transaction.date,
+      prices: {},
+      type: EventTypes.Trade,
+    } as TradeEvent;
     const swapsIn = transaction.transfers.filter(t => t.category === SwapIn);
     const swapsOut = transaction.transfers.filter(t => t.category === SwapOut);
     if (swapsIn.length && swapsOut.length) {
       const sum = (acc, cur) => add(acc, cur.quantity);
       const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
-      const assetsIn = rmDups(
-        swapsIn
-          .map(swap => swap.asset)
-          // If some input asset was refunded, remove this from the output asset list
-          .filter(asset => !assetsOut.includes(asset))
+      const assetsIn = rmDups(swapsIn.map(swap => swap.asset)
+        .filter(asset => !assetsOut.includes(asset)) // remove refunds from the output asset list
       );
+      // Save prices at the time of this tx
+      for (const asset of rmDups([...assetsIn, ...assetsOut]) as Assets[]) {
+        tradeEvent.prices[asset] = prices.getPrice(transaction.date, asset, unit);
+      }
       const amtsOut = assetsOut.map(asset =>
         swapsIn
           .filter(swap => swap.asset === asset)
@@ -85,31 +92,23 @@ export const getValueMachine = ({
         outputs[asset] = amtsOut[index];
       });
 
+      tradeEvent.description = `Traded ${
+        assetsOut.map((asset, i) => `${round(amtsOut[i])} ${asset}`).join(" & ")
+      } for ${
+        assetsIn.map((asset, i) => `${round(amtsIn[i])} ${asset}`).join(" & ")
+      }`;
+      tradeEvent.inputs = inputs;
+      tradeEvent.outputs = outputs;
+
       // Process trade
       // TODO: abort or whatev if to/from values aren't consistent among swap chunks
       // eg if one account uniswaps & sends the output to a different self account
       let chunks = [] as any;
-      const capitalChanges = [] as any;
       for (const [asset, quantity] of Object.entries(outputs)) {
         chunks = state.getChunks(
           swapsOut[0].from, asset as Assets, quantity as string, transaction, unit,
         );
-        chunks.forEach(chunk => {
-          const currentPrice = prices.getPrice(transaction.date, chunk.asset, unit);
-          if (currentPrice) {
-            if (!eq(currentPrice, chunk.purchasePrice)) {
-              capitalChanges.push({
-                asset: chunk.asset,
-                quantity: chunk.quantity,
-                currentPrice,
-                receivePrice: chunk.purchasePrice,
-                receiveDate: chunk.dateRecieved,
-              });
-            }
-          } else {
-            log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${transaction.date}`);
-          }
-        });
+        tradeEvent.spentChunks = [...chunks]; // Assumes chunks are never modified.. Is this safe?
         chunks.forEach(chunk => state.putChunk(swapsOut[0].to, chunk));
       }
       for (const [asset, quantity] of Object.entries(inputs)) {
@@ -118,20 +117,7 @@ export const getValueMachine = ({
         );
         chunks.forEach(chunk => state.putChunk(swapsIn[0].to, chunk));
       }
-
-      // TODO: add capital changes too
-      events.push({
-        date: transaction.date,
-        description: `Traded ${
-          assetsOut.map((asset, i) => `${round(amtsOut[i])} ${asset}`).join(" & ")
-        } for ${
-          assetsIn.map((asset, i) => `${round(amtsIn[i])} ${asset}`).join(" & ")
-        }`,
-        swapsIn: inputs,
-        swapsOut: outputs,
-        capitalChanges,
-        type: EventTypes.Trade,
-      });
+      events.push(tradeEvent);
 
     } else if (swapsIn.length && !swapsOut.length) {
       log.warn(swapsIn, `Can't find swaps out to match swaps in`);
