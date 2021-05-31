@@ -1,3 +1,4 @@
+import { AddressZero } from "@ethersproject/constants";
 import {
   AddressBook,
   AddressCategories,
@@ -49,7 +50,7 @@ export const emitTransferEvents = (
     newEvent.description = `Recieved ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
 
-  } else if (category === Expense) {
+  } else if (category === Expense && to !== AddressZero) { // Omit tx fees for now
     newEvent.to = to;
     newEvent.description = `Paid ${round(quantity)} ${asset} to ${getName(to)} `;
     events.push(newEvent);

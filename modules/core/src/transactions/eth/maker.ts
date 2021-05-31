@@ -667,7 +667,7 @@ export const makerParser = (
         );
         if (fee) {
           fee.category = Expense;
-          fee.to = cdp;
+          fee.to = AddressZero;
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a MKR/SAI fee`);
         }
