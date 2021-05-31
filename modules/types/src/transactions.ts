@@ -6,13 +6,19 @@ import { DecimalString, HexString, TimestampString } from "./strings";
 import { Store } from "./store";
 import { enumify } from "./utils";
 
+export const Jurisdictions = {
+  Coinbase: Assets.USD,
+  DigitalOcean: Assets.USD,
+  Wyre: Assets.USD,
+  Wazirx: Assets.INR,
+};
+
 ////////////////////////////////////////
 // Transactions
 
 export const ExternalSources = enumify({
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
-  External: "External",
   Wyre: "Wyre",
   Wazirx: "Wazirx",
 });
@@ -41,27 +47,27 @@ export const TransactionSources = enumify({
 export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
 
 export const TransferCategories = enumify({
-  Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
-  Burn: "Burn",
-  Deposit: "Deposit", // eg dai->dsr or eth->compound
+  Internal: "Internal",
+  Unknown: "Unknown",
+
   Expense: "Expense",
-  GiftIn: "GiftIn",
-  GiftOut: "GiftOut",
   Income: "Income",
-  Ignore: "Ignore",
-  Mint: "Mint",
-  Repay: "Repay",
+
   SwapIn: "SwapIn",
   SwapOut: "SwapOut",
-  Transfer: "Transfer",
+
+  Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
+  Repay: "Repay",
+
+  Deposit: "Deposit", // eg dai->dsr or eth->compound
   Withdraw: "Withdraw",
+
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type TransferCategories = (typeof TransferCategories)[keyof typeof TransferCategories];
+export type TransferCategory = (typeof TransferCategories)[keyof typeof TransferCategories];
 
 export type Transfer = {
   asset: Assets;
-  category: TransferCategories;
+  category: TransferCategory;
   from: HexString;
   index?: number;
   quantity: DecimalString;

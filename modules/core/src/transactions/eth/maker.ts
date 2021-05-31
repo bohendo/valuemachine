@@ -8,19 +8,23 @@ import {
   AddressCategories,
   Assets,
   ChainData,
+  DecimalString,
   EthTransaction,
   EthTransactionLog,
   Logger,
   Transaction,
   TransactionSources,
+  Transfer,
   TransferCategories,
+  TransferCategory,
 } from "@finances/types";
 import { math, sm, smeq, toBN } from "@finances/utils";
 
-import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
+import { rmDups, parseEvent, valuesAreClose } from "../utils";
 
 const { abs, diff, div, eq, gt, round } = math;
 const { DAI, ETH, MKR, PETH, SAI, WETH } = Assets;
+const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 const source = TransactionSources.Maker;
 
@@ -53,7 +57,7 @@ const machineAddresses = [
   { name: "mcd-dai-join", address: "0x9759a6ac90977b93b58547b4a71c78317f391a28" },
   { name: "mcd-gem-join", address: "0x2f0b23f53734252bda2277357e97e1517d6b042a" },
   { name: "mcd-migration", address: mcdMigrationAddress },
-  { name: "mcd-pot", address: potAddress },
+  { name: "DSR", address: potAddress }, // aka the Pot
   { name: "mcd-sai-join", address: "0xad37fd42185ba63009177058208dd1be4b136e6b" },
   { name: "mcd-vat", address: vatAddress },
   { name: "mcd-manager", address: managerAddress },
@@ -170,6 +174,14 @@ const proxyInterface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
+// Smallest difference is first, largest is last
+// If diff in 1 is greater than diff in 2, swap them
+const diffAsc = (compareTo: DecimalString) => (t1: Transfer, t2: Transfer): number =>
+  gt(
+    diff(t1.quantity, compareTo),
+    diff(t2.quantity, compareTo),
+  ) ? 1 : -1;
+
 const parseLogNote = (
   iface: Interface,
   ethLog: EthTransactionLog,
@@ -214,12 +226,14 @@ export const makerParser = (
     const swapOut = tx.transfers.find(t => t.asset === SAI);
     const swapIn = tx.transfers.find(t => t.asset === DAI);
     if (swapOut) {
-      swapOut.category = TransferCategories.SwapOut;
+      swapOut.category = SwapOut;
+      swapOut.to = mcdMigrationAddress;
     } else {
       log.warn(`Can't find a SwapOut SAI transfer`);
     }
     if (swapIn) {
-      swapIn.category = TransferCategories.SwapIn;
+      swapIn.category = SwapIn;
+      swapIn.from = mcdMigrationAddress;
     } else {
       log.warn(`Can't find an associated SwapIn DAI transfer`);
     }
@@ -229,34 +243,16 @@ export const makerParser = (
     return tx;
   }
 
+  ////////////////////////////////////////
+  // PETH/SAI/DAI
+  // Process token interactions before any of the rest of the maker machinery
+  // So that they have all the transfers needed to search through
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     const index = txLog.index || 1;
     if (machineAddresses.some(e => smeq(e.address, address))) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
     }
-
-    ////////////////////////////////////////
-    // Proxy Managers
-    if (proxyAddresses.some(e => smeq(address, e.address))) {
-      const event = parseEvent(proxyInterface, txLog);
-      if (event?.name === "Created") {
-        const proxy = sm(event.args.proxy);
-        const owner = sm(event.args.owner);
-        if (!addressBook.isPresent(proxy)) {
-          log.info(`Found CDP proxy creation, adding ${proxy} to our addressBook`);
-          addressBook.newAddress(sm(proxy), AddressCategories.Proxy, "CDP");
-        } else {
-          log.info(`Found CDP proxy creation but ${proxy} is already in our addressBook`);
-        }
-        if (proxyAddresses.some(e => smeq(e.address, ethTx.to))) {
-          tx.description = `${getName(owner)} created a new CDP proxy`;
-        }
-      }
-    }
-
-    ////////////////////////////////////////
-    // PETH/SAI/DAI
     if (tokenAddresses.some(e => smeq(e.address, address))) {
       const asset = getName(address) as Assets;
       const event = parseEvent(tokenInterface, txLog);
@@ -271,7 +267,7 @@ export const makerParser = (
         if (smeq(address, pethAddress)) {
           const swapIn = {
             asset,
-            category: TransferCategories.SwapIn,
+            category: SwapIn,
             from: tubAddress,
             index,
             quantity: wad,
@@ -281,20 +277,19 @@ export const makerParser = (
         } else {
           tx.transfers.push({
             asset,
-            category: TransferCategories.Borrow,
+            category: Borrow,
             from: AddressZero,
             index,
             quantity: wad,
             to: event.args.guy,
           });
         }
-
       } else if (event.name === "Burn") {
         log.info(`Parsing ${asset} ${event.name} of ${wad}`);
         if (smeq(address, pethAddress)) {
           const swapOut = {
             asset,
-            category: TransferCategories.SwapOut,
+            category: SwapOut,
             from: event.args.guy,
             index,
             quantity: wad,
@@ -304,22 +299,45 @@ export const makerParser = (
         } else {
           tx.transfers.push({
             asset,
-            category: TransferCategories.Repay,
-            from: AddressZero,
+            category: Repay,
+            from: event.args.guy,
             index,
             quantity: wad,
-            to: event.args.guy,
+            to: AddressZero,
           });
         }
-
       } else if (["Approval", "Transfer"].includes(event.name)) {
         log.debug(`Skipping ${event.name} event from ${asset}`);
       } else {
         log.warn(`Unknown ${event.name} event from ${asset}`);
       }
+    }
+  }
+
+  for (const txLog of ethTx.logs) {
+    const address = sm(txLog.address);
+    const index = txLog.index || 1;
 
     ////////////////////////////////////////
-    // MCD Vat aka CDP manager
+    // Proxy Managers
+    if (proxyAddresses.some(e => smeq(address, e.address))) {
+      const event = parseEvent(proxyInterface, txLog);
+      if (event?.name === "Created") {
+        const proxy = sm(event.args.proxy);
+        const owner = sm(event.args.owner);
+        if (!addressBook.isPresent(proxy)) {
+          log.info(`Found maker proxy creation, adding ${proxy} to our addressBook`);
+          addressBook.newAddress(sm(proxy), AddressCategories.Proxy, "maker-proxy");
+        } else {
+          log.info(`Found maker proxy creation but ${proxy} is already in our addressBook`);
+        }
+        if (proxyAddresses.some(e => smeq(e.address, ethTx.to))) {
+          tx.description = `${getName(owner)} created a new maker proxy`;
+        }
+      }
+
+    ////////////////////////////////////////
+    // MCD Vat aka Vault manager
     } else if (smeq(address, vatAddress)) {
       const logNote = parseLogNote(vatInterface, txLog);
       if (!logNote.name) continue;
@@ -336,30 +354,33 @@ export const makerParser = (
           log.warn(`Vat.${logNote.name}: Can't find a token address for ilk ${logNote.args[0]}`);
           continue;
         }
+        const vault = `CDP-${logNote.args[0].substring(0, 12)}`;
         const wad = formatUnits(
           toBN(logNote.args[2] || "0x00").fromTwos(256),
           chainData.getTokenData(assetAddress)?.decimals || 18,
         );
         const asset = getName(assetAddress) as Assets;
-        log.info(`Found a change in CDP collateral of about ${wad} ${asset}`);
-        const transfer = tx.transfers.findIndex(transfer =>
+        log.info(`Found a change in ${vault} collateral of about ${wad} ${asset}`);
+        const transfer = tx.transfers.find(transfer =>
           (
             smeq(transfer.asset, asset) || (
               ethish.includes(asset) && ethish.includes(transfer.asset)
             )
-          ) && quantitiesAreClose(transfer.quantity, abs(wad), div(abs(wad), "10"))
+          ) && valuesAreClose(transfer.quantity, abs(wad), div(abs(wad), "10"))
         );
-        if (transfer >= 0) {
+        if (transfer) {
           if (gt(wad, "0")) {
-            tx.transfers[transfer].category = TransferCategories.Deposit;
-            tx.description = `${getName(tx.transfers[transfer].from)} deposited ${
+            transfer.category = Deposit;
+            transfer.to = vault;
+            tx.description = `${getName(transfer.from)} deposited ${
               round(wad, 4)
-            } ${asset} into CDP`;
+            } ${asset} to ${transfer.to}`;
           } else {
-            tx.transfers[transfer].category = TransferCategories.Withdraw;
-            tx.description = `${getName(tx.transfers[transfer].to)} withdrew ${
+            transfer.category = Withdraw;
+            transfer.from = vault;
+            tx.description = `${getName(transfer.to)} withdrew ${
               round(abs(wad), 4)
-            } ${asset} from CDP`;
+            } ${asset} from ${transfer.from}`;
           }
         } else {
           log.warn(`Vat.${logNote.name}: Can't find a ${asset} transfer of about ${wad}`);
@@ -367,27 +388,30 @@ export const makerParser = (
 
       // Borrow/Repay DAI
       } else if (logNote.name === "frob") {
+        const vault = `CDP-${logNote.args[0].substring(0, 12)}`;
         const dart = formatUnits(toBN(logNote.args[5] || "0x00").fromTwos(256));
         if (eq(dart, "0")) {
-          log.debug(`Vat.${logNote.name}: Skipping zero-value change in CDP debt`);
+          log.debug(`Vat.${logNote.name}: Skipping zero-value change in vault debt`);
           continue;
         }
-        log.info(`Found a change in CDP debt of about ${round(dart)} DAI`);
-        const transfer = tx.transfers.findIndex(transfer =>
+        log.info(`Found a change in ${vault} debt of about ${round(dart)} DAI`);
+        const transfer = tx.transfers.find(transfer =>
           transfer.asset === DAI
-          && quantitiesAreClose(transfer.quantity, abs(dart), div(abs(dart), "10"))
+          && valuesAreClose(transfer.quantity, abs(dart), div(abs(dart), "10"))
         );
-        if (transfer >= 0) {
+        if (transfer) {
           if (gt(dart, "0")) {
-            tx.transfers[transfer].category = TransferCategories.Borrow;
-            tx.description = `${getName(tx.transfers[transfer].to)} borrowed ${
-              round(tx.transfers[transfer].quantity)
-            } DAI from CDP`;
+            transfer.category = Borrow;
+            transfer.from = vault;
+            tx.description = `${getName(transfer.to)} borrowed ${
+              round(transfer.quantity)
+            } DAI from ${vault}`;
           } else {
-            tx.transfers[transfer].category = TransferCategories.Repay;
-            tx.description = `${getName(tx.transfers[transfer].from)} repayed ${
-              round(tx.transfers[transfer].quantity)
-            } DAI into CDP`;
+            transfer.category = Repay;
+            transfer.to = vault;
+            tx.description = `${getName(transfer.from)} repayed ${
+              round(transfer.quantity)
+            } DAI to ${vault}`;
           }
         } else {
           log.warn(`Vat.${logNote.name}: Can't find a DAI transfer of about ${dart}`);
@@ -405,34 +429,36 @@ export const makerParser = (
 
       if (logNote.name === "join") {
         const wad = formatUnits(hexlify(stripZeros(logNote.args[0])), 18);
-        const transfer = tx.transfers.findIndex(t =>
+        const deposit = tx.transfers.find(t =>
           t.asset === DAI &&
-          t.category === TransferCategories.Transfer &&
-          quantitiesAreClose(t.quantity, wad, div(wad, "10"))
+          t.category === Expense &&
+          valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
-        if (transfer >= 0) {
-          tx.transfers[transfer].category = TransferCategories.Deposit;
-          tx.description = `${getName(tx.transfers[transfer].from)} deposited ${
-            round(tx.transfers[transfer].quantity)
-          } DAI into DSR`;
+        if (deposit) {
+          deposit.category = Deposit;
+          deposit.to = address;
+          tx.description = `${getName(deposit.from)} deposited ${
+            round(deposit.quantity)
+          } DAI to ${deposit.to}`;
         } else {
-          log.warn(`Pot.${logNote.name}: Can't find a DAI transfer of about ${wad}`);
+          log.warn(`Pot.${logNote.name}: Can't find a DAI expense of about ${wad}`);
         }
 
       } else if (logNote.name === "exit") {
         const wad = formatUnits(hexlify(stripZeros(logNote.args[0])), 18);
-        const transfer = tx.transfers.findIndex(t =>
+        const withdraw = tx.transfers.find(t =>
           t.asset === DAI &&
-          t.category === TransferCategories.Transfer &&
-          quantitiesAreClose(t.quantity, wad, div(wad, "10"))
+          t.category === Income &&
+          valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
-        if (transfer >= 0) {
-          tx.transfers[transfer].category = TransferCategories.Withdraw;
-          tx.description = `${getName(tx.transfers[transfer].to)} withdrew ${
-            round(tx.transfers[transfer].quantity)
-          } DAI from DSR`;
+        if (withdraw) {
+          withdraw.category = Withdraw;
+          withdraw.from = address;
+          tx.description = `${getName(withdraw.to)} withdrew ${
+            round(withdraw.quantity)
+          } DAI from ${withdraw.from}`;
         } else {
-          log.warn(`Pot.${logNote.name}: Can't find a DAI transfer of about ${wad}`);
+          log.warn(`Pot.${logNote.name}: Can't find a DAI income of about ${wad}`);
         }
       }
 
@@ -450,19 +476,21 @@ export const makerParser = (
           && smeq(t.to, saiCageAddress)
           && gt(t.quantity, "0")
         );
+        if (swapOut) {
+          swapOut.category = SwapOut;
+          swapOut.to = address;
+        } else {
+          log.warn(`Cage.${event.name}: Can't find any SAI transfer`);
+        }
         const swapIn = tx.transfers.find(t =>
           t.asset === ETH
           && isSelf(t.to)
           && smeq(t.from, saiCageAddress)
-          && quantitiesAreClose(t.quantity, wad, div(wad, "100"))
+          && valuesAreClose(t.quantity, wad, div(wad, "100"))
         );
-        if (swapOut) {
-          swapOut.category = TransferCategories.SwapOut;
-        } else {
-          log.warn(`Cage.${event.name}: Can't find any SAI transfer`);
-        }
         if (swapIn) {
-          swapIn.category = TransferCategories.SwapIn;
+          swapIn.category = SwapIn;
+          swapIn.from = address;
           swapIn.index = swapOut.index + 0.1;
         } else {
           log.warn(`Cage.${event.name}: Can't find an ETH transfer of ${wad}`);
@@ -477,7 +505,7 @@ export const makerParser = (
     } else if (smeq(address, tubAddress)) {
       const event = parseEvent(tubInterface, txLog);
       if (event?.name === "LogNewCup") {
-        tx.description = `${getName(event.args.lad)} opened new CDP #${toBN(event.args.cup)}`;
+        tx.description = `${getName(event.args.lad)} opened CDP-${toBN(event.args.cup)}`;
         continue;
       }
       const logNote = parseLogNote(tubInterface, txLog);
@@ -488,13 +516,13 @@ export const makerParser = (
 
       if (logNote.name === "give") {
         const recipient = hexlify(stripZeros(logNote.args[2]));
-        tx.description = `${getName(logNote.args[0])} gave CDP #${toBN(logNote.args[1])} to ${getName(recipient)}`;
+        tx.description = `${getName(logNote.args[0])} gave CDP-${toBN(logNote.args[1])} to ${getName(recipient)}`;
 
       } else if (logNote.name === "bite") {
-        tx.description = `${getName(logNote.args[0])} bit CDP #${toBN(logNote.args[1])}`;
+        tx.description = `${getName(logNote.args[0])} bit CDP-${toBN(logNote.args[1])}`;
 
       } else if (logNote.name === "shut") {
-        tx.description = `${getName(logNote.args[0])} shut CDP #${toBN(logNote.args[1])}`;
+        tx.description = `${getName(logNote.args[0])} shut CDP-${toBN(logNote.args[1])}`;
 
       // WETH -> PETH: Categorize WETH transfer as a swap out
       } else if (logNote.name === "join") {
@@ -502,20 +530,19 @@ export const makerParser = (
         // Get the WETH transfer with the quantity that's closest to the wad
         const swapOut = tx.transfers.filter(t =>
           t.asset === WETH
-          && ([
-            TransferCategories.Transfer,
-            TransferCategories.SwapOut, // re-handle dup calls instead of logging warning
-          ] as TransferCategories[]).includes(t.category)
-        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+          && t.to !== AddressZero
+          && ([Expense, SwapOut] as TransferCategory[]).includes(t.category)
+        ).sort(diffAsc(wad))[0];
         if (swapOut) {
-          swapOut.category = TransferCategories.SwapOut;
+          swapOut.category = SwapOut;
+          swapOut.to = address;
           if (smeq(ethTx.to, tubAddress)) {
             tx.description = `${getName(ethTx.from)} swapped ${
               round(swapOut.quantity, 4)
             } WETH for ${round(wad, 4)} PETH`;
           }
         } else if (smeq(ethTx.to, tubAddress)) {
-          // Not a problem if we're interacting via a cdp proxy bc this wouldn't interact w self
+          // Not a problem if we're interacting via a proxy bc this wouldn't interact w self
           log.warn(`Tub.${logNote.name}: Can't find a WETH transfer of ${wad}`);
         }
 
@@ -526,57 +553,52 @@ export const makerParser = (
         const swapIn = tx.transfers.filter(t =>
           t.asset === WETH
           && ([
-            TransferCategories.Transfer,
-            TransferCategories.SwapIn, // re-handle dup calls instead of logging warning
-          ] as TransferCategories[]).includes(t.category)
-        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+            Income,
+            SwapIn, // re-handle dup calls instead of logging warning
+          ] as TransferCategory[]).includes(t.category)
+        ).sort(diffAsc(wad))[0];
         if (swapIn) {
-          swapIn.category = TransferCategories.SwapIn;
+          swapIn.category = SwapIn;
+          swapIn.from = address;
           if (smeq(ethTx.to, tubAddress)) {
             tx.description = `${getName(ethTx.from)} swapped ${
               round(wad, 4)
             } PETH for ${round(swapIn.quantity, 4)} WETH`;
           }
         } else if (smeq(ethTx.to, tubAddress)) {
-          // Not a problem if we're interacting via a cdp proxy bc this wouldn't interact w self
+          // Not a problem if we're interacting via a proxy bc this wouldn't interact w self
           log.warn(`Tub.${logNote.name}: Can't find a WETH transfer of ${wad}`);
         }
 
       // PETH -> CDP: Categorize PETH transfer as deposit
       } else if (logNote.name === "lock") {
-        const wad = formatUnits(hexlify(stripZeros(logNote.args[1])), 18);
+        const cdp = `CDP-${toBN(logNote.args[1])}`;
+        const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
-          && ([
-            TransferCategories.Transfer,
-            TransferCategories.Deposit, // handle dup lock calls the same way
-          ] as TransferCategories[]).includes(t.category)
+          && !smeq(t.to, AddressZero)
+          && ([Expense, Deposit] as TransferCategory[]).includes(t.category)
           && (smeq(tubAddress, t.to) || isSelf(t.from))
-        // PETH wad !== W/ETH wad but the closest match is probably the one we want
-        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+        ).sort(diffAsc(wad))[0];
         if (transfer) {
-          transfer.category = TransferCategories.Deposit;
+          transfer.category = Deposit;
+          transfer.to = cdp;
           tx.description = `${getName(transfer.from)} deposited ${
             round(transfer.quantity, 4)
-          } ${transfer.asset} into CDP`;
+          } ${transfer.asset} to ${transfer.to}`;
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a P/W/ETH transfer of about ${wad}`);
         }
 
       // PETH <- CDP: Categorize PETH transfer as withdraw
       } else if (logNote.name === "free") {
-        const wad = formatUnits(hexlify(stripZeros(logNote.args[1])), 18);
+        const cdp = `CDP-${toBN(logNote.args[1])}`;
+        const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
-          && ([
-            TransferCategories.Transfer,
-            TransferCategories.Withdraw, // handle dup free calls the same way
-          ] as TransferCategories[]).includes(t.category)
+          && ([Income, Withdraw] as TransferCategory[]).includes(t.category)
           && (smeq(tubAddress, t.from) || isSelf(t.to))
-        ).sort(
-          // PETH wad !== W/ETH wad but the closest match is probably the one we want
-          (t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1
-        ).sort((t1, t2) =>
+        ).sort(diffAsc(wad)).sort((t1, t2) =>
           // First try to match a PETH transfer
           (t1.asset === PETH && t2.asset !== PETH) ? -1
             // Second try to match a WETH transfer
@@ -586,28 +608,28 @@ export const makerParser = (
                 : 0
         )[0];
         if (transfer) {
-          transfer.category = TransferCategories.Withdraw;
+          transfer.category = Withdraw;
+          transfer.from = cdp;
           tx.description = `${getName(transfer.to)} withdrew ${
             round(transfer.quantity, 4)
-          } ${transfer.asset} from CDP`;
+          } ${transfer.asset} from ${transfer.from}`;
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a PETH transfer of about ${wad}`);
         }
 
       // SAI <- CDP
       } else if (logNote.name === "draw") {
+        const cdp = `CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
-        tx.description = `${getName(ethTx.from)} borrowed ${round(wad)} SAI from CDP`;
         const borrow = tx.transfers.filter(t =>
           isSelf(t.to)
           && t.asset === SAI
-          && ([
-            TransferCategories.Transfer,
-            TransferCategories.Borrow, // parse duplicate log notes again
-          ] as TransferCategories[]).includes(t.category)
-        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+          && ([Income, Borrow] as TransferCategory[]).includes(t.category)
+        ).sort(diffAsc(wad))[0];
         if (borrow) {
-          borrow.category = TransferCategories.Borrow;
+          borrow.category = Borrow;
+          borrow.from = cdp;
+          tx.description = `${getName(ethTx.from)} borrowed ${round(wad)} SAI from ${borrow.from}`;
         } else if (!ethTx.logs.find(l =>
           l.index > index
           && smeq(l.address, saiAddress)
@@ -619,18 +641,15 @@ export const makerParser = (
 
       // SAI -> CDP
       } else if (logNote.name === "wipe") {
+        const cdp = `CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
-        tx.description = `${getName(ethTx.from)} repayed ${round(wad)} SAI to CDP`;
         const repay = tx.transfers.filter(t =>
-          isSelf(t.from)
-          && t.asset === SAI
-          && ([
-            TransferCategories.Transfer,
-            TransferCategories.Repay, // parse duplicate log notes again
-          ] as TransferCategories[]).includes(t.category)
-        ).sort((t1, t2) => gt(diff(t1.quantity, wad), diff(t2.quantity, wad)) ? -1 : 1)[0];
+          t.asset === SAI && ([Expense, Repay] as TransferCategory[]).includes(t.category)
+        ).sort(diffAsc(wad))[0];
         if (repay) {
-          repay.category = TransferCategories.Repay;
+          repay.category = Repay;
+          repay.to = cdp;
+          tx.description = `${getName(ethTx.from)} repayed ${round(wad)} SAI to ${repay.to}`;
         } else if (!ethTx.logs.find(l =>
           l.index > index
           && smeq(l.address, saiAddress)
@@ -643,14 +662,12 @@ export const makerParser = (
         const fee = tx.transfers.find(t =>
           isSelf(t.from)
           && feeAsset.includes(t.asset)
-          && ([
-            TransferCategories.SwapOut, // Maybe we gave our fee to OasisDex to swap for MKR
-            TransferCategories.Expense, // parse duplicate log notes again
-            TransferCategories.Transfer
-          ] as TransferCategories[]).includes(t.category)
+          // Fee might be a SwapOut eg if we gave SAI to OasisDex to swap for MKR
+          && ([Expense, SwapOut] as TransferCategory[]).includes(t.category)
         );
         if (fee) {
-          fee.category = TransferCategories.Expense;
+          fee.category = Expense;
+          fee.to = AddressZero;
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a MKR/SAI fee`);
         }

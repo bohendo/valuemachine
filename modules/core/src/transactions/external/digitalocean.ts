@@ -1,4 +1,10 @@
-import { Transaction, TransactionSources, Logger, TransferCategories } from "@finances/types";
+import {
+  Assets,
+  Transaction,
+  TransactionSources,
+  Logger,
+  TransferCategories,
+} from "@finances/types";
 import csv from "csv-parse/lib/sync";
 
 import { mergeTransaction } from "../merge";
@@ -25,9 +31,9 @@ export const mergeDigitalOceanTransactions = (
       transfers: [],
     } as Transaction;
     transaction.transfers.push({
-      asset: "USD",
+      asset: Assets.USD,
       category: TransferCategories.Expense,
-      from: "digitalocean-account",
+      from: "USD-account",
       quantity: quantity.replace("$", ""),
       to: "digitalocean",
     });

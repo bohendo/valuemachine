@@ -1,177 +1,207 @@
+import { AddressZero } from "@ethersproject/constants";
 import {
+  ExternalSources,
   Logger,
+  OnchainSources,
   TimestampString,
   Transaction,
   TransactionSources,
+  Transfer,
   TransferCategories,
+  TransferCategory,
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
-import { isHash, rmDups, quantitiesAreClose } from "./utils";
+import { chrono, isHash, rmDups, valuesAreClose } from "./utils";
 
-const { diff, div, lt } = math;
+const { div } = math;
+const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 
-// This fn ought to modifiy the old list of txns IN PLACE and also return the updated tx list
+////////////////////////////////////////
+// Internal Helper Functions
+
+const datesAreClose = (
+  ts1: TimestampString,
+  ts2: TimestampString,
+  wiggleRoom = `${1000 * 60 * 30}`,
+) =>
+  valuesAreClose(
+    new Date(ts1).getTime().toString(),
+    new Date(ts2).getTime().toString(),
+    wiggleRoom,
+  );
+
+////////////////////////////////////////
+// Exported Function
+// NOTE: This fn modifies the given list of transactions IN PLACE
 export const mergeTransaction = (
   transactions: Transaction[],
   newTx: Transaction,
   logger: Logger,
 ): Transaction[] => {
   let log = (logger || getLogger()).child({ module: "MergeTx" });
-
-  const sortTransactions = (tx1: Transaction, tx2: Transaction): number =>
-    new Date(tx1.date).getTime() === new Date(tx2.date).getTime()
-      ? tx1.index - tx2.index
-      : new Date(tx1.date).getTime() - new Date(tx2.date).getTime();
-
-  const datesAreClose = (
-    ts1: TimestampString,
-    ts2: TimestampString,
-    wiggleRoom = `${1000 * 60 * 30}`,
-  ) =>
-    lt(
-      diff(new Date(ts1).getTime().toString(), new Date(ts2).getTime().toString()),
-      wiggleRoom,
-    );
-
   if (!newTx?.transfers?.length) {
     log.debug(`Skipped new tx with zero transfers`);
     return transactions;
   }
 
-  const isSimple = transfer => transfer?.category === TransferCategories.Transfer;
+  ////////////////////////////////////////
+  // Handle new ethereum transactions
+  if (
+    newTx.sources.every(src => Object.keys(OnchainSources).includes(src))
+    && isHash(newTx.hash)
+  ) {
+    log = (logger || getLogger()).child({ module: `MergeEthTx` });
 
-  const sources = newTx.sources;
-  log = logger.child({ module: `Merge${sources.join("")}` });
-
-  // Merge simple eth txns
-  if (isHash(newTx.hash)) {
-
-    // Does this list of txns already include the coresponding eth tx?
+    // Detect & handle duplicates
     const index = transactions.findIndex(tx => tx.hash === newTx.hash);
-
-    // This is the first time we've encountered this eth tx
-    if (index < 0) {
-
-      // Mergable eth txns can only contain one transfer
-      if (newTx.transfers.filter(isSimple).length > 1) {
-        transactions.push(newTx);
-        transactions.sort(sortTransactions);
-        log.debug(`Inserted new multi-transfer eth tx: ${newTx.description}`);
-        return transactions;
-      }
-      const index = newTx.transfers.findIndex(isSimple);
-      const transfer = newTx.transfers[index];
-
-      const mergeCandidateIndex = transactions.findIndex(tx =>
-        // This tx only has one transfer
-        // (matching an eth tx to a mult-transfer external tx is not supported yet)
-        tx.transfers.filter(isSimple).length === 1
-        // This isn't an eth tx
-        && !isHash(tx.hash)
-        // This tx has a transfer with same asset type & quantity as this new tx
-        && tx.transfers.some(t =>
-          t.asset === transfer.asset &&
-          quantitiesAreClose(t.quantity, transfer.quantity, div(transfer.quantity, "100"))
-        )
-        // Existing tx & new tx have timestamps within 30 mins of each other
-        && datesAreClose(tx.date, newTx.date)
-      );
-
-      if (mergeCandidateIndex < 0) {
-        transactions.push(newTx);
-        transactions.sort(sortTransactions);
-        log.debug(`Inserted new eth tx: ${newTx.description}`);
-        return transactions;
-      }
-
-      transactions[mergeCandidateIndex].transfers[index] = transfer;
-      // Keep the external txn's description instead of the eth txn's
-      transactions[mergeCandidateIndex] = {
-        ...transactions[mergeCandidateIndex],
-        ...newTx,
-        sources: rmDups([
-          ...transactions[mergeCandidateIndex].sources,
-          ...newTx.sources
-        ]) as TransactionSources[],
-        tags: rmDups([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
-      };
-
-      log.info(
-        transactions[mergeCandidateIndex],
-        `Merged transactions[${mergeCandidateIndex}] w new eth tx: ${newTx.description}`,
-      );
+    if (index >= 0) { // If this is NOT the first time we've encountered this eth tx
+      log.debug(`Replaced duplicate eth tx: ${newTx.description}`);
+      transactions[index] = newTx;
+      transactions.sort(chrono);
       return transactions;
     }
 
-    log.debug(`Replaced duplicate eth tx: ${newTx.description}`);
-    transactions[index] = newTx;
+    // Mergable eth txns can only contain one notable transfer
+    const transfers = newTx.transfers.filter(transfer =>
+      ([Income, Expense] as TransferCategory[]).includes(transfer.category)
+      && transfer.to !== AddressZero
+    );
+    if (transfers.length !== 1) {
+      transactions.push(newTx);
+      transactions.sort(chrono);
+      log.debug(`Inserted new eth tx w ${transfers.length} mergable transfers: ${newTx.description}`);
+      return transactions;
+    }
+    const ethTransfer = transfers[0];
+
+    // Does this transfer have the same asset & similar quantity as the new eth tx
+    const isMergable = (transfer: Transfer): boolean => 
+      ((transfer.category === Deposit && ethTransfer.category === Expense) ||
+       (transfer.category === Withdraw && ethTransfer.category === Income))
+      && transfer.asset === ethTransfer.asset
+      && valuesAreClose(
+        transfer.quantity,
+        ethTransfer.quantity,
+        div(ethTransfer.quantity, "100"),
+      );
+
+    const mergeCandidateIndex = transactions.findIndex(tx =>
+      // the candidate only has external sources
+      tx.sources.every(src => Object.keys(ExternalSources).includes(src))
+      // external tx & new eth tx have timestamps that are close to each other
+      && datesAreClose(tx.date, newTx.date)
+      // the candidate has exactly 1 mergable transfer
+      && tx.transfers.filter(isMergable).length === 1
+    );
+
+    if (mergeCandidateIndex < 0) {
+      transactions.push(newTx);
+      transactions.sort(chrono);
+      log.debug(`Inserted new eth tx: ${newTx.description}`);
+      return transactions;
+    }
+
+    const externalTx = transactions[mergeCandidateIndex];
+    transactions[mergeCandidateIndex] = {
+      // prioritize new eth tx values by default
+      ...externalTx, ...newTx,
+      // use external date so we can detect external dups more easily later
+      date: externalTx.date,
+      // merge sources & tags
+      sources: rmDups([...externalTx.sources, ...newTx.sources]) as TransactionSources[],
+      tags: rmDups([...externalTx.tags, ...newTx.tags]),
+    };
+    ethTransfer.category = externalTx.transfers.find(isMergable).category;
+
+    log.info(
+      transactions[mergeCandidateIndex],
+      `Merged transactions[${mergeCandidateIndex}] w new eth tx: ${newTx.description}`,
+    );
+    return transactions;
+
+  ////////////////////////////////////////
+  // Handle new external transactions
+  } else if (
+    newTx.sources.every(src => Object.keys(ExternalSources).includes(src))
+    && newTx.sources.length === 1
+  ) {
+    const source = newTx.sources[0];
+    log = (logger || getLogger()).child({ module: `Merge${source}Tx` });
+
+    // Detect & handle duplicates
+    if (transactions.find(tx =>
+      tx.sources.some(src => src === source)
+      && datesAreClose(tx.date, newTx.date, "1") // ie equal w/in the margin of a rounding error
+      && tx.transfers.some(t1 => newTx.transfers.some(t2 =>
+        t1.asset === t2.asset &&
+        valuesAreClose(t1.quantity, t2.quantity, div(t2.quantity, "100"))
+      ))
+    )) {
+      log.debug(`Skipping duplicate external tx: ${newTx.description}`);
+      return transactions;
+    }
+
+    // Mergable external txns can only contain one transfer
+    if (newTx.transfers.length !== 1) {
+      transactions.push(newTx);
+      transactions.sort(chrono);
+      log.debug(`Inserted external tx w ${newTx.transfers.length} transfers: ${newTx.description}`);
+      return transactions;
+    }
+    const extTransfer = newTx.transfers[0];
+
+    // Does this transfer have the same asset & similar quantity as the new external tx
+    const isMergable = (transfer: Transfer): boolean => 
+      ((extTransfer.category === Deposit && transfer.category === Expense) ||
+       (extTransfer.category === Withdraw && transfer.category === Income))
+      && transfer.asset === extTransfer.asset
+      && valuesAreClose(
+        transfer.quantity,
+        extTransfer.quantity,
+        div(extTransfer.quantity, "100"),
+      );
+
+    const mergeCandidateIndex = transactions.findIndex(tx =>
+      // the candidate only has ethereum sources
+      tx.sources.every(src => Object.keys(OnchainSources).includes(src))
+      // eth tx & new external tx have timestamps that are close each other
+      && datesAreClose(tx.date, newTx.date)
+      // the candidate has exactly 1 mergable transfer
+      && tx.transfers.filter(isMergable).length === 1
+    );
+
+    if (mergeCandidateIndex < 0) {
+      transactions.push(newTx);
+      transactions.sort(chrono);
+      log.debug(`Inserted new external tx: ${newTx.description}`);
+      return transactions;
+    }
+
+    const ethTx = transactions[mergeCandidateIndex];
+    transactions[mergeCandidateIndex] = {
+      // prioritize existing eth tx props by default
+      ...newTx, ...ethTx,
+      // use external date so we can detect external dups more easily later
+      date: newTx.date,
+      // merge sources & tags
+      sources: rmDups([...ethTx.sources, ...newTx.sources]) as TransactionSources[],
+      tags: rmDups([...ethTx.tags, ...newTx.tags]),
+    };
+    const ethTransfer = ethTx.transfers.find(isMergable);
+    ethTransfer.category = extTransfer.category;
+
+    transactions.sort(chrono);
+    log.info(
+      transactions[mergeCandidateIndex],
+      `Merged transactions[${mergeCandidateIndex}] into new external tx: ${newTx.description}`,
+    );
+    return transactions;
+
+  ////////////////////////////////////////
+  // Handle new malformed transactions
+  } else {
+    log.warn(newTx, `Can't tell whether this new tx is from Ethereum or an external source`);
     return transactions;
   }
-
-  // Merge external txns
-  // Does the tx list already include this external tx?
-  const dupCandidates = transactions.filter(tx =>
-    tx.sources.some(source => sources.includes(source))
-    && datesAreClose(tx.date, newTx.date, "1")
-    && tx.transfers.some(t1 => newTx.transfers.some(t2 =>
-      t1.asset === t2.asset &&
-      quantitiesAreClose(t1.quantity, t2.quantity, div(t2.quantity, "100"))
-    ))
-  );
-  if (dupCandidates.length > 0) {
-    log.debug(`Skipping duplicate external tx: ${newTx.description}`);
-    return transactions;
-  }
-
-  // Mergable external txns can only contain one transfer
-  if (newTx.transfers.filter(t => math.gt(t.quantity, "0")).length > 1) {
-    transactions.push(newTx);
-    transactions.sort(sortTransactions);
-    log.debug(`Inserted new multi-transfer external tx: ${newTx.description}`);
-    return transactions;
-  }
-  const transfer = newTx.transfers[0];
-
-  const mergeCandidateIndex = transactions.findIndex(tx =>
-    // Existing tx only has one transfer
-    // (transfer to external account in same tx as a contract interaction is not supported)
-    tx.transfers.filter(isSimple).length === 1
-    // Existing tx hasn't had this external tx merged into it yet
-    && !tx.sources.some(source => sources.includes(source))
-    // Existing tx has a transfer with same asset type & quantity as this new tx
-    && tx.transfers.some(t =>
-      t.asset === transfer.asset &&
-      quantitiesAreClose(t.quantity, transfer.quantity, div(transfer.quantity, "100"))
-    )
-    // Existing tx & new tx have timestamps within 30 mins of each other
-    && datesAreClose(tx.date, newTx.date)
-  );
-
-  if (mergeCandidateIndex < 0) {
-    transactions.push(newTx);
-    transactions.sort(sortTransactions);
-    log.debug(`Inserted new external tx: ${newTx.description}`);
-    return transactions;
-  }
-
-  transactions[mergeCandidateIndex] = {
-    ...newTx,
-    ...transactions[mergeCandidateIndex],
-    description: transactions[mergeCandidateIndex].description,
-    sources: rmDups([
-      ...transactions[mergeCandidateIndex].sources,
-      ...newTx.sources
-    ]) as TransactionSources[],
-    tags: rmDups([...transactions[mergeCandidateIndex].tags, ...newTx.tags]),
-    date: newTx.date,
-  };
-
-  transactions.sort(sortTransactions);
-  log.info(
-    transactions[mergeCandidateIndex],
-    `Merged transactions[${mergeCandidateIndex}] into new external tx: ${newTx.description}`,
-  );
-
-  return transactions;
 };

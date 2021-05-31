@@ -15,12 +15,13 @@ import {
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
+import { rmDups, parseEvent, valuesAreClose } from "../utils";
 
 const { div, round } = math;
 const {
   COMP, cBAT, cCOMP, cDAI, cETH, cREP, cSAI, cUNI, cUSDC, cUSDT, cWBTC, cWBTCv2, cZRX
 } = Assets;
+const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 const source = TransactionSources.Compound;
 
@@ -119,7 +120,7 @@ const cTokenDecimals = 8;
 const associatedTransfer = (asset: string, quantity: string) =>
   (transfer: Transfer): boolean =>
     smeq(transfer.asset, asset)
-      && quantitiesAreClose(transfer.quantity, quantity, div(quantity, "100"));
+      && valuesAreClose(transfer.quantity, quantity, div(quantity, "100"));
 
 export const compoundParser = (
   tx: Transaction,
@@ -155,7 +156,8 @@ export const compoundParser = (
       if (event.name === "SupplyReceived") {
         const deposit = tx.transfers.find(associatedTransfer(asset, amount));
         if (deposit) {
-          deposit.category = TransferCategories.Deposit;
+          deposit.category = Deposit;
+          deposit.to = address;
         } else {
           log.warn(tx.transfers, `Can't find an associated deposit transfer`);
         }
@@ -166,7 +168,8 @@ export const compoundParser = (
       } else if (event.name === "SupplyWithdrawn") {
         const withdraw = tx.transfers.find(associatedTransfer(asset, amount));
         if (withdraw) {
-          withdraw.category = TransferCategories.Withdraw;
+          withdraw.category = Withdraw;
+          withdraw.from = address;
         } else {
           log.warn(tx.transfers, `Can't find a transfer of ${amount} ${asset}`);
         }
@@ -177,7 +180,8 @@ export const compoundParser = (
       } else if (event.name === "BorrowTaken") {
         const borrow = tx.transfers.find(associatedTransfer(asset, amount));
         if (borrow) {
-          borrow.category = TransferCategories.Borrow;
+          borrow.category = Borrow;
+          borrow.from = address;
         } else {
           log.warn(tx.transfers, `Can't find an associated borrow transfer`);
         }
@@ -188,7 +192,8 @@ export const compoundParser = (
       } else if (event.name === "BorrowRepaid") {
         const repay = tx.transfers.find(associatedTransfer(asset, amount));
         if (repay) {
-          repay.category = TransferCategories.Repay;
+          repay.category = Repay;
+          repay.to = address;
         } else {
           log.warn(tx.transfers, `Can't find an associated repay transfer`);
         }
@@ -220,7 +225,8 @@ export const compoundParser = (
           );
           const income = tx.transfers.find(associatedTransfer("COMP", amount));
           if (income) {
-            income.category = TransferCategories.Income;
+            income.category = Income;
+            income.from = comptrollerAddress;
           } else {
             log.warn(`${event.name}: Can't find income of ${amount} COMP`);
           }
@@ -245,12 +251,14 @@ export const compoundParser = (
         const swapOut = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         const swapIn = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
         if (swapOut) {
-          swapOut.category = TransferCategories.SwapOut;
+          swapOut.category = SwapOut;
+          swapOut.to = address;
         } else {
           log.warn(`${event.name}: Can't find swapOut of ${tokenAmt} ${asset}`);
         }
         if (swapIn) {
-          swapIn.category = TransferCategories.SwapIn;
+          swapIn.category = SwapIn;
+          swapIn.from = address;
         } else {
           log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${getName(address)}`);
         }
@@ -269,12 +277,14 @@ export const compoundParser = (
         const swapOut = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
         const swapIn = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (swapOut) {
-          swapOut.category = TransferCategories.SwapOut;
+          swapOut.category = SwapOut;
+          swapOut.to = address;
         } else {
           log.warn(`${event.name}: Can't find swapOut of ${cTokenAmt} ${getName(address)}`);
         }
         if (swapIn) {
-          swapIn.category = TransferCategories.SwapIn;
+          swapIn.category = SwapIn;
+          swapIn.from = address;
         } else {
           log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${asset}`);
         }
@@ -291,7 +301,8 @@ export const compoundParser = (
         );
         const borrow = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (borrow) {
-          borrow.category = TransferCategories.Borrow;
+          borrow.category = Borrow;
+          borrow.from = address;
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
@@ -308,7 +319,8 @@ export const compoundParser = (
         );
         const repay = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (repay) {
-          repay.category = TransferCategories.Repay;
+          repay.category = Repay;
+          repay.to = address;
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }

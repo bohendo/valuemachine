@@ -5,6 +5,8 @@ import { Address, DecimalString, TimestampString } from "./strings";
 ////////////////////////////////////////
 // State
 
+export type Account = Address | string;
+
 export type StateJson = {
   lastUpdated: TimestampString;
   accounts: { [account: string]: AssetChunk[] };
@@ -22,9 +24,10 @@ export type StateBalances = {
 
 export interface State {
   getAllBalances(): StateBalances;
-  getBalance(account: string, asset: Assets): DecimalString;
+  createAccount(account: Account): void;
+  getBalance(account: Account, asset: Assets): DecimalString;
   getChunks(
-    account: Address,
+    account: Account,
     asset: Assets,
     quantity: DecimalString,
     tx: Transaction,
@@ -32,7 +35,7 @@ export interface State {
   ): AssetChunk[];
   getNetWorth(): NetWorth;
   getRelevantBalances(tx: Transaction): StateBalances;
-  putChunk(account: string, chunk: AssetChunk): void;
+  putChunk(account: Account, chunk: AssetChunk): void;
   toJson(): StateJson;
   touch(lastUpdated: TimestampString): void;
 }

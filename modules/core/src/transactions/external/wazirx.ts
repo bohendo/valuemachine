@@ -1,4 +1,5 @@
 import {
+  Assets,
   Logger,
   Transaction,
   TransactionSources,
@@ -7,6 +8,8 @@ import {
 import csv from "csv-parse/lib/sync";
 
 import { mergeTransaction } from "../merge";
+
+const { Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
 
 export const mergeWazirxTransactions = (
   oldTransactions: Transaction[],
@@ -31,6 +34,10 @@ export const mergeWazirxTransactions = (
       transfers: [],
     } as Transaction;
 
+    const account = "wazirx-account";
+    const exchange = TransactionSources.Wazirx;
+    const external = "external-account";
+
     if (row["Transaction"]) {
       const {
         ["Transaction"]: txType,
@@ -38,7 +45,7 @@ export const mergeWazirxTransactions = (
         ["Volume"]: quantity,
       } = row;
 
-      if (currency === "INR") {
+      if (currency === Assets.INR) {
         log.debug(`Skipping INR ${txType}`);
         return null;
       }
@@ -46,19 +53,19 @@ export const mergeWazirxTransactions = (
       if (txType === "Deposit") {
         transaction.transfers.push({
           asset: currency,
-          category: TransferCategories.Transfer,
-          from: "external-account",
+          category: Deposit,
+          from: external,
           quantity,
-          to: "wazirx-account",
+          to: account,
         });
         transaction.description = `Deposited ${quantity} ${currency} into Wazirx`;
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
           asset: currency,
-          category: TransferCategories.Transfer,
-          from: "wazirx-account",
+          category: Withdraw,
+          from: account,
           quantity,
-          to: "external-account",
+          to: external,
         });
         transaction.description = `Withdrew ${quantity} ${currency} from Wazirx`;
       } else {
@@ -76,48 +83,48 @@ export const mergeWazirxTransactions = (
         ["Fee"]: feeAmount,
       } = row;
 
-      // Assumes all markets are INR markets
+      // Assumes all markets are strings like `INR${asset}`
       const currency = market.replace("INR", "");
 
       transaction.transfers.push({
         asset: feeAsset,
-        category: TransferCategories.Expense,
-        from: "wazirx-account",
+        category: Expense,
+        from: account,
         quantity: feeAmount,
-        to: "wazirx-exchange",
+        to: exchange,
       });
 
       if (tradeType === "Buy") {
         transaction.transfers.push({
-          asset: "INR",
-          category: TransferCategories.SwapOut,
-          from: "wazirx-account",
+          asset: Assets.INR,
+          category: SwapOut,
+          from: account,
           quantity: inrQuantity,
-          to: "wazirx-exchange",
+          to: exchange,
         });
         transaction.transfers.push({
           asset: currency,
-          category: TransferCategories.SwapIn,
-          from: "wazirx-exchange",
+          category: SwapIn,
+          from: exchange,
           quantity: quantity,
-          to: "wazirx-account",
+          to: account,
         });
         transaction.description = `Buy ${quantity} ${currency} for ${inrQuantity} INR on wazirx`;
 
       } else if (tradeType === "Sell") {
         transaction.transfers.push({
           asset: currency,
-          category: TransferCategories.SwapOut,
-          from: "wazirx-account",
+          category: SwapOut,
+          from: account,
           quantity: quantity,
-          to: "wazirx-exchange",
+          to: exchange,
         });
         transaction.transfers.push({
-          asset: "INR",
-          category: TransferCategories.SwapIn,
-          from: "wazirx-exchange",
+          asset: Assets.INR,
+          category: SwapIn,
+          from: exchange,
           quantity: inrQuantity,
-          to: "wazirx-account",
+          to: account,
         });
         transaction.description = `Sell ${quantity} ${currency} for ${inrQuantity} INR on wazirx`;
 

@@ -2,9 +2,8 @@ import { Interface } from "@ethersproject/abi";
 import { isHexString, hexDataLength } from "@ethersproject/bytes";
 import {
   DecimalString,
-  EthCall,
-  EthTransaction,
   EthTransactionLog,
+  Transaction,
 } from "@finances/types";
 import { math } from "@finances/utils";
 
@@ -13,11 +12,11 @@ const { diff, lt } = math;
 export const rmDups = (array: string[]): string[] =>
   Array.from(new Set([...array]));
 
-export const quantitiesAreClose = (q1: DecimalString, q2: DecimalString, wiggleRoom = "0.000001") =>
+export const valuesAreClose = (q1: DecimalString, q2: DecimalString, wiggleRoom = "0.000001") =>
   lt(diff(q1, q2), wiggleRoom);
 
-export const chrono = (e1: EthCall | EthTransaction, e2: EthCall | EthTransaction): number =>
-  new Date(e1.timestamp).getTime() - new Date(e2.timestamp).getTime();
+export const chrono = (e1: Transaction, e2: Transaction): number =>
+  new Date(e1.date).getTime() - new Date(e2.date).getTime();
 
 export const parseEvent = (
   iface: Interface,

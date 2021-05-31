@@ -10,8 +10,8 @@ import {
   Title,
   ValueAxis,
 } from "@devexpress/dx-react-chart-material-ui";
-import { getPrices } from "@finances/core";
-import { AddressBook } from "@finances/types";
+import { getPrices, getState } from "@finances/core";
+import { AddressBook, StateJson } from "@finances/types";
 import { getLogger } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
@@ -176,9 +176,18 @@ export const NetWorthGraph = (props: any) => {
 // Dashboard
 export const Dashboard: React.FC = ({
   addressBook,
+  state,
 }: {
   addressBook: AddressBook;
+  state: StateJson;
 }) => {
   console.log(`We have ${addressBook?.addresses?.length} addresses`);
-  return (<p>Dashboard is under construction, try again later</p>);
+  console.log(state);
+  if (addressBook && state) {
+    return (<pre>{
+      JSON.stringify(getState({ addressBook, stateJson: state }).getAllBalances(), null, 2)
+    }</pre>);
+  } else {
+    return (<p>Dashboard is under construction, try again later</p>);
+  }
 };

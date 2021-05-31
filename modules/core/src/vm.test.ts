@@ -14,7 +14,10 @@ import { getValueMachine } from "./vm";
 import { AddressOne, getTestAddressBook, getTestChainData, testLogger } from "./testing";
 import { getTransactions } from "./transactions";
 
-const log = testLogger.child({ module: "TestVM" });
+const log = testLogger.child({
+  // level: "debug",
+  module: "TestVM",
+});
 const timestamp = "2018-01-02T01:00:00Z";
 const value = "1.3141592653589793";
 
@@ -59,6 +62,7 @@ describe("VM", () => {
     txns.mergeChainData(chainData);
     const [newState, events] = vm(state.toJson(), txns.json[0]);
     expect(newState).to.be.ok;
+    log.info(events, "all events");
     expect(events.length).to.equal(1);
     expect(getState({
       addressBook,

@@ -13,6 +13,7 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
+const { Expense, SwapIn, SwapOut } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
   module: `Test${TransactionSources.Uniswap}`,
@@ -48,11 +49,11 @@ describe(TransactionSources.Uniswap, () => {
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(TransactionSources.Uniswap);
     const fee = tx.transfers[0];
-    expect(fee.category).to.equal(TransferCategories.Expense);
+    expect(fee.category).to.equal(Expense);
     const swapIn = tx.transfers[1];
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.category).to.equal(SwapIn);
     const swapOut = tx.transfers[2];
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(swapOut.category).to.equal(SwapOut);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include(TransactionSources.Uniswap);
   });
@@ -77,11 +78,11 @@ describe(TransactionSources.Uniswap, () => {
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(TransactionSources.Uniswap);
     const fee = tx.transfers[0];
-    expect(fee.category).to.equal(TransferCategories.Expense);
+    expect(fee.category).to.equal(Expense);
     const swapIn = tx.transfers[1];
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
+    expect(swapIn.category).to.equal(SwapIn);
     const swapOut = tx.transfers[2];
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(swapOut.category).to.equal(SwapOut);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include(TransactionSources.Uniswap);
   });

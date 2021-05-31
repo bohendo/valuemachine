@@ -1,17 +1,18 @@
-import { Assets } from "./assets";
+import { Assets, AssetChunk } from "./assets";
 import { Address, DecimalString, TimestampString } from "./strings";
 import { enumify } from "./utils";
 
 export const EventTypes = enumify({
-  Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
-  CapitalGains: "CapitalGains",
-  Deposit: "Deposit", // eg dai->dsr or eth->compound
-  Expense: "Expense",
   Income: "Income",
-  NetWorth: "NetWorth",
+  Expense: "Expense",
+
+  Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
   Repay: "Repay",
-  Trade: "Trade",
+
+  Deposit: "Deposit", // eg dai->dsr or eth->compound
   Withdraw: "Withdraw",
+
+  Trade: "Trade",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type EventTypes = (typeof EventTypes)[keyof typeof EventTypes];
@@ -26,21 +27,11 @@ type BaseEvent = {
   type: EventTypes;
 }
 
-export type BorrowEvent = BaseEvent & {
+////////////////////////////////////////
+
+export type IncomeEvent = BaseEvent & {
   from: Address;
-  type: typeof EventTypes.Borrow;
-}
-
-export type CapitalGainsEvent = BaseEvent & {
-  gain: DecimalString;
-  purchaseDate: TimestampString;
-  purchasePrice: DecimalString;
-  type: typeof EventTypes.CapitalGains;
-}
-
-export type DepositEvent = BaseEvent & {
-  to: Address;
-  type: typeof EventTypes.Deposit;
+  type: typeof EventTypes.Income;
 }
 
 export type ExpenseEvent = BaseEvent & {
@@ -48,14 +39,19 @@ export type ExpenseEvent = BaseEvent & {
   type: typeof EventTypes.Expense;
 }
 
-export type IncomeEvent = BaseEvent & {
+export type BorrowEvent = BaseEvent & {
   from: Address;
-  type: typeof EventTypes.Income;
+  type: typeof EventTypes.Borrow;
 }
 
 export type RepayEvent = BaseEvent & {
   to: Address;
   type: typeof EventTypes.Repay;
+}
+
+export type DepositEvent = BaseEvent & {
+  to: Address;
+  type: typeof EventTypes.Deposit;
 }
 
 export type WithdrawEvent = BaseEvent & {
@@ -66,27 +62,21 @@ export type WithdrawEvent = BaseEvent & {
 export type TradeEvent = {
   date: TimestampString;
   description: string;
-  swapsIn: { [asset: string]: DecimalString };
-  swapsOut: { [asset: string]: DecimalString };
+  inputs: { [asset: string]: DecimalString };
+  outputs: { [asset: string]: DecimalString };
+  prices: { [asset: string]: DecimalString };
+  spentChunks: AssetChunk[];
+  tags?: string[];
   type: typeof EventTypes.Trade;
-}
-
-export type NetWorthEvent = {
-  assets: { [asset: string]: DecimalString };
-  date: TimestampString;
-  quantity: DecimalString;
-  type: typeof EventTypes.NetWorth;
 }
 
 export type Event =
   | BorrowEvent
-  | CapitalGainsEvent
   | DepositEvent
   | ExpenseEvent
   | IncomeEvent
   | RepayEvent
   | TradeEvent
-  | NetWorthEvent
   | WithdrawEvent;
 export type Events = Event[];
 

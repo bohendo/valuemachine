@@ -11,6 +11,7 @@ import {
   TransactionSources,
   Transfer,
   TransferCategories,
+  TransferCategory,
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
@@ -26,6 +27,7 @@ const { UNI,
   UniV2_sUSD_ETH, UniV2_SUSHI_ETH, UniV2_TORN_ETH, UniV2_UNI_ETH, UniV2_USDC_DSD, UniV2_USDC_ETH,
   UniV2_USDC_GRT, UniV2_USDC_USDT, UniV2_WBTC_ETH, UniV2_WBTC_USDC, UniV2_WDOGE_ETH, UniV2_YFI_ETH,
 } = Assets;
+const { Income, Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
 const source = TransactionSources.Uniswap;
 
 ////////////////////////////////////////
@@ -200,18 +202,12 @@ export const uniswapParser = (
     const swapsOut = tx.transfers.filter((transfer: Transfer): boolean =>
       isSelf(transfer.from)
         && uniswapAddresses.some(e => smeq(transfer.to, e.address))
-        && ([
-          TransferCategories.Transfer,
-          TransferCategories.SwapOut,
-        ] as TransferCategories[]).includes(transfer.category)
+        && ([Expense, SwapOut] as TransferCategory[]).includes(transfer.category)
     );
     const swapsIn = tx.transfers.filter((transfer: Transfer): boolean =>
       isSelf(transfer.to)
         && uniswapAddresses.some(e => smeq(transfer.from, e.address))
-        && ([
-          TransferCategories.Transfer, 
-          TransferCategories.SwapIn,
-        ] as TransferCategories[]).includes(transfer.category)
+        && ([Income, SwapIn] as TransferCategory[]).includes(transfer.category)
     );
     // SwapIn entries for assets that don't exist in swapsOut should come first
     const ofType = asset => swap => swap.asset === asset;
@@ -259,8 +255,14 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      swaps.in.map(swap => { swap.category = TransferCategories.SwapIn; return swap; });
-      swaps.out.map(swap => { swap.category = TransferCategories.SwapOut; return swap; });
+      swaps.in.forEach(swap => {
+        swap.category = SwapIn;
+        swap.from = address;
+      });
+      swaps.out.forEach(swap => {
+        swap.category = SwapOut;
+        swap.to = address;
+      });
       swaps.in.forEach(swap => { swap.index = swap.index || index; });
       swaps.out.forEach(swap => { swap.index = swap.index || index; });
 
@@ -299,15 +301,10 @@ export const uniswapParser = (
     // UNI Airdrop
     } else if (event.name === "Claimed") {
       const airdrop = tx.transfers.find((transfer: Transfer): boolean =>
-        isSelf(transfer.to)
-          && airdropAddresses.some(e => smeq(transfer.from, e.address))
-          && transfer.asset === UNI
-          && ([
-            TransferCategories.Transfer,
-            TransferCategories.Income,
-          ] as TransferCategories[]).includes(transfer.category)
+        airdropAddresses.some(e => smeq(transfer.from, e.address))
+        && transfer.asset === UNI
+        && transfer.category === Income
       );
-      airdrop.category = TransferCategories.Income;
       tx.description = `${getName(airdrop.to)} recieved an airdrop of ${
         round(airdrop.quantity)
       } ${airdrop.asset} from ${subsrc}`;
@@ -319,17 +316,15 @@ export const uniswapParser = (
         isSelf(transfer.from)
           && stakingAddresses.some(e => smeq(transfer.to, e.address))
           && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([
-            TransferCategories.Transfer,
-            TransferCategories.Deposit,
-          ] as TransferCategories[]).includes(transfer.category)
+          && ([Expense, Deposit] as TransferCategory[]).includes(transfer.category)
       );
       if (!deposit) {
         log.warn(`${subsrc} ${event.name} couldn't find a deposit to ${address}`);
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      deposit.category = TransferCategories.Deposit;
+      deposit.category = Deposit;
+      deposit.to = address;
       tx.description = `${getName(ethTx.from)} deposited ${
         deposit.asset
       } into ${subsrc} staking pool`;
@@ -341,31 +336,15 @@ export const uniswapParser = (
         isSelf(transfer.to)
           && stakingAddresses.some(e => smeq(transfer.from, e.address))
           && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([
-            TransferCategories.Transfer,
-            TransferCategories.Withdraw,
-          ] as TransferCategories[]).includes(transfer.category)
+          && ([Income, Withdraw] as TransferCategory[]).includes(transfer.category)
       );
       if (!withdraw) {
         log.warn(`${subsrc} ${event.name} couldn't find a withdraw from staking pool}`);
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      withdraw.category = TransferCategories.Withdraw;
-      const income = tx.transfers.find((transfer: Transfer): boolean =>
-        isSelf(transfer.to)
-          && stakingAddresses.some(e => smeq(transfer.from, e.address))
-          && transfer.asset === UNI
-          && ([
-            TransferCategories.Transfer,
-            TransferCategories.Income,
-          ] as TransferCategories[]).includes(transfer.category)
-      );
-      if (!income) {
-        log.warn(`${subsrc} ${event.name} couldn't find income from staking pool`);
-        continue;
-      }
-      income.category = TransferCategories.Income;
+      withdraw.category = Withdraw;
+      withdraw.from = address;
       tx.description = `${getName(ethTx.from)} withdrew ${
         withdraw.asset
       } from ${subsrc} staking pool`;

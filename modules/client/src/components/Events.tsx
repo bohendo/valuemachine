@@ -37,6 +37,8 @@ import React, { useEffect, useState } from "react";
 
 import { store } from "../store";
 
+const { add, mul, round, sub } = math;
+
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
     margin: theme.spacing(3),
@@ -91,27 +93,48 @@ const SimpleTable = ({
 
 const EventRow = ({
   event,
+  unit,
 }: {
   event: Event;
+  unit: Assets;
 }) => {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (event && open) console.log(event);
+  }, [event, open]);
+
   const swapToStr = (swaps) =>
     Object.entries(swaps || {}).map(([key, val]) => `${val} ${key}`).join(" and ");
+
+  const chunksToDisplay = (chunks, prices) => {
+    const output = {};
+    for (const i in chunks) {
+      const chunk = chunks[i];
+      const index = parseInt(i, 10) + 1;
+      output[`Chunk ${index}`] = `${chunk.quantity} ${chunk.asset}`;
+      output[`Chunk ${index} Recieve Date`] = chunk.receiveDate;
+      output[`Chunk ${index} Recieve Price`] = chunk.receivePrice;
+      output[`Chunk ${index} Capital Change`] = `${mul(
+        chunk.quantity,
+        sub(prices[chunk.asset], chunk.receivePrice),
+      ).substring(0, 20)} ${unit}`;
+    }
+    return output;
+  };
+
   const pricesToDisplay = (prices) => {
     const output = {};
-    const targets = new Set();
-    Object.entries(prices || {}).forEach(([unit, entry]) => {
-      Object.entries(entry || {}).forEach(([asset, price]) => {
-        targets.add(asset);
-        output[`${asset} Price`] = output[`${asset} Price`] || [];
-        output[`${asset} Price`].push(`${math.round(price, 4)} ${unit}`);
-      });
+    Object.entries(prices || {}).forEach(([asset, price]) => {
+      output[`${asset} Price`] = output[`${asset} Price`] || [];
+      output[`${asset} Price`].push(`${math.round(price, 4)} ${unit}`);
     });
     Object.keys(output).forEach(key => {
       output[key] = output[key].join(" or ");
     });
     return output;
   };
+
   return (
     <React.Fragment>
       <TableRow>
@@ -141,17 +164,34 @@ const EventRow = ({
                   Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
                   Source: event.from,
-                } : event.type === EventTypes.CapitalGains ? {
-                  asset: event.asset,
-                  amount: math.round(event.quantity, 4),
-                  purchaseDate: event.purchaseDate.replace("T", " ").replace(".000Z", ""),
-                  purchasePrice: event.purchasePrice,
-                  saleDate: event.date.replace("T", " ").replace(".000Z", ""),
-                  salePrice: event.assetPrice,
+
+                } : event.type === EventTypes.Deposit ? {
+                  Asset: event.asset,
+                  Amount: math.round(event.quantity, 4),
+                  Recipient: event.to,
+                } : event.type === EventTypes.Withdraw ? {
+                  Asset: event.asset,
+                  Amount: math.round(event.quantity, 4),
+                  Source: event.from,
+
+                } : event.type === EventTypes.Repay ? {
+                  Asset: event.asset,
+                  Amount: math.round(event.quantity, 4),
+                  Recipient: event.to,
+                } : event.type === EventTypes.Borrow ? {
+                  Asset: event.asset,
+                  Amount: math.round(event.quantity, 4),
+                  Source: event.from,
+
                 } : event.type === EventTypes.Trade ? {
-                  ["Exact Give"]: swapToStr(event.swapsOut),
-                  ["Exact Take"]: swapToStr(event.swapsIn),
+                  ["Exact Give"]: swapToStr(event.outputs),
+                  ["Exact Take"]: swapToStr(event.inputs),
+                  ["Total Capital Change"]: round(event.spentChunks?.reduce((sum, chunk) => add(
+                    sum,
+                    mul(chunk.quantity, sub(chunk.receivePrice, event?.price?.[chunk.asset])),
+                  ), "0")),
                   ...pricesToDisplay(event.prices),
+                  ...chunksToDisplay(event.spentChunks, event.prices),
                 } : {}
               }/>
             </Box>
@@ -168,10 +208,12 @@ export const EventExplorer = ({
   setEvents,
   pricesJson,
   transactions,
+  setState,
   unit,
 }: {
   addressBook: AddressBook;
   events: Events;
+  setState: (state: any) => void;
   setEvents: (events: any) => void;
   pricesJson: PricesJson;
   transactions: Transactions;
@@ -186,6 +228,7 @@ export const EventExplorer = ({
   const classes = useStyles();
 
   useEffect(() => {
+    setPage(0);
     setFilteredEvents(events.filter(event =>
       (!filterAsset || event.asset === filterAsset)
       && (!filterType || event.type === filterType)
@@ -234,28 +277,28 @@ export const EventExplorer = ({
           const [newState, newEvents] = valueMachine(state, transaction);
           vmEvents = vmEvents.concat(...newEvents);
           state = newState;
+          // Give the UI a split sec to re-render & make the hang more bearable
+          await new Promise(res => setTimeout(res, 5));
           const chunk = 100;
           if (transaction.index % chunk === 0) {
-            const diff = (Date.now() - start).toString();
             console.info(`Processed transactions ${transaction.index - chunk}-${
               transaction.index
-            } in ${diff} ms`);
-            // Give the UI a split sec to re-render & make the hang more bearable
-            await new Promise(res => setTimeout(res, 100));
+            } at a rate of ${Math.round((100000*chunk)/(Date.now() - start))/100} tx/sec`);
             start = Date.now();
           }
         }
         const finalState = getState({ stateJson: state, addressBook, prices });
         console.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
         console.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
-        res(vmEvents.filter(e => (e.type !== EventTypes.NetWorth)));
+        res([finalState.toJson(), vmEvents]);
       } catch (e) {
         console.log(`Failed to process transactions`);
         console.error(e);
         res([]);
       }
     });
-    setEvents(res);
+    setState(res[0]);
+    setEvents(res[1]);
     setSyncing(old => ({ ...old, state: false }));
   };
 
@@ -356,7 +399,7 @@ export const EventExplorer = ({
               {filteredEvents
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((event: Events, i: number) => (
-                  <EventRow key={i} event={event} />
+                  <EventRow key={i} event={event} unit={unit} />
                 ))}
             </TableBody>
           </Table>

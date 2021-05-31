@@ -12,13 +12,15 @@ import {
   TransactionSources,
   Transfer,
   TransferCategories,
+  TransferCategory,
 } from "@finances/types";
 import { math, sm, smeq } from "@finances/utils";
 
-import { rmDups, parseEvent, quantitiesAreClose } from "../utils";
+import { rmDups, parseEvent, valuesAreClose } from "../utils";
 
 const { add, round } = math;
 const { ETH, WETH } = Assets;
+const { Income, Expense, SwapIn, SwapOut } = TransferCategories;
 const source = TransactionSources.Oasis;
 
 ////////////////////////////////////////
@@ -82,9 +84,9 @@ export const oasisParser = (
 
   const ethish = [WETH, ETH] as Assets[];
   const findSwap = (quantity: string, asset: Assets) => (transfer: Transfer): boolean =>
-    transfer.category === TransferCategories.Transfer && (
+    (([Income, Expense] as TransferCategory[]).includes(transfer.category)) && (
       ethish.includes(asset) ? ethish.includes(transfer.asset) : transfer.asset === asset
-    ) && quantitiesAreClose(quantity, transfer.quantity);
+    ) && valuesAreClose(quantity, transfer.quantity);
 
   let actor = isSelf(ethTx.from) ? ethTx.from : undefined;
   let inAsset;
@@ -131,14 +133,16 @@ export const oasisParser = (
 
         const swapIn = tx.transfers.find(findSwap(inAmt, inAsset));
         if (swapIn) {
-          swapIn.category = TransferCategories.SwapIn;
+          swapIn.category = SwapIn;
+          swapIn.from = address;
         } else {
           log.debug(`Can't find swap in transfer for ${inAmt} ${inAsset}`);
         }
 
         const swapOut = tx.transfers.find(findSwap(outAmt, outAsset));
         if (swapOut) {
-          swapOut.category = TransferCategories.SwapOut;
+          swapOut.category = SwapOut;
+          swapOut.to = address;
           outAsset = swapOut.asset;
         } else {
           log.debug(`Can't find swap out transfer for ${outAmt} ${outAsset}`);
@@ -159,14 +163,14 @@ export const oasisParser = (
 
   const swapIn = tx.transfers.find(findSwap(inTotal, inAsset));
   if (swapIn) {
-    swapIn.category = TransferCategories.SwapIn;
+    swapIn.category = SwapIn;
     inAsset = swapIn.asset;
   } else {
     log.debug(`Can't find swap in transfer for ${inTotal} ${inAsset}`);
   }
   const swapOut = tx.transfers.find(findSwap(outTotal, outAsset));
   if (swapOut) {
-    swapOut.category = TransferCategories.SwapOut;
+    swapOut.category = SwapOut;
     outAsset = swapOut.asset;
   } else {
     log.debug(`Can't find swap out transfer for ${outTotal} ${outAsset}`);

@@ -5,6 +5,7 @@ import { keccak256 } from "@ethersproject/keccak256";
 import { encode } from "@ethersproject/rlp";
 import { formatEther } from "@ethersproject/units";
 import {
+  Address,
   AddressBook,
   Assets,
   ChainData,
@@ -14,6 +15,7 @@ import {
   Transaction,
   TransactionSources,
   TransferCategories,
+  TransferCategory,
 } from "@finances/types";
 import { math, sm } from "@finances/utils";
 
@@ -52,16 +54,23 @@ const appParsers = [
   tornadoParser,
 ];
 
+const { Expense, Income, Internal, Unknown } = TransferCategories;
+
 export const parseEthTx = (
   ethTx: EthTransaction,
   addressBook: AddressBook,
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-
   const { getName, isSelf } = addressBook;
   const log = logger.child({ module: `Eth${ethTx.hash.substring(0, 8)}` });
   // log.debug(ethTx, `Parsing eth tx`);
+
+  const getSimpleCategory = (to: Address, from: Address): TransferCategory =>
+    (isSelf(to) && isSelf(from)) ? Internal
+      : (isSelf(from) && !isSelf(to)) ? Expense
+        : (isSelf(to) && !isSelf(from)) ? Income
+          : Unknown;
 
   if (!ethTx.logs) {
     throw new Error(`Missing logs for tx ${ethTx.hash}, did fetchChainData get interrupted?`);
@@ -79,11 +88,11 @@ export const parseEthTx = (
   if (isSelf(ethTx.from)) {
     tx.transfers.push({
       asset: Assets.ETH,
-      category: TransferCategories.Expense,
+      category: Expense,
       from: sm(ethTx.from),
       index: -1,
       quantity: formatEther(BigNumber.from(ethTx.gasUsed).mul(ethTx.gasPrice)),
-      to: AddressZero, // 
+      to: AddressZero, // Is there any point is specifiying the coinbase address here?
     });
   }
 
@@ -98,7 +107,7 @@ export const parseEthTx = (
   if (gt(ethTx.value, "0") && (isSelf(ethTx.to) || isSelf(ethTx.from))) {
     tx.transfers.push({
       asset: Assets.ETH,
-      category: TransferCategories.Transfer,
+      category: getSimpleCategory(ethTx.to, ethTx.from),
       from: sm(ethTx.from),
       index: 0,
       quantity: ethTx.value,
@@ -130,7 +139,7 @@ export const parseEthTx = (
     ) {
       tx.transfers.push({
         asset: Assets.ETH,
-        category: TransferCategories.Transfer,
+        category: getSimpleCategory(call.to, call.from),
         // Internal eth transfers have no index, put incoming transfers first & outgoing last
         // This makes underflows less likely during VM processesing
         index: isSelf(call.to) ? 1 : 10000,
@@ -163,23 +172,33 @@ export const parseEthTx = (
       gt(transfer.quantity, "0")
     ))
     // Make sure all eth addresses are lower-case
-    .map(transfer => ({ ...transfer, from: sm(transfer.from), to: sm(transfer.to) }))
+    .map(transfer => ({
+      ...transfer,
+      from: transfer.from.startsWith("0x") ? sm(transfer.from) : transfer.from,
+      to: transfer.to.startsWith("0x") ? sm(transfer.to) : transfer.to,
+    }))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);
 
   // Set a default tx description
   if (!tx.description) {
-    const transfers = tx.transfers.filter(t => t.category === TransferCategories.Transfer);
-    if (transfers.length < 1) {
-      tx.description = ethTx.data.length > 3
-        ? `${getName(ethTx.from)} called a method on ${getName(ethTx.to)}`
-        : `${getName(ethTx.from)} did nothing`;
-    } else if (transfers.length > 1) {
-      tx.description = `${getName(ethTx.to)} made ${transfers.length} transfers`;
+    if (tx.transfers.length === 1) {
+      const transfer = tx.transfers[0];
+      if (transfer.to === AddressZero) { // if the only transfer is a tx fee
+        tx.description = ethTx.data.length > 3
+          ? `${getName(ethTx.from)} called a method on ${getName(ethTx.to)}`
+          : `${getName(ethTx.from)} did nothing`;
+      } else {
+        tx.description = `${getName(transfer.from)} transfered ${
+          round(transfer.quantity, 4)
+        } ${transfer.asset} to ${getName(transfer.to)}`;
+      }
+    } else if (tx.transfers.length > 2) {
+      tx.description = `${getName(ethTx.to)} made ${tx.transfers.length} transfers`;
     } else {
-      const transfer = transfers[0];
+      const transfer = tx.transfers[1];
       if (!transfer) {
-        tx.description = `${getName(transfer.from)} did nothing`;
+        tx.description = `${getName(ethTx.from)} did nothing`;
       } else if (!eq("0", transfer.quantity)) {
         tx.description = `${getName(transfer.from)} transfered ${
           round(transfer.quantity, 4)

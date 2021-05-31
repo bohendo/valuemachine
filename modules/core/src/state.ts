@@ -1,12 +1,10 @@
 import {
-  Address,
+  Account,
   AddressBook,
-  AltChainAssets,
   AssetChunk,
   Assets,
   DecimalString,
   emptyState,
-  FiatAssets,
   Logger,
   NetWorth,
   Prices,
@@ -18,7 +16,7 @@ import {
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
-const { add, gt, round, sub } = math;
+const { add, gt, lt, mul, round, sub } = math;
 
 export const getState = ({
   addressBook,
@@ -46,7 +44,19 @@ export const getState = ({
   ////////////////////////////////////////
   // Internal Functions
 
-  const getNextChunk = (account: Address, asset: Assets): AssetChunk => {
+  const haveAccount = (account: Account): boolean => {
+    if (state.accounts[account]) {
+      return true;
+    } else if (addressBook.isSelf(account)) {
+      state.accounts[account] = [];
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const getNextChunk = (account: Account, asset: Assets): AssetChunk => {
+    // TODO: find the one w smallest/largest change in value since we got it
     const index = state.accounts[account].findIndex(chunk => chunk.asset === asset);
     if (index === -1) return undefined;
     return state.accounts[account].splice(index, 1)[0];
@@ -57,45 +67,58 @@ export const getState = ({
 
   const toJson = (): StateJson => state;
 
-  const putChunk = (account: Address, chunk: AssetChunk): void => {
-    if (
-      Object.keys(AltChainAssets).includes(chunk.asset)
-      || Object.keys(FiatAssets).includes(chunk.asset)
-      || !addressBook.isSelf(account)
-    ) {
-      log.debug(`Skipping external asset put`);
+  const createAccount = (account: Account): void => {
+    state.accounts[account] = state.accounts[account] || [];
+  };
+
+  const putChunk = (account: Account, chunk: AssetChunk): void => {
+    if (!haveAccount(account)) {
+      log.debug(`Skipping asset put to non-self account ${account}`);
       return;
     }
-    log.debug(`Putting ${chunk.quantity} ${chunk.asset} into account ${account}`);
-    state.accounts[account].push(chunk);
-    state.accounts[account].sort((chunk1, chunk2) =>
-      new Date(chunk1.dateRecieved).getTime() - new Date(chunk2.dateRecieved).getTime(),
-    );
+    const { asset, quantity } = chunk;
+    if (lt(getBalance(account, asset), "0")) {
+      // annihilate negative chunks before adding positive ones
+      let togo = quantity;
+      while (gt(togo, "0")) {
+        const hunk = getNextChunk(account, asset);
+        if (!hunk) {
+          // Push the remaining payment after debt is consumed
+          log.debug(`Putting remaining payment of ${togo} ${asset} into account ${account}`);
+          state.accounts[account].push({ ...chunk, quantity: togo });
+          return;
+        }
+        const leftover = add(hunk.quantity, togo); // negative if debt is bigger
+        if (lt(leftover, "0")) {
+          // Push the remaining debt after payment is consumed
+          log.debug(`Replacing leftover debt chunk of ${leftover} ${asset} into account ${account}`);
+          state.accounts[account].push({ ...hunk, quantity: leftover });
+          return;
+        }
+        togo = leftover;
+        log.debug(`Anniilated debt chunk of ${hunk.quantity} ${hunk.asset}, ${togo} to go`);
+      }
+    } else {
+      log.debug(`Putting ${quantity} ${asset} into account ${account}`);
+      state.accounts[account].push(chunk);
+    }
+
   };
 
   const getChunks = (
-    account: Address,
+    account: Account,
     asset: Assets,
     quantity: DecimalString,
     transaction: Transaction,
     unit: Assets,
   ): AssetChunk[] => {
-    if (Object.keys(FiatAssets).includes(asset)) {
-      log.debug(`Printing more ${asset}, Brr!`); // In this value machine, anyone can print fiat
-      return [{ asset, dateRecieved: new Date(0).toISOString(), purchasePrice: "1", quantity }];
-    }
     // We assume nothing about the history of chunks coming to us from external parties
-    if (!addressBook.isSelf(account)) {
-      const purchasePrice = prices.getPrice(transaction.date, asset, unit);
-      if (!purchasePrice) {
+    if (!haveAccount(account)) {
+      const receivePrice = prices.getPrice(transaction.date, asset, unit);
+      if (!receivePrice) {
         log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${transaction.date}`);
       }
-      return [{
-        asset,
-        dateRecieved: transaction.date,
-        purchasePrice,
-        quantity,
-      }];
+      return [{ asset, quantity, receiveDate: transaction.date, receivePrice }];
     }
     log.debug(`Getting chunks totaling ${quantity} ${asset} from ${account}`);
     const output = [];
@@ -104,13 +127,17 @@ export const getState = ({
       const chunk = getNextChunk(account, asset);
       log.debug(chunk, `Got next chunk of ${asset} w ${togo} to go`);
       if (!chunk) {
-        output.forEach(chunk => putChunk(account, chunk)); // roll back changes so far
-        // Should we just log a warning & continue w balances going negative?!
-        throw new Error(`${account} attempted to spend ${quantity} ${
-          asset
-        } on ${transaction.date} but it's missing ${togo}. Tx: ${
-          JSON.stringify(transaction, null, 2)
-        } All chunks: ${JSON.stringify(output)}.`);
+        const newChunk = {
+          asset,
+          receiveDate: transaction.date,
+          receivePrice: prices.getPrice(transaction.date, asset, unit),
+          quantity: togo,
+        };
+        // Borrow the rest of what we need
+        output.push(newChunk);
+        // Register debt by pushing a new negative-quantity chunk
+        state.accounts[account].push({ ...newChunk, quantity: mul(newChunk.quantity, "-1") });
+        return output;
       }
       if (gt(chunk.quantity, togo)) {
         putChunk(account, { ...chunk, quantity: sub(chunk.quantity, togo) });
@@ -124,8 +151,8 @@ export const getState = ({
     return output;
   };
 
-  const getBalance = (account: Address, asset: Assets): DecimalString =>
-    !addressBook.isSelf(account)
+  const getBalance = (account: Account, asset: Assets): DecimalString =>
+    !haveAccount(account)
       ? "0"
       : state.accounts[account]
         .filter(chunk => chunk.asset === asset)
@@ -134,8 +161,8 @@ export const getState = ({
   const getRelevantBalances = (transaction: Transaction): StateBalances => {
     const simpleState = {} as StateBalances;
     const accounts = transaction.transfers.reduce((acc, cur) => {
-      addressBook.isSelf(cur.to) && acc.push(cur.to);
-      addressBook.isSelf(cur.from) && acc.push(cur.from);
+      haveAccount(cur.to) && acc.push(cur.to);
+      haveAccount(cur.from) && acc.push(cur.from);
       return acc;
     }, []);
     for (const account of accounts) {
@@ -154,6 +181,7 @@ export const getState = ({
   const getAllBalances = (): StateBalances => {
     const output = {} as StateBalances;
     for (const account of Object.keys(state.accounts)) {
+      const name = addressBook.getName(account);
       const assets = state.accounts[account].reduce((acc, cur) => {
         if (!acc.includes(cur.asset)) {
           acc.push(cur.asset);
@@ -161,8 +189,8 @@ export const getState = ({
         return acc;
       }, []);
       for (const asset of assets) {
-        output[account] = output[account] || {};
-        output[account][asset] = getBalance(account, asset);
+        output[name] = output[name] || {};
+        output[name][asset] = getBalance(account, asset);
       }
     }
     return output;
@@ -185,6 +213,7 @@ export const getState = ({
   };
 
   return {
+    createAccount,
     getAllBalances,
     getBalance,
     getChunks,
