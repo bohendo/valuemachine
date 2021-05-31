@@ -44,11 +44,6 @@ describe("State", () => {
 
   });
 
-  it("should get all balances", async () => {
-    const allBal = state.getAllBalances();
-    expect(math.eq(allBal[AddressOne][asset], amt)).to.be.true;
-  });
-
   it("should get an account's balance", async () => {
     const bal = state.getBalance(AddressOne, asset);
     expect(math.eq(bal, amt)).to.be.true;
