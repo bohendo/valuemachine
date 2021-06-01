@@ -1,3 +1,4 @@
+import { AddressZero } from "@ethersproject/constants";
 import {
   Account,
   AddressBook,
@@ -45,7 +46,9 @@ export const getState = ({
   // Internal Functions
 
   const haveAccount = (account: Account): boolean => {
-    if (state.accounts[account]) {
+    if (account === AddressZero) {
+      return false;
+    } else if (state.accounts[account]) {
       return true;
     } else if (addressBook.isSelf(account)) {
       state.accounts[account] = [];
@@ -127,6 +130,7 @@ export const getState = ({
       const chunk = getNextChunk(account, asset);
       log.debug(chunk, `Got next chunk of ${asset} w ${togo} to go`);
       if (!chunk) {
+        // TODO: if account is an address then don't let the balance go negative
         const newChunk = {
           asset,
           receiveDate: transaction.date,
@@ -181,7 +185,6 @@ export const getState = ({
   const getAllBalances = (): StateBalances => {
     const output = {} as StateBalances;
     for (const account of Object.keys(state.accounts)) {
-      const name = addressBook.getName(account);
       const assets = state.accounts[account].reduce((acc, cur) => {
         if (!acc.includes(cur.asset)) {
           acc.push(cur.asset);
@@ -189,8 +192,8 @@ export const getState = ({
         return acc;
       }, []);
       for (const asset of assets) {
-        output[name] = output[name] || {};
-        output[name][asset] = getBalance(account, asset);
+        output[account] = output[account] || {};
+        output[account][asset] = getBalance(account, asset);
       }
     }
     return output;

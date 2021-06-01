@@ -174,6 +174,8 @@ const proxyInterface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
+const abrv = str => str.substring(0, 8).toLowerCase(); // for abbreviating account labels
+
 // Smallest difference is first, largest is last
 // If diff in 1 is greater than diff in 2, swap them
 const diffAsc = (compareTo: DecimalString) => (t1: Transfer, t2: Transfer): number =>
@@ -354,7 +356,7 @@ export const makerParser = (
           log.warn(`Vat.${logNote.name}: Can't find a token address for ilk ${logNote.args[0]}`);
           continue;
         }
-        const vault = `CDP-${logNote.args[0].substring(0, 12)}`;
+        const vault = `${source}-${abrv(logNote.args[0])}`;
         const wad = formatUnits(
           toBN(logNote.args[2] || "0x00").fromTwos(256),
           chainData.getTokenData(assetAddress)?.decimals || 18,
@@ -370,17 +372,19 @@ export const makerParser = (
         );
         if (transfer) {
           if (gt(wad, "0")) {
+            const account = `${vault}-${abrv(transfer.from)}`;
             transfer.category = Deposit;
-            transfer.to = vault;
+            transfer.to = account;
             tx.description = `${getName(transfer.from)} deposited ${
               round(wad, 4)
-            } ${asset} to ${transfer.to}`;
+            } ${asset} to ${account}`;
           } else {
+            const account = `${vault}-${abrv(transfer.to)}`;
             transfer.category = Withdraw;
-            transfer.from = vault;
+            transfer.from = account;
             tx.description = `${getName(transfer.to)} withdrew ${
               round(abs(wad), 4)
-            } ${asset} from ${transfer.from}`;
+            } ${asset} from ${account}`;
           }
         } else {
           log.warn(`Vat.${logNote.name}: Can't find a ${asset} transfer of about ${wad}`);
@@ -388,10 +392,10 @@ export const makerParser = (
 
       // Borrow/Repay DAI
       } else if (logNote.name === "frob") {
-        const vault = `CDP-${logNote.args[0].substring(0, 12)}`;
+        const vault = `${source}-${abrv(logNote.args[0])}`;
         const dart = formatUnits(toBN(logNote.args[5] || "0x00").fromTwos(256));
         if (eq(dart, "0")) {
-          log.debug(`Vat.${logNote.name}: Skipping zero-value change in vault debt`);
+          log.debug(`Vat.${logNote.name}: Skipping zero-value change in ${vault} debt`);
           continue;
         }
         log.info(`Found a change in ${vault} debt of about ${round(dart)} DAI`);
@@ -402,13 +406,13 @@ export const makerParser = (
         if (transfer) {
           if (gt(dart, "0")) {
             transfer.category = Borrow;
-            transfer.from = vault;
+            transfer.from = `${vault}-${abrv(transfer.to)}`;
             tx.description = `${getName(transfer.to)} borrowed ${
               round(transfer.quantity)
             } DAI from ${vault}`;
           } else {
             transfer.category = Repay;
-            transfer.to = vault;
+            transfer.to = `${vault}-${abrv(transfer.from)}`;
             tx.description = `${getName(transfer.from)} repayed ${
               round(transfer.quantity)
             } DAI to ${vault}`;
@@ -419,7 +423,7 @@ export const makerParser = (
       }
 
     ////////////////////////////////////////
-    // MCD Pot
+    // MCD Pot aka DSR
     } else if (smeq(address, potAddress)) {
       const logNote = parseLogNote(potInterface, txLog);
       if (!logNote.name) continue;
@@ -435,11 +439,12 @@ export const makerParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (deposit) {
+          const account = `${getName(address)}-${abrv(deposit.from)}`;
           deposit.category = Deposit;
-          deposit.to = address;
+          deposit.to = account;
           tx.description = `${getName(deposit.from)} deposited ${
             round(deposit.quantity)
-          } DAI to ${deposit.to}`;
+          } DAI to ${account}`;
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI expense of about ${wad}`);
         }
@@ -452,11 +457,12 @@ export const makerParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (withdraw) {
+          const account = `${getName(address)}-${abrv(withdraw.to)}`;
           withdraw.category = Withdraw;
-          withdraw.from = address;
+          withdraw.from = account;
           tx.description = `${getName(withdraw.to)} withdrew ${
             round(withdraw.quantity)
-          } DAI from ${withdraw.from}`;
+          } DAI from ${account}`;
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI income of about ${wad}`);
         }
@@ -572,7 +578,7 @@ export const makerParser = (
 
       // PETH -> CDP: Categorize PETH transfer as deposit
       } else if (logNote.name === "lock") {
-        const cdp = `CDP-${toBN(logNote.args[1])}`;
+        const account = `CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
@@ -582,44 +588,47 @@ export const makerParser = (
         ).sort(diffAsc(wad))[0];
         if (transfer) {
           transfer.category = Deposit;
-          transfer.to = cdp;
+          transfer.to = account;
           tx.description = `${getName(transfer.from)} deposited ${
             round(transfer.quantity, 4)
-          } ${transfer.asset} to ${transfer.to}`;
+          } ${transfer.asset} to ${account}`;
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a P/W/ETH transfer of about ${wad}`);
         }
 
       // PETH <- CDP: Categorize PETH transfer as withdraw
       } else if (logNote.name === "free") {
-        const cdp = `CDP-${toBN(logNote.args[1])}`;
+        const account = `CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
-        const transfer = tx.transfers.filter(t =>
+        const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
           && ([Income, Withdraw] as TransferCategory[]).includes(t.category)
           && (smeq(tubAddress, t.from) || isSelf(t.to))
         ).sort(diffAsc(wad)).sort((t1, t2) =>
           // First try to match a PETH transfer
           (t1.asset === PETH && t2.asset !== PETH) ? -1
-            // Second try to match a WETH transfer
-            : (t1.asset === WETH && t2.asset !== WETH) ? -1
-              // Last try to match an ETH transfer
-              : (t1.asset === ETH && t2.asset !== ETH) ? -1
-                : 0
-        )[0];
+            : (t1.asset !== PETH && t2.asset === PETH) ? 1
+              // Second try to match a WETH transfer
+              : (t1.asset === WETH && t2.asset !== WETH) ? -1
+                : (t1.asset !== WETH && t2.asset === WETH) ? 1
+                  // Last try to match an ETH transfer
+                  : (t1.asset === ETH && t2.asset !== ETH) ? -1
+                    : 1
+        );
+        const transfer = transfers[0];
         if (transfer) {
           transfer.category = Withdraw;
-          transfer.from = cdp;
+          transfer.from = account;
           tx.description = `${getName(transfer.to)} withdrew ${
             round(transfer.quantity, 4)
-          } ${transfer.asset} from ${transfer.from}`;
+          } ${transfer.asset} from ${account}`;
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a PETH transfer of about ${wad}`);
         }
 
       // SAI <- CDP
       } else if (logNote.name === "draw") {
-        const cdp = `CDP-${toBN(logNote.args[1])}`;
+        const account = `CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const borrow = tx.transfers.filter(t =>
           isSelf(t.to)
@@ -628,7 +637,7 @@ export const makerParser = (
         ).sort(diffAsc(wad))[0];
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = cdp;
+          borrow.from = account;
           tx.description = `${getName(ethTx.from)} borrowed ${round(wad)} SAI from ${borrow.from}`;
         } else if (!ethTx.logs.find(l =>
           l.index > index
@@ -641,14 +650,14 @@ export const makerParser = (
 
       // SAI -> CDP
       } else if (logNote.name === "wipe") {
-        const cdp = `CDP-${toBN(logNote.args[1])}`;
+        const account = `CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const repay = tx.transfers.filter(t =>
           t.asset === SAI && ([Expense, Repay] as TransferCategory[]).includes(t.category)
         ).sort(diffAsc(wad))[0];
         if (repay) {
           repay.category = Repay;
-          repay.to = cdp;
+          repay.to = account;
           tx.description = `${getName(ethTx.from)} repayed ${round(wad)} SAI to ${repay.to}`;
         } else if (!ethTx.logs.find(l =>
           l.index > index

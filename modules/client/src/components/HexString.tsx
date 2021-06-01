@@ -6,7 +6,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 
 const useStyles = makeStyles((theme) => ({
   label: {
-    maxWidth: "8em",
+    maxWidth: "12em",
     margin: theme.spacing(0),
   },
   pre: {

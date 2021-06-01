@@ -31,7 +31,7 @@ export const mergeCoinbaseTransactions = (
       ["USD Fees"]: fees,
     } = row;
 
-    const account = "coinbase-account";
+    const account = `${TransactionSources.Coinbase}-account`;
     const exchange = TransactionSources.Coinbase;
     const external = "external-account";
 

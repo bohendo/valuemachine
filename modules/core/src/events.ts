@@ -37,44 +37,34 @@ export const emitTransferEvents = (
   }
 
   const newEvent = {
-    assetPrice: prices.getPrice(transaction.date, asset, unit),
     asset: asset,
+    assetPrice: prices.getPrice(transaction.date, asset, unit),
     date: transaction.date,
+    from: from,
     quantity,
     tags: transaction.tags,
+    to: to,
     type: category as EventTypes,
   } as any;
 
   if (category === Income) {
-    newEvent.from = from;
     newEvent.description = `Recieved ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
-
   } else if (category === Expense && to !== AddressZero) { // Omit tx fees for now
-    newEvent.to = to;
     newEvent.description = `Paid ${round(quantity)} ${asset} to ${getName(to)} `;
     events.push(newEvent);
-
   } else if (category === Borrow) {
-    newEvent.from = from;
     newEvent.description = `Borrowed ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
-
   } else if (category === Repay) {
-    newEvent.to = to;
-    newEvent.description = `Repaied ${round(quantity)} ${asset} to ${getName(to)} `;
+    newEvent.description = `Repayed ${round(quantity)} ${asset} to ${getName(to)} `;
     events.push(newEvent);
-
   } else if (category === Deposit) {
-    newEvent.to = to;
     newEvent.description = `Deposited ${round(quantity)} ${asset} to ${getName(to)} `;
     events.push(newEvent);
-
   } else if (category === Withdraw) {
-    newEvent.from = from;
     newEvent.description = `Withdrew ${round(quantity)} ${asset} from ${getName(from)} `;
     events.push(newEvent);
-
   }
 
   return events;

@@ -188,6 +188,8 @@ const airdropInterface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
+const abrv = str => str.substring(0, 8).toLowerCase(); // for abbreviating account labels
+
 export const uniswapParser = (
   tx: Transaction,
   ethTx: EthTransaction,
@@ -323,11 +325,12 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
+      const account = `${getName(address)}-${abrv(deposit.from)}`;
       deposit.category = Deposit;
-      deposit.to = address;
+      deposit.to = account;
       tx.description = `${getName(ethTx.from)} deposited ${
         deposit.asset
-      } into ${subsrc} staking pool`;
+      } into ${account}`;
 
     ////////////////////////////////////////
     // UNI Mining Pool Withdraw
@@ -343,11 +346,12 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
+      const account = `${getName(address)}-${abrv(withdraw.to)}`;
       withdraw.category = Withdraw;
-      withdraw.from = address;
+      withdraw.from = account;
       tx.description = `${getName(ethTx.from)} withdrew ${
         withdraw.asset
-      } from ${subsrc} staking pool`;
+      } from ${account}`;
 
     } else {
       log.debug(`Skipping ${subsrc} ${event.name}`);

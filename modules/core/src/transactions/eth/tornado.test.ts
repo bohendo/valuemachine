@@ -13,7 +13,7 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
-const { Deposit, Withdraw } = TransferCategories;
+const { Expense, Deposit, Withdraw } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
   module: `Test${TransactionSources.Tornado}`,
@@ -63,12 +63,11 @@ describe(TransactionSources.Tornado, () => {
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
     expect(tx.sources).to.include(TransactionSources.Tornado);
-    expect(tx.transfers.length).to.equal(1);
-    const deposit = tx.transfers[0];
+    expect(tx.transfers.length).to.equal(2);
+    const fee = tx.transfers[0];
+    expect(fee.category).to.equal(Expense);
+    const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Withdraw);
-    expect(tx.description).to.include("withdr");
-    expect(tx.description).to.include(math.round(deposit.quantity));
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
   });
 
 });

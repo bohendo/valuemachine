@@ -29,6 +29,7 @@ export const OnchainSources = enumify({
   Compound: "Compound",
   ERC20: "ERC20",
   EthTx: "EthTx",
+  EtherDelta: "EtherDelta",
   Maker: "Maker",
   Oasis: "Oasis",
   Tornado: "Tornado",

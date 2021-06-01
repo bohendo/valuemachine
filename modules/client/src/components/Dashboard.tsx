@@ -1,179 +1,58 @@
-import {
-  ArgumentScale,
-} from "@devexpress/dx-react-chart";
-import {
-  ArgumentAxis,
-  Chart,
-  Legend,
-  LineSeries,
-  PieSeries,
-  Title,
-  ValueAxis,
-} from "@devexpress/dx-react-chart-material-ui";
-import { getPrices, getState } from "@finances/core";
+import { isAddress } from "@ethersproject/address";
+import { getState } from "@finances/core";
 import { AddressBook, StateJson } from "@finances/types";
-import { getLogger } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import { scaleTime } from "d3-scale";
-import React, { useState, useEffect } from "react";
+import Divider from "@material-ui/core/Divider";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableRow from "@material-ui/core/TableRow";
+import Typography from "@material-ui/core/Typography";
+import React, { useEffect, useState } from "react";
 
-import { store } from "../store";
+import { HexString } from "./HexString";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  root: {
-    display: "flex",
-    margin: "auto",
-    flexDirection: "row",
+  table: {
+    margin: theme.spacing(1),
   },
-  label: {
-    paddingTop: theme.spacing(1),
-    whiteSpace: "nowrap",
+  subTable: {
+    margin: theme.spacing(0),
+    "&:last-child th, &:last-child td": {
+      borderBottom: 0,
+    },
   },
-  item: {
-    flexDirection: "column",
+  accounts: {
+    maxWidth: "12em",
+    "& > *": {
+      marginRight: theme.spacing(0),
+    },
   },
-  chart: {
-    paddingRight: "20px",
-  },
-  title: {
-    whiteSpace: "pre",
+  assets: {
+    width: "10em",
   },
 }));
 
-////////////////////////////////////////
-// Asset Distribution
-const indent = 5;
-const getCoordinates = (startAngle: number, endAngle: number, maxRadius: number) => {
-  const angle = startAngle + (endAngle - startAngle) / 2;
-  return {
-    x: (maxRadius + indent) * Math.sin(angle),
-    y: (maxRadius + indent) * Math.cos(angle)
-  };
-};
-const pointComponent = (props: any) => {
-  const { startAngle, endAngle, maxRadius, arg, val, value } = props;
-  const { x, y } = getCoordinates(startAngle, endAngle, maxRadius);
-  // TODO: Find a better way to display slice values
-  //console.log(props)
-  //console.log(x, y)
+export const BalanceTable = ({
+  balances,
+}: {
+  balances: { [asset: string]: string },
+}) => {
+  const classes = useStyles();
   return (
-    <React.Fragment>
-      <PieSeries.Point {...props} />
-      <Chart.Label
-        x={arg + x}
-        y={val - y}
-        dominantBaseline="middle"
-        textAnchor="middle"
-      >
-        {value.toFixed(2)}
-      </Chart.Label>
-    </React.Fragment>
-  );
-};
-export const AssetDistribution = (props: any) => {
-  const [data, setData] = useState([] as { asset: string; total: number; totalUSD: number; }[]);
-  const {
-    totalByAsset,
-    date,
-  } = props;
-  useEffect(() => {
-    (async () => {
-      const temp = [];
-      const prices = getPrices(store, getLogger("info"));
-      for (const entry of Object.entries(totalByAsset)) {
-        if (entry[1] > 0 ) {
-          const price = await prices.getPrice(entry[0], date);
-          temp.push({ asset: entry[0], total: entry[1] * price });
-        }
-      }
-      setData(temp);
-    })();
-  }, [date, totalByAsset]);
-  if (!data || data.length === 0) return (<> Will have asset distribution soon </>);
-  return (
-    <Paper>
-      <Chart
-        data={data}
-      >
-        <PieSeries
-          valueField="total"
-          argumentField="asset"
-          outerRadius={1}
-          pointComponent={pointComponent}
-        />
-        <Legend position="right" />
-        <Title position="top" text="Asset Distribution" />
-      </Chart>
-    </Paper>
+    <Table size="small">
+      <TableBody>
+        {Object.entries(balances).map(([asset, balance]: string[], i: number) => (
+          <TableRow key={i} className={classes.subTable}>
+            <TableCell className={classes.assets}> {asset} </TableCell>
+            <TableCell> {balance} </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 };
 
-////////////////////////////////////////
-// Networth Graph
-const LegendRootBase = (props: any) => {
-  const classes = useStyles();
-  return <Legend.Root {...props} className={classes.root} />;
-};
-const LegendLabelBase = (props: any) => {
-  const classes = useStyles();
-  return <Legend.Label className={classes.label} {...props} />;
-};
-const LegendItemBase = (props: any) => {
-  const classes = useStyles();
-  return <Legend.Item className={classes.item} {...props} />;
-};
-const ValueLabel = (props: any) => {
-  const { text } = props;
-  return (
-    <ValueAxis.Label
-      {...props}
-      text={`$${text}`}
-    />
-  );
-};
-const TitleText = (props: any) => {
-  const classes = useStyles();
-  return <Title.Text {...props} className={classes.title} />;
-};
-export const NetWorthGraph = (props: any) => {
-  const { netWorthTimeline } = props;
-  if (!netWorthTimeline || netWorthTimeline.length === 0) {
-    return <> Will have net worth graph soon </>;
-  }
-  return (
-    <Paper>
-      <Chart
-        data={netWorthTimeline}
-      >
-        <ArgumentScale factory={scaleTime} />
-        <ArgumentAxis />
-        <ValueAxis
-          labelComponent={ValueLabel}
-        />
-        <LineSeries
-          name="Net Worth"
-          valueField="networth"
-          argumentField="date"
-        />
-        {/*<LineSeries name="Debt" valueField="debt" argumentField="date" />*/}
-        <Legend
-          position="bottom"
-          rootComponent={LegendRootBase}
-          itemComponent={LegendItemBase}
-          labelComponent={LegendLabelBase}
-        />
-        <Title
-          text={"NetWorth over time"}
-          textComponent={TitleText}
-        />
-      </Chart>
-    </Paper>
-  );
-};
-
-////////////////////////////////////////
-// Dashboard
 export const Dashboard: React.FC = ({
   addressBook,
   state,
@@ -181,13 +60,68 @@ export const Dashboard: React.FC = ({
   addressBook: AddressBook;
   state: StateJson;
 }) => {
+  const [allBalances, setAllBalances] = useState({});
   console.log(`We have ${addressBook?.addresses?.length} addresses`);
   console.log(state);
-  if (addressBook && state) {
-    return (<pre>{
-      JSON.stringify(getState({ addressBook, stateJson: state }).getAllBalances(), null, 2)
-    }</pre>);
-  } else {
-    return (<p>Dashboard is under construction, try again later</p>);
-  }
+  const classes = useStyles();
+
+  useEffect(() => {
+    if (!addressBook || !state) return;
+    setAllBalances(getState({ addressBook, stateJson: state }).getAllBalances());
+  }, [addressBook, state]);
+
+  return (<>
+
+    <Typography variant="h3">
+      Special Accounts
+    </Typography>
+    <Divider/>
+
+    <Table size="small" className={classes.table}>
+      <TableBody>
+        {Object.entries(allBalances)
+          .filter(([account, _balances]: string[]) => !isAddress(account))
+          .map(([account, balances]: string[], i: number) => (
+            <TableRow key={i}>
+              <TableCell className={classes.accounts}>
+                <Typography noWrap>
+                  {account}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <BalanceTable balances={balances}/>
+              </TableCell>
+            </TableRow>
+          ))
+        }
+      </TableBody>
+    </Table>
+
+    <Typography variant="h3">
+      Ethereum Accounts
+    </Typography>
+    <Divider/>
+
+    <Table size="small" className={classes.table}>
+      <TableBody>
+        {Object.entries(allBalances)
+          .filter(([account, _balances]: string[]) => isAddress(account))
+          .map(([account, balances]: string[], i: number) => (
+            <TableRow key={i}>
+              <TableCell className={classes.accounts}>
+                <HexString
+                  display={addressBook.getName(account)}
+                  value={account}
+                />
+              </TableCell>
+              <TableCell>
+                <BalanceTable balances={balances}/>
+              </TableCell>
+            </TableRow>
+          ))
+        }
+      </TableBody>
+    </Table>
+  </>);
+
 };

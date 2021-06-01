@@ -1,3 +1,4 @@
+import { AddressZero } from "@ethersproject/constants";
 import {
   AddressBook,
   Assets,
@@ -100,22 +101,24 @@ export const getValueMachine = ({
       tradeEvent.inputs = inputs;
       tradeEvent.outputs = outputs;
 
+      // TODO: abort or handle if to/from values aren't consistent among swap chunks
+      tradeEvent.from = swapsOut[0].from;
+      tradeEvent.to = swapsIn[0].to;
+
       // Process trade
-      // TODO: abort or whatev if to/from values aren't consistent among swap chunks
-      // eg if one account uniswaps & sends the output to a different self account
       let chunks = [] as any;
       for (const [asset, quantity] of Object.entries(outputs)) {
         chunks = state.getChunks(
-          swapsOut[0].from, asset as Assets, quantity as string, transaction, unit,
+          tradeEvent.from, asset as Assets, quantity as string, transaction, unit,
         );
         tradeEvent.spentChunks = [...chunks]; // Assumes chunks are never modified.. Is this safe?
         chunks.forEach(chunk => state.putChunk(swapsOut[0].to, chunk));
       }
       for (const [asset, quantity] of Object.entries(inputs)) {
         chunks = state.getChunks(
-          swapsIn[0].from, asset as Assets, quantity as string, transaction, unit,
+          AddressZero, asset as Assets, quantity as string, transaction, unit,
         );
-        chunks.forEach(chunk => state.putChunk(swapsIn[0].to, chunk));
+        chunks.forEach(chunk => state.putChunk(tradeEvent.to, chunk));
       }
       events.push(tradeEvent);
 

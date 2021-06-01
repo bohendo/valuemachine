@@ -15,7 +15,7 @@ import { math, smeq } from "@finances/utils";
 
 import { rmDups } from "../utils";
 
-const { round } = math;
+const { mul, round, sub } = math;
 const { TORN } = Assets;
 const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 
@@ -23,6 +23,8 @@ const source = TransactionSources.Tornado;
 
 ////////////////////////////////////////
 /// Addresses
+
+const relayerAddress = "0xb541fc07bc7619fd4062a54d96268525cbc6ffef";
 
 // vTORN is non-transferrable so is not an ERC20
 const miscAddresses = [
@@ -37,7 +39,7 @@ const govTokenAddresses = [
 const mixerAddresses = [
   { name: "tornado-proxy", address: "0x905b63fff465b9ffbf41dea908ceb12478ec7601" }, // old
   { name: "tornado-proxy", address: "0x722122df12d4e14e13ac3b6895a86e84145b6967" }, // new
-  { name: "tornado-relayer", address: "0xb541fc07bc7619fd4062a54d96268525cbc6ffef" },
+  { name: "tornado-relayer", address: relayerAddress },
   { name: "tornado-dai-100", address: "0xd4b88df4d29f5cedd6857912842cff3b20c8cfa3" },
   { name: "tornado-dai-1000", address: "0xfd8610d20aa15b7b2e3be39b396a1bc3516c7144" },
   { name: "tornado-dai-10000", address: "0x07687e702b410fa43f4cb4af7fa097918ffd2730" },
@@ -62,6 +64,11 @@ export const tornadoAddresses = [
 /// ABIs
 ////////////////////////////////////////
 /// Parser
+
+// Eg "0.088" => "0.1", "8.9" => "10"
+const closestTenPow = amt => amt.startsWith("0.")
+  ? mul("10", "0." + "0".repeat(amt.match(/0.0*/)[0].length - 2) + "1")
+  : "1" + "0".repeat(amt.split(".")[0].length);
 
 export const tornadoParser = (
   tx: Transaction,
@@ -101,8 +108,17 @@ export const tornadoParser = (
     withdraw.category = Withdraw;
     withdraw.from = source;
     const amt = round(withdraw.quantity);
+    const total = closestTenPow(withdraw.quantity);
     const asset = withdraw.asset;
-    log.info(`Found withdraw of ${amt} ${asset} from ${source}`);
+    log.info(`Found withdraw of ${total} (${amt} after fees) ${asset} from ${source}`);
+    tx.transfers.push({
+      asset,
+      category: Expense,
+      index: 0,
+      from: source,
+      quantity: sub(total, withdraw.quantity),
+      to: relayerAddress,
+    });
     tx.description = `${getName(withdraw.to)} withdrew ${amt} ${asset} from ${source}`;
   });
 
