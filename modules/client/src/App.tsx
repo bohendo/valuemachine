@@ -117,18 +117,16 @@ const App: React.FC = () => {
               />
             </Route>
 
-            <Route exact path="/profile">
-              <AddressBook
-                profile={profile}
-                setProfile={setProfile}
-              />
-            </Route>
-
-            <Route exact path="/transactions">
-              <TransactionExplorer
+            <Route exact path="/events">
+              <EventExplorer
                 addressBook={addressBook}
+                state={state}
+                events={events}
+                pricesJson={pricesJson}
+                setEvents={setEvents}
+                setState={setState}
                 transactions={transactions}
-                setTransactions={setTransactions}
+                unit={unit}
               />
             </Route>
 
@@ -141,15 +139,18 @@ const App: React.FC = () => {
               />
             </Route>
 
-            <Route exact path="/events">
-              <EventExplorer
+            <Route exact path="/transactions">
+              <TransactionExplorer
                 addressBook={addressBook}
-                events={events}
-                pricesJson={pricesJson}
-                setEvents={setEvents}
-                setState={setState}
                 transactions={transactions}
-                unit={unit}
+                setTransactions={setTransactions}
+              />
+            </Route>
+
+            <Route exact path="/profile">
+              <AddressBook
+                profile={profile}
+                setProfile={setProfile}
               />
             </Route>
 

@@ -7,6 +7,7 @@ import {
   Events,
   EventTypes,
   PricesJson,
+  StateJson,
   Transactions,
 } from "@finances/types";
 import { math } from "@finances/utils";
@@ -159,33 +160,41 @@ const EventRow = ({
                 event.type === EventTypes.Expense ? {
                   Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
+                  Sender: event.from,
                   Recipient: event.to,
                 } : event.type === EventTypes.Income ? {
                   Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
-                  Source: event.from,
+                  Sender: event.from,
+                  Recipient: event.to,
 
                 } : event.type === EventTypes.Deposit ? {
                   Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
-                  Recipient: event.to,
+                  Actor: event.from,
+                  Account: event.to,
                 } : event.type === EventTypes.Withdraw ? {
                   Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
-                  Source: event.from,
+                  Actor: event.to,
+                  Account: event.from,
 
                 } : event.type === EventTypes.Repay ? {
                   Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
-                  Recipient: event.to,
+                  Actor: event.from,
+                  Account: event.to,
                 } : event.type === EventTypes.Borrow ? {
                   Asset: event.asset,
                   Amount: math.round(event.quantity, 4),
-                  Source: event.from,
+                  Actor: event.to,
+                  Account: event.from,
 
                 } : event.type === EventTypes.Trade ? {
-                  ["Exact Give"]: swapToStr(event.outputs),
-                  ["Exact Take"]: swapToStr(event.inputs),
+                  ["Giver"]: event.from,
+                  ["Taker"]: event.to,
+                  ["Given"]: swapToStr(event.outputs),
+                  ["Taken"]: swapToStr(event.inputs),
                   ["Total Capital Change"]: round(event.spentChunks?.reduce((sum, chunk) => add(
                     sum,
                     mul(chunk.quantity, sub(chunk.receivePrice, event?.price?.[chunk.asset])),
@@ -205,23 +214,26 @@ const EventRow = ({
 export const EventExplorer = ({
   addressBook,
   events,
-  setEvents,
   pricesJson,
-  transactions,
+  setEvents,
   setState,
+  state,
+  transactions,
   unit,
 }: {
   addressBook: AddressBook;
   events: Events;
-  setState: (state: any) => void;
-  setEvents: (events: any) => void;
   pricesJson: PricesJson;
+  setEvents: (events: any) => void;
+  setState: (state: any) => void;
+  state: StateJson;
   transactions: Transactions;
   unit: Assets;
 }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
+  const [filterAccount, setFilterAccount] = useState("");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as any);
@@ -232,6 +244,7 @@ export const EventExplorer = ({
     setFilteredEvents(events.filter(event =>
       (!filterAsset || event.asset === filterAsset)
       && (!filterType || event.type === filterType)
+      && (!filterAccount || (event.to === filterAccount || event.from === filterAccount))
     ).sort((e1: Events, e2: Events) =>
       // Sort by date, newest first
       (e1.date > e2.date) ? -1
@@ -240,9 +253,12 @@ export const EventExplorer = ({
           : (e1.purchaseDate > e2.purchaseDate) ? 1
             : (e1.purchaseDate < e2.purchaseDate) ? -1
               : 0
-
     ));
-  }, [events, filterAsset, filterType]);
+  }, [events, filterAccount, filterAsset, filterType]);
+
+  const handleFilterAccountChange = (event: React.ChangeEvent<{ value: string }>) => {
+    setFilterAccount(event.target.value);
+  };
 
   const handleFilterAssetChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterAsset(event.target.value);
@@ -336,6 +352,21 @@ export const EventExplorer = ({
       <Typography variant="h4" className={classes.subtitle}>
         Filters
       </Typography>
+
+      <FormControl className={classes.select}>
+        <InputLabel id="select-filter-account">Filter Account</InputLabel>
+        <Select
+          labelId="select-filter-account"
+          id="select-filter-account"
+          value={filterAccount || ""}
+          onChange={handleFilterAccountChange}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {Object.keys(state.accounts).map((account, i) => (
+            <MenuItem key={i} value={account}>{addressBook.getName(account)}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
       <FormControl className={classes.select}>
         <InputLabel id="select-filter-asset">Filter Asset</InputLabel>

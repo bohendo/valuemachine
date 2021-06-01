@@ -15,11 +15,11 @@ import { getTransactions } from "../index";
 
 const { Expense, Deposit, Withdraw } = TransferCategories;
 const log = testLogger.child({
-  level: "debug",
+  // level: "debug",
   module: `Test${TransactionSources.Tornado}`,
 });
 
-describe.only(TransactionSources.Tornado, () => {
+describe(TransactionSources.Tornado, () => {
   let addressBook;
   let txns: Transactions;
 

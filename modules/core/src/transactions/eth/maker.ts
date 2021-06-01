@@ -457,7 +457,7 @@ export const makerParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (withdraw) {
-          const account = `${getName(address)}-${abrv(withdraw.from)}`;
+          const account = `${getName(address)}-${abrv(withdraw.to)}`;
           withdraw.category = Withdraw;
           withdraw.from = account;
           tx.description = `${getName(withdraw.to)} withdrew ${
@@ -617,7 +617,6 @@ export const makerParser = (
         );
         const transfer = transfers[0];
         if (transfer) {
-          log.info(transfers, `Found transfers to tag as withdraw`);
           transfer.category = Withdraw;
           transfer.from = account;
           tx.description = `${getName(transfer.to)} withdrew ${

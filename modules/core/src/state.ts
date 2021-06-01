@@ -1,3 +1,4 @@
+import { AddressZero } from "@ethersproject/constants";
 import {
   Account,
   AddressBook,
@@ -45,7 +46,9 @@ export const getState = ({
   // Internal Functions
 
   const haveAccount = (account: Account): boolean => {
-    if (state.accounts[account]) {
+    if (account === AddressZero) {
+      return false;
+    } else if (state.accounts[account]) {
       return true;
     } else if (addressBook.isSelf(account)) {
       state.accounts[account] = [];
