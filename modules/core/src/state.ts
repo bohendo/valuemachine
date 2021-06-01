@@ -127,6 +127,7 @@ export const getState = ({
       const chunk = getNextChunk(account, asset);
       log.debug(chunk, `Got next chunk of ${asset} w ${togo} to go`);
       if (!chunk) {
+        // TODO: if account is an address then don't let the balance go negative
         const newChunk = {
           asset,
           receiveDate: transaction.date,

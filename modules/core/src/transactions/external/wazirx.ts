@@ -34,7 +34,7 @@ export const mergeWazirxTransactions = (
       transfers: [],
     } as Transaction;
 
-    const account = "wazirx-account";
+    const account = `${TransactionSources.Wazirx}-account`;
     const exchange = TransactionSources.Wazirx;
     const external = "external-account";
 

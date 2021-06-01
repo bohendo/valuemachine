@@ -145,64 +145,66 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V1
     if (smeq(address, compoundV1Address)) {
+      const subsrc = `${source}V1`;
       const event = parseEvent(compoundV1Interface, txLog);
-      log.info(`Found ${source}V1 ${event.name} event`);
+      log.info(`Found ${subsrc} ${event.name} event`);
       const amount = formatUnits(
         event.args.amount,
         chainData.getTokenData(event.args.asset)?.decimals || 18,
       );
       const asset = getName(event.args.asset);
+      const account = `${subsrc}-${event.args.account?.substring(0, 8)}`;
 
       if (event.name === "SupplyReceived") {
         const deposit = tx.transfers.find(associatedTransfer(asset, amount));
         if (deposit) {
           deposit.category = Deposit;
-          deposit.to = address;
+          deposit.to = account;
         } else {
           log.warn(tx.transfers, `Can't find an associated deposit transfer`);
         }
         tx.description = `${getName(ethTx.from)} deposited ${
           round(amount)
-        } ${asset} into ${source}V1`;
+        } ${asset} into ${subsrc}`;
 
       } else if (event.name === "SupplyWithdrawn") {
         const withdraw = tx.transfers.find(associatedTransfer(asset, amount));
         if (withdraw) {
           withdraw.category = Withdraw;
-          withdraw.from = address;
+          withdraw.from = account;
         } else {
           log.warn(tx.transfers, `Can't find a transfer of ${amount} ${asset}`);
         }
         tx.description = `${getName(ethTx.from)} withdrew ${
           round(amount)
-        } ${asset} from ${source}V1`;
+        } ${asset} from ${subsrc}`;
 
       } else if (event.name === "BorrowTaken") {
         const borrow = tx.transfers.find(associatedTransfer(asset, amount));
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = address;
+          borrow.from = account;
         } else {
           log.warn(tx.transfers, `Can't find an associated borrow transfer`);
         }
         tx.description = `${getName(ethTx.from)} borrowed ${
           round(amount)
-        } ${asset} from ${source}V1`;
+        } ${asset} from ${subsrc}`;
 
       } else if (event.name === "BorrowRepaid") {
         const repay = tx.transfers.find(associatedTransfer(asset, amount));
         if (repay) {
           repay.category = Repay;
-          repay.to = address;
+          repay.to = account;
         } else {
           log.warn(tx.transfers, `Can't find an associated repay transfer`);
         }
         tx.description = `${getName(ethTx.from)} repaid ${
           round(amount)
-        } ${asset} to ${source}V1`;
+        } ${asset} to ${subsrc}`;
 
       } else {
-        log.debug(`Skipping ${source}V1 ${event.name} event`);
+        log.debug(`Skipping ${subsrc} ${event.name} event`);
       }
 
     ////////////////////////////////////////
@@ -302,7 +304,7 @@ export const compoundParser = (
         const borrow = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = address;
+          borrow.from = address; // should this be a non-address account?
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
@@ -320,7 +322,7 @@ export const compoundParser = (
         const repay = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (repay) {
           repay.category = Repay;
-          repay.to = address;
+          repay.to = address; // should this be a non-address account?
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }

@@ -35,7 +35,7 @@ export const mergeWyreTransactions = (
       ["Type"]: txType,
     } = row;
 
-    const account = "wyre-account";
+    const account = `${TransactionSources.Wyre}-account`;
     const exchange = TransactionSources.Wyre;
     const external = "external-account";
 
