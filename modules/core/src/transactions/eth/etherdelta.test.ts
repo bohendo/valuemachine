@@ -13,13 +13,13 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
-const { Expense, SwapIn, SwapOut } = TransferCategories;
+const { Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 const log = testLogger.child({
-  level: "debug",
+  // level: "debug",
   module: "TestTransactions",
 });
 
-describe.only(TransactionSources.EtherDelta, () => {
+describe(TransactionSources.EtherDelta, () => {
   let txns: Transactions;
   let addressBook;
 
@@ -37,7 +37,11 @@ describe.only(TransactionSources.EtherDelta, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.transfers.length).to.equal(1);
+    expect(tx.transfers.length).to.equal(2);
+    const fee = tx.transfers[0];
+    expect(fee.category).to.equal(Expense);
+    const deposit = tx.transfers[1];
+    expect(deposit.category).to.equal(Deposit);
   });
 
   it("should handle a trade", async () => {
@@ -48,7 +52,13 @@ describe.only(TransactionSources.EtherDelta, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.transfers.length).to.equal(1);
+    expect(tx.transfers.length).to.equal(3);
+    const fee = tx.transfers[0];
+    expect(fee.category).to.equal(Expense);
+    const swapOut = tx.transfers[1];
+    expect(swapOut.category).to.equal(SwapOut);
+    const swapIn = tx.transfers[2];
+    expect(swapIn.category).to.equal(SwapIn);
   });
 
   it("should handle a withdraw", async () => {
@@ -59,7 +69,11 @@ describe.only(TransactionSources.EtherDelta, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.transfers.length).to.equal(1);
+    expect(tx.transfers.length).to.equal(2);
+    const fee = tx.transfers[0];
+    expect(fee.category).to.equal(Expense);
+    const deposit = tx.transfers[1];
+    expect(deposit.category).to.equal(Withdraw);
   });
 
 });

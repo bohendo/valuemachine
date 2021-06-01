@@ -1,4 +1,4 @@
-import { getAddress } from "@ethersproject/address";
+import { isAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import {
   Address,
@@ -51,7 +51,6 @@ export const getAddressBook = (
     { name: "escrowed-erc20-bouncer", address: "0x2e225cf684a48f1de8eba5c56f1715c6f6c6b518" },
     { name: "eternal-storage-proxy", address: "0x4aa42145aa6ebf72e164c9bbc74fbd3788045016" },
     { name: "eth2-deposit", address: "0x00000000219ab540356cbb839cbe05303d7705fa" },
-    { name: "etherdelta", address: "0x8d12a197cb00d4747a1fe03395095ce2a5cc6819" },
     { name: "genesis-alpha", address: "0x294f999356ed03347c7a23bcbcf8d33fa41dc830" },
     { name: "genesis-alpha", address: "0xa3f5411cfc9eee0dd108bf0d07433b6dd99037f1" },
     { name: "genesis-protocol", address: "0x332b8c9734b4097de50f302f7d9f273ffdb45b84" },
@@ -113,15 +112,13 @@ export const getAddressBook = (
   addressBook.forEach(row => {
     if (addresses.includes(sm(row.address))) {
       log.warn(`Address book has multiple entries for address ${row.address}`);
-    } else if (!getAddress(row.address)) {
+    } else if (!isAddress(row.address)) {
       throw new Error(`Address book contains invalid address ${row.address}`);
     } else {
       addresses.push(sm(row.address));
     }
   });
   addresses = addresses.sort();
-
-  log.info(`Address book containing ${addresses.length} addresses has been validated`);
 
   ////////////////////////////////////////
   // Exports
@@ -141,11 +138,11 @@ export const getAddressBook = (
   const getName = (address: Address): string =>
     !address
       ? ""
-      : addressBook.find(row => smeq(row.address, address))
-        ? addressBook.find(row => smeq(row.address, address)).name
-        : address.startsWith("0x")
-          ? `${address.substring(0, 6)}..${address.substring(address.length - 4)}`
-          : address;
+      : !isAddress(address)
+        ? address
+        : addressBook.find(row => smeq(row.address, address))
+          ? addressBook.find(row => smeq(row.address, address)).name
+          : `${address.substring(0, 6)}..${address.substring(address.length - 4)}`;
 
   const newAddress = (address: Address, category: AddressCategories, name?: string): void => {
     if (!addresses.includes(sm(address))) {

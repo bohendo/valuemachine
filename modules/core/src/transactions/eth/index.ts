@@ -1,3 +1,4 @@
+import { isAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { hexlify } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
@@ -21,6 +22,7 @@ import { math, sm } from "@finances/utils";
 
 import { compoundAddresses, compoundParser } from "./compound";
 import { erc20Addresses, erc20Parser } from "./erc20";
+import { etherdeltaAddresses, etherdeltaParser } from "./etherdelta";
 import { makerAddresses, makerParser } from "./maker";
 import { oasisAddresses, oasisParser } from "./oasis";
 import { tornadoAddresses, tornadoParser } from "./tornado";
@@ -30,6 +32,7 @@ import { yearnAddresses, yearnParser } from "./yearn";
 
 export const publicAddresses = [
   ...compoundAddresses,
+  ...etherdeltaAddresses,
   ...erc20Addresses,
   ...makerAddresses,
   ...oasisAddresses,
@@ -49,6 +52,7 @@ const appParsers = [
   oasisParser,
   makerParser,
   compoundParser,
+  etherdeltaParser,
   uniswapParser,
   yearnParser,
   tornadoParser,
@@ -167,7 +171,8 @@ export const parseEthTx = (
   tx.transfers = tx.transfers
     // Filter out no-op transfers
     .filter(transfer => (
-      isSelf(transfer.to) || isSelf(transfer.from)
+      !isAddress(transfer.from) || isSelf(transfer.from) ||
+      !isAddress(transfer.to) || isSelf(transfer.to)
     ) && (
       gt(transfer.quantity, "0")
     ))
