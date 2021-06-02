@@ -73,7 +73,7 @@ export const Dashboard: React.FC = ({
   return (<>
 
     <Typography variant="h3">
-      Special Accounts
+      Abstract Accounts
     </Typography>
     <Divider/>
 

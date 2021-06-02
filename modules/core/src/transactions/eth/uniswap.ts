@@ -271,7 +271,7 @@ export const uniswapParser = (
       ////////////////////////////////////////
       // Swaps
       if (["Swap", "EthPurchase", "TokenPurchase"].includes(event.name)) {
-        tx.description = `${getName(ethTx.from)} swapped ${
+        tx.description = `${getName(swaps.out[0].from)} swapped ${
           round(swaps.out[0].quantity)
         } ${swaps.out[0].asset}${swaps.out.length > 1 ? ", etc" : ""} for ${
           round(swaps.in[0].quantity)
@@ -280,7 +280,7 @@ export const uniswapParser = (
       ////////////////////////////////////////
       // Deposit Liquidity
       } else if (["Mint", "AddLiquidity"].includes(event.name)) {
-        tx.description = `${getName(ethTx.from)} deposited ${
+        tx.description = `${getName(swaps.out[0].from)} deposited ${
           round(swaps.out[0].quantity)
         } ${swaps.out[0].asset} and ${
           round(swaps.out[1].quantity)
@@ -289,7 +289,7 @@ export const uniswapParser = (
       ////////////////////////////////////////
       // Withdraw Liquidity
       } else if (["Burn", "RemoveLiquidity"].includes(event.name)) {
-        tx.description = `${getName(ethTx.from)} withdrew ${
+        tx.description = `${getName(swaps.out[0].from)} withdrew ${
           round(swaps.in[0].quantity)
         } ${swaps.in[0].asset} and ${
           round(swaps.in[1].quantity)
@@ -328,7 +328,7 @@ export const uniswapParser = (
       const account = `${getName(address)}-${abrv(deposit.from)}`;
       deposit.category = Deposit;
       deposit.to = account;
-      tx.description = `${getName(ethTx.from)} deposited ${
+      tx.description = `${getName(deposit.from)} deposited ${
         deposit.asset
       } into ${account}`;
 
@@ -349,7 +349,7 @@ export const uniswapParser = (
       const account = `${getName(address)}-${abrv(withdraw.to)}`;
       withdraw.category = Withdraw;
       withdraw.from = account;
-      tx.description = `${getName(ethTx.from)} withdrew ${
+      tx.description = `${getName(withdraw.to)} withdrew ${
         withdraw.asset
       } from ${account}`;
 

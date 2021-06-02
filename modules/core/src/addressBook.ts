@@ -25,7 +25,6 @@ export const getAddressBook = (
     { name: "0x-v1", address: "0x12459c951127e0c374ff9105dda097662a027093" },
     { name: "0x-v2", address: "0x4f833a24e1f95d70f028921e27040ca56e09ab0b" },
     { name: "airswap", address: "0x8fd3121013a07c57f0d69646e86e7a4880b467b7" },
-    { name: "argent-relayer", address: "0x0385b3f162a0e001b60ecb84d3cb06199d78f666" },
     { name: "artifaqt", address: "0x34d565bddcff2dd74bc98e056ebd32dd5f5e1d34" },
     { name: "augur", address: "0x24e2b1d415e6e0d04042eaa45dc2a08fc33ca6cd" },
     { name: "augur", address: "0xd5524179cb7ae012f5b642c1d6d700bbaa76b96b" },

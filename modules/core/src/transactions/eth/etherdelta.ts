@@ -98,13 +98,13 @@ export const etherdeltaParser = (
           if (event.name === "Deposit") {
             transfer.category = Deposit;
             transfer.to = account;
-            tx.description = `${getName(ethTx.from)} deposited ${
+            tx.description = `${getName(transfer.from)} deposited ${
               round(quantity, 4)
             } ${asset} into ${source}`;
           } else {
             transfer.category = Withdraw;
             transfer.from = account;
-            tx.description = `${getName(ethTx.from)} withdrew ${
+            tx.description = `${getName(transfer.to)} withdrew ${
               round(quantity, 4)
             } ${asset} into ${source}`;
           }
@@ -138,7 +138,7 @@ export const etherdeltaParser = (
         };
         tx.transfers.push(swapOut);
         tx.transfers.push(swapIn);
-        tx.description = `${getName(ethTx.from)} swapped ${
+        tx.description = `${getName(user)} swapped ${
           round(swapOut.quantity, 4)
         } ${swapOut.asset} for ${
           round(swapIn.quantity, 4)

@@ -163,7 +163,7 @@ export const compoundParser = (
         } else {
           log.warn(tx.transfers, `Can't find an associated deposit transfer`);
         }
-        tx.description = `${getName(ethTx.from)} deposited ${
+        tx.description = `${getName(deposit.from)} deposited ${
           round(amount)
         } ${asset} into ${subsrc}`;
 
@@ -175,7 +175,7 @@ export const compoundParser = (
         } else {
           log.warn(tx.transfers, `Can't find a transfer of ${amount} ${asset}`);
         }
-        tx.description = `${getName(ethTx.from)} withdrew ${
+        tx.description = `${getName(withdraw.to)} withdrew ${
           round(amount)
         } ${asset} from ${subsrc}`;
 
@@ -187,7 +187,7 @@ export const compoundParser = (
         } else {
           log.warn(tx.transfers, `Can't find an associated borrow transfer`);
         }
-        tx.description = `${getName(ethTx.from)} borrowed ${
+        tx.description = `${getName(borrow.to)} borrowed ${
           round(amount)
         } ${asset} from ${subsrc}`;
 
@@ -199,7 +199,7 @@ export const compoundParser = (
         } else {
           log.warn(tx.transfers, `Can't find an associated repay transfer`);
         }
-        tx.description = `${getName(ethTx.from)} repaid ${
+        tx.description = `${getName(repay.from)} repaid ${
           round(amount)
         } ${asset} to ${subsrc}`;
 
@@ -212,7 +212,7 @@ export const compoundParser = (
     } else if (smeq(comptrollerAddress, address)) {
       const event = parseEvent(comptrollerInterface, txLog);
       if (event.name === "MarketEntered") {
-        tx.description = `${getName(ethTx.from)} entered market for ${getName(event.args.cToken)}`;
+        tx.description = `${getName(event.args.account)} entered market for ${getName(event.args.cToken)}`;
       }
 
     ////////////////////////////////////////
@@ -264,7 +264,7 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${getName(address)}`);
         }
-        tx.description = `${getName(ethTx.from)} deposited ${
+        tx.description = `${getName(swapOut.from)} deposited ${
           round(tokenAmt)
         } ${asset} into ${source}`;
 
@@ -290,7 +290,7 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${asset}`);
         }
-        tx.description = `${getName(ethTx.from)} withdrew ${
+        tx.description = `${getName(swapOut.from)} withdrew ${
           round(tokenAmt)
         } ${asset} from ${source}`;
 
@@ -308,7 +308,7 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
-        tx.description = `${getName(ethTx.from)} borrowed ${
+        tx.description = `${getName(borrow.to)} borrowed ${
           round(tokenAmt)
         } ${asset} from ${getName(address)}`;
 
@@ -326,7 +326,7 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
-        tx.description = `${getName(ethTx.from)} repayed ${
+        tx.description = `${getName(repay.from)} repayed ${
           round(tokenAmt)
         } ${asset} to ${getName(address)}`;
 

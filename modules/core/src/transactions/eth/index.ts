@@ -20,6 +20,7 @@ import {
 } from "@finances/types";
 import { math, sm } from "@finances/utils";
 
+import { argentAddresses, argentParser } from "./argent";
 import { compoundAddresses, compoundParser } from "./compound";
 import { erc20Addresses, erc20Parser } from "./erc20";
 import { etherdeltaAddresses, etherdeltaParser } from "./etherdelta";
@@ -31,6 +32,7 @@ import { wethAddresses, wethParser } from "./weth";
 import { yearnAddresses, yearnParser } from "./yearn";
 
 export const publicAddresses = [
+  ...argentAddresses,
   ...compoundAddresses,
   ...etherdeltaAddresses,
   ...erc20Addresses,
@@ -56,6 +58,7 @@ const appParsers = [
   uniswapParser,
   yearnParser,
   tornadoParser,
+  argentParser,
 ];
 
 const { Expense, Income, Internal, Unknown } = TransferCategories;

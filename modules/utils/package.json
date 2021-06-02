@@ -10,13 +10,13 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@ethersproject/bignumber": "5.2.0",
-    "@ethersproject/constants": "5.2.0",
-    "@ethersproject/units": "5.2.0",
+    "@ethersproject/bignumber": "5.3.0",
+    "@ethersproject/constants": "5.3.0",
+    "@ethersproject/units": "5.3.0",
     "chai": "4.3.4",
     "chai-as-promised": "7.1.1",
     "pino": "6.11.3",
-    "pino-pretty": "5.0.1"
+    "pino-pretty": "5.0.2"
   },
   "devDependencies": {
     "@finances/types": "1.0.0",
