@@ -15,11 +15,11 @@ import { getTransactions } from "../index";
 
 const { Expense, SwapIn, SwapOut } = TransferCategories;
 const log = testLogger.child({
-  // level: "debug",
+  level: "debug",
   module: "TestTransactions",
 });
 
-describe(TransactionSources.Oasis, () => {
+describe.only(TransactionSources.Oasis, () => {
   let txns: Transactions;
   let addressBook;
 

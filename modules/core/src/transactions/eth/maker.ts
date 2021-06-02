@@ -239,7 +239,7 @@ export const makerParser = (
     } else {
       log.warn(`Can't find an associated SwapIn DAI transfer`);
     }
-    tx.description = `${getName(ethTx.from)} migrated ${
+    tx.description = `${getName(swapOut.from)} migrated ${
       round(swapOut.quantity)
     } SAI to DAI`;
     return tx;
@@ -501,7 +501,7 @@ export const makerParser = (
         } else {
           log.warn(`Cage.${event.name}: Can't find an ETH transfer of ${wad}`);
         }
-        tx.description = `${getName(ethTx.from)} redeemed ${
+        tx.description = `${getName(swapOut.from)} redeemed ${
           round(swapOut.quantity, 4)
         } SAI for ${round(wad, 4)} ETH`;
       }
@@ -543,7 +543,7 @@ export const makerParser = (
           swapOut.category = SwapOut;
           swapOut.to = address;
           if (smeq(ethTx.to, tubAddress)) {
-            tx.description = `${getName(ethTx.from)} swapped ${
+            tx.description = `${getName(swapOut.from)} swapped ${
               round(swapOut.quantity, 4)
             } WETH for ${round(wad, 4)} PETH`;
           }
@@ -567,7 +567,7 @@ export const makerParser = (
           swapIn.category = SwapIn;
           swapIn.from = address;
           if (smeq(ethTx.to, tubAddress)) {
-            tx.description = `${getName(ethTx.from)} swapped ${
+            tx.description = `${getName(swapIn.to)} swapped ${
               round(wad, 4)
             } PETH for ${round(swapIn.quantity, 4)} WETH`;
           }
@@ -638,7 +638,7 @@ export const makerParser = (
         if (borrow) {
           borrow.category = Borrow;
           borrow.from = account;
-          tx.description = `${getName(ethTx.from)} borrowed ${round(wad)} SAI from ${borrow.from}`;
+          tx.description = `${getName(borrow.to)} borrowed ${round(wad)} SAI from ${borrow.from}`;
         } else if (!ethTx.logs.find(l =>
           l.index > index
           && smeq(l.address, saiAddress)
@@ -658,7 +658,7 @@ export const makerParser = (
         if (repay) {
           repay.category = Repay;
           repay.to = account;
-          tx.description = `${getName(ethTx.from)} repayed ${round(wad)} SAI to ${repay.to}`;
+          tx.description = `${getName(repay.from)} repayed ${round(wad)} SAI to ${repay.to}`;
         } else if (!ethTx.logs.find(l =>
           l.index > index
           && smeq(l.address, saiAddress)

@@ -88,7 +88,6 @@ export const oasisParser = (
       ethish.includes(asset) ? ethish.includes(transfer.asset) : transfer.asset === asset
     ) && valuesAreClose(quantity, transfer.quantity);
 
-  let actor = isSelf(ethTx.from) ? ethTx.from : undefined;
   let inAsset;
   let outAsset;
   let inTotal = "0";
@@ -105,13 +104,11 @@ export const oasisParser = (
         let inAmt, inGem, outAmt, outGem;
         // ethTx.to might be a proxy which counts as self as far as this logic is concerned
         if (isSelfy(event.args.maker)) {
-          actor = actor || event.args.maker;
           inGem = getName(event.args.buy_gem);
           outGem = getName(event.args.pay_gem);
           inAmt = formatUnits(event.args.buy_amt, chainData.getTokenData(address).decimals);
           outAmt = formatUnits(event.args.pay_amt, chainData.getTokenData(address).decimals);
         } else if (isSelfy(event.args.taker)) {
-          actor = actor || event.args.taker;
           inGem = getName(event.args.pay_gem);
           outGem = getName(event.args.buy_gem);
           inAmt = formatUnits(event.args.pay_amt, chainData.getTokenData(address).decimals);
@@ -178,7 +175,11 @@ export const oasisParser = (
 
   ////////////////////////////////////////
   // Set description
-  const description = `${getName(actor)} swapped ${
+  const actor = getName(
+    tx.transfers.find(t => t.category === SwapOut)?.from
+    || tx.transfers.find(t => t.category === SwapIn)?.to
+  );
+  const description = `${actor} swapped ${
     round(outTotal)} ${outAsset
   } for ${
     round(inTotal)} ${inAsset
