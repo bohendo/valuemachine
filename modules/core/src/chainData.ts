@@ -256,9 +256,6 @@ export const getChainData = ({
         }
         // Else it's prob not possible to fetch, just save the defaults for an unknown token
       }
-      log.info(`rawName=${rawName}`);
-      log.info(`rawSymbol=${rawSymbol}`);
-      log.info(`rawDecimals=${rawDecimals}`);
       const name = toStr(rawName?.[0] || "Unknown");
       const symbol = toStr(rawSymbol?.[0] || "???");
       const decimals = toNum(rawDecimals || 18);

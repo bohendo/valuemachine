@@ -8,21 +8,19 @@ import {
   AddressCategories,
   Assets,
   ChainData,
-  DecimalString,
   EthTransaction,
   EthTransactionLog,
   Logger,
   Transaction,
   TransactionSources,
-  Transfer,
   TransferCategories,
   TransferCategory,
 } from "@finances/types";
 import { math, sm, smeq, toBN } from "@finances/utils";
 
-import { rmDups, parseEvent, valuesAreClose } from "../utils";
+import { abrv, diffAsc, rmDups, parseEvent, valuesAreClose } from "../utils";
 
-const { abs, diff, div, eq, gt, round } = math;
+const { abs, div, eq, gt, round } = math;
 const { DAI, ETH, MKR, PETH, SAI, WETH } = Assets;
 const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
@@ -173,16 +171,6 @@ const proxyInterface = new Interface([
 
 ////////////////////////////////////////
 /// Parser
-
-const abrv = str => str.substring(0, 8).toLowerCase(); // for abbreviating account labels
-
-// Smallest difference is first, largest is last
-// If diff in 1 is greater than diff in 2, swap them
-const diffAsc = (compareTo: DecimalString) => (t1: Transfer, t2: Transfer): number =>
-  gt(
-    diff(t1.quantity, compareTo),
-    diff(t2.quantity, compareTo),
-  ) ? 1 : -1;
 
 const parseLogNote = (
   iface: Interface,

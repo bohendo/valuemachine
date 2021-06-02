@@ -1,4 +1,5 @@
-// import { Interface } from "@ethersproject/abi";
+import { Interface } from "@ethersproject/abi";
+import { AddressZero } from "@ethersproject/constants";
 import {
   AddressBook,
   AddressBookJson,
@@ -11,11 +12,11 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@finances/types";
-import { math } from "@finances/utils";
+import { math, sm, smeq } from "@finances/utils";
 
-import { rmDups } from "../utils";
+import { abrv, assetsAreClose, rmDups, parseEvent } from "../utils";
 
-const { Income, Expense, SwapOut, SwapIn } = TransferCategories;
+const { Internal, Deposit, Withdraw, SwapOut, SwapIn } = TransferCategories;
 const { round } = math;
 
 const source = TransactionSources.Yearn;
@@ -37,7 +38,7 @@ const { YFI,
   dusd3CRV, usdn3CRV, ust3CRV, husd3CRV, yDAI_yUSDC_yUSDT_yBUSD,
   crvPlain3andSUSD, _3Crv, eursCRV, hCRV, _1INCH,
 
-  BUSDv3, USDT, USDC, DAI, GUSD, sUSDT, TUSD, yv3Crv, yvust3CRV, usdt3CRV,
+  BUSD, USDT, USDC, DAI, GUSD, sUSDT, TUSD, yvust3CRV, usdt3CRV,
   WBTC, WETH
 
 } = Assets;
@@ -45,7 +46,10 @@ const { YFI,
 ////////////////////////////////////////
 /// Addresses
 
+const govAddress = "0xba37b002abafdd8e89a1995da52740bbc013d992";
+
 const machineryAddresses = [
+  { name: "yGovernance", address: govAddress },
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const yVaultV1Addresses = [
@@ -119,6 +123,19 @@ export const yearnAddresses = [
 ////////////////////////////////////////
 /// Interfaces
 
+const yGovInterface = new Interface([
+  "event NewProposal(uint256 id, address creator, uint256 start, uint256 duration, address executor)",
+  "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
+  "event ProposalFinished(uint256 indexed id, uint256 _for, uint256 _against, bool quorumReached)",
+  "event RegisterVoter(address voter, uint256 votes, uint256 totalVotes)",
+  "event RevokeVoter(address voter, uint256 votes, uint256 totalVotes)",
+  "event RewardAdded(uint256 reward)",
+  "event RewardPaid(address indexed user, uint256 reward)",
+  "event Staked(address indexed user, uint256 amount)",
+  "event Vote(uint256 indexed id, address indexed voter, bool vote, uint256 weight)",
+  "event Withdrawn(address indexed user, uint256 amount)",
+]);
+
 /*
 const yVaultV1Interface = new Interface([
   "event Approval(address indexed owner, address indexed spender, uint256 value)",
@@ -152,10 +169,10 @@ const yVaultV2Interface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
-const vaultToToken = (token: string): string[] => {
+const vaultToToken = (token: string): string | undefined => {
   switch (token) {
   case y3Crv: return _3Crv;
-  case yBUSDv3: return BUSDv3;
+  case yBUSDv3: return BUSD;
   case yDAI: return DAI;
   case yDAIv2: return DAI;
   case yDAIv3: return DAI;
@@ -170,7 +187,6 @@ const vaultToToken = (token: string): string[] => {
   case yUSDTv2: return USDT;
   case yUSDTv3: return USDT;
   case yv1INCH: return _1INCH;
-  case yv3Crv: return _3Crv;
   case yvankrCRV: return ankrCRV;
   case yvcrvPlain3andSUSD: return crvPlain3andSUSD;
   case yvdusd3CRV: return dusd3CRV;
@@ -193,6 +209,7 @@ const vaultToToken = (token: string): string[] => {
   case yyDAI_yUSDC_yUSDT_yBUSD: return yDAI_yUSDC_yUSDT_yBUSD;
   case yyDAI_yUSDC_yUSDT_yTUSD: return yDAI_yUSDC_yUSDT_yTUSD;
   case yYFI: return YFI;
+  default: return undefined;
   }
 };
 
@@ -204,41 +221,90 @@ export const yearnParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName } = addressBook;
+  const { getName, isSelf } = addressBook;
 
-  // If some transfer interacts with a yToken
-  tx.transfers.filter(transfer =>
-    yTokens.some(yToken => yToken.name === transfer.asset)
-  ).forEach(yTransfer => {
-    const asset = vaultToToken(yTransfer.asset);
-    log.info(`Parsing yToken transfer of ${round(yTransfer.quantity)} ${yTransfer.asset}`);
-    const transfer = tx.transfers.find(t =>
-      t.asset === asset
-      && (
-        (t.category === Income && yTransfer.category === Expense) ||
-        (yTransfer.category === Income && t.category === Expense)
-      )
-    );
-    if (!transfer) {
-      log.warn(yTransfer, `Couldn't find a matching ${asset} transfer`);
-    } else {
+  for (const txLog of ethTx.logs) {
+    const address = sm(txLog.address);
+    if (yTokens.some(yToken => smeq(yToken.address, address))) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
-      transfer.category = transfer.category === Income ? SwapIn : SwapOut;
-      yTransfer.category = yTransfer.category === Income ? SwapIn : SwapOut;
+      const yTransfer = tx.transfers.find(t => t.asset === getName(address));
+      if (!yTransfer) {
+        log.warn(`Can't find a transfer for ${getName(address)}`);
+        continue;
+      }
+      const asset = vaultToToken(yTransfer.asset);
+      if (!asset) {
+        log.warn(`Couldn't find the asset associated with ${yTransfer.asset}`);
+        continue;
+      }
+      log.info(`Parsing yToken transfer of ${round(yTransfer.quantity)} ${yTransfer.asset}`);
+      const transfer = tx.transfers.find(t =>
+        t.category !== Internal
+        && t.to !== AddressZero
+        && assetsAreClose(t.asset, asset as Assets)
+        && (
+          (isSelf(t.to) && isSelf(yTransfer.from)) ||
+          (isSelf(t.from) && isSelf(yTransfer.to))
+        )
+      );
+      if (!transfer) {
+        log.warn(yTransfer, `Couldn't find a matching ${asset} transfer`);
+      } else {
+        if (isSelf(transfer.from) && isSelf(yTransfer.to)) { // deposit
+          transfer.category = SwapOut;
+          transfer.to = address;
+          yTransfer.category = SwapIn;
+          yTransfer.from = address;
+          tx.description = `${getName(yTransfer.to)} deposited ${
+            round(transfer.quantity)
+          } ${transfer.asset} into ${yTransfer.asset}`;
+        } else { // withdraw
+          transfer.category = isSelf(transfer.to) ? SwapIn : SwapOut;
+          transfer.from = address;
+          yTransfer.category = isSelf(yTransfer.to) ? SwapIn : SwapOut;
+          yTransfer.to = address;
+          tx.description = `${getName(transfer.to)} withdrew ${
+            round(transfer.quantity)
+          } ${transfer.asset} from ${yTransfer.asset}`;
+        }
+      }
+    } else if (smeq(address, govAddress)) {
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+      const event = parseEvent(yGovInterface, txLog);
+      if (!event.name) continue;
+      log.info(`Parsing yGov ${event.name}`);
+      if (event.name === "Staked") {
+        const account = `${source}-Gov-${abrv(event.args.user)}`;
+        const deposit = tx.transfers.find(t => t.asset === YFI && smeq(t.to, govAddress));
+        if (deposit) {
+          deposit.category = Deposit;
+          deposit.to = account;
+          tx.description = `${getName(deposit.from)} deposited ${
+            round(deposit.quantity)
+          } YFI into ${account}`;
+        } else {
+          log.warn(`Can't find YFI deposit`);
+        }
+
+      } else if (event.name === "Withdrawn") {
+        const account = `${source}-Gov-${abrv(event.args.user)}`;
+        const withdraw = tx.transfers.find(t => t.asset === YFI && smeq(t.from, govAddress));
+        if (withdraw) {
+          withdraw.category = Withdraw;
+          withdraw.from = account;
+          tx.description = `${getName(withdraw.to)} withdrew ${
+            round(withdraw.quantity)
+          } YFI from ${account}`;
+        } else {
+          // We're probably withdrawing from yYFI which uses yGov internally
+          log.info(`Can't find YFI withdrawal`);
+        }
+
+      } else if (event.name === "RegisterVoter") {
+        tx.description = `${getName(event.args.voter)} registered to vote on ${getName(address)}`;
+      }
     }
-  });
-
-  if (!tx.sources.includes(source)) {
-    return tx;
   }
-
-  const swapsIn = tx.transfers.filter(t => t.category === SwapIn);
-  const swapsOut = tx.transfers.filter(t => t.category === SwapOut);
-  tx.description = `${getName(swapsOut[0].from)} swapped ${
-    round(swapsOut[0].quantity)
-  } ${swapsOut[0].asset}${swapsOut.length > 1 ? ", etc" : ""} for ${
-    round(swapsIn[0].quantity)
-  } ${swapsIn[0].asset}${swapsIn.length > 1 ? ", etc" : ""} via ${source}`;
 
   // log.debug(tx, `Done parsing ${source}`);
   return tx;
