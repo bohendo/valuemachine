@@ -655,6 +655,7 @@ export const makerParser = (
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
         }
         // Handle MKR fee (or find the stable-coins spent to buy MKR)
+        // TODO: split repayment into two transfers if we repayed with one lump of DAI
         const feeAsset = [MKR, SAI] as Assets[];
         const fee = tx.transfers.find(t =>
           isSelf(t.from)

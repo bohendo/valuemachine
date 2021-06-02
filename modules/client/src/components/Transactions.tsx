@@ -169,6 +169,8 @@ export const TransactionExplorer = ({
 
   const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
 
+  const [ourAssets, setOurAssets] = useState([]);
+
   const [importFileType, setImportFileType] = useState("");
   const classes = useStyles();
 
@@ -205,6 +207,15 @@ export const TransactionExplorer = ({
     addressBook, transactions,
     filterAccount, filterAsset, filterSource, filterStartDate, filterEndDate,
   ]);
+
+  useEffect(() => {
+    if (!addressBook || !transactions) return;
+    setOurAssets(
+      Object.keys(Assets)
+        // TODO: the following line crashes the page when txns are cleared
+        .filter(asset => transactions?.some(hasAsset(asset)))
+    );
+  }, [addressBook, transactions]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -363,7 +374,7 @@ export const TransactionExplorer = ({
           {Object.values(addressBook?.json || [])
             .filter(account => account.category === AddressCategories.Self)
             // TODO: the following line crashes the page when txns are cleared
-            // .filter(account => filteredTxns.some(hasAccount(account.address)))
+            // .filter(account => transactions?.some(hasAccount(account.address)))
             .map(account => (
               <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
             ))
@@ -380,13 +391,9 @@ export const TransactionExplorer = ({
           onChange={changeFilterAsset}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(Assets)
-            // TODO: the following line crashes the page when txns are cleared
-            // .filter(asset => filteredTxns.some(hasAsset(asset)))
-            .map(asset => (
-              <MenuItem key={asset} value={asset}>{asset}</MenuItem>
-            ))
-          };
+          {ourAssets.map(asset => (
+            <MenuItem key={asset} value={asset}>{asset}</MenuItem>
+          )) };
         </Select>
       </FormControl>
 
@@ -401,7 +408,7 @@ export const TransactionExplorer = ({
           <MenuItem value={""}>-</MenuItem>
           {Object.keys(TransactionSources)
             // TODO: the following line crashes the page when txns are cleared
-            // .filter(source => filteredTxns?.some(hasSource(source)))
+            // .filter(source => transactions?.some(hasSource(source)))
             .map(source => (
               <MenuItem key={source} value={source}>{source}</MenuItem>
             ))
