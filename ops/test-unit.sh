@@ -21,7 +21,7 @@ docker run \
   "${interactive[@]}" \
   --entrypoint="bash" \
   --env="CI=$CI" \
-  --env="LOG_LEVEL=${LOG_LEVEL:-silent}" \
+  --env="LOG_LEVEL=${LOG_LEVEL:-}" \
   --env="ETHERSCAN_KEY=${ETHERSCAN_KEY:-}" \
   --name="${project}_${cmd}_${unit}" \
   --network "$project" \

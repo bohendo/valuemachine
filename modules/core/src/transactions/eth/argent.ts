@@ -24,6 +24,7 @@ const source = TransactionSources.Argent;
 ////////////////////////////////////////
 /// Addresses
 
+// Find more manager addresses at https://github.com/argentlabs/argent-contracts/releases/tag/2.1
 const makerManagerAddress = "0x7557f4199aa99e5396330bac3b7bdaa262cb1913";
 
 const relayerAddresses = [
@@ -44,7 +45,7 @@ export const argentAddresses = [
 ////////////////////////////////////////
 /// Interfaces
 
-const makerManagerInterface = new Interface([
+const makerManagerV1Interface = new Interface([
   "event TokenConverted(address indexed wallet, address srcToken, uint256 srcAmount, address destToken, uint256 destAmount)",
   "event TransactionExecuted(address indexed wallet, bool indexed success, bytes32 signedHash)",
   "event ModuleCreated(bytes32 name)",
@@ -74,7 +75,7 @@ export const argentParser = (
     const address = sm(txLog.address);
     if (smeq(address, makerManagerAddress)) {
       const subsrc = `${source} MakerManager`;
-      const event = parseEvent(makerManagerInterface, txLog);
+      const event = parseEvent(makerManagerV1Interface, txLog);
       if (!event.name) continue;
       if (!isSelf(event.args.wallet)) {
         log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);

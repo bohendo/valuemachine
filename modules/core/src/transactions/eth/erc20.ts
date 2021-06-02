@@ -20,6 +20,10 @@ const { round } = math;
 const {
   BAT, CHERRY, GEN, GNO, GRT, OMG, REP, REPv2, SNT,
   SNX, SNXv1, SPANK, sUSD, sUSDv1, USDC, USDT, WBTC, ZRX,
+
+  linkCRV, usdp3CRV, ankrCRV, yDAI_yUSDC_yUSDT_yTUSD, musd3CRV, gusd3CRV,
+  dusd3CRV, usdn3CRV, ust3CRV, husd3CRV, yDAI_yUSDC_yUSDT_yBUSD,
+  crvPlain3andSUSD, _3Crv, eursCRV, hCRV, _1INCH,
 } = Assets;
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
@@ -50,6 +54,24 @@ export const erc20Addresses = [
   { name: USDT, address: "0xdac17f958d2ee523a2206206994597c13d831ec7" },
   { name: WBTC, address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599" },
   { name: ZRX, address: "0xe41d2489571d322189246dafa5ebde1f4699f498" },
+
+  { name: linkCRV, address: "0xcee60cfa923170e4f8204ae08b4fa6a3f5656f3a" },
+  { name: usdp3CRV, address: "0x7eb40e450b9655f4b3cc4259bcc731c63ff55ae6" },
+  { name: ankrCRV, address: "0xaa17a236f2badc98ddc0cf999abb47d47fc0a6cf" },
+  { name: yDAI_yUSDC_yUSDT_yTUSD, address: "0xdf5e0e81dff6faf3a7e52ba697820c5e32d806a8" },
+  { name: musd3CRV, address: "0x1aef73d49dedc4b1778d0706583995958dc862e6" },
+  { name: gusd3CRV, address: "0xd2967f45c4f384deea880f807be904762a3dea07" },
+  { name: dusd3CRV, address: "0x3a664ab939fd8482048609f652f9a0b0677337b9" },
+  { name: usdn3CRV, address: "0x4f3e8f405cf5afc05d68142f3783bdfe13811522" },
+  { name: ust3CRV, address: "0x94e131324b6054c0d789b190b2dac504e4361b53" },
+  { name: husd3CRV, address: "0x5b5cfe992adac0c9d48e05854b2d91c73a003858" },
+  { name: yDAI_yUSDC_yUSDT_yBUSD, address: "0x3b3ac5386837dc563660fb6a0937dfaa5924333b" },
+  { name: crvPlain3andSUSD, address: "0xc25a3a3b969415c80451098fa907ec722572917f" },
+  { name: _3Crv, address: "0x6c3f90f043a72fa612cbac8115ee7e52bde6e490" },
+  { name: eursCRV, address: "0x194ebd173f6cdace046c53eacce9b953f28411d1" },
+  { name: hCRV, address: "0xb19059ebb43466c323583928285a49f558e572fd" },
+  { name: _1INCH, address: "0x111111111117dc0aa78b770fa6a738034120c302" },
+
 ].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
 
 ////////////////////////////////////////

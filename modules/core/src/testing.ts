@@ -18,7 +18,7 @@ import { getAddressBook } from "./addressBook";
 import { getChainData } from "./chainData";
 
 const env = {
-  logLevel: process.env.LOG_LEVEL || "silent",
+  logLevel: process.env.LOG_LEVEL || "warn",
   etherscanKey: process.env.ETHERSCAN_KEY || "",
 };
 
