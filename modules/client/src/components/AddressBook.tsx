@@ -735,14 +735,14 @@ export const AddressBook = ({
                     ) ? -1
                       // sort by category
                       : (e1.category.toLowerCase() > e2.category.toLowerCase()) ? 1
-                        : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
-                          // then sort by name
-                          : (e1.name.toLowerCase() > e2.name.toLowerCase()) ? 1
-                            : (e1.name.toLowerCase() < e2.name.toLowerCase()) ? -1
-                              // then sort by address
-                              : (e1.address.toLowerCase() > e2.address.toLowerCase()) ? 1
-                                : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
-                                  : 0
+                      : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
+                      // then sort by name
+                      : (e1.name.toLowerCase() > e2.name.toLowerCase()) ? 1
+                      : (e1.name.toLowerCase() < e2.name.toLowerCase()) ? -1
+                      // then sort by address
+                      : (e1.address.toLowerCase() > e2.address.toLowerCase()) ? 1
+                      : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
+                      : 0
                 ).map((entry: AddressEntry, i: number) => (
                   <AddressRow
                     key={i}

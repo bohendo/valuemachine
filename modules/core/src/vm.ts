@@ -80,7 +80,7 @@ export const getValueMachine = ({
         category,
         date: transaction.date,
         description: 
-          (category === Income) ? `Recieved ${amt} ${asset} from ${getName(from)} `
+          (category === Income) ? `Received ${amt} ${asset} from ${getName(from)} `
           : (category === Expense) ? `Paid ${amt} ${asset} to ${getName(to)} `
           : (category === Repay) ? `Repayed ${amt} ${asset} to ${getName(to)} `
           : (category === Deposit) ? `Deposited ${amt} ${asset} to ${getName(to)} `
@@ -163,14 +163,22 @@ export const getValueMachine = ({
       let chunks = [] as any;
       for (const [asset, quantity] of Object.entries(outputs)) {
         chunks = state.getChunks(
-          tradeEvent.from, asset as Assets, quantity as string, transaction, unit,
+          tradeEvent.from,
+          asset as Assets,
+          quantity as string,
+          transaction.date,
+          unit,
         );
         tradeEvent.spentChunks = [...chunks]; // Assumes chunks are never modified.. Is this safe?
         chunks.forEach(chunk => state.putChunk(swapsOut[0].to, chunk));
       }
       for (const [asset, quantity] of Object.entries(inputs)) {
         chunks = state.getChunks(
-          AddressZero, asset as Assets, quantity as string, transaction, unit,
+          AddressZero,
+          asset as Assets,
+          quantity as string,
+          transaction.date,
+          unit,
         );
         chunks.forEach(chunk => state.putChunk(tradeEvent.to, chunk));
       }
@@ -206,7 +214,15 @@ export const getValueMachine = ({
       log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${getName(to)}`);
       let chunks;
       try {
-        chunks = state.getChunks(from, asset, quantity, transaction, unit);
+        chunks = state.getChunks(
+          from,
+          asset,
+          quantity,
+          transaction.date,
+          unit,
+          transfer,
+          events,
+        );
         chunks.forEach(chunk => state.putChunk(to, chunk));
         events.push(
           ...emitTransferEvents(addressBook, chunks, transaction, transfer, prices, unit)
@@ -231,7 +247,15 @@ export const getValueMachine = ({
       log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${
         getName(to)
       } (attempt 2)`);
-      const chunks = state.getChunks(from, asset, quantity, transaction, unit);
+      const chunks = state.getChunks(
+        from,
+        asset,
+        quantity,
+        transaction.date,
+        unit,
+        transfer,
+        events,
+      );
       chunks.forEach(chunk => state.putChunk(to, chunk));
       events.push(
         ...emitTransferEvents(addressBook, chunks, transaction, transfer, prices, unit)

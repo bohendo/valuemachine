@@ -99,8 +99,8 @@ const EventRow = ({
       const chunk = chunks[i];
       const index = parseInt(i, 10) + 1;
       output[`Chunk ${index}`] = `${chunk.quantity} ${chunk.asset}`;
-      output[`Chunk ${index} Recieve Date`] = chunk.receiveDate;
-      output[`Chunk ${index} Recieve Price`] = chunk.receivePrice;
+      output[`Chunk ${index} Receive Date`] = chunk.receiveDate;
+      output[`Chunk ${index} Receive Price`] = chunk.receivePrice;
       output[`Chunk ${index} Capital Change`] = `${mul(
         chunk.quantity,
         sub(prices[chunk.asset], chunk.receivePrice),

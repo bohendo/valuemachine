@@ -6,6 +6,8 @@ import {
   Assets,
   DecimalString,
   emptyState,
+  Events,
+  EventTypes,
   Logger,
   NetWorth,
   Prices,
@@ -14,10 +16,17 @@ import {
   StateJson,
   TimestampString,
   Transaction,
+  Transfer,
+  TransferCategories,
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
 const { add, gt, lt, mul, round, sub } = math;
+
+// Apps that provide insufficient info in tx logs to determine interest income
+// Hacky fix: withdrawing more than we deposited is assumed to represent interest rather than debt
+const isOpaqueInterestBearers = (account: Account): boolean =>
+  account.startsWith("DSR");
 
 export const getState = ({
   addressBook,
@@ -112,16 +121,18 @@ export const getState = ({
     account: Account,
     asset: Assets,
     quantity: DecimalString,
-    transaction: Transaction,
+    date: TimestampString,
     unit: Assets,
+    transfer?: Transfer,
+    events?: Events,
   ): AssetChunk[] => {
     // We assume nothing about the history of chunks coming to us from external parties
     if (!haveAccount(account)) {
-      const receivePrice = prices.getPrice(transaction.date, asset, unit);
+      const receivePrice = prices.getPrice(date, asset, unit);
       if (!receivePrice) {
-        log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${transaction.date}`);
+        log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${date}`);
       }
-      return [{ asset, quantity, receiveDate: transaction.date, receivePrice }];
+      return [{ asset, quantity, receiveDate: date, receivePrice }];
     }
     log.debug(`Getting chunks totaling ${quantity} ${asset} from ${account}`);
     const output = [];
@@ -130,17 +141,39 @@ export const getState = ({
       const chunk = getNextChunk(account, asset);
       log.debug(chunk, `Got next chunk of ${asset} w ${togo} to go`);
       if (!chunk) {
-        // TODO: if account is an address then don't let the balance go negative
+        // TODO: if account is an address then don't let the balance go negative?
+        const currentPrice = prices.getPrice(date, asset, unit);
         const newChunk = {
           asset,
-          receiveDate: transaction.date,
-          receivePrice: prices.getPrice(transaction.date, asset, unit),
+          receiveDate: date,
+          receivePrice: currentPrice,
           quantity: togo,
         };
-        // Borrow the rest of what we need
         output.push(newChunk);
-        // Register debt by pushing a new negative-quantity chunk
-        state.accounts[account].push({ ...newChunk, quantity: mul(newChunk.quantity, "-1") });
+        if (!isOpaqueInterestBearers(account)) {
+          // Register debt by pushing a new negative-quantity chunk
+          state.accounts[account].push({ ...newChunk, quantity: mul(newChunk.quantity, "-1") });
+        } else {
+          // Otherwise emit a synthetic transfer event
+          log.warn(`Opaque interest bearer! Assuming the remaining ${togo} ${asset} is interest`);
+          events?.push({
+            asset,
+            assetPrice: currentPrice,
+            category: TransferCategories.Income,
+            date,
+            description: `Received ${round(togo)} ${asset} from (opaque) ${account}`,
+            newBalances: {
+              to: "0?",
+              from: "0?",
+            },
+            from: account,
+            quantity: togo,
+            tags: [],
+            to: transfer.to,
+            type: EventTypes.Transfer,
+          });
+          // emit an income event?
+        }
         return output;
       }
       if (gt(chunk.quantity, togo)) {

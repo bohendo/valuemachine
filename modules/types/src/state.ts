@@ -1,5 +1,6 @@
 import { AssetChunk, Assets } from "./assets";
-import { Transaction } from "./transactions";
+import { Events } from "./events";
+import { Transaction, Transfer } from "./transactions";
 import { Address, DecimalString, TimestampString } from "./strings";
 
 ////////////////////////////////////////
@@ -30,8 +31,10 @@ export interface State {
     account: Account,
     asset: Assets,
     quantity: DecimalString,
-    tx: Transaction,
+    date: TimestampString,
     unit: Assets,
+    transfer?: Transfer,
+    events?: Events,
   ): AssetChunk[];
   getNetWorth(): NetWorth;
   getRelevantBalances(tx: Transaction): StateBalances;

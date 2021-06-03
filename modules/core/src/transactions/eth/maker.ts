@@ -595,13 +595,13 @@ export const makerParser = (
         ).sort(diffAsc(wad)).sort((t1, t2) =>
           // First try to match a PETH transfer
           (t1.asset === PETH && t2.asset !== PETH) ? -1
-            : (t1.asset !== PETH && t2.asset === PETH) ? 1
-              // Second try to match a WETH transfer
-              : (t1.asset === WETH && t2.asset !== WETH) ? -1
-                : (t1.asset !== WETH && t2.asset === WETH) ? 1
-                  // Last try to match an ETH transfer
-                  : (t1.asset === ETH && t2.asset !== ETH) ? -1
-                    : 1
+          : (t1.asset !== PETH && t2.asset === PETH) ? 1
+          // Second try to match a WETH transfer
+          : (t1.asset === WETH && t2.asset !== WETH) ? -1
+          : (t1.asset !== WETH && t2.asset === WETH) ? 1
+          // Last try to match an ETH transfer
+          : (t1.asset === ETH && t2.asset !== ETH) ? -1
+          : 1
         );
         const transfer = transfers[0];
         if (transfer) {
