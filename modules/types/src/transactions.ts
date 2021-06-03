@@ -28,6 +28,7 @@ export type ExternalSources = (typeof ExternalSources)[keyof typeof ExternalSour
 export const OnchainSources = enumify({
   Argent: "Argent",
   Compound: "Compound",
+  Idle: "Idle",
   ERC20: "ERC20",
   EthTx: "EthTx",
   EtherDelta: "EtherDelta",

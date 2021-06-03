@@ -40,6 +40,7 @@ export const EthereumAssets = enumify({
   cWBTCv2: "cWBTCv2",
   cZRX: "cZRX",
   DAI: "DAI",
+  idleDAI: "idleDAI",
   dusd3CRV: "dusd3CRV",
   ETH: "ETH",
   eursCRV: "eursCRV",

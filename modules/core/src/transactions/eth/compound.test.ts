@@ -55,10 +55,10 @@ describe(TransactionSources.Compound, () => {
     const tx = txns.json[0];
     expect(tx.sources).to.include(TransactionSources.Compound);
     expect(tx.transfers.length).to.equal(3);
-    const withdraw = tx.transfers[1];
-    expect(withdraw.category).to.equal(Withdraw);
-    const income = tx.transfers[2];
+    const income = tx.transfers[1];
     expect(income.category).to.equal(Income);
+    const withdraw = tx.transfers[2];
+    expect(withdraw.category).to.equal(Withdraw);
   });
 
   it("should handle deposits to compound v2", async () => {

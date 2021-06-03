@@ -225,6 +225,7 @@ export const yearnParser = (
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
+
     if (yTokens.some(yToken => smeq(yToken.address, address))) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
       const yTransfer = tx.transfers.find(t => t.asset === getName(address));
@@ -268,6 +269,7 @@ export const yearnParser = (
           } ${transfer.asset} from ${yTransfer.asset}`;
         }
       }
+
     } else if (smeq(address, govAddress)) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
       const event = parseEvent(yGovInterface, txLog);
