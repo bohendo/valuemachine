@@ -1,7 +1,7 @@
 import { getPrices } from "@finances/core";
 import {
   Assets,
-  AltChainAssets,
+  Blockchains,
   EthereumAssets,
   Prices,
   PricesJson,
@@ -230,7 +230,7 @@ export const PriceManager = ({
           onChange={handleFilterChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys({ ...EthereumAssets, ...AltChainAssets }).map(asset => (
+          {Object.keys({ ...EthereumAssets, ...Blockchains }).map(asset => (
             <MenuItem key={asset} value={asset}>{asset}</MenuItem>
           ))}
         </Select>
