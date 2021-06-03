@@ -54,15 +54,16 @@ export type ChainDataJson = {
 
 export interface ChainData {
   getAddressHistory: (...addresses: Address[]) => ChainData;
-  getTokenData: (token: Address) => TokenData;
-  getEthTransaction: (hash: HexString) => EthTransaction;
-  getEthTransactions: (testFn: (tx: EthTransaction) => boolean) => EthTransaction[];
+  getDecimals: (token: Address) => DecimalString;
   getEthCall: (hash: HexString) => EthCall;
   getEthCalls: (testFn: (call: EthCall) => boolean) => EthCall[];
+  getEthTransaction: (hash: HexString) => EthTransaction;
+  getEthTransactions: (testFn: (tx: EthTransaction) => boolean) => EthTransaction[];
+  getTokenData: (token: Address) => TokenData;
   json: ChainDataJson;
   merge: (newJson: ChainDataJson) => void;
-  syncAddresses: (addresses: Address[], key?: string) => Promise<void>;
   syncAddress: (address: Address, key?: string) => Promise<void>;
+  syncAddresses: (addresses: Address[], key?: string) => Promise<void>;
   syncTokenData: (tokens: Address[], key?: string) => Promise<void>;
   syncTransaction: (tx: Partial<EthTransaction | EthCall>, key?: string) => Promise<void>;
 }

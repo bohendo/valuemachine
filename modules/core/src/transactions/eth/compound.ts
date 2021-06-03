@@ -17,7 +17,7 @@ import { math, sm, smeq } from "@finances/utils";
 
 import { rmDups, parseEvent, valuesAreClose } from "../utils";
 
-const { div, round } = math;
+const { div, lt, round, sub } = math;
 const {
   COMP, cBAT, cCOMP, cDAI, cETH, cREP, cSAI, cUNI, cUSDC, cUSDT, cWBTC, cWBTCv2, cZRX
 } = Assets;
@@ -138,6 +138,7 @@ export const compoundParser = (
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
+    const index = txLog.index || 1;
     if (compoundAddresses.some(e => smeq(e.address, address))) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
     }
@@ -148,10 +149,7 @@ export const compoundParser = (
       const subsrc = `${source}V1`;
       const event = parseEvent(compoundV1Interface, txLog);
       log.info(`Found ${subsrc} ${event.name} event`);
-      const amount = formatUnits(
-        event.args.amount,
-        chainData.getTokenData(event.args.asset)?.decimals || 18,
-      );
+      const amount = formatUnits(event.args.amount, chainData.getDecimals(event.args.asset));
       const asset = getName(event.args.asset);
       const account = `${subsrc}-${event.args.account?.substring(0, 8)}`;
 
@@ -168,40 +166,66 @@ export const compoundParser = (
         } ${asset} into ${subsrc}`;
 
       } else if (event.name === "SupplyWithdrawn") {
-        const withdraw = tx.transfers.find(associatedTransfer(asset, amount));
+        log.info(event, `starting balance:`);
+        const startingBal = formatUnits(event.args.startingBalance, chainData.getDecimals(asset));
+        const newBal = formatUnits(event.args.newBalance, chainData.getDecimals(asset));
+        log.info(`Starting Balance: ${startingBal} | New Balance: ${newBal}`);
+        const withdrawIndex = tx.transfers.findIndex(transfer =>
+          isSelf(transfer.to) && transfer.asset === asset && transfer.quantity === amount
+        );
+        const withdraw = tx.transfers[withdrawIndex];
         if (withdraw) {
-          withdraw.category = Withdraw;
-          withdraw.from = account;
+          const principal = sub(startingBal, newBal);
+          const interest = sub(withdraw.quantity, principal);
+          if (lt(principal, "0") || lt(interest, "0")) {
+            log.warn(`Invalid balances: starting=${startingBal} new=${newBal} principal=${
+              principal
+            } interest=${interest} quantity=${withdraw.quantity}`);
+          } else {
+            tx.transfers.splice(withdrawIndex, 1, {
+              ...withdraw,
+              category: Withdraw,
+              from: account,
+              index,
+              quantity: principal,
+            }, {
+              ...withdraw,
+              category: Income,
+              from: address,
+              index,
+              quantity: interest,
+            });
+            tx.description = `${getName(withdraw.to)} withdrew ${
+              round(amount)
+            } ${asset} from ${subsrc}`;
+          }
         } else {
-          log.warn(tx.transfers, `Can't find a transfer of ${amount} ${asset}`);
+          log.warn(tx.transfers, `Can't find an incoming transfer of ${amount} ${asset}`);
         }
-        tx.description = `${getName(withdraw.to)} withdrew ${
-          round(amount)
-        } ${asset} from ${subsrc}`;
 
       } else if (event.name === "BorrowTaken") {
         const borrow = tx.transfers.find(associatedTransfer(asset, amount));
         if (borrow) {
           borrow.category = Borrow;
           borrow.from = account;
+          tx.description = `${getName(borrow.to)} borrowed ${
+            round(amount)
+          } ${asset} from ${subsrc}`;
         } else {
           log.warn(tx.transfers, `Can't find an associated borrow transfer`);
         }
-        tx.description = `${getName(borrow.to)} borrowed ${
-          round(amount)
-        } ${asset} from ${subsrc}`;
 
       } else if (event.name === "BorrowRepaid") {
         const repay = tx.transfers.find(associatedTransfer(asset, amount));
         if (repay) {
           repay.category = Repay;
           repay.to = account;
+          tx.description = `${getName(repay.from)} repaid ${
+            round(amount)
+          } ${asset} to ${subsrc}`;
         } else {
           log.warn(tx.transfers, `Can't find an associated repay transfer`);
         }
-        tx.description = `${getName(repay.from)} repaid ${
-          round(amount)
-        } ${asset} to ${subsrc}`;
 
       } else {
         log.debug(`Skipping ${subsrc} ${event.name} event`);
@@ -212,7 +236,9 @@ export const compoundParser = (
     } else if (smeq(comptrollerAddress, address)) {
       const event = parseEvent(comptrollerInterface, txLog);
       if (event.name === "MarketEntered") {
-        tx.description = `${getName(event.args.account)} entered market for ${getName(event.args.cToken)}`;
+        tx.description = `${getName(event.args.account)} entered market for ${
+          getName(event.args.cToken)
+        }`;
       }
 
     ////////////////////////////////////////
@@ -223,7 +249,7 @@ export const compoundParser = (
         if (isSelf(event.args.to) && smeq(event.args.from, comptrollerAddress)) {
           const amount = formatUnits(
             event.args.amount,
-            chainData.getTokenData(address)?.decimals || 18,
+            chainData.getDecimals(address),
           );
           const income = tx.transfers.find(associatedTransfer("COMP", amount));
           if (income) {
@@ -245,62 +271,49 @@ export const compoundParser = (
       // Deposit
       if (event.name === "Mint") {
         log.info(`Parsing ${getName(address)} ${event.name} event`);
-        const tokenAmt = formatUnits(
-          event.args.mintAmount,
-          chainData.getTokenData(asset)?.decimals || 18,
-        );
+        const tokenAmt = formatUnits(event.args.mintAmount, chainData.getDecimals(asset));
         const cTokenAmt = formatUnits(event.args.mintTokens, cTokenDecimals);
         const swapOut = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         const swapIn = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
-        if (swapOut) {
+        if (!swapOut) {
+          log.warn(`${event.name}: Can't find swapOut of ${tokenAmt} ${asset}`);
+        } else if (!swapIn) {
+          log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${getName(address)}`);
+        } else {
           swapOut.category = SwapOut;
           swapOut.to = address;
-        } else {
-          log.warn(`${event.name}: Can't find swapOut of ${tokenAmt} ${asset}`);
-        }
-        if (swapIn) {
           swapIn.category = SwapIn;
           swapIn.from = address;
-        } else {
-          log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${getName(address)}`);
+          tx.description = `${getName(swapOut.from)} deposited ${
+            round(tokenAmt)
+          } ${asset} into ${source}`;
         }
-        tx.description = `${getName(swapOut.from)} deposited ${
-          round(tokenAmt)
-        } ${asset} into ${source}`;
 
       // Withdraw
       } else if (event.name === "Redeem") {
         log.info(`Parsing ${getName(address)} ${event.name} event`);
-        const tokenAmt = formatUnits(
-          event.args.redeemAmount,
-          chainData.getTokenData(asset)?.decimals || 18,
-        );
+        const tokenAmt = formatUnits(event.args.redeemAmount, chainData.getDecimals(asset));
         const cTokenAmt = formatUnits(event.args.redeemTokens, cTokenDecimals);
         const swapOut = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
         const swapIn = tx.transfers.find(associatedTransfer(asset, tokenAmt));
-        if (swapOut) {
+        if (!swapOut) {
+          log.warn(`${event.name}: Can't find swapOut of ${cTokenAmt} ${getName(address)}`);
+        } else if (!swapIn) {
+          log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${asset}`);
+        } else {
           swapOut.category = SwapOut;
           swapOut.to = address;
-        } else {
-          log.warn(`${event.name}: Can't find swapOut of ${cTokenAmt} ${getName(address)}`);
-        }
-        if (swapIn) {
           swapIn.category = SwapIn;
           swapIn.from = address;
-        } else {
-          log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${asset}`);
+          tx.description = `${getName(swapOut.from)} withdrew ${
+            round(tokenAmt)
+          } ${asset} from ${source}`;
         }
-        tx.description = `${getName(swapOut.from)} withdrew ${
-          round(tokenAmt)
-        } ${asset} from ${source}`;
 
       // Borrow
       } else if (event.name === "Borrow") {
         log.info(`Parsing ${getName(address)} ${event.name} event`);
-        const tokenAmt = formatUnits(
-          event.args.borrowAmount,
-          chainData.getTokenData(asset)?.decimals || 18,
-        );
+        const tokenAmt = formatUnits(event.args.borrowAmount, chainData.getDecimals(asset));
         const borrow = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (borrow) {
           borrow.category = Borrow;
@@ -315,20 +328,17 @@ export const compoundParser = (
       // Repay
       } else if (event.name === "RepayBorrow") {
         log.info(`Parsing ${getName(address)} ${event.name} event`);
-        const tokenAmt = formatUnits(
-          event.args.repayAmount,
-          chainData.getTokenData(asset)?.decimals || 18,
-        );
+        const tokenAmt = formatUnits(event.args.repayAmount, chainData.getDecimals(asset));
         const repay = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (repay) {
           repay.category = Repay;
           repay.to = address; // should this be a non-address account?
+          tx.description = `${getName(repay.from)} repayed ${
+            round(tokenAmt)
+          } ${asset} to ${getName(address)}`;
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
-        tx.description = `${getName(repay.from)} repayed ${
-          round(tokenAmt)
-        } ${asset} to ${getName(address)}`;
 
 
       } else {
