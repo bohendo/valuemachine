@@ -70,7 +70,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(2),
   },
   subtable: {
-    maxWidth: theme.spacing(4),
+    maxWidth: theme.spacing(8),
   },
 }));
 
@@ -165,44 +165,43 @@ const EventRow = ({
                 {`${event.category || event.type} Details`}
               </Typography>
               <SimpleTable data={
+
                 (event.type === EventTypes.Transfer && event.category === Expense) ? {
-                  Account: event.account,
-                  Asset: event.asset,
-                  Amount: event.quantity,
-                  ["New Balance"]: event.newBalance,
+                  Account: event.from,
+                  ["Value"]: `${event.quantity} ${event.asset}`,
+                  ["New Balance"]: event.newBalances?.from,
                   Recipient: event.to,
                 } : event.type === EventTypes.Transfer && event.category === Income ? {
-                  Account: event.account,
-                  Asset: event.asset,
-                  Amount: event.quantity,
-                  ["New Balance"]: event.newBalance,
+                  Account: event.to,
+                  ["Value"]: `${event.quantity} ${event.asset}`,
+                  ["New Balance"]: event.newBalances?.to,
                   Sender: event.from,
 
                 } : event.type === EventTypes.Transfer && event.category === Deposit ? {
-                  Account: event.account,
-                  Asset: event.asset,
-                  Amount: event.quantity,
-                  ["New Balance"]: event.newBalance,
-                  Sender: event.from,
+                  ["Value"]: `${event.quantity} ${event.asset}`,
+                  Account: event.to,
+                  ["New Account Balance"]: event.newBalances?.to,
+                  Actor: event.from,
+                  ["New Actor Balance"]: event.newBalances?.from,
                 } : event.type === EventTypes.Transfer && event.category === Withdraw ? {
-                  Account: event.account,
-                  Asset: event.asset,
-                  Amount: event.quantity,
-                  ["New Balance"]: event.newBalance,
-                  Recipient: event.from,
+                  ["Value"]: `${event.quantity} ${event.asset}`,
+                  Account: event.from,
+                  ["New Account Balance"]: event.newBalances?.from,
+                  Actor: event.to,
+                  ["New Actor Balance"]: event.newBalances?.to,
 
                 } : event.type === EventTypes.Transfer && event.category === Repay ? {
-                  Account: event.account,
-                  Asset: event.asset,
-                  Amount: event.quantity,
-                  ["New Balance"]: event.newBalance,
-                  Sender: event.from,
+                  ["Value"]: `${event.quantity} ${event.asset}`,
+                  Account: event.to,
+                  ["New Account Balance"]: event.newBalances?.to,
+                  Actor: event.from,
+                  ["New Actor Balance"]: event.newBalances?.from,
                 } : event.type === EventTypes.Transfer && event.category === Borrow ? {
-                  Account: event.account,
-                  Asset: event.asset,
-                  Amount: event.quantity,
-                  ["New Balance"]: event.newBalance,
-                  Recipient: event.to,
+                  ["Value"]: `${event.quantity} ${event.asset}`,
+                  Account: event.from,
+                  ["New Account Balance"]: event.newBalances?.from,
+                  Actor: event.to,
+                  ["New Actor Balance"]: event.newBalances?.to,
 
                 } : event.type === EventTypes.Trade ? {
                   ["Giver"]: event.from,
@@ -257,16 +256,16 @@ export const EventExplorer = ({
     setPage(0);
     setFilteredEvents(events.filter(event =>
       (!filterAsset || event.asset === filterAsset)
-      && (!filterType || event.type === filterType)
+      && (!filterType || event.category === filterType || event.type === filterType)
       && (!filterAccount || (event.to === filterAccount || event.from === filterAccount))
     ).sort((e1: Events, e2: Events) =>
       // Sort by date, newest first
       (e1.date > e2.date) ? -1
-        : (e1.date < e2.date) ? 1
-          // Then by purchase date, oldest first
-          : (e1.purchaseDate > e2.purchaseDate) ? 1
-            : (e1.purchaseDate < e2.purchaseDate) ? -1
-              : 0
+      : (e1.date < e2.date) ? 1
+      // Then by purchase date, oldest first
+      : (e1.purchaseDate > e2.purchaseDate) ? 1
+      : (e1.purchaseDate < e2.purchaseDate) ? -1
+      : 0
     ));
   }, [events, filterAccount, filterAsset, filterType]);
 
@@ -406,7 +405,7 @@ export const EventExplorer = ({
           onChange={handleFilterTypeChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(EventTypes).map((type, i) => (
+          {[Income, Expense, Deposit, Withdraw, Borrow, Repay, EventTypes.Trade].map((type, i) => (
             <MenuItem key={i} value={type}>{type}</MenuItem>
           ))}
         </Select>

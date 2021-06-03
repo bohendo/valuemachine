@@ -18,14 +18,16 @@ type BaseEvent = {
 };
 
 type TransferEvent = BaseEvent & {
-  account: Address;
   asset: Assets;
   assetPrice: DecimalString;
   category: TransferCategory;
-  from?: Address;
-  newBalance: DecimalString
+  from: Address;
+  newBalances: {
+    to: DecimalString;
+    from: DecimalString;
+  };
   quantity: DecimalString;
-  to?: Address;
+  to: Address;
 }
 
 export type TradeEvent = BaseEvent & {

@@ -27,7 +27,7 @@ const {
   Borrow, Repay,
   SwapIn, SwapOut,
 } = TransferCategories;
-const { add, eq, mul, round } = math;
+const { add, mul, round } = math;
 
 export const getValueMachine = ({
   addressBook,
@@ -67,40 +67,37 @@ export const getValueMachine = ({
       const { getName } = addressBook;
       const events = [];
       const { asset, category, from, quantity, to } = transfer;
-      if (eq(quantity, "0")) {
+      if (
+        (category === Expense && to === AddressZero) // Skip tx fees for now, too much noise
+        || category === Internal // We might not ever need these
+      ) {
         return events;
       }
+      const amt = round(quantity);
       const newEvent = {
         asset: asset,
         assetPrice: prices.getPrice(transaction.date, asset, unit),
         category,
         date: transaction.date,
+        description: 
+          (category === Income) ? `Recieved ${amt} ${asset} from ${getName(from)} `
+          : (category === Expense) ? `Paid ${amt} ${asset} to ${getName(to)} `
+          : (category === Repay) ? `Repayed ${amt} ${asset} to ${getName(to)} `
+          : (category === Deposit) ? `Deposited ${amt} ${asset} to ${getName(to)} `
+          : (category === Borrow) ? `Borrowed ${amt} ${asset} from ${getName(from)} `
+          : (category === Withdraw) ? `Withdrew ${amt} ${asset} from ${getName(from)} `
+          : "?",
+        from: transfer.from,
         quantity,
         tags: transaction.tags,
+        to: transfer.to,
         type: EventTypes.Transfer,
       } as any;
-      const rounded = round(quantity);
-      if (([Income, Borrow, Withdraw] as TransferCategory[]).includes(category)) {
-        newEvent.account = transfer.to;
-        newEvent.from = transfer.from;
-        newEvent.description =
-          (category === Income) ? `Recieved ${rounded} ${asset} from ${getName(from)} `
-            : (category === Borrow) ? `Borrowed ${rounded} ${asset} from ${getName(from)} `
-              : (category === Withdraw) ? `Withdrew ${rounded} ${asset} from ${getName(from)} `
-                : "?";
-      } else if (([Expense, Repay, Deposit] as TransferCategory[]).includes(category)) {
-        if (to === AddressZero) {
-          return events; // skip tx fees for now, too much noise
-        }
-        newEvent.account = transfer.from;
-        newEvent.to = transfer.to;
-        newEvent.description = (category === Expense && to !== AddressZero)
-          ? `Paid ${rounded} ${asset} to ${getName(to)} `
-          : (category === Repay) ? `Repayed ${rounded} ${asset} to ${getName(to)} `
-            : (category === Deposit) ? `Deposited ${rounded} ${asset} to ${getName(to)} `
-              : "?";
-      }
-      newEvent.newBalance = state.getBalance(newEvent.account, asset);
+      // We exclude internal transfers so both to & from shouldn't be self/abstract
+      newEvent.newBalances = {
+        to: state.getBalance(newEvent.to, asset),
+        from: state.getBalance(newEvent.from, asset),
+      };
       events.push(newEvent);
       return events;
     };
