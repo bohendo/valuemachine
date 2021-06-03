@@ -17,7 +17,7 @@ import { math, sm, smeq } from "@finances/utils";
 
 import { rmDups, parseEvent, valuesAreClose } from "../utils";
 
-const { div, lt, round, sub } = math;
+const { div, gt, round, sub } = math;
 const {
   COMP, cBAT, cCOMP, cDAI, cETH, cREP, cSAI, cUNI, cUSDC, cUSDT, cWBTC, cWBTCv2, cZRX
 } = Assets;
@@ -138,7 +138,6 @@ export const compoundParser = (
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
-    const index = txLog.index || 1;
     if (compoundAddresses.some(e => smeq(e.address, address))) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
     }
@@ -150,12 +149,28 @@ export const compoundParser = (
       const event = parseEvent(compoundV1Interface, txLog);
       log.info(`Found ${subsrc} ${event.name} event`);
       const amount = formatUnits(event.args.amount, chainData.getDecimals(event.args.asset));
-      const asset = getName(event.args.asset);
+      const asset = getName(event.args.asset) as Assets;
       const account = `${subsrc}-${event.args.account?.substring(0, 8)}`;
 
       if (event.name === "SupplyReceived") {
+        const oldBal = formatUnits(event.args.startingBalance, chainData.getDecimals(asset));
+        const newBal = formatUnits(event.args.newBalance, chainData.getDecimals(asset));
+        log.debug(`Starting Balance: ${oldBal} | New Balance: ${newBal}`);
         const deposit = tx.transfers.find(associatedTransfer(asset, amount));
         if (deposit) {
+          const balChange = sub(newBal, oldBal);
+          const interest = sub(balChange, deposit.quantity);
+          log.debug(`Quantity Deposited: ${deposit.quantity} | Interest Acrued: ${interest}`);
+          if (gt(interest, "0")) {
+            tx.transfers.push({
+              asset,
+              category: Income,
+              from: address,
+              index: deposit.index - 1,
+              quantity: interest,
+              to: account
+            });
+          }
           deposit.category = Deposit;
           deposit.to = account;
         } else {
@@ -166,39 +181,31 @@ export const compoundParser = (
         } ${asset} into ${subsrc}`;
 
       } else if (event.name === "SupplyWithdrawn") {
-        log.info(event, `starting balance:`);
-        const startingBal = formatUnits(event.args.startingBalance, chainData.getDecimals(asset));
+        const oldBal = formatUnits(event.args.startingBalance, chainData.getDecimals(asset));
         const newBal = formatUnits(event.args.newBalance, chainData.getDecimals(asset));
-        log.info(`Starting Balance: ${startingBal} | New Balance: ${newBal}`);
-        const withdrawIndex = tx.transfers.findIndex(transfer =>
+        log.debug(`Starting Balance: ${oldBal} | New Balance: ${newBal}`);
+        const withdraw = tx.transfers.find(transfer =>
           isSelf(transfer.to) && transfer.asset === asset && transfer.quantity === amount
         );
-        const withdraw = tx.transfers[withdrawIndex];
         if (withdraw) {
-          const principal = sub(startingBal, newBal);
+          const principal = sub(oldBal, newBal);
           const interest = sub(withdraw.quantity, principal);
-          if (lt(principal, "0") || lt(interest, "0")) {
-            log.warn(`Invalid balances: starting=${startingBal} new=${newBal} principal=${
-              principal
-            } interest=${interest} quantity=${withdraw.quantity}`);
-          } else {
-            tx.transfers.splice(withdrawIndex, 1, {
-              ...withdraw,
-              category: Withdraw,
-              from: account,
-              index,
-              quantity: principal,
-            }, {
-              ...withdraw,
+          log.debug(`Principal: ${principal} | Interest Acrued: ${interest}`);
+          if (gt(interest, "0")) {
+            tx.transfers.push({
+              asset,
               category: Income,
               from: address,
-              index,
+              index: withdraw.index - 1,
               quantity: interest,
+              to: account
             });
-            tx.description = `${getName(withdraw.to)} withdrew ${
-              round(amount)
-            } ${asset} from ${subsrc}`;
           }
+          withdraw.category = Withdraw;
+          withdraw.from = account;
+          tx.description = `${getName(withdraw.to)} withdrew ${
+            round(amount)
+          } ${asset} from ${subsrc}`;
         } else {
           log.warn(tx.transfers, `Can't find an incoming transfer of ${amount} ${asset}`);
         }
