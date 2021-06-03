@@ -54,7 +54,7 @@ export type ChainDataJson = {
 
 export interface ChainData {
   getAddressHistory: (...addresses: Address[]) => ChainData;
-  getDecimals: (token: Address) => DecimalString;
+  getDecimals: (token: Address) => number;
   getEthCall: (hash: HexString) => EthCall;
   getEthCalls: (testFn: (call: EthCall) => boolean) => EthCall[];
   getEthTransaction: (hash: HexString) => EthTransaction;

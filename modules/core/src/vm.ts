@@ -1,25 +1,33 @@
 import { AddressZero } from "@ethersproject/constants";
 import {
   AddressBook,
+  AssetChunk,
   Assets,
   Event,
+  Events,
   EventTypes,
   Logger,
   Prices,
   StateJson,
   TradeEvent,
   Transaction,
+  Transfer,
   TransferCategories,
   TransferCategory,
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
-import { emitTransferEvents } from "./events";
 import { getState } from "./state";
 import { rmDups } from "./transactions/utils";
 
-const { Deposit, Internal, SwapIn, SwapOut } = TransferCategories;
-const { add, mul, round } = math;
+const {
+  Internal,
+  Income, Expense,
+  Deposit, Withdraw,
+  Borrow, Repay,
+  SwapIn, SwapOut,
+} = TransferCategories;
+const { add, eq, mul, round } = math;
 
 export const getValueMachine = ({
   addressBook,
@@ -47,6 +55,55 @@ export const getValueMachine = ({
       JSON.stringify(state.getRelevantBalances(transaction), null, 2)
     }`);
     const events = [] as Event[];
+
+    const emitTransferEvents = (
+      addressBook: AddressBook,
+      chunks: AssetChunk[],
+      transaction: Transaction,
+      transfer: Transfer,
+      prices: Prices,
+      unit: Assets = Assets.ETH,
+    ): Events => {
+      const { getName } = addressBook;
+      const events = [];
+      const { asset, category, from, quantity, to } = transfer;
+      if (eq(quantity, "0")) {
+        return events;
+      }
+      const newEvent = {
+        asset: asset,
+        assetPrice: prices.getPrice(transaction.date, asset, unit),
+        category,
+        date: transaction.date,
+        quantity,
+        tags: transaction.tags,
+        type: EventTypes.Transfer,
+      } as any;
+      const rounded = round(quantity);
+      if (([Income, Borrow, Withdraw] as TransferCategory[]).includes(category)) {
+        newEvent.account = transfer.to;
+        newEvent.from = transfer.from;
+        newEvent.description =
+          (category === Income) ? `Recieved ${rounded} ${asset} from ${getName(from)} `
+            : (category === Borrow) ? `Borrowed ${rounded} ${asset} from ${getName(from)} `
+              : (category === Withdraw) ? `Withdrew ${rounded} ${asset} from ${getName(from)} `
+                : "?";
+      } else if (([Expense, Repay, Deposit] as TransferCategory[]).includes(category)) {
+        if (to === AddressZero) {
+          return events; // skip tx fees for now, too much noise
+        }
+        newEvent.account = transfer.from;
+        newEvent.to = transfer.to;
+        newEvent.description = (category === Expense && to !== AddressZero)
+          ? `Paid ${rounded} ${asset} to ${getName(to)} `
+          : (category === Repay) ? `Repayed ${rounded} ${asset} to ${getName(to)} `
+            : (category === Deposit) ? `Deposited ${rounded} ${asset} to ${getName(to)} `
+              : "?";
+      }
+      newEvent.newBalance = state.getBalance(newEvent.account, asset);
+      events.push(newEvent);
+      return events;
+    };
 
     ////////////////////////////////////////
     // VM Core

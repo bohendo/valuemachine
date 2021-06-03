@@ -1,15 +1,11 @@
 import { Assets, AssetChunk } from "./assets";
 import { Address, DecimalString, TimestampString } from "./strings";
+import { TransferCategory } from "./transactions";
 import { enumify } from "./utils";
 
 export const EventTypes = enumify({
-  Income: "Income",
-  Expense: "Expense",
-  Borrow: "Borrow",
-  Repay: "Repay",
-  Deposit: "Deposit",
-  Withdraw: "Withdraw",
   Trade: "Trade",
+  Transfer: "Transfer",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type EventTypes = (typeof EventTypes)[keyof typeof EventTypes];
@@ -22,37 +18,14 @@ type BaseEvent = {
 };
 
 type TransferEvent = BaseEvent & {
+  account: Address;
   asset: Assets;
   assetPrice: DecimalString;
-  from: Address;
+  category: TransferCategory;
+  from?: Address;
+  newBalance: DecimalString
   quantity: DecimalString;
-  to: Address;
-}
-
-////////////////////////////////////////
-
-export type IncomeEvent = TransferEvent & {
-  type: typeof EventTypes.Income;
-}
-
-export type ExpenseEvent = TransferEvent & {
-  type: typeof EventTypes.Expense;
-}
-
-export type DepositEvent = TransferEvent & {
-  type: typeof EventTypes.Deposit;
-}
-
-export type WithdrawEvent = TransferEvent & {
-  type: typeof EventTypes.Withdraw;
-}
-
-export type BorrowEvent = TransferEvent & {
-  type: typeof EventTypes.Borrow;
-}
-
-export type RepayEvent = TransferEvent & {
-  type: typeof EventTypes.Repay;
+  to?: Address;
 }
 
 export type TradeEvent = BaseEvent & {
@@ -65,14 +38,7 @@ export type TradeEvent = BaseEvent & {
   type: typeof EventTypes.Trade;
 }
 
-export type Event =
-  | BorrowEvent
-  | DepositEvent
-  | ExpenseEvent
-  | IncomeEvent
-  | RepayEvent
-  | TradeEvent
-  | WithdrawEvent;
+export type Event = TransferEvent | TradeEvent
 export type Events = Event[];
 
 export type EventsJson = Events;
