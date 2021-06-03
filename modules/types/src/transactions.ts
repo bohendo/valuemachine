@@ -1,20 +1,13 @@
 import { AddressBook } from "./addressBook";
-import { Assets } from "./assets";
+import { Assets, Blockchains, Fiat } from "./assets";
 import { ChainData } from "./chainData";
 import { Logger } from "./logger";
 import { DecimalString, HexString, TimestampString } from "./strings";
 import { Store } from "./store";
 import { enumify } from "./utils";
 
-export const Jurisdictions = {
-  Coinbase: Assets.USD,
-  DigitalOcean: Assets.USD,
-  Wyre: Assets.USD,
-  Wazirx: Assets.INR,
-};
-
 ////////////////////////////////////////
-// Transactions
+// Transaction Sources
 
 export const ExternalSources = enumify({
   Coinbase: "Coinbase",
@@ -28,6 +21,7 @@ export type ExternalSources = (typeof ExternalSources)[keyof typeof ExternalSour
 export const OnchainSources = enumify({
   Argent: "Argent",
   Compound: "Compound",
+  Idle: "Idle",
   ERC20: "ERC20",
   EthTx: "EthTx",
   EtherDelta: "EtherDelta",
@@ -47,6 +41,26 @@ export const TransactionSources = enumify({
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
+
+////////////////////////////////////////
+// Jurisdictions
+
+export const SecurityProviders = enumify({
+  ...Blockchains,
+  ...Fiat,
+});
+export type SecurityProvider = (typeof SecurityProviders)[keyof typeof SecurityProviders];
+
+export const Jurisdictions = enumify({
+  [ExternalSources.Coinbase]: SecurityProviders.USD,
+  [ExternalSources.DigitalOcean]: SecurityProviders.USD,
+  [ExternalSources.Wyre]: SecurityProviders.USD,
+  [ExternalSources.Wazirx]: SecurityProviders.INR,
+});
+export type Jurisdiction = (typeof Jurisdictions)[keyof typeof Jurisdictions];
+
+////////////////////////////////////////
+// Transfers
 
 export const TransferCategories = enumify({
   Internal: "Internal",
@@ -75,6 +89,9 @@ export type Transfer = {
   quantity: DecimalString;
   to: HexString;
 }
+
+////////////////////////////////////////
+// Transactions
 
 export type Transaction = {
   date: TimestampString;

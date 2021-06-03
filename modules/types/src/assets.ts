@@ -1,7 +1,7 @@
 import { DecimalString, TimestampString } from "./strings";
 import { enumify } from "./utils";
 
-export const FiatAssets = enumify({
+export const Fiat = enumify({
   CZK: "CZK",
   EUR: "EUR",
   GBP: "GBP",
@@ -9,15 +9,16 @@ export const FiatAssets = enumify({
   USD: "USD",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export type FiatAssets = (typeof FiatAssets)[keyof typeof FiatAssets];
+export type Fiat = (typeof Fiat)[keyof typeof Fiat];
 
-export const AltChainAssets = enumify({
+export const Blockchains = enumify({
   BCH: "BCH",
   BTC: "BTC",
+  ETH: "ETH",
   LTC: "LTC",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export type AltChainAssets = (typeof AltChainAssets)[keyof typeof AltChainAssets];
+export type Blockchains = (typeof Blockchains)[keyof typeof Blockchains];
 
 export const EthereumAssets = enumify({
   _1INCH: "_1INCH",
@@ -40,6 +41,7 @@ export const EthereumAssets = enumify({
   cWBTCv2: "cWBTCv2",
   cZRX: "cZRX",
   DAI: "DAI",
+  idleDAI: "idleDAI",
   dusd3CRV: "dusd3CRV",
   ETH: "ETH",
   eursCRV: "eursCRV",
@@ -184,8 +186,8 @@ export const EthereumAssets = enumify({
 export type EthereumAssets = (typeof EthereumAssets)[keyof typeof EthereumAssets];
 
 export const Assets = enumify({
-  ...FiatAssets,
-  ...AltChainAssets,
+  ...Fiat,
+  ...Blockchains,
   ...EthereumAssets,
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare

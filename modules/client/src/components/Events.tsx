@@ -1,3 +1,4 @@
+import { isHexString } from "@ethersproject/bytes";
 import { getPrices, getState, getValueMachine } from "@finances/core";
 import {
   AddressBook,
@@ -9,6 +10,7 @@ import {
   PricesJson,
   StateJson,
   Transactions,
+  TransferCategories,
 } from "@finances/types";
 import { math } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
@@ -38,6 +40,9 @@ import React, { useEffect, useState } from "react";
 
 import { store } from "../store";
 
+import { HexString } from "./HexString";
+
+const { Income, Expense, Deposit, Withdraw, Borrow, Repay } = TransferCategories;
 const { add, mul, round, sub } = math;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -64,42 +69,22 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   subtitle: {
     margin: theme.spacing(2),
   },
-
+  subtable: {
+    maxWidth: theme.spacing(8),
+  },
 }));
 
-const SimpleTable = ({
-  data,
-}: {
-  data: any;
-}) => {
-  return (
-    <Table size="small">
-      <TableHead>
-        <TableRow>
-          <TableCell><strong> Key </strong></TableCell>
-          <TableCell><strong> Value </strong></TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {Object.entries(data).map(([key, value]: string[], i: number) => (
-          <TableRow key={i}>
-            <TableCell> {key} </TableCell>
-            <TableCell> {value} </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-};
-
 const EventRow = ({
+  addressBook,
   event,
   unit,
 }: {
+  addressBook: AddressBook;
   event: Event;
   unit: Assets;
 }) => {
   const [open, setOpen] = useState(false);
+  const classes = useStyles();
 
   useEffect(() => {
     if (event && open) console.log(event);
@@ -114,8 +99,8 @@ const EventRow = ({
       const chunk = chunks[i];
       const index = parseInt(i, 10) + 1;
       output[`Chunk ${index}`] = `${chunk.quantity} ${chunk.asset}`;
-      output[`Chunk ${index} Recieve Date`] = chunk.receiveDate;
-      output[`Chunk ${index} Recieve Price`] = chunk.receivePrice;
+      output[`Chunk ${index} Receive Date`] = chunk.receiveDate;
+      output[`Chunk ${index} Receive Price`] = chunk.receivePrice;
       output[`Chunk ${index} Capital Change`] = `${mul(
         chunk.quantity,
         sub(prices[chunk.asset], chunk.receivePrice),
@@ -136,11 +121,34 @@ const EventRow = ({
     return output;
   };
 
+  const SimpleTable = ({
+    data,
+  }: {
+    data: any;
+  }) => {
+    return (
+      <Table size="small">
+        <TableBody>
+          {Object.entries(data).map(([key, value]: string[], i: number) => (
+            <TableRow key={i}>
+              <TableCell className={classes.subtable}> {key} </TableCell>
+              <TableCell> {
+                isHexString(value)
+                  ? <HexString value={value} display={addressBook?.getName(value)}/>
+                  : <Typography> {value} </Typography>
+              }</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
+  };
+
   return (
     <React.Fragment>
       <TableRow>
         <TableCell> {event.date.replace("T", " ").replace(".000Z", "")} </TableCell>
-        <TableCell> {event.type} </TableCell>
+        <TableCell> {event.category || event.type} </TableCell>
         <TableCell> {event.description} </TableCell>
         <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
           Details
@@ -154,41 +162,46 @@ const EventRow = ({
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box pb={2} px={4}>
               <Typography variant="h6" gutterBottom component="div">
-                {`${event.type} Details`}
+                {`${event.category || event.type} Details`}
               </Typography>
               <SimpleTable data={
-                event.type === EventTypes.Expense ? {
-                  Asset: event.asset,
-                  Amount: math.round(event.quantity, 4),
-                  Sender: event.from,
-                  Recipient: event.to,
-                } : event.type === EventTypes.Income ? {
-                  Asset: event.asset,
-                  Amount: math.round(event.quantity, 4),
-                  Sender: event.from,
-                  Recipient: event.to,
 
-                } : event.type === EventTypes.Deposit ? {
-                  Asset: event.asset,
-                  Amount: math.round(event.quantity, 4),
-                  Actor: event.from,
-                  Account: event.to,
-                } : event.type === EventTypes.Withdraw ? {
-                  Asset: event.asset,
-                  Amount: math.round(event.quantity, 4),
-                  Actor: event.to,
+                (event.type === EventTypes.Transfer && event.category === Expense) ? {
                   Account: event.from,
+                  ["Value"]: `${event.quantity} ${event.asset}`,
+                  ["New Balance"]: event.newBalances?.from,
+                  Recipient: event.to,
+                } : event.type === EventTypes.Transfer && event.category === Income ? {
+                  Account: event.to,
+                  ["Value"]: `${event.quantity} ${event.asset}`,
+                  ["New Balance"]: event.newBalances?.to,
+                  Sender: event.from,
 
-                } : event.type === EventTypes.Repay ? {
-                  Asset: event.asset,
-                  Amount: math.round(event.quantity, 4),
-                  Actor: event.from,
+                } : event.type === EventTypes.Transfer && event.category === Deposit ? {
+                  ["Value"]: `${event.quantity} ${event.asset}`,
                   Account: event.to,
-                } : event.type === EventTypes.Borrow ? {
-                  Asset: event.asset,
-                  Amount: math.round(event.quantity, 4),
-                  Actor: event.to,
+                  ["New Account Balance"]: event.newBalances?.to,
+                  Actor: event.from,
+                  ["New Actor Balance"]: event.newBalances?.from,
+                } : event.type === EventTypes.Transfer && event.category === Withdraw ? {
+                  ["Value"]: `${event.quantity} ${event.asset}`,
                   Account: event.from,
+                  ["New Account Balance"]: event.newBalances?.from,
+                  Actor: event.to,
+                  ["New Actor Balance"]: event.newBalances?.to,
+
+                } : event.type === EventTypes.Transfer && event.category === Repay ? {
+                  ["Value"]: `${event.quantity} ${event.asset}`,
+                  Account: event.to,
+                  ["New Account Balance"]: event.newBalances?.to,
+                  Actor: event.from,
+                  ["New Actor Balance"]: event.newBalances?.from,
+                } : event.type === EventTypes.Transfer && event.category === Borrow ? {
+                  ["Value"]: `${event.quantity} ${event.asset}`,
+                  Account: event.from,
+                  ["New Account Balance"]: event.newBalances?.from,
+                  Actor: event.to,
+                  ["New Actor Balance"]: event.newBalances?.to,
 
                 } : event.type === EventTypes.Trade ? {
                   ["Giver"]: event.from,
@@ -243,16 +256,16 @@ export const EventExplorer = ({
     setPage(0);
     setFilteredEvents(events.filter(event =>
       (!filterAsset || event.asset === filterAsset)
-      && (!filterType || event.type === filterType)
+      && (!filterType || event.category === filterType || event.type === filterType)
       && (!filterAccount || (event.to === filterAccount || event.from === filterAccount))
     ).sort((e1: Events, e2: Events) =>
       // Sort by date, newest first
       (e1.date > e2.date) ? -1
-        : (e1.date < e2.date) ? 1
-          // Then by purchase date, oldest first
-          : (e1.purchaseDate > e2.purchaseDate) ? 1
-            : (e1.purchaseDate < e2.purchaseDate) ? -1
-              : 0
+      : (e1.date < e2.date) ? 1
+      // Then by purchase date, oldest first
+      : (e1.purchaseDate > e2.purchaseDate) ? 1
+      : (e1.purchaseDate < e2.purchaseDate) ? -1
+      : 0
     ));
   }, [events, filterAccount, filterAsset, filterType]);
 
@@ -362,8 +375,8 @@ export const EventExplorer = ({
           onChange={handleFilterAccountChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(state.accounts).map((account, i) => (
-            <MenuItem key={i} value={account}>{addressBook.getName(account)}</MenuItem>
+          {Object.keys(state?.accounts || []).map((account, i) => (
+            <MenuItem key={i} value={account}>{addressBook?.getName(account) || account}</MenuItem>
           ))}
         </Select>
       </FormControl>
@@ -392,7 +405,7 @@ export const EventExplorer = ({
           onChange={handleFilterTypeChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(EventTypes).map((type, i) => (
+          {[Income, Expense, Deposit, Withdraw, Borrow, Repay, EventTypes.Trade].map((type, i) => (
             <MenuItem key={i} value={type}>{type}</MenuItem>
           ))}
         </Select>
@@ -430,7 +443,7 @@ export const EventExplorer = ({
               {filteredEvents
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((event: Events, i: number) => (
-                  <EventRow key={i} event={event} unit={unit} />
+                  <EventRow addressBook={addressBook} key={i} event={event} unit={unit} />
                 ))}
             </TableBody>
           </Table>

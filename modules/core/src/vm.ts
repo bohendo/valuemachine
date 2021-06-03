@@ -1,24 +1,32 @@
 import { AddressZero } from "@ethersproject/constants";
 import {
   AddressBook,
+  AssetChunk,
   Assets,
   Event,
+  Events,
   EventTypes,
   Logger,
   Prices,
   StateJson,
   TradeEvent,
   Transaction,
+  Transfer,
   TransferCategories,
   TransferCategory,
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
-import { emitTransferEvents } from "./events";
 import { getState } from "./state";
 import { rmDups } from "./transactions/utils";
 
-const { Deposit, Internal, SwapIn, SwapOut } = TransferCategories;
+const {
+  Internal,
+  Income, Expense,
+  Deposit, Withdraw,
+  Borrow, Repay,
+  SwapIn, SwapOut,
+} = TransferCategories;
 const { add, mul, round } = math;
 
 export const getValueMachine = ({
@@ -47,6 +55,52 @@ export const getValueMachine = ({
       JSON.stringify(state.getRelevantBalances(transaction), null, 2)
     }`);
     const events = [] as Event[];
+
+    const emitTransferEvents = (
+      addressBook: AddressBook,
+      chunks: AssetChunk[],
+      transaction: Transaction,
+      transfer: Transfer,
+      prices: Prices,
+      unit: Assets = Assets.ETH,
+    ): Events => {
+      const { getName } = addressBook;
+      const events = [];
+      const { asset, category, from, quantity, to } = transfer;
+      if (
+        (category === Expense && to === AddressZero) // Skip tx fees for now, too much noise
+        || category === Internal // We might not ever need these
+      ) {
+        return events;
+      }
+      const amt = round(quantity);
+      const newEvent = {
+        asset: asset,
+        assetPrice: prices.getPrice(transaction.date, asset, unit),
+        category,
+        date: transaction.date,
+        description: 
+          (category === Income) ? `Received ${amt} ${asset} from ${getName(from)} `
+          : (category === Expense) ? `Paid ${amt} ${asset} to ${getName(to)} `
+          : (category === Repay) ? `Repayed ${amt} ${asset} to ${getName(to)} `
+          : (category === Deposit) ? `Deposited ${amt} ${asset} to ${getName(to)} `
+          : (category === Borrow) ? `Borrowed ${amt} ${asset} from ${getName(from)} `
+          : (category === Withdraw) ? `Withdrew ${amt} ${asset} from ${getName(from)} `
+          : "?",
+        from: transfer.from,
+        quantity,
+        tags: transaction.tags,
+        to: transfer.to,
+        type: EventTypes.Transfer,
+      } as any;
+      // We exclude internal transfers so both to & from shouldn't be self/abstract
+      newEvent.newBalances = {
+        to: state.getBalance(newEvent.to, asset),
+        from: state.getBalance(newEvent.from, asset),
+      };
+      events.push(newEvent);
+      return events;
+    };
 
     ////////////////////////////////////////
     // VM Core
@@ -109,14 +163,22 @@ export const getValueMachine = ({
       let chunks = [] as any;
       for (const [asset, quantity] of Object.entries(outputs)) {
         chunks = state.getChunks(
-          tradeEvent.from, asset as Assets, quantity as string, transaction, unit,
+          tradeEvent.from,
+          asset as Assets,
+          quantity as string,
+          transaction.date,
+          unit,
         );
         tradeEvent.spentChunks = [...chunks]; // Assumes chunks are never modified.. Is this safe?
         chunks.forEach(chunk => state.putChunk(swapsOut[0].to, chunk));
       }
       for (const [asset, quantity] of Object.entries(inputs)) {
         chunks = state.getChunks(
-          AddressZero, asset as Assets, quantity as string, transaction, unit,
+          AddressZero,
+          asset as Assets,
+          quantity as string,
+          transaction.date,
+          unit,
         );
         chunks.forEach(chunk => state.putChunk(tradeEvent.to, chunk));
       }
@@ -152,7 +214,15 @@ export const getValueMachine = ({
       log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${getName(to)}`);
       let chunks;
       try {
-        chunks = state.getChunks(from, asset, quantity, transaction, unit);
+        chunks = state.getChunks(
+          from,
+          asset,
+          quantity,
+          transaction.date,
+          unit,
+          transfer,
+          events,
+        );
         chunks.forEach(chunk => state.putChunk(to, chunk));
         events.push(
           ...emitTransferEvents(addressBook, chunks, transaction, transfer, prices, unit)
@@ -177,7 +247,15 @@ export const getValueMachine = ({
       log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${
         getName(to)
       } (attempt 2)`);
-      const chunks = state.getChunks(from, asset, quantity, transaction, unit);
+      const chunks = state.getChunks(
+        from,
+        asset,
+        quantity,
+        transaction.date,
+        unit,
+        transfer,
+        events,
+      );
       chunks.forEach(chunk => state.putChunk(to, chunk));
       events.push(
         ...emitTransferEvents(addressBook, chunks, transaction, transfer, prices, unit)

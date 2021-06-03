@@ -205,6 +205,9 @@ export const getChainData = ({
     });
   };
 
+  const getDecimals =  (token: Address | string): number =>
+    getTokenData(token)?.decimals || 18;
+
   // Accepts either a token address or symbol
   const getTokenData =  (token: Address | string): TokenData =>
     JSON.parse(JSON.stringify(
@@ -461,6 +464,7 @@ export const getChainData = ({
 
   return {
     getAddressHistory,
+    getDecimals,
     getEthCall,
     getEthCalls,
     getEthTransaction,

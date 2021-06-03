@@ -307,7 +307,7 @@ export const uniswapParser = (
         && transfer.asset === UNI
         && transfer.category === Income
       );
-      tx.description = `${getName(airdrop.to)} recieved an airdrop of ${
+      tx.description = `${getName(airdrop.to)} received an airdrop of ${
         round(airdrop.quantity)
       } ${airdrop.asset} from ${subsrc}`;
 

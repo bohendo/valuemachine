@@ -13,7 +13,7 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
-const { Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
+const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
   module: `Test${TransactionSources.Compound}`,
@@ -54,12 +54,11 @@ describe(TransactionSources.Compound, () => {
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
     expect(tx.sources).to.include(TransactionSources.Compound);
-    expect(tx.transfers.length).to.equal(2);
-    const withdraw = tx.transfers[1];
+    expect(tx.transfers.length).to.equal(3);
+    const income = tx.transfers[1];
+    expect(income.category).to.equal(Income);
+    const withdraw = tx.transfers[2];
     expect(withdraw.category).to.equal(Withdraw);
-    expect(tx.description).to.include("withdr");
-    expect(tx.description).to.include(math.round(withdraw.quantity));
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
   });
 
   it("should handle deposits to compound v2", async () => {

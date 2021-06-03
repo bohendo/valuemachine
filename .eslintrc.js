@@ -45,7 +45,7 @@ module.exports = {
         "newlines-between": "always",
       },
     ],
-    "indent": ["warn", 2],
+    "indent": ["warn", 2, { flatTernaryExpressions: true }],
     "max-len": ["warn", 100, { ignoreStrings: true, ignoreTemplateLiterals: true }],
     "no-async-promise-executor": ["warn"],
     "no-constant-condition": ["warn"],

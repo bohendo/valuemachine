@@ -24,6 +24,7 @@ import { argentAddresses, argentParser } from "./argent";
 import { compoundAddresses, compoundParser } from "./compound";
 import { erc20Addresses, erc20Parser } from "./erc20";
 import { etherdeltaAddresses, etherdeltaParser } from "./etherdelta";
+import { idleAddresses, idleParser } from "./idle";
 import { makerAddresses, makerParser } from "./maker";
 import { oasisAddresses, oasisParser } from "./oasis";
 import { tornadoAddresses, tornadoParser } from "./tornado";
@@ -35,6 +36,7 @@ export const publicAddresses = [
   ...argentAddresses,
   ...compoundAddresses,
   ...etherdeltaAddresses,
+  ...idleAddresses,
   ...erc20Addresses,
   ...makerAddresses,
   ...oasisAddresses,
@@ -56,6 +58,7 @@ const appParsers = [
   compoundParser,
   etherdeltaParser,
   uniswapParser,
+  idleParser,
   yearnParser,
   tornadoParser,
   argentParser,
@@ -75,9 +78,9 @@ export const parseEthTx = (
 
   const getSimpleCategory = (to: Address, from: Address): TransferCategory =>
     (isSelf(to) && isSelf(from)) ? Internal
-      : (isSelf(from) && !isSelf(to)) ? Expense
-        : (isSelf(to) && !isSelf(from)) ? Income
-          : Unknown;
+    : (isSelf(from) && !isSelf(to)) ? Expense
+    : (isSelf(to) && !isSelf(from)) ? Income
+    : Unknown;
 
   if (!ethTx.logs) {
     throw new Error(`Missing logs for tx ${ethTx.hash}, did fetchChainData get interrupted?`);

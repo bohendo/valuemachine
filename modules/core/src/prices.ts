@@ -4,7 +4,7 @@ import {
   DecimalString,
   emptyPrices,
   EthereumAssets,
-  FiatAssets,
+  Fiat,
   Logger,
   PriceList,
   Prices,
@@ -336,7 +336,7 @@ export const getPrices = ({
       price = response?.market_data?.current_price?.[unit.toLowerCase()]?.toString();
       // Might as well set other fiat currency prices since they've already been fetched
       // TODO: This is nice server-side but should prob be disabled client-side
-      Object.keys(FiatAssets).forEach(fiat => {
+      Object.keys(Fiat).forEach(fiat => {
         const otherPrice = response?.market_data?.current_price?.[fiat.toLowerCase()]?.toString();
         if (otherPrice) {
           log.debug(`Also setting ${asset} price on ${date} wrt ${fiat}: ${otherPrice}`);
@@ -583,7 +583,7 @@ export const getPrices = ({
         price = await getUniswapPrice(date, asset, unit);
       }
       if (!price) {
-        if (Object.keys(FiatAssets).includes(asset)) {
+        if (Object.keys(Fiat).includes(asset)) {
           const inversePrice = await getCoinGeckoPrice(date, unit, asset);
           if (inversePrice && gt(inversePrice, "0")) {
             price = div("1", inversePrice);
