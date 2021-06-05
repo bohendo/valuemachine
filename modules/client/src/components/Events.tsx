@@ -105,10 +105,12 @@ const EventRow = ({
       output[`Chunk ${index}`] = `${chunk.quantity} ${chunk.asset}`;
       output[`Chunk ${index} Receive Date`] = chunk.receiveDate;
       output[`Chunk ${index} Receive Price`] = chunk.receivePrice;
-      output[`Chunk ${index} Capital Change`] = `${mul(
-        chunk.quantity,
-        sub(prices[chunk.asset], chunk.receivePrice),
-      ).substring(0, 20)} ${unit}`;
+      if (prices && prices[chunk.asset]) {
+        output[`Chunk ${index} Capital Change`] = `${mul(
+          chunk.quantity,
+          sub(prices[chunk.asset], chunk.receivePrice),
+        ).substring(0, 20)} ${unit}`;
+      }
     }
     return output;
   };
@@ -206,6 +208,16 @@ const EventRow = ({
                   ["New Account Balance"]: event.newBalances?.[event.from]?.[event.asset],
                   Actor: event.to,
                   ["New Actor Balance"]: event.newBalances?.[event.to]?.[event.asset],
+
+                } : event.type === EventTypes.JurisdictionChange ? {
+                  ["Asset"]: `${event.quantity} ${event.asset}`,
+                  ["From"]: event.from,
+                  ["From Jurisdiction"]: event.oldJurisdiction,
+                  ["From Balance"]: balToStr(event.newBalances, event.from),
+                  ["To"]: event.to,
+                  ["To Jurisdiction"]: event.newJurisdiction,
+                  ["To Balance"]: balToStr(event.newBalances, event.to),
+                  ...chunksToDisplay(event.movedChunks, event.prices),
 
                 } : event.type === EventTypes.Trade ? {
                   ["Giver"]: event.from,
@@ -419,7 +431,10 @@ export const EventExplorer = ({
           onChange={handleFilterTypeChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {[Income, Expense, Deposit, Withdraw, Borrow, Repay, EventTypes.Trade].map((type, i) => (
+          {[
+            Income, Expense, Deposit, Withdraw, Borrow, Repay,
+            EventTypes.Trade, EventTypes.JurisdictionChange,
+          ].map((type, i) => (
             <MenuItem key={i} value={type}>{type}</MenuItem>
           ))}
         </Select>
