@@ -38,6 +38,7 @@ export const mergeWazirxTransactions = (
     const account = `${source}-account`;
     const exchange = source;
     const external = "external-account";
+    let index = 0;
 
     if (row["Transaction"]) {
       const {
@@ -56,15 +57,18 @@ export const mergeWazirxTransactions = (
           asset: currency,
           category: Deposit,
           from: external,
+          index,
           quantity,
           to: account,
         });
         transaction.description = `Deposited ${quantity} ${currency} into ${source}`;
+
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
           asset: currency,
           category: Withdraw,
           from: account,
+          index,
           quantity,
           to: external,
         });
@@ -87,19 +91,12 @@ export const mergeWazirxTransactions = (
       // Assumes all markets are strings like `INR${asset}`
       const currency = market.replace("INR", "");
 
-      transaction.transfers.push({
-        asset: feeAsset,
-        category: Expense,
-        from: account,
-        quantity: feeAmount,
-        to: exchange,
-      });
-
       if (tradeType === "Buy") {
         transaction.transfers.push({
           asset: Assets.INR,
           category: SwapOut,
           from: account,
+          index: index++,
           quantity: inrQuantity,
           to: exchange,
         });
@@ -107,6 +104,7 @@ export const mergeWazirxTransactions = (
           asset: currency,
           category: SwapIn,
           from: exchange,
+          index: index++,
           quantity: quantity,
           to: account,
         });
@@ -117,6 +115,7 @@ export const mergeWazirxTransactions = (
           asset: currency,
           category: SwapOut,
           from: account,
+          index: index++,
           quantity: quantity,
           to: exchange,
         });
@@ -124,6 +123,7 @@ export const mergeWazirxTransactions = (
           asset: Assets.INR,
           category: SwapIn,
           from: exchange,
+          index: index++,
           quantity: inrQuantity,
           to: account,
         });
@@ -133,6 +133,15 @@ export const mergeWazirxTransactions = (
         log.warn(`Invalid ${source} trade type: ${tradeType}`);
         return null;
       }
+
+      transaction.transfers.push({
+        asset: feeAsset,
+        category: Expense,
+        from: account,
+        index: index++,
+        quantity: feeAmount,
+        to: exchange,
+      });
 
     }
 

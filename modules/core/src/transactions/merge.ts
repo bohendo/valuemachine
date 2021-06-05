@@ -103,6 +103,7 @@ export const mergeTransaction = (
     }
 
     const externalTx = transactions[mergeCandidateIndex];
+    const externalTransfer = externalTx.transfers.find(isMergable);
     transactions[mergeCandidateIndex] = {
       // prioritize new eth tx values by default
       ...externalTx, ...newTx,
@@ -112,7 +113,12 @@ export const mergeTransaction = (
       sources: rmDups([...externalTx.sources, ...newTx.sources]) as TransactionSources[],
       tags: rmDups([...externalTx.tags, ...newTx.tags]),
     };
-    ethTransfer.category = externalTx.transfers.find(isMergable).category;
+    ethTransfer.category = externalTransfer.category;
+    if (ethTransfer.category === Deposit) {
+      ethTransfer.to = externalTransfer.to;
+    } else {
+      ethTransfer.from = externalTransfer.from;
+    }
 
     log.info(
       transactions[mergeCandidateIndex],
@@ -179,6 +185,7 @@ export const mergeTransaction = (
     }
 
     const ethTx = transactions[mergeCandidateIndex];
+    const ethTransfer = ethTx.transfers.find(isMergable);
     transactions[mergeCandidateIndex] = {
       // prioritize existing eth tx props by default
       ...newTx, ...ethTx,
@@ -188,8 +195,12 @@ export const mergeTransaction = (
       sources: rmDups([...ethTx.sources, ...newTx.sources]) as TransactionSources[],
       tags: rmDups([...ethTx.tags, ...newTx.tags]),
     };
-    const ethTransfer = ethTx.transfers.find(isMergable);
     ethTransfer.category = extTransfer.category;
+    if (ethTransfer.category === Deposit) {
+      ethTransfer.to = extTransfer.to;
+    } else {
+      ethTransfer.from = extTransfer.from;
+    }
 
     transactions.sort(chrono);
     log.info(

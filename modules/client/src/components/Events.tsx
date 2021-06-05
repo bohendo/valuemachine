@@ -1,3 +1,4 @@
+import { isAddress } from "@ethersproject/address";
 import { isHexString } from "@ethersproject/bytes";
 import { getPrices, getState, getValueMachine } from "@finances/core";
 import {
@@ -375,9 +376,15 @@ export const EventExplorer = ({
           onChange={handleFilterAccountChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(state?.accounts || []).map((account, i) => (
-            <MenuItem key={i} value={account}>{addressBook?.getName(account) || account}</MenuItem>
-          ))}
+          {Object.keys(state?.accounts || [])
+            .sort((a1, a2) => a1 < a2 ? 1 : -1)
+            .sort((a1, a2) => isAddress(a1) && !isAddress(a2) ? 1 : -1)
+            .map((account, i) => (
+              <MenuItem key={i} value={account}>
+                {addressBook?.getName(account) || account}
+              </MenuItem>
+            ))
+          }
         </Select>
       </FormControl>
 
