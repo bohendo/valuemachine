@@ -16,7 +16,8 @@ export const mergeWazirxTransactions = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const log = logger.child({ module: "Wazirx" });
+  const source = TransactionSources.Wazirx;
+  const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
@@ -29,13 +30,13 @@ export const mergeWazirxTransactions = (
       // trailing Z is important bc it designates GMT times insead of local time
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
       description: "",
-      sources: [TransactionSources.Wazirx],
+      sources: [source],
       tags: [],
       transfers: [],
     } as Transaction;
 
-    const account = `${TransactionSources.Wazirx}-account`;
-    const exchange = TransactionSources.Wazirx;
+    const account = `${source}-account`;
+    const exchange = source;
     const external = "external-account";
 
     if (row["Transaction"]) {
@@ -58,7 +59,7 @@ export const mergeWazirxTransactions = (
           quantity,
           to: account,
         });
-        transaction.description = `Deposited ${quantity} ${currency} into Wazirx`;
+        transaction.description = `Deposited ${quantity} ${currency} into ${source}`;
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
           asset: currency,
@@ -67,9 +68,9 @@ export const mergeWazirxTransactions = (
           quantity,
           to: external,
         });
-        transaction.description = `Withdrew ${quantity} ${currency} from Wazirx`;
+        transaction.description = `Withdrew ${quantity} ${currency} from ${source}`;
       } else {
-        log.warn(`Invalid Wazirx tx type: ${txType}`);
+        log.warn(`Invalid ${source} tx type: ${txType}`);
         return null;
       }
 
@@ -129,7 +130,7 @@ export const mergeWazirxTransactions = (
         transaction.description = `Sell ${quantity} ${currency} for ${inrQuantity} INR on wazirx`;
 
       } else {
-        log.warn(`Invalid Wazirx trade type: ${tradeType}`);
+        log.warn(`Invalid ${source} trade type: ${tradeType}`);
         return null;
       }
 

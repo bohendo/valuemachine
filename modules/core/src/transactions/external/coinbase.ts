@@ -18,7 +18,8 @@ export const mergeCoinbaseTransactions = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const log = logger.child({ module: "Coinbase" }); 
+  const source = TransactionSources.Coinbase;
+  const log = logger.child({ module: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of coinbase data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
@@ -31,13 +32,13 @@ export const mergeCoinbaseTransactions = (
       ["USD Fees"]: fees,
     } = row;
 
-    const account = `${TransactionSources.Coinbase}-account`;
-    const exchange = TransactionSources.Coinbase;
+    const account = `${source}-account`;
+    const exchange = source;
     const external = "external-account";
 
     const transaction = {
       date: (new Date(date)).toISOString(),
-      sources: [TransactionSources.Coinbase],
+      sources: [source],
       tags: [],
       transfers: [],
     } as Transaction;

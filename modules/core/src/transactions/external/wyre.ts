@@ -19,7 +19,8 @@ export const mergeWyreTransactions = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const log = logger.child({ module: "Wyre" });
+  const source = TransactionSources.Wyre;
+  const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of wyre data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
@@ -35,8 +36,8 @@ export const mergeWyreTransactions = (
       ["Type"]: txType,
     } = row;
 
-    const account = `${TransactionSources.Wyre}-account`;
-    const exchange = TransactionSources.Wyre;
+    const account = `${source}-account`;
+    const exchange = source;
     const external = "external-account";
 
     const beforeDaiMigration = (date: DateString): boolean =>
@@ -50,7 +51,7 @@ export const mergeWyreTransactions = (
     const transaction = {
       date: (new Date(date)).toISOString(),
       description: "",
-      sources: [TransactionSources.Wyre],
+      sources: [source],
       tags: [],
       transfers: [],
     } as Transaction;

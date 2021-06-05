@@ -150,7 +150,7 @@ export const compoundParser = (
       log.info(`Found ${subsrc} ${event.name} event`);
       const amount = formatUnits(event.args.amount, chainData.getDecimals(event.args.asset));
       const asset = getName(event.args.asset) as Assets;
-      const account = `${subsrc}-${event.args.account?.substring(0, 8)}`;
+      const account = `${source}-${event.args.account?.substring(0, 8)}`;
 
       if (event.name === "SupplyReceived") {
         const oldBal = formatUnits(event.args.startingBalance, chainData.getDecimals(asset));
