@@ -33,8 +33,8 @@ export const mergeCoinbaseTransactions = (
     } = row;
 
     const account = `${source}-account`;
-    const exchange = source;
-    const external = "external-account";
+    const exchange = `${source}-exchange`;
+    const external = `${asset}-account`;
 
     const transaction = {
       date: (new Date(date)).toISOString(),

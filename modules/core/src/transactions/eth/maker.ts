@@ -427,7 +427,7 @@ export const makerParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (deposit) {
-          const account = `${source}-${getName(address)}-${abrv(deposit.from)}`;
+          const account = `${source}-DSR-${abrv(deposit.from)}`;
           deposit.category = Deposit;
           deposit.to = account;
           tx.description = `${getName(deposit.from)} deposited ${
@@ -445,7 +445,7 @@ export const makerParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (withdraw) {
-          const account = `${source}-${getName(address)}-${abrv(withdraw.from)}`;
+          const account = `${source}-DSR-${abrv(withdraw.to)}`;
           withdraw.category = Withdraw;
           withdraw.from = account;
           tx.description = `${getName(withdraw.to)} withdrew ${

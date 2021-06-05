@@ -36,7 +36,7 @@ export const mergeDigitalOceanTransactions = (
       category: TransferCategories.Expense,
       from: "USD-account",
       quantity: quantity.replace("$", ""),
-      to: "digitalocean",
+      to: source,
     });
 
     log.debug(transaction, "Parsed row into transaction:");

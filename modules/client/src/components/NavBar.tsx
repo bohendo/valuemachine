@@ -105,7 +105,7 @@ export const NavBar = ({
         <IconButton
           component={Link}
           edge="start"
-          to={"/valuemachine"}
+          to={"/value-machine"}
           className={classes.navButton}
           color="inherit"
         >

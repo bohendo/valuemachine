@@ -16,6 +16,7 @@ import {
   StateJson,
   TimestampString,
   Transaction,
+  TransactionSources,
   Transfer,
   TransferCategories,
 } from "@finances/types";
@@ -26,7 +27,7 @@ const { add, gt, lt, mul, round, sub } = math;
 // Apps that provide insufficient info in tx logs to determine interest income
 // Hacky fix: withdrawing more than we deposited is assumed to represent interest rather than debt
 const isOpaqueInterestBearers = (account: Account): boolean =>
-  account.startsWith("DSR");
+  account.startsWith(`${TransactionSources.Maker}-DSR`);
 
 export const getState = ({
   addressBook,

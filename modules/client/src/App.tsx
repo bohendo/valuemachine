@@ -124,7 +124,7 @@ const App: React.FC = () => {
               />
             </Route>
 
-            <Route exact path="/valuemachine">
+            <Route exact path="/value-machine">
               <ValueMachineExplorer
                 addressBook={addressBook}
                 state={state}

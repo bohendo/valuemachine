@@ -36,10 +36,8 @@ export const mergeWazirxTransactions = (
       transfers: [],
     } as Transaction;
 
-    const bank = `${INR}-account`;
     const account = `${source}-account`;
-    const exchange = source;
-    const external = "external-account";
+    const exchange = `${source}-exchange`;
     let index = 0;
 
     if (row["Transaction"]) {
@@ -49,11 +47,13 @@ export const mergeWazirxTransactions = (
         ["Volume"]: quantity,
       } = row;
 
+      const external = `${currency}-account`;
+
       if (txType === "Deposit") {
         transaction.transfers.push({
           asset: currency,
           category: currency === INR ? Internal : Deposit,
-          from: currency === INR ? bank : external,
+          from: external,
           index,
           quantity,
           to: account,
@@ -67,7 +67,7 @@ export const mergeWazirxTransactions = (
           from: account,
           index,
           quantity,
-          to: currency === INR ? bank : external,
+          to: external,
         });
         transaction.description = `Withdrew ${quantity} ${currency} from ${source}`;
       } else {
