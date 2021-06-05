@@ -1,5 +1,5 @@
 import { AddressBook } from "./addressBook";
-import { Assets, Blockchains, Fiat } from "./assets";
+import { Assets } from "./assets";
 import { ChainData } from "./chainData";
 import { Logger } from "./logger";
 import { DecimalString, HexString, TimestampString } from "./strings";
@@ -41,23 +41,6 @@ export const TransactionSources = enumify({
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
-
-////////////////////////////////////////
-// Jurisdictions
-
-export const SecurityProviders = enumify({
-  ...Blockchains,
-  ...Fiat,
-});
-export type SecurityProvider = (typeof SecurityProviders)[keyof typeof SecurityProviders];
-
-export const Jurisdictions = enumify({
-  [ExternalSources.Coinbase]: SecurityProviders.USD,
-  [ExternalSources.DigitalOcean]: SecurityProviders.USD,
-  [ExternalSources.Wyre]: SecurityProviders.USD,
-  [ExternalSources.Wazirx]: SecurityProviders.INR,
-});
-export type Jurisdiction = (typeof Jurisdictions)[keyof typeof Jurisdictions];
 
 ////////////////////////////////////////
 // Transfers

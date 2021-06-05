@@ -21,6 +21,7 @@ export const Blockchains = enumify({
 export type Blockchains = (typeof Blockchains)[keyof typeof Blockchains];
 
 export const EthereumAssets = enumify({
+  [Blockchains.ETH]: Blockchains.ETH,
   _1INCH: "_1INCH",
   _3Crv: "_3Crv",
   ankrCRV: "ankrCRV",
@@ -43,7 +44,6 @@ export const EthereumAssets = enumify({
   DAI: "DAI",
   idleDAI: "idleDAI",
   dusd3CRV: "dusd3CRV",
-  ETH: "ETH",
   eursCRV: "eursCRV",
   GEN: "GEN",
   GNO: "GNO",

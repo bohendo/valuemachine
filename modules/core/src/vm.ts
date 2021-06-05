@@ -1,6 +1,10 @@
+import { isAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import {
   AddressBook,
+  Blockchains,
+  DecimalString,
+  Account,
   AssetChunk,
   Assets,
   Event,
@@ -15,7 +19,7 @@ import {
   TransferCategories,
   TransferCategory,
 } from "@finances/types";
-import { getLogger, math } from "@finances/utils";
+import { getJurisdiction, getLogger, math } from "@finances/utils";
 
 import { getState } from "./state";
 import { rmDups } from "./transactions/utils";
@@ -56,6 +60,40 @@ export const getValueMachine = ({
     }`);
     const events = [] as Event[];
 
+    const emitJurisdictionChange = (
+      asset: Assets,
+      quantity: DecimalString,
+      from: Account,
+      to: Account,
+      transaction: Transaction,
+      chunks: AssetChunk[],
+    ): Events => {
+      const oldJurisdiction = getJurisdiction(from);
+      const newJurisdiction = getJurisdiction(to);
+      if (oldJurisdiction === newJurisdiction) {
+        return [];
+      }
+      return [{
+        date: transaction.date,
+        description: `${round(quantity)} ${
+          asset
+        } moved jurisdictions from ${oldJurisdiction} to ${newJurisdiction}`,
+        type: EventTypes.JurisdictionChange,
+        tags: transaction.tags,
+        newBalances: {
+          [to]: { [asset]: state.getBalance(to, asset) },
+          [from]: { [asset]: state.getBalance(from, asset) },
+        },
+        oldJurisdiction,
+        newJurisdiction,
+        movedChunks: chunks,
+        asset: asset,
+        quantity: quantity,
+        to: to,
+        from: from,
+      }];
+    };
+
     const emitTransferEvents = (
       addressBook: AddressBook,
       chunks: AssetChunk[],
@@ -67,9 +105,18 @@ export const getValueMachine = ({
       const { getName } = addressBook;
       const events = [];
       const { asset, category, from, quantity, to } = transfer;
+      events.push(...emitJurisdictionChange(
+        asset as Assets,
+        quantity as DecimalString,
+        from,
+        to,
+        transaction,
+        chunks
+      ));
       if (
-        (category === Expense && to === AddressZero) // Skip tx fees for now, too much noise
-        || category === Internal // We might not ever need these
+        // Skip tx fees for now, too much noise
+        (category === Expense && Object.keys(Blockchains).includes(to))
+        || (category === Internal && isAddress(to)) // We might not ever need these
       ) {
         return events;
       }
@@ -80,12 +127,13 @@ export const getValueMachine = ({
         category,
         date: transaction.date,
         description: 
-          (category === Income) ? `Received ${amt} ${asset} from ${getName(from)} `
-          : (category === Expense) ? `Paid ${amt} ${asset} to ${getName(to)} `
-          : (category === Repay) ? `Repayed ${amt} ${asset} to ${getName(to)} `
-          : (category === Deposit) ? `Deposited ${amt} ${asset} to ${getName(to)} `
-          : (category === Borrow) ? `Borrowed ${amt} ${asset} from ${getName(from)} `
-          : (category === Withdraw) ? `Withdrew ${amt} ${asset} from ${getName(from)} `
+          (category === Income) ? `Received ${amt} ${asset} from ${getName(from)}`
+          : (category === Internal) ? `Moved ${amt} ${asset} from ${getName(from)} to ${getName(to)}`
+          : (category === Expense) ? `Paid ${amt} ${asset} to ${getName(to)}`
+          : (category === Repay) ? `Repayed ${amt} ${asset} to ${getName(to)}`
+          : (category === Deposit) ? `Deposited ${amt} ${asset} to ${getName(to)}`
+          : (category === Borrow) ? `Borrowed ${amt} ${asset} from ${getName(from)}`
+          : (category === Withdraw) ? `Withdrew ${amt} ${asset} from ${getName(from)}`
           : "?",
         from: transfer.from,
         quantity,
@@ -95,8 +143,8 @@ export const getValueMachine = ({
       } as any;
       // We exclude internal transfers so both to & from shouldn't be self/abstract
       newEvent.newBalances = {
-        to: state.getBalance(newEvent.to, asset),
-        from: state.getBalance(newEvent.from, asset),
+        [transfer.to]: { [asset]: state.getBalance(transfer.to, asset) },
+        [transfer.from]: { [asset]: state.getBalance(transfer.from, asset) },
       };
       events.push(newEvent);
       return events;
@@ -181,6 +229,20 @@ export const getValueMachine = ({
           unit,
         );
         chunks.forEach(chunk => state.putChunk(tradeEvent.to, chunk));
+        events.push(...emitJurisdictionChange(
+          asset as Assets,
+          quantity as DecimalString,
+          tradeEvent.from,
+          tradeEvent.to,
+          transaction,
+          chunks
+        ));
+      }
+
+      tradeEvent.newBalances = { [tradeEvent.to]: {}, [tradeEvent.from]: {} };
+      for (const asset of rmDups(Object.keys(inputs).concat(Object.keys(outputs))) as Assets[]) {
+        tradeEvent.newBalances[tradeEvent.to][asset] = state.getBalance(tradeEvent.to, asset);
+        tradeEvent.newBalances[tradeEvent.from][asset] = state.getBalance(tradeEvent.from, asset);
       }
       events.push(tradeEvent);
 

@@ -12,6 +12,7 @@ import AccountIcon from "@material-ui/icons/RecentActors";
 import HomeIcon from "@material-ui/icons/Home";
 import PricesIcon from "@material-ui/icons/LocalOffer";
 import TaxesIcon from "@material-ui/icons/AccountBalance";
+import ValueMachineIcon from "@material-ui/icons/PlayCircleFilled";
 import TransactionsIcon from "@material-ui/icons/Receipt";
 import React from "react";
 import { Link } from "react-router-dom";
@@ -94,11 +95,21 @@ export const NavBar = ({
         <IconButton
           component={Link}
           edge="start"
-          to={"/events"}
+          to={"/taxes"}
           className={classes.navButton}
           color="inherit"
         >
           <TaxesIcon />
+        </IconButton>
+
+        <IconButton
+          component={Link}
+          edge="start"
+          to={"/value-machine"}
+          className={classes.navButton}
+          color="inherit"
+        >
+          <ValueMachineIcon />
         </IconButton>
 
         <IconButton

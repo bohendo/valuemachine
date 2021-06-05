@@ -9,14 +9,16 @@ import csv from "csv-parse/lib/sync";
 
 import { mergeTransaction } from "../merge";
 
-const { Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
+const { INR } = Assets;
+const { Internal, Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
 
 export const mergeWazirxTransactions = (
   oldTransactions: Transaction[],
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const log = logger.child({ module: "Wazirx" });
+  const source = TransactionSources.Wazirx;
+  const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
@@ -29,14 +31,14 @@ export const mergeWazirxTransactions = (
       // trailing Z is important bc it designates GMT times insead of local time
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
       description: "",
-      sources: [TransactionSources.Wazirx],
+      sources: [source],
       tags: [],
       transfers: [],
     } as Transaction;
 
-    const account = `${TransactionSources.Wazirx}-account`;
-    const exchange = TransactionSources.Wazirx;
-    const external = "external-account";
+    const account = `${source}-account`;
+    const exchange = `${source}-exchange`;
+    let index = 0;
 
     if (row["Transaction"]) {
       const {
@@ -45,31 +47,31 @@ export const mergeWazirxTransactions = (
         ["Volume"]: quantity,
       } = row;
 
-      if (currency === Assets.INR) {
-        log.debug(`Skipping INR ${txType}`);
-        return null;
-      }
+      const external = `${currency}-account`;
 
       if (txType === "Deposit") {
         transaction.transfers.push({
           asset: currency,
-          category: Deposit,
+          category: currency === INR ? Internal : Deposit,
           from: external,
+          index,
           quantity,
           to: account,
         });
-        transaction.description = `Deposited ${quantity} ${currency} into Wazirx`;
+        transaction.description = `Deposited ${quantity} ${currency} into ${source}`;
+
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
           asset: currency,
-          category: Withdraw,
+          category: currency === INR ? Internal : Withdraw,
           from: account,
+          index,
           quantity,
           to: external,
         });
-        transaction.description = `Withdrew ${quantity} ${currency} from Wazirx`;
+        transaction.description = `Withdrew ${quantity} ${currency} from ${source}`;
       } else {
-        log.warn(`Invalid Wazirx tx type: ${txType}`);
+        log.warn(`Invalid ${source} tx type: ${txType}`);
         return null;
       }
 
@@ -84,21 +86,14 @@ export const mergeWazirxTransactions = (
       } = row;
 
       // Assumes all markets are strings like `INR${asset}`
-      const currency = market.replace("INR", "");
-
-      transaction.transfers.push({
-        asset: feeAsset,
-        category: Expense,
-        from: account,
-        quantity: feeAmount,
-        to: exchange,
-      });
+      const currency = market.replace(INR, "");
 
       if (tradeType === "Buy") {
         transaction.transfers.push({
-          asset: Assets.INR,
+          asset: INR,
           category: SwapOut,
           from: account,
+          index: index++,
           quantity: inrQuantity,
           to: exchange,
         });
@@ -106,6 +101,7 @@ export const mergeWazirxTransactions = (
           asset: currency,
           category: SwapIn,
           from: exchange,
+          index: index++,
           quantity: quantity,
           to: account,
         });
@@ -116,22 +112,33 @@ export const mergeWazirxTransactions = (
           asset: currency,
           category: SwapOut,
           from: account,
+          index: index++,
           quantity: quantity,
           to: exchange,
         });
         transaction.transfers.push({
-          asset: Assets.INR,
+          asset: INR,
           category: SwapIn,
           from: exchange,
+          index: index++,
           quantity: inrQuantity,
           to: account,
         });
         transaction.description = `Sell ${quantity} ${currency} for ${inrQuantity} INR on wazirx`;
 
       } else {
-        log.warn(`Invalid Wazirx trade type: ${tradeType}`);
+        log.warn(`Invalid ${source} trade type: ${tradeType}`);
         return null;
       }
+
+      transaction.transfers.push({
+        asset: feeAsset,
+        category: Expense,
+        from: account,
+        index: index++,
+        quantity: feeAmount,
+        to: exchange,
+      });
 
     }
 

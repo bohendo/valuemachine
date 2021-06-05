@@ -427,7 +427,7 @@ export const makerParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (deposit) {
-          const account = `${getName(address)}-${abrv(deposit.from)}`;
+          const account = `${source}-DSR-${abrv(deposit.from)}`;
           deposit.category = Deposit;
           deposit.to = account;
           tx.description = `${getName(deposit.from)} deposited ${
@@ -445,7 +445,7 @@ export const makerParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (withdraw) {
-          const account = `${getName(address)}-${abrv(withdraw.to)}`;
+          const account = `${source}-DSR-${abrv(withdraw.to)}`;
           withdraw.category = Withdraw;
           withdraw.from = account;
           tx.description = `${getName(withdraw.to)} withdrew ${
@@ -566,7 +566,7 @@ export const makerParser = (
 
       // PETH -> CDP: Categorize PETH transfer as deposit
       } else if (logNote.name === "lock") {
-        const account = `CDP-${toBN(logNote.args[1])}`;
+        const account = `${source}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
@@ -586,7 +586,7 @@ export const makerParser = (
 
       // PETH <- CDP: Categorize PETH transfer as withdraw
       } else if (logNote.name === "free") {
-        const account = `CDP-${toBN(logNote.args[1])}`;
+        const account = `${source}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
@@ -616,7 +616,7 @@ export const makerParser = (
 
       // SAI <- CDP
       } else if (logNote.name === "draw") {
-        const account = `CDP-${toBN(logNote.args[1])}`;
+        const account = `${source}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const borrow = tx.transfers.filter(t =>
           isSelf(t.to)
@@ -638,7 +638,7 @@ export const makerParser = (
 
       // SAI -> CDP
       } else if (logNote.name === "wipe") {
-        const account = `CDP-${toBN(logNote.args[1])}`;
+        const account = `${source}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const repay = tx.transfers.filter(t =>
           t.asset === SAI && ([Expense, Repay] as TransferCategory[]).includes(t.category)

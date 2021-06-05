@@ -14,6 +14,7 @@ import { mergeTransaction } from "./merge";
 const { ETH } = Assets;
 const { Expense, Deposit } = TransferCategories;
 const { Coinbase, EthTx } = TransactionSources;
+const externalSource = Coinbase;
 const log = testLogger.child({
   // level: "debug",
   module: "TestTransactions",
@@ -25,7 +26,7 @@ const value = "1.3141592653589793";
 const getExternalTx = (): Transaction => ({
   // The external date can be off slightly from the eth tx date
   date: timestamp, // new Date(new Date(timestamp).getTime() + (1000 * 60 * 15)).toISOString(),
-  sources: [Coinbase],
+  sources: [externalSource],
   tags: [],
   transfers: [
     {
@@ -33,10 +34,10 @@ const getExternalTx = (): Transaction => ({
       category: Deposit,
       from: "external-account",
       quantity: value.substring(0, 10),
-      to: "coinbase-account"
+      to: `${externalSource}-account`
     }
   ],
-  description: "Deposited 1.31 ETH into coinbase",
+  description: `Deposited 1.31 ETH into ${externalSource}`,
   index: 2
 });
 
@@ -78,9 +79,10 @@ describe("Merge", () => {
     mergeTransaction(txns, getExternalTx(), log);
     expect(txns.length).to.equal(1);
     const tx = txns[0];
-    expect(tx.sources).to.include(Coinbase);
+    expect(tx.sources).to.include(externalSource);
     expect(tx.sources).to.include(EthTx);
     expect(tx.transfers[1].category).to.equal(Deposit);
+    expect(tx.transfers[1].to).to.include(externalSource);
   });
 
   it("should not insert a duplicate external tx into an already merged tx list", async () => {
@@ -96,9 +98,10 @@ describe("Merge", () => {
     mergeTransaction(txns, getEthTx(), log);
     expect(txns.length).to.equal(1);
     const tx = txns[0];
-    expect(tx.sources).to.include(Coinbase);
+    expect(tx.sources).to.include(externalSource);
     expect(tx.sources).to.include(EthTx);
     expect(tx.transfers[1].category).to.equal(Deposit);
+    expect(tx.transfers[1].to).to.include(externalSource);
   });
 
   it("should not insert a duplicate eth tx into an already merged tx list", async () => {

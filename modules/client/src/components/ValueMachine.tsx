@@ -1,3 +1,4 @@
+import { isAddress } from "@ethersproject/address";
 import { isHexString } from "@ethersproject/bytes";
 import { getPrices, getState, getValueMachine } from "@finances/core";
 import {
@@ -74,7 +75,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-const EventRow = ({
+export const EventRow = ({
   addressBook,
   event,
   unit,
@@ -90,6 +91,9 @@ const EventRow = ({
     if (event && open) console.log(event);
   }, [event, open]);
 
+  const balToStr = (balances, account) =>
+    Object.entries(balances?.[account] || {}).map(([asset, bal]) => `${bal} ${asset}`).join(" and ");
+
   const swapToStr = (swaps) =>
     Object.entries(swaps || {}).map(([key, val]) => `${val} ${key}`).join(" and ");
 
@@ -101,10 +105,12 @@ const EventRow = ({
       output[`Chunk ${index}`] = `${chunk.quantity} ${chunk.asset}`;
       output[`Chunk ${index} Receive Date`] = chunk.receiveDate;
       output[`Chunk ${index} Receive Price`] = chunk.receivePrice;
-      output[`Chunk ${index} Capital Change`] = `${mul(
-        chunk.quantity,
-        sub(prices[chunk.asset], chunk.receivePrice),
-      ).substring(0, 20)} ${unit}`;
+      if (prices && prices[chunk.asset]) {
+        output[`Chunk ${index} Capital Change`] = `${mul(
+          chunk.quantity,
+          sub(prices[chunk.asset], chunk.receivePrice),
+        ).substring(0, 20)} ${unit}`;
+      }
     }
     return output;
   };
@@ -169,48 +175,59 @@ const EventRow = ({
                 (event.type === EventTypes.Transfer && event.category === Expense) ? {
                   Account: event.from,
                   ["Value"]: `${event.quantity} ${event.asset}`,
-                  ["New Balance"]: event.newBalances?.from,
+                  ["New Balance"]: event.newBalances?.[event.from][event.asset],
                   Recipient: event.to,
                 } : event.type === EventTypes.Transfer && event.category === Income ? {
                   Account: event.to,
                   ["Value"]: `${event.quantity} ${event.asset}`,
-                  ["New Balance"]: event.newBalances?.to,
+                  ["New Balance"]: event.newBalances?.[event.to][event.asset],
                   Sender: event.from,
 
                 } : event.type === EventTypes.Transfer && event.category === Deposit ? {
                   ["Value"]: `${event.quantity} ${event.asset}`,
                   Account: event.to,
-                  ["New Account Balance"]: event.newBalances?.to,
+                  ["New Account Balance"]: event.newBalances?.[event.to]?.[event.asset],
                   Actor: event.from,
                   ["New Actor Balance"]: event.newBalances?.from,
                 } : event.type === EventTypes.Transfer && event.category === Withdraw ? {
                   ["Value"]: `${event.quantity} ${event.asset}`,
                   Account: event.from,
-                  ["New Account Balance"]: event.newBalances?.from,
+                  ["New Account Balance"]: event.newBalances?.[event.from]?.[event.asset],
                   Actor: event.to,
                   ["New Actor Balance"]: event.newBalances?.to,
 
                 } : event.type === EventTypes.Transfer && event.category === Repay ? {
                   ["Value"]: `${event.quantity} ${event.asset}`,
                   Account: event.to,
-                  ["New Account Balance"]: event.newBalances?.to,
+                  ["New Account Balance"]: event.newBalances?.[event.to]?.[event.asset],
                   Actor: event.from,
-                  ["New Actor Balance"]: event.newBalances?.from,
+                  ["New Actor Balance"]: event.newBalances?.[event.from]?.[event.asset],
                 } : event.type === EventTypes.Transfer && event.category === Borrow ? {
                   ["Value"]: `${event.quantity} ${event.asset}`,
                   Account: event.from,
-                  ["New Account Balance"]: event.newBalances?.from,
+                  ["New Account Balance"]: event.newBalances?.[event.from]?.[event.asset],
                   Actor: event.to,
-                  ["New Actor Balance"]: event.newBalances?.to,
+                  ["New Actor Balance"]: event.newBalances?.[event.to]?.[event.asset],
+
+                } : event.type === EventTypes.JurisdictionChange ? {
+                  ["Asset"]: `${event.quantity} ${event.asset}`,
+                  ["From"]: event.from,
+                  ["From Jurisdiction"]: event.oldJurisdiction,
+                  ["From Balance"]: balToStr(event.newBalances, event.from),
+                  ["To"]: event.to,
+                  ["To Jurisdiction"]: event.newJurisdiction,
+                  ["To Balance"]: balToStr(event.newBalances, event.to),
+                  ...chunksToDisplay(event.movedChunks, event.prices),
 
                 } : event.type === EventTypes.Trade ? {
                   ["Giver"]: event.from,
-                  ["Taker"]: event.to,
                   ["Given"]: swapToStr(event.outputs),
+                  ["Taker"]: event.to,
                   ["Taken"]: swapToStr(event.inputs),
+                  [`New Taker Balances`]: balToStr(event.newBalances, event.from),
                   ["Total Capital Change"]: round(event.spentChunks?.reduce((sum, chunk) => add(
                     sum,
-                    mul(chunk.quantity, sub(chunk.receivePrice, event?.price?.[chunk.asset])),
+                    mul(chunk.quantity, sub(event?.prices?.[chunk.asset], chunk.receivePrice)),
                   ), "0")),
                   ...pricesToDisplay(event.prices),
                   ...chunksToDisplay(event.spentChunks, event.prices),
@@ -224,7 +241,7 @@ const EventRow = ({
   );
 };
 
-export const EventExplorer = ({
+export const ValueMachineExplorer = ({
   addressBook,
   events,
   pricesJson,
@@ -255,7 +272,10 @@ export const EventExplorer = ({
   useEffect(() => {
     setPage(0);
     setFilteredEvents(events.filter(event =>
-      (!filterAsset || event.asset === filterAsset)
+      (!filterAsset
+        || event.asset === filterAsset
+        || Object.keys(event.prices || {}).includes(filterAsset)
+      )
       && (!filterType || event.category === filterType || event.type === filterType)
       && (!filterAccount || (event.to === filterAccount || event.from === filterAccount))
     ).sort((e1: Events, e2: Events) =>
@@ -375,9 +395,15 @@ export const EventExplorer = ({
           onChange={handleFilterAccountChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(state?.accounts || []).map((account, i) => (
-            <MenuItem key={i} value={account}>{addressBook?.getName(account) || account}</MenuItem>
-          ))}
+          {Object.keys(state?.accounts || [])
+            .sort((a1, a2) => a1 < a2 ? 1 : -1)
+            .sort((a1, a2) => isAddress(a1) && !isAddress(a2) ? 1 : -1)
+            .map((account, i) => (
+              <MenuItem key={i} value={account}>
+                {addressBook?.getName(account) || account}
+              </MenuItem>
+            ))
+          }
         </Select>
       </FormControl>
 
@@ -405,7 +431,10 @@ export const EventExplorer = ({
           onChange={handleFilterTypeChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {[Income, Expense, Deposit, Withdraw, Borrow, Repay, EventTypes.Trade].map((type, i) => (
+          {[
+            Income, Expense, Deposit, Withdraw, Borrow, Repay,
+            EventTypes.Trade, EventTypes.JurisdictionChange,
+          ].map((type, i) => (
             <MenuItem key={i} value={type}>{type}</MenuItem>
           ))}
         </Select>

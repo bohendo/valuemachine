@@ -1,6 +1,5 @@
 import {
   Assets,
-  DateString,
   Logger,
   Transaction,
   TransactionSources,
@@ -19,7 +18,8 @@ export const mergeWyreTransactions = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const log = logger.child({ module: "Wyre" });
+  const source = TransactionSources.Wyre;
+  const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of wyre data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
 
@@ -35,22 +35,23 @@ export const mergeWyreTransactions = (
       ["Type"]: txType,
     } = row;
 
-    const account = `${TransactionSources.Wyre}-account`;
-    const exchange = TransactionSources.Wyre;
-    const external = "external-account";
+    const account = `${source}-account`;
+    const exchange = `${source}-exchange`;
 
-    const beforeDaiMigration = (date: DateString): boolean =>
-      new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime();
+    const fixAssetType = (asset: Assets): Assets =>
+      asset === DAI && new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime()
+        ? SAI
+        : asset;
 
-    const destType = beforeDaiMigration(date) && rawDestType === DAI ? SAI : rawDestType;
-    const sourceType = beforeDaiMigration(date) && rawSourceType === DAI ? SAI : rawDestType;
+    const destType = fixAssetType(rawDestType);
+    const sourceType = fixAssetType(rawSourceType);
 
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
     const transaction = {
       date: (new Date(date)).toISOString(),
       description: "",
-      sources: [TransactionSources.Wyre],
+      sources: [source],
       tags: [],
       transfers: [],
     } as Transaction;
@@ -80,7 +81,7 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({
         asset: destType,
         category: Deposit,
-        from: external,
+        from: `${destType}-account`,
         quantity: destQuantity,
         to: account,
       });
@@ -90,7 +91,7 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({
         asset: sourceType,
         category: SwapOut,
-        from: external,
+        from: `${sourceType}-account`,
         quantity: sourceQuantity,
         to: exchange,
       });
@@ -111,7 +112,7 @@ export const mergeWyreTransactions = (
         category: Withdraw,
         from: account,
         quantity: destQuantity,
-        to: external,
+        to: `${destType}-account`,
       });
       transaction.description = `Withdraw ${destQuantity} ${destType} out of wyre`;
 
@@ -128,7 +129,7 @@ export const mergeWyreTransactions = (
         category: SwapIn,
         from: exchange,
         quantity: destQuantity,
-        to: external,
+        to: `${destType}-account`,
       });
       transaction.description = sourceType === USD
         ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
@@ -146,7 +147,7 @@ export const mergeWyreTransactions = (
     } else if (math.gt(ethFees, "0")) {
       transaction.transfers.push({ ...feeTransfer, asset: ETH, quantity: ethFees });
     } else if (math.gt(daiFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: DAI, quantity: daiFees });
+      transaction.transfers.push({ ...feeTransfer, asset: fixAssetType(DAI), quantity: daiFees });
     }
 
     log.debug(transaction, "Parsed row into transaction:");

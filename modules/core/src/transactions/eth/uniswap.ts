@@ -53,8 +53,8 @@ const airdropAddresses = [
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 const stakingAddresses = [
-  { name: "UniV2-Stake-ETH-USDC", address: "0x7fba4b8dc5e7616e59622806932dbea72537a56b" },
-  { name: "UniV2-Stake-ETH-USDT", address: "0x6c3e4cb2e96b01f4b866965a91ed4437839a121a" },
+  { name: "Stake-ETH-USDC", address: "0x7fba4b8dc5e7616e59622806932dbea72537a56b" },
+  { name: "Stake-ETH-USDT", address: "0x6c3e4cb2e96b01f4b866965a91ed4437839a121a" },
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 export const v1MarketAddresses = [
@@ -325,7 +325,7 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      const account = `${getName(address)}-${abrv(deposit.from)}`;
+      const account = `${source}-${getName(address)}-${abrv(deposit.from)}`;
       deposit.category = Deposit;
       deposit.to = account;
       tx.description = `${getName(deposit.from)} deposited ${
@@ -346,7 +346,7 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      const account = `${getName(address)}-${abrv(withdraw.to)}`;
+      const account = `${source}-${getName(address)}-${abrv(withdraw.to)}`;
       withdraw.category = Withdraw;
       withdraw.from = account;
       tx.description = `${getName(withdraw.to)} withdrew ${
