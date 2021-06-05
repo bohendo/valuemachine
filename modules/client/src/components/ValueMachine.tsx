@@ -241,7 +241,7 @@ const EventRow = ({
   );
 };
 
-export const EventExplorer = ({
+export const ValueMachineExplorer = ({
   addressBook,
   events,
   pricesJson,

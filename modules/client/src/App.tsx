@@ -21,8 +21,9 @@ import { AddressBook } from "./components/AddressBook";
 import { Dashboard } from "./components/Dashboard";
 import { NavBar } from "./components/NavBar";
 import { PriceManager } from "./components/Prices";
-import { EventExplorer } from "./components/Events";
+import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
+import { ValueMachineExplorer } from "./components/ValueMachine";
 import { store } from "./store";
 
 const darkTheme = createMuiTheme({
@@ -117,8 +118,14 @@ const App: React.FC = () => {
               />
             </Route>
 
-            <Route exact path="/events">
-              <EventExplorer
+            <Route exact path="/taxes">
+              <TaxesExplorer
+                events={events}
+              />
+            </Route>
+
+            <Route exact path="/valuemachine">
+              <ValueMachineExplorer
                 addressBook={addressBook}
                 state={state}
                 events={events}
