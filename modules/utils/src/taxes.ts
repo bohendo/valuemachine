@@ -2,7 +2,6 @@ import { isAddress } from "@ethersproject/address";
 import {
   Account,
   ExternalSources,
-  Fiat,
   OnchainSources,
   SecurityProvider,
   SecurityProviders,
@@ -21,7 +20,7 @@ export const getJurisdiction = (account: Account): SecurityProvider => {
     ? SecurityProviders.ETH
     : (
       jurisdictions[source]
-      || (Object.keys(Fiat).includes(source)
+      || (Object.keys(SecurityProviders).includes(source)
         ? source
         : SecurityProviders.Unknown
       )

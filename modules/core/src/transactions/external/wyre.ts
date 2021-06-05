@@ -1,6 +1,5 @@
 import {
   Assets,
-  DateString,
   Logger,
   Transaction,
   TransactionSources,
@@ -39,11 +38,13 @@ export const mergeWyreTransactions = (
     const account = `${source}-account`;
     const exchange = `${source}-exchange`;
 
-    const beforeDaiMigration = (date: DateString): boolean =>
-      new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime();
+    const fixAssetType = (asset: Assets): Assets =>
+      asset === DAI && new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime()
+        ? SAI
+        : asset;
 
-    const destType = beforeDaiMigration(date) && rawDestType === DAI ? SAI : rawDestType;
-    const sourceType = beforeDaiMigration(date) && rawSourceType === DAI ? SAI : rawDestType;
+    const destType = fixAssetType(rawDestType);
+    const sourceType = fixAssetType(rawSourceType);
 
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
@@ -146,7 +147,7 @@ export const mergeWyreTransactions = (
     } else if (math.gt(ethFees, "0")) {
       transaction.transfers.push({ ...feeTransfer, asset: ETH, quantity: ethFees });
     } else if (math.gt(daiFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: DAI, quantity: daiFees });
+      transaction.transfers.push({ ...feeTransfer, asset: fixAssetType(DAI), quantity: daiFees });
     }
 
     log.debug(transaction, "Parsed row into transaction:");

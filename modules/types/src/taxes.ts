@@ -7,3 +7,8 @@ export const SecurityProviders = enumify({
   ...Fiat,
 });
 export type SecurityProvider = (typeof SecurityProviders)[keyof typeof SecurityProviders];
+
+export type Taxes = {
+  income: any[],
+  capital: any[],
+};

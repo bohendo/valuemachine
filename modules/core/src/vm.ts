@@ -2,6 +2,7 @@ import { isAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import {
   AddressBook,
+  Blockchains,
   DecimalString,
   Account,
   AssetChunk,
@@ -113,7 +114,8 @@ export const getValueMachine = ({
         chunks
       ));
       if (
-        (category === Expense && to === AddressZero) // Skip tx fees for now, too much noise
+        // Skip tx fees for now, too much noise
+        (category === Expense && Object.keys(Blockchains).includes(to))
         || (category === Internal && isAddress(to)) // We might not ever need these
       ) {
         return events;

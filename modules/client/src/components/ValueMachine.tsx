@@ -75,7 +75,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-const EventRow = ({
+export const EventRow = ({
   addressBook,
   event,
   unit,
