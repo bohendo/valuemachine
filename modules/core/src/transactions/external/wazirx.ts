@@ -9,7 +9,8 @@ import csv from "csv-parse/lib/sync";
 
 import { mergeTransaction } from "../merge";
 
-const { Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
+const { INR } = Assets;
+const { Internal, Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
 
 export const mergeWazirxTransactions = (
   oldTransactions: Transaction[],
@@ -35,6 +36,7 @@ export const mergeWazirxTransactions = (
       transfers: [],
     } as Transaction;
 
+    const bank = `${INR}-account`;
     const account = `${source}-account`;
     const exchange = source;
     const external = "external-account";
@@ -47,16 +49,11 @@ export const mergeWazirxTransactions = (
         ["Volume"]: quantity,
       } = row;
 
-      if (currency === Assets.INR) {
-        log.debug(`Skipping INR ${txType}`);
-        return null;
-      }
-
       if (txType === "Deposit") {
         transaction.transfers.push({
           asset: currency,
-          category: Deposit,
-          from: external,
+          category: currency === INR ? Internal : Deposit,
+          from: currency === INR ? bank : external,
           index,
           quantity,
           to: account,
@@ -66,11 +63,11 @@ export const mergeWazirxTransactions = (
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
           asset: currency,
-          category: Withdraw,
+          category: currency === INR ? Internal : Withdraw,
           from: account,
           index,
           quantity,
-          to: external,
+          to: currency === INR ? bank : external,
         });
         transaction.description = `Withdrew ${quantity} ${currency} from ${source}`;
       } else {
@@ -89,11 +86,11 @@ export const mergeWazirxTransactions = (
       } = row;
 
       // Assumes all markets are strings like `INR${asset}`
-      const currency = market.replace("INR", "");
+      const currency = market.replace(INR, "");
 
       if (tradeType === "Buy") {
         transaction.transfers.push({
-          asset: Assets.INR,
+          asset: INR,
           category: SwapOut,
           from: account,
           index: index++,
@@ -120,7 +117,7 @@ export const mergeWazirxTransactions = (
           to: exchange,
         });
         transaction.transfers.push({
-          asset: Assets.INR,
+          asset: INR,
           category: SwapIn,
           from: exchange,
           index: index++,

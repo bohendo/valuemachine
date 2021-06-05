@@ -162,7 +162,7 @@ export const getState = ({
             category: TransferCategories.Income,
             date,
             description: `Received ${round(togo)} ${asset} from (opaque) ${account}`,
-            newBalances: { to: "0", from: "0" }, // Unknown, just call it zero
+            newBalances: { [transfer.to]: { [asset]: "0" }, [transfer.from]: { [asset]: "0" } },
             from: account,
             quantity: togo,
             tags: [],

@@ -13,6 +13,7 @@ export type EventTypes = (typeof EventTypes)[keyof typeof EventTypes];
 type BaseEvent = {
   date: TimestampString;
   description: string;
+  newBalances: { [account: string]: { [asset: string]: DecimalString } };
   type: EventTypes;
   tags: string[];
 };
@@ -22,10 +23,6 @@ type TransferEvent = BaseEvent & {
   assetPrice: DecimalString;
   category: TransferCategory;
   from: Address;
-  newBalances: {
-    to: DecimalString;
-    from: DecimalString;
-  };
   quantity: DecimalString;
   to: Address;
 }

@@ -91,6 +91,9 @@ const EventRow = ({
     if (event && open) console.log(event);
   }, [event, open]);
 
+  const balToStr = (balances, account) =>
+    Object.entries(balances?.[account] || {}).map(([asset, bal]) => `${bal} ${asset}`).join(" and ");
+
   const swapToStr = (swaps) =>
     Object.entries(swaps || {}).map(([key, val]) => `${val} ${key}`).join(" and ");
 
@@ -170,45 +173,46 @@ const EventRow = ({
                 (event.type === EventTypes.Transfer && event.category === Expense) ? {
                   Account: event.from,
                   ["Value"]: `${event.quantity} ${event.asset}`,
-                  ["New Balance"]: event.newBalances?.from,
+                  ["New Balance"]: event.newBalances?.[event.from][event.asset],
                   Recipient: event.to,
                 } : event.type === EventTypes.Transfer && event.category === Income ? {
                   Account: event.to,
                   ["Value"]: `${event.quantity} ${event.asset}`,
-                  ["New Balance"]: event.newBalances?.to,
+                  ["New Balance"]: event.newBalances?.[event.to][event.asset],
                   Sender: event.from,
 
                 } : event.type === EventTypes.Transfer && event.category === Deposit ? {
                   ["Value"]: `${event.quantity} ${event.asset}`,
                   Account: event.to,
-                  ["New Account Balance"]: event.newBalances?.to,
+                  ["New Account Balance"]: event.newBalances?.[event.to]?.[event.asset],
                   Actor: event.from,
                   ["New Actor Balance"]: event.newBalances?.from,
                 } : event.type === EventTypes.Transfer && event.category === Withdraw ? {
                   ["Value"]: `${event.quantity} ${event.asset}`,
                   Account: event.from,
-                  ["New Account Balance"]: event.newBalances?.from,
+                  ["New Account Balance"]: event.newBalances?.[event.from]?.[event.asset],
                   Actor: event.to,
                   ["New Actor Balance"]: event.newBalances?.to,
 
                 } : event.type === EventTypes.Transfer && event.category === Repay ? {
                   ["Value"]: `${event.quantity} ${event.asset}`,
                   Account: event.to,
-                  ["New Account Balance"]: event.newBalances?.to,
+                  ["New Account Balance"]: event.newBalances?.[event.to]?.[event.asset],
                   Actor: event.from,
-                  ["New Actor Balance"]: event.newBalances?.from,
+                  ["New Actor Balance"]: event.newBalances?.[event.from]?.[event.asset],
                 } : event.type === EventTypes.Transfer && event.category === Borrow ? {
                   ["Value"]: `${event.quantity} ${event.asset}`,
                   Account: event.from,
-                  ["New Account Balance"]: event.newBalances?.from,
+                  ["New Account Balance"]: event.newBalances?.[event.from]?.[event.asset],
                   Actor: event.to,
-                  ["New Actor Balance"]: event.newBalances?.to,
+                  ["New Actor Balance"]: event.newBalances?.[event.to]?.[event.asset],
 
                 } : event.type === EventTypes.Trade ? {
                   ["Giver"]: event.from,
-                  ["Taker"]: event.to,
                   ["Given"]: swapToStr(event.outputs),
+                  ["Taker"]: event.to,
                   ["Taken"]: swapToStr(event.inputs),
+                  [`New Taker Balances`]: balToStr(event.newBalances, event.from),
                   ["Total Capital Change"]: round(event.spentChunks?.reduce((sum, chunk) => add(
                     sum,
                     mul(chunk.quantity, sub(event?.prices?.[chunk.asset], chunk.receivePrice)),
