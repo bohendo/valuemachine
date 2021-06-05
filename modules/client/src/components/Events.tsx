@@ -211,7 +211,7 @@ const EventRow = ({
                   ["Taken"]: swapToStr(event.inputs),
                   ["Total Capital Change"]: round(event.spentChunks?.reduce((sum, chunk) => add(
                     sum,
-                    mul(chunk.quantity, sub(chunk.receivePrice, event?.price?.[chunk.asset])),
+                    mul(chunk.quantity, sub(event?.prices?.[chunk.asset], chunk.receivePrice)),
                   ), "0")),
                   ...pricesToDisplay(event.prices),
                   ...chunksToDisplay(event.spentChunks, event.prices),
@@ -256,7 +256,10 @@ export const EventExplorer = ({
   useEffect(() => {
     setPage(0);
     setFilteredEvents(events.filter(event =>
-      (!filterAsset || event.asset === filterAsset)
+      (!filterAsset
+        || event.asset === filterAsset
+        || Object.keys(event.prices || {}).includes(filterAsset)
+      )
       && (!filterType || event.category === filterType || event.type === filterType)
       && (!filterAccount || (event.to === filterAccount || event.from === filterAccount))
     ).sort((e1: Events, e2: Events) =>
