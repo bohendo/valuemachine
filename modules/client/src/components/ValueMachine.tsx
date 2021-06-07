@@ -96,7 +96,7 @@ export const EventRow = ({
   }, [event, open]);
 
   const balToStr = (balances, account) =>
-    Object.entries(balances?.[account] || {}).map(([asset, bal]) => `${bal} ${asset}`).join(" and ");
+    Object.entries(balances?.[account] || {}).map(([asset, bal]) => `${round(bal)} ${asset}`).join(" and ");
 
   const swapToStr = (swaps) =>
     Object.entries(swaps || {}).map(([key, val]) => `${val} ${key}`).join(" and ");
@@ -109,13 +109,14 @@ export const EventRow = ({
       const price = prices.getPrice(date, chunk.asset);
       const receivePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
       output[`Chunk ${index}`] = `${round(chunk.quantity)} ${chunk.asset}`;
-      output[`Chunk ${index} Value`] = `${round(mul(chunk.quantity, price))} ${unit}`;
+      output[`Chunk ${index} Value`] = price
+        ? `${round(mul(chunk.quantity, price))} ${unit}`
+        : `?.?? ${unit}`;
       output[`Chunk ${index} Receive Date`] = chunk.receiveDate;
       output[`Chunk ${index} Receive Price`] = `${round(receivePrice)} ${unit}/${chunk.asset}`;
-      output[`Chunk ${index} Capital Change`] = `${round(mul(
-        chunk.quantity,
-        sub(price, receivePrice),
-      ))} ${unit}`;
+      output[`Chunk ${index} Capital Change`] = price && receivePrice
+        ? `${round(mul(chunk.quantity, sub(price, receivePrice)))} ${unit}`
+        : `?.?? ${unit}`;
     }
     return output;
   };
@@ -169,9 +170,9 @@ export const EventRow = ({
 
                 (event.type === EventTypes.Transfer && event.category === Expense) ? {
                   ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: `${
+                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
                     round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}`,
+                  } ${unit}` : `?.?? ${unit}`,
                   Account: event.from,
                   ["New Balance"]: `${
                     round(event.newBalances?.[event.from][event.asset])
@@ -179,9 +180,9 @@ export const EventRow = ({
                   Recipient: event.to,
                 } : event.type === EventTypes.Transfer && event.category === Income ? {
                   ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: `${
+                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
                     round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}`,
+                  } ${unit}` : `?.?? ${unit}`,
                   Account: event.to,
                   ["New Balance"]: `${
                     round(event.newBalances?.[event.to][event.asset])
@@ -190,9 +191,9 @@ export const EventRow = ({
 
                 } : event.type === EventTypes.Transfer && event.category === Deposit ? {
                   ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: `${
+                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
                     round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}`,
+                  } ${unit}` : `?.?? ${unit}`,
                   Account: event.to,
                   ["New Account Balance"]: `${
                     round(event.newBalances?.[event.to]?.[event.asset])
@@ -203,9 +204,9 @@ export const EventRow = ({
                   } ${event.asset}`,
                 } : event.type === EventTypes.Transfer && event.category === Withdraw ? {
                   ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: `${
+                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
                     round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}`,
+                  } ${unit}` : `?.?? ${unit}`,
                   Account: event.from,
                   ["New Account Balance"]: `${
                     round(event.newBalances?.[event.from]?.[event.asset])
@@ -217,9 +218,9 @@ export const EventRow = ({
 
                 } : event.type === EventTypes.Transfer && event.category === Repay ? {
                   ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: `${
+                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
                     round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}`,
+                  } ${unit}` : `?.?? ${unit}`,
                   Account: event.to,
                   ["New Account Balance"]: `${
                     round(event.newBalances?.[event.to]?.[event.asset])
@@ -230,9 +231,9 @@ export const EventRow = ({
                   } ${event.asset}`,
                 } : event.type === EventTypes.Transfer && event.category === Borrow ? {
                   ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: `${
+                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
                     round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}`,
+                  } ${unit}` : `?.?? ${unit}`,
                   Account: event.from,
                   ["New Account Balance"]: `${
                     round(event.newBalances?.[event.from]?.[event.asset])
@@ -257,13 +258,29 @@ export const EventRow = ({
                   ["Given"]: swapToStr(event.outputs),
                   ["Taken"]: swapToStr(event.inputs),
                   [`New Balances`]: balToStr(event.newBalances, event.account),
-                  ["Total Capital Change"]: `${round(event.spentChunks?.reduce(
-                    (sum, chunk) => add(sum, mul(chunk.quantity, sub(
-                      prices.getPrice(event.date, chunk.asset),
-                      prices.getPrice(chunk.receiveDate, chunk.asset),
-                    ))),
-                    "0",
-                  ))} ${unit}`,
+                  ["Total Capital Change"]: `${
+                    event.spentChunks?.reduce(
+                      (sum, chunk) => sum !== "?.??" && (
+                        prices.getPrice(event.date, chunk.asset) &&
+                        prices.getPrice(chunk.receiveDate, chunk.asset)
+                      ) ? add(sum, mul(chunk.quantity, sub(
+                        prices.getPrice(event.date, chunk.asset),
+                        prices.getPrice(chunk.receiveDate, chunk.asset),
+                      ))) : "?.??",
+                      "0",
+                    ) === "?.??"
+                      ? "?.??"
+                      : round(event.spentChunks?.reduce(
+                        (sum, chunk) => sum !== "?.??" && (
+                          prices.getPrice(event.date, chunk.asset) &&
+                          prices.getPrice(chunk.receiveDate, chunk.asset)
+                        ) ? add(sum, mul(chunk.quantity, sub(
+                          prices.getPrice(event.date, chunk.asset),
+                          prices.getPrice(chunk.receiveDate, chunk.asset),
+                        ))) : "?.??",
+                        "0",
+                      ))
+                  } ${unit}`,
                   ...chunksToDisplay(event.date, event.spentChunks),
                 } : {}
               }/>
