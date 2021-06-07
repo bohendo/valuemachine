@@ -1,5 +1,4 @@
 import {
-  AddressBook,
   DateString,
   DecimalString,
   Assets,
@@ -60,6 +59,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
   exportCard: {
     margin: theme.spacing(2),
+    minWidth: "255px",
   },
 }));
 
@@ -77,13 +77,9 @@ type TaxRow = {
 };
 
 export const TaxesExplorer = ({
-  addressBook,
   events,
-  unit,
 }: {
-  addressBook: AddressBook;
   events: Events,
-  unit: Assets;
 }) => {
   const classes = useStyles();
   const [page, setPage] = useState(0);
@@ -94,15 +90,12 @@ export const TaxesExplorer = ({
   const [fromDate, setFromDate] = React.useState("");
   const [toDate, setToDate] = React.useState("");
 
-  // TODO: remove these from props?
-  console.log(`${addressBook?.addresses?.length || 0} addresses & unit of ${unit}`);
-
   useEffect(() => {
     const newJurisdictions = Array.from(events
       .filter(e => e.type === EventTypes.JurisdictionChange)
       .reduce((all, cur) => {
-        all.add(cur.oldJurisdiction);
-        all.add(cur.newJurisdiction);
+        Object.keys(Fiat).includes(cur.oldJurisdiction) && all.add(cur.oldJurisdiction);
+        Object.keys(Fiat).includes(cur.newJurisdiction) && all.add(cur.newJurisdiction);
         return all;
       }, new Set())
     ).sort((j1, j2) => j2 > j1 ? 1 : -1).sort((j1, j2) =>
@@ -222,7 +215,7 @@ export const TaxesExplorer = ({
       <Divider/>
 
       <Typography variant="body1" className={classes.root}>
-        Security provided by: {allJurisdictions.join(", ")}
+        Physical security provided by: {allJurisdictions.join(", ")}
       </Typography>
 
       <Grid
@@ -233,7 +226,7 @@ export const TaxesExplorer = ({
         className={classes.root}
       >
 
-        <Grid item md={6}>
+        <Grid item md={4}>
           <FormControl className={classes.select}>
             <InputLabel id="select-jurisdiction">Jurisdication</InputLabel>
             <Select
@@ -248,7 +241,7 @@ export const TaxesExplorer = ({
           </FormControl>
         </Grid>
 
-        <Grid item md={6}>
+        <Grid item md={8}>
           <Card className={classes.exportCard}>
             <CardHeader title={"Export CSV"}/>
 
