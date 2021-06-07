@@ -579,6 +579,7 @@ export const getPrices = ({
         !price &&
         Object.keys(EthereumAssets).includes(asset) &&
         Object.keys(EthereumAssets).includes(unit)
+        && !!price // Don't actually use uniswap prices until issue #103 is resolved
       ) {
         price = await getUniswapPrice(date, asset, unit);
       }
