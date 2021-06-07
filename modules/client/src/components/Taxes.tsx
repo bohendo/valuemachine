@@ -38,7 +38,7 @@ import { store } from "../store";
 import { InputDate } from "./InputDate";
 
 const { add, mul, sub } = math;
-const round = (num: DecimalString): DecimalString => math.round(num, 4);
+const round = num => math.round(num, 2);
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -69,7 +69,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 type TaxRow = {
   date: DateString;
-  action: EventTypes.Trade | TransferCategories.Income;
+  action: EventTypes.Trade | TransferCategories.Income | TransferCategories.Deposit;
   amount: DecimalString;
   asset: Assets;
   price: DecimalString;
@@ -120,13 +120,10 @@ export const TaxesExplorer = ({
     setTaxes(
       events.filter(evt => {
         const toJur = getJurisdiction(evt.to || evt.account);
-        const fromJur = getJurisdiction(evt.from || evt.account);
-        return (
+        return toJur === jurisdiction && (
           evt.type === EventTypes.Trade
           || evt.type === EventTypes.JurisdictionChange
           || (evt.type === EventTypes.Transfer && evt.category === TransferCategories.Income)
-        ) && (
-          jurisdiction === toJur || jurisdiction === fromJur
         );
       }).reduce((output, evt) => {
         if (evt.type === EventTypes.Trade) {
@@ -174,7 +171,7 @@ export const TaxesExplorer = ({
           cumulativeIncome = add(cumulativeIncome, income);
           return output.concat({
             date: evt.date,
-            action: TransferCategories.Income,
+            action: TransferCategories.Deposit,
             amount: evt.quantity,
             asset: evt.asset,
             price,
@@ -188,7 +185,7 @@ export const TaxesExplorer = ({
         } else {
           return output;
         }
-      }, [])
+      }, []).filter(row => row.asset !== jurisdiction)
     );
   }, [jurisdiction, events, pricesJson]);
 
@@ -303,13 +300,13 @@ export const TaxesExplorer = ({
                 <TableCell><strong> Date </strong></TableCell>
                 <TableCell><strong> Action </strong></TableCell>
                 <TableCell><strong> Asset </strong></TableCell>
-                <TableCell><strong> Price </strong></TableCell>
-                <TableCell><strong> {`${jurisdiction} Value`} </strong></TableCell>
+                <TableCell><strong> {`Price (${jurisdiction}/Asset)`} </strong></TableCell>
+                <TableCell><strong> {`Value (${jurisdiction})`} </strong></TableCell>
                 <TableCell><strong> Receive Date </strong></TableCell>
-                <TableCell><strong> Receive Price </strong></TableCell>
-                <TableCell><strong> Capital Change </strong></TableCell>
-                <TableCell><strong> Cumulative Change </strong></TableCell>
-                <TableCell><strong> Cumulative Income </strong></TableCell>
+                <TableCell><strong> {`Receive Price (${jurisdiction}/Asset)`} </strong></TableCell>
+                <TableCell><strong> {`Capital Change (${jurisdiction})`} </strong></TableCell>
+                <TableCell><strong> {`Cumulative Change (${jurisdiction})`} </strong></TableCell>
+                <TableCell><strong> {`Cumulative Income (${jurisdiction})`} </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
