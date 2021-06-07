@@ -197,5 +197,4 @@ export type AssetChunk = {
   asset: Assets;
   quantity: DecimalString;
   receiveDate: TimestampString;
-  receivePrice: DecimalString;
 };

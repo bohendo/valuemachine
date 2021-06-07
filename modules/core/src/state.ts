@@ -10,7 +10,6 @@ import {
   EventTypes,
   Logger,
   NetWorth,
-  Prices,
   State,
   StateBalances,
   StateJson,
@@ -20,7 +19,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { getLogger, getJurisdiction, math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
 const { add, gt, lt, mul, round, sub } = math;
 
@@ -32,12 +31,10 @@ const isOpaqueInterestBearers = (account: Account): boolean =>
 export const getState = ({
   addressBook,
   logger,
-  prices,
   stateJson,
 }: {
   addressBook: AddressBook;
   logger?: Logger,
-  prices: Prices,
   stateJson?: StateJson;
 }): State => {
 
@@ -122,17 +119,12 @@ export const getState = ({
     asset: Assets,
     quantity: DecimalString,
     date: TimestampString,
-    unit: Assets,
     transfer?: Transfer,
     events?: Events,
   ): AssetChunk[] => {
     // We assume nothing about the history of chunks coming to us from external parties
     if (!haveAccount(account)) {
-      const receivePrice = prices.getPrice(date, asset, unit);
-      if (!receivePrice) {
-        log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${date}`);
-      }
-      return [{ asset, quantity, receiveDate: date, receivePrice }];
+      return [{ asset, quantity, receiveDate: date }];
     }
     log.debug(`Getting chunks totaling ${quantity} ${asset} from ${account}`);
     const output = [];
@@ -142,13 +134,7 @@ export const getState = ({
       log.debug(chunk, `Got next chunk of ${asset} w ${togo} to go`);
       if (!chunk) {
         // TODO: if account is an address then don't let the balance go negative?
-        const currentPrice = prices.getPrice(date, asset, unit);
-        const newChunk = {
-          asset,
-          receiveDate: date,
-          receivePrice: currentPrice,
-          quantity: togo,
-        };
+        const newChunk = { asset, receiveDate: date, quantity: togo };
         output.push(newChunk);
         if (!isOpaqueInterestBearers(account)) {
           // Register debt by pushing a new negative-quantity chunk
@@ -156,14 +142,8 @@ export const getState = ({
         } else {
           // Otherwise emit a synthetic transfer event
           log.warn(`Opaque interest bearer! Assuming the remaining ${togo} ${asset} is interest`);
-          const assetPrice = { [unit]: currentPrice };
-          const jurisdiction = getJurisdiction(account);
-          if (jurisdiction !== unit) {
-            assetPrice[jurisdiction] = prices.getPrice(date, asset, jurisdiction as Assets);
-          }
           events?.push({
             asset,
-            assetPrice,
             category: TransferCategories.Income,
             date,
             description: `Received ${round(togo)} ${asset} from (opaque) ${account}`,

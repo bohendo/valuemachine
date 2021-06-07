@@ -11,7 +11,6 @@ import {
   EventTypes,
   Events,
   Logger,
-  Prices,
   StateJson,
   TradeEvent,
   Transaction,
@@ -35,21 +34,16 @@ const { add, mul, round } = math;
 
 export const getValueMachine = ({
   addressBook,
-  prices,
   logger,
-  unit: defaultUnit,
 }: {
   addressBook: AddressBook,
-  prices: Prices,
   logger?: Logger
-  unit?: Assets,
 }): any => {
-  const unit = defaultUnit || Assets.ETH;
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
   const { getName } = addressBook;
 
   return (oldState: StateJson, transaction: Transaction): [StateJson, Event[]] => {
-    const state = getState({ stateJson: oldState, addressBook, prices, logger });
+    const state = getState({ stateJson: oldState, addressBook, logger });
     log.debug(`Applying transaction ${transaction.index} from ${
       transaction.date
     }: ${transaction.description}`);
@@ -86,9 +80,7 @@ export const getValueMachine = ({
           [from]: { [asset]: state.getBalance(from, asset) },
         },
         newJurisdiction,
-        newPrice: prices.getPrice(transaction.date, asset, newJurisdiction as Assets),
         oldJurisdiction,
-        oldPrice: prices.getPrice(transaction.date, asset, oldJurisdiction as Assets),
         quantity: quantity,
         tags: transaction.tags,
         to: to,
@@ -101,8 +93,6 @@ export const getValueMachine = ({
       chunks: AssetChunk[],
       transaction: Transaction,
       transfer: Transfer,
-      prices: Prices,
-      unit: Assets = Assets.ETH,
     ): Events => {
       const { getName } = addressBook;
       const events = [];
@@ -123,16 +113,8 @@ export const getValueMachine = ({
         return events;
       }
       const amt = round(quantity);
-      const jurisdiction = getJurisdiction(to) as Assets;
-      const assetPrice = {
-        [jurisdiction]: prices.getPrice(transaction.date, asset, jurisdiction),
-      };
-      if (jurisdiction !== unit) {
-        assetPrice[unit] = prices.getPrice(transaction.date, asset, unit);
-      }
       const newEvent = {
         asset: asset,
-        assetPrice,
         category,
         date: transaction.date,
         description: 
@@ -169,7 +151,6 @@ export const getValueMachine = ({
     // Trades
     const tradeEvent = {
       date: transaction.date,
-      prices: {},
       type: EventTypes.Trade,
     } as TradeEvent;
     const swapsIn = transaction.transfers.filter(t => t.category === SwapIn);
@@ -211,16 +192,6 @@ export const getValueMachine = ({
       // TODO: abort or handle when to/from values aren't consistent among swap chunks
       // eg we could add a synthetic internal transfer then make the swap touch only one account
       tradeEvent.account = swapsIn[0].to || swapsOut[0].from;
-      const jurisdiction = getJurisdiction(tradeEvent.account) as Assets;
-      // Save prices at the time of this tx
-      for (const asset of rmDups([...assetsIn, ...assetsOut]) as Assets[]) {
-        tradeEvent.prices[jurisdiction] = tradeEvent.prices[jurisdiction] || {};
-        tradeEvent.prices[jurisdiction][asset] = prices.getPrice(
-          transaction.date,
-          asset,
-          jurisdiction,
-        );
-      }
 
       // Process trade
       let chunks = [] as any;
@@ -230,7 +201,6 @@ export const getValueMachine = ({
           asset as Assets,
           quantity as string,
           transaction.date,
-          unit,
         );
         tradeEvent.spentChunks = [...chunks]; // Assumes chunks are never modified.. Is this safe?
         chunks.forEach(chunk => state.putChunk(swapsOut[0].to, chunk));
@@ -241,7 +211,6 @@ export const getValueMachine = ({
           asset as Assets,
           quantity as string,
           transaction.date,
-          unit,
         );
         chunks.forEach(chunk => state.putChunk(tradeEvent.account, chunk));
         // TODO: prevent trades from crossing jurisdictions
@@ -299,13 +268,12 @@ export const getValueMachine = ({
           asset,
           quantity,
           transaction.date,
-          unit,
           transfer,
           events,
         );
         chunks.forEach(chunk => state.putChunk(to, chunk));
         events.push(
-          ...emitTransferEvents(addressBook, chunks, transaction, transfer, prices, unit)
+          ...emitTransferEvents(addressBook, chunks, transaction, transfer)
         );
       } catch (e) {
         log.warn(`Error while processing tx ${e.message}: ${JSON.stringify(transaction)}`);
@@ -332,13 +300,12 @@ export const getValueMachine = ({
         asset,
         quantity,
         transaction.date,
-        unit,
         transfer,
         events,
       );
       chunks.forEach(chunk => state.putChunk(to, chunk));
       events.push(
-        ...emitTransferEvents(addressBook, chunks, transaction, transfer, prices, unit)
+        ...emitTransferEvents(addressBook, chunks, transaction, transfer)
       );
     }
 

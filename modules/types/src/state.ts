@@ -32,7 +32,6 @@ export interface State {
     asset: Assets,
     quantity: DecimalString,
     date: TimestampString,
-    unit: Assets,
     transfer?: Transfer,
     events?: Events,
   ): AssetChunk[];
