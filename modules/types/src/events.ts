@@ -27,6 +27,7 @@ type TransferEvent = BaseEvent & {
   from: Address;
   quantity: DecimalString;
   to: Address;
+  type: typeof EventTypes.Transfer;
 };
 
 export type TradeEvent = BaseEvent & {
@@ -48,6 +49,7 @@ export type JurisdictionChangeEvent = BaseEvent & {
   quantity: DecimalString;
   to: Address;
   from: Address;
+  type: typeof EventTypes.JurisdictionChange;
 };
 
 export type Event = TransferEvent | TradeEvent | JurisdictionChangeEvent;

@@ -102,30 +102,35 @@ export const EventRow = ({
     for (const i in chunks) {
       const chunk = chunks[i];
       const index = parseInt(i, 10) + 1;
+      const uoa = Object.keys(prices)[0];
+      const price = prices[uoa][chunk.asset];
       output[`Chunk ${index}`] = `${chunk.quantity} ${chunk.asset}`;
       output[`Chunk ${index} Receive Date`] = chunk.receiveDate;
-      output[`Chunk ${index} Receive Price`] = chunk.receivePrice;
-      if (prices && prices[chunk.asset]) {
-        output[`Chunk ${index} Capital Change`] = `${mul(
-          chunk.quantity,
-          sub(prices[chunk.asset], chunk.receivePrice),
-        ).substring(0, 20)} ${unit}`;
-      }
+      output[`Chunk ${index} Receive Price (${uoa})`] = price;
+      output[`Chunk ${index} Capital Change`] = `${mul(
+        chunk.quantity,
+        sub(price, chunk.receivePrice),
+      ).substring(0, 20)} ${unit}`;
     }
     return output;
   };
 
+  /*
   const pricesToDisplay = (prices) => {
     const output = {};
-    Object.entries(prices || {}).forEach(([asset, price]) => {
-      output[`${asset} Price`] = output[`${asset} Price`] || [];
-      output[`${asset} Price`].push(`${math.round(price, 4)} ${unit}`);
+    Object.entries(prices || {}).forEach(([unit, rates]) => {
+      Object.entries(rates || {}).forEach(([asset, price]) => {
+        const key = `${asset} Price (${unit})`;
+        output[key] = output[key] || [];
+        output[key].push(`${math.round(price, 4)} ${unit}`);
+      });
     });
     Object.keys(output).forEach(key => {
       output[key] = output[key].join(" or ");
     });
     return output;
   };
+  */
 
   const SimpleTable = ({
     data,
@@ -141,7 +146,9 @@ export const EventRow = ({
               <TableCell> {
                 isHexString(value)
                   ? <HexString value={value} display={addressBook?.getName(value)}/>
-                  : <Typography> {value} </Typography>
+                  : <Typography> {
+                    typeof value === "string" ? value : JSON.stringify(value)
+                  } </Typography>
               }</TableCell>
             </TableRow>
           ))}
@@ -228,7 +235,6 @@ export const EventRow = ({
                     sum,
                     mul(chunk.quantity, sub(event?.prices?.[chunk.asset], chunk.receivePrice)),
                   ), "0")),
-                  ...pricesToDisplay(event.prices),
                   ...chunksToDisplay(event.spentChunks, event.prices),
                 } : {}
               }/>
@@ -270,7 +276,7 @@ export const ValueMachineExplorer = ({
 
   useEffect(() => {
     setPage(0);
-    setFilteredEvents(events.filter(event =>
+    setFilteredEvents(events?.filter(event =>
       (!filterAsset
         || event.asset === filterAsset
         || Object.keys(event.prices || {}).includes(filterAsset)
@@ -286,7 +292,7 @@ export const ValueMachineExplorer = ({
       : (e1.purchaseDate > e2.purchaseDate) ? 1
       : (e1.purchaseDate < e2.purchaseDate) ? -1
       : 0
-    ));
+    ) || []);
   }, [events, filterAccount, filterAsset, filterType]);
 
   const handleFilterAccountChange = (event: React.ChangeEvent<{ value: string }>) => {
@@ -416,7 +422,7 @@ export const ValueMachineExplorer = ({
           onChange={handleFilterAssetChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(events.map(e => e.asset))).map((asset, i) => (
+          {Array.from(new Set(events?.map(e => e.asset))).map((asset, i) => (
             <MenuItem key={i} value={asset}>{asset}</MenuItem>
           ))}
         </Select>
@@ -443,9 +449,9 @@ export const ValueMachineExplorer = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredEvents.length === events.length
+          {filteredEvents.length === events?.length
             ? `${filteredEvents.length} Events`
-            : `${filteredEvents.length} of ${events.length} Events`
+            : `${filteredEvents.length} of ${events?.length || 0} Events`
           }
         </Typography>
 

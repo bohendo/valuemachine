@@ -1,15 +1,15 @@
 import { isAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import {
-  AddressBook,
-  Blockchains,
-  DecimalString,
   Account,
+  AddressBook,
   AssetChunk,
   Assets,
+  Blockchains,
+  DecimalString,
   Event,
-  Events,
   EventTypes,
+  Events,
   Logger,
   Prices,
   StateJson,
@@ -149,11 +149,11 @@ export const getValueMachine = ({
         tags: transaction.tags,
         to: transfer.to,
         type: EventTypes.Transfer,
-      } as any;
+      } as Event;
       // We exclude internal transfers so both to & from shouldn't be self/abstract
       newEvent.newBalances = {
-        [transfer.to]: { [jurisdiction]: { [asset]: state.getBalance(transfer.to, asset) } },
-        [transfer.from]: { [jurisdiction]: { [asset]: state.getBalance(transfer.from, asset) } },
+        [transfer.to]: { [asset]: state.getBalance(transfer.to, asset) },
+        [transfer.from]: { [asset]: state.getBalance(transfer.from, asset) },
       };
       events.push(newEvent);
       return events;
@@ -214,6 +214,7 @@ export const getValueMachine = ({
       const jurisdiction = getJurisdiction(tradeEvent.account) as Assets;
       // Save prices at the time of this tx
       for (const asset of rmDups([...assetsIn, ...assetsOut]) as Assets[]) {
+        tradeEvent.prices[jurisdiction] = tradeEvent.prices[jurisdiction] || {};
         tradeEvent.prices[jurisdiction][asset] = prices.getPrice(
           transaction.date,
           asset,

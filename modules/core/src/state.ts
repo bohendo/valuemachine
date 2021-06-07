@@ -20,7 +20,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { getLogger, math } from "@finances/utils";
+import { getLogger, getJurisdiction, math } from "@finances/utils";
 
 const { add, gt, lt, mul, round, sub } = math;
 
@@ -156,9 +156,14 @@ export const getState = ({
         } else {
           // Otherwise emit a synthetic transfer event
           log.warn(`Opaque interest bearer! Assuming the remaining ${togo} ${asset} is interest`);
+          const assetPrice = { [unit]: currentPrice };
+          const jurisdiction = getJurisdiction(account);
+          if (jurisdiction !== unit) {
+            assetPrice[jurisdiction] = prices.getPrice(date, asset, jurisdiction as Assets);
+          }
           events?.push({
             asset,
-            assetPrice: currentPrice,
+            assetPrice,
             category: TransferCategories.Income,
             date,
             description: `Received ${round(togo)} ${asset} from (opaque) ${account}`,
