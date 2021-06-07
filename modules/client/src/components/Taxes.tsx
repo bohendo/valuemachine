@@ -1,12 +1,13 @@
+import { commify } from "@ethersproject/units";
 import { getPrices } from "@finances/core";
 import {
-  DateString,
-  PricesJson,
-  DecimalString,
   Assets,
-  EventTypes,
+  DateString,
+  DecimalString,
   Events,
+  EventTypes,
   Fiat,
+  PricesJson,
   TransferCategories,
 } from "@finances/types";
 import { getJurisdiction, math } from "@finances/utils";
@@ -38,7 +39,6 @@ import { store } from "../store";
 import { InputDate } from "./InputDate";
 
 const { add, mul, sub } = math;
-const round = num => math.round(num, 2);
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -96,6 +96,35 @@ export const TaxesExplorer = ({
   const [taxes, setTaxes] = React.useState([] as TaxRow[]);
   const [fromDate, setFromDate] = React.useState("");
   const [toDate, setToDate] = React.useState("");
+
+  const fmtNum = num => {
+    const round = math.round(num, 2);
+    const insert = (str: string, index: number, char: string = ",") =>
+      str.substring(0, index) + char + str.substring(index);
+    if (jurisdiction === Assets.INR) {
+      const neg = round.startsWith("-") ? "-" : "";
+      const [int, dec] = round.replace("-", "").split(".");
+      const len = int.length;
+      if (len <= 3) {
+        return round;
+      } else if (len <= 5) {
+        return `${neg}${insert(int, len - 3)}.${dec}`;
+      } else if (len <= 7) {
+        return `${neg}${insert(insert(int, len - 3), len - 5)}.${dec}`;
+      } else if (len <= 9) {
+        return `${neg}${
+          insert(insert(insert(int, len - 3), len - 5), len - 7)
+        }.${dec}`;
+      } else {
+        return `${neg}${
+          insert(insert(insert(insert(int, len - 3), len - 5), len - 7), len - 9)
+        }.${dec}`;
+      }
+    }
+    return commify(round);
+  };
+
+  console.log(`Formatting 12345=>${fmtNum("12345")} | 1234567=>${fmtNum("1234567")} | 123456789=>${fmtNum("123456789")}`);
 
   useEffect(() => {
     const newJurisdictions = Array.from(events
@@ -316,14 +345,14 @@ export const TaxesExplorer = ({
                   <TableRow key={i}>
                     <TableCell> {row.date.replace("T", " ").replace(".000Z", "")} </TableCell>
                     <TableCell> {row.action} </TableCell>
-                    <TableCell> {`${round(row.amount)} ${row.asset}`} </TableCell>
-                    <TableCell> {round(row.price)} </TableCell>
-                    <TableCell> {round(row.value)} </TableCell>
+                    <TableCell> {`${fmtNum(row.amount)} ${row.asset}`} </TableCell>
+                    <TableCell> {fmtNum(row.price)} </TableCell>
+                    <TableCell> {fmtNum(row.value)} </TableCell>
                     <TableCell> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
-                    <TableCell> {round(row.receivePrice)} </TableCell>
-                    <TableCell> {round(row.capitalChange)} </TableCell>
-                    <TableCell> {round(row.cumulativeChange)} </TableCell>
-                    <TableCell> {round(row.cumulativeIncome)} </TableCell>
+                    <TableCell> {fmtNum(row.receivePrice)} </TableCell>
+                    <TableCell> {fmtNum(row.capitalChange)} </TableCell>
+                    <TableCell> {fmtNum(row.cumulativeChange)} </TableCell>
+                    <TableCell> {fmtNum(row.cumulativeIncome)} </TableCell>
                   </TableRow>
                 ))}
             </TableBody>
