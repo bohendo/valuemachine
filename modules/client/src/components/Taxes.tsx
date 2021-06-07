@@ -1,15 +1,21 @@
 import {
   AddressBook,
+  DateString,
+  DecimalString,
   Assets,
   EventTypes,
   Events,
   Fiat,
   TransferCategories,
 } from "@finances/types";
-import { getJurisdiction } from "@finances/utils";
+import { getJurisdiction, math } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardHeader from "@material-ui/core/CardHeader";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
+import Grid from "@material-ui/core/Grid";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
@@ -22,19 +28,52 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import DownloadIcon from "@material-ui/icons/GetApp";
+import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
 
-import { EventRow } from "./ValueMachine";
+const { add, mul, sub } = math;
+const round = (num: DecimalString): DecimalString => math.round(num, 4);
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
     margin: theme.spacing(1),
   },
+  paper: {
+    minWidth: "500px",
+    padding: theme.spacing(2),
+  },
   select: {
     margin: theme.spacing(3),
-    minWidth: 160,
+    minWidth: "160px",
+  },
+  title: {
+    paddingTop: theme.spacing(2),
+  },
+  exportButton: {
+    marginBottom: theme.spacing(4),
+    marginLeft: theme.spacing(4),
+    marginRight: theme.spacing(4),
+    marginTop: theme.spacing(0),
+  },
+  exportCard: {
+    margin: theme.spacing(2),
+    maxWidth: theme.spacing(24),
   },
 }));
+
+type TaxRow = {
+  date: DateString;
+  action: EventTypes.Trade | TransferCategories.Income;
+  amount: DecimalString;
+  asset: Assets;
+  price: DecimalString;
+  receiveDate: DateString;
+  receivePrice: DecimalString;
+  capitalChange: DecimalString;
+  cumulativeChange: DecimalString;
+  cumulativeIncome: DecimalString;
+};
 
 export const TaxesExplorer = ({
   addressBook,
@@ -50,7 +89,10 @@ export const TaxesExplorer = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [allJurisdictions, setAllJurisdictions] = useState([]);
   const [jurisdiction, setJurisdiction] = React.useState(0);
-  const [taxes, setTaxes] = React.useState([] as Events);
+  const [taxes, setTaxes] = React.useState([] as TaxRow[]);
+
+  // TODO: remove these from props?
+  console.log(`${addressBook?.addresses?.length || 0} addresses & unit of ${unit}`);
 
   useEffect(() => {
     const newJurisdictions = Array.from(events
@@ -68,6 +110,8 @@ export const TaxesExplorer = ({
   }, [events]);
 
   useEffect(() => {
+    let cumulativeIncome = "0";
+    let cumulativeChange = "0";
     setTaxes(
       events.filter(evt => {
         const toJur = getJurisdiction(evt.to);
@@ -79,9 +123,72 @@ export const TaxesExplorer = ({
         ) && (
           jurisdiction === toJur || jurisdiction === fromJur
         );
-      })
+      }).reduce((output, evt) => {
+        if (evt.type === EventTypes.Trade) {
+          return output.concat(...evt.spentChunks.map(chunk => {
+            const currentPrice = evt.prices[chunk.asset];
+            const capitalChange = mul(chunk.quantity, sub(currentPrice, chunk.receivePrice));
+            cumulativeChange = add(cumulativeChange, capitalChange);
+            return {
+              date: evt.date,
+              action: EventTypes.Trade,
+              amount: chunk.quantity,
+              asset: chunk.asset,
+              price: currentPrice,
+              receivePrice: chunk.receivePrice,
+              receiveDate: chunk.receiveDate,
+              capitalChange,
+              cumulativeChange,
+              cumulativeIncome,
+            };
+          }));
+        } else if (evt.category === TransferCategories.Income) {
+          cumulativeIncome = add(cumulativeIncome, evt.quantity);
+          return output.concat({
+            date: evt.date,
+            action: TransferCategories.Income,
+            amount: evt.quantity,
+            asset: evt.asset,
+            price: evt.prices[evt.asset],
+            receivePrice: evt.prices[evt.asset],
+            receiveDate: evt.date,
+            capitalChange: "0",
+            cumulativeChange,
+            cumulativeIncome,
+          });
+        } else if (evt.type === EventTypes.JurisdictionChange) {
+          // TODO: handle this better
+          console.warn(evt, `Temporarily pretending this jurisdiction change is income`);
+          cumulativeIncome = add(cumulativeIncome, evt.quantity);
+          return output.concat({
+            date: evt.date,
+            action: TransferCategories.Income,
+            amount: evt.quantity,
+            asset: evt.asset,
+            price: evt.prices?.[evt.asset] || "0",
+            receivePrice: evt.prices?.[evt.asset] || "0",
+            receiveDate: evt.date,
+            capitalChange: "0",
+            cumulativeChange,
+            cumulativeIncome,
+          });
+        } else {
+          return output;
+        }
+      }, [])
     );
   }, [jurisdiction, events]);
+
+  const handleExport = () => {
+    if (!taxes?.length) { console.warn("Nothing to export"); return; }
+    const output = json2csv(taxes, Object.keys(taxes[0]));
+    const name = `${jurisdiction}-taxes.csv`;
+    const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
+    const a = document.createElement("a");
+    a.href = "data:" + data;
+    a.download = name;
+    a.click();
+  };
 
   const handleJurisdictionChange = (event: React.ChangeEvent<{ value: string }>) => {
     setJurisdiction(event.target.value);
@@ -107,30 +214,52 @@ export const TaxesExplorer = ({
         Security provided by: {allJurisdictions.join(", ")}
       </Typography>
 
-      <FormControl className={classes.select}>
-        <InputLabel id="select-jurisdiction">Jurisdication</InputLabel>
-        <Select
-          labelId="select-jurisdiction"
-          id="select-jurisdiction"
-          value={jurisdiction || ""}
-          onChange={handleJurisdictionChange}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {allJurisdictions?.map((jur, i) => <MenuItem key={i} value={jur}>{jur}</MenuItem>)}
-        </Select>
-      </FormControl>
+      <Grid
+        alignContent="center"
+        alignItems="center"
+        container
+        spacing={1}
+        className={classes.root}
+      >
 
-      <Typography>
-        Found {taxes.length} taxable events
-      </Typography>
+        <Grid item md={6}>
+          <FormControl className={classes.select}>
+            <InputLabel id="select-jurisdiction">Jurisdication</InputLabel>
+            <Select
+              labelId="select-jurisdiction"
+              id="select-jurisdiction"
+              value={jurisdiction || ""}
+              onChange={handleJurisdictionChange}
+            >
+              <MenuItem value={""}>-</MenuItem>
+              {allJurisdictions?.map((jur, i) => <MenuItem key={i} value={jur}>{jur}</MenuItem>)}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item md={6}>
+          <Card className={classes.exportCard}>
+            <CardHeader title={"Export CSV"}/>
+            <Button
+              className={classes.exportButton}
+              color="primary"
+              fullWidth={false}
+              onClick={handleExport}
+              size="small"
+              startIcon={<DownloadIcon />}
+              variant="contained"
+            >
+              Download
+            </Button>
+          </Card>
+        </Grid>
+
+      </Grid>
 
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {taxes.length === events.length
-            ? `${taxes.length} Events`
-            : `${taxes.length} of ${events.length} Events`
-          }
+          {`${taxes.length} Taxable ${jurisdiction} Events`}
         </Typography>
 
         <TableContainer>
@@ -147,16 +276,31 @@ export const TaxesExplorer = ({
             <TableHead>
               <TableRow>
                 <TableCell><strong> Date </strong></TableCell>
-                <TableCell><strong> Type </strong></TableCell>
-                <TableCell><strong> Description </strong></TableCell>
-                <TableCell><strong> Details </strong></TableCell>
+                <TableCell><strong> Action </strong></TableCell>
+                <TableCell><strong> Asset </strong></TableCell>
+                <TableCell><strong> Price </strong></TableCell>
+                <TableCell><strong> Receive Date </strong></TableCell>
+                <TableCell><strong> Receive Price </strong></TableCell>
+                <TableCell><strong> Capital Change </strong></TableCell>
+                <TableCell><strong> Cumulative Change </strong></TableCell>
+                <TableCell><strong> Cumulative Income </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {taxes
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((event: Events, i: number) => (
-                  <EventRow addressBook={addressBook} key={i} event={event} unit={unit} />
+                .map((row: TaxRow, i: number) => (
+                  <TableRow key={i}>
+                    <TableCell> {row.date.replace("T", " ").replace(".000Z", "")} </TableCell>
+                    <TableCell> {row.action} </TableCell>
+                    <TableCell> {`${round(row.amount)} ${row.asset}`} </TableCell>
+                    <TableCell> {round(row.price)} </TableCell>
+                    <TableCell> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
+                    <TableCell> {round(row.receivePrice)} </TableCell>
+                    <TableCell> {round(row.capitalChange)} </TableCell>
+                    <TableCell> {round(row.cumulativeChange)} </TableCell>
+                    <TableCell> {round(row.cumulativeIncome)} </TableCell>
+                  </TableRow>
                 ))}
             </TableBody>
           </Table>

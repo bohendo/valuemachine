@@ -115,7 +115,6 @@ export const getState = ({
       log.debug(`Putting ${quantity} ${asset} into account ${account}`);
       state.accounts[account].push(chunk);
     }
-
   };
 
   const getChunks = (

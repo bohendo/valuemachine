@@ -275,6 +275,7 @@ export const ValueMachineExplorer = ({
       (!filterAsset
         || event.asset === filterAsset
         || Object.keys(event.prices || {}).includes(filterAsset)
+        || event.newJurisdiction === filterAsset || event.oldJurisdiction === filterAsset
       )
       && (!filterType || event.category === filterType || event.type === filterType)
       && (!filterAccount || (event.to === filterAccount || event.from === filterAccount))
