@@ -47,6 +47,7 @@ export const publicAddresses = [
 ];
 
 const { gt, eq, round } = math;
+const { ETH } = Assets;
 
 // Order matters!
 // Complex parsers usually depend on simple ones so put ERC20 & weth first
@@ -97,12 +98,12 @@ export const parseEthTx = (
   // Transaction Fee
   if (isSelf(ethTx.from)) {
     tx.transfers.push({
-      asset: Assets.ETH,
+      asset: ETH,
       category: Expense,
       from: sm(ethTx.from),
       index: -1,
       quantity: formatEther(BigNumber.from(ethTx.gasUsed).mul(ethTx.gasPrice)),
-      to: AddressZero, // Is there any point is specifiying the coinbase address here?
+      to: ETH,
     });
   }
 
@@ -116,7 +117,7 @@ export const parseEthTx = (
   // Transaction Value
   if (gt(ethTx.value, "0") && (isSelf(ethTx.to) || isSelf(ethTx.from))) {
     tx.transfers.push({
-      asset: Assets.ETH,
+      asset: ETH,
       category: getSimpleCategory(ethTx.to, ethTx.from),
       from: sm(ethTx.from),
       index: 0,
@@ -148,7 +149,7 @@ export const parseEthTx = (
       && gt(call.value, "0")
     ) {
       tx.transfers.push({
-        asset: Assets.ETH,
+        asset: ETH,
         category: getSimpleCategory(call.to, call.from),
         // Internal eth transfers have no index, put incoming transfers first & outgoing last
         // This makes underflows less likely during VM processesing
@@ -195,7 +196,7 @@ export const parseEthTx = (
   if (!tx.description) {
     if (tx.transfers.length === 1) {
       const transfer = tx.transfers[0];
-      if (transfer.to === AddressZero) { // if the only transfer is a tx fee
+      if (transfer.to === ETH) { // if the only transfer is a tx fee
         tx.description = ethTx.data.length > 3
           ? `${getName(ethTx.from)} called a method on ${getName(ethTx.to)}`
           : `${getName(ethTx.from)} did nothing`;

@@ -1,4 +1,4 @@
-import { AddressZero, HashZero } from "@ethersproject/constants";
+import { HashZero } from "@ethersproject/constants";
 import {
   Assets,
   Transaction,
@@ -53,7 +53,7 @@ const getEthTx = (): Transaction => ({
       from: AddressOne,
       index: -1,
       quantity: "0.000000004294967296",
-      to: AddressZero,
+      to: ETH,
     },
     {
       asset: ETH,

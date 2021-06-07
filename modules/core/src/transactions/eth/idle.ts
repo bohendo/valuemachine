@@ -1,4 +1,3 @@
-import { AddressZero } from "@ethersproject/constants";
 import {
   AddressBook,
   AddressBookJson,
@@ -17,7 +16,7 @@ import { assetsAreClose, rmDups } from "../utils";
 
 const { round } = math;
 const { Internal, SwapIn, SwapOut } = TransferCategories;
-const { DAI, idleDAI } = Assets;
+const { ETH, DAI, idleDAI } = Assets;
 
 const source = TransactionSources.Idle;
 
@@ -89,8 +88,7 @@ export const idleParser = (
       }
       log.info(`Parsing idle transfer of ${round(idleTransfer.quantity)} ${idleTransfer.asset}`);
       const transfer = tx.transfers.find(t =>
-        t.category !== Internal
-        && t.to !== AddressZero
+        t.category !== Internal && t.to !== ETH
         && assetsAreClose(t.asset, asset as Assets)
         && (
           (isSelf(t.to) && isSelf(idleTransfer.from)) ||
