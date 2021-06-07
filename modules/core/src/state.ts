@@ -10,7 +10,6 @@ import {
   EventTypes,
   Logger,
   NetWorth,
-  Prices,
   State,
   StateBalances,
   StateJson,
@@ -32,12 +31,10 @@ const isOpaqueInterestBearers = (account: Account): boolean =>
 export const getState = ({
   addressBook,
   logger,
-  prices,
   stateJson,
 }: {
   addressBook: AddressBook;
   logger?: Logger,
-  prices: Prices,
   stateJson?: StateJson;
 }): State => {
 
@@ -115,7 +112,6 @@ export const getState = ({
       log.debug(`Putting ${quantity} ${asset} into account ${account}`);
       state.accounts[account].push(chunk);
     }
-
   };
 
   const getChunks = (
@@ -123,17 +119,12 @@ export const getState = ({
     asset: Assets,
     quantity: DecimalString,
     date: TimestampString,
-    unit: Assets,
     transfer?: Transfer,
     events?: Events,
   ): AssetChunk[] => {
     // We assume nothing about the history of chunks coming to us from external parties
     if (!haveAccount(account)) {
-      const receivePrice = prices.getPrice(date, asset, unit);
-      if (!receivePrice) {
-        log.warn(`Price in units of ${unit} is unavailable for ${asset} on ${date}`);
-      }
-      return [{ asset, quantity, receiveDate: date, receivePrice }];
+      return [{ asset, quantity, receiveDate: date }];
     }
     log.debug(`Getting chunks totaling ${quantity} ${asset} from ${account}`);
     const output = [];
@@ -143,13 +134,7 @@ export const getState = ({
       log.debug(chunk, `Got next chunk of ${asset} w ${togo} to go`);
       if (!chunk) {
         // TODO: if account is an address then don't let the balance go negative?
-        const currentPrice = prices.getPrice(date, asset, unit);
-        const newChunk = {
-          asset,
-          receiveDate: date,
-          receivePrice: currentPrice,
-          quantity: togo,
-        };
+        const newChunk = { asset, receiveDate: date, quantity: togo };
         output.push(newChunk);
         if (!isOpaqueInterestBearers(account)) {
           // Register debt by pushing a new negative-quantity chunk
@@ -159,7 +144,6 @@ export const getState = ({
           log.warn(`Opaque interest bearer! Assuming the remaining ${togo} ${asset} is interest`);
           events?.push({
             asset,
-            assetPrice: currentPrice,
             category: TransferCategories.Income,
             date,
             description: `Received ${round(togo)} ${asset} from (opaque) ${account}`,

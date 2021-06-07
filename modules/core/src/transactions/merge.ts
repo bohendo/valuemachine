@@ -1,5 +1,5 @@
-import { AddressZero } from "@ethersproject/constants";
 import {
+  Assets,
   ExternalSources,
   Logger,
   OnchainSources,
@@ -65,7 +65,7 @@ export const mergeTransaction = (
     // Mergable eth txns can only contain one notable transfer
     const transfers = newTx.transfers.filter(transfer =>
       ([Income, Expense] as TransferCategory[]).includes(transfer.category)
-      && transfer.to !== AddressZero
+      && transfer.to !== Assets.ETH
     );
     if (transfers.length !== 1) {
       transactions.push(newTx);

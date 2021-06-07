@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { AddressZero } from "@ethersproject/constants";
 import {
   AddressBook,
   AddressBookJson,
@@ -39,7 +38,7 @@ const { YFI,
   crvPlain3andSUSD, _3Crv, eursCRV, hCRV, _1INCH,
 
   BUSD, USDT, USDC, DAI, GUSD, sUSDT, TUSD, yvust3CRV, usdt3CRV,
-  WBTC, WETH
+  WBTC, WETH, ETH
 
 } = Assets;
 
@@ -241,7 +240,7 @@ export const yearnParser = (
       log.info(`Parsing yToken transfer of ${round(yTransfer.quantity)} ${yTransfer.asset}`);
       const transfer = tx.transfers.find(t =>
         t.category !== Internal
-        && t.to !== AddressZero
+        && t.to !== ETH
         && assetsAreClose(t.asset, asset as Assets)
         && (
           (isSelf(t.to) && isSelf(yTransfer.from)) ||

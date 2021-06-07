@@ -1,13 +1,10 @@
-// import { AddressZero } from "@ethersproject/constants";
 import {
-  Prices,
   State,
   Transactions,
   Transaction,
 } from "@finances/types";
 import { math, expect } from "@finances/utils";
 
-import { getPrices } from "./prices";
 import { getState } from "./state";
 import { AddressOne, getTestAddressBook, testLogger } from "./testing";
 import { getTransactions } from "./transactions";
@@ -16,7 +13,6 @@ const log = testLogger.child({ module: "TestState" });
 
 describe("State", () => {
   let addressBook;
-  let prices: Prices;
   let state: State;
   let txns: Transactions;
   const amt = "100";
@@ -28,16 +24,12 @@ describe("State", () => {
     txns = getTransactions({ addressBook, logger: log });
     expect(txns.json.length).to.equal(0);
 
-    prices = getPrices({ logger: log });
-    expect(Object.keys(prices.json).length).to.equal(0);
-
-    state = getState({ addressBook, prices, logger: log });
+    state = getState({ addressBook, logger: log });
     expect(Object.keys(state.getAllBalances()).length).to.equal(0);
 
     state.putChunk(AddressOne, {
       asset: asset,
       receiveDate: new Date().toISOString(),
-      receivePrice: "1.02",
       quantity: amt,
     });
     expect(Object.keys(state.getAllBalances()).length).to.equal(1);

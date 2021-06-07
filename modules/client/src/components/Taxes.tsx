@@ -1,15 +1,23 @@
+import { commify } from "@ethersproject/units";
+import { getPrices } from "@finances/core";
 import {
-  AddressBook,
   Assets,
-  EventTypes,
+  DateString,
+  DecimalString,
   Events,
+  EventTypes,
   Fiat,
+  PricesJson,
   TransferCategories,
 } from "@finances/types";
-import { getJurisdiction } from "@finances/utils";
+import { getJurisdiction, math } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import Card from "@material-ui/core/Card";
+import CardHeader from "@material-ui/core/CardHeader";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
+import Grid from "@material-ui/core/Grid";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
@@ -22,42 +30,108 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import DownloadIcon from "@material-ui/icons/GetApp";
+import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
 
-import { EventRow } from "./ValueMachine";
+import { store } from "../store";
+
+import { InputDate } from "./InputDate";
+
+const { add, mul, sub } = math;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
     margin: theme.spacing(1),
   },
+  paper: {
+    minWidth: "500px",
+    padding: theme.spacing(2),
+  },
   select: {
     margin: theme.spacing(3),
-    minWidth: 160,
+    minWidth: "160px",
+  },
+  title: {
+    paddingTop: theme.spacing(2),
+  },
+  exportButton: {
+    marginBottom: theme.spacing(4),
+    marginLeft: theme.spacing(4),
+    marginRight: theme.spacing(4),
+    marginTop: theme.spacing(0),
+  },
+  exportCard: {
+    margin: theme.spacing(2),
+    minWidth: "255px",
   },
 }));
 
+type TaxRow = {
+  date: DateString;
+  action: EventTypes.Trade | TransferCategories.Income | TransferCategories.Deposit;
+  amount: DecimalString;
+  asset: Assets;
+  price: DecimalString;
+  value: DecimalString;
+  receiveDate: DateString;
+  receivePrice: DecimalString;
+  capitalChange: DecimalString;
+  cumulativeChange: DecimalString;
+  cumulativeIncome: DecimalString;
+};
+
 export const TaxesExplorer = ({
-  addressBook,
   events,
-  unit,
+  pricesJson,
 }: {
-  addressBook: AddressBook;
   events: Events,
-  unit: Assets;
+  pricesJson: PricesJson,
 }) => {
   const classes = useStyles();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [allJurisdictions, setAllJurisdictions] = useState([]);
   const [jurisdiction, setJurisdiction] = React.useState(0);
-  const [taxes, setTaxes] = React.useState([] as Events);
+  const [taxes, setTaxes] = React.useState([] as TaxRow[]);
+  const [fromDate, setFromDate] = React.useState("");
+  const [toDate, setToDate] = React.useState("");
+
+  const fmtNum = num => {
+    const round = math.round(num, 2);
+    const insert = (str: string, index: number, char: string = ",") =>
+      str.substring(0, index) + char + str.substring(index);
+    if (jurisdiction === Assets.INR) {
+      const neg = round.startsWith("-") ? "-" : "";
+      const [int, dec] = round.replace("-", "").split(".");
+      const len = int.length;
+      if (len <= 3) {
+        return round;
+      } else if (len <= 5) {
+        return `${neg}${insert(int, len - 3)}.${dec}`;
+      } else if (len <= 7) {
+        return `${neg}${insert(insert(int, len - 3), len - 5)}.${dec}`;
+      } else if (len <= 9) {
+        return `${neg}${
+          insert(insert(insert(int, len - 3), len - 5), len - 7)
+        }.${dec}`;
+      } else {
+        return `${neg}${
+          insert(insert(insert(insert(int, len - 3), len - 5), len - 7), len - 9)
+        }.${dec}`;
+      }
+    }
+    return commify(round);
+  };
+
+  console.log(`Formatting 12345=>${fmtNum("12345")} | 1234567=>${fmtNum("1234567")} | 123456789=>${fmtNum("123456789")}`);
 
   useEffect(() => {
     const newJurisdictions = Array.from(events
       .filter(e => e.type === EventTypes.JurisdictionChange)
       .reduce((all, cur) => {
-        all.add(cur.oldJurisdiction);
-        all.add(cur.newJurisdiction);
+        Object.keys(Fiat).includes(cur.oldJurisdiction) && all.add(cur.oldJurisdiction);
+        Object.keys(Fiat).includes(cur.newJurisdiction) && all.add(cur.newJurisdiction);
         return all;
       }, new Set())
     ).sort((j1, j2) => j2 > j1 ? 1 : -1).sort((j1, j2) =>
@@ -68,20 +142,100 @@ export const TaxesExplorer = ({
   }, [events]);
 
   useEffect(() => {
+    if (!jurisdiction || !events?.length) return;
+    const prices = getPrices({ pricesJson, store, unit: jurisdiction });
+    let cumulativeIncome = "0";
+    let cumulativeChange = "0";
     setTaxes(
       events.filter(evt => {
-        const toJur = getJurisdiction(evt.to);
-        const fromJur = getJurisdiction(evt.from);
-        return (
+        const toJur = getJurisdiction(evt.to || evt.account);
+        return toJur === jurisdiction && (
           evt.type === EventTypes.Trade
           || evt.type === EventTypes.JurisdictionChange
           || (evt.type === EventTypes.Transfer && evt.category === TransferCategories.Income)
-        ) && (
-          jurisdiction === toJur || jurisdiction === fromJur
         );
-      })
+      }).reduce((output, evt) => {
+        if (evt.type === EventTypes.Trade) {
+          return output.concat(...evt.spentChunks.map(chunk => {
+            const price = prices.getPrice(evt.date, chunk.asset);
+            const value = mul(chunk.quantity, price);
+            const receivePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
+            const capitalChange = mul(chunk.quantity, sub(price, receivePrice));
+            cumulativeChange = add(cumulativeChange, capitalChange);
+            return {
+              date: evt.date,
+              action: EventTypes.Trade,
+              amount: chunk.quantity,
+              asset: chunk.asset,
+              price,
+              value,
+              receivePrice,
+              receiveDate: chunk.receiveDate,
+              capitalChange,
+              cumulativeChange,
+              cumulativeIncome,
+            };
+          }));
+        } else if (evt.category === TransferCategories.Income) {
+          const price = prices.getPrice(evt.date, evt.asset);
+          const income = mul(evt.quantity, price);
+          cumulativeIncome = add(cumulativeIncome, income);
+          return output.concat({
+            date: evt.date,
+            action: TransferCategories.Income,
+            amount: evt.quantity,
+            asset: evt.asset,
+            price,
+            value: income,
+            receivePrice: price,
+            receiveDate: evt.date,
+            capitalChange: "0",
+            cumulativeChange,
+            cumulativeIncome,
+          });
+        } else if (evt.type === EventTypes.JurisdictionChange) {
+          console.warn(evt, `Temporarily pretending this jurisdiction change is income`);
+          const price = prices.getPrice(evt.date, evt.asset);
+          const income = mul(evt.quantity, price);
+          cumulativeIncome = add(cumulativeIncome, income);
+          return output.concat({
+            date: evt.date,
+            action: TransferCategories.Deposit,
+            amount: evt.quantity,
+            asset: evt.asset,
+            price,
+            value: income,
+            receivePrice: price,
+            receiveDate: evt.date,
+            capitalChange: "0",
+            cumulativeChange,
+            cumulativeIncome,
+          });
+        } else {
+          return output;
+        }
+      }, []).filter(row => row.asset !== jurisdiction)
     );
-  }, [jurisdiction, events]);
+  }, [jurisdiction, events, pricesJson]);
+
+  const handleExport = () => {
+    if (!taxes?.length) { console.warn("Nothing to export"); return; }
+    const getDate = (timestamp: string): string =>
+      (new Date(timestamp)).toISOString().split("T")[0];
+    const output = json2csv(
+      taxes.filter(row =>
+        (!fromDate || getDate(row.date) >= getDate(fromDate)) &&
+        (!toDate || getDate(row.date) <= getDate(toDate))
+      ),
+      Object.keys(taxes[0]),
+    );
+    const name = `${jurisdiction}-taxes.csv`;
+    const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
+    const a = document.createElement("a");
+    a.href = "data:" + data;
+    a.download = name;
+    a.click();
+  };
 
   const handleJurisdictionChange = (event: React.ChangeEvent<{ value: string }>) => {
     setJurisdiction(event.target.value);
@@ -104,33 +258,59 @@ export const TaxesExplorer = ({
       <Divider/>
 
       <Typography variant="body1" className={classes.root}>
-        Security provided by: {allJurisdictions.join(", ")}
+        Physical security provided by: {allJurisdictions.join(", ")}
       </Typography>
 
-      <FormControl className={classes.select}>
-        <InputLabel id="select-jurisdiction">Jurisdication</InputLabel>
-        <Select
-          labelId="select-jurisdiction"
-          id="select-jurisdiction"
-          value={jurisdiction || ""}
-          onChange={handleJurisdictionChange}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {allJurisdictions?.map((jur, i) => <MenuItem key={i} value={jur}>{jur}</MenuItem>)}
-        </Select>
-      </FormControl>
+      <Grid
+        alignContent="center"
+        alignItems="center"
+        container
+        spacing={1}
+        className={classes.root}
+      >
 
-      <Typography>
-        Found {taxes.length} taxable events
-      </Typography>
+        <Grid item md={4}>
+          <FormControl className={classes.select}>
+            <InputLabel id="select-jurisdiction">Jurisdication</InputLabel>
+            <Select
+              labelId="select-jurisdiction"
+              id="select-jurisdiction"
+              value={jurisdiction || ""}
+              onChange={handleJurisdictionChange}
+            >
+              <MenuItem value={""}>-</MenuItem>
+              {allJurisdictions?.map((jur, i) => <MenuItem key={i} value={jur}>{jur}</MenuItem>)}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item md={8}>
+          <Card className={classes.exportCard}>
+            <CardHeader title={"Export CSV"}/>
+
+            <InputDate label="From Date" setDate={setFromDate} />
+            <InputDate label="To Date" setDate={setToDate} />
+
+            <Button
+              className={classes.exportButton}
+              color="primary"
+              fullWidth={false}
+              onClick={handleExport}
+              size="small"
+              startIcon={<DownloadIcon />}
+              variant="contained"
+            >
+              Download
+            </Button>
+          </Card>
+        </Grid>
+
+      </Grid>
 
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {taxes.length === events.length
-            ? `${taxes.length} Events`
-            : `${taxes.length} of ${events.length} Events`
-          }
+          {`${taxes.length} Taxable ${jurisdiction} Events`}
         </Typography>
 
         <TableContainer>
@@ -147,16 +327,33 @@ export const TaxesExplorer = ({
             <TableHead>
               <TableRow>
                 <TableCell><strong> Date </strong></TableCell>
-                <TableCell><strong> Type </strong></TableCell>
-                <TableCell><strong> Description </strong></TableCell>
-                <TableCell><strong> Details </strong></TableCell>
+                <TableCell><strong> Action </strong></TableCell>
+                <TableCell><strong> Asset </strong></TableCell>
+                <TableCell><strong> {`Price (${jurisdiction}/Asset)`} </strong></TableCell>
+                <TableCell><strong> {`Value (${jurisdiction})`} </strong></TableCell>
+                <TableCell><strong> Receive Date </strong></TableCell>
+                <TableCell><strong> {`Receive Price (${jurisdiction}/Asset)`} </strong></TableCell>
+                <TableCell><strong> {`Capital Change (${jurisdiction})`} </strong></TableCell>
+                <TableCell><strong> {`Cumulative Change (${jurisdiction})`} </strong></TableCell>
+                <TableCell><strong> {`Cumulative Income (${jurisdiction})`} </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {taxes
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((event: Events, i: number) => (
-                  <EventRow addressBook={addressBook} key={i} event={event} unit={unit} />
+                .map((row: TaxRow, i: number) => (
+                  <TableRow key={i}>
+                    <TableCell> {row.date.replace("T", " ").replace(".000Z", "")} </TableCell>
+                    <TableCell> {row.action} </TableCell>
+                    <TableCell> {`${fmtNum(row.amount)} ${row.asset}`} </TableCell>
+                    <TableCell> {fmtNum(row.price)} </TableCell>
+                    <TableCell> {fmtNum(row.value)} </TableCell>
+                    <TableCell> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
+                    <TableCell> {fmtNum(row.receivePrice)} </TableCell>
+                    <TableCell> {fmtNum(row.capitalChange)} </TableCell>
+                    <TableCell> {fmtNum(row.cumulativeChange)} </TableCell>
+                    <TableCell> {fmtNum(row.cumulativeIncome)} </TableCell>
+                  </TableRow>
                 ))}
             </TableBody>
           </Table>

@@ -38,6 +38,7 @@ const pethAddress = "0xf53ad2c6851052a81b42133467480961b2321c09";
 const saiCageAddress = "0x9fdc15106da755f9ffd5b0ba9854cfb89602e0fd";
 const mcdMigrationAddress = "0xc73e0383f3aff3215e6f04b0331d58cecf0ab849";
 const managerAddress = "0x5ef30b9986345249bc32d8928b7ee64de9435e39";
+const scdGemPitAddress = "0x69076e44a9c70a67d5b79d95795aba299083c275";
 
 const proxyAddresses = [
   { name: "maker-proxy-registry", address: "0x4678f0a6958e4d2bc4f1baf7bc52e8f3564f3fe4" },
@@ -47,7 +48,7 @@ const proxyAddresses = [
 const machineAddresses = [
   // Single-collateral DAI
   { name: "scd-cage", address: saiCageAddress },
-  { name: "scd-gem-pit", address: "0x69076e44a9c70a67d5b79d95795aba299083c275" },
+  { name: "scd-gem-pit", address: scdGemPitAddress },
   { name: "scd-tap", address: "0xbda109309f9fafa6dd6a9cb9f1df4085b27ee8ef" },
   { name: "scd-tub", address: tubAddress },
   { name: "scd-vox", address: "0x9b0f70df76165442ca6092939132bbaea77f2d7a" },
@@ -268,7 +269,7 @@ export const makerParser = (
           tx.transfers.push({
             asset,
             category: Borrow,
-            from: AddressZero,
+            from: AddressZero, // placeholder, we'll set the real value while parsing Vat events
             index,
             quantity: wad,
             to: event.args.guy,
@@ -293,7 +294,7 @@ export const makerParser = (
             from: event.args.guy,
             index,
             quantity: wad,
-            to: AddressZero,
+            to: AddressZero, // placeholder, we'll set the real value while parsing Vat events
           });
         }
       } else if (["Approval", "Transfer"].includes(event.name)) {
@@ -524,7 +525,7 @@ export const makerParser = (
         // Get the WETH transfer with the quantity that's closest to the wad
         const swapOut = tx.transfers.filter(t =>
           t.asset === WETH
-          && t.to !== AddressZero
+          && t.to !== ETH
           && ([Expense, SwapOut] as TransferCategory[]).includes(t.category)
         ).sort(diffAsc(wad))[0];
         if (swapOut) {
@@ -570,7 +571,7 @@ export const makerParser = (
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
-          && !smeq(t.to, AddressZero)
+          && t.to !== ETH
           && ([Expense, Deposit] as TransferCategory[]).includes(t.category)
           && (smeq(tubAddress, t.to) || isSelf(t.from))
         ).sort(diffAsc(wad))[0];
@@ -665,7 +666,7 @@ export const makerParser = (
         );
         if (fee) {
           fee.category = Expense;
-          fee.to = AddressZero;
+          fee.to = scdGemPitAddress;
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a MKR/SAI fee`);
         }

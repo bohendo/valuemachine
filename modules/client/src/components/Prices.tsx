@@ -99,7 +99,7 @@ export const PriceManager = ({
     if (!pricesJson || !Object.keys(prices).length) return;
     const newFilteredPrices = {} as PricesJson;
     Object.entries(pricesJson).forEach(([date, priceList]) => {
-      if (filterDate && filterDate !== date.split("T")[0]) return null;
+      if (filterDate && !date.startsWith(filterDate.split("T")[0])) return null;
       if (Object.keys(priceList).length === 0) return null;
       if (Object.keys(priceList[unit] || {}).length === 0) return null;
       Object.entries(priceList[unit] || {}).forEach(([asset, price]) => {

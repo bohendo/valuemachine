@@ -120,9 +120,8 @@ const App: React.FC = () => {
 
             <Route exact path="/taxes">
               <TaxesExplorer
-                addressBook={addressBook}
                 events={events}
-                unit={unit}
+                pricesJson={pricesJson}
               />
             </Route>
 
