@@ -121,6 +121,7 @@ const App: React.FC = () => {
             <Route exact path="/taxes">
               <TaxesExplorer
                 events={events}
+                pricesJson={pricesJson}
               />
             </Route>
 

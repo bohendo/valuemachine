@@ -1,5 +1,7 @@
+import { getPrices } from "@finances/core";
 import {
   DateString,
+  PricesJson,
   DecimalString,
   Assets,
   EventTypes,
@@ -30,6 +32,8 @@ import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
+
+import { store } from "../store";
 
 import { InputDate } from "./InputDate";
 
@@ -69,6 +73,7 @@ type TaxRow = {
   amount: DecimalString;
   asset: Assets;
   price: DecimalString;
+  value: DecimalString;
   receiveDate: DateString;
   receivePrice: DecimalString;
   capitalChange: DecimalString;
@@ -78,8 +83,10 @@ type TaxRow = {
 
 export const TaxesExplorer = ({
   events,
+  pricesJson,
 }: {
   events: Events,
+  pricesJson: PricesJson,
 }) => {
   const classes = useStyles();
   const [page, setPage] = useState(0);
@@ -106,6 +113,8 @@ export const TaxesExplorer = ({
   }, [events]);
 
   useEffect(() => {
+    if (!jurisdiction || !events?.length) return;
+    const prices = getPrices({ pricesJson, store, unit: jurisdiction });
     let cumulativeIncome = "0";
     let cumulativeChange = "0";
     setTaxes(
@@ -122,16 +131,19 @@ export const TaxesExplorer = ({
       }).reduce((output, evt) => {
         if (evt.type === EventTypes.Trade) {
           return output.concat(...evt.spentChunks.map(chunk => {
-            const currentPrice = evt.prices?.[jurisdiction]?.[chunk.asset];
-            const capitalChange = mul(chunk.quantity, sub(currentPrice, chunk.receivePrice));
+            const price = prices.getPrice(evt.date, chunk.asset);
+            const value = mul(chunk.quantity, price);
+            const receivePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
+            const capitalChange = mul(chunk.quantity, sub(price, receivePrice));
             cumulativeChange = add(cumulativeChange, capitalChange);
             return {
               date: evt.date,
               action: EventTypes.Trade,
               amount: chunk.quantity,
               asset: chunk.asset,
-              price: currentPrice,
-              receivePrice: chunk.receivePrice,
+              price,
+              value,
+              receivePrice,
               receiveDate: chunk.receiveDate,
               capitalChange,
               cumulativeChange,
@@ -139,30 +151,35 @@ export const TaxesExplorer = ({
             };
           }));
         } else if (evt.category === TransferCategories.Income) {
-          cumulativeIncome = add(cumulativeIncome, evt.quantity);
+          const price = prices.getPrice(evt.date, evt.asset);
+          const income = mul(evt.quantity, price);
+          cumulativeIncome = add(cumulativeIncome, income);
           return output.concat({
             date: evt.date,
             action: TransferCategories.Income,
             amount: evt.quantity,
             asset: evt.asset,
-            price: evt.prices?.[jurisdiction]?.[evt.asset],
-            receivePrice: evt.prices?.[jurisdiction]?.[evt.asset],
+            price,
+            value: income,
+            receivePrice: price,
             receiveDate: evt.date,
             capitalChange: "0",
             cumulativeChange,
             cumulativeIncome,
           });
         } else if (evt.type === EventTypes.JurisdictionChange) {
-          // TODO: handle this better
           console.warn(evt, `Temporarily pretending this jurisdiction change is income`);
-          cumulativeIncome = add(cumulativeIncome, evt.quantity);
+          const price = prices.getPrice(evt.date, evt.asset);
+          const income = mul(evt.quantity, price);
+          cumulativeIncome = add(cumulativeIncome, income);
           return output.concat({
             date: evt.date,
             action: TransferCategories.Income,
             amount: evt.quantity,
             asset: evt.asset,
-            price: evt.newPrice || "0",
-            receivePrice: evt.newPrice || "0",
+            price,
+            value: income,
+            receivePrice: price,
             receiveDate: evt.date,
             capitalChange: "0",
             cumulativeChange,
@@ -173,7 +190,7 @@ export const TaxesExplorer = ({
         }
       }, [])
     );
-  }, [jurisdiction, events]);
+  }, [jurisdiction, events, pricesJson]);
 
   const handleExport = () => {
     if (!taxes?.length) { console.warn("Nothing to export"); return; }
@@ -287,6 +304,7 @@ export const TaxesExplorer = ({
                 <TableCell><strong> Action </strong></TableCell>
                 <TableCell><strong> Asset </strong></TableCell>
                 <TableCell><strong> Price </strong></TableCell>
+                <TableCell><strong> {`${jurisdiction} Value`} </strong></TableCell>
                 <TableCell><strong> Receive Date </strong></TableCell>
                 <TableCell><strong> Receive Price </strong></TableCell>
                 <TableCell><strong> Capital Change </strong></TableCell>
@@ -303,6 +321,7 @@ export const TaxesExplorer = ({
                     <TableCell> {row.action} </TableCell>
                     <TableCell> {`${round(row.amount)} ${row.asset}`} </TableCell>
                     <TableCell> {round(row.price)} </TableCell>
+                    <TableCell> {round(row.value)} </TableCell>
                     <TableCell> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
                     <TableCell> {round(row.receivePrice)} </TableCell>
                     <TableCell> {round(row.capitalChange)} </TableCell>
