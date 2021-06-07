@@ -32,6 +32,8 @@ import DownloadIcon from "@material-ui/icons/GetApp";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
 
+import { InputDate } from "./InputDate";
+
 const { add, mul, sub } = math;
 const round = (num: DecimalString): DecimalString => math.round(num, 4);
 
@@ -58,7 +60,6 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
   exportCard: {
     margin: theme.spacing(2),
-    maxWidth: theme.spacing(24),
   },
 }));
 
@@ -90,6 +91,8 @@ export const TaxesExplorer = ({
   const [allJurisdictions, setAllJurisdictions] = useState([]);
   const [jurisdiction, setJurisdiction] = React.useState(0);
   const [taxes, setTaxes] = React.useState([] as TaxRow[]);
+  const [fromDate, setFromDate] = React.useState("");
+  const [toDate, setToDate] = React.useState("");
 
   // TODO: remove these from props?
   console.log(`${addressBook?.addresses?.length || 0} addresses & unit of ${unit}`);
@@ -114,8 +117,8 @@ export const TaxesExplorer = ({
     let cumulativeChange = "0";
     setTaxes(
       events.filter(evt => {
-        const toJur = getJurisdiction(evt.to);
-        const fromJur = getJurisdiction(evt.from);
+        const toJur = getJurisdiction(evt.to || evt.account);
+        const fromJur = getJurisdiction(evt.from || evt.account);
         return (
           evt.type === EventTypes.Trade
           || evt.type === EventTypes.JurisdictionChange
@@ -126,7 +129,7 @@ export const TaxesExplorer = ({
       }).reduce((output, evt) => {
         if (evt.type === EventTypes.Trade) {
           return output.concat(...evt.spentChunks.map(chunk => {
-            const currentPrice = evt.prices[chunk.asset];
+            const currentPrice = evt.prices?.[jurisdiction]?.[chunk.asset];
             const capitalChange = mul(chunk.quantity, sub(currentPrice, chunk.receivePrice));
             cumulativeChange = add(cumulativeChange, capitalChange);
             return {
@@ -165,8 +168,8 @@ export const TaxesExplorer = ({
             action: TransferCategories.Income,
             amount: evt.quantity,
             asset: evt.asset,
-            price: evt.prices?.[evt.asset] || "0",
-            receivePrice: evt.prices?.[evt.asset] || "0",
+            price: evt.newPrice || "0",
+            receivePrice: evt.newPrice || "0",
             receiveDate: evt.date,
             capitalChange: "0",
             cumulativeChange,
@@ -181,7 +184,15 @@ export const TaxesExplorer = ({
 
   const handleExport = () => {
     if (!taxes?.length) { console.warn("Nothing to export"); return; }
-    const output = json2csv(taxes, Object.keys(taxes[0]));
+    const getDate = (timestamp: string): string =>
+      (new Date(timestamp)).toISOString().split("T")[0];
+    const output = json2csv(
+      taxes.filter(row =>
+        (!fromDate || getDate(row.date) >= getDate(fromDate)) &&
+        (!toDate || getDate(row.date) <= getDate(toDate))
+      ),
+      Object.keys(taxes[0]),
+    );
     const name = `${jurisdiction}-taxes.csv`;
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
@@ -240,6 +251,10 @@ export const TaxesExplorer = ({
         <Grid item md={6}>
           <Card className={classes.exportCard}>
             <CardHeader title={"Export CSV"}/>
+
+            <InputDate label="From Date" setDate={setFromDate} />
+            <InputDate label="To Date" setDate={setToDate} />
+
             <Button
               className={classes.exportButton}
               color="primary"

@@ -220,11 +220,10 @@ export const EventRow = ({
                   ...chunksToDisplay(event.movedChunks, event.prices),
 
                 } : event.type === EventTypes.Trade ? {
-                  ["Giver"]: event.from,
+                  ["Account"]: event.account,
                   ["Given"]: swapToStr(event.outputs),
-                  ["Taker"]: event.to,
                   ["Taken"]: swapToStr(event.inputs),
-                  [`New Taker Balances`]: balToStr(event.newBalances, event.from),
+                  [`New Balances`]: balToStr(event.newBalances, event.account),
                   ["Total Capital Change"]: round(event.spentChunks?.reduce((sum, chunk) => add(
                     sum,
                     mul(chunk.quantity, sub(event?.prices?.[chunk.asset], chunk.receivePrice)),

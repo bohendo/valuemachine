@@ -22,32 +22,33 @@ type BaseEvent = {
 
 type TransferEvent = BaseEvent & {
   asset: Assets;
-  assetPrice: DecimalString;
+  assetPrice: { [unit: string]: DecimalString };
   category: TransferCategory;
   from: Address;
   quantity: DecimalString;
   to: Address;
-}
+};
 
 export type TradeEvent = BaseEvent & {
   inputs: { [asset: string]: DecimalString };
-  to: Address;
-  from: Address;
+  account: Address;
   outputs: { [asset: string]: DecimalString };
-  prices: { [asset: string]: DecimalString };
+  prices: { [unit: string]: { [asset: string]: DecimalString } };
   spentChunks: AssetChunk[];
   type: typeof EventTypes.Trade;
-}
+};
 
 export type JurisdictionChangeEvent = BaseEvent & {
   oldJurisdiction: SecurityProvider;
   newJurisdiction: SecurityProvider;
   asset: Assets;
   movedChunks: AssetChunk[];
+  oldPrice: DecimalString;
+  newPrice: DecimalString;
   quantity: DecimalString;
   to: Address;
   from: Address;
-}
+};
 
 export type Event = TransferEvent | TradeEvent | JurisdictionChangeEvent;
 export type Events = Event[];

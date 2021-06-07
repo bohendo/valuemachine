@@ -74,23 +74,25 @@ export const getValueMachine = ({
         return [];
       }
       return [{
+        asset: asset,
         date: transaction.date,
         description: `${round(quantity)} ${
           asset
         } moved jurisdictions from ${oldJurisdiction} to ${newJurisdiction}`,
-        type: EventTypes.JurisdictionChange,
-        tags: transaction.tags,
+        from: from,
+        movedChunks: chunks,
         newBalances: {
           [to]: { [asset]: state.getBalance(to, asset) },
           [from]: { [asset]: state.getBalance(from, asset) },
         },
-        oldJurisdiction,
         newJurisdiction,
-        movedChunks: chunks,
-        asset: asset,
+        newPrice: prices.getPrice(transaction.date, asset, newJurisdiction as Assets),
+        oldJurisdiction,
+        oldPrice: prices.getPrice(transaction.date, asset, oldJurisdiction as Assets),
         quantity: quantity,
+        tags: transaction.tags,
         to: to,
-        from: from,
+        type: EventTypes.JurisdictionChange,
       }];
     };
 
@@ -121,9 +123,16 @@ export const getValueMachine = ({
         return events;
       }
       const amt = round(quantity);
+      const jurisdiction = getJurisdiction(to) as Assets;
+      const assetPrice = {
+        [jurisdiction]: prices.getPrice(transaction.date, asset, jurisdiction),
+      };
+      if (jurisdiction !== unit) {
+        assetPrice[unit] = prices.getPrice(transaction.date, asset, unit);
+      }
       const newEvent = {
         asset: asset,
-        assetPrice: prices.getPrice(transaction.date, asset, unit),
+        assetPrice,
         category,
         date: transaction.date,
         description: 
@@ -143,8 +152,8 @@ export const getValueMachine = ({
       } as any;
       // We exclude internal transfers so both to & from shouldn't be self/abstract
       newEvent.newBalances = {
-        [transfer.to]: { [asset]: state.getBalance(transfer.to, asset) },
-        [transfer.from]: { [asset]: state.getBalance(transfer.from, asset) },
+        [transfer.to]: { [jurisdiction]: { [asset]: state.getBalance(transfer.to, asset) } },
+        [transfer.from]: { [jurisdiction]: { [asset]: state.getBalance(transfer.from, asset) } },
       };
       events.push(newEvent);
       return events;
@@ -171,10 +180,6 @@ export const getValueMachine = ({
       const assetsIn = rmDups(swapsIn.map(swap => swap.asset)
         .filter(asset => !assetsOut.includes(asset)) // remove refunds from the output asset list
       );
-      // Save prices at the time of this tx
-      for (const asset of rmDups([...assetsIn, ...assetsOut]) as Assets[]) {
-        tradeEvent.prices[asset] = prices.getPrice(transaction.date, asset, unit);
-      }
       const amtsOut = assetsOut.map(asset =>
         swapsIn
           .filter(swap => swap.asset === asset)
@@ -203,15 +208,24 @@ export const getValueMachine = ({
       tradeEvent.inputs = inputs;
       tradeEvent.outputs = outputs;
 
-      // TODO: abort or handle if to/from values aren't consistent among swap chunks
-      tradeEvent.from = swapsOut[0].from;
-      tradeEvent.to = swapsIn[0].to;
+      // TODO: abort or handle when to/from values aren't consistent among swap chunks
+      // eg we could add a synthetic internal transfer then make the swap touch only one account
+      tradeEvent.account = swapsIn[0].to || swapsOut[0].from;
+      const jurisdiction = getJurisdiction(tradeEvent.account) as Assets;
+      // Save prices at the time of this tx
+      for (const asset of rmDups([...assetsIn, ...assetsOut]) as Assets[]) {
+        tradeEvent.prices[jurisdiction][asset] = prices.getPrice(
+          transaction.date,
+          asset,
+          jurisdiction,
+        );
+      }
 
       // Process trade
       let chunks = [] as any;
       for (const [asset, quantity] of Object.entries(outputs)) {
         chunks = state.getChunks(
-          tradeEvent.from,
+          tradeEvent.account,
           asset as Assets,
           quantity as string,
           transaction.date,
@@ -228,21 +242,24 @@ export const getValueMachine = ({
           transaction.date,
           unit,
         );
-        chunks.forEach(chunk => state.putChunk(tradeEvent.to, chunk));
+        chunks.forEach(chunk => state.putChunk(tradeEvent.account, chunk));
+        // TODO: prevent trades from crossing jurisdictions
         events.push(...emitJurisdictionChange(
           asset as Assets,
           quantity as DecimalString,
-          tradeEvent.from,
-          tradeEvent.to,
+          swapsIn[0].from,
+          swapsIn[0].to,
           transaction,
           chunks
         ));
       }
 
-      tradeEvent.newBalances = { [tradeEvent.to]: {}, [tradeEvent.from]: {} };
-      for (const asset of rmDups(Object.keys(inputs).concat(Object.keys(outputs))) as Assets[]) {
-        tradeEvent.newBalances[tradeEvent.to][asset] = state.getBalance(tradeEvent.to, asset);
-        tradeEvent.newBalances[tradeEvent.from][asset] = state.getBalance(tradeEvent.from, asset);
+      tradeEvent.newBalances = { [tradeEvent.account]: {} };
+      for (const asset of rmDups(
+        Object.keys(inputs).concat(Object.keys(outputs))
+      ) as Assets[]) {
+        tradeEvent.newBalances[tradeEvent.account][asset] =
+          state.getBalance(tradeEvent.account, asset);
       }
       events.push(tradeEvent);
 
