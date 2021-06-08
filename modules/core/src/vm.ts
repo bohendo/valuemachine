@@ -1,4 +1,3 @@
-import { AddressZero } from "@ethersproject/constants";
 import {
   Account,
   AddressBook,
@@ -7,8 +6,8 @@ import {
   Blockchains,
   DecimalString,
   Event,
-  EventTypes,
   Events,
+  EventTypes,
   Logger,
   StateJson,
   TradeEvent,
@@ -46,9 +45,6 @@ export const getValueMachine = ({
     log.debug(`Applying transaction ${transaction.index} from ${
       transaction.date
     }: ${transaction.description}`);
-    log.debug(transaction.transfers, `Applying transfers to sub-state ${
-      JSON.stringify(state.getRelevantBalances(transaction), null, 2)
-    }`);
     const events = [] as Event[];
 
     const emitJurisdictionChange = (
@@ -63,6 +59,10 @@ export const getValueMachine = ({
       const newJurisdiction = getJurisdiction(to);
       if (oldJurisdiction === newJurisdiction) {
         return [];
+      }
+      const insecureChunks = state.getInsecure(transaction.date, asset, quantity);
+      if (insecureChunks.length) {
+        log.warn(`We have ${insecureChunks.length} chunks that are unsecured`);
       }
       return [{
         asset: asset,
@@ -145,32 +145,29 @@ export const getValueMachine = ({
     const handleTransfer = (
       transfer: Transfer,
     ): void => {
-      const { asset, from, quantity, to } = transfer;
+      const { asset, category, from, quantity, to } = transfer;
       if (
         !Object.values(Assets).includes(asset) &&
         !addressBook.isToken(asset)
       ) {
-        log.debug(`Skipping transfer of unsupported token: ${asset}`);
+        log.warn(`Skipping transfer of unsupported token: ${asset}`);
         return;
       }
       log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${getName(to)}`);
       let chunks;
-      try {
-        chunks = state.getChunks(
-          from,
-          asset,
-          quantity,
-          transaction.date,
-          transfer,
-          events,
-        );
+      if (([Internal, Deposit, Withdraw] as TransferCategory[]).includes(category)) {
+        chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
         chunks.forEach(chunk => state.putChunk(to, chunk));
-        events.push(
-          ...emitTransferEvents(addressBook, chunks, transaction, transfer)
-        );
-      } catch (e) {
-        log.warn(transaction, `Error while processing tx: ${e.message}`);
-        throw e;
+      } else if (([Expense, SwapOut, Repay] as TransferCategory[]).includes(category)) {
+        chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
+        chunks.forEach(chunk => state.disposeChunk(chunk, transaction.date, from, to));
+        events.push(...emitTransferEvents(addressBook, chunks, transaction, transfer));
+      } else if (([Income, SwapIn, Borrow] as TransferCategory[]).includes(category)) {
+        chunks = [state.receiveChunk(asset, quantity, transaction.date)];
+        chunks.forEach(chunk => state.putChunk(to, chunk));
+        events.push(...emitTransferEvents(addressBook, chunks, transaction, transfer));
+      } else {
+        log.warn(transfer, `idk how to process this transfer`);
       }
     };
 
@@ -236,29 +233,26 @@ export const getValueMachine = ({
 
       // TODO: abort or handle when to/from values aren't consistent among swap chunks
       // eg we could add a synthetic internal transfer then make the swap touch only one account
-      tradeEvent.account = swapsIn[0].to || swapsOut[0].from;
+      const account = swapsIn[0].to || swapsOut[0].from;
+      const exchange = swapsOut[0].to || swapsIn[0].from;
+      tradeEvent.account = account;
 
       // Process trade
-      let chunks = [] as any;
-      for (const [asset, quantity] of Object.entries(outputs)) {
-        chunks = state.getChunks(
-          tradeEvent.account,
-          asset as Assets,
-          quantity as string,
-          transaction.date,
-        );
+      let chunks = [] as AssetChunk[];
+      for (const output of Object.entries(outputs)) {
+        const asset = output[0] as Assets;
+        const quantity = output[1] as DecimalString;
+        chunks = state.getChunks(account, asset, quantity, transaction.date);
+        chunks.forEach(chunk => state.disposeChunk(chunk, transaction.date, account, exchange));
         tradeEvent.spentChunks = [...chunks]; // Assumes chunks are never modified.. Is this safe?
-        chunks.forEach(chunk => state.putChunk(swapsOut[0].to, chunk));
       }
-      for (const [asset, quantity] of Object.entries(inputs)) {
-        chunks = state.getChunks(
-          AddressZero,
-          asset as Assets,
-          quantity as string,
-          transaction.date,
-        );
-        chunks.forEach(chunk => state.putChunk(tradeEvent.account, chunk));
-        // TODO: prevent trades from crossing jurisdictions
+
+      for (const input of Object.entries(inputs)) {
+        const asset = input[0] as Assets;
+        const quantity = input[1] as DecimalString;
+        chunks = [state.receiveChunk(asset, quantity, transaction.date)];
+        chunks.forEach(chunk => state.putChunk(account, chunk));
+        // TODO: What if trades cross jurisdictions?
         events.push(...emitJurisdictionChange(
           asset as Assets,
           quantity as DecimalString,
@@ -269,18 +263,22 @@ export const getValueMachine = ({
         ));
       }
 
-      tradeEvent.newBalances = { [tradeEvent.account]: {} };
+      tradeEvent.newBalances = { [account]: {} };
       for (const asset of rmDups(
         Object.keys(inputs).concat(Object.keys(outputs))
       ) as Assets[]) {
-        tradeEvent.newBalances[tradeEvent.account][asset] =
-          state.getBalance(tradeEvent.account, asset);
+        tradeEvent.newBalances[account][asset] =
+          state.getBalance(account, asset);
       }
       events.push(tradeEvent);
 
     // If no matching swaps, process them like normal transfers
     } else {
-      log.warn(swapsIn, `Can't find matching swaps in & out`);
+      if (swapsIn.length) {
+        log.warn(swapsIn, `Can't find matching swaps out`);
+      } else if (swapsOut.length){
+        log.warn(swapsOut, `Can't find matching swaps in`);
+      }
       swapsIn.forEach(handleTransfer);
       swapsOut.forEach(handleTransfer);
     }

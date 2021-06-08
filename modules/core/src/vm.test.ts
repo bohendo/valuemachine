@@ -21,7 +21,7 @@ const { UNI, ETH, UniV2_UNI_ETH } = Assets;
 const { Deposit, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Coinbase, EthTx } = TransactionSources;
 const log = testLogger.child({
-  // level: "debug",
+  level: "debug",
   module: "TestVM",
 });
 
@@ -61,7 +61,7 @@ describe("VM", () => {
     expect(vm).to.be.ok;
   });
 
-  it("should process an investment into uniswap LP tokens", async () => {
+  it.only("should process an investment into uniswap LP tokens", async () => {
     const transactions = [
       getTx([
         // Income
@@ -69,8 +69,8 @@ describe("VM", () => {
       ]), getTx([
         // Trade ETH for UNI
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "5.00", to: notMe },
-        { asset: UNI, category: SwapIn, from: notMe, quantity: "100.00", to: ethAccount },
+        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.5", to: notMe },
+        { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
       ]), getTx([
         // Trade UNI + ETH for LP
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
@@ -102,7 +102,9 @@ describe("VM", () => {
       events.push(...newEvents);
       log.debug(newState, "new state");
       log.debug(newEvents, "new events");
+      log.debug(); log.debug(); log.debug(); log.debug();
     }
+    log.debug(events, "all events");
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
@@ -196,5 +198,3 @@ describe("VM", () => {
   });
 
 });
-
-

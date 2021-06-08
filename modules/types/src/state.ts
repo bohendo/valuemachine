@@ -10,6 +10,7 @@ export type Account = Address | string;
 
 export type StateJson = {
   lastUpdated: TimestampString;
+  totalChunks: number;
   accounts: { [account: string]: AssetChunk[] };
 }
 
@@ -35,9 +36,22 @@ export interface State {
     transfer?: Transfer,
     events?: Events,
   ): AssetChunk[];
+  getInsecure(date: TimestampString, asset: Assets, quantity: DecimalString): AssetChunk[];
   getNetWorth(): NetWorth;
   getRelevantBalances(tx: Transaction): StateBalances;
   putChunk(account: Account, chunk: AssetChunk): void;
+  receiveChunk(
+    asset: Assets,
+    quantity: DecimalString,
+    receiveDate: TimestampString,
+    sources?: number[],
+  ): AssetChunk;
+  disposeChunk(
+    chunk: AssetChunk,
+    date: TimestampString,
+    from: Account,
+    to: Account,
+  ): void;
   toJson(): StateJson;
   touch(lastUpdated: TimestampString): void;
 }
@@ -45,4 +59,5 @@ export interface State {
 export const emptyState = {
   accounts: {},
   lastUpdated: (new Date(0)).toISOString(),
+  totalChunks: 0,
 } as StateJson;

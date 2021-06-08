@@ -193,8 +193,13 @@ export const Assets = enumify({
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type Assets = (typeof Assets)[keyof typeof Assets];
 
+// sources = indexes of the chunks this one was traded for (eg 2 sources for ETH + UNI => LP)
+// sources = [] if received as income
 export type AssetChunk = {
   asset: Assets;
+  disposeDate?: TimestampString;
   quantity: DecimalString;
   receiveDate: TimestampString;
+  sources: number[];
+  index: number;
 };
