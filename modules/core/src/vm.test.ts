@@ -20,7 +20,7 @@ const { UNI, ETH, UniV2_UNI_ETH } = Assets;
 const { Deposit, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Coinbase, EthTx } = TransactionSources;
 const log = testLogger.child({
-  level: "debug",
+  // level: "debug",
   module: "TestVM",
 });
 
@@ -41,7 +41,7 @@ const getTx = (transfers: Transfer): Transaction => ({
   description: "test transaction",
 });
 
-describe.only("VM", () => {
+describe("VM", () => {
   let addressBook;
   let prices: Prices;
   let state: State;

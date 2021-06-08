@@ -1,4 +1,3 @@
-import { isAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import {
   Account,
@@ -108,7 +107,8 @@ export const getValueMachine = ({
       if (
         // Skip tx fees for now, too much noise
         (category === Expense && Object.keys(Blockchains).includes(to))
-        || (category === Internal && isAddress(to)) // We might not ever need these
+        // Skip internal transfers for now, also noisy & not super useful
+        || category === Internal || category === Deposit || category === Withdraw
       ) {
         return events;
       }
@@ -119,12 +119,9 @@ export const getValueMachine = ({
         date: transaction.date,
         description: 
           (category === Income) ? `Received ${amt} ${asset} from ${getName(from)}`
-          : (category === Internal) ? `Moved ${amt} ${asset} from ${getName(from)} to ${getName(to)}`
           : (category === Expense) ? `Paid ${amt} ${asset} to ${getName(to)}`
           : (category === Repay) ? `Repayed ${amt} ${asset} to ${getName(to)}`
-          : (category === Deposit) ? `Deposited ${amt} ${asset} to ${getName(to)}`
           : (category === Borrow) ? `Borrowed ${amt} ${asset} from ${getName(from)}`
-          : (category === Withdraw) ? `Withdrew ${amt} ${asset} from ${getName(from)}`
           : "?",
         from: transfer.from,
         quantity,
