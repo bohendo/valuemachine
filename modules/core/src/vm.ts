@@ -141,6 +141,42 @@ export const getValueMachine = ({
       return events;
     };
 
+    const handleTransfer = (
+      transfer: Transfer,
+    ): void => {
+      const { asset, from, quantity, to } = transfer;
+      if (
+        !Object.values(Assets).includes(asset) &&
+        !addressBook.isToken(asset)
+      ) {
+        log.debug(`Skipping transfer of unsupported token: ${asset}`);
+        return;
+      }
+      log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${getName(to)}`);
+      let chunks;
+      try {
+        chunks = state.getChunks(
+          from,
+          asset,
+          quantity,
+          transaction.date,
+          transfer,
+          events,
+        );
+        chunks.forEach(chunk => state.putChunk(to, chunk));
+        events.push(
+          ...emitTransferEvents(addressBook, chunks, transaction, transfer)
+        );
+      } catch (e) {
+        log.warn(`Error while processing tx ${e.message}: ${JSON.stringify(transaction)}`);
+        if (e.message.includes("attempted to spend")) {
+          later.push(transfer);
+        } else {
+          throw e;
+        }
+      }
+    };
+
     ////////////////////////////////////////
     // VM Core
 
@@ -249,41 +285,9 @@ export const getValueMachine = ({
 
     ////////////////////
     // Simple Transfers Attempt 1
-    for (const transfer of transaction.transfers.filter(
+    transaction.transfers.filter(
       t => !([SwapIn, SwapOut] as TransferCategory[]).includes(t.category)
-    )) {
-      const { asset, from, quantity, to } = transfer;
-      if (
-        !Object.values(Assets).includes(asset) &&
-        !addressBook.isToken(asset)
-      ) {
-        log.debug(`Skipping transfer of unsupported token: ${asset}`);
-        continue;
-      }
-      log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${getName(to)}`);
-      let chunks;
-      try {
-        chunks = state.getChunks(
-          from,
-          asset,
-          quantity,
-          transaction.date,
-          transfer,
-          events,
-        );
-        chunks.forEach(chunk => state.putChunk(to, chunk));
-        events.push(
-          ...emitTransferEvents(addressBook, chunks, transaction, transfer)
-        );
-      } catch (e) {
-        log.warn(`Error while processing tx ${e.message}: ${JSON.stringify(transaction)}`);
-        if (e.message.includes("attempted to spend")) {
-          later.push(transfer);
-        } else {
-          throw e;
-        }
-      }
-    }
+    ).forEach(handleTransfer);
 
     ////////////////////
     // Simple Transfers Attempt 2

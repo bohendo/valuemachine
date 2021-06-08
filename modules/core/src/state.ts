@@ -72,6 +72,8 @@ export const getState = ({
     return state.accounts[account].splice(index, 1)[0];
   };
 
+  const insecureChunks = [];
+
   ////////////////////////////////////////
   // Exported Functions
 
@@ -124,7 +126,7 @@ export const getState = ({
   ): AssetChunk[] => {
     // We assume nothing about the history of chunks coming to us from external parties
     if (!haveAccount(account)) {
-      return [{ asset, quantity, receiveDate: date }];
+      return [{ asset, quantity, receiveDate: date }]; // mint new chunk
     }
     log.debug(`Getting chunks totaling ${quantity} ${asset} from ${account}`);
     const output = [];
@@ -134,7 +136,7 @@ export const getState = ({
       log.debug(chunk, `Got next chunk of ${asset} w ${togo} to go`);
       if (!chunk) {
         // TODO: if account is an address then don't let the balance go negative?
-        const newChunk = { asset, receiveDate: date, quantity: togo };
+        const newChunk = { asset, receiveDate: date, quantity: togo }; // mint new chunk
         output.push(newChunk);
         if (!isOpaqueInterestBearers(account)) {
           // Register debt by pushing a new negative-quantity chunk
@@ -154,11 +156,11 @@ export const getState = ({
             to: transfer.to,
             type: EventTypes.Transfer,
           });
-          // emit an income event?
         }
         return output;
       }
       if (gt(chunk.quantity, togo)) {
+        // split chunk into what we need & put the rest back
         putChunk(account, { ...chunk, quantity: sub(chunk.quantity, togo) });
         output.push({ ...chunk, quantity: togo });
         return output;
