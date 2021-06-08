@@ -6,8 +6,8 @@ import {
   DecimalString,
   Events,
   EventTypes,
-  Fiat,
   PricesJson,
+  SecurityProviders,
   TransferCategories,
 } from "@finances/types";
 import { getJurisdiction, math } from "@finances/utils";
@@ -38,6 +38,7 @@ import { store } from "../store";
 
 import { InputDate } from "./InputDate";
 
+const { ETH } = Assets;
 const { add, mul, sub } = math;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -98,7 +99,7 @@ export const TaxesExplorer = ({
   const [toDate, setToDate] = React.useState("");
 
   const fmtNum = num => {
-    const round = math.round(num, 2);
+    const round = math.round(num, jurisdiction === ETH ? 4 : 2);
     const insert = (str: string, index: number, char: string = ",") =>
       str.substring(0, index) + char + str.substring(index);
     if (jurisdiction === Assets.INR) {
@@ -124,19 +125,18 @@ export const TaxesExplorer = ({
     return commify(round);
   };
 
-  console.log(`Formatting 12345=>${fmtNum("12345")} | 1234567=>${fmtNum("1234567")} | 123456789=>${fmtNum("123456789")}`);
-
   useEffect(() => {
     const newJurisdictions = Array.from(events
-      .filter(e => e.type === EventTypes.JurisdictionChange)
-      .reduce((all, cur) => {
-        Object.keys(Fiat).includes(cur.oldJurisdiction) && all.add(cur.oldJurisdiction);
-        Object.keys(Fiat).includes(cur.newJurisdiction) && all.add(cur.newJurisdiction);
+      .filter(e => e.type === EventTypes.Trade || (
+        e.type === EventTypes.Transfer && e.category === TransferCategories.Income
+      )).reduce((all, cur) => {
+        const jur = getJurisdiction(cur.to || cur.account);
+        if (Object.keys(SecurityProviders).includes(jur)) {
+          all.add(jur);
+        }
         return all;
       }, new Set())
-    ).sort((j1, j2) => j2 > j1 ? 1 : -1).sort((j1, j2) =>
-      !Object.keys(Fiat).includes(j1) && Object.keys(Fiat).includes(j2) ? 1 : -1
-    );
+    ).sort();
     setAllJurisdictions(newJurisdictions);
     setJurisdiction(newJurisdictions[0]);
   }, [events]);
@@ -287,10 +287,8 @@ export const TaxesExplorer = ({
         <Grid item md={8}>
           <Card className={classes.exportCard}>
             <CardHeader title={"Export CSV"}/>
-
             <InputDate label="From Date" setDate={setFromDate} />
             <InputDate label="To Date" setDate={setToDate} />
-
             <Button
               className={classes.exportButton}
               color="primary"
