@@ -30,7 +30,7 @@ export const getTransactions = ({
 
   const json = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
 
-  log.info(`Loaded transaction data containing ${
+  log.debug(`Loaded transaction data containing ${
     json.length
   } transactions from ${transactionsJson ? "input" : store ? "store" : "default"}`);
 

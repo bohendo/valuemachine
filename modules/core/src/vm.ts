@@ -1,5 +1,3 @@
-import { isAddress } from "@ethersproject/address";
-import { AddressZero } from "@ethersproject/constants";
 import {
   Account,
   AddressBook,
@@ -8,8 +6,8 @@ import {
   Blockchains,
   DecimalString,
   Event,
-  EventTypes,
   Events,
+  EventTypes,
   Logger,
   StateJson,
   TradeEvent,
@@ -40,17 +38,11 @@ export const getValueMachine = ({
   logger?: Logger
 }): any => {
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
-  const { getName } = addressBook;
 
   return (oldState: StateJson, transaction: Transaction): [StateJson, Event[]] => {
     const state = getState({ stateJson: oldState, addressBook, logger });
-    log.debug(`Applying transaction ${transaction.index} from ${
-      transaction.date
-    }: ${transaction.description}`);
-    log.debug(`Applying transfers: ${
-      JSON.stringify(transaction.transfers, null, 2)
-    } to sub-state ${
-      JSON.stringify(state.getRelevantBalances(transaction), null, 2)
+    log.debug(`Processing transaction ${transaction.index} from ${transaction.date}: ${
+      transaction.description
     }`);
     const events = [] as Event[];
 
@@ -66,6 +58,10 @@ export const getValueMachine = ({
       const newJurisdiction = getJurisdiction(to);
       if (oldJurisdiction === newJurisdiction) {
         return [];
+      }
+      const insecureChunks = state.getInsecure(transaction.date, asset, quantity);
+      if (insecureChunks.length) {
+        log.warn(`We have ${insecureChunks.length} chunks that are unsecured`);
       }
       return [{
         asset: asset,
@@ -89,73 +85,94 @@ export const getValueMachine = ({
     };
 
     const emitTransferEvents = (
-      addressBook: AddressBook,
-      chunks: AssetChunk[],
-      transaction: Transaction,
       transfer: Transfer,
+      transaction: Transaction,
+      chunks: AssetChunk[],
     ): Events => {
       const { getName } = addressBook;
-      const events = [];
       const { asset, category, from, quantity, to } = transfer;
-      events.push(...emitJurisdictionChange(
-        asset as Assets,
-        quantity as DecimalString,
-        from,
-        to,
-        transaction,
-        chunks
-      ));
-      if (
-        // Skip tx fees for now, too much noise
-        (category === Expense && Object.keys(Blockchains).includes(to))
-        || (category === Internal && isAddress(to)) // We might not ever need these
-      ) {
-        return events;
-      }
+      // Skip tx fees for now, too much noise
+      if (category === Expense && Object.keys(Blockchains).includes(to)) return [];
       const amt = round(quantity);
       const newEvent = {
         asset: asset,
         category,
         date: transaction.date,
-        description: 
-          (category === Income) ? `Received ${amt} ${asset} from ${getName(from)}`
-          : (category === Internal) ? `Moved ${amt} ${asset} from ${getName(from)} to ${getName(to)}`
-          : (category === Expense) ? `Paid ${amt} ${asset} to ${getName(to)}`
-          : (category === Repay) ? `Repayed ${amt} ${asset} to ${getName(to)}`
-          : (category === Deposit) ? `Deposited ${amt} ${asset} to ${getName(to)}`
-          : (category === Borrow) ? `Borrowed ${amt} ${asset} from ${getName(from)}`
-          : (category === Withdraw) ? `Withdrew ${amt} ${asset} from ${getName(from)}`
-          : "?",
+        description: `${category} of ${amt} ${asset}`,
         from: transfer.from,
         quantity,
         tags: transaction.tags,
         to: transfer.to,
         type: EventTypes.Transfer,
       } as Event;
-      // We exclude internal transfers so both to & from shouldn't be self/abstract
-      newEvent.newBalances = {
-        [transfer.to]: { [asset]: state.getBalance(transfer.to, asset) },
-        [transfer.from]: { [asset]: state.getBalance(transfer.from, asset) },
-      };
-      events.push(newEvent);
+      newEvent.newBalances = {};
+      if (([
+        Internal, Deposit, Withdraw, Expense, SwapOut, Repay
+      ] as TransferCategory[]).includes(category)) {
+        newEvent.newBalances[transfer.from] = { [asset]: state.getBalance(transfer.from, asset) };
+        newEvent.description += ` from ${getName(transfer.from)}`;
+      }
+      if (([
+        Internal, Deposit, Withdraw, Income, SwapIn, Borrow
+      ] as TransferCategory[]).includes(category)) {
+        newEvent.newBalances[transfer.to] = { [asset]: state.getBalance(transfer.to, asset) };
+        newEvent.description += ` to ${getName(transfer.to)}`;
+      }
+      const events = [newEvent];
+      events.push(...emitJurisdictionChange(asset, quantity, from, to, transaction, chunks));
       return events;
+    };
+
+    const handleTransfer = (
+      transfer: Transfer,
+    ): void => {
+      const { asset, category, from, quantity, to } = transfer;
+      // Move funds from one account to another
+      if (([Internal, Deposit, Withdraw] as TransferCategory[]).includes(category)) {
+        const chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
+        chunks.forEach(chunk => state.putChunk(to, chunk));
+      // Send funds out of our accounts
+      } else if (([Expense, SwapOut, Repay] as TransferCategory[]).includes(category)) {
+        const chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
+        chunks.forEach(chunk => state.disposeChunk(chunk, transaction.date, from, to));
+        events.push(...emitTransferEvents(transfer, transaction, chunks));
+      // Receive funds into one of our accounts
+      } else if (([Income, SwapIn, Borrow] as TransferCategory[]).includes(category)) {
+        const chunks = [state.receiveChunk(asset, quantity, transaction.date)]; // no sources
+        chunks.forEach(chunk => state.putChunk(to, chunk));
+        events.push(...emitTransferEvents(transfer, transaction, chunks));
+      } else {
+        log.warn(transfer, `idk how to process this transfer`);
+      }
     };
 
     ////////////////////////////////////////
     // VM Core
 
-    // Transfers to process at the end eg if something goes wrong on the first attempt
-    const later = [];
+    // Create any new abstract accounts
+    transaction.transfers.filter(
+      t => ([Deposit, Internal] as TransferCategory[]).includes(t.category)
+    ).forEach(transfer => state.createAccount(transfer.to));
 
-    ////////////////////
-    // Trades
-    const tradeEvent = {
-      date: transaction.date,
-      type: EventTypes.Trade,
-    } as TradeEvent;
-    const swapsIn = transaction.transfers.filter(t => t.category === SwapIn);
-    const swapsOut = transaction.transfers.filter(t => t.category === SwapOut);
+    // Process normal transfers & set swaps aside to process more deeply
+    const swapsIn = [];
+    const swapsOut = [];
+    transaction.transfers.forEach(transfer => {
+      if (transfer.category === SwapIn) {
+        swapsIn.push(transfer);
+      } else if (transfer.category === SwapOut) {
+        swapsOut.push(transfer);
+      } else {
+        handleTransfer(transfer);
+      }
+    });
+
+    // Process trades
     if (swapsIn.length && swapsOut.length) {
+      const tradeEvent = {
+        date: transaction.date,
+        type: EventTypes.Trade,
+      } as TradeEvent;
       const sum = (acc, cur) => add(acc, cur.quantity);
       const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
       const assetsIn = rmDups(swapsIn.map(swap => swap.asset)
@@ -191,29 +208,29 @@ export const getValueMachine = ({
 
       // TODO: abort or handle when to/from values aren't consistent among swap chunks
       // eg we could add a synthetic internal transfer then make the swap touch only one account
-      tradeEvent.account = swapsIn[0].to || swapsOut[0].from;
+      const account = swapsIn[0].to || swapsOut[0].from;
+      const exchange = swapsOut[0].to || swapsIn[0].from;
+      tradeEvent.account = account;
 
       // Process trade
-      let chunks = [] as any;
-      for (const [asset, quantity] of Object.entries(outputs)) {
-        chunks = state.getChunks(
-          tradeEvent.account,
-          asset as Assets,
-          quantity as string,
-          transaction.date,
-        );
+      const chunksOut = [] as AssetChunk[];
+      for (const output of Object.entries(outputs)) {
+        const asset = output[0] as Assets;
+        const quantity = output[1] as DecimalString;
+        const chunks = state.getChunks(account, asset, quantity, transaction.date);
+        chunksOut.push(...chunks);
+        chunks.forEach(chunk => state.disposeChunk(chunk, transaction.date, account, exchange));
         tradeEvent.spentChunks = [...chunks]; // Assumes chunks are never modified.. Is this safe?
-        chunks.forEach(chunk => state.putChunk(swapsOut[0].to, chunk));
       }
-      for (const [asset, quantity] of Object.entries(inputs)) {
-        chunks = state.getChunks(
-          AddressZero,
-          asset as Assets,
-          quantity as string,
-          transaction.date,
-        );
-        chunks.forEach(chunk => state.putChunk(tradeEvent.account, chunk));
-        // TODO: prevent trades from crossing jurisdictions
+
+      for (const input of Object.entries(inputs)) {
+        const asset = input[0] as Assets;
+        const quantity = input[1] as DecimalString;
+        const chunks = [
+          state.receiveChunk(asset, quantity, transaction.date, chunksOut.map(c => c.index)),
+        ];
+        chunks.forEach(chunk => state.putChunk(account, chunk));
+        // TODO: What if trades cross jurisdictions?
         events.push(...emitJurisdictionChange(
           asset as Assets,
           quantity as DecimalString,
@@ -224,89 +241,24 @@ export const getValueMachine = ({
         ));
       }
 
-      tradeEvent.newBalances = { [tradeEvent.account]: {} };
+      tradeEvent.newBalances = { [account]: {} };
       for (const asset of rmDups(
         Object.keys(inputs).concat(Object.keys(outputs))
       ) as Assets[]) {
-        tradeEvent.newBalances[tradeEvent.account][asset] =
-          state.getBalance(tradeEvent.account, asset);
+        tradeEvent.newBalances[account][asset] =
+          state.getBalance(account, asset);
       }
       events.push(tradeEvent);
 
-    } else if (swapsIn.length && !swapsOut.length) {
-      log.warn(swapsIn, `Can't find swaps out to match swaps in`);
-      later.push(...swapsIn);
-    } else if (!swapsIn.length && swapsOut.length) {
-      log.warn(swapsOut, `Can't find swaps in to match swaps out`);
-      later.push(...swapsOut);
-    }
-
-    ////////////////////
-    // Create special accounts
-    transaction.transfers.filter(
-      t => ([Deposit, Internal] as TransferCategory[]).includes(t.category)
-    ).forEach(transfer => state.createAccount(transfer.to));
-
-    ////////////////////
-    // Simple Transfers Attempt 1
-    for (const transfer of transaction.transfers.filter(
-      t => !([SwapIn, SwapOut] as TransferCategory[]).includes(t.category)
-    )) {
-      const { asset, from, quantity, to } = transfer;
-      if (
-        !Object.values(Assets).includes(asset) &&
-        !addressBook.isToken(asset)
-      ) {
-        log.debug(`Skipping transfer of unsupported token: ${asset}`);
-        continue;
+    // If no matching swaps, process them like normal transfers
+    } else {
+      if (swapsIn.length) {
+        log.warn(swapsIn, `Can't find matching swaps out`);
+      } else if (swapsOut.length){
+        log.warn(swapsOut, `Can't find matching swaps in`);
       }
-      log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${getName(to)}`);
-      let chunks;
-      try {
-        chunks = state.getChunks(
-          from,
-          asset,
-          quantity,
-          transaction.date,
-          transfer,
-          events,
-        );
-        chunks.forEach(chunk => state.putChunk(to, chunk));
-        events.push(
-          ...emitTransferEvents(addressBook, chunks, transaction, transfer)
-        );
-      } catch (e) {
-        log.warn(`Error while processing tx ${e.message}: ${JSON.stringify(transaction)}`);
-        if (e.message.includes("attempted to spend")) {
-          later.push(transfer);
-        } else {
-          throw e;
-        }
-      }
-    }
-
-    ////////////////////
-    // Simple Transfers Attempt 2
-    // Instead of reordering transfers so balances never dip below zero,
-    // should we let them go negative only while a tx is being exectued
-    // after all transfers have been processed, then we could assert that crypto balances are >=0
-    for (const transfer of later) {
-      const { asset, from, quantity, to } = transfer;
-      log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${
-        getName(to)
-      } (attempt 2)`);
-      const chunks = state.getChunks(
-        from,
-        asset,
-        quantity,
-        transaction.date,
-        transfer,
-        events,
-      );
-      chunks.forEach(chunk => state.putChunk(to, chunk));
-      events.push(
-        ...emitTransferEvents(addressBook, chunks, transaction, transfer)
-      );
+      swapsIn.forEach(handleTransfer);
+      swapsOut.forEach(handleTransfer);
     }
 
     ////////////////////////////////////////

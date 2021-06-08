@@ -175,7 +175,7 @@ export const EventRow = ({
                   } ${unit}` : `?.?? ${unit}`,
                   Account: event.from,
                   ["New Balance"]: `${
-                    round(event.newBalances?.[event.from][event.asset])
+                    round(event.newBalances?.[event.from]?.[event.asset])
                   } ${event.asset}`,
                   Recipient: event.to,
                 } : event.type === EventTypes.Transfer && event.category === Income ? {
@@ -185,7 +185,7 @@ export const EventRow = ({
                   } ${unit}` : `?.?? ${unit}`,
                   Account: event.to,
                   ["New Balance"]: `${
-                    round(event.newBalances?.[event.to][event.asset])
+                    round(event.newBalances?.[event.to]?.[event.asset])
                   } ${event.asset}`,
                   Sender: event.from,
 
