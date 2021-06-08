@@ -102,9 +102,7 @@ describe("VM", () => {
       events.push(...newEvents);
       log.debug(newState, "new state");
       log.debug(newEvents, "new events");
-      log.debug(); log.debug(); log.debug(); log.debug();
     }
-    log.debug(events, "all events");
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
@@ -133,7 +131,6 @@ describe("VM", () => {
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
-    log.debug(events, "all events");
     expect(events[0]?.type).to.equal(EventTypes.Transfer);
     expect(events[0]?.category).to.equal(Income);
     expect(events[1]?.type).to.equal(EventTypes.Transfer);
@@ -164,7 +161,6 @@ describe("VM", () => {
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
-    log.debug(events, "all events");
     expect(events[2]?.newBalances?.[ethAccount]?.[ETH]).to.equal("0.9");
   });
 
@@ -193,7 +189,6 @@ describe("VM", () => {
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
-    log.debug(events, "all events");
     expect(events[1]?.newBalances?.[ethAccount]?.[ETH]).to.equal("0.7");
   });
 

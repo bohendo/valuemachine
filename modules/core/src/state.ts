@@ -16,7 +16,6 @@ import {
   StateBalances,
   StateJson,
   TimestampString,
-  Transaction,
   TransactionSources,
   Transfer,
   TransferCategories,
@@ -82,6 +81,7 @@ export const getState = ({
   const createAccount = (account: Account): void => {
     state.accounts[account] = state.accounts[account] || [];
   };
+
   createAccount(insecureAccount);
 
   const receiveChunk = (
@@ -91,7 +91,7 @@ export const getState = ({
     sources = [],
   ): AssetChunk => {
     const index = state.totalChunks++;
-    log.info(`Received chunk ${index} of ${quantity} ${asset} on ${receiveDate}`);
+    log.debug(`Received chunk ${index} of ${quantity} ${asset} on ${receiveDate}`);
     return { asset, index, quantity, receiveDate, sources };
   };
 
@@ -106,7 +106,7 @@ export const getState = ({
       && !Object.keys(SecurityProviders).includes(to)
     ) {
       state.accounts[insecureAccount].push(chunk);
-      log.info(`Remembering insecure chunk ${chunk.index} of ${chunk.quantity} ${chunk.asset}`);
+      log.debug(`Remembering insecure chunk ${chunk.index} of ${chunk.quantity} ${chunk.asset}`);
     } else {
       log.debug(`Disposing chunk ${chunk.index} of ${chunk.quantity} ${chunk.asset}`);
     }
@@ -154,7 +154,8 @@ export const getState = ({
     events?: Events,
   ): AssetChunk[] => {
     if (!hasAccount(account)) { // Recieved a new chunk
-      return [receiveChunk(asset, quantity, date)];
+      log.warn(`Improperly recieving chunk`);
+      return [receiveChunk(asset, quantity, date)]; // incoming chunk has no sources
     }
     log.debug(`Getting chunks totaling ${quantity} ${asset} from ${account}`);
     const output = [];
@@ -163,7 +164,7 @@ export const getState = ({
       const chunk = getNextChunk(account, asset);
       if (!chunk) {
         // TODO: if account is an address then don't let the balance go negative?
-        const newChunk = receiveChunk(asset, togo, date);
+        const newChunk = receiveChunk(asset, togo, date); // debt has no sources
         output.push(newChunk);
         if (!isOpaqueInterestBearers(account)) {
           // Register debt by pushing a new negative-quantity chunk
@@ -189,7 +190,7 @@ export const getState = ({
       log.debug(`Got chunk ${chunk.index} of ${chunk.quantity} ${asset} w ${togo} to go`);
       if (gt(chunk.quantity, togo)) {
         // create a new chunk for the output we're giving away
-        output.push(receiveChunk(chunk.asset, togo, chunk.receiveDate));
+        output.push(receiveChunk(chunk.asset, togo, chunk.receiveDate, chunk.sources));
         // resize the old leftover chunk and put it back
         putChunk(account, { ...chunk, quantity: sub(chunk.quantity, togo) });
         return output;
@@ -214,7 +215,7 @@ export const getState = ({
       return state.accounts[account].splice(index, 1)[0];
     };
     const output = [] as AssetChunk[];
-    log.info(`Getting ${quantity} ${asset} on ${date} from insecure chunks`);
+    log.debug(`Getting ${quantity} ${asset} on ${date} from insecure chunks`);
     let togo = quantity;
     while (gt(togo, "0")) {
       const chunk = getNextInsecure(asset);
@@ -241,26 +242,6 @@ export const getState = ({
       : state.accounts[account]
         .filter(chunk => chunk.asset === asset)
         .reduce((sum, chunk) => add(sum, chunk.quantity), "0");
-
-  const getRelevantBalances = (transaction: Transaction): StateBalances => {
-    const simpleState = {} as StateBalances;
-    const accounts = transaction.transfers.reduce((acc, cur) => {
-      hasAccount(cur.to) && acc.push(cur.to);
-      hasAccount(cur.from) && acc.push(cur.from);
-      return acc;
-    }, []);
-    for (const account of accounts) {
-      simpleState[account] = {};
-      const assets = transaction.transfers.reduce((acc, cur) => {
-        acc.push(cur.asset);
-        return acc;
-      }, []);
-      for (const asset of assets) {
-        simpleState[account][asset] = round(getBalance(account, asset), 8);
-      }
-    }
-    return simpleState;
-  };
 
   const getAllBalances = (): StateBalances => {
     const output = {} as StateBalances;
@@ -299,7 +280,6 @@ export const getState = ({
     getChunks,
     getInsecure,
     getNetWorth,
-    getRelevantBalances,
     putChunk,
     receiveChunk,
     toJson,

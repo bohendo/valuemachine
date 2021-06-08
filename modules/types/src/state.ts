@@ -1,6 +1,6 @@
 import { AssetChunk, Assets } from "./assets";
 import { Events } from "./events";
-import { Transaction, Transfer } from "./transactions";
+import { Transfer } from "./transactions";
 import { Address, DecimalString, TimestampString } from "./strings";
 
 ////////////////////////////////////////
@@ -38,7 +38,6 @@ export interface State {
   ): AssetChunk[];
   getInsecure(date: TimestampString, asset: Assets, quantity: DecimalString): AssetChunk[];
   getNetWorth(): NetWorth;
-  getRelevantBalances(tx: Transaction): StateBalances;
   putChunk(account: Account, chunk: AssetChunk): void;
   receiveChunk(
     asset: Assets,

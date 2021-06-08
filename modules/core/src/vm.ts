@@ -28,7 +28,7 @@ const {
   Borrow, Repay,
   SwapIn, SwapOut,
 } = TransferCategories;
-const { add, eq, mul, round } = math;
+const { add, mul, round } = math;
 
 export const getValueMachine = ({
   addressBook,
@@ -38,13 +38,12 @@ export const getValueMachine = ({
   logger?: Logger
 }): any => {
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
-  const { getName } = addressBook;
 
   return (oldState: StateJson, transaction: Transaction): [StateJson, Event[]] => {
     const state = getState({ stateJson: oldState, addressBook, logger });
-    log.debug(`Applying transaction ${transaction.index} from ${
-      transaction.date
-    }: ${transaction.description}`);
+    log.debug(`Processing transaction ${transaction.index} from ${transaction.date}: ${
+      transaction.description
+    }`);
     const events = [] as Event[];
 
     const emitJurisdictionChange = (
@@ -86,59 +85,41 @@ export const getValueMachine = ({
     };
 
     const emitTransferEvents = (
-      addressBook: AddressBook,
-      chunks: AssetChunk[],
-      transaction: Transaction,
       transfer: Transfer,
+      transaction: Transaction,
+      chunks: AssetChunk[],
     ): Events => {
       const { getName } = addressBook;
-      const events = [];
       const { asset, category, from, quantity, to } = transfer;
-      events.push(...emitJurisdictionChange(
-        asset as Assets,
-        quantity as DecimalString,
-        from,
-        to,
-        transaction,
-        chunks
-      ));
-      if (
-        // Skip tx fees for now, too much noise
-        (category === Expense && Object.keys(Blockchains).includes(to))
-        // Skip internal transfers for now, also noisy & not super useful
-        || category === Internal || category === Deposit || category === Withdraw
-      ) {
-        return events;
-      }
+      // Skip tx fees for now, too much noise
+      if (category === Expense && Object.keys(Blockchains).includes(to)) return [];
       const amt = round(quantity);
       const newEvent = {
         asset: asset,
         category,
         date: transaction.date,
-        description: 
-          (category === Income) ? `Received ${amt} ${asset} from ${getName(from)}`
-          : (category === Expense) ? `Paid ${amt} ${asset} to ${getName(to)}`
-          : (category === Repay) ? `Repayed ${amt} ${asset} to ${getName(to)}`
-          : (category === Borrow) ? `Borrowed ${amt} ${asset} from ${getName(from)}`
-          : "?",
+        description: `${category} of ${amt} ${asset}`,
         from: transfer.from,
         quantity,
         tags: transaction.tags,
         to: transfer.to,
         type: EventTypes.Transfer,
       } as Event;
-      // We exclude internal transfers so both to & from shouldn't be self/abstract
-      newEvent.newBalances = {
-        [transfer.to]: { [asset]: state.getBalance(transfer.to, asset) },
-        [transfer.from]: { [asset]: state.getBalance(transfer.from, asset) },
-      };
-      if (eq("0", newEvent.newBalances[transfer.to][asset])) {
-        delete newEvent.newBalances[transfer.to];
+      newEvent.newBalances = {};
+      if (([
+        Internal, Deposit, Withdraw, Expense, SwapOut, Repay
+      ] as TransferCategory[]).includes(category)) {
+        newEvent.newBalances[transfer.from] = { [asset]: state.getBalance(transfer.from, asset) };
+        newEvent.description += ` from ${getName(transfer.from)}`;
       }
-      if (eq("0", newEvent.newBalances[transfer.from][asset])) {
-        delete newEvent.newBalances[transfer.from];
+      if (([
+        Internal, Deposit, Withdraw, Income, SwapIn, Borrow
+      ] as TransferCategory[]).includes(category)) {
+        newEvent.newBalances[transfer.to] = { [asset]: state.getBalance(transfer.to, asset) };
+        newEvent.description += ` to ${getName(transfer.to)}`;
       }
-      events.push(newEvent);
+      const events = [newEvent];
+      events.push(...emitJurisdictionChange(asset, quantity, from, to, transaction, chunks));
       return events;
     };
 
@@ -146,26 +127,20 @@ export const getValueMachine = ({
       transfer: Transfer,
     ): void => {
       const { asset, category, from, quantity, to } = transfer;
-      if (
-        !Object.values(Assets).includes(asset) &&
-        !addressBook.isToken(asset)
-      ) {
-        log.warn(`Skipping transfer of unsupported token: ${asset}`);
-        return;
-      }
-      log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${getName(to)}`);
-      let chunks;
+      // Move funds from one account to another
       if (([Internal, Deposit, Withdraw] as TransferCategory[]).includes(category)) {
-        chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
+        const chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
         chunks.forEach(chunk => state.putChunk(to, chunk));
+      // Send funds out of our accounts
       } else if (([Expense, SwapOut, Repay] as TransferCategory[]).includes(category)) {
-        chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
+        const chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
         chunks.forEach(chunk => state.disposeChunk(chunk, transaction.date, from, to));
-        events.push(...emitTransferEvents(addressBook, chunks, transaction, transfer));
+        events.push(...emitTransferEvents(transfer, transaction, chunks));
+      // Receive funds into one of our accounts
       } else if (([Income, SwapIn, Borrow] as TransferCategory[]).includes(category)) {
-        chunks = [state.receiveChunk(asset, quantity, transaction.date)];
+        const chunks = [state.receiveChunk(asset, quantity, transaction.date)]; // no sources
         chunks.forEach(chunk => state.putChunk(to, chunk));
-        events.push(...emitTransferEvents(addressBook, chunks, transaction, transfer));
+        events.push(...emitTransferEvents(transfer, transaction, chunks));
       } else {
         log.warn(transfer, `idk how to process this transfer`);
       }
@@ -238,11 +213,12 @@ export const getValueMachine = ({
       tradeEvent.account = account;
 
       // Process trade
-      let chunks = [] as AssetChunk[];
+      const chunksOut = [] as AssetChunk[];
       for (const output of Object.entries(outputs)) {
         const asset = output[0] as Assets;
         const quantity = output[1] as DecimalString;
-        chunks = state.getChunks(account, asset, quantity, transaction.date);
+        const chunks = state.getChunks(account, asset, quantity, transaction.date);
+        chunksOut.push(...chunks);
         chunks.forEach(chunk => state.disposeChunk(chunk, transaction.date, account, exchange));
         tradeEvent.spentChunks = [...chunks]; // Assumes chunks are never modified.. Is this safe?
       }
@@ -250,7 +226,9 @@ export const getValueMachine = ({
       for (const input of Object.entries(inputs)) {
         const asset = input[0] as Assets;
         const quantity = input[1] as DecimalString;
-        chunks = [state.receiveChunk(asset, quantity, transaction.date)];
+        const chunks = [
+          state.receiveChunk(asset, quantity, transaction.date, chunksOut.map(c => c.index)),
+        ];
         chunks.forEach(chunk => state.putChunk(account, chunk));
         // TODO: What if trades cross jurisdictions?
         events.push(...emitJurisdictionChange(
