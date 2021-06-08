@@ -43,13 +43,6 @@ export const getState = ({
   const log = (logger || getLogger()).child({ module: "State" });
 
   ////////////////////////////////////////
-  // Run Init Code
-
-  for (const address of addressBook.addresses.filter(addressBook.isSelf)) {
-    state.accounts[address] = state.accounts[address] || [];
-  }
-
-  ////////////////////////////////////////
   // Internal Functions
 
   const haveAccount = (account: Account): boolean => {
@@ -72,7 +65,7 @@ export const getState = ({
     return state.accounts[account].splice(index, 1)[0];
   };
 
-  const insecureChunks = [];
+  // const insecureChunks = [];
 
   ////////////////////////////////////////
   // Exported Functions

@@ -1,12 +1,13 @@
 import {
   Assets,
-  TransactionSources,
-  TransferCategories,
+  EventTypes,
   Prices,
-  Transfer,
   State,
   Transaction,
   Transactions,
+  TransactionSources,
+  Transfer,
+  TransferCategories,
 } from "@finances/types";
 import { expect } from "@finances/utils";
 
@@ -61,9 +62,7 @@ describe("VM", () => {
   });
 
   it("should process an investment into uniswap LP tokens", async () => {
-    let newState, newEvents;
-    const events = [];
-    for (const transaction of [
+    const transactions = [
       getTx([
         // Income
         { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
@@ -94,12 +93,106 @@ describe("VM", () => {
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: ETH, category: Deposit, from: ethAccount, quantity: "5.0", to: usdAccount },
       ]),
-    ]) {
+    ];
+    let newState, newEvents;
+    const events = [];
+    const start = Date.now();
+    for (const transaction of transactions) {
       [newState, newEvents] = vm(state.toJson(), transaction);
       events.push(...newEvents);
       log.debug(newState, "new state");
       log.debug(newEvents, "new events");
     }
+    log.info(`Done processing ${transactions.length} transactions at a rate of ${
+      Math.round(transactions.length * 10000/(Date.now() - start))/10
+    } tx/s`);
+  });
+
+  it("should process a partial swap", async () => {
+    const transactions = [
+      getTx([
+        // Income
+        { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
+      ]), getTx([
+        // Partial swap
+        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "5.00", to: notMe },
+      ]),
+    ];
+    let newState, newEvents;
+    const events = [];
+    const start = Date.now();
+    for (const transaction of transactions) {
+      [newState, newEvents] = vm(state.toJson(), transaction);
+      events.push(...newEvents);
+      log.debug(newState, "new state");
+      log.debug(newEvents, "new events");
+    }
+    log.info(`Done processing ${transactions.length} transactions at a rate of ${
+      Math.round(transactions.length * 10000/(Date.now() - start))/10
+    } tx/s`);
+    log.debug(events, "all events");
+    expect(events[0]?.type).to.equal(EventTypes.Transfer);
+    expect(events[0]?.category).to.equal(Income);
+    expect(events[1]?.type).to.equal(EventTypes.Transfer);
+    expect(events[1]?.newBalances?.[ethAccount]?.[ETH]).to.equal("4.9");
+  });
+
+  it("should process out of order eth transfers", async () => {
+    const transactions = [
+      getTx([
+        // Income
+        { asset: ETH, category: Income, from: notMe, quantity: "1.00", to: ethAccount },
+      ]), getTx([
+        // spend too much then get sufficient income
+        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+        { asset: ETH, category: Expense, from: ethAccount, quantity: "2.00", to: notMe },
+        { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
+      ]),
+    ];
+    let newState, newEvents;
+    const events = [];
+    const start = Date.now();
+    for (const transaction of transactions) {
+      [newState, newEvents] = vm(state.toJson(), transaction);
+      events.push(...newEvents);
+      log.debug(newState, "new state");
+      log.debug(newEvents, "new events");
+    }
+    log.info(`Done processing ${transactions.length} transactions at a rate of ${
+      Math.round(transactions.length * 10000/(Date.now() - start))/10
+    } tx/s`);
+    log.debug(events, "all events");
+    expect(events[2]?.newBalances?.[ethAccount]?.[ETH]).to.equal("0.9");
+  });
+
+  it("should process out of order eth swaps", async () => {
+    const transactions = [
+      getTx([
+        // Income
+        { asset: ETH, category: Income, from: notMe, quantity: "1.00", to: ethAccount },
+      ]), getTx([
+        // spend too much then get sufficient income
+        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH, index: 0 },
+        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.20", to: notMe, index: 1 },
+        { asset: UNI, category: SwapIn, from: notMe, quantity: "100", to: ethAccount, index: 2 },
+        { asset: ETH, category: SwapIn, from: notMe, quantity: "2.0", to: ethAccount, index: 3 },
+      ]),
+    ];
+    let newState, newEvents;
+    const events = [];
+    const start = Date.now();
+    for (const transaction of transactions) {
+      [newState, newEvents] = vm(state.toJson(), transaction);
+      events.push(...newEvents);
+      log.debug(newState, "new state");
+      log.debug(newEvents, "new events");
+    }
+    log.info(`Done processing ${transactions.length} transactions at a rate of ${
+      Math.round(transactions.length * 10000/(Date.now() - start))/10
+    } tx/s`);
+    log.debug(events, "all events");
+    expect(events[1]?.newBalances?.[ethAccount]?.[ETH]).to.equal("0.7");
   });
 
 });

@@ -29,7 +29,7 @@ const {
   Borrow, Repay,
   SwapIn, SwapOut,
 } = TransferCategories;
-const { add, mul, round } = math;
+const { add, eq, mul, round } = math;
 
 export const getValueMachine = ({
   addressBook,
@@ -46,9 +46,7 @@ export const getValueMachine = ({
     log.debug(`Applying transaction ${transaction.index} from ${
       transaction.date
     }: ${transaction.description}`);
-    log.debug(`Applying transfers: ${
-      JSON.stringify(transaction.transfers, null, 2)
-    } to sub-state ${
+    log.debug(transaction.transfers, `Applying transfers to sub-state ${
       JSON.stringify(state.getRelevantBalances(transaction), null, 2)
     }`);
     const events = [] as Event[];
@@ -134,6 +132,12 @@ export const getValueMachine = ({
         [transfer.to]: { [asset]: state.getBalance(transfer.to, asset) },
         [transfer.from]: { [asset]: state.getBalance(transfer.from, asset) },
       };
+      if (eq("0", newEvent.newBalances[transfer.to][asset])) {
+        delete newEvent.newBalances[transfer.to];
+      }
+      if (eq("0", newEvent.newBalances[transfer.from][asset])) {
+        delete newEvent.newBalances[transfer.from];
+      }
       events.push(newEvent);
       return events;
     };
@@ -165,30 +169,38 @@ export const getValueMachine = ({
           ...emitTransferEvents(addressBook, chunks, transaction, transfer)
         );
       } catch (e) {
-        log.warn(`Error while processing tx ${e.message}: ${JSON.stringify(transaction)}`);
-        if (e.message.includes("attempted to spend")) {
-          later.push(transfer);
-        } else {
-          throw e;
-        }
+        log.warn(transaction, `Error while processing tx: ${e.message}`);
+        throw e;
       }
     };
 
     ////////////////////////////////////////
     // VM Core
 
-    // Transfers to process at the end eg if something goes wrong on the first attempt
-    const later = [];
+    // Create any new abstract accounts
+    transaction.transfers.filter(
+      t => ([Deposit, Internal] as TransferCategory[]).includes(t.category)
+    ).forEach(transfer => state.createAccount(transfer.to));
 
-    ////////////////////
-    // Trades
-    const tradeEvent = {
-      date: transaction.date,
-      type: EventTypes.Trade,
-    } as TradeEvent;
-    const swapsIn = transaction.transfers.filter(t => t.category === SwapIn);
-    const swapsOut = transaction.transfers.filter(t => t.category === SwapOut);
+    // Process normal transfers & set swaps aside to process more deeply
+    const swapsIn = [];
+    const swapsOut = [];
+    transaction.transfers.forEach(transfer => {
+      if (transfer.category === SwapIn) {
+        swapsIn.push(transfer);
+      } else if (transfer.category === SwapOut) {
+        swapsOut.push(transfer);
+      } else {
+        handleTransfer(transfer);
+      }
+    });
+
+    // Process trades
     if (swapsIn.length && swapsOut.length) {
+      const tradeEvent = {
+        date: transaction.date,
+        type: EventTypes.Trade,
+      } as TradeEvent;
       const sum = (acc, cur) => add(acc, cur.quantity);
       const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
       const assetsIn = rmDups(swapsIn.map(swap => swap.asset)
@@ -266,48 +278,11 @@ export const getValueMachine = ({
       }
       events.push(tradeEvent);
 
-    } else if (swapsIn.length && !swapsOut.length) {
-      log.warn(swapsIn, `Can't find swaps out to match swaps in`);
-      later.push(...swapsIn);
-    } else if (!swapsIn.length && swapsOut.length) {
-      log.warn(swapsOut, `Can't find swaps in to match swaps out`);
-      later.push(...swapsOut);
-    }
-
-    ////////////////////
-    // Create special accounts
-    transaction.transfers.filter(
-      t => ([Deposit, Internal] as TransferCategory[]).includes(t.category)
-    ).forEach(transfer => state.createAccount(transfer.to));
-
-    ////////////////////
-    // Simple Transfers Attempt 1
-    transaction.transfers.filter(
-      t => !([SwapIn, SwapOut] as TransferCategory[]).includes(t.category)
-    ).forEach(handleTransfer);
-
-    ////////////////////
-    // Simple Transfers Attempt 2
-    // Instead of reordering transfers so balances never dip below zero,
-    // should we let them go negative only while a tx is being exectued
-    // after all transfers have been processed, then we could assert that crypto balances are >=0
-    for (const transfer of later) {
-      const { asset, from, quantity, to } = transfer;
-      log.debug(`transfering ${quantity} ${asset} from ${getName(from)} to ${
-        getName(to)
-      } (attempt 2)`);
-      const chunks = state.getChunks(
-        from,
-        asset,
-        quantity,
-        transaction.date,
-        transfer,
-        events,
-      );
-      chunks.forEach(chunk => state.putChunk(to, chunk));
-      events.push(
-        ...emitTransferEvents(addressBook, chunks, transaction, transfer)
-      );
+    // If no matching swaps, process them like normal transfers
+    } else {
+      log.warn(swapsIn, `Can't find matching swaps in & out`);
+      swapsIn.forEach(handleTransfer);
+      swapsOut.forEach(handleTransfer);
     }
 
     ////////////////////////////////////////
