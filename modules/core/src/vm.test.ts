@@ -21,7 +21,7 @@ const { UNI, ETH, UniV2_UNI_ETH } = Assets;
 const { Deposit, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Coinbase, EthTx } = TransactionSources;
 const log = testLogger.child({
-  level: "debug",
+  // level: "debug",
   module: "TestVM",
 });
 
@@ -61,7 +61,7 @@ describe("VM", () => {
     expect(vm).to.be.ok;
   });
 
-  it.only("should process an investment into uniswap LP tokens", async () => {
+  it("should process an investment into uniswap LP tokens", async () => {
     const transactions = [
       getTx([
         // Income
