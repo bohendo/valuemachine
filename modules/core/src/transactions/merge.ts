@@ -2,7 +2,7 @@ import {
   Assets,
   ExternalSources,
   Logger,
-  OnchainSources,
+  EthereumSources,
   TimestampString,
   Transaction,
   TransactionSources,
@@ -48,7 +48,7 @@ export const mergeTransaction = (
   ////////////////////////////////////////
   // Handle new ethereum transactions
   if (
-    newTx.sources.every(src => Object.keys(OnchainSources).includes(src))
+    newTx.sources.every(src => Object.keys(EthereumSources).includes(src))
     && isHash(newTx.hash)
   ) {
     log = (logger || getLogger()).child({ module: `MergeEthTx` });
@@ -170,7 +170,7 @@ export const mergeTransaction = (
 
     const mergeCandidateIndex = transactions.findIndex(tx =>
       // the candidate only has ethereum sources
-      tx.sources.every(src => Object.keys(OnchainSources).includes(src))
+      tx.sources.every(src => Object.keys(EthereumSources).includes(src))
       // eth tx & new external tx have timestamps that are close each other
       && datesAreClose(tx.date, newTx.date)
       // the candidate has exactly 1 mergable transfer

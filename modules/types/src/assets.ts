@@ -1,27 +1,17 @@
 import { DecimalString, TimestampString } from "./strings";
+import { PhysicalGuardians, DigitalGuardians } from "./security";
 import { enumify } from "./utils";
 
-export const Fiat = enumify({
-  CZK: "CZK",
-  EUR: "EUR",
-  GBP: "GBP",
-  INR: "INR",
-  USD: "USD",
-});
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type Fiat = (typeof Fiat)[keyof typeof Fiat];
+// All physical security providers have an associated fiat currency
+export const FiatCurrencies = enumify({ ...PhysicalGuardians });
+export type FiatCurrency = (typeof PhysicalGuardians)[keyof typeof PhysicalGuardians];
 
-export const Blockchains = enumify({
-  BCH: "BCH",
-  BTC: "BTC",
-  ETH: "ETH",
-  LTC: "LTC",
-});
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type Blockchains = (typeof Blockchains)[keyof typeof Blockchains];
+// All digital security providers have an associated native cryptocurrency
+export const Cryptocurrencies = enumify({ ...DigitalGuardians });
+export type Cryptocurrency = (typeof DigitalGuardians)[keyof typeof DigitalGuardians];
 
 export const EthereumAssets = enumify({
-  [Blockchains.ETH]: Blockchains.ETH,
+  [Cryptocurrencies.ETH]: Cryptocurrencies.ETH,
   _1INCH: "_1INCH",
   _3Crv: "_3Crv",
   ankrCRV: "ankrCRV",
@@ -121,12 +111,10 @@ export const EthereumAssets = enumify({
   yDAI_yUSDC_yUSDT_yBUSD: "yDAI_yUSDC_yUSDT_yBUSD",
   yDAI_yUSDC_yUSDT_yTUSD: "yDAI_yUSDC_yUSDT_yTUSD",
   ZRX: "ZRX",
-
   TUSD: "TUSD",
   GUSD: "GUSD",
   BUSD: "BUSD",
   usdt3CRV: "usdt3CRV",
-
   // yearn.finance
   YFI: "YFI",
   y3Crv: "y3Crv",
@@ -180,14 +168,13 @@ export const EthereumAssets = enumify({
   yvust3CRV: "yvust3CRV",
   yyDAI_yUSDC_yUSDT_yBUSD: "yyDAI_yUSDC_yUSDT_yBUSD",
   yyDAI_yUSDC_yUSDT_yTUSD: "yyDAI_yUSDC_yUSDT_yTUSD",
-
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type EthereumAssets = (typeof EthereumAssets)[keyof typeof EthereumAssets];
 
 export const Assets = enumify({
-  ...Fiat,
-  ...Blockchains,
+  ...FiatCurrencies,
+  ...Cryptocurrencies,
   ...EthereumAssets,
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -200,6 +187,7 @@ export type AssetChunk = {
   disposeDate?: TimestampString;
   quantity: DecimalString;
   receiveDate: TimestampString;
+  secure: boolean;
   sources: number[];
   index: number;
 };

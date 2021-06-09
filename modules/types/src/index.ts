@@ -9,6 +9,6 @@ export * from "./profile";
 export * from "./state";
 export * from "./store";
 export * from "./strings";
-export * from "./taxes";
+export * from "./security";
 export * from "./transactions";
 export * from "./utils";

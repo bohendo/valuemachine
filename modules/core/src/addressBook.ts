@@ -1,11 +1,16 @@
 import { isAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import {
+  Account,
   Address,
   AddressBook,
   AddressBookJson,
   AddressCategories,
+  EthereumSources,
+  ExternalSources,
   Logger,
+  SecurityProvider,
+  SecurityProviders,
 } from "@finances/types";
 import { getLogger, sm, smeq } from "@finances/utils";
 
@@ -150,9 +155,33 @@ export const getAddressBook = (
     }
   };
 
+  const getGuardian = (account: Account): SecurityProvider => {
+    const jurisdictions = {
+      [ExternalSources.Coinbase]: SecurityProviders.USD,
+      [ExternalSources.DigitalOcean]: SecurityProviders.USD,
+      [ExternalSources.Wyre]: SecurityProviders.USD,
+      [ExternalSources.Wazirx]: SecurityProviders.INR,
+    };
+    if (!account) return SecurityProviders.None;
+    const source = account.split("-")[0];
+    return addressBook.find(row => smeq(row.address, account))?.guardian
+      || ((isAddress(account) || Object.keys(EthereumSources).includes(source))
+        ? SecurityProviders.ETH
+        : (
+          jurisdictions[source]
+          || (Object.keys(SecurityProviders).includes(source) ? source : SecurityProviders.None)
+        ));
+  };
+
+  // Set default guardians
+  addressBook.forEach(entry => {
+    entry.guardian = entry.guardian || SecurityProviders.ETH;
+  });
+
   return {
     addresses,
     getName,
+    getGuardian,
     isCategory,
     isPresent,
     isProxy,

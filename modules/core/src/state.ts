@@ -4,23 +4,20 @@ import {
   AddressBook,
   AssetChunk,
   Assets,
-  Blockchains,
   DecimalString,
   emptyState,
   Events,
   EventTypes,
   Logger,
   NetWorth,
-  SecurityProviders,
   State,
   StateBalances,
   StateJson,
   TimestampString,
   TransactionSources,
-  Transfer,
   TransferCategories,
 } from "@finances/types";
-import { getJurisdiction, getLogger, math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
 const { add, gt, lt, mul, round, sub } = math;
 
@@ -69,6 +66,17 @@ export const getState = ({
     return state.accounts[account].splice(index, 1)[0];
   };
 
+  const mintChunk = (
+    asset: Assets,
+    quantity: DecimalString,
+    receiveDate: TimestampString,
+    sources = [],
+  ): AssetChunk => {
+    const index = state.totalChunks++;
+    log.debug(`Created chunk #${index} of ${quantity} ${asset} received on ${receiveDate}`);
+    return { asset, index, quantity, receiveDate, secure: false, sources };
+  };
+
   ////////////////////////////////////////
   // Exported Functions
 
@@ -82,43 +90,29 @@ export const getState = ({
     state.accounts[account] = state.accounts[account] || [];
   };
 
-  createAccount(insecureAccount);
-
-  const receiveChunk = (
-    asset: Assets,
-    quantity: DecimalString,
-    receiveDate: TimestampString,
-    sources = [],
-  ): AssetChunk => {
-    const index = state.totalChunks++;
-    log.debug(`Received chunk ${index} of ${quantity} ${asset} on ${receiveDate}`);
-    return { asset, index, quantity, receiveDate, sources };
-  };
-
   const disposeChunk = (
     chunk: AssetChunk,
-    date: TimestampString,
-    from: Account,
-    to: Account,
   ): void => {
-    if (
-      Object.keys(Blockchains).includes(getJurisdiction(from))
-      && !Object.keys(SecurityProviders).includes(to)
-    ) {
+    if (!chunk.secure) {
       state.accounts[insecureAccount].push(chunk);
-      log.debug(`Remembering insecure chunk ${chunk.index} of ${chunk.quantity} ${chunk.asset}`);
+      log.debug(`Remembering insecure chunk #${chunk.index} of ${chunk.quantity} ${chunk.asset}`);
     } else {
-      log.debug(`Disposing chunk ${chunk.index} of ${chunk.quantity} ${chunk.asset}`);
+      log.debug(`Disposing chunk #${chunk.index} of ${chunk.quantity} ${chunk.asset}`);
     }
   };
 
-  const putChunk = (account: Account, chunk: AssetChunk): void => {
+  createAccount(insecureAccount);
+
+  const putChunk = (
+    chunk: AssetChunk,
+    account: Account,
+  ): void => {
     if (!hasAccount(account)) {
-      log.warn(`Improperly discarding ${chunk.quantity} ${chunk.asset} (destination: ${account})`);
-      return;
+      log.warning(`Improperly putting chunk of ${chunk.quantity} ${chunk.asset} into ${account}`);
+      return disposeChunk(chunk);
     }
     const { asset, quantity } = chunk;
-    if (lt(getBalance(account, asset), "0")) {
+    if (lt(getBalance(account, asset), "0") && gt(chunk.quantity, "0")) {
       // annihilate negative chunks before adding positive ones
       let togo = quantity;
       while (gt(togo, "0")) {
@@ -150,25 +144,26 @@ export const getState = ({
     asset: Assets,
     quantity: DecimalString,
     date: TimestampString,
-    transfer?: Transfer,
     events?: Events,
   ): AssetChunk[] => {
-    if (!hasAccount(account)) { // Recieved a new chunk
-      log.warn(`Improperly recieving chunk`);
-      return [receiveChunk(asset, quantity, date)]; // incoming chunk has no sources
+    if (!hasAccount(account)) { // Received a new chunk
+      log.warn(`Improperly receiving chunk of ${quantity} ${asset} from ${account}`);
+      return [mintChunk(asset, quantity, date)]; // incoming chunk has no sources
     }
-    log.debug(`Getting chunks totaling ${quantity} ${asset} from ${account}`);
+    log.debug(`Searching for chunks totaling ${quantity} ${asset} in account ${account} `);
     const output = [];
     let togo = quantity;
     while (gt(togo, "0")) {
       const chunk = getNextChunk(account, asset);
       if (!chunk) {
+        log.debug(`Account ${account} has no ${asset}`);
         // TODO: if account is an address then don't let the balance go negative?
-        const newChunk = receiveChunk(asset, togo, date); // debt has no sources
+        const newChunk = mintChunk(asset, togo, date); // debt has no sources
         output.push(newChunk);
         if (!isOpaqueInterestBearers(account)) {
           // Register debt by pushing a new negative-quantity chunk
-          state.accounts[account].push({ ...newChunk, quantity: mul(newChunk.quantity, "-1") });
+          const debtChunk = mintChunk(asset, mul(togo, "-1"), date); // debt has no sources
+          putChunk(debtChunk, account);
         } else {
           // Otherwise emit a synthetic transfer event
           log.warn(`Opaque interest bearer! Assuming the remaining ${togo} ${asset} is interest`);
@@ -177,22 +172,32 @@ export const getState = ({
             category: TransferCategories.Income,
             date,
             description: `Received ${round(togo)} ${asset} from (opaque) ${account}`,
-            newBalances: { [transfer.to]: { [asset]: "0" }, [transfer.from]: { [asset]: "0" } },
-            from: account,
+            newBalances: {}, // unknown bc this source is opaque
+            from: account.split("-").slice(0, account.split("-").length - 1).join("-"),
             quantity: togo,
             tags: [],
-            to: transfer.to,
+            to: account,
             type: EventTypes.Transfer,
           });
         }
         return output;
+      } else if (lt(chunk.quantity, "0")) {
+        log.debug(`Got a debt chunk of ${chunk.quantity} ${chunk.asset}`);
+        // If we got a debt chunk, put it back
+        putChunk(chunk, account);
+        // create a new chunk/debt chunk pair to account for what we need
+        const newChunk = mintChunk(asset, togo, date); // debt has no sources
+        output.push(newChunk);
+        const debtChunk = mintChunk(asset, mul(togo, "-1"), date); // debt has no sources
+        putChunk(debtChunk, account);
+        return output;
       }
-      log.debug(`Got chunk ${chunk.index} of ${chunk.quantity} ${asset} w ${togo} to go`);
+      log.debug(`Got chunk #${chunk.index} of ${chunk.quantity} ${asset} w ${togo} to go`);
       if (gt(chunk.quantity, togo)) {
         // create a new chunk for the output we're giving away
-        output.push(receiveChunk(chunk.asset, togo, chunk.receiveDate, chunk.sources));
+        output.push(mintChunk(chunk.asset, togo, chunk.receiveDate, chunk.sources));
         // resize the old leftover chunk and put it back
-        putChunk(account, { ...chunk, quantity: sub(chunk.quantity, togo) });
+        putChunk({ ...chunk, quantity: sub(chunk.quantity, togo) }, account);
         return output;
       }
       output.push(chunk);
@@ -202,27 +207,33 @@ export const getState = ({
     return output;
   };
 
-  const getInsecure = (
-    date: TimestampString,
-    asset: Assets,
-    quantity: DecimalString,
+  const getInsecurePath = (
+    chunk: AssetChunk,
   ): AssetChunk[] => {
+    const { asset, quantity, receiveDate } = chunk;
     const account = insecureAccount;
-    const getNextInsecure = (asset: Assets): AssetChunk => {
+    const getNextInsecure = (asset: Assets, date: TimestampString): AssetChunk => {
       // TODO: find the one w smallest/largest change in value since we got it
-      const index = state.accounts[account].findIndex(chunk => chunk.asset === asset);
+      const index = state.accounts[account].findIndex(chunk =>
+        chunk.asset === asset && chunk.disposeDate === date
+      );
       if (index === -1) return undefined;
       return state.accounts[account].splice(index, 1)[0];
     };
     const output = [] as AssetChunk[];
-    log.debug(`Getting ${quantity} ${asset} on ${date} from insecure chunks`);
+    log.debug(`Getting ${quantity} ${asset} received on ${receiveDate} from insecure chunks`);
+    // const toTrace = []; // list of chunk indexes that we need to secure
+    const past = receiveDate;
     let togo = quantity;
     while (gt(togo, "0")) {
-      const chunk = getNextInsecure(asset);
-      log.debug(`Got next chunk ${chunk.index} ${chunk.quantity} of ${asset} w ${togo} to go`);
+      const chunk = getNextInsecure(asset, past);
       if (!chunk) {
-        throw new Error(`Not enough insecure chunks to cover ${quantity} ${asset}`);
+        log.error(`Not enough insecure chunks to cover ${quantity} ${asset} (${togo} to go)`);
+        return output;
       }
+      log.debug(`Got insecure chunk #${chunk.index} of ${chunk.quantity} ${
+        asset
+      } w sources: [${chunk.sources.join(", ")}](${togo} to go)`);
       if (gt(chunk.quantity, togo)) {
         // split chunk into what we need & put the rest back
         state.accounts[insecureAccount].push({ ...chunk, quantity: sub(chunk.quantity, togo) });
@@ -278,10 +289,10 @@ export const getState = ({
     getAllBalances,
     getBalance,
     getChunks,
-    getInsecure,
+    getInsecurePath,
     getNetWorth,
+    mintChunk,
     putChunk,
-    receiveChunk,
     toJson,
     touch,
   };

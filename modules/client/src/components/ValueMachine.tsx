@@ -14,7 +14,7 @@ import {
   Transactions,
   TransferCategories,
 } from "@finances/types";
-import { math } from "@finances/utils";
+import { math, getLogger } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
@@ -372,7 +372,7 @@ export const ValueMachineExplorer = ({
     // eslint-disable-next-line no-async-promise-executor
     const res = await new Promise(async res => {
       try {
-        const valueMachine = getValueMachine({ addressBook, prices, unit });
+        const valueMachine = getValueMachine({ addressBook, logger: getLogger("warn") });
         // stringify/parse to ensure we don't update the imported objects directly
         let state = JSON.parse(JSON.stringify(emptyState));
         let vmEvents = [];
