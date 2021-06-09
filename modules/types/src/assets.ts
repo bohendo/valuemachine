@@ -187,6 +187,7 @@ export type AssetChunk = {
   disposeDate?: TimestampString;
   quantity: DecimalString;
   receiveDate: TimestampString;
+  secure: boolean;
   sources: number[];
   index: number;
 };

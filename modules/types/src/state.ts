@@ -1,6 +1,5 @@
 import { AssetChunk, Assets } from "./assets";
 import { Events } from "./events";
-import { Transfer } from "./transactions";
 import { Address, DecimalString, TimestampString } from "./strings";
 
 ////////////////////////////////////////
@@ -33,23 +32,20 @@ export interface State {
     asset: Assets,
     quantity: DecimalString,
     date: TimestampString,
-    transfer?: Transfer,
     events?: Events,
   ): AssetChunk[];
-  getInsecure(date: TimestampString, asset: Assets, quantity: DecimalString): AssetChunk[];
+  getInsecurePath(chunk: AssetChunk): AssetChunk[];
   getNetWorth(): NetWorth;
-  putChunk(account: Account, chunk: AssetChunk): void;
-  receiveChunk(
+  disposeChunk(chunk: AssetChunk): void;
+  mintChunk(
     asset: Assets,
     quantity: DecimalString,
     receiveDate: TimestampString,
     sources?: number[],
   ): AssetChunk;
-  disposeChunk(
+  putChunk(
     chunk: AssetChunk,
-    date: TimestampString,
-    from: Account,
-    to: Account,
+    account: Account,
   ): void;
   toJson(): StateJson;
   touch(lastUpdated: TimestampString): void;
