@@ -44,13 +44,6 @@ import React, { useEffect, useState } from "react";
 
 import { HexString } from "./HexString";
 
-const emptyAddressEntry = {
-  address: "",
-  category: "",
-  guardian: SecurityProviders.ETH,
-  name: "",
-} as AddressEntry;
-
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
     margin: theme.spacing(1),
@@ -134,19 +127,29 @@ const EditEntry = ({
     }
   }, [entryModified]);
 
+  const getErrors = (candidate: AddressEntry): string => {
+    if (!candidate?.address) {
+      return "Address is required";
+    } else if (!isAddress(candidate.address)) {
+      return "Invalid address";
+    } else if (addresses?.includes(candidate.address)) {
+      return "Address already exists";
+    } else {
+      return "";
+    }
+  };
+
   const handleEntryChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const newNewEntry = { ...newEntry, [event.target.name]: event.target.value };
     setNewEntry(newNewEntry);
-    if (!newNewEntry.address) {
-      setNewEntryError("Entry is required");
-    } else if (!isAddress(newNewEntry.address)) {
-      setNewEntryError("Invalid address");
-    } else if (addresses.includes(newNewEntry.address)) {
-      setNewEntryError("Address already exists");
-    } else {
-      setNewEntryError("");
-    }
+    setNewEntryError(getErrors(newNewEntry));
   };
+
+  useEffect(() => {
+    if (!addresses?.length || !entryModified) return;
+    setNewEntryError(getErrors(newEntry) || "");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addresses]);
 
   useEffect(() => {
     if (!entry || !newEntry) {
@@ -162,6 +165,16 @@ const EditEntry = ({
     }
   }, [newEntry, entry]);
 
+  const handleSave = () => {
+    if (!newEntry) return;
+    const errors = getErrors(newEntry);
+    if (!errors) {
+      setEntry(newEntry);
+    } else {
+      setNewEntryError(errors);
+    }
+  };
+
   return (
     <>
 
@@ -176,7 +189,7 @@ const EditEntry = ({
         <Grid item md={6}>
           <TextField
             autoComplete="off"
-            value={newEntry.name}
+            value={newEntry?.name || ""}
             helperText="Give your account a nickname"
             id="name"
             fullWidth
@@ -195,7 +208,7 @@ const EditEntry = ({
               labelId={`select-${entry?.address}-category`}
               id={`select-${entry?.address}-category`}
               name="category"
-              value={newEntry.category || ""}
+              value={newEntry?.category || ""}
               onChange={handleEntryChange}
             >
               <MenuItem value={""}>-</MenuItem>
@@ -209,7 +222,7 @@ const EditEntry = ({
         <Grid item md={6}>
           <TextField
             autoComplete="off"
-            value={newEntry.address}
+            value={newEntry?.address || ""}
             error={!!newEntryError}
             helperText={newEntryError || "Add your ethereum address to fetch info"}
             id="address"
@@ -228,7 +241,7 @@ const EditEntry = ({
               <Button
                 className={classes.button}
                 color="primary"
-                onClick={() => setEntry(newEntry)}
+                onClick={handleSave}
                 size="small"
                 startIcon={<AddIcon />}
                 variant="contained"
@@ -247,14 +260,14 @@ const EditEntry = ({
 
 const AddressRow = ({
   index,
-  editAddress,
+  editEntry,
   entry,
   syncAddress,
   syncing,
   allAddresses,
 }: {
   index: number;
-  editAddress: any;
+  editEntry: any;
   entry: AddressEntry;
   syncAddress: any;
   syncing: any;
@@ -274,12 +287,12 @@ const AddressRow = ({
   };
 
   const handleDelete = () => {
-    editAddress(index, newEntry, true);
+    editEntry(index, undefined);
     setEditMode(false);
   };
 
   const handleEdit = (editedEntry) => {
-    editAddress(index, editedEntry);
+    editEntry(index, editedEntry);
     setEditMode(false);
   };
 
@@ -344,6 +357,13 @@ const AddressRow = ({
   );
 };
 
+const getEmptyEntry = (): AddressEntry => ({
+  address: "",
+  category: AddressCategories.Self,
+  guardian: SecurityProviders.ETH,
+  name: "",
+});
+
 export const AddressBook = ({
   profile,
   setProfile,
@@ -365,19 +385,43 @@ export const AddressBook = ({
   });
   const [syncing, setSyncing] = useState({} as { [address: string]: boolean });
   const [allAddresses, setAllAddresses] = useState([]);
+  const [newEntry, setNewEntry] = useState(getEmptyEntry);
   const classes = useStyles();
 
   useEffect(() => {
-    setAllAddresses(profile.addressBook.map(entry => entry.address));
+    const newAllAddresses = profile.addressBook.map(entry => entry.address);
+    console.log(`New address list has length of ${newAllAddresses.length}`);
+    setAllAddresses(newAllAddresses);
   }, [profile]);
 
   useEffect(() => {
     setFilteredAddresses(profile.addressBook.filter(entry =>
       !filterCategory || entry.category === filterCategory
+    ).sort((e1, e2) =>
+      // put self addresses first
+      (
+        e1.category !== AddressCategories.Self &&
+        e2.category === AddressCategories.Self
+      ) ? 1
+        : (
+          e1.category === AddressCategories.Self &&
+          e2.category !== AddressCategories.Self
+        ) ? -1
+          // sort by category
+          : (e1.category.toLowerCase() > e2.category.toLowerCase()) ? 1
+          : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
+          // then sort by name
+          : (e1.name.toLowerCase() > e2.name.toLowerCase()) ? 1
+          : (e1.name.toLowerCase() < e2.name.toLowerCase()) ? -1
+          // then sort by address
+          : (e1.address.toLowerCase() > e2.address.toLowerCase()) ? 1
+          : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
+          : 0
     ));
   }, [profile, filterCategory]);
 
   useEffect(() => {
+    console.log(`Re-rendering based on updated profile..`);
     setNewProfile(profile);
   }, [profile]);
 
@@ -408,7 +452,6 @@ export const AddressBook = ({
     }).catch(() => {
       setNewTokenError("Invalid Auth Token");
     });
-
   };
 
   const handleAuthTokenChange = (event: React.ChangeEvent<{ value: string }>) => {
@@ -454,21 +497,27 @@ export const AddressBook = ({
     a.click();
   };
 
-  const editAddress = (index: number, newEntry: AddressEntry, del = false) => {
-    console.log(`${del ? "Deleting" : "Updating"} ${JSON.stringify(newEntry)}`);
-    if (index >= 0 && index <= newProfile.addressBook.length) {
+  const editEntry = (index: number, editedEntry?: AddressEntry) => {
+    if (index >= 0 && index <= allAddresses.length) {
+      console.log(`${
+        !editedEntry ? "Deleting" : index === allAddresses.length ? "Creating" : "Updating"
+      } ${JSON.stringify(editedEntry)}`);
       const newProfile = { ...profile, addressBook: [...profile.addressBook] };
-      if (del) {
+      if (!editedEntry) {
         newProfile.addressBook.splice(index,1);
       } else {
-        newProfile.addressBook[index] = newEntry;
+        newProfile.addressBook[index] = editedEntry;
       }
       setProfile(newProfile);
+      // Don't reset new entry fields when we modify an existing one
+      if (editedEntry && index === allAddresses.length) {
+        setNewEntry(getEmptyEntry);
+      }
     }
   };
 
-  const addNewAddress = (newEntry: AddressEntry) => {
-    editAddress(profile.addressBook.length, newEntry);
+  const addNewAddress = (editedEntry: AddressEntry) => {
+    editEntry(profile.addressBook.length, editedEntry);
   };
 
   const syncAddress = async (address: string) => {
@@ -513,6 +562,7 @@ export const AddressBook = ({
 
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterCategory(event.target.value);
+    setPage(0);
   };
 
   return (
@@ -574,7 +624,7 @@ export const AddressBook = ({
           <Card className={classes.root}>
             <CardHeader title={"Add new Address"} />
             <EditEntry
-              entry={emptyAddressEntry}
+              entry={newEntry}
               setEntry={addNewAddress}
               addresses={allAddresses}
             />
@@ -676,32 +726,12 @@ export const AddressBook = ({
             <TableBody>
               {filteredAddresses
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .sort((e1, e2) =>
-                  // put self addresses first
-                  (
-                    e1.category !== AddressCategories.Self &&
-                    e2.category === AddressCategories.Self
-                  ) ? 1
-                    : (
-                      e1.category === AddressCategories.Self &&
-                      e2.category !== AddressCategories.Self
-                    ) ? -1
-                      // sort by category
-                      : (e1.category.toLowerCase() > e2.category.toLowerCase()) ? 1
-                      : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
-                      // then sort by name
-                      : (e1.name.toLowerCase() > e2.name.toLowerCase()) ? 1
-                      : (e1.name.toLowerCase() < e2.name.toLowerCase()) ? -1
-                      // then sort by address
-                      : (e1.address.toLowerCase() > e2.address.toLowerCase()) ? 1
-                      : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
-                      : 0
-                ).map((entry: AddressEntry, i: number) => (
+                .map((entry: AddressEntry, i: number) => (
                   <AddressRow
                     allAddresses={allAddresses}
                     key={i}
                     index={profile.addressBook.findIndex(e => smeq(e.address, entry.address))}
-                    editAddress={editAddress}
+                    editEntry={editEntry}
                     entry={entry}
                     syncAddress={syncAddress}
                     syncing={syncing}
