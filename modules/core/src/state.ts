@@ -118,7 +118,7 @@ export const getState = ({
       return;
     }
     const { asset, quantity } = chunk;
-    if (lt(getBalance(account, asset), "0")) {
+    if (lt(getBalance(account, asset), "0") && gt(chunk.quantity, "0")) {
       // annihilate negative chunks before adding positive ones
       let togo = quantity;
       while (gt(togo, "0")) {
@@ -163,12 +163,14 @@ export const getState = ({
     while (gt(togo, "0")) {
       const chunk = getNextChunk(account, asset);
       if (!chunk) {
+        log.debug(`Account ${account} has no ${asset}`);
         // TODO: if account is an address then don't let the balance go negative?
         const newChunk = receiveChunk(asset, togo, date); // debt has no sources
         output.push(newChunk);
         if (!isOpaqueInterestBearers(account)) {
           // Register debt by pushing a new negative-quantity chunk
-          state.accounts[account].push({ ...newChunk, quantity: mul(newChunk.quantity, "-1") });
+          const debtChunk = receiveChunk(asset, mul(togo, "-1"), date); // debt has no sources
+          putChunk(account, debtChunk);
         } else {
           // Otherwise emit a synthetic transfer event
           log.warn(`Opaque interest bearer! Assuming the remaining ${togo} ${asset} is interest`);
@@ -185,6 +187,16 @@ export const getState = ({
             type: EventTypes.Transfer,
           });
         }
+        return output;
+      } else if (lt(chunk.quantity, "0")) {
+        log.debug(`Got a debt chunk of ${chunk.quantity} ${chunk.asset}`);
+        // If we got a debt chunk, put it back
+        putChunk(account, chunk);
+        // create a new chunk/debt chunk pair to account for what we need
+        const newChunk = receiveChunk(asset, togo, date); // debt has no sources
+        output.push(newChunk);
+        const debtChunk = receiveChunk(asset, mul(togo, "-1"), date); // debt has no sources
+        putChunk(account, debtChunk);
         return output;
       }
       log.debug(`Got chunk ${chunk.index} of ${chunk.quantity} ${asset} w ${togo} to go`);
