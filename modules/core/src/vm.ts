@@ -99,7 +99,6 @@ export const getValueMachine = ({
       const getTransferEvents = (
         transfer: Transfer,
         transaction: Transaction,
-        chunks: AssetChunk[],
       ): Events => {
         const { getName } = addressBook;
         const { asset, category, from, quantity, to } = transfer;
@@ -111,27 +110,26 @@ export const getValueMachine = ({
           category,
           date: transaction.date,
           description: `${category} of ${amt} ${asset}`,
-          from: transfer.from,
+          from: from,
           quantity,
           tags: transaction.tags,
-          to: transfer.to,
+          to: to,
           type: EventTypes.Transfer,
         } as Event;
         newEvent.newBalances = {};
         if (([
           Internal, Deposit, Withdraw, Expense, SwapOut, Repay
         ] as TransferCategory[]).includes(category)) {
-          newEvent.newBalances[transfer.from] = { [asset]: state.getBalance(transfer.from, asset) };
-          newEvent.description += ` from ${getName(transfer.from)}`;
+          newEvent.newBalances[from] = { [asset]: state.getBalance(from, asset) };
+          newEvent.description += ` from ${getName(from)}`;
         }
         if (([
           Internal, Deposit, Withdraw, Income, SwapIn, Borrow
         ] as TransferCategory[]).includes(category)) {
-          newEvent.newBalances[transfer.to] = { [asset]: state.getBalance(transfer.to, asset) };
-          newEvent.description += ` to ${getName(transfer.to)}`;
+          newEvent.newBalances[to] = { [asset]: state.getBalance(to, asset) };
+          newEvent.description += ` to ${getName(to)}`;
         }
         const events = [newEvent];
-        events.push(...emitJurisdictionChange(asset, quantity, from, to, transaction, chunks));
         return events;
       };
 
@@ -140,17 +138,18 @@ export const getValueMachine = ({
       if (([Internal, Deposit, Withdraw] as TransferCategory[]).includes(category)) {
         const chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
         chunks.forEach(chunk => state.putChunk(to, chunk));
-        events.push(...getTransferEvents(transfer, transaction, chunks));
+        events.push(...getTransferEvents(transfer, transaction));
+        events.push(...emitJurisdictionChange(asset, quantity, from, to, transaction, chunks));
       // Send funds out of our accounts
       } else if (([Expense, SwapOut, Repay] as TransferCategory[]).includes(category)) {
         const chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
         chunks.forEach(chunk => state.disposeChunk(chunk, transaction.date, from, to));
-        events.push(...getTransferEvents(transfer, transaction, chunks));
+        events.push(...getTransferEvents(transfer, transaction));
       // Receive funds into one of our accounts
       } else if (([Income, SwapIn, Borrow] as TransferCategory[]).includes(category)) {
         const chunks = [state.receiveChunk(asset, quantity, transaction.date)]; // no sources
         chunks.forEach(chunk => state.putChunk(to, chunk));
-        events.push(...getTransferEvents(transfer, transaction, chunks));
+        events.push(...getTransferEvents(transfer, transaction));
       } else {
         log.warn(transfer, `idk how to process this transfer`);
       }
@@ -248,14 +247,6 @@ export const getValueMachine = ({
         ];
         chunks.forEach(chunk => state.putChunk(account, chunk));
         // TODO: What if trades cross jurisdictions?
-        events.push(...emitJurisdictionChange(
-          asset as Assets,
-          quantity as DecimalString,
-          swapsIn[0].from,
-          swapsIn[0].to,
-          transaction,
-          chunks
-        ));
       }
 
       tradeEvent.newBalances = { [account]: {} };
