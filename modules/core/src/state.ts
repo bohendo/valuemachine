@@ -154,7 +154,7 @@ export const getState = ({
     events?: Events,
   ): AssetChunk[] => {
     if (!hasAccount(account)) { // Recieved a new chunk
-      log.warn(`Improperly recieving chunk`);
+      log.warn(`Improperly recieving chunk of ${quantity} ${asset} from ${account}`);
       return [receiveChunk(asset, quantity, date)]; // incoming chunk has no sources
     }
     log.debug(`Getting chunks totaling ${quantity} ${asset} from ${account}`);
@@ -219,10 +219,10 @@ export const getState = ({
     let togo = quantity;
     while (gt(togo, "0")) {
       const chunk = getNextInsecure(asset);
-      log.debug(`Got next chunk ${chunk.index} ${chunk.quantity} of ${asset} w ${togo} to go`);
       if (!chunk) {
-        throw new Error(`Not enough insecure chunks to cover ${quantity} ${asset}`);
+        throw new Error(`Not enough insecure chunks to cover ${quantity} ${asset} (${togo} to go)`);
       }
+      log.debug(`Got next chunk ${chunk.index} ${chunk.quantity} of ${asset} w ${togo} to go`);
       if (gt(chunk.quantity, togo)) {
         // split chunk into what we need & put the rest back
         state.accounts[insecureAccount].push({ ...chunk, quantity: sub(chunk.quantity, togo) });

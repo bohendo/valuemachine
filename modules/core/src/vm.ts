@@ -8,6 +8,7 @@ import {
   Event,
   Events,
   EventTypes,
+  Fiat,
   Logger,
   StateJson,
   TradeEvent,
@@ -59,10 +60,16 @@ export const getValueMachine = ({
       if (oldJurisdiction === newJurisdiction) {
         return [];
       }
-      const insecureChunks = state.getInsecure(transaction.date, asset, quantity);
-      if (insecureChunks.length) {
-        log.warn(`We have ${insecureChunks.length} chunks that are unsecured`);
+
+      if (
+        Object.keys(Blockchains).includes(getJurisdiction(from)) && Object.keys(Fiat).includes(to)
+      ) {
+        const insecureChunks = state.getInsecure(transaction.date, asset, quantity);
+        if (insecureChunks.length) {
+          log.warn(`We have ${insecureChunks.length} chunks that are unsecured`);
+        }
       }
+
       return [{
         asset: asset,
         date: transaction.date,
@@ -84,63 +91,65 @@ export const getValueMachine = ({
       }];
     };
 
-    const emitTransferEvents = (
-      transfer: Transfer,
-      transaction: Transaction,
-      chunks: AssetChunk[],
-    ): Events => {
-      const { getName } = addressBook;
-      const { asset, category, from, quantity, to } = transfer;
-      // Skip tx fees for now, too much noise
-      if (category === Expense && Object.keys(Blockchains).includes(to)) return [];
-      const amt = round(quantity);
-      const newEvent = {
-        asset: asset,
-        category,
-        date: transaction.date,
-        description: `${category} of ${amt} ${asset}`,
-        from: transfer.from,
-        quantity,
-        tags: transaction.tags,
-        to: transfer.to,
-        type: EventTypes.Transfer,
-      } as Event;
-      newEvent.newBalances = {};
-      if (([
-        Internal, Deposit, Withdraw, Expense, SwapOut, Repay
-      ] as TransferCategory[]).includes(category)) {
-        newEvent.newBalances[transfer.from] = { [asset]: state.getBalance(transfer.from, asset) };
-        newEvent.description += ` from ${getName(transfer.from)}`;
-      }
-      if (([
-        Internal, Deposit, Withdraw, Income, SwapIn, Borrow
-      ] as TransferCategory[]).includes(category)) {
-        newEvent.newBalances[transfer.to] = { [asset]: state.getBalance(transfer.to, asset) };
-        newEvent.description += ` to ${getName(transfer.to)}`;
-      }
-      const events = [newEvent];
-      events.push(...emitJurisdictionChange(asset, quantity, from, to, transaction, chunks));
-      return events;
-    };
-
     const handleTransfer = (
       transfer: Transfer,
     ): void => {
+
+      const getTransferEvents = (
+        transfer: Transfer,
+        transaction: Transaction,
+        chunks: AssetChunk[],
+      ): Events => {
+        const { getName } = addressBook;
+        const { asset, category, from, quantity, to } = transfer;
+        // Skip tx fees for now, too much noise
+        if (category === Expense && Object.keys(Blockchains).includes(to)) return [];
+        const amt = round(quantity);
+        const newEvent = {
+          asset: asset,
+          category,
+          date: transaction.date,
+          description: `${category} of ${amt} ${asset}`,
+          from: transfer.from,
+          quantity,
+          tags: transaction.tags,
+          to: transfer.to,
+          type: EventTypes.Transfer,
+        } as Event;
+        newEvent.newBalances = {};
+        if (([
+          Internal, Deposit, Withdraw, Expense, SwapOut, Repay
+        ] as TransferCategory[]).includes(category)) {
+          newEvent.newBalances[transfer.from] = { [asset]: state.getBalance(transfer.from, asset) };
+          newEvent.description += ` from ${getName(transfer.from)}`;
+        }
+        if (([
+          Internal, Deposit, Withdraw, Income, SwapIn, Borrow
+        ] as TransferCategory[]).includes(category)) {
+          newEvent.newBalances[transfer.to] = { [asset]: state.getBalance(transfer.to, asset) };
+          newEvent.description += ` to ${getName(transfer.to)}`;
+        }
+        const events = [newEvent];
+        events.push(...emitJurisdictionChange(asset, quantity, from, to, transaction, chunks));
+        return events;
+      };
+
       const { asset, category, from, quantity, to } = transfer;
       // Move funds from one account to another
       if (([Internal, Deposit, Withdraw] as TransferCategory[]).includes(category)) {
         const chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
         chunks.forEach(chunk => state.putChunk(to, chunk));
+        events.push(...getTransferEvents(transfer, transaction, chunks));
       // Send funds out of our accounts
       } else if (([Expense, SwapOut, Repay] as TransferCategory[]).includes(category)) {
         const chunks = state.getChunks(from, asset, quantity, transaction.date, transfer, events);
         chunks.forEach(chunk => state.disposeChunk(chunk, transaction.date, from, to));
-        events.push(...emitTransferEvents(transfer, transaction, chunks));
+        events.push(...getTransferEvents(transfer, transaction, chunks));
       // Receive funds into one of our accounts
       } else if (([Income, SwapIn, Borrow] as TransferCategory[]).includes(category)) {
         const chunks = [state.receiveChunk(asset, quantity, transaction.date)]; // no sources
         chunks.forEach(chunk => state.putChunk(to, chunk));
-        events.push(...emitTransferEvents(transfer, transaction, chunks));
+        events.push(...getTransferEvents(transfer, transaction, chunks));
       } else {
         log.warn(transfer, `idk how to process this transfer`);
       }
@@ -150,9 +159,16 @@ export const getValueMachine = ({
     // VM Core
 
     // Create any new abstract accounts
-    transaction.transfers.filter(
-      t => ([Deposit, Internal] as TransferCategory[]).includes(t.category)
-    ).forEach(transfer => state.createAccount(transfer.to));
+    transaction.transfers.filter(t => ([
+      Internal, Deposit, Withdraw, Income, SwapIn, Borrow
+    ] as TransferCategory[]).includes(t.category)).forEach(transfer =>
+      state.createAccount(transfer.to)
+    );
+    transaction.transfers.filter(t => ([
+      Internal, Deposit, Withdraw, Expense, SwapOut, Repay
+    ] as TransferCategory[]).includes(t.category)).forEach(transfer =>
+      state.createAccount(transfer.from)
+    );
 
     // Process normal transfers & set swaps aside to process more deeply
     const swapsIn = [];
