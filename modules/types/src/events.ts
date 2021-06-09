@@ -1,6 +1,6 @@
 import { Assets, AssetChunk } from "./assets";
 import { Address, DecimalString, TimestampString } from "./strings";
-import { SecurityProvider } from "./taxes";
+import { SecurityProvider } from "./security";
 import { TransferCategory } from "./transactions";
 import { enumify } from "./utils";
 

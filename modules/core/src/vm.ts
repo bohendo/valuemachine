@@ -3,12 +3,12 @@ import {
   AddressBook,
   AssetChunk,
   Assets,
-  Blockchains,
+  Cryptocurrencies,
   DecimalString,
   Event,
   Events,
   EventTypes,
-  Fiat,
+  FiatCurrencies,
   Logger,
   StateJson,
   TradeEvent,
@@ -17,7 +17,7 @@ import {
   TransferCategories,
   TransferCategory,
 } from "@finances/types";
-import { getJurisdiction, getLogger, math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
 import { getState } from "./state";
 import { rmDups } from "./transactions/utils";
@@ -55,14 +55,15 @@ export const getValueMachine = ({
       transaction: Transaction,
       chunks: AssetChunk[],
     ): Events => {
-      const oldJurisdiction = getJurisdiction(from);
-      const newJurisdiction = getJurisdiction(to);
+      const oldJurisdiction = addressBook.getGuardian(from);
+      const newJurisdiction = addressBook.getGuardian(to);
       if (oldJurisdiction === newJurisdiction) {
         return [];
       }
 
       if (
-        Object.keys(Blockchains).includes(getJurisdiction(from)) && Object.keys(Fiat).includes(to)
+        Object.keys(Cryptocurrencies).includes(addressBook.getGuardian(from))
+        && Object.keys(FiatCurrencies).includes(to)
       ) {
         const insecureChunks = state.getInsecure(transaction.date, asset, quantity);
         if (insecureChunks.length) {
@@ -103,7 +104,7 @@ export const getValueMachine = ({
         const { getName } = addressBook;
         const { asset, category, from, quantity, to } = transfer;
         // Skip tx fees for now, too much noise
-        if (category === Expense && Object.keys(Blockchains).includes(to)) return [];
+        if (category === Expense && Object.keys(Cryptocurrencies).includes(to)) return [];
         const amt = round(quantity);
         const newEvent = {
           asset: asset,

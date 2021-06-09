@@ -1,3 +1,4 @@
+import { SecurityProvider } from "./security";
 import { Address, HexString } from "./strings";
 import { enumify } from "./utils";
 
@@ -32,14 +33,16 @@ export type AddressEntry = {
   address: HexString;
   category: AddressCategories;
   name: string;
+  guardian?: SecurityProvider;
   tags?: string[];
-}
+};
 
 export type AddressBookJson = Array<AddressEntry>;
 
 export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
+  getGuardian(address: Address): SecurityProvider;
   isCategory(category: AddressCategories): (address: Address) => boolean;
   isPresent(address: Address): boolean;
   isProxy(address: Address): boolean;

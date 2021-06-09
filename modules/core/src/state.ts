@@ -4,7 +4,7 @@ import {
   AddressBook,
   AssetChunk,
   Assets,
-  Blockchains,
+  Cryptocurrencies,
   DecimalString,
   emptyState,
   Events,
@@ -20,7 +20,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@finances/types";
-import { getJurisdiction, getLogger, math } from "@finances/utils";
+import { getLogger, math } from "@finances/utils";
 
 const { add, gt, lt, mul, round, sub } = math;
 
@@ -102,7 +102,7 @@ export const getState = ({
     to: Account,
   ): void => {
     if (
-      Object.keys(Blockchains).includes(getJurisdiction(from))
+      Object.keys(Cryptocurrencies).includes(addressBook.getGuardian(from))
       && !Object.keys(SecurityProviders).includes(to)
     ) {
       state.accounts[insecureAccount].push(chunk);

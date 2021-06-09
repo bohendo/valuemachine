@@ -4,6 +4,7 @@ import { ChainData } from "./chainData";
 import { Logger } from "./logger";
 import { DecimalString, HexString, TimestampString } from "./strings";
 import { Store } from "./store";
+import { SecurityProviders } from "./security";
 import { enumify } from "./utils";
 
 ////////////////////////////////////////
@@ -18,7 +19,14 @@ export const ExternalSources = enumify({
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type ExternalSources = (typeof ExternalSources)[keyof typeof ExternalSources];
 
-export const OnchainSources = enumify({
+export const Jurisdictions = {
+  [ExternalSources.Coinbase]: SecurityProviders.USD,
+  [ExternalSources.DigitalOcean]: SecurityProviders.USD,
+  [ExternalSources.Wyre]: SecurityProviders.USD,
+  [ExternalSources.Wazirx]: SecurityProviders.INR,
+};
+
+export const EthereumSources = enumify({
   Argent: "Argent",
   Compound: "Compound",
   Idle: "Idle",
@@ -33,11 +41,11 @@ export const OnchainSources = enumify({
   Yearn: "Yearn",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export type OnchainSources = (typeof OnchainSources)[keyof typeof OnchainSources];
+export type EthereumSources = (typeof EthereumSources)[keyof typeof EthereumSources];
 
 export const TransactionSources = enumify({
   ...ExternalSources,
-  ...OnchainSources,
+  ...EthereumSources,
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
