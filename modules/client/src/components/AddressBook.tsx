@@ -128,12 +128,19 @@ const EditEntry = ({
   }, [entryModified]);
 
   const getErrors = (candidate: AddressEntry): string => {
+    console.log(`Checking ${addresses.length} addresses for dups.. first few: ${addresses.slice(0, 2)}`);
     if (!candidate?.address) {
       return "Address is required";
     } else if (!isAddress(candidate.address)) {
       return "Invalid address";
     } else if (addresses?.includes(candidate.address)) {
-      return "Address already exists";
+      return `Address ${
+        candidate.address.substring(0,6)
+      }..${
+        candidate.address.substring(candidate.address.length-4)
+      } already exists at index ${
+        addresses?.findIndex(a => a ===candidate.address)
+      }`;
     } else {
       return "";
     }
@@ -157,6 +164,7 @@ const EditEntry = ({
     } else if (
       newEntry.address !== entry.address ||
       newEntry.category !== entry.category ||
+      newEntry.guardian !== entry.guardian ||
       newEntry.name !== entry.name
     ) {
       setEntryModified(true);
@@ -186,7 +194,7 @@ const EditEntry = ({
         className={classes.root}
       >
 
-        <Grid item md={6}>
+        <Grid item md={4}>
           <TextField
             autoComplete="off"
             value={newEntry?.name || ""}
@@ -201,7 +209,7 @@ const EditEntry = ({
           />
         </Grid>
 
-        <Grid item md={3}>
+        <Grid item md={4}>
           <FormControl className={classes.select}>
             <InputLabel id="select-new-category">Category</InputLabel>
             <Select
@@ -213,6 +221,23 @@ const EditEntry = ({
             >
               <MenuItem value={""}>-</MenuItem>
               {Object.keys(AddressCategories).map((cat, i) => (
+                <MenuItem key={i} value={cat}>{cat}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+
+        <Grid item md={4}>
+          <FormControl className={classes.select}>
+            <InputLabel id="select-new-guardian">Guardian</InputLabel>
+            <Select
+              labelId={`select-${entry?.address}-guardian`}
+              id={`select-${entry?.address}-guardian`}
+              name="guardian"
+              value={newEntry?.guardian || SecurityProviders.ETH}
+              onChange={handleEntryChange}
+            >
+              {Object.keys(SecurityProviders).map((cat, i) => (
                 <MenuItem key={i} value={cat}>{cat}</MenuItem>
               ))}
             </Select>
@@ -235,7 +260,7 @@ const EditEntry = ({
           />
         </Grid>
 
-        <Grid item md={3}>
+        <Grid item md={6}>
           {entryModified ?
             <Grid item>
               <Button
@@ -264,14 +289,14 @@ const AddressRow = ({
   entry,
   syncAddress,
   syncing,
-  allAddresses,
+  otherAddresses,
 }: {
   index: number;
   editEntry: any;
   entry: AddressEntry;
   syncAddress: any;
   syncing: any;
-  allAddresses: string;
+  otherAddresses: string;
 }) => {
   const [editMode, setEditMode] = useState(false);
   const [newEntry, setNewEntry] = useState({});
@@ -333,7 +358,7 @@ const AddressRow = ({
               <EditEntry
                 entry={newEntry}
                 setEntry={handleEdit}
-                addresses={[...allAddresses.slice(0, index), ...allAddresses.slice(index)]}
+                addresses={otherAddresses}
               />
 
               <Grid item>
@@ -390,7 +415,7 @@ export const AddressBook = ({
 
   useEffect(() => {
     const newAllAddresses = profile.addressBook.map(entry => entry.address);
-    console.log(`New address list has length of ${newAllAddresses.length}`);
+    console.log(`New address list has length of ${newAllAddresses.length} starting with ${newAllAddresses.slice(0, 2).join(", ")}`);
     setAllAddresses(newAllAddresses);
   }, [profile]);
 
@@ -728,7 +753,7 @@ export const AddressBook = ({
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((entry: AddressEntry, i: number) => (
                   <AddressRow
-                    allAddresses={allAddresses}
+                    otherAddresses={[...allAddresses.slice(0, i), ...allAddresses.slice(i + 1)]}
                     key={i}
                     index={profile.addressBook.findIndex(e => smeq(e.address, entry.address))}
                     editEntry={editEntry}
