@@ -1,16 +1,17 @@
 import { commify } from "@ethersproject/units";
 import { getPrices } from "@finances/core";
 import {
+  AddressBook,
   Assets,
   DateString,
   DecimalString,
-  Events,
   EventTypes,
+  Events,
   PricesJson,
   SecurityProviders,
   TransferCategories,
 } from "@finances/types";
-import { getJurisdiction, math } from "@finances/utils";
+import { math } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
@@ -83,9 +84,11 @@ type TaxRow = {
 };
 
 export const TaxesExplorer = ({
+  addressBook,
   events,
   pricesJson,
 }: {
+  addressBook: AddressBook;
   events: Events,
   pricesJson: PricesJson,
 }) => {
@@ -126,11 +129,12 @@ export const TaxesExplorer = ({
   };
 
   useEffect(() => {
+    if (!addressBook || !events?.length) return;
     const newJurisdictions = Array.from(events
       .filter(e => e.type === EventTypes.Trade || (
         e.type === EventTypes.Transfer && e.category === TransferCategories.Income
       )).reduce((all, cur) => {
-        const jur = getJurisdiction(cur.to || cur.account);
+        const jur = addressBook.getGuardian(cur.to || cur.account || "");
         if (Object.keys(SecurityProviders).includes(jur)) {
           all.add(jur);
         }
@@ -139,16 +143,16 @@ export const TaxesExplorer = ({
     ).sort();
     setAllJurisdictions(newJurisdictions);
     setJurisdiction(newJurisdictions[0]);
-  }, [events]);
+  }, [addressBook, events]);
 
   useEffect(() => {
-    if (!jurisdiction || !events?.length) return;
+    if (!addressBook || !jurisdiction || !events?.length) return;
     const prices = getPrices({ pricesJson, store, unit: jurisdiction });
     let cumulativeIncome = "0";
     let cumulativeChange = "0";
     setTaxes(
       events.filter(evt => {
-        const toJur = getJurisdiction(evt.to || evt.account);
+        const toJur = addressBook.getGuardian(evt.to || evt.account || "");
         return toJur === jurisdiction && (
           evt.type === EventTypes.Trade
           || evt.type === EventTypes.JurisdictionChange
@@ -216,7 +220,7 @@ export const TaxesExplorer = ({
         }
       }, []).filter(row => row.asset !== jurisdiction)
     );
-  }, [jurisdiction, events, pricesJson]);
+  }, [addressBook, jurisdiction, events, pricesJson]);
 
   const handleExport = () => {
     if (!taxes?.length) { console.warn("Nothing to export"); return; }

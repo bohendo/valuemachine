@@ -162,9 +162,9 @@ export const getAddressBook = (
       [ExternalSources.Wyre]: SecurityProviders.USD,
       [ExternalSources.Wazirx]: SecurityProviders.INR,
     };
-    const source = account.split("-")[0];
     if (!account) return SecurityProviders.None;
-    return addressBook.find(row => smeq(row.account, account))?.guardian
+    const source = account.split("-")[0];
+    return addressBook.find(row => smeq(row.address, account))?.guardian
       || ((isAddress(account) || Object.keys(EthereumSources).includes(source))
         ? SecurityProviders.ETH
         : (
@@ -172,6 +172,11 @@ export const getAddressBook = (
           || (Object.keys(SecurityProviders).includes(source) ? source : SecurityProviders.None)
         ));
   };
+
+  // Set default guardians
+  addressBook.forEach(entry => {
+    entry.guardian = entry.guardian || SecurityProviders.ETH;
+  });
 
   return {
     addresses,

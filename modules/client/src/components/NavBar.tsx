@@ -1,4 +1,4 @@
-import { Assets, Fiat } from "@finances/types";
+import { Assets, Cryptocurrencies, FiatCurrencies } from "@finances/types";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import FormControl from "@material-ui/core/FormControl";
@@ -85,12 +85,12 @@ export const NavBar = ({
             value={unit || ""}
             onChange={handleUnitChange}
           >
-            {["ETH"].concat(Object.keys({ ...Fiat })).map(asset => (
-              <MenuItem key={asset} value={asset}>{asset}</MenuItem>
-            ))}
+            {[Cryptocurrencies.ETH, Cryptocurrencies.BTC]
+              .concat(Object.keys({ ...FiatCurrencies }))
+              .map(asset => <MenuItem key={asset} value={asset}>{asset}</MenuItem>)
+            }
           </Select>
         </FormControl>
-
 
         <IconButton
           component={Link}
