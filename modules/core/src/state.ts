@@ -1,29 +1,32 @@
 import {
   Account,
-  Transfer,
-  TransferCategories,
-  SecurityProvider,
+  ChunkIndex,
   AddressBook,
   AssetChunk,
   Assets,
+  Balances,
   DecimalString,
   emptyState,
   Events,
   EventTypes,
   Logger,
-  Balances,
-  StateFns,
   PhysicalGuardians,
+  StateFns,
   StateJson,
-  TimestampString,
-  TransferCategory,
+  TradeEvent,
+  Transaction,
   TransactionSources,
+  Transfer,
+  TransferCategories,
+  TransferCategory,
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
-// const {
-//   Internal, Deposit, Withdraw, Income, SwapIn, Borrow, Expense, SwapOut, Repay,
-// } = TransferCategories;
+import { rmDups } from "./transactions/utils";
+
+const {
+  Internal, Deposit, Withdraw, Income, SwapIn, Borrow, Expense, SwapOut, Repay,
+} = TransferCategories;
 const { add, eq, gt, lt, mul, round, sub } = math;
 
 // Apps that provide insufficient info in tx logs to determine interest income
@@ -33,30 +36,30 @@ const isOpaqueInterestBearers = (account: Account): boolean =>
 
 export const getStateFns = ({
   addressBook,
-  date,
-  events,
   logger,
   stateJson,
 }: {
   addressBook: AddressBook;
-  date: TimestampString;
-  events: Events;
   logger?: Logger;
   stateJson?: StateJson;
 }): StateFns => {
-  const state = stateJson || JSON.parse(JSON.stringify(emptyState));
-  const chunks = state.chunks; // just for convenience
   const log = (logger || getLogger()).child({ module: "State" });
+  const state = stateJson || JSON.parse(JSON.stringify(emptyState));
+  state.chunks = state.chunks || [];
+  state.events = state.events || [];
 
-  state.date = date;
-
-  ////////////////////////////////////////
-  // Event Handlers
+  let newEvents = [] as Events;
 
   ////////////////////////////////////////
   // Internal Functions
 
-  const getJson = () => state;
+  const toIndex = (chunk: AssetChunk): ChunkIndex => chunk.index;
+
+  const chunksToBalances = (chunks: AssetChunk[]): Balances =>
+    chunks.reduce((balances, chunk) => {
+      balances[chunk.asset] = add(balances[chunk.asset], chunk.quantity);
+      return balances;
+    }, {});
 
   const isPhysicallyGuarded = (account) => 
     Object.keys(PhysicalGuardians).includes(addressBook.getGuardian(account));
@@ -73,16 +76,16 @@ export const getStateFns = ({
       quantity,
       asset,
       account,
-      index: chunks.length,
+      index: state.chunks.length,
       inputs: [],
-      receiveDate: date,
+      receiveDate: state.date,
       unsecured: isPhysicallyGuarded(account) ? "0" : quantity,
     };
-    chunks.push(newChunk);
+    state.chunks.push(newChunk);
     return newChunk;
   };
 
-  const borrowChunk = (quantity: DecimalString, asset: Assets, account: Account): AssetChunk[] => {
+  const borrowChunks = (quantity: DecimalString, asset: Assets, account: Account): AssetChunk[] => {
     const loan = mintChunk(quantity, asset, account);
     const debt = mintChunk(mul(quantity, "-1"), asset, account);
     return [loan, debt];
@@ -95,7 +98,7 @@ export const getStateFns = ({
       return [mintChunk(quantity, asset, account)];
     } else {
       log.debug(`Underflow of ${quantity} ${asset} is being handled by taking out a loan`);
-      const [loan, _debt] = borrowChunk(quantity, asset, account);
+      const [loan, _debt] = borrowChunks(quantity, asset, account);
       return [loan];
     }
   };
@@ -106,8 +109,8 @@ export const getStateFns = ({
   ): AssetChunk[] => {
     const { asset, quantity: total } = oldChunk;
     const leftover = sub(total, amtNeeded);
-    const newChunk = { ...oldChunk, quantity: amtNeeded, index: chunks.length };
-    chunks.push(newChunk); // not minting bc we want to keep receiveDate the same
+    const newChunk = { ...oldChunk, quantity: amtNeeded, index: state.chunks.length };
+    state.chunks.push(newChunk); // not minting bc we want to keep receiveDate the same
     oldChunk.quantity = leftover;
     log.debug(`Split ${asset} chunk of ${total} into ${amtNeeded} and ${leftover}`);
     return [newChunk, oldChunk];
@@ -118,12 +121,12 @@ export const getStateFns = ({
     asset: Assets,
     account: Account,
   ): AssetChunk[] => {
-    const balance = getBalance(account, asset);
-    const available = chunks.filter(isHeld(account, asset));
+    const balance = getBalance(asset, account);
+    const available = state.chunks.filter(isHeld(account, asset));
 
     // If balance equals what we need, return all available chunks
     if (eq(balance, quantity)) {
-      log.warn(`Got all chunks from ${account} for a total of ${quantity} ${asset}`);
+      log.debug(`Got all chunks from ${account} for a total of ${quantity} ${asset}`);
       return available;
     }
 
@@ -135,7 +138,7 @@ export const getStateFns = ({
       // If we don't have enough, give everything we have & underflow
       if (lt(balance, quantity)) {
         const remainder = underflow(quantity, asset, account);
-        return available.concat([remainder]);
+        return [...available, ...remainder];
       // If we have more chunks than needed, return some of them
       } else {
         const output = [];
@@ -145,7 +148,7 @@ export const getStateFns = ({
             return output;
           } else if (gt(chunk.quantity, togo)) {
             const [needed, _leftover] = splitChunk(chunk, togo);
-            return output.concat([needed]);
+            return [...output, needed];
           }
           output.push(chunk);
           togo = sub(togo, chunk.quantity);
@@ -165,7 +168,7 @@ export const getStateFns = ({
             return output;
           } else if (lt(chunk.quantity, togo)) {
             const [needed, _leftover] = splitChunk(chunk, togo);
-            return output.concat([needed]);
+            return [...output, needed];
           }
           output.push(chunk);
           togo = sub(togo, chunk.quantity);
@@ -174,19 +177,19 @@ export const getStateFns = ({
         return output;
       // If we have less debt than needed, borrow to make up the difference
       } else {
-        const [_loan, debt] = borrowChunk(quantity, asset, account);
+        const [_loan, debt] = borrowChunks(quantity, asset, account);
         log.warn(`Got all ${asset} debt from ${account} and borrowed ${debt} more`);
-        return available.concat([debt]);
+        return [...available, debt];
       }
 
     // If we're not in debt and want to get a negative quantity, we need some fresh debt
     } else if (!inDebt && needDebt) {
-      const [loan, debt] = borrowChunk(quantity, asset, account);
+      const [loan, debt] = borrowChunks(quantity, asset, account);
       log.warn(`Borrowed ${loan.quantity} ${loan.asset} bc we needed debt & didn't have any`);
       return [debt];
     // If we're in debt and want to get a positive quantity, we need to go into more debt
     } else if (inDebt && !needDebt) {
-      const [loan, _debt] = borrowChunk(quantity, asset, account);
+      const [loan, _debt] = borrowChunks(quantity, asset, account);
       log.warn(`Borrowed ${loan.quantity} ${loan.asset} bc we're already had ${balance} of debt`);
       return [loan];
     }
@@ -197,17 +200,22 @@ export const getStateFns = ({
   ////////////////////////////////////////
   // Exported Methods
 
-  const getBalance = (account: Account, asset: Assets): DecimalString =>
-    chunks.reduce((balance, chunk) => {
-      return isHeld(account, asset)(chunk) ? add(balance, chunk.quantity) : balance;
+  const getJson = () => state;
+
+  const getBalance = (asset: Assets, account?: Account): DecimalString =>
+    state.chunks.reduce((balance, chunk) => {
+      return (!account && chunk.asset === asset) || isHeld(account, asset)(chunk)
+        ? add(balance, chunk.quantity)
+        : balance;
     }, "0");
 
-  const getAccounts = (): Account[] => Array.from(
-    new Set(...chunks.map(chunk => chunk.account).filter(chunk => !!chunk))
-  );
+  const getAccounts = (): Account[] => Array.from(state.chunks.reduce((accounts, chunk) => {
+    if (chunk.account) accounts.add(chunk.account);
+    return accounts;
+  }, new Set()));
 
   const getNetWorth = (account?: Account): Balances =>
-    chunks.reduce((netWorth, chunk) => {
+    state.chunks.reduce((netWorth, chunk) => {
       if (chunk.account && (!account || chunk.account === account)) {
         netWorth[chunk.asset] = add(netWorth[chunk.asset], chunk.quantity);
       }
@@ -220,7 +228,7 @@ export const getStateFns = ({
     asset: Assets,
     account: Account,
   ): AssetChunk[] => {
-    const balance = getBalance(account, asset);
+    const balance = getBalance(asset, account);
     // If account balance is positive, add a new chunk
     if (!lt(balance, "0")) {
       log.debug(`Received new chunk of ${quantity} ${asset} for ${account}`);
@@ -228,12 +236,12 @@ export const getStateFns = ({
     } else {
       // If account balance is negative, annihilate debt before maybe adding new chunks
       const disposeDebt = chunk => {
-        chunk.disposeDate = date;
+        chunk.disposeDate = state.date;
         chunk.outputs = [];
         delete chunk.account;
       };
       const debt = mul(balance, "-1");
-      const available = chunks.filter(isHeld(account, asset));
+      const available = state.chunks.filter(isHeld(account, asset));
       // If total debt equals what we're receiving, annihilate everything available
       if (eq(debt, quantity)) {
         available.forEach(disposeDebt);
@@ -265,80 +273,43 @@ export const getStateFns = ({
     account: Account,
   ): AssetChunk[] => {
     const disposeChunk = chunk => {
-      chunk.disposeDate = date;
+      chunk.disposeDate = state.date;
       chunk.outputs = [];
       delete chunk.account;
     };
-    const balance = getBalance(account, asset);
+    const balance = getBalance(asset, account);
     // If balance is negative, borrow a chunk & dispose of it
     if (lt(balance, "0")) {
-      const [loan, _debt] = borrowChunk(quantity, asset, account);
+      const [loan, _debt] = borrowChunks(quantity, asset, account);
       log.debug(`Borrowing & disposing ${quantity} ${asset} from ${account}`);
       disposeChunk(loan);
       return [loan];
     } 
-    // If balance is positive, dispose positive chunks before maybe taking any more loans
-    const available = chunks.filter(isHeld(account, asset));
+    // If balance is positive, dispose positive chunks before maybe taking a loan
+    const available = state.chunks.filter(isHeld(account, asset));
     if (eq(balance, quantity)) {
       available.forEach(disposeChunk);
-      log.debug(`Disposed full balance of ${quantity} ${asset} from ${account}`);
+      log.debug(`Disposed full balance of ${
+        available.map(c => c.quantity).join(" + ")
+      } ${asset} from ${account}`);
       return available;
     } else if (gt(balance, quantity)) {
-      const toDispose = getChunks(quantity, asset, account)
+      const toDispose = getChunks(quantity, asset, account);
       toDispose.forEach(disposeChunk);
-      log.debug(`Disposed of ${quantity} ${asset} from ${account}`);
+      log.debug(`Disposed of ${
+        toDispose.map(c => c.quantity).join(" + ")
+      } ${asset} from ${account}`);
       return toDispose;
     } else if (lt(balance, quantity)) {
       available.forEach(disposeChunk);
       const togo = sub(quantity, balance);
-      const [loan, _debt] = borrowChunk(togo, asset, account);
+      const [loan, _debt] = borrowChunks(togo, asset, account);
       disposeChunk(loan);
       log.debug(`Disposed of all ${asset} from ${account} and borrowed/disposed of ${loan} more`);
       return [...available, loan];
     }
     log.warn(`How did we get here?!`);
     return [];
-  };
-
-  const moveValue = (quantity: DecimalString, asset: Assets, from: Account, to: Account): void => {
-    const toMove = getChunks(quantity, asset, from);
-    toMove.forEach(chunk => { chunk.account = to; });
-    if (isPhysicallyGuarded(to) && !isPhysicallyGuarded(from)) {
-      // Handle jurisdiction change
-      const oldGuard = addressBook.getGuardian(from);
-      const newGuard = addressBook.getGuardian(to);
-      const securedChunks = [];
-      toMove.forEach(chunk => {
-        const securedSources = state.secureChunk(chunk);
-        securedChunks.push(...securedSources);
-        log.warn(securedSources, `We secured ${
-          securedSources.length
-        } sources of chunk ${chunk.index}`);
-      });
-      if (securedChunks.length) {
-        log.warn(`We secured a total of ${securedChunks.length} chunks`);
-      }
-      events.push({
-        asset: asset,
-        quantity: quantity,
-        date,
-        description: `${round(quantity)} ${
-          asset
-        } moved jurisdictions from ${oldGuard} to ${newGuard}`,
-        from: from,
-        to: to,
-        movedChunks: toMove,
-        securedChunks,
-        newBalances: {
-          [to]: { [asset]: getBalance(to, asset) },
-          [from]: { [asset]: getBalance(from, asset) },
-        },
-        newJurisdiction: newGuard,
-        oldJurisdiction: oldGuard,
-        tags: [],
-        type: EventTypes.JurisdictionChange,
-      });
-    }
   };
 
   const tradeValue = (account: Account, swapsIn: Balances, swapsOut: Balances): void => {
@@ -355,64 +326,153 @@ export const getStateFns = ({
       chunksIn.push(...receiveValue(quantity, asset, account));
     }
     // Set indicies of trade input & output chunks
-    chunksOut.forEach(chunk => { chunk.outputs = chunksIn.map(chunk => chunk.index); });
-    chunksIn.forEach(chunk => { chunk.inputs = chunksIn.map(chunk => chunk.index); });
+    chunksOut.forEach(chunk => { chunk.outputs = chunksIn.map(toIndex); });
+    chunksIn.forEach(chunk => { chunk.inputs = chunksIn.map(toIndex); });
+    // emit trade event
+    const totalIn = chunksToBalances(chunksIn);
+    const totalOut = chunksToBalances(chunksOut);
+    const tradeEvent = {
+      date: state.date,
+      type: EventTypes.Trade,
+      inputs: chunksIn.map(toIndex),
+      outputs: chunksOut.map(toIndex),
+      account,
+      description: `Traded ${
+        Object.keys(totalOut).map((asset, i) => `${round(totalOut[i])} ${asset}`).join(" & ")
+      } for ${
+        Object.keys(totalIn).map((asset, i) => `${round(totalIn[i])} ${asset}`).join(" & ")
+      }`,
+      newBalances: getNetWorth(account),
+    } as TradeEvent;
+    newEvents.push(tradeEvent);
   };
 
-  /*
-  const chunks = state.getChunks(account, asset, quantity, date, events);
-  chunksOut.push(...chunks);
-  if (isPhysicallyGuarded(account)) {
-    chunks.forEach(chunk => { chunk.unsecured = "0"; });
-  } else {
-    chunks.forEach(chunk => { chunk.disposeDate = date; });
-  }
-  chunks.forEach(chunk => state.disposeChunk(chunk));
-  tradeEvent.spentChunks = [...chunks]; // Assumes chunks are never modified.. Is this safe?
-  */
-
-  /*
-  // Given a chunk and one of that chunk's sources, return a value between 0 and 1
-  // Returned value represents the proportion of the source that went into the chunk
-  const getProportion = (chunk, source): DecimalString => {
-    // Search through all chunks & find ones that 
-    const allChunks 
-  };
-  */
-
-  /*
-  const secureChunk = (
-    chunk: AssetChunk,
-  ): AssetChunk[] => {
-    // Recursively loops through a chunks sources
-    const output = [];
-    const secureSources = (hunk: AssetChunk): AssetChunk[] => {
-      const { index, quantity, asset, sources } = hunk;
-      log.debug(`Tracing path of chunk #${index} of ${quantity} ${asset} from ${sources}`);
-      output.push(hunk);
-      for (const srcIndex of sources) {
-        const src = state.history.find(hunk => hunk.index === srcIndex);
-        if (src && src) {
-          output.concat(...secureSources(src));
-        }
-      }
-      return output;
-    };
-    const { index, asset, quantity, sources } = chunk;
-    log.debug(`Getting insecure path of chunk #${index} of ${quantity} ${asset} from ${sources}`);
-    if (!sources) {
-      return [chunk];
-    } else {
-      return secureSources(chunk);
+  const moveValue = (quantity: DecimalString, asset: Assets, from: Account, to: Account): void => {
+    const toMove = getChunks(quantity, asset, from);
+    log.info(toMove, `Got chunks to move`);
+    toMove.forEach(chunk => { chunk.account = to; });
+    if (isPhysicallyGuarded(to) && !isPhysicallyGuarded(from)) {
+      // Handle jurisdiction change
+      const oldGuard = addressBook.getGuardian(from);
+      const newGuard = addressBook.getGuardian(to);
+      newEvents.push({
+        description: `${round(quantity)} ${asset} moved from ${oldGuard} to ${newGuard}`,
+        date: state.date,
+        newBalances: { [asset]: getBalance(asset) },
+        from: from,
+        fromJurisdiction: oldGuard,
+        to: to,
+        toJurisdiction: newGuard,
+        chunks: toMove.map(toIndex),
+        insecurePath: [],
+        type: EventTypes.JurisdictionChange,
+      });
     }
   };
-  */
+
+  const execute = (tx: Transaction): Events => {
+    log.debug(`Processing transaction ${tx.index} from ${tx.date}: ${tx.description}`);
+    state.date = tx.date;
+    newEvents = [] as Events;
+
+    const handleTransfer = (
+      transfer: Transfer,
+    ): void => {
+      const { asset, category, from, quantity, to } = transfer;
+      // Move funds from one account to another
+      if (([Internal, Deposit, Withdraw, Repay, Borrow] as TransferCategory[]).includes(category)) {
+        moveValue(quantity, asset, from, to);
+      // Send funds out of our accounts
+      } else if (([Expense, SwapOut] as TransferCategory[]).includes(category)) {
+        const disposed = disposeValue(quantity, asset, from);
+        newEvents.push({
+          account: from,
+          date: state.date,
+          description: `${addressBook.getName(from)} disposed of ${quantity} ${asset}`,
+          newBalances: { [asset]: getBalance(asset) },
+          outputs: disposed.map(toIndex),
+          type: EventTypes.Expense,
+        });
+      // Receive funds into one of our accounts
+      } else if (([Income, SwapIn] as TransferCategory[]).includes(category)) {
+        const received = receiveValue(quantity, asset, to);
+        newEvents.push({
+          account: to,
+          date: state.date,
+          description: `${addressBook.getName(from)} received ${quantity} ${asset}`,
+          inputs: received.map(toIndex),
+          newBalances: { [asset]: getBalance(asset) },
+          type: EventTypes.Income,
+        });
+      } else {
+        log.warn(transfer, `idk how to process this transfer`);
+      }
+    };
+
+    // Process normal transfers & set swaps aside to process more deeply
+    const swapsIn = [];
+    const swapsOut = [];
+    tx.transfers.forEach(transfer => {
+      if (transfer.category === SwapIn) {
+        swapsIn.push(transfer);
+      } else if (transfer.category === SwapOut) {
+        swapsOut.push(transfer);
+      } else {
+        handleTransfer(transfer);
+      }
+    });
+
+    // Process Trade
+    if (swapsIn.length && swapsOut.length) {
+      // Sum transfers & subtract refunds to get total values traded
+      const sum = (acc, cur) => add(acc, cur.quantity);
+      const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
+      const assetsIn = rmDups(swapsIn.map(swap => swap.asset)
+        .filter(asset => !assetsOut.includes(asset)) // remove refunds from the output asset list
+      );
+      const amtsOut = assetsOut.map(asset =>
+        swapsIn
+          .filter(swap => swap.asset === asset)
+          .map(swap => ({ ...swap, quantity: mul(swap.quantity, "-1") })) // subtract refunds
+          .concat(
+            swapsOut.filter(swap => swap.asset === asset)
+          ).reduce(sum, "0")
+      );
+      const amtsIn = assetsIn.map(asset =>
+        swapsIn.filter(swap => swap.asset === asset).reduce(sum, "0")
+      );
+      const inputs = {};
+      assetsIn.forEach((asset, index) => {
+        inputs[asset] = amtsIn[index];
+      });
+      const outputs = {};
+      assetsOut.forEach((asset, index) => {
+        outputs[asset] = amtsOut[index];
+      });
+      // TODO: abort or handle when to/from values aren't consistent among swap chunks
+      // eg we could add a synthetic internal transfer then make the swap touch only one account
+      const account = swapsIn[0].to || swapsOut[0].from;
+      tradeValue(account, inputs, outputs);
+
+    // If no matching swaps, process them like normal transfers
+    } else if (swapsIn.length) {
+      log.warn(swapsIn, `Can't find matching swaps out`);
+      swapsIn.forEach(handleTransfer);
+    } else if (swapsOut.length) {
+      log.warn(swapsOut, `Can't find matching swaps in`);
+      swapsOut.forEach(handleTransfer);
+    }
+
+    state.events.push(...newEvents);
+    return newEvents;
+  };
 
   return {
     receiveValue,
     moveValue,
     tradeValue,
     disposeValue,
+    execute,
     getJson,
     getAccounts,
     getBalance,

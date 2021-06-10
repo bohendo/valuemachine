@@ -67,7 +67,12 @@ export const Dashboard: React.FC = ({
 
   useEffect(() => {
     if (!addressBook || !state) return;
-    setAllBalances(getStateFns({ addressBook, stateJson: state }).getAllBalances());
+    const stateFns = getStateFns({ addressBook, stateJson: state });
+    const accounts = stateFns.getAccounts();
+    setAllBalances(accounts.reduce((balances, account) => {
+      balances[account] = stateFns.getNetWorth(account);
+      return balances;
+    }, {}));
   }, [addressBook, state]);
 
   return (<>

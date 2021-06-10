@@ -64,9 +64,9 @@ export const getPrices = ({
 
   const formatDate = (date: DateString | TimestampString): DateString => {
     if (isNaN((new Date(date)).getTime())) {
-      throw new Error("Invalid Date");
+      throw new Error(`Invalid Date: "${date}"`);
     } else if ((new Date(date)).getTime() > Date.now()) {
-      throw new Error("Date is in the future");
+      throw new Error(`Date is in the future: "${date}"`);
     }
     return (new Date(date)).toISOString().split("T")[0];
   };

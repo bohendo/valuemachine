@@ -105,6 +105,9 @@ export const EventRow = ({
     const output = {};
     for (const i in chunks) {
       const chunk = chunks[i];
+      if (!chunk.receiveDate) {
+        console.log(chunk, `invalid chunk`);
+      }
       const index = parseInt(i, 10) + 1;
       const price = prices.getPrice(date, chunk.asset);
       const receivePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
@@ -322,7 +325,7 @@ export const ValueMachineExplorer = ({
   const classes = useStyles();
 
   useEffect(() => {
-    setPrices(getPrices({ pricesJson, store, unit }));
+    setPrices(getPrices({ pricesJson, store, unit, logger: getLogger("warn") }));
   }, [pricesJson, unit]);
 
   useEffect(() => {
@@ -378,7 +381,7 @@ export const ValueMachineExplorer = ({
         let vmEvents = [];
         let start = Date.now();
         for (const transaction of transactions.filter(transaction =>
-          new Date(transaction.date).getTime() > new Date(state.lastUpdated).getTime(),
+          new Date(transaction.date).getTime() > new Date(state.date).getTime(),
         )) {
           const [newState, newEvents] = valueMachine(state, transaction);
           vmEvents = vmEvents.concat(...newEvents);
@@ -395,8 +398,7 @@ export const ValueMachineExplorer = ({
         }
         const finalState = getStateFns({ stateJson: state, addressBook, prices });
         console.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
-        console.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
-        res([finalState.toJson(), vmEvents]);
+        res([finalState.getJson(), vmEvents]);
       } catch (e) {
         console.log(`Failed to process transactions`);
         console.error(e);

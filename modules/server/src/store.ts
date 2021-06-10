@@ -20,7 +20,6 @@ const dirName = `/data`;
 const cache: StoreValues = {
   [StoreKeys.ChainData]: null,
   [StoreKeys.Transactions]: null,
-  [StoreKeys.Events]: null,
   [StoreKeys.Prices]: null,
   [StoreKeys.Profile]: null,
   [StoreKeys.State]: null,

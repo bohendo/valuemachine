@@ -42,7 +42,7 @@ const getTx = (transfers: Transfer): Transaction => ({
   description: "test transaction",
 });
 
-describe("VM", () => {
+describe.only("VM", () => {
   let addressBook;
   let prices: Prices;
   let state: State;
@@ -56,12 +56,11 @@ describe("VM", () => {
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
     state = getStateFns({ addressBook, prices, logger: log });
-    expect(Object.keys(state.getAllBalances()).length).to.equal(0);
     vm = getValueMachine({ addressBook, prices, logger: log });
     expect(vm).to.be.ok;
   });
 
-  it.only("should process several incomes and then a trade", async () => {
+  it("should process several incomes and then a trade", async () => {
     const transactions = [
       getTx([
         // Income
@@ -95,7 +94,7 @@ describe("VM", () => {
     const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.toJson(), transaction);
+      [newState, newEvents] = vm(state.getJson(), transaction);
       events.push(...newEvents);
       log.debug(newState, "new state");
       log.debug(newEvents, "new events");
@@ -130,7 +129,7 @@ describe("VM", () => {
     const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.toJson(), transaction);
+      [newState, newEvents] = vm(state.getJson(), transaction);
       events.push(...newEvents);
       log.debug(newState, "new state");
       log.debug(newEvents, "new events");
@@ -177,7 +176,7 @@ describe("VM", () => {
     const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.toJson(), transaction);
+      [newState, newEvents] = vm(state.getJson(), transaction);
       events.push(...newEvents);
       log.debug(newState, "new state");
       log.debug(newEvents, "new events");
@@ -205,7 +204,7 @@ describe("VM", () => {
     const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.toJson(), transaction);
+      [newState, newEvents] = vm(state.getJson(), transaction);
       events.push(...newEvents);
       log.debug(newState, "new state");
       log.debug(newEvents, "new events");
@@ -215,7 +214,7 @@ describe("VM", () => {
     } tx/s`);
   });
 
-  it("should process a partial swap", async () => {
+  it.only("should process a partial swap", async () => {
     const transactions = [
       getTx([
         // Income
@@ -230,7 +229,7 @@ describe("VM", () => {
     const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.toJson(), transaction);
+      [newState, newEvents] = vm(state.getJson(), transaction);
       events.push(...newEvents);
       log.debug(newState, "new state");
       log.debug(newEvents, "new events");
@@ -260,7 +259,7 @@ describe("VM", () => {
     const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.toJson(), transaction);
+      [newState, newEvents] = vm(state.getJson(), transaction);
       events.push(...newEvents);
       log.debug(newState, "new state");
       log.debug(newEvents, "new events");
@@ -288,7 +287,7 @@ describe("VM", () => {
     const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.toJson(), transaction);
+      [newState, newEvents] = vm(state.getJson(), transaction);
       events.push(...newEvents);
       log.debug(newState, "new state");
       log.debug(newEvents, "new events");
