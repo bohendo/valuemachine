@@ -1,5 +1,5 @@
 import { isAddress } from "@ethersproject/address";
-import { getState } from "@finances/core";
+import { getStateFns } from "@finances/core";
 import { AddressBook, StateJson } from "@finances/types";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Divider from "@material-ui/core/Divider";
@@ -67,7 +67,7 @@ export const Dashboard: React.FC = ({
 
   useEffect(() => {
     if (!addressBook || !state) return;
-    setAllBalances(getState({ addressBook, stateJson: state }).getAllBalances());
+    setAllBalances(getStateFns({ addressBook, stateJson: state }).getAllBalances());
   }, [addressBook, state]);
 
   return (<>

@@ -1,6 +1,6 @@
 import { isAddress } from "@ethersproject/address";
 import { isHexString } from "@ethersproject/bytes";
-import { getPrices, getState, getValueMachine } from "@finances/core";
+import { getPrices, getStateFns, getValueMachine } from "@finances/core";
 import {
   AddressBook,
   Prices,
@@ -393,7 +393,7 @@ export const ValueMachineExplorer = ({
             start = Date.now();
           }
         }
-        const finalState = getState({ stateJson: state, addressBook, prices });
+        const finalState = getStateFns({ stateJson: state, addressBook, prices });
         console.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
         console.info(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
         res([finalState.toJson(), vmEvents]);

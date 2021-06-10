@@ -1,6 +1,5 @@
 import {
   AddressBook,
-  AssetChunk,
   Assets,
   Cryptocurrencies,
   DecimalString,
@@ -8,8 +7,6 @@ import {
   Events,
   EventTypes,
   Logger,
-  PhysicalGuardians,
-  SecurityProviders,
   StateJson,
   TradeEvent,
   Transaction,
@@ -19,7 +16,7 @@ import {
 } from "@finances/types";
 import { getLogger, math } from "@finances/utils";
 
-import { getState } from "./state";
+import { getStateFns } from "./state";
 import { rmDups } from "./transactions/utils";
 
 const {
@@ -40,65 +37,14 @@ export const getValueMachine = ({
 }): any => {
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
 
-  const isPhysicallyGuarded = (account) => 
-    Object.keys(PhysicalGuardians).includes(addressBook.getGuardian(account));
-
   return (oldState: StateJson, transaction: Transaction): [StateJson, Event[]] => {
 
     const date = transaction.date;
     const events = [] as Event[];
-    const state = getState({ stateJson: oldState, addressBook, logger, events, date });
+    const state = getStateFns({ stateJson: oldState, addressBook, logger, events, date });
     log.debug(`Processing transaction ${transaction.index} from ${date}: ${
       transaction.description
     }`);
-
-    const handleJurisdictionChange = (
-      transfer,
-      transaction: Transaction,
-      chunks: AssetChunk[],
-    ): Events => {
-      const { asset, quantity, from, to } = transfer;
-      const oldJurisdiction = addressBook.getGuardian(from);
-      const newJurisdiction = addressBook.getGuardian(to);
-      if (oldJurisdiction === newJurisdiction) {
-        return [];
-      }
-      if (
-        isPhysicallyGuarded(to) &&
-        !isPhysicallyGuarded(from)
-      ) {
-        const securedChunks = [];
-        chunks.forEach(chunk => {
-          const securedSources = state.secureChunk(chunk);
-          securedChunks.push(...securedSources);
-          log.warn(securedSources, `We secured ${
-            securedSources.length
-          } sources of chunk ${chunk.index}`);
-        });
-        if (securedChunks.length) {
-          log.warn(`We secured a total of ${securedChunks.length} chunks`);
-        }
-      }
-      return [{
-        asset: asset,
-        date,
-        description: `${round(quantity)} ${
-          asset
-        } moved jurisdictions from ${oldJurisdiction} to ${newJurisdiction}`,
-        from: from,
-        movedChunks: chunks,
-        newBalances: {
-          [to]: { [asset]: state.getBalance(to, asset) },
-          [from]: { [asset]: state.getBalance(from, asset) },
-        },
-        newJurisdiction,
-        oldJurisdiction,
-        quantity: quantity,
-        tags: transaction.tags,
-        to: to,
-        type: EventTypes.JurisdictionChange,
-      }];
-    };
 
     const handleTransfer = (
       transfer: Transfer,
@@ -145,33 +91,15 @@ export const getValueMachine = ({
       // Move funds from one account to another
       if (([Internal, Deposit, Withdraw] as TransferCategory[]).includes(category)) {
         state.moveValue(quantity, asset, from, to);
-        /*
-        const chunks = state.getChunks(from, asset, quantity, date, events);
-        chunks.forEach(chunk => state.putChunk(chunk, to));
         events.push(...getTransferEvents(transfer, transaction));
-        events.push(...handleJurisdictionChange(transfer, transaction, chunks));
-        */
       // Send funds out of our accounts
       } else if (([Expense, SwapOut, Repay] as TransferCategory[]).includes(category)) {
         state.disposeValue(quantity, asset, from);
-        /*
-        const chunks = state.getChunks(from, asset, quantity, date, events);
-        if (isPhysicallyGuarded(from) || isGuard(to)) {
-          chunks.forEach(chunk => { chunk.unsecured = "0"; });
-        } else {
-          chunks.forEach(chunk => { chunk.disposeDate = date; });
-        }
-        chunks.forEach(chunk => state.disposeChunk(chunk));
         events.push(...getTransferEvents(transfer, transaction));
-        */
       // Receive funds into one of our accounts
       } else if (([Income, SwapIn, Borrow] as TransferCategory[]).includes(category)) {
         state.receiveValue(quantity, asset, to);
-        /*
-        const chunks = [state.mintChunk(asset, quantity, date)]; // no sources
-        chunks.forEach(chunk => state.putChunk(chunk, to));
         events.push(...getTransferEvents(transfer, transaction));
-        */
       } else {
         log.warn(transfer, `idk how to process this transfer`);
       }
@@ -179,18 +107,6 @@ export const getValueMachine = ({
 
     ////////////////////////////////////////
     // VM Core
-
-    // Create any new abstract accounts
-    transaction.transfers.filter(t => ([
-      Internal, Deposit, Withdraw, Income, SwapIn, Borrow
-    ] as TransferCategory[]).includes(t.category)).forEach(transfer =>
-      state.createAccount(transfer.to)
-    );
-    transaction.transfers.filter(t => ([
-      Internal, Deposit, Withdraw, Expense, SwapOut, Repay
-    ] as TransferCategory[]).includes(t.category)).forEach(transfer =>
-      state.createAccount(transfer.from)
-    );
 
     // Process normal transfers & set swaps aside to process more deeply
     const swapsIn = [];
@@ -250,36 +166,7 @@ export const getValueMachine = ({
       tradeEvent.account = account;
 
       // Process trade
-      // const chunksOut = [] as AssetChunk[];
-      for (const output of Object.entries(outputs)) {
-        const asset = output[0] as Assets;
-        const quantity = output[1] as DecimalString;
-        state.disposeValue(quantity, asset, account);
-        /*
-        const chunks = state.getChunks(account, asset, quantity, date, events);
-        chunksOut.push(...chunks);
-        if (isPhysicallyGuarded(account)) {
-          chunks.forEach(chunk => { chunk.unsecured = "0"; });
-        } else {
-          chunks.forEach(chunk => { chunk.disposeDate = date; });
-        }
-        chunks.forEach(chunk => state.disposeChunk(chunk));
-        tradeEvent.spentChunks = [...chunks]; // Assumes chunks are never modified.. Is this safe?
-        */
-      }
-
-      for (const input of Object.entries(inputs)) {
-        const asset = input[0] as Assets;
-        const quantity = input[1] as DecimalString;
-        state.receiveValue(quantity, asset, account);
-        /*
-        const chunks = [
-          state.mintChunk(asset, quantity, date, chunksOut.map(c => c.index)),
-        ];
-        chunks.forEach(chunk => state.putChunk(chunk, account));
-        */
-        // TODO: What if trades cross jurisdictions?
-      }
+      state.tradeValue(account, inputs, outputs);
 
       tradeEvent.newBalances = { [account]: {} };
       for (const asset of rmDups(
@@ -303,7 +190,6 @@ export const getValueMachine = ({
 
     ////////////////////////////////////////
 
-    state.touch(date);
-    return [state.toJson(), events];
+    return [state.getJson(), events];
   };
 };

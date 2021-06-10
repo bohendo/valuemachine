@@ -12,7 +12,7 @@ import {
 import { expect } from "@finances/utils";
 
 import { getPrices } from "./prices";
-import { getState } from "./state";
+import { getStateFns } from "./state";
 import { getValueMachine } from "./vm";
 import { AddressOne, AddressThree, getTestAddressBook, testLogger } from "./testing";
 import { getTransactions } from "./transactions";
@@ -55,7 +55,7 @@ describe("VM", () => {
     expect(txns.json.length).to.equal(0);
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
-    state = getState({ addressBook, prices, logger: log });
+    state = getStateFns({ addressBook, prices, logger: log });
     expect(Object.keys(state.getAllBalances()).length).to.equal(0);
     vm = getValueMachine({ addressBook, prices, logger: log });
     expect(vm).to.be.ok;

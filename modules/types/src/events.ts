@@ -43,6 +43,7 @@ export type JurisdictionChangeEvent = BaseEvent & {
   newJurisdiction: SecurityProvider;
   asset: Assets;
   movedChunks: AssetChunk[];
+  securedChunks: AssetChunk[];
   quantity: DecimalString;
   to: Address;
   from: Address;

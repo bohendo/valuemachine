@@ -4,7 +4,7 @@ import {
   getAddressBook,
   getChainData,
   getPrices,
-  getState,
+  getStateFns,
   getTransactions,
   getValueMachine,
 } from "@finances/core";
@@ -132,7 +132,7 @@ process.on("SIGINT", logAndExit);
   // store.save(StoreKeys.State, stateJson);
   store.save(StoreKeys.Events, vmEvents);
 
-  const finalState = getState({ stateJson, addressBook, prices, logger: log });
+  const finalState = getStateFns({ stateJson, addressBook, prices, logger: log });
 
   log.debug(`Final state: ${JSON.stringify(finalState.getAllBalances(), null, 2)}`);
   log.info(`\nNet Worth: ${JSON.stringify(finalState.getNetWorth(), null, 2)}`);
