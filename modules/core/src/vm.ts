@@ -68,9 +68,16 @@ export const getValueMachine = ({
         isPhysicallyGuarded(to) &&
         !isPhysicallyGuarded(from)
       ) {
-        const capitalPaths = chunks.map(chunk => state.getInsecurePath(chunk));
-        if (capitalPaths.length) {
-          log.warn(capitalPaths, `We ad ${capitalPaths.length} chunks that are unsecured`);
+        const securedChunks = [];
+        chunks.forEach(chunk => {
+          const securedSources = state.secureChunk(chunk);
+          securedChunks.push(...securedSources);
+          log.warn(securedSources, `We secured ${
+            securedSources.length
+          } sources of chunk ${chunk.index}`);
+        });
+        if (securedChunks.length) {
+          log.warn(`We secured a total of ${securedChunks.length} chunks`);
         }
       }
       return [{
@@ -146,7 +153,7 @@ export const getValueMachine = ({
       } else if (([Expense, SwapOut, Repay] as TransferCategory[]).includes(category)) {
         const chunks = state.getChunks(from, asset, quantity, date, events);
         if (isPhysicallyGuarded(from) || isGuard(to)) {
-          chunks.forEach(chunk => { chunk.secure = true; });
+          chunks.forEach(chunk => { chunk.unsecured = "0"; });
         } else {
           chunks.forEach(chunk => { chunk.disposeDate = date; });
         }
@@ -242,7 +249,7 @@ export const getValueMachine = ({
         const chunks = state.getChunks(account, asset, quantity, date, events);
         chunksOut.push(...chunks);
         if (isPhysicallyGuarded(account)) {
-          chunks.forEach(chunk => { chunk.secure = true; });
+          chunks.forEach(chunk => { chunk.unsecured = "0"; });
         } else {
           chunks.forEach(chunk => { chunk.disposeDate = date; });
         }

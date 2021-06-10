@@ -21,7 +21,7 @@ const { ETH, UniV2_UNI_ETH, UNI, USD } = Assets;
 const { Deposit, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Coinbase, EthTx } = TransactionSources;
 const log = testLogger.child({
-  // level: "debug",
+  level: "debug",
   module: "TestVM",
 });
 
@@ -59,6 +59,85 @@ describe("VM", () => {
     expect(Object.keys(state.getAllBalances()).length).to.equal(0);
     vm = getValueMachine({ addressBook, prices, logger: log });
     expect(vm).to.be.ok;
+  });
+
+  it.only("should process several incomes and then a trade", async () => {
+    const transactions = [
+      getTx([
+        // Income
+        { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
+      ]), getTx([
+        // Income
+        { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
+      ]), getTx([
+        // Income
+        { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
+      ]), getTx([
+        // Income
+        { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
+      ]), getTx([
+        // Trade ETH for UNI
+        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "3.0", to: notMe },
+        { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
+      ]), getTx([
+        // Trade UNI for ETH
+        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+        { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
+        { asset: ETH, category: SwapIn, from: notMe, quantity: "2.0", to: ethAccount },
+      ]), getTx([
+        // Send ETH to usdAccount
+        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+        { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
+      ]),
+    ];
+    let newState, newEvents;
+    const events = [];
+    const start = Date.now();
+    for (const transaction of transactions) {
+      [newState, newEvents] = vm(state.toJson(), transaction);
+      events.push(...newEvents);
+      log.debug(newState, "new state");
+      log.debug(newEvents, "new events");
+    }
+    log.info(`Done processing ${transactions.length} transactions at a rate of ${
+      Math.round(transactions.length * 10000/(Date.now() - start))/10
+    } tx/s`);
+  });
+
+  it("should process internal transfers between jurisdictions", async () => {
+    const transactions = [
+      getTx([
+        // Income
+        { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
+      ]), getTx([
+        // Trade ETH for UNI
+        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.0", to: notMe },
+        { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
+      ]), getTx([
+        // Trade UNI for ETH
+        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+        { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
+        { asset: ETH, category: SwapIn, from: notMe, quantity: "2.5", to: ethAccount },
+      ]), getTx([
+        // Send ETH to usdAccount
+        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+        { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
+      ]),
+    ];
+    let newState, newEvents;
+    const events = [];
+    const start = Date.now();
+    for (const transaction of transactions) {
+      [newState, newEvents] = vm(state.toJson(), transaction);
+      events.push(...newEvents);
+      log.debug(newState, "new state");
+      log.debug(newEvents, "new events");
+    }
+    log.info(`Done processing ${transactions.length} transactions at a rate of ${
+      Math.round(transactions.length * 10000/(Date.now() - start))/10
+    } tx/s`);
   });
 
   it("should process an investment into uniswap LP tokens", async () => {

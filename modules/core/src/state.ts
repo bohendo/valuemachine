@@ -37,17 +37,15 @@ export const getState = ({
 }): State => {
   const state = stateJson || JSON.parse(JSON.stringify(emptyState));
 
-  const log = (logger || getLogger()).child({ module: "State" });
+  if (!state.history) state.history = [];
 
-  const insecureAccount = "UnsecuredCapital";
+  const log = (logger || getLogger()).child({ module: "State" });
 
   ////////////////////////////////////////
   // Internal Functions
 
   const hasAccount = (account: Account): boolean => {
     if (account === AddressZero) {
-      return false;
-    } else if (account === insecureAccount) { // used internally, not accessed directly by VM
       return false;
     } else if (state.accounts[account]) {
       return true;
@@ -74,7 +72,7 @@ export const getState = ({
   ): AssetChunk => {
     const index = state.totalChunks++;
     log.debug(`Created chunk #${index} of ${quantity} ${asset} received on ${receiveDate}`);
-    return { asset, index, quantity, receiveDate, secure: false, sources };
+    return { asset, index, quantity, receiveDate, unsecured: quantity, sources };
   };
 
   ////////////////////////////////////////
@@ -93,15 +91,10 @@ export const getState = ({
   const disposeChunk = (
     chunk: AssetChunk,
   ): void => {
-    if (!chunk.secure) {
-      state.accounts[insecureAccount].push(chunk);
-      log.debug(`Remembering insecure chunk #${chunk.index} of ${chunk.quantity} ${chunk.asset}`);
-    } else {
-      log.debug(`Disposing chunk #${chunk.index} of ${chunk.quantity} ${chunk.asset}`);
-    }
+    state.history?.push(chunk);
+    log.debug(`Disposing chunk #${chunk.index} of ${chunk.quantity} ${chunk.asset}`);
   };
 
-  createAccount(insecureAccount);
 
   const putChunk = (
     chunk: AssetChunk,
@@ -207,44 +200,41 @@ export const getState = ({
     return output;
   };
 
-  const getInsecurePath = (
+  /*
+  // Given a chunk and one of that chunk's sources, return a value between 0 and 1
+  // Returned value represents the proportion of the source that went into the chunk
+  const getProportion = (chunk, source): DecimalString => {
+    // Search through all chunks & find ones that 
+    const allChunks 
+  };
+  */
+
+  const secureChunk = (
     chunk: AssetChunk,
   ): AssetChunk[] => {
-    const { asset, quantity, receiveDate } = chunk;
-    const account = insecureAccount;
-    const getNextInsecure = (asset: Assets, date: TimestampString): AssetChunk => {
-      // TODO: find the one w smallest/largest change in value since we got it
-      const index = state.accounts[account].findIndex(chunk =>
-        chunk.asset === asset && chunk.disposeDate === date
-      );
-      if (index === -1) return undefined;
-      return state.accounts[account].splice(index, 1)[0];
+
+    // Recursively loops through a chunks sources
+    const output = [];
+    const secureSources = (hunk: AssetChunk): AssetChunk[] => {
+      const { index, quantity, asset, sources } = hunk;
+      log.debug(`Tracing path of chunk #${index} of ${quantity} ${asset} from ${sources}`);
+      output.push(hunk);
+      for (const srcIndex of sources) {
+        const src = state.history.find(hunk => hunk.index === srcIndex);
+        if (src && src) {
+          output.concat(...secureSources(src));
+        }
+      }
+      return output;
     };
-    const output = [] as AssetChunk[];
-    log.debug(`Getting ${quantity} ${asset} received on ${receiveDate} from insecure chunks`);
-    // const toTrace = []; // list of chunk indexes that we need to secure
-    const past = receiveDate;
-    let togo = quantity;
-    while (gt(togo, "0")) {
-      const chunk = getNextInsecure(asset, past);
-      if (!chunk) {
-        log.error(`Not enough insecure chunks to cover ${quantity} ${asset} (${togo} to go)`);
-        return output;
-      }
-      log.debug(`Got insecure chunk #${chunk.index} of ${chunk.quantity} ${
-        asset
-      } w sources: [${chunk.sources.join(", ")}](${togo} to go)`);
-      if (gt(chunk.quantity, togo)) {
-        // split chunk into what we need & put the rest back
-        state.accounts[insecureAccount].push({ ...chunk, quantity: sub(chunk.quantity, togo) });
-        output.push({ ...chunk, quantity: togo });
-        return output;
-      }
-      output.push(chunk);
-      togo = sub(togo, chunk.quantity);
-      log.debug(`Put ${chunk.quantity} into output, ${togo} to go`);
+
+    const { index, asset, quantity, sources } = chunk;
+    log.debug(`Getting insecure path of chunk #${index} of ${quantity} ${asset} from ${sources}`);
+    if (!sources) {
+      return [chunk];
+    } else {
+      return secureSources(chunk);
     }
-    return output;
   };
 
   const getBalance = (account: Account, asset: Assets): DecimalString =>
@@ -289,7 +279,7 @@ export const getState = ({
     getAllBalances,
     getBalance,
     getChunks,
-    getInsecurePath,
+    secureChunk,
     getNetWorth,
     mintChunk,
     putChunk,
