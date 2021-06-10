@@ -39,6 +39,8 @@ export const eq = (a, b): boolean => toRay(a).eq(toRay(b));
 export const gt = (a, b): boolean => toRay(a).gt(toRay(b));
 export const lt = (a, b): boolean => toRay(a).lt(toRay(b));
 
+export const isNeg = (a): boolean => lt(a, "0");
+
 export const max = (...lon: string[]): string =>
   lon.reduce(
     (max: any, current: any) => gt(max, current) ? max : current,

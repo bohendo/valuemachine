@@ -1,4 +1,5 @@
-import { Assets, AssetChunk } from "./assets";
+import { Assets } from "./assets";
+import { AssetChunk } from "./state";
 import { Address, DecimalString, TimestampString } from "./strings";
 import { SecurityProvider } from "./security";
 import { TransferCategory } from "./transactions";
