@@ -53,12 +53,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 const App: React.FC = () => {
 
   const [profile, setProfile] = useState(store.load(StoreKeys.Profile));
-  const [pricesJson, setPricesJson] = useState(store.load(StoreKeys.Prices));
-  const [events, setEvents] = useState(store.load(StoreKeys.Events));
-  const [transactions, setTransactions] = useState(store.load(StoreKeys.Transactions));
   const [addressBook, setAddressBook] = useState(emptyAddressBook);
+  const [transactions, setTransactions] = useState(store.load(StoreKeys.Transactions));
+  const [vmJson, setVMJson] = useState(store.load(StoreKeys.ValueMachine));
+  const [pricesJson, setPricesJson] = useState(store.load(StoreKeys.Prices));
   const [unit, setUnit] = useState(profile.unit || Assets.ETH);
-  const [state, setState] = useState(store.load(StoreKeys.State));
 
   const classes = useStyles();
 
@@ -67,12 +66,8 @@ const App: React.FC = () => {
   }, [transactions]);
 
   useEffect(() => {
-    store.save(StoreKeys.Events, events);
-  }, [events]);
-
-  useEffect(() => {
-    store.save(StoreKeys.State, state);
-  }, [state]);
+    store.save(StoreKeys.ValueMachine, vmJson);
+  }, [vmJson]);
 
   useEffect(() => {
     setAddressBook(getAddressBook(profile.addressBook));
@@ -114,14 +109,14 @@ const App: React.FC = () => {
             <Route exact path="/">
               <Dashboard
                 addressBook={addressBook}
-                state={state}
+                vmJson={vmJson}
               />
             </Route>
 
             <Route exact path="/taxes">
               <TaxesExplorer
                 addressBook={addressBook}
-                events={events}
+                vmJson={vmJson}
                 pricesJson={pricesJson}
               />
             </Route>
@@ -129,11 +124,9 @@ const App: React.FC = () => {
             <Route exact path="/value-machine">
               <ValueMachineExplorer
                 addressBook={addressBook}
-                state={state}
-                events={events}
+                vmJson={vmJson}
                 pricesJson={pricesJson}
-                setEvents={setEvents}
-                setState={setState}
+                setVMJson={setVMJson}
                 transactions={transactions}
                 unit={unit}
               />

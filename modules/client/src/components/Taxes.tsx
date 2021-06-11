@@ -6,10 +6,10 @@ import {
   DateString,
   DecimalString,
   EventTypes,
-  Events,
   PricesJson,
   SecurityProviders,
   TransferCategories,
+  ValueMachineJson,
 } from "@finances/types";
 import { math } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
@@ -85,11 +85,11 @@ type TaxRow = {
 
 export const TaxesExplorer = ({
   addressBook,
-  events,
+  vmJson,
   pricesJson,
 }: {
   addressBook: AddressBook;
-  events: Events,
+  vmJson: ValueMachineJson,
   pricesJson: PricesJson,
 }) => {
   const classes = useStyles();
@@ -129,8 +129,8 @@ export const TaxesExplorer = ({
   };
 
   useEffect(() => {
-    if (!addressBook || !events?.length) return;
-    const newJurisdictions = Array.from(events
+    if (!addressBook || !vmJson?.events?.length) return;
+    const newJurisdictions = Array.from(vmJson.events
       .filter(e => e.type === EventTypes.Trade || (
         e.type === EventTypes.Transfer && e.category === TransferCategories.Income
       )).reduce((all, cur) => {
@@ -143,15 +143,15 @@ export const TaxesExplorer = ({
     ).sort();
     setAllJurisdictions(newJurisdictions);
     setJurisdiction(newJurisdictions[0]);
-  }, [addressBook, events]);
+  }, [addressBook, vmJson]);
 
   useEffect(() => {
-    if (!addressBook || !jurisdiction || !events?.length) return;
+    if (!addressBook || !jurisdiction || !vmJson?.events?.length) return;
     const prices = getPrices({ pricesJson, store, unit: jurisdiction });
     let cumulativeIncome = "0";
     let cumulativeChange = "0";
     setTaxes(
-      events.filter(evt => {
+      vmJson?.events.filter(evt => {
         const toJur = addressBook.getGuardian(evt.to || evt.account || "");
         return toJur === jurisdiction && (
           evt.type === EventTypes.Trade
@@ -160,25 +160,32 @@ export const TaxesExplorer = ({
         );
       }).reduce((output, evt) => {
         if (evt.type === EventTypes.Trade) {
-          return output.concat(...evt.spentChunks.map(chunk => {
+          return output.concat(...evt.outputs?.map(chunk => {
             const price = prices.getPrice(evt.date, chunk.asset);
             const value = mul(chunk.quantity, price);
-            const receivePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
-            const capitalChange = mul(chunk.quantity, sub(price, receivePrice));
-            cumulativeChange = add(cumulativeChange, capitalChange);
-            return {
-              date: evt.date,
-              action: EventTypes.Trade,
-              amount: chunk.quantity,
-              asset: chunk.asset,
-              price,
-              value,
-              receivePrice,
-              receiveDate: chunk.receiveDate,
-              capitalChange,
-              cumulativeChange,
-              cumulativeIncome,
-            };
+            if (chunk.receiveDate) {
+              const receivePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
+              const capitalChange = mul(chunk.quantity, sub(price, receivePrice));
+              cumulativeChange = add(cumulativeChange, capitalChange);
+              return {
+                date: evt.date,
+                action: EventTypes.Trade,
+                amount: chunk.quantity,
+                asset: chunk.asset,
+                price,
+                value,
+                receivePrice,
+                receiveDate: evt.date, // wrong!
+                capitalChange,
+                cumulativeChange,
+                cumulativeIncome,
+              };
+            } else {
+              return {
+                date: evt.date,
+                receiveDate: evt.date, // wrong!
+              };
+            }
           }));
         } else if (evt.category === TransferCategories.Income) {
           const price = prices.getPrice(evt.date, evt.asset);
@@ -220,7 +227,7 @@ export const TaxesExplorer = ({
         }
       }, []).filter(row => row.asset !== jurisdiction)
     );
-  }, [addressBook, jurisdiction, events, pricesJson]);
+  }, [addressBook, jurisdiction, vmJson, pricesJson]);
 
   const handleExport = () => {
     if (!taxes?.length) { console.warn("Nothing to export"); return; }

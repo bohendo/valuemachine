@@ -22,7 +22,7 @@ const cache: StoreValues = {
   [StoreKeys.Transactions]: null,
   [StoreKeys.Prices]: null,
   [StoreKeys.Profile]: null,
-  [StoreKeys.State]: null,
+  [StoreKeys.ValueMachine]: null,
 };
 
 ////////////////////////////////////////
