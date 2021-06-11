@@ -2,7 +2,6 @@ import {
   Assets,
   EventTypes,
   Prices,
-  State,
   Transaction,
   Transactions,
   TransactionSources,
@@ -12,7 +11,6 @@ import {
 import { expect } from "@finances/utils";
 
 import { getPrices } from "./prices";
-import { getStateFns } from "./state";
 import { getValueMachine } from "./vm";
 import { AddressOne, AddressThree, getTestAddressBook, testLogger } from "./testing";
 import { getTransactions } from "./transactions";
@@ -21,7 +19,7 @@ const { ETH, UniV2_UNI_ETH, UNI, USD } = Assets;
 const { Deposit, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Coinbase, EthTx } = TransactionSources;
 const log = testLogger.child({
-  level: "debug",
+  // level: "debug",
   module: "TestVM",
 });
 
@@ -42,10 +40,9 @@ const getTx = (transfers: Transfer): Transaction => ({
   description: "test transaction",
 });
 
-describe.only("VM", () => {
+describe("VM", () => {
   let addressBook;
   let prices: Prices;
-  let state: State;
   let vm: any;
   let txns: Transactions;
 
@@ -55,7 +52,6 @@ describe.only("VM", () => {
     expect(txns.json.length).to.equal(0);
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
-    state = getStateFns({ addressBook, prices, logger: log });
     vm = getValueMachine({ addressBook, prices, logger: log });
     expect(vm).to.be.ok;
   });
@@ -90,13 +86,10 @@ describe.only("VM", () => {
         { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
       ]),
     ];
-    let newState, newEvents;
-    const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.getJson(), transaction);
-      events.push(...newEvents);
-      log.debug(newState, "new state");
+      const newEvents = vm.execute(transaction);
+      log.debug(vm.getNetWorth(), "new portfolio");
       log.debug(newEvents, "new events");
     }
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
@@ -125,13 +118,10 @@ describe.only("VM", () => {
         { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
       ]),
     ];
-    let newState, newEvents;
-    const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.getJson(), transaction);
-      events.push(...newEvents);
-      log.debug(newState, "new state");
+      const newEvents = vm.execute(transaction);
+      log.debug(vm.getNetWorth(), "new portfolio");
       log.debug(newEvents, "new events");
     }
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
@@ -172,13 +162,10 @@ describe.only("VM", () => {
         { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
       ]),
     ];
-    let newState, newEvents;
-    const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.getJson(), transaction);
-      events.push(...newEvents);
-      log.debug(newState, "new state");
+      const newEvents = vm.execute(transaction);
+      log.debug(vm.getNetWorth(), "new portfolio");
       log.debug(newEvents, "new events");
     }
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
@@ -200,13 +187,10 @@ describe.only("VM", () => {
         { asset: ETH, category: SwapIn, from: notMe, quantity: "1.0", to: usdAccount },
       ]),
     ];
-    let newState, newEvents;
-    const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.getJson(), transaction);
-      events.push(...newEvents);
-      log.debug(newState, "new state");
+      const newEvents = vm.execute(transaction);
+      log.debug(vm.getNetWorth(), "new portfolio");
       log.debug(newEvents, "new events");
     }
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
@@ -214,7 +198,7 @@ describe.only("VM", () => {
     } tx/s`);
   });
 
-  it.only("should process a partial swap", async () => {
+  it("should process a partial swap", async () => {
     const transactions = [
       getTx([
         // Income
@@ -225,22 +209,20 @@ describe.only("VM", () => {
         { asset: ETH, category: SwapOut, from: ethAccount, quantity: "5.00", to: notMe },
       ]),
     ];
-    let newState, newEvents;
-    const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.getJson(), transaction);
-      events.push(...newEvents);
-      log.debug(newState, "new state");
+      const newEvents = vm.execute(transaction);
+      log.debug(vm.getNetWorth(), "new portfolio");
       log.debug(newEvents, "new events");
     }
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
-    expect(events[0]?.type).to.equal(EventTypes.Transfer);
-    expect(events[0]?.category).to.equal(Income);
-    expect(events[1]?.type).to.equal(EventTypes.Transfer);
-    expect(events[1]?.newBalances?.[ethAccount]?.[ETH]).to.equal("4.9");
+    log.info(vm.getJson().events, `All events`);
+    expect(vm.getJson().events[0]?.type).to.equal(EventTypes.Income);
+    expect(vm.getJson().events[1]?.type).to.equal(EventTypes.Expense);
+    expect(vm.getJson().events[2]?.type).to.equal(EventTypes.Expense);
+    expect(vm.getJson().events[2]?.newBalances?.[ETH]).to.equal("4.9");
   });
 
   it("should process out of order eth transfers", async () => {
@@ -255,19 +237,18 @@ describe.only("VM", () => {
         { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
       ]),
     ];
-    let newState, newEvents;
-    const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.getJson(), transaction);
-      events.push(...newEvents);
-      log.debug(newState, "new state");
+      const newEvents = vm.execute(transaction);
+      log.debug(vm.getNetWorth(), "new portfolio");
       log.debug(newEvents, "new events");
     }
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
-    expect(events[2]?.newBalances?.[ethAccount]?.[ETH]).to.equal("0.9");
+    const events = vm.getJson().events;
+    log.info(events, `All events`);
+    expect(events[events.length - 1]?.newBalances?.[ETH]).to.equal("0.9");
   });
 
   it("should process out of order eth swaps", async () => {
@@ -283,19 +264,18 @@ describe.only("VM", () => {
         { asset: ETH, category: SwapIn, from: notMe, quantity: "2.0", to: ethAccount, index: 3 },
       ]),
     ];
-    let newState, newEvents;
-    const events = [];
     const start = Date.now();
     for (const transaction of transactions) {
-      [newState, newEvents] = vm(state.getJson(), transaction);
-      events.push(...newEvents);
-      log.debug(newState, "new state");
+      const newEvents = vm.execute(transaction);
+      log.debug(vm.getNetWorth(), "new portfolio");
       log.debug(newEvents, "new events");
     }
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
-    expect(events[1]?.newBalances?.[ethAccount]?.[ETH]).to.equal("0.7");
+    const events = vm.getJson().events;
+    log.info(events, `All events`);
+    expect(events[events.length - 1]?.newBalances?.[ETH]).to.equal("0.7");
   });
 
 });

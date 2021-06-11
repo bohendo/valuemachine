@@ -2,14 +2,14 @@ import { enumify } from "./utils";
 import { ChainDataJson, emptyChainData } from "./chainData";
 import { PricesJson, emptyPrices } from "./prices";
 import { ProfileJson, emptyProfile } from "./profile";
-import { StateJson, emptyState } from "./state";
+import { ValueMachineJson, emptyValueMachine } from "./vm";
 import { TransactionsJson, emptyTransactions } from "./transactions";
 
 export const StoreKeys = enumify({
   ChainData: "ChainData",
   Prices: "Prices",
   Profile: "Profile",
-  State: "State",
+  ValueMachine: "ValueMachine",
   Transactions: "Transactions",
 });
 // eslint-disable-next-line @typescript-eslint/no-redeclare
@@ -19,7 +19,7 @@ interface StoreTypeMap {
   [StoreKeys.ChainData]: ChainDataJson;
   [StoreKeys.Prices]: PricesJson;
   [StoreKeys.Profile]: ProfileJson;
-  [StoreKeys.State]: StateJson;
+  [StoreKeys.ValueMachine]: ValueMachineJson;
   [StoreKeys.Transactions]: TransactionsJson;
 }
 
@@ -36,6 +36,6 @@ export const emptyStore: StoreValues = {
   [StoreKeys.ChainData]: emptyChainData,
   [StoreKeys.Prices]: emptyPrices,
   [StoreKeys.Profile]: emptyProfile,
-  [StoreKeys.State]: emptyState,
+  [StoreKeys.ValueMachine]: emptyValueMachine,
   [StoreKeys.Transactions]: emptyTransactions,
 };

@@ -4,6 +4,9 @@ import { Address, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
 import { enumify } from "./utils";
 
+////////////////////////////////////////
+// Chunks
+
 export type Account = Address | string;
 
 export type Balances = {
@@ -24,6 +27,9 @@ export type AssetChunk = {
   inputs: ChunkIndex[]; // none if chunk is income, else it's inputs we traded for this chunk
   outputs?: ChunkIndex[]; // undefined if we still own this chunk, none if chunk was spent
 };
+
+////////////////////////////////////////
+// Events
 
 export const EventTypes = enumify({
   JurisdictionChange: "JurisdictionChange",
@@ -85,27 +91,28 @@ export type EventsJson = Events;
 export const emptyEvents = [] as Events;
 
 ////////////////////////////////////////
-// State
+// ValueMachine
 
-export type StateJson = {
+export type ValueMachineJson = {
   chunks: AssetChunk[];
   date: TimestampString;
   events: Events;
 }
 
-export interface StateFns {
+export interface ValueMachine {
   receiveValue: (quantity: DecimalString, asset: Assets, to: Account) => AssetChunk[];
   moveValue: (quantity: DecimalString, asset: Assets, from: Account, to: Account) => void;
   tradeValue: (account: Account, inputs: Balances, outputs: Balances) => void;
   disposeValue: (quantity: DecimalString, asset: Assets, from: Account) => AssetChunk[];
-  getJson: () => StateJson;
+  getJson: () => ValueMachineJson;
   getAccounts: () => Account[];
   getBalance: (account: Account, asset: Assets) => DecimalString;
   getNetWorth: () => Balances;
   execute: (transaction: Transaction) => Events;
 }
 
-export const emptyState = {
+export const emptyValueMachine = {
   chunks: [],
-  date: (new Date(0)).toISOString()
-} as StateJson;
+  date: (new Date(0)).toISOString(),
+  events: [],
+} as ValueMachineJson;
