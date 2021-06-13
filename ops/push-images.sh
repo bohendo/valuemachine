@@ -12,7 +12,7 @@ registry="$registryRoot/$organization/$project"
 for name in builder proxy server webserver
 do
   image=${project}_$name
-  for version in ${1:-latest $commit}
+  for version in latest ${1:-$commit}
   do
     echo "Tagging image $image:$version as $registry/$image:$version"
     docker tag "$image:$version" "$registry/$image:$version" || true
