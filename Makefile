@@ -67,7 +67,9 @@ backup: tax-return
 	cd /tmp && tar czf $(cwd)/tax_backup.tar.gz taxes
 
 clean: stop
-	rm -rf modules/*/build/**
+	rm -rf modules/*/build
+	rm -rf modules/*/dist
+	rm -rf modules/*/node_modules
 	rm -rf .flags/*
 	docker container prune -f
 

@@ -1,6 +1,15 @@
 {
   "name": "@valuemachine/ui",
   "version": "0.0.1",
+  "description": "Example UI that utilizes & is helpful in debugging the valuemachine",
+  "author": "Bo Henderson",
+  "license": "GPL-3.0-or-later",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "public"
+  ],
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",

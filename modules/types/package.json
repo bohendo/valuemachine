@@ -1,14 +1,17 @@
 {
   "name": "@valuemachine/types",
   "version": "0.0.1",
-  "description": "",
-  "main": "build/src/index.js",
-  "types": "build/src/index.d.ts",
+  "description": "Types and interfaces for interacting with the valuemachine",
+  "author": "Bo Henderson",
+  "license": "GPL-3.0-or-later",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@types/node": "15.0.2",
     "pino": "6.11.3",

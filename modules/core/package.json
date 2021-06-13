@@ -1,10 +1,14 @@
 {
   "name": "@valuemachine/core",
   "version": "0.0.1",
-  "main": "build/src/index.js",
-  "author": "Bo & Shiv Henderson",
-  "license": "MIT",
-  "homepage": "https://gitlab.com/bohendo/taxes#readme",
+  "description": "Low level utilities for portfolio and tax analysis",
+  "author": "Bo Henderson",
+  "license": "GPL-3.0-or-later",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"

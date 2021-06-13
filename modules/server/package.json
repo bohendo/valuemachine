@@ -1,11 +1,17 @@
 {
   "name": "@valuemachine/server",
   "version": "0.0.1",
+  "description": "Server-side valuemachine logic",
+  "author": "Bo Henderson",
+  "license": "GPL-3.0-or-later",
+  "main": "dist/src/entry.js",
+  "types": "dist/src/entry.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "webpack --config ops/webpack.config.js"
   },
-  "author": "bohendo & shivhendo",
-  "license": "ISC",
   "dependencies": {
     "@ethersproject/bytes": "5.3.0",
     "@valuemachine/core": "0.0.1",
