@@ -56,16 +56,6 @@ restart: dev stop
 restart-prod: stop
 	FINANCES_ENV=prod bash ops/start.sh
 
-backup: tax-return
-	rm -rf /tmp/taxes
-	mkdir /tmp/taxes
-	if [[ -f build.log ]]; then cp build.log /tmp/taxes/build.log; fi
-	cp -r modules/taxes/docs /tmp/taxes/docs
-	cp -r .cache/personal /tmp/taxes/cache
-	cp modules/taxes/personal.json /tmp/taxes/personal.json
-	cp -r modules/taxes/build/personal/tax-return.pdf /tmp/taxes/tax-return.pdf
-	cd /tmp && tar czf $(cwd)/tax_backup.tar.gz taxes
-
 clean: stop
 	rm -rf modules/*/build
 	rm -rf modules/*/dist
@@ -73,16 +63,10 @@ clean: stop
 	rm -rf .flags/*
 	docker container prune -f
 
-reset: stop
-	rm -f .cache/*/events.json
-	rm -f .cache/*/state.json
-	rm -f .cache/*/transactions.json
-	rm -f .flags/tax-return .flags/example-return .flags/test-return
-
 reset-images:
 	rm .flags/proxy .flags/server .flags/webserver
 
-purge: clean reset
+purge: clean
 
 push: push-commit
 push-commit:
@@ -99,16 +83,6 @@ pull-commit:
 	bash ops/pull-images.sh $(commit)
 pull-semver:
 	bash ops/pull-images.sh $(semver)
-
-mappings:
-	node modules/core/ops/update-mappings.js -y
-
-ln:
-	ln -s .cache/personal/events.json events.json
-	ln -s .cache/personal/chain-data.json chain-data.json
-	ln -s .cache/personal/state.json state.json
-	ln -s .cache/personal/logs.json logs.json
-	ln -s .cache/personal/prices.json prices.json
 
 dls:
 	@docker service ls && echo '=====' && docker container ls -a
@@ -145,11 +119,6 @@ core: types $(shell find modules/core $(find_options))
 	$(docker_run) "cd modules/core && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-taxes: types core $(shell find modules/taxes $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/taxes && npm run build"
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
 client-bundle: core $(shell find modules/client $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/client && npm run build"
@@ -179,25 +148,4 @@ webserver: client-bundle $(shell find modules/client/ops $(find_options))
 	$(log_start)
 	docker build --file modules/client/ops/Dockerfile $(cache_from) --tag $(project)_webserver:latest modules/client
 	docker tag $(project)_webserver:latest $(project)_webserver:$(commit)
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-########################################
-# Build tax return
-
-tax-return: modules/taxes/personal.json taxes $(shell find modules/taxes/ops $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/taxes && bash ops/entry.sh personal.json"
-	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-example-return: modules/taxes/example.json taxes $(shell find modules/taxes/ops $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/taxes && bash ops/entry.sh example.json"
-	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-test-return: modules/taxes/test.json taxes $(shell find modules/taxes/ops $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/taxes && bash ops/entry.sh test.json"
-	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
 	$(log_finish) && mv -f $(totalTime) .flags/$@
