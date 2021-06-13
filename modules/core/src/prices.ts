@@ -17,10 +17,17 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
+import {
+  add,
+  div,
+  eq,
+  getLogger,
+  gt,
+  mul,
+  round,
+  sub,
+} from "@valuemachine/utils";
 import axios from "axios";
-
-import { add, div, eq, gt, mul, round, sub } from "./math";
-import { getLogger } from "./utils";
 
 const {
   BAT, BCH, BTC, CHERRY, COMP, DAI, ETH, GEN, GNO, LTC, MKR, OMG,

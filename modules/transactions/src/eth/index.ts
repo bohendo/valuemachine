@@ -1,9 +1,6 @@
 import { isAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
-import { hexlify } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
-import { keccak256 } from "@ethersproject/keccak256";
-import { encode } from "@ethersproject/rlp";
 import { formatEther } from "@ethersproject/units";
 import {
   Address,
@@ -18,7 +15,7 @@ import {
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
-import { gt, eq, round, sm } from "@valuemachine/utils";
+import { gt, eq, round, sm, getNewContractAddress } from "@valuemachine/utils";
 
 import { argentAddresses, argentParser } from "./argent";
 import { compoundAddresses, compoundParser } from "./compound";
@@ -128,9 +125,7 @@ export const parseEthTx = (
   // Detect contract creations
   if (ethTx.to === null) {
     // derived from: https://ethereum.stackexchange.com/a/46960
-    const newContract = sm(`0x${
-      keccak256(encode([ethTx.from, hexlify(ethTx.nonce)])).substring(26)
-    }`);
+    const newContract = getNewContractAddress(ethTx.from, ethTx.nonce);
     ethTx.to = newContract; // overwrite to make later steps simpler
     tx.transfers[0].to = newContract;
     tx.description = `${getName(ethTx.from)} created a new contract: ${getName(newContract)}`;

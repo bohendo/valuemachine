@@ -21,9 +21,17 @@ import {
   ValueMachine,
   ValueMachineJson,
 } from "@valuemachine/types";
-
-import { add, eq, gt, lt, mul, round, sub } from "./math";
-import { getLogger, rmDups } from "./utils";
+import {
+  add,
+  eq,
+  getLogger,
+  gt,
+  lt,
+  mul,
+  rmDups,
+  round,
+  sub,
+} from "@valuemachine/utils";
 
 const {
   Internal, Deposit, Withdraw, Income, SwapIn, Borrow, Expense, SwapOut, Repay,
