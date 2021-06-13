@@ -1,4 +1,4 @@
-import { Event } from "@finances/types";
+import { Event } from "@valuemachine/types";
 
 import { Forms } from "../types";
 

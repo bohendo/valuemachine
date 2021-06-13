@@ -1,6 +1,6 @@
 import { MaxUint256 } from "@ethersproject/constants";
-import { Events, IncomeEvent, ExpenseEvent, EventTypes, TimestampString } from "@finances/types";
-import { getLogger, math } from "@finances/utils";
+import { Events, IncomeEvent, ExpenseEvent, EventTypes, TimestampString } from "@valuemachine/types";
+import { getLogger, math } from "@valuemachine/utils";
 
 import { env } from "./env";
 

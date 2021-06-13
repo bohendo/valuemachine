@@ -5,11 +5,11 @@ import {
   Transactions,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
-import { expect } from "@finances/utils";
+} from "@valuemachine/types";
 
 import {
   AddressOne,
+  expect,
   getTestChainData,
   getTestEthTx,
   getTestEthCall,

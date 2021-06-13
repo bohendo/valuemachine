@@ -3,10 +3,11 @@ import {
   Transactions,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
-import { math, expect } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { round } from "../../math";
 import {
+  expect,
   getRealChainData,
   getTestAddressBook,
   testLogger,
@@ -41,7 +42,7 @@ describe(TransactionSources.Tornado, () => {
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Deposit);
     expect(tx.description).to.include("deposit");
-    expect(tx.description).to.include(math.round(deposit.quantity));
+    expect(tx.description).to.include(round(deposit.quantity));
     expect(tx.description).to.include(addressBook.getName(selfAddress));
   });
 

@@ -1,6 +1,6 @@
 import { isAddress } from "@ethersproject/address";
 import { isHexString } from "@ethersproject/bytes";
-import { getPrices, getValueMachine } from "@finances/core";
+import { getPrices, getValueMachine, math, getLogger } from "@valuemachine/core";
 import {
   AddressBook,
   ValueMachine,
@@ -12,8 +12,7 @@ import {
   PricesJson,
   Transactions,
   TransferCategories,
-} from "@finances/types";
-import { math, getLogger } from "@finances/utils";
+} from "@valuemachine/types";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";

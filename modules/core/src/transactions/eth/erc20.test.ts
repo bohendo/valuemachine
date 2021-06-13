@@ -1,15 +1,15 @@
 import { hexZeroPad } from "@ethersproject/bytes";
 import { parseUnits } from "@ethersproject/units";
-import { Transactions, TransactionSources, TransferCategories } from "@finances/types";
-import { expect } from "@finances/utils";
+import { Transactions, TransactionSources, TransferCategories } from "@valuemachine/types";
 
 import {
   AddressOne,
   AddressTwo,
+  expect,
+  getTestAddressBook,
   getTestChainData,
   getTestEthCall,
   getTestEthTx,
-  getTestAddressBook,
   testLogger,
   testToken as tokenAddress,
 } from "../../testing";

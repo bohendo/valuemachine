@@ -9,12 +9,13 @@ import {
   Transfer,
   TransferCategories,
   TransferCategory,
-} from "@finances/types";
-import { getLogger, math } from "@finances/utils";
+} from "@valuemachine/types";
+
+import { div } from "../math";
+import { getLogger } from "../utils";
 
 import { chrono, isHash, rmDups, valuesAreClose } from "./utils";
 
-const { div } = math;
 const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 
 ////////////////////////////////////////

@@ -1,33 +1,34 @@
 import {
   Account,
-  ChunkIndex,
   AddressBook,
   AssetChunk,
   Assets,
   Balances,
+  ChunkIndex,
   DecimalString,
   emptyValueMachine,
+  Event,
   Events,
   EventTypes,
   Logger,
   PhysicalGuardians,
-  ValueMachine,
-  ValueMachineJson,
   TradeEvent,
   Transaction,
   TransactionSources,
   Transfer,
   TransferCategories,
   TransferCategory,
-} from "@finances/types";
-import { getLogger, math } from "@finances/utils";
+  ValueMachine,
+  ValueMachineJson,
+} from "@valuemachine/types";
 
+import { add, eq, gt, lt, mul, round, sub } from "./math";
 import { rmDups } from "./transactions/utils";
+import { getLogger } from "./utils";
 
 const {
   Internal, Deposit, Withdraw, Income, SwapIn, Borrow, Expense, SwapOut, Repay,
 } = TransferCategories;
-const { add, eq, gt, lt, mul, round, sub } = math;
 
 // Apps that provide insufficient info in tx logs to determine interest income
 // Hacky fix: withdrawing more than we deposited is assumed to represent interest rather than debt
@@ -469,12 +470,24 @@ export const getValueMachine = ({
     return newEvents;
   };
 
+  const getChunk = (index: number): AssetChunk => JSON.parse(JSON.stringify(
+    state.chunks[index]
+  ));
+
+  const getEvent = (index: number): Event => JSON.parse(JSON.stringify({
+    ...state.events[index],
+    inputs: state.events[index]?.inputs?.map(getChunk) || [],
+    outputs: state.events[index]?.outputs?.map(getChunk) || [],
+  }));
+
   return {
     receiveValue,
     moveValue,
     tradeValue,
     disposeValue,
     execute,
+    getChunk,
+    getEvent,
     getJson,
     getAccounts,
     getBalance,

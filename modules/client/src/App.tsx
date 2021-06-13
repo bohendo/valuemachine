@@ -1,9 +1,9 @@
-import { getAddressBook } from "@finances/core";
+import { getAddressBook } from "@valuemachine/core";
 import {
   Assets,
   StoreKeys,
   emptyAddressBook,
-} from "@finances/types";
+} from "@valuemachine/types";
 import {
   Container,
   CssBaseline,

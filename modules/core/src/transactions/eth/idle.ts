@@ -9,12 +9,12 @@ import {
   Transaction,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { round } from "../../math";
+import { sm, smeq } from "../../utils";
 import { assetsAreClose, rmDups } from "../utils";
 
-const { round } = math;
 const { Internal, SwapIn, SwapOut } = TransferCategories;
 const { ETH, DAI, idleDAI } = Assets;
 

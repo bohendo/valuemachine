@@ -4,10 +4,10 @@ import {
   Transaction,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
-import { math } from "@finances/utils";
+} from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 
+import { gt } from "../../math";
 import { mergeTransaction } from "../merge";
 
 const { DAI, ETH, SAI, USD } = Assets;
@@ -142,11 +142,11 @@ export const mergeWyreTransactions = (
       from: account,
       to: exchange,
     };
-    if (math.gt(usdFees, "0")) {
+    if (gt(usdFees, "0")) {
       transaction.transfers.push({ ...feeTransfer, asset: USD, quantity: usdFees });
-    } else if (math.gt(ethFees, "0")) {
+    } else if (gt(ethFees, "0")) {
       transaction.transfers.push({ ...feeTransfer, asset: ETH, quantity: ethFees });
-    } else if (math.gt(daiFees, "0")) {
+    } else if (gt(daiFees, "0")) {
       transaction.transfers.push({ ...feeTransfer, asset: fixAssetType(DAI), quantity: daiFees });
     }
 

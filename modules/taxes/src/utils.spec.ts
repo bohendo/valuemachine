@@ -1,4 +1,4 @@
-import { math } from "@finances/utils";
+import { math } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { getIncomeTax } from "./utils";

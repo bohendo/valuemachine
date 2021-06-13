@@ -1,4 +1,4 @@
-import { EthTransaction, Transaction } from "@finances/types";
+import { EthTransaction, Transaction } from "@valuemachine/types";
 
 const isSameType = (actual: any, expected: string): boolean => {
   if (typeof actual === expected) {

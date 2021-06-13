@@ -7,9 +7,9 @@ import {
   getStateFns,
   getTransactions,
   getValueMachine,
-} from "@finances/core";
-import { emptyState, ExpenseEvent, EventTypes, StoreKeys } from "@finances/types";
-import { math } from "@finances/utils";
+} from "@valuemachine/core";
+import { emptyState, ExpenseEvent, EventTypes, StoreKeys } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
 import { store } from "./store";
 import { env, setEnv } from "./env";

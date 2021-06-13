@@ -1,5 +1,5 @@
-import { Transactions } from "@finances/types";
-import { expect } from "@finances/utils";
+import { Transactions } from "@valuemachine/types";
+import { expect } from "@valuemachine/utils";
 
 import { getTestAddressBook, testLogger } from "../../testing";
 import { getTransactions } from "../index";

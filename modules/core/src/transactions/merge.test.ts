@@ -4,10 +4,9 @@ import {
   Transaction,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
-import { expect } from "@finances/utils";
+} from "@valuemachine/types";
 
-import { AddressOne, AddressThree, testLogger } from "../testing";
+import { AddressOne, AddressThree, expect, testLogger } from "../testing";
 
 import { mergeTransaction } from "./merge";
 

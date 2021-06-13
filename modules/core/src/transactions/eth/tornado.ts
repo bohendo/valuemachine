@@ -10,12 +10,12 @@ import {
   TransactionSources,
   TransferCategories,
   TransferCategory,
-} from "@finances/types";
-import { math, smeq } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { mul, round, sub } from "../../math";
+import { smeq } from "../../utils";
 import { rmDups } from "../utils";
 
-const { mul, round, sub } = math;
 const { TORN } = Assets;
 const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 

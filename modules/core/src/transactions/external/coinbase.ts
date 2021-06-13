@@ -4,13 +4,12 @@ import {
   Logger,
   TransferCategories,
   TransferCategory,
-} from "@finances/types";
-import { math } from "@finances/utils";
+} from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 
+import { gt, round } from "../../math";
 import { mergeTransaction } from "../merge";
 
-const { gt, round } = math;
 const { Expense, SwapIn, SwapOut, Deposit, Withdraw, Unknown } = TransferCategories;
 
 export const mergeCoinbaseTransactions = (

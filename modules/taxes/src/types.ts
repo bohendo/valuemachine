@@ -3,7 +3,7 @@ import {
   Transaction,
   ExpenseEvent,
   enumify,
-} from "@finances/types";
+} from "@valuemachine/types";
 
 import { Field, Forms } from "./mappings";
 export { Field, Forms };

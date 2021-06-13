@@ -12,12 +12,12 @@ import {
   Transfer,
   TransferCategories,
   TransferCategory,
-} from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { round } from "../../math";
+import { sm, smeq } from "../../utils";
 import { rmDups, parseEvent } from "../utils";
 
-const { round } = math;
 const { UNI,
   UniV2_1INCH_ETH, UniV2_AAVE_ETH, UniV2_COMP_ETH, UniV2_CREAM_ETH, UniV2_DAI_ETH, UniV2_DAI_USDC,
   UniV2_DPI_ETH, UniV2_ESD_USDC, UniV2_ETH_AMPL, UniV2_ETH_cDAI, UniV2_ETH_CHERRY, UniV2_ETH_CRV,

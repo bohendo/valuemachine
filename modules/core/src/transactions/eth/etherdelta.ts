@@ -14,12 +14,12 @@ import {
   TransactionSources,
   TransferCategories,
   TransferCategory,
-} from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { round } from "../../math";
+import { sm, smeq } from "../../utils";
 import { rmDups, parseEvent } from "../utils";
 
-const { round } = math;
 const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 
 const source = TransactionSources.EtherDelta;

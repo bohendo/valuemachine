@@ -10,15 +10,14 @@ import {
   Transaction,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { round } from "../../math";
+import { sm, smeq } from "../../utils";
 import { abrv, assetsAreClose, rmDups, parseEvent } from "../utils";
 
-const { Internal, Deposit, Withdraw, SwapOut, SwapIn } = TransferCategories;
-const { round } = math;
-
 const source = TransactionSources.Yearn;
+const { Internal, Deposit, Withdraw, SwapOut, SwapIn } = TransferCategories;
 const { YFI,
   yBUSDv3, yDAIv2, yDAIv3, ysUSDTv2, yTUSDv2,
   yUSDCv2, yUSDCv3, yUSDTv2, yUSDTv3, yWBTCv2, yWETH, yYFI,

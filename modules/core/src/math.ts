@@ -101,3 +101,4 @@ export const sigfigs = (decStr: string, n = 3): string => {
   const leadingZeros = dec.length - dec.replace(/^0+/, "").length;
   return round(decStr, leadingZeros + n);
 };
+

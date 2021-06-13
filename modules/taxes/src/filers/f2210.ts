@@ -1,5 +1,5 @@
-import { Event, IncomeEvent, ExpenseEvent, TimestampString } from "@finances/types";
-import { math } from "@finances/utils";
+import { Event, IncomeEvent, ExpenseEvent, TimestampString } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
 import { Forms } from "../types";
 import { getIncomeTax, logger, processExpenses, processIncome } from "../utils";

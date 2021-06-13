@@ -1,7 +1,7 @@
 {
-  "name": "finances",
+  "name": "valuemachine",
   "version": "2.6.1",
-  "description": "financial dashboard + tax tools",
+  "description": "low-level transaction parsing & tax analysis utilities",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@gitlab.com/bohendo/finances.git"

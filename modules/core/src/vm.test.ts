@@ -7,12 +7,11 @@ import {
   TransactionSources,
   Transfer,
   TransferCategories,
-} from "@finances/types";
-import { expect } from "@finances/utils";
+} from "@valuemachine/types";
 
 import { getPrices } from "./prices";
 import { getValueMachine } from "./vm";
-import { AddressOne, AddressThree, getTestAddressBook, testLogger } from "./testing";
+import { AddressOne, AddressThree, expect, getTestAddressBook, testLogger } from "./testing";
 import { getTransactions } from "./transactions";
 
 const { ETH, UniV2_UNI_ETH, UNI, USD } = Assets;

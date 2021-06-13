@@ -17,8 +17,10 @@ import {
   TransactionSources,
   TransferCategories,
   TransferCategory,
-} from "@finances/types";
-import { math, sm } from "@finances/utils";
+} from "@valuemachine/types";
+
+import { gt, eq, round } from "../../math";
+import { sm } from "../../utils";
 
 import { argentAddresses, argentParser } from "./argent";
 import { compoundAddresses, compoundParser } from "./compound";
@@ -46,7 +48,6 @@ export const publicAddresses = [
   ...yearnAddresses,
 ];
 
-const { gt, eq, round } = math;
 const { ETH } = Assets;
 
 // Order matters!

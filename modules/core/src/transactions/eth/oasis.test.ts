@@ -3,10 +3,10 @@ import {
   Transactions,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
-import { expect } from "@finances/utils";
+} from "@valuemachine/types";
 
 import {
+  expect,
   getRealChainData,
   getTestAddressBook,
   testLogger,

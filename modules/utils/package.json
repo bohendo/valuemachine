@@ -1,6 +1,6 @@
 {
-  "name": "@finances/utils",
-  "version": "1.0.0",
+  "name": "@valuemachine/utils",
+  "version": "0.0.1",
   "description": "",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
@@ -19,7 +19,7 @@
     "pino-pretty": "5.0.2"
   },
   "devDependencies": {
-    "@finances/types": "1.0.0",
+    "@valuemachine/types": "0.0.1",
     "@types/node": "15.0.2",
     "ethers": "5.1.4",
     "typescript": "4.2.4"

@@ -1,5 +1,5 @@
-import { TradeEvent, Events, EventTypes } from "@finances/types";
-import { math } from "@finances/utils";
+import { TradeEvent, Events, EventTypes } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
 import { Forms } from "../types";
 import { logger, toFormDate } from "../utils";

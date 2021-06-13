@@ -11,16 +11,15 @@ import {
   Transaction,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { round } from "../../math";
+import { sm, smeq } from "../../utils";
 import { rmDups, parseEvent } from "../utils";
 
-const { round } = math;
 const {
   BAT, CHERRY, GEN, GNO, GRT, OMG, REP, REPv2, SNT,
   SNX, SNXv1, SPANK, sUSD, sUSDv1, USDC, USDT, WBTC, ZRX,
-
   linkCRV, usdp3CRV, ankrCRV, yDAI_yUSDC_yUSDT_yTUSD, musd3CRV, gusd3CRV,
   dusd3CRV, usdn3CRV, ust3CRV, husd3CRV, yDAI_yUSDC_yUSDT_yBUSD,
   crvPlain3andSUSD, _3Crv, eursCRV, hCRV, _1INCH,

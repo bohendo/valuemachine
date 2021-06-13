@@ -1,5 +1,4 @@
-import { getPrices } from "@finances/core";
-import { getLogger } from "@finances/utils";
+import { getLogger, getPrices } from "@valuemachine/core";
 import express from "express";
 
 import { env } from "./env";

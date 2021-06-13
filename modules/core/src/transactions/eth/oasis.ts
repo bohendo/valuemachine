@@ -13,12 +13,12 @@ import {
   Transfer,
   TransferCategories,
   TransferCategory,
-} from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { add, round } from "../../math";
+import { sm, smeq } from "../../utils";
 import { rmDups, parseEvent, valuesAreClose } from "../utils";
 
-const { add, round } = math;
 const { ETH, WETH } = Assets;
 const { Income, Expense, SwapIn, SwapOut } = TransferCategories;
 const source = TransactionSources.Oasis;

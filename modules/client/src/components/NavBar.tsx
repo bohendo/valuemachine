@@ -1,4 +1,4 @@
-import { Assets, Cryptocurrencies, FiatCurrencies } from "@finances/types";
+import { Assets, Cryptocurrencies, FiatCurrencies } from "@valuemachine/types";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import FormControl from "@material-ui/core/FormControl";

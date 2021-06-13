@@ -11,12 +11,12 @@ import {
   Transaction,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { round } from "../../math";
+import { sm, smeq } from "../../utils";
 import { parseEvent, rmDups } from "../utils";
 
-const { round } = math;
 //const { ETH, WETH } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
 const source = TransactionSources.Argent;

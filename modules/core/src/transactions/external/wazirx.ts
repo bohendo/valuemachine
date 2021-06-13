@@ -4,7 +4,7 @@ import {
   Transaction,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
+} from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 
 import { mergeTransaction } from "../merge";

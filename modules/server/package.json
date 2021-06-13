@@ -1,6 +1,6 @@
 {
-  "name": "@finances/server",
-  "version": "1.0.0",
+  "name": "@valuemachine/server",
+  "version": "0.0.1",
   "scripts": {
     "build": "webpack --config ops/webpack.config.js"
   },
@@ -8,9 +8,8 @@
   "license": "ISC",
   "dependencies": {
     "@ethersproject/bytes": "5.3.0",
-    "@finances/core": "1.0.0",
-    "@finances/types": "1.0.0",
-    "@finances/utils": "1.0.0",
+    "@valuemachine/core": "0.0.1",
+    "@valuemachine/types": "0.0.1",
     "axios": "0.21.1",
     "express": "4.17.1"
   },

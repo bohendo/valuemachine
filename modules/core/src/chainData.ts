@@ -19,10 +19,11 @@ import {
   Store,
   StoreKeys,
   TokenData,
-} from "@finances/types";
-import { getLogger, sm, smeq, toBN } from "@finances/utils";
+} from "@valuemachine/types";
 import axios from "axios";
 
+import { toBN } from "./math";
+import { getLogger, sm, smeq } from "./utils";
 import { getEthTransactionError } from "./verify";
 
 const stringAbi = [
@@ -39,11 +40,11 @@ const bytesAbi = [
 
 const getTokenInterface = (address?: Address): Interface => new Interface(
   !address ? stringAbi
-    : [
-      "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", // SAI
-      "0xf53ad2c6851052a81b42133467480961b2321c09", // PETH
-      "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
-    ].includes(sm(address)) ? bytesAbi : stringAbi
+  : [
+    "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", // SAI
+    "0xf53ad2c6851052a81b42133467480961b2321c09", // PETH
+    "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
+  ].includes(sm(address)) ? bytesAbi : stringAbi
 );
 
 export const getChainData = ({
@@ -320,12 +321,12 @@ export const getChainData = ({
       status:
         // If post-byzantium, then the receipt already has a status, yay
         typeof receipt.status === "number" ? receipt.status
-          // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
-          : toBN(response.gasLimit).gt(toBN(receipt.gasUsed)) ? 1
-          // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-            : toBN(response.gasLimit).eq(toBN("21000")) ? 1
-            // Otherwise it PROBABLY failed
-              : 0,
+        // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
+        : toBN(response.gasLimit).gt(toBN(receipt.gasUsed)) ? 1
+        // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
+        : toBN(response.gasLimit).eq(toBN("21000")) ? 1
+        // Otherwise it PROBABLY failed
+        : 0,
       timestamp,
       to: response.to ? getAddress(response.to) : null,
       value: formatEther(response.value),

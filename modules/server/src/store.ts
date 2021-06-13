@@ -5,8 +5,8 @@ import {
   StoreKeys,
   StoreValues,
   emptyStore,
-} from "@finances/types";
-import { getLogger } from "@finances/utils";
+} from "@valuemachine/types";
+import { getLogger } from "@valuemachine/core";
 
 import { env } from "./env";
 

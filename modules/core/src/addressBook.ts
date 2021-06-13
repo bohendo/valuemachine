@@ -11,10 +11,10 @@ import {
   Logger,
   SecurityProvider,
   SecurityProviders,
-} from "@finances/types";
-import { getLogger, sm, smeq } from "@finances/utils";
+} from "@valuemachine/types";
 
 import { publicAddresses } from "./transactions";
+import { getLogger, sm, smeq } from "./utils";
 
 export const getAddressBook = (
   userAddressBook: AddressBookJson = [],

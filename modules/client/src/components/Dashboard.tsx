@@ -1,6 +1,6 @@
 import { isAddress } from "@ethersproject/address";
-import { getValueMachine } from "@finances/core";
-import { AddressBook, ValueMachineJson } from "@finances/types";
+import { getValueMachine } from "@valuemachine/core";
+import { AddressBook, ValueMachineJson } from "@valuemachine/types";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Divider from "@material-ui/core/Divider";
 import Table from "@material-ui/core/Table";

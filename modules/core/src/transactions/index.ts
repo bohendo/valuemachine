@@ -4,9 +4,9 @@ import {
   ChainData,
   StoreKeys,
   Transactions,
-} from "@finances/types";
-import { getLogger } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { getLogger } from "../utils";
 import { getTransactionsError } from "../verify";
 
 import { parseEthTx } from "./eth";

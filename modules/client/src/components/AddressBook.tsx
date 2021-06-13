@@ -1,12 +1,4 @@
 import { isAddress } from "@ethersproject/address";
-import {
-  AddressCategories,
-  AddressEntry,
-  SecurityProviders,
-  emptyProfile,
-  ProfileJson
-} from "@finances/types";
-import { smeq } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
@@ -39,6 +31,14 @@ import SaveIcon from "@material-ui/icons/Save";
 import EditIcon from "@material-ui/icons/Edit";
 import SyncIcon from "@material-ui/icons/Sync";
 import { Alert } from "@material-ui/lab";
+import {
+  AddressCategories,
+  AddressEntry,
+  SecurityProviders,
+  emptyProfile,
+  ProfileJson
+} from "@valuemachine/types";
+import { smeq } from "@valuemachine/core";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 

@@ -15,12 +15,12 @@ import {
   TransactionSources,
   TransferCategories,
   TransferCategory,
-} from "@finances/types";
-import { math, sm, smeq, toBN } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { abs, div, eq, gt, round, toBN } from "../../math";
+import { sm, smeq } from "../../utils";
 import { abrv, diffAsc, rmDups, parseEvent, valuesAreClose } from "../utils";
 
-const { abs, div, eq, gt, round } = math;
 const { DAI, ETH, MKR, PETH, SAI, WETH } = Assets;
 const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 

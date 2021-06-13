@@ -14,13 +14,13 @@ import {
   TimestampString,
   Transaction,
   TransferCategories,
-} from "@finances/types";
-import { getLogger, math } from "@finances/utils";
+} from "@valuemachine/types";
 import axios from "axios";
 
+import { add, div, eq, gt, mul, round, sub } from "./math";
 import { v1MarketAddresses, v2MarketAddresses } from "./transactions/eth/uniswap";
+import { getLogger } from "./utils";
 
-const { add, div, eq, gt, mul, sub } = math;
 const {
   BAT, BCH, BTC, CHERRY, COMP, DAI, ETH, GEN, GNO, LTC, MKR, OMG,
   REP, REPv2, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
@@ -54,7 +54,7 @@ export const getPrices = ({
 
   // Limit value from having any more than 18 decimals of precision (but ensure it has at least 1)
   const formatPrice = (price: DecimalString): DecimalString => {
-    const truncated = math.round(price, 18).replace(/0+$/, "");
+    const truncated = round(price, 18).replace(/0+$/, "");
     if (truncated.endsWith(".")) return truncated + "0";
     return truncated;
   };
@@ -595,7 +595,7 @@ export const getPrices = ({
         }
       }
       if (price) {
-        setPrice(math.round(price, 18).replace(/0+$/, ""), date, asset, unit);
+        setPrice(round(price, 18).replace(/0+$/, ""), date, asset, unit);
         log.info(`Synced price on ${date}: 1 ${asset} = ${json[date][unit][asset]} ${unit}`);
       }
     }

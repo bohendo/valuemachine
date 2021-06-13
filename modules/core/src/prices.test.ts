@@ -1,8 +1,8 @@
-import { AddressBook, AddressCategories, Assets, Prices, Transactions } from "@finances/types";
-import { expect, math } from "@finances/utils";
+import { AddressBook, AddressCategories, Assets, Prices, Transactions } from "@valuemachine/types";
 
+import { mul, round } from "./math";
 import { getPrices } from "./prices";
-import { getRealChainData, getTestAddressBook, testLogger } from "./testing";
+import { expect, getRealChainData, getTestAddressBook, testLogger } from "./testing";
 import { getTransactions } from "./transactions";
 
 const log = testLogger.child({
@@ -10,7 +10,6 @@ const log = testLogger.child({
   module: "TestPrices",
 });
 
-const { mul, round } = math;
 const { DAI, USD, ETH, cDAI, MKR, SPANK, sUSDv1 } = Assets;
 
 describe("Prices", () => {

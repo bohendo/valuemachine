@@ -1,6 +1,6 @@
 {
-  "name": "@finances/taxes",
-  "version": "1.0.0",
+  "name": "@valuemachine/taxes",
+  "version": "0.0.1",
   "description": "",
   "main": "build/src/entry.js",
   "author": "",
@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@ethersproject/constants": "5.3.0",
-    "@finances/core": "1.0.0",
-    "@finances/types": "1.0.0",
-    "@finances/utils": "1.0.0"
+    "@valuemachine/core": "0.0.1",
+    "@valuemachine/types": "0.0.1",
+    "@valuemachine/utils": "0.0.1"
   },
   "devDependencies": {
     "@types/chai": "4.2.16",

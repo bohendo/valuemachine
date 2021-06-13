@@ -6,11 +6,11 @@ import {
   EthTransactionLog,
   Transaction,
   Transfer,
-} from "@finances/types";
-import { math } from "@finances/utils";
+} from "@valuemachine/types";
+
+import { diff, gt, lt } from "../math";
 
 const { ETH, WETH } = Assets;
-const { diff, gt, lt } = math;
 
 // Smallest difference is first, largest is last
 // If diff in 1 is greater than diff in 2, swap them

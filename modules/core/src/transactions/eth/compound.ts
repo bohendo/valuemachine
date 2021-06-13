@@ -12,12 +12,12 @@ import {
   TransactionSources,
   Transfer,
   TransferCategories,
-} from "@finances/types";
-import { math, sm, smeq } from "@finances/utils";
+} from "@valuemachine/types";
 
+import { div, gt, round, sub } from "../../math";
+import { sm, smeq } from "../../utils";
 import { rmDups, parseEvent, valuesAreClose } from "../utils";
 
-const { div, gt, round, sub } = math;
 const {
   COMP, cBAT, cCOMP, cDAI, cETH, cREP, cSAI, cUNI, cUSDC, cUSDT, cWBTC, cWBTCv2, cZRX
 } = Assets;

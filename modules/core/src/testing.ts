@@ -11,11 +11,17 @@ import {
   EthTransaction,
   Store,
   StoreKeys,
-} from "@finances/types";
-import { getLogger } from "@finances/utils";
+} from "@valuemachine/types";
+import { use } from "chai";
+import promised from "chai-as-promised";
 
 import { getAddressBook } from "./addressBook";
 import { getChainData } from "./chainData";
+import { getLogger } from "./utils";
+
+use(promised);
+
+export { expect } from "chai";
 
 const env = {
   logLevel: process.env.LOG_LEVEL || "error",

@@ -50,27 +50,27 @@ type BaseEvent = {
 
 export type IncomeEvent = BaseEvent & {
   account: Address;
-  inputs: number[];
+  inputs: Array<ChunkIndex | AssetChunk>;
   type: typeof EventTypes.Income;
 };
 
 export type ExpenseEvent = BaseEvent & {
   account: Address;
-  outputs: number[];
+  outputs: Array<ChunkIndex | AssetChunk>;
   type: typeof EventTypes.Expense;
 };
 
 export type DebtEvent = BaseEvent & {
   account: Address;
-  inputs: number[];
-  outputs: number[];
+  inputs: Array<ChunkIndex | AssetChunk>;
+  outputs: Array<ChunkIndex | AssetChunk>;
   type: typeof EventTypes.Debt;
 };
 
 export type TradeEvent = BaseEvent & {
   account: Address;
-  inputs: number[];
-  outputs: number[];
+  inputs: Array<ChunkIndex | AssetChunk>;
+  outputs: Array<ChunkIndex | AssetChunk>;
   type: typeof EventTypes.Trade;
 };
 
@@ -79,8 +79,8 @@ export type JurisdictionChangeEvent = BaseEvent & {
   from: Account;
   to: Account;
   toJurisdiction: SecurityProvider;
-  chunks: number[];
-  insecurePath: number[];
+  chunks: Array<ChunkIndex | AssetChunk>;
+  insecurePath: Array<ChunkIndex | AssetChunk>;
   type: typeof EventTypes.JurisdictionChange;
 };
 
@@ -105,6 +105,8 @@ export interface ValueMachine {
   tradeValue: (account: Account, inputs: Balances, outputs: Balances) => void;
   disposeValue: (quantity: DecimalString, asset: Assets, from: Account) => AssetChunk[];
   getJson: () => ValueMachineJson;
+  getChunk: (index: ChunkIndex) => AssetChunk;
+  getEvent: (index: number) => Event;
   getAccounts: () => Account[];
   getBalance: (account: Account, asset: Assets) => DecimalString;
   getNetWorth: () => Balances;

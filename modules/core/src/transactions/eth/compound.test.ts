@@ -3,14 +3,15 @@ import {
   Transactions,
   TransactionSources,
   TransferCategories,
-} from "@finances/types";
-import { math, expect } from "@finances/utils";
+} from "@valuemachine/types";
 
 import {
+  expect,
   getRealChainData,
   getTestAddressBook,
   testLogger,
 } from "../../testing";
+import { math } from "../../utils";
 import { getTransactions } from "../index";
 
 const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
