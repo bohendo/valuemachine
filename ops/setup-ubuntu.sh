@@ -133,8 +133,8 @@ echo;
 DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
 apt-get autoremove -y
 
-if [[ ! -d finances ]]
-then git clone https://gitlab.com/bohendo/finances.git
+if [[ ! -d valuemachine ]]
+then git clone https://gitlab.com/bohendo/valuemachine.git
 fi
 
 echo

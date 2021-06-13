@@ -4,15 +4,15 @@
   "description": "low-level transaction parsing & tax analysis utilities",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@gitlab.com/bohendo/finances.git"
+    "url": "git+ssh://git@gitlab.com/bohendo/valuemachine.git"
   },
   "registry": "registry.gitlab.com",
   "author": "Bo & Shivani Henderson",
   "license": "ISC",
   "bugs": {
-    "url": "https://gitlab.com/bohendo/finances/issues"
+    "url": "https://gitlab.com/bohendo/valuemachine/issues"
   },
-  "homepage": "https://gitlab.com/bohendo/finances#readme",
+  "homepage": "https://gitlab.com/bohendo/valuemachine#readme",
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "4.26.0",
     "@typescript-eslint/parser": "4.26.0",
