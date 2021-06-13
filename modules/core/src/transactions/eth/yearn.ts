@@ -4,11 +4,13 @@ import {
   AddressBookJson,
   AddressCategories,
   Assets,
+  Asset,
   ChainData,
   EthTransaction,
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 
@@ -225,7 +227,7 @@ export const yearnParser = (
     const address = sm(txLog.address);
 
     if (yTokens.some(yToken => smeq(yToken.address, address))) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
       const yTransfer = tx.transfers.find(t => t.asset === getName(address));
       if (!yTransfer) {
         log.warn(`Can't find a transfer for ${getName(address)}`);
@@ -240,7 +242,7 @@ export const yearnParser = (
       const transfer = tx.transfers.find(t =>
         t.category !== Internal
         && t.to !== ETH
-        && assetsAreClose(t.asset, asset as Assets)
+        && assetsAreClose(t.asset, asset as Asset)
         && (
           (isSelf(t.to) && isSelf(yTransfer.from)) ||
           (isSelf(t.from) && isSelf(yTransfer.to))
@@ -269,7 +271,7 @@ export const yearnParser = (
       }
 
     } else if (smeq(address, govAddress)) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
       const event = parseEvent(yGovInterface, txLog);
       if (!event.name) continue;
       log.info(`Parsing yGov ${event.name}`);

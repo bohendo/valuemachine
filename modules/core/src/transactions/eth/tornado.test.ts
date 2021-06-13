@@ -14,13 +14,14 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
+const source = TransactionSources.Tornado;
 const { Expense, Deposit, Withdraw } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
-  module: `Test${TransactionSources.Tornado}`,
+  module: `Test${source}`,
 });
 
-describe(TransactionSources.Tornado, () => {
+describe(source, () => {
   let addressBook;
   let txns: Transactions;
 
@@ -37,7 +38,7 @@ describe(TransactionSources.Tornado, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Tornado);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Deposit);
@@ -63,7 +64,7 @@ describe(TransactionSources.Tornado, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Tornado);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);

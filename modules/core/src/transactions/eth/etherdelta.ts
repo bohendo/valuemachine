@@ -7,11 +7,13 @@ import {
   AddressBookJson,
   AddressCategories,
   Assets,
+  Asset,
   ChainData,
   EthTransaction,
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
@@ -31,7 +33,7 @@ const etherdeltaAddress = "0x8d12a197cb00d4747a1fe03395095ce2a5cc6819";
 
 // Simple, standalone tokens only. App-specific tokens can be found in that app's parser.
 export const etherdeltaAddresses = [
-  { name: TransactionSources.EtherDelta, address: etherdeltaAddress },
+  { name: source, address: etherdeltaAddress },
 ].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
 
 ////////////////////////////////////////
@@ -58,9 +60,9 @@ export const etherdeltaParser = (
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
-  const getAsset = (address: Address): Assets => {
+  const getAsset = (address: Address): Asset => {
     if (address === AddressZero) return Assets.ETH;
-    else return getName(address) as Assets;
+    else return getName(address) as Asset;
   };
 
   for (const txLog of ethTx.logs) {
@@ -78,7 +80,7 @@ export const etherdeltaParser = (
         log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);
         continue;
       }
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
       const account = `${source}-${user.toLowerCase().substring(0, 8)}`;
       const exchange = `${source}-exchange`;
 

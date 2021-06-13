@@ -5,11 +5,13 @@ import {
   AddressBookJson,
   AddressCategories,
   Assets,
+  Asset,
   ChainData,
   EthTransaction,
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   Transfer,
   TransferCategories,
   TransferCategory,
@@ -82,8 +84,8 @@ export const oasisParser = (
       isSelf(ethTx.from) && isProxy(address) && smeq(address, ethTx.to)
     );
 
-  const ethish = [WETH, ETH] as Assets[];
-  const findSwap = (quantity: string, asset: Assets) => (transfer: Transfer): boolean =>
+  const ethish = [WETH, ETH] as Asset[];
+  const findSwap = (quantity: string, asset: Asset) => (transfer: Transfer): boolean =>
     (([Income, Expense] as TransferCategory[]).includes(transfer.category)) && (
       ethish.includes(asset) ? ethish.includes(transfer.asset) : transfer.asset === asset
     ) && valuesAreClose(quantity, transfer.quantity);
@@ -96,7 +98,7 @@ export const oasisParser = (
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     if (machineAddresses.some(e => smeq(e.address, address))) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
       const event = parseEvent(oasisInterface, txLog);
 
       if (event.name === "LogTake") {

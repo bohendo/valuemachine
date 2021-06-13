@@ -1,5 +1,6 @@
 import {
   Assets,
+  Asset,
   Logger,
   Transaction,
   TransactionSources,
@@ -38,7 +39,7 @@ export const mergeWyreTransactions = (
     const account = `${source}-account`;
     const exchange = `${source}-exchange`;
 
-    const fixAssetType = (asset: Assets): Assets =>
+    const fixAssetType = (asset: Asset): Asset =>
       asset === DAI && new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime()
         ? SAI
         : asset;

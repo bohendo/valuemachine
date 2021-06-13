@@ -15,10 +15,11 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
-const log = testLogger.child({ module: `Test${TransactionSources.ERC20}` });
+const source = TransactionSources.ERC20;
+const log = testLogger.child({ module: `Test${source}` });
 const toBytes32 = (decstr: string): string => hexZeroPad(parseUnits(decstr, 18), 32);
 
-describe(TransactionSources.ERC20, () => {
+describe(source, () => {
   let addressBook;
   let txns: Transactions;
   const quantity = "3.14";
@@ -67,7 +68,7 @@ describe(TransactionSources.ERC20, () => {
     expect(txns.json.length).to.equal(0);
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
-    expect(txns.json[0].sources).to.include(TransactionSources.ERC20);
+    expect(txns.json[0].sources).to.include(source);
     expect(txns.json[0].transfers.length).to.equal(2);
     expect(txns.json[0].description.toLowerCase()).to.include("transfer");
     expect(txns.json[0].description).to.include(quantity);
@@ -105,7 +106,7 @@ describe(TransactionSources.ERC20, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.ERC20);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(1);
     expect(tx.description.toLowerCase()).to.include("approve");
     expect(tx.description).to.include(addressBook.getName(tokenAddress));

@@ -5,7 +5,7 @@ import {
   EthereumSources,
   TimestampString,
   Transaction,
-  TransactionSources,
+  TransactionSource,
   Transfer,
   TransferCategories,
   TransferCategory,
@@ -111,7 +111,7 @@ export const mergeTransaction = (
       // use external date so we can detect external dups more easily later
       date: externalTx.date,
       // merge sources & tags
-      sources: rmDups([...externalTx.sources, ...newTx.sources]) as TransactionSources[],
+      sources: rmDups([...externalTx.sources, ...newTx.sources]) as TransactionSource[],
       tags: rmDups([...externalTx.tags, ...newTx.tags]),
     };
     ethTransfer.category = externalTransfer.category;
@@ -193,7 +193,7 @@ export const mergeTransaction = (
       // use external date so we can detect external dups more easily later
       date: newTx.date,
       // merge sources & tags
-      sources: rmDups([...ethTx.sources, ...newTx.sources]) as TransactionSources[],
+      sources: rmDups([...ethTx.sources, ...newTx.sources]) as TransactionSource[],
       tags: rmDups([...ethTx.tags, ...newTx.tags]),
     };
     ethTransfer.category = extTransfer.category;

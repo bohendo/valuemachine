@@ -10,6 +10,7 @@ import {
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 
@@ -69,7 +70,7 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${source} ${event.name} of amount ${round(amount)}`);
         }
-        tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+        tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
         tx.transfers.push({
           asset,
           category: SwapIn,
@@ -107,7 +108,7 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${source} ${event.name} of amount ${round(amount)}`);
         }
-        tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+        tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
         tx.transfers.push({
           asset,
           category: SwapOut,

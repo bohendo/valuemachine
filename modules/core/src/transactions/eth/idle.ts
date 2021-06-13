@@ -3,11 +3,13 @@ import {
   AddressBookJson,
   AddressCategories,
   Assets,
+  Asset,
   ChainData,
   EthTransaction,
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 
@@ -75,7 +77,7 @@ export const idleParser = (
     const address = sm(txLog.address);
 
     if (idleV1Addresses.some(idleToken => smeq(idleToken.address, address))) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
       const idleTransfer = tx.transfers.find(t => t.asset === getName(address));
       if (!idleTransfer) {
         log.warn(`Can't find a transfer for ${getName(address)}`);
@@ -89,7 +91,7 @@ export const idleParser = (
       log.info(`Parsing idle transfer of ${round(idleTransfer.quantity)} ${idleTransfer.asset}`);
       const transfer = tx.transfers.find(t =>
         t.category !== Internal && t.to !== ETH
-        && assetsAreClose(t.asset, asset as Assets)
+        && assetsAreClose(t.asset, asset as Asset)
         && (
           (isSelf(t.to) && isSelf(idleTransfer.from)) ||
           (isSelf(t.from) && isSelf(idleTransfer.to))

@@ -6,6 +6,7 @@ import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
+  AddressCategory,
   EthereumSources,
   ExternalSources,
   Logger,
@@ -95,13 +96,13 @@ export const getAddressBook = (
   ////////////////////////////////////////
   // Internal Functions
 
-  const isInnerCategory = (category: AddressCategories) => (address: Address): boolean =>
+  const isInnerCategory = (category: AddressCategory) => (address: Address): boolean =>
     address && addressBook
       .filter(row => smeq(row.category, category))
       .map(row => sm(row.address))
       .includes(sm(address));
 
-  const isTagged = (tag: AddressCategories) => (address: Address): boolean =>
+  const isTagged = (tag: AddressCategory) => (address: Address): boolean =>
     address && addressBook
       .filter(row => row.tags && row.tags.includes(tag.toLowerCase()))
       .map(row => sm(row.address))
@@ -126,7 +127,7 @@ export const getAddressBook = (
   ////////////////////////////////////////
   // Exports
 
-  const isCategory = (category: AddressCategories) => (address: Address): boolean =>
+  const isCategory = (category: AddressCategory) => (address: Address): boolean =>
     isInnerCategory(category)(address) || isTagged(category)(address);
 
   const isPresent = (address: Address): boolean => addresses.includes(sm(address));
@@ -147,7 +148,7 @@ export const getAddressBook = (
           ? addressBook.find(row => smeq(row.address, address)).name
           : `${address.substring(0, 6)}..${address.substring(address.length - 4)}`;
 
-  const newAddress = (address: Address, category: AddressCategories, name?: string): void => {
+  const newAddress = (address: Address, category: AddressCategory, name?: string): void => {
     if (!addresses.includes(sm(address))) {
       addressBook.push({ address, category, name: name || getName(address) });
       addresses.push(address);

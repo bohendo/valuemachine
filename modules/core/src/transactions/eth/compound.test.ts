@@ -14,13 +14,14 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
+const source = TransactionSources.Compound;
 const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
-  module: `Test${TransactionSources.Compound}`,
+  module: `Test${source}`,
 });
 
-describe(TransactionSources.Compound, () => {
+describe(source, () => {
   let addressBook;
   let txns: Transactions;
 
@@ -37,7 +38,7 @@ describe(TransactionSources.Compound, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Compound);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Deposit);
@@ -54,7 +55,7 @@ describe(TransactionSources.Compound, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Compound);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const income = tx.transfers[1];
     expect(income.category).to.equal(Income);
@@ -77,7 +78,7 @@ describe(TransactionSources.Compound, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Compound);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(SwapOut);
@@ -104,7 +105,7 @@ describe(TransactionSources.Compound, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Compound);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const withdraw = tx.transfers[1];
     expect(withdraw.category).to.equal(SwapIn);
@@ -124,7 +125,7 @@ describe(TransactionSources.Compound, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Compound);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(1);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("enter");
@@ -153,7 +154,7 @@ describe(TransactionSources.Compound, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Compound);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const borrow = tx.transfers[1];
     expect(borrow.category).to.equal(Borrow);
@@ -178,7 +179,7 @@ describe(TransactionSources.Compound, () => {
     txns.mergeChainData(chainData);
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Compound);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const repay = tx.transfers[1];
     expect(repay.category).to.equal(Repay);

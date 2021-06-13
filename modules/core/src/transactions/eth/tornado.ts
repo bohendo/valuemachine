@@ -8,6 +8,7 @@ import {
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
@@ -123,7 +124,7 @@ export const tornadoParser = (
   });
 
   if (isTornadoTx) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
   }
 
   // log.debug(tx, `Done parsing ${source}`);

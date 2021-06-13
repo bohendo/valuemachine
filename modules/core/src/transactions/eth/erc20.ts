@@ -5,11 +5,13 @@ import {
   AddressBookJson,
   AddressCategories,
   Assets,
+  Asset,
   ChainData,
   EthTransaction,
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 
@@ -109,8 +111,8 @@ export const erc20Parser = (
     if (isToken(address)) {
       const event = parseEvent(erc20Interface, txLog);
       if (!event.name) continue;
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
-      const asset = getName(address) as Assets;
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+      const asset = getName(address) as Asset;
       // Skip transfers that don't concern self accounts
       if (!isSelf(event.args.from) && !isSelf(event.args.to)) {
         log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
@@ -127,8 +129,8 @@ export const erc20Parser = (
         const to = event.args.to; // === AddressZero ? address : event.args.to;
         const category = isSelf(from) && isSelf(to) ? Internal
           : isSelf(from) && !isSelf(to) ? Expense
-            : isSelf(to) && !isSelf(from) ? Income
-              : Unknown;
+          : isSelf(to) && !isSelf(from) ? Income
+          : Unknown;
         tx.transfers.push({ asset, category, from, index: txLog.index, quantity: amount, to });
         if (smeq(ethTx.to, address)) {
           tx.description = `${getName(event.args.from)} transfered ${

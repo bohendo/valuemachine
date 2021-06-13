@@ -1,4 +1,4 @@
-import { Assets } from "./assets";
+import { Asset } from "./assets";
 import { SecurityProvider } from "./security";
 import { Address, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
@@ -17,7 +17,7 @@ export type ChunkIndex = number;
 
 // A chunk's index is used as it's unique id, it should never change
 export type AssetChunk = {
-  asset: Assets;
+  asset: Asset;
   quantity: DecimalString;
   receiveDate: TimestampString;
   disposeDate?: TimestampString; // undefined if we still own this chunk
@@ -38,14 +38,13 @@ export const EventTypes = enumify({
   Expense: "Expense",
   Debt: "Debt",
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type EventTypes = (typeof EventTypes)[keyof typeof EventTypes];
+export type EventType = (typeof EventTypes)[keyof typeof EventTypes];
 
 type BaseEvent = {
   date: TimestampString;
   description: string;
   newBalances: Balances;
-  type: EventTypes;
+  type: EventType;
 };
 
 export type IncomeEvent = BaseEvent & {
@@ -100,15 +99,15 @@ export type ValueMachineJson = {
 }
 
 export interface ValueMachine {
-  receiveValue: (quantity: DecimalString, asset: Assets, to: Account) => AssetChunk[];
-  moveValue: (quantity: DecimalString, asset: Assets, from: Account, to: Account) => void;
+  receiveValue: (quantity: DecimalString, asset: Asset, to: Account) => AssetChunk[];
+  moveValue: (quantity: DecimalString, asset: Asset, from: Account, to: Account) => void;
   tradeValue: (account: Account, inputs: Balances, outputs: Balances) => void;
-  disposeValue: (quantity: DecimalString, asset: Assets, from: Account) => AssetChunk[];
+  disposeValue: (quantity: DecimalString, asset: Asset, from: Account) => AssetChunk[];
   getJson: () => ValueMachineJson;
   getChunk: (index: ChunkIndex) => AssetChunk;
   getEvent: (index: number) => Event;
   getAccounts: () => Account[];
-  getBalance: (account: Account, asset: Assets) => DecimalString;
+  getBalance: (account: Account, asset: Asset) => DecimalString;
   getNetWorth: () => Balances;
   execute: (transaction: Transaction) => Events;
 }

@@ -10,6 +10,7 @@ import {
   EthCall,
   EthTransaction,
   Store,
+  StoreKey,
   StoreKeys,
 } from "@valuemachine/types";
 import { use } from "chai";
@@ -101,14 +102,14 @@ export const getRealChainData = async (
 ): Promise<ChainData> => {
   const filepath = path.join(__dirname, _filepath);
   const testStore = {
-    load: (key: StoreKeys): any => {
+    load: (key: StoreKey): any => {
       if (key === StoreKeys.ChainData) {
         return JSON.parse(fs.readFileSync(filepath, "utf8"));
       } else {
         throw new Error(`Test store has not implemented key ${key}`);
       }
     },
-    save: (key: StoreKeys, data: any): void => {
+    save: (key: StoreKey, data: any): void => {
       if (key === StoreKeys.ChainData) {
         fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
       } else {

@@ -5,11 +5,13 @@ import {
   AddressBookJson,
   AddressCategories,
   Assets,
+  Asset,
   ChainData,
   EthTransaction,
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
@@ -133,13 +135,13 @@ export const compoundParser = (
   const { getName, isSelf } = addressBook;
 
   if (compoundAddresses.some(e => smeq(e.address, ethTx.to))) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
   }
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
     if (compoundAddresses.some(e => smeq(e.address, address))) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
     }
 
     ////////////////////////////////////////
@@ -149,7 +151,7 @@ export const compoundParser = (
       const event = parseEvent(compoundV1Interface, txLog);
       log.info(`Found ${subsrc} ${event.name} event`);
       const amount = formatUnits(event.args.amount, chainData.getDecimals(event.args.asset));
-      const asset = getName(event.args.asset) as Assets;
+      const asset = getName(event.args.asset) as Asset;
       const account = `${source}-${event.args.account?.substring(0, 8)}`;
 
       if (event.name === "SupplyReceived") {

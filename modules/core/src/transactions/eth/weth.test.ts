@@ -20,6 +20,7 @@ import { getTransactions } from "../index";
 
 import { wethAddresses } from "./weth";
 
+const source = TransactionSources.Weth;
 const { SwapIn, SwapOut } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
@@ -27,7 +28,7 @@ const log = testLogger.child({
 });
 const toBytes32 = (decstr: string): string => hexZeroPad(parseUnits(decstr, 18), 32);
 
-describe(TransactionSources.Weth, () => {
+describe(source, () => {
   let addressBook;
   let txns: Transactions;
   const quantity = "3.14";
@@ -56,7 +57,7 @@ describe(TransactionSources.Weth, () => {
     ]));
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Weth);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.description.toLowerCase()).to.include("swap");
     expect(tx.description).to.include(addressBook.getName(sender));
@@ -97,7 +98,7 @@ describe(TransactionSources.Weth, () => {
     ]));
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
-    expect(tx.sources).to.include(TransactionSources.Weth);
+    expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.description.toLowerCase()).to.include("swap");
     expect(tx.description).to.include(addressBook.getName(sender));

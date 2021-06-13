@@ -2,6 +2,7 @@ import { Interface } from "@ethersproject/abi";
 import { isHexString, hexDataLength } from "@ethersproject/bytes";
 import {
   Assets,
+  Asset,
   DecimalString,
   EthTransactionLog,
   Transaction,
@@ -20,8 +21,8 @@ export const diffAsc = (compareTo: DecimalString) => (t1: Transfer, t2: Transfer
     diff(t2.quantity, compareTo),
   ) ? 1 : -1;
 
-export const ETHish = [ETH, WETH] as Assets[];
-export const assetsAreClose = (asset1: Assets, asset2: Assets): boolean =>
+export const ETHish = [ETH, WETH] as Asset[];
+export const assetsAreClose = (asset1: Asset, asset2: Asset): boolean =>
   asset1 === asset2 || (
     ETHish.includes(asset1) && ETHish.includes(asset2)
   );

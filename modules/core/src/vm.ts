@@ -1,8 +1,8 @@
 import {
   Account,
   AddressBook,
+  Asset,
   AssetChunk,
-  Assets,
   Balances,
   ChunkIndex,
   DecimalString,
@@ -65,12 +65,12 @@ export const getValueMachine = ({
   const isPhysicallyGuarded = (account) => 
     Object.keys(PhysicalGuardians).includes(addressBook.getGuardian(account));
 
-  const isHeld = (account: Account, asset: Assets) => (chunk: AssetChunk): boolean =>
+  const isHeld = (account: Account, asset: Asset) => (chunk: AssetChunk): boolean =>
     chunk.account === account && chunk.asset === asset;
 
   const mintChunk = (
     quantity: DecimalString,
-    asset: Assets,
+    asset: Asset,
     account: Account,
   ): AssetChunk => {
     const newChunk = {
@@ -86,13 +86,13 @@ export const getValueMachine = ({
     return newChunk;
   };
 
-  const borrowChunks = (quantity: DecimalString, asset: Assets, account: Account): AssetChunk[] => {
+  const borrowChunks = (quantity: DecimalString, asset: Asset, account: Account): AssetChunk[] => {
     const loan = mintChunk(quantity, asset, account);
     const debt = mintChunk(mul(quantity, "-1"), asset, account);
     return [loan, debt];
   };
 
-  const underflow = (quantity: DecimalString, asset: Assets, account: Account): AssetChunk[] => {
+  const underflow = (quantity: DecimalString, asset: Asset, account: Account): AssetChunk[] => {
     if (isOpaqueInterestBearers(account)) {
       log.debug(`Underflow of ${quantity} ${asset} is being handled as opaque interest`);
       // Emit a synthetic income event
@@ -119,7 +119,7 @@ export const getValueMachine = ({
 
   const getChunks = (
     quantity: DecimalString,
-    asset: Assets,
+    asset: Asset,
     account: Account,
   ): AssetChunk[] => {
     const balance = getBalance(asset, account);
@@ -203,7 +203,7 @@ export const getValueMachine = ({
 
   const getJson = () => state;
 
-  const getBalance = (asset: Assets, account?: Account): DecimalString =>
+  const getBalance = (asset: Asset, account?: Account): DecimalString =>
     state.chunks.reduce((balance, chunk) => {
       return (asset && chunk.asset === asset) && ((
         !account && chunk.account
@@ -228,7 +228,7 @@ export const getValueMachine = ({
   // Returns the newly minted chunks and/or the annihilated debt chunks
   const receiveValue = (
     quantity: DecimalString,
-    asset: Assets,
+    asset: Asset,
     account: Account,
   ): AssetChunk[] => {
     const balance = getBalance(asset, account);
@@ -272,7 +272,7 @@ export const getValueMachine = ({
   // Returns the chunks we disposed of
   const disposeValue = (
     quantity: DecimalString,
-    asset: Assets,
+    asset: Asset,
     account: Account,
   ): AssetChunk[] => {
     const disposeChunk = chunk => {
@@ -318,13 +318,13 @@ export const getValueMachine = ({
   const tradeValue = (account: Account, swapsIn: Balances, swapsOut: Balances): void => {
     const chunksOut = [] as AssetChunk[];
     for (const swapOut of Object.entries(swapsOut)) {
-      const asset = swapOut[0] as Assets;
+      const asset = swapOut[0] as Asset;
       const quantity = swapOut[1] as DecimalString;
       chunksOut.push(...disposeValue(quantity, asset, account));
     }
     const chunksIn = [] as AssetChunk[];
     for (const swapIn of Object.entries(swapsIn)) {
-      const asset = swapIn[0] as Assets;
+      const asset = swapIn[0] as Asset;
       const quantity = swapIn[1] as DecimalString;
       chunksIn.push(...receiveValue(quantity, asset, account));
     }
@@ -350,7 +350,7 @@ export const getValueMachine = ({
     newEvents.push(tradeEvent);
   };
 
-  const moveValue = (quantity: DecimalString, asset: Assets, from: Account, to: Account): void => {
+  const moveValue = (quantity: DecimalString, asset: Asset, from: Account, to: Account): void => {
     const toMove = getChunks(quantity, asset, from);
     log.info(toMove, `Got chunks to move`);
     toMove.forEach(chunk => { chunk.account = to; });

@@ -13,13 +13,14 @@ import {
 } from "../../testing";
 import { getTransactions } from "../index";
 
+const source = TransactionSources.Oasis;
 const { Expense, SwapIn, SwapOut } = TransferCategories;
 const log = testLogger.child({
   // level: "debug",
   module: "TestTransactions",
 });
 
-describe(TransactionSources.Oasis, () => {
+describe(source, () => {
   let txns: Transactions;
   let addressBook;
 
@@ -38,9 +39,9 @@ describe(TransactionSources.Oasis, () => {
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.sources).to.include(TransactionSources.Oasis);
+    expect(tx.sources).to.include(source);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include(TransactionSources.Oasis);
+    expect(tx.description).to.include(source);
     const base = tx.transfers[0];
     expect(base.category).to.equal(Expense);
     const swapOut = tx.transfers[1];
@@ -58,9 +59,9 @@ describe(TransactionSources.Oasis, () => {
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(1);
-    expect(tx.sources).to.include(TransactionSources.Oasis);
+    expect(tx.sources).to.include(source);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include(TransactionSources.Oasis);
+    expect(tx.description).to.include(source);
     const swapIn = tx.transfers[0];
     expect(swapIn.category).to.equal(SwapIn);
   });
@@ -74,13 +75,13 @@ describe(TransactionSources.Oasis, () => {
     expect(txns.json.length).to.equal(1);
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.sources).to.include(TransactionSources.Oasis);
+    expect(tx.sources).to.include(source);
     const swapOut = tx.transfers[1];
     expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
     expect(swapIn.category).to.equal(SwapIn);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include(TransactionSources.Oasis);
+    expect(tx.description).to.include(source);
   });
 
 });

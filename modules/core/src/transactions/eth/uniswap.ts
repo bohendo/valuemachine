@@ -9,6 +9,7 @@ import {
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   Transfer,
   TransferCategories,
   TransferCategory,
@@ -224,7 +225,7 @@ export const uniswapParser = (
   )) {
     const address = sm(txLog.address);
     const index = txLog.index || 1;
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
 
     // Parse events
     let subsrc, event;

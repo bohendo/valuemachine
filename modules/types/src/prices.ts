@@ -1,4 +1,4 @@
-import { Assets } from "./assets";
+import { Asset } from "./assets";
 import { DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
 
@@ -14,15 +14,15 @@ export type PricesJson = {
 
 export interface Prices {
   json: PricesJson;
-  getCount(unit?: Assets, date?: TimestampString): number;
-  getPrice(date: TimestampString, asset: Assets, unit?: Assets): string | undefined;
+  getCount(unit?: Asset, date?: TimestampString): number;
+  getPrice(date: TimestampString, asset: Asset, unit?: Asset): string | undefined;
   merge(prices: PricesJson): void;
   syncPrice(
     date: TimestampString,
-    asset: Assets,
-    unit?: Assets,
+    asset: Asset,
+    unit?: Asset,
   ): Promise<string | undefined>;
-  syncTransaction(tx: Transaction, unit?: Assets): Promise<PricesJson>;
+  syncTransaction(tx: Transaction, unit?: Asset): Promise<PricesJson>;
 }
 
 export const emptyPrices = {} as PricesJson;

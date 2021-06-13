@@ -3,6 +3,7 @@ import fs from "fs";
 import {
   Store,
   StoreKeys,
+  StoreKey,
   StoreValues,
   emptyStore,
 } from "@valuemachine/types";
@@ -19,9 +20,8 @@ const dirName = `/data`;
 
 const cache: StoreValues = {
   [StoreKeys.ChainData]: null,
-  [StoreKeys.Transactions]: null,
   [StoreKeys.Prices]: null,
-  [StoreKeys.Profile]: null,
+  [StoreKeys.Transactions]: null,
   [StoreKeys.ValueMachine]: null,
 };
 
@@ -30,7 +30,7 @@ const cache: StoreValues = {
 
 const getDirName = (username?: string): string => `${dirName}${username ? `/${username}`: ""}`;
 
-const getFileName = (key: StoreKeys, username?: string): string =>
+const getFileName = (key: StoreKey, username?: string): string =>
   `${getDirName(username)}/${
     key.replace(/[A-Z]/g, "-$&".toLowerCase()).replace(/^-/, "").toLowerCase()
   }.json`;

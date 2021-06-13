@@ -1,5 +1,5 @@
 import { AddressBook } from "./addressBook";
-import { Assets } from "./assets";
+import { Asset } from "./assets";
 import { ChainData } from "./chainData";
 import { Logger } from "./logger";
 import { DecimalString, HexString, TimestampString } from "./strings";
@@ -16,8 +16,7 @@ export const ExternalSources = enumify({
   Wyre: "Wyre",
   Wazirx: "Wazirx",
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type ExternalSources = (typeof ExternalSources)[keyof typeof ExternalSources];
+export type ExternalSource = (typeof ExternalSources)[keyof typeof ExternalSources];
 
 export const Jurisdictions = {
   [ExternalSources.Coinbase]: SecurityProviders.USD,
@@ -40,15 +39,13 @@ export const EthereumSources = enumify({
   Weth: "Weth",
   Yearn: "Yearn",
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type EthereumSources = (typeof EthereumSources)[keyof typeof EthereumSources];
+export type EthereumSource = (typeof EthereumSources)[keyof typeof EthereumSources];
 
 export const TransactionSources = enumify({
   ...ExternalSources,
   ...EthereumSources,
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
+export type TransactionSource = (typeof TransactionSources)[keyof typeof TransactionSources];
 
 ////////////////////////////////////////
 // Transfers
@@ -73,7 +70,7 @@ export const TransferCategories = enumify({
 export type TransferCategory = (typeof TransferCategories)[keyof typeof TransferCategories];
 
 export type Transfer = {
-  asset: Assets;
+  asset: Asset;
   category: TransferCategory;
   from: HexString;
   index?: number;
@@ -89,7 +86,7 @@ export type Transaction = {
   description: string;
   hash?: HexString;
   index?: number;
-  sources: TransactionSources[];
+  sources: TransactionSource[];
   tags: string[];
   transfers: Transfer[];
 }

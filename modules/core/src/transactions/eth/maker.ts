@@ -7,12 +7,14 @@ import {
   AddressBookJson,
   AddressCategories,
   Assets,
+  Asset,
   ChainData,
   EthTransaction,
   EthTransactionLog,
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
@@ -204,16 +206,16 @@ export const makerParser = (
   const { getName, isSelf } = addressBook;
   // log.debug(tx, `Parsing in-progress tx`);
 
-  const ethish = [WETH, ETH, PETH] as Assets[];
+  const ethish = [WETH, ETH, PETH] as Asset[];
 
   if (machineAddresses.some(e => smeq(e.address, ethTx.to))) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
   }
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
   if (smeq(ethTx.to, mcdMigrationAddress)) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
     const swapOut = tx.transfers.find(t => t.asset === SAI);
     const swapIn = tx.transfers.find(t => t.asset === DAI);
     if (swapOut) {
@@ -242,10 +244,10 @@ export const makerParser = (
     const address = sm(txLog.address);
     const index = txLog.index || 1;
     if (machineAddresses.some(e => smeq(e.address, address))) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
     }
     if (tokenAddresses.some(e => smeq(e.address, address))) {
-      const asset = getName(address) as Assets;
+      const asset = getName(address) as Asset;
       const event = parseEvent(tokenInterface, txLog);
       if (!event.name) continue;
       const wad = formatUnits(event.args.wad, chainData.getTokenData(address).decimals);
@@ -350,7 +352,7 @@ export const makerParser = (
           toBN(logNote.args[2] || "0x00").fromTwos(256),
           chainData.getTokenData(assetAddress)?.decimals || 18,
         );
-        const asset = getName(assetAddress) as Assets;
+        const asset = getName(assetAddress) as Asset;
         log.info(`Found a change in ${vault} collateral of about ${wad} ${asset}`);
         const transfer = tx.transfers.find(transfer =>
           (
@@ -657,7 +659,7 @@ export const makerParser = (
         }
         // Handle MKR fee (or find the stable-coins spent to buy MKR)
         // TODO: split repayment into two transfers if we repayed with one lump of DAI
-        const feeAsset = [MKR, SAI] as Assets[];
+        const feeAsset = [MKR, SAI] as Asset[];
         const fee = tx.transfers.find(t =>
           isSelf(t.from)
           && feeAsset.includes(t.asset)

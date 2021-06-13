@@ -10,6 +10,7 @@ import {
   Logger,
   Transaction,
   TransactionSources,
+  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 
@@ -68,7 +69,7 @@ export const argentParser = (
   const { getName, isSelf } = addressBook;
 
   if (relayerAddresses.some(entry => smeq(ethTx.from, entry.address))) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
   }
 
   for (const txLog of ethTx.logs) {
@@ -80,7 +81,7 @@ export const argentParser = (
       if (!isSelf(event.args.wallet)) {
         log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);
       }
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSources[];
+      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
 
       if (event.name === "TokenConverted") {
         const { destAmount, destToken, srcAmount, srcToken } = event.args;

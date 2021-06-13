@@ -1,5 +1,6 @@
 import {
   Assets,
+  Asset,
   DateString,
   DecimalString,
   emptyPrices,
@@ -35,7 +36,7 @@ export const getPrices = ({
   store: Store;
   logger?: Logger;
   pricesJson?: PricesJson;
-  unit?: Assets;
+  unit?: Asset;
 }): Prices => {
   const json = pricesJson
     || store?.load(StoreKeys.Prices)
@@ -43,7 +44,7 @@ export const getPrices = ({
   const save = (json: PricesJson): void => store?.save(StoreKeys.Prices, json);
   const log = (logger || getLogger()).child({ module: "Prices" });
 
-  const ethish = [ETH, WETH] as Assets[];
+  const ethish = [ETH, WETH] as Asset[];
 
   log.debug(`Loaded prices for ${
     Object.keys(json).length
@@ -72,8 +73,8 @@ export const getPrices = ({
   };
 
   // Never use WETH as unit, use ETH instead
-  const formatUnit = (givenUnit: Assets): Assets => {
-    const unit = givenUnit || defaultUnit || Assets.ETH;
+  const formatUnit = (givenUnit: Asset): Asset => {
+    const unit = givenUnit || defaultUnit || ETH;
     return unit === WETH ? ETH : unit;
   };
 
@@ -95,7 +96,7 @@ export const getPrices = ({
   };
 
   // Given an asset, get a list of other assets that we already have exchange rates for
-  const getNeighbors = (date: DateString, asset: Assets): Assets[] => {
+  const getNeighbors = (date: DateString, asset: Asset): Asset[] => {
     const neighbors = new Set();
     Object.keys(json[date] || {}).forEach(a1 => {
       Object.keys(json[date]?.[a1] || {}).forEach(a2 => {
@@ -103,10 +104,10 @@ export const getPrices = ({
         if (a2 === asset && a1 !== asset) neighbors.add(a1);
       });
     });
-    return Array.from(neighbors) as Assets[];
+    return Array.from(neighbors) as Asset[];
   };
 
-  const getPath = (date: DateString, start: Assets, target: Assets): Assets[] => {
+  const getPath = (date: DateString, start: Asset, target: Asset): Asset[] => {
     const unvisited = new Set();
     Object.keys(json[date] || {}).forEach(a1 => {
       unvisited.add(a1);
@@ -114,7 +115,7 @@ export const getPrices = ({
         unvisited.add(a2);
       });
     });
-    const countPrices = (date: DateString, asset?: Assets): number => {
+    const countPrices = (date: DateString, asset?: Asset): number => {
       let count = 0;
       Object.keys(json[date] || {}).forEach(a1 => {
         Object.keys(json[date]?.[a1] || {}).forEach(a2 => {
@@ -130,15 +131,15 @@ export const getPrices = ({
       log.info(`${target} to ${start} exchange rate is unavailable on ${date}`);
       return [];
     }
-    const distances = {} as { [to: string]: { distance: number; path: Assets[]; } };
-    for (const val of unvisited.values() as IterableIterator<Assets>) {
+    const distances = {} as { [to: string]: { distance: number; path: Asset[]; } };
+    for (const val of unvisited.values() as IterableIterator<Asset>) {
       distances[val] = {
         distance: val === start ? 0 : Infinity,
         path: [start],
       };
     }
     let current = start;
-    const branches = [] as Assets[];
+    const branches = [] as Asset[];
     let pathToCurrent = distances[current].path;
     while (current) {
       const neighbors = getNeighbors(date, current).filter(node => unvisited.has(node));
@@ -268,8 +269,8 @@ export const getPrices = ({
   const setPrice = (
     price: DecimalString,
     rawDate: DateString,
-    asset: Assets,
-    givenUnit?: Assets,
+    asset: Asset,
+    givenUnit?: Asset,
   ): void => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
@@ -284,12 +285,12 @@ export const getPrices = ({
 
   const getCoinGeckoPrice = async (
     date: DateString,
-    asset: Assets,
-    givenUnit: Assets,
+    asset: Asset,
+    givenUnit: Asset,
   ): Promise<string | undefined> => {
     // derived from output of https://api.coingecko.com/api/v3/coins/list
     const unit = formatUnit(givenUnit);
-    const getCoinId = (asset: Assets): string | undefined => {
+    const getCoinId = (asset: Asset): string | undefined => {
       switch (asset) {
       case BAT: return "basic-attention-token";
       case BCH: return "bitcoin-cash";
@@ -340,7 +341,7 @@ export const getPrices = ({
         const otherPrice = response?.market_data?.current_price?.[fiat.toLowerCase()]?.toString();
         if (otherPrice) {
           log.debug(`Also setting ${asset} price on ${date} wrt ${fiat}: ${otherPrice}`);
-          setPrice(otherPrice, date, asset, fiat as Assets);
+          setPrice(otherPrice, date, asset, fiat as Asset);
         }
       });
     } catch (e) {
@@ -354,7 +355,7 @@ export const getPrices = ({
 
   const getUniswapV1Price = async (
     date: DateString,
-    asset: Assets,
+    asset: Asset,
   ): Promise<string | undefined> => {
     // TODO: support non-ETH units by getting asset-ETH + unit-ETH prices?
     if (asset === ETH) return "1";
@@ -397,8 +398,8 @@ export const getPrices = ({
 
   const getUniswapV2Price = async (
     date: DateString,
-    asset: Assets,
-    unit: Assets,
+    asset: Asset,
+    unit: Asset,
   ): Promise<string | undefined> => {
     const pairId = v2MarketAddresses.find(market =>
       (market.name.includes(`-${asset}-`) || market.name.endsWith(`-${asset}`)) &&
@@ -444,8 +445,8 @@ export const getPrices = ({
   // Aggregator for all versions of uniswap
   const getUniswapPrice = async (
     date: DateString,
-    asset: Assets,
-    givenUnit: Assets,
+    asset: Asset,
+    givenUnit: Asset,
   ): Promise<string | undefined> => {
     const uniV1Launch = new Date("2018-11-02").getTime();
     const uniV2Launch = new Date("2020-05-04").getTime();
@@ -487,10 +488,10 @@ export const getPrices = ({
   // External Methods
 
   const getCount = (
-    unit?: Assets,
+    unit?: Asset,
     date?: DateString,
   ): number => {
-    const countPrices = (d: DateString, u?: Assets): number => {
+    const countPrices = (d: DateString, u?: Asset): number => {
       let count = 0;
       Object.keys(json[d] || {}).forEach(tmpunit => {
         if (!u || u === tmpunit) {
@@ -510,8 +511,8 @@ export const getPrices = ({
 
   const getPrice = (
     rawDate: DateString,
-    asset: Assets,
-    givenUnit?: Assets,
+    asset: Asset,
+    givenUnit?: Asset,
   ): string | undefined => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
@@ -551,8 +552,8 @@ export const getPrices = ({
             setPrice(
               price as DecimalString,
               date as DateString,
-              asset as Assets,
-              unit as Assets,
+              asset as Asset,
+              unit as Asset,
             );
           } else {
             log.warn(`NOT merging ${unit} price for ${asset} on ${date}: ${price}`);
@@ -564,8 +565,8 @@ export const getPrices = ({
 
   const syncPrice = async (
     rawDate: DateString,
-    asset: Assets,
-    givenUnit?: Assets,
+    asset: Asset,
+    givenUnit?: Asset,
   ): Promise<string | undefined> => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
@@ -605,7 +606,7 @@ export const getPrices = ({
   // Returns subset of prices relevant to this tx
   const syncTransaction = async (
     tx: Transaction,
-    givenUnit?: Assets,
+    givenUnit?: Asset,
   ): Promise<PricesJson> => {
     const date = formatDate(tx.date);
     const unit = formatUnit(givenUnit);
@@ -617,8 +618,8 @@ export const getPrices = ({
         setPrice(
           tmpPrice as DecimalString,
           date as DateString,
-          tmpAsset as Assets,
-          tmpUnit as Assets,
+          tmpAsset as Asset,
+          tmpUnit as Asset,
         );
         if (unit === tmpUnit && tmpAsset !== unit) {
           priceList[unit] = priceList[unit] || {};
@@ -634,7 +635,7 @@ export const getPrices = ({
         // check which one is has a more liquid uniswap pool
         // has a more reliable exchange rate & sync prices for that pair (eg fetch ETH/DAI)
         // then calculate the exchange rate of the other (eg ETH/cDAI = ETH/DAI * DAI/cDAI)
-        await syncPrice(date, asset, Assets.ETH);
+        await syncPrice(date, asset, ETH);
       } catch (e) {
         log.error(e);
       }
