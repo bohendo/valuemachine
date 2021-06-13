@@ -1,3 +1,4 @@
+import { getTransactions } from "@valuemachine/transactions";
 import {
   Assets,
   EventTypes,
@@ -8,11 +9,15 @@ import {
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
+import {
+  AddressOne,
+  AddressThree,
+  expect,
+} from "@valuemachine/utils";
 
 import { getPrices } from "./prices";
 import { getValueMachine } from "./vm";
-import { AddressOne, AddressThree, expect, getTestAddressBook, testLogger } from "./testing";
-import { getTransactions } from "./transactions";
+import { getTestAddressBook, testLogger } from "./testing";
 
 const { ETH, UniV2_UNI_ETH, UNI, USD } = Assets;
 const { Deposit, Expense, Income, SwapIn, SwapOut } = TransferCategories;

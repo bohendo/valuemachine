@@ -25,11 +25,12 @@ test:
   script:
     - apk add bash curl git jq make
     - make pull-latest
+    - make test-transactions
+    - make test-core
     - make start-prod
     - make dls
     - docker service logs --raw --tail 100 valuemachine_server
     - docker service logs --raw --tail 100 valuemachine_proxy
-    - make test-core
 
 deploy:
   image: docker:stable
