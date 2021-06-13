@@ -14,7 +14,7 @@
   },
   "homepage": "https://gitlab.com/bohendo/valuemachine#readme",
   "main": "./modules/core/dist/src/index.js",
-  "types": "./modules/types/dist/src/index.d.ts",
+  "types": "./modules/core/dist/src/index.d.ts",
   "files": [
     "modules/types/dist",
     "modules/core/dist",
