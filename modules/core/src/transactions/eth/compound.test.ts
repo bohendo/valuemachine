@@ -5,13 +5,13 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
+import { round } from "../../math";
 import {
   expect,
   getRealChainData,
   getTestAddressBook,
   testLogger,
 } from "../../testing";
-import { math } from "../../utils";
 import { getTransactions } from "../index";
 
 const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
@@ -42,7 +42,7 @@ describe(TransactionSources.Compound, () => {
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Deposit);
     expect(tx.description).to.include("deposit");
-    expect(tx.description).to.include(math.round(deposit.quantity));
+    expect(tx.description).to.include(round(deposit.quantity));
     expect(tx.description).to.include(addressBook.getName(selfAddress));
   });
 
@@ -85,7 +85,7 @@ describe(TransactionSources.Compound, () => {
     expect(cToken.category).to.equal(SwapIn);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("deposit");
-    expect(tx.description).to.include(math.round(deposit.quantity));
+    expect(tx.description).to.include(round(deposit.quantity));
     expect(tx.description).to.include(deposit.asset);
   });
 
@@ -112,7 +112,7 @@ describe(TransactionSources.Compound, () => {
     expect(cToken.category).to.equal(SwapOut);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("withdr");
-    expect(tx.description).to.include(math.round(withdraw.quantity));
+    expect(tx.description).to.include(round(withdraw.quantity));
     expect(tx.description).to.include(withdraw.asset);
   });
 
@@ -159,7 +159,7 @@ describe(TransactionSources.Compound, () => {
     expect(borrow.category).to.equal(Borrow);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("borrow");
-    expect(tx.description).to.include(math.round(borrow.quantity));
+    expect(tx.description).to.include(round(borrow.quantity));
     expect(tx.description).to.include(borrow.asset);
   });
 
@@ -184,7 +184,7 @@ describe(TransactionSources.Compound, () => {
     expect(repay.category).to.equal(Repay);
     expect(tx.description).to.include(addressBook.getName(selfAddress));
     expect(tx.description).to.include("repay");
-    expect(tx.description).to.include(math.round(repay.quantity));
+    expect(tx.description).to.include(round(repay.quantity));
     expect(tx.description).to.include(repay.asset);
   });
 
