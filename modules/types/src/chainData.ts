@@ -1,10 +1,16 @@
-import { Address, DateString, DecimalString, HexString, TimestampString } from "./strings";
+import {
+  Address,
+  Bytes32,
+  DecimalString,
+  HexString,
+  TimestampString
+} from "./strings";
 
 export type EthCall = {
   block: number;
   contractAddress: Address; // AddressZero if ETH
   from: Address;
-  hash: HexString;
+  hash: Bytes32;
   timestamp: TimestampString;
   to: Address;
   value: DecimalString;
@@ -14,7 +20,7 @@ export type EthTransactionLog = {
   address: Address;
   data: HexString;
   index: number;
-  topics: Array<HexString>;
+  topics: Array<Bytes32>;
 }
 
 export type EthTransaction = {
@@ -24,7 +30,7 @@ export type EthTransaction = {
   gasLimit: HexString;
   gasPrice: HexString;
   gasUsed: HexString;
-  hash: HexString;
+  hash: Bytes32;
   index: number;
   logs: EthTransactionLog[];
   nonce: number;
@@ -43,8 +49,8 @@ export type TokenData = {
 export type ChainDataJson = {
   addresses: {
     [address: string]: {
-      history: HexString[]; /* List of tx hashes that interact with this address */
-      lastUpdated: DateString;
+      history: Bytes32[]; /* List of tx hashes that interact with this address */
+      lastUpdated: TimestampString;
     };
   };
   calls: EthCall[]; // Note: we can have multiple calls per txHash
@@ -55,9 +61,9 @@ export type ChainDataJson = {
 export interface ChainData {
   getAddressHistory: (...addresses: Address[]) => ChainData;
   getDecimals: (token: Address) => number;
-  getEthCall: (hash: HexString) => EthCall;
+  getEthCall: (hash: Bytes32) => EthCall;
   getEthCalls: (testFn: (call: EthCall) => boolean) => EthCall[];
-  getEthTransaction: (hash: HexString) => EthTransaction;
+  getEthTransaction: (hash: Bytes32) => EthTransaction;
   getEthTransactions: (testFn: (tx: EthTransaction) => boolean) => EthTransaction[];
   getTokenData: (token: Address) => TokenData;
   json: ChainDataJson;

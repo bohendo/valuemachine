@@ -2,23 +2,17 @@ import { SecurityProvider } from "./security";
 import { Address, HexString } from "./strings";
 import { enumify } from "./utils";
 
-export const ExternalCategories = enumify({
-  Family: "Family",
-  Friend: "Friend",
-  Ignore: "Ignore",
+const ExternalCategories = enumify({
   Private: "Private",
   Public: "Public",
   Self: "Self",
 });
-export type ExternalCategory = (typeof ExternalCategories)[keyof typeof ExternalCategories];
-
-export const DeFiCategories = enumify({
+const DeFiCategories = enumify({
   Defi: "Defi",
   ERC20: "ERC20",
   Exchange: "Exchange",
   Proxy: "Proxy",
 });
-export type DeFiCategory = (typeof DeFiCategories)[keyof typeof DeFiCategories];
 
 export const AddressCategories = enumify({
   ...DeFiCategories,

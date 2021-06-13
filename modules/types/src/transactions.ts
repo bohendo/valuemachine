@@ -2,7 +2,7 @@ import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
 import { ChainData } from "./chainData";
 import { Logger } from "./logger";
-import { DecimalString, HexString, TimestampString } from "./strings";
+import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
 import { SecurityProviders } from "./security";
 import { enumify } from "./utils";
@@ -17,13 +17,6 @@ export const ExternalSources = enumify({
   Wazirx: "Wazirx",
 });
 export type ExternalSource = (typeof ExternalSources)[keyof typeof ExternalSources];
-
-export const Jurisdictions = {
-  [ExternalSources.Coinbase]: SecurityProviders.USD,
-  [ExternalSources.DigitalOcean]: SecurityProviders.USD,
-  [ExternalSources.Wyre]: SecurityProviders.USD,
-  [ExternalSources.Wazirx]: SecurityProviders.INR,
-};
 
 export const EthereumSources = enumify({
   Argent: "Argent",
@@ -47,6 +40,14 @@ export const TransactionSources = enumify({
 });
 export type TransactionSource = (typeof TransactionSources)[keyof typeof TransactionSources];
 
+// Set default guardians for external sources
+export const jurisdictions = {
+  [ExternalSources.Coinbase]: SecurityProviders.USD,
+  [ExternalSources.DigitalOcean]: SecurityProviders.USD,
+  [ExternalSources.Wyre]: SecurityProviders.USD,
+  [ExternalSources.Wazirx]: SecurityProviders.INR,
+};
+
 ////////////////////////////////////////
 // Transfers
 
@@ -60,22 +61,21 @@ export const TransferCategories = enumify({
   SwapIn: "SwapIn",
   SwapOut: "SwapOut",
 
-  Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
+  Borrow: "Borrow",
   Repay: "Repay",
 
-  Deposit: "Deposit", // eg dai->dsr or eth->compound
+  Deposit: "Deposit",
   Withdraw: "Withdraw",
-
 });
 export type TransferCategory = (typeof TransferCategories)[keyof typeof TransferCategories];
 
 export type Transfer = {
   asset: Asset;
   category: TransferCategory;
-  from: HexString;
+  from: Account;
   index?: number;
   quantity: DecimalString;
-  to: HexString;
+  to: Account;
 }
 
 ////////////////////////////////////////
@@ -84,7 +84,7 @@ export type Transfer = {
 export type Transaction = {
   date: TimestampString;
   description: string;
-  hash?: HexString;
+  hash?: Bytes32;
   index?: number;
   sources: TransactionSource[];
   tags: string[];

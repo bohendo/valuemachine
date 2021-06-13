@@ -171,8 +171,8 @@ export const EthereumAssets = enumify({
 export type EthereumAsset = (typeof EthereumAssets)[keyof typeof EthereumAssets];
 
 export const Assets = enumify({
-  ...FiatCurrencies,
   ...Cryptocurrencies,
   ...EthereumAssets,
+  ...FiatCurrencies,
 });
 export type Asset = (typeof Assets)[keyof typeof Assets];

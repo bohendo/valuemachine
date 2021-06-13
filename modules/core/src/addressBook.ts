@@ -8,7 +8,7 @@ import {
   AddressCategories,
   AddressCategory,
   EthereumSources,
-  ExternalSources,
+  jurisdictions,
   Logger,
   SecurityProvider,
   SecurityProviders,
@@ -157,12 +157,6 @@ export const getAddressBook = (
   };
 
   const getGuardian = (account: Account): SecurityProvider => {
-    const jurisdictions = {
-      [ExternalSources.Coinbase]: SecurityProviders.USD,
-      [ExternalSources.DigitalOcean]: SecurityProviders.USD,
-      [ExternalSources.Wyre]: SecurityProviders.USD,
-      [ExternalSources.Wazirx]: SecurityProviders.INR,
-    };
     if (!account) return SecurityProviders.None;
     const source = account.split("-")[0];
     return addressBook.find(row => smeq(row.address, account))?.guardian

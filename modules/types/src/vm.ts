@@ -1,13 +1,11 @@
 import { Asset } from "./assets";
 import { SecurityProvider } from "./security";
-import { Address, DecimalString, TimestampString } from "./strings";
+import { Account, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
 import { enumify } from "./utils";
 
 ////////////////////////////////////////
 // Chunks
-
-export type Account = Address | string;
 
 export type Balances = {
   [asset: string]: DecimalString;
@@ -15,17 +13,16 @@ export type Balances = {
 
 export type ChunkIndex = number;
 
-// A chunk's index is used as it's unique id, it should never change
 export type AssetChunk = {
   asset: Asset;
   quantity: DecimalString;
   receiveDate: TimestampString;
   disposeDate?: TimestampString; // undefined if we still own this chunk
-  unsecured?: DecimalString; // quantity that's physically insecure <= quantity
+  unsecured?: DecimalString; // quantity that's still physically insecure (always <= quantity)
   account?: Account; // undefined if we no longer own this chunk
   index: ChunkIndex; // used as a unique identifier, should never change
-  inputs: ChunkIndex[]; // none if chunk is income, else it's inputs we traded for this chunk
-  outputs?: ChunkIndex[]; // undefined if we still own this chunk, none if chunk was spent
+  inputs: ChunkIndex[]; // empty if chunk is income, else it's inputs we traded for this chunk
+  outputs?: ChunkIndex[]; // undefined if we still own this chunk, empty if chunk was spent
 };
 
 ////////////////////////////////////////
@@ -47,30 +44,23 @@ type BaseEvent = {
   type: EventType;
 };
 
-export type IncomeEvent = BaseEvent & {
-  account: Address;
-  inputs: Array<ChunkIndex | AssetChunk>;
-  type: typeof EventTypes.Income;
-};
-
-export type ExpenseEvent = BaseEvent & {
-  account: Address;
-  outputs: Array<ChunkIndex | AssetChunk>;
-  type: typeof EventTypes.Expense;
-};
-
 export type DebtEvent = BaseEvent & {
-  account: Address;
+  account: Account;
   inputs: Array<ChunkIndex | AssetChunk>;
   outputs: Array<ChunkIndex | AssetChunk>;
   type: typeof EventTypes.Debt;
 };
 
-export type TradeEvent = BaseEvent & {
-  account: Address;
-  inputs: Array<ChunkIndex | AssetChunk>;
+export type ExpenseEvent = BaseEvent & {
+  account: Account;
   outputs: Array<ChunkIndex | AssetChunk>;
-  type: typeof EventTypes.Trade;
+  type: typeof EventTypes.Expense;
+};
+
+export type IncomeEvent = BaseEvent & {
+  account: Account;
+  inputs: Array<ChunkIndex | AssetChunk>;
+  type: typeof EventTypes.Income;
 };
 
 export type JurisdictionChangeEvent = BaseEvent & {
@@ -83,9 +73,20 @@ export type JurisdictionChangeEvent = BaseEvent & {
   type: typeof EventTypes.JurisdictionChange;
 };
 
-export type Event = IncomeEvent | ExpenseEvent | DebtEvent | TradeEvent | JurisdictionChangeEvent;
+export type TradeEvent = BaseEvent & {
+  account: Account;
+  inputs: Array<ChunkIndex | AssetChunk>;
+  outputs: Array<ChunkIndex | AssetChunk>;
+  type: typeof EventTypes.Trade;
+};
+
+export type Event =
+  | DebtEvent
+  | ExpenseEvent
+  | IncomeEvent
+  | JurisdictionChangeEvent
+  | TradeEvent;
 export type Events = Event[];
-export type EventsJson = Events;
 
 export const emptyEvents = [] as Events;
 
