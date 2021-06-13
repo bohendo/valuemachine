@@ -27,8 +27,8 @@ test:
     - make pull-latest
     - make start-prod
     - make dls
-    - docker service logs --raw --tail 100 finances_server
-    - docker service logs --raw --tail 100 finances_proxy
+    - docker service logs --raw --tail 100 valuemachine_server
+    - docker service logs --raw --tail 100 valuemachine_proxy
     - make test-core
 
 deploy:
