@@ -129,6 +129,9 @@ fi
   mv package.json .package.json
   sed 's|"'"version"'": ".*"|"'"version"'": "'"$version"'"|' < .package.json > package.json
   rm .package.json
+  mv package-lock.json .package-lock.json
+  sed 's/^\(  \|	\)"version": ".*"/\1"version": "'"$version"'"/' < .package-lock.json > package-lock.json
+  rm .package-lock.json
 
   # If the version has a release-candidate suffix like "-rc.2" then tag it as "next"
   if [[ "$version" == *-rc* ]]
