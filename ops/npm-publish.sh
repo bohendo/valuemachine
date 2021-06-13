@@ -10,7 +10,6 @@ packages="${1:-$default_packages_to_publish}"
 
 root=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )
 project=$(grep -m 1 '"name":' "$root/package.json" | cut -d '"' -f 4)
-root_version=$(grep -m 1 '"version":' "$root/package.json" | cut -d '"' -f 4)
 
 ########################################
 ## Helper functions
@@ -27,10 +26,12 @@ then echo "Aborting: Make sure you're in the $project project root" && exit 1
 fi
 
 # set root package version manually
-package_names="valuemachine"
-package_versions="$root_version"
+package_names=""
+package_versions=""
 
 echo
+root_version=$(npm view "$project" version 2> /dev/null || echo "0.0.0")
+echo "Found previously published npm package: $project@$root_version"
 for package in $(echo "$packages" | tr ',' ' ')
 do
   package_name=$(grep '"name":' "modules/$package/package.json" | awk -F '"' '{print $4}')
@@ -41,7 +42,7 @@ do
 done
 echo
 
-highest_version=$(get_latest_version "$package_versions")
+highest_version=$(get_latest_version "$package_versions" "$root_version")
 
 echo "What version of @${project}/{$packages} packages are we publishing?"
 echo "Currently, latest version: $highest_version"
