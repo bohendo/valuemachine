@@ -12,8 +12,7 @@
   "dependencies": {
     "@ethersproject/constants": "5.3.0",
     "@valuemachine/core": "0.0.1",
-    "@valuemachine/types": "0.0.1",
-    "@valuemachine/utils": "0.0.1"
+    "@valuemachine/types": "0.0.1"
   },
   "devDependencies": {
     "@types/chai": "4.2.16",

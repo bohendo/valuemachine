@@ -138,17 +138,12 @@ types: node-modules $(shell find modules/types $(find_options))
 	$(docker_run) "cd modules/types && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-utils: node-modules $(shell find modules/utils $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/utils && npm run build"
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-core: types utils $(shell find modules/core $(find_options))
+core: types $(shell find modules/core $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/core && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-taxes: types utils core $(shell find modules/taxes $(find_options))
+taxes: types core $(shell find modules/taxes $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/taxes && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
