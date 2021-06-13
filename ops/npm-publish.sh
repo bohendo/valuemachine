@@ -10,6 +10,7 @@ packages="${1:-$default_packages_to_publish}"
 
 root=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )
 project=$(grep -m 1 '"name":' "$root/package.json" | cut -d '"' -f 4)
+root_version=$(grep -m 1 '"version":' "$root/package.json" | cut -d '"' -f 4)
 
 ########################################
 ## Helper functions
@@ -25,8 +26,9 @@ if [[ ! "$(pwd | sed 's|.*/\(.*\)|\1|')" =~ $project ]]
 then echo "Aborting: Make sure you're in the $project project root" && exit 1
 fi
 
-package_names=""
-package_versions=""
+# set root package version manually
+package_names="valuemachine"
+package_versions="$root_version"
 
 echo
 for package in $(echo "$packages" | tr ',' ' ')
@@ -120,6 +122,19 @@ fi
       rm .package.json
     ) done
   done
+
+  echo "Publishing root package"
+  cd "$root" || exit 1
+  mv package.json .package.json
+  sed 's|"'"version"'": ".*"|"'"version"'": "'"$version"'"|' < .package.json > package.json
+  rm .package.json
+
+  # If the version has a release-candidate suffix like "-rc.2" then tag it as "next"
+  if [[ "$version" == *-rc* ]]
+  then npm publish --tag next --access=public
+  else npm publish --access=public
+  fi
+
 )
 
 echo
