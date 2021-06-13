@@ -1,7 +1,7 @@
 {
-  "name": "@valuemachine/core",
+  "name": "@valuemachine/transactions",
   "version": "0.0.2",
-  "description": "Low level utilities for portfolio and tax analysis",
+  "description": "Utilities for generating well-formatted transactions",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
   "main": "dist/index.js",
@@ -26,8 +26,6 @@
     "@ethersproject/strings": "5.3.0",
     "@ethersproject/units": "5.3.0",
     "@openzeppelin/contracts": "4.1.0",
-    "@valuemachine/transactions": "0.0.2",
-    "@valuemachine/transactions": "0.0.2",
     "@valuemachine/types": "0.0.2",
     "@valuemachine/utils": "0.0.2",
     "axios": "0.21.1",

@@ -114,7 +114,17 @@ types: node-modules $(shell find modules/types $(find_options))
 	$(docker_run) "cd modules/types && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-core: types $(shell find modules/core $(find_options))
+utils: types $(shell find modules/utils $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/utils && npm run build"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+transactions: utils types $(shell find modules/transactions $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/transactions && npm run build"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+core: transactions utils types $(shell find modules/core $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/core && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@

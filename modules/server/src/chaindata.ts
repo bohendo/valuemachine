@@ -1,4 +1,5 @@
-import { getAddressBook, getChainData, getLogger } from "@valuemachine/core";
+import { getAddressBook, getChainData } from "@valuemachine/transactions";
+import { getLogger } from "@valuemachine/utils";
 import express from "express";
 
 import { env } from "./env";

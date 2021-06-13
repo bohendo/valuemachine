@@ -1,9 +1,6 @@
 import pino from "pino";
 import prettifier from "pino-pretty";
 
-export const rmDups = (array: string[]): string[] =>
-  Array.from(new Set([...array]));
-
 export const sm = (str: string): string =>
   str.toLowerCase();
 

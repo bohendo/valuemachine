@@ -38,7 +38,7 @@ import {
   emptyProfile,
   ProfileJson
 } from "@valuemachine/types";
-import { smeq } from "@valuemachine/core";
+import { smeq } from "@valuemachine/utils";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 

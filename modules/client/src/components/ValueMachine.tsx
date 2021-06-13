@@ -1,18 +1,5 @@
 import { isAddress } from "@ethersproject/address";
 import { isHexString } from "@ethersproject/bytes";
-import { getPrices, getValueMachine, math, getLogger } from "@valuemachine/core";
-import {
-  AddressBook,
-  ValueMachine,
-  Prices,
-  Assets,
-  Event,
-  Events,
-  EventTypes,
-  PricesJson,
-  Transactions,
-  TransferCategories,
-} from "@valuemachine/types";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
@@ -36,6 +23,20 @@ import Typography from "@material-ui/core/Typography";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
+import { getPrices, getValueMachine } from "@valuemachine/core";
+import {
+  AddressBook,
+  ValueMachine,
+  Prices,
+  Assets,
+  Event,
+  Events,
+  EventTypes,
+  PricesJson,
+  Transactions,
+  TransferCategories,
+} from "@valuemachine/types";
+import { math, getLogger } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { store } from "../store";

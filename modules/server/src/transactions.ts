@@ -1,4 +1,5 @@
-import { getAddressBook, getLogger, getTransactions } from "@valuemachine/core";
+import { getAddressBook, getTransactions } from "@valuemachine/transactions";
+import { getLogger } from "@valuemachine/utils";
 import express from "express";
 
 import { chainData } from "./chaindata";

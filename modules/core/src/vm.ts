@@ -23,8 +23,7 @@ import {
 } from "@valuemachine/types";
 
 import { add, eq, gt, lt, mul, round, sub } from "./math";
-import { rmDups } from "./transactions/utils";
-import { getLogger } from "./utils";
+import { getLogger, rmDups } from "./utils";
 
 const {
   Internal, Deposit, Withdraw, Income, SwapIn, Borrow, Expense, SwapOut, Repay,

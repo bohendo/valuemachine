@@ -3,10 +3,6 @@ import path from "path";
 
 import { AddressZero, HashZero } from "@ethersproject/constants";
 import {
-  getAddressBook,
-  getChainData,
-} from "@valuemachine/transactions";
-import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
@@ -17,11 +13,12 @@ import {
   StoreKey,
   StoreKeys,
 } from "@valuemachine/types";
-import {
-  getLogger,
-} from "@valuemachine/utils";
+import { getLogger } from "@valuemachine/utils";
 import { use } from "chai";
 import promised from "chai-as-promised";
+
+import { getAddressBook } from "./addressBook";
+import { getChainData } from "./chainData";
 
 use(promised);
 

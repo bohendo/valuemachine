@@ -1,4 +1,4 @@
-import { getAddressBook } from "@valuemachine/core";
+import { getAddressBook } from "@valuemachine/transactions";
 import {
   Assets,
   StoreKeys,

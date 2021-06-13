@@ -7,7 +7,7 @@ import {
   StoreValues,
   emptyStore,
 } from "@valuemachine/types";
-import { getLogger } from "@valuemachine/core";
+import { getLogger } from "@valuemachine/utils";
 
 import { env } from "./env";
 

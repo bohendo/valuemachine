@@ -1,3 +1,4 @@
+import { publicAddresses } from "@valuemachine/transactions";
 import {
   Assets,
   Asset,
@@ -19,7 +20,6 @@ import {
 import axios from "axios";
 
 import { add, div, eq, gt, mul, round, sub } from "./math";
-import { v1MarketAddresses, v2MarketAddresses } from "./transactions/eth/uniswap";
 import { getLogger } from "./utils";
 
 const {
@@ -359,7 +359,9 @@ export const getPrices = ({
   ): Promise<string | undefined> => {
     // TODO: support non-ETH units by getting asset-ETH + unit-ETH prices?
     if (asset === ETH) return "1";
-    const assetId = v1MarketAddresses.find(market => market.name.endsWith(asset))?.address;
+    const assetId = publicAddresses.find(market =>
+      market.name.startsWith("UniV1-") && market.name.endsWith(asset)
+    )?.address;
     if (!assetId) {
       log.warn(`Asset ${asset} is not available on UniswapV1`);
       return undefined;
@@ -401,7 +403,8 @@ export const getPrices = ({
     asset: Asset,
     unit: Asset,
   ): Promise<string | undefined> => {
-    const pairId = v2MarketAddresses.find(market =>
+    const pairId = publicAddresses.find(market =>
+      market.name.startsWith(`UniV2-`) &&
       (market.name.includes(`-${asset}-`) || market.name.endsWith(`-${asset}`)) &&
       (market.name.includes(`-${unit}-`) || market.name.endsWith(`-${unit}`))
     )?.address;

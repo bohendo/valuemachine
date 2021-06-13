@@ -1,4 +1,4 @@
-import { getPrices, math, smeq  } from "@valuemachine/core";
+import { getPrices } from "@valuemachine/core";
 import {
   Assets,
   Blockchains,
@@ -7,6 +7,7 @@ import {
   PricesJson,
   TransactionsJson,
 } from "@valuemachine/types";
+import { math, smeq } from "@valuemachine/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";

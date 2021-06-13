@@ -1,5 +1,5 @@
 import { hexDataLength, isHexString } from "@ethersproject/bytes";
-import { getLogger } from "@valuemachine/core";
+import { getLogger } from "@valuemachine/utils";
 
 import { env } from "./env";
 import { getStore } from "./store";

@@ -19,7 +19,7 @@ import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
-import { getPrices, math } from "@valuemachine/core";
+import { getPrices } from "@valuemachine/core";
 import {
   AddressBook,
   Assets,
@@ -31,6 +31,7 @@ import {
   TransferCategories,
   ValueMachineJson,
 } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
 

@@ -1,4 +1,4 @@
-import { getTransactions, getLogger, math, sm, smeq } from "@valuemachine/core";
+import { getTransactions } from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
@@ -9,6 +9,7 @@ import {
   TransactionSources,
   Transfer,
 } from "@valuemachine/types";
+import { getLogger, math, sm, smeq } from "@valuemachine/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
