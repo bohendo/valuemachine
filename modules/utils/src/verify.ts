@@ -108,9 +108,7 @@ export const getTransactionsError = (transactions: Transaction[]): string | null
   for (const transaction of transactions) {
     const currTime = new Date(transaction.date).getTime();
     if (currTime < prevTime) {
-      throw new Error(
-        `Transactions out of order: ${transaction.date} < ${new Date(prevTime).toISOString()}`,
-      );
+      return `Transactions out of order: ${transaction.date} < ${new Date(prevTime).toISOString()}`;
     }
     prevTime = currTime;
   }

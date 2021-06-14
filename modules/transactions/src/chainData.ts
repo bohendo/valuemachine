@@ -116,7 +116,7 @@ export const getChainData = ({
     }
   };
 
-  const assertStore = (): void => {
+  const assertApiKey = (): void => {
     if (!store) {
       throw new Error("To sync chain data, you must provide an etherscanKey");
     }
@@ -127,9 +127,9 @@ export const getChainData = ({
       `action=${action}&` +
       `address=${address}&` +
       `apikey=${etherscanKey}&sort=asc`;
-    log.debug(`⏪ sent request for ${url}`);
+    log.debug(`Sent request for ${url}`);
     const result = (await axios.get(url, { timeout: 10000 })).data.result;
-    log.debug(`➡️  received ${result.length} results from ${url}`);
+    log.debug(`Received ${result.length} results from ${url}`);
     return result;
   };
 
@@ -238,14 +238,14 @@ export const getChainData = ({
     JSON.parse(JSON.stringify(json.calls.filter(testFn)));
 
   const syncTokenData = async (tokens: Address[], key?: string): Promise<void> => {
-    assertStore();
+    assertApiKey();
     const provider = getProvider(key);
     const newlySupported = tokens.filter(tokenAddress =>
       !json.tokens[tokenAddress] || typeof json.tokens[tokenAddress].decimals !== "number",
     );
     log.info(`Fetching info for ${newlySupported.length} newly supported tokens`);
     for (const tokenAddress of newlySupported) {
-      log.info(`⏪ Sent request for token data ${logProg(tokens, tokenAddress)}: ${tokenAddress}`);
+      log.info(`Sent request for token data ${logProg(tokens, tokenAddress)}: ${tokenAddress}`);
       const token = new Contract(tokenAddress, getTokenInterface(tokenAddress), provider);
       let rawDecimals, rawName, rawSymbol;
       try {
@@ -276,7 +276,7 @@ export const getChainData = ({
     tx: Partial<EthTransaction | EthCall>,
     key?: string,
   ): Promise<void> => {
-    assertStore();
+    assertApiKey();
     if (!tx || !tx.hash) {
       throw new Error(`Cannot sync a tx w/out a hash: ${JSON.stringify(tx)}`);
     }
@@ -287,21 +287,21 @@ export const getChainData = ({
 
     const provider = getProvider(key);
 
-    log.debug(`⏪ Sent request for tx ${tx.hash}`);
+    log.debug(`Sent request for tx ${tx.hash}`);
     const [response, receipt] = await Promise.all([
       await provider.getTransaction(tx.hash),
       await provider.getTransactionReceipt(tx.hash),
     ]);
-    log.debug(`➡️  Received ${receipt.logs.length} logs for tx ${tx.hash}`);
+    log.debug(`Received ${receipt.logs.length} logs for tx ${tx.hash}`);
 
     const block = toNum(receipt.blockNumber);
     let timestamp;
     if (response.timestamp) {
       timestamp = toTimestamp(response);
     } else {
-      log.debug(`⏪ Sent request for block ${block}`);
+      log.debug(`Sent request for block ${block}`);
       const blockData = await provider.getBlock(block);
-      log.debug(`➡️  Received data for block ${block}`);
+      log.debug(`Received data for block ${block}`);
       timestamp = toTimestamp(blockData);
     }
 
@@ -354,12 +354,12 @@ export const getChainData = ({
     }
 
     store.save(StoreKeys.ChainData, json);
-    log.debug(`📝 Saved data for tx ${tx.hash}`);
+    log.debug(`Saved data for tx ${tx.hash}`);
     return;
   };
 
   const syncAddress = async (address: Address, key?: string): Promise<void> => {
-    assertStore();
+    assertApiKey();
     if (!json.addresses[address]) {
       json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
     }
@@ -394,13 +394,13 @@ export const getChainData = ({
       });
     }
     store.save(StoreKeys.ChainData, json);
-    log.debug(`📝 Saved calls & history for address ${address}`);
+    log.debug(`Saved calls & history for address ${address}`);
     for (const hash of history) {
       await syncTransaction({ hash }, key);
     }
     json.addresses[address].lastUpdated = lastUpdated;
     store.save(StoreKeys.ChainData, json);
-    log.debug(`📝 Saved lastUpdated for address ${address}`);
+    log.debug(`Saved lastUpdated for address ${address}`);
     return;
   };
 

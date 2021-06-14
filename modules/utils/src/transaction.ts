@@ -51,4 +51,3 @@ export const parseEvent = (
 };
 
 export const isHash = (str: string): boolean => isHexString(str) && hexDataLength(str) === 32;
-
