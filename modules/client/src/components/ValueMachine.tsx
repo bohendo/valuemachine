@@ -36,7 +36,7 @@ import {
   Transactions,
   TransferCategories,
 } from "@valuemachine/types";
-import { math, getLogger } from "@valuemachine/utils";
+import { add, mul, round as defaultRound, sub, getLogger } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { store } from "../store";
@@ -44,8 +44,7 @@ import { store } from "../store";
 import { HexString } from "./HexString";
 
 const { Income, Expense, Deposit, Withdraw, Borrow, Repay } = TransferCategories;
-const { add, mul, sub } = math;
-const round = num => math.round(num, 4);
+const round = num => defaultRound(num, 4);
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {

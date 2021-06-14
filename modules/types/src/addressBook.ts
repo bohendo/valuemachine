@@ -30,6 +30,8 @@ export type AddressEntry = {
 
 export type AddressBookJson = Array<AddressEntry>;
 
+export const emptyAddressBook = [] as AddressBookJson;
+
 export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;

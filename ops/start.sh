@@ -96,7 +96,7 @@ else
     entrypoint: 'bash modules/server/ops/entry.sh'
     volumes:
       - '$root:/root'
-      - 'data:/data'"
+      - '$root/.server-db:/data'"
 
 fi
 bash "$root/ops/pull-images.sh" "$server_image"

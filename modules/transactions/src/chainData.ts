@@ -284,6 +284,7 @@ export const getChainData = ({
     if (!getEthTransactionError(existing)) {
       return;
     }
+    log.info(`Fetching chain data for tx ${tx.hash}`);
 
     const provider = getProvider(key);
 

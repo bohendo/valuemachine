@@ -1,6 +1,4 @@
 import { isAddress } from "@ethersproject/address";
-import { getValueMachine } from "@valuemachine/core";
-import { AddressBook, ValueMachineJson } from "@valuemachine/types";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Divider from "@material-ui/core/Divider";
 import Table from "@material-ui/core/Table";
@@ -8,6 +6,8 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import { getValueMachine } from "@valuemachine/core";
+import { AddressBook, ValueMachineJson } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
 import { HexString } from "./HexString";

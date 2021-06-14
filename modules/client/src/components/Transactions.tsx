@@ -1,15 +1,3 @@
-import { getTransactions } from "@valuemachine/transactions";
-import {
-  AddressBook,
-  AddressCategories,
-  Assets,
-  Transaction,
-  Transactions,
-  TransactionsJson,
-  TransactionSources,
-  Transfer,
-} from "@valuemachine/types";
-import { getLogger, math, sm, smeq } from "@valuemachine/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
@@ -34,6 +22,18 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
+import { getTransactions } from "@valuemachine/transactions";
+import {
+  AddressBook,
+  AddressCategories,
+  Assets,
+  Transaction,
+  Transactions,
+  TransactionsJson,
+  TransactionSources,
+  Transfer,
+} from "@valuemachine/types";
+import { getLogger, round, sm, smeq } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -122,7 +122,7 @@ const TransactionRow = ({
                     <TableRow key={i}>
                       <TableCell> {transfer.category} </TableCell>
                       <TableCell> {transfer.asset} </TableCell>
-                      <TableCell> {math.round(transfer.quantity, 4)} </TableCell>
+                      <TableCell> {round(transfer.quantity, 4)} </TableCell>
                       <TableCell>
                         <HexString
                           display={addressBook?.getName(transfer.from)}

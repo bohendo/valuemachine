@@ -1,13 +1,3 @@
-import { getPrices } from "@valuemachine/core";
-import {
-  Assets,
-  Blockchains,
-  EthereumAssets,
-  Prices,
-  PricesJson,
-  TransactionsJson,
-} from "@valuemachine/types";
-import { math, smeq } from "@valuemachine/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
@@ -28,6 +18,16 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
+import { getPrices } from "@valuemachine/core";
+import {
+  Assets,
+  Blockchains,
+  EthereumAssets,
+  Prices,
+  PricesJson,
+  TransactionsJson,
+} from "@valuemachine/types";
+import { sigfigs, smeq } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -299,7 +299,7 @@ export const PriceManager = ({
                               .map(e => e[1])
                               .map((price, i) => (
                                 <TableCell style={{ maxWidth: "120px" }} key={i}>
-                                  {math.sigfigs(price, 3)}
+                                  {sigfigs(price, 3)}
                                 </TableCell>
                               ))}
                           </TableRow>

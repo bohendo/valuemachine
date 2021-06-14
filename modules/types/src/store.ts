@@ -1,10 +1,12 @@
-import { enumify } from "./utils";
+import { AddressBookJson, emptyAddressBook } from "./addressBook";
 import { ChainDataJson, emptyChainData } from "./chainData";
 import { PricesJson, emptyPrices } from "./prices";
 import { ValueMachineJson, emptyValueMachine } from "./vm";
 import { TransactionsJson, emptyTransactions } from "./transactions";
+import { enumify } from "./utils";
 
 export const StoreKeys = enumify({
+  AddressBook: "AddressBook",
   ChainData: "ChainData",
   Prices: "Prices",
   Transactions: "Transactions",
@@ -13,6 +15,7 @@ export const StoreKeys = enumify({
 export type StoreKey = (typeof StoreKeys)[keyof typeof StoreKeys];
 
 interface StoreTypeMap {
+  [StoreKeys.AddressBook]: AddressBookJson;
   [StoreKeys.ChainData]: ChainDataJson;
   [StoreKeys.Prices]: PricesJson;
   [StoreKeys.Transactions]: TransactionsJson;
@@ -29,6 +32,7 @@ export interface Store {
 }
 
 export const emptyStore: StoreValues = {
+  [StoreKeys.AddressBook]: emptyAddressBook,
   [StoreKeys.ChainData]: emptyChainData,
   [StoreKeys.Prices]: emptyPrices,
   [StoreKeys.Transactions]: emptyTransactions,

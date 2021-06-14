@@ -31,7 +31,7 @@ import {
   TransferCategories,
   ValueMachineJson,
 } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
+import { add, mul, round as defaultRound, sub } from "@valuemachine/utils";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
 
@@ -40,7 +40,6 @@ import { store } from "../store";
 import { InputDate } from "./InputDate";
 
 const { ETH } = Assets;
-const { add, mul, sub } = math;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -102,7 +101,7 @@ export const TaxesExplorer = ({
   const [toDate, setToDate] = React.useState("");
 
   const fmtNum = num => {
-    const round = math.round(num, jurisdiction === ETH ? 4 : 2);
+    const round = defaultRound(num, jurisdiction === ETH ? 4 : 2);
     const insert = (str: string, index: number, char: string = ",") =>
       str.substring(0, index) + char + str.substring(index);
     if (jurisdiction === Assets.INR) {

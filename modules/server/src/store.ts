@@ -19,6 +19,7 @@ const log = getLogger(env.logLevel).child({ module: "Store" });
 const dirName = `/data`;
 
 const cache: StoreValues = {
+  [StoreKeys.AddressBook]: null,
   [StoreKeys.ChainData]: null,
   [StoreKeys.Prices]: null,
   [StoreKeys.Transactions]: null,

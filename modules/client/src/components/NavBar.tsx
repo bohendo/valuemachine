@@ -1,4 +1,3 @@
-import { Assets, Cryptocurrencies, FiatCurrencies } from "@valuemachine/types";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import FormControl from "@material-ui/core/FormControl";
@@ -14,6 +13,7 @@ import PricesIcon from "@material-ui/icons/LocalOffer";
 import TaxesIcon from "@material-ui/icons/AccountBalance";
 import ValueMachineIcon from "@material-ui/icons/PlayCircleFilled";
 import TransactionsIcon from "@material-ui/icons/Receipt";
+import { Assets, Cryptocurrencies, FiatCurrencies } from "@valuemachine/types";
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -135,10 +135,10 @@ export const NavBar = ({
         <IconButton
           component={Link}
           edge="start"
-          to={"/profile"}
+          to={"/address-book"}
           className={classes.navButton}
           color="inherit"
-          aria-label="profile"
+          aria-label="address-book"
         >
           <AccountIcon />
         </IconButton>
