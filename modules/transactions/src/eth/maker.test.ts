@@ -4,16 +4,14 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  round,
-  expect,
-  testLogger,
-} from "@valuemachine/utils";
+import { round } from "@valuemachine/utils";
 
 import { getTransactions } from "../index";
 import {
+  expect,
   getRealChainData,
   getTestAddressBook,
+  testLogger,
 } from "../testing";
 
 const { Expense, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;

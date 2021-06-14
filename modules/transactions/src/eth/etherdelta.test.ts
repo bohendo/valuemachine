@@ -4,12 +4,10 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
+
 import {
   expect,
   testLogger,
-} from "@valuemachine/utils";
-
-import {
   getRealChainData,
   getTestAddressBook,
 } from "../testing";

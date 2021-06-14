@@ -6,18 +6,16 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  AddressOne,
-  expect,
-  testLogger,
-} from "@valuemachine/utils";
 
 import { getTransactions } from "../index";
 import {
-  getTestChainData,
-  getTestEthTx,
-  getTestEthCall,
+  AddressOne,
+  expect,
   getTestAddressBook,
+  getTestChainData,
+  getTestEthCall,
+  getTestEthTx,
+  testLogger,
 } from "../testing";
 
 import { wethAddresses } from "./weth";

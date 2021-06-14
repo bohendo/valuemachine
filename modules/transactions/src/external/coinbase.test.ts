@@ -1,11 +1,11 @@
 import { Transactions } from "@valuemachine/types";
-import {
-  expect,
-  testLogger,
-} from "@valuemachine/utils";
 
 import { getTransactions } from "../index";
-import { getTestAddressBook } from "../testing";
+import {
+  expect,
+  getTestAddressBook,
+  testLogger,
+} from "../testing";
 
 const log = testLogger.child({
   // level: "debug",

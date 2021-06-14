@@ -9,11 +9,10 @@ import {
 import {
   mul,
   round,
-  expect,
 } from "@valuemachine/utils";
 
 import { getPrices } from "./prices";
-import { getRealChainData, getTestAddressBook, testLogger } from "./testing";
+import { expect, getRealChainData, getTestAddressBook, testLogger } from "./testing";
 
 const log = testLogger.child({
   // level: "debug",

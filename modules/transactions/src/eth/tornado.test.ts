@@ -4,14 +4,15 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  expect,
-  round,
-  testLogger,
-} from "@valuemachine/utils";
+import { round } from "@valuemachine/utils";
 
 import { getTransactions } from "../index";
-import { getRealChainData, getTestAddressBook } from "../testing";
+import {
+  expect,
+  getRealChainData,
+  getTestAddressBook,
+  testLogger,
+} from "../testing";
 
 const source = TransactionSources.Tornado;
 const { Expense, Deposit, Withdraw } = TransferCategories;

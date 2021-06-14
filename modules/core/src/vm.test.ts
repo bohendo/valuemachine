@@ -10,14 +10,17 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  AddressOne,
-  AddressThree,
-  expect,
 } from "@valuemachine/utils";
 
 import { getPrices } from "./prices";
 import { getValueMachine } from "./vm";
-import { getTestAddressBook, testLogger } from "./testing";
+import {
+  AddressOne,
+  AddressThree,
+  expect,
+  getTestAddressBook,
+  testLogger,
+} from "./testing";
 
 const { ETH, UniV2_UNI_ETH, UNI, USD } = Assets;
 const { Deposit, Expense, Income, SwapIn, SwapOut } = TransferCategories;

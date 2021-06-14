@@ -5,14 +5,14 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
+
+import { mergeTransaction } from "./merge";
 import {
   AddressOne,
   AddressThree,
   expect,
   testLogger,
-} from "@valuemachine/utils";
-
-import { mergeTransaction } from "./merge";
+} from "./testing";
 
 const { ETH } = Assets;
 const { Expense, Deposit } = TransferCategories;
