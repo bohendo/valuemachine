@@ -3,10 +3,10 @@ set -e
 
 # Order Matters!
 # This is the order they'll be published in, dependencies should come before dependents
-default_packages_to_publish="types,core"
+packages_to_publish="types,utils,transactions,core"
 
-# To publish contracts, run bash ops/npm-publish.sh contracts
-packages="${1:-$default_packages_to_publish}"
+# To publish just types, run bash ops/npm-publish.sh types
+packages="${1:-$packages_to_publish}"
 
 root=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )
 project=$(grep -m 1 '"name":' "$root/package.json" | cut -d '"' -f 4)
