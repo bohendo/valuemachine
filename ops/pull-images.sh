@@ -32,7 +32,12 @@ for image in $images
 do
   for version in $versions
   do
-    name="$image:$version"
+
+    if [[ "$image" == "${project}_server" ]]
+    then name="${project}:version"
+    else name="$image:$version"
+    fi
+
     if grep -qs "$version" <<<"$(docker image ls | grep "$image\>")"
     then echo "Image $name already exists locally"
     else

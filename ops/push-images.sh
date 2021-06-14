@@ -11,7 +11,10 @@ registry="$registryRoot/$organization/$project"
 
 for name in builder proxy server webserver
 do
-  image=${project}_$name
+  if [[ "$name" == "server" ]]
+  then image=${project}
+  else image=${project}_$name
+  fi
   for version in latest ${1:-$commit}
   do
     echo "Tagging image $image:$version as $registry/$image:$version"
