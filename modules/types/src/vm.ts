@@ -39,7 +39,6 @@ export type EventType = (typeof EventTypes)[keyof typeof EventTypes];
 
 type BaseEvent = {
   date: TimestampString;
-  description: string;
   newBalances: Balances;
   type: EventType;
 };

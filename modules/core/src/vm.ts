@@ -29,7 +29,6 @@ import {
   lt,
   mul,
   rmDups,
-  round,
   sub,
 } from "@valuemachine/utils";
 
@@ -62,12 +61,6 @@ export const getValueMachine = ({
   // Internal Functions
 
   const toIndex = (chunk: AssetChunk): ChunkIndex => chunk.index;
-
-  const chunksToBalances = (chunks: AssetChunk[]): Balances =>
-    chunks.reduce((balances, chunk) => {
-      balances[chunk.asset] = add(balances[chunk.asset], chunk.quantity);
-      return balances;
-    }, {});
 
   const isPhysicallyGuarded = (account) => 
     Object.keys(PhysicalGuardians).includes(addressBook.getGuardian(account));
@@ -339,19 +332,12 @@ export const getValueMachine = ({
     chunksOut.forEach(chunk => { chunk.outputs = chunksIn.map(toIndex); });
     chunksIn.forEach(chunk => { chunk.inputs = chunksIn.map(toIndex); });
     // emit trade event
-    const totalIn = chunksToBalances(chunksIn);
-    const totalOut = chunksToBalances(chunksOut);
     const tradeEvent = {
       date: state.date,
       type: EventTypes.Trade,
       inputs: chunksIn.map(toIndex),
       outputs: chunksOut.map(toIndex),
       account,
-      description: `Traded ${
-        Object.keys(totalOut).map((asset, i) => `${round(totalOut[i])} ${asset}`).join(" & ")
-      } for ${
-        Object.keys(totalIn).map((asset, i) => `${round(totalIn[i])} ${asset}`).join(" & ")
-      }`,
       newBalances: getNetWorth(account),
     } as TradeEvent;
     newEvents.push(tradeEvent);
@@ -366,7 +352,6 @@ export const getValueMachine = ({
       const oldGuard = addressBook.getGuardian(from);
       const newGuard = addressBook.getGuardian(to);
       newEvents.push({
-        description: `${round(quantity)} ${asset} moved from ${oldGuard} to ${newGuard}`,
         date: state.date,
         newBalances: { [asset]: getBalance(asset) },
         from: from,
@@ -381,7 +366,7 @@ export const getValueMachine = ({
   };
 
   const execute = (tx: Transaction): Events => {
-    log.debug(`Processing transaction ${tx.index} from ${tx.date}: ${tx.description}`);
+    log.debug(`Processing transaction ${tx.index} from ${tx.date}`);
     state.date = tx.date;
     newEvents = [] as Events;
 
@@ -398,7 +383,6 @@ export const getValueMachine = ({
         newEvents.push({
           account: from,
           date: state.date,
-          description: `${addressBook.getName(from)} disposed of ${quantity} ${asset}`,
           newBalances: { [asset]: getBalance(asset) },
           outputs: disposed.map(toIndex),
           type: EventTypes.Expense,
@@ -409,7 +393,6 @@ export const getValueMachine = ({
         newEvents.push({
           account: to,
           date: state.date,
-          description: `${addressBook.getName(to)} received ${quantity} ${asset}`,
           inputs: received.map(toIndex),
           newBalances: { [asset]: getBalance(asset) },
           type: EventTypes.Income,

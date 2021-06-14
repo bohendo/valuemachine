@@ -151,8 +151,8 @@ export const EventRow = ({
     <React.Fragment>
       <TableRow>
         <TableCell> {event.date.replace("T", " ").replace(".000Z", "")} </TableCell>
-        <TableCell> {event.category || event.type} </TableCell>
-        <TableCell> {event.description} </TableCell>
+        <TableCell> {event.type} </TableCell>
+        <TableCell> {`${event.type} event on ${event.date}`} </TableCell>
         <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
           Details
           <IconButton aria-label="expand row" size="small" >
