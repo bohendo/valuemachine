@@ -6,7 +6,7 @@
     "type": "git",
     "url": "git+ssh://git@gitlab.com/bohendo/valuemachine.git"
   },
-  "registry": "registry.gitlab.com",
+  "registry": "hub.docker.io",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
   "bugs": {

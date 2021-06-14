@@ -44,6 +44,7 @@ deploy:
   script:
     - apk add bash curl git jq make
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - make pull-commit
     - make push-semver
     - >
