@@ -15,7 +15,7 @@ import {
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
-import { gt, eq, round, sm, getNewContractAddress } from "@valuemachine/utils";
+import { gt, sm, getNewContractAddress } from "@valuemachine/utils";
 
 import { argentAddresses, argentParser } from "./argent";
 import { compoundAddresses, compoundParser } from "./compound";
@@ -69,7 +69,7 @@ export const parseEthTx = (
   chainData: ChainData,
   logger: Logger,
 ): Transaction => {
-  const { getName, isSelf } = addressBook;
+  const { isSelf } = addressBook;
   const log = logger.child({ module: `Eth${ethTx.hash.substring(0, 8)}` });
   // log.debug(ethTx, `Parsing eth tx`);
 
@@ -105,7 +105,7 @@ export const parseEthTx = (
 
   // Detect failed transactions
   if (ethTx.status !== 1) {
-    tx.description = `${getName(ethTx.from)} sent failed tx to ${getName(ethTx.to)}`;
+    tx.method = "Failure";
     log.info(`Detected a failed tx`);
     return tx;
   }
@@ -128,7 +128,7 @@ export const parseEthTx = (
     const newContract = getNewContractAddress(ethTx.from, ethTx.nonce);
     ethTx.to = newContract; // overwrite to make later steps simpler
     tx.transfers[0].to = newContract;
-    tx.description = `${getName(ethTx.from)} created a new contract: ${getName(newContract)}`;
+    tx.method = "Create Contract";
     log.info(`Detected a newly created contract`);
   }
 
@@ -185,39 +185,6 @@ export const parseEthTx = (
     }))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);
-
-  // Set a default tx description
-  if (!tx.description) {
-    if (tx.transfers.length === 1) {
-      const transfer = tx.transfers[0];
-      if (transfer.to === ETH) { // if the only transfer is a tx fee
-        tx.description = ethTx.data.length > 3
-          ? `${getName(ethTx.from)} called a method on ${getName(ethTx.to)}`
-          : `${getName(ethTx.from)} did nothing`;
-      } else {
-        tx.description = `${getName(transfer.from)} transfered ${
-          round(transfer.quantity, 4)
-        } ${transfer.asset} to ${getName(transfer.to)}`;
-      }
-    } else if (tx.transfers.length > 2) {
-      tx.description = `${getName(ethTx.to)} made ${tx.transfers.length} transfers`;
-    } else {
-      const transfer = tx.transfers[1];
-      if (!transfer) {
-        tx.description = `${getName(ethTx.from)} did nothing`;
-      } else if (!eq("0", transfer.quantity)) {
-        tx.description = `${getName(transfer.from)} transfered ${
-          round(transfer.quantity, 4)
-        } ${transfer.asset} to ${getName(transfer.to)}`;
-      } else if (ethTx.data.length > 2) {
-        tx.description = `${getName(transfer.from)} called a method on ${
-          getName(transfer.to)
-        }`;
-      } else {
-        tx.description = `${getName(ethTx.from)} did nothing`;
-      }
-    }
-  }
 
   log.debug(tx, `Parsed eth tx`);
   return tx;

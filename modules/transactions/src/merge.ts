@@ -60,7 +60,7 @@ export const mergeTransaction = (
     // Detect & handle duplicates
     const index = transactions.findIndex(tx => tx.hash === newTx.hash);
     if (index >= 0) { // If this is NOT the first time we've encountered this eth tx
-      log.debug(`Replaced duplicate eth tx: ${newTx.description}`);
+      log.debug(`Replaced duplicate eth tx: ${newTx.method}`);
       transactions[index] = newTx;
       transactions.sort(chrono);
       return transactions;
@@ -74,7 +74,7 @@ export const mergeTransaction = (
     if (transfers.length !== 1) {
       transactions.push(newTx);
       transactions.sort(chrono);
-      log.debug(`Inserted new eth tx w ${transfers.length} mergable transfers: ${newTx.description}`);
+      log.debug(`Inserted new eth tx w ${transfers.length} mergable transfers: ${newTx.method}`);
       return transactions;
     }
     const ethTransfer = transfers[0];
@@ -102,7 +102,7 @@ export const mergeTransaction = (
     if (mergeCandidateIndex < 0) {
       transactions.push(newTx);
       transactions.sort(chrono);
-      log.debug(`Inserted new eth tx: ${newTx.description}`);
+      log.debug(`Inserted new eth tx: ${newTx.method}`);
       return transactions;
     }
 
@@ -126,7 +126,7 @@ export const mergeTransaction = (
 
     log.info(
       transactions[mergeCandidateIndex],
-      `Merged transactions[${mergeCandidateIndex}] w new eth tx: ${newTx.description}`,
+      `Merged transactions[${mergeCandidateIndex}] w new eth tx: ${newTx.method}`,
     );
     return transactions;
 
@@ -148,7 +148,7 @@ export const mergeTransaction = (
         valuesAreClose(t1.quantity, t2.quantity, div(t2.quantity, "100"))
       ))
     )) {
-      log.debug(`Skipping duplicate external tx: ${newTx.description}`);
+      log.debug(`Skipping duplicate external tx: ${newTx.method}`);
       return transactions;
     }
 
@@ -156,7 +156,7 @@ export const mergeTransaction = (
     if (newTx.transfers.length !== 1) {
       transactions.push(newTx);
       transactions.sort(chrono);
-      log.debug(`Inserted external tx w ${newTx.transfers.length} transfers: ${newTx.description}`);
+      log.debug(`Inserted external tx w ${newTx.transfers.length} transfers: ${newTx.method}`);
       return transactions;
     }
     const extTransfer = newTx.transfers[0];
@@ -184,7 +184,7 @@ export const mergeTransaction = (
     if (mergeCandidateIndex < 0) {
       transactions.push(newTx);
       transactions.sort(chrono);
-      log.debug(`Inserted new external tx: ${newTx.description}`);
+      log.debug(`Inserted new external tx: ${newTx.method}`);
       return transactions;
     }
 
@@ -209,7 +209,7 @@ export const mergeTransaction = (
     transactions.sort(chrono);
     log.info(
       transactions[mergeCandidateIndex],
-      `Merged transactions[${mergeCandidateIndex}] into new external tx: ${newTx.description}`,
+      `Merged transactions[${mergeCandidateIndex}] into new external tx: ${newTx.method}`,
     );
     return transactions;
 

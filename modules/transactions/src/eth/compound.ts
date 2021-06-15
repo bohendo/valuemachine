@@ -20,7 +20,6 @@ import {
   gt,
   parseEvent,
   rmDups,
-  round,
   sm,
   smeq,
   sub,
@@ -182,12 +181,10 @@ export const compoundParser = (
           }
           deposit.category = Deposit;
           deposit.to = account;
+          tx.method = "Deposit";
         } else {
           log.warn(tx.transfers, `Can't find an associated deposit transfer`);
         }
-        tx.description = `${getName(deposit.from)} deposited ${
-          round(amount)
-        } ${asset} into ${subsrc}`;
 
       } else if (event.name === "SupplyWithdrawn") {
         const oldBal = formatUnits(event.args.startingBalance, chainData.getDecimals(asset));
@@ -212,9 +209,7 @@ export const compoundParser = (
           }
           withdraw.category = Withdraw;
           withdraw.from = account;
-          tx.description = `${getName(withdraw.to)} withdrew ${
-            round(amount)
-          } ${asset} from ${subsrc}`;
+          tx.method = "Withdraw";
         } else {
           log.warn(tx.transfers, `Can't find an incoming transfer of ${amount} ${asset}`);
         }
@@ -224,9 +219,7 @@ export const compoundParser = (
         if (borrow) {
           borrow.category = Borrow;
           borrow.from = account;
-          tx.description = `${getName(borrow.to)} borrowed ${
-            round(amount)
-          } ${asset} from ${subsrc}`;
+          tx.method = "Borrow";
         } else {
           log.warn(tx.transfers, `Can't find an associated borrow transfer`);
         }
@@ -236,9 +229,7 @@ export const compoundParser = (
         if (repay) {
           repay.category = Repay;
           repay.to = account;
-          tx.description = `${getName(repay.from)} repaid ${
-            round(amount)
-          } ${asset} to ${subsrc}`;
+          tx.method = "Repayment";
         } else {
           log.warn(tx.transfers, `Can't find an associated repay transfer`);
         }
@@ -252,9 +243,8 @@ export const compoundParser = (
     } else if (smeq(comptrollerAddress, address)) {
       const event = parseEvent(comptrollerInterface, txLog);
       if (event.name === "MarketEntered") {
-        tx.description = `${getName(event.args.account)} entered market for ${
-          getName(event.args.cToken)
-        }`;
+        tx.method = `${getName(event.args.cToken)} market entry`;
+          
       }
 
     ////////////////////////////////////////
@@ -300,9 +290,7 @@ export const compoundParser = (
           swapOut.to = address;
           swapIn.category = SwapIn;
           swapIn.from = address;
-          tx.description = `${getName(swapOut.from)} deposited ${
-            round(tokenAmt)
-          } ${asset} into ${source}`;
+          tx.method = "Deposit";
         }
 
       // Withdraw
@@ -321,9 +309,7 @@ export const compoundParser = (
           swapOut.to = address;
           swapIn.category = SwapIn;
           swapIn.from = address;
-          tx.description = `${getName(swapOut.from)} withdrew ${
-            round(tokenAmt)
-          } ${asset} from ${source}`;
+          tx.method = "Withdraw";
         }
 
       // Borrow
@@ -337,9 +323,7 @@ export const compoundParser = (
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
-        tx.description = `${getName(borrow.to)} borrowed ${
-          round(tokenAmt)
-        } ${asset} from ${getName(address)}`;
+        tx.method = "Borrow";
 
       // Repay
       } else if (event.name === "RepayBorrow") {
@@ -349,9 +333,7 @@ export const compoundParser = (
         if (repay) {
           repay.category = Repay;
           repay.to = address; // should this be a non-address account?
-          tx.description = `${getName(repay.from)} repayed ${
-            round(tokenAmt)
-          } ${asset} to ${getName(address)}`;
+          tx.method = "Repayment";
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }

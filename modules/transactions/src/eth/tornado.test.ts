@@ -4,7 +4,6 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
-import { round } from "@valuemachine/utils";
 
 import { getTransactions } from "../index";
 import {
@@ -42,9 +41,6 @@ describe(source, () => {
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Deposit);
-    expect(tx.description).to.include("deposit");
-    expect(tx.description).to.include(round(deposit.quantity));
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
   });
 
   it("should handle withdraws from tornado", async () => {

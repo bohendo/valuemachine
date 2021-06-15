@@ -6,7 +6,7 @@ import {
   TransferCategory,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
-import { gt, round } from "@valuemachine/utils";
+import { gt } from "@valuemachine/utils";
 
 import { mergeTransaction } from "../merge";
 
@@ -46,11 +46,11 @@ export const mergeCoinbaseTransactions = (
 
     if (txType === "Send") {
       [from, to, category] = [account, external, Withdraw];
-      transaction.description = `Withdrew ${round(quantity)} ${asset} out of coinbase`;
+      transaction.method = "Withdraw";
 
     } else if (txType === "Receive") {
       [from, to, category] = [external, account, Deposit];
-      transaction.description = `Deposited ${round(quantity)} ${asset} into coinbase`;
+      transaction.method = "Deposit";
 
     } else if (txType === "Sell") {
       [from, to, category] = [account, exchange, SwapOut];
@@ -61,7 +61,7 @@ export const mergeCoinbaseTransactions = (
         quantity: usdQuantity,
         to: account,
       });
-      transaction.description = `Sold ${round(quantity)} ${asset} for ${usdQuantity} USD on coinbase`;
+      transaction.method = txType;
 
     } else if (txType === "Buy") {
       [from, to, category] = [exchange, account, SwapIn];
@@ -72,7 +72,7 @@ export const mergeCoinbaseTransactions = (
         quantity: usdQuantity,
         to: exchange,
       });
-      transaction.description = `Bought ${round(quantity)} ${asset} for ${usdQuantity} USD on coinbase`;
+      transaction.method = txType;
     }
 
     transaction.transfers.push({ asset, category, from, quantity, to });

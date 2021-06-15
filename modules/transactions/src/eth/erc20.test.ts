@@ -70,11 +70,6 @@ describe(source, () => {
     expect(txns.json.length).to.equal(1);
     expect(txns.json[0].sources).to.include(source);
     expect(txns.json[0].transfers.length).to.equal(2);
-    expect(txns.json[0].description.toLowerCase()).to.include("transfer");
-    expect(txns.json[0].description).to.include(quantity);
-    expect(txns.json[0].description).to.include(addressBook.getName(tokenAddress));
-    expect(txns.json[0].description).to.include(addressBook.getName(sender));
-    expect(txns.json[0].description).to.include(addressBook.getName(recipient));
     const tokenTransfer = txns.json[0].transfers[1];
     expect(tokenTransfer.asset).to.equal(addressBook.getName(tokenAddress));
     expect(tokenTransfer.quantity).to.equal(quantity);
@@ -108,9 +103,6 @@ describe(source, () => {
     const tx = txns.json[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(1);
-    expect(tx.description.toLowerCase()).to.include("approve");
-    expect(tx.description).to.include(addressBook.getName(tokenAddress));
-    expect(tx.description).to.include(addressBook.getName(sender));
   });
 
 });

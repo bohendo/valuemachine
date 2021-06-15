@@ -20,7 +20,6 @@ import {
   add,
   parseEvent,
   rmDups,
-  round,
   sm,
   smeq,
   valuesAreClose,
@@ -179,20 +178,7 @@ export const oasisParser = (
   } else {
     log.debug(`Can't find swap out transfer for ${outTotal} ${outAsset}`);
   }
-
-  ////////////////////////////////////////
-  // Set description
-  const actor = getName(
-    tx.transfers.find(t => t.category === SwapOut)?.from
-    || tx.transfers.find(t => t.category === SwapIn)?.to
-  );
-  const description = `${actor} swapped ${
-    round(outTotal)} ${outAsset
-  } for ${
-    round(inTotal)} ${inAsset
-  } via ${source}`;
-  log.info(description);
-  tx.description = description;
+  tx.method = "Trade";
 
   // log.debug(tx, `Done parsing ${source}`);
   return tx;

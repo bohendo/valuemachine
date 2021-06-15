@@ -44,7 +44,6 @@ const getTx = (transfers: Transfer): Transaction => ({
   sources: [EthTx],
   tags: [],
   transfers: transfers || [],
-  description: "test transaction",
 });
 
 describe("VM", () => {

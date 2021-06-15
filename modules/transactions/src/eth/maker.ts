@@ -241,9 +241,7 @@ export const makerParser = (
     } else {
       log.warn(`Can't find an associated SwapIn DAI transfer`);
     }
-    tx.description = `${getName(swapOut.from)} migrated ${
-      round(swapOut.quantity)
-    } SAI to DAI`;
+    tx.method = "Migrate SAI to DAI";
     return tx;
   }
 
@@ -328,7 +326,6 @@ export const makerParser = (
       const event = parseEvent(proxyInterface, txLog);
       if (event?.name === "Created") {
         const proxy = sm(event.args.proxy);
-        const owner = sm(event.args.owner);
         if (!addressBook.isPresent(proxy)) {
           log.info(`Found maker proxy creation, adding ${proxy} to our addressBook`);
           addressBook.newAddress(sm(proxy), AddressCategories.Proxy, "maker-proxy");
@@ -336,7 +333,7 @@ export const makerParser = (
           log.info(`Found maker proxy creation but ${proxy} is already in our addressBook`);
         }
         if (proxyAddresses.some(e => smeq(e.address, ethTx.to))) {
-          tx.description = `${getName(owner)} created a new maker proxy`;
+          tx.method = "Create Proxy";
         }
       }
 
@@ -377,16 +374,12 @@ export const makerParser = (
             const account = `${vault}-${abrv(transfer.from)}`;
             transfer.category = Deposit;
             transfer.to = account;
-            tx.description = `${getName(transfer.from)} deposited ${
-              round(wad, 4)
-            } ${asset} to ${account}`;
+            tx.method = "Deposit";
           } else {
             const account = `${vault}-${abrv(transfer.to)}`;
             transfer.category = Withdraw;
             transfer.from = account;
-            tx.description = `${getName(transfer.to)} withdrew ${
-              round(abs(wad), 4)
-            } ${asset} from ${account}`;
+            tx.method = "Withdraw";
           }
         } else {
           log.warn(`Vat.${logNote.name}: Can't find a ${asset} transfer of about ${wad}`);
@@ -409,15 +402,11 @@ export const makerParser = (
           if (gt(dart, "0")) {
             transfer.category = Borrow;
             transfer.from = `${vault}-${abrv(transfer.to)}`;
-            tx.description = `${getName(transfer.to)} borrowed ${
-              round(transfer.quantity)
-            } DAI from ${vault}`;
+            tx.method = "Borrow";
           } else {
             transfer.category = Repay;
             transfer.to = `${vault}-${abrv(transfer.from)}`;
-            tx.description = `${getName(transfer.from)} repayed ${
-              round(transfer.quantity)
-            } DAI to ${vault}`;
+            tx.method = "Repayment";
           }
         } else {
           log.warn(`Vat.${logNote.name}: Can't find a DAI transfer of about ${dart}`);
@@ -444,9 +433,7 @@ export const makerParser = (
           const account = `${source}-DSR-${abrv(deposit.from)}`;
           deposit.category = Deposit;
           deposit.to = account;
-          tx.description = `${getName(deposit.from)} deposited ${
-            round(deposit.quantity)
-          } DAI to ${account}`;
+          tx.method = "Deposit";
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI expense of about ${wad}`);
         }
@@ -462,9 +449,7 @@ export const makerParser = (
           const account = `${source}-DSR-${abrv(withdraw.to)}`;
           withdraw.category = Withdraw;
           withdraw.from = account;
-          tx.description = `${getName(withdraw.to)} withdrew ${
-            round(withdraw.quantity)
-          } DAI from ${account}`;
+          tx.method = "Withdraw";
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI income of about ${wad}`);
         }
@@ -503,9 +488,7 @@ export const makerParser = (
         } else {
           log.warn(`Cage.${event.name}: Can't find an ETH transfer of ${wad}`);
         }
-        tx.description = `${getName(swapOut.from)} redeemed ${
-          round(swapOut.quantity, 4)
-        } SAI for ${round(wad, 4)} ETH`;
+        tx.method = "Redeem";
       }
 
     ////////////////////////////////////////
@@ -513,7 +496,7 @@ export const makerParser = (
     } else if (smeq(address, tubAddress)) {
       const event = parseEvent(tubInterface, txLog);
       if (event?.name === "LogNewCup") {
-        tx.description = `${getName(event.args.lad)} opened CDP-${toBN(event.args.cup)}`;
+        tx.method = `Create CDP-${toBN(event.args.cup)}`;
         continue;
       }
       const logNote = parseLogNote(tubInterface, txLog);
@@ -523,14 +506,13 @@ export const makerParser = (
       })`);
 
       if (logNote.name === "give") {
-        const recipient = hexlify(stripZeros(logNote.args[2]));
-        tx.description = `${getName(logNote.args[0])} gave CDP-${toBN(logNote.args[1])} to ${getName(recipient)}`;
+        tx.method = `Give CDP-${toBN(logNote.args[1])}`;
 
       } else if (logNote.name === "bite") {
-        tx.description = `${getName(logNote.args[0])} bit CDP-${toBN(logNote.args[1])}`;
+        tx.method = `Bite CDP-${toBN(logNote.args[1])}`;
 
       } else if (logNote.name === "shut") {
-        tx.description = `${getName(logNote.args[0])} shut CDP-${toBN(logNote.args[1])}`;
+        tx.method = `Shut CDP-${toBN(logNote.args[1])}`;
 
       // WETH -> PETH: Categorize WETH transfer as a swap out
       } else if (logNote.name === "join") {
@@ -545,9 +527,7 @@ export const makerParser = (
           swapOut.category = SwapOut;
           swapOut.to = address;
           if (smeq(ethTx.to, tubAddress)) {
-            tx.description = `${getName(swapOut.from)} swapped ${
-              round(swapOut.quantity, 4)
-            } WETH for ${round(wad, 4)} PETH`;
+            tx.method = "Trade";
           }
         } else if (smeq(ethTx.to, tubAddress)) {
           // Not a problem if we're interacting via a proxy bc this wouldn't interact w self
@@ -569,9 +549,7 @@ export const makerParser = (
           swapIn.category = SwapIn;
           swapIn.from = address;
           if (smeq(ethTx.to, tubAddress)) {
-            tx.description = `${getName(swapIn.to)} swapped ${
-              round(wad, 4)
-            } PETH for ${round(swapIn.quantity, 4)} WETH`;
+            tx.method = "Trade";
           }
         } else if (smeq(ethTx.to, tubAddress)) {
           // Not a problem if we're interacting via a proxy bc this wouldn't interact w self
@@ -591,9 +569,7 @@ export const makerParser = (
         if (transfer) {
           transfer.category = Deposit;
           transfer.to = account;
-          tx.description = `${getName(transfer.from)} deposited ${
-            round(transfer.quantity, 4)
-          } ${transfer.asset} to ${account}`;
+          tx.method = "Deposit";
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a P/W/ETH transfer of about ${wad}`);
         }
@@ -621,9 +597,7 @@ export const makerParser = (
         if (transfer) {
           transfer.category = Withdraw;
           transfer.from = account;
-          tx.description = `${getName(transfer.to)} withdrew ${
-            round(transfer.quantity, 4)
-          } ${transfer.asset} from ${account}`;
+          tx.method = "Withdraw";
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a PETH transfer of about ${wad}`);
         }
@@ -640,7 +614,7 @@ export const makerParser = (
         if (borrow) {
           borrow.category = Borrow;
           borrow.from = account;
-          tx.description = `${getName(borrow.to)} borrowed ${round(wad)} SAI from ${borrow.from}`;
+          tx.method = "Borrow";
         } else if (!ethTx.logs.find(l =>
           l.index > index
           && smeq(l.address, saiAddress)
@@ -660,7 +634,7 @@ export const makerParser = (
         if (repay) {
           repay.category = Repay;
           repay.to = account;
-          tx.description = `${getName(repay.from)} repayed ${round(wad)} SAI to ${repay.to}`;
+          tx.method = "Repayment";
         } else if (!ethTx.logs.find(l =>
           l.index > index
           && smeq(l.address, saiAddress)

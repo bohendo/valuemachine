@@ -40,7 +40,6 @@ const getExternalTx = (): Transaction => ({
       to: `${externalSource}-account`
     }
   ],
-  description: `Deposited 1.31 ETH into ${externalSource}`,
   index: 2
 });
 
@@ -67,7 +66,6 @@ const getEthTx = (): Transaction => ({
       to: AddressThree,
     }
   ],
-  description: "test-self-1 transfered 1.3142 ETH to test-3",
 });
 
 describe("Merge", () => {

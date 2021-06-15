@@ -20,7 +20,6 @@ import {
 import {
   parseEvent,
   rmDups,
-  round,
   sm,
   smeq,
 } from "@valuemachine/utils";
@@ -103,15 +102,11 @@ export const etherdeltaParser = (
           if (event.name === "Deposit") {
             transfer.category = Deposit;
             transfer.to = account;
-            tx.description = `${getName(transfer.from)} deposited ${
-              round(quantity, 4)
-            } ${asset} into ${source}`;
+            tx.method = event.name;
           } else {
             transfer.category = Withdraw;
             transfer.from = account;
-            tx.description = `${getName(transfer.to)} withdrew ${
-              round(quantity, 4)
-            } ${asset} into ${source}`;
+            tx.method = event.name;
           }
         } else {
           log.warn(`Unable to find a ${source} transfer of ${quantity} ${asset}`);
@@ -143,11 +138,7 @@ export const etherdeltaParser = (
         };
         tx.transfers.push(swapOut);
         tx.transfers.push(swapIn);
-        tx.description = `${getName(user)} swapped ${
-          round(swapOut.quantity, 4)
-        } ${swapOut.asset} for ${
-          round(swapIn.quantity, 4)
-        } ${swapIn.asset} via ${source}`;
+        tx.method = "Trade";
 
       } else {
         log.warn(event, `Skipping ${source} ${event.name} event bc idk how to handle it`);

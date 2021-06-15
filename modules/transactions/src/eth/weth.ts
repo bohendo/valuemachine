@@ -55,7 +55,7 @@ export const wethParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName, isSelf } = addressBook;
+  const { isSelf } = addressBook;
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
@@ -90,7 +90,7 @@ export const wethParser = (
           tx.transfers[swapOut].category = SwapOut;
           tx.transfers[swapOut].index = index - 0.1;
           if (smeq(ethTx.to, wethAddress)) {
-            tx.description = `${getName(event.args.dst)} swapped ${amount} ETH for WETH`;
+            tx.method = "Trade";
           }
           // If there's a same-value eth transfer to the swap recipient, index it before
           const transfer = tx.transfers.findIndex(t =>
@@ -128,7 +128,7 @@ export const wethParser = (
           tx.transfers[swapIn].category = SwapIn;
           tx.transfers[swapIn].index = index + 0.1;
           if (smeq(ethTx.to, wethAddress)) {
-            tx.description = `${getName(event.args.src)} swapped ${amount} WETH for ETH`;
+            tx.method = "Trade";
           }
           // If there's a same-value eth transfer from the swap recipient, index it after
           const transfer = tx.transfers.findIndex(t =>

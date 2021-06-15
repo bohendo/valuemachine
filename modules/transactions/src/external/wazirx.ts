@@ -30,7 +30,6 @@ export const mergeWazirxTransactions = (
     const transaction = {
       // trailing Z is important bc it designates GMT times insead of local time
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
-      description: "",
       sources: [source],
       tags: [],
       transfers: [],
@@ -58,7 +57,7 @@ export const mergeWazirxTransactions = (
           quantity,
           to: account,
         });
-        transaction.description = `Deposited ${quantity} ${currency} into ${source}`;
+        transaction.method = "Deposit";
 
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
@@ -69,7 +68,7 @@ export const mergeWazirxTransactions = (
           quantity,
           to: external,
         });
-        transaction.description = `Withdrew ${quantity} ${currency} from ${source}`;
+        transaction.method = "Withdraw";
       } else {
         log.warn(`Invalid ${source} tx type: ${txType}`);
         return null;
@@ -105,7 +104,7 @@ export const mergeWazirxTransactions = (
           quantity: quantity,
           to: account,
         });
-        transaction.description = `Buy ${quantity} ${currency} for ${inrQuantity} INR on wazirx`;
+        transaction.method = tradeType;
 
       } else if (tradeType === "Sell") {
         transaction.transfers.push({
@@ -124,7 +123,7 @@ export const mergeWazirxTransactions = (
           quantity: inrQuantity,
           to: account,
         });
-        transaction.description = `Sell ${quantity} ${currency} for ${inrQuantity} INR on wazirx`;
+        transaction.method = tradeType;
 
       } else {
         log.warn(`Invalid ${source} trade type: ${tradeType}`);

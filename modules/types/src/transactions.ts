@@ -83,7 +83,7 @@ export type Transfer = {
 
 export type Transaction = {
   date: TimestampString;
-  description: string;
+  method?: string;
   hash?: Bytes32;
   index?: number;
   sources: TransactionSource[];

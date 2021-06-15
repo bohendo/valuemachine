@@ -261,17 +261,13 @@ export const yearnParser = (
           transfer.to = address;
           yTransfer.category = SwapIn;
           yTransfer.from = address;
-          tx.description = `${getName(yTransfer.to)} deposited ${
-            round(transfer.quantity)
-          } ${transfer.asset} into ${yTransfer.asset}`;
+          tx.method = "Deposit";
         } else { // withdraw
           transfer.category = isSelf(transfer.to) ? SwapIn : SwapOut;
           transfer.from = address;
           yTransfer.category = isSelf(yTransfer.to) ? SwapIn : SwapOut;
           yTransfer.to = address;
-          tx.description = `${getName(transfer.to)} withdrew ${
-            round(transfer.quantity)
-          } ${transfer.asset} from ${yTransfer.asset}`;
+          tx.method = "Withdraw";
         }
       }
 
@@ -286,9 +282,7 @@ export const yearnParser = (
         if (deposit) {
           deposit.category = Deposit;
           deposit.to = account;
-          tx.description = `${getName(deposit.from)} deposited ${
-            round(deposit.quantity)
-          } YFI into ${account}`;
+          tx.method = "Deposit";
         } else {
           log.warn(`Can't find YFI deposit`);
         }
@@ -299,16 +293,14 @@ export const yearnParser = (
         if (withdraw) {
           withdraw.category = Withdraw;
           withdraw.from = account;
-          tx.description = `${getName(withdraw.to)} withdrew ${
-            round(withdraw.quantity)
-          } YFI from ${account}`;
+          tx.method = "Withdraw";
         } else {
           // We're probably withdrawing from yYFI which uses yGov internally
           log.info(`Can't find YFI withdrawal`);
         }
 
       } else if (event.name === "RegisterVoter") {
-        tx.description = `${getName(event.args.voter)} registered to vote on ${getName(address)}`;
+        tx.method = "Register to vote";
       }
     }
   }

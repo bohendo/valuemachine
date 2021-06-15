@@ -40,8 +40,6 @@ describe(source, () => {
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include(source);
     const base = tx.transfers[0];
     expect(base.category).to.equal(Expense);
     const swapOut = tx.transfers[1];
@@ -60,8 +58,6 @@ describe(source, () => {
     const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(1);
     expect(tx.sources).to.include(source);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include(source);
     const swapIn = tx.transfers[0];
     expect(swapIn.category).to.equal(SwapIn);
   });
@@ -80,8 +76,6 @@ describe(source, () => {
     expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
     expect(swapIn.category).to.equal(SwapIn);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include(source);
   });
 
 });

@@ -59,9 +59,6 @@ describe(source, () => {
     const tx = txns.json[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.description.toLowerCase()).to.include("swap");
-    expect(tx.description).to.include(addressBook.getName(sender));
-    expect(tx.description).to.include(quantity);
     const swapOut = tx.transfers[1];
     expect(swapOut.asset).to.equal(Assets.ETH);
     expect(swapOut.category).to.equal(SwapOut);
@@ -100,9 +97,6 @@ describe(source, () => {
     const tx = txns.json[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.description.toLowerCase()).to.include("swap");
-    expect(tx.description).to.include(addressBook.getName(sender));
-    expect(tx.description).to.include(quantity);
     const swapOut = tx.transfers[1];
     expect(swapOut.asset).to.equal(Assets.WETH);
     expect(swapOut.category).to.equal(SwapOut);

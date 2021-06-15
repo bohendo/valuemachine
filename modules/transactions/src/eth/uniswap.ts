@@ -275,29 +275,17 @@ export const uniswapParser = (
       ////////////////////////////////////////
       // Swaps
       if (["Swap", "EthPurchase", "TokenPurchase"].includes(event.name)) {
-        tx.description = `${getName(swaps.out[0].from)} swapped ${
-          round(swaps.out[0].quantity)
-        } ${swaps.out[0].asset}${swaps.out.length > 1 ? ", etc" : ""} for ${
-          round(swaps.in[0].quantity)
-        } ${swaps.in[0].asset}${swaps.in.length > 1 ? ", etc" : ""} via ${subsrc}`;
+        tx.method = "Trade";
 
       ////////////////////////////////////////
       // Deposit Liquidity
       } else if (["Mint", "AddLiquidity"].includes(event.name)) {
-        tx.description = `${getName(swaps.out[0].from)} deposited ${
-          round(swaps.out[0].quantity)
-        } ${swaps.out[0].asset} and ${
-          round(swaps.out[1].quantity)
-        } ${swaps.out[1].asset} into ${subsrc}`;
+        tx.method = "Supply Liquidity";
 
       ////////////////////////////////////////
       // Withdraw Liquidity
       } else if (["Burn", "RemoveLiquidity"].includes(event.name)) {
-        tx.description = `${getName(swaps.out[0].from)} withdrew ${
-          round(swaps.in[0].quantity)
-        } ${swaps.in[0].asset} and ${
-          round(swaps.in[1].quantity)
-        } ${swaps.in[1].asset} from ${subsrc}`;
+        tx.method = "Remove Liquidity";
 
       } else {
         log.warn(`Missing ${event.name} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
@@ -311,9 +299,7 @@ export const uniswapParser = (
         && transfer.asset === UNI
         && transfer.category === Income
       );
-      tx.description = `${getName(airdrop.to)} received an airdrop of ${
-        round(airdrop.quantity)
-      } ${airdrop.asset} from ${subsrc}`;
+      tx.method = "Claim";
 
     ////////////////////////////////////////
     // UNI Mining Pool Deposit
@@ -332,9 +318,7 @@ export const uniswapParser = (
       const account = `${source}-${getName(address)}-${abrv(deposit.from)}`;
       deposit.category = Deposit;
       deposit.to = account;
-      tx.description = `${getName(deposit.from)} deposited ${
-        deposit.asset
-      } into ${account}`;
+      tx.method = "Deposit";
 
     ////////////////////////////////////////
     // UNI Mining Pool Withdraw
@@ -353,9 +337,7 @@ export const uniswapParser = (
       const account = `${source}-${getName(address)}-${abrv(withdraw.to)}`;
       withdraw.category = Withdraw;
       withdraw.from = account;
-      tx.description = `${getName(withdraw.to)} withdrew ${
-        withdraw.asset
-      } from ${account}`;
+      tx.method = "Withdraw";
 
     } else {
       log.debug(`Skipping ${subsrc} ${event.name}`);

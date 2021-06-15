@@ -55,8 +55,6 @@ describe(source, () => {
     expect(swapIn.category).to.equal(SwapIn);
     const swapOut = tx.transfers[2];
     expect(swapOut.category).to.equal(SwapOut);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include(source);
   });
 
   it("should handle a v2 swap", async () => {
@@ -84,8 +82,6 @@ describe(source, () => {
     expect(swapIn.category).to.equal(SwapIn);
     const swapOut = tx.transfers[2];
     expect(swapOut.category).to.equal(SwapOut);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include(source);
   });
 
 });

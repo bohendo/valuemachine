@@ -108,17 +108,13 @@ export const idleParser = (
           transfer.to = address;
           idleTransfer.category = SwapIn;
           idleTransfer.from = address;
-          tx.description = `${getName(idleTransfer.to)} deposited ${
-            round(transfer.quantity)
-          } ${transfer.asset} into ${idleTransfer.asset}`;
+          tx.method = "Deposit";
         } else { // withdraw
           transfer.category = isSelf(transfer.to) ? SwapIn : SwapOut;
           transfer.from = address;
           idleTransfer.category = isSelf(idleTransfer.to) ? SwapIn : SwapOut;
           idleTransfer.to = address;
-          tx.description = `${getName(transfer.to)} withdrew ${
-            round(transfer.quantity)
-          } ${transfer.asset} from ${idleTransfer.asset}`;
+          tx.method = "Withdraw";
         }
       }
 

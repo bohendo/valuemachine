@@ -14,7 +14,6 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  round,
   sm,
   smeq,
   rmDups,
@@ -112,11 +111,7 @@ export const argentParser = (
           log.warn(`Couldn't find a swap out of ${outAmt} ${outAsset} via ${subsrc}`);
         }
 
-        tx.description = `${getName(swapIn.to)} swapped ${
-          round(swapOut.quantity)
-        } ${swapOut.asset} for ${
-          round(swapIn.quantity)
-        } ${swapIn.asset} via ${subsrc}`;
+        tx.method = "Trade";
       } else {
         log.debug(`Skipping ${subsrc} event: ${event.name}`);
       }

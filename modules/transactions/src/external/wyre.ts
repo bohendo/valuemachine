@@ -51,7 +51,6 @@ export const mergeWyreTransactions = (
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
     const transaction = {
       date: (new Date(date)).toISOString(),
-      description: "",
       sources: [source],
       tags: [],
       transfers: [],
@@ -74,9 +73,7 @@ export const mergeWyreTransactions = (
         quantity: destQuantity,
         to: account,
       });
-      transaction.description = sourceType === USD
-        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
-        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on wyre`;
+      transaction.method = sourceType === USD ? "Buy" : "Sell";
 
     } else if (txType === "INCOMING" && destType === sourceType) {
       transaction.transfers.push({
@@ -86,7 +83,7 @@ export const mergeWyreTransactions = (
         quantity: destQuantity,
         to: account,
       });
-      transaction.description = `Deposit ${destQuantity} ${destType} into wyre`;
+      transaction.method = "Deposit";
 
     } else if (txType === "INCOMING" && destType !== sourceType) {
       transaction.transfers.push({
@@ -103,9 +100,7 @@ export const mergeWyreTransactions = (
         quantity: destQuantity,
         to: account,
       });
-      transaction.description = sourceType === USD
-        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
-        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on wyre`;
+      transaction.method = sourceType === USD ? "Buy" : "Sell";
 
     } else if (txType === "OUTGOING" && destType === sourceType) {
       transaction.transfers.push({
@@ -115,7 +110,7 @@ export const mergeWyreTransactions = (
         quantity: destQuantity,
         to: `${destType}-account`,
       });
-      transaction.description = `Withdraw ${destQuantity} ${destType} out of wyre`;
+      transaction.method = "Withdraw";
 
     } else if (txType === "OUTGOING" && destType !== sourceType) {
       transaction.transfers.push({
@@ -132,9 +127,7 @@ export const mergeWyreTransactions = (
         quantity: destQuantity,
         to: `${destType}-account`,
       });
-      transaction.description = sourceType === USD
-        ? `Buy ${destQuantity} ${destType} for ${sourceQuantity} USD on wyre`
-        : `Sell ${sourceQuantity} ${sourceType} for ${destQuantity} ${destType} on wyre`;
+      transaction.method = sourceType === USD ? "Buy" : "Sell";
     }
 
     // Add fees paid to exchange

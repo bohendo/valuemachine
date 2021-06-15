@@ -24,9 +24,10 @@ export const mergeDigitalOceanTransactions = (
       ["USD"]: quantity,
       ["start"]: date,
     } = row;
+    log.info(`Paid digital ocean for ${description}`);
     const transaction = {
       date: (new Date(date)).toISOString(),
-      description: `Paid digital ocean for ${description}`,
+      method: "Payment",
       sources: [source],
       tags: ["f1040sc-L20a"],
       transfers: [],

@@ -4,7 +4,6 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
-import { round } from "@valuemachine/utils";
 
 import { getTransactions } from "../index";
 import {
@@ -43,12 +42,6 @@ describe(TransactionSources.Maker, () => {
     expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
     expect(swapIn.category).to.equal(SwapIn);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("swap");
-    expect(tx.description).to.include(round(swapIn.quantity));
-    expect(tx.description).to.include(swapIn.asset);
-    expect(tx.description).to.include(round(swapOut.quantity));
-    expect(tx.description).to.include(swapOut.asset);
   });
 
   it("should handle a PETH withdrawal with duplicate events", async () => {
@@ -62,9 +55,6 @@ describe(TransactionSources.Maker, () => {
     expect(tx.transfers.length).to.equal(2);
     const withdraw = tx.transfers[1];
     expect(withdraw.category).to.equal(Withdraw);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("withdr");
-    expect(tx.description).to.include(round(withdraw.quantity));
   });
 
   it("should handle a SAI borrow", async () => {
@@ -78,9 +68,6 @@ describe(TransactionSources.Maker, () => {
     expect(tx.transfers.length).to.equal(2);
     const borrow = tx.transfers[1];
     expect(borrow.category).to.equal(Borrow);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("borrow");
-    expect(tx.description).to.include(round(borrow.quantity));
   });
 
   it("should handle a SAI repayment", async () => {
@@ -96,9 +83,6 @@ describe(TransactionSources.Maker, () => {
     expect(repay.category).to.equal(Repay);
     const fee = tx.transfers[2];
     expect(fee.category).to.equal(Expense);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("repay");
-    expect(tx.description).to.include(round(repay.quantity));
   });
 
   it("should handle a SAI cage cashout", async () => {
@@ -123,12 +107,6 @@ describe(TransactionSources.Maker, () => {
     expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
     expect(swapIn.category).to.equal(SwapIn);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("redeem");
-    expect(tx.description).to.include(round(swapIn.quantity));
-    expect(tx.description).to.include(swapIn.asset);
-    expect(tx.description).to.include(round(swapOut.quantity));
-    expect(tx.description).to.include(swapOut.asset);
   });
 
   it("should handle a SAI to DAI migration", async () => {
@@ -144,11 +122,6 @@ describe(TransactionSources.Maker, () => {
     expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
     expect(swapIn.category).to.equal(SwapIn);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("migrat");
-    expect(tx.description).to.include(round(swapIn.quantity));
-    expect(tx.description).to.include(swapIn.asset);
-    expect(tx.description).to.include(swapOut.asset);
   });
 
   it("should handle a DAI deposit to DSR", async () => {
@@ -164,10 +137,6 @@ describe(TransactionSources.Maker, () => {
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Deposit);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("deposit");
-    expect(tx.description).to.include(round(deposit.quantity));
-    expect(tx.description).to.include(deposit.asset);
   });
 
 });

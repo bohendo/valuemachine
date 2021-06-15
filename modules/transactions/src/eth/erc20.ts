@@ -17,7 +17,6 @@ import {
 import {
   parseEvent,
   rmDups,
-  round,
   sm,
   smeq,
 } from "@valuemachine/utils";
@@ -136,18 +135,13 @@ export const erc20Parser = (
           : Unknown;
         tx.transfers.push({ asset, category, from, index: txLog.index, quantity: amount, to });
         if (smeq(ethTx.to, address)) {
-          tx.description = `${getName(event.args.from)} transfered ${
-            round(amount, 4)
-          } ${asset} to ${getName(event.args.to)}`;
+          tx.method = `${asset} ${event.name}`;
         }
 
       } else if (event.name === "Approval") {
         log.debug(`Parsing ${source} ${event.name} event for ${asset}`);
         if (smeq(ethTx.to, address)) {
-          const amt = round(amount, 2);
-          tx.description = `${getName(event.args.from)} approved ${
-            getName(event.args.to)
-          } to spend ${amt.length > 10 ? "a lot of" : amt} ${asset}`;
+          tx.method = `${asset} ${event.name}`;
         }
 
       } else {

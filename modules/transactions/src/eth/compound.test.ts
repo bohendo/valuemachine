@@ -4,7 +4,6 @@ import {
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
-import { round } from "@valuemachine/utils";
 
 import {
   getRealChainData,
@@ -42,9 +41,6 @@ describe(source, () => {
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Deposit);
-    expect(tx.description).to.include("deposit");
-    expect(tx.description).to.include(round(deposit.quantity));
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
   });
 
   it("should handle withdrawals from comound v1", async () => {
@@ -84,10 +80,6 @@ describe(source, () => {
     expect(deposit.category).to.equal(SwapOut);
     const cToken = tx.transfers[2];
     expect(cToken.category).to.equal(SwapIn);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("deposit");
-    expect(tx.description).to.include(round(deposit.quantity));
-    expect(tx.description).to.include(deposit.asset);
   });
 
   it("should handle withdrawals from compound v2", async () => {
@@ -111,10 +103,6 @@ describe(source, () => {
     expect(withdraw.category).to.equal(SwapIn);
     const cToken = tx.transfers[2];
     expect(cToken.category).to.equal(SwapOut);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("withdr");
-    expect(tx.description).to.include(round(withdraw.quantity));
-    expect(tx.description).to.include(withdraw.asset);
   });
 
   it("should handle compound v2 market entries", async () => {
@@ -127,8 +115,6 @@ describe(source, () => {
     const tx = txns.json[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(1);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("enter");
   });
 
   it("should handle borrows from compound v2", async () => {
@@ -158,10 +144,6 @@ describe(source, () => {
     expect(tx.transfers.length).to.equal(2);
     const borrow = tx.transfers[1];
     expect(borrow.category).to.equal(Borrow);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("borrow");
-    expect(tx.description).to.include(round(borrow.quantity));
-    expect(tx.description).to.include(borrow.asset);
   });
 
   it("should handle repayments to compound v2", async () => {
@@ -183,10 +165,6 @@ describe(source, () => {
     expect(tx.transfers.length).to.equal(2);
     const repay = tx.transfers[1];
     expect(repay.category).to.equal(Repay);
-    expect(tx.description).to.include(addressBook.getName(selfAddress));
-    expect(tx.description).to.include("repay");
-    expect(tx.description).to.include(round(repay.quantity));
-    expect(tx.description).to.include(repay.asset);
   });
 
 });

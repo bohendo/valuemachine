@@ -15,7 +15,6 @@ import {
 import {
   mul,
   rmDups,
-  round,
   smeq,
   sub,
 } from "@valuemachine/utils";
@@ -82,7 +81,7 @@ export const tornadoParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName, isSelf } = addressBook;
+  const { isSelf } = addressBook;
 
   let isTornadoTx = false;
 
@@ -97,10 +96,8 @@ export const tornadoParser = (
     isTornadoTx = true;
     deposit.category = Deposit;
     deposit.to = source;
-    const amt = round(deposit.quantity);
-    const asset = deposit.asset;
-    log.info(`Found deposit of ${amt} ${asset} to ${source}`);
-    tx.description = `${getName(deposit.from)} deposited ${amt} ${asset} into ${source}`;
+    tx.method = "Deposit";
+    log.info(`Found ${source} ${tx.method}`);
   });
 
   tx.transfers.filter(transfer =>
@@ -111,10 +108,8 @@ export const tornadoParser = (
     isTornadoTx = true;
     withdraw.category = Withdraw;
     withdraw.from = source;
-    const amt = round(withdraw.quantity);
     const total = closestTenPow(withdraw.quantity);
     const asset = withdraw.asset;
-    log.info(`Found withdraw of ${total} (${amt} after fees) ${asset} from ${source}`);
     tx.transfers.push({
       asset,
       category: Expense,
@@ -123,7 +118,8 @@ export const tornadoParser = (
       quantity: sub(total, withdraw.quantity),
       to: relayerAddress,
     });
-    tx.description = `${getName(withdraw.to)} withdrew ${amt} ${asset} from ${source}`;
+    tx.method = "Withdraw";
+    log.info(`Found ${source} ${tx.method}`);
   });
 
   if (isTornadoTx) {
