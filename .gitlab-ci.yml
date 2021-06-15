@@ -32,6 +32,7 @@ test:
     - make dls
     - docker service logs --raw --tail 100 valuemachine_server
     - docker service logs --raw --tail 100 valuemachine_proxy
+    - if [[ $(docker ps | wc -l) != "4" ]]; then exit 1; else echo "looks good"; fi
 
 deploy:
   image: docker:stable
