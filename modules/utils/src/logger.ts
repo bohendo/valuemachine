@@ -1,7 +1,7 @@
 import pino from "pino";
 import prettifier from "pino-pretty";
 
-export const getLogger = (level = "info"): pino.Logger => pino({
+export const getLogger = (level = "warn"): pino.Logger => pino({
   level,
   prettyPrint: {
     colorize: true,
