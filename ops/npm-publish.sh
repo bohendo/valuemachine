@@ -75,19 +75,17 @@ if [[ ! "$REPLY" =~ ^[Yy]$ ]]
 then echo "Aborting by user request" && exit 1 # abort!
 fi
 
-( # () designates a subshell so we don't have to cd back to where we started afterwards
-  echo "Let's go"
-  make all
-  cd modules
+echo "Let's go"
+make all
 
-  for package in $packages
-  do
-    cd "$package" || exit 1
-    package_name=$(grep '"name":' "modules/$package/package.json" | awk -F '"' '{print $4}')
-    echo
-    echo "Dealing w package: $package_name"
+for package in $packages
+do
+  ( # () designates a subshell so we don't have to cd back to where we started afterwards
+    cd "$root/modules/$package" || exit 1
+    package_name=$(grep '"name":' "package.json" | awk -F '"' '{print $4}')
     version="$target_version"
-    echo "Updating $package_name package version to $version"
+    echo
+    echo "Updating package $package_name to version $version"
     mv package.json .package.json
     sed 's/"version": ".*"/"version": "'"$version"'"/' < .package.json > package.json
     rm .package.json
@@ -95,23 +93,20 @@ fi
     echo "Publishing $package_name"
     npm publish --access=public
 
-    echo "Updating $package_name references in root"
-    cd "$root" || exit 1
-    mv package.json .package.json
-    sed 's|"'"$package_name"'": ".*"|"'"$package_name"'": "'"$version"'"|' < .package.json > package.json
-    rm .package.json
-    echo
-    cd modules || exit 1
+    cd "$root/modules" || exit 1
     for module in */package.json
     do (
-      echo "Updating $package_name references in $module"
-      cd "${module%/*}"
-      mv package.json .package.json
-      sed 's|"'"$package_name"'": ".*"|"'"$package_name"'": "'"$version"'"|' < .package.json > package.json
-      rm .package.json
+      if grep -qs "\"$package_name\"" "$module"
+      then
+        echo "Updating $package_name references in $module"
+        cd "${module%/*}"
+        mv package.json .package.json
+        sed 's|"'"$package_name"'": ".*"|"'"$package_name"'": "'"$version"'"|' < .package.json > package.json
+        rm .package.json
+      fi
     ) done
-  done
-)
+  )
+done
 
 echo
 echo "Commiting & tagging our changes"
