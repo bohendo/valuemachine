@@ -1,5 +1,6 @@
-export * as math from "./math";
+export * from "./eth";
 export * from "./logger";
 export * from "./math";
 export * from "./strings";
-export * from "./testing";
+export * from "./transaction";
+export * from "./verify";

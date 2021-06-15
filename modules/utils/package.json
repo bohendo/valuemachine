@@ -1,27 +1,37 @@
 {
-  "name": "@finances/utils",
-  "version": "1.0.0",
-  "description": "",
-  "main": "build/src/index.js",
-  "types": "build/src/index.d.ts",
-  "author": "",
-  "license": "ISC",
+  "name": "@valuemachine/utils",
+  "version": "0.0.5",
+  "description": "Low level utilities used by the valuemachine",
+  "author": "Bo Henderson",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://gitlab.com/bohendo/valuemachine#readme",
+  "repository": { "type": "git", "url": "git+ssh://git@gitlab.com/bohendo/valuemachine.git" },
+  "bugs": { "url": "https://gitlab.com/bohendo/valuemachine/issues" },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"
   },
   "dependencies": {
+    "@ethersproject/abi": "5.3.1",
     "@ethersproject/bignumber": "5.3.0",
+    "@ethersproject/bytes": "5.3.0",
     "@ethersproject/constants": "5.3.0",
+    "@ethersproject/keccak256": "5.3.0",
+    "@ethersproject/rlp": "5.3.0",
     "@ethersproject/units": "5.3.0",
-    "chai": "4.3.4",
-    "chai-as-promised": "7.1.1",
+    "@valuemachine/types": "0.0.4",
     "pino": "6.11.3",
     "pino-pretty": "5.0.2"
   },
   "devDependencies": {
-    "@finances/types": "1.0.0",
     "@types/node": "15.0.2",
-    "ethers": "5.1.4",
+    "chai": "4.3.4",
+    "chai-as-promised": "7.1.1",
+    "mocha": "9.0.0",
+    "ts-mocha": "8.0.0",
     "typescript": "4.2.4"
   }
 }

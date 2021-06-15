@@ -1,14 +1,18 @@
 {
-  "name": "@finances/types",
-  "version": "1.0.0",
-  "description": "",
-  "main": "build/src/index.js",
-  "types": "build/src/index.d.ts",
+  "name": "@valuemachine/types",
+  "version": "0.0.5",
+  "description": "Types and interfaces for interacting with the valuemachine",
+  "author": "Bo Henderson",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://gitlab.com/bohendo/valuemachine#readme",
+  "repository": { "type": "git", "url": "git+ssh://git@gitlab.com/bohendo/valuemachine.git" },
+  "bugs": { "url": "https://gitlab.com/bohendo/valuemachine/issues" },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@types/node": "15.0.2",
     "pino": "6.11.3",

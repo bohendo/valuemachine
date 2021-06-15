@@ -1,7 +1,7 @@
 import { BigNumber as BN } from "@ethersproject/bignumber";
 import { MaxUint256, Zero } from "@ethersproject/constants";
 import { formatUnits, parseUnits } from "@ethersproject/units";
-import { HexString } from "@finances/types";
+import { HexString } from "@valuemachine/types";
 
 ////////////////////////////////////////
 // Internal Helpers
@@ -38,6 +38,8 @@ export const toBN = (n: BN | number | string | { _hex: HexString }): BN =>
 export const eq = (a, b): boolean => toRay(a).eq(toRay(b));
 export const gt = (a, b): boolean => toRay(a).gt(toRay(b));
 export const lt = (a, b): boolean => toRay(a).lt(toRay(b));
+
+export const isNeg = (a): boolean => lt(a, "0");
 
 export const max = (...lon: string[]): string =>
   lon.reduce(
@@ -99,3 +101,4 @@ export const sigfigs = (decStr: string, n = 3): string => {
   const leadingZeros = dec.length - dec.replace(/^0+/, "").length;
   return round(decStr, leadingZeros + n);
 };
+

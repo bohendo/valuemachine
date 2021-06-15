@@ -1,5 +1,5 @@
-import { getAddressBook, getTransactions } from "@finances/core";
-import { getLogger } from "@finances/utils";
+import { getAddressBook, getTransactions } from "@valuemachine/transactions";
+import { getLogger } from "@valuemachine/utils";
 import express from "express";
 
 import { chainData } from "./chaindata";
@@ -22,12 +22,12 @@ transactionsRouter.post("/", async (req, res) => {
   log.info(`Syncing txns for ${selfAddresses.length} self addreses`);
   try {
     const transactions = getTransactions({ addressBook, logger: log });
-    await transactions.mergeChainData(
+    await transactions.mergeEthereum(
       chainData.getAddressHistory(...selfAddresses),
     );
-    res.json(transactions.json);
-    log.info(`Returned ${transactions.json.length} transactions at a rate of ${
-      Math.round((100000 * transactions.json.length)/(Date.now() - start)) / 100
+    res.json(transactions.getJson());
+    log.info(`Returned ${transactions.getJson().length} transactions at a rate of ${
+      Math.round((100000 * transactions.getJson().length)/(Date.now() - start)) / 100
     } tx/sec`);
   } catch (e) {
     log.warn(e);

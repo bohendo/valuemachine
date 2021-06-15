@@ -1,9 +1,8 @@
-import { getAddressBook } from "@finances/core";
+import { getAddressBook } from "@valuemachine/transactions";
 import {
   Assets,
   StoreKeys,
-  emptyAddressBook,
-} from "@finances/types";
+} from "@valuemachine/types";
 import {
   Container,
   CssBaseline,
@@ -17,7 +16,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
-import { AddressBook } from "./components/AddressBook";
+import { AddressBookManager } from "./components/AddressBook";
 import { Dashboard } from "./components/Dashboard";
 import { NavBar } from "./components/NavBar";
 import { PriceManager } from "./components/Prices";
@@ -25,6 +24,16 @@ import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
 import { store } from "./store";
+
+// localstorage keys
+const {
+  AddressBook: AddressBookStore,
+  Transactions: TransactionsStore,
+  ValueMachine: ValueMachineStore,
+  Prices: PricesStore
+} = StoreKeys;
+const UnitStore = "Unit";
+const ApiKeyStore = "ApiKey";
 
 const darkTheme = createMuiTheme({
   palette: {
@@ -52,55 +61,59 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 const App: React.FC = () => {
 
-  const [profile, setProfile] = useState(store.load(StoreKeys.Profile));
-  const [pricesJson, setPricesJson] = useState(store.load(StoreKeys.Prices));
-  const [events, setEvents] = useState(store.load(StoreKeys.Events));
-  const [transactions, setTransactions] = useState(store.load(StoreKeys.Transactions));
-  const [addressBook, setAddressBook] = useState(emptyAddressBook);
-  const [unit, setUnit] = useState(profile.unit || Assets.ETH);
-  const [state, setState] = useState(store.load(StoreKeys.State));
+  // Core JSON data from localstorage
+  const [addressBookJson, setAddressBookJson] = useState(store.load(AddressBookStore));
+  const [transactions, setTransactions] = useState(store.load(TransactionsStore));
+  const [vmJson, setVMJson] = useState(store.load(ValueMachineStore));
+  const [pricesJson, setPricesJson] = useState(store.load(PricesStore));
+  // Extra UI-specific data from localstorage
+  const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
+  const [apiKey, setApiKey] = useState(store.load(ApiKeyStore) || "");
+
+  // Utilities parsed from localstorage data
+  const [addressBook, setAddressBook] = useState(getAddressBook(addressBookJson));
 
   const classes = useStyles();
 
   useEffect(() => {
-    store.save(StoreKeys.Transactions, transactions);
+    console.log(`Saving transactions`, transactions);
+    store.save(TransactionsStore, transactions);
   }, [transactions]);
 
   useEffect(() => {
-    store.save(StoreKeys.Events, events);
-  }, [events]);
+    console.log(`Saving value machine`, vmJson);
+    store.save(ValueMachineStore, vmJson);
+  }, [vmJson]);
 
   useEffect(() => {
-    store.save(StoreKeys.State, state);
-  }, [state]);
+    console.log(`Saving address book`, addressBookJson);
+    store.save(AddressBookStore, addressBookJson);
+    setAddressBook(getAddressBook(addressBookJson));
+  }, [addressBookJson]);
 
   useEffect(() => {
-    setAddressBook(getAddressBook(profile.addressBook));
-  }, [profile]);
-
-  useEffect(() => {
-    const newProfile = { ...profile, unit };
-    console.log(`Saving new profile w units of ${unit}`);
-    setProfile(newProfile);
-    store.save(StoreKeys.Profile, newProfile);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    console.log(`Saving unit`, unit);
+    store.save(UnitStore, unit);
   }, [unit]);
 
   useEffect(() => {
-    console.log(`Saving profile with ${profile.addressBook.length} address book entries`);
-    store.save(StoreKeys.Profile, profile);
-    const authorization = `Basic ${btoa(`${profile.username || "anon"}:${profile.authToken}`)}`;
+    if (!apiKey) {
+      console.log(`No API key available`);
+      return;
+    }
+    const authorization = `Basic ${btoa(`anon:${apiKey}`)}`;
     axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
       if (authRes.status === 200) {
         axios.defaults.headers.common.authorization = authorization;
-        console.log(`Successfully authorized with server for user ${profile.username}`);
+        console.log(`Successfully authorized with server, saving api key`);
+        store.save(ApiKeyStore, apiKey);
       } else {
-        console.log(`Unsuccessful authorization for user ${profile.username}`, authRes);
+        console.log(`Unsuccessful authorization`, authRes);
       }
     }).catch((err) => {
-      console.warn(`Auth token "${profile.authToken}" is invalid: ${err.message}`);
+      console.warn(`Auth token "${apiKey}" is invalid: ${err.message}`);
     });
-  }, [profile]);
+  }, [apiKey]);
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -114,14 +127,14 @@ const App: React.FC = () => {
             <Route exact path="/">
               <Dashboard
                 addressBook={addressBook}
-                state={state}
+                vmJson={vmJson}
               />
             </Route>
 
             <Route exact path="/taxes">
               <TaxesExplorer
                 addressBook={addressBook}
-                events={events}
+                vmJson={vmJson}
                 pricesJson={pricesJson}
               />
             </Route>
@@ -129,11 +142,9 @@ const App: React.FC = () => {
             <Route exact path="/value-machine">
               <ValueMachineExplorer
                 addressBook={addressBook}
-                state={state}
-                events={events}
+                vmJson={vmJson}
                 pricesJson={pricesJson}
-                setEvents={setEvents}
-                setState={setState}
+                setVMJson={setVMJson}
                 transactions={transactions}
                 unit={unit}
               />
@@ -156,10 +167,12 @@ const App: React.FC = () => {
               />
             </Route>
 
-            <Route exact path="/profile">
-              <AddressBook
-                profile={profile}
-                setProfile={setProfile}
+            <Route exact path="/address-book">
+              <AddressBookManager
+                apiKey={apiKey}
+                setApiKey={setApiKey}
+                addressBookJson={addressBookJson}
+                setAddressBookJson={setAddressBookJson}
               />
             </Route>
 

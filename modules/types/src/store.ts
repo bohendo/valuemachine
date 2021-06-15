@@ -1,29 +1,25 @@
-import { enumify } from "./utils";
+import { AddressBookJson, emptyAddressBook } from "./addressBook";
 import { ChainDataJson, emptyChainData } from "./chainData";
-import { EventsJson, emptyEvents } from "./events";
 import { PricesJson, emptyPrices } from "./prices";
-import { ProfileJson, emptyProfile } from "./profile";
-import { StateJson, emptyState } from "./state";
+import { ValueMachineJson, emptyValueMachine } from "./vm";
 import { TransactionsJson, emptyTransactions } from "./transactions";
+import { enumify } from "./utils";
 
 export const StoreKeys = enumify({
+  AddressBook: "AddressBook",
   ChainData: "ChainData",
-  Events: "Events",
   Prices: "Prices",
-  Profile: "Profile",
-  State: "State",
   Transactions: "Transactions",
+  ValueMachine: "ValueMachine",
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type StoreKeys = (typeof StoreKeys)[keyof typeof StoreKeys];
+export type StoreKey = (typeof StoreKeys)[keyof typeof StoreKeys];
 
 interface StoreTypeMap {
+  [StoreKeys.AddressBook]: AddressBookJson;
   [StoreKeys.ChainData]: ChainDataJson;
-  [StoreKeys.Events]: EventsJson;
   [StoreKeys.Prices]: PricesJson;
-  [StoreKeys.Profile]: ProfileJson;
-  [StoreKeys.State]: StateJson;
   [StoreKeys.Transactions]: TransactionsJson;
+  [StoreKeys.ValueMachine]: ValueMachineJson;
 }
 
 export type StoreValues = {
@@ -36,10 +32,9 @@ export interface Store {
 }
 
 export const emptyStore: StoreValues = {
+  [StoreKeys.AddressBook]: emptyAddressBook,
   [StoreKeys.ChainData]: emptyChainData,
-  [StoreKeys.Events]: emptyEvents,
   [StoreKeys.Prices]: emptyPrices,
-  [StoreKeys.Profile]: emptyProfile,
-  [StoreKeys.State]: emptyState,
   [StoreKeys.Transactions]: emptyTransactions,
+  [StoreKeys.ValueMachine]: emptyValueMachine,
 };

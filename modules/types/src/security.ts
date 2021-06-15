@@ -1,5 +1,6 @@
 import { enumify } from "./utils";
 
+// Security providers on the internet
 export const DigitalGuardians = enumify({
   BCH: "BCH",
   BTC: "BTC",
@@ -8,6 +9,7 @@ export const DigitalGuardians = enumify({
 });
 export type DigitalGuardian = (typeof DigitalGuardians)[keyof typeof DigitalGuardians];
 
+// Security providers in the physical world
 export const PhysicalGuardians = enumify({
   CZK: "CZK",
   EUR: "EUR",

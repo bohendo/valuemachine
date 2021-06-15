@@ -1,14 +1,13 @@
-import { DecimalString, TimestampString } from "./strings";
 import { PhysicalGuardians, DigitalGuardians } from "./security";
 import { enumify } from "./utils";
 
 // All physical security providers have an associated fiat currency
 export const FiatCurrencies = enumify({ ...PhysicalGuardians });
-export type FiatCurrency = (typeof PhysicalGuardians)[keyof typeof PhysicalGuardians];
+export type FiatCurrency = (typeof FiatCurrencies)[keyof typeof FiatCurrencies];
 
 // All digital security providers have an associated native cryptocurrency
 export const Cryptocurrencies = enumify({ ...DigitalGuardians });
-export type Cryptocurrency = (typeof DigitalGuardians)[keyof typeof DigitalGuardians];
+export type Cryptocurrency = (typeof Cryptocurrencies)[keyof typeof Cryptocurrencies];
 
 export const EthereumAssets = enumify({
   [Cryptocurrencies.ETH]: Cryptocurrencies.ETH,
@@ -169,25 +168,11 @@ export const EthereumAssets = enumify({
   yyDAI_yUSDC_yUSDT_yBUSD: "yyDAI_yUSDC_yUSDT_yBUSD",
   yyDAI_yUSDC_yUSDT_yTUSD: "yyDAI_yUSDC_yUSDT_yTUSD",
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type EthereumAssets = (typeof EthereumAssets)[keyof typeof EthereumAssets];
+export type EthereumAsset = (typeof EthereumAssets)[keyof typeof EthereumAssets];
 
 export const Assets = enumify({
-  ...FiatCurrencies,
   ...Cryptocurrencies,
   ...EthereumAssets,
+  ...FiatCurrencies,
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type Assets = (typeof Assets)[keyof typeof Assets];
-
-// sources = indexes of the chunks this one was traded for (eg 2 sources for ETH + UNI => LP)
-// sources = [] if received as income
-export type AssetChunk = {
-  asset: Assets;
-  disposeDate?: TimestampString;
-  quantity: DecimalString;
-  receiveDate: TimestampString;
-  secure: boolean;
-  sources: number[];
-  index: number;
-};
+export type Asset = (typeof Assets)[keyof typeof Assets];

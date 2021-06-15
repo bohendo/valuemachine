@@ -1,4 +1,4 @@
-import { emptyStore } from "@finances/types";
+import { emptyStore } from "@valuemachine/types";
 
 const load = (key: string): any => {
   try {

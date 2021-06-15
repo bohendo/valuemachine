@@ -1,8 +1,8 @@
 import { AddressBook } from "./addressBook";
-import { Assets } from "./assets";
-import { ChainData } from "./chainData";
+import { Asset } from "./assets";
+import { ChainData, EthTransaction } from "./chainData";
 import { Logger } from "./logger";
-import { DecimalString, HexString, TimestampString } from "./strings";
+import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
 import { SecurityProviders } from "./security";
 import { enumify } from "./utils";
@@ -10,21 +10,19 @@ import { enumify } from "./utils";
 ////////////////////////////////////////
 // Transaction Sources
 
-export const ExternalSources = enumify({
+export const CsvSources = enumify({
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
   Wyre: "Wyre",
   Wazirx: "Wazirx",
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type ExternalSources = (typeof ExternalSources)[keyof typeof ExternalSources];
+export type CsvSource = (typeof CsvSources)[keyof typeof CsvSources];
 
-export const Jurisdictions = {
-  [ExternalSources.Coinbase]: SecurityProviders.USD,
-  [ExternalSources.DigitalOcean]: SecurityProviders.USD,
-  [ExternalSources.Wyre]: SecurityProviders.USD,
-  [ExternalSources.Wazirx]: SecurityProviders.INR,
-};
+export type CsvParser = (
+  txns: Transaction[],
+  csvData: string,
+  logger: Logger,
+) => Transaction;
 
 export const EthereumSources = enumify({
   Argent: "Argent",
@@ -40,15 +38,29 @@ export const EthereumSources = enumify({
   Weth: "Weth",
   Yearn: "Yearn",
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type EthereumSources = (typeof EthereumSources)[keyof typeof EthereumSources];
+export type EthereumSource = (typeof EthereumSources)[keyof typeof EthereumSources];
+
+export type EthParser = (
+  tx: Transaction,
+  ethTx: EthTransaction,
+  addressBook: AddressBook,
+  chainData: ChainData,
+  logger: Logger,
+) => Transaction;
 
 export const TransactionSources = enumify({
-  ...ExternalSources,
+  ...CsvSources,
   ...EthereumSources,
 });
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export type TransactionSources = (typeof TransactionSources)[keyof typeof TransactionSources];
+export type TransactionSource = (typeof TransactionSources)[keyof typeof TransactionSources];
+
+// Set default guardians for external sources
+export const jurisdictions = {
+  [CsvSources.Coinbase]: SecurityProviders.USD,
+  [CsvSources.DigitalOcean]: SecurityProviders.USD,
+  [CsvSources.Wyre]: SecurityProviders.USD,
+  [CsvSources.Wazirx]: SecurityProviders.INR,
+};
 
 ////////////////////////////////////////
 // Transfers
@@ -63,22 +75,21 @@ export const TransferCategories = enumify({
   SwapIn: "SwapIn",
   SwapOut: "SwapOut",
 
-  Borrow: "Borrow", // eg minting dai from cdp or borrowing from compound
+  Borrow: "Borrow",
   Repay: "Repay",
 
-  Deposit: "Deposit", // eg dai->dsr or eth->compound
+  Deposit: "Deposit",
   Withdraw: "Withdraw",
-
 });
 export type TransferCategory = (typeof TransferCategories)[keyof typeof TransferCategories];
 
 export type Transfer = {
-  asset: Assets;
+  asset: Asset;
   category: TransferCategory;
-  from: HexString;
+  from: Account;
   index?: number;
   quantity: DecimalString;
-  to: HexString;
+  to: Account;
 }
 
 ////////////////////////////////////////
@@ -86,11 +97,10 @@ export type Transfer = {
 
 export type Transaction = {
   date: TimestampString;
-  description: string;
-  hash?: HexString;
+  method?: string;
+  hash?: Bytes32; // Convert to UUID
   index?: number;
-  sources: TransactionSources[];
-  tags: string[];
+  sources: TransactionSource[];
   transfers: Transfer[];
 }
 export type TransactionsJson = Transaction[];
@@ -103,13 +113,10 @@ export type TransactionParams = {
 };
 
 export type Transactions = {
-  json: TransactionsJson;
-  mergeChainData: (chainData: ChainData) => Promise<void>;
-  mergeCoinbase: (csvData: string) => Promise<void>;
-  mergeDigitalOcean: (csvData: string) => Promise<void>;
-  mergeTransactions: (transactions: TransactionsJson) => Promise<void>;
-  mergeWazirx: (csvData: string) => Promise<void>;
-  mergeWyre: (csvData: string) => Promise<void>;
+  getJson: () => TransactionsJson;
+  mergeEthereum: (chainData: ChainData, extraParsers?: EthParser[]) => void;
+  mergeCsv: (csvData: string, parser: CsvSource | CsvParser) => void;
+  merge: (transactions: TransactionsJson) => void;
 };
 
 export const emptyTransactions = [] as TransactionsJson;

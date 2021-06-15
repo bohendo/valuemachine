@@ -1,12 +1,4 @@
 import { isAddress } from "@ethersproject/address";
-import {
-  AddressCategories,
-  AddressEntry,
-  SecurityProviders,
-  emptyProfile,
-  ProfileJson
-} from "@finances/types";
-import { smeq } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
@@ -39,6 +31,13 @@ import SaveIcon from "@material-ui/icons/Save";
 import EditIcon from "@material-ui/icons/Edit";
 import SyncIcon from "@material-ui/icons/Sync";
 import { Alert } from "@material-ui/lab";
+import {
+  AddressCategories,
+  AddressEntry,
+  AddressBookJson,
+  SecurityProviders,
+} from "@valuemachine/types";
+import { smeq } from "@valuemachine/utils";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
@@ -389,20 +388,25 @@ const getEmptyEntry = (): AddressEntry => ({
   name: "",
 });
 
-export const AddressBook = ({
-  profile,
-  setProfile,
+export const AddressBookManager = ({
+  apiKey,
+  setApiKey,
+  addressBookJson,
+  setAddressBookJson,
 }: {
-  profile: any;
-  setProfile: (val: any) => void;
+  apiKey: string,
+  setApiKey: (val: string) => void,
+  addressBookJson: AddressBookJson,
+  setAddressBookJson: (val: AddressBookJson) => void,
 }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
+
   const [filteredAddresses, setFilteredAddresses] = useState([]);
   const [filterCategory, setFilterCategory] = useState("");
-  const [newProfile, setNewProfile] = useState(emptyProfile);
-  const [newTokenError, setNewTokenError] = useState("");
-  const [profileModified, setProfileModified] = useState(false);
+
+  const [newApiKey, setNewApiKey] = useState({ value: "", display: "", error: "" });
+
   const [statusAlert, setStatusAlert] = useState({
     open: false,
     message: "",
@@ -414,13 +418,15 @@ export const AddressBook = ({
   const classes = useStyles();
 
   useEffect(() => {
-    const newAllAddresses = profile.addressBook.map(entry => entry.address);
-    console.log(`New address list has length of ${newAllAddresses.length} starting with ${newAllAddresses.slice(0, 2).join(", ")}`);
-    setAllAddresses(newAllAddresses);
-  }, [profile]);
+    setAllAddresses(addressBookJson.map(entry => entry.address));
+  }, [addressBookJson]);
 
   useEffect(() => {
-    setFilteredAddresses(profile.addressBook.filter(entry =>
+    setNewApiKey({ value: apiKey || "", error: "" });
+  }, [apiKey]);
+
+  useEffect(() => {
+    setFilteredAddresses(addressBookJson.filter(entry =>
       !filterCategory || entry.category === filterCategory
     ).sort((e1, e2) =>
       // put self addresses first
@@ -443,20 +449,7 @@ export const AddressBook = ({
           : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
           : 0
     ));
-  }, [profile, filterCategory]);
-
-  useEffect(() => {
-    console.log(`Re-rendering based on updated profile..`);
-    setNewProfile(profile);
-  }, [profile]);
-
-  useEffect(() => {
-    if (newProfile.authToken !== profile.authToken) {
-      setProfileModified(true);
-    } else {
-      setProfileModified(false);
-    }
-  }, [newProfile, profile]);
+  }, [addressBookJson, filterCategory]);
 
   const handleClose = () => {
     setStatusAlert({
@@ -465,24 +458,22 @@ export const AddressBook = ({
     });
   };
 
-  const handleSave = async () => {
-    console.log(`Validating profile creds for anon:${newProfile.authToken}...`);
-    const authorization = `Basic ${btoa(`anon:${newProfile.authToken}`)}`;
+  const handleApiKeyChange = (event: React.ChangeEvent<{ value: string }>) => {
+    setNewApiKey({ value: event.target.value, error: "" });
+  };
+
+  const handleApiKeySave = async () => {
+    console.log(`Validating profile creds for anon:${newApiKey.value}...`);
+    const authorization = `Basic ${btoa(`anon:${newApiKey.value}`)}`;
     axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
       if (authRes.status === 200) {
-        setProfile({ ...newProfile });
+        setApiKey(newApiKey.value);
       } else {
         console.error(authRes);
       }
     }).catch(() => {
-      setNewTokenError("Invalid Auth Token");
+      setNewApiKey(old => ({ ...old, error: "Invalid Auth Token" }));
     });
-  };
-
-  const handleAuthTokenChange = (event: React.ChangeEvent<{ value: string }>) => {
-    console.log(`Set profile.authToken = "${event.target.value}"`);
-    setNewProfile(oldProfile => ({ ...oldProfile, authToken: event.target.value }));
-    setNewTokenError("");
   };
 
   const handleImport = (event) => {
@@ -492,21 +483,21 @@ export const AddressBook = ({
     reader.readAsText(file);
     reader.onload = () => {
       try {
-        const importedAddresses = (JSON.parse(reader.result) as ProfileJson).addressBook;
-        if (!importedAddresses) {
+        const importedData = JSON.parse(reader.result) as any;
+        const importedAddresses = importedData.addressBook
+          ? importedData.addressBook
+          : importedData;
+        if (!importedAddresses?.length) {
           throw new Error("Imported file does not contain an address book");
         }
         console.log(`File with an address book has been loaded:`, importedAddresses);
-        const addressBook = newProfile.addressBook;
+        const addressBook = [...addressBookJson]; // create new array to ensure it re-renders
         importedAddresses.forEach(entry => {
-          if (!newProfile.addressBook.some(
-            e => e.address.toLowerCase() === entry.address.toLowerCase()
-          )) {
+          if (!addressBookJson.some(e => smeq(e?.address, entry?.address))) {
             addressBook.push(entry);
           }
         });
-        setProfile(oldVal => ({ ...oldVal, addressBook }));
-        handleSave();
+        setAddressBookJson(addressBook);
       } catch (e) {
         console.error(e);
       }
@@ -514,7 +505,7 @@ export const AddressBook = ({
   };
 
   const handleExport = () => {
-    const output = JSON.stringify({ addressBook: profile.addressBook }, null, 2);
+    const output = JSON.stringify({ addressBook: addressBookJson }, null, 2);
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
     a.href = "data:" + data;
@@ -527,22 +518,24 @@ export const AddressBook = ({
       console.log(`${
         !editedEntry ? "Deleting" : index === allAddresses.length ? "Creating" : "Updating"
       } ${JSON.stringify(editedEntry)}`);
-      const newProfile = { ...profile, addressBook: [...profile.addressBook] };
+      const newAddressBook = [...addressBookJson]; // create new array to ensure it re-renders
       if (!editedEntry) {
-        newProfile.addressBook.splice(index,1);
+        newAddressBook.splice(index,1);
       } else {
-        newProfile.addressBook[index] = editedEntry;
+        newAddressBook[index] = editedEntry;
       }
-      setProfile(newProfile);
+      setAddressBookJson(newAddressBook);
       // Don't reset new entry fields when we modify an existing one
       if (editedEntry && index === allAddresses.length) {
         setNewEntry(getEmptyEntry);
       }
+    } else {
+      console.log(`index ${index} is out of range, expected 0-${allAddresses.length}`);
     }
   };
 
   const addNewAddress = (editedEntry: AddressEntry) => {
-    editEntry(profile.addressBook.length, editedEntry);
+    editEntry(addressBookJson.length, editedEntry);
   };
 
   const syncAddress = async (address: string) => {
@@ -570,8 +563,12 @@ export const AddressBook = ({
     console.log(`Successfuly synced address history for ${address}`);
   };
 
+  const reset = async () => {
+    setAddressBookJson([]);
+  };
+
   const syncAll = async () => {
-    for (const entry of profile.addressBook.filter(e => e.category === AddressCategories.Self)) {
+    for (const entry of addressBookJson.filter(e => e.category === AddressCategories.Self)) {
       await syncAddress(entry.address);
     }
   };
@@ -602,28 +599,28 @@ export const AddressBook = ({
         <Grid item>
           <TextField
             autoComplete="off"
-            helperText={newTokenError || "Register an auth token to sync chain data"}
-            error={!!newTokenError}
+            helperText={newApiKey.error || "Register an auth token to sync chain data"}
+            error={!!newApiKey.error}
             id="auth-token"
             label="Auth Token"
             margin="normal"
-            onChange={handleAuthTokenChange}
-            value={newProfile.authToken}
+            onChange={handleApiKeyChange}
+            value={newApiKey.value}
             variant="outlined"
           />
         </Grid>
 
-        {profileModified ?
+        {newApiKey.value !== apiKey ?
           <Grid item>
             <Button
               className={classes.button}
               color="primary"
-              onClick={handleSave}
+              onClick={handleApiKeySave}
               size="small"
               startIcon={<SaveIcon />}
               variant="contained"
             >
-              Save Profile
+              Save Token
             </Button>
           </Grid>
           : undefined
@@ -694,6 +691,18 @@ export const AddressBook = ({
             Sync All
           </Button>
 
+          <Button
+            className={classes.syncAll}
+            color="primary"
+            onClick={reset}
+            size="medium"
+            disabled={!addressBookJson?.length}
+            startIcon={<RemoveIcon/>}
+            variant="contained"
+          >
+            Remove All
+          </Button>
+
         </Grid>
 
       </Grid>
@@ -712,7 +721,7 @@ export const AddressBook = ({
           onChange={handleFilterChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(profile.addressBook.map(e => e.category))).map(cat => (
+          {Array.from(new Set(addressBookJson.map(e => e.category))).map(cat => (
             <MenuItem key={cat} value={cat}>{cat}</MenuItem>
           ))}
         </Select>
@@ -721,9 +730,9 @@ export const AddressBook = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredAddresses.length === profile.addressBook.length
+          {filteredAddresses.length === addressBookJson.length
             ? `${filteredAddresses.length} Addresses`
-            : `${filteredAddresses.length} of ${profile.addressBook.length} Addresses`
+            : `${filteredAddresses.length} of ${addressBookJson.length} Addresses`
           }
         </Typography>
 
@@ -755,7 +764,7 @@ export const AddressBook = ({
                   <AddressRow
                     otherAddresses={[...allAddresses.slice(0, i), ...allAddresses.slice(i + 1)]}
                     key={i}
-                    index={profile.addressBook.findIndex(e => smeq(e.address, entry.address))}
+                    index={addressBookJson.findIndex(e => smeq(e.address, entry.address))}
                     editEntry={editEntry}
                     entry={entry}
                     syncAddress={syncAddress}

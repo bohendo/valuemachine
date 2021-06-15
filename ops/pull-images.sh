@@ -8,10 +8,10 @@ organization="${CI_PROJECT_NAMESPACE:-$(whoami)}" # TODO: is there a better way 
 release=$(grep -m 1 '"version":' "$root/package.json" | cut -d '"' -f 4)
 commit=$(git rev-parse HEAD | head -c 8)
 
-registry="$registryRoot/$organization/$project"
+registry="$registryRoot/$organization"
 
 default_images=$(
-  echo 'builder webserver server proxy' |\
+  echo 'server builder webserver proxy' |\
     sed "s/^/${project}_/g" |\
     sed "s/ / ${project}_/g"
 )
@@ -32,12 +32,17 @@ for image in $images
 do
   for version in $versions
   do
-    name="$image:$version"
+
+    if [[ "$image" == "${project}_server" ]]
+    then name="${project}:$version"
+    else name="$image:$version"
+    fi
+
     if grep -qs "$version" <<<"$(docker image ls | grep "$image\>")"
     then echo "Image $name already exists locally"
     else
 
-      if grep -qs "${project}_" <<<"$name"
+      if grep -qs "^${project}\(_\?.\+\|\)$" <<<"$name"
       then full_name="${registry%/}/$name"
       else full_name="$name"
       fi

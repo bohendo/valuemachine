@@ -14,6 +14,7 @@ build:
     - make pull-latest
     - make prod
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - make push
 
 test:
@@ -24,12 +25,13 @@ test:
       alias: localhost
   script:
     - apk add bash curl git jq make
-    - make pull-latest
+    - make test-transactions
+    - make test-core
     - make start-prod
     - make dls
-    - docker service logs --raw --tail 100 finances_server
-    - docker service logs --raw --tail 100 finances_proxy
-    - make test-core
+    - bash ops/health-check.sh server
+    - bash ops/health-check.sh webserver
+    - bash ops/health-check.sh proxy
 
 deploy:
   image: docker:stable
@@ -43,6 +45,7 @@ deploy:
   script:
     - apk add bash curl git jq make
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - make pull-commit
     - make push-semver
     - >

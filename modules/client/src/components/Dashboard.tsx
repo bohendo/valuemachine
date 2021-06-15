@@ -1,6 +1,4 @@
 import { isAddress } from "@ethersproject/address";
-import { getState } from "@finances/core";
-import { AddressBook, StateJson } from "@finances/types";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Divider from "@material-ui/core/Divider";
 import Table from "@material-ui/core/Table";
@@ -8,6 +6,8 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import { getValueMachine } from "@valuemachine/core";
+import { AddressBook, ValueMachineJson } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
 import { HexString } from "./HexString";
@@ -55,20 +55,25 @@ export const BalanceTable = ({
 
 export const Dashboard: React.FC = ({
   addressBook,
-  state,
+  vmJson,
 }: {
   addressBook: AddressBook;
-  state: StateJson;
+  vmJson: ValueMachineJson;
 }) => {
   const [allBalances, setAllBalances] = useState({});
   console.log(`We have ${addressBook?.addresses?.length} addresses`);
-  console.log(state);
+  console.log(vmJson);
   const classes = useStyles();
 
   useEffect(() => {
-    if (!addressBook || !state) return;
-    setAllBalances(getState({ addressBook, stateJson: state }).getAllBalances());
-  }, [addressBook, state]);
+    if (!addressBook || !vmJson) return;
+    const valueMachine = getValueMachine({ addressBook, json: vmJson });
+    const accounts = valueMachine.getAccounts();
+    setAllBalances(accounts.reduce((balances, account) => {
+      balances[account] = valueMachine.getNetWorth(account);
+      return balances;
+    }, {}));
+  }, [addressBook, vmJson]);
 
   return (<>
 

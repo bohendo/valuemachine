@@ -1,4 +1,4 @@
-import { getLogger } from "@finances/utils";
+import { getLogger } from "@valuemachine/utils";
 import express from "express";
 
 import { authRouter } from "./auth";

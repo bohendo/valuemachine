@@ -7,7 +7,7 @@ SHELL=/bin/bash
 
 root=$(shell cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )
 project=$(shell cat $(root)/package.json | jq .name | tr -d '"')
-find_options=-type f -not -path "**/node_modules/**" -not -path "**/.*" -not -path "**/build/**"
+find_options=-type f -not -path "**/node_modules/**" -not -path "**/.*" -not -path "**/dist/**"
 
 cwd=$(shell pwd)
 commit=$(shell git rev-parse HEAD | head -c 8)
@@ -37,7 +37,7 @@ $(shell mkdir -p .flags)
 # Command & Control Aliases
 
 default: dev
-dev: proxy core
+dev: proxy package
 prod: dev server webserver
 all: prod
 
@@ -45,7 +45,7 @@ start: dev
 	bash ops/start.sh
 
 start-prod:
-	FINANCES_ENV=prod bash ops/start.sh
+	VM_PROD=true bash ops/start.sh
 
 stop:
 	bash ops/stop.sh
@@ -54,33 +54,19 @@ restart: dev stop
 	bash ops/start.sh
 
 restart-prod: stop
-	FINANCES_ENV=prod bash ops/start.sh
-
-backup: tax-return
-	rm -rf /tmp/taxes
-	mkdir /tmp/taxes
-	if [[ -f build.log ]]; then cp build.log /tmp/taxes/build.log; fi
-	cp -r modules/taxes/docs /tmp/taxes/docs
-	cp -r .cache/personal /tmp/taxes/cache
-	cp modules/taxes/personal.json /tmp/taxes/personal.json
-	cp -r modules/taxes/build/personal/tax-return.pdf /tmp/taxes/tax-return.pdf
-	cd /tmp && tar czf $(cwd)/tax_backup.tar.gz taxes
+	VM_PROD=true bash ops/start.sh
 
 clean: stop
-	rm -rf modules/*/build/**
+	rm -rf modules/*/build
+	rm -rf modules/*/dist
+	rm -rf modules/*/node_modules
 	rm -rf .flags/*
 	docker container prune -f
-
-reset: stop
-	rm -f .cache/*/events.json
-	rm -f .cache/*/state.json
-	rm -f .cache/*/transactions.json
-	rm -f .flags/tax-return .flags/example-return .flags/test-return
 
 reset-images:
 	rm .flags/proxy .flags/server .flags/webserver
 
-purge: clean reset
+purge: clean
 
 push: push-commit
 push-commit:
@@ -98,18 +84,13 @@ pull-commit:
 pull-semver:
 	bash ops/pull-images.sh $(semver)
 
-mappings:
-	node modules/core/ops/update-mappings.js -y
-
-ln:
-	ln -s .cache/personal/events.json events.json
-	ln -s .cache/personal/chain-data.json chain-data.json
-	ln -s .cache/personal/state.json state.json
-	ln -s .cache/personal/logs.json logs.json
-	ln -s .cache/personal/prices.json prices.json
-
 dls:
 	@docker service ls && echo '=====' && docker container ls -a
+
+test-transactions: transactions
+	bash ops/test-unit.sh transactions test
+watch-transactions: transactions
+	bash ops/test-unit.sh transactions watch
 
 test-core: core
 	bash ops/test-unit.sh core test
@@ -138,19 +119,24 @@ types: node-modules $(shell find modules/types $(find_options))
 	$(docker_run) "cd modules/types && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-utils: node-modules $(shell find modules/utils $(find_options))
+utils: types $(shell find modules/utils $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/utils && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-core: types utils $(shell find modules/core $(find_options))
+transactions: utils types $(shell find modules/transactions $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/transactions && npm run build"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+core: transactions utils types $(shell find modules/core $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/core && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-taxes: types utils core $(shell find modules/taxes $(find_options))
+package: core transactions utils types $(shell find modules/package $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/taxes && npm run build"
+	$(docker_run) "cd modules/package && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 client-bundle: core $(shell find modules/client $(find_options))
@@ -174,33 +160,12 @@ proxy: $(shell find ops/proxy $(find_options))
 
 server: server-bundle $(shell find modules/server/ops $(find_options))
 	$(log_start)
-	docker build --file modules/server/ops/Dockerfile $(image_cache) --tag $(project)_server modules/server
-	docker tag $(project)_server $(project)_server:$(commit)
+	docker build --file modules/server/ops/Dockerfile $(image_cache) --tag $(project) modules/server
+	docker tag $(project) $(project):$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 webserver: client-bundle $(shell find modules/client/ops $(find_options))
 	$(log_start)
 	docker build --file modules/client/ops/Dockerfile $(cache_from) --tag $(project)_webserver:latest modules/client
 	docker tag $(project)_webserver:latest $(project)_webserver:$(commit)
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-########################################
-# Build tax return
-
-tax-return: modules/taxes/personal.json taxes $(shell find modules/taxes/ops $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/taxes && bash ops/entry.sh personal.json"
-	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-example-return: modules/taxes/example.json taxes $(shell find modules/taxes/ops $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/taxes && bash ops/entry.sh example.json"
-	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-test-return: modules/taxes/test.json taxes $(shell find modules/taxes/ops $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/taxes && bash ops/entry.sh test.json"
-	ln -fs modules/taxes/tax-return.pdf tax-return.pdf
 	$(log_finish) && mv -f $(totalTime) .flags/$@

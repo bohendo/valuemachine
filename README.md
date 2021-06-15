@@ -1,151 +1,78 @@
 
-# Financial Tools
+# Value Machine
 
-Financial tools + open source version of TurboTax & friends.
+The value machine is a set of tools for in-depth analysis of an individual's financial portfolio and tax obligations.
 
-# Disclaimer
+These tools are **jurisdiction-neutral** ie there is zero business logic that is specific to any country's particular tax system.
 
-I am not even remotely qualified to be doing this.
+To calculate the capital gains & losses for an eth address:
 
-If you use this repo to generate tax return forms, **proof read the output carefully before sending it to the IRS**.
+```typescript
+import { getPrice, getValueMachine } from "@valuemachine/core";
+import { getAddressBook, getChainData, getTransactions } from "@valuemachine/transactions";
+import { AddressCategories } from "@valuemachine/types";
+import { mul, round, sub } from "@valuemachine/utils";
 
-This repo certainly has some bugs lurking and, if you put your blind faith in it, the IRS will likely have some problems w you.
+(async () => {
 
-Those are not my problems, use these tools at your own risk. Do your own research.
+  // Gather & categorize the addresses we want to analyze
+  const addressBookJson = [{
+    address: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
+    category: AddressCategories.Self, // this is a string of the key name so just "Self" is fine too
+    name: "bohendo.eth",
+  }];
+  const addressBook = getAddressBook(addressBookJson);
 
-# Prerequisites
+  // Fetch tx history and receipts from etherscan
+  const chainData = getChainData();
+  await chainData.syncAddresses(addressBook.addresses);
 
- - `jq`: Probably not installed yet, install w `brew install jq` or `apt install jq` or similar.
- - `make`: Probably already installed, otherwise install w `brew install make` or `apt install make` or similar.
- - `docker`: See [website](https://www.docker.com/) for instructions.
+  // Convert eth chain data into transactions
+  const transactions = getTransactions({ addressBook });
+  transactions.mergeEthereum(chainData);
 
-# Building your taxes
+  // Create a value machine & process our transactions
+  const vm = getValueMachine({ addressBook });
+  for (const transaction of transactions.getJson()) {
+    vm.execute(transaction);
+  }
 
-Run `make example-return` to generate a simple example tax return based on the data in `modules/taxes/example.json`
+  // Create a price fetcher & fetch the relevant prices
+  const unit = "USD";
+  const prices = getPrices({ unit });
+  for (const transaction of transactions.getJson()) {
+    await prices.syncTransaction(transactions);
+  }
 
-Create a copy of `example.json` that will contain your personal data: `cp modules/taxes/example.json modules/taxes/personal.json`
+  // calculate & print capital gains
+  const capChange = "0";
+  for (const event of vm.getJson().events) {
+    if (event.type === EventTypes.Trade) {
+      const change = "0";
+      event.outputs.forEach(chunkIndex => {
+        const chunk = vm.getChunk(chunkIndex);
+        const takePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
+        const givePrice = prices.getPrice(chunk.disposeDate, chunk.asset);
+        const change = mul(chunk.quantity, sub(givePrice, takePrice));
+        console.log(`${
+          addressBook.getName(event.account)
+        } got a chunk of ${
+          round(chunk.quantity, 4)
+        } ${
+          chunk.asset
+        } on ${
+          chunk.receiveDate
+        } and gave it away on ${
+          chunk.disposeDate
+        } for a capital change of ${
+          round(change, 2)
+        } ${
+          unit
+        }`);
+      });
+    }
+  }
 
-Then, to generate your tax returns, update the relevant info in `personal.json` and run `make tax-return`
+})()
 
-# Important note re sensitive data
-
-To generate a valid tax return, you might want to add your social security number & other sensitive data to `personal.json`. This file is added to the .gitignore so you're less likely to accidentally commit/push this personal data. But if you rename it to something like `personal.json.backup` then you could still accidentally commit it, so be careful & review diffs before you push.
-
-This also means that `personal.json` won't automatically be backed up to a remote repo as part of your fork of this repo. You'll probably spend a fair amount of time updating the info in `personal.json` so take care of this file & don't lose it. You can create a zipped archive of your personal data and attachments (expected to be in `modules/taxes/docs/`) with the command: `make backup` & then save a copy this archive somewhere safe.
-
-# Adding support for a new form
-
-Say we need form f1040s3 to file our taxes and it's not supported yet. Here are the steps for adding support for this new form:
-
-1. `bash ops/new-form.sh f1040s3`
-
-2. Follow the directions provided by this script after running.
-
-3. Run `make test` to generate a test tax return, how does this tax return look?
-
-4. (optional) if you want to rename the `f1_1` mapping to be called `fullName`, for example, then change this field & any others in `src/mappings/f1040s3.pdf` and then run `node ops/update-mappings.js -y` to sync the test-return data.
-
-# Forms Overview
-
- - [x] Checked forms are supported by this repo.
-
-## Form 1040
-
-Root of the tax form tree
-
-Dependencies:
- - [ ] Form 4972: Tax on Lump-Sum Distributions
- - [ ] Form 8814: Parents’ Election To Report Child’s Interest and Dividends
- - [ ] Form 8863: Education Credits
- - [ ] Form 8888: Allocation of Refund (Including Savings Bond Purchases)
- - [ ] Form 8995: (Does Not Exist)
- - [x] Schedule 1: Additional Income & Adjustments to Income
- - [x] Schedule 2: Additional Tax
- - [x] Schedule 3: Additional Credits and Payments
- - [ ] Schedule 8812: (Does Not Exist)
- - [ ] Schedule A: Itemized Deductions
- - [x] Schedule D: Capital Gains and Losses
-
-## Schedule 1
-
-Additional Income and Adjustments to Income
-
-Dependencies:
- - [ ] Form 2106: Employee Business Expense (Military/Govt)
- - [ ] Form 3903: Moving Expenses (Military)
- - [ ] Form 4797: Sales of Business Property
- - [ ] Form 8889: Health Savings Account
- - [ ] Form 8917: (Does Not Exist)
- - [x] Schedule C: Profit or Loss From Business
- - [ ] Schedule E: Supplemental Income and Loss
- - [ ] Schedule F: Profit or Loss From Farming
- - [x] Schedule SE: Self-Employment Tax
-
-## Schedule 2
-
-Additional Taxes
-
-Dependencies:
- - [ ] Form 4137: Social Security and Medicare Tax on Unreported Tip Income
- - [ ] Form 5329: Additional Taxes on Qualified Plans (Including IRAs) and Other Tax-Favored Accounts
- - [ ] Form 5405: Repayment of the First-Time Homebuyer Credit
- - [ ] Form 6251: (2018) Alternative Minimum Tax - Individuals
- - [ ] Form 8919: Uncollected Social Security and Medicare Tax on Wages
- - [ ] Form 8959: Additional Medicare Tax
- - [ ] Form 8960: Net Investment Income Tax - Individuals, Estates, and Trusts
- - [ ] Form 8962: Premium Tax Credit (PTC)
- - [ ] Form 965: Inclusion of Deferred Foreign Income Upon Transition to Participation Exemption System
- - [ ] Schedule H: Household Employment Taxes
- - [x] Schedule SE: Self-Employment Tax
-
-## Schedule 3
-
-Tax Credits
-
-Dependencies:
- - [ ] Form 1116: Foreign Tax Credit
- - [ ] Form 2439: Notice to Shareholder of Undistributed Long-Term Capital Gains
- - [ ] Form 2441: Child and Dependent Care Expenses
- - [ ] Form 3800: General Business Credit
- - [ ] Form 4136: Credit for Federal Tax Paid on Fuels
- - [ ] Form 5695: Residential Energy Credit
- - [ ] Form 8801: Credit for Prior Year Minimum Tax - Individuals, Estates, and Trusts
- - [ ] Form 8863: Education Credits (American Opportunity and Lifetime Learning Credits)
- - [ ] Form 8880: Credit for Qualified Retirement Savings Contributions
- - [ ] Form 8885: Health Coverage Tax Credit
- - [ ] Form 8962: Premium Tax Credit (PTC)
-
-## Schedule SE
-
-Self-employment taxes
-
-Dependencies:
- - [ ] Form 1065: U.S. Return of Partnership Income
- - [ ] Form 4137: Social Security and Medicare Tax on Unreported Tip Income
- - [ ] Form 4361: Application for Exemption From Self-Employment Tax for Use by Ministers, etc
- - [ ] Form 8919: Uncollected Social Security and Medicare Tax on Wages
- - [x] Schedule C: Profit or Loss From Business
- - [ ] Schedule F: Profit or Loss From Farming
- - [ ] Schedule K-1: Partner’s Share of Income, Deductions, Credits, etc
-
-## Schedule C
-
-Profit or Loss from Business
-
-Dependencies:
- - [ ] Form 4562: Depreciation and Amortization
- - [ ] Form 6198: At-Risk Limitations
- - [ ] Form 8829: Expenses for Business Use of Your Home
-
-## Schedule D
-
-Capital Gains and Losses
-
-Dependencies:
- - [ ] Form 2439: Notice to Shareholder of Undistributed Long-Term Capital Gains
- - [ ] Form 4684: Casualties and Thefts
- - [ ] Form 4797: Sales of Business Property
- - [ ] Form 6252: Installment Sale Income
- - [ ] Form 6781: Gains and Losses From Section 1256 Contracts and Straddles
- - [ ] Form 8824: Like-Kind Exchanges
- - [x] Form 8949: Sales and Other Dispositions of Capital Assets
+```

@@ -3,6 +3,10 @@ import path from "path";
 
 import { AddressZero, HashZero } from "@ethersproject/constants";
 import {
+  getAddressBook,
+  getChainData,
+} from "@valuemachine/transactions";
+import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
@@ -10,12 +14,18 @@ import {
   EthCall,
   EthTransaction,
   Store,
+  StoreKey,
   StoreKeys,
-} from "@finances/types";
-import { getLogger } from "@finances/utils";
+} from "@valuemachine/types";
+import {
+  getLogger,
+} from "@valuemachine/utils";
+import { use } from "chai";
+import promised from "chai-as-promised";
 
-import { getAddressBook } from "./addressBook";
-import { getChainData } from "./chainData";
+use(promised);
+
+export { expect } from "chai";
 
 const env = {
   logLevel: process.env.LOG_LEVEL || "error",
@@ -95,14 +105,14 @@ export const getRealChainData = async (
 ): Promise<ChainData> => {
   const filepath = path.join(__dirname, _filepath);
   const testStore = {
-    load: (key: StoreKeys): any => {
+    load: (key: StoreKey): any => {
       if (key === StoreKeys.ChainData) {
         return JSON.parse(fs.readFileSync(filepath, "utf8"));
       } else {
         throw new Error(`Test store has not implemented key ${key}`);
       }
     },
-    save: (key: StoreKeys, data: any): void => {
+    save: (key: StoreKey, data: any): void => {
       if (key === StoreKeys.ChainData) {
         fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
       } else {

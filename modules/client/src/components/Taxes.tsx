@@ -1,17 +1,4 @@
 import { commify } from "@ethersproject/units";
-import { getPrices } from "@finances/core";
-import {
-  AddressBook,
-  Assets,
-  DateString,
-  DecimalString,
-  EventTypes,
-  Events,
-  PricesJson,
-  SecurityProviders,
-  TransferCategories,
-} from "@finances/types";
-import { math } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
@@ -32,6 +19,19 @@ import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
+import { getPrices } from "@valuemachine/core";
+import {
+  AddressBook,
+  Assets,
+  DateString,
+  DecimalString,
+  EventTypes,
+  PricesJson,
+  SecurityProviders,
+  TransferCategories,
+  ValueMachineJson,
+} from "@valuemachine/types";
+import { add, mul, round as defaultRound, sub } from "@valuemachine/utils";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
 
@@ -40,7 +40,6 @@ import { store } from "../store";
 import { InputDate } from "./InputDate";
 
 const { ETH } = Assets;
-const { add, mul, sub } = math;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -85,11 +84,11 @@ type TaxRow = {
 
 export const TaxesExplorer = ({
   addressBook,
-  events,
+  vmJson,
   pricesJson,
 }: {
   addressBook: AddressBook;
-  events: Events,
+  vmJson: ValueMachineJson,
   pricesJson: PricesJson,
 }) => {
   const classes = useStyles();
@@ -102,7 +101,7 @@ export const TaxesExplorer = ({
   const [toDate, setToDate] = React.useState("");
 
   const fmtNum = num => {
-    const round = math.round(num, jurisdiction === ETH ? 4 : 2);
+    const round = defaultRound(num, jurisdiction === ETH ? 4 : 2);
     const insert = (str: string, index: number, char: string = ",") =>
       str.substring(0, index) + char + str.substring(index);
     if (jurisdiction === Assets.INR) {
@@ -129,8 +128,8 @@ export const TaxesExplorer = ({
   };
 
   useEffect(() => {
-    if (!addressBook || !events?.length) return;
-    const newJurisdictions = Array.from(events
+    if (!addressBook || !vmJson?.events?.length) return;
+    const newJurisdictions = Array.from(vmJson.events
       .filter(e => e.type === EventTypes.Trade || (
         e.type === EventTypes.Transfer && e.category === TransferCategories.Income
       )).reduce((all, cur) => {
@@ -143,15 +142,15 @@ export const TaxesExplorer = ({
     ).sort();
     setAllJurisdictions(newJurisdictions);
     setJurisdiction(newJurisdictions[0]);
-  }, [addressBook, events]);
+  }, [addressBook, vmJson]);
 
   useEffect(() => {
-    if (!addressBook || !jurisdiction || !events?.length) return;
+    if (!addressBook || !jurisdiction || !vmJson?.events?.length) return;
     const prices = getPrices({ pricesJson, store, unit: jurisdiction });
     let cumulativeIncome = "0";
     let cumulativeChange = "0";
     setTaxes(
-      events.filter(evt => {
+      vmJson?.events.filter(evt => {
         const toJur = addressBook.getGuardian(evt.to || evt.account || "");
         return toJur === jurisdiction && (
           evt.type === EventTypes.Trade
@@ -160,25 +159,32 @@ export const TaxesExplorer = ({
         );
       }).reduce((output, evt) => {
         if (evt.type === EventTypes.Trade) {
-          return output.concat(...evt.spentChunks.map(chunk => {
+          return output.concat(...evt.outputs?.map(chunk => {
             const price = prices.getPrice(evt.date, chunk.asset);
             const value = mul(chunk.quantity, price);
-            const receivePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
-            const capitalChange = mul(chunk.quantity, sub(price, receivePrice));
-            cumulativeChange = add(cumulativeChange, capitalChange);
-            return {
-              date: evt.date,
-              action: EventTypes.Trade,
-              amount: chunk.quantity,
-              asset: chunk.asset,
-              price,
-              value,
-              receivePrice,
-              receiveDate: chunk.receiveDate,
-              capitalChange,
-              cumulativeChange,
-              cumulativeIncome,
-            };
+            if (chunk.receiveDate) {
+              const receivePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
+              const capitalChange = mul(chunk.quantity, sub(price, receivePrice));
+              cumulativeChange = add(cumulativeChange, capitalChange);
+              return {
+                date: evt.date,
+                action: EventTypes.Trade,
+                amount: chunk.quantity,
+                asset: chunk.asset,
+                price,
+                value,
+                receivePrice,
+                receiveDate: evt.date, // wrong!
+                capitalChange,
+                cumulativeChange,
+                cumulativeIncome,
+              };
+            } else {
+              return {
+                date: evt.date,
+                receiveDate: evt.date, // wrong!
+              };
+            }
           }));
         } else if (evt.category === TransferCategories.Income) {
           const price = prices.getPrice(evt.date, evt.asset);
@@ -220,7 +226,7 @@ export const TaxesExplorer = ({
         }
       }, []).filter(row => row.asset !== jurisdiction)
     );
-  }, [addressBook, jurisdiction, events, pricesJson]);
+  }, [addressBook, jurisdiction, vmJson, pricesJson]);
 
   const handleExport = () => {
     if (!taxes?.length) { console.warn("Nothing to export"); return; }

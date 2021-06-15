@@ -1,21 +1,28 @@
 {
-  "name": "finances",
-  "version": "2.6.1",
-  "description": "financial dashboard + tax tools",
+  "name": "valuemachine",
+  "version": "0.0.5",
+  "description": "Low level utilities for portfolio and tax analysis",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@gitlab.com/bohendo/finances.git"
+    "url": "git+ssh://git@gitlab.com/bohendo/valuemachine.git"
   },
-  "registry": "registry.gitlab.com",
-  "author": "Bo & Shivani Henderson",
-  "license": "ISC",
+  "registry": "docker.io",
+  "author": "Bo Henderson",
+  "license": "GPL-3.0-or-later",
   "bugs": {
-    "url": "https://gitlab.com/bohendo/finances/issues"
+    "url": "https://gitlab.com/bohendo/valuemachine/issues"
   },
-  "homepage": "https://gitlab.com/bohendo/finances#readme",
-  "dependencies": {
-    "@typescript-eslint/eslint-plugin": "4.26.0",
-    "@typescript-eslint/parser": "4.26.0",
+  "homepage": "https://gitlab.com/bohendo/valuemachine#readme",
+  "main": "./modules/core/dist/src/index.js",
+  "types": "./modules/core/dist/src/index.d.ts",
+  "files": [
+    "modules/types/dist",
+    "modules/core/dist",
+    "index.js"
+  ],
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "4.26.1",
+    "@typescript-eslint/parser": "4.26.1",
     "eslint": "7.28.0",
     "eslint-plugin-import": "2.23.4",
     "eslint-plugin-react": "7.24.0",

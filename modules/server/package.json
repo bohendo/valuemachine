@@ -1,23 +1,29 @@
 {
-  "name": "@finances/server",
-  "version": "1.0.0",
+  "name": "@valuemachine/server",
+  "version": "0.0.1",
+  "description": "Server-side valuemachine logic",
+  "author": "Bo Henderson",
+  "license": "GPL-3.0-or-later",
+  "main": "dist/src/entry.js",
+  "types": "dist/src/entry.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "webpack --config ops/webpack.config.js"
   },
-  "author": "bohendo & shivhendo",
-  "license": "ISC",
   "dependencies": {
     "@ethersproject/bytes": "5.3.0",
-    "@finances/core": "1.0.0",
-    "@finances/types": "1.0.0",
-    "@finances/utils": "1.0.0",
+    "@valuemachine/core": "0.0.4",
+    "@valuemachine/transactions": "0.0.4",
+    "@valuemachine/types": "0.0.4",
+    "@valuemachine/utils": "0.0.4",
     "axios": "0.21.1",
     "express": "4.17.1"
   },
   "devDependencies": {
     "@types/node": "15.0.2",
     "babel-loader": "8.2.2",
-    "ethers": "5.1.4",
     "nodemon": "2.0.7",
     "ts-loader": "8.1.0",
     "ts-node": "9.1.1",

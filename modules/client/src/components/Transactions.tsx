@@ -1,15 +1,3 @@
-import { getTransactions } from "@finances/core";
-import {
-  AddressBook,
-  AddressCategories,
-  Assets,
-  Transaction,
-  Transactions,
-  TransactionsJson,
-  TransactionSources,
-  Transfer,
-} from "@finances/types";
-import { getLogger, math, sm, smeq } from "@finances/utils";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
@@ -34,6 +22,19 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
+import { describeTransaction, getTransactions } from "@valuemachine/transactions";
+import {
+  AddressBook,
+  AddressCategories,
+  Assets,
+  CsvSources,
+  Transaction,
+  Transactions,
+  TransactionsJson,
+  TransactionSources,
+  Transfer,
+} from "@valuemachine/types";
+import { getLogger, round, sm, smeq } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -89,7 +90,7 @@ const TransactionRow = ({
         <TableCell> {
           (new Date(tx.date)).toISOString().replace("T", " ").replace(".000Z", "")
         } </TableCell>
-        <TableCell> {tx.description} </TableCell>
+        <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
         <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
@@ -122,7 +123,7 @@ const TransactionRow = ({
                     <TableRow key={i}>
                       <TableCell> {transfer.category} </TableCell>
                       <TableCell> {transfer.asset} </TableCell>
-                      <TableCell> {math.round(transfer.quantity, 4)} </TableCell>
+                      <TableCell> {round(transfer.quantity, 4)} </TableCell>
                       <TableCell>
                         <HexString
                           display={addressBook?.getName(transfer.from)}
@@ -261,8 +262,8 @@ export const TransactionExplorer = ({
         transactionsJson: transactions,
         logger: getLogger("info"),
       });
-      txMethods.mergeTransactions(res.data);
-      setTransactions([...txMethods.json]);
+      txMethods.merge(res.data);
+      setTransactions([...txMethods.getJson()]);
       setSyncing(false);
     }).catch((e) => {
       console.warn(`Failed to fetch transactions:`, e.response.data || e.message);
@@ -284,16 +285,8 @@ export const TransactionExplorer = ({
           logger: getLogger("info"),
         });
         const importedFile = reader.result as string;
-        if (importFileType === "coinbase") {
-          txMethods.mergeCoinbase(importedFile);
-        } else if (importFileType === "digitalocean") {
-          txMethods.mergeDigitalOcean(importedFile);
-        } else if (importFileType === "wazirx") {
-          txMethods.mergeWazirx(importedFile);
-        } else if (importFileType === "wyre") {
-          txMethods.mergeWyre(importedFile);
-        }
-        setTransactions([...txMethods.json]);
+        txMethods.mergeCsv(importedFile, importFileType);
+        setTransactions([...txMethods.getJson()]);
       } catch (e) {
         console.error(e);
       }
@@ -341,10 +334,10 @@ export const TransactionExplorer = ({
           onChange={handleFileTypeChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          <MenuItem value={"coinbase"}>Coinbase</MenuItem>
-          <MenuItem value={"digitalocean"}>Digital Ocean</MenuItem>
-          <MenuItem value={"wyre"}>Wyre</MenuItem>
-          <MenuItem value={"wazirx"}>Wazirx</MenuItem>
+          <MenuItem value={CsvSources.Coinbase}>{CsvSources.Coinbase}</MenuItem>
+          <MenuItem value={CsvSources.DigitalOcean}>{CsvSources.DigitalOcean}</MenuItem>
+          <MenuItem value={CsvSources.Wyre}>{CsvSources.Wyre}</MenuItem>
+          <MenuItem value={CsvSources.Wazirx}>{CsvSources.Wazirx}</MenuItem>
         </Select>
       </FormControl>
 

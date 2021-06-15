@@ -3,10 +3,11 @@ import fs from "fs";
 import {
   Store,
   StoreKeys,
+  StoreKey,
   StoreValues,
   emptyStore,
-} from "@finances/types";
-import { getLogger } from "@finances/utils";
+} from "@valuemachine/types";
+import { getLogger } from "@valuemachine/utils";
 
 import { env } from "./env";
 
@@ -18,12 +19,11 @@ const log = getLogger(env.logLevel).child({ module: "Store" });
 const dirName = `/data`;
 
 const cache: StoreValues = {
+  [StoreKeys.AddressBook]: null,
   [StoreKeys.ChainData]: null,
-  [StoreKeys.Transactions]: null,
-  [StoreKeys.Events]: null,
   [StoreKeys.Prices]: null,
-  [StoreKeys.Profile]: null,
-  [StoreKeys.State]: null,
+  [StoreKeys.Transactions]: null,
+  [StoreKeys.ValueMachine]: null,
 };
 
 ////////////////////////////////////////
@@ -31,7 +31,7 @@ const cache: StoreValues = {
 
 const getDirName = (username?: string): string => `${dirName}${username ? `/${username}`: ""}`;
 
-const getFileName = (key: StoreKeys, username?: string): string =>
+const getFileName = (key: StoreKey, username?: string): string =>
   `${getDirName(username)}/${
     key.replace(/[A-Z]/g, "-$&".toLowerCase()).replace(/^-/, "").toLowerCase()
   }.json`;

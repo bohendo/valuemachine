@@ -18,41 +18,43 @@ fi
 # shellcheck disable=SC1091
 if [[ -f .env ]]; then source .env; fi
 
-FINANCES_ADMIN_TOKEN="${FINANCES_ADMIN_TOKEN:-abc123}"
-FINANCES_DOMAINNAME="${FINANCES_DOMAINNAME:-}"
-FINANCES_EMAIL="${FINANCES_EMAIL:-noreply@gmail.com}"
-FINANCES_ETH_PROVIDER="${FINANCES_ETH_PROVIDER:-}"
-FINANCES_ETHERSCAN_KEY="${FINANCES_ETHERSCAN_KEY:-}"
-FINANCES_LOG_LEVEL="${FINANCES_LOG_LEVEL:-info}"
-FINANCES_PORT="${FINANCES_PORT:-3000}"
-FINANCES_PROD="${FINANCES_PROD:-false}"
-FINANCES_SEMVER="${FINANCES_SEMVER:-false}"
+VM_ADMIN_TOKEN="${VM_ADMIN_TOKEN:-abc123}"
+VM_DOMAINNAME="${VM_DOMAINNAME:-}"
+VM_EMAIL="${VM_EMAIL:-noreply@gmail.com}"
+VM_ETH_PROVIDER="${VM_ETH_PROVIDER:-}"
+VM_ETHERSCAN_KEY="${VM_ETHERSCAN_KEY:-}"
+VM_LOG_LEVEL="${VM_LOG_LEVEL:-info}"
+VM_PORT="${VM_PORT:-3000}"
+VM_PROD="${VM_PROD:-false}"
+VM_SEMVER="${VM_SEMVER:-false}"
 
 # alias env var to override what's in .env
-FINANCES_LOG_LEVEL="${LOG_LEVEL:-$FINANCES_LOG_LEVEL}";
+VM_LOG_LEVEL="${LOG_LEVEL:-$VM_LOG_LEVEL}";
 
 # If semver flag is given, we should ensure the prod flag is also active
-if [[ "$FINANCES_SEMVER" == "true" ]]
-then export FINANCES_PROD=true
+if [[ "$VM_SEMVER" == "true" ]]
+then export VM_PROD=true
 fi
 
 echo "Launching $project in env:"
-echo "- FINANCES_ADMIN_TOKEN=$FINANCES_ADMIN_TOKEN"
-echo "- FINANCES_DOMAINNAME=$FINANCES_DOMAINNAME"
-echo "- FINANCES_EMAIL=$FINANCES_EMAIL"
-echo "- FINANCES_ETHERSCAN_KEY=$FINANCES_ETHERSCAN_KEY"
-echo "- FINANCES_ETH_PROVIDER=$FINANCES_ETH_PROVIDER"
-echo "- FINANCES_LOG_LEVEL=$FINANCES_LOG_LEVEL"
-echo "- FINANCES_PORT=$FINANCES_PORT"
+echo "- VM_ADMIN_TOKEN=$VM_ADMIN_TOKEN"
+echo "- VM_DOMAINNAME=$VM_DOMAINNAME"
+echo "- VM_EMAIL=$VM_EMAIL"
+echo "- VM_ETH_PROVIDER=$VM_ETH_PROVIDER"
+echo "- VM_ETHERSCAN_KEY=$VM_ETHERSCAN_KEY"
+echo "- VM_LOG_LEVEL=$VM_LOG_LEVEL"
+echo "- VM_PORT=$VM_PORT"
+echo "- VM_PROD=$VM_PROD"
+echo "- VM_SEMVER=$VM_SEMVER"
 
 ####################
 # Misc Config
 
 commit=$(git rev-parse HEAD | head -c 8)
 semver="v$(grep -m 1 '"version":' "$root/package.json" | cut -d '"' -f 4)"
-if [[ "$FINANCES_SEMVER" == "true" ]]
+if [[ "$VM_SEMVER" == "true" ]]
 then version="$semver"
-elif [[ "$FINANCES_PROD" == "true" ]]
+elif [[ "$VM_PROD" == "true" ]]
 then version="$commit"
 else version="latest"
 fi
@@ -69,17 +71,17 @@ common="networks:
 
 server_internal_port=8080
 server_env="environment:
-      FINANCES_ADMIN_TOKEN: '$FINANCES_ADMIN_TOKEN'
-      FINANCES_ETHERSCAN_KEY: '$FINANCES_ETHERSCAN_KEY'
-      FINANCES_ETH_PROVIDER: '$FINANCES_ETH_PROVIDER'
-      FINANCES_LOG_LEVEL: '$FINANCES_LOG_LEVEL'
-      FINANCES_PORT: '$server_internal_port'
-      FINANCES_PROD: '$FINANCES_PROD'
+      VM_ADMIN_TOKEN: '$VM_ADMIN_TOKEN'
+      VM_ETHERSCAN_KEY: '$VM_ETHERSCAN_KEY'
+      VM_ETH_PROVIDER: '$VM_ETH_PROVIDER'
+      VM_LOG_LEVEL: '$VM_LOG_LEVEL'
+      VM_PORT: '$server_internal_port'
+      VM_PROD: '$VM_PROD'
 "
 
-if [[ "$FINANCES_PROD" == "true" ]]
+if [[ "$VM_PROD" == "true" ]]
 then
-  server_image="${project}_server:$version"
+  server_image="${project}:$version"
   server_service="server:
     image: '$server_image'
     $common
@@ -96,7 +98,7 @@ else
     entrypoint: 'bash modules/server/ops/entry.sh'
     volumes:
       - '$root:/root'
-      - 'data:/data'"
+      - '$root/.server-db:/data'"
 
 fi
 bash "$root/ops/pull-images.sh" "$server_image"
@@ -106,7 +108,7 @@ bash "$root/ops/pull-images.sh" "$server_image"
 
 webserver_internal_port=3000
 
-if [[ "$FINANCES_PROD" == "true" ]]
+if [[ "$VM_PROD" == "true" ]]
 then
   webserver_image="${project}_webserver:$version"
   webserver_service="webserver:
@@ -134,9 +136,9 @@ bash "$root/ops/pull-images.sh" "$webserver_image"
 proxy_image="${project}_proxy:$version"
 bash "$root/ops/pull-images.sh" "$proxy_image"
 
-if [[ -n "$FINANCES_DOMAINNAME" ]]
+if [[ -n "$VM_DOMAINNAME" ]]
 then
-  public_url="https://$FINANCES_DOMAINNAME"
+  public_url="https://$VM_DOMAINNAME"
   proxy_ports="ports:
       - '80:80'
       - '443:443'"
@@ -173,8 +175,8 @@ services:
     $common
     $proxy_ports
     environment:
-      DOMAINNAME: '$FINANCES_DOMAINNAME'
-      EMAIL: '$FINANCES_EMAIL'
+      DOMAINNAME: '$VM_DOMAINNAME'
+      EMAIL: '$VM_EMAIL'
       SERVER_URL: 'server:$server_internal_port'
       WEBSERVER_URL: 'webserver:$webserver_internal_port'
     volumes:
@@ -204,7 +206,7 @@ do
 done
 
 # Delete old images in prod to prevent the disk from filling up
-if [[ "$FINANCES_PROD" == "true" ]]
+if [[ "$VM_PROD" == "true" ]]
 then
   docker container prune --force;
   echo "Removing ${project} images that aren't tagged as $commit or $semver or latest"

@@ -15,6 +15,7 @@
 **/tax-return.pdf
 **/transactions.json
 modules/client/src/data
+**/.server
 
 # Cache
 **/.cache
