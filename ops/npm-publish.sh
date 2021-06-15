@@ -23,17 +23,16 @@ then echo "Aborting: Make sure you're in the $project project root" && exit 1
 fi
 
 # set root package version manually
-package_names=""
 package_versions=""
 
 echo
+echo "Checking npm registry for latest package version.."
 for package in $packages
 do
   package_name=$(grep '"name":' "modules/$package/package.json" | awk -F '"' '{print $4}')
   package_version=$(npm view "$package_name" version 2> /dev/null || echo "0.0.0")
   package_versions="$package_versions $package_version"
-  package_names="$package_names $package_name@$package_version"
-  echo "Found previously published npm package: $package_name@$package_version"
+  echo "- $package_name@$package_version"
 done
 echo
 
@@ -83,12 +82,12 @@ fi
 
   for package in $packages
   do
+    cd "$package" || exit 1
     package_name=$(grep '"name":' "modules/$package/package.json" | awk -F '"' '{print $4}')
     echo
     echo "Dealing w package: $package_name"
     version="$target_version"
     echo "Updating $package_name package version to $version"
-    cd "$package" || exit 1
     mv package.json .package.json
     sed 's/"version": ".*"/"version": "'"$version"'"/' < .package.json > package.json
     rm .package.json

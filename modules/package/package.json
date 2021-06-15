@@ -1,6 +1,6 @@
 {
   "name": "valuemachine",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "Low level utilities for portfolio and tax analysis",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
@@ -14,10 +14,10 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@valuemachine/core": "0.0.3",
-    "@valuemachine/transactions": "0.0.3",
-    "@valuemachine/types": "0.0.3",
-    "@valuemachine/utils": "0.0.3"
+    "@valuemachine/core": "0.0.4",
+    "@valuemachine/transactions": "0.0.4",
+    "@valuemachine/types": "0.0.4",
+    "@valuemachine/utils": "0.0.4"
   },
   "devDependencies": {
     "typescript": "4.2.4"
