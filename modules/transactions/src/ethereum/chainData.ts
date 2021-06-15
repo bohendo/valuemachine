@@ -63,7 +63,7 @@ export const getChainData = ({
   store?: Store;
 }): ChainData => {
   const log = (logger || getLogger()).child?.({ module: "ChainData" });
-  const json = chainDataJson || (store ? store.load(StoreKeys.ChainData) : emptyChainData);
+  const json = chainDataJson || store?.load(StoreKeys.ChainData) || emptyChainData;
 
   if (!json.addresses) json.addresses = {};
   if (!json.calls) json.calls = [];
@@ -114,12 +114,6 @@ export const getChainData = ({
     } else {
       log.debug(`Connecting eth provider to etherscan`);
       return new EtherscanProvider("homestead", key || etherscanKey);
-    }
-  };
-
-  const assertApiKey = (): void => {
-    if (!store) {
-      throw new Error("To sync chain data, you must provide an etherscanKey");
     }
   };
 
@@ -239,7 +233,6 @@ export const getChainData = ({
     JSON.parse(JSON.stringify(json.calls.filter(testFn)));
 
   const syncTokenData = async (tokens: Address[], key?: string): Promise<void> => {
-    assertApiKey();
     const provider = getProvider(key);
     const newlySupported = tokens.filter(tokenAddress =>
       !json.tokens[tokenAddress] || typeof json.tokens[tokenAddress].decimals !== "number",
@@ -268,8 +261,12 @@ export const getChainData = ({
       const symbol = toStr(rawSymbol?.[0] || "???");
       const decimals = toNum(rawDecimals || 18);
       json.tokens[sm(tokenAddress)] = { decimals, name, symbol };
-      store.save(StoreKeys.ChainData, json);
-      log.info(`Saved data for ${name} [${symbol}] w ${decimals} decimals: ${tokenAddress}`);
+      if (!store) {
+        log.warn(`No store provided, can't save new token data`);
+      } else {
+        store.save(StoreKeys.ChainData, json);
+        log.info(`Saved data for ${name} [${symbol}] w ${decimals} decimals: ${tokenAddress}`);
+      }
     }
   };
 
@@ -277,7 +274,6 @@ export const getChainData = ({
     tx: Partial<EthTransaction | EthCall>,
     key?: string,
   ): Promise<void> => {
-    assertApiKey();
     if (!tx || !tx.hash) {
       throw new Error(`Cannot sync a tx w/out a hash: ${JSON.stringify(tx)}`);
     }
@@ -355,13 +351,16 @@ export const getChainData = ({
       );
     }
 
-    store.save(StoreKeys.ChainData, json);
-    log.debug(`Saved data for tx ${tx.hash}`);
+    if (!store) {
+      log.warn(`No store provided, can't save new tx data`);
+    } else {
+      store.save(StoreKeys.ChainData, json);
+      log.debug(`Saved data for tx ${tx.hash}`);
+    }
     return;
   };
 
   const syncAddress = async (address: Address, key?: string): Promise<void> => {
-    assertApiKey();
     if (!json.addresses[address]) {
       json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
     }
@@ -395,13 +394,17 @@ export const getChainData = ({
         value: formatEther(call.value),
       });
     }
-    store.save(StoreKeys.ChainData, json);
-    log.debug(`Saved calls & history for address ${address}`);
+    if (!store) {
+      log.warn(`No store provided, can't save new address history`);
+    } else {
+      store.save(StoreKeys.ChainData, json);
+      log.info(`Saved calls & history for address ${address}`);
+    }
     for (const hash of history) {
       await syncTransaction({ hash }, key);
     }
     json.addresses[address].lastUpdated = lastUpdated;
-    store.save(StoreKeys.ChainData, json);
+    store?.save(StoreKeys.ChainData, json);
     log.debug(`Saved lastUpdated for address ${address}`);
     return;
   };
