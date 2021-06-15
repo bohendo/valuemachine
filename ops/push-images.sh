@@ -7,7 +7,7 @@ registryRoot=$(grep -m 1 '"registry":' "$root/package.json" | cut -d '"' -f 4)
 organization="${CI_PROJECT_NAMESPACE:-$(whoami)}"
 commit=$(git rev-parse HEAD | head -c 8)
 
-registry="$registryRoot/$organization/$project"
+registry="$registryRoot/$organization"
 
 for name in builder proxy server webserver
 do
