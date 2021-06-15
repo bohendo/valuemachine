@@ -81,35 +81,34 @@ fi
   make all
   cd modules
 
-  for package in $package_names
+  for package in $packages
   do
+    package_name=$(grep '"name":' "modules/$package/package.json" | awk -F '"' '{print $4}')
     echo
-    echo "Dealing w package: $package"
-    fullname="${package%@*}" # i.e. '@${project}/types'
-    nickname="${fullname#*/}" # i.e. 'types'
+    echo "Dealing w package: $package_name"
     version="$target_version"
-    echo "Updating $nickname package version to $version"
-    cd "$nickname" || exit 1
+    echo "Updating $package_name package version to $version"
+    cd "$package" || exit 1
     mv package.json .package.json
     sed 's/"version": ".*"/"version": "'"$version"'"/' < .package.json > package.json
     rm .package.json
 
-    echo "Publishing $fullname"
+    echo "Publishing $package_name"
     npm publish --access=public
 
-    echo "Updating $fullname references in root"
+    echo "Updating $package_name references in root"
     cd "$root" || exit 1
     mv package.json .package.json
-    sed 's|"'"$fullname"'": ".*"|"'"$fullname"'": "'"$version"'"|' < .package.json > package.json
+    sed 's|"'"$package_name"'": ".*"|"'"$package_name"'": "'"$version"'"|' < .package.json > package.json
     rm .package.json
     echo
     cd modules || exit 1
     for module in */package.json
     do (
-      echo "Updating $fullname references in $module"
+      echo "Updating $package_name references in $module"
       cd "${module%/*}"
       mv package.json .package.json
-      sed 's|"'"$fullname"'": ".*"|"'"$fullname"'": "'"$version"'"|' < .package.json > package.json
+      sed 's|"'"$package_name"'": ".*"|"'"$package_name"'": "'"$version"'"|' < .package.json > package.json
       rm .package.json
     ) done
   done
