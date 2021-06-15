@@ -25,9 +25,9 @@ transactionsRouter.post("/", async (req, res) => {
     await transactions.mergeEthereum(
       chainData.getAddressHistory(...selfAddresses),
     );
-    res.json(transactions.json);
-    log.info(`Returned ${transactions.json.length} transactions at a rate of ${
-      Math.round((100000 * transactions.json.length)/(Date.now() - start)) / 100
+    res.json(transactions.getJson());
+    log.info(`Returned ${transactions.getJson().length} transactions at a rate of ${
+      Math.round((100000 * transactions.getJson().length)/(Date.now() - start)) / 100
     } tx/sec`);
   } catch (e) {
     log.warn(e);

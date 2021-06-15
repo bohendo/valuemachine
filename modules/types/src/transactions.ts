@@ -1,6 +1,6 @@
 import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
-import { ChainData } from "./chainData";
+import { ChainData, EthTransaction } from "./chainData";
 import { Logger } from "./logger";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
@@ -10,13 +10,19 @@ import { enumify } from "./utils";
 ////////////////////////////////////////
 // Transaction Sources
 
-export const ExternalSources = enumify({
+export const CsvSources = enumify({
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
   Wyre: "Wyre",
   Wazirx: "Wazirx",
 });
-export type ExternalSource = (typeof ExternalSources)[keyof typeof ExternalSources];
+export type CsvSource = (typeof CsvSources)[keyof typeof CsvSources];
+
+export type CsvParser = (
+  txns: Transaction[],
+  csvData: string,
+  logger: Logger,
+) => Transaction;
 
 export const EthereumSources = enumify({
   Argent: "Argent",
@@ -34,18 +40,26 @@ export const EthereumSources = enumify({
 });
 export type EthereumSource = (typeof EthereumSources)[keyof typeof EthereumSources];
 
+export type EthParser = (
+  tx: Transaction,
+  ethTx: EthTransaction,
+  addressBook: AddressBook,
+  chainData: ChainData,
+  logger: Logger,
+) => Transaction;
+
 export const TransactionSources = enumify({
-  ...ExternalSources,
+  ...CsvSources,
   ...EthereumSources,
 });
 export type TransactionSource = (typeof TransactionSources)[keyof typeof TransactionSources];
 
 // Set default guardians for external sources
 export const jurisdictions = {
-  [ExternalSources.Coinbase]: SecurityProviders.USD,
-  [ExternalSources.DigitalOcean]: SecurityProviders.USD,
-  [ExternalSources.Wyre]: SecurityProviders.USD,
-  [ExternalSources.Wazirx]: SecurityProviders.INR,
+  [CsvSources.Coinbase]: SecurityProviders.USD,
+  [CsvSources.DigitalOcean]: SecurityProviders.USD,
+  [CsvSources.Wyre]: SecurityProviders.USD,
+  [CsvSources.Wazirx]: SecurityProviders.INR,
 };
 
 ////////////////////////////////////////
@@ -100,8 +114,8 @@ export type TransactionParams = {
 
 export type Transactions = {
   getJson: () => TransactionsJson;
-  mergeEthereum: (chainData: ChainData) => void;
-  mergeCsv: (source: ExternalSource, csvData: string) => void;
+  mergeEthereum: (chainData: ChainData, extraParsers?: EthParser[]) => void;
+  mergeCsv: (csvData: string, parser: CsvSource | CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
 };
 

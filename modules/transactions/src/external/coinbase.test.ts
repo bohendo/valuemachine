@@ -1,4 +1,4 @@
-import { ExternalSources, Transactions } from "@valuemachine/types";
+import { CsvSources, Transactions } from "@valuemachine/types";
 
 import { getTransactions } from "../index";
 import {
@@ -33,9 +33,9 @@ describe("Coinbase", () => {
   });
 
   it("should merge coinbase data multiple times without creaing duplicates", async () => {
-    txns.mergeCsv(ExternalSources.Coinbase, exampleCoinbaseCsv);
+    txns.mergeCsv(exampleCoinbaseCsv, CsvSources.Coinbase);
     expect(txns.getJson().length).to.equal(3);
-    txns.mergeCsv(ExternalSources.Coinbase, exampleCoinbaseCsv);
+    txns.mergeCsv(exampleCoinbaseCsv, CsvSources.Coinbase);
     expect(txns.getJson().length).to.equal(3);
   });
 

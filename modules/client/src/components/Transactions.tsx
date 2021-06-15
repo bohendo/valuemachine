@@ -27,7 +27,7 @@ import {
   AddressBook,
   AddressCategories,
   Assets,
-  ExternalSources,
+  CsvSources,
   Transaction,
   Transactions,
   TransactionsJson,
@@ -285,7 +285,7 @@ export const TransactionExplorer = ({
           logger: getLogger("info"),
         });
         const importedFile = reader.result as string;
-        txMethods.mergeCsv(importFileType, importedFile);
+        txMethods.mergeCsv(importedFile, importFileType);
         setTransactions([...txMethods.getJson()]);
       } catch (e) {
         console.error(e);
@@ -334,10 +334,10 @@ export const TransactionExplorer = ({
           onChange={handleFileTypeChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          <MenuItem value={ExternalSources.Coinbase}>{ExternalSources.Coinbase}</MenuItem>
-          <MenuItem value={ExternalSources.DigitalOcean}>{ExternalSources.DigitalOcean}</MenuItem>
-          <MenuItem value={ExternalSources.Wyre}>{ExternalSources.Wyre}</MenuItem>
-          <MenuItem value={ExternalSources.Wazirx}>{ExternalSources.Wazirx}</MenuItem>
+          <MenuItem value={CsvSources.Coinbase}>{CsvSources.Coinbase}</MenuItem>
+          <MenuItem value={CsvSources.DigitalOcean}>{CsvSources.DigitalOcean}</MenuItem>
+          <MenuItem value={CsvSources.Wyre}>{CsvSources.Wyre}</MenuItem>
+          <MenuItem value={CsvSources.Wazirx}>{CsvSources.Wazirx}</MenuItem>
         </Select>
       </FormControl>
 

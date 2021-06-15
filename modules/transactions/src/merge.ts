@@ -1,6 +1,6 @@
 import {
   Assets,
-  ExternalSources,
+  CsvSources,
   Logger,
   EthereumSources,
   TimestampString,
@@ -92,7 +92,7 @@ export const mergeTransaction = (
 
     const mergeCandidateIndex = transactions.findIndex(tx =>
       // the candidate only has external sources
-      tx.sources.every(src => Object.keys(ExternalSources).includes(src))
+      tx.sources.every(src => Object.keys(CsvSources).includes(src))
       // external tx & new eth tx have timestamps that are close to each other
       && datesAreClose(tx.date, newTx.date)
       // the candidate has exactly 1 mergable transfer
@@ -132,7 +132,7 @@ export const mergeTransaction = (
   ////////////////////////////////////////
   // Handle new external transactions
   } else if (
-    newTx.sources.every(src => Object.keys(ExternalSources).includes(src))
+    newTx.sources.every(src => Object.keys(CsvSources).includes(src))
     && newTx.sources.length === 1
   ) {
     const source = newTx.sources[0];

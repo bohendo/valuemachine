@@ -1,8 +1,8 @@
 import {
   TransactionParams,
   TransactionsJson,
-  ExternalSource,
-  ExternalSources,
+  CsvSource,
+  CsvSources,
   ChainData,
   StoreKeys,
   Transactions,
@@ -17,6 +17,7 @@ import {
   mergeWyreTransactions,
 } from "./external";
 import { mergeTransaction } from "./merge";
+import { EthParser, CsvParser } from "./types";
 
 export const getTransactions = ({
   addressBook,
@@ -58,7 +59,7 @@ export const getTransactions = ({
 
   const getJson = () => json;
 
-  const mergeEthereum = (chainData: ChainData): void => {
+  const mergeEthereum = (chainData: ChainData, customParsers = [] as EthParser[]): void => {
     const newEthTxns = chainData.getEthTransactions(ethTx =>
       !json.some(tx => tx.hash === ethTx.hash),
     );
@@ -71,6 +72,7 @@ export const getTransactions = ({
           addressBook,
           chainData,
           logger,
+          customParsers,
         ),
         logger,
       )
@@ -78,19 +80,21 @@ export const getTransactions = ({
     sync();
   };
 
-  const mergeCsv = (source: ExternalSource, csvData: string): void => {
-    if (source === ExternalSources.Coinbase) {
+  const mergeCsv = (csvData: string, parser: CsvSource | CsvParser): void => {
+    if (parser === CsvSources.Coinbase) {
       mergeCoinbaseTransactions(json, csvData, log);
-    } else if (source === ExternalSources.DigitalOcean) {
+    } else if (parser === CsvSources.DigitalOcean) {
       mergeDigitalOceanTransactions(json, csvData, log);
-    } else if (source === ExternalSources.Wazirx) {
+    } else if (parser === CsvSources.Wazirx) {
       mergeWazirxTransactions(json, csvData, log);
-    } else if (source === ExternalSources.Wyre) {
+    } else if (parser === CsvSources.Wyre) {
       mergeWyreTransactions(json, csvData, log);
+    } else if (typeof parser === "function") {
+      parser(json, csvData, log);
     } else {
-      log.warn(`Unknown source "${source}", expected one of ${
-        Object.keys(ExternalSources).join(`", "`)
-      }`);
+      log.warn(parser, `Unknown parser, expected one of [${
+        Object.keys(CsvSources).join(`", "`)
+      }] or a custom function`);
     }
     sync();
   };
