@@ -155,8 +155,8 @@ proxy: $(shell find ops/proxy $(find_options))
 
 server: server-bundle $(shell find modules/server/ops $(find_options))
 	$(log_start)
-	docker build --file modules/server/ops/Dockerfile $(image_cache) --tag $(project)_server modules/server
-	docker tag $(project)_server $(project)_server:$(commit)
+	docker build --file modules/server/ops/Dockerfile $(image_cache) --tag $(project) modules/server
+	docker tag $(project) $(project):$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 webserver: client-bundle $(shell find modules/client/ops $(find_options))

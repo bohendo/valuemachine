@@ -11,7 +11,7 @@ commit=$(git rev-parse HEAD | head -c 8)
 registry="$registryRoot/$organization"
 
 default_images=$(
-  echo 'builder webserver server proxy' |\
+  echo 'server builder webserver proxy' |\
     sed "s/^/${project}_/g" |\
     sed "s/ / ${project}_/g"
 )
@@ -34,7 +34,7 @@ do
   do
 
     if [[ "$image" == "${project}_server" ]]
-    then name="${project}:version"
+    then name="${project}:$version"
     else name="$image:$version"
     fi
 
@@ -42,7 +42,7 @@ do
     then echo "Image $name already exists locally"
     else
 
-      if grep -qs "${project}_" <<<"$name"
+      if grep -qs "^${project}\(_\?.\+\|\)$" <<<"$name"
       then full_name="${registry%/}/$name"
       else full_name="$name"
       fi
