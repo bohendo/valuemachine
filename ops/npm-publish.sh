@@ -44,7 +44,7 @@ echo
 
 highest_version=$(get_latest_version "$package_versions" "$root_version")
 
-echo "What version of @${project}/{$packages} packages are we publishing?"
+echo "What version of ${project} are we publishing?"
 echo "Currently, latest version: $highest_version"
 read -p "> " -r
 echo
@@ -98,20 +98,15 @@ fi
     mv package.json .package.json
     sed 's/"version": ".*"/"version": "'"$version"'"/' < .package.json > package.json
     rm .package.json
-    echo "Publishing $fullname"
 
-    # If the version has a release-candidate suffix like "-rc.2" then tag it as "next"
-    if [[ "$version" == *-rc* ]]
-    then npm publish --tag next --access=public
-    else npm publish --access=public
-    fi
+    echo "Publishing $fullname"
+    npm publish --access=public
 
     echo "Updating $fullname references in root"
     cd "$root" || exit 1
     mv package.json .package.json
     sed 's|"'"$fullname"'": ".*"|"'"$fullname"'": "'"$version"'"|' < .package.json > package.json
     rm .package.json
-
     echo
     cd modules || exit 1
     for module in */package.json
@@ -123,22 +118,6 @@ fi
       rm .package.json
     ) done
   done
-
-  echo "Publishing root package"
-  cd "$root" || exit 1
-  mv package.json .package.json
-  sed 's|"'"version"'": ".*"|"'"version"'": "'"$version"'"|' < .package.json > package.json
-  rm .package.json
-  mv package-lock.json .package-lock.json
-  sed 's/^\(  \|	\)"version": ".*"/\1"version": "'"$version"'"/' < .package-lock.json > package-lock.json
-  rm .package-lock.json
-
-  # If the version has a release-candidate suffix like "-rc.2" then tag it as "next"
-  if [[ "$version" == *-rc* ]]
-  then npm publish --tag next --access=public
-  else npm publish --access=public
-  fi
-
 )
 
 echo
@@ -149,7 +128,7 @@ echo
 tag="npm-publish-$target_version"
 
 git add .
-git commit --allow-empty -m "npm publish @${project}/{$packages}@$target_version"
+git commit --allow-empty -m "npm publish ${project}@$target_version"
 git tag "$tag"
 git push origin HEAD --no-verify
 git push origin "$tag" --no-verify
