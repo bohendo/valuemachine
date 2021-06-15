@@ -30,16 +30,9 @@ test:
     - make test-core
     - make start-prod
     - make dls
-    - >
-      if ! docker service ps -q valuemachine_server;
-      then echo "Server did not start up successfully" && exit 1;
-      else docker service logs --raw --tail 100 valuemachine_server;
-      fi
-    - >
-      if ! docker service ps -q valuemachine_proxy;
-      then echo "Proxy did not start up successfully" && exit 1;
-      else docker service logs --raw --tail 100 valuemachine_proxy;
-      fi
+    - bash ops/health-check.sh server
+    - bash ops/health-check.sh webserver
+    - bash ops/health-check.sh proxy
 
 deploy:
   image: docker:stable
