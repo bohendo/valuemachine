@@ -4,11 +4,12 @@
   "description": "Low level utilities for portfolio and tax analysis",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
+  "homepage": "https://gitlab.com/bohendo/valuemachine#readme",
+  "repository": { "type": "git", "url": "git+ssh://git@gitlab.com/bohendo/valuemachine.git" },
+  "bugs": { "url": "https://gitlab.com/bohendo/valuemachine/issues" },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"
