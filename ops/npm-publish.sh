@@ -3,10 +3,7 @@ set -e
 
 # Order Matters!
 # This is the order they'll be published in, dependencies should come before dependents
-packages_to_publish="types,utils,transactions,core"
-
-# To publish just types, run bash ops/npm-publish.sh types
-packages="${1:-$packages_to_publish}"
+packages="types utils transactions core package"
 
 root=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )
 project=$(grep -m 1 '"name":' "$root/package.json" | cut -d '"' -f 4)
@@ -30,9 +27,7 @@ package_names=""
 package_versions=""
 
 echo
-root_version=$(npm view "$project" version 2> /dev/null || echo "0.0.0")
-echo "Found previously published npm package: $project@$root_version"
-for package in $(echo "$packages" | tr ',' ' ')
+for package in $packages
 do
   package_name=$(grep '"name":' "modules/$package/package.json" | awk -F '"' '{print $4}')
   package_version=$(npm view "$package_name" version 2> /dev/null || echo "0.0.0")
@@ -42,7 +37,7 @@ do
 done
 echo
 
-highest_version=$(get_latest_version "$package_versions" "$root_version")
+highest_version=$(get_latest_version "$package_versions")
 
 echo "What version of ${project} are we publishing?"
 echo "Currently, latest version: $highest_version"
@@ -56,7 +51,7 @@ elif [[ "$package_versions" =~ $target_version ]]
 then echo "Aborting: A new, unique version is required" && exit 1
 elif [[ "$(get_latest_version "$package_versions" "$target_version")" != "$target_version" ]]
 then
-  for package in $(echo "$packages" | tr ',' ' ')
+  for package in $packages
   do
     package_name=$(grep '"name":' "modules/$package/package.json" | awk -F '"' '{print $4}')
     # make sure this is still a unique version number, even though its old
@@ -74,7 +69,7 @@ then
   fi
 fi
 
-echo "Confirm: we'll publish the current code to npm as @${project}/{$packages}@$target_version (y/n)?"
+echo "Confirm: we'll publish the current code to npm as ${project}@$target_version (y/n)?"
 read -p "> " -r
 echo
 if [[ ! "$REPLY" =~ ^[Yy]$ ]]
