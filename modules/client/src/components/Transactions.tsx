@@ -22,7 +22,7 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
-import { getTransactions } from "@valuemachine/transactions";
+import { describeTransaction, getTransactions } from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
@@ -89,9 +89,7 @@ const TransactionRow = ({
         <TableCell> {
           (new Date(tx.date)).toISOString().replace("T", " ").replace(".000Z", "")
         } </TableCell>
-        <TableCell> {`${tx.method || "Method Call"} by ${
-          addressBook.getName(addressBook.isSelf(tx.transfers[0].to) ? tx.transfers[0].to : tx.transfers[0].from)
-        }`} </TableCell>
+        <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
         <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
