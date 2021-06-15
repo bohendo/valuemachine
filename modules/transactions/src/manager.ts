@@ -1,13 +1,15 @@
 import {
   TransactionParams,
   TransactionsJson,
+  ExternalSource,
+  ExternalSources,
   ChainData,
   StoreKeys,
   Transactions,
 } from "@valuemachine/types";
 import { getLogger, getTransactionsError } from "@valuemachine/utils";
 
-import { parseEthTx } from "./eth";
+import { parseEthTx } from "./ethereum";
 import {
   mergeCoinbaseTransactions,
   mergeDigitalOceanTransactions,
@@ -54,7 +56,9 @@ export const getTransactions = ({
   ////////////////////////////////////////
   // Exported Methods
 
-  const mergeChainData = async (chainData: ChainData): Promise<void> => {
+  const getJson = () => json;
+
+  const mergeEthereum = async (chainData: ChainData): Promise<void> => {
     const newEthTxns = chainData.getEthTransactions(ethTx =>
       !json.some(tx => tx.hash === ethTx.hash),
     );
@@ -74,27 +78,24 @@ export const getTransactions = ({
     sync();
   };
 
-  const mergeCoinbase = async (csvData: string): Promise<void> => {
-    mergeCoinbaseTransactions(json, csvData, log);
+  const mergeCsv = (source: ExternalSource, csvData: string): Promise<void> => {
+    if (source === ExternalSources.Coinbase) {
+      mergeCoinbaseTransactions(json, csvData, log);
+    } else if (source === ExternalSources.DigitalOcean) {
+      mergeDigitalOceanTransactions(json, csvData, log);
+    } else if (source === ExternalSources.Wazirx) {
+      mergeWazirxTransactions(json, csvData, log);
+    } else if (source === ExternalSources.Wyre) {
+      mergeWyreTransactions(json, csvData, log);
+    } else {
+      log.warn(`Unknown source "${source}", expected one of ${
+        Object.keys(ExternalSources).join(`", "`)
+      }`);
+    }
     sync();
   };
 
-  const mergeDigitalOcean = async (csvData: string): Promise<void> => {
-    mergeDigitalOceanTransactions(json, csvData, log);
-    sync();
-  };
-
-  const mergeWazirx = async (csvData: string): Promise<void> => {
-    mergeWazirxTransactions(json, csvData, log);
-    sync();
-  };
-
-  const mergeWyre = async (csvData: string): Promise<void> => {
-    mergeWyreTransactions(json, csvData, log);
-    sync();
-  };
-
-  const mergeTransactions = async (transactions: TransactionsJson): Promise<void> => {
+  const merge = async (transactions: TransactionsJson): Promise<void> => {
     log.info(`Merging ${transactions.length} new txs into ${json.length} existing txs`);
     transactions.forEach(tx => mergeTransaction(json, tx, log));
     sync();
@@ -102,13 +103,10 @@ export const getTransactions = ({
   };
 
   return {
-    json,
-    mergeChainData,
-    mergeCoinbase,
-    mergeDigitalOcean,
-    mergeTransactions,
-    mergeWazirx,
-    mergeWyre,
+    getJson,
+    mergeEthereum,
+    mergeCsv,
+    merge,
   };
 
 };

@@ -1,11 +1,11 @@
-import { Transactions } from "@valuemachine/types";
+import { ExternalSources, Transactions } from "@valuemachine/types";
 
 import { getTransactions } from "../index";
 import {
   expect,
   getTestAddressBook,
   testLogger,
-} from "../testing";
+} from "../testUtils";
 
 const log = testLogger.child({
   // level: "debug",
@@ -29,14 +29,14 @@ describe("Coinbase", () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.json.length).to.equal(0);
+    expect(txns.getJson().length).to.equal(0);
   });
 
   it("should merge coinbase data multiple times without creaing duplicates", async () => {
-    txns.mergeCoinbase(exampleCoinbaseCsv);
-    expect(txns.json.length).to.equal(3);
-    txns.mergeCoinbase(exampleCoinbaseCsv);
-    expect(txns.json.length).to.equal(3);
+    txns.mergeCsv(ExternalSources.Coinbase, exampleCoinbaseCsv);
+    expect(txns.getJson().length).to.equal(3);
+    txns.mergeCsv(ExternalSources.Coinbase, exampleCoinbaseCsv);
+    expect(txns.getJson().length).to.equal(3);
   });
 
 });

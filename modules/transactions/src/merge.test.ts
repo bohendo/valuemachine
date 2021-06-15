@@ -12,7 +12,7 @@ import {
   AddressThree,
   expect,
   testLogger,
-} from "./testing";
+} from "./testUtils";
 
 const { ETH } = Assets;
 const { Expense, Deposit } = TransferCategories;

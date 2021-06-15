@@ -5,13 +5,13 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { getTransactions } from "../index";
+import { getTransactions } from "../../index";
 import {
   expect,
   getRealChainData,
   getTestAddressBook,
   testLogger,
-} from "../testing";
+} from "../testUtils";
 
 const source = TransactionSources.Uniswap;
 const { Expense, SwapIn, SwapOut } = TransferCategories;
@@ -27,7 +27,7 @@ describe(source, () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.json.length).to.equal(0);
+    expect(txns.getJson().length).to.equal(0);
   });
 
   it("should handle a v1 swap", async () => {
@@ -44,9 +44,9 @@ describe(source, () => {
       to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       value: "7.139681444502334347"
     }] });
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
     const fee = tx.transfers[0];
@@ -71,9 +71,9 @@ describe(source, () => {
       to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       value: "0.705704103459495063"
     }] });
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
     const fee = tx.transfers[0];

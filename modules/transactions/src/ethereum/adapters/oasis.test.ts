@@ -5,13 +5,13 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { getTransactions } from "../index";
+import { getTransactions } from "../../index";
 import {
   expect,
   testLogger,
   getRealChainData,
   getTestAddressBook,
-} from "../testing";
+} from "../testUtils";
 
 const source = TransactionSources.Oasis;
 const { Expense, SwapIn, SwapOut } = TransferCategories;
@@ -27,7 +27,7 @@ describe(source, () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.json.length).to.equal(0);
+    expect(txns.getJson().length).to.equal(0);
   });
 
   it("should handle a v1 buy", async () => {
@@ -35,9 +35,9 @@ describe(source, () => {
     const txHash = "0x5e15f70d656308e72be1d0772dae4c275e7efdff2ab778f7ae4eaefede616e38";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
     const base = tx.transfers[0];
@@ -53,9 +53,9 @@ describe(source, () => {
     const txHash = "0x5e15f70d656308e72be1d0772dae4c275e7efdff2ab778f7ae4eaefede616e38";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(1);
     expect(tx.sources).to.include(source);
     const swapIn = tx.transfers[0];
@@ -67,9 +67,9 @@ describe(source, () => {
     const txHash = "0x7c1a36431b0fd001f20277850f16226a44ce1b83db89d0572a7e9289cbcc7c3b";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
     const swapOut = tx.transfers[1];

@@ -55,7 +55,7 @@ describe("VM", () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.json.length).to.equal(0);
+    expect(txns.getJson().length).to.equal(0);
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
     vm = getValueMachine({ addressBook, prices, logger: log });

@@ -1,5 +1,4 @@
 export { getAddressBook } from "./addressBook";
-export { getChainData } from "./chainData";
-export { publicAddresses } from "./eth";
+export { getChainData, publicAddresses } from "./ethereum";
 export { getTransactions } from "./manager";
 export { describeTransaction } from "./utils";

@@ -5,13 +5,13 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { getTransactions } from "../index";
+import { getTransactions } from "../../index";
 import {
   expect,
   getRealChainData,
   getTestAddressBook,
   testLogger,
-} from "../testing";
+} from "../testUtils";
 
 const source = TransactionSources.Tornado;
 const { Expense, Deposit, Withdraw } = TransferCategories;
@@ -34,9 +34,9 @@ describe(source, () => {
     const txHash = "0x5e70e647a5dee8cc7eaddc302f2a7501e29ed00d325eaec85a3bde5c02abf1ec";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
@@ -57,9 +57,9 @@ describe(source, () => {
       to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       value: "0.079"
     }] });
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];

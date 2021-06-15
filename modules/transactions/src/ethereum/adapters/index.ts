@@ -87,7 +87,6 @@ export const parseEthTx = (
     date: (new Date(ethTx.timestamp)).toISOString(),
     hash: ethTx.hash,
     sources: [],
-    tags: [],
     transfers: [],
   } as Transaction;
 
@@ -160,7 +159,8 @@ export const parseEthTx = (
     try {
       tx = parser(tx, ethTx, addressBook, chainData, log);
     } catch (e) {
-      log.warn(e);
+      // If one of them fails, log the error & move on
+      log.error(e);
     }
   });
 

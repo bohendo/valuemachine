@@ -5,13 +5,13 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { getTransactions } from "../index";
+import { getTransactions } from "../../index";
 import {
   expect,
   getRealChainData,
   getTestAddressBook,
   testLogger,
-} from "../testing";
+} from "../testUtils";
 
 const { Expense, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const log = testLogger.child({
@@ -26,7 +26,7 @@ describe(TransactionSources.Maker, () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.json.length).to.equal(0);
+    expect(txns.getJson().length).to.equal(0);
   });
 
   it("should handle a WETH to PETH swap", async () => {
@@ -34,9 +34,9 @@ describe(TransactionSources.Maker, () => {
     const txHash = "0x25441cec88c76e0f3a00b9ecbcc803f8cd8aff9de358e39c6b3f44dfdafd2aed";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
     expect(swapOut.category).to.equal(SwapOut);
@@ -49,9 +49,9 @@ describe(TransactionSources.Maker, () => {
     const txHash = "0x7c17ce64eb97ebb2e0322595a30fc50b296f9cec391c276410bf2d1a459ff9cf";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(2);
     const withdraw = tx.transfers[1];
     expect(withdraw.category).to.equal(Withdraw);
@@ -62,9 +62,9 @@ describe(TransactionSources.Maker, () => {
     const txHash = "0x39ac4111ceaac95a9eee278b05ca38db3142a188bb33d5aa1c646546fc8d31c6";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(2);
     const borrow = tx.transfers[1];
     expect(borrow.category).to.equal(Borrow);
@@ -75,9 +75,9 @@ describe(TransactionSources.Maker, () => {
     const txHash = "0xce0ac042673100eb6ad329a5996aa52c43d1f882a0d93bb5607c5a6d27b1014a";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(3);
     const repay = tx.transfers[1];
     expect(repay.category).to.equal(Repay);
@@ -99,9 +99,9 @@ describe(TransactionSources.Maker, () => {
       to: "0x50509324beedeaf5ae19186a6cc2c30631a98d97",
       value: "0.052855519437617299"
     }] });
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
     expect(swapOut.category).to.equal(SwapOut);
@@ -114,9 +114,9 @@ describe(TransactionSources.Maker, () => {
     const txHash = "0x20de49f7742cd25eaa75b4d09158f45b72ff7d847a250b4b60c9f33ac00bd759";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
     expect(swapOut.category).to.equal(SwapOut);
@@ -131,9 +131,9 @@ describe(TransactionSources.Maker, () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     addressBook.newAddress(proxyAddress, AddressCategories.Proxy, "cdp-proxy");
     const chainData = await getRealChainData(txHash);
-    txns.mergeChainData(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    txns.mergeEthereum(chainData);
+    expect(txns.getJson().length).to.equal(1);
+    const tx = txns.getJson()[0];
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Deposit);

@@ -15,7 +15,7 @@ import {
 } from "@valuemachine/types";
 import { getLogger, sm, smeq } from "@valuemachine/utils";
 
-import { publicAddresses } from "./eth";
+import { publicAddresses } from "./ethereum";
 
 export const getAddressBook = (
   userAddressBook: AddressBookJson = [],

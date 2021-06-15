@@ -22,7 +22,7 @@ transactionsRouter.post("/", async (req, res) => {
   log.info(`Syncing txns for ${selfAddresses.length} self addreses`);
   try {
     const transactions = getTransactions({ addressBook, logger: log });
-    await transactions.mergeChainData(
+    await transactions.mergeEthereum(
       chainData.getAddressHistory(...selfAddresses),
     );
     res.json(transactions.json);

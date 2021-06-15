@@ -27,6 +27,7 @@ import {
   AddressBook,
   AddressCategories,
   Assets,
+  ExternalSources,
   Transaction,
   Transactions,
   TransactionsJson,
@@ -261,8 +262,8 @@ export const TransactionExplorer = ({
         transactionsJson: transactions,
         logger: getLogger("info"),
       });
-      txMethods.mergeTransactions(res.data);
-      setTransactions([...txMethods.json]);
+      txMethods.merge(res.data);
+      setTransactions([...txMethods.getJson()]);
       setSyncing(false);
     }).catch((e) => {
       console.warn(`Failed to fetch transactions:`, e.response.data || e.message);
@@ -284,16 +285,8 @@ export const TransactionExplorer = ({
           logger: getLogger("info"),
         });
         const importedFile = reader.result as string;
-        if (importFileType === "coinbase") {
-          txMethods.mergeCoinbase(importedFile);
-        } else if (importFileType === "digitalocean") {
-          txMethods.mergeDigitalOcean(importedFile);
-        } else if (importFileType === "wazirx") {
-          txMethods.mergeWazirx(importedFile);
-        } else if (importFileType === "wyre") {
-          txMethods.mergeWyre(importedFile);
-        }
-        setTransactions([...txMethods.json]);
+        txMethods.mergeCsv(importFileType, importedFile);
+        setTransactions([...txMethods.getJson()]);
       } catch (e) {
         console.error(e);
       }
@@ -341,10 +334,10 @@ export const TransactionExplorer = ({
           onChange={handleFileTypeChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          <MenuItem value={"coinbase"}>Coinbase</MenuItem>
-          <MenuItem value={"digitalocean"}>Digital Ocean</MenuItem>
-          <MenuItem value={"wyre"}>Wyre</MenuItem>
-          <MenuItem value={"wazirx"}>Wazirx</MenuItem>
+          <MenuItem value={ExternalSources.Coinbase}>{ExternalSources.Coinbase}</MenuItem>
+          <MenuItem value={ExternalSources.DigitalOcean}>{ExternalSources.DigitalOcean}</MenuItem>
+          <MenuItem value={ExternalSources.Wyre}>{ExternalSources.Wyre}</MenuItem>
+          <MenuItem value={ExternalSources.Wazirx}>{ExternalSources.Wazirx}</MenuItem>
         </Select>
       </FormControl>
 

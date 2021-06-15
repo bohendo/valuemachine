@@ -84,10 +84,9 @@ export type Transfer = {
 export type Transaction = {
   date: TimestampString;
   method?: string;
-  hash?: Bytes32;
+  hash?: Bytes32; // Convert to UUID
   index?: number;
   sources: TransactionSource[];
-  tags: string[];
   transfers: Transfer[];
 }
 export type TransactionsJson = Transaction[];
@@ -100,13 +99,10 @@ export type TransactionParams = {
 };
 
 export type Transactions = {
-  json: TransactionsJson;
-  mergeChainData: (chainData: ChainData) => Promise<void>;
-  mergeCoinbase: (csvData: string) => Promise<void>;
-  mergeDigitalOcean: (csvData: string) => Promise<void>;
-  mergeTransactions: (transactions: TransactionsJson) => Promise<void>;
-  mergeWazirx: (csvData: string) => Promise<void>;
-  mergeWyre: (csvData: string) => Promise<void>;
+  getJson: () => TransactionsJson;
+  mergeEthereum: (chainData: ChainData) => Promise<void>;
+  mergeCsv: (source: ExternalSource, csvData: string) => Promise<void>;
+  merge: (chainData: ChainData) => Promise<void>;
 };
 
 export const emptyTransactions = [] as TransactionsJson;
