@@ -100,9 +100,9 @@ export type TransactionParams = {
 
 export type Transactions = {
   getJson: () => TransactionsJson;
-  mergeEthereum: (chainData: ChainData) => Promise<void>;
-  mergeCsv: (source: ExternalSource, csvData: string) => Promise<void>;
-  merge: (chainData: ChainData) => Promise<void>;
+  mergeEthereum: (chainData: ChainData) => void;
+  mergeCsv: (source: ExternalSource, csvData: string) => void;
+  merge: (transactions: TransactionsJson) => void;
 };
 
 export const emptyTransactions = [] as TransactionsJson;

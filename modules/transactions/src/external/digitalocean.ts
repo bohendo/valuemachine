@@ -29,7 +29,6 @@ export const mergeDigitalOceanTransactions = (
       date: (new Date(date)).toISOString(),
       method: "Payment",
       sources: [source],
-      tags: ["f1040sc-L20a"],
       transfers: [],
     } as Transaction;
     transaction.transfers.push({

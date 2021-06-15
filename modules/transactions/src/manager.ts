@@ -58,7 +58,7 @@ export const getTransactions = ({
 
   const getJson = () => json;
 
-  const mergeEthereum = async (chainData: ChainData): Promise<void> => {
+  const mergeEthereum = (chainData: ChainData): void => {
     const newEthTxns = chainData.getEthTransactions(ethTx =>
       !json.some(tx => tx.hash === ethTx.hash),
     );
@@ -78,7 +78,7 @@ export const getTransactions = ({
     sync();
   };
 
-  const mergeCsv = (source: ExternalSource, csvData: string): Promise<void> => {
+  const mergeCsv = (source: ExternalSource, csvData: string): void => {
     if (source === ExternalSources.Coinbase) {
       mergeCoinbaseTransactions(json, csvData, log);
     } else if (source === ExternalSources.DigitalOcean) {
@@ -95,7 +95,7 @@ export const getTransactions = ({
     sync();
   };
 
-  const merge = async (transactions: TransactionsJson): Promise<void> => {
+  const merge = (transactions: TransactionsJson): void => {
     log.info(`Merging ${transactions.length} new txs into ${json.length} existing txs`);
     transactions.forEach(tx => mergeTransaction(json, tx, log));
     sync();

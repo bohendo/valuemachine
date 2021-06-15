@@ -42,7 +42,6 @@ const getTx = (transfers: Transfer): Transaction => ({
   ).toISOString(),
   index: txIndex++,
   sources: [EthTx],
-  tags: [],
   transfers: transfers || [],
 });
 

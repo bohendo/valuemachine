@@ -30,7 +30,6 @@ const getExternalTx = (): Transaction => ({
   // The external date can be off slightly from the eth tx date
   date: timestamp, // new Date(new Date(timestamp).getTime() + (1000 * 60 * 15)).toISOString(),
   sources: [externalSource],
-  tags: [],
   transfers: [
     {
       asset: ETH,
@@ -47,7 +46,6 @@ const getEthTx = (): Transaction => ({
   date: timestamp,
   hash: HashZero,
   sources: [EthTx],
-  tags: [],
   transfers: [
     {
       asset: ETH,

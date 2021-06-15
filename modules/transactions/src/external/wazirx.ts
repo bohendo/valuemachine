@@ -31,7 +31,6 @@ export const mergeWazirxTransactions = (
       // trailing Z is important bc it designates GMT times insead of local time
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
       sources: [source],
-      tags: [],
       transfers: [],
     } as Transaction;
 

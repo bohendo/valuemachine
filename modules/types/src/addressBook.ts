@@ -25,7 +25,6 @@ export type AddressEntry = {
   category: AddressCategory;
   name: string;
   guardian?: SecurityProvider;
-  tags?: string[];
 };
 
 export type AddressBookJson = Array<AddressEntry>;

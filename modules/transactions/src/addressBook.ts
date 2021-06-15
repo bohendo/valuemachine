@@ -96,18 +96,6 @@ export const getAddressBook = (
   ////////////////////////////////////////
   // Internal Functions
 
-  const isInnerCategory = (category: AddressCategory) => (address: Address): boolean =>
-    address && addressBook
-      .filter(row => smeq(row.category, category))
-      .map(row => sm(row.address))
-      .includes(sm(address));
-
-  const isTagged = (tag: AddressCategory) => (address: Address): boolean =>
-    address && addressBook
-      .filter(row => row.tags && row.tags.includes(tag.toLowerCase()))
-      .map(row => sm(row.address))
-      .includes(sm(address));
-
   ////////////////////////////////////////
   // Init Code
 
@@ -128,7 +116,10 @@ export const getAddressBook = (
   // Exports
 
   const isCategory = (category: AddressCategory) => (address: Address): boolean =>
-    isInnerCategory(category)(address) || isTagged(category)(address);
+    address && addressBook
+      .filter(row => smeq(row.category, category))
+      .map(row => sm(row.address))
+      .includes(sm(address));
 
   const isPresent = (address: Address): boolean => addresses.includes(sm(address));
 
