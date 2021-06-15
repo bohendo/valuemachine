@@ -45,7 +45,7 @@ start: dev
 	bash ops/start.sh
 
 start-prod:
-	FINANCES_ENV=prod bash ops/start.sh
+	VM_ENV=prod bash ops/start.sh
 
 stop:
 	bash ops/stop.sh
@@ -54,7 +54,7 @@ restart: dev stop
 	bash ops/start.sh
 
 restart-prod: stop
-	FINANCES_ENV=prod bash ops/start.sh
+	VM_ENV=prod bash ops/start.sh
 
 clean: stop
 	rm -rf modules/*/build

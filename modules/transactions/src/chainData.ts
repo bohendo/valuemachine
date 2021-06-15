@@ -50,6 +50,7 @@ const getTokenInterface = (address?: Address): Interface => new Interface(
   ].includes(sm(address)) ? bytesAbi : stringAbi
 );
 
+// TODO: rename to ethereumData
 export const getChainData = ({
   chainDataJson,
   etherscanKey,
@@ -107,9 +108,9 @@ export const getChainData = ({
     new Date(d1.timestamp || d1).getTime() - new Date(d2.timestamp || d2).getTime();
 
   const getProvider = (key?: string): Provider => {
-    if (process.env.FINANCES_ETH_PROVIDER) {
-      log.debug(`Connecting eth provider to ${process.env.FINANCES_ETH_PROVIDER}`);
-      return new JsonRpcProvider(process.env.FINANCES_ETH_PROVIDER);
+    if (process.env.VM_ETH_PROVIDER) {
+      log.debug(`Connecting eth provider to ${process.env.VM_ETH_PROVIDER}`);
+      return new JsonRpcProvider(process.env.VM_ETH_PROVIDER);
     } else {
       log.debug(`Connecting eth provider to etherscan`);
       return new EtherscanProvider("homestead", key || etherscanKey);

@@ -11,7 +11,7 @@ if [[ ! -d "/data" ]]
 then mkdir -p /data
 fi
 
-if [[ "$FINANCES_PROD" == "true" ]]
+if [[ "$VM_PROD" == "true" ]]
 then
   echo "Starting valuemachine server in prod-mode"
   exec node --no-deprecation dist/bundle.js

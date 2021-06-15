@@ -1,6 +1,6 @@
 export const env = {
-  adminToken: process.env.FINANCES_ADMIN_TOKEN || "abc123",
-  etherscanKey: process.env.FINANCES_ETHERSCAN_KEY || "",
-  logLevel: process.env.FINANCES_LOG_LEVEL || "info",
-  port: parseInt(process.env.FINANCES_PORT || "8080", 10),
+  adminToken: process.env.VM_ADMIN_TOKEN || "abc123",
+  etherscanKey: process.env.VM_ETHERSCAN_KEY || "",
+  logLevel: process.env.VM_LOG_LEVEL || "info",
+  port: parseInt(process.env.VM_PORT || "8080", 10),
 };
