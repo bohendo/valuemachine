@@ -25,7 +25,6 @@ test:
       alias: localhost
   script:
     - apk add bash curl git jq make
-    - make pull-latest
     - make test-transactions
     - make test-core
     - make start-prod

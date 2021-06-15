@@ -81,7 +81,7 @@ server_env="environment:
 
 if [[ "$VM_PROD" == "true" ]]
 then
-  server_image="${project}_server:$version"
+  server_image="${project}:$version"
   server_service="server:
     image: '$server_image'
     $common
