@@ -1,3 +1,5 @@
+import { Logger } from "./logger";
+import { Store } from "./store";
 import {
   Address,
   Bytes32,
@@ -56,6 +58,13 @@ export type ChainDataJson = {
   calls: EthCall[]; // Note: we can have multiple calls per txHash
   tokens: { [address: string]: TokenData };
   transactions: EthTransaction[];
+};
+
+export type ChainDataParams = {
+  chainDataJson?: ChainDataJson;
+  etherscanKey?: string;
+  logger?: Logger;
+  store?: Store;
 };
 
 export interface ChainData {

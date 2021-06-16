@@ -391,12 +391,12 @@ const getEmptyEntry = (): AddressEntry => ({
 export const AddressBookManager = ({
   apiKey,
   setApiKey,
-  addressBookJson,
+  addressBook,
   setAddressBookJson,
 }: {
   apiKey: string,
   setApiKey: (val: string) => void,
-  addressBookJson: AddressBookJson,
+  addressBook: AddressBookJson,
   setAddressBookJson: (val: AddressBookJson) => void,
 }) => {
   const [page, setPage] = useState(0);
@@ -418,15 +418,15 @@ export const AddressBookManager = ({
   const classes = useStyles();
 
   useEffect(() => {
-    setAllAddresses(addressBookJson.map(entry => entry.address));
-  }, [addressBookJson]);
+    setAllAddresses(addressBook.json.map(entry => entry.address));
+  }, [addressBook]);
 
   useEffect(() => {
     setNewApiKey({ value: apiKey || "", error: "" });
   }, [apiKey]);
 
   useEffect(() => {
-    setFilteredAddresses(addressBookJson.filter(entry =>
+    setFilteredAddresses(addressBook.json.filter(entry =>
       !filterCategory || entry.category === filterCategory
     ).sort((e1, e2) =>
       // put self addresses first
@@ -449,7 +449,7 @@ export const AddressBookManager = ({
           : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
           : 0
     ));
-  }, [addressBookJson, filterCategory]);
+  }, [addressBook, filterCategory]);
 
   const handleClose = () => {
     setStatusAlert({
@@ -491,13 +491,13 @@ export const AddressBookManager = ({
           throw new Error("Imported file does not contain an address book");
         }
         console.log(`File with an address book has been loaded:`, importedAddresses);
-        const addressBook = [...addressBookJson]; // create new array to ensure it re-renders
+        const newAddressBook = [...addressBook.json]; // create new array to ensure it re-renders
         importedAddresses.forEach(entry => {
-          if (!addressBookJson.some(e => smeq(e?.address, entry?.address))) {
-            addressBook.push(entry);
+          if (!addressBook.json.some(e => smeq(e?.address, entry?.address))) {
+            newAddressBook.push(entry);
           }
         });
-        setAddressBookJson(addressBook);
+        setAddressBookJson(newAddressBook);
       } catch (e) {
         console.error(e);
       }
@@ -505,7 +505,7 @@ export const AddressBookManager = ({
   };
 
   const handleExport = () => {
-    const output = JSON.stringify({ addressBook: addressBookJson }, null, 2);
+    const output = JSON.stringify({ addressBook: addressBook.json }, null, 2);
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
     a.href = "data:" + data;
@@ -518,7 +518,7 @@ export const AddressBookManager = ({
       console.log(`${
         !editedEntry ? "Deleting" : index === allAddresses.length ? "Creating" : "Updating"
       } ${JSON.stringify(editedEntry)}`);
-      const newAddressBook = [...addressBookJson]; // create new array to ensure it re-renders
+      const newAddressBook = [...addressBook.json]; // create new array to ensure it re-renders
       if (!editedEntry) {
         newAddressBook.splice(index,1);
       } else {
@@ -535,7 +535,7 @@ export const AddressBookManager = ({
   };
 
   const addNewAddress = (editedEntry: AddressEntry) => {
-    editEntry(addressBookJson.length, editedEntry);
+    editEntry(addressBook.json.length, editedEntry);
   };
 
   const syncAddress = async (address: string) => {
@@ -568,7 +568,7 @@ export const AddressBookManager = ({
   };
 
   const syncAll = async () => {
-    for (const entry of addressBookJson.filter(e => e.category === AddressCategories.Self)) {
+    for (const entry of addressBook.json.filter(e => e.category === AddressCategories.Self)) {
       await syncAddress(entry.address);
     }
   };
@@ -696,7 +696,7 @@ export const AddressBookManager = ({
             color="primary"
             onClick={reset}
             size="medium"
-            disabled={!addressBookJson?.length}
+            disabled={!addressBook.json?.length}
             startIcon={<RemoveIcon/>}
             variant="contained"
           >
@@ -721,7 +721,7 @@ export const AddressBookManager = ({
           onChange={handleFilterChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(addressBookJson.map(e => e.category))).map(cat => (
+          {Array.from(new Set(addressBook.json.map(e => e.category))).map(cat => (
             <MenuItem key={cat} value={cat}>{cat}</MenuItem>
           ))}
         </Select>
@@ -730,9 +730,9 @@ export const AddressBookManager = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredAddresses.length === addressBookJson.length
+          {filteredAddresses.length === addressBook.json.length
             ? `${filteredAddresses.length} Addresses`
-            : `${filteredAddresses.length} of ${addressBookJson.length} Addresses`
+            : `${filteredAddresses.length} of ${addressBook.json.length} Addresses`
           }
         </Typography>
 
@@ -764,7 +764,7 @@ export const AddressBookManager = ({
                   <AddressRow
                     otherAddresses={[...allAddresses.slice(0, i), ...allAddresses.slice(i + 1)]}
                     key={i}
-                    index={addressBookJson.findIndex(e => smeq(e.address, entry.address))}
+                    index={addressBook.json.findIndex(e => smeq(e.address, entry.address))}
                     editEntry={editEntry}
                     entry={entry}
                     syncAddress={syncAddress}

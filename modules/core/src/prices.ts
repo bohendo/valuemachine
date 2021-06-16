@@ -1,17 +1,16 @@
 import { publicAddresses } from "@valuemachine/transactions";
 import {
-  Assets,
   Asset,
+  Assets,
   DateString,
   DecimalString,
   emptyPrices,
   EthereumAssets,
   FiatCurrencies,
-  Logger,
   PriceList,
   Prices,
   PricesJson,
-  Store,
+  PricesParams,
   StoreKeys,
   TimestampString,
   Transaction,
@@ -35,19 +34,12 @@ const {
 } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
 
-type PricesParams = {
-  logger?: Logger;
-  pricesJson?: PricesJson;
-  store?: Store;
-  unit?: Asset;
-};
-
 export const getPrices = (params?: PricesParams): Prices => {
-  const { logger, store, pricesJson, unit: defaultUnit } = params || {};
+  const { logger, store, json: pricesJson, unit: defaultUnit } = params || {};
   const json = pricesJson
     || store?.load(StoreKeys.Prices)
     || JSON.parse(JSON.stringify(emptyPrices));
-  const save = (json: PricesJson): void => store?.save(StoreKeys.Prices, json);
+  const save = (): void => store?.save(StoreKeys.Prices, json);
   const log = (logger || getLogger()).child({ module: "Prices" });
 
   const ethish = [ETH, WETH] as Asset[];
@@ -287,7 +279,7 @@ export const getPrices = (params?: PricesParams): Prices => {
     if (!json[date]) json[date] = {};
     if (!json[date][unit]) json[date][unit] = {};
     json[date][unit][asset] = formatPrice(price);
-    save(json);
+    save();
   };
 
   ////////////////////////////////////////

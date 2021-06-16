@@ -114,8 +114,8 @@ describe("Prices", () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     await prices.syncTransaction(tx, ETH);
     expect(prices.getPrice(tx.date, SPANK, ETH)).to.be.ok;
     await prices.syncTransaction(tx, USD);
@@ -127,8 +127,8 @@ describe("Prices", () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     prices.merge({ [tx.date]: {
       USD: {
         ETH: "224.13487737180202",
@@ -148,8 +148,8 @@ describe("Prices", () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     await prices.syncTransaction(tx, ETH);
     expect(prices.getPrice(tx.date, DAI, ETH)).to.be.ok;
     await prices.syncTransaction(tx, USD);

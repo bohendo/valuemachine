@@ -54,7 +54,7 @@ describe("VM", () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.getJson().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
     vm = getValueMachine({ addressBook, logger: log });
@@ -223,11 +223,11 @@ describe("VM", () => {
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
-    log.info(vm.getJson().events, `All events`);
-    expect(vm.getJson().events[0]?.type).to.equal(EventTypes.Income);
-    expect(vm.getJson().events[1]?.type).to.equal(EventTypes.Expense);
-    expect(vm.getJson().events[2]?.type).to.equal(EventTypes.Expense);
-    expect(vm.getJson().events[2]?.newBalances?.[ETH]).to.equal("4.9");
+    log.info(vm.json.events, `All events`);
+    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.Expense);
+    expect(vm.json.events[2]?.type).to.equal(EventTypes.Expense);
+    expect(vm.json.events[2]?.newBalances?.[ETH]).to.equal("4.9");
   });
 
   it("should process out of order eth transfers", async () => {
@@ -251,7 +251,7 @@ describe("VM", () => {
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
-    const events = vm.getJson().events;
+    const events = vm.json.events;
     log.info(events, `All events`);
     expect(events[events.length - 1]?.newBalances?.[ETH]).to.equal("0.9");
   });
@@ -278,7 +278,7 @@ describe("VM", () => {
     log.info(`Done processing ${transactions.length} transactions at a rate of ${
       Math.round(transactions.length * 10000/(Date.now() - start))/10
     } tx/s`);
-    const events = vm.getJson().events;
+    const events = vm.json.events;
     log.info(events, `All events`);
     expect(events[events.length - 1]?.newBalances?.[ETH]).to.equal("0.7");
   });

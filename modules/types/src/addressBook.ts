@@ -1,3 +1,4 @@
+import { Logger } from "./logger";
 import { SecurityProvider } from "./security";
 import { Address, HexString } from "./strings";
 import { enumify } from "./utils";
@@ -30,6 +31,11 @@ export type AddressEntry = {
 export type AddressBookJson = Array<AddressEntry>;
 
 export const emptyAddressBook = [] as AddressBookJson;
+
+export type AddressBookParams = {
+  json: AddressBookJson;
+  logger: Logger;
+}
 
 export interface AddressBook {
   addresses: Address[];

@@ -35,8 +35,8 @@ describe(source, () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
@@ -58,8 +58,8 @@ describe(source, () => {
       value: "0.079"
     }] });
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];

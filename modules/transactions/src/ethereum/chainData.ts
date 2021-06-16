@@ -13,10 +13,9 @@ import {
   EthTransaction,
   EthCall,
   ChainData,
+  ChainDataParams,
   ChainDataJson,
   HexString,
-  Logger,
-  Store,
   StoreKeys,
   TokenData,
 } from "@valuemachine/types";
@@ -49,13 +48,6 @@ const getTokenInterface = (address?: Address): Interface => new Interface(
     "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
   ].includes(sm(address)) ? bytesAbi : stringAbi
 );
-
-type ChainDataParams = {
-  chainDataJson?: ChainDataJson;
-  etherscanKey?: string;
-  logger?: Logger;
-  store?: Store;
-};
 
 export const getChainData = (params?: ChainDataParams): ChainData => {
   const { chainDataJson, etherscanKey, logger, store } = params || {};

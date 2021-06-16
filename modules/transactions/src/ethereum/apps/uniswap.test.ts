@@ -27,7 +27,7 @@ describe(source, () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.getJson().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
   });
 
   it("should handle a v1 swap", async () => {
@@ -45,8 +45,8 @@ describe(source, () => {
       value: "7.139681444502334347"
     }] });
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
     const fee = tx.transfers[0];
@@ -72,8 +72,8 @@ describe(source, () => {
       value: "0.705704103459495063"
     }] });
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
     const fee = tx.transfers[0];

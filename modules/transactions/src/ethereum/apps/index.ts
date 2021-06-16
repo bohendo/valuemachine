@@ -10,7 +10,7 @@ import { uniswapAddresses, uniswapParser } from "./uniswap";
 import { wethAddresses, wethParser } from "./weth";
 import { yearnAddresses, yearnParser } from "./yearn";
 
-export const publicAddresses = [
+export const appAddresses = [
   ...argentAddresses,
   ...compoundAddresses,
   ...etherdeltaAddresses,

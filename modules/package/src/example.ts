@@ -24,7 +24,7 @@ const addressBookJson = [{
   category: AddressCategories.Self, // this is a string of the key name so just "Self" is fine too
   name: "bohendo.eth",
 }];
-const addressBook = getAddressBook(addressBookJson, logger);
+const addressBook = getAddressBook({ json: addressBookJson, logger });
 
 // We'll be making network calls to get chain data & prices so switch to async mode
 (async () => {
@@ -41,19 +41,19 @@ const addressBook = getAddressBook(addressBookJson, logger);
 
   // Create a value machine & process our transactions
   const vm = getValueMachine({ addressBook, logger });
-  for (const transaction of transactions.getJson()) {
+  for (const transaction of transactions.json) {
     vm.execute(transaction);
   }
 
   // Create a price fetcher & fetch the relevant prices
   const unit = "USD";
   const prices = getPrices({ logger, store, unit });
-  for (const transaction of transactions.getJson()) {
+  for (const transaction of transactions.json) {
     await prices.syncTransaction(transaction);
   }
 
   // calculate & print capital gains
-  for (const event of vm.getJson().events) {
+  for (const event of vm.json.events) {
     if (event.type === EventTypes.Trade) {
       event.outputs.forEach(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);

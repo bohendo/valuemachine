@@ -18,16 +18,15 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
-import { getPrices } from "@valuemachine/core";
 import {
   Assets,
   Blockchains,
   EthereumAssets,
   Prices,
   PricesJson,
-  TransactionsJson,
+  Transactions,
 } from "@valuemachine/types";
-import { getLocalStore, sigfigs, smeq } from "@valuemachine/utils";
+import { sigfigs, smeq } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -74,17 +73,16 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 export const PriceManager = ({
-  pricesJson,
+  prices,
   setPricesJson,
   transactions,
   unit,
 }: {
-  pricesJson: PricesJson;
+  prices: Prices;
   setPricesJson: (val: PricesJson) => void;
-  transactions: TransactionsJson,
+  transactions: Transactions,
   unit: Assets,
 }) => {
-  const [prices, setPrices] = useState({} as Prices);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState(false);
@@ -94,9 +92,9 @@ export const PriceManager = ({
   const classes = useStyles();
 
   useEffect(() => {
-    if (!pricesJson || !Object.keys(prices).length) return;
+    if (!prices || !Object.keys(prices.json).length) return;
     const newFilteredPrices = {} as PricesJson;
-    Object.entries(pricesJson).forEach(([date, priceList]) => {
+    Object.entries(prices.json).forEach(([date, priceList]) => {
       if (filterDate && !date.startsWith(filterDate.split("T")[0])) return null;
       if (Object.keys(priceList).length === 0) return null;
       if (Object.keys(priceList[unit] || {}).length === 0) return null;
@@ -109,11 +107,7 @@ export const PriceManager = ({
       });
     });
     setFilteredPrices(newFilteredPrices);
-  }, [unit, prices, pricesJson, filterAsset, filterDate]);
-
-  useEffect(() => {
-    setPrices(getPrices({ pricesJson, store: getLocalStore(localStorage), unit }));
-  }, [pricesJson, unit]);
+  }, [unit, prices, prices.json, filterAsset, filterDate]);
 
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterAsset(event.target.value);
@@ -134,10 +128,10 @@ export const PriceManager = ({
       return;
     }
     setSyncing(true);
-    console.log(`Syncing price data for ${transactions.length} transactions`);
+    console.log(`Syncing price data for ${transactions.json.length} transactions`);
     try {
-      for (const i in transactions) {
-        const transaction = transactions[i];
+      for (const i in transactions.json) {
+        const transaction = transactions.json[i];
         // Only sync via server if we're missing some prices
         const missing = Array.from(new Set([...transaction.transfers.map(t => t.asset)]))
           .map(asset => prices.getPrice(transaction.date, asset))
@@ -199,11 +193,11 @@ export const PriceManager = ({
             startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
             variant="outlined"
           >
-            {`Sync ${unit} Prices for ${transactions.length} Transactions`}
+            {`Sync ${unit} Prices for ${transactions.json.length} Transactions`}
           </Button>
           <Button
             className={classes.button}
-            disabled={!Object.keys(pricesJson).length}
+            disabled={!Object.keys(prices.json).length}
             onClick={clearPrices}
             startIcon={<ClearIcon/>}
             variant="outlined"

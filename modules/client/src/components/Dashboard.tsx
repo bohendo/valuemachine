@@ -6,8 +6,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import { getValueMachine } from "@valuemachine/core";
-import { AddressBook, ValueMachineJson } from "@valuemachine/types";
+import { AddressBook, ValueMachine } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
 import { HexString } from "./HexString";
@@ -55,25 +54,23 @@ export const BalanceTable = ({
 
 export const Dashboard: React.FC = ({
   addressBook,
-  vmJson,
+  vm,
 }: {
   addressBook: AddressBook;
-  vmJson: ValueMachineJson;
+  vm: ValueMachine;
 }) => {
   const [allBalances, setAllBalances] = useState({});
   console.log(`We have ${addressBook?.addresses?.length} addresses`);
-  console.log(vmJson);
   const classes = useStyles();
 
   useEffect(() => {
-    if (!addressBook || !vmJson) return;
-    const valueMachine = getValueMachine({ addressBook, json: vmJson });
-    const accounts = valueMachine.getAccounts();
+    if (!addressBook || !vm) return;
+    const accounts = vm.getAccounts();
     setAllBalances(accounts.reduce((balances, account) => {
-      balances[account] = valueMachine.getNetWorth(account);
+      balances[account] = vm.getNetWorth(account);
       return balances;
     }, {}));
-  }, [addressBook, vmJson]);
+  }, [addressBook, vm]);
 
   return (<>
 

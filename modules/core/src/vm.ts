@@ -1,6 +1,5 @@
 import {
   Account,
-  AddressBook,
   Asset,
   AssetChunk,
   Balances,
@@ -10,8 +9,8 @@ import {
   Event,
   Events,
   EventTypes,
-  Logger,
   PhysicalGuardians,
+  StoreKeys,
   TradeEvent,
   Transaction,
   TransactionSources,
@@ -19,7 +18,7 @@ import {
   TransferCategories,
   TransferCategory,
   ValueMachine,
-  ValueMachineJson,
+  ValueMachineParams,
 } from "@valuemachine/types";
 import {
   add,
@@ -44,16 +43,15 @@ const isOpaqueInterestBearers = (account: Account): boolean =>
 export const getValueMachine = ({
   addressBook,
   logger,
-  json,
-}: {
-  addressBook: AddressBook;
-  logger?: Logger;
-  json?: ValueMachineJson;
-}): ValueMachine => {
+  store,
+  json: vmJson,
+}: ValueMachineParams): ValueMachine => {
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
-  const state = json || JSON.parse(JSON.stringify(emptyValueMachine));
-  state.chunks = state.chunks || [];
-  state.events = state.events || [];
+  const json = vmJson
+    || store?.load(StoreKeys.ValueMachine)
+    || JSON.parse(JSON.stringify(emptyValueMachine));
+  json.chunks = json.chunks || [];
+  json.events = json.events || [];
 
   let newEvents = [] as Events;
 
@@ -77,12 +75,12 @@ export const getValueMachine = ({
       quantity,
       asset,
       account,
-      index: state.chunks.length,
+      index: json.chunks.length,
       inputs: [],
-      receiveDate: state.date,
+      receiveDate: json.date,
       unsecured: isPhysicallyGuarded(account) ? "0" : quantity,
     };
-    state.chunks.push(newChunk);
+    json.chunks.push(newChunk);
     return newChunk;
   };
 
@@ -110,8 +108,8 @@ export const getValueMachine = ({
   ): AssetChunk[] => {
     const { asset, quantity: total } = oldChunk;
     const leftover = sub(total, amtNeeded);
-    const newChunk = { ...oldChunk, quantity: amtNeeded, index: state.chunks.length };
-    state.chunks.push(newChunk); // not minting bc we want to keep receiveDate the same
+    const newChunk = { ...oldChunk, quantity: amtNeeded, index: json.chunks.length };
+    json.chunks.push(newChunk); // not minting bc we want to keep receiveDate the same
     oldChunk.quantity = leftover;
     log.debug(`Split ${asset} chunk of ${total} into ${amtNeeded} and ${leftover}`);
     return [newChunk, oldChunk];
@@ -123,7 +121,7 @@ export const getValueMachine = ({
     account: Account,
   ): AssetChunk[] => {
     const balance = getBalance(asset, account);
-    const available = state.chunks.filter(isHeld(account, asset));
+    const available = json.chunks.filter(isHeld(account, asset));
 
     // If balance equals what we need, return all available chunks
     if (eq(balance, quantity)) {
@@ -201,10 +199,8 @@ export const getValueMachine = ({
   ////////////////////////////////////////
   // Exported Methods
 
-  const getJson = () => state;
-
   const getBalance = (asset: Asset, account?: Account): DecimalString =>
-    state.chunks.reduce((balance, chunk) => {
+    json.chunks.reduce((balance, chunk) => {
       return (asset && chunk.asset === asset) && ((
         !account && chunk.account
       ) || (
@@ -212,13 +208,13 @@ export const getValueMachine = ({
       )) ? add(balance, chunk.quantity) : balance;
     }, "0");
 
-  const getAccounts = (): Account[] => Array.from(state.chunks.reduce((accounts, chunk) => {
+  const getAccounts = (): Account[] => Array.from(json.chunks.reduce((accounts, chunk) => {
     if (chunk.account) accounts.add(chunk.account);
     return accounts;
   }, new Set()));
 
   const getNetWorth = (account?: Account): Balances =>
-    state.chunks.reduce((netWorth, chunk) => {
+    json.chunks.reduce((netWorth, chunk) => {
       if (chunk.account && (!account || chunk.account === account)) {
         netWorth[chunk.asset] = add(netWorth[chunk.asset], chunk.quantity);
       }
@@ -239,12 +235,12 @@ export const getValueMachine = ({
     } else {
       // If account balance is negative, annihilate debt before maybe adding new chunks
       const disposeDebt = chunk => {
-        chunk.disposeDate = state.date;
+        chunk.disposeDate = json.date;
         chunk.outputs = [];
         delete chunk.account;
       };
       const debt = mul(balance, "-1");
-      const available = state.chunks.filter(isHeld(account, asset));
+      const available = json.chunks.filter(isHeld(account, asset));
       // If total debt equals what we're receiving, annihilate everything available
       if (eq(debt, quantity)) {
         available.forEach(disposeDebt);
@@ -276,7 +272,7 @@ export const getValueMachine = ({
     account: Account,
   ): AssetChunk[] => {
     const disposeChunk = chunk => {
-      chunk.disposeDate = state.date;
+      chunk.disposeDate = json.date;
       chunk.outputs = [];
       delete chunk.account;
     };
@@ -289,7 +285,7 @@ export const getValueMachine = ({
       return [loan];
     } 
     // If balance is positive, dispose positive chunks before maybe taking a loan
-    const available = state.chunks.filter(isHeld(account, asset));
+    const available = json.chunks.filter(isHeld(account, asset));
     if (eq(balance, quantity)) {
       available.forEach(disposeChunk);
       log.debug(`Disposed full balance of ${
@@ -333,7 +329,7 @@ export const getValueMachine = ({
     chunksIn.forEach(chunk => { chunk.inputs = chunksIn.map(toIndex); });
     // emit trade event
     const tradeEvent = {
-      date: state.date,
+      date: json.date,
       type: EventTypes.Trade,
       inputs: chunksIn.map(toIndex),
       outputs: chunksOut.map(toIndex),
@@ -352,7 +348,7 @@ export const getValueMachine = ({
       const oldGuard = addressBook.getGuardian(from);
       const newGuard = addressBook.getGuardian(to);
       newEvents.push({
-        date: state.date,
+        date: json.date,
         newBalances: { [asset]: getBalance(asset) },
         from: from,
         fromJurisdiction: oldGuard,
@@ -367,7 +363,7 @@ export const getValueMachine = ({
 
   const execute = (tx: Transaction): Events => {
     log.debug(`Processing transaction ${tx.index} from ${tx.date}`);
-    state.date = tx.date;
+    json.date = tx.date;
     newEvents = [] as Events;
 
     const handleTransfer = (
@@ -382,7 +378,7 @@ export const getValueMachine = ({
         const disposed = disposeValue(quantity, asset, from);
         newEvents.push({
           account: from,
-          date: state.date,
+          date: json.date,
           newBalances: { [asset]: getBalance(asset) },
           outputs: disposed.map(toIndex),
           type: EventTypes.Expense,
@@ -392,7 +388,7 @@ export const getValueMachine = ({
         const received = receiveValue(quantity, asset, to);
         newEvents.push({
           account: to,
-          date: state.date,
+          date: json.date,
           inputs: received.map(toIndex),
           newBalances: { [asset]: getBalance(asset) },
           type: EventTypes.Income,
@@ -456,31 +452,31 @@ export const getValueMachine = ({
       swapsOut.forEach(handleTransfer);
     }
 
-    state.events.push(...newEvents);
+    json.events.push(...newEvents);
     return newEvents;
   };
 
   const getChunk = (index: number): AssetChunk => JSON.parse(JSON.stringify(
-    state.chunks[index]
+    json.chunks[index]
   ));
 
   const getEvent = (index: number): Event => JSON.parse(JSON.stringify({
-    ...state.events[index],
-    inputs: state.events[index]?.inputs?.map(getChunk) || [],
-    outputs: state.events[index]?.outputs?.map(getChunk) || [],
+    ...json.events[index],
+    inputs: json.events[index]?.inputs?.map(getChunk) || [],
+    outputs: json.events[index]?.outputs?.map(getChunk) || [],
   }));
 
   return {
-    receiveValue,
-    moveValue,
-    tradeValue,
     disposeValue,
     execute,
-    getChunk,
-    getEvent,
-    getJson,
     getAccounts,
     getBalance,
+    getChunk,
+    getEvent,
     getNetWorth,
+    json,
+    moveValue,
+    receiveValue,
+    tradeValue,
   };
 };

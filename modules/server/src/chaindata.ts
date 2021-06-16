@@ -20,7 +20,7 @@ export const chainData = getChainData({
   store,
 });
 
-const addressBook = getAddressBook([], log);
+const addressBook = getAddressBook({ json: [], logger: log });
 chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
 
 export const chainDataRouter = express.Router();

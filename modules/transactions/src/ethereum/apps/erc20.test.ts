@@ -40,14 +40,14 @@ describe(source, () => {
       getTestEthCall({ from: sender, to: recipient, value: "0.1" }),
       getTestEthCall({ from: sender, to: recipient, value: "0.1" }),
     ]);
-    expect(txns.getJson().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    expect(txns.getJson()[0].transfers.length).to.equal(5);
+    expect(txns.json.length).to.equal(1);
+    expect(txns.json[0].transfers.length).to.equal(5);
     // Run again to ensure no dups are generated
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    expect(txns.getJson()[0].transfers.length).to.equal(5);
+    expect(txns.json.length).to.equal(1);
+    expect(txns.json[0].transfers.length).to.equal(5);
   });
 
   it("should parse erc20 transfers", async () => {
@@ -65,12 +65,12 @@ describe(source, () => {
         }
       ] })
     ]);
-    expect(txns.getJson().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    expect(txns.getJson()[0].sources).to.include(source);
-    expect(txns.getJson()[0].transfers.length).to.equal(2);
-    const tokenTransfer = txns.getJson()[0].transfers[1];
+    expect(txns.json.length).to.equal(1);
+    expect(txns.json[0].sources).to.include(source);
+    expect(txns.json[0].transfers.length).to.equal(2);
+    const tokenTransfer = txns.json[0].transfers[1];
     expect(tokenTransfer.asset).to.equal(addressBook.getName(tokenAddress));
     expect(tokenTransfer.quantity).to.equal(quantity);
     expect(tokenTransfer.from).to.equal(sender);
@@ -78,8 +78,8 @@ describe(source, () => {
     expect(tokenTransfer.category).to.equal(TransferCategories.Internal);
     // Run again to ensure no dups are generated
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    expect(txns.getJson()[0].transfers.length).to.equal(2);
+    expect(txns.json.length).to.equal(1);
+    expect(txns.json[0].transfers.length).to.equal(2);
   });
 
   it("should parse erc20 approvals", async () => {
@@ -97,10 +97,10 @@ describe(source, () => {
         },
       ] })
     ]);
-    expect(txns.getJson().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(1);
   });
