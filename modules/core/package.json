@@ -18,10 +18,10 @@
     "@ethersproject/bignumber": "5.3.0",
     "@ethersproject/constants": "5.3.0",
     "@ethersproject/units": "5.3.0",
-    "@valuemachine/transactions": "0.0.4",
-    "@valuemachine/transactions": "0.0.4",
-    "@valuemachine/types": "0.0.4",
-    "@valuemachine/utils": "0.0.4",
+    "@valuemachine/transactions": "0.0.5",
+    "@valuemachine/transactions": "0.0.5",
+    "@valuemachine/types": "0.0.5",
+    "@valuemachine/utils": "0.0.5",
     "axios": "0.21.1"
   },
   "devDependencies": {

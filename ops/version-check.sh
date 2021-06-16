@@ -3,7 +3,7 @@ set -e
 
 # TODO: print command to upgrade all outdated packages?
 
-do_not_upgrade='@valuemachine/core @valuemachine/types webpack'
+do_not_upgrade='webpack'
 
 # Create the sed command to remove any ignored packages
 filter_cmd="/\("

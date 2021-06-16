@@ -14,10 +14,10 @@
   },
   "dependencies": {
     "@ethersproject/bytes": "5.3.0",
-    "@valuemachine/core": "0.0.4",
-    "@valuemachine/transactions": "0.0.4",
-    "@valuemachine/types": "0.0.4",
-    "@valuemachine/utils": "0.0.4",
+    "@valuemachine/core": "0.0.5",
+    "@valuemachine/transactions": "0.0.5",
+    "@valuemachine/types": "0.0.5",
+    "@valuemachine/utils": "0.0.5",
     "axios": "0.21.1",
     "express": "4.17.1"
   },

@@ -22,7 +22,7 @@
     "@ethersproject/keccak256": "5.3.0",
     "@ethersproject/rlp": "5.3.0",
     "@ethersproject/units": "5.3.0",
-    "@valuemachine/types": "0.0.4",
+    "@valuemachine/types": "0.0.5",
     "pino": "6.11.3",
     "pino-pretty": "5.0.2"
   },

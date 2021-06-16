@@ -11,13 +11,14 @@
   "types": "dist/index.d.ts",
   "files": ["dist"],
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "test": "node dist/example.js"
   },
   "dependencies": {
-    "@valuemachine/core": "0.0.4",
-    "@valuemachine/transactions": "0.0.4",
-    "@valuemachine/types": "0.0.4",
-    "@valuemachine/utils": "0.0.4"
+    "@valuemachine/core": "0.0.5",
+    "@valuemachine/transactions": "0.0.5",
+    "@valuemachine/types": "0.0.5",
+    "@valuemachine/utils": "0.0.5"
   },
   "devDependencies": {
     "typescript": "4.2.4"
