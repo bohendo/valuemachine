@@ -20,7 +20,7 @@ export const getLocalStore = (localStorage: LocalStorageish): Store => ({
 });
 
 type Fsish = {
-  readFileSync: (path: string, encoding: string | any) => string;
+  readFileSync: (path: string, encoding: string | { encoding: string }) => string;
   writeFileSync: (path: string, data: string) => void;
 };
 export const getFileStore = (dirpath: string, fs: Fsish): Store => {
@@ -31,7 +31,11 @@ export const getFileStore = (dirpath: string, fs: Fsish): Store => {
   }.json`;
   return {
     load: (key: StoreKey): any => {
-      return JSON.parse(fs.readFileSync(getFilePath(key), "utf8"));
+      try {
+        return JSON.parse(fs.readFileSync(getFilePath(key), "utf8"));
+      } catch (e) {
+        return emptyStore[key];
+      }
     },
     save: (key: StoreKey, data: any): void => {
       fs.writeFileSync(getFilePath(key), JSON.stringify(data, null, 2));

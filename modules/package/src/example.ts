@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+
 import {
   getAddressBook,
   getChainData,
@@ -8,36 +11,43 @@ import {
   utils,
 } from "."; // replace "." with "valuemachine" in your code
 
-const { mul, round, sub } = utils;
+const { getFileStore, getLogger, mul, round, sub } = utils;
 const { AddressCategories, EventTypes } = types;
+const logger = getLogger("info");
 
+// store the data we download & generate on the filesystem
+const store = getFileStore(path.join(__dirname, "../exampleData"), fs);
+
+// Gather & categorize the addresses we want to analyze
+const addressBookJson = [{
+  address: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
+  category: AddressCategories.Self, // this is a string of the key name so just "Self" is fine too
+  name: "bohendo.eth",
+}];
+const addressBook = getAddressBook(addressBookJson, logger);
+
+// We'll be making network calls to get chain data & prices so switch to async mode
 (async () => {
 
-  // Gather & categorize the addresses we want to analyze
-  const addressBookJson = [{
-    address: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
-    category: AddressCategories.Self, // this is a string of the key name so just "Self" is fine too
-    name: "bohendo.eth",
-  }];
-  const addressBook = getAddressBook(addressBookJson);
-
   // Fetch tx history and receipts from etherscan
-  const chainData = getChainData();
-  await chainData.syncAddresses(addressBook.addresses);
+  const chainData = getChainData({ logger, store });
+  await chainData.syncAddresses(
+    addressBook.addresses.filter(a => addressBook.isSelf(a))
+  );
 
   // Convert eth chain data into transactions
-  const transactions = getTransactions({ addressBook });
+  const transactions = getTransactions({ addressBook, logger });
   transactions.mergeEthereum(chainData);
 
   // Create a value machine & process our transactions
-  const vm = getValueMachine({ addressBook });
+  const vm = getValueMachine({ addressBook, logger });
   for (const transaction of transactions.getJson()) {
     vm.execute(transaction);
   }
 
   // Create a price fetcher & fetch the relevant prices
   const unit = "USD";
-  const prices = getPrices({ unit });
+  const prices = getPrices({ logger, store, unit });
   for (const transaction of transactions.getJson()) {
     await prices.syncTransaction(transaction);
   }

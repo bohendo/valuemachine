@@ -116,13 +116,17 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
   };
 
   const fetchHistory = async (action: string, address: Address): Promise<any[]> => {
+    const target = action === "txlist" ? "transaction"
+      : action === "txlistinternal" ? "internal call"
+      : action === "tokentx" ? "token"
+      : "";
     const url = `https://api.etherscan.io/api?module=account&` +
       `action=${action}&` +
       `address=${address}&` +
-      `apikey=${etherscanKey}&sort=asc`;
-    log.debug(`Sent request for ${url}`);
+      `apikey=${etherscanKey || ""}&sort=asc`;
+    log.info(`Sent request for ${target} history from Etherscan`);
     const result = (await axios.get(url, { timeout: 10000 })).data.result;
-    log.debug(`Received ${result.length} results from ${url}`);
+    log.info(`Received ${result.length} ${target} history results from Etherscan`);
     return result;
   };
 
