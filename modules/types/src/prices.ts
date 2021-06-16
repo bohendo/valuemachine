@@ -25,6 +25,12 @@ export interface Prices {
   json: PricesJson;
   getCount(unit?: Asset, date?: TimestampString): number;
   getPrice(date: TimestampString, asset: Asset, unit?: Asset): string | undefined;
+  setPrice(
+    price: DecimalString,
+    date: TimestampString,
+    asset: Asset,
+    unit?: Asset
+  ): void;
   merge(prices: PricesJson): void;
   syncPrice(
     date: TimestampString,

@@ -268,20 +268,6 @@ export const getPrices = (params?: PricesParams): Prices => {
     return prices;
   };
 
-  const setPrice = (
-    price: DecimalString,
-    rawDate: DateString,
-    asset: Asset,
-    givenUnit?: Asset,
-  ): void => {
-    const date = formatDate(rawDate);
-    const unit = formatUnit(givenUnit);
-    if (!json[date]) json[date] = {};
-    if (!json[date][unit]) json[date][unit] = {};
-    json[date][unit][asset] = formatPrice(price);
-    save();
-  };
-
   ////////////////////////////////////////
   // Price Oracles
 
@@ -492,6 +478,20 @@ export const getPrices = (params?: PricesParams): Prices => {
   ////////////////////////////////////////
   // External Methods
 
+  const setPrice = (
+    price: DecimalString,
+    rawDate: DateString,
+    asset: Asset,
+    givenUnit?: Asset,
+  ): void => {
+    const date = formatDate(rawDate);
+    const unit = formatUnit(givenUnit);
+    if (!json[date]) json[date] = {};
+    if (!json[date][unit]) json[date][unit] = {};
+    json[date][unit][asset] = formatPrice(price);
+    save();
+  };
+
   const getCount = (
     unit?: Asset,
     date?: DateString,
@@ -662,6 +662,7 @@ export const getPrices = (params?: PricesParams): Prices => {
   return {
     getCount,
     getPrice,
+    setPrice,
     json,
     merge,
     syncPrice,

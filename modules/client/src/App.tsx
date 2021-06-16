@@ -107,6 +107,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!addressBookJson) return;
     console.log(`Refreshing ${addressBookJson.length} address book entries`);
+    store.save(AddressBookStore, addressBookJson);
     setAddressBook(getAddressBook({
       json: addressBookJson,
       logger
@@ -116,6 +117,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!addressBook || !transactionsJson) return;
     console.log(`Refreshing ${transactionsJson.length} transactions`);
+    store.save(TransactionsStore, transactionsJson);
     setTransactions(getTransactions({
       addressBook,
       json: transactionsJson,
@@ -128,6 +130,7 @@ const App: React.FC = () => {
     if (!addressBook || !vmJson) return;
     console.log(`Refreshing ${vmJson.events.length} value machine events`);
     console.log(`Refreshing ${vmJson.chunks.length} value machine chunks`);
+    store.save(ValueMachineStore, vmJson);
     setVM(getValueMachine({
       addressBook,
       json: vmJson,
@@ -138,7 +141,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!pricesJson || !unit) return;
-    console.log(`Refreshing ${Object.keys(pricesJson).length} dates with saved prices`);
+    console.log(`Refreshing ${Object.keys(pricesJson).length} price entries`);
+    store.save(PricesStore, pricesJson);
     setPrices(getPrices({
       json: pricesJson,
       logger,
@@ -193,21 +197,21 @@ const App: React.FC = () => {
               />
             </Route>
 
+            <Route exact path="/prices">
+              <PriceManager
+                prices={prices}
+                setPricesJson={setPricesJson}
+                vm={vm}
+                unit={unit}
+              />
+            </Route>
+
             <Route exact path="/value-machine">
               <ValueMachineExplorer
                 addressBook={addressBook}
                 vm={vm}
                 prices={prices}
                 setVMJson={setVMJson}
-                transactions={transactions}
-                unit={unit}
-              />
-            </Route>
-
-            <Route exact path="/prices">
-              <PriceManager
-                prices={prices}
-                setPricesJson={setPricesJson}
                 transactions={transactions}
                 unit={unit}
               />
