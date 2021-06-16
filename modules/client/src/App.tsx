@@ -1,8 +1,3 @@
-import { getAddressBook } from "@valuemachine/transactions";
-import {
-  Assets,
-  StoreKeys,
-} from "@valuemachine/types";
 import {
   Container,
   CssBaseline,
@@ -12,6 +7,12 @@ import {
   createStyles,
   makeStyles,
 } from "@material-ui/core";
+import { getAddressBook } from "@valuemachine/transactions";
+import {
+  Assets,
+  StoreKeys,
+} from "@valuemachine/types";
+import { getLocalStore } from "@valuemachine/utils";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
@@ -23,7 +24,8 @@ import { PriceManager } from "./components/Prices";
 import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
-import { store } from "./store";
+
+const store = getLocalStore(localStorage);
 
 // localstorage keys
 const {

@@ -36,10 +36,15 @@ import {
   Transactions,
   TransferCategories,
 } from "@valuemachine/types";
-import { add, mul, round as defaultRound, sub, getLogger } from "@valuemachine/utils";
+import {
+  add,
+  getLocalStore,
+  mul,
+  round as defaultRound,
+  sub,
+  getLogger,
+} from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
-
-import { store } from "../store";
 
 import { HexString } from "./HexString";
 
@@ -325,7 +330,12 @@ export const ValueMachineExplorer = ({
   }, [addressBook, vmJson]);
 
   useEffect(() => {
-    setPrices(getPrices({ pricesJson, store, unit, logger: getLogger("warn") }));
+    setPrices(getPrices({
+      pricesJson,
+      store: getLocalStore(localStorage),
+      unit,
+      logger: getLogger("warn"),
+    }));
   }, [pricesJson, unit]);
 
   useEffect(() => {

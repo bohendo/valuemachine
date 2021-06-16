@@ -31,11 +31,16 @@ import {
   TransferCategories,
   ValueMachineJson,
 } from "@valuemachine/types";
-import { add, mul, round as defaultRound, sub } from "@valuemachine/utils";
+import {
+  add,
+  getLocalStore,
+  getLogger,
+  mul,
+  round as defaultRound,
+  sub,
+} from "@valuemachine/utils";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
-
-import { store } from "../store";
 
 import { InputDate } from "./InputDate";
 
@@ -146,7 +151,12 @@ export const TaxesExplorer = ({
 
   useEffect(() => {
     if (!addressBook || !jurisdiction || !vmJson?.events?.length) return;
-    const prices = getPrices({ pricesJson, store, unit: jurisdiction });
+    const prices = getPrices({
+      pricesJson,
+      store: getLocalStore(localStorage),
+      unit: jurisdiction,
+      logger: getLogger("warn"),
+    });
     let cumulativeIncome = "0";
     let cumulativeChange = "0";
     setTaxes(

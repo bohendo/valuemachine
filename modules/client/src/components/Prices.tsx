@@ -27,11 +27,9 @@ import {
   PricesJson,
   TransactionsJson,
 } from "@valuemachine/types";
-import { sigfigs, smeq } from "@valuemachine/utils";
+import { getLocalStore, sigfigs, smeq } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-
-import { store } from "../store";
 
 import { InputDate } from "./InputDate";
 
@@ -114,7 +112,7 @@ export const PriceManager = ({
   }, [unit, prices, pricesJson, filterAsset, filterDate]);
 
   useEffect(() => {
-    setPrices(getPrices({ pricesJson, store, unit }));
+    setPrices(getPrices({ pricesJson, store: getLocalStore(localStorage), unit }));
   }, [pricesJson, unit]);
 
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
