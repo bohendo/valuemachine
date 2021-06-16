@@ -97,6 +97,9 @@ test-core: core
 watch-core: core
 	bash ops/test-unit.sh core watch
 
+run-example: package
+	bash ops/test-unit.sh package test
+
 ########################################
 # Common Prerequisites
 

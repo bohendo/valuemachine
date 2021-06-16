@@ -34,17 +34,16 @@ const {
   REP, REPv2, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
 } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
-export const getPrices = ({
-  logger,
-  store,
-  pricesJson,
-  unit: defaultUnit,
-}: {
-  store: Store;
+
+type PricesParams = {
   logger?: Logger;
   pricesJson?: PricesJson;
+  store?: Store;
   unit?: Asset;
-}): Prices => {
+};
+
+export const getPrices = (params?: PricesParams): Prices => {
+  const { logger, store, pricesJson, unit: defaultUnit } = params || {};
   const json = pricesJson
     || store?.load(StoreKeys.Prices)
     || JSON.parse(JSON.stringify(emptyPrices));

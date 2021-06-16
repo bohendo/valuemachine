@@ -45,20 +45,20 @@ type BaseEvent = {
 
 export type DebtEvent = BaseEvent & {
   account: Account;
-  inputs: Array<ChunkIndex | AssetChunk>;
-  outputs: Array<ChunkIndex | AssetChunk>;
+  inputs: Array<ChunkIndex>;
+  outputs: Array<ChunkIndex>;
   type: typeof EventTypes.Debt;
 };
 
 export type ExpenseEvent = BaseEvent & {
   account: Account;
-  outputs: Array<ChunkIndex | AssetChunk>;
+  outputs: Array<ChunkIndex>;
   type: typeof EventTypes.Expense;
 };
 
 export type IncomeEvent = BaseEvent & {
   account: Account;
-  inputs: Array<ChunkIndex | AssetChunk>;
+  inputs: Array<ChunkIndex>;
   type: typeof EventTypes.Income;
 };
 
@@ -67,15 +67,15 @@ export type JurisdictionChangeEvent = BaseEvent & {
   from: Account;
   to: Account;
   toJurisdiction: SecurityProvider;
-  chunks: Array<ChunkIndex | AssetChunk>;
-  insecurePath: Array<ChunkIndex | AssetChunk>;
+  chunks: Array<ChunkIndex>;
+  insecurePath: Array<ChunkIndex>;
   type: typeof EventTypes.JurisdictionChange;
 };
 
 export type TradeEvent = BaseEvent & {
   account: Account;
-  inputs: Array<ChunkIndex | AssetChunk>;
-  outputs: Array<ChunkIndex | AssetChunk>;
+  inputs: Array<ChunkIndex>;
+  outputs: Array<ChunkIndex>;
   type: typeof EventTypes.Trade;
 };
 

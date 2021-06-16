@@ -50,18 +50,16 @@ const getTokenInterface = (address?: Address): Interface => new Interface(
   ].includes(sm(address)) ? bytesAbi : stringAbi
 );
 
-// TODO: rename to ethereumData
-export const getChainData = ({
-  chainDataJson,
-  etherscanKey,
-  logger,
-  store,
-}: {
+type ChainDataParams = {
   chainDataJson?: ChainDataJson;
   etherscanKey?: string;
   logger?: Logger;
   store?: Store;
-}): ChainData => {
+};
+
+export const getChainData = (params?: ChainDataParams): ChainData => {
+  const { chainDataJson, etherscanKey, logger, store } = params || {};
+
   const log = (logger || getLogger()).child?.({ module: "ChainData" });
   const json = chainDataJson || store?.load(StoreKeys.ChainData) || emptyChainData;
 
