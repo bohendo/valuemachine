@@ -173,7 +173,8 @@ export const getPrices = (params?: PricesParams): Prices => {
         } else {
           // Are there any other unvisited nodes to check?
           if (!branches.length || unvisited.size === 0) {
-            log.info(json[date], `No exchange-rate-path exists between ${start} and ${target}`);
+            log.info(`No exchange-rate-path exists between ${start} and ${target}`);
+            log.debug(json[date], `Prices we have so far`);
             log.debug(distances, `Final distances from ${start} to ${target}`);
             return [];
           } else {

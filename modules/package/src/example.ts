@@ -30,7 +30,11 @@ const addressBook = getAddressBook({ json: addressBookJson, logger });
 (async () => {
 
   // Fetch tx history and receipts from etherscan
-  const chainData = getChainData({ logger, store });
+  const chainData = getChainData({
+    logger,
+    store,
+    etherscanKey: process.env.ETHERSCAN_KEY,
+  });
   await chainData.syncAddresses(
     addressBook.addresses.filter(a => addressBook.isSelf(a))
   );
@@ -48,8 +52,12 @@ const addressBook = getAddressBook({ json: addressBookJson, logger });
   // Create a price fetcher & fetch the relevant prices
   const unit = "USD";
   const prices = getPrices({ logger, store, unit });
-  for (const transaction of transactions.json) {
-    await prices.syncTransaction(transaction);
+  for (const chunk of vm.json.chunks) {
+    const { asset, receiveDate, disposeDate } = chunk;
+    for (const date of [receiveDate, disposeDate]) {
+      if (!date) continue;
+      await prices.syncPrice(date, asset);
+    }
   }
 
   // calculate & print capital gains
@@ -59,6 +67,7 @@ const addressBook = getAddressBook({ json: addressBookJson, logger });
         const chunk = vm.getChunk(chunkIndex);
         const takePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
         const givePrice = prices.getPrice(chunk.disposeDate, chunk.asset);
+        if (!takePrice || !givePrice) return;
         const change = mul(chunk.quantity, sub(givePrice, takePrice));
         console.log(`${
           addressBook.getName(event.account)
