@@ -20,7 +20,7 @@ import {
   expect,
   getTestAddressBook,
   testLogger,
-} from "./testing";
+} from "./testUtils";
 
 const { ETH, UniV2_UNI_ETH, UNI, USD } = Assets;
 const { Deposit, Expense, Income, SwapIn, SwapOut } = TransferCategories;
@@ -57,7 +57,7 @@ describe("VM", () => {
     expect(txns.getJson().length).to.equal(0);
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
-    vm = getValueMachine({ addressBook, prices, logger: log });
+    vm = getValueMachine({ addressBook, logger: log });
     expect(vm).to.be.ok;
   });
 

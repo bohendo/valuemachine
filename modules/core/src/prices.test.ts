@@ -7,12 +7,13 @@ import {
   Transactions,
 } from "@valuemachine/types";
 import {
+  gt,
   mul,
   round,
 } from "@valuemachine/utils";
 
 import { getPrices } from "./prices";
-import { expect, getRealChainData, getTestAddressBook, testLogger } from "./testing";
+import { expect, getRealChainData, getTestAddressBook, testLogger } from "./testUtils";
 
 const log = testLogger.child({
   // level: "debug",
@@ -154,7 +155,21 @@ describe("Prices", () => {
     await prices.syncTransaction(tx, USD);
     expect(prices.getPrice(tx.date, DAI, USD)).to.be.ok;
   });
+  it.skip("should handle rate limits gracefully", async () => {
+    // trigger a rate limit
+    const ethLaunchish = new Date("2017-01-01").getTime();
+    const getRandomDate = () => new Date(Math.round(
+      ethLaunchish + (Math.random() * (Date.now() - ethLaunchish))
+    ));
+    log.info(`Starting rate limit test`);
+    const dates = "0".repeat(42).split("").map(() => getRandomDate());
+    const results = await Promise.all(dates.map(date => prices.syncPrice(date, ETH, USD)));
+    for (const i in results) {
+      log.info(`On ${
+        new Date(dates[i]).toISOString().split("T")[0]
+      } 1 ETH was worth $${round(results[i])}`);
+      expect(gt(results[i], "0")).to.be.true;
+    }
+  });
 
 });
-
-

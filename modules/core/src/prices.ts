@@ -90,9 +90,13 @@ export const getPrices = (params?: PricesParams): Prices => {
       response = await attempt();
     // Try one more time if we get a timeout
     } catch (e) {
-      log.warn(e.message);
       if (e.message.toLowerCase().includes("timeout") || e.message.includes("EAI_AGAIN")) {
-        log.debug(`Trying to fetch price one more time..`);
+        log.warn(`Request timed out, trying one more time..`);
+        await new Promise(res => setTimeout(res, 1000)); // short pause
+        response = await attempt();
+      } else if (e.message.includes("429")) {
+        log.warn(`We're rate limited, pausing then trying one more time..`);
+        await new Promise(res => setTimeout(res, 8000)); // long pause
         response = await attempt();
       } else {
         throw e;
