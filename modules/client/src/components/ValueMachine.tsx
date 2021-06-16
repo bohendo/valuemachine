@@ -22,10 +22,12 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
+import ClearIcon from "@material-ui/icons/Delete";
 import SyncIcon from "@material-ui/icons/Sync";
 import {
   AddressBook,
   Assets,
+  emptyValueMachine,
   Event,
   Events,
   EventTypes,
@@ -313,6 +315,7 @@ export const ValueMachineExplorer = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
   const [accounts, setAccounts] = useState([]);
+  const [newTransactions, setNewTransactions] = useState([]);
   const [filterAccount, setFilterAccount] = useState("");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterType, setFilterType] = useState("");
@@ -322,6 +325,13 @@ export const ValueMachineExplorer = ({
   useEffect(() => {
     setAccounts(vm.getAccounts());
   }, [addressBook, vm]);
+
+  useEffect(() => {
+    setNewTransactions(transactions?.json?.filter(transaction =>
+      new Date(transaction.date).getTime() > new Date(vm.json.date).getTime(),
+    ));
+
+  }, [transactions, vm]);
 
   useEffect(() => {
     setPage(0);
@@ -363,39 +373,28 @@ export const ValueMachineExplorer = ({
       return;
     }
     setSyncing(old => ({ ...old, state: true }));
-    // Give sync state a chance to update
-    await new Promise(res => setTimeout(res, 100));
-    // Process async so maybe it'll be less likely to freeze the foreground
-    console.log(`Processing ${transactions.length} transactions`);
-    // eslint-disable-next-line no-async-promise-executor
-    const res = await new Promise(async res => {
-      try {
-        // stringify/parse to ensure we don't update the imported objects directly
-        let start = Date.now();
-        for (const transaction of transactions.filter(transaction =>
-          new Date(transaction.date).getTime() > new Date(vm.json.date).getTime(),
-        )) {
-          vm.execute(transaction);
-          // Give the UI a split sec to re-render & make the hang more bearable
-          await new Promise(res => setTimeout(res, 5));
-          const chunk = 100;
-          if (transaction.index % chunk === 0) {
-            console.info(`Processed transactions ${transaction.index - chunk}-${
-              transaction.index
-            } at a rate of ${Math.round((100000*chunk)/(Date.now() - start))/100} tx/sec`);
-            start = Date.now();
-          }
-        }
-        console.info(`\nNet Worth: ${JSON.stringify(vm.getNetWorth(), null, 2)}`);
-        res(vm.json);
-      } catch (e) {
-        console.log(`Failed to process transactions`);
-        console.error(e);
-        res([]);
+    console.log(`Processing ${newTransactions?.length} new transactions`);
+    let start = Date.now();
+    for (const transaction of newTransactions) {
+      vm.execute(transaction);
+      await new Promise(res => setTimeout(res, 1)); // Yield to other pending operations
+      const chunk = 100;
+      if (transaction.index % chunk === 0) {
+        console.info(`Processed transactions ${transaction.index - chunk}-${
+          transaction.index
+        } at a rate of ${Math.round((100000*chunk)/(Date.now() - start))/100} tx/sec`);
+        vm.save();
+        start = Date.now();
       }
-    });
-    if (res) setVMJson({ ...res });
+    }
+    console.info(`Net Worth: ${JSON.stringify(vm.getNetWorth(), null, 2)}`);
+    console.info(`Generated ${vm.json.events.length} events and ${vm.json.chunks.length} chunks`);
+    setVMJson({ ...vm.json });
     setSyncing(old => ({ ...old, state: false }));
+  };
+
+  const handleReset = () => {
+    setVMJson({ ...JSON.parse(JSON.stringify(emptyValueMachine)) });
   };
 
   const handleChangePage = (event, newPage) => {
@@ -420,12 +419,22 @@ export const ValueMachineExplorer = ({
 
       <Button
         className={classes.button}
-        disabled={syncing.state}
+        disabled={syncing.state || !newTransactions?.length}
         onClick={processTxns}
         startIcon={syncing.state ? <CircularProgress size={20} /> : <SyncIcon/>}
         variant="outlined"
       >
-        {`Process ${transactions.length} Transactions`}
+        {`Process ${newTransactions?.length} New Transactions`}
+      </Button>
+
+      <Button
+        className={classes.button}
+        disabled={!vm?.json?.events?.length}
+        onClick={handleReset}
+        startIcon={<ClearIcon/>}
+        variant="outlined"
+      >
+        Clear Events
       </Button>
 
       <Divider/>

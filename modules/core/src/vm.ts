@@ -50,6 +50,8 @@ export const getValueMachine = ({
   const json = vmJson
     || store?.load(StoreKeys.ValueMachine)
     || JSON.parse(JSON.stringify(emptyValueMachine));
+  const save = (): void => store?.save(StoreKeys.ValueMachine, json);
+
   json.chunks = json.chunks || [];
   json.events = json.events || [];
 
@@ -477,6 +479,7 @@ export const getValueMachine = ({
     json,
     moveValue,
     receiveValue,
+    save,
     tradeValue,
   };
 };

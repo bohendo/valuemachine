@@ -105,8 +105,8 @@ const App: React.FC = () => {
   const classes = useStyles();
 
   useEffect(() => {
-    console.log(`Saving address book`, addressBookJson);
-    store.save(AddressBookStore, addressBookJson);
+    if (!addressBookJson) return;
+    console.log(`Refreshing ${addressBookJson.length} address book entries`);
     setAddressBook(getAddressBook({
       json: addressBookJson,
       logger
@@ -114,8 +114,8 @@ const App: React.FC = () => {
   }, [addressBookJson]);
 
   useEffect(() => {
-    console.log(`Saving transactions`, transactionsJson);
-    store.save(TransactionsStore, transactionsJson);
+    if (!addressBook || !transactionsJson) return;
+    console.log(`Refreshing ${transactionsJson.length} transactions`);
     setTransactions(getTransactions({
       addressBook,
       json: transactionsJson,
@@ -125,8 +125,9 @@ const App: React.FC = () => {
   }, [addressBook, transactionsJson]);
 
   useEffect(() => {
-    console.log(`Saving value machine`, vmJson);
-    store.save(ValueMachineStore, vmJson);
+    if (!addressBook || !vmJson) return;
+    console.log(`Refreshing ${vmJson.events.length} value machine events`);
+    console.log(`Refreshing ${vmJson.chunks.length} value machine chunks`);
     setVM(getValueMachine({
       addressBook,
       json: vmJson,
@@ -136,8 +137,8 @@ const App: React.FC = () => {
   }, [addressBook, vmJson]);
 
   useEffect(() => {
-    console.log(`Saving prices`, pricesJson);
-    store.save(PricesStore, pricesJson);
+    if (!pricesJson || !unit) return;
+    console.log(`Refreshing ${Object.keys(pricesJson).length} dates with saved prices`);
     setPrices(getPrices({
       json: pricesJson,
       logger,
@@ -147,15 +148,13 @@ const App: React.FC = () => {
   }, [pricesJson, unit]);
 
   useEffect(() => {
+    if (!unit) return;
     console.log(`Saving unit`, unit);
     store.save(UnitStore, unit);
   }, [unit]);
 
   useEffect(() => {
-    if (!apiKey) {
-      console.log(`No API key available`);
-      return;
-    }
+    if (!apiKey) return;
     const authorization = `Basic ${btoa(`anon:${apiKey}`)}`;
     axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
       if (authRes.status === 200) {
