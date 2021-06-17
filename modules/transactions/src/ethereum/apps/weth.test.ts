@@ -39,7 +39,7 @@ describe(source, () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.getJson().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
   });
 
   // eg 0xcf4a5bff7c60f157b87b8d792c99e9e5c0c21c6122b925766e646c5f293a49f9
@@ -55,8 +55,8 @@ describe(source, () => {
         ]
       }] }),
     ]));
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
@@ -93,8 +93,8 @@ describe(source, () => {
         value: quantity,
       }),
     ]));
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];

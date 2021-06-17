@@ -5,7 +5,7 @@ import express from "express";
 import { env } from "./env";
 import {
   getLogAndSend,
-  globalStore,
+  store,
   STATUS_YOUR_BAD,
 } from "./utils";
 
@@ -20,7 +20,7 @@ pricesRouter.get("/:unit/:asset/:date", async (req, res) => {
   const logAndSend = getLogAndSend(res);
   const { asset, date, unit } = req.params;
   log.info(`Got request for ${unit} price of ${asset} on ${date}`);
-  const prices = getPrices({ store: globalStore, logger: log, unit: unit });
+  const prices = getPrices({ store, logger: log, unit: unit });
   try {
     const price = await prices.syncPrice(date, asset);
     logAndSend(price);
@@ -35,7 +35,7 @@ pricesRouter.post("/:unit", async (req, res) => {
   const { unit } = req.params;
   const { transaction } = req.body;
   log.info(`Got request for ${unit} prices for transaction on ${transaction.date}`);
-  const prices = getPrices({ store: globalStore, logger: log, unit: unit });
+  const prices = getPrices({ store, logger: log, unit: unit });
   try {
     const priceList = await prices.syncTransaction(transaction);
     logAndSend(priceList);

@@ -22,24 +22,27 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
+import ClearIcon from "@material-ui/icons/Delete";
 import SyncIcon from "@material-ui/icons/Sync";
-import { getPrices, getValueMachine } from "@valuemachine/core";
 import {
   AddressBook,
-  ValueMachine,
-  Prices,
   Assets,
+  emptyValueMachine,
   Event,
   Events,
   EventTypes,
-  PricesJson,
+  Prices,
   Transactions,
   TransferCategories,
+  ValueMachine,
 } from "@valuemachine/types";
-import { add, mul, round as defaultRound, sub, getLogger } from "@valuemachine/utils";
+import {
+  add,
+  mul,
+  round as defaultRound,
+  sub,
+} from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
-
-import { store } from "../store";
 
 import { HexString } from "./HexString";
 
@@ -295,15 +298,15 @@ export const EventRow = ({
 
 export const ValueMachineExplorer = ({
   addressBook,
-  vmJson,
-  pricesJson,
+  vm,
+  prices,
   setVMJson,
   transactions,
   unit,
 }: {
   addressBook: AddressBook;
-  vmJson: ValueMachine;
-  pricesJson: PricesJson;
+  vm: ValueMachine;
+  prices: Prices;
   setVMJson: (vmJson: any) => void;
   transactions: Transactions;
   unit: Assets;
@@ -312,25 +315,27 @@ export const ValueMachineExplorer = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState({ transactions: false, prices: false });
   const [accounts, setAccounts] = useState([]);
+  const [newTransactions, setNewTransactions] = useState([]);
   const [filterAccount, setFilterAccount] = useState("");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as any);
-  const [prices, setPrices] = useState({} as Prices);
   const classes = useStyles();
 
   useEffect(() => {
-    const valueMachine = getValueMachine({ json: vmJson, addressBook, logger: getLogger("warn") });
-    setAccounts(valueMachine.getAccounts());
-  }, [addressBook, vmJson]);
+    setAccounts(vm.getAccounts());
+  }, [addressBook, vm]);
 
   useEffect(() => {
-    setPrices(getPrices({ pricesJson, store, unit, logger: getLogger("warn") }));
-  }, [pricesJson, unit]);
+    setNewTransactions(transactions?.json?.filter(transaction =>
+      new Date(transaction.date).getTime() > new Date(vm.json.date).getTime(),
+    ));
+
+  }, [transactions, vm]);
 
   useEffect(() => {
     setPage(0);
-    setFilteredEvents(vmJson?.events?.filter(event =>
+    setFilteredEvents(vm.json?.events?.filter(event =>
       (!filterAsset
         || event.asset === filterAsset
         || Object.keys(event.inputs).includes(filterAsset)
@@ -348,7 +353,7 @@ export const ValueMachineExplorer = ({
       : (e1.purchaseDate < e2.purchaseDate) ? -1
       : 0
     ) || []);
-  }, [vmJson, filterAccount, filterAsset, filterType]);
+  }, [vm, filterAccount, filterAsset, filterType]);
 
   const handleFilterAccountChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterAccount(event.target.value);
@@ -368,40 +373,28 @@ export const ValueMachineExplorer = ({
       return;
     }
     setSyncing(old => ({ ...old, state: true }));
-    // Give sync state a chance to update
-    await new Promise(res => setTimeout(res, 100));
-    // Process async so maybe it'll be less likely to freeze the foreground
-    console.log(`Processing ${transactions.length} transactions`);
-    // eslint-disable-next-line no-async-promise-executor
-    const res = await new Promise(async res => {
-      try {
-        const valueMachine = getValueMachine({ addressBook, logger: getLogger("warn") });
-        // stringify/parse to ensure we don't update the imported objects directly
-        let start = Date.now();
-        for (const transaction of transactions.filter(transaction =>
-          new Date(transaction.date).getTime() > new Date(valueMachine.getJson().date).getTime(),
-        )) {
-          valueMachine.execute(transaction);
-          // Give the UI a split sec to re-render & make the hang more bearable
-          await new Promise(res => setTimeout(res, 5));
-          const chunk = 100;
-          if (transaction.index % chunk === 0) {
-            console.info(`Processed transactions ${transaction.index - chunk}-${
-              transaction.index
-            } at a rate of ${Math.round((100000*chunk)/(Date.now() - start))/100} tx/sec`);
-            start = Date.now();
-          }
-        }
-        console.info(`\nNet Worth: ${JSON.stringify(valueMachine.getNetWorth(), null, 2)}`);
-        res(valueMachine.getJson());
-      } catch (e) {
-        console.log(`Failed to process transactions`);
-        console.error(e);
-        res([]);
+    console.log(`Processing ${newTransactions?.length} new transactions`);
+    let start = Date.now();
+    for (const transaction of newTransactions) {
+      vm.execute(transaction);
+      await new Promise(res => setTimeout(res, 1)); // Yield to other pending operations
+      const chunk = 100;
+      if (transaction.index % chunk === 0) {
+        console.info(`Processed transactions ${transaction.index - chunk}-${
+          transaction.index
+        } at a rate of ${Math.round((100000*chunk)/(Date.now() - start))/100} tx/sec`);
+        vm.save();
+        start = Date.now();
       }
-    });
-    if (res) setVMJson(res);
+    }
+    console.info(`Net Worth: ${JSON.stringify(vm.getNetWorth(), null, 2)}`);
+    console.info(`Generated ${vm.json.events.length} events and ${vm.json.chunks.length} chunks`);
+    setVMJson({ ...vm.json });
     setSyncing(old => ({ ...old, state: false }));
+  };
+
+  const handleReset = () => {
+    setVMJson({ ...JSON.parse(JSON.stringify(emptyValueMachine)) });
   };
 
   const handleChangePage = (event, newPage) => {
@@ -426,12 +419,22 @@ export const ValueMachineExplorer = ({
 
       <Button
         className={classes.button}
-        disabled={syncing.state}
+        disabled={syncing.state || !newTransactions?.length}
         onClick={processTxns}
         startIcon={syncing.state ? <CircularProgress size={20} /> : <SyncIcon/>}
         variant="outlined"
       >
-        {`Process ${transactions.length} Transactions`}
+        {`Process ${newTransactions?.length} New Transactions`}
+      </Button>
+
+      <Button
+        className={classes.button}
+        disabled={!vm?.json?.events?.length}
+        onClick={handleReset}
+        startIcon={<ClearIcon/>}
+        variant="outlined"
+      >
+        Clear Events
       </Button>
 
       <Divider/>
@@ -469,7 +472,7 @@ export const ValueMachineExplorer = ({
           onChange={handleFilterAssetChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(vmJson?.events?.map(e => e.asset))).map((asset, i) => (
+          {Array.from(new Set(vm.json?.events?.map(e => e.asset))).map((asset, i) => (
             <MenuItem key={i} value={asset}>{asset}</MenuItem>
           ))}
         </Select>
@@ -496,9 +499,9 @@ export const ValueMachineExplorer = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredEvents.length === vmJson?.events?.length
+          {filteredEvents.length === vm.json?.events?.length
             ? `${filteredEvents.length} Events`
-            : `${filteredEvents.length} of ${vmJson?.events?.length || 0} Events`
+            : `${filteredEvents.length} of ${vm.json?.events?.length || 0} Events`
           }
         </Typography>
 

@@ -96,14 +96,11 @@ do
     cd "$root/modules" || exit 1
     for module in */package.json
     do (
-      if grep -qs "\"$package_name\"" "$module"
-      then
-        echo "Updating $package_name references in $module"
-        cd "${module%/*}"
-        mv package.json .package.json
-        sed 's|"'"$package_name"'": ".*"|"'"$package_name"'": "'"$version"'"|' < .package.json > package.json
-        rm .package.json
-      fi
+      echo "Updating $package_name references in $module to version $version"
+      cd "${module%/*}"
+      mv package.json .package.json
+      sed 's|"'"$package_name"'": ".*"|"'"$package_name"'": "'"$version"'"|' < .package.json > package.json
+      rm .package.json
     ) done
   )
 done

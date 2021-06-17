@@ -1,8 +1,3 @@
-import { getAddressBook } from "@valuemachine/transactions";
-import {
-  Assets,
-  StoreKeys,
-} from "@valuemachine/types";
 import {
   Container,
   CssBaseline,
@@ -12,6 +7,17 @@ import {
   createStyles,
   makeStyles,
 } from "@material-ui/core";
+import {
+  getAddressBook,
+  getPrices,
+  getTransactions,
+  getValueMachine,
+} from "valuemachine";
+import {
+  Assets,
+  StoreKeys,
+} from "@valuemachine/types";
+import { getLocalStore, getLogger } from "@valuemachine/utils";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
@@ -23,7 +29,9 @@ import { PriceManager } from "./components/Prices";
 import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
-import { store } from "./store";
+
+const store = getLocalStore(localStorage);
+const logger = getLogger("warn");
 
 // localstorage keys
 const {
@@ -63,44 +71,94 @@ const App: React.FC = () => {
 
   // Core JSON data from localstorage
   const [addressBookJson, setAddressBookJson] = useState(store.load(AddressBookStore));
-  const [transactions, setTransactions] = useState(store.load(TransactionsStore));
+  const [transactionsJson, setTransactionsJson] = useState(store.load(TransactionsStore));
   const [vmJson, setVMJson] = useState(store.load(ValueMachineStore));
   const [pricesJson, setPricesJson] = useState(store.load(PricesStore));
   // Extra UI-specific data from localstorage
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
   const [apiKey, setApiKey] = useState(store.load(ApiKeyStore) || "");
 
-  // Utilities parsed from localstorage data
-  const [addressBook, setAddressBook] = useState(getAddressBook(addressBookJson));
+  // Utilities derived from localstorage data
+  const [addressBook, setAddressBook] = useState(getAddressBook({
+    json: addressBookJson,
+    logger,
+  }));
+  const [transactions, setTransactions] = useState(getTransactions({
+    addressBook,
+    json: transactionsJson,
+    store,
+    logger,
+  }));
+  const [vm, setVM] = useState(getValueMachine({
+    addressBook,
+    json: vmJson,
+    logger,
+    store,
+  }));
+  const [prices, setPrices] = useState(getPrices({
+    store,
+    logger,
+    json: pricesJson,
+    unit
+  }));
 
   const classes = useStyles();
 
   useEffect(() => {
-    console.log(`Saving transactions`, transactions);
-    store.save(TransactionsStore, transactions);
-  }, [transactions]);
-
-  useEffect(() => {
-    console.log(`Saving value machine`, vmJson);
-    store.save(ValueMachineStore, vmJson);
-  }, [vmJson]);
-
-  useEffect(() => {
-    console.log(`Saving address book`, addressBookJson);
+    if (!addressBookJson) return;
+    console.log(`Refreshing ${addressBookJson.length} address book entries`);
     store.save(AddressBookStore, addressBookJson);
-    setAddressBook(getAddressBook(addressBookJson));
+    setAddressBook(getAddressBook({
+      json: addressBookJson,
+      logger
+    }));
   }, [addressBookJson]);
 
   useEffect(() => {
+    if (!addressBook || !transactionsJson) return;
+    console.log(`Refreshing ${transactionsJson.length} transactions`);
+    store.save(TransactionsStore, transactionsJson);
+    setTransactions(getTransactions({
+      addressBook,
+      json: transactionsJson,
+      store,
+      logger,
+    }));
+  }, [addressBook, transactionsJson]);
+
+  useEffect(() => {
+    if (!addressBook || !vmJson) return;
+    console.log(`Refreshing ${vmJson.events.length} value machine events`);
+    console.log(`Refreshing ${vmJson.chunks.length} value machine chunks`);
+    store.save(ValueMachineStore, vmJson);
+    setVM(getValueMachine({
+      addressBook,
+      json: vmJson,
+      logger,
+      store,
+    }));
+  }, [addressBook, vmJson]);
+
+  useEffect(() => {
+    if (!pricesJson || !unit) return;
+    console.log(`Refreshing ${Object.keys(pricesJson).length} price entries`);
+    store.save(PricesStore, pricesJson);
+    setPrices(getPrices({
+      json: pricesJson,
+      logger,
+      store,
+      unit
+    }));
+  }, [pricesJson, unit]);
+
+  useEffect(() => {
+    if (!unit) return;
     console.log(`Saving unit`, unit);
     store.save(UnitStore, unit);
   }, [unit]);
 
   useEffect(() => {
-    if (!apiKey) {
-      console.log(`No API key available`);
-      return;
-    }
+    if (!apiKey) return;
     const authorization = `Basic ${btoa(`anon:${apiKey}`)}`;
     axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
       if (authRes.status === 200) {
@@ -127,33 +185,33 @@ const App: React.FC = () => {
             <Route exact path="/">
               <Dashboard
                 addressBook={addressBook}
-                vmJson={vmJson}
+                vm={vm}
               />
             </Route>
 
             <Route exact path="/taxes">
               <TaxesExplorer
                 addressBook={addressBook}
-                vmJson={vmJson}
-                pricesJson={pricesJson}
+                vm={vm}
+                prices={prices}
+              />
+            </Route>
+
+            <Route exact path="/prices">
+              <PriceManager
+                prices={prices}
+                setPricesJson={setPricesJson}
+                vm={vm}
+                unit={unit}
               />
             </Route>
 
             <Route exact path="/value-machine">
               <ValueMachineExplorer
                 addressBook={addressBook}
-                vmJson={vmJson}
-                pricesJson={pricesJson}
+                vm={vm}
+                prices={prices}
                 setVMJson={setVMJson}
-                transactions={transactions}
-                unit={unit}
-              />
-            </Route>
-
-            <Route exact path="/prices">
-              <PriceManager
-                pricesJson={pricesJson}
-                setPricesJson={setPricesJson}
                 transactions={transactions}
                 unit={unit}
               />
@@ -163,7 +221,7 @@ const App: React.FC = () => {
               <TransactionExplorer
                 addressBook={addressBook}
                 transactions={transactions}
-                setTransactions={setTransactions}
+                setTransactions={setTransactionsJson}
               />
             </Route>
 
@@ -171,7 +229,7 @@ const App: React.FC = () => {
               <AddressBookManager
                 apiKey={apiKey}
                 setApiKey={setApiKey}
-                addressBookJson={addressBookJson}
+                addressBook={addressBook}
                 setAddressBookJson={setAddressBookJson}
               />
             </Route>

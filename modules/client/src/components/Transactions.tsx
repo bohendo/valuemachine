@@ -22,7 +22,7 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
-import { describeTransaction, getTransactions } from "@valuemachine/transactions";
+import { describeTransaction } from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
@@ -34,7 +34,7 @@ import {
   TransactionSources,
   Transfer,
 } from "@valuemachine/types";
-import { getLogger, round, sm, smeq } from "@valuemachine/utils";
+import { round, sm, smeq } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -193,7 +193,7 @@ export const TransactionExplorer = ({
     const getDate = (timestamp: string): string =>
       (new Date(timestamp)).toISOString().split("T")[0];
     setPage(0);
-    setFilteredTxns(transactions
+    setFilteredTxns(transactions?.json
       .filter(tx => !filterStartDate || getDate(tx.date) >= getDate(filterStartDate))
       .filter(tx => !filterEndDate || getDate(tx.date) <= getDate(filterEndDate))
       .filter(hasAsset(filterAsset))
@@ -214,7 +214,7 @@ export const TransactionExplorer = ({
     setOurAssets(
       Object.keys(Assets)
         // TODO: the following line crashes the page when txns are cleared
-        .filter(asset => transactions?.some(hasAsset(asset)))
+        .filter(asset => transactions?.json?.some(hasAsset(asset)))
     );
   }, [addressBook, transactions]);
 
@@ -257,13 +257,8 @@ export const TransactionExplorer = ({
     setSyncing(true);
     axios.post("/api/transactions", { addressBook: addressBook.json }).then((res) => {
       console.log(`Successfully fetched ${res.data?.length || 0} transactions`, res.data);
-      const txMethods = getTransactions({
-        addressBook,
-        transactionsJson: transactions,
-        logger: getLogger("info"),
-      });
-      txMethods.merge(res.data);
-      setTransactions([...txMethods.getJson()]);
+      transactions.merge(res.data);
+      setTransactions([...transactions.json]);
       setSyncing(false);
     }).catch((e) => {
       console.warn(`Failed to fetch transactions:`, e.response.data || e.message);
@@ -279,14 +274,9 @@ export const TransactionExplorer = ({
     reader.readAsText(file);
     reader.onload = () => {
       try {
-        const txMethods = getTransactions({
-          addressBook,
-          transactionsJson: transactions,
-          logger: getLogger("info"),
-        });
         const importedFile = reader.result as string;
-        txMethods.mergeCsv(importedFile, importFileType);
-        setTransactions([...txMethods.getJson()]);
+        transactions.mergeCsv(importedFile, importFileType);
+        setTransactions([...transactions.json]);
       } catch (e) {
         console.error(e);
       }
@@ -317,7 +307,7 @@ export const TransactionExplorer = ({
 
       <Button
         className={classes.button}
-        disabled={!transactions.length}
+        disabled={!transactions?.json.length}
         onClick={resetTxns}
         startIcon={<ClearIcon/>}
         variant="outlined"
@@ -422,9 +412,9 @@ export const TransactionExplorer = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredTxns.length === transactions.length
+          {filteredTxns.length === transactions?.json.length
             ? `${filteredTxns.length} Transactions`
-            : `${filteredTxns.length} of ${transactions.length} Transactions`
+            : `${filteredTxns.length} of ${transactions?.json?.length} Transactions`
           }
         </Typography>
 

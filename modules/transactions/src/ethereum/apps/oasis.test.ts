@@ -27,7 +27,7 @@ describe(source, () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.getJson().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
   });
 
   it("should handle a v1 buy", async () => {
@@ -36,8 +36,8 @@ describe(source, () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
     const base = tx.transfers[0];
@@ -54,8 +54,8 @@ describe(source, () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(1);
     expect(tx.sources).to.include(source);
     const swapIn = tx.transfers[0];
@@ -68,8 +68,8 @@ describe(source, () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
     const swapOut = tx.transfers[1];

@@ -13,10 +13,9 @@ import {
   EthTransaction,
   EthCall,
   ChainData,
+  ChainDataParams,
   ChainDataJson,
   HexString,
-  Logger,
-  Store,
   StoreKeys,
   TokenData,
 } from "@valuemachine/types";
@@ -50,18 +49,9 @@ const getTokenInterface = (address?: Address): Interface => new Interface(
   ].includes(sm(address)) ? bytesAbi : stringAbi
 );
 
-// TODO: rename to ethereumData
-export const getChainData = ({
-  chainDataJson,
-  etherscanKey,
-  logger,
-  store,
-}: {
-  chainDataJson?: ChainDataJson;
-  etherscanKey?: string;
-  logger?: Logger;
-  store?: Store;
-}): ChainData => {
+export const getChainData = (params?: ChainDataParams): ChainData => {
+  const { chainDataJson, etherscanKey, logger, store } = params || {};
+
   const log = (logger || getLogger()).child?.({ module: "ChainData" });
   const json = chainDataJson || store?.load(StoreKeys.ChainData) || emptyChainData;
 
@@ -118,13 +108,17 @@ export const getChainData = ({
   };
 
   const fetchHistory = async (action: string, address: Address): Promise<any[]> => {
+    const target = action === "txlist" ? "transaction"
+      : action === "txlistinternal" ? "internal call"
+      : action === "tokentx" ? "token"
+      : "";
     const url = `https://api.etherscan.io/api?module=account&` +
       `action=${action}&` +
       `address=${address}&` +
-      `apikey=${etherscanKey}&sort=asc`;
-    log.debug(`Sent request for ${url}`);
+      `apikey=${etherscanKey || ""}&sort=asc`;
+    log.info(`Sent request for ${target} history from Etherscan`);
     const result = (await axios.get(url, { timeout: 10000 })).data.result;
-    log.debug(`Received ${result.length} results from ${url}`);
+    log.info(`Received ${result.length} ${target} history results from Etherscan`);
     return result;
   };
 

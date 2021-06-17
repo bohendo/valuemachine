@@ -17,7 +17,7 @@ transactionsRouter.post("/", async (req, res) => {
   if (!addressBookJson || !addressBookJson.length) {
     return logAndSend(`A valid address book must be provided via POST body`, STATUS_YOUR_BAD);
   }
-  const addressBook = getAddressBook(addressBookJson, log);
+  const addressBook = getAddressBook({ json: addressBookJson, logger: log });
   const selfAddresses = addressBook.addresses.filter(a => addressBook.isSelf(a));
   log.info(`Syncing txns for ${selfAddresses.length} self addreses`);
   try {
@@ -25,9 +25,9 @@ transactionsRouter.post("/", async (req, res) => {
     await transactions.mergeEthereum(
       chainData.getAddressHistory(...selfAddresses),
     );
-    res.json(transactions.getJson());
-    log.info(`Returned ${transactions.getJson().length} transactions at a rate of ${
-      Math.round((100000 * transactions.getJson().length)/(Date.now() - start)) / 100
+    res.json(transactions.json);
+    log.info(`Returned ${transactions.json.length} transactions at a rate of ${
+      Math.round((100000 * transactions.json.length)/(Date.now() - start)) / 100
     } tx/sec`);
   } catch (e) {
     log.warn(e);

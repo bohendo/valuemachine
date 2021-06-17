@@ -1,13 +1,3 @@
-
-# Value Machine
-
-The value machine is a set of tools for in-depth analysis of an individual's financial portfolio and tax obligations.
-
-These tools are **jurisdiction-neutral** ie there is zero business logic that is specific to any country's particular tax system.
-
-To calculate the capital gains & losses for an eth address:
-
-```typescript
 import fs from "fs";
 import path from "path";
 
@@ -19,7 +9,7 @@ import {
   getValueMachine,
   types,
   utils,
-} from "valuemachine";
+} from "."; // replace "." with "valuemachine" in your code
 
 const { getFileStore, getLogger, mul, round, sub } = utils;
 const { AddressCategories, EventTypes } = types;
@@ -99,4 +89,3 @@ const addressBook = getAddressBook({ json: addressBookJson, logger });
   }
 
 })();
-```

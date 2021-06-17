@@ -1,5 +1,5 @@
 import {
-  TransactionParams,
+  TransactionsParams,
   TransactionsJson,
   CsvSource,
   CsvSources,
@@ -23,8 +23,8 @@ export const getTransactions = ({
   addressBook,
   logger,
   store,
-  transactionsJson,
-}: TransactionParams): Transactions => {
+  json: transactionsJson,
+}: TransactionsParams): Transactions => {
   const log = (logger || getLogger()).child({ module: "Transactions" });
 
   const json = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
@@ -56,8 +56,6 @@ export const getTransactions = ({
 
   ////////////////////////////////////////
   // Exported Methods
-
-  const getJson = () => json;
 
   const mergeEthereum = (chainData: ChainData, customParsers = [] as EthParser[]): void => {
     const newEthTxns = chainData.getEthTransactions(ethTx =>
@@ -107,7 +105,7 @@ export const getTransactions = ({
   };
 
   return {
-    getJson,
+    json,
     mergeEthereum,
     mergeCsv,
     merge,

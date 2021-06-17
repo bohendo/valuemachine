@@ -7,12 +7,10 @@ import {
   ChainData,
   EthCall,
   EthTransaction,
-  Store,
-  StoreKey,
-  StoreKeys,
 } from "@valuemachine/types";
+import { getFileStore } from "@valuemachine/utils";
 
-import { AddressOne, env, testLogger } from "../testUtils";
+import { env, testLogger } from "../testUtils";
 
 import { getChainData } from "./chainData";
 
@@ -33,29 +31,10 @@ export const getTestChainData = (
 
 export const getRealChainData = async (
   txHash: Bytes32,
-  _filepath = "./testChainData.json",
+  dirpath = "./testData",
 ): Promise<ChainData> => {
-  const filepath = path.join(__dirname, _filepath);
-  const testStore = {
-    load: (key: StoreKey): any => {
-      if (key === StoreKeys.ChainData) {
-        return JSON.parse(fs.readFileSync(filepath, "utf8"));
-      } else {
-        throw new Error(`Test store has not implemented key ${key}`);
-      }
-    },
-    save: (key: StoreKey, data: any): void => {
-      if (key === StoreKeys.ChainData) {
-        fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
-      } else {
-        throw new Error(`Test store has not implemented key ${key}`);
-      }
-    },
-  } as Store;
-  const chainData = getChainData({
-    logger: testLogger,
-    store: testStore,
-  });
+  const testStore = getFileStore(path.join(__dirname, dirpath), fs);
+  const chainData = getChainData({ logger: testLogger, store: testStore });
   await chainData.syncTransaction({ hash: txHash }, env.etherscanKey);
   return getTestChainData([chainData.getEthTransaction(txHash)]);
 };

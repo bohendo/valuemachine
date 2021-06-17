@@ -1,4 +1,7 @@
+import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
+import { Logger } from "./logger";
+import { Store } from "./store";
 import { SecurityProvider } from "./security";
 import { Account, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
@@ -45,20 +48,20 @@ type BaseEvent = {
 
 export type DebtEvent = BaseEvent & {
   account: Account;
-  inputs: Array<ChunkIndex | AssetChunk>;
-  outputs: Array<ChunkIndex | AssetChunk>;
+  inputs: Array<ChunkIndex>;
+  outputs: Array<ChunkIndex>;
   type: typeof EventTypes.Debt;
 };
 
 export type ExpenseEvent = BaseEvent & {
   account: Account;
-  outputs: Array<ChunkIndex | AssetChunk>;
+  outputs: Array<ChunkIndex>;
   type: typeof EventTypes.Expense;
 };
 
 export type IncomeEvent = BaseEvent & {
   account: Account;
-  inputs: Array<ChunkIndex | AssetChunk>;
+  inputs: Array<ChunkIndex>;
   type: typeof EventTypes.Income;
 };
 
@@ -67,15 +70,15 @@ export type JurisdictionChangeEvent = BaseEvent & {
   from: Account;
   to: Account;
   toJurisdiction: SecurityProvider;
-  chunks: Array<ChunkIndex | AssetChunk>;
-  insecurePath: Array<ChunkIndex | AssetChunk>;
+  chunks: Array<ChunkIndex>;
+  insecurePath: Array<ChunkIndex>;
   type: typeof EventTypes.JurisdictionChange;
 };
 
 export type TradeEvent = BaseEvent & {
   account: Account;
-  inputs: Array<ChunkIndex | AssetChunk>;
-  outputs: Array<ChunkIndex | AssetChunk>;
+  inputs: Array<ChunkIndex>;
+  outputs: Array<ChunkIndex>;
   type: typeof EventTypes.Trade;
 };
 
@@ -98,18 +101,26 @@ export type ValueMachineJson = {
   events: Events;
 }
 
+export type ValueMachineParams = {
+  addressBook: AddressBook;
+  json?: ValueMachineJson;
+  logger?: Logger;
+  store?: Store;
+};
+
 export interface ValueMachine {
-  receiveValue: (quantity: DecimalString, asset: Asset, to: Account) => AssetChunk[];
-  moveValue: (quantity: DecimalString, asset: Asset, from: Account, to: Account) => void;
-  tradeValue: (account: Account, inputs: Balances, outputs: Balances) => void;
   disposeValue: (quantity: DecimalString, asset: Asset, from: Account) => AssetChunk[];
-  getJson: () => ValueMachineJson;
-  getChunk: (index: ChunkIndex) => AssetChunk;
-  getEvent: (index: number) => Event;
+  execute: (transaction: Transaction) => Events;
   getAccounts: () => Account[];
   getBalance: (account: Account, asset: Asset) => DecimalString;
+  getChunk: (index: ChunkIndex) => AssetChunk;
+  getEvent: (index: number) => Event;
   getNetWorth: () => Balances;
-  execute: (transaction: Transaction) => Events;
+  json: ValueMachineJson;
+  moveValue: (quantity: DecimalString, asset: Asset, from: Account, to: Account) => void;
+  receiveValue: (quantity: DecimalString, asset: Asset, to: Account) => AssetChunk[];
+  save: () => void;
+  tradeValue: (account: Account, inputs: Balances, outputs: Balances) => void;
 }
 
 export const emptyValueMachine = {

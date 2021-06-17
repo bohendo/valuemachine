@@ -105,15 +105,15 @@ export type Transaction = {
 }
 export type TransactionsJson = Transaction[];
 
-export type TransactionParams = {
+export type TransactionsParams = {
   addressBook: AddressBook;
+  json?: TransactionsJson;
   logger?: Logger;
   store?: Store;
-  transactionsJson?: TransactionsJson;
 };
 
 export type Transactions = {
-  getJson: () => TransactionsJson;
+  json: TransactionsJson;
   mergeEthereum: (chainData: ChainData, extraParsers?: EthParser[]) => void;
   mergeCsv: (csvData: string, parser: CsvSource | CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;

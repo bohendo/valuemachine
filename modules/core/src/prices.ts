@@ -1,17 +1,16 @@
 import { publicAddresses } from "@valuemachine/transactions";
 import {
-  Assets,
   Asset,
+  Assets,
   DateString,
   DecimalString,
   emptyPrices,
   EthereumAssets,
   FiatCurrencies,
-  Logger,
   PriceList,
   Prices,
   PricesJson,
-  Store,
+  PricesParams,
   StoreKeys,
   TimestampString,
   Transaction,
@@ -34,21 +33,13 @@ const {
   REP, REPv2, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
 } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
-export const getPrices = ({
-  logger,
-  store,
-  pricesJson,
-  unit: defaultUnit,
-}: {
-  store: Store;
-  logger?: Logger;
-  pricesJson?: PricesJson;
-  unit?: Asset;
-}): Prices => {
+
+export const getPrices = (params?: PricesParams): Prices => {
+  const { logger, store, json: pricesJson, unit: defaultUnit } = params || {};
   const json = pricesJson
     || store?.load(StoreKeys.Prices)
     || JSON.parse(JSON.stringify(emptyPrices));
-  const save = (json: PricesJson): void => store?.save(StoreKeys.Prices, json);
+  const save = (): void => store?.save(StoreKeys.Prices, json);
   const log = (logger || getLogger()).child({ module: "Prices" });
 
   const ethish = [ETH, WETH] as Asset[];
@@ -91,9 +82,13 @@ export const getPrices = ({
       response = await attempt();
     // Try one more time if we get a timeout
     } catch (e) {
-      log.warn(e.message);
       if (e.message.toLowerCase().includes("timeout") || e.message.includes("EAI_AGAIN")) {
-        log.debug(`Trying to fetch price one more time..`);
+        log.warn(`Request timed out, trying one more time..`);
+        await new Promise(res => setTimeout(res, 1000)); // short pause
+        response = await attempt();
+      } else if (e.message.includes("429")) {
+        log.warn(`We're rate limited, pausing then trying one more time..`);
+        await new Promise(res => setTimeout(res, 8000)); // long pause
         response = await attempt();
       } else {
         throw e;
@@ -178,7 +173,8 @@ export const getPrices = ({
         } else {
           // Are there any other unvisited nodes to check?
           if (!branches.length || unvisited.size === 0) {
-            log.info(json[date], `No exchange-rate-path exists between ${start} and ${target}`);
+            log.info(`No exchange-rate-path exists between ${start} and ${target}`);
+            log.debug(json[date], `Prices we have so far`);
             log.debug(distances, `Final distances from ${start} to ${target}`);
             return [];
           } else {
@@ -273,20 +269,6 @@ export const getPrices = ({
     return prices;
   };
 
-  const setPrice = (
-    price: DecimalString,
-    rawDate: DateString,
-    asset: Asset,
-    givenUnit?: Asset,
-  ): void => {
-    const date = formatDate(rawDate);
-    const unit = formatUnit(givenUnit);
-    if (!json[date]) json[date] = {};
-    if (!json[date][unit]) json[date][unit] = {};
-    json[date][unit][asset] = formatPrice(price);
-    save(json);
-  };
-
   ////////////////////////////////////////
   // Price Oracles
 
@@ -342,15 +324,6 @@ export const getPrices = ({
     try {
       const response = await retry(attempt);
       price = response?.market_data?.current_price?.[unit.toLowerCase()]?.toString();
-      // Might as well set other fiat currency prices since they've already been fetched
-      // TODO: This is nice server-side but should prob be disabled client-side
-      Object.keys(FiatCurrencies).forEach(fiat => {
-        const otherPrice = response?.market_data?.current_price?.[fiat.toLowerCase()]?.toString();
-        if (otherPrice) {
-          log.debug(`Also setting ${asset} price on ${date} wrt ${fiat}: ${otherPrice}`);
-          setPrice(otherPrice, date, asset, fiat as Asset);
-        }
-      });
     } catch (e) {
       log.error(e.message);
     }
@@ -496,6 +469,20 @@ export const getPrices = ({
 
   ////////////////////////////////////////
   // External Methods
+
+  const setPrice = (
+    price: DecimalString,
+    rawDate: DateString,
+    asset: Asset,
+    givenUnit?: Asset,
+  ): void => {
+    const date = formatDate(rawDate);
+    const unit = formatUnit(givenUnit);
+    if (!json[date]) json[date] = {};
+    if (!json[date][unit]) json[date][unit] = {};
+    json[date][unit][asset] = formatPrice(price);
+    save();
+  };
 
   const getCount = (
     unit?: Asset,
@@ -667,6 +654,7 @@ export const getPrices = ({
   return {
     getCount,
     getPrice,
+    setPrice,
     json,
     merge,
     syncPrice,

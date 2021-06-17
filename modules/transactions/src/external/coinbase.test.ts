@@ -29,14 +29,14 @@ describe("Coinbase", () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.getJson().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
   });
 
   it("should merge coinbase data multiple times without creaing duplicates", async () => {
     txns.mergeCsv(exampleCoinbaseCsv, CsvSources.Coinbase);
-    expect(txns.getJson().length).to.equal(3);
+    expect(txns.json.length).to.equal(3);
     txns.mergeCsv(exampleCoinbaseCsv, CsvSources.Coinbase);
-    expect(txns.getJson().length).to.equal(3);
+    expect(txns.json.length).to.equal(3);
   });
 
 });

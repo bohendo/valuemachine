@@ -5,7 +5,7 @@ import express from "express";
 import { env } from "./env";
 import {
   getLogAndSend,
-  globalStore,
+  store,
   isValidAddress,
   STATUS_MY_BAD,
   STATUS_YOUR_BAD,
@@ -17,10 +17,10 @@ const syncing = [];
 export const chainData = getChainData({
   etherscanKey: env.etherscanKey,
   logger: log,
-  store: globalStore,
+  store,
 });
 
-const addressBook = getAddressBook([], log);
+const addressBook = getAddressBook({ json: [], logger: log });
 chainData.syncTokenData(addressBook.addresses.filter(addressBook.isToken));
 
 export const chainDataRouter = express.Router();

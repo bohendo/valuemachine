@@ -18,20 +18,17 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
-import { getPrices } from "@valuemachine/core";
 import {
   Assets,
   Blockchains,
   EthereumAssets,
   Prices,
   PricesJson,
-  TransactionsJson,
+  ValueMachine,
 } from "@valuemachine/types";
 import { sigfigs, smeq } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-
-import { store } from "../store";
 
 import { InputDate } from "./InputDate";
 
@@ -76,17 +73,16 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 export const PriceManager = ({
-  pricesJson,
+  prices,
   setPricesJson,
-  transactions,
+  vm,
   unit,
 }: {
-  pricesJson: PricesJson;
+  prices: Prices;
   setPricesJson: (val: PricesJson) => void;
-  transactions: TransactionsJson,
+  vm: ValueMachine,
   unit: Assets,
 }) => {
-  const [prices, setPrices] = useState({} as Prices);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState(false);
@@ -96,9 +92,9 @@ export const PriceManager = ({
   const classes = useStyles();
 
   useEffect(() => {
-    if (!pricesJson || !Object.keys(prices).length) return;
+    if (!prices) return;
     const newFilteredPrices = {} as PricesJson;
-    Object.entries(pricesJson).forEach(([date, priceList]) => {
+    Object.entries(prices.json).forEach(([date, priceList]) => {
       if (filterDate && !date.startsWith(filterDate.split("T")[0])) return null;
       if (Object.keys(priceList).length === 0) return null;
       if (Object.keys(priceList[unit] || {}).length === 0) return null;
@@ -111,11 +107,7 @@ export const PriceManager = ({
       });
     });
     setFilteredPrices(newFilteredPrices);
-  }, [unit, prices, pricesJson, filterAsset, filterDate]);
-
-  useEffect(() => {
-    setPrices(getPrices({ pricesJson, store, unit }));
-  }, [pricesJson, unit]);
+  }, [unit, prices, filterAsset, filterDate]);
 
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterAsset(event.target.value);
@@ -131,33 +123,31 @@ export const PriceManager = ({
   };
 
   const syncPrices = async () => {
-    if (!transactions) {
-      console.warn(`No transactions to sync`);
+    if (!vm) {
+      console.warn(`No vm is available to sync`);
+      return;
+    }
+    if (!prices) {
+      console.warn(`No prices utils are available`);
       return;
     }
     setSyncing(true);
-    console.log(`Syncing price data for ${transactions.length} transactions`);
+    console.log(`Syncing price data for ${vm.json.chunks.length} chunks`);
     try {
-      for (const i in transactions) {
-        const transaction = transactions[i];
-        // Only sync via server if we're missing some prices
-        const missing = Array.from(new Set([...transaction.transfers.map(t => t.asset)]))
-          .map(asset => prices.getPrice(transaction.date, asset))
-          .filter(p => !p).length;
-        if (missing > 0) {
-          const res = await axios({
-            method: "post",
-            url: `/api/prices/${unit}`,
-            data: { transaction },
-          });
-          console.log(res.data, `synced prices for transaction ${i}`);
-          prices.merge(res.data);
-          setPricesJson({ ...prices.json });
-        } else {
-          // If not missing, make sure the price is saved directly w/out needing to path search
-          Array.from(new Set([...transaction.transfers.map(t => t.asset)])).forEach(asset =>
-            prices.syncPrice(transaction.date, asset)
-          );
+      for (const i in vm.json.chunks) {
+        const { asset, receiveDate, disposeDate } = vm.json.chunks[i];
+        for (const date of [receiveDate, disposeDate]) {
+          if (!date) continue;
+          const price = prices.getPrice(date, asset);
+          if (!price) {
+            const price = (await axios(`/api/prices/${unit}/${asset}/${date}`)).data;
+            console.log(`Got price of ${asset} on ${date}`, price);
+            prices.setPrice(price, date, asset);
+            setPricesJson({ ...prices.json });
+          } else if (date) {
+            // make sure this exchange rate is saved directly so we don't need to path find again
+            prices.syncPrice(date, asset);
+          }
         }
       }
     } catch (e) {
@@ -201,11 +191,11 @@ export const PriceManager = ({
             startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
             variant="outlined"
           >
-            {`Sync ${unit} Prices for ${transactions.length} Transactions`}
+            {`Sync ${unit} Prices For ${vm.json.chunks.length} Chunks`}
           </Button>
           <Button
             className={classes.button}
-            disabled={!Object.keys(pricesJson).length}
+            disabled={!Object.keys(prices.json).length}
             onClick={clearPrices}
             startIcon={<ClearIcon/>}
             variant="outlined"
@@ -248,7 +238,7 @@ export const PriceManager = ({
         <Typography align="center" variant="h4" className={classes.title} component="div">
           {countPrices(filteredPrices) === prices.getCount?.(unit)
             ? `${countPrices(filteredPrices)} ${unit} Prices`
-            : `${countPrices(filteredPrices)} of ${prices.getCount?.(unit)} ${unit} Prices`
+            : `${countPrices(filteredPrices)} ${unit} Prices (${prices.getCount?.(unit)} total)`
           }
         </Typography>
 

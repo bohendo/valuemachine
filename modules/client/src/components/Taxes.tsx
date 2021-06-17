@@ -19,23 +19,25 @@ import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
-import { getPrices } from "@valuemachine/core";
 import {
   AddressBook,
   Assets,
   DateString,
   DecimalString,
   EventTypes,
-  PricesJson,
+  Prices,
   SecurityProviders,
   TransferCategories,
-  ValueMachineJson,
+  ValueMachine,
 } from "@valuemachine/types";
-import { add, mul, round as defaultRound, sub } from "@valuemachine/utils";
+import {
+  add,
+  mul,
+  round as defaultRound,
+  sub,
+} from "@valuemachine/utils";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
-
-import { store } from "../store";
 
 import { InputDate } from "./InputDate";
 
@@ -84,12 +86,12 @@ type TaxRow = {
 
 export const TaxesExplorer = ({
   addressBook,
-  vmJson,
-  pricesJson,
+  vm,
+  prices,
 }: {
   addressBook: AddressBook;
-  vmJson: ValueMachineJson,
-  pricesJson: PricesJson,
+  vm: ValueMachine,
+  prices: Prices,
 }) => {
   const classes = useStyles();
   const [page, setPage] = useState(0);
@@ -128,8 +130,8 @@ export const TaxesExplorer = ({
   };
 
   useEffect(() => {
-    if (!addressBook || !vmJson?.events?.length) return;
-    const newJurisdictions = Array.from(vmJson.events
+    if (!addressBook || !vm?.json?.events?.length) return;
+    const newJurisdictions = Array.from(vm.json.events
       .filter(e => e.type === EventTypes.Trade || (
         e.type === EventTypes.Transfer && e.category === TransferCategories.Income
       )).reduce((all, cur) => {
@@ -142,15 +144,14 @@ export const TaxesExplorer = ({
     ).sort();
     setAllJurisdictions(newJurisdictions);
     setJurisdiction(newJurisdictions[0]);
-  }, [addressBook, vmJson]);
+  }, [addressBook, vm]);
 
   useEffect(() => {
-    if (!addressBook || !jurisdiction || !vmJson?.events?.length) return;
-    const prices = getPrices({ pricesJson, store, unit: jurisdiction });
+    if (!addressBook || !jurisdiction || !vm?.json?.events?.length) return;
     let cumulativeIncome = "0";
     let cumulativeChange = "0";
     setTaxes(
-      vmJson?.events.filter(evt => {
+      vm?.json?.events.filter(evt => {
         const toJur = addressBook.getGuardian(evt.to || evt.account || "");
         return toJur === jurisdiction && (
           evt.type === EventTypes.Trade
@@ -226,7 +227,7 @@ export const TaxesExplorer = ({
         }
       }, []).filter(row => row.asset !== jurisdiction)
     );
-  }, [addressBook, jurisdiction, vmJson, pricesJson]);
+  }, [addressBook, jurisdiction, vm, prices]);
 
   const handleExport = () => {
     if (!taxes?.length) { console.warn("Nothing to export"); return; }

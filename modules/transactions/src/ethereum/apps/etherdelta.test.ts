@@ -26,7 +26,7 @@ describe(TransactionSources.EtherDelta, () => {
   beforeEach(() => {
     addressBook = getTestAddressBook();
     txns = getTransactions({ addressBook, logger: log });
-    expect(txns.getJson().length).to.equal(0);
+    expect(txns.json.length).to.equal(0);
   });
 
   it("should handle a deposit", async () => {
@@ -35,8 +35,8 @@ describe(TransactionSources.EtherDelta, () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);
@@ -50,8 +50,8 @@ describe(TransactionSources.EtherDelta, () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(3);
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);
@@ -67,8 +67,8 @@ describe(TransactionSources.EtherDelta, () => {
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
     txns.mergeEthereum(chainData);
-    expect(txns.getJson().length).to.equal(1);
-    const tx = txns.getJson()[0];
+    expect(txns.json.length).to.equal(1);
+    const tx = txns.json[0];
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);
