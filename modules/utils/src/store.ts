@@ -1,7 +1,7 @@
 import { emptyStore, Store, StoreKey } from "@valuemachine/types";
 
 type LocalStorageish = {
-  getItem: (key: string) => string;
+  getItem: (key: string) => string | null;
   setItem: (key: string, data: string) => void;
 };
 export const getLocalStore = (localStorage: LocalStorageish): Store => ({
