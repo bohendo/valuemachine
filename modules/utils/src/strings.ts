@@ -1,5 +1,7 @@
-export const sm = (str: string): string =>
-  str.toLowerCase();
+import { Account } from "@valuemachine/types";
 
-export const smeq = (str1: string, str2: string): boolean =>
-  sm(str1) === sm(str2);
+export const sm = (str: Account): string =>
+  str.toString().toLowerCase();
+
+export const smeq = (str1: Account, str2: Account): boolean =>
+  sm(str1.toString()) === sm(str2.toString());
