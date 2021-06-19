@@ -1,5 +1,5 @@
+import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
-  Address,
   TransactionsParams,
   TransactionsJson,
   CsvSource,
@@ -58,9 +58,12 @@ export const getTransactions = ({
   ////////////////////////////////////////
   // Exported Methods
 
-  const syncEthereum = async (addresses: Address[], etherscanKey?: string): Promise<boolean> => {
+  const syncEthereum = async (etherscanKey?: string): Promise<boolean> => {
+    const selfAddresses = addressBook.json.map(entry => entry.address)
+      .filter(address => addressBook.isSelf(address))
+      .filter(address => isEthAddress(address));
     try {
-      await chainData.syncAddresses(addresses, etherscanKey);
+      await chainData.syncAddresses(selfAddresses, etherscanKey);
       return true;
     } catch (e) {
       log.error(e);
@@ -68,8 +71,10 @@ export const getTransactions = ({
     }
   };
 
-  const mergeEthereum = (addresses: Address[], customParsers = [] as EthParser[]): void => {
-    const selfAddresses = addressBook.addresses.filter(a => addressBook.isSelf(a));
+  const mergeEthereum = (customParsers = [] as EthParser[]): void => {
+    const selfAddresses = addressBook.json.map(entry => entry.address)
+      .filter(address => addressBook.isSelf(address))
+      .filter(address => isEthAddress(address));
     const ethData = chainData.getAddressHistory(...selfAddresses);
     const newEthTxns = ethData.getEthTransactions(ethTx =>
       !json.some(tx => tx.hash === ethTx.hash),

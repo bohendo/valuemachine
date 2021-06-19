@@ -30,7 +30,7 @@ transactionsRouter.post("/eth", async (req, res) => {
   const transactions = getTransactions({ addressBook, logger: log, store });
   Promise.race([
     new Promise((res, rej) => setTimeout(() => rej("TimeOut"), 10000)),
-    new Promise((res, rej) => transactions.syncEthereum(selfAddresses, env.etherscanKey)
+    new Promise((res, rej) => transactions.syncEthereum(env.etherscanKey)
       .then(() => {
         queue = queue.filter(address => selfAddresses.includes(address));
         res(true);
@@ -45,7 +45,7 @@ transactionsRouter.post("/eth", async (req, res) => {
       if (didSync) {
         log.info(`Chain data is synced, returning eth transactions`);
         try {
-          await transactions.mergeEthereum(selfAddresses);
+          transactions.mergeEthereum();
           res.json(transactions.json);
           log.info(`Returned ${transactions.json.length} transactions at a rate of ${
             Math.round((100000 * transactions.json.length)/(Date.now() - start)) / 100
@@ -54,7 +54,6 @@ transactionsRouter.post("/eth", async (req, res) => {
           log.warn(e);
           logAndSend("Error syncing transactions", STATUS_MY_BAD);
         }
-        res.json(chainData.getAddressHistory(selfAddresses).json);
         return;
       }
     },
