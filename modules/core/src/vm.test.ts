@@ -1,12 +1,8 @@
-import { getTransactions } from "@valuemachine/transactions";
 import {
   Assets,
   EventTypes,
   Prices,
-  Transaction,
-  Transactions,
   TransactionSources,
-  Transfer,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -19,12 +15,13 @@ import {
   AddressThree,
   expect,
   getTestAddressBook,
+  getTx,
   testLogger,
 } from "./testUtils";
 
 const { ETH, UniV2_UNI_ETH, UNI, USD } = Assets;
 const { Deposit, Expense, Income, SwapIn, SwapOut } = TransferCategories;
-const { Coinbase, EthTx } = TransactionSources;
+const { Coinbase } = TransactionSources;
 const log = testLogger.child({
   // level: "debug",
   module: "TestVM",
@@ -34,27 +31,13 @@ const ethAccount = AddressOne;
 const notMe = AddressThree;
 const usdAccount = `${Coinbase}-account`;
 
-const timestamp = "2018-01-01T01:00:00Z";
-let txIndex = 0;
-const getTx = (transfers: Transfer): Transaction => ({
-  date: new Date(
-    new Date(timestamp).getTime() + (txIndex * 24 * 60 * 60 * 1000)
-  ).toISOString(),
-  index: txIndex++,
-  sources: [EthTx],
-  transfers: transfers || [],
-});
-
 describe("VM", () => {
   let addressBook;
   let prices: Prices;
   let vm: any;
-  let txns: Transactions;
 
   beforeEach(() => {
     addressBook = getTestAddressBook();
-    txns = getTransactions({ addressBook, logger: log });
-    expect(txns.json.length).to.equal(0);
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
     vm = getValueMachine({ addressBook, logger: log });
