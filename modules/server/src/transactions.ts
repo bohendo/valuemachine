@@ -3,7 +3,6 @@ import { getAddressBook, getTransactions } from "@valuemachine/transactions";
 import { getLogger } from "@valuemachine/utils";
 import express from "express";
 
-import { chainData } from "./chaindata";
 import { env } from "./env";
 import { getLogAndSend, STATUS_YOUR_BAD, STATUS_MY_BAD, store } from "./utils";
 

@@ -2,7 +2,6 @@ import { getLogger } from "@valuemachine/utils";
 import express from "express";
 
 import { authRouter } from "./auth";
-import { chainDataRouter } from "./chaindata";
 import { env } from "./env";
 import { pricesRouter } from "./prices";
 import { transactionsRouter } from "./transactions";
@@ -30,7 +29,6 @@ app.use(express.json());
 ////////////////////////////////////////
 // Second, take requested action
 
-app.use("/chaindata", chainDataRouter);
 app.use("/prices", pricesRouter);
 app.use("/transactions", transactionsRouter);
 
