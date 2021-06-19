@@ -1,11 +1,10 @@
 import {
   AddressCategories,
-  Transactions,
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 
-import { getTransactions } from "../../index";
+import { parseEthTx } from "../parser";
 import {
   expect,
   getRealChainData,
@@ -22,11 +21,9 @@ const log = testLogger.child({
 
 describe(source, () => {
   let addressBook;
-  let txns: Transactions;
 
   beforeEach(() => {
     addressBook = getTestAddressBook();
-    txns = getTransactions({ addressBook, logger: log });
   });
 
   it("should handle deposits to tornado", async () => {
@@ -34,9 +31,7 @@ describe(source, () => {
     const txHash = "0x5e70e647a5dee8cc7eaddc302f2a7501e29ed00d325eaec85a3bde5c02abf1ec";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
@@ -57,9 +52,7 @@ describe(source, () => {
       to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       value: "0.079"
     }] });
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];

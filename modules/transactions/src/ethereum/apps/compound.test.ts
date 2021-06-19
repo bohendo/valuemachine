@@ -1,17 +1,16 @@
 import {
   AddressCategories,
-  Transactions,
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 
+import { parseEthTx } from "../parser";
 import {
   getRealChainData,
   getTestAddressBook,
   expect,
   testLogger,
 } from "../testUtils";
-import { getTransactions } from "../../index";
 
 const source = TransactionSources.Compound;
 const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
@@ -22,11 +21,9 @@ const log = testLogger.child({
 
 describe(source, () => {
   let addressBook;
-  let txns: Transactions;
 
   beforeEach(() => {
     addressBook = getTestAddressBook();
-    txns = getTransactions({ addressBook, logger: log });
   });
 
   it("should handle deposits to comound v1", async () => {
@@ -34,9 +31,7 @@ describe(source, () => {
     const txHash = "0x4bd1cb92d370a3b69b697e606e905d76a003b28c1605d2e46c9a887202b72ae0";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
@@ -48,9 +43,7 @@ describe(source, () => {
     const txHash = "0x1ebdcb2989fe980c40bbce3e68a9d74832ab67a4a0ded2be503ec61335e4bad6";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const income = tx.transfers[1];
@@ -71,9 +64,7 @@ describe(source, () => {
         symbol: "cDAI"
       },
     }, addresses: {}, calls: [] });
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const deposit = tx.transfers[1];
@@ -94,9 +85,7 @@ describe(source, () => {
         symbol: "cDAI"
       },
     }, addresses: {}, calls: [] });
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const withdraw = tx.transfers[1];
@@ -110,9 +99,7 @@ describe(source, () => {
     const txHash = "0x998aedf25aeb6657ffd1d16dbff963a41a20ea42fd6740264b9f492fe0623eea";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(1);
   });
@@ -137,9 +124,7 @@ describe(source, () => {
       to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       value: "1.0"
     }] });
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const borrow = tx.transfers[1];
@@ -158,9 +143,7 @@ describe(source, () => {
         symbol: "cDAI"
       },
     }, addresses: {}, calls: [] });
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const repay = tx.transfers[1];

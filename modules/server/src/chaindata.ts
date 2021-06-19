@@ -48,8 +48,7 @@ chainDataRouter.get("/:address", async (req, res) => {
           syncing.splice(index, 1);
         }
         res(true);
-      })
-      .catch((e) => {
+      }).catch((e) => {
         log.warn(`Failed to sync history for ${address}: ${e.stack}`);
         const index = syncing.indexOf(address);
         if (index > -1) {
@@ -69,8 +68,7 @@ chainDataRouter.get("/:address", async (req, res) => {
     (error: any) => {
       if (error === "TimeOut") {
         return logAndSend(`Chain data for ${address} has started syncing, please wait`);
-      }
-      else {
+      } else {
         return logAndSend(`Chain data for ${address} failed to sync ${error}`, STATUS_MY_BAD);
       }
     },

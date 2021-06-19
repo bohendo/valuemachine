@@ -1,11 +1,10 @@
 import {
   AddressCategories,
-  Transactions,
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 
-import { getTransactions } from "../../index";
+import { parseEthTx } from "../parser";
 import {
   expect,
   getRealChainData,
@@ -21,13 +20,10 @@ const log = testLogger.child({
 });
 
 describe(source, () => {
-  let txns: Transactions;
   let addressBook;
 
   beforeEach(() => {
     addressBook = getTestAddressBook();
-    txns = getTransactions({ addressBook, logger: log });
-    expect(txns.json.length).to.equal(0);
   });
 
   it("should handle a v1 swap", async () => {
@@ -44,9 +40,7 @@ describe(source, () => {
       to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       value: "7.139681444502334347"
     }] });
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
     const fee = tx.transfers[0];
@@ -71,9 +65,7 @@ describe(source, () => {
       to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       value: "0.705704103459495063"
     }] });
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.sources).to.include(source);
     const fee = tx.transfers[0];

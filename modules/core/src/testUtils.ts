@@ -46,7 +46,7 @@ export const getTestAddressBook = (json: AddressBookJson = []): AddressBook =>
 
 const timestamp = "2020-01-01T01:00:00Z";
 let txIndex = 0;
-export const getTx = (transfers: Transfer): Transaction => ({
+export const getTx = (transfers: Transfer[]): Transaction => ({
   date: new Date(
     new Date(timestamp).getTime() + (txIndex * 24 * 60 * 60 * 1000)
   ).toISOString(),

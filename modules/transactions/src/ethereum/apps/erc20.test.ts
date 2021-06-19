@@ -1,7 +1,8 @@
 import { hexZeroPad } from "@ethersproject/bytes";
 import { parseUnits } from "@ethersproject/units";
-import { Transactions, TransactionSources, TransferCategories } from "@valuemachine/types";
+import { TransactionSources, TransferCategories } from "@valuemachine/types";
 
+import { parseEthTx } from "../parser";
 import {
   AddressOne,
   AddressTwo,
@@ -10,10 +11,8 @@ import {
   testToken as tokenAddress,
   getTestAddressBook,
   getTestChainData,
-  getTestEthCall,
   getTestEthTx,
 } from "../testUtils";
-import { getTransactions } from "../../index";
 
 const source = TransactionSources.ERC20;
 const log = testLogger.child({ module: `Test${source}` });
@@ -21,7 +20,6 @@ const toBytes32 = (decstr: string): string => hexZeroPad(parseUnits(decstr, 18),
 
 describe(source, () => {
   let addressBook;
-  let txns: Transactions;
   const quantity = "3.14";
   const quantityHex = toBytes32(quantity);
   const sender = AddressOne;
@@ -29,25 +27,6 @@ describe(source, () => {
 
   beforeEach(() => {
     addressBook = getTestAddressBook();
-    txns = getTransactions({ addressBook, logger: log });
-  });
-
-  it("should parse eth calls w/out generating dups", async () => {
-    const chainData = getTestChainData([
-      getTestEthTx({ from: sender, to: recipient, value: "0.2" })
-    ], [
-      getTestEthCall({ from: recipient, to: sender, value: "0.4" }),
-      getTestEthCall({ from: sender, to: recipient, value: "0.1" }),
-      getTestEthCall({ from: sender, to: recipient, value: "0.1" }),
-    ]);
-    expect(txns.json.length).to.equal(0);
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    expect(txns.json[0].transfers.length).to.equal(5);
-    // Run again to ensure no dups are generated
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    expect(txns.json[0].transfers.length).to.equal(5);
   });
 
   it("should parse erc20 transfers", async () => {
@@ -65,21 +44,15 @@ describe(source, () => {
         }
       ] })
     ]);
-    expect(txns.json.length).to.equal(0);
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    expect(txns.json[0].sources).to.include(source);
-    expect(txns.json[0].transfers.length).to.equal(2);
-    const tokenTransfer = txns.json[0].transfers[1];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
+    expect(tx.sources).to.include(source);
+    expect(tx.transfers.length).to.equal(2);
+    const tokenTransfer = tx.transfers[1];
     expect(tokenTransfer.asset).to.equal(addressBook.getName(tokenAddress));
     expect(tokenTransfer.quantity).to.equal(quantity);
     expect(tokenTransfer.from).to.equal(sender);
     expect(tokenTransfer.to).to.equal(recipient);
     expect(tokenTransfer.category).to.equal(TransferCategories.Internal);
-    // Run again to ensure no dups are generated
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    expect(txns.json[0].transfers.length).to.equal(2);
   });
 
   it("should parse erc20 approvals", async () => {
@@ -97,10 +70,7 @@ describe(source, () => {
         },
       ] })
     ]);
-    expect(txns.json.length).to.equal(0);
-    txns.mergeEthereum(chainData);
-    expect(txns.json.length).to.equal(1);
-    const tx = txns.json[0];
+    const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(1);
   });

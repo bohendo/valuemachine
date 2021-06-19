@@ -2,7 +2,7 @@ import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
 import { ChainData, EthTransaction } from "./chainData";
 import { Logger } from "./logger";
-import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
+import { Account, Address, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
 import { SecurityProviders } from "./security";
 import { enumify } from "./utils";
@@ -114,9 +114,10 @@ export type TransactionsParams = {
 
 export type Transactions = {
   json: TransactionsJson;
-  mergeEthereum: (chainData: ChainData, extraParsers?: EthParser[]) => void;
+  mergeEthereum: (addresses: Address[], extraParsers?: EthParser[]) => void;
   mergeCsv: (csvData: string, parser: CsvSource | CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
+  syncEthereum: (addresses: Address[], etherscanKey?: string) => Promise<boolean>;
 };
 
 export const emptyTransactions = [] as TransactionsJson;

@@ -1,15 +1,15 @@
 import {
+  Address,
   TransactionsParams,
   TransactionsJson,
   CsvSource,
   CsvSources,
-  ChainData,
   StoreKeys,
   Transactions,
 } from "@valuemachine/types";
 import { getLogger, getTransactionsError } from "@valuemachine/utils";
 
-import { parseEthTx } from "./ethereum";
+import { parseEthTx, getChainData } from "./ethereum";
 import {
   mergeCoinbaseTransactions,
   mergeDigitalOceanTransactions,
@@ -26,12 +26,13 @@ export const getTransactions = ({
   json: transactionsJson,
 }: TransactionsParams): Transactions => {
   const log = (logger || getLogger()).child({ module: "Transactions" });
-
   const json = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
 
   log.debug(`Loaded transaction data containing ${
     json.length
   } transactions from ${transactionsJson ? "input" : store ? "store" : "default"}`);
+
+  const chainData = getChainData({ logger, store });
 
   ////////////////////////////////////////
   // Internal Helper Methods
@@ -57,8 +58,20 @@ export const getTransactions = ({
   ////////////////////////////////////////
   // Exported Methods
 
-  const mergeEthereum = (chainData: ChainData, customParsers = [] as EthParser[]): void => {
-    const newEthTxns = chainData.getEthTransactions(ethTx =>
+  const syncEthereum = async (addresses: Address[], etherscanKey?: string): Promise<boolean> => {
+    try {
+      await chainData.syncAddresses(addresses, etherscanKey);
+      return true;
+    } catch (e) {
+      log.error(e);
+      return false;
+    }
+  };
+
+  const mergeEthereum = (addresses: Address[], customParsers = [] as EthParser[]): void => {
+    const selfAddresses = addressBook.addresses.filter(a => addressBook.isSelf(a));
+    const ethData = chainData.getAddressHistory(...selfAddresses);
+    const newEthTxns = ethData.getEthTransactions(ethTx =>
       !json.some(tx => tx.hash === ethTx.hash),
     );
     log.info(`Merging ${newEthTxns.length} new eth transactions`);
@@ -109,6 +122,7 @@ export const getTransactions = ({
     mergeEthereum,
     mergeCsv,
     merge,
+    syncEthereum,
   };
 
 };
