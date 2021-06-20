@@ -60,18 +60,14 @@ export const getTransactions = ({
   ////////////////////////////////////////
   // Exported Methods
 
-  const syncEthereum = async (etherscanKey?: string): Promise<boolean> => {
-    const selfAddresses = addressBook.json.map(entry => entry.address)
-      .filter(address => addressBook.isSelf(address))
-      .filter(address => isEthAddress(address));
-    try {
-      await chainData.syncAddresses(selfAddresses, etherscanKey);
-      return true;
-    } catch (e) {
-      log.error(e);
-      return false;
-    }
-  };
+  const syncEthereum = async (etherscanKey?: string): Promise<void> =>
+    chainData.syncAddresses(
+      addressBook.json
+        .map(entry => entry.address)
+        .filter(address => addressBook.isSelf(address))
+        .filter(address => isEthAddress(address)),
+      etherscanKey,
+    );
 
   const mergeEthereum = (customParsers = [] as EthParser[]): void => {
     const selfAddresses = addressBook.json.map(entry => entry.address)

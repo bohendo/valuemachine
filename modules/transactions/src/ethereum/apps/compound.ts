@@ -294,7 +294,7 @@ export const compoundParser = (
 
       // Deposit
       if (event.name === "Mint") {
-        log.info(event.args, `Parsing ${cAsset} ${event.name} event`);
+        log.info(`Parsing ${cAsset} ${event.name} event`);
         const tokenAmt = formatUnits(event.args.mintAmount, decimals);
         const cTokenAmt = formatUnits(event.args.mintTokens, cDecimals);
         const swapOut = tx.transfers.find(associatedTransfer(asset, tokenAmt));

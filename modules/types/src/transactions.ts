@@ -116,7 +116,7 @@ export type Transactions = {
   mergeEthereum: (extraParsers?: EthParser[]) => void;
   mergeCsv: (csvData: string, parser: CsvSource | CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
-  syncEthereum: (etherscanKey?: string) => Promise<boolean>;
+  syncEthereum: (etherscanKey?: string) => Promise<void>;
 };
 
 export const emptyTransactions = [] as TransactionsJson;

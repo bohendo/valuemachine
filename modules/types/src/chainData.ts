@@ -54,7 +54,7 @@ export type ChainDataJson = {
 };
 
 export type ChainDataParams = {
-  chainDataJson?: ChainDataJson;
+  json?: ChainDataJson;
   etherscanKey?: string;
   logger?: Logger;
   store?: Store;

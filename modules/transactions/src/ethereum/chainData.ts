@@ -25,7 +25,7 @@ import {
 import axios from "axios";
 
 export const getChainData = (params?: ChainDataParams): ChainData => {
-  const { chainDataJson, etherscanKey, logger, store } = params || {};
+  const { json: chainDataJson, etherscanKey, logger, store } = params || {};
 
   const log = (logger || getLogger()).child?.({ module: "ChainData" });
   const json = chainDataJson || store?.load(StoreKeys.ChainData) || emptyChainData;
@@ -79,18 +79,26 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     }
   };
 
-  const fetchHistory = async (action: string, address: Address): Promise<any[]> => {
-    const target = action === "txlist" ? "transaction"
-      : action === "txlistinternal" ? "internal call"
-      : action === "tokentx" ? "token"
+  const fetchHistory = async (
+    action: string,
+    address: Address,
+    key?: string,
+  ): Promise<any[] | undefined> => {
+    const target = action === "txlist" ? "transaction history"
+      : action === "txlistinternal" ? "internal call history"
+      : action === "tokentx" ? "token history"
       : "";
     const url = `https://api.etherscan.io/api?module=account&` +
       `action=${action}&` +
       `address=${address}&` +
-      `apikey=${etherscanKey || ""}&sort=asc`;
-    log.info(`Sent request for ${target} history from Etherscan`);
+      `apikey=${key || etherscanKey || ""}&sort=asc`;
+    log.info(`Sent request for ${target} from Etherscan`);
     const result = (await axios.get(url, { timeout: 10000 })).data.result;
-    log.info(`Received ${result.length} ${target} history results from Etherscan`);
+    if (typeof result === "string") {
+      log.warn(`Failed to get ${target}: ${result}`);
+      return undefined;
+    }
+    log.info(`Received ${result.length} ${target} results from Etherscan`);
     return result;
   };
 
@@ -266,18 +274,25 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     }
     const lastUpdated = (new Date()).toISOString();
     const [txHistory, callHistory, tokenHistory] = await Promise.all([
-      fetchHistory("txlist", address),
-      fetchHistory("txlistinternal", address),
-      fetchHistory("tokentx", address),
+      fetchHistory("txlist", address, key),
+      fetchHistory("txlistinternal", address, key),
+      fetchHistory("tokentx", address, key),
     ]);
+    if (!txHistory || !callHistory || !tokenHistory) {
+      throw new Error(`Unable to fetch history of ${address} from etherscan`);
+    }
     const history = Array.from(new Set(
-      txHistory.concat(callHistory, tokenHistory).map(tx => tx.hash)
+      [...txHistory, ...callHistory, ...tokenHistory].map(tx => tx.hash).filter(tx => !!tx)
     )).sort();
     json.addresses[address].history = history;
     const oldEthCalls = JSON.parse(JSON.stringify(json.calls));
     for (const call of callHistory) {
       if (getDups(oldEthCalls, call) > 0) {
         log.debug(`Skipping eth call, dup detected`);
+        continue;
+      }
+      if (!call.blockNumber || !call.hash || !call.to || !call.from || !call.value) {
+        log.warn(call, `Invalid internal call`);
         continue;
       }
       json.calls.push({
@@ -333,12 +348,12 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         json.addresses[address]?.lastUpdated &&
         Date.now() - new Date(lastAction).getTime() > 12 * month
       ) {
-        log.warn(`Skipping retired (${lastAction}) address ${address}`);
+        log.debug(`Skipping retired (${lastAction}) address ${address}`);
         return false;
       }
       // Don't sync any active addresses if they've been synced recently
-      if (Date.now() - new Date(json.addresses[address].lastUpdated).getTime() < 2 * hour) {
-        log.warn(`Skipping active (${lastAction}) address ${address}`);
+      if (Date.now() - new Date(json.addresses[address].lastUpdated).getTime() < 6 * hour) {
+        log.debug(`Skipping active (${lastAction}) address ${address}`);
         return false;
       }
       return true;
@@ -352,7 +367,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     }
     log.info(`Fetching tx data for ${userAddresses.length} addresses`);
     for (const address of userAddresses) {
-      log.info(`Syncing transactions for address ${logProg(userAddresses, address)}: ${address}`);
+      log.debug(`Syncing transactions for address ${logProg(userAddresses, address)}: ${address}`);
       for (const hash of json.addresses[address] ? json.addresses[address].history : []) {
         await syncTransaction({ hash }, key);
       }

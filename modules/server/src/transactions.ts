@@ -20,8 +20,9 @@ transactionsRouter.post("/eth", async (req, res) => {
   }
   const addressBook = getAddressBook({ json: addressBookJson, logger: log });
   const selfAddresses = addressBook.json
-    .filter(entry => isEthAddress(entry.address))
-    .filter(entry => addressBook.isSelf(entry.address));
+    .map(entry => entry.address)
+    .filter(address => isEthAddress(address))
+    .filter(address => addressBook.isSelf(address));
   if (selfAddresses.every(address => queue.includes(address))) {
     return logAndSend(`Eth data for ${selfAddresses.length} addresses is already syncing.`);
   }
@@ -31,18 +32,18 @@ transactionsRouter.post("/eth", async (req, res) => {
     new Promise((res, rej) => setTimeout(() => rej("TimeOut"), 10000)),
     new Promise((res, rej) => transactions.syncEthereum(env.etherscanKey)
       .then(() => {
-        queue = queue.filter(address => selfAddresses.includes(address));
+        queue = queue.filter(address => !selfAddresses.includes(address));
         res(true);
       }).catch((e) => {
-        log.warn(`Failed to sync history for ${selfAddresses}: ${e.stack}`);
-        queue = queue.filter(address => selfAddresses.includes(address));
+        log.warn(`Failed to sync history for ${selfAddresses.length} addresses: ${e.message}`);
+        queue = queue.filter(address => !selfAddresses.includes(address));
         rej(e);
       }),
     ),
   ]).then(
     (didSync: boolean) => {
       if (didSync) {
-        log.info(`Chain data is synced, returning eth transactions`);
+        log.info(`Ethereum data is synced, returning eth transactions`);
         try {
           transactions.mergeEthereum();
           res.json(transactions.json);
@@ -58,9 +59,14 @@ transactionsRouter.post("/eth", async (req, res) => {
     },
     (error: any) => {
       if (error === "TimeOut") {
-        return logAndSend(`Chain data for ${selfAddresses} has started syncing, please wait`);
+        return logAndSend(
+          `Ethereum data for ${selfAddresses.length} addresses has started syncing, please wait`
+        );
       } else {
-        return logAndSend(`Chain data for ${selfAddresses} failed to sync ${error}`, STATUS_MY_BAD);
+        return logAndSend(
+          `Ethereum data for ${selfAddresses.length} addresses failed to sync ${error}`,
+          STATUS_MY_BAD
+        );
       }
     },
   ).catch((e) => {
