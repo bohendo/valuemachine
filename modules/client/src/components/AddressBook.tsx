@@ -550,7 +550,6 @@ export const AddressBookManager = ({
         if (response.status === 200 && typeof response.data === "object") {
           const history = response.data;
           console.log(`Got address history:`, history);
-          // chainData.merge(history);
           setSyncing({ ...syncing, [address]: false });
           break;
         }

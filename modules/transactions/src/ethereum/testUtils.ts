@@ -29,14 +29,14 @@ export const getTestChainData = (
   },
 });
 
-export const getRealChainData = async (
+export const getEthTx = async (
   txHash: Bytes32,
   dirpath = "./testData",
-): Promise<ChainData> => {
+): Promise<EthTransaction> => {
   const testStore = getFileStore(path.join(__dirname, dirpath), fs);
   const chainData = getChainData({ logger: testLogger, store: testStore });
   await chainData.syncTransaction({ hash: txHash }, env.etherscanKey);
-  return getTestChainData([chainData.getEthTransaction(txHash)]);
+  return chainData.getEthTransaction(txHash);
 };
 
 export const getTestEthTx = (ethTx?: Partial<EthTransaction>): EthTransaction => ({

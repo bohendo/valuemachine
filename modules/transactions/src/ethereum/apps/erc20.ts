@@ -6,7 +6,6 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  ChainData,
   EthTransaction,
   Logger,
   Transaction,
@@ -53,9 +52,9 @@ export const erc20Addresses = [
   { name: SPANK, address: "0x42d6622dece394b54999fbd73d108123806f6a18" },
   { name: sUSD, address: "0x57ab1ec28d129707052df4df418d58a2d46d5f51" },
   { name: sUSDv1, address: "0x57ab1e02fee23774580c119740129eac7081e9d3" },
-  { name: USDC, address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" },
-  { name: USDT, address: "0xdac17f958d2ee523a2206206994597c13d831ec7" },
-  { name: WBTC, address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599" },
+  { name: USDC, address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", decimals: 6 },
+  { name: USDT, address: "0xdac17f958d2ee523a2206206994597c13d831ec7", decimals: 6 },
+  { name: WBTC, address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", decimals: 8 },
   { name: ZRX, address: "0xe41d2489571d322189246dafa5ebde1f4699f498" },
 
   { name: linkCRV, address: "0xcee60cfa923170e4f8204ae08b4fa6a3f5656f3a" },
@@ -101,7 +100,6 @@ export const erc20Parser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });

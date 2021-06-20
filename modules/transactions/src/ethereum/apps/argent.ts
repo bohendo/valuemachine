@@ -5,7 +5,6 @@ import {
   AddressBookJson,
   AddressCategories,
   // Assets,
-  ChainData,
   EthTransaction,
   Logger,
   Transaction,
@@ -64,7 +63,6 @@ export const argentParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });

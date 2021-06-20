@@ -8,7 +8,6 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  ChainData,
   EthTransaction,
   EthTransactionLog,
   Logger,
@@ -210,7 +209,6 @@ export const makerParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });

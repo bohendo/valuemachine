@@ -7,7 +7,6 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  ChainData,
   EthTransaction,
   Logger,
   Transaction,
@@ -132,14 +131,13 @@ export const compoundParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf } = addressBook;
 
   // TODO: how could we not hardcode these again & also not introduce cyclic dependencies?
-  const cTokenToTokenDecimals = (cToken: string): string | undefined => {
+  const cTokenToTokenDecimals = (cToken: string): number => {
     switch (cToken) {
     case cBAT: return getDecimals("0x0d8775f648430679a709e98d2b0cb6250d2887ef");
     case cCOMP: return getDecimals(compAddress);

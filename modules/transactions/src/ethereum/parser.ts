@@ -6,18 +6,16 @@ import {
   Address,
   AddressBook,
   Assets,
-  ChainData,
   EthCall,
   EthTransaction,
   Logger,
   Transaction,
   TransactionSources,
   TransferCategories,
+  EthParser,
   TransferCategory,
 } from "@valuemachine/types";
 import { gt, sm, getNewContractAddress } from "@valuemachine/utils";
-
-import { EthParser } from "../types";
 
 import { appParsers } from "./apps";
 
@@ -27,8 +25,8 @@ const { Expense, Income, Internal, Unknown } = TransferCategories;
 
 export const parseEthTx = (
   ethTx: EthTransaction,
+  ethCalls: EthCall[],
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
   extraParsers = [] as EthParser[],
 ): Transaction => {
@@ -95,7 +93,7 @@ export const parseEthTx = (
   }
 
   // Add internal eth calls to the transfers array
-  chainData.getEthCalls((call: EthCall) => call.hash === ethTx.hash).forEach((call: EthCall) => {
+  ethCalls.filter((call: EthCall) => call.hash === ethTx.hash).forEach((call: EthCall) => {
     if (
       // Ignore non-eth transfers, we'll get those by parsing tx logs instead
       call.contractAddress === AddressZero
@@ -120,7 +118,7 @@ export const parseEthTx = (
   // Activate pipeline of app-specific parsers
   appParsers.concat(extraParsers).forEach(parser => {
     try {
-      tx = parser(tx, ethTx, addressBook, chainData, log);
+      tx = parser(tx, ethTx, addressBook, log);
     } catch (e) {
       // If one of them fails, log the error & move on
       log.error(e);

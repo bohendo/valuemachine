@@ -1,6 +1,6 @@
 import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
-import { ChainData, EthTransaction } from "./chainData";
+import { EthTransaction } from "./chainData";
 import { Logger } from "./logger";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
@@ -44,7 +44,6 @@ export type EthParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ) => Transaction;
 

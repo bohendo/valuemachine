@@ -4,7 +4,6 @@ import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
-  ChainData,
   EthTransaction,
   Logger,
   Transaction,
@@ -17,7 +16,6 @@ import {
 import {
   parseEvent,
   rmDups,
-  round,
   sm,
   smeq,
 } from "@valuemachine/utils";
@@ -198,7 +196,6 @@ export const uniswapParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
@@ -294,11 +291,13 @@ export const uniswapParser = (
     ////////////////////////////////////////
     // UNI Airdrop
     } else if (event.name === "Claimed") {
+      /*
       const airdrop = tx.transfers.find((transfer: Transfer): boolean =>
         airdropAddresses.some(e => smeq(transfer.from, e.address))
         && transfer.asset === UNI
         && transfer.category === Income
       );
+      */
       tx.method = "Claim";
 
     ////////////////////////////////////////

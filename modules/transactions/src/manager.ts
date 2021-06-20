@@ -1,11 +1,14 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
-  TransactionsParams,
-  TransactionsJson,
+  CsvParser,
   CsvSource,
   CsvSources,
+  EthCall,
+  EthParser,
   StoreKeys,
   Transactions,
+  TransactionsJson,
+  TransactionsParams,
 } from "@valuemachine/types";
 import { getLogger, getTransactionsError } from "@valuemachine/utils";
 
@@ -17,7 +20,6 @@ import {
   mergeWyreTransactions,
 } from "./external";
 import { mergeTransaction } from "./merge";
-import { EthParser, CsvParser } from "./types";
 
 export const getTransactions = ({
   addressBook,
@@ -85,8 +87,8 @@ export const getTransactions = ({
         json,
         parseEthTx(
           ethTx,
+          chainData.getEthCalls((call: EthCall) => call.hash === ethTx.hash),
           addressBook,
-          chainData,
           logger,
           customParsers,
         ),

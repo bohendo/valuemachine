@@ -8,7 +8,6 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  ChainData,
   EthTransaction,
   Logger,
   Transaction,
@@ -56,7 +55,6 @@ export const etherdeltaParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
