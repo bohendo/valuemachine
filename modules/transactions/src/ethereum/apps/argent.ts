@@ -90,7 +90,7 @@ export const argentParser = (
         log.info(`Parsing ${subsrc} ${event.name}`);
 
         const inAsset = getName(destToken);
-        const inAmt = formatUnits(destAmount, chainData.getTokenData(destToken).decimals);
+        const inAmt = formatUnits(destAmount, addressBook.getDecimals(destToken));
         const swapIn = tx.transfers.find(transfer =>
           isSelf(transfer.to) && transfer.asset === inAsset && transfer.quantity === inAmt
         );
@@ -101,7 +101,7 @@ export const argentParser = (
         }
 
         const outAsset = getName(srcToken);
-        const outAmt = formatUnits(srcAmount, chainData.getTokenData(srcToken).decimals);
+        const outAmt = formatUnits(srcAmount, addressBook.getDecimals(srcToken));
         const swapOut = tx.transfers.find(transfer =>
           isSelf(transfer.from) && transfer.asset === outAsset && transfer.quantity === outAmt
         );

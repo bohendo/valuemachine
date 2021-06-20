@@ -105,7 +105,7 @@ export const erc20Parser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName, isSelf, isToken } = addressBook;
+  const { getDecimals, getName, isSelf, isToken } = addressBook;
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
@@ -120,10 +120,7 @@ export const erc20Parser = (
         log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
         continue;
       }
-      const amount = formatUnits(
-        event.args.amount,
-        chainData.getTokenData(address)?.decimals || 18,
-      );
+      const amount = formatUnits(event.args.amount, getDecimals(address));
 
       if (event.name === "Transfer") {
         log.debug(`Parsing ${source} ${event.name} of ${amount} ${asset}`);

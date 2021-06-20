@@ -57,13 +57,6 @@ describe(source, () => {
     const txHash = "0x1e17fdbe0dece46ad08ba84fd624072659684b354642d37b05b457108cea6f63";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    chainData.merge({ transactions: [], tokens: {
-      ["0x5d3a536e4d6dbd6114cc1ead35777bab948e3643"]: {
-        decimals: 8,
-        name: "Compound Dai",
-        symbol: "cDAI"
-      },
-    }, addresses: {}, calls: [] });
     const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
@@ -78,13 +71,6 @@ describe(source, () => {
     const txHash = "0x9105678815630bf456b4af5e13de9e5e970e25bb3a8849a74953d833d2a9e499";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    chainData.merge({ transactions: [], tokens: {
-      ["0x5d3a536e4d6dbd6114cc1ead35777bab948e3643"]: {
-        decimals: 8,
-        name: "Compound Dai",
-        symbol: "cDAI"
-      },
-    }, addresses: {}, calls: [] });
     const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
@@ -109,13 +95,7 @@ describe(source, () => {
     const txHash = "0x032e9d84b07fdd3e546b44b4fa034d1b470e927188df9594af7e5d656588aad0";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    chainData.merge({ transactions: [], tokens: {
-      ["0x5d3a536e4d6dbd6114cc1ead35777bab948e3643"]: {
-        decimals: 8,
-        name: "Compound Dai",
-        symbol: "cDAI"
-      },
-    }, addresses: {}, calls: [{
+    chainData.merge({ transactions: [], addresses: {}, tokens: {}, calls: [{
       block: 8354702,
       contractAddress: "0x0000000000000000000000000000000000000000",
       from: "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
@@ -136,13 +116,6 @@ describe(source, () => {
     const txHash = "0xdee8b8c866b692e4c196454630b06eee59f86250afa3419b2d5e8a07971946ae";
     addressBook.newAddress(selfAddress, AddressCategories.Self, "test-self");
     const chainData = await getRealChainData(txHash);
-    chainData.merge({ transactions: [], tokens: {
-      ["0x5d3a536e4d6dbd6114cc1ead35777bab948e3643"]: {
-        decimals: 8,
-        name: "Compound Dai",
-        symbol: "cDAI"
-      },
-    }, addresses: {}, calls: [] });
     const tx = parseEthTx(chainData.json.transactions[0], addressBook, chainData, log);
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);

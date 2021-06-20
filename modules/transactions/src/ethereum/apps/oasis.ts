@@ -81,7 +81,7 @@ export const oasisParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName, isProxy, isSelf } = addressBook;
+  const { getDecimals, getName, isProxy, isSelf } = addressBook;
 
   const isSelfy = (address: string): boolean =>
     isSelf(address) || (
@@ -112,13 +112,13 @@ export const oasisParser = (
         if (isSelfy(event.args.maker)) {
           inGem = getName(event.args.buy_gem);
           outGem = getName(event.args.pay_gem);
-          inAmt = formatUnits(event.args.buy_amt, chainData.getTokenData(address).decimals);
-          outAmt = formatUnits(event.args.pay_amt, chainData.getTokenData(address).decimals);
+          inAmt = formatUnits(event.args.buy_amt, getDecimals(address));
+          outAmt = formatUnits(event.args.pay_amt, getDecimals(address));
         } else if (isSelfy(event.args.taker)) {
           inGem = getName(event.args.pay_gem);
           outGem = getName(event.args.buy_gem);
-          inAmt = formatUnits(event.args.pay_amt, chainData.getTokenData(address).decimals);
-          outAmt = formatUnits(event.args.buy_amt, chainData.getTokenData(address).decimals);
+          inAmt = formatUnits(event.args.pay_amt, getDecimals(address));
+          outAmt = formatUnits(event.args.buy_amt, getDecimals(address));
         } else {
           continue;
         }

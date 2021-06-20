@@ -4,9 +4,10 @@ import { Address, HexString } from "./strings";
 import { enumify } from "./utils";
 
 const ExternalCategories = enumify({
-  Private: "Private",
-  Public: "Public",
-  Self: "Self",
+  Family: "Family",
+  Private: "Private", // private individuals eg steve
+  Public: "Public", // public addresses eg gitcoin grants
+  Self: "Self", // User controlled
 });
 const DeFiCategories = enumify({
   Defi: "Defi",
@@ -24,6 +25,7 @@ export type AddressCategory = (typeof AddressCategories)[keyof typeof AddressCat
 export type AddressEntry = {
   address: HexString;
   category: AddressCategory;
+  decimals?: number; // for ERC20 token addresses
   name: string;
   guardian?: SecurityProvider;
 };
@@ -41,6 +43,7 @@ export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
   getGuardian(address: Address): SecurityProvider;
+  getDecimals(address: Address): number;
   isCategory(category: AddressCategory): (address: Address) => boolean;
   isPresent(address: Address): boolean;
   isProxy(address: Address): boolean;
