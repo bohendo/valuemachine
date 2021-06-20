@@ -1,11 +1,8 @@
-import { Interface } from "@ethersproject/abi";
 import { getAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
-import { hexlify, isHexString } from "@ethersproject/bytes";
+import { hexlify } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
-import { Contract } from "@ethersproject/contracts";
 import { EtherscanProvider, JsonRpcProvider, Provider } from "@ethersproject/providers";
-import { toUtf8String } from "@ethersproject/strings";
 import { formatEther } from "@ethersproject/units";
 import {
   Address,
@@ -17,7 +14,6 @@ import {
   ChainDataJson,
   HexString,
   StoreKeys,
-  TokenData,
 } from "@valuemachine/types";
 import {
   getEthTransactionError,
@@ -28,36 +24,17 @@ import {
 } from "@valuemachine/utils";
 import axios from "axios";
 
-const stringAbi = [
-  "function decimals() view returns (uint)",
-  "function name() view returns (string)",
-  "function symbol() view returns (string)",
-];
-
-const bytesAbi = [
-  "function decimals() view returns (uint256)",
-  "function name() view returns (bytes32)",
-  "function symbol() view returns (bytes32)",
-];
-
-const getTokenInterface = (address?: Address): Interface => new Interface(
-  !address ? stringAbi
-  : [
-    "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359", // SAI
-    "0xf53ad2c6851052a81b42133467480961b2321c09", // PETH
-    "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2", // MKR
-  ].includes(sm(address)) ? bytesAbi : stringAbi
-);
-
 export const getChainData = (params?: ChainDataParams): ChainData => {
   const { chainDataJson, etherscanKey, logger, store } = params || {};
 
   const log = (logger || getLogger()).child?.({ module: "ChainData" });
   const json = chainDataJson || store?.load(StoreKeys.ChainData) || emptyChainData;
+  const save = () => store
+    ? store.save(StoreKeys.ChainData, json)
+    : log.warn(`No store provided, can't save chain data`);
 
   if (!json.addresses) json.addresses = {};
   if (!json.calls) json.calls = [];
-  if (!json.tokens) json.tokens = {};
   if (!json.transactions) json.transactions = [];
 
   log.info(`Loaded chain data containing ${
@@ -85,11 +62,6 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     parseInt(toBN(num.toString()).toString(), 10);
 
   const toHex = (num: BigNumber | number): string => hexlify(toBN(num));
-
-  const toStr = (str: HexString | string): string =>
-    str.startsWith("0x") && !str.replace(/^0x/, "").match(/[^0-9a-fA-F]/)
-      ? toUtf8String(str).replace(/\u0000/g, "")
-      : str;
 
   const logProg = (list: any[], elem: any): string =>
     `${list.indexOf(elem)+1}/${list.length}`;
@@ -141,7 +113,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
   // Exported Methods
 
   const merge = (newJson: ChainDataJson): void => {
-    if (!newJson.addresses || !newJson.tokens || !newJson.transactions || !newJson.calls) {
+    if (!newJson.addresses || !newJson.transactions || !newJson.calls) {
       throw new Error(`Invalid ChainDataJson, got keys: ${Object.keys(newJson)}`);
     }
     let before;
@@ -150,11 +122,6 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       json.addresses[address] = newJson.addresses[address];
     }
     log.info(`Merged ${Object.keys(json.addresses).length - before} new addresses`);
-    before = Object.keys(json.tokens).length; 
-    for (const token of Object.keys(newJson.tokens)) {
-      json.tokens[token] = newJson.tokens[token];
-    }
-    log.info(`Merged ${Object.keys(json.tokens).length - before} new tokens`);
     before = json.transactions.length;
     for (const newTx of newJson.transactions) {
       if (!json.transactions.some(tx => tx.hash === newTx.hash)) {
@@ -170,11 +137,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       }
     }
     log.info(`Merged ${json.calls.length - before} new calls`);
-    if (!store) {
-      log.warn(`No store provided, can't save newly merged chain data`);
-    } else {
-      store.save(StoreKeys.ChainData, json);
-    }
+    save();
     return;
   };
 
@@ -192,23 +155,10 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         addresses: summary,
         transactions: json.transactions.filter(include),
         calls: json.calls.filter(include),
-        tokens: json.tokens,
       },
       logger,
     });
   };
-
-  const getDecimals =  (token: Address | string): number =>
-    getTokenData(token)?.decimals || 18;
-
-  // Accepts either a token address or symbol
-  const getTokenData =  (token: Address | string): TokenData =>
-    JSON.parse(JSON.stringify(
-      (token.startsWith("0x") && isHexString(token)
-        ? json.tokens[sm(token)]
-        : Object.values(json.tokens).find(t => smeq(t.symbol, token))
-      ) || {}
-    ));
 
   const getEthTransaction = (hash: HexString): EthTransaction => {
     const ethTx = json.transactions.find(tx => tx.hash === hash);
@@ -225,44 +175,6 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
 
   const getEthCalls = (testFn: (_call: EthCall) => boolean): EthCall[] =>
     JSON.parse(JSON.stringify(json.calls.filter(testFn)));
-
-  const syncTokenData = async (tokens: Address[], key?: string): Promise<void> => {
-    const provider = getProvider(key);
-    const newlySupported = tokens.filter(tokenAddress =>
-      !json.tokens[tokenAddress] || typeof json.tokens[tokenAddress].decimals !== "number",
-    );
-    log.info(`Fetching info for ${newlySupported.length} newly supported tokens`);
-    for (const tokenAddress of newlySupported) {
-      log.info(`Sent request for token data ${logProg(tokens, tokenAddress)}: ${tokenAddress}`);
-      const token = new Contract(tokenAddress, getTokenInterface(tokenAddress), provider);
-      let rawDecimals, rawName, rawSymbol;
-      try {
-        [rawDecimals, rawName, rawSymbol] = await Promise.all([
-          token.functions.decimals(),
-          token.functions.name(),
-          token.functions.symbol(),
-        ]);
-      } catch (e) {
-        log.error(`Failed to fetch data for ${tokenAddress}`);
-        log.error(e.message);
-        if (e.message.includes("EAI_AGAIN") || e.message.toLowerCase().includes("timeout")) {
-          // Skip this token for now & try to fetch it again later when internet is more reliable
-          continue;
-        }
-        // Else it's prob not possible to fetch, just save the defaults for an unknown token
-      }
-      const name = toStr(rawName?.[0] || "Unknown");
-      const symbol = toStr(rawSymbol?.[0] || "???");
-      const decimals = toNum(rawDecimals || 18);
-      json.tokens[sm(tokenAddress)] = { decimals, name, symbol };
-      if (!store) {
-        log.warn(`No store provided, can't save new token data`);
-      } else {
-        store.save(StoreKeys.ChainData, json);
-        log.info(`Saved data for ${name} [${symbol}] w ${decimals} decimals: ${tokenAddress}`);
-      }
-    }
-  };
 
   const syncTransaction = async (
     tx: Partial<EthTransaction | EthCall>,
@@ -344,13 +256,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         parseFloat(`${tx1.block}.${tx1.index}`) - parseFloat(`${tx2.block}.${tx2.index}`),
       );
     }
-
-    if (!store) {
-      log.warn(`No store provided, can't save new tx data`);
-    } else {
-      store.save(StoreKeys.ChainData, json);
-      log.debug(`Saved data for tx ${tx.hash}`);
-    }
+    save();
     return;
   };
 
@@ -388,17 +294,13 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         value: formatEther(call.value),
       });
     }
-    if (!store) {
-      log.warn(`No store provided, can't save new address history`);
-    } else {
-      store.save(StoreKeys.ChainData, json);
-      log.info(`Saved calls & history for address ${address}`);
-    }
+    save();
+    log.info(`Saved calls & history for address ${address}`);
     for (const hash of history) {
       await syncTransaction({ hash }, key);
     }
     json.addresses[address].lastUpdated = lastUpdated;
-    store?.save(StoreKeys.ChainData, json);
+    save();
     log.debug(`Saved lastUpdated for address ${address}`);
     return;
   };
@@ -462,22 +364,19 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
 
   if (chainDataJson && store) {
     merge(store.load(StoreKeys.ChainData));
-    store.save(StoreKeys.ChainData, json);
+    save();
   }
 
   return {
     getAddressHistory,
-    getDecimals,
     getEthCall,
     getEthCalls,
     getEthTransaction,
     getEthTransactions,
-    getTokenData,
     json,
     merge,
     syncAddress,
     syncAddresses,
-    syncTokenData,
     syncTransaction,
   };
 };

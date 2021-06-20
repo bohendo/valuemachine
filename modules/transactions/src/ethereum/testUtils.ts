@@ -4,6 +4,7 @@ import path from "path";
 import { AddressZero, HashZero } from "@ethersproject/constants";
 import {
   Bytes32,
+  emptyChainData,
   ChainData,
   EthCall,
   EthTransaction,
@@ -22,9 +23,8 @@ export const getTestChainData = (
 ): ChainData => getChainData({
   logger: testLogger,
   chainDataJson: {
-    addresses: {},
+    ...emptyChainData,
     calls,
-    tokens: {},
     transactions,
   },
 });

@@ -42,12 +42,6 @@ export type EthTransaction = {
   value: DecimalString;
 };
 
-export type TokenData = {
-  decimals: number;
-  name: string;
-  symbol: string;
-}
-
 export type ChainDataJson = {
   addresses: {
     [address: string]: {
@@ -56,7 +50,6 @@ export type ChainDataJson = {
     };
   };
   calls: EthCall[]; // Note: we can have multiple calls per txHash
-  tokens: { [address: string]: TokenData };
   transactions: EthTransaction[];
 };
 
@@ -69,23 +62,19 @@ export type ChainDataParams = {
 
 export interface ChainData {
   getAddressHistory: (...addresses: Address[]) => ChainData;
-  getDecimals: (token: Address) => number;
   getEthCall: (hash: Bytes32) => EthCall;
   getEthCalls: (testFn: (call: EthCall) => boolean) => EthCall[];
   getEthTransaction: (hash: Bytes32) => EthTransaction;
   getEthTransactions: (testFn: (tx: EthTransaction) => boolean) => EthTransaction[];
-  getTokenData: (token: Address) => TokenData;
   json: ChainDataJson;
   merge: (newJson: ChainDataJson) => void;
   syncAddress: (address: Address, key?: string) => Promise<void>;
   syncAddresses: (addresses: Address[], key?: string) => Promise<void>;
-  syncTokenData: (tokens: Address[], key?: string) => Promise<void>;
   syncTransaction: (tx: Partial<EthTransaction | EthCall>, key?: string) => Promise<void>;
 }
 
 export const emptyChainData = {
   addresses: {},
   calls: [],
-  tokens: {},
   transactions: [],
 } as ChainDataJson;
