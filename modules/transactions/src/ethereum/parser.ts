@@ -1,6 +1,5 @@
 import { isAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
-import { AddressZero } from "@ethersproject/constants";
 import { formatEther } from "@ethersproject/units";
 import {
   Address,
@@ -31,7 +30,7 @@ export const parseEthTx = (
   extraParsers = [] as EthParser[],
 ): Transaction => {
   const { isSelf } = addressBook;
-  const log = logger.child({ module: `Eth${ethTx.hash.substring(0, 8)}` });
+  const log = logger.child({ module: `Eth${ethTx.hash?.substring(0, 8)}` });
   // log.debug(ethTx, `Parsing eth tx`);
 
   const getSimpleCategory = (to: Address, from: Address): TransferCategory =>
@@ -95,10 +94,8 @@ export const parseEthTx = (
   // Add internal eth calls to the transfers array
   ethCalls.filter((call: EthCall) => call.hash === ethTx.hash).forEach((call: EthCall) => {
     if (
-      // Ignore non-eth transfers, we'll get those by parsing tx logs instead
-      call.contractAddress === AddressZero
       // Calls that don't interact with self addresses don't matter
-      && (isSelf(call.to) || isSelf(call.from))
+      (isSelf(call.to) || isSelf(call.from))
       // Calls with zero value don't matter
       && gt(call.value, "0")
     ) {

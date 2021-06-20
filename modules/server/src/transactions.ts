@@ -26,20 +26,21 @@ transactionsRouter.post("/eth", async (req, res) => {
     return logAndSend(`Eth data for ${selfAddresses.length} addresses is already syncing.`);
   }
   selfAddresses.forEach(address => queue.push(address));
+  const sync = new Promise(res => chainData.syncAddressBook(addressBook).then(() => {
+    log.warn(`Successfully synced history for ${selfAddresses.length} addresses`);
+    queue = queue.filter(address => !selfAddresses.includes(address));
+    res(true);
+  }).catch((e) => {
+    log.warn(`Failed to sync history for ${selfAddresses.length} addresses: ${e.stack}`);
+    queue = queue.filter(address => !selfAddresses.includes(address));
+    res(false);
+  }));
   Promise.race([
+    sync,
     new Promise((res, rej) => setTimeout(() => rej("TimeOut"), 10000)),
-    new Promise((res, rej) => chainData.syncAddressBook(addressBook).then(() => {
-      queue = queue.filter(address => !selfAddresses.includes(address));
-      res(true);
-    }).catch((e) => {
-      log.warn(`Failed to sync history for ${selfAddresses.length} addresses: ${e.message}`);
-      queue = queue.filter(address => !selfAddresses.includes(address));
-      rej(e);
-    })),
   ]).then(
     (didSync: boolean) => {
       if (didSync) {
-        log.info(`Ethereum data is synced, returning eth transactions`);
         try {
           const start = Date.now();
           const transactionsJson = chainData.getTransactions(addressBook);
@@ -52,6 +53,11 @@ transactionsRouter.post("/eth", async (req, res) => {
           logAndSend("Error syncing transactions", STATUS_MY_BAD);
         }
         return;
+      } else {
+        return logAndSend(
+          `Ethereum data for ${selfAddresses.length} addresses failed to sync`,
+          STATUS_MY_BAD
+        );
       }
     },
     (error: any) => {
@@ -70,4 +76,5 @@ transactionsRouter.post("/eth", async (req, res) => {
     log.warn(`Encountered an error while syncing history for ${selfAddresses}: ${e.message}`);
     queue = queue.filter(address => selfAddresses.includes(address));
   });
+  log.info(`Synced ${selfAddresses.length} addresses successfully? ${await sync}`);
 });

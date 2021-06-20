@@ -59,7 +59,6 @@ export const getTestEthTx = (ethTx?: Partial<EthTransaction>): EthTransaction =>
 
 export const getTestEthCall = (ethCall?: Partial<EthCall>): EthCall => ({
   block: 1,
-  contractAddress: AddressZero,
   from: AddressZero,
   hash: HashZero,
   timestamp: "2000-01-01T01:00:00.000Z",

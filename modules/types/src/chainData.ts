@@ -12,7 +12,6 @@ import {
 
 export type EthCall = {
   block: number;
-  contractAddress: Address; // AddressZero if ETH
   from: Address;
   hash: Bytes32;
   timestamp: TimestampString;

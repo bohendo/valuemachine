@@ -1,7 +1,6 @@
 import { isAddress as isEthAddress, getAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
-import { hexlify } from "@ethersproject/bytes";
-import { AddressZero } from "@ethersproject/constants";
+import { hexDataLength, hexlify, isHexString } from "@ethersproject/bytes";
 import { EtherscanProvider, JsonRpcProvider, Provider } from "@ethersproject/providers";
 import { formatEther } from "@ethersproject/units";
 import {
@@ -156,25 +155,6 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     return;
   };
 
-  const getAddressHistory = (...rawAddresses: Address[]): ChainData => {
-    const addresses = rawAddresses.map(sm);
-    const include = (tx: { hash: HexString }): boolean => addresses.some(
-      address => json.addresses[address] && json.addresses[address].history.includes(tx.hash),
-    );
-    const summary = {};
-    addresses.forEach(address => {
-      summary[address] = json.addresses[address];
-    });
-    return getChainData({
-      json: {
-        addresses: summary,
-        transactions: json.transactions.filter(include),
-        calls: json.calls.filter(include),
-      },
-      logger,
-    });
-  };
-
   const getEthCalls = (testFn: (_call: EthCall) => boolean): EthCall[] =>
     JSON.parse(JSON.stringify(json.calls.filter(testFn)));
 
@@ -277,9 +257,14 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     if (!txHistory || !callHistory || !tokenHistory) {
       throw new Error(`Unable to fetch history of ${address} from etherscan`);
     }
-    const history = Array.from(new Set(
-      [...txHistory, ...callHistory, ...tokenHistory].map(tx => tx.hash).filter(tx => !!tx)
-    )).sort();
+    const history = Array.from(new Set([
+      ...json.addresses[address].history,
+      ...txHistory,
+      ...callHistory,
+      ...tokenHistory
+    ].map(tx => tx.hash || tx).filter(hash =>
+      isHexString(hash) && hexDataLength(hash) === 32
+    ))).sort();
     json.addresses[address].history = history;
     const oldEthCalls = JSON.parse(JSON.stringify(json.calls));
     for (const call of callHistory) {
@@ -287,13 +272,8 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         log.debug(`Skipping eth call, dup detected`);
         continue;
       }
-      if (!call.blockNumber || !call.hash || !call.to || !call.from || !call.value) {
-        log.warn(call, `Invalid internal call`);
-        continue;
-      }
       json.calls.push({
         block: toNum(call.blockNumber),
-        contractAddress: AddressZero,
         from: sm(call.from),
         hash: call.hash,
         timestamp: toTimestamp(call),
@@ -381,11 +361,16 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     const selfAddresses = addressBook.json.map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .filter(address => isEthAddress(address));
-    const ethData = getAddressHistory(...selfAddresses);
-    log.info(`Parsing ${ethData.json.transactions.length} eth transactions`);
-    return ethData.json.transactions.map(ethTx => parseEthTx(
-      ethTx,
-      getEthCalls((call: EthCall) => call.hash === ethTx.hash),
+    const selfTransactionHashes = Array.from(new Set(
+      selfAddresses.reduce((all, address) => {
+        log.info(`Adding ${json.addresses[address]?.history?.length || 0} entries for ${address} (${all.length} so far)`);
+        return all.concat(json.addresses[address].history);
+      }, [])
+    ));
+    log.info(`Parsing ${selfTransactionHashes.length} eth transactions`);
+    return selfTransactionHashes.map(hash => parseEthTx(
+      json.transactions.find(tx => tx.hash === hash),
+      getEthCalls((call: EthCall) => call.hash === hash),
       addressBook,
       logger,
       customParsers,
