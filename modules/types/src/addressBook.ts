@@ -3,21 +3,24 @@ import { SecurityProvider } from "./security";
 import { Address, HexString } from "./strings";
 import { enumify } from "./utils";
 
-const ExternalCategories = enumify({
+export const ExternalCategories = enumify({
   Family: "Family",
   Private: "Private", // private individuals eg steve
   Public: "Public", // public addresses eg gitcoin grants
   Self: "Self", // User controlled
 });
-const DeFiCategories = enumify({
+export type ExternalCategory = (typeof ExternalCategories)[keyof typeof ExternalCategories];
+
+export const DefiCategories = enumify({
   Defi: "Defi",
   ERC20: "ERC20",
   Exchange: "Exchange",
   Proxy: "Proxy",
 });
+export type DefiCategory = (typeof DefiCategories)[keyof typeof DefiCategories];
 
 export const AddressCategories = enumify({
-  ...DeFiCategories,
+  ...DefiCategories,
   ...ExternalCategories,
 });
 export type AddressCategory = (typeof AddressCategories)[keyof typeof AddressCategories];
@@ -26,7 +29,7 @@ export type AddressEntry = {
   address: HexString;
   category: AddressCategory;
   decimals?: number; // for ERC20 token addresses
-  name: string;
+  name?: string;
   guardian?: SecurityProvider;
 };
 
