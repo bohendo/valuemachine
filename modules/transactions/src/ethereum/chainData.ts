@@ -98,13 +98,18 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       `address=${address}&` +
       `apikey=${key || etherscanKey || ""}&sort=asc`;
     log.info(`Sent request for ${target} from Etherscan`);
-    const result = (await axios.get(url, { timeout: 10000 })).data.result;
-    if (typeof result === "string") {
-      log.warn(`Failed to get ${target}: ${result}`);
+    try {
+      const result = (await axios.get(url, { timeout: 10000 })).data.result;
+      if (typeof result === "string") {
+        log.warn(`Failed to get ${target}: ${result}`);
+        return undefined;
+      }
+      log.info(`Received ${result.length} ${target} results from Etherscan`);
+      return result;
+    } catch (e) {
+      log.warn(e.message);
       return undefined;
     }
-    log.info(`Received ${result.length} ${target} results from Etherscan`);
-    return result;
   };
 
   // Beware of edge case: a tx makes 2 identical eth internal transfers and
@@ -121,9 +126,6 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         newElem.value.includes(".") ? newElem.value : formatEther(newElem.value)
       ) === oldElem.value,
     ).length;
-
-  ////////////////////////////////////////
-  // Exported Methods
 
   const merge = (newJson: ChainDataJson): void => {
     if (!newJson.addresses || !newJson.transactions || !newJson.calls) {
@@ -173,21 +175,16 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     });
   };
 
+  const getEthCalls = (testFn: (_call: EthCall) => boolean): EthCall[] =>
+    JSON.parse(JSON.stringify(json.calls.filter(testFn)));
+
+  ////////////////////////////////////////
+  // Exported Methods
+
   const getEthTransaction = (hash: HexString): EthTransaction => {
     const ethTx = json.transactions.find(tx => tx.hash === hash);
     return ethTx ? JSON.parse(JSON.stringify(ethTx)) : undefined;
   };
-
-  const getEthCall = (hash: HexString): EthCall => {
-    const ethCall = json.calls.find(call => call.hash === hash);
-    return ethCall ? JSON.parse(JSON.stringify(ethCall)) : undefined;
-  };
-
-  const getEthTransactions = (testFn: (_tx: EthTransaction) => boolean): EthTransaction[] =>
-    JSON.parse(JSON.stringify(json.transactions.filter(testFn)));
-
-  const getEthCalls = (testFn: (_call: EthCall) => boolean): EthCall[] =>
-    JSON.parse(JSON.stringify(json.calls.filter(testFn)));
 
   const syncTransaction = async (
     tx: Partial<EthTransaction | EthCall>,
@@ -201,16 +198,13 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       return;
     }
     log.info(`Fetching chain data for tx ${tx.hash}`);
-
     const provider = getProvider(key);
-
     log.debug(`Sent request for tx ${tx.hash}`);
     const [response, receipt] = await Promise.all([
       await provider.getTransaction(tx.hash),
       await provider.getTransactionReceipt(tx.hash),
     ]);
     log.debug(`Received ${receipt.logs.length} logs for tx ${tx.hash}`);
-
     const block = toNum(receipt.blockNumber);
     let timestamp;
     if (response.timestamp) {
@@ -221,7 +215,6 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       log.debug(`Received data for block ${block}`);
       timestamp = toTimestamp(blockData);
     }
-
     const newTx = {
       block,
       data: response.data || "0x",
@@ -323,8 +316,12 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     return;
   };
 
-  const syncAddresses = async (userAddresses: Address[], key?: string): Promise<void> => {
-    const addresses = userAddresses.map(sm).filter(address => {
+  const syncAddressBook = async (addressBook: AddressBook, key?: string): Promise<void> => {
+    const selfAddresses = addressBook.json
+      .map(entry => entry.address)
+      .filter(address => addressBook.isSelf(address))
+      .filter(address => isEthAddress(address));
+    const addresses = selfAddresses.map(sm).filter(address => {
       if (
         !json.addresses[address] ||
         json.addresses[address].lastUpdated === new Date(0).toISOString()
@@ -368,23 +365,14 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       log.info(`Fetching history for address ${logProg(addresses, address)}: ${address}`);
       await syncAddress(address, key);
     }
-    log.info(`Fetching tx data for ${userAddresses.length} addresses`);
-    for (const address of userAddresses) {
-      log.debug(`Syncing transactions for address ${logProg(userAddresses, address)}: ${address}`);
+    log.info(`Fetching tx data for ${selfAddresses.length} addresses`);
+    for (const address of selfAddresses) {
+      log.debug(`Syncing transactions for address ${logProg(selfAddresses, address)}: ${address}`);
       for (const hash of json.addresses[address] ? json.addresses[address].history : []) {
         await syncTransaction({ hash }, key);
       }
     }
   };
-
-  const syncAddressBook = async (addressBook: AddressBook): Promise<void> =>
-    syncAddresses(
-      addressBook.json
-        .map(entry => entry.address)
-        .filter(address => addressBook.isSelf(address))
-        .filter(address => isEthAddress(address)),
-      etherscanKey,
-    );
 
   const getTransactions = (
     addressBook: AddressBook,
@@ -413,17 +401,11 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
   }
 
   return {
-    getAddressHistory,
-    getEthCall,
-    getEthCalls,
-    getTransactions,
     getEthTransaction,
-    getEthTransactions,
+    getTransactions,
     json,
-    merge,
     syncAddress,
     syncAddressBook,
-    syncAddresses,
     syncTransaction,
   };
 };

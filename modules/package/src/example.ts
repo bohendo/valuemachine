@@ -27,17 +27,13 @@ const addressBookJson = [{
 const addressBook = getAddressBook({ json: addressBookJson, logger });
 
 // Get tools for gathering & processing transactions
-const transactions = getTransactions({ addressBook, logger });
+const transactions = getTransactions({ logger });
 
 // We'll be making network calls to get chain data & prices so switch to async mode
 (async () => {
 
   // Get chain data management tools
-  const chainData = getChainData({
-    etherscanKey: process.env.ETHERSCAN_KEY,
-    logger,
-    store,
-  });
+  const chainData = getChainData({ etherscanKey: process.env.ETHERSCAN_KEY, logger, store });
 
   // Fetch eth chain data, this can take a while
   await chainData.syncAddressBook(addressBook);

@@ -105,7 +105,6 @@ export type Transaction = {
 export type TransactionsJson = Transaction[];
 
 export type TransactionsParams = {
-  addressBook: AddressBook;
   json?: TransactionsJson;
   logger?: Logger;
   store?: Store;
@@ -113,10 +112,8 @@ export type TransactionsParams = {
 
 export type Transactions = {
   json: TransactionsJson;
-  mergeEthereum: (extraParsers?: EthParser[]) => void;
   mergeCsv: (csvData: string, parser: CsvSource | CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
-  syncEthereum: (etherscanKey?: string) => Promise<void>;
 };
 
 export const emptyTransactions = [] as TransactionsJson;

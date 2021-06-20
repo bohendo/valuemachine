@@ -1,10 +1,7 @@
-import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
   CsvParser,
   CsvSource,
   CsvSources,
-  EthCall,
-  EthParser,
   StoreKeys,
   Transactions,
   TransactionsJson,
@@ -12,7 +9,6 @@ import {
 } from "@valuemachine/types";
 import { getLogger, getTransactionsError } from "@valuemachine/utils";
 
-import { parseEthTx, getChainData } from "./ethereum";
 import {
   mergeCoinbaseTransactions,
   mergeDigitalOceanTransactions,
@@ -22,10 +18,9 @@ import {
 import { mergeTransaction } from "./merge";
 
 export const getTransactions = ({
-  addressBook,
+  json: transactionsJson,
   logger,
   store,
-  json: transactionsJson,
 }: TransactionsParams): Transactions => {
   const log = (logger || getLogger()).child({ module: "Transactions" });
   const json = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
@@ -33,8 +28,6 @@ export const getTransactions = ({
   log.debug(`Loaded transaction data containing ${
     json.length
   } transactions from ${transactionsJson ? "input" : store ? "store" : "default"}`);
-
-  const chainData = getChainData({ logger, store });
 
   ////////////////////////////////////////
   // Internal Helper Methods
@@ -59,40 +52,6 @@ export const getTransactions = ({
 
   ////////////////////////////////////////
   // Exported Methods
-
-  const syncEthereum = async (etherscanKey?: string): Promise<void> =>
-    chainData.syncAddresses(
-      addressBook.json
-        .map(entry => entry.address)
-        .filter(address => addressBook.isSelf(address))
-        .filter(address => isEthAddress(address)),
-      etherscanKey,
-    );
-
-  const mergeEthereum = (customParsers = [] as EthParser[]): void => {
-    const selfAddresses = addressBook.json.map(entry => entry.address)
-      .filter(address => addressBook.isSelf(address))
-      .filter(address => isEthAddress(address));
-    const ethData = chainData.getAddressHistory(...selfAddresses);
-    const newEthTxns = ethData.getEthTransactions(ethTx =>
-      !json.some(tx => tx.hash === ethTx.hash),
-    );
-    log.info(`Merging ${newEthTxns.length} new eth transactions`);
-    newEthTxns.forEach(ethTx =>
-      mergeTransaction(
-        json,
-        parseEthTx(
-          ethTx,
-          chainData.getEthCalls((call: EthCall) => call.hash === ethTx.hash),
-          addressBook,
-          logger,
-          customParsers,
-        ),
-        logger,
-      )
-    );
-    sync();
-  };
 
   const mergeCsv = (csvData: string, parser: CsvSource | CsvParser): void => {
     if (parser === CsvSources.Coinbase) {
@@ -122,10 +81,8 @@ export const getTransactions = ({
 
   return {
     json,
-    mergeEthereum,
     mergeCsv,
     merge,
-    syncEthereum,
   };
 
 };
