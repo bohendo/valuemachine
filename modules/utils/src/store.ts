@@ -1,10 +1,6 @@
 import { emptyStore, Store, StoreKey } from "@valuemachine/types";
 
-type LocalStorageish = {
-  getItem: (key: string) => string | null;
-  setItem: (key: string, data: string) => void;
-};
-export const getLocalStore = (localStorage: LocalStorageish): Store => ({
+export const getLocalStore = (localStorage: any): Store => ({
   load: (key: StoreKey): any => {
     try {
       const data = localStorage.getItem(key);
@@ -19,11 +15,7 @@ export const getLocalStore = (localStorage: LocalStorageish): Store => ({
   },
 });
 
-type Fsish = {
-  readFileSync: (path: string, encoding: string | { encoding: string }) => string;
-  writeFileSync: (path: string, data: string) => void;
-};
-export const getFileStore = (dirpath: string, fs: Fsish): Store => {
+export const getFileStore = (dirpath: string, fs: any): Store => {
   const getFilePath = (key: StoreKey): string => `${
     dirpath.endsWith("/") ? dirpath.replace(/\/$/, "") : dirpath
   }/${
