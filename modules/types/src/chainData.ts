@@ -1,11 +1,13 @@
 import { Logger } from "./logger";
 import { Store } from "./store";
+import { AddressBook } from "./addressBook";
+import { TransactionsJson } from "./transactions";
 import {
   Address,
   Bytes32,
   DecimalString,
   HexString,
-  TimestampString
+  TimestampString,
 } from "./strings";
 
 export type EthCall = {
@@ -66,9 +68,11 @@ export interface ChainData {
   getEthCalls: (testFn: (call: EthCall) => boolean) => EthCall[];
   getEthTransaction: (hash: Bytes32) => EthTransaction;
   getEthTransactions: (testFn: (tx: EthTransaction) => boolean) => EthTransaction[];
+  getTransactions: (addressBook: AddressBook) => TransactionsJson;
   json: ChainDataJson;
   merge: (newJson: ChainDataJson) => void;
   syncAddress: (address: Address, key?: string) => Promise<void>;
+  syncAddressBook: (addressBook: AddressBook, key?: string) => Promise<void>;
   syncAddresses: (addresses: Address[], key?: string) => Promise<void>;
   syncTransaction: (tx: Partial<EthTransaction | EthCall>, key?: string) => Promise<void>;
 }

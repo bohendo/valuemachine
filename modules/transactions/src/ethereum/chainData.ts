@@ -1,4 +1,4 @@
-import { getAddress } from "@ethersproject/address";
+import { isAddress as isEthAddress, getAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { hexlify } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
@@ -6,6 +6,7 @@ import { EtherscanProvider, JsonRpcProvider, Provider } from "@ethersproject/pro
 import { formatEther } from "@ethersproject/units";
 import {
   Address,
+  AddressBook,
   emptyChainData,
   EthTransaction,
   EthCall,
@@ -13,6 +14,8 @@ import {
   ChainDataParams,
   ChainDataJson,
   HexString,
+  TransactionsJson,
+  EthParser,
   StoreKeys,
 } from "@valuemachine/types";
 import {
@@ -23,6 +26,8 @@ import {
   toBN,
 } from "@valuemachine/utils";
 import axios from "axios";
+
+import { parseEthTx } from "./parser";
 
 export const getChainData = (params?: ChainDataParams): ChainData => {
   const { json: chainDataJson, etherscanKey, logger, store } = params || {};
@@ -159,7 +164,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       summary[address] = json.addresses[address];
     });
     return getChainData({
-      chainDataJson: {
+      json: {
         addresses: summary,
         transactions: json.transactions.filter(include),
         calls: json.calls.filter(include),
@@ -246,12 +251,10 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       to: response.to ? getAddress(response.to) : null,
       value: formatEther(response.value),
     };
-
     const error = getEthTransactionError(newTx);
     if (error) {
       throw new Error(error);
     }
-
     if (existing) {
       json.transactions.splice(
         json.transactions.findIndex(tx => tx.hash === existing.hash),
@@ -374,6 +377,33 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     }
   };
 
+  const syncAddressBook = async (addressBook: AddressBook): Promise<void> =>
+    syncAddresses(
+      addressBook.json
+        .map(entry => entry.address)
+        .filter(address => addressBook.isSelf(address))
+        .filter(address => isEthAddress(address)),
+      etherscanKey,
+    );
+
+  const getTransactions = (
+    addressBook: AddressBook,
+    customParsers?: EthParser[],
+  ): TransactionsJson => {
+    const selfAddresses = addressBook.json.map(entry => entry.address)
+      .filter(address => addressBook.isSelf(address))
+      .filter(address => isEthAddress(address));
+    const ethData = getAddressHistory(...selfAddresses);
+    log.info(`Parsing ${ethData.json.transactions.length} eth transactions`);
+    return ethData.json.transactions.map(ethTx => parseEthTx(
+      ethTx,
+      getEthCalls((call: EthCall) => call.hash === ethTx.hash),
+      addressBook,
+      logger,
+      customParsers,
+    ));
+  };
+
   ////////////////////////////////////////
   // One more bit of init code before returning
 
@@ -386,11 +416,13 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     getAddressHistory,
     getEthCall,
     getEthCalls,
+    getTransactions,
     getEthTransaction,
     getEthTransactions,
     json,
     merge,
     syncAddress,
+    syncAddressBook,
     syncAddresses,
     syncTransaction,
   };

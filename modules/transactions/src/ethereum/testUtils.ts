@@ -22,7 +22,7 @@ export const getTestChainData = (
   calls = [] as EthCall[],
 ): ChainData => getChainData({
   logger: testLogger,
-  chainDataJson: {
+  json: {
     ...emptyChainData,
     calls,
     transactions,

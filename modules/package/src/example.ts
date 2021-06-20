@@ -5,6 +5,7 @@ import {
   getAddressBook,
   getPrices,
   getTransactions, 
+  getChainData, 
   getValueMachine,
   types,
   utils,
@@ -25,13 +26,24 @@ const addressBookJson = [{
 }];
 const addressBook = getAddressBook({ json: addressBookJson, logger });
 
+// Get tools for gathering & processing transactions
+const transactions = getTransactions({ addressBook, logger });
+
 // We'll be making network calls to get chain data & prices so switch to async mode
 (async () => {
 
-  // Convert eth chain data into transactions
-  const transactions = getTransactions({ addressBook, logger });
-  await transactions.syncEthereum(process.env.ETHERSCAN_KEY); // this can take a while
-  transactions.mergeEthereum(); // You can add your own custom eth parsers here if you like
+  // Get chain data management tools
+  const chainData = getChainData({
+    etherscanKey: process.env.ETHERSCAN_KEY,
+    logger,
+    store,
+  });
+
+  // Fetch eth chain data, this can take a while
+  await chainData.syncAddressBook(addressBook);
+
+  // Parse data into transactions and add them to the list
+  transactions.merge(chainData.getTransactions(addressBook));
 
   // Create a value machine & process our transactions
   const vm = getValueMachine({ addressBook, logger });
