@@ -3,7 +3,6 @@ import {
   Assets,
   AddressBookJson,
   AddressCategories,
-  ChainData,
   EthTransaction,
   Logger,
   Transaction,
@@ -77,7 +76,6 @@ export const tornadoParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });

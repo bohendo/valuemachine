@@ -1,15 +1,14 @@
 import {
-  TransactionsParams,
-  TransactionsJson,
+  CsvParser,
   CsvSource,
   CsvSources,
-  ChainData,
   StoreKeys,
   Transactions,
+  TransactionsJson,
+  TransactionsParams,
 } from "@valuemachine/types";
 import { getLogger, getTransactionsError } from "@valuemachine/utils";
 
-import { parseEthTx } from "./ethereum";
 import {
   mergeCoinbaseTransactions,
   mergeDigitalOceanTransactions,
@@ -17,16 +16,13 @@ import {
   mergeWyreTransactions,
 } from "./external";
 import { mergeTransaction } from "./merge";
-import { EthParser, CsvParser } from "./types";
 
 export const getTransactions = ({
-  addressBook,
+  json: transactionsJson,
   logger,
   store,
-  json: transactionsJson,
 }: TransactionsParams): Transactions => {
   const log = (logger || getLogger()).child({ module: "Transactions" });
-
   const json = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
 
   log.debug(`Loaded transaction data containing ${
@@ -57,27 +53,6 @@ export const getTransactions = ({
   ////////////////////////////////////////
   // Exported Methods
 
-  const mergeEthereum = (chainData: ChainData, customParsers = [] as EthParser[]): void => {
-    const newEthTxns = chainData.getEthTransactions(ethTx =>
-      !json.some(tx => tx.hash === ethTx.hash),
-    );
-    log.info(`Merging ${newEthTxns.length} new eth transactions`);
-    newEthTxns.forEach(ethTx =>
-      mergeTransaction(
-        json,
-        parseEthTx(
-          ethTx,
-          addressBook,
-          chainData,
-          logger,
-          customParsers,
-        ),
-        logger,
-      )
-    );
-    sync();
-  };
-
   const mergeCsv = (csvData: string, parser: CsvSource | CsvParser): void => {
     if (parser === CsvSources.Coinbase) {
       mergeCoinbaseTransactions(json, csvData, log);
@@ -106,7 +81,6 @@ export const getTransactions = ({
 
   return {
     json,
-    mergeEthereum,
     mergeCsv,
     merge,
   };

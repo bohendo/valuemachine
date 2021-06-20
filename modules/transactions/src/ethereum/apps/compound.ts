@@ -1,4 +1,5 @@
 import { Interface } from "@ethersproject/abi";
+import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -6,7 +7,6 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  ChainData,
   EthTransaction,
   Logger,
   Transaction,
@@ -63,7 +63,7 @@ const cTokenAddresses = [
   { name: cWBTC, address: "0xc11b1268c1a384e55c48c2391d8d480264a3a7f4" },
   { name: cWBTCv2, address: "0xccf4429db6322d5c611ee964527d42e5d685dd6a" },
   { name: cZRX, address: "0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407" },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(row => ({ ...row, category: AddressCategories.ERC20, decimals: 8 })) as AddressBookJson;
 
 const govTokenAddresses = [
   { name: COMP, address: compAddress },
@@ -123,22 +123,37 @@ const cTokenInterface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
-const cTokenDecimals = 8;
-
 const associatedTransfer = (asset: string, quantity: string) =>
   (transfer: Transfer): boolean =>
-    smeq(transfer.asset, asset)
-      && valuesAreClose(transfer.quantity, quantity, div(quantity, "100"));
+    transfer.asset === asset && valuesAreClose(transfer.quantity, quantity, div(quantity, "100"));
 
 export const compoundParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName, isSelf } = addressBook;
+  const { getDecimals, getName, isSelf } = addressBook;
+
+  // TODO: how could we not hardcode these again & also not introduce cyclic dependencies?
+  const cTokenToTokenDecimals = (cToken: string): number => {
+    switch (cToken) {
+    case cBAT: return getDecimals("0x0d8775f648430679a709e98d2b0cb6250d2887ef");
+    case cCOMP: return getDecimals(compAddress);
+    case cDAI: return getDecimals("0x6b175474e89094c44da98b954eedeac495271d0f");
+    case cETH: return getDecimals(AddressZero);
+    case cREP: return getDecimals("0x1985365e9f78359a9b6ad760e32412f4a445e862"); // REP version 1
+    case cSAI: return getDecimals("0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359");
+    case cUNI: return getDecimals("0x1f9840a85d5af5bf1d1762f925bdaddc4201f984");
+    case cUSDC: return getDecimals("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
+    case cUSDT: return getDecimals("0xdac17f958d2ee523a2206206994597c13d831ec7");
+    case cWBTC: return getDecimals("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599");
+    case cWBTCv2: return getDecimals("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599");
+    case cZRX: return getDecimals("0xe41d2489571d322189246dafa5ebde1f4699f498");
+    default: return 18;
+    }
+  };
 
   if (compoundAddresses.some(e => smeq(e.address, ethTx.to))) {
     tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
@@ -156,13 +171,13 @@ export const compoundParser = (
       const subsrc = `${source}V1`;
       const event = parseEvent(compoundV1Interface, txLog);
       log.info(`Found ${subsrc} ${event.name} event`);
-      const amount = formatUnits(event.args.amount, chainData.getDecimals(event.args.asset));
+      const amount = formatUnits(event.args.amount, getDecimals(event.args.asset));
       const asset = getName(event.args.asset) as Asset;
       const account = `${source}-${event.args.account?.substring(0, 8)}`;
 
       if (event.name === "SupplyReceived") {
-        const oldBal = formatUnits(event.args.startingBalance, chainData.getDecimals(asset));
-        const newBal = formatUnits(event.args.newBalance, chainData.getDecimals(asset));
+        const oldBal = formatUnits(event.args.startingBalance, getDecimals(event.args.asset));
+        const newBal = formatUnits(event.args.newBalance, getDecimals(event.args.asset));
         log.debug(`Starting Balance: ${oldBal} | New Balance: ${newBal}`);
         const deposit = tx.transfers.find(associatedTransfer(asset, amount));
         if (deposit) {
@@ -187,8 +202,8 @@ export const compoundParser = (
         }
 
       } else if (event.name === "SupplyWithdrawn") {
-        const oldBal = formatUnits(event.args.startingBalance, chainData.getDecimals(asset));
-        const newBal = formatUnits(event.args.newBalance, chainData.getDecimals(asset));
+        const oldBal = formatUnits(event.args.startingBalance, getDecimals(event.args.asset));
+        const newBal = formatUnits(event.args.newBalance, getDecimals(event.args.asset));
         log.debug(`Starting Balance: ${oldBal} | New Balance: ${newBal}`);
         const withdraw = tx.transfers.find(transfer =>
           isSelf(transfer.to) && transfer.asset === asset && transfer.quantity === amount
@@ -255,7 +270,7 @@ export const compoundParser = (
         if (isSelf(event.args.to) && smeq(event.args.from, comptrollerAddress)) {
           const amount = formatUnits(
             event.args.amount,
-            chainData.getDecimals(address),
+            getDecimals(address),
           );
           const income = tx.transfers.find(associatedTransfer("COMP", amount));
           if (income) {
@@ -272,19 +287,22 @@ export const compoundParser = (
     } else if (cTokenAddresses.some(a => smeq(address, a.address))) {
       const event = parseEvent(cTokenInterface, txLog);
       if (!event.name) continue;
-      const asset = getName(address).replace(/^c/, "");
+      const cAsset = getName(address);
+      const asset = cAsset.replace(/^c/, "");
+      const decimals = cTokenToTokenDecimals(address);
+      const cDecimals = getDecimals(address);
 
       // Deposit
       if (event.name === "Mint") {
-        log.info(`Parsing ${getName(address)} ${event.name} event`);
-        const tokenAmt = formatUnits(event.args.mintAmount, chainData.getDecimals(asset));
-        const cTokenAmt = formatUnits(event.args.mintTokens, cTokenDecimals);
+        log.info(`Parsing ${cAsset} ${event.name} event`);
+        const tokenAmt = formatUnits(event.args.mintAmount, decimals);
+        const cTokenAmt = formatUnits(event.args.mintTokens, cDecimals);
         const swapOut = tx.transfers.find(associatedTransfer(asset, tokenAmt));
-        const swapIn = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
+        const swapIn = tx.transfers.find(associatedTransfer(cAsset, cTokenAmt));
         if (!swapOut) {
           log.warn(`${event.name}: Can't find swapOut of ${tokenAmt} ${asset}`);
         } else if (!swapIn) {
-          log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${getName(address)}`);
+          log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${cAsset}`);
         } else {
           swapOut.category = SwapOut;
           swapOut.to = address;
@@ -295,13 +313,13 @@ export const compoundParser = (
 
       // Withdraw
       } else if (event.name === "Redeem") {
-        log.info(`Parsing ${getName(address)} ${event.name} event`);
-        const tokenAmt = formatUnits(event.args.redeemAmount, chainData.getDecimals(asset));
-        const cTokenAmt = formatUnits(event.args.redeemTokens, cTokenDecimals);
-        const swapOut = tx.transfers.find(associatedTransfer(getName(address), cTokenAmt));
+        log.info(`Parsing ${cAsset} ${event.name} event`);
+        const tokenAmt = formatUnits(event.args.redeemAmount, decimals);
+        const cTokenAmt = formatUnits(event.args.redeemTokens, cDecimals);
+        const swapOut = tx.transfers.find(associatedTransfer(cAsset, cTokenAmt));
         const swapIn = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (!swapOut) {
-          log.warn(`${event.name}: Can't find swapOut of ${cTokenAmt} ${getName(address)}`);
+          log.warn(`${event.name}: Can't find swapOut of ${cTokenAmt} ${cAsset}`);
         } else if (!swapIn) {
           log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${asset}`);
         } else {
@@ -314,8 +332,8 @@ export const compoundParser = (
 
       // Borrow
       } else if (event.name === "Borrow") {
-        log.info(`Parsing ${getName(address)} ${event.name} event`);
-        const tokenAmt = formatUnits(event.args.borrowAmount, chainData.getDecimals(asset));
+        log.info(`Parsing ${cAsset} ${event.name} event`);
+        const tokenAmt = formatUnits(event.args.borrowAmount, decimals);
         const borrow = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (borrow) {
           borrow.category = Borrow;
@@ -327,8 +345,8 @@ export const compoundParser = (
 
       // Repay
       } else if (event.name === "RepayBorrow") {
-        log.info(`Parsing ${getName(address)} ${event.name} event`);
-        const tokenAmt = formatUnits(event.args.repayAmount, chainData.getDecimals(asset));
+        log.info(`Parsing ${cAsset} ${event.name} event`);
+        const tokenAmt = formatUnits(event.args.repayAmount, decimals);
         const repay = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (repay) {
           repay.category = Repay;

@@ -9,6 +9,9 @@ build:
   services:
     - name: docker:dind
       alias: localhost
+  only:
+    refs:
+      - branches
   script:
     - apk add bash curl git jq make
     - make pull-latest
@@ -23,6 +26,9 @@ test:
   services:
     - name: docker:dind
       alias: localhost
+  only:
+    refs:
+      - branches
   script:
     - apk add bash curl git jq make
     - make test-transactions

@@ -249,21 +249,33 @@ export const TransactionExplorer = ({
     console.log(`Successfully cleared tx data from localstorage`);
   };
 
-  const syncTxns = () => {
+  const syncTxns = async () => {
     if (!axios.defaults.headers.common.authorization) {
       console.warn(`Auth header not set yet..`);
       return;
     }
     setSyncing(true);
-    axios.post("/api/transactions", { addressBook: addressBook.json }).then((res) => {
-      console.log(`Successfully fetched ${res.data?.length || 0} transactions`, res.data);
-      transactions.merge(res.data);
-      setTransactions([...transactions.json]);
-      setSyncing(false);
-    }).catch((e) => {
-      console.warn(`Failed to fetch transactions:`, e.response.data || e.message);
-      setSyncing(false);
-    });
+    console.log(`Syncing eth transactions for ${addressBook.json.length} addresses..`);
+    let n = 0;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      try {
+        const res = (await axios.post("/api/transactions/eth", { addressBook: addressBook.json }));
+        console.log(`attempt ${n++}:`, res);
+        if (res.status === 200 && typeof res.data === "object") {
+          console.log(`Successfully fetched ${res.data?.length || 0} transactions`, res.data);
+          transactions.merge(res.data);
+          setTransactions([...transactions.json]);
+          setSyncing(false);
+          break;
+        } else {
+          console.log(res.data);
+        }
+      } catch (e) {
+        console.warn(e.message);
+      }
+      await new Promise(res => setTimeout(res, 10_000));
+    }
   };
 
   const handleImport = (event: any) => {

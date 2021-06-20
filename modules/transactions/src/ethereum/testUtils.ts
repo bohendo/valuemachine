@@ -4,6 +4,7 @@ import path from "path";
 import { AddressZero, HashZero } from "@ethersproject/constants";
 import {
   Bytes32,
+  emptyChainData,
   ChainData,
   EthCall,
   EthTransaction,
@@ -21,22 +22,21 @@ export const getTestChainData = (
   calls = [] as EthCall[],
 ): ChainData => getChainData({
   logger: testLogger,
-  chainDataJson: {
-    addresses: {},
+  json: {
+    ...emptyChainData,
     calls,
-    tokens: {},
     transactions,
   },
 });
 
-export const getRealChainData = async (
+export const getEthTx = async (
   txHash: Bytes32,
   dirpath = "./testData",
-): Promise<ChainData> => {
+): Promise<EthTransaction> => {
   const testStore = getFileStore(path.join(__dirname, dirpath), fs);
   const chainData = getChainData({ logger: testLogger, store: testStore });
   await chainData.syncTransaction({ hash: txHash }, env.etherscanKey);
-  return getTestChainData([chainData.getEthTransaction(txHash)]);
+  return chainData.getEthTransaction(txHash);
 };
 
 export const getTestEthTx = (ethTx?: Partial<EthTransaction>): EthTransaction => ({
@@ -59,7 +59,6 @@ export const getTestEthTx = (ethTx?: Partial<EthTransaction>): EthTransaction =>
 
 export const getTestEthCall = (ethCall?: Partial<EthCall>): EthCall => ({
   block: 1,
-  contractAddress: AddressZero,
   from: AddressZero,
   hash: HashZero,
   timestamp: "2000-01-01T01:00:00.000Z",

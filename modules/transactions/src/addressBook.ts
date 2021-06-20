@@ -1,4 +1,4 @@
-import { isAddress } from "@ethersproject/address";
+import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
   Account,
   Address,
@@ -39,7 +39,7 @@ export const getAddressBook = ({
   addressBook.forEach(row => {
     if (addresses.includes(sm(row.address))) {
       log.warn(`Address book has multiple entries for address ${row.address}`);
-    } else if (!isAddress(row.address)) {
+    } else if (!isEthAddress(row.address)) {
       throw new Error(`Address book contains invalid address ${row.address}`);
     } else {
       addresses.push(sm(row.address));
@@ -68,7 +68,7 @@ export const getAddressBook = ({
   const getName = (address: Address): string =>
     !address
       ? ""
-      : !isAddress(address)
+      : !isEthAddress(address)
         ? address
         : addressBook.find(row => smeq(row.address, address))
           ? addressBook.find(row => smeq(row.address, address)).name
@@ -86,7 +86,7 @@ export const getAddressBook = ({
     if (!account) return SecurityProviders.None;
     const source = account.split("-")[0];
     return addressBook.find(row => smeq(row.address, account))?.guardian
-      || ((isAddress(account) || Object.keys(EthereumSources).includes(source))
+      || ((isEthAddress(account) || Object.keys(EthereumSources).includes(source))
         ? SecurityProviders.ETH
         : (
           jurisdictions[source]
@@ -94,15 +94,21 @@ export const getAddressBook = ({
         ));
   };
 
+  // Only really useful for ERC20 addresses
+  const getDecimals = (address: Address): number =>
+    addressBook.find(row => smeq(row.address, address))?.decimals || 18;
+
   // Set default guardians
   addressBook.forEach(entry => {
-    entry.guardian = entry.guardian || SecurityProviders.ETH;
+    entry.guardian = entry.guardian
+      || isEthAddress(entry.address) ? SecurityProviders.ETH : SecurityProviders.None;
   });
 
   return {
     addresses,
     getName,
     getGuardian,
+    getDecimals,
     isCategory,
     isPresent,
     isProxy,

@@ -5,7 +5,6 @@ import {
   AddressBookJson,
   AddressCategories,
   Assets,
-  ChainData,
   EthTransaction,
   Logger,
   Transaction,
@@ -51,11 +50,10 @@ export const wethParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { isSelf } = addressBook;
+  const { getDecimals, isSelf } = addressBook;
 
   for (const txLog of ethTx.logs) {
     const address = sm(txLog.address);
@@ -63,7 +61,7 @@ export const wethParser = (
       const asset = WETH;
       const event = parseEvent(wethInterface, txLog);
       if (!event.name) continue;
-      const amount = formatUnits(event.args.wad, chainData.getTokenData(address).decimals);
+      const amount = formatUnits(event.args.wad, getDecimals(address));
       const index = txLog.index || 1;
 
       if (event.name === "Deposit") {

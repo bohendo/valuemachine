@@ -3,9 +3,9 @@ import path from "path";
 
 import {
   getAddressBook,
-  getChainData,
   getPrices,
   getTransactions, 
+  getChainData, 
   getValueMachine,
   types,
   utils,
@@ -26,22 +26,20 @@ const addressBookJson = [{
 }];
 const addressBook = getAddressBook({ json: addressBookJson, logger });
 
+// Get tools for gathering & processing transactions
+const transactions = getTransactions({ logger });
+
 // We'll be making network calls to get chain data & prices so switch to async mode
 (async () => {
 
-  // Fetch tx history and receipts from etherscan
-  const chainData = getChainData({
-    logger,
-    store,
-    etherscanKey: process.env.ETHERSCAN_KEY,
-  });
-  await chainData.syncAddresses(
-    addressBook.addresses.filter(a => addressBook.isSelf(a))
-  );
+  // Get chain data management tools
+  const chainData = getChainData({ etherscanKey: process.env.ETHERSCAN_KEY, logger, store });
 
-  // Convert eth chain data into transactions
-  const transactions = getTransactions({ addressBook, logger });
-  transactions.mergeEthereum(chainData);
+  // Fetch eth chain data, this can take a while
+  await chainData.syncAddressBook(addressBook);
+
+  // Parse data into transactions and add them to the list
+  transactions.merge(chainData.getTransactions(addressBook));
 
   // Create a value machine & process our transactions
   const vm = getValueMachine({ addressBook, logger });

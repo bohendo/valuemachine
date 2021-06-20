@@ -1,16 +1,17 @@
 import { Logger } from "./logger";
 import { Store } from "./store";
+import { AddressBook } from "./addressBook";
+import { TransactionsJson } from "./transactions";
 import {
   Address,
   Bytes32,
   DecimalString,
   HexString,
-  TimestampString
+  TimestampString,
 } from "./strings";
 
 export type EthCall = {
   block: number;
-  contractAddress: Address; // AddressZero if ETH
   from: Address;
   hash: Bytes32;
   timestamp: TimestampString;
@@ -42,12 +43,6 @@ export type EthTransaction = {
   value: DecimalString;
 };
 
-export type TokenData = {
-  decimals: number;
-  name: string;
-  symbol: string;
-}
-
 export type ChainDataJson = {
   addresses: {
     [address: string]: {
@@ -56,36 +51,27 @@ export type ChainDataJson = {
     };
   };
   calls: EthCall[]; // Note: we can have multiple calls per txHash
-  tokens: { [address: string]: TokenData };
   transactions: EthTransaction[];
 };
 
 export type ChainDataParams = {
-  chainDataJson?: ChainDataJson;
+  json?: ChainDataJson;
   etherscanKey?: string;
   logger?: Logger;
   store?: Store;
 };
 
 export interface ChainData {
-  getAddressHistory: (...addresses: Address[]) => ChainData;
-  getDecimals: (token: Address) => number;
-  getEthCall: (hash: Bytes32) => EthCall;
-  getEthCalls: (testFn: (call: EthCall) => boolean) => EthCall[];
   getEthTransaction: (hash: Bytes32) => EthTransaction;
-  getEthTransactions: (testFn: (tx: EthTransaction) => boolean) => EthTransaction[];
-  getTokenData: (token: Address) => TokenData;
+  getTransactions: (addressBook: AddressBook) => TransactionsJson;
   json: ChainDataJson;
-  merge: (newJson: ChainDataJson) => void;
   syncAddress: (address: Address, key?: string) => Promise<void>;
-  syncAddresses: (addresses: Address[], key?: string) => Promise<void>;
-  syncTokenData: (tokens: Address[], key?: string) => Promise<void>;
+  syncAddressBook: (addressBook: AddressBook, key?: string) => Promise<void>;
   syncTransaction: (tx: Partial<EthTransaction | EthCall>, key?: string) => Promise<void>;
 }
 
 export const emptyChainData = {
   addresses: {},
   calls: [],
-  tokens: {},
   transactions: [],
 } as ChainDataJson;

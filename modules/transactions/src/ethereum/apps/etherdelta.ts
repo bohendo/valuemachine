@@ -8,7 +8,6 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  ChainData,
   EthTransaction,
   Logger,
   Transaction,
@@ -56,11 +55,10 @@ export const etherdeltaParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName, isSelf } = addressBook;
+  const { getDecimals, getName, isSelf } = addressBook;
 
   const getAsset = (address: Address): Asset => {
     if (address === AddressZero) return Assets.ETH;
@@ -89,10 +87,7 @@ export const etherdeltaParser = (
       if (event.name === "Deposit" || event.name === "Withdraw") {
         log.info(`Parsing ${source} ${event.name}`);
         const asset = getAsset(event.args.token);
-        const quantity = formatUnits(
-          event.args.amount,
-          chainData.getTokenData(event.args.token)?.decimals || 18,
-        );
+        const quantity = formatUnits(event.args.amount, getDecimals(event.args.token));
         const transfer = tx.transfers.find(transfer =>
           ([Income, Expense, Deposit, Withdraw] as TransferCategory[]).includes(transfer.category)
           && transfer.asset === asset
@@ -119,10 +114,7 @@ export const etherdeltaParser = (
           category: SwapOut,
           from: account,
           index,
-          quantity: formatUnits(
-            event.args.amountGet,
-            chainData.getTokenData(event.args.tokenGet)?.decimals || 18,
-          ),
+          quantity: formatUnits(event.args.amountGet, getDecimals(event.args.tokenGet)),
           to: exchange,
         };
         const swapIn = {
@@ -130,10 +122,7 @@ export const etherdeltaParser = (
           category: SwapIn,
           from:  exchange,
           index,
-          quantity: formatUnits(
-            event.args.amountGive,
-            chainData.getTokenData(event.args.tokenGive)?.decimals || 18,
-          ),
+          quantity: formatUnits(event.args.amountGive, getDecimals(event.args.tokenGiv)),
           to: account,
         };
         tx.transfers.push(swapOut);

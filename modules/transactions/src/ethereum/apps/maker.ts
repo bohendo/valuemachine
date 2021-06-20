@@ -8,7 +8,6 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  ChainData,
   EthTransaction,
   EthTransactionLog,
   Logger,
@@ -210,11 +209,10 @@ export const makerParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
-  const { getName, isSelf } = addressBook;
+  const { getDecimals, getName, isSelf } = addressBook;
   // log.debug(tx, `Parsing in-progress tx`);
 
   const ethish = [WETH, ETH, PETH] as Asset[];
@@ -259,7 +257,7 @@ export const makerParser = (
       const asset = getName(address) as Asset;
       const event = parseEvent(tokenInterface, txLog);
       if (!event.name) continue;
-      const wad = formatUnits(event.args.wad, chainData.getTokenData(address).decimals);
+      const wad = formatUnits(event.args.wad, getDecimals(address));
       if (!isSelf(event.args.guy)) {
         log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
         continue;
@@ -358,7 +356,7 @@ export const makerParser = (
         const vault = `${source}-${abrv(logNote.args[0])}`;
         const wad = formatUnits(
           toBN(logNote.args[2] || "0x00").fromTwos(256),
-          chainData.getTokenData(assetAddress)?.decimals || 18,
+          getDecimals(assetAddress),
         );
         const asset = getName(assetAddress) as Asset;
         log.info(`Found a change in ${vault} collateral of about ${wad} ${asset}`);

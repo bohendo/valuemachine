@@ -212,7 +212,7 @@ then
   echo "Removing ${project} images that aren't tagged as $commit or $semver or latest"
 
   mapfile -t imagesToKeep < <(docker image ls \
-    | grep "${project}_" \
+    | grep "${project}" \
     | awk '{ print $3"-"$2}' \
     | sort \
     | grep -E "(latest|$commit|$semver)" \

@@ -1,6 +1,6 @@
 import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
-import { ChainData, EthTransaction } from "./chainData";
+import { EthTransaction } from "./chainData";
 import { Logger } from "./logger";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
@@ -44,7 +44,6 @@ export type EthParser = (
   tx: Transaction,
   ethTx: EthTransaction,
   addressBook: AddressBook,
-  chainData: ChainData,
   logger: Logger,
 ) => Transaction;
 
@@ -106,7 +105,6 @@ export type Transaction = {
 export type TransactionsJson = Transaction[];
 
 export type TransactionsParams = {
-  addressBook: AddressBook;
   json?: TransactionsJson;
   logger?: Logger;
   store?: Store;
@@ -114,7 +112,6 @@ export type TransactionsParams = {
 
 export type Transactions = {
   json: TransactionsJson;
-  mergeEthereum: (chainData: ChainData, extraParsers?: EthParser[]) => void;
   mergeCsv: (csvData: string, parser: CsvSource | CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
 };
