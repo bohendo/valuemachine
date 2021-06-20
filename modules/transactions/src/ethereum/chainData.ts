@@ -356,7 +356,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
 
   const getTransactions = (
     addressBook: AddressBook,
-    customParsers?: EthParser[],
+    extraParsers?: EthParser[],
   ): TransactionsJson => {
     const selfAddresses = addressBook.json.map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
@@ -373,7 +373,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       getEthCalls((call: EthCall) => call.hash === hash),
       addressBook,
       logger,
-      customParsers,
+      extraParsers,
     ));
   };
 
