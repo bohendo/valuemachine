@@ -76,7 +76,7 @@ then echo "Aborting by user request" && exit 1 # abort!
 fi
 
 echo "Let's go"
-make all
+make package
 
 for package in $packages
 do
