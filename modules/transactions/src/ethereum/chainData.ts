@@ -244,7 +244,8 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     return;
   };
 
-  const syncAddress = async (address: Address, key?: string): Promise<void> => {
+  const syncAddress = async (_address: Address, key?: string): Promise<void> => {
+    const address = getAddress(_address);
     if (!json.addresses[address]) {
       json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
     }
@@ -300,7 +301,8 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     const selfAddresses = addressBook.json
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
-      .filter(address => isEthAddress(address));
+      .filter(address => isEthAddress(address))
+      .map(address => getAddress(address));
     const addresses = selfAddresses.map(sm).filter(address => {
       if (
         !json.addresses[address] ||
@@ -358,9 +360,11 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     addressBook: AddressBook,
     extraParsers?: EthParser[],
   ): TransactionsJson => {
-    const selfAddresses = addressBook.json.map(entry => entry.address)
+    const selfAddresses = addressBook.json
+      .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
-      .filter(address => isEthAddress(address));
+      .filter(address => isEthAddress(address))
+      .map(address => getAddress(address));
     const selfTransactionHashes = Array.from(new Set(
       selfAddresses.reduce((all, address) => {
         log.info(`Adding ${json.addresses[address]?.history?.length || 0} entries for ${address} (${all.length} so far)`);
