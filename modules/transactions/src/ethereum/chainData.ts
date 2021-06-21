@@ -286,14 +286,12 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         value: formatEther(call.value),
       });
     }
+    json.addresses[address].lastUpdated = lastUpdated;
     save();
-    log.info(`Saved calls & history for address ${address}`);
+    log.info(`Saved calls & history for address ${address} + lastUpdated`);
     for (const hash of history) {
       await syncTransaction({ hash }, key);
     }
-    json.addresses[address].lastUpdated = lastUpdated;
-    save();
-    log.debug(`Saved lastUpdated for address ${address}`);
     return;
   };
 
