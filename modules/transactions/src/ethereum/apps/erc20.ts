@@ -1,4 +1,5 @@
 import { Interface } from "@ethersproject/abi";
+import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -122,8 +123,8 @@ export const erc20Parser = (
 
       if (event.name === "Transfer") {
         log.debug(`Parsing ${source} ${event.name} of ${amount} ${asset}`);
-        const from = event.args.from; // === AddressZero ? address : event.args.from;
-        const to = event.args.to; // === AddressZero ? address : event.args.to;
+        const from = event.args.from === AddressZero ? address : event.args.from;
+        const to = event.args.to === AddressZero ? address : event.args.to;
         const category = isSelf(from) && isSelf(to) ? Internal
           : isSelf(from) && !isSelf(to) ? Expense
           : isSelf(to) && !isSelf(from) ? Income
