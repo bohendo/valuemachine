@@ -366,7 +366,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     const selfTransactionHashes = Array.from(new Set(
       selfAddresses.reduce((all, address) => {
         log.info(`Adding ${json.addresses[address]?.history?.length || 0} entries for ${address} (${all.length} so far)`);
-        return all.concat(json.addresses[address].history);
+        return all.concat(json.addresses[address]?.history || []);
       }, [])
     ));
     log.info(`Parsing ${selfTransactionHashes.length} eth transactions`);

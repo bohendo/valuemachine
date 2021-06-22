@@ -9,7 +9,7 @@
   "bugs": { "url": "https://gitlab.com/bohendo/valuemachine/issues" },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": ["dist", "src"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"
