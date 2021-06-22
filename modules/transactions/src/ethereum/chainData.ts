@@ -135,14 +135,14 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     for (const address of Object.keys(newJson.addresses)) {
       json.addresses[address] = newJson.addresses[address];
     }
-    log.info(`Merged ${Object.keys(json.addresses).length - before} new addresses`);
+    log.debug(`Merged ${Object.keys(json.addresses).length - before} new addresses`);
     before = json.transactions.length;
     for (const newTx of newJson.transactions) {
       if (!json.transactions.some(tx => tx.hash === newTx.hash)) {
         json.transactions.push(newTx);
       }
     }
-    log.info(`Merged ${json.transactions.length - before} new transactions`);
+    log.debug(`Merged ${json.transactions.length - before} new transactions`);
     const oldCalls = JSON.parse(JSON.stringify(json.calls));
     before = Object.keys(oldCalls).length; 
     for (const call of newJson.calls) {
@@ -150,7 +150,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         json.calls.push(call);
       }
     }
-    log.info(`Merged ${json.calls.length - before} new calls`);
+    log.debug(`Merged ${json.calls.length - before} new calls`);
     save();
     return;
   };

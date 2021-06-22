@@ -6,7 +6,6 @@ import {
 import {
   expect,
   parseEthTx,
-  getTestEthCall,
   testLogger,
 } from "../testUtils";
 
@@ -70,11 +69,11 @@ describe(source, () => {
     const tx = await parseEthTx({
       hash: "0xa2920b7319c62fa7d2bf5072a292972fe74af5f452d905495da1fb0d28bba86b",
       selfAddress: "0x50509324beedeaf5ae19186a6cc2c30631a98d97",
-      calls: [getTestEthCall({
+      calls: [{
         from: "0x9fdc15106da755f9ffd5b0ba9854cfb89602e0fd",
         to: "0x50509324beedeaf5ae19186a6cc2c30631a98d97",
         value: "0.052855519437617299"
-      })],
+      }],
       logger,
     });
     expect(tx.transfers.length).to.equal(3);

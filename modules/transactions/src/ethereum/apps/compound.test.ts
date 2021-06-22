@@ -5,7 +5,6 @@ import {
 
 import {
   parseEthTx,
-  getTestEthCall,
   expect,
   testLogger,
 } from "../testUtils";
@@ -17,7 +16,6 @@ const logger = testLogger.child({ module: `Test${source}`,
 });
 
 describe(source, () => {
-
   it("should handle deposits to comound v1", async () => {
     const tx = await parseEthTx({
       hash: "0x4bd1cb92d370a3b69b697e606e905d76a003b28c1605d2e46c9a887202b72ae0",
@@ -85,11 +83,11 @@ describe(source, () => {
     const tx = await parseEthTx({
       hash: "0x032e9d84b07fdd3e546b44b4fa034d1b470e927188df9594af7e5d656588aad0",
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
-      calls: [getTestEthCall({
+      calls: [{
         from: "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
         to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
         value: "1.0"
-      })],
+      }],
       logger,
     });
     expect(tx.sources).to.include(source);
