@@ -3,19 +3,56 @@ import path from "path";
 
 import { AddressZero, HashZero } from "@ethersproject/constants";
 import {
+  Address,
+  AddressCategories,
   Bytes32,
-  emptyChainData,
   ChainData,
+  emptyChainData,
   EthCall,
   EthTransaction,
+  Logger,
+  Transaction,
 } from "@valuemachine/types";
 import { getFileStore } from "@valuemachine/utils";
 
+import { getAddressBook } from "../addressBook";
 import { env, testLogger } from "../testUtils";
 
 import { getChainData } from "./chainData";
 
 export * from "../testUtils";
+
+const testData = "./testData";
+
+export const parseEthTx = async ({
+  hash,
+  selfAddress,
+  calls,
+  logger,
+  storePath,
+}: {
+  hash: Bytes32;
+  selfAddress: Address;
+  calls?: EthCall[];
+  logger?: Logger;
+  storePath: string;
+}): Promise<Transaction> => {
+  const addressBook = getAddressBook({
+    json: [{ address: selfAddress, name: "test-self", category: AddressCategories.Self }],
+    logger: testLogger,
+  });
+  const testStore = getFileStore(path.join(__dirname, storePath || testData), fs);
+  const chainData = getChainData({
+    json: {
+      ...emptyChainData,
+      calls: !calls ? [] : calls.map(call => getTestEthCall({ ...call, hash })),
+    },
+    logger,
+    store: testStore,
+  });
+  await chainData.syncTransaction(hash, env.etherscanKey);
+  return chainData.getTransaction(hash, addressBook);
+};
 
 export const getTestChainData = (
   transactions = [] as EthTransaction[],
@@ -29,14 +66,15 @@ export const getTestChainData = (
   },
 });
 
+// TODO: remove this fn
 export const getEthTx = async (
   txHash: Bytes32,
-  dirpath = "./testData",
+  dirpath = testData,
 ): Promise<EthTransaction> => {
   const testStore = getFileStore(path.join(__dirname, dirpath), fs);
   const chainData = getChainData({ logger: testLogger, store: testStore });
-  await chainData.syncTransaction({ hash: txHash }, env.etherscanKey);
-  return chainData.getEthTransaction(txHash);
+  await chainData.syncTransaction(txHash, env.etherscanKey);
+  return chainData.getTransaction(txHash, getAddressBook()) as any;
 };
 
 export const getTestEthTx = (ethTx?: Partial<EthTransaction>): EthTransaction => ({

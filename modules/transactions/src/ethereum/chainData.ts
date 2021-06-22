@@ -6,16 +6,16 @@ import { formatEther } from "@ethersproject/units";
 import {
   Address,
   AddressBook,
-  emptyChainData,
-  EthTransaction,
-  EthCall,
+  Bytes32,
   ChainData,
-  ChainDataParams,
   ChainDataJson,
-  HexString,
-  TransactionsJson,
+  ChainDataParams,
+  emptyChainData,
+  EthCall,
   EthParser,
   StoreKeys,
+  Transaction,
+  TransactionsJson,
 } from "@valuemachine/types";
 import {
   getEthTransactionError,
@@ -161,30 +161,25 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
   ////////////////////////////////////////
   // Exported Methods
 
-  const getEthTransaction = (hash: HexString): EthTransaction => {
-    const ethTx = json.transactions.find(tx => tx.hash === hash);
-    return ethTx ? JSON.parse(JSON.stringify(ethTx)) : undefined;
-  };
-
   const syncTransaction = async (
-    tx: Partial<EthTransaction | EthCall>,
+    txHash: string,
     key?: string,
   ): Promise<void> => {
-    if (!tx || !tx.hash) {
-      throw new Error(`Cannot sync a tx w/out a hash: ${JSON.stringify(tx)}`);
+    if (!txHash) { // TODO use getBytes32Error util
+      throw new Error(`Cannot sync an invalid tx hash: ${txHash}`);
     }
-    const existing = json.transactions.find(existing => existing.hash === tx.hash);
+    const existing = json.transactions.find(existing => existing.hash === txHash);
     if (!getEthTransactionError(existing)) {
       return;
     }
-    log.info(`Fetching chain data for tx ${tx.hash}`);
+    log.info(`Fetching chain data for tx ${txHash}`);
     const provider = getProvider(key);
-    log.debug(`Sent request for tx ${tx.hash}`);
+    log.debug(`Sent request for tx ${txHash}`);
     const [response, receipt] = await Promise.all([
-      await provider.getTransaction(tx.hash),
-      await provider.getTransactionReceipt(tx.hash),
+      await provider.getTransaction(txHash),
+      await provider.getTransactionReceipt(txHash),
     ]);
-    log.debug(`Received ${receipt.logs.length} logs for tx ${tx.hash}`);
+    log.debug(`Received ${receipt.logs.length} logs for tx ${txHash}`);
     const block = toNum(receipt.blockNumber);
     let timestamp;
     if (response.timestamp) {
@@ -202,7 +197,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       gasLimit: toHex(response.gasLimit),
       gasPrice: toHex(response.gasPrice),
       gasUsed: toHex(receipt.gasUsed),
-      hash: tx.hash,
+      hash: txHash,
       index: receipt.transactionIndex,
       logs: receipt.logs.map(log => ({
         address: getAddress(log.address),
@@ -290,7 +285,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     save();
     log.info(`Saved calls & history for address ${address} + lastUpdated`);
     for (const hash of history) {
-      await syncTransaction({ hash }, key);
+      await syncTransaction(hash, key);
     }
     return;
   };
@@ -349,7 +344,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     for (const address of selfAddresses) {
       log.debug(`Syncing transactions for address ${logProg(selfAddresses, address)}: ${address}`);
       for (const hash of json.addresses[address] ? json.addresses[address].history : []) {
-        await syncTransaction({ hash }, key);
+        await syncTransaction(hash, key);
       }
     }
   };
@@ -379,6 +374,19 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     ));
   };
 
+  const getTransaction = (
+    hash: Bytes32,
+    addressBook: AddressBook,
+    extraParsers?: EthParser[],
+  ): Transaction =>
+    parseEthTx(
+      json.transactions.find(tx => tx.hash === hash),
+      getEthCalls((call: EthCall) => call.hash === hash),
+      addressBook,
+      logger,
+      extraParsers,
+    );
+
   ////////////////////////////////////////
   // One more bit of init code before returning
 
@@ -388,10 +396,9 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
   }
 
   return {
-    getEthTransaction,
+    getTransaction,
     getTransactions,
     json,
-    syncAddress,
     syncAddressBook,
     syncTransaction,
   };
