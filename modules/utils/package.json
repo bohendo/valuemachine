@@ -1,6 +1,6 @@
 {
   "name": "@valuemachine/utils",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Low level utilities used by the valuemachine",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
@@ -9,7 +9,7 @@
   "bugs": { "url": "https://gitlab.com/bohendo/valuemachine/issues" },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": ["dist", "src"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"
@@ -22,7 +22,7 @@
     "@ethersproject/keccak256": "5.3.0",
     "@ethersproject/rlp": "5.3.0",
     "@ethersproject/units": "5.3.0",
-    "@valuemachine/types": "0.2.0",
+    "@valuemachine/types": "0.3.0",
     "pino": "6.11.3",
     "pino-pretty": "5.0.2"
   },

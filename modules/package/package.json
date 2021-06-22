@@ -1,6 +1,6 @@
 {
   "name": "valuemachine",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Low level utilities for portfolio and tax analysis",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
@@ -9,16 +9,16 @@
   "bugs": { "url": "https://gitlab.com/bohendo/valuemachine/issues" },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": ["dist", "src"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "node dist/example.js"
   },
   "dependencies": {
-    "@valuemachine/core": "0.2.0",
-    "@valuemachine/transactions": "0.2.0",
-    "@valuemachine/types": "0.2.0",
-    "@valuemachine/utils": "0.2.0"
+    "@valuemachine/core": "0.3.0",
+    "@valuemachine/transactions": "0.3.0",
+    "@valuemachine/types": "0.3.0",
+    "@valuemachine/utils": "0.3.0"
   },
   "devDependencies": {
     "typescript": "4.2.4"

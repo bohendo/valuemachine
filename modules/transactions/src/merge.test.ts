@@ -8,8 +8,6 @@ import {
 
 import { mergeTransaction } from "./merge";
 import {
-  AddressOne,
-  AddressThree,
   expect,
   testLogger,
 } from "./testUtils";
@@ -18,11 +16,12 @@ const { ETH } = Assets;
 const { Expense, Deposit } = TransferCategories;
 const { Coinbase, EthTx } = TransactionSources;
 const externalSource = Coinbase;
-const log = testLogger.child({
+const log = testLogger.child({ module: "TestMerge",
   // level: "debug",
-  module: "TestTransactions",
 });
 
+const AddressOne = "0x1111111111111111111111111111111111111111";
+const AddressTwo = "0x2222222222222222222222222222222222222222";
 const timestamp = "2018-01-02T01:00:00Z";
 const value = "1.3141592653589793";
 
@@ -61,7 +60,7 @@ const getEthTx = (): Transaction => ({
       from: AddressOne,
       index: 0,
       quantity: value,
-      to: AddressThree,
+      to: AddressTwo,
     }
   ],
 });

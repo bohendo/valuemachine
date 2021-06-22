@@ -1,6 +1,6 @@
 {
   "name": "@valuemachine/types",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Types and interfaces for interacting with the valuemachine",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
@@ -9,7 +9,7 @@
   "bugs": { "url": "https://gitlab.com/bohendo/valuemachine/issues" },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": ["dist", "src"],
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },

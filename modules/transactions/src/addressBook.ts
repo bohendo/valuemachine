@@ -6,6 +6,7 @@ import {
   AddressBookParams,
   AddressCategories,
   AddressCategory,
+  emptyAddressBook,
   EthereumSources,
   jurisdictions,
   SecurityProvider,
@@ -15,11 +16,10 @@ import { getLogger, sm, smeq } from "@valuemachine/utils";
 
 import { publicAddresses } from "./ethereum";
 
-export const getAddressBook = ({
-  json,
-  logger,
-}: AddressBookParams): AddressBook => {
+export const getAddressBook = (params?: AddressBookParams): AddressBook => {
+  const { json: addressBookJson, logger } = params || {};
   const log = (logger || getLogger()).child({ module: "AddressBook" });
+  const json = addressBookJson || JSON.parse(JSON.stringify(emptyAddressBook));
 
   ////////////////////////////////////////
   // Hardcoded Public Addresses

@@ -1,7 +1,7 @@
 import { Logger } from "./logger";
 import { Store } from "./store";
 import { AddressBook } from "./addressBook";
-import { TransactionsJson } from "./transactions";
+import { EthParser, Transaction, TransactionsJson } from "./transactions";
 import {
   Address,
   Bytes32,
@@ -62,12 +62,11 @@ export type ChainDataParams = {
 };
 
 export interface ChainData {
-  getEthTransaction: (hash: Bytes32) => EthTransaction;
-  getTransactions: (addressBook: AddressBook) => TransactionsJson;
+  getTransaction: (hash: Bytes32, addressBook: AddressBook, parsers?: EthParser[]) => Transaction;
+  getTransactions: (addressBook: AddressBook, parsers?: EthParser[]) => TransactionsJson;
   json: ChainDataJson;
-  syncAddress: (address: Address, key?: string) => Promise<void>;
   syncAddressBook: (addressBook: AddressBook, key?: string) => Promise<void>;
-  syncTransaction: (tx: Partial<EthTransaction | EthCall>, key?: string) => Promise<void>;
+  syncTransaction: (hash: Bytes32, key?: string) => Promise<void>;
 }
 
 export const emptyChainData = {

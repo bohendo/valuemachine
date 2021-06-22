@@ -1,9 +1,9 @@
 import { CsvSources, Transactions } from "@valuemachine/types";
 
+import { getAddressBook } from "../addressBook";
 import { getTransactions } from "../index";
 import {
   expect,
-  getTestAddressBook,
   testLogger,
 } from "../testUtils";
 
@@ -27,7 +27,7 @@ describe("Coinbase", () => {
   let txns: Transactions;
 
   beforeEach(() => {
-    addressBook = getTestAddressBook();
+    addressBook = getAddressBook();
     txns = getTransactions({ addressBook, logger: log });
     expect(txns.json.length).to.equal(0);
   });
