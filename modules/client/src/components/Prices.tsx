@@ -134,22 +134,14 @@ export const PriceManager = ({
     setSyncing(true);
     console.log(`Syncing price data for ${vm.json.chunks.length} chunks`);
     try {
-      for (const i in vm.json.chunks) {
-        const { asset, receiveDate, disposeDate } = vm.json.chunks[i];
-        for (const date of [receiveDate, disposeDate]) {
-          if (!date) continue;
-          const price = prices.getPrice(date, asset);
-          if (!price) {
-            const price = (await axios(`/api/prices/${unit}/${asset}/${date}`)).data;
-            console.log(`Got price of ${asset} on ${date}`, price);
-            prices.setPrice(price, date, asset);
-            setPricesJson({ ...prices.json });
-          } else if (date) {
-            // make sure this exchange rate is saved directly so we don't need to path find again
-            prices.syncPrice(date, asset);
-          }
-        }
-      }
+      console.info(`Syncing prices for chunks`, vm.json.chunks);
+      const newPrices = (await axios.post(
+        `/api/prices/chunks/${unit}`,
+        { chunks: vm.json.chunks },
+      )).data;
+      console.info(`Synced new prices`, newPrices);
+      prices.merge(newPrices);
+      setPricesJson({ ...prices.json });
     } catch (e) {
       console.error(`Failed to sync prices:`, e);
     }
@@ -159,13 +151,6 @@ export const PriceManager = ({
   const clearPrices = () => {
     setPricesJson({});
   };
-
-  const countPrices = (input: PricesJson): number =>
-    Object.values(input).reduce((output, unit) => {
-      return output + Object.values(unit).reduce((inter, asset) => {
-        return inter + Object.values(asset).length;
-      }, 0);
-    }, 0);
 
   const byAsset = (e1, e2) => (e1[0] < e2[0]) ? -1 : 1;
 
@@ -236,10 +221,7 @@ export const PriceManager = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {countPrices(filteredPrices) === prices.getCount?.(unit)
-            ? `${countPrices(filteredPrices)} ${unit} Prices`
-            : `${countPrices(filteredPrices)} ${unit} Prices (${prices.getCount?.(unit)} total)`
-          }
+          {`${unit} Prices on ${Object.keys(filteredPrices).length} days`}
         </Typography>
 
         <TableContainer>

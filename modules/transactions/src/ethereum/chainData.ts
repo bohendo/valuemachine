@@ -71,7 +71,8 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     `${list.indexOf(elem)+1}/${list.length}`;
 
   const chrono = (d1: any, d2: any): number =>
-    new Date(d1.timestamp || d1).getTime() - new Date(d2.timestamp || d2).getTime();
+    new Date(d1.timestamp || d1.date || d1).getTime()
+    - new Date(d2.timestamp || d2.date || d2).getTime();
 
   const getProvider = (key?: string): Provider => {
     if (process.env.VM_ETH_PROVIDER) {
@@ -291,15 +292,16 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
   };
 
   const syncAddressBook = async (addressBook: AddressBook, key?: string): Promise<void> => {
+    const zeroDate = new Date(0).toISOString();
     const selfAddresses = addressBook.json
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .filter(address => isEthAddress(address))
       .map(address => getAddress(address));
-    const addresses = selfAddresses.map(sm).filter(address => {
+    const addresses = selfAddresses.filter(address => {
       if (
         !json.addresses[address] ||
-        json.addresses[address].lastUpdated === new Date(0).toISOString()
+        json.addresses[address].lastUpdated === zeroDate
       ) {
         return true;
       }
@@ -313,21 +315,20 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         )
         .sort(chrono).reverse()[0];
       if (!lastAction) {
-        log.debug(`No activity detected for address ${address}`);
+        log.info(`No activity detected for address ${address}`);
         return true;
       }
       const hour = 60 * 60 * 1000;
       const month = 30 * 24 * hour;
+      const lastUpdated = json.addresses[address]?.lastUpdated || zeroDate;
+      log.info(`${address} last action was on ${lastAction}, last updated on ${lastUpdated}`);
       // Don't sync any addresses w no recent activity if they have been synced before
-      if (
-        json.addresses[address]?.lastUpdated &&
-        Date.now() - new Date(lastAction).getTime() > 12 * month
-      ) {
+      if (lastUpdated && Date.now() - new Date(lastAction).getTime() > 12 * month) {
         log.debug(`Skipping retired (${lastAction}) address ${address}`);
         return false;
       }
       // Don't sync any active addresses if they've been synced recently
-      if (Date.now() - new Date(json.addresses[address].lastUpdated).getTime() < 6 * hour) {
+      if (Date.now() - new Date(lastUpdated).getTime() < 6 * hour) {
         log.debug(`Skipping active (${lastAction}) address ${address}`);
         return false;
       }
@@ -371,7 +372,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       addressBook,
       logger,
       extraParsers,
-    ));
+    )).sort(chrono);
   };
 
   const getTransaction = (

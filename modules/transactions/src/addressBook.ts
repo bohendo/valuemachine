@@ -9,6 +9,8 @@ import {
   emptyAddressBook,
   EthereumSources,
   jurisdictions,
+  PrivateCategories,
+  PublicCategories,
   SecurityProvider,
   SecurityProviders,
 } from "@valuemachine/types";
@@ -17,7 +19,7 @@ import { getLogger, sm, smeq } from "@valuemachine/utils";
 import { publicAddresses } from "./ethereum";
 
 export const getAddressBook = (params?: AddressBookParams): AddressBook => {
-  const { json: addressBookJson, logger } = params || {};
+  const { json: addressBookJson, hardcoded, logger } = params || {};
   const log = (logger || getLogger()).child({ module: "AddressBook" });
   const json = addressBookJson || JSON.parse(JSON.stringify(emptyAddressBook));
 
@@ -25,7 +27,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   // Hardcoded Public Addresses
 
   const addressBook = []
-    .concat(publicAddresses, json)
+    .concat(publicAddresses, json, hardcoded)
     .filter(entry => !!entry);
 
   ////////////////////////////////////////
@@ -56,9 +58,15 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
       .map(row => sm(row.address))
       .includes(sm(address));
 
-  const isPresent = (address: Address): boolean => addresses.includes(sm(address));
+  const isPublic = (address: Address): boolean =>
+    Object.keys(PublicCategories).some(
+      category => isCategory(category as AddressCategory)(address)
+    );
 
-  const isProxy = isCategory(AddressCategories.Proxy);
+  const isPrivate = (address: Address): boolean =>
+    Object.keys(PrivateCategories).some(category => isCategory(
+      category as AddressCategory)(address)
+    );
 
   const isSelf = isCategory(AddressCategories.Self);
 
@@ -73,14 +81,6 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
         : addressBook.find(row => smeq(row.address, address))
           ? addressBook.find(row => smeq(row.address, address)).name
           : `${address.substring(0, 6)}..${address.substring(address.length - 4)}`;
-
-  const newAddress = (address: Address, category: AddressCategory, name?: string): void => {
-    if (!addresses.includes(sm(address))) {
-      addressBook.push({ address, category, name: name || getName(address) });
-      addresses.push(address);
-      addresses.sort();
-    }
-  };
 
   const getGuardian = (account: Account): SecurityProvider => {
     if (!account) return SecurityProviders.None;
@@ -110,11 +110,10 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     getGuardian,
     getDecimals,
     isCategory,
-    isPresent,
-    isProxy,
+    isPublic,
+    isPrivate,
     isSelf,
     isToken,
     json,
-    newAddress,
   };
 };

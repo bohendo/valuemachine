@@ -58,7 +58,7 @@ export const getValueMachine = ({
   let newEvents = [] as Events;
 
   ////////////////////////////////////////
-  // Internal Functions
+  // Simple Utils
 
   const toIndex = (chunk: AssetChunk): ChunkIndex => chunk.index;
 
@@ -67,6 +67,44 @@ export const getValueMachine = ({
 
   const isHeld = (account: Account, asset: Asset) => (chunk: AssetChunk): boolean =>
     chunk.account === account && chunk.asset === asset;
+
+  ////////////////////////////////////////
+  // Getters
+
+  const getAccounts = (): Account[] => Array.from(json.chunks.reduce((accounts, chunk) => {
+    if (chunk.account) accounts.add(chunk.account);
+    return accounts;
+  }, new Set()));
+
+  const getBalance = (asset: Asset, account?: Account): DecimalString =>
+    json.chunks.reduce((balance, chunk) => {
+      return (asset && chunk.asset === asset) && ((
+        !account && chunk.account
+      ) || (
+        account && chunk.account === account
+      )) ? add(balance, chunk.quantity) : balance;
+    }, "0");
+
+  const getChunk = (index: number): AssetChunk => JSON.parse(JSON.stringify(
+    json.chunks[index]
+  ));
+
+  const getEvent = (index: number): Event => JSON.parse(JSON.stringify({
+    ...json.events[index],
+    inputs: json.events[index]?.inputs?.map(getChunk) || [],
+    outputs: json.events[index]?.outputs?.map(getChunk) || [],
+  }));
+
+  const getNetWorth = (account?: Account): Balances =>
+    json.chunks.reduce((netWorth, chunk) => {
+      if (chunk.account && (!account || chunk.account === account)) {
+        netWorth[chunk.asset] = add(netWorth[chunk.asset], chunk.quantity);
+      }
+      return netWorth;
+    }, {});
+
+  ////////////////////////////////////////
+  // Chunk Manipulators
 
   const mintChunk = (
     quantity: DecimalString,
@@ -92,28 +130,31 @@ export const getValueMachine = ({
     return [loan, debt];
   };
 
-  const underflow = (quantity: DecimalString, asset: Asset, account: Account): AssetChunk[] => {
-    if (isOpaqueInterestBearers(account)) {
-      log.debug(`Underflow of ${quantity} ${asset} is being handled as opaque interest`);
-      // Emit a synthetic income event
-      return [mintChunk(quantity, asset, account)];
-    } else {
-      log.debug(`Underflow of ${quantity} ${asset} is being handled by taking out a loan`);
-      const [loan, _debt] = borrowChunks(quantity, asset, account);
-      return [loan];
-    }
-  };
-
   const splitChunk = (
     oldChunk: AssetChunk,
     amtNeeded: DecimalString,
   ): AssetChunk[] => {
     const { asset, quantity: total } = oldChunk;
     const leftover = sub(total, amtNeeded);
-    const newChunk = { ...oldChunk, quantity: amtNeeded, index: json.chunks.length };
+    // Make sure this new chunk has a completely separate memory allocation
+    const newChunk = JSON.parse(JSON.stringify({
+      ...oldChunk,
+      quantity: amtNeeded,
+      index: json.chunks.length,
+    }));
     json.chunks.push(newChunk); // not minting bc we want to keep receiveDate the same
     oldChunk.quantity = leftover;
     log.debug(`Split ${asset} chunk of ${total} into ${amtNeeded} and ${leftover}`);
+    // Add the new chunk's index alongside the old one anywhere it was referenced
+    [...json.events, ...newEvents].forEach(event => {
+      if (event.inputs?.includes(oldChunk.index)) { event.inputs.push(newChunk.index); }
+      if (event.outputs?.includes(oldChunk.index)) { event.outputs.push(newChunk.index); }
+      if (event.chunks?.includes(oldChunk.index)) { event.chunks.push(newChunk.index); }
+    });
+    json.chunks.forEach(chunk => {
+      if (chunk.inputs?.includes(oldChunk.index)) { chunk.inputs.push(newChunk.index); }
+      if (chunk.outputs?.includes(oldChunk.index)) { chunk.outputs.push(newChunk.index); }
+    });
     return [newChunk, oldChunk];
   };
 
@@ -198,30 +239,20 @@ export const getValueMachine = ({
     return [];
   };
 
+  const underflow = (quantity: DecimalString, asset: Asset, account: Account): AssetChunk[] => {
+    if (isOpaqueInterestBearers(account)) {
+      log.debug(`Underflow of ${quantity} ${asset} is being handled as opaque interest`);
+      // Emit a synthetic income event
+      return [mintChunk(quantity, asset, account)];
+    } else {
+      log.debug(`Underflow of ${quantity} ${asset} is being handled by taking out a loan`);
+      const [loan, _debt] = borrowChunks(quantity, asset, account);
+      return [loan];
+    }
+  };
+
   ////////////////////////////////////////
-  // Exported Methods
-
-  const getBalance = (asset: Asset, account?: Account): DecimalString =>
-    json.chunks.reduce((balance, chunk) => {
-      return (asset && chunk.asset === asset) && ((
-        !account && chunk.account
-      ) || (
-        account && chunk.account === account
-      )) ? add(balance, chunk.quantity) : balance;
-    }, "0");
-
-  const getAccounts = (): Account[] => Array.from(json.chunks.reduce((accounts, chunk) => {
-    if (chunk.account) accounts.add(chunk.account);
-    return accounts;
-  }, new Set()));
-
-  const getNetWorth = (account?: Account): Balances =>
-    json.chunks.reduce((netWorth, chunk) => {
-      if (chunk.account && (!account || chunk.account === account)) {
-        netWorth[chunk.asset] = add(netWorth[chunk.asset], chunk.quantity);
-      }
-      return netWorth;
-    }, {});
+  // Value Manipulators
 
   // Returns the newly minted chunks and/or the annihilated debt chunks
   const receiveValue = (
@@ -328,7 +359,7 @@ export const getValueMachine = ({
     }
     // Set indicies of trade input & output chunks
     chunksOut.forEach(chunk => { chunk.outputs = chunksIn.map(toIndex); });
-    chunksIn.forEach(chunk => { chunk.inputs = chunksIn.map(toIndex); });
+    chunksIn.forEach(chunk => { chunk.inputs = chunksOut.map(toIndex); });
     // emit trade event
     const tradeEvent = {
       date: json.date,
@@ -343,7 +374,6 @@ export const getValueMachine = ({
 
   const moveValue = (quantity: DecimalString, asset: Asset, from: Account, to: Account): void => {
     const toMove = getChunks(quantity, asset, from);
-    log.info(toMove, `Got chunks to move`);
     toMove.forEach(chunk => { chunk.account = to; });
     if (isPhysicallyGuarded(to) && !isPhysicallyGuarded(from)) {
       // Handle jurisdiction change
@@ -362,6 +392,9 @@ export const getValueMachine = ({
       });
     }
   };
+
+  ////////////////////////////////////////
+  // Transaction Processor
 
   const execute = (tx: Transaction): Events => {
     log.debug(`Processing transaction ${tx.index} from ${tx.date}`);
@@ -458,18 +491,7 @@ export const getValueMachine = ({
     return newEvents;
   };
 
-  const getChunk = (index: number): AssetChunk => JSON.parse(JSON.stringify(
-    json.chunks[index]
-  ));
-
-  const getEvent = (index: number): Event => JSON.parse(JSON.stringify({
-    ...json.events[index],
-    inputs: json.events[index]?.inputs?.map(getChunk) || [],
-    outputs: json.events[index]?.outputs?.map(getChunk) || [],
-  }));
-
   return {
-    disposeValue,
     execute,
     getAccounts,
     getBalance,
@@ -477,9 +499,6 @@ export const getValueMachine = ({
     getEvent,
     getNetWorth,
     json,
-    moveValue,
-    receiveValue,
     save,
-    tradeValue,
   };
 };

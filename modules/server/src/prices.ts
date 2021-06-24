@@ -9,36 +9,21 @@ import {
   STATUS_YOUR_BAD,
 } from "./utils";
 
-const log = getLogger(env.logLevel).child({
+const log = getLogger(env.logLevel).child({ module: "Prices",
   // level: "debug",
-  module: "Prices",
 });
 
 export const pricesRouter = express.Router();
 
-pricesRouter.get("/:unit/:asset/:date", async (req, res) => {
-  const logAndSend = getLogAndSend(res);
-  const { asset, date, unit } = req.params;
-  log.info(`Got request for ${unit} price of ${asset} on ${date}`);
-  const prices = getPrices({ store, logger: log, unit: unit });
-  try {
-    const price = await prices.syncPrice(date, asset);
-    logAndSend(price);
-  } catch (e) {
-    log.error(e.stack);
-    logAndSend(e.message, STATUS_YOUR_BAD);
-  }
-});
-
-pricesRouter.post("/:unit", async (req, res) => {
+pricesRouter.post("/chunks/:unit", async (req, res) => {
   const logAndSend = getLogAndSend(res);
   const { unit } = req.params;
-  const { transaction } = req.body;
-  log.info(`Got request for ${unit} prices for transaction on ${transaction.date}`);
+  const { chunks } = req.body;
+  log.info(`Getting ${unit} prices for ${chunks.length} chunks`);
   const prices = getPrices({ store, logger: log, unit: unit });
   try {
-    const priceList = await prices.syncTransaction(transaction);
-    logAndSend(priceList);
+    const pricesJson = await prices.syncChunks(chunks);
+    logAndSend(pricesJson);
   } catch (e) {
     log.error(e.stack);
     logAndSend(e.message, STATUS_YOUR_BAD);
