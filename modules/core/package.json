@@ -1,6 +1,6 @@
 {
   "name": "@valuemachine/core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Low level utilities for portfolio and tax analysis",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
@@ -18,10 +18,10 @@
     "@ethersproject/bignumber": "5.3.0",
     "@ethersproject/constants": "5.3.0",
     "@ethersproject/units": "5.3.0",
-    "@valuemachine/transactions": "0.3.0",
-    "@valuemachine/transactions": "0.3.0",
-    "@valuemachine/types": "0.3.0",
-    "@valuemachine/utils": "0.3.0",
+    "@valuemachine/transactions": "0.4.0",
+    "@valuemachine/transactions": "0.4.0",
+    "@valuemachine/types": "0.4.0",
+    "@valuemachine/utils": "0.4.0",
     "axios": "0.21.1"
   },
   "devDependencies": {
