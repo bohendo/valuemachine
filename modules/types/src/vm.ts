@@ -109,7 +109,6 @@ export type ValueMachineParams = {
 };
 
 export interface ValueMachine {
-  disposeValue: (quantity: DecimalString, asset: Asset, from: Account) => AssetChunk[];
   execute: (transaction: Transaction) => Events;
   getAccounts: () => Account[];
   getBalance: (account: Account, asset: Asset) => DecimalString;
@@ -117,10 +116,7 @@ export interface ValueMachine {
   getEvent: (index: number) => Event;
   getNetWorth: () => Balances;
   json: ValueMachineJson;
-  moveValue: (quantity: DecimalString, asset: Asset, from: Account, to: Account) => void;
-  receiveValue: (quantity: DecimalString, asset: Asset, to: Account) => AssetChunk[];
   save: () => void;
-  tradeValue: (account: Account, inputs: Balances, outputs: Balances) => void;
 }
 
 export const emptyValueMachine = {

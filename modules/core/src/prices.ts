@@ -544,7 +544,7 @@ export const getPrices = (params?: PricesParams): Prices => {
           out: assets.out.map(asset => swap.out[asset]),
         };
 
-        log.info(`Parsing swap of [${assets.out}] for [${assets.in}]`);
+        log.info(`Parsing swap of [${assets.out}] for [${assets.in}] on ${date}`);
         // Assumes that the input and output have equal value
         if (assets.in.length === 1 && assets.out.length === 1) {
           const asset = { in: assets.in[0], out: assets.out[0] };
@@ -596,7 +596,6 @@ export const getPrices = (params?: PricesParams): Prices => {
       for (const rawDate of [receiveDate, disposeDate]) {
         const date = rawDate ? formatDate(rawDate) : null;
         if (!date) continue;
-        log.info(`Syncing price of ${asset} on ${date} in units of ${unit}`);
         chunkPrices[date] = chunkPrices[date] || {};
         chunkPrices[date][unit] = chunkPrices[date][unit] || {};
         chunkPrices[date][unit][asset] = await syncPrice(date, asset, unit);

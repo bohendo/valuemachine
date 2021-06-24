@@ -81,13 +81,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 export const EventRow = ({
   addressBook,
   event,
-  prices,
-  unit,
+  vm,
 }: {
   addressBook: AddressBook;
   event: Event;
-  prices: Prices;
-  unit: Assets;
+  vm: ValueMachine;
 }) => {
   const [open, setOpen] = useState(false);
   const classes = useStyles();
@@ -96,31 +94,23 @@ export const EventRow = ({
     if (event && open) console.log(event);
   }, [event, open]);
 
-  const balToStr = (balances, account) =>
-    Object.entries(balances?.[account] || {}).map(([asset, bal]) => `${round(bal)} ${asset}`).join(" and ");
+  const toDate = timestamp => timestamp?.includes("T") ? timestamp.split("T")[0] : timestamp;
 
-  const swapToStr = (swaps) =>
-    Object.entries(swaps || {}).map(([key, val]) => `${val} ${key}`).join(" and ");
+  const balToStr = (balances) =>
+    Object.entries(balances || {}).map(([asset, bal]) => `${round(bal)} ${asset}`).join(" and ");
+
+  const describeChunk = (chunkIndex) => {
+    const chunk = vm.getChunk(chunkIndex);
+    return `Chunk ${chunk.index}: ${round(chunk.quantity)} ${chunk.asset} held from ${
+      toDate(chunk.receiveDate)
+    } - ${toDate(chunk.disposeDate) || "now"}`;
+  };
 
   const chunksToDisplay = (date, chunks) => {
     const output = {};
-    for (const i in chunks) {
-      const chunk = chunks[i];
-      if (!chunk.receiveDate) {
-        console.log(chunk, `invalid chunk`);
-      }
-      const index = parseInt(i, 10) + 1;
-      const price = prices.getPrice(date, chunk.asset);
-      const receivePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
-      output[`Chunk ${index}`] = `${round(chunk.quantity)} ${chunk.asset}`;
-      output[`Chunk ${index} Value`] = price
-        ? `${round(mul(chunk.quantity, price))} ${unit}`
-        : `?.?? ${unit}`;
-      output[`Chunk ${index} Receive Date`] = chunk.receiveDate;
-      output[`Chunk ${index} Receive Price`] = `${round(receivePrice)} ${unit}/${chunk.asset}`;
-      output[`Chunk ${index} Capital Change`] = price && receivePrice
-        ? `${round(mul(chunk.quantity, sub(price, receivePrice)))} ${unit}`
-        : `?.?? ${unit}`;
+    for (const i of chunks) {
+      const description = describeChunk(i);
+      output[description.split(":")[0]] = description.split(":")[1];
     }
     return output;
   };
@@ -172,120 +162,37 @@ export const EventRow = ({
               </Typography>
               <SimpleTable data={
 
-                (event.type === EventTypes.Transfer && event.category === Expense) ? {
-                  ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
-                    round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}` : `?.?? ${unit}`,
-                  Account: event.from,
-                  ["New Balance"]: `${
-                    round(event.newBalances?.[event.from]?.[event.asset])
-                  } ${event.asset}`,
+                (event.type === EventTypes.Expense) ? {
+                  Account: event.account,
+                  [`New Balances`]: balToStr(event.newBalances),
                   Recipient: event.to,
-                } : event.type === EventTypes.Transfer && event.category === Income ? {
-                  ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
-                    round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}` : `?.?? ${unit}`,
-                  Account: event.to,
-                  ["New Balance"]: `${
-                    round(event.newBalances?.[event.to]?.[event.asset])
-                  } ${event.asset}`,
+                  ...chunksToDisplay(event.date, event.outputs),
+
+                } : event.type === EventTypes.Income ? {
+                  Account: event.account,
+                  [`New Balances`]: balToStr(event.newBalances),
                   Sender: event.from,
+                  ...chunksToDisplay(event.date, event.inputs),
 
-                } : event.type === EventTypes.Transfer && event.category === Deposit ? {
-                  ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
-                    round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}` : `?.?? ${unit}`,
-                  Account: event.to,
-                  ["New Account Balance"]: `${
-                    round(event.newBalances?.[event.to]?.[event.asset])
-                  } ${event.asset}`,
-                  Actor: event.from,
-                  ["New Actor Balance"]: `${
-                    round(event.newBalances?.[event.from]?.[event.asset])
-                  } ${event.asset}`,
-                } : event.type === EventTypes.Transfer && event.category === Withdraw ? {
-                  ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
-                    round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}` : `?.?? ${unit}`,
-                  Account: event.from,
-                  ["New Account Balance"]: `${
-                    round(event.newBalances?.[event.from]?.[event.asset])
-                  } ${event.asset}`,
-                  Actor: event.to,
-                  ["New Actor Balance"]: `${
-                    round(event.newBalances?.[event.to]?.[event.asset])
-                  } ${event.asset}`,
-
-                } : event.type === EventTypes.Transfer && event.category === Repay ? {
-                  ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
-                    round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}` : `?.?? ${unit}`,
-                  Account: event.to,
-                  ["New Account Balance"]: `${
-                    round(event.newBalances?.[event.to]?.[event.asset])
-                  } ${event.asset}`,
-                  Actor: event.from,
-                  ["New Actor Balance"]: `${
-                    round(event.newBalances?.[event.from]?.[event.asset])
-                  } ${event.asset}`,
-                } : event.type === EventTypes.Transfer && event.category === Borrow ? {
-                  ["Asset"]: `${round(event.quantity)} ${event.asset}`,
-                  ["Value"]: prices.getPrice(event.date, event.asset) ? `${
-                    round(mul(event.quantity, prices.getPrice(event.date, event.asset)))
-                  } ${unit}` : `?.?? ${unit}`,
-                  Account: event.from,
-                  ["New Account Balance"]: `${
-                    round(event.newBalances?.[event.from]?.[event.asset])
-                  } ${event.asset}`,
-                  Actor: event.to,
-                  ["New Actor Balance"]: `${
-                    round(event.newBalances?.[event.to]?.[event.asset])
-                  } ${event.asset}`,
+                } : event.type === EventTypes.Debt ? {
+                  Account: event.account,
+                  [`New Balances`]: balToStr(event.newBalances),
+                  Taken: event.inputs.map(describeChunk).join(" and "),
+                  Given: event.outputs.map(describeChunk).join(" and "),
 
                 } : event.type === EventTypes.JurisdictionChange ? {
-                  ["Asset"]: `${event.quantity} ${event.asset}`,
                   ["From"]: event.from,
                   ["From Jurisdiction"]: event.oldJurisdiction,
-                  ["From Balance"]: balToStr(event.newBalances, event.from),
                   ["To"]: event.to,
                   ["To Jurisdiction"]: event.newJurisdiction,
-                  ["To Balance"]: balToStr(event.newBalances, event.to),
-                  ...chunksToDisplay(event.date, event.movedChunks),
+                  [`New Balances`]: balToStr(event.newBalances),
+                  ...chunksToDisplay(event.date, event.chunks),
 
                 } : event.type === EventTypes.Trade ? {
-                  ["Account"]: event.account,
-                  ["Given"]: swapToStr(event.outputs),
-                  ["Taken"]: swapToStr(event.inputs),
-                  [`New Balances`]: balToStr(event.newBalances, event.account),
-                  ["Total Capital Change"]: `${
-                    event.spentChunks?.reduce(
-                      (sum, chunk) => sum !== "?.??" && (
-                        prices.getPrice(event.date, chunk.asset) &&
-                        prices.getPrice(chunk.receiveDate, chunk.asset)
-                      ) ? add(sum, mul(chunk.quantity, sub(
-                        prices.getPrice(event.date, chunk.asset),
-                        prices.getPrice(chunk.receiveDate, chunk.asset),
-                      ))) : "?.??",
-                      "0",
-                    ) === "?.??"
-                      ? "?.??"
-                      : round(event.spentChunks?.reduce(
-                        (sum, chunk) => sum !== "?.??" && (
-                          prices.getPrice(event.date, chunk.asset) &&
-                          prices.getPrice(chunk.receiveDate, chunk.asset)
-                        ) ? add(sum, mul(chunk.quantity, sub(
-                          prices.getPrice(event.date, chunk.asset),
-                          prices.getPrice(chunk.receiveDate, chunk.asset),
-                        ))) : "?.??",
-                        "0",
-                      ))
-                  } ${unit}`,
-                  ...chunksToDisplay(event.date, event.spentChunks),
+                  Account: event.account,
+                  [`New Balances`]: balToStr(event.newBalances),
+                  Taken: event.inputs.map(describeChunk).join(" and "),
+                  Given: event.outputs.map(describeChunk).join(" and "),
                 } : {}
               }/>
             </Box>
@@ -534,6 +441,7 @@ export const ValueMachineExplorer = ({
                     addressBook={addressBook}
                     event={event}
                     unit={unit}
+                    vm={vm}
                   />
                 ))}
             </TableBody>
