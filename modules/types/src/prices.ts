@@ -2,7 +2,6 @@ import { Asset } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
 import { DecimalString, TimestampString } from "./strings";
-import { Transaction } from "./transactions";
 import { AssetChunk } from "./vm";
 
 export type PriceList = {
@@ -23,23 +22,11 @@ export type PricesParams = {
 };
 
 export interface Prices {
-  json: PricesJson;
-  getCount(unit?: Asset, date?: TimestampString): number;
   getPrice(date: TimestampString, asset: Asset, unit?: Asset): string | undefined;
-  setPrice(
-    price: DecimalString,
-    date: TimestampString,
-    asset: Asset,
-    unit?: Asset
-  ): void;
+  json: PricesJson;
   merge(prices: PricesJson): void;
-  syncPrice(
-    date: TimestampString,
-    asset: Asset,
-    unit?: Asset,
-  ): Promise<string | undefined>;
-  syncTransaction(tx: Transaction, unit?: Asset): Promise<PricesJson>;
-  syncChunks(chunks: AssetChunk[]): Promise<PricesJson>;
+  syncChunks(chunks: AssetChunk[], unit?: Asset): Promise<PricesJson>;
+  syncPrice(date: TimestampString, asset: Asset, unit?: Asset): Promise<string | undefined>;
 }
 
 export const emptyPrices = {} as PricesJson;

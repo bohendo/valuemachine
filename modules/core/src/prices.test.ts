@@ -3,7 +3,6 @@ import {
   AssetChunk,
   DateString,
   Prices,
-  TransferCategories
 } from "@valuemachine/types";
 import {
   div,
@@ -15,16 +14,10 @@ import {
 import { getPrices } from "./prices";
 import {
   expect,
-  getTx,
   testLogger,
-  AddressOne,
-  AddressThree,
 } from "./testUtils";
 
-const ethAccount = AddressOne;
-const notMe = AddressThree;
-const { DAI, USD, ETH, cDAI, MKR, UNI, SNX, SPANK, sUSDv1 } = Assets;
-const { Expense, SwapIn, SwapOut } = TransferCategories;
+const { DAI, USD, ETH, cDAI, MKR, UNI } = Assets;
 const log = testLogger.child({ module: "TestPrices",
   // level: "debug",
 });
@@ -148,47 +141,6 @@ describe("Prices", () => {
   });
 
   // Tests that require network calls might be fragile, skip them for now
-  it.skip("should sync prices for a transaction from before Uniswap v1", async () => {
-    const tx = getTx([
-      { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-      { asset: ETH, category: SwapOut, from: ethAccount, quantity: "3.0", to: notMe },
-      { asset: SPANK, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
-    ]);
-    await prices.syncTransaction(tx, ETH);
-    expect(prices.getPrice(tx.date, SPANK, ETH)).to.be.ok;
-    await prices.syncTransaction(tx, USD);
-    expect(prices.getPrice(tx.date, SPANK, USD)).to.be.ok;
-  });
-  it.skip("should sync prices for a transaction from before Uniswap v2", async () => {
-    const tx = getTx([
-      { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-      { asset: sUSDv1, category: SwapOut, from: ethAccount, quantity: "38.0", to: notMe },
-      { asset: DAI, category: SwapIn, from: notMe, quantity: "37.0", to: ethAccount },
-    ]);
-    prices.merge({ [tx.date]: {
-      USD: {
-        ETH: "224.13487737180202",
-        DAI: "1.0011585884975858",
-      }
-    } });
-    await prices.syncTransaction(tx, USD);
-    log.info(prices.json, "All price data");
-    expect(prices.getPrice(tx.date, sUSDv1, USD)).to.be.ok;
-    await prices.syncTransaction(tx, ETH);
-    log.info(prices.json, "All price data");
-    expect(prices.getPrice(tx.date, sUSDv1, ETH)).to.be.ok;
-  });
-  it.skip("should sync prices for a transaction", async () => {
-    const tx = getTx([
-      { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-      { asset: SNX, category: SwapOut, from: ethAccount, quantity: "500", to: notMe },
-      { asset: DAI, category: SwapIn, from: notMe, quantity: "350", to: ethAccount },
-    ]);
-    await prices.syncTransaction(tx, ETH);
-    expect(prices.getPrice(tx.date, DAI, ETH)).to.be.ok;
-    await prices.syncTransaction(tx, USD);
-    expect(prices.getPrice(tx.date, DAI, USD)).to.be.ok;
-  });
   it.skip("should handle rate limits gracefully", async () => {
     // trigger a rate limit
     const ethLaunchish = new Date("2017-01-01").getTime();
