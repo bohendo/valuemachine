@@ -3,6 +3,7 @@ import { Logger } from "./logger";
 import { Store } from "./store";
 import { DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
+import { AssetChunk } from "./vm";
 
 export type PriceList = {
   [unit: string]: {
@@ -38,6 +39,7 @@ export interface Prices {
     unit?: Asset,
   ): Promise<string | undefined>;
   syncTransaction(tx: Transaction, unit?: Asset): Promise<PricesJson>;
+  syncChunks(chunks: AssetChunk[]): Promise<PricesJson>;
 }
 
 export const emptyPrices = {} as PricesJson;

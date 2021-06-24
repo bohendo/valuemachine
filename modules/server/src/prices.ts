@@ -30,7 +30,22 @@ pricesRouter.get("/:unit/:asset/:date", async (req, res) => {
   }
 });
 
-pricesRouter.post("/:unit", async (req, res) => {
+pricesRouter.post("/chunks/:unit", async (req, res) => {
+  const logAndSend = getLogAndSend(res);
+  const { unit } = req.params;
+  const { chunks } = req.body;
+  log.info(`Got request for ${unit} prices for ${chunks.length} chunks`);
+  const prices = getPrices({ store, logger: log, unit: unit });
+  try {
+    const pricesJson = await prices.syncChunks(chunks);
+    logAndSend(pricesJson);
+  } catch (e) {
+    log.error(e.stack);
+    logAndSend(e.message, STATUS_YOUR_BAD);
+  }
+});
+
+pricesRouter.post("/transaction/:unit", async (req, res) => {
   const logAndSend = getLogAndSend(res);
   const { unit } = req.params;
   const { transaction } = req.body;

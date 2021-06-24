@@ -134,22 +134,12 @@ export const PriceManager = ({
     setSyncing(true);
     console.log(`Syncing price data for ${vm.json.chunks.length} chunks`);
     try {
-      for (const i in vm.json.chunks) {
-        const { asset, receiveDate, disposeDate } = vm.json.chunks[i];
-        for (const date of [receiveDate, disposeDate]) {
-          if (!date) continue;
-          const price = prices.getPrice(date, asset);
-          if (!price) {
-            const price = (await axios(`/api/prices/${unit}/${asset}/${date}`)).data;
-            console.log(`Got price of ${asset} on ${date}`, price);
-            prices.setPrice(price, date, asset);
-            setPricesJson({ ...prices.json });
-          } else if (date) {
-            // make sure this exchange rate is saved directly so we don't need to path find again
-            prices.syncPrice(date, asset);
-          }
-        }
-      }
+      const newPrices = (await axios.post(
+        `/api/prices/chunks/${unit}`,
+        { chunks: vm.json.chunks },
+      )).data;
+      prices.merge(newPrices);
+      setPricesJson({ ...prices.json });
     } catch (e) {
       console.error(`Failed to sync prices:`, e);
     }

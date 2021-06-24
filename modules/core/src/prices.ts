@@ -1,6 +1,7 @@
 import { publicAddresses } from "@valuemachine/transactions";
 import {
   Asset,
+  AssetChunk,
   Assets,
   DateString,
   DecimalString,
@@ -651,6 +652,22 @@ export const getPrices = (params?: PricesParams): Prices => {
     return { [date]: priceList };
   };
 
+  const syncChunks = async (chunks: AssetChunk[], givenUnit?: Asset): Promise<PricesJson> => {
+    const output = {} as PricesJson;
+    const unit = formatUnit(givenUnit);
+    for (const chunk of chunks) {
+      const { asset, receiveDate, disposeDate } = chunk;
+      for (const rawDate of [receiveDate, disposeDate]) {
+        const date = rawDate ? formatDate(rawDate) : null;
+        if (!date) continue;
+        output[date] = output[date] || {};
+        output[date][unit] = output[date][unit] || {};
+        output[date][unit][asset] = await syncPrice(date, asset, unit);
+      }
+    }
+    return output;
+  };
+
   return {
     getCount,
     getPrice,
@@ -659,5 +676,6 @@ export const getPrices = (params?: PricesParams): Prices => {
     merge,
     syncPrice,
     syncTransaction,
+    syncChunks,
   };
 };
