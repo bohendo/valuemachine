@@ -37,10 +37,7 @@ import {
   ValueMachine,
 } from "@valuemachine/types";
 import {
-  add,
-  mul,
   round as defaultRound,
-  sub,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
@@ -74,7 +71,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(2),
   },
   subtable: {
-    maxWidth: theme.spacing(8),
+    maxWidth: theme.spacing(12),
   },
 }));
 
@@ -103,14 +100,14 @@ export const EventRow = ({
     const chunk = vm.getChunk(chunkIndex);
     return `Chunk ${chunk.index}: ${round(chunk.quantity)} ${chunk.asset} held from ${
       toDate(chunk.receiveDate)
-    } - ${toDate(chunk.disposeDate) || "now"}`;
+    } - ${toDate(chunk.disposeDate) || "present"}`;
   };
 
-  const chunksToDisplay = (date, chunks) => {
+  const chunksToDisplay = (chunks, prefix) => {
     const output = {};
     for (const i of chunks) {
       const description = describeChunk(i);
-      output[description.split(":")[0]] = description.split(":")[1];
+      output[(prefix || "") + description.split(":")[0]] = description.split(":")[1];
     }
     return output;
   };
@@ -165,20 +162,18 @@ export const EventRow = ({
                 (event.type === EventTypes.Expense) ? {
                   Account: event.account,
                   [`New Balances`]: balToStr(event.newBalances),
-                  Recipient: event.to,
-                  ...chunksToDisplay(event.date, event.outputs),
+                  ...chunksToDisplay(event.outputs),
 
                 } : event.type === EventTypes.Income ? {
                   Account: event.account,
                   [`New Balances`]: balToStr(event.newBalances),
-                  Sender: event.from,
-                  ...chunksToDisplay(event.date, event.inputs),
+                  ...chunksToDisplay(event.inputs),
 
                 } : event.type === EventTypes.Debt ? {
                   Account: event.account,
                   [`New Balances`]: balToStr(event.newBalances),
-                  Taken: event.inputs.map(describeChunk).join(" and "),
-                  Given: event.outputs.map(describeChunk).join(" and "),
+                  ...chunksToDisplay(event.outputs, "Gave "),
+                  ...chunksToDisplay(event.inputs, "Took "),
 
                 } : event.type === EventTypes.JurisdictionChange ? {
                   ["From"]: event.from,
@@ -186,13 +181,13 @@ export const EventRow = ({
                   ["To"]: event.to,
                   ["To Jurisdiction"]: event.newJurisdiction,
                   [`New Balances`]: balToStr(event.newBalances),
-                  ...chunksToDisplay(event.date, event.chunks),
+                  ...chunksToDisplay(event.chunks),
 
                 } : event.type === EventTypes.Trade ? {
                   Account: event.account,
                   [`New Balances`]: balToStr(event.newBalances),
-                  Taken: event.inputs.map(describeChunk).join(" and "),
-                  Given: event.outputs.map(describeChunk).join(" and "),
+                  ...chunksToDisplay(event.outputs, "Gave "),
+                  ...chunksToDisplay(event.inputs, "Took "),
                 } : {}
               }/>
             </Box>
