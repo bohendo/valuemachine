@@ -371,7 +371,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       addressBook,
       logger,
       extraParsers,
-    ));
+    )).sort(chrono);
   };
 
   const getTransaction = (
