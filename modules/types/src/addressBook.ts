@@ -8,15 +8,20 @@ export const PrivateCategories = enumify({
   Employer: "Employer",
   Family: "Family",
   Friend: "Friend",
+  Merchant: "Merchant",
+  Private: "Private",
   Self: "Self", // User controlled
 });
 export type PrivateCategory = (typeof PrivateCategories)[keyof typeof PrivateCategories];
 
 export const PublicCategories = enumify({
+  Burn: "Burn",
   Defi: "Defi",
+  Donation: "Donation",
   ERC20: "ERC20",
   Exchange: "Exchange",
   Proxy: "Proxy",
+  Public: "Public",
 });
 export type PublicCategory = (typeof PublicCategories)[keyof typeof PublicCategories];
 
@@ -39,7 +44,8 @@ export type AddressBookJson = Array<AddressEntry>;
 export const emptyAddressBook = [] as AddressBookJson;
 
 export type AddressBookParams = {
-  json: AddressBookJson;
+  json: AddressBookJson; // for user-defined addresses saved eg in localstorage
+  hardcoded?: AddressBookJson; // for addresess saved in app-level code
   logger: Logger;
 }
 

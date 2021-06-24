@@ -19,7 +19,7 @@ import { getLogger, sm, smeq } from "@valuemachine/utils";
 import { publicAddresses } from "./ethereum";
 
 export const getAddressBook = (params?: AddressBookParams): AddressBook => {
-  const { json: addressBookJson, logger } = params || {};
+  const { json: addressBookJson, hardcoded, logger } = params || {};
   const log = (logger || getLogger()).child({ module: "AddressBook" });
   const json = addressBookJson || JSON.parse(JSON.stringify(emptyAddressBook));
 
@@ -27,7 +27,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   // Hardcoded Public Addresses
 
   const addressBook = []
-    .concat(publicAddresses, json)
+    .concat(publicAddresses, json, hardcoded)
     .filter(entry => !!entry);
 
   ////////////////////////////////////////
@@ -59,10 +59,14 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
       .includes(sm(address));
 
   const isPublic = (address: Address): boolean =>
-    Object.keys(PublicCategories).some(category => isCategory(category)(address));
+    Object.keys(PublicCategories).some(
+      category => isCategory(category as AddressCategory)(address)
+    );
 
   const isPrivate = (address: Address): boolean =>
-    Object.keys(PrivateCategories).some(category => isCategory(category)(address));
+    Object.keys(PrivateCategories).some(category => isCategory(
+      category as AddressCategory)(address)
+    );
 
   const isSelf = isCategory(AddressCategories.Self);
 
