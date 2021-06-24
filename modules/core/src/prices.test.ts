@@ -1,9 +1,12 @@
 import {
   Assets,
+  AssetChunk,
+  DateString,
   Prices,
   TransferCategories
 } from "@valuemachine/types";
 import {
+  div,
   gt,
   mul,
   round,
@@ -18,24 +21,58 @@ import {
   AddressThree,
 } from "./testUtils";
 
-const log = testLogger.child({
-  // level: "debug",
-  module: "TestPrices",
-});
-
 const ethAccount = AddressOne;
 const notMe = AddressThree;
-
+const { DAI, USD, ETH, cDAI, MKR, UNI, SNX, SPANK, sUSDv1 } = Assets;
 const { Expense, SwapIn, SwapOut } = TransferCategories;
-const { DAI, USD, ETH, cDAI, MKR, SNX, SPANK, sUSDv1 } = Assets;
+const log = testLogger.child({ module: "TestPrices",
+  // level: "debug",
+});
 
 describe("Prices", () => {
   let prices: Prices;
   const date = "2020-01-01";
+  const getDate = (index: number): DateString =>
+    new Date(new Date(date).getTime() + (index * 1000 * 60 * 60 * 24)).toISOString();
 
   beforeEach(() => {
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
+  });
+
+  it("should calculate some prices from traded chunks", async () => {
+    const amts = ["1", "50", "2"];
+    await prices.syncChunks([
+      {
+        asset: ETH,
+        receiveDate: getDate(1),
+        disposeDate: getDate(2),
+        quantity: amts[0],
+        index: 0,
+        inputs: [],
+        outputs: [1],
+      },
+      {
+        asset: UNI,
+        receiveDate: getDate(2),
+        disposeDate: getDate(3),
+        quantity: amts[1],
+        index: 1,
+        inputs: [0],
+        outputs: [2],
+      },
+      {
+        asset: ETH,
+        receiveDate: getDate(3),
+        disposeDate: getDate(4),
+        quantity: amts[2],
+        index: 2,
+        inputs: [1],
+        outputs: [],
+      },
+    ] as AssetChunk[], ETH);
+    expect(prices.getPrice(getDate(2), UNI, ETH)).to.equal(div(amts[0], amts[1]));
+    expect(prices.getPrice(getDate(3), UNI, ETH)).to.equal(div(amts[2], amts[1]));
   });
 
   it("should set & get prices", async () => {
