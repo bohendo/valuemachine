@@ -323,16 +323,7 @@ export const makerParser = (
     if (proxyAddresses.some(e => smeq(address, e.address))) {
       const event = parseEvent(proxyInterface, txLog);
       if (event?.name === "Created") {
-        const proxy = sm(event.args.proxy);
-        if (!addressBook.isPresent(proxy)) {
-          log.info(`Found maker proxy creation, adding ${proxy} to our addressBook`);
-          addressBook.newAddress(sm(proxy), AddressCategories.Proxy, "maker-proxy");
-        } else {
-          log.info(`Found maker proxy creation but ${proxy} is already in our addressBook`);
-        }
-        if (proxyAddresses.some(e => smeq(e.address, ethTx.to))) {
-          tx.method = "Create Proxy";
-        }
+        tx.method = "Proxy Creation";
       }
 
     ////////////////////////////////////////

@@ -3,25 +3,26 @@ import { SecurityProvider } from "./security";
 import { Address, HexString } from "./strings";
 import { enumify } from "./utils";
 
-export const ExternalCategories = enumify({
+export const PrivateCategories = enumify({
+  Employee: "Employee",
+  Employer: "Employer",
   Family: "Family",
-  Private: "Private", // private individuals eg steve
-  Public: "Public", // public addresses eg gitcoin grants
+  Friend: "Friend",
   Self: "Self", // User controlled
 });
-export type ExternalCategory = (typeof ExternalCategories)[keyof typeof ExternalCategories];
+export type PrivateCategory = (typeof PrivateCategories)[keyof typeof PrivateCategories];
 
-export const DefiCategories = enumify({
+export const PublicCategories = enumify({
   Defi: "Defi",
   ERC20: "ERC20",
   Exchange: "Exchange",
   Proxy: "Proxy",
 });
-export type DefiCategory = (typeof DefiCategories)[keyof typeof DefiCategories];
+export type PublicCategory = (typeof PublicCategories)[keyof typeof PublicCategories];
 
 export const AddressCategories = enumify({
-  ...DefiCategories,
-  ...ExternalCategories,
+  ...PublicCategories,
+  ...PrivateCategories,
 });
 export type AddressCategory = (typeof AddressCategories)[keyof typeof AddressCategories];
 
@@ -48,10 +49,9 @@ export interface AddressBook {
   getGuardian(address: Address): SecurityProvider;
   getDecimals(address: Address): number;
   isCategory(category: AddressCategory): (address: Address) => boolean;
-  isPresent(address: Address): boolean;
-  isProxy(address: Address): boolean;
+  isPublic(address: Address): boolean;
+  isPrivate(address: Address): boolean;
   isSelf(address: Address): boolean;
   isToken(address: Address): boolean;
   json: AddressBookJson;
-  newAddress(name: string, category: AddressCategory, address: Address): void;
 }

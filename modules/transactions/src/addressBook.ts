@@ -9,6 +9,8 @@ import {
   emptyAddressBook,
   EthereumSources,
   jurisdictions,
+  PrivateCategories,
+  PublicCategories,
   SecurityProvider,
   SecurityProviders,
 } from "@valuemachine/types";
@@ -56,9 +58,11 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
       .map(row => sm(row.address))
       .includes(sm(address));
 
-  const isPresent = (address: Address): boolean => addresses.includes(sm(address));
+  const isPublic = (address: Address): boolean =>
+    Object.keys(PublicCategories).some(category => isCategory(category)(address));
 
-  const isProxy = isCategory(AddressCategories.Proxy);
+  const isPrivate = (address: Address): boolean =>
+    Object.keys(PrivateCategories).some(category => isCategory(category)(address));
 
   const isSelf = isCategory(AddressCategories.Self);
 
@@ -73,14 +77,6 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
         : addressBook.find(row => smeq(row.address, address))
           ? addressBook.find(row => smeq(row.address, address)).name
           : `${address.substring(0, 6)}..${address.substring(address.length - 4)}`;
-
-  const newAddress = (address: Address, category: AddressCategory, name?: string): void => {
-    if (!addresses.includes(sm(address))) {
-      addressBook.push({ address, category, name: name || getName(address) });
-      addresses.push(address);
-      addresses.sort();
-    }
-  };
 
   const getGuardian = (account: Account): SecurityProvider => {
     if (!account) return SecurityProviders.None;
@@ -110,11 +106,10 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     getGuardian,
     getDecimals,
     isCategory,
-    isPresent,
-    isProxy,
+    isPublic,
+    isPrivate,
     isSelf,
     isToken,
     json,
-    newAddress,
   };
 };
