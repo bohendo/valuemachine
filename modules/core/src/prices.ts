@@ -503,8 +503,7 @@ export const getPrices = (params?: PricesParams): Prices => {
   const syncChunks = async (chunks: AssetChunk[], givenUnit?: Asset): Promise<PricesJson> => {
     const unit = formatUnit(givenUnit);
     const chunkPrices = {} as PricesJson;
-
-    const swaps = chunks
+    chunks
       // Gather all the unique dates on which a swap occured
       .reduce((dates, chunk) => {
         if (chunk.disposeDate && chunk.outputs?.length) {
@@ -514,83 +513,80 @@ export const getPrices = (params?: PricesParams): Prices => {
           dates.push(chunk.receiveDate);
         }
         return Array.from(new Set(dates));
-      }, [])
-      .sort(chrono)
+      }, []).sort(chrono)
+
       // Gather & sum all the chunks that came in or went out on each date
       .map(date => ({
         date,
         out: chunks.reduce((output, chunk) => {
-          if (chunk.disposeDate === date) {
+          if (chunk.disposeDate === date && chunk.outputs?.length) {
             output[chunk.asset] = output[chunk.asset] || "0";
             output[chunk.asset] = add(output[chunk.asset], chunk.quantity);
           }
           return output;
         }, {}),
         in: chunks.reduce((input, chunk) => {
-          if (chunk.receiveDate === date) {
+          if (chunk.receiveDate === date && chunk.inputs?.length) {
             input[chunk.asset] = input[chunk.asset] || "0";
             input[chunk.asset] = add(input[chunk.asset], chunk.quantity);
           }
           return input;
         }, {}),
-      }));
-    log.info(swaps, `Swaps`);
+      }))
 
-    swaps.forEach(swap => {
-      const date = formatDate(swap.date);
-      const prices = {};
-      const assets = { in: Object.keys(swap.in), out: Object.keys(swap.out) };
-      const amts = {
-        in: assets.in.map(asset => swap.in[asset]),
-        out: assets.out.map(asset => swap.out[asset]),
-      };
+      // Divide inputs & ouputs to determine exchange rates
+      .forEach(swap => {
+        const date = formatDate(swap.date);
+        const prices = {};
+        const assets = { in: Object.keys(swap.in), out: Object.keys(swap.out) };
+        const amts = {
+          in: assets.in.map(asset => swap.in[asset]),
+          out: assets.out.map(asset => swap.out[asset]),
+        };
 
-      // Assumes that the input and output have equal value
-      if (assets.in.length === 1 && assets.out.length === 1) {
-        const asset = { in: assets.in[0], out: assets.out[0] };
-        const amt = { in: amts.in[0], out: amts.out[0] };
-        log.info(`Parsing swap w 1 asset out (${assets.out}) & 1 in (${assets.in})`);
-        prices[asset.out] = prices[asset.out] || {};
-        prices[asset.in] = prices[asset.in] || {};
-        prices[asset.out][asset.in] = div(amt.out, amt.in);
-        prices[asset.in][asset.out] = div(amt.in, amt.out);
-        chunkPrices[date] = { ...chunkPrices[date], ...prices };
+        log.info(`Parsing swap of [${assets.out}] for [${assets.in}]`);
+        // Assumes that the input and output have equal value
+        if (assets.in.length === 1 && assets.out.length === 1) {
+          const asset = { in: assets.in[0], out: assets.out[0] };
+          const amt = { in: amts.in[0], out: amts.out[0] };
+          prices[asset.out] = prices[asset.out] || {};
+          prices[asset.in] = prices[asset.in] || {};
+          prices[asset.out][asset.in] = div(amt.out, amt.in);
+          prices[asset.in][asset.out] = div(amt.in, amt.out);
+          chunkPrices[date] = { ...chunkPrices[date], ...prices };
 
-      // Assumes that for 2 inputs => 1 output,
-      // - the 2 inputs have equal value
-      // - the total input has value equal to the output
-      } else if (assets.in.length === 2 && assets.out.length === 1) {
-        log.info(`Parsing swap w 1 asset out (${assets.out}) & 2 in (${assets.in})`);
-        prices[assets.in[0]] = prices[assets.in[0]] || {};
-        prices[assets.in[1]] = prices[assets.in[1]] || {};
-        // Get prices of the two liq inputs relative to each other
-        prices[assets.in[0]][assets.in[1]] = div(amts.in[0], amts.in[1]);
-        prices[assets.in[1]][assets.in[0]] = div(amts.in[1], amts.in[0]);
-        // Get prices of the liq token relative to each input
-        prices[assets.in[1]][assets.out[0]] = div(mul(amts.in[1], "2"), amts.out[0]);
-        prices[assets.in[0]][assets.out[0]] = div(mul(amts.in[0], "2"), amts.out[0]);
-        chunkPrices[date] = { ...chunkPrices[date], ...prices };
+        // Assumes that for 2 inputs => 1 output,
+        // - the 2 inputs have equal value
+        // - the total input has value equal to the output
+        } else if (assets.in.length === 2 && assets.out.length === 1) {
+          prices[assets.in[0]] = prices[assets.in[0]] || {};
+          prices[assets.in[1]] = prices[assets.in[1]] || {};
+          // Get prices of the two liq inputs relative to each other
+          prices[assets.in[0]][assets.in[1]] = div(amts.in[0], amts.in[1]);
+          prices[assets.in[1]][assets.in[0]] = div(amts.in[1], amts.in[0]);
+          // Get prices of the liq token relative to each input
+          prices[assets.in[1]][assets.out[0]] = div(mul(amts.in[1], "2"), amts.out[0]);
+          prices[assets.in[0]][assets.out[0]] = div(mul(amts.in[0], "2"), amts.out[0]);
+          chunkPrices[date] = { ...chunkPrices[date], ...prices };
 
+        // Assumes that for 1 input => 2 outputs,
+        // - the 2 outputs have equal value
+        // - the input has value equal to the total output
+        } else if (assets.out.length === 2 && assets.in.length === 1) {
+          prices[assets.out[0]] = prices[assets.out[0]] || {};
+          prices[assets.out[1]] = prices[assets.out[1]] || {};
+          // Get prices of the two liq outputs relative to each other
+          prices[assets.out[0]][assets.out[1]] = div(amts.out[0], amts.out[1]);
+          prices[assets.out[1]][assets.out[0]] = div(amts.out[1], amts.out[0]);
+          // Get prices of the liq token relative to each output
+          prices[assets.out[1]][assets.in[0]] = div(mul(amts.out[1], "2"), amts.in[0]);
+          prices[assets.out[0]][assets.in[0]] = div(mul(amts.out[0], "2"), amts.in[0]);
+          chunkPrices[date] = { ...chunkPrices[date], ...prices };
+        } else if (assets.in.length || assets.out.length) {
+          log.warn(`Unable to get prices from swap: [${assets.out}] => [${assets.in}]`);
+        }
+      });
 
-      // Assumes that for 1 input => 2 outputs,
-      // - the 2 outputs have equal value
-      // - the input has value equal to the total output
-      } else if (assets.out.length === 2 && assets.in.length === 1) {
-        log.info(`Parsing swap w 2 assets out (${assets.out}) & 1 in (${assets.in})`);
-        prices[assets.out[0]] = prices[assets.out[0]] || {};
-        prices[assets.out[1]] = prices[assets.out[1]] || {};
-        // Get prices of the two liq outputs relative to each other
-        prices[assets.out[0]][assets.out[1]] = div(amts.out[0], amts.out[1]);
-        prices[assets.out[1]][assets.out[0]] = div(amts.out[1], amts.out[0]);
-        // Get prices of the liq token relative to each output
-        prices[assets.out[1]][assets.in[0]] = div(mul(amts.out[1], "2"), amts.in[0]);
-        prices[assets.out[0]][assets.in[0]] = div(mul(amts.out[0], "2"), amts.in[0]);
-        chunkPrices[date] = { ...chunkPrices[date], ...prices };
-
-      } else if (assets.in.length || assets.out.length) {
-        log.warn(`Unable to get prices from swap: [${assets.out}] => [${assets.in}]`);
-      }
-    });
     merge(chunkPrices);
     log.info(chunkPrices, "Merged new prices");
 

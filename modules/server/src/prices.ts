@@ -19,7 +19,7 @@ pricesRouter.post("/chunks/:unit", async (req, res) => {
   const logAndSend = getLogAndSend(res);
   const { unit } = req.params;
   const { chunks } = req.body;
-  log.info(`Got request for ${unit} prices for ${chunks.length} chunks`);
+  log.info(`Getting ${unit} prices for ${chunks.length} chunks`);
   const prices = getPrices({ store, logger: log, unit: unit });
   try {
     const pricesJson = await prices.syncChunks(chunks);
