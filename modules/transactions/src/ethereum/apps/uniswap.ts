@@ -205,12 +205,12 @@ export const uniswapParser = (
     const swapsOut = tx.transfers.filter((transfer: Transfer): boolean =>
       isSelf(transfer.from)
         && uniswapAddresses.some(e => smeq(transfer.to, e.address))
-        && ([Expense, SwapOut] as TransferCategory[]).includes(transfer.category)
+        && ([Expense, SwapOut] as string[]).includes(transfer.category)
     );
     const swapsIn = tx.transfers.filter((transfer: Transfer): boolean =>
       isSelf(transfer.to)
         && uniswapAddresses.some(e => smeq(transfer.from, e.address))
-        && ([Income, SwapIn] as TransferCategory[]).includes(transfer.category)
+        && ([Income, SwapIn] as string[]).includes(transfer.category)
     );
     // SwapIn entries for assets that don't exist in swapsOut should come first
     const ofType = asset => swap => swap.asset === asset;
@@ -307,7 +307,7 @@ export const uniswapParser = (
         isSelf(transfer.from)
           && stakingAddresses.some(e => smeq(transfer.to, e.address))
           && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([Expense, Deposit] as TransferCategory[]).includes(transfer.category)
+          && ([Expense, Deposit] as string[]).includes(transfer.category)
       );
       if (!deposit) {
         log.warn(`${subsrc} ${event.name} couldn't find a deposit to ${address}`);
@@ -326,7 +326,7 @@ export const uniswapParser = (
         isSelf(transfer.to)
           && stakingAddresses.some(e => smeq(transfer.from, e.address))
           && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([Income, Withdraw] as TransferCategory[]).includes(transfer.category)
+          && ([Income, Withdraw] as string[]).includes(transfer.category)
       );
       if (!withdraw) {
         log.warn(`${subsrc} ${event.name} couldn't find a withdraw from staking pool}`);

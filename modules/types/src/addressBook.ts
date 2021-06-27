@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { Logger } from "./logger";
-import { SecurityProvider, SecurityProviderSchema } from "./security";
+import { SecurityProvider } from "./security";
 import { Store } from "./store";
 import { Address } from "./strings";
 import { enumToSchema } from "./utils";
@@ -18,9 +18,8 @@ export const PrivateCategories = {
   Private: "Private",
   Self: "Self", // User controlled
 } as const;
-export const PrivateCategorySchema = enumToSchema(PrivateCategories);
-export type PrivateCategories = Static<typeof PrivateCategorySchema>;
-export type PrivateCategory = (typeof PrivateCategories)[keyof typeof PrivateCategories];
+export const PrivateCategory = enumToSchema(PrivateCategories);
+export type PrivateCategory = Static<typeof PrivateCategory>;
 
 export const PublicCategories = {
   Burn: "Burn",
@@ -31,24 +30,22 @@ export const PublicCategories = {
   Proxy: "Proxy",
   Public: "Public",
 } as const;
-export const PublicCategorySchema = enumToSchema(PublicCategories);
-export type PublicCategories = Static<typeof PublicCategorySchema>;
-export type PublicCategory = (typeof PublicCategories)[keyof typeof PublicCategories];
+export const PublicCategory = enumToSchema(PublicCategories);
+export type PublicCategory = Static<typeof PublicCategory>;
 
 export const AddressCategories = {
   ...PublicCategories,
   ...PrivateCategories,
 } as const;
-export const AddressCategorySchema = enumToSchema(AddressCategories);
-export type AddressCategories = Static<typeof AddressCategorySchema>;
-export type AddressCategory = (typeof AddressCategories)[keyof typeof AddressCategories];
+export const AddressCategory = enumToSchema(AddressCategories);
+export type AddressCategory = Static<typeof AddressCategory>;
 
 export const AddressEntry = Type.Object({
   address: Address,
-  category: AddressCategorySchema,
+  category: AddressCategory,
   decimals: Type.Optional(Type.Number()), // for ERC20 token addresses
   name: Type.String(),
-  guardian: Type.Optional(SecurityProviderSchema),
+  guardian: Type.Optional(SecurityProvider),
 });
 export type AddressEntry = Static<typeof AddressEntry>;
 

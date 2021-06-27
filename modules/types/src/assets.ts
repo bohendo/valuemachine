@@ -5,15 +5,13 @@ import { enumToSchema } from "./utils";
 
 // All physical security providers have an associated fiat currency
 export const FiatCurrencies = { ...PhysicalGuardians } as const;
-export const FiatCurrencySchema = enumToSchema(FiatCurrencies);
-export type FiatCurrencies = Static<typeof FiatCurrencySchema>;
-export type FiatCurrency = (typeof FiatCurrencies)[keyof typeof FiatCurrencies];
+export const FiatCurrency = enumToSchema(FiatCurrencies);
+export type FiatCurrency = Static<typeof FiatCurrency>;
 
 // All digital security providers have an associated native cryptocurrency
 export const Cryptocurrencies = { ...DigitalGuardians } as const;
-export const CryptocurrencySchema = enumToSchema(Cryptocurrencies);
-export type Cryptocurrencies = Static<typeof CryptocurrencySchema>;
-export type Cryptocurrency = (typeof Cryptocurrencies)[keyof typeof Cryptocurrencies];
+export const Cryptocurrency = enumToSchema(Cryptocurrencies);
+export type Cryptocurrency = Static<typeof Cryptocurrency>;
 
 export const EthereumAssets = {
   [Cryptocurrencies.ETH]: Cryptocurrencies.ETH,
@@ -174,15 +172,13 @@ export const EthereumAssets = {
   yyDAI_yUSDC_yUSDT_yBUSD: "yyDAI_yUSDC_yUSDT_yBUSD",
   yyDAI_yUSDC_yUSDT_yTUSD: "yyDAI_yUSDC_yUSDT_yTUSD",
 } as const;
-export const EthereumAssetSchema = enumToSchema(EthereumAssets);
-export type EthereumAssets = Static<typeof EthereumAssetSchema>;
-export type EthereumAsset = (typeof EthereumAssets)[keyof typeof EthereumAssets];
+export const EthereumAsset = enumToSchema(EthereumAssets);
+export type EthereumAsset = Static<typeof EthereumAsset>;
 
 export const Assets = {
   ...Cryptocurrencies,
   ...FiatCurrencies,
   ...EthereumAssets,
 } as const;
-export const AssetSchema = enumToSchema(Assets);
-export type Assets = Static<typeof AssetSchema>;
-export type Asset = (typeof Assets)[keyof typeof Assets];
+export const Asset = enumToSchema(Assets);
+export type Asset = Static<typeof Asset>

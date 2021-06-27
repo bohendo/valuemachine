@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
-import { AssetSchema } from "./assets";
+import { Asset } from "./assets";
 import { EthTransaction } from "./chainData";
 import { Logger } from "./logger";
 import { SecurityProviders } from "./security";
@@ -18,9 +18,8 @@ export const CsvSources = {
   Wyre: "Wyre",
   Wazirx: "Wazirx",
 } as const;
-export const CsvSourceSchema = enumToSchema(CsvSources);
-export type CsvSources = Static<typeof CsvSourceSchema>;
-export type CsvSource = (typeof CsvSources)[keyof typeof CsvSources];
+export const CsvSource = enumToSchema(CsvSources);
+export type CsvSource = Static<typeof CsvSource>;
 
 // Set default guardians for external sources
 export const jurisdictions = {
@@ -44,17 +43,15 @@ export const EthereumSources = {
   Weth: "Weth",
   Yearn: "Yearn",
 } as const;
-export const EthereumSourceSchema = enumToSchema(EthereumSources);
-export type EthereumSources = Static<typeof EthereumSourceSchema>;
-export type EthereumSource = (typeof EthereumSources)[keyof typeof EthereumSources];
+export const EthereumSource = enumToSchema(EthereumSources);
+export type EthereumSource = Static<typeof EthereumSource>;
 
 export const TransactionSources = {
   ...CsvSources,
   ...EthereumSources,
 } as const;
-export const TransactionSourceSchema = enumToSchema(TransactionSources);
-export type TransactionSources = Static<typeof TransactionSourceSchema>;
-export type TransactionSource = (typeof TransactionSources)[keyof typeof TransactionSources];
+export const TransactionSource = enumToSchema(TransactionSources);
+export type TransactionSource = Static<typeof TransactionSource>;
 
 export const TransferCategories = {
   Internal: "Internal",
@@ -68,13 +65,12 @@ export const TransferCategories = {
   Deposit: "Deposit",
   Withdraw: "Withdraw",
 } as const;
-export const TransferCategorySchema = enumToSchema(TransferCategories);
-export type TransferCategories = Static<typeof TransferCategorySchema>;
-export type TransferCategory = (typeof TransferCategories)[keyof typeof TransferCategories];
+export const TransferCategory = enumToSchema(TransferCategories);
+export type TransferCategory = Static<typeof TransferCategory>;
 
 export const Transfer = Type.Object({
-  asset: AssetSchema,
-  category: TransferCategorySchema,
+  asset: Asset,
+  category: TransferCategory,
   from: Account,
   index: Type.Optional(Type.Number()),
   quantity: DecimalString,
@@ -87,7 +83,7 @@ export const Transaction = Type.Object({
   method: Type.Optional(Type.String()),
   hash: Type.Optional(Bytes32), // convert to uuid
   index: Type.Optional(Type.Number()),
-  sources: Type.Array(TransactionSourceSchema),
+  sources: Type.Array(TransactionSource),
   transfers: Type.Array(Transfer),
 });
 export type Transaction = Static<typeof Transaction>;

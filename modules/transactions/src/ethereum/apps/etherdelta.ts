@@ -89,7 +89,7 @@ export const etherdeltaParser = (
         const asset = getAsset(event.args.token);
         const quantity = formatUnits(event.args.amount, getDecimals(event.args.token));
         const transfer = tx.transfers.find(transfer =>
-          ([Income, Expense, Deposit, Withdraw] as TransferCategory[]).includes(transfer.category)
+          ([Income, Expense, Deposit, Withdraw] as string[]).includes(transfer.category)
           && transfer.asset === asset
           && transfer.quantity === quantity
         );

@@ -173,7 +173,7 @@ const yVaultV2Interface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
-const vaultToToken = (token: string): string | undefined => {
+const vaultToToken = (token: string): Asset | undefined => {
   switch (token) {
   case y3Crv: return _3Crv;
   case yBUSDv3: return BUSD;
@@ -245,7 +245,7 @@ export const yearnParser = (
       const transfer = tx.transfers.find(t =>
         t.category !== Internal
         && t.to !== ETH
-        && assetsAreClose(t.asset, asset as Asset)
+        && assetsAreClose(t.asset, asset)
         && (
           (isSelf(t.to) && isSelf(yTransfer.from)) ||
           (isSelf(t.from) && isSelf(yTransfer.to))

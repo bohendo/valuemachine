@@ -89,7 +89,7 @@ export const tornadoParser = (
   tx.transfers.filter(transfer =>
     isSelf(transfer.from)
       && mixerAddresses.some(e => smeq(transfer.to, e.address))
-      && ([Expense, Deposit] as TransferCategory[]).includes(transfer.category)
+      && ([Expense, Deposit] as string[]).includes(transfer.category)
   ).forEach(deposit => {
     isTornadoTx = true;
     deposit.category = Deposit;
@@ -101,7 +101,7 @@ export const tornadoParser = (
   tx.transfers.filter(transfer =>
     isSelf(transfer.to)
       && mixerAddresses.some(e => smeq(transfer.from, e.address))
-      && ([Income, Withdraw] as TransferCategory[]).includes(transfer.category)
+      && ([Income, Withdraw] as string[]).includes(transfer.category)
   ).forEach(withdraw => {
     isTornadoTx = true;
     withdraw.category = Withdraw;

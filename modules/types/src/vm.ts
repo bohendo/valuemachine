@@ -1,10 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
-import { Asset, AssetSchema } from "./assets";
+import { Asset } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { SecurityProviderSchema } from "./security";
+import { SecurityProvider } from "./security";
 import { Account, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
 import { enumToSchema } from "./utils";
@@ -16,7 +16,7 @@ export const ChunkIndex = Type.Number();
 export type ChunkIndex = Static<typeof ChunkIndex>;
 
 export const AssetChunk = Type.Object({
-  asset: AssetSchema,
+  asset: Asset,
   quantity: DecimalString,
   receiveDate: TimestampString,
   disposeDate: Type.Optional(TimestampString), // undefined if we still own this chunk
@@ -41,14 +41,13 @@ export const EventTypes = {
   Expense: "Expense",
   Debt: "Debt",
 } as const;
-export const EventTypeSchema = enumToSchema(EventTypes);
-export type EventTypes = Static<typeof EventTypeSchema>;
-export type EventType = (typeof EventTypes)[keyof typeof EventTypes];
+export const EventType = enumToSchema(EventTypes);
+export type EventType = Static<typeof EventType>;
 
 const BaseEvent = Type.Object({
   date: TimestampString,
   newBalances: Balances,
-  type: EventTypeSchema,
+  type: EventType,
 });
 type BaseEvent = Static<typeof BaseEvent>;
 
@@ -94,10 +93,10 @@ export type IncomeEvent = Static<typeof IncomeEvent>;
 export const JurisdictionChangeEvent = Type.Intersect([
   BaseEvent,
   Type.Object({
-    fromJurisdiction: SecurityProviderSchema,
+    fromJurisdiction: SecurityProvider,
     from: Account,
     to: Account,
-    toJurisdiction: SecurityProviderSchema,
+    toJurisdiction: SecurityProvider,
     chunks: Type.Array(ChunkIndex),
     insecurePath: Type.Array(ChunkIndex),
   }),

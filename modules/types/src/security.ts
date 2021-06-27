@@ -9,9 +9,8 @@ export const DigitalGuardians = {
   ETH: "ETH",
   LTC: "LTC",
 } as const;
-export const DigitalGuardianSchema = enumToSchema(DigitalGuardians);
-export type DigitalGuardians = Static<typeof DigitalGuardianSchema>;
-export type DigitalGuardian = (typeof DigitalGuardians)[keyof typeof DigitalGuardians];
+export const DigitalGuardian = enumToSchema(DigitalGuardians);
+export type DigitalGuardian = Static<typeof DigitalGuardian>;
 
 // Security providers in the physical world
 export const PhysicalGuardians = {
@@ -21,15 +20,13 @@ export const PhysicalGuardians = {
   INR: "INR",
   USD: "USD",
 } as const;
-export const PhysicalGuardianSchema = enumToSchema(PhysicalGuardians);
-export type PhysicalGuardians = Static<typeof PhysicalGuardianSchema>;
-export type PhysicalGuardian = (typeof PhysicalGuardians)[keyof typeof PhysicalGuardians];
+export const PhysicalGuardian = enumToSchema(PhysicalGuardians);
+export type PhysicalGuardian = Static<typeof PhysicalGuardian>;
 
 export const SecurityProviders = {
   ...DigitalGuardians,
   ...PhysicalGuardians,
   None: "None",
 } as const;
-export const SecurityProviderSchema = enumToSchema(SecurityProviders);
-export type SecurityProviders = Static<typeof SecurityProviderSchema>;
-export type SecurityProvider = (typeof SecurityProviders)[keyof typeof SecurityProviders];
+export const SecurityProvider = enumToSchema(SecurityProviders);
+export type SecurityProvider = Static<typeof SecurityProvider>;

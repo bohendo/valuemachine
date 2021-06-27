@@ -1,7 +1,7 @@
 import { hexlify } from "@ethersproject/bytes";
 import { keccak256 } from "@ethersproject/keccak256";
 import { encode } from "@ethersproject/rlp";
-import { Address, ChainDataJson } from "@valuemachine/types";
+import { Address, EthTransaction, ChainDataJson } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
 
@@ -21,3 +21,10 @@ export const getChainDataError = (chainDataJson: ChainDataJson): string | null =
     ? null
     : validateChainData.errors.length ? formatErrors(validateChainData.errors)
     : `Invalid ChainData: ${JSON.stringify(chainDataJson)}`;
+
+const validateEthTransaction = ajv.compile(EthTransaction);
+export const getEthTransactionError = (ethTx: EthTransaction): string | null =>
+  validateEthTransaction(ethTx)
+    ? null
+    : validateEthTransaction.errors.length ? formatErrors(validateEthTransaction.errors)
+    : `Invalid EthTransaction: ${JSON.stringify(ethTx)}`;

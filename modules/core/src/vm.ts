@@ -413,10 +413,10 @@ export const getValueMachine = ({
     ): void => {
       const { asset, category, from, quantity, to } = transfer;
       // Move funds from one account to another
-      if (([Internal, Deposit, Withdraw, Repay, Borrow] as TransferCategory[]).includes(category)) {
+      if (([Internal, Deposit, Withdraw, Repay, Borrow] as string[]).includes(category)) {
         moveValue(quantity, asset, from, to);
       // Send funds out of our accounts
-      } else if (([Expense, SwapOut] as TransferCategory[]).includes(category)) {
+      } else if (([Expense, SwapOut] as string[]).includes(category)) {
         const disposed = disposeValue(quantity, asset, from);
         newEvents.push({
           account: from,
@@ -426,7 +426,7 @@ export const getValueMachine = ({
           type: EventTypes.Expense,
         });
       // Receive funds into one of our accounts
-      } else if (([Income, SwapIn] as TransferCategory[]).includes(category)) {
+      } else if (([Income, SwapIn] as string[]).includes(category)) {
         const received = receiveValue(quantity, asset, to);
         newEvents.push({
           account: to,

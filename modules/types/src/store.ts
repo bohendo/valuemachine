@@ -14,9 +14,8 @@ export const StoreKeys = {
   Transactions: "Transactions",
   ValueMachine: "ValueMachine",
 } as const;
-export const StoreKeySchema = enumToSchema(StoreKeys);
-export type StoreKeys = Static<typeof StoreKeySchema>;
-export type StoreKey = (typeof StoreKeys)[keyof typeof StoreKeys];
+export const StoreKey = enumToSchema(StoreKeys);
+export type StoreKey = Static<typeof StoreKey>;
 
 interface StoreTypeMap {
   [StoreKeys.AddressBook]: AddressBookJson;

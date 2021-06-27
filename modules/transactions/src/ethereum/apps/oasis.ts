@@ -88,7 +88,7 @@ export const oasisParser = (
 
   const ethish = [WETH, ETH] as Asset[];
   const findSwap = (quantity: string, asset: Asset) => (transfer: Transfer): boolean =>
-    (([Income, Expense] as TransferCategory[]).includes(transfer.category)) && (
+    (([Income, Expense] as string[]).includes(transfer.category)) && (
       ethish.includes(asset) ? ethish.includes(transfer.asset) : transfer.asset === asset
     ) && valuesAreClose(quantity, transfer.quantity);
 

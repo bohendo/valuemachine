@@ -510,7 +510,7 @@ export const makerParser = (
         const swapOut = tx.transfers.filter(t =>
           t.asset === WETH
           && t.to !== ETH
-          && ([Expense, SwapOut] as TransferCategory[]).includes(t.category)
+          && ([Expense, SwapOut] as string[]).includes(t.category)
         ).sort(diffAsc(wad))[0];
         if (swapOut) {
           swapOut.category = SwapOut;
@@ -532,7 +532,7 @@ export const makerParser = (
           && ([
             Income,
             SwapIn, // re-handle dup calls instead of logging warning
-          ] as TransferCategory[]).includes(t.category)
+          ] as string[]).includes(t.category)
         ).sort(diffAsc(wad))[0];
         if (swapIn) {
           swapIn.category = SwapIn;
@@ -552,7 +552,7 @@ export const makerParser = (
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
           && t.to !== ETH
-          && ([Expense, Deposit] as TransferCategory[]).includes(t.category)
+          && ([Expense, Deposit] as string[]).includes(t.category)
           && (smeq(tubAddress, t.to) || isSelf(t.from))
         ).sort(diffAsc(wad))[0];
         if (transfer) {
@@ -569,7 +569,7 @@ export const makerParser = (
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
-          && ([Income, Withdraw] as TransferCategory[]).includes(t.category)
+          && ([Income, Withdraw] as string[]).includes(t.category)
           && (smeq(tubAddress, t.from) || isSelf(t.to))
         ).sort(diffAsc(wad)).sort((t1, t2) =>
           // First try to match a PETH transfer
@@ -598,7 +598,7 @@ export const makerParser = (
         const borrow = tx.transfers.filter(t =>
           isSelf(t.to)
           && t.asset === SAI
-          && ([Income, Borrow] as TransferCategory[]).includes(t.category)
+          && ([Income, Borrow] as string[]).includes(t.category)
         ).sort(diffAsc(wad))[0];
         if (borrow) {
           borrow.category = Borrow;
@@ -618,7 +618,7 @@ export const makerParser = (
         const account = `${source}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const repay = tx.transfers.filter(t =>
-          t.asset === SAI && ([Expense, Repay] as TransferCategory[]).includes(t.category)
+          t.asset === SAI && ([Expense, Repay] as string[]).includes(t.category)
         ).sort(diffAsc(wad))[0];
         if (repay) {
           repay.category = Repay;
@@ -638,7 +638,7 @@ export const makerParser = (
           isSelf(t.from)
           && feeAsset.includes(t.asset)
           // Fee might be a SwapOut eg if we gave SAI to OasisDex to swap for MKR
-          && ([Expense, SwapOut] as TransferCategory[]).includes(t.category)
+          && ([Expense, SwapOut] as string[]).includes(t.category)
         );
         if (fee) {
           fee.category = Expense;

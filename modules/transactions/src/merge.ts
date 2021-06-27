@@ -8,7 +8,6 @@ import {
   TransactionSource,
   Transfer,
   TransferCategories,
-  TransferCategory,
 } from "@valuemachine/types";
 import {
   chrono,
@@ -68,7 +67,7 @@ export const mergeTransaction = (
 
     // Mergable eth txns can only contain one notable transfer
     const transfers = newTx.transfers.filter(transfer =>
-      ([Income, Expense] as TransferCategory[]).includes(transfer.category)
+      ([Income, Expense] as string[]).includes(transfer.category)
       && transfer.to !== Assets.ETH
     );
     if (transfers.length !== 1) {
@@ -195,7 +194,7 @@ export const mergeTransaction = (
       // use external date so we can detect external dups more easily later
       date: newTx.date,
       // merge sources
-      sources: rmDups([...ethTx.sources, ...newTx.sources]) as TransactionSource[],
+      sources: rmDups([...ethTx.sources, ...newTx.sources]),
     };
     ethTransfer.category = extTransfer.category;
     if (ethTransfer.category === Deposit) {
