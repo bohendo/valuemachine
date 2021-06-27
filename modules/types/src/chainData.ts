@@ -68,9 +68,3 @@ export interface ChainData {
   syncAddressBook: (addressBook: AddressBook, key?: string) => Promise<void>;
   syncTransaction: (hash: Bytes32, key?: string) => Promise<void>;
 }
-
-export const emptyChainData = {
-  addresses: {},
-  calls: [],
-  transactions: [],
-} as ChainDataJson;

@@ -10,7 +10,6 @@ import {
   ChainData,
   ChainDataJson,
   ChainDataParams,
-  emptyChainData,
   EthCall,
   EthParser,
   StoreKeys,
@@ -19,6 +18,7 @@ import {
 } from "@valuemachine/types";
 import {
   getEthTransactionError,
+  getEmptyChainData,
   getLogger,
   sm,
   smeq,
@@ -30,9 +30,9 @@ import { parseEthTx } from "./parser";
 
 export const getChainData = (params?: ChainDataParams): ChainData => {
   const { json: chainDataJson, etherscanKey, logger, store } = params || {};
-
   const log = (logger || getLogger()).child?.({ module: "ChainData" });
-  const json = chainDataJson || store?.load(StoreKeys.ChainData) || emptyChainData;
+  const json = chainDataJson || store?.load(StoreKeys.ChainData) || getEmptyChainData();
+
   const save = () => store
     ? store.save(StoreKeys.ChainData, json)
     : log.warn(`No store provided, can't save chain data`);

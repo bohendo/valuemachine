@@ -5,6 +5,12 @@ import { Address, ChainDataJson, EthTransaction } from "@valuemachine/types";
 
 import { getPropertyError } from "./validate";
 
+export const getEmptyChainData = (): ChainDataJson => ({
+  addresses: {},
+  calls: [],
+  transactions: [],
+});
+
 export const getNewContractAddress = (from: Address, nonce: number): Address => `0x${
   keccak256(encode([from, hexlify(nonce)])).substring(26).toLowerCase()
 }`;

@@ -6,22 +6,27 @@ import {
   AddressBookParams,
   AddressCategories,
   AddressCategory,
-  emptyAddressBook,
   EthereumSources,
   jurisdictions,
   PrivateCategories,
   PublicCategories,
   SecurityProvider,
   SecurityProviders,
+  StoreKeys,
 } from "@valuemachine/types";
-import { getLogger, sm, smeq } from "@valuemachine/utils";
+import {
+  getLogger,
+  sm,
+  smeq,
+  getEmptyAddressBook,
+} from "@valuemachine/utils";
 
 import { publicAddresses } from "./ethereum";
 
 export const getAddressBook = (params?: AddressBookParams): AddressBook => {
-  const { json: addressBookJson, hardcoded, logger } = params || {};
+  const { json: addressBookJson, hardcoded, logger, store } = params || {};
+  const json = addressBookJson || store?.load(StoreKeys.AddressBook) || getEmptyAddressBook();
   const log = (logger || getLogger()).child({ module: "AddressBook" });
-  const json = addressBookJson || JSON.parse(JSON.stringify(emptyAddressBook));
 
   ////////////////////////////////////////
   // Hardcoded Public Addresses

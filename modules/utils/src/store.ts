@@ -1,10 +1,10 @@
-import { emptyStore, Store, StoreKey, StoreKeys } from "@valuemachine/types";
+import { Store, StoreKey, StoreKeys } from "@valuemachine/types";
 
-import { getAddressBookError } from "./addressBook";
-import { getChainDataError } from "./eth";
-import { getPricesError } from "./prices";
-import { getTransactionsError } from "./transactions";
-import { getValueMachineError } from "./vm";
+import { getEmptyAddressBook, getAddressBookError } from "./addressBook";
+import { getEmptyChainData, getChainDataError } from "./chainData";
+import { getEmptyPrices, getPricesError } from "./prices";
+import { getEmptyTransactions, getTransactionsError } from "./transactions";
+import { getEmptyValueMachine, getValueMachineError } from "./vm";
 
 const validators =  {
   [StoreKeys.AddressBook]: getAddressBookError,
@@ -12,6 +12,14 @@ const validators =  {
   [StoreKeys.Prices]: getPricesError,
   [StoreKeys.Transactions]: getTransactionsError,
   [StoreKeys.ValueMachine]: getValueMachineError,
+};
+
+const emptyStore = {
+  [StoreKeys.AddressBook]: getEmptyAddressBook(),
+  [StoreKeys.ChainData]: getEmptyChainData(),
+  [StoreKeys.Prices]: getEmptyPrices(),
+  [StoreKeys.Transactions]: getEmptyTransactions(),
+  [StoreKeys.ValueMachine]: getEmptyValueMachine(),
 };
 
 export const getLocalStore = (localStorage: any): Store => ({

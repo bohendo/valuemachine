@@ -27,7 +27,6 @@ import SyncIcon from "@material-ui/icons/Sync";
 import {
   AddressBook,
   Assets,
-  emptyValueMachine,
   Event,
   Events,
   EventTypes,
@@ -38,6 +37,7 @@ import {
 } from "@valuemachine/types";
 import {
   round as defaultRound,
+  getEmptyValueMachine,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
@@ -296,7 +296,7 @@ export const ValueMachineExplorer = ({
   };
 
   const handleReset = () => {
-    setVMJson({ ...JSON.parse(JSON.stringify(emptyValueMachine)) });
+    setVMJson(getEmptyValueMachine());
   };
 
   const handleChangePage = (event, newPage) => {

@@ -115,5 +115,3 @@ export type Transactions = {
   mergeCsv: (csvData: string, parser: CsvSource | CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
 };
-
-export const emptyTransactions = [] as TransactionsJson;

@@ -1,11 +1,12 @@
 import { Interface } from "@ethersproject/abi";
 import { isHexString, hexDataLength } from "@ethersproject/bytes";
 import {
-  Assets,
   Asset,
+  Assets,
   DecimalString,
   EthTransactionLog,
   Transaction,
+  TransactionsJson,
   Transfer,
 } from "@valuemachine/types";
 
@@ -13,6 +14,8 @@ import { diff, gt, lt } from "./math";
 import { getPropertyError } from "./validate";
 
 const { ETH, WETH } = Assets;
+
+export const getEmptyTransactions = (): TransactionsJson => [];
 
 // Smallest difference is first, largest is last
 // If diff in 1 is greater than diff in 2, swap them

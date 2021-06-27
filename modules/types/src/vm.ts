@@ -90,7 +90,44 @@ export type Event =
   | TradeEvent;
 export type Events = Event[];
 
-export const emptyEvents = [] as Events;
+////////////////////////////////////////
+// Hydrated Data aka types w indexes replaced w referenced values
+
+export type HydratedAssetChunk = AssetChunk & {
+  inputs: AssetChunk[];
+  outputs?: AssetChunk[];
+};
+
+export type HydratedDebtEvent = DebtEvent & {
+  inputs: Array<AssetChunk>;
+  outputs: Array<AssetChunk>;
+};
+
+export type HydratedTradeEvent = TradeEvent & {
+  inputs: Array<AssetChunk>;
+  outputs: Array<AssetChunk>;
+};
+
+export type HydratedIncomeEvent = IncomeEvent & {
+  inputs: Array<AssetChunk>;
+};
+
+export type HydratedExpenseEvent = ExpenseEvent & {
+  outputs: Array<AssetChunk>;
+};
+
+export type HydratedJurisdictionChangeEvent = JurisdictionChangeEvent & {
+  chunks: Array<AssetChunk>;
+  insecurePath: Array<AssetChunk>;
+};
+
+export type HydratedEvent =
+  | DebtEvent
+  | ExpenseEvent
+  | IncomeEvent
+  | JurisdictionChangeEvent
+  | TradeEvent;
+export type HydratedEvents = HydratedEvent[];
 
 ////////////////////////////////////////
 // ValueMachine
@@ -112,15 +149,9 @@ export interface ValueMachine {
   execute: (transaction: Transaction) => Events;
   getAccounts: () => Account[];
   getBalance: (account: Account, asset: Asset) => DecimalString;
-  getChunk: (index: ChunkIndex) => AssetChunk;
-  getEvent: (index: number) => Event;
+  getChunk: (index: ChunkIndex) => HydratedAssetChunk;
+  getEvent: (index: number) => HydratedEvent;
   getNetWorth: () => Balances;
   json: ValueMachineJson;
   save: () => void;
 }
-
-export const emptyValueMachine = {
-  chunks: [],
-  date: (new Date(0)).toISOString(),
-  events: [],
-} as ValueMachineJson;

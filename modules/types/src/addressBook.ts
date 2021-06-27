@@ -1,5 +1,6 @@
 import { Logger } from "./logger";
 import { SecurityProvider } from "./security";
+import { Store } from "./store";
 import { Address, HexString } from "./strings";
 import { enumify } from "./utils";
 
@@ -41,12 +42,11 @@ export type AddressEntry = {
 
 export type AddressBookJson = Array<AddressEntry>;
 
-export const emptyAddressBook = [] as AddressBookJson;
-
 export type AddressBookParams = {
-  json: AddressBookJson; // for user-defined addresses saved eg in localstorage
+  json?: AddressBookJson; // for user-defined addresses saved eg in localstorage
   hardcoded?: AddressBookJson; // for addresess saved in app-level code
-  logger: Logger;
+  logger?: Logger;
+  store?: Store;
 }
 
 export interface AddressBook {

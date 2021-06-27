@@ -1,8 +1,8 @@
-import { AddressBookJson, emptyAddressBook } from "./addressBook";
-import { ChainDataJson, emptyChainData } from "./chainData";
-import { PricesJson, emptyPrices } from "./prices";
-import { ValueMachineJson, emptyValueMachine } from "./vm";
-import { TransactionsJson, emptyTransactions } from "./transactions";
+import { AddressBookJson } from "./addressBook";
+import { ChainDataJson } from "./chainData";
+import { PricesJson } from "./prices";
+import { ValueMachineJson } from "./vm";
+import { TransactionsJson } from "./transactions";
 import { enumify } from "./utils";
 
 export const StoreKeys = enumify({
@@ -30,11 +30,3 @@ export interface Store {
   load: <T extends keyof StoreValues>(key: T) => StoreValues[T];
   save: <T extends keyof StoreValues>(key: T, value: StoreValues[T]) => void; 
 }
-
-export const emptyStore: StoreValues = {
-  [StoreKeys.AddressBook]: emptyAddressBook,
-  [StoreKeys.ChainData]: emptyChainData,
-  [StoreKeys.Prices]: emptyPrices,
-  [StoreKeys.Transactions]: emptyTransactions,
-  [StoreKeys.ValueMachine]: emptyValueMachine,
-};

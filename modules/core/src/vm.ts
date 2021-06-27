@@ -5,10 +5,10 @@ import {
   Balances,
   ChunkIndex,
   DecimalString,
-  emptyValueMachine,
-  Event,
   Events,
   EventTypes,
+  HydratedAssetChunk,
+  HydratedEvent,
   PhysicalGuardians,
   StoreKeys,
   TradeEvent,
@@ -23,6 +23,7 @@ import {
 import {
   add,
   eq,
+  getEmptyValueMachine,
   getLogger,
   gt,
   lt,
@@ -47,9 +48,7 @@ export const getValueMachine = ({
   json: vmJson,
 }: ValueMachineParams): ValueMachine => {
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
-  const json = vmJson
-    || store?.load(StoreKeys.ValueMachine)
-    || JSON.parse(JSON.stringify(emptyValueMachine));
+  const json = vmJson || store?.load(StoreKeys.ValueMachine) || getEmptyValueMachine();
   const save = (): void => store?.save(StoreKeys.ValueMachine, json);
 
   json.chunks = json.chunks || [];
@@ -61,6 +60,7 @@ export const getValueMachine = ({
   // Simple Utils
 
   const toIndex = (chunk: AssetChunk): ChunkIndex => chunk.index;
+  const fromIndex = (chunkIndex: ChunkIndex): AssetChunk => json.chunks[chunkIndex];
 
   const isPhysicallyGuarded = (account) => 
     Object.keys(PhysicalGuardians).includes(addressBook.getGuardian(account));
@@ -74,7 +74,7 @@ export const getValueMachine = ({
   const getAccounts = (): Account[] => Array.from(json.chunks.reduce((accounts, chunk) => {
     if (chunk.account) accounts.add(chunk.account);
     return accounts;
-  }, new Set()));
+  }, new Set<string>()));
 
   const getBalance = (asset: Asset, account?: Account): DecimalString =>
     json.chunks.reduce((balance, chunk) => {
@@ -85,15 +85,22 @@ export const getValueMachine = ({
       )) ? add(balance, chunk.quantity) : balance;
     }, "0");
 
-  const getChunk = (index: number): AssetChunk => JSON.parse(JSON.stringify(
-    json.chunks[index]
-  ));
+  const getChunk = (index: number): HydratedAssetChunk =>
+    JSON.parse(JSON.stringify({
+      ...json.chunks[index],
+      inputs: json.chunks[index]?.inputs?.map(fromIndex) || [],
+      outputs: json.chunks[index]?.outputs?.map(fromIndex) || undefined,
+    }));
 
-  const getEvent = (index: number): Event => JSON.parse(JSON.stringify({
-    ...json.events[index],
-    inputs: json.events[index]?.inputs?.map(getChunk) || [],
-    outputs: json.events[index]?.outputs?.map(getChunk) || [],
-  }));
+  const getEvent = (index: number): HydratedEvent => {
+    const target = json.events[index] as any;
+    return JSON.parse(JSON.stringify({
+      ...target,
+      chunks: target?.chunks?.map(fromIndex) || undefined,
+      inputs: target?.inputs?.map(fromIndex) || undefined,
+      outputs: target?.outputs?.map(fromIndex) || undefined,
+    }));
+  };
 
   const getNetWorth = (account?: Account): Balances =>
     json.chunks.reduce((netWorth, chunk) => {
@@ -146,7 +153,7 @@ export const getValueMachine = ({
     oldChunk.quantity = leftover;
     log.debug(`Split ${asset} chunk of ${total} into ${amtNeeded} and ${leftover}`);
     // Add the new chunk's index alongside the old one anywhere it was referenced
-    [...json.events, ...newEvents].forEach(event => {
+    [...json.events, ...newEvents].forEach((event: any) => {
       if (event.inputs?.includes(oldChunk.index)) { event.inputs.push(newChunk.index); }
       if (event.outputs?.includes(oldChunk.index)) { event.outputs.push(newChunk.index); }
       if (event.chunks?.includes(oldChunk.index)) { event.chunks.push(newChunk.index); }
