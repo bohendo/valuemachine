@@ -1,7 +1,7 @@
 import { Logger } from "./logger";
 import { SecurityProvider } from "./security";
 import { Store } from "./store";
-import { Address, HexString } from "./strings";
+import { Address } from "./strings";
 import { enumify } from "./utils";
 
 export const PrivateCategories = enumify({
@@ -33,7 +33,7 @@ export const AddressCategories = enumify({
 export type AddressCategory = (typeof AddressCategories)[keyof typeof AddressCategories];
 
 export type AddressEntry = {
-  address: HexString;
+  address: Address;
   category: AddressCategory;
   decimals?: number; // for ERC20 token addresses
   name?: string;

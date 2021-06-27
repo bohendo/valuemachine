@@ -37,6 +37,7 @@ module.exports = {
   ],
   rules: {
     "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-redeclare": "off",
     "comma-dangle": ["warn", "only-multiline"],
     "import/order": [
       1,
