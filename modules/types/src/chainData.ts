@@ -1,3 +1,5 @@
+import { Static, Type } from "@sinclair/typebox";
+
 import { Logger } from "./logger";
 import { Store } from "./store";
 import { AddressBook } from "./addressBook";
@@ -10,49 +12,57 @@ import {
   TimestampString,
 } from "./strings";
 
-export type EthCall = {
-  block: number;
-  from: Address;
-  hash: Bytes32;
-  timestamp: TimestampString;
-  to: Address;
-  value: DecimalString;
-};
+////////////////////////////////////////
+// JSON Schema
 
-export type EthTransactionLog = {
-  address: Address;
-  data: HexString;
-  index: number;
-  topics: Array<Bytes32>;
-}
+export const EthCall = Type.Object({
+  block: Type.Number(),
+  from: Address,
+  hash: Bytes32,
+  timestamp: TimestampString,
+  to: Address,
+  value: DecimalString,
+});
+export type EthCall = Static<typeof EthCall>;
 
-export type EthTransaction = {
-  block: number;
-  data: HexString;
-  from: Address;
-  gasLimit: HexString;
-  gasPrice: HexString;
-  gasUsed: HexString;
-  hash: Bytes32;
-  index: number;
-  logs: EthTransactionLog[];
-  nonce: number;
-  status: number | undefined;
-  timestamp: TimestampString;
-  to: Address | null;
-  value: DecimalString;
-};
+export const EthTransactionLog = Type.Object({
+  address: Address,
+  data: HexString,
+  index: Type.Number(),
+  topics: Type.Array(Bytes32),
+});
+export type EthTransactionLog = Static<typeof EthTransactionLog>;
 
-export type ChainDataJson = {
-  addresses: {
-    [address: string]: {
-      history: Bytes32[]; /* List of tx hashes that interact with this address */
-      lastUpdated: TimestampString;
-    };
-  };
-  calls: EthCall[]; // Note: we can have multiple calls per txHash
-  transactions: EthTransaction[];
-};
+export const EthTransaction = Type.Object({
+  block: Type.Number(),
+  data: HexString,
+  from: Address,
+  gasLimit: HexString,
+  gasPrice: HexString,
+  gasUsed: HexString,
+  hash: Bytes32,
+  index: Type.Number(),
+  logs: Type.Array(EthTransactionLog),
+  nonce: Type.Number(),
+  status: Type.Optional(Type.Number()),
+  timestamp: TimestampString,
+  to: Type.Union([Address, Type.Null()]),
+  value: DecimalString,
+});
+export type EthTransaction = Static<typeof EthTransaction>;
+
+export const ChainDataJson = Type.Object({
+  addresses: Type.Dict(Type.Object({
+    history: Type.Array(Bytes32), /* List of tx hashes that interact with this address */
+    lastUpdated: TimestampString,
+  })),
+  calls: Type.Array(EthCall), // Note: we can have multiple calls per txHash
+  transactions: Type.Array(EthTransaction),
+});
+export type ChainDataJson = Static<typeof ChainDataJson>;
+
+////////////////////////////////////////
+// Function Interfaces
 
 export type ChainDataParams = {
   json?: ChainDataJson;
