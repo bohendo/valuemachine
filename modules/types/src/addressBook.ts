@@ -1,10 +1,13 @@
-import { Static } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 
 import { Logger } from "./logger";
-import { SecurityProvider } from "./security";
+import { SecurityProvider, SecurityProviderSchema } from "./security";
 import { Store } from "./store";
 import { Address } from "./strings";
 import { enumToSchema } from "./utils";
+
+////////////////////////////////////////
+// JSON Schema
 
 export const PrivateCategories = {
   Employee: "Employee",
@@ -40,15 +43,20 @@ export const AddressCategorySchema = enumToSchema(AddressCategories);
 export type AddressCategories = Static<typeof AddressCategorySchema>;
 export type AddressCategory = (typeof AddressCategories)[keyof typeof AddressCategories];
 
-export type AddressEntry = {
-  address: Address;
-  category: AddressCategory;
-  decimals?: number; // for ERC20 token addresses
-  name?: string;
-  guardian?: SecurityProvider;
-};
+export const AddressEntry = Type.Object({
+  address: Address,
+  category: AddressCategorySchema,
+  decimals: Type.Optional(Type.Number()), // for ERC20 token addresses
+  name: Type.String(),
+  guardian: Type.Optional(SecurityProviderSchema),
+});
+export type AddressEntry = Static<typeof AddressEntry>;
 
-export type AddressBookJson = Array<AddressEntry>;
+export const AddressBookJson = Type.Array(AddressEntry);
+export type AddressBookJson = Static<typeof AddressBookJson>;
+
+////////////////////////////////////////
+// Function Interfaces
 
 export type AddressBookParams = {
   json?: AddressBookJson; // for user-defined addresses saved eg in localstorage

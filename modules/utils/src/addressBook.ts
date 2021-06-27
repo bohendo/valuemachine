@@ -1,14 +1,18 @@
-import { Address, AddressBookJson } from "@valuemachine/types";
+import { AddressBookJson } from "@valuemachine/types";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
 
-// Setup
-const ajv = addFormats(new Ajv()).addKeyword("kind");
+const ajv = addFormats(new Ajv()).addKeyword("kind").addKeyword("modifier");
+const validateAddressBook = ajv.compile(AddressBookJson);
 
-export const getAddressBookError = (addressBookJson: AddressBookJson) => 
-  !addressBookJson ? "Address Book is falsy"
-  : !addressBookJson[0] ? null
-  : !ajv.validate(Address, addressBookJson[0].address) ? "Invalid address at index 0"
-  : null;
+const formatErrors = errors => errors.map(error =>
+  `${error.instancePath.replace("", "")}: ${error.message}`
+).slice(0, 2).join(", ");
+
+export const getAddressBookError = (addressBookJson: AddressBookJson): string | null =>
+  validateAddressBook(addressBookJson)
+    ? null
+    : validateAddressBook.errors.length ? formatErrors(validateAddressBook.errors)
+    : `Invalid AddressBook: ${JSON.stringify(addressBookJson)}`;
 
 export const getEmptyAddressBook = (): AddressBookJson => [];
