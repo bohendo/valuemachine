@@ -11,11 +11,18 @@ import {
 } from "@valuemachine/types";
 
 import { diff, gt, lt } from "./math";
-import { getPropertyError } from "./validate";
+import { ajv, formatErrors } from "./validate";
 
 const { ETH, WETH } = Assets;
 
 export const getEmptyTransactions = (): TransactionsJson => [];
+
+const validateTransactions = ajv.compile(TransactionsJson);
+export const getTransactionsError = (transactionsJson: TransactionsJson): string | null =>
+  validateTransactions(transactionsJson)
+    ? null
+    : validateTransactions.errors.length ? formatErrors(validateTransactions.errors)
+    : `Invalid Transactions`;
 
 // Smallest difference is first, largest is last
 // If diff in 1 is greater than diff in 2, swap them
@@ -55,46 +62,3 @@ export const parseEvent = (
 };
 
 export const isHash = (str: string): boolean => isHexString(str) && hexDataLength(str) === 32;
-
-export const getTransactionsError = (transactions: Transaction[]): string | null => {
-  for (const transaction of transactions) {
-    for (const { key, expected } of [
-      { key: "date", expected: "string" },
-      { key: "method", expected: "string?" },
-      { key: "hash", expected: "string?" },
-      { key: "index", expected: "number?" },
-      { key: "sources", expected: "string[]" },
-      { key: "transfers", expected: "object[]" },
-    ]) {
-      const typeError = getPropertyError(transaction, key, expected);
-      if (typeError) {
-        return typeError;
-      }
-    }
-    for (const transfer of transaction.transfers) {
-      for (const { key, expected } of [
-        { key: "asset", expected: "string" },
-        { key: "category", expected: "string" },
-        { key: "from", expected: "string" },
-        { key: "index", expected: "number?" },
-        { key: "quantity", expected: "string" },
-        { key: "to", expected: "string" },
-      ]) {
-        const typeError = getPropertyError(transfer, key, expected);
-        if (typeError) {
-          return typeError;
-        }
-      }
-    }
-  }
-  // Make sure events are in chronological order
-  let prevTime = 0;
-  for (const transaction of transactions) {
-    const currTime = new Date(transaction.date).getTime();
-    if (currTime < prevTime) {
-      return `Transactions out of order: ${transaction.date} < ${new Date(prevTime).toISOString()}`;
-    }
-    prevTime = currTime;
-  }
-  return null;
-};
