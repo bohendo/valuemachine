@@ -1,3 +1,12 @@
+import Ajv from "ajv";
+import addFormats from "ajv-formats";
+
+export const ajv = addFormats(new Ajv()).addKeyword("kind").addKeyword("modifier");
+
+export const formatErrors = errors => errors.map(error =>
+  `${error.instancePath.replace("", "")}: ${error.message}`
+).slice(0, 2).join(", ");
+
 const isSameType = (actual: any, expected: string): boolean => {
   if (typeof actual === expected) {
     return true;

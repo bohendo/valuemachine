@@ -48,7 +48,7 @@ const validChainData = {
 
 describe("ChainData", () => {
 
-  it("should return no errors json is valid", async () => {
+  it("should return no errors if json is valid", async () => {
     expect(getChainDataError(validChainData)).to.be.null;
   });
 
