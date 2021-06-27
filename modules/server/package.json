@@ -13,8 +13,8 @@
     "build": "webpack --config ops/webpack.config.js"
   },
   "dependencies": {
-    "@ethersproject/address": "5.3.0",
-    "@ethersproject/bytes": "5.3.0",
+    "@ethersproject/address": "5.4.0",
+    "@ethersproject/bytes": "5.4.0",
     "@valuemachine/core": "0.4.2",
     "@valuemachine/transactions": "0.4.2",
     "@valuemachine/types": "0.4.2",
