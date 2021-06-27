@@ -1,37 +1,38 @@
-import { Static } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
-import { Asset } from "./assets";
+import { Asset, AssetSchema } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { SecurityProvider } from "./security";
+import { SecurityProviderSchema } from "./security";
 import { Account, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
 import { enumToSchema } from "./utils";
 
 ////////////////////////////////////////
-// Chunks
+// JSON Schema
 
-export type Balances = {
-  [asset: string]: DecimalString;
-}
+export const ChunkIndex = Type.Number();
+export type ChunkIndex = Static<typeof ChunkIndex>;
 
-export type ChunkIndex = number;
+export const AssetChunk = Type.Object({
+  asset: AssetSchema,
+  quantity: DecimalString,
+  receiveDate: TimestampString,
+  disposeDate: Type.Optional(TimestampString), // undefined if we still own this chunk
+  unsecured: Type.Optional(DecimalString), // should always be <= quantity but it isn't
+  account: Type.Optional(Account), // undefined if we no longer own this chunk
+  index: ChunkIndex, // used as a unique identifier, should never change
+  inputs: Type.Array(ChunkIndex), // source chunks traded for this one
+  outputs: Type.Optional(Type.Array(ChunkIndex)), // sink chunks that we gave this one away for
+});
+export type AssetChunk = Static<typeof AssetChunk>;
 
-export type AssetChunk = {
-  asset: Asset;
-  quantity: DecimalString;
-  receiveDate: TimestampString;
-  disposeDate?: TimestampString; // undefined if we still own this chunk
-  unsecured?: DecimalString; // quantity that's still physically insecure (always <= quantity)
-  account?: Account; // undefined if we no longer own this chunk
-  index: ChunkIndex; // used as a unique identifier, should never change
-  inputs: ChunkIndex[]; // empty if chunk is income, else it's inputs we traded for this chunk
-  outputs?: ChunkIndex[]; // undefined if we still own this chunk, empty if chunk was spent
-};
+export const AssetChunks = Type.Array(AssetChunk);
+export type AssetChunks = Static<typeof AssetChunks>;
 
-////////////////////////////////////////
-// Events
+export const Balances = Type.Dict(DecimalString);
+export type Balances = Static<typeof Balances>;
 
 export const EventTypes = {
   JurisdictionChange: "JurisdictionChange",
@@ -44,103 +45,153 @@ export const EventTypeSchema = enumToSchema(EventTypes);
 export type EventTypes = Static<typeof EventTypeSchema>;
 export type EventType = (typeof EventTypes)[keyof typeof EventTypes];
 
-type BaseEvent = {
-  date: TimestampString;
-  newBalances: Balances;
-  type: EventType;
-};
+const BaseEvent = Type.Object({
+  date: TimestampString,
+  newBalances: Balances,
+  type: EventTypeSchema,
+});
+type BaseEvent = Static<typeof BaseEvent>;
 
-export type DebtEvent = BaseEvent & {
-  account: Account;
-  inputs: Array<ChunkIndex>;
-  outputs: Array<ChunkIndex>;
-  type: typeof EventTypes.Debt;
-};
+export const DebtEvent = Type.Intersect([
+  BaseEvent,
+  Type.Object({
+    account: Account,
+    inputs: Type.Array(ChunkIndex),
+    outputs: Type.Array(ChunkIndex),
+    // TODO: specify type
+  }),
+]);
+export type DebtEvent = Static<typeof DebtEvent>;
 
-export type ExpenseEvent = BaseEvent & {
-  account: Account;
-  outputs: Array<ChunkIndex>;
-  type: typeof EventTypes.Expense;
-};
+export const TradeEvent = Type.Intersect([
+  BaseEvent,
+  Type.Object({
+    account: Account,
+    inputs: Type.Array(ChunkIndex),
+    outputs: Type.Array(ChunkIndex),
+  }),
+]);
+export type TradeEvent = Static<typeof TradeEvent>;
 
-export type IncomeEvent = BaseEvent & {
-  account: Account;
-  inputs: Array<ChunkIndex>;
-  type: typeof EventTypes.Income;
-};
+export const ExpenseEvent = Type.Intersect([
+  BaseEvent,
+  Type.Object({
+    account: Account,
+    outputs: Type.Array(ChunkIndex),
+  }),
+]);
+export type ExpenseEvent = Static<typeof ExpenseEvent>;
 
-export type JurisdictionChangeEvent = BaseEvent & {
-  fromJurisdiction: SecurityProvider;
-  from: Account;
-  to: Account;
-  toJurisdiction: SecurityProvider;
-  chunks: Array<ChunkIndex>;
-  insecurePath: Array<ChunkIndex>;
-  type: typeof EventTypes.JurisdictionChange;
-};
+export const IncomeEvent = Type.Intersect([
+  BaseEvent,
+  Type.Object({
+    account: Account,
+    inputs: Type.Array(ChunkIndex),
+  }),
+]);
+export type IncomeEvent = Static<typeof IncomeEvent>;
 
-export type TradeEvent = BaseEvent & {
-  account: Account;
-  inputs: Array<ChunkIndex>;
-  outputs: Array<ChunkIndex>;
-  type: typeof EventTypes.Trade;
-};
+export const JurisdictionChangeEvent = Type.Intersect([
+  BaseEvent,
+  Type.Object({
+    fromJurisdiction: SecurityProviderSchema,
+    from: Account,
+    to: Account,
+    toJurisdiction: SecurityProviderSchema,
+    chunks: Type.Array(ChunkIndex),
+    insecurePath: Type.Array(ChunkIndex),
+  }),
+]);
+export type JurisdictionChangeEvent = Static<typeof JurisdictionChangeEvent>;
 
-export type Event =
-  | DebtEvent
-  | ExpenseEvent
-  | IncomeEvent
-  | JurisdictionChangeEvent
-  | TradeEvent;
-export type Events = Event[];
+export const Event = Type.Union([
+  DebtEvent,
+  ExpenseEvent,
+  IncomeEvent,
+  JurisdictionChangeEvent,
+  TradeEvent,
+]);
+export type Event = Static<typeof Event>;
+
+export const Events = Type.Array(Event);
+export type Events = Static<typeof Events>;
 
 ////////////////////////////////////////
 // Hydrated Data aka types w indexes replaced w referenced values
 
-export type HydratedAssetChunk = AssetChunk & {
-  inputs: AssetChunk[];
-  outputs?: AssetChunk[];
-};
+export const HydratedAssetChunk = Type.Intersect([
+  AssetChunk,
+  Type.Object({
+    inputs: AssetChunks,
+    outputs: Type.Optional(AssetChunks),
+  }),
+]);
+export type HydratedAssetChunk = Static<typeof HydratedAssetChunk>;
 
-export type HydratedDebtEvent = DebtEvent & {
-  inputs: Array<AssetChunk>;
-  outputs: Array<AssetChunk>;
-};
+export const HydratedDebtEvent = Type.Intersect([
+  DebtEvent,
+  Type.Object({
+    inputs: Type.Optional(AssetChunks),
+    outputs: Type.Optional(AssetChunks),
+  }),
+]);
+export type HydratedDebtEvent = Static<typeof HydratedDebtEvent>;
 
-export type HydratedTradeEvent = TradeEvent & {
-  inputs: Array<AssetChunk>;
-  outputs: Array<AssetChunk>;
-};
+export const HydratedTradeEvent = Type.Intersect([
+  TradeEvent,
+  Type.Object({
+    inputs: AssetChunks,
+    outputs: AssetChunks,
+  }),
+]);
+export type HydratedTradeEvent = Static<typeof HydratedTradeEvent>;
 
-export type HydratedIncomeEvent = IncomeEvent & {
-  inputs: Array<AssetChunk>;
-};
+export const HydratedIncomeEvent = Type.Intersect([
+  IncomeEvent,
+  Type.Object({
+    inputs: AssetChunks,
+  }),
+]);
+export type HydratedIncomeEvent = Static<typeof HydratedIncomeEvent>;
 
-export type HydratedExpenseEvent = ExpenseEvent & {
-  outputs: Array<AssetChunk>;
-};
+export const HydratedExpenseEvent = Type.Intersect([
+  ExpenseEvent,
+  Type.Object({
+    outputs: AssetChunks,
+  }),
+]);
+export type HydratedExpenseEvent = Static<typeof HydratedExpenseEvent>;
 
-export type HydratedJurisdictionChangeEvent = JurisdictionChangeEvent & {
-  chunks: Array<AssetChunk>;
-  insecurePath: Array<AssetChunk>;
-};
+export const HydratedJurisdictionChangeEvent = Type.Intersect([
+  JurisdictionChangeEvent,
+  Type.Object({
+    chunks: AssetChunks,
+    insecurePath: AssetChunks,
+  }),
+]);
+export type HydratedJurisdictionChangeEvent = Static<typeof HydratedJurisdictionChangeEvent>;
 
-export type HydratedEvent =
-  | DebtEvent
-  | ExpenseEvent
-  | IncomeEvent
-  | JurisdictionChangeEvent
-  | TradeEvent;
-export type HydratedEvents = HydratedEvent[];
+export const HydratedEvent = Type.Union([
+  DebtEvent,
+  ExpenseEvent,
+  IncomeEvent,
+  JurisdictionChangeEvent,
+  TradeEvent,
+]);
+export type HydratedEvent = Static<typeof HydratedEvent>;
 
 ////////////////////////////////////////
-// ValueMachine
+// ValueMachine Schema
 
-export type ValueMachineJson = {
-  chunks: AssetChunk[];
-  date: TimestampString;
-  events: Events;
-}
+export const ValueMachineJson = Type.Object({
+  chunks: AssetChunks,
+  date: TimestampString,
+  events: Events,
+});
+export type ValueMachineJson = Static<typeof ValueMachineJson>;
+
+////////////////////////////////////////
+// Function Interfaces
 
 export type ValueMachineParams = {
   addressBook: AddressBook;
