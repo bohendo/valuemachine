@@ -1,10 +1,12 @@
+import { Static } from "@sinclair/typebox";
+
 import { Logger } from "./logger";
 import { SecurityProvider } from "./security";
 import { Store } from "./store";
 import { Address } from "./strings";
-import { enumify } from "./utils";
+import { enumToSchema } from "./utils";
 
-export const PrivateCategories = enumify({
+export const PrivateCategories = {
   Employee: "Employee",
   Employer: "Employer",
   Family: "Family",
@@ -12,10 +14,12 @@ export const PrivateCategories = enumify({
   Merchant: "Merchant",
   Private: "Private",
   Self: "Self", // User controlled
-});
+} as const;
+export const PrivateCategorySchema = enumToSchema(PrivateCategories);
+export type PrivateCategories = Static<typeof PrivateCategorySchema>;
 export type PrivateCategory = (typeof PrivateCategories)[keyof typeof PrivateCategories];
 
-export const PublicCategories = enumify({
+export const PublicCategories = {
   Burn: "Burn",
   Defi: "Defi",
   Donation: "Donation",
@@ -23,13 +27,17 @@ export const PublicCategories = enumify({
   Exchange: "Exchange",
   Proxy: "Proxy",
   Public: "Public",
-});
+} as const;
+export const PublicCategorySchema = enumToSchema(PublicCategories);
+export type PublicCategories = Static<typeof PublicCategorySchema>;
 export type PublicCategory = (typeof PublicCategories)[keyof typeof PublicCategories];
 
-export const AddressCategories = enumify({
+export const AddressCategories = {
   ...PublicCategories,
   ...PrivateCategories,
-});
+} as const;
+export const AddressCategorySchema = enumToSchema(AddressCategories);
+export type AddressCategories = Static<typeof AddressCategorySchema>;
 export type AddressCategory = (typeof AddressCategories)[keyof typeof AddressCategories];
 
 export type AddressEntry = {

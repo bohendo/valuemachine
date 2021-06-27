@@ -1,3 +1,5 @@
+import { Static } from "@sinclair/typebox";
+
 import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
 import { Logger } from "./logger";
@@ -5,7 +7,7 @@ import { Store } from "./store";
 import { SecurityProvider } from "./security";
 import { Account, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
-import { enumify } from "./utils";
+import { enumToSchema } from "./utils";
 
 ////////////////////////////////////////
 // Chunks
@@ -31,13 +33,15 @@ export type AssetChunk = {
 ////////////////////////////////////////
 // Events
 
-export const EventTypes = enumify({
+export const EventTypes = {
   JurisdictionChange: "JurisdictionChange",
   Trade: "Trade",
   Income: "Income",
   Expense: "Expense",
   Debt: "Debt",
-});
+} as const;
+export const EventTypeSchema = enumToSchema(EventTypes);
+export type EventTypes = Static<typeof EventTypeSchema>;
 export type EventType = (typeof EventTypes)[keyof typeof EventTypes];
 
 type BaseEvent = {

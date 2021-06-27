@@ -1,2 +1,5 @@
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-export const enumify = <T extends {[index: string]: U}, U extends string>(x: T): T => x;
+import { Type } from "@sinclair/typebox";
+
+export const enumToSchema = (enumObj: { [key: string]: string }) => Type.Union(
+  Object.keys(enumObj).map(key => Type.Literal(key))
+);

@@ -1,3 +1,5 @@
+import { Static } from "@sinclair/typebox";
+
 import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
 import { EthTransaction } from "./chainData";
@@ -5,17 +7,19 @@ import { Logger } from "./logger";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
 import { SecurityProviders } from "./security";
-import { enumify } from "./utils";
+import { enumToSchema } from "./utils";
 
 ////////////////////////////////////////
 // Transaction Sources
 
-export const CsvSources = enumify({
+export const CsvSources = {
   Coinbase: "Coinbase",
   DigitalOcean: "DigitalOcean",
   Wyre: "Wyre",
   Wazirx: "Wazirx",
-});
+} as const;
+export const CsvSourceSchema = enumToSchema(CsvSources);
+export type CsvSources = Static<typeof CsvSourceSchema>;
 export type CsvSource = (typeof CsvSources)[keyof typeof CsvSources];
 
 export type CsvParser = (
@@ -24,7 +28,7 @@ export type CsvParser = (
   logger: Logger,
 ) => Transaction;
 
-export const EthereumSources = enumify({
+export const EthereumSources = {
   Argent: "Argent",
   Compound: "Compound",
   Idle: "Idle",
@@ -37,7 +41,9 @@ export const EthereumSources = enumify({
   Uniswap: "Uniswap",
   Weth: "Weth",
   Yearn: "Yearn",
-});
+} as const;
+export const EthereumSourceSchema = enumToSchema(EthereumSources);
+export type EthereumSources = Static<typeof EthereumSourceSchema>;
 export type EthereumSource = (typeof EthereumSources)[keyof typeof EthereumSources];
 
 export type EthParser = (
@@ -47,10 +53,12 @@ export type EthParser = (
   logger: Logger,
 ) => Transaction;
 
-export const TransactionSources = enumify({
+export const TransactionSources = {
   ...CsvSources,
   ...EthereumSources,
-});
+} as const;
+export const TransactionSourceSchema = enumToSchema(TransactionSources);
+export type TransactionSources = Static<typeof TransactionSourceSchema>;
 export type TransactionSource = (typeof TransactionSources)[keyof typeof TransactionSources];
 
 // Set default guardians for external sources
@@ -64,7 +72,7 @@ export const jurisdictions = {
 ////////////////////////////////////////
 // Transfers
 
-export const TransferCategories = enumify({
+export const TransferCategories = {
   Internal: "Internal",
   Unknown: "Unknown",
 
@@ -79,7 +87,7 @@ export const TransferCategories = enumify({
 
   Deposit: "Deposit",
   Withdraw: "Withdraw",
-});
+};
 export type TransferCategory = (typeof TransferCategories)[keyof typeof TransferCategories];
 
 export type Transfer = {
