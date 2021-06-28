@@ -2,7 +2,6 @@ import { Interface } from "@ethersproject/abi";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
-  AddressBookJson,
   AddressCategories,
   Assets,
   Asset,
@@ -13,14 +12,12 @@ import {
   TransactionSource,
   Transfer,
   TransferCategories,
-  TransferCategory,
 } from "@valuemachine/types";
 import {
   add,
   parseEvent,
   rmDups,
-  sm,
-  smeq,
+  setAddressCategory,
   valuesAreClose,
 } from "@valuemachine/utils";
 
@@ -33,14 +30,14 @@ const source = TransactionSources.Oasis;
 
 const proxyAddresses = [
   { name: "oasis-proxy", address: "0x793ebbe21607e4f04788f89c7a9b97320773ec59" },
-].map(row => ({ ...row, category: AddressCategories.Proxy })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Proxy));
 
 const machineAddresses = [
   { name: "oasis-v1", address: "0x14fbca95be7e99c15cc2996c6c9d841e54b79425" },
   { name: "oasis-v2", address: "0xb7ac09c2c0217b07d7c103029b4918a2c401eecb" },
   { name: "eth2dai", address: "0x39755357759ce0d7f32dc8dc45414cca409ae24e" },
   { name: "OasisDex", address: "0x794e6e91555438afc3ccf1c5076a74f42133d08d" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 export const oasisAddresses = [
   ...proxyAddresses,
@@ -83,7 +80,7 @@ export const oasisParser = (
 
   const isSelfy = (address: string): boolean =>
     isSelf(address) || (
-      isSelf(ethTx.from) && isCategory(AddressCategories.Proxy)(address) && smeq(address, ethTx.to)
+      isSelf(ethTx.from) && isCategory(AddressCategories.Proxy)(address) && address === ethTx.to
     );
 
   const ethish = [WETH, ETH] as Asset[];
@@ -98,8 +95,8 @@ export const oasisParser = (
   let outTotal = "0";
 
   for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
-    if (machineAddresses.some(e => smeq(e.address, address))) {
+    const address = txLog.address;
+    if (machineAddresses.some(e => e.address === address)) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
       const event = parseEvent(oasisInterface, txLog);
 

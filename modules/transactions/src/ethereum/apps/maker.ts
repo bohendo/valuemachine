@@ -4,7 +4,6 @@ import { AddressZero, HashZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
-  AddressBookJson,
   AddressCategories,
   Assets,
   Asset,
@@ -15,7 +14,6 @@ import {
   TransactionSources,
   TransactionSource,
   TransferCategories,
-  TransferCategory,
 } from "@valuemachine/types";
 import {
   abrv,
@@ -27,8 +25,7 @@ import {
   parseEvent,
   rmDups,
   round,
-  sm,
-  smeq,
+  setAddressCategory,
   toBN,
   valuesAreClose,
 } from "@valuemachine/utils";
@@ -41,55 +38,60 @@ const source = TransactionSources.Maker;
 ////////////////////////////////////////
 /// Addresses
 
-const saiAddress = "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359";
-
-const tubAddress = "0x448a5065aebb8e423f0896e6c5d525c040f59af3";
-const vatAddress = "0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b";
-const potAddress = "0x197e90f9fad81970ba7976f33cbd77088e5d7cf7";
-const pethAddress = "0xf53ad2c6851052a81b42133467480961b2321c09";
-const saiCageAddress = "0x9fdc15106da755f9ffd5b0ba9854cfb89602e0fd";
-const mcdMigrationAddress = "0xc73e0383f3aff3215e6f04b0331d58cecf0ab849";
-const managerAddress = "0x5ef30b9986345249bc32d8928b7ee64de9435e39";
-const scdGemPitAddress = "0x69076e44a9c70a67d5b79d95795aba299083c275";
+const DSR = "DSR";
+const tub = "scd-tub";
+const vat = "mcd-vat";
+const cage = "scd-cage";
+const migration = "mcd-migration";
+const pit = "scd-gen-pit";
 
 const proxyAddresses = [
   { name: "maker-proxy-registry", address: "0x4678f0a6958e4d2bc4f1baf7bc52e8f3564f3fe4" },
   { name: "maker-proxy-factory", address: "0xa26e15c895efc0616177b7c1e7270a4c7d51c997" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 const machineAddresses = [
   // Single-collateral DAI
-  { name: "scd-cage", address: saiCageAddress },
-  { name: "scd-gem-pit", address: scdGemPitAddress },
+  { name: cage, address: "0x9fdc15106da755f9ffd5b0ba9854cfb89602e0fd" },
+  { name: pit, address: "0x69076e44a9c70a67d5b79d95795aba299083c275" },
   { name: "scd-tap", address: "0xbda109309f9fafa6dd6a9cb9f1df4085b27ee8ef" },
-  { name: "scd-tub", address: tubAddress },
+  { name: tub, address: "0x448a5065aebb8e423f0896e6c5d525c040f59af3" },
   { name: "scd-vox", address: "0x9b0f70df76165442ca6092939132bbaea77f2d7a" },
   // Multi-collateral DAI (deployed on Nov 18th 2019)
   { name: "mcd-dai-join", address: "0x9759a6ac90977b93b58547b4a71c78317f391a28" },
   { name: "mcd-gem-join", address: "0x2f0b23f53734252bda2277357e97e1517d6b042a" },
-  { name: "mcd-migration", address: mcdMigrationAddress },
-  { name: "DSR", address: potAddress }, // aka the Pot
+  { name: migration, address: "0xc73e0383f3aff3215e6f04b0331d58cecf0ab849" },
+  { name: DSR, address: "0x197e90f9fad81970ba7976f33cbd77088e5d7cf7" }, // aka the Pot
   { name: "mcd-sai-join", address: "0xad37fd42185ba63009177058208dd1be4b136e6b" },
-  { name: "mcd-vat", address: vatAddress },
-  { name: "mcd-manager", address: managerAddress },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+  { name: vat, address: "0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b" },
+  { name: "mcd-manager", address: "0x5ef30b9986345249bc32d8928b7ee64de9435e39" },
+].map(setAddressCategory(AddressCategories.Defi));
 
 const tokenAddresses = [
-  { name: SAI, address: saiAddress },
-  { name: PETH, address: pethAddress },
+  { name: SAI, address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
+  { name: PETH, address: "0xf53ad2c6851052a81b42133467480961b2321c09" },
   { name: DAI, address: "0x6b175474e89094c44da98b954eedeac495271d0f" },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 const govTokenAddresses = [
   { name: MKR, address: "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2" },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 export const makerAddresses = [
   ...machineAddresses,
   ...proxyAddresses,
   ...tokenAddresses,
   ...govTokenAddresses,
-] as AddressBookJson;
+];
+
+const saiAddress = makerAddresses.find(e => e.name === SAI)?.address;
+const tubAddress = makerAddresses.find(e => e.name.endsWith(tub))?.address;
+const vatAddress = makerAddresses.find(e => e.name.endsWith(vat))?.address;
+const dsrAddress = makerAddresses.find(e => e.name.endsWith(DSR))?.address;
+const pethAddress = makerAddresses.find(e => e.name === PETH)?.address;
+const cageAddress = makerAddresses.find(e => e.name.endsWith(cage))?.address;
+const migrationAddress = makerAddresses.find(e => e.name.endsWith(migration))?.address;
+const scdPitAddress = makerAddresses.find(e => e.name.endsWith(pit))?.address;
 
 ////////////////////////////////////////
 /// Interfaces
@@ -217,25 +219,25 @@ export const makerParser = (
 
   const ethish = [WETH, ETH, PETH] as Asset[];
 
-  if (machineAddresses.some(e => smeq(e.address, ethTx.to))) {
+  if (machineAddresses.some(e => e.address === ethTx.to)) {
     tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
   }
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
-  if (smeq(ethTx.to, mcdMigrationAddress)) {
+  if (ethTx.to === migrationAddress) {
     tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
     const swapOut = tx.transfers.find(t => t.asset === SAI);
     const swapIn = tx.transfers.find(t => t.asset === DAI);
     if (swapOut) {
       swapOut.category = SwapOut;
-      swapOut.to = mcdMigrationAddress;
+      swapOut.to = migrationAddress;
     } else {
       log.warn(`Can't find a SwapOut SAI transfer`);
     }
     if (swapIn) {
       swapIn.category = SwapIn;
-      swapIn.from = mcdMigrationAddress;
+      swapIn.from = migrationAddress;
     } else {
       log.warn(`Can't find an associated SwapIn DAI transfer`);
     }
@@ -248,12 +250,12 @@ export const makerParser = (
   // Process token interactions before any of the rest of the maker machinery
   // So that they have all the transfers needed to search through
   for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
+    const address = txLog.address;
     const index = txLog.index || 1;
-    if (machineAddresses.some(e => smeq(e.address, address))) {
+    if (machineAddresses.some(e => e.address === address)) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
     }
-    if (tokenAddresses.some(e => smeq(e.address, address))) {
+    if (tokenAddresses.some(e => e.address === address)) {
       const asset = getName(address) as Asset;
       const event = parseEvent(tokenInterface, txLog);
       if (!event.name) continue;
@@ -264,7 +266,7 @@ export const makerParser = (
       }
       if (event.name === "Mint") {
         log.info(`Parsing ${asset} ${event.name} of ${wad}`);
-        if (smeq(address, pethAddress)) {
+        if (address === pethAddress) {
           const swapIn = {
             asset,
             category: SwapIn,
@@ -286,7 +288,7 @@ export const makerParser = (
         }
       } else if (event.name === "Burn") {
         log.info(`Parsing ${asset} ${event.name} of ${wad}`);
-        if (smeq(address, pethAddress)) {
+        if (address === pethAddress) {
           const swapOut = {
             asset,
             category: SwapOut,
@@ -315,12 +317,12 @@ export const makerParser = (
   }
 
   for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
+    const address = txLog.address;
     const index = txLog.index || 1;
 
     ////////////////////////////////////////
     // Proxy Managers
-    if (proxyAddresses.some(e => smeq(address, e.address))) {
+    if (proxyAddresses.some(e => address === e.address)) {
       const event = parseEvent(proxyInterface, txLog);
       if (event?.name === "Created") {
         tx.method = "Proxy Creation";
@@ -328,7 +330,7 @@ export const makerParser = (
 
     ////////////////////////////////////////
     // MCD Vat aka Vault manager
-    } else if (smeq(address, vatAddress)) {
+    } else if (address === vatAddress) {
       const logNote = parseLogNote(vatInterface, txLog);
       if (!logNote.name) continue;
       log.debug(`Found Vat call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
@@ -353,7 +355,7 @@ export const makerParser = (
         log.info(`Found a change in ${vault} collateral of about ${wad} ${asset}`);
         const transfer = tx.transfers.find(transfer =>
           (
-            smeq(transfer.asset, asset) || (
+            transfer.asset === asset || (
               ethish.includes(asset) && ethish.includes(transfer.asset)
             )
           ) && valuesAreClose(transfer.quantity, abs(wad), div(abs(wad), "10"))
@@ -404,7 +406,7 @@ export const makerParser = (
 
     ////////////////////////////////////////
     // MCD Pot aka DSR
-    } else if (smeq(address, potAddress)) {
+    } else if (address === dsrAddress) {
       const logNote = parseLogNote(potInterface, txLog);
       if (!logNote.name) continue;
       log.debug(`Found Pot call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
@@ -447,7 +449,7 @@ export const makerParser = (
     ////////////////////////////////////////
     // SCD Cage
     // During global settlement, the cage is used to redeem no-longer-stable-coins for collateral
-    } else if (smeq(address, saiCageAddress)) {
+    } else if (address === cageAddress) {
       const event = parseEvent(cageInterface, txLog);
       if (event?.name === "FreeCash") {
         const wad = formatUnits(event.args[1], 18);
@@ -455,7 +457,7 @@ export const makerParser = (
         const swapOut = tx.transfers.find(t =>
           t.asset === SAI
           && isSelf(t.from)
-          && smeq(t.to, saiCageAddress)
+          && t.to === cageAddress
           && gt(t.quantity, "0")
         );
         if (swapOut) {
@@ -467,7 +469,7 @@ export const makerParser = (
         const swapIn = tx.transfers.find(t =>
           t.asset === ETH
           && isSelf(t.to)
-          && smeq(t.from, saiCageAddress)
+          && t.from === cageAddress
           && valuesAreClose(t.quantity, wad, div(wad, "100"))
         );
         if (swapIn) {
@@ -482,7 +484,7 @@ export const makerParser = (
 
     ////////////////////////////////////////
     // SCD Tub
-    } else if (smeq(address, tubAddress)) {
+    } else if (address === tubAddress) {
       const event = parseEvent(tubInterface, txLog);
       if (event?.name === "LogNewCup") {
         tx.method = `Create CDP-${toBN(event.args.cup)}`;
@@ -515,10 +517,10 @@ export const makerParser = (
         if (swapOut) {
           swapOut.category = SwapOut;
           swapOut.to = address;
-          if (smeq(ethTx.to, tubAddress)) {
+          if (ethTx.to === tubAddress) {
             tx.method = "Trade";
           }
-        } else if (smeq(ethTx.to, tubAddress)) {
+        } else if (ethTx.to === tubAddress) {
           // Not a problem if we're interacting via a proxy bc this wouldn't interact w self
           log.warn(`Tub.${logNote.name}: Can't find a WETH transfer of ${wad}`);
         }
@@ -537,10 +539,10 @@ export const makerParser = (
         if (swapIn) {
           swapIn.category = SwapIn;
           swapIn.from = address;
-          if (smeq(ethTx.to, tubAddress)) {
+          if (ethTx.to === tubAddress) {
             tx.method = "Trade";
           }
-        } else if (smeq(ethTx.to, tubAddress)) {
+        } else if (ethTx.to === tubAddress) {
           // Not a problem if we're interacting via a proxy bc this wouldn't interact w self
           log.warn(`Tub.${logNote.name}: Can't find a WETH transfer of ${wad}`);
         }
@@ -553,7 +555,7 @@ export const makerParser = (
           ethish.includes(t.asset)
           && t.to !== ETH
           && ([Expense, Deposit] as string[]).includes(t.category)
-          && (smeq(tubAddress, t.to) || isSelf(t.from))
+          && (tubAddress === t.to || isSelf(t.from))
         ).sort(diffAsc(wad))[0];
         if (transfer) {
           transfer.category = Deposit;
@@ -570,7 +572,7 @@ export const makerParser = (
         const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
           && ([Income, Withdraw] as string[]).includes(t.category)
-          && (smeq(tubAddress, t.from) || isSelf(t.to))
+          && (tubAddress === t.from || isSelf(t.to))
         ).sort(diffAsc(wad)).sort((t1, t2) =>
           // First try to match a PETH transfer
           (t1.asset === PETH && t2.asset !== PETH) ? -1
@@ -606,7 +608,7 @@ export const makerParser = (
           tx.method = "Borrow";
         } else if (!ethTx.logs.find(l =>
           l.index > index
-          && smeq(l.address, saiAddress)
+          && l.address === saiAddress
           && parseEvent(tokenInterface, l).name === "Mint"
         )) {
           // Only warn if there is NOT an upcoming SAI mint evet
@@ -626,7 +628,7 @@ export const makerParser = (
           tx.method = "Repayment";
         } else if (!ethTx.logs.find(l =>
           l.index > index
-          && smeq(l.address, saiAddress)
+          && l.address === saiAddress
           && parseEvent(tokenInterface, l).name === "Burn"
         )) {
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
@@ -642,7 +644,7 @@ export const makerParser = (
         );
         if (fee) {
           fee.category = Expense;
-          fee.to = scdGemPitAddress;
+          fee.to = scdPitAddress;
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a MKR/SAI fee`);
         }

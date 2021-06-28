@@ -4,7 +4,6 @@ import { formatUnits } from "@ethersproject/units";
 import {
   Address,
   AddressBook,
-  AddressBookJson,
   AddressCategories,
   Assets,
   Asset,
@@ -14,28 +13,25 @@ import {
   TransactionSources,
   TransactionSource,
   TransferCategories,
-  TransferCategory,
 } from "@valuemachine/types";
 import {
   parseEvent,
   rmDups,
-  sm,
-  smeq,
+  setAddressCategory,
 } from "@valuemachine/utils";
 
-const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
-
 const source = TransactionSources.EtherDelta;
+const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 
 ////////////////////////////////////////
 /// Addresses
 
-const etherdeltaAddress = "0x8d12a197cb00d4747a1fe03395095ce2a5cc6819";
-
 // Simple, standalone tokens only. App-specific tokens can be found in that app's parser.
 export const etherdeltaAddresses = [
-  { name: source, address: etherdeltaAddress },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+  { name: source, address: "0x8d12a197cb00d4747a1fe03395095ce2a5cc6819" },
+].map(setAddressCategory(AddressCategories.Defi));
+
+const etherdeltaAddress = etherdeltaAddresses.find(e => e.name === source).address;
 
 ////////////////////////////////////////
 /// ABIs
@@ -66,8 +62,8 @@ export const etherdeltaParser = (
   };
 
   for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
-    if (smeq(address, etherdeltaAddress)) {
+    const address = txLog.address;
+    if (address === etherdeltaAddress) {
       const index = txLog.index || 1;
       const event = parseEvent(etherdeltaInterface, txLog);
       if (!event.name) continue;

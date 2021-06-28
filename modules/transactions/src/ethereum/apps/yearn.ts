@@ -1,7 +1,6 @@
 import { Interface } from "@ethersproject/abi";
 import {
   AddressBook,
-  AddressBookJson,
   AddressCategories,
   Assets,
   Asset,
@@ -17,9 +16,7 @@ import {
   assetsAreClose,
   parseEvent,
   rmDups,
-  round,
-  sm,
-  smeq,
+  setAddressCategory,
 } from "@valuemachine/utils";
 
 const source = TransactionSources.Yearn;
@@ -50,11 +47,9 @@ const { YFI,
 ////////////////////////////////////////
 /// Addresses
 
-const govAddress = "0xba37b002abafdd8e89a1995da52740bbc013d992";
-
 const machineryAddresses = [
-  { name: "yGovernance", address: govAddress },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+  { name: "yGovernance", address: "0xba37b002abafdd8e89a1995da52740bbc013d992" },
+].map(setAddressCategory(AddressCategories.Defi));
 
 const yVaultV1Addresses = [
   { name: y3Crv, address: "0x9ca85572e6a3ebf24dedd195623f188735a5179f" },
@@ -89,7 +84,7 @@ const yVaultV1Addresses = [
   { name: yyDAI_yUSDC_yUSDT_yBUSD, address: "0x2994529c0652d127b7842094103715ec5299bbed" },
   { name: yyDAI_yUSDC_yUSDT_yTUSD, address: "0x5dbcf33d8c2e976c6b560249878e6f1491bca25c" },
   { name: yYFI, address: "0xba2e7fed597fd0e3e70f5130bcdbbfe06bb94fe1" },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 const yVaultV2Addresses = [
   { name: yv1INCH, address: "0xb8c3b7a2a618c552c23b1e4701109a9e756bab67" },
@@ -110,19 +105,21 @@ const yVaultV2Addresses = [
   { name: yvWBTC, address: "0xcb550a6d4c8e3517a939bc79d0c7093eb7cf56b5" },
   { name: yvWETH, address: "0x5f18c75abdae578b483e5f43f12a39cf75b973a9" },
   { name: yvYFI, address: "0xe14d13d8b3b85af791b2aadd661cdbd5e6097db1" },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 const yTokens = [...yVaultV1Addresses, ...yVaultV2Addresses];
 
 const govTokenAddresses = [
   { name: YFI, address: "0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e" },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 export const yearnAddresses = [
   ...yTokens,
   ...govTokenAddresses,
   ...machineryAddresses,
-] as AddressBookJson;
+];
+
+const govAddress = yearnAddresses.find(e => e.name === YFI).address;
 
 ////////////////////////////////////////
 /// Interfaces
@@ -227,9 +224,9 @@ export const yearnParser = (
   const { getName, isSelf } = addressBook;
 
   for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
+    const address = txLog.address;
 
-    if (yTokens.some(yToken => smeq(yToken.address, address))) {
+    if (yTokens.some(yToken => yToken.address === address)) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
       const yTransfer = tx.transfers.find(t => t.asset === getName(address));
       if (!yTransfer) {
@@ -241,7 +238,7 @@ export const yearnParser = (
         log.warn(`Couldn't find the asset associated with ${yTransfer.asset}`);
         continue;
       }
-      log.info(`Parsing yToken transfer of ${round(yTransfer.quantity)} ${yTransfer.asset}`);
+      log.info(`Parsing yToken transfer of ${yTransfer.quantity} ${yTransfer.asset}`);
       const transfer = tx.transfers.find(t =>
         t.category !== Internal
         && t.to !== ETH
@@ -269,14 +266,14 @@ export const yearnParser = (
         }
       }
 
-    } else if (smeq(address, govAddress)) {
+    } else if (address === govAddress) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
       const event = parseEvent(yGovInterface, txLog);
       if (!event.name) continue;
       log.info(`Parsing yGov ${event.name}`);
       if (event.name === "Staked") {
         const account = `${source}-Gov-${abrv(event.args.user)}`;
-        const deposit = tx.transfers.find(t => t.asset === YFI && smeq(t.to, govAddress));
+        const deposit = tx.transfers.find(t => t.asset === YFI && t.to === govAddress);
         if (deposit) {
           deposit.category = Deposit;
           deposit.to = account;
@@ -287,7 +284,7 @@ export const yearnParser = (
 
       } else if (event.name === "Withdrawn") {
         const account = `${source}-Gov-${abrv(event.args.user)}`;
-        const withdraw = tx.transfers.find(t => t.asset === YFI && smeq(t.from, govAddress));
+        const withdraw = tx.transfers.find(t => t.asset === YFI && t.from === govAddress);
         if (withdraw) {
           withdraw.category = Withdraw;
           withdraw.from = account;

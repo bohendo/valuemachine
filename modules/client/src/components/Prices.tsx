@@ -26,7 +26,7 @@ import {
   PricesJson,
   ValueMachine,
 } from "@valuemachine/types";
-import { sigfigs, smeq } from "@valuemachine/utils";
+import { sigfigs } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -99,7 +99,7 @@ export const PriceManager = ({
       if (Object.keys(priceList).length === 0) return null;
       if (Object.keys(priceList[unit] || {}).length === 0) return null;
       Object.entries(priceList[unit] || {}).forEach(([asset, price]) => {
-        if (!filterAsset || smeq(filterAsset, asset)) {
+        if (!filterAsset || filterAsset === asset) {
           newFilteredPrices[date] = newFilteredPrices[date] || {};
           newFilteredPrices[date][unit] = newFilteredPrices[date][unit] || {};
           newFilteredPrices[date][unit][asset] = price;

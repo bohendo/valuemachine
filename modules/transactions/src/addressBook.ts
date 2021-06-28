@@ -1,6 +1,7 @@
-import { isAddress as isEthAddress } from "@ethersproject/address";
+import { isAddress as isEthAddress, getAddress as getEthAddress } from "@ethersproject/address";
 import {
   Account,
+  AddressEntry,
   Address,
   AddressBook,
   AddressBookParams,
@@ -16,9 +17,9 @@ import {
 } from "@valuemachine/types";
 import {
   getLogger,
-  sm,
-  smeq,
   getEmptyAddressBook,
+  fmtAddress,
+  getAddressEntryError,
 } from "@valuemachine/utils";
 
 import { publicAddresses } from "./ethereum";
@@ -29,28 +30,40 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const log = (logger || getLogger()).child({ module: "AddressBook" });
 
   ////////////////////////////////////////
-  // Hardcoded Public Addresses
+  // Helpers
 
-  const addressBook = []
-    .concat(publicAddresses, json, hardcoded)
-    .filter(entry => !!entry);
-
-  ////////////////////////////////////////
-  // Internal Functions
+  const getEntry = (address: Address): AddressEntry | undefined =>
+    addressBook.find(row => row.address === fmtAddress(address));
 
   ////////////////////////////////////////
   // Init Code
 
+  // Merge hardcoded public addresses with those supplied by the user
+  const addressBook = []
+    .concat(publicAddresses, hardcoded, json)
+    .filter(entry => !!entry);
+
+  // Update input addresses w proper formatting eg valid checksums
+  addressBook.forEach(row => {
+    row.address = fmtAddress(row.address);
+  });
+
+  // Set default guardians
+  addressBook.forEach(entry => {
+    entry.guardian = entry.guardian || (
+      isEthAddress(entry.address) ? SecurityProviders.ETH : SecurityProviders.None
+    );
+  });
+
   // Sanity check: it shouldn't have two entries for the same address
   let addresses = [];
   addressBook.forEach(row => {
-    if (addresses.includes(sm(row.address))) {
+    const error = getAddressEntryError(row);
+    if (error) throw new Error(error);
+    if (addresses.includes(row.address)) {
       log.warn(`Address book has multiple entries for address ${row.address}`);
-    } else if (!isEthAddress(row.address)) {
-      throw new Error(`Address book contains invalid address ${row.address}`);
-    } else {
-      addresses.push(sm(row.address));
     }
+    addresses.push(row.address);
   });
   addresses = addresses.sort();
 
@@ -58,56 +71,48 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   // Exports
 
   const isCategory = (category: AddressCategory) => (address: Address): boolean =>
-    address && addressBook
-      .filter(row => smeq(row.category, category))
-      .map(row => sm(row.address))
-      .includes(sm(address));
+    address && category && getEntry(address)?.category === category;
 
-  const isPublic = (address: Address): boolean =>
-    Object.keys(PublicCategories).some(
-      category => isCategory(category as AddressCategory)(address)
-    );
+  const isPublic = (address: Address): boolean => {
+    const entry = getEntry(address);
+    return entry && Object.keys(PublicCategories).some(category => category === entry.category);
+  };
 
-  const isPrivate = (address: Address): boolean =>
-    Object.keys(PrivateCategories).some(category => isCategory(
-      category as AddressCategory)(address)
-    );
+  const isPrivate = (address: Address): boolean => {
+    const entry = getEntry(address);
+    return entry && Object.keys(PrivateCategories).some(category => category === entry.category);
+  };
 
   const isSelf = isCategory(AddressCategories.Self);
 
-  const isToken = (address: Address): boolean =>
-    isCategory(AddressCategories.ERC20)(address);
+  const isToken = isCategory(AddressCategories.ERC20);
 
-  const getName = (address: Address): string =>
-    !address
-      ? ""
-      : !isEthAddress(address)
-        ? address
-        : addressBook.find(row => smeq(row.address, address))
-          ? addressBook.find(row => smeq(row.address, address)).name
-          : `${address.substring(0, 6)}..${address.substring(address.length - 4)}`;
+  const getName = (address: Address): string => {
+    if (!address) return "";
+    const name = getEntry(address)?.name;
+    if (name) return name;
+    if (isEthAddress(address)) {
+      const ethAddress = fmtAddress(address);
+      return `${ethAddress.substring(0, 6)}..${ethAddress.substring(ethAddress.length - 4)}`;
+    }
+    return address;
+  };
 
   const getGuardian = (account: Account): SecurityProvider => {
     if (!account) return SecurityProviders.None;
+    const guardian = getEntry(account)?.guardian;
+    if (guardian) return guardian;
     const source = account.split("-")[0];
-    return addressBook.find(row => smeq(row.address, account))?.guardian
-      || ((isEthAddress(account) || Object.keys(EthereumSources).includes(source))
-        ? SecurityProviders.ETH
-        : (
-          jurisdictions[source]
-          || (Object.keys(SecurityProviders).includes(source) ? source : SecurityProviders.None)
-        ));
+    if (Object.keys(EthereumSources).includes(source)) {
+      return SecurityProviders.ETH;
+    }
+    return jurisdictions[source]
+      || (Object.keys(SecurityProviders).includes(source) ? source : SecurityProviders.None);
   };
 
   // Only really useful for ERC20 addresses
   const getDecimals = (address: Address): number =>
-    addressBook.find(row => smeq(row.address, address))?.decimals || 18;
-
-  // Set default guardians
-  addressBook.forEach(entry => {
-    entry.guardian = entry.guardian
-      || isEthAddress(entry.address) ? SecurityProviders.ETH : SecurityProviders.None;
-  });
+    getEntry(address)?.decimals || 18;
 
   return {
     addresses,

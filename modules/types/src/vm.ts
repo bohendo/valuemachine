@@ -1,4 +1,3 @@
-import { AddressZero } from "@ethersproject/constants";
 import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
@@ -117,19 +116,6 @@ export type Event = Static<typeof Event>;
 
 export const Events = Type.Array(Event);
 export type Events = Static<typeof Events>;
-
-const exampleEvent = {
-  account: AddressZero,
-  date: new Date(0).toISOString(),
-  inputs: [],
-  newBalances: {},
-  outputs: [],
-  type: EventTypes.Trade,
-} as Event;
-
-if (exampleEvent.type === EventTypes.Trade) {
-  console.log(`Detected a trade event from account ${exampleEvent.account}`);
-}
 
 ////////////////////////////////////////
 // Hydrated Data aka types w indexes replaced w referenced values

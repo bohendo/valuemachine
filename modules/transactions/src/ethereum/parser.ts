@@ -1,4 +1,4 @@
-import { isAddress } from "@ethersproject/address";
+import { isAddress, getAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
 import {
@@ -14,7 +14,7 @@ import {
   EthParser,
   TransferCategory,
 } from "@valuemachine/types";
-import { gt, sm, getNewContractAddress } from "@valuemachine/utils";
+import { gt, getNewContractAddress } from "@valuemachine/utils";
 
 import { appParsers } from "./apps";
 
@@ -55,7 +55,7 @@ export const parseEthTx = (
     tx.transfers.push({
       asset: ETH,
       category: Expense,
-      from: sm(ethTx.from),
+      from: getAddress(ethTx.from),
       index: -1,
       quantity: formatEther(BigNumber.from(ethTx.gasUsed).mul(ethTx.gasPrice)),
       to: ETH,
@@ -74,10 +74,10 @@ export const parseEthTx = (
     tx.transfers.push({
       asset: ETH,
       category: getSimpleCategory(ethTx.to, ethTx.from),
-      from: sm(ethTx.from),
+      from: getAddress(ethTx.from),
       index: 0,
       quantity: ethTx.value,
-      to: sm(ethTx.to),
+      to: getAddress(ethTx.to),
     });
   }
 
@@ -105,11 +105,16 @@ export const parseEthTx = (
         // Internal eth transfers have no index, put incoming transfers first & outgoing last
         // This makes underflows less likely during VM processesing
         index: isSelf(call.to) ? 1 : 10000,
-        from: sm(call.from),
+        from: getAddress(call.from),
         quantity: call.value,
-        to: sm(call.to),
+        to: getAddress(call.to),
       });
     }
+  });
+
+  // Pre-format tx log addresses so we don't need to do this inside each parser
+  ethTx.logs.forEach(log => {
+    log.address = getAddress(log.address);
   });
 
   // Activate pipeline of app-specific parsers
@@ -135,11 +140,11 @@ export const parseEthTx = (
     ) && (
       gt(transfer.quantity, "0")
     ))
-    // Make sure all eth addresses are lower-case
+    // Make sure all eth addresses are checksummed
     .map(transfer => ({
       ...transfer,
-      from: transfer.from.startsWith("0x") ? sm(transfer.from) : transfer.from,
-      to: transfer.to.startsWith("0x") ? sm(transfer.to) : transfer.to,
+      from: isAddress(transfer.from) ? getAddress(transfer.from) : transfer.from,
+      to: isAddress(transfer.to) ? getAddress(transfer.to) : transfer.to,
     }))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);

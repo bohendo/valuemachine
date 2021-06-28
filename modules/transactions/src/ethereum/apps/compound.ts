@@ -3,7 +3,6 @@ import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
-  AddressBookJson,
   AddressCategories,
   Assets,
   Asset,
@@ -20,35 +19,28 @@ import {
   gt,
   parseEvent,
   rmDups,
-  sm,
-  smeq,
+  setAddressCategory,
   sub,
   valuesAreClose,
 } from "@valuemachine/utils";
 
+const source = TransactionSources.Compound;
 const {
   COMP, cBAT, cCOMP, cDAI, cETH, cREP, cSAI, cUNI, cUSDC, cUSDT, cWBTC, cWBTCv2, cZRX
 } = Assets;
 const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
-const source = TransactionSources.Compound;
-
 ////////////////////////////////////////
 /// Addresses
 
-const compoundV1Address = "0x3fda67f7583380e67ef93072294a7fac882fd7e7";
-const maxiAddress = "0xf859a1ad94bcf445a406b892ef0d3082f4174088";
-const compAddress = "0xc00e94cb662c3520282e6f5717214004a7f26888";
-
-// The following is a proxy address
-// Comptroller implementation is currently at 0xbe7616b06f71e363a310aa8ce8ad99654401ead7
-const comptrollerAddress = "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b";
+const comptroller = "comptroller";
+const compoundV1 = "compound-v1";
 
 const machineryAddresses = [
-  { name: "compound-v1", address: compoundV1Address },
-  { name: "maximillion", address: maxiAddress },
-  { name: "comptroller", address: comptrollerAddress },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+  { name: compoundV1, address: "0x3fda67f7583380e67ef93072294a7fac882fd7e7" },
+  { name: "maximillion", address: "0xf859a1ad94bcf445a406b892ef0d3082f4174088" },
+  { name: comptroller, address: "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b" },
+].map(setAddressCategory(AddressCategories.Defi));
 
 const cTokenAddresses = [
   { name: cBAT, address: "0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e" },
@@ -63,17 +55,21 @@ const cTokenAddresses = [
   { name: cWBTC, address: "0xc11b1268c1a384e55c48c2391d8d480264a3a7f4" },
   { name: cWBTCv2, address: "0xccf4429db6322d5c611ee964527d42e5d685dd6a" },
   { name: cZRX, address: "0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407" },
-].map(row => ({ ...row, category: AddressCategories.ERC20, decimals: 8 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 const govTokenAddresses = [
-  { name: COMP, address: compAddress },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+  { name: COMP, address: "0xc00e94cb662c3520282e6f5717214004a7f26888" },
+].map(setAddressCategory(AddressCategories.ERC20));
 
 export const compoundAddresses = [
   ...cTokenAddresses,
   ...govTokenAddresses,
   ...machineryAddresses,
-] as AddressBookJson;
+];
+
+const comptrollerAddress = compoundAddresses.find(e => e.name === comptroller).address;
+const compoundV1Address = compoundAddresses.find(e => e.name === compoundV1).address;
+const compAddress = compoundAddresses.find(e => e.name === COMP).address;
 
 ////////////////////////////////////////
 /// Interfaces
@@ -155,19 +151,19 @@ export const compoundParser = (
     }
   };
 
-  if (compoundAddresses.some(e => smeq(e.address, ethTx.to))) {
+  if (compoundAddresses.some(e => e.address === ethTx.to)) {
     tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
   }
 
   for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
-    if (compoundAddresses.some(e => smeq(e.address, address))) {
+    const address = txLog.address;
+    if (compoundAddresses.some(e => e.address === address)) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
     }
 
     ////////////////////////////////////////
     // Compound V1
-    if (smeq(address, compoundV1Address)) {
+    if (address === compoundV1Address) {
       const subsrc = `${source}V1`;
       const event = parseEvent(compoundV1Interface, txLog);
       log.info(`Found ${subsrc} ${event.name} event`);
@@ -255,7 +251,7 @@ export const compoundParser = (
 
     ////////////////////////////////////////
     // Compound V2: Comptroller
-    } else if (smeq(comptrollerAddress, address)) {
+    } else if (comptrollerAddress === address) {
       const event = parseEvent(comptrollerInterface, txLog);
       if (event.name === "MarketEntered") {
         tx.method = `${getName(event.args.cToken)} market entry`;
@@ -264,10 +260,10 @@ export const compoundParser = (
 
     ////////////////////////////////////////
     // Compound V2: COMP gov token
-    } else if (smeq(compAddress, address)) {
+    } else if (compAddress === address) {
       const event = parseEvent(cTokenInterface, txLog);
       if (event.name === "Transfer") {
-        if (isSelf(event.args.to) && smeq(event.args.from, comptrollerAddress)) {
+        if (isSelf(event.args.to) && event.args.from === comptrollerAddress) {
           const amount = formatUnits(
             event.args.amount,
             getDecimals(address),
@@ -284,7 +280,7 @@ export const compoundParser = (
 
     ////////////////////////////////////////
     // Compound V2: cTokens
-    } else if (cTokenAddresses.some(a => smeq(address, a.address))) {
+    } else if (cTokenAddresses.some(a => address === a.address)) {
       const event = parseEvent(cTokenInterface, txLog);
       if (!event.name) continue;
       const cAsset = getName(address);

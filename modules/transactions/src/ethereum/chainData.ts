@@ -20,8 +20,6 @@ import {
   getEthTransactionError,
   getEmptyChainData,
   getLogger,
-  sm,
-  smeq,
   toBN,
 } from "@valuemachine/utils";
 import axios from "axios";
@@ -119,9 +117,9 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
   // Solution: save snapshot before you start editing, duplicates in snapshot mean throw it away
   const getDups = (oldList: any[], newElem: any): number =>
     oldList.filter(oldElem =>
-      smeq(newElem.from, oldElem.from) &&
+      newElem.from === oldElem.from &&
       newElem.hash === oldElem.hash &&
-      smeq(newElem.to, oldElem.to) &&
+      newElem.to === oldElem.to &&
       (
         newElem.value.includes(".") ? newElem.value : formatEther(newElem.value)
       ) === oldElem.value,
@@ -271,14 +269,14 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       }
       json.calls.push({
         block: toNum(call.blockNumber),
-        from: sm(call.from),
+        from: getAddress(call.from),
         hash: call.hash,
         timestamp: toTimestamp(call),
         // Contracts creating contracts: if call.to is empty then this is a contract creation call
         // our target address must be either the call.to or call.from
-        to: ((call.to === "" || call.to === null) && !smeq(call.from, address))
+        to: ((call.to === "" || call.to === null) && call.from !== address)
           ? address
-          : call.to ? sm(call.to) : null,
+          : call.to ? getAddress(call.to) : null,
         value: formatEther(call.value),
       });
     }
@@ -310,7 +308,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         .map(tx => tx.timestamp)
         .concat(
           json.calls
-            .filter(call => smeq(call.to, address) || smeq(call.from, address))
+            .filter(call => call.to === address || call.from === address)
             .map(tx => tx.timestamp),
         )
         .sort(chrono).reverse()[0];

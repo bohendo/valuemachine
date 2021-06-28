@@ -11,9 +11,8 @@ import {
 
 const source = TransactionSources.Oasis;
 const { Expense, SwapIn, SwapOut } = TransferCategories;
-const logger = testLogger.child({
+const logger = testLogger.child({ module: `Test${source}`,
   // level: "debug",
-  module: "TestTransactions",
 });
 
 describe(source, () => {
