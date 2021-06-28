@@ -248,8 +248,6 @@ export const ValueMachineExplorer = ({
     ).map((e: Event) => vm.getEvent(e.index)) || []);
   }, [vm, filterAccount, filterAsset, filterType]);
 
-  console.log(`Rendering filtered events: ${JSON.stringify(filteredEvents, null, 2)}`);
-
   const handleFilterAccountChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterAccount(event.target.value);
   };

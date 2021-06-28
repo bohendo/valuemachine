@@ -36,10 +36,11 @@ const {
   Internal, Deposit, Withdraw, Income, SwapIn, Borrow, Expense, SwapOut, Repay,
 } = TransferCategories;
 
-// Apps that provide insufficient info in tx logs to determine interest income
-// Hacky fix: withdrawing more than we deposited is assumed to represent interest rather than debt
-const isOpaqueInterestBearers = (account: Account): boolean =>
-  account.startsWith(`${TransactionSources.Maker}-DSR`);
+// Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
+// Withdrawing more than we deposited is assumed to represent income rather than a loan
+const isIncomeSource = (account: Account): boolean =>
+  account.startsWith(`${TransactionSources.Maker}-DSR`) ||
+  account.startsWith(`${TransactionSources.Tornado}`);
 
 export const getValueMachine = ({
   addressBook,
@@ -188,7 +189,7 @@ export const getValueMachine = ({
       // If we don't have enough, give everything we have & underflow
       if (lt(balance, quantity)) {
         const remainder = underflow(quantity, asset, account);
-        return [...available, ...remainder];
+        return [...available, remainder];
       // If we have more chunks than needed, return some of them
       } else {
         const output = [];
@@ -247,15 +248,28 @@ export const getValueMachine = ({
     return [];
   };
 
-  const underflow = (quantity: DecimalString, asset: Asset, account: Account): AssetChunk[] => {
-    if (isOpaqueInterestBearers(account)) {
-      log.debug(`Underflow of ${quantity} ${asset} is being handled as opaque interest`);
-      // Emit a synthetic income event
-      return [mintChunk(quantity, asset, account)];
+  const underflow = (quantity: DecimalString, asset: Asset, account: Account): AssetChunk => {
+    if (isIncomeSource(account)) {
+      log.warn(`Underflow of ${quantity} ${asset} is being handled as income`);
+      const newChunk = mintChunk(quantity, asset, account);
+      const newIncomeEvent = newEvents.find(e => e.type === EventTypes.Income);
+      if (newIncomeEvent?.type === EventTypes.Income) {
+        newIncomeEvent.inputs.push(newChunk.index);
+      } else {
+        newEvents.push({
+          date: json.date,
+          index: json.events.length + newEvents.length,
+          type: EventTypes.Income,
+          inputs: [newChunk.index],
+          account,
+          newBalances: getNetWorth(account),
+        });
+      }
+      return newChunk;
     } else {
-      log.debug(`Underflow of ${quantity} ${asset} is being handled by taking out a loan`);
+      log.warn(`Underflow of ${quantity} ${asset} is being handled by taking out a loan`);
       const [loan, _debt] = borrowChunks(quantity, asset, account);
-      return [loan];
+      return loan;
     }
   };
 
@@ -343,10 +357,10 @@ export const getValueMachine = ({
     } else if (lt(balance, quantity)) {
       available.forEach(disposeChunk);
       const togo = sub(quantity, balance);
-      const [loan, _debt] = borrowChunks(togo, asset, account);
-      disposeChunk(loan);
-      log.debug(`Disposed of all ${asset} from ${account} and borrowed ${loan.quantity} more`);
-      return [...available, loan];
+      const rest = underflow(togo, asset, account);
+      disposeChunk(rest);
+      log.debug(`Disposed of all ${asset} from ${account} and underflowed by ${rest.quantity}`);
+      return [...available, rest];
     }
     log.warn(`How did we get here?!`);
     return [];
