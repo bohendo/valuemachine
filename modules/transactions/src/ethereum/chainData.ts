@@ -150,7 +150,6 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       }
     }
     log.debug(`Merged ${json.calls.length - before} new calls`);
-    save();
     return;
   };
 
@@ -391,7 +390,6 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
 
   if (chainDataJson && store) {
     merge(store.load(StoreKeys.ChainData));
-    save();
   }
 
   return {
