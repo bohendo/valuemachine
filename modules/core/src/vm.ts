@@ -262,7 +262,7 @@ export const getValueMachine = ({
           type: EventTypes.Income,
           inputs: [newChunk.index],
           account,
-          newBalances: getNetWorth(account),
+          newBalances: {},
         });
       }
       return newChunk;
@@ -390,7 +390,7 @@ export const getValueMachine = ({
       inputs: chunksIn.map(toIndex),
       outputs: chunksOut.map(toIndex),
       account,
-      newBalances: getNetWorth(account),
+      newBalances: {},
     } as TradeEvent);
   };
 
@@ -404,7 +404,7 @@ export const getValueMachine = ({
       newEvents.push({
         date: json.date,
         index: json.events.length + newEvents.length,
-        newBalances: { [asset]: getBalance(asset) },
+        newBalances: {},
         from: from,
         fromJurisdiction: oldGuard,
         to: to,
@@ -438,7 +438,7 @@ export const getValueMachine = ({
           account: from,
           index: json.events.length + newEvents.length,
           date: json.date,
-          newBalances: { [asset]: getBalance(asset) },
+          newBalances: {},
           outputs: disposed.map(toIndex),
           type: EventTypes.Expense,
         });
@@ -450,7 +450,7 @@ export const getValueMachine = ({
           index: json.events.length + newEvents.length,
           date: json.date,
           inputs: received.map(toIndex),
-          newBalances: { [asset]: getBalance(asset) },
+          newBalances: {},
           type: EventTypes.Income,
         });
       } else {
@@ -513,6 +513,7 @@ export const getValueMachine = ({
     }
 
     for (const newEvent of newEvents) {
+      newEvent.newBalances = getNetWorth();
       json.events.push(newEvent);
     }
     return newEvents;
