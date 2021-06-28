@@ -3,7 +3,6 @@ import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
-  AddressBookJson,
   AddressCategories,
   Assets,
   Asset,
@@ -15,12 +14,12 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
+  setAddressCategory,
   parseEvent,
   rmDups,
-  sm,
-  smeq,
 } from "@valuemachine/utils";
 
+const source = TransactionSources.ERC20;
 const {
   BAT, CHERRY, GEN, GNO, GRT, OMG, REP, REPv2, SNT,
   SNX, SNXv1, SPANK, sUSD, sUSDv1, USDC, USDT, WBTC, ZRX,
@@ -29,8 +28,6 @@ const {
   crvPlain3andSUSD, _3Crv, eursCRV, hCRV, _1INCH,
 } = Assets;
 const { Expense, Income, Internal, Unknown } = TransferCategories;
-
-const source = TransactionSources.ERC20;
 
 ////////////////////////////////////////
 /// Addresses
@@ -75,7 +72,7 @@ export const erc20Addresses = [
   { name: hCRV, address: "0xb19059ebb43466c323583928285a49f558e572fd" },
   { name: _1INCH, address: "0x111111111117dc0aa78b770fa6a738034120c302" },
 
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 ////////////////////////////////////////
 /// ABIs
@@ -107,7 +104,7 @@ export const erc20Parser = (
   const { getDecimals, getName, isSelf, isToken } = addressBook;
 
   for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
+    const address = txLog.address;
     // Only parse known, ERC20 compliant tokens
     if (isToken(address)) {
       const event = parseEvent(erc20Interface, txLog);
@@ -130,13 +127,13 @@ export const erc20Parser = (
           : isSelf(to) && !isSelf(from) ? Income
           : Unknown;
         tx.transfers.push({ asset, category, from, index: txLog.index, quantity: amount, to });
-        if (smeq(ethTx.to, address)) {
+        if (ethTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
 
       } else if (event.name === "Approval") {
         log.debug(`Parsing ${source} ${event.name} event for ${asset}`);
-        if (smeq(ethTx.to, address)) {
+        if (ethTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
 

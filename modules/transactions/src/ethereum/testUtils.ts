@@ -6,12 +6,11 @@ import {
   Address,
   AddressCategories,
   Bytes32,
-  emptyChainData,
   EthCall,
   Logger,
   Transaction,
 } from "@valuemachine/types";
-import { getFileStore } from "@valuemachine/utils";
+import { getEmptyChainData, getFileStore } from "@valuemachine/utils";
 
 import { getAddressBook } from "../addressBook";
 import { env, testLogger } from "../testUtils";
@@ -40,7 +39,7 @@ export const parseEthTx = async ({
   const testStore = getFileStore(path.join(__dirname, storePath || "./testData"), fs);
   const chainData = getChainData({
     json: {
-      ...emptyChainData,
+      ...getEmptyChainData(),
       calls: !calls ? [] : calls.map(call => ({
         block: 1,
         from: AddressZero,

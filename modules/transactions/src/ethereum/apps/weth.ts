@@ -1,8 +1,8 @@
 import { Interface } from "@ethersproject/abi";
+import { getAddress } from "@ethersproject/address";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
-  AddressBookJson,
   AddressCategories,
   Assets,
   EthTransaction,
@@ -15,9 +15,7 @@ import {
 import {
   parseEvent,
   rmDups,
-  round,
-  sm,
-  smeq,
+  setAddressCategory,
 } from "@valuemachine/utils";
 
 const { ETH, WETH } = Assets;
@@ -27,11 +25,11 @@ const source = TransactionSources.Weth;
 ////////////////////////////////////////
 /// Addresses
 
-const wethAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
-
 export const wethAddresses = [
-  { name: WETH, address: wethAddress },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+  { name: WETH, address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
+].map(setAddressCategory(AddressCategories.ERC20));
+
+const wethAddress = wethAddresses.find(e => e.name === WETH).address;
 
 ////////////////////////////////////////
 /// Interfaces
@@ -56,8 +54,8 @@ export const wethParser = (
   const { getDecimals, isSelf } = addressBook;
 
   for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
-    if (smeq(address, wethAddress)) {
+    const address = getAddress(txLog.address);
+    if (address === wethAddress) {
       const asset = WETH;
       const event = parseEvent(wethInterface, txLog);
       if (!event.name) continue;
@@ -69,7 +67,7 @@ export const wethParser = (
           log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
           continue;
         } else {
-          log.info(`Parsing ${source} ${event.name} of amount ${round(amount)}`);
+          log.info(`Parsing ${source} ${event.name} of amount ${amount}`);
         }
         tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
         tx.transfers.push({
@@ -82,18 +80,18 @@ export const wethParser = (
         });
         const swapOut = tx.transfers.findIndex(t =>
           t.asset === ETH && t.quantity === amount
-          && isSelf(t.from) && smeq(t.to, address)
+          && isSelf(t.from) && t.to === address
         );
         if (swapOut >= 0) {
           tx.transfers[swapOut].category = SwapOut;
           tx.transfers[swapOut].index = index - 0.1;
-          if (smeq(ethTx.to, wethAddress)) {
+          if (ethTx.to === wethAddress) {
             tx.method = "Trade";
           }
           // If there's a same-value eth transfer to the swap recipient, index it before
           const transfer = tx.transfers.findIndex(t =>
             t.asset === ETH && t.quantity === amount
-            && smeq(t.to, tx.transfers[swapOut].from)
+            && t.to === tx.transfers[swapOut].from
           );
           if (transfer >= 0) {
             tx.transfers[transfer].index = index - 0.2;
@@ -107,7 +105,7 @@ export const wethParser = (
           log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
           continue;
         } else {
-          log.info(`Parsing ${source} ${event.name} of amount ${round(amount)}`);
+          log.info(`Parsing ${source} ${event.name} of amount ${amount}`);
         }
         tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
         tx.transfers.push({
@@ -120,18 +118,18 @@ export const wethParser = (
         });
         const swapIn = tx.transfers.findIndex(t =>
           t.asset === ETH && t.quantity === amount
-          && isSelf(t.to) && smeq(t.from, address)
+          && isSelf(t.to) && t.from === address
         );
         if (swapIn >= 0) {
           tx.transfers[swapIn].category = SwapIn;
           tx.transfers[swapIn].index = index + 0.1;
-          if (smeq(ethTx.to, wethAddress)) {
+          if (ethTx.to === wethAddress) {
             tx.method = "Trade";
           }
           // If there's a same-value eth transfer from the swap recipient, index it after
           const transfer = tx.transfers.findIndex(t =>
             t.asset === ETH && t.quantity === amount
-            && smeq(t.from, tx.transfers[swapIn].to)
+            && t.from === tx.transfers[swapIn].to
           );
           if (transfer >= 0) {
             tx.transfers[transfer].index = index + 0.2;

@@ -87,6 +87,11 @@ pull-semver:
 dls:
 	@docker service ls && echo '=====' && docker container ls -a
 
+test-utils: utils
+	bash ops/test-unit.sh utils test
+watch-utils: utils
+	bash ops/test-unit.sh utils watch
+
 test-transactions: transactions
 	bash ops/test-unit.sh transactions test
 watch-transactions: transactions

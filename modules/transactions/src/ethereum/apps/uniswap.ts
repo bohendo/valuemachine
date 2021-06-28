@@ -2,7 +2,6 @@ import { Interface } from "@ethersproject/abi";
 import {
   Assets,
   AddressBook,
-  AddressBookJson,
   AddressCategories,
   EthTransaction,
   Logger,
@@ -11,13 +10,11 @@ import {
   TransactionSource,
   Transfer,
   TransferCategories,
-  TransferCategory,
 } from "@valuemachine/types";
 import {
   parseEvent,
   rmDups,
-  sm,
-  smeq,
+  setAddressCategory,
 } from "@valuemachine/utils";
 
 const { UNI,
@@ -39,25 +36,25 @@ const factoryAddresses = [
   { name: "UniswapFactoryV1", address: "0xc0a47dfe034b400b47bdad5fecda2621de6c4d95" },
   { name: "UniswapFactoryV2", address: "0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f" },
   { name: "UniswapFactoryV3", address: "0x1f98431c8ad98523631ae4a59f267346ea31f984" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 const routerAddresses = [
   { name: "UniswapRouterV2", address: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d" },
   { name: "UniswapRouterV3", address: "0xe592427a0aece92de3edee1f18e0157c05861564" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 const govTokenAddresses = [
   { name: UNI, address: "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984" },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 const airdropAddresses = [
   { name: "UNI-airdropper", address: "0x090d4613473dee047c3f2706764f49e0821d256e" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 const stakingAddresses = [
   { name: "Stake-ETH-USDC", address: "0x7fba4b8dc5e7616e59622806932dbea72537a56b" },
   { name: "Stake-ETH-USDT", address: "0x6c3e4cb2e96b01f4b866965a91ed4437839a121a" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 export const v1MarketAddresses = [
   { name: "UniV1-aDAI", address: "0x7cfab87aac0899c093235b342ac0e5b1acf159eb" },
@@ -98,7 +95,7 @@ export const v1MarketAddresses = [
   { name: "UniV1-WBTC", address: "0x4d2f5cfba55ae412221182d8475bc85799a5644b" },
   { name: "UniV1-WETH", address: "0xa2881a90bf33f03e7a3f803765cd2ed5c8928dfb" },
   { name: "UniV1-ZRX", address: "0xae76c84c9262cdb9abc0c2c8888e62db8e22a0bf" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 export const v2MarketAddresses = [
   { name: UniV2_1INCH_ETH, address: "0x26aad2da94c59524ac0d93f6d6cbf9071d7086f2" },
@@ -143,7 +140,7 @@ export const v2MarketAddresses = [
   { name: UniV2_WBTC_USDC, address: "0x004375dff511095cc5a197a54140a24efef3a416" },
   { name: UniV2_WDOGE_ETH, address: "0xc3d7aa944105d3fafe07fc1822102449c916a8d0" },
   { name: UniV2_YFI_ETH, address: "0x2fdbadf3c4d5a8666bc06645b8358ab803996e28" },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 export const uniswapAddresses = [
   ...airdropAddresses,
@@ -204,13 +201,13 @@ export const uniswapParser = (
   const getSwaps = () => {
     const swapsOut = tx.transfers.filter((transfer: Transfer): boolean =>
       isSelf(transfer.from)
-        && uniswapAddresses.some(e => smeq(transfer.to, e.address))
-        && ([Expense, SwapOut] as TransferCategory[]).includes(transfer.category)
+        && uniswapAddresses.some(e => transfer.to === e.address)
+        && ([Expense, SwapOut] as string[]).includes(transfer.category)
     );
     const swapsIn = tx.transfers.filter((transfer: Transfer): boolean =>
       isSelf(transfer.to)
-        && uniswapAddresses.some(e => smeq(transfer.from, e.address))
-        && ([Income, SwapIn] as TransferCategory[]).includes(transfer.category)
+        && uniswapAddresses.some(e => transfer.from === e.address)
+        && ([Income, SwapIn] as string[]).includes(transfer.category)
     );
     // SwapIn entries for assets that don't exist in swapsOut should come first
     const ofType = asset => swap => swap.asset === asset;
@@ -221,24 +218,24 @@ export const uniswapParser = (
   };
 
   for (const txLog of ethTx.logs.filter(
-    l => uniswapAddresses.some(e => smeq(e.address, l.address))
+    l => uniswapAddresses.some(e => e.address === l.address)
   )) {
-    const address = sm(txLog.address);
+    const address = txLog.address;
     const index = txLog.index || 1;
     tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
 
     // Parse events
     let subsrc, event;
-    if (v2MarketAddresses.some(e => smeq(e.address, address))) {
+    if (v2MarketAddresses.some(e => e.address === address)) {
       subsrc = `${source}V2`;
       event = parseEvent(uniswapV2Interface, txLog);
-    } else if (v1MarketAddresses.some(e => smeq(e.address, address))) {
+    } else if (v1MarketAddresses.some(e => e.address === address)) {
       subsrc = `${source}V1`;
       event = parseEvent(uniswapV1Interface, txLog);
-    } else if (stakingAddresses.some(e => smeq(e.address, address))) {
+    } else if (stakingAddresses.some(e => e.address === address)) {
       subsrc = `${source}V2`;
       event = parseEvent(stakingInterface, txLog);
-    } else if (airdropAddresses.some(e => smeq(e.address, address))) {
+    } else if (airdropAddresses.some(e => e.address === address)) {
       subsrc = `${source}V2`;
       event = parseEvent(airdropInterface, txLog);
     } else {
@@ -293,7 +290,7 @@ export const uniswapParser = (
     } else if (event.name === "Claimed") {
       /*
       const airdrop = tx.transfers.find((transfer: Transfer): boolean =>
-        airdropAddresses.some(e => smeq(transfer.from, e.address))
+        airdropAddresses.some(e => transfer.from === e.address)
         && transfer.asset === UNI
         && transfer.category === Income
       );
@@ -305,9 +302,9 @@ export const uniswapParser = (
     } else if (event.name === "Staked") {
       const deposit = tx.transfers.find((transfer: Transfer): boolean =>
         isSelf(transfer.from)
-          && stakingAddresses.some(e => smeq(transfer.to, e.address))
+          && stakingAddresses.some(e => transfer.to === e.address)
           && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([Expense, Deposit] as TransferCategory[]).includes(transfer.category)
+          && ([Expense, Deposit] as string[]).includes(transfer.category)
       );
       if (!deposit) {
         log.warn(`${subsrc} ${event.name} couldn't find a deposit to ${address}`);
@@ -324,9 +321,9 @@ export const uniswapParser = (
     } else if (event.name === "Withdrawn") {
       const withdraw = tx.transfers.find((transfer: Transfer): boolean =>
         isSelf(transfer.to)
-          && stakingAddresses.some(e => smeq(transfer.from, e.address))
+          && stakingAddresses.some(e => transfer.from === e.address)
           && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([Income, Withdraw] as TransferCategory[]).includes(transfer.category)
+          && ([Income, Withdraw] as string[]).includes(transfer.category)
       );
       if (!withdraw) {
         log.warn(`${subsrc} ${event.name} couldn't find a withdraw from staking pool}`);

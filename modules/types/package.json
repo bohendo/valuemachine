@@ -1,6 +1,6 @@
 {
   "name": "@valuemachine/types",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Types and interfaces for interacting with the valuemachine",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
@@ -12,6 +12,11 @@
   "files": ["dist", "src"],
   "scripts": {
     "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "0.17.1",
+    "io-ts": "2.2.16",
+    "fp-ts": "2.10.5"
   },
   "devDependencies": {
     "@types/node": "15.0.2",

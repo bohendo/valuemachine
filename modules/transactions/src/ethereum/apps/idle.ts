@@ -1,6 +1,5 @@
 import {
   AddressBook,
-  AddressBookJson,
   AddressCategories,
   Assets,
   Asset,
@@ -15,8 +14,7 @@ import {
   assetsAreClose,
   rmDups,
   round,
-  sm,
-  smeq,
+  setAddressCategory,
 } from "@valuemachine/utils";
 
 const { Internal, SwapIn, SwapOut } = TransferCategories;
@@ -29,10 +27,10 @@ const source = TransactionSources.Idle;
 
 const idleV1Addresses = [
   { name: idleDAI, address: "0x10ec0d497824e342bcb0edce00959142aaa766dd" },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 const idleV2Addresses = [
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 export const idleAddresses = [
   ...idleV1Addresses,
@@ -75,9 +73,9 @@ export const idleParser = (
   const { getName, isSelf } = addressBook;
 
   for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
+    const address = txLog.address;
 
-    if (idleV1Addresses.some(idleToken => smeq(idleToken.address, address))) {
+    if (idleV1Addresses.some(idleToken => idleToken.address === address)) {
       tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
       const idleTransfer = tx.transfers.find(t => t.asset === getName(address));
       if (!idleTransfer) {

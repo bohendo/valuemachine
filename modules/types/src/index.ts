@@ -7,5 +7,4 @@ export * from "./security";
 export * from "./store";
 export * from "./strings";
 export * from "./transactions";
-export * from "./utils";
 export * from "./vm";

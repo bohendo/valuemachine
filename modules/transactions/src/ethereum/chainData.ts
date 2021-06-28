@@ -10,7 +10,6 @@ import {
   ChainData,
   ChainDataJson,
   ChainDataParams,
-  emptyChainData,
   EthCall,
   EthParser,
   StoreKeys,
@@ -18,10 +17,10 @@ import {
   TransactionsJson,
 } from "@valuemachine/types";
 import {
+  getChainDataError,
+  getEmptyChainData,
   getEthTransactionError,
   getLogger,
-  sm,
-  smeq,
   toBN,
 } from "@valuemachine/utils";
 import axios from "axios";
@@ -30,12 +29,15 @@ import { parseEthTx } from "./parser";
 
 export const getChainData = (params?: ChainDataParams): ChainData => {
   const { json: chainDataJson, etherscanKey, logger, store } = params || {};
-
   const log = (logger || getLogger()).child?.({ module: "ChainData" });
-  const json = chainDataJson || store?.load(StoreKeys.ChainData) || emptyChainData;
+  const json = chainDataJson || store?.load(StoreKeys.ChainData) || getEmptyChainData();
+
   const save = () => store
     ? store.save(StoreKeys.ChainData, json)
     : log.warn(`No store provided, can't save chain data`);
+
+  const error = getChainDataError(json);
+  if (error) throw new Error(error);
 
   if (!json.addresses) json.addresses = {};
   if (!json.calls) json.calls = [];
@@ -119,9 +121,9 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
   // Solution: save snapshot before you start editing, duplicates in snapshot mean throw it away
   const getDups = (oldList: any[], newElem: any): number =>
     oldList.filter(oldElem =>
-      smeq(newElem.from, oldElem.from) &&
+      newElem.from === oldElem.from &&
       newElem.hash === oldElem.hash &&
-      smeq(newElem.to, oldElem.to) &&
+      newElem.to === oldElem.to &&
       (
         newElem.value.includes(".") ? newElem.value : formatEther(newElem.value)
       ) === oldElem.value,
@@ -152,7 +154,6 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       }
     }
     log.debug(`Merged ${json.calls.length - before} new calls`);
-    save();
     return;
   };
 
@@ -271,14 +272,14 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       }
       json.calls.push({
         block: toNum(call.blockNumber),
-        from: sm(call.from),
+        from: getAddress(call.from),
         hash: call.hash,
         timestamp: toTimestamp(call),
         // Contracts creating contracts: if call.to is empty then this is a contract creation call
         // our target address must be either the call.to or call.from
-        to: ((call.to === "" || call.to === null) && !smeq(call.from, address))
+        to: ((call.to === "" || call.to === null) && call.from !== address)
           ? address
-          : call.to ? sm(call.to) : null,
+          : call.to ? getAddress(call.to) : null,
         value: formatEther(call.value),
       });
     }
@@ -310,7 +311,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
         .map(tx => tx.timestamp)
         .concat(
           json.calls
-            .filter(call => smeq(call.to, address) || smeq(call.from, address))
+            .filter(call => call.to === address || call.from === address)
             .map(tx => tx.timestamp),
         )
         .sort(chrono).reverse()[0];
@@ -393,7 +394,6 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
 
   if (chainDataJson && store) {
     merge(store.load(StoreKeys.ChainData));
-    save();
   }
 
   return {

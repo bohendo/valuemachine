@@ -8,7 +8,6 @@ import {
   TransactionSource,
   Transfer,
   TransferCategories,
-  TransferCategory,
 } from "@valuemachine/types";
 import {
   chrono,
@@ -68,7 +67,7 @@ export const mergeTransaction = (
 
     // Mergable eth txns can only contain one notable transfer
     const transfers = newTx.transfers.filter(transfer =>
-      ([Income, Expense] as TransferCategory[]).includes(transfer.category)
+      ([Income, Expense] as string[]).includes(transfer.category)
       && transfer.to !== Assets.ETH
     );
     if (transfers.length !== 1) {

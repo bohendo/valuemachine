@@ -2,9 +2,7 @@ import { Interface } from "@ethersproject/abi";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
-  AddressBookJson,
   AddressCategories,
-  // Assets,
   EthTransaction,
   Logger,
   Transaction,
@@ -13,10 +11,9 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  sm,
-  smeq,
-  rmDups,
+  setAddressCategory,
   parseEvent,
+  rmDups,
 } from "@valuemachine/utils";
 
 //const { ETH, WETH } = Assets;
@@ -33,11 +30,11 @@ const relayerAddresses = [
   { name: "argent-relayer", address: "0xdd5a1c148ca114af2f4ebc639ce21fed4730a608" },
   { name: "argent-relayer", address: "0x0385b3f162a0e001b60ecb84d3cb06199d78f666" },
   { name: "argent-relayer", address: "0xf27696c8bca7d54d696189085ae1283f59342fa6" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 const managerAddresses = [
   { name: "argent-maker", address: makerManagerAddress },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 export const argentAddresses = [
   ...relayerAddresses,
@@ -68,13 +65,13 @@ export const argentParser = (
   const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
-  if (relayerAddresses.some(entry => smeq(ethTx.from, entry.address))) {
+  if (relayerAddresses.some(entry => ethTx.from === entry.address)) {
     tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
   }
 
   for (const txLog of ethTx.logs) {
-    const address = sm(txLog.address);
-    if (smeq(address, makerManagerAddress)) {
+    const address = txLog.address;
+    if (address === makerManagerAddress) {
       const subsrc = `${source} MakerManager`;
       const event = parseEvent(makerManagerV1Interface, txLog);
       if (!event.name) continue;

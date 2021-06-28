@@ -37,7 +37,6 @@ import {
   AddressBookJson,
   SecurityProviders,
 } from "@valuemachine/types";
-import { smeq } from "@valuemachine/utils";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 
@@ -493,7 +492,7 @@ export const AddressBookManager = ({
         console.log(`File with an address book has been loaded:`, importedAddresses);
         const newAddressBook = [...addressBook.json]; // create new array to ensure it re-renders
         importedAddresses.forEach(entry => {
-          if (!addressBook.json.some(e => smeq(e?.address, entry?.address))) {
+          if (!addressBook.json.some(e => e?.address === entry?.address)) {
             newAddressBook.push(entry);
           }
         });
@@ -763,7 +762,7 @@ export const AddressBookManager = ({
                   <AddressRow
                     otherAddresses={[...allAddresses.slice(0, i), ...allAddresses.slice(i + 1)]}
                     key={i}
-                    index={addressBook.json.findIndex(e => smeq(e.address, entry.address))}
+                    index={addressBook.json.findIndex(e => e.address === entry.address)}
                     editEntry={editEntry}
                     entry={entry}
                     syncAddress={syncAddress}

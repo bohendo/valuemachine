@@ -1,9 +1,14 @@
+import { Static, Type } from "@sinclair/typebox";
+
 import { Logger } from "./logger";
 import { SecurityProvider } from "./security";
-import { Address, HexString } from "./strings";
-import { enumify } from "./utils";
+import { Store } from "./store";
+import { Address } from "./strings";
 
-export const PrivateCategories = enumify({
+////////////////////////////////////////
+// JSON Schema
+
+export const PrivateCategories = {
   Employee: "Employee",
   Employer: "Employer",
   Family: "Family",
@@ -11,10 +16,11 @@ export const PrivateCategories = enumify({
   Merchant: "Merchant",
   Private: "Private",
   Self: "Self", // User controlled
-});
-export type PrivateCategory = (typeof PrivateCategories)[keyof typeof PrivateCategories];
+} as const;
+export const PrivateCategory = Type.Enum(PrivateCategories);
+export type PrivateCategory = Static<typeof PrivateCategory>;
 
-export const PublicCategories = enumify({
+export const PublicCategories = {
   Burn: "Burn",
   Defi: "Defi",
   Donation: "Donation",
@@ -22,31 +28,37 @@ export const PublicCategories = enumify({
   Exchange: "Exchange",
   Proxy: "Proxy",
   Public: "Public",
-});
-export type PublicCategory = (typeof PublicCategories)[keyof typeof PublicCategories];
+} as const;
+export const PublicCategory = Type.Enum(PublicCategories);
+export type PublicCategory = Static<typeof PublicCategory>;
 
-export const AddressCategories = enumify({
+export const AddressCategories = {
   ...PublicCategories,
   ...PrivateCategories,
+} as const;
+export const AddressCategory = Type.Enum(AddressCategories);
+export type AddressCategory = Static<typeof AddressCategory>;
+
+export const AddressEntry = Type.Object({
+  address: Address,
+  category: AddressCategory,
+  decimals: Type.Optional(Type.Number()), // for ERC20 token addresses
+  name: Type.String(),
+  guardian: Type.Optional(SecurityProvider),
 });
-export type AddressCategory = (typeof AddressCategories)[keyof typeof AddressCategories];
+export type AddressEntry = Static<typeof AddressEntry>;
 
-export type AddressEntry = {
-  address: HexString;
-  category: AddressCategory;
-  decimals?: number; // for ERC20 token addresses
-  name?: string;
-  guardian?: SecurityProvider;
-};
+export const AddressBookJson = Type.Array(AddressEntry);
+export type AddressBookJson = Static<typeof AddressBookJson>;
 
-export type AddressBookJson = Array<AddressEntry>;
-
-export const emptyAddressBook = [] as AddressBookJson;
+////////////////////////////////////////
+// Function Interfaces
 
 export type AddressBookParams = {
-  json: AddressBookJson; // for user-defined addresses saved eg in localstorage
+  json?: AddressBookJson; // for user-defined addresses saved eg in localstorage
   hardcoded?: AddressBookJson; // for addresess saved in app-level code
-  logger: Logger;
+  logger?: Logger;
+  store?: Store;
 }
 
 export interface AddressBook {

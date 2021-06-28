@@ -1,18 +1,24 @@
+import { Static, Type } from "@sinclair/typebox";
+
 import { Asset } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { DecimalString, TimestampString } from "./strings";
+import { DateString, DecimalString, TimestampString } from "./strings";
 import { AssetChunk } from "./vm";
 
-export type PriceList = {
-  [unit: string]: {
-    [asset: string]: DecimalString; // number of units per asset
-  };
-};
+////////////////////////////////////////
+// JSON Schema
 
-export type PricesJson = {
-  [date: string]: PriceList;
-};
+// unit:asset:price where price is the number of units per asset
+export const PriceList = Type.Dict(Type.Dict(DecimalString));
+export type PriceList = Static<typeof PriceList>;
+
+// date:PriceList
+export const PricesJson = Type.Dict(PriceList);
+export type PricesJson = Static<typeof PricesJson>;
+
+////////////////////////////////////////
+// Function Interfaces
 
 export type PricesParams = {
   logger?: Logger;
@@ -22,11 +28,10 @@ export type PricesParams = {
 };
 
 export interface Prices {
-  getPrice(date: TimestampString, asset: Asset, unit?: Asset): string | undefined;
+  getPrice: (date: TimestampString, asset: Asset, unit?: Asset) => string | undefined;
+  setPrice: (price: DecimalString, rawDate: DateString, asset: Asset, givenUnit?: Asset) => void;
   json: PricesJson;
-  merge(prices: PricesJson): void;
-  syncChunks(chunks: AssetChunk[], unit?: Asset): Promise<PricesJson>;
-  syncPrice(date: TimestampString, asset: Asset, unit?: Asset): Promise<string | undefined>;
+  merge: (prices: PricesJson) => void;
+  syncChunks: (chunks: AssetChunk[], unit?: Asset) => Promise<PricesJson>;
+  syncPrice: (date: TimestampString, asset: Asset, unit?: Asset) => Promise<string | undefined>;
 }
-
-export const emptyPrices = {} as PricesJson;

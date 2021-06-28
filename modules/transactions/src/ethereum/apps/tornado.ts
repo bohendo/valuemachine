@@ -1,7 +1,6 @@
 import {
   AddressBook,
   Assets,
-  AddressBookJson,
   AddressCategories,
   EthTransaction,
   Logger,
@@ -9,12 +8,11 @@ import {
   TransactionSources,
   TransactionSource,
   TransferCategories,
-  TransferCategory,
 } from "@valuemachine/types";
 import {
   mul,
   rmDups,
-  smeq,
+  setAddressCategory,
   sub,
 } from "@valuemachine/utils";
 
@@ -26,22 +24,22 @@ const source = TransactionSources.Tornado;
 ////////////////////////////////////////
 /// Addresses
 
-const relayerAddress = "0xb541fc07bc7619fd4062a54d96268525cbc6ffef";
+const relayer = "tornado-relayer";
 
 // vTORN is non-transferrable so is not an ERC20
 const miscAddresses = [
   { name: "vTORN-airdropper", address: "0x4e7b3769921c8dfbdb3d1b4c73558db079a180c7" },
   { name: "vTORN", address: "0x3efa30704d2b8bbac821307230376556cf8cc39e" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 const govTokenAddresses = [
   { name: TORN, address: "0x77777feddddffc19ff86db637967013e6c6a116c" },
-].map(row => ({ ...row, category: AddressCategories.ERC20 })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.ERC20));
 
 const mixerAddresses = [
   { name: "tornado-proxy", address: "0x905b63fff465b9ffbf41dea908ceb12478ec7601" }, // old
   { name: "tornado-proxy", address: "0x722122df12d4e14e13ac3b6895a86e84145b6967" }, // new
-  { name: "tornado-relayer", address: relayerAddress },
+  { name: relayer, address: "0xb541fc07bc7619fd4062a54d96268525cbc6ffef" },
   { name: "tornado-dai-100", address: "0xd4b88df4d29f5cedd6857912842cff3b20c8cfa3" },
   { name: "tornado-dai-1000", address: "0xfd8610d20aa15b7b2e3be39b396a1bc3516c7144" },
   { name: "tornado-dai-10000", address: "0x07687e702b410fa43f4cb4af7fa097918ffd2730" },
@@ -54,13 +52,15 @@ const mixerAddresses = [
   { name: "tornado-wbtc-01", address: "0x178169b423a011fff22b9e3f3abea13414ddd0f1" },
   { name: "tornado-wbtc-1", address: "0x610b717796ad172b316836ac95a2ffad065ceab4" },
   { name: "tornado-wbtc-10", address: "0xbb93e510bbcd0b7beb5a853875f9ec60275cf498" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 export const tornadoAddresses = [
   ...govTokenAddresses,
   ...miscAddresses,
   ...mixerAddresses,
 ];
+
+const relayerAddress = tornadoAddresses.find(e => e.name === relayer).address;
 
 ////////////////////////////////////////
 /// ABIs
@@ -88,8 +88,8 @@ export const tornadoParser = (
 
   tx.transfers.filter(transfer =>
     isSelf(transfer.from)
-      && mixerAddresses.some(e => smeq(transfer.to, e.address))
-      && ([Expense, Deposit] as TransferCategory[]).includes(transfer.category)
+      && mixerAddresses.some(e => transfer.to === e.address)
+      && ([Expense, Deposit] as string[]).includes(transfer.category)
   ).forEach(deposit => {
     isTornadoTx = true;
     deposit.category = Deposit;
@@ -100,8 +100,8 @@ export const tornadoParser = (
 
   tx.transfers.filter(transfer =>
     isSelf(transfer.to)
-      && mixerAddresses.some(e => smeq(transfer.from, e.address))
-      && ([Income, Withdraw] as TransferCategory[]).includes(transfer.category)
+      && mixerAddresses.some(e => transfer.from === e.address)
+      && ([Income, Withdraw] as string[]).includes(transfer.category)
   ).forEach(withdraw => {
     isTornadoTx = true;
     withdraw.category = Withdraw;

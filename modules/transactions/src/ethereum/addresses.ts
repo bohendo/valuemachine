@@ -1,5 +1,6 @@
 import { AddressZero } from "@ethersproject/constants";
-import { AddressCategories, AddressBookJson } from "@valuemachine/types";
+import { AddressCategories } from "@valuemachine/types";
+import { setAddressCategory } from "@valuemachine/utils";
 
 import { appAddresses } from "./apps";
 
@@ -7,7 +8,7 @@ const burnAddresses = [
   { name: "dead", address: "0x000000000000000000000000000000000000dead" },
   { name: "deadbeef", address: "0x00000000000000000000000000000000deadbeef" },
   { name: "void", address: AddressZero },
-].map(row => ({ ...row, category: AddressCategories.Burn })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Burn));
 
 const defiAddresses = [
   { name: "artifaqt", address: "0x34d565bddcff2dd74bc98e056ebd32dd5f5e1d34" },
@@ -55,7 +56,7 @@ const defiAddresses = [
   { name: "thecyber", address: "0x0734d56da60852a03e2aafae8a36ffd8c12b32f1" },
   { name: "urbit-azimuth", address: "0x6ac07b7c4601b5ce11de8dfe6335b871c7c4dd4d" },
   { name: "zk-money", address: "0x737901bea3eeb88459df9ef1be8ff3ae1b42a2ba" },
-].map(row => ({ ...row, category: AddressCategories.Defi })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Defi));
 
 const donationAddresses = [
   { name: "gitcoin", address: "0x00de4b13153673bcae2616b67bf822500d325fc3" },
@@ -64,7 +65,7 @@ const donationAddresses = [
   { name: "gitcoin-grant", address: "0x8ba1f109551bd432803012645ac136ddd64dba72" },
   { name: "gitcoin-grant", address: "0xa153b8891e77f1ae037026514c927530d877fab8" },
   { name: "gitcoin-grant", address: "0xcbec15583a21c3ddad5fab658be5b4fe85df730b" },
-].map(row => ({ ...row, category: AddressCategories.Donation })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Donation));
 
 const exchangeAddresses = [
   { name: "idex", address: "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208" },
@@ -74,7 +75,7 @@ const exchangeAddresses = [
   { name: "0x-v1", address: "0x12459c951127e0c374ff9105dda097662a027093" },
   { name: "0x-v2", address: "0x4f833a24e1f95d70f028921e27040ca56e09ab0b" },
   { name: "airswap", address: "0x8fd3121013a07c57f0d69646e86e7a4880b467b7" },
-].map(row => ({ ...row, category: AddressCategories.Exchange })) as AddressBookJson;
+].map(setAddressCategory(AddressCategories.Exchange));
 
 export const publicAddresses = [
   ...appAddresses,

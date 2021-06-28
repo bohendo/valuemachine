@@ -5,7 +5,6 @@ import {
   Assets,
   DateString,
   DecimalString,
-  emptyPrices,
   EthereumAssets,
   FiatCurrencies,
   Prices,
@@ -19,7 +18,9 @@ import {
   chrono,
   div,
   eq,
+  getEmptyPrices,
   getLogger,
+  getPricesError,
   gt,
   mul,
   round,
@@ -33,11 +34,12 @@ const {
 
 export const getPrices = (params?: PricesParams): Prices => {
   const { logger, store, json: pricesJson, unit: defaultUnit } = params || {};
-  const json = pricesJson
-    || store?.load(StoreKeys.Prices)
-    || JSON.parse(JSON.stringify(emptyPrices));
+  const json = pricesJson || store?.load(StoreKeys.Prices) || getEmptyPrices();
   const save = (): void => store?.save(StoreKeys.Prices, json);
   const log = (logger || getLogger()).child({ module: "Prices" });
+
+  const error = getPricesError(json);
+  if (error) throw new Error(error);
 
   const ethish = [ETH, WETH] as Asset[];
 
@@ -606,6 +608,7 @@ export const getPrices = (params?: PricesParams): Prices => {
 
   return {
     getPrice,
+    setPrice,
     json,
     merge,
     syncChunks,

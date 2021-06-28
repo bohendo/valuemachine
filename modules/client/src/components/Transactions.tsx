@@ -34,7 +34,7 @@ import {
   TransactionSources,
   Transfer,
 } from "@valuemachine/types";
-import { round, sm, smeq } from "@valuemachine/utils";
+import { round } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -177,17 +177,17 @@ export const TransactionExplorer = ({
 
   const hasAccount = (account: string) => (tx: Transaction): boolean =>
     !account
-    || tx.transfers.some(t => smeq(t.from, account))
-    || tx.transfers.some(t => smeq(t.to, account));
+    || tx.transfers.some(t => t.from === account)
+    || tx.transfers.some(t => t.to === account);
 
   const hasAsset = (asset: Assets) => (tx: Transaction): boolean =>
-    !asset || tx.transfers.some(t => smeq(t.asset, asset));
+    !asset || tx.transfers.some(t => t.asset === asset);
 
   const hasSource = (source: TransactionSources) => (tx: Transaction): boolean =>
     !source
-    || (tx?.sources || []).map(sm).includes(sm(source))
-    || tx.transfers.some(t => sm(addressBook.getName(t.from)).startsWith(sm(source)))
-    || tx.transfers.some(t => sm(addressBook.getName(t.to)).startsWith(sm(source)));
+    || (tx?.sources || []).includes(source)
+    || tx.transfers.some(t => addressBook.getName(t.from).startsWith(source))
+    || tx.transfers.some(t => addressBook.getName(t.to).startsWith(source));
 
   useEffect(() => {
     const getDate = (timestamp: string): string =>

@@ -1,15 +1,18 @@
+import { Static, Type } from "@sinclair/typebox";
+
 import { PhysicalGuardians, DigitalGuardians } from "./security";
-import { enumify } from "./utils";
 
 // All physical security providers have an associated fiat currency
-export const FiatCurrencies = enumify({ ...PhysicalGuardians });
-export type FiatCurrency = (typeof FiatCurrencies)[keyof typeof FiatCurrencies];
+export const FiatCurrencies = { ...PhysicalGuardians } as const;
+export const FiatCurrency = Type.Enum(FiatCurrencies);
+export type FiatCurrency = Static<typeof FiatCurrency>;
 
 // All digital security providers have an associated native cryptocurrency
-export const Cryptocurrencies = enumify({ ...DigitalGuardians });
-export type Cryptocurrency = (typeof Cryptocurrencies)[keyof typeof Cryptocurrencies];
+export const Cryptocurrencies = { ...DigitalGuardians } as const;
+export const Cryptocurrency = Type.Enum(Cryptocurrencies);
+export type Cryptocurrency = Static<typeof Cryptocurrency>;
 
-export const EthereumAssets = enumify({
+export const EthereumAssets = {
   [Cryptocurrencies.ETH]: Cryptocurrencies.ETH,
   _1INCH: "_1INCH",
   _3Crv: "_3Crv",
@@ -167,12 +170,14 @@ export const EthereumAssets = enumify({
   yvust3CRV: "yvust3CRV",
   yyDAI_yUSDC_yUSDT_yBUSD: "yyDAI_yUSDC_yUSDT_yBUSD",
   yyDAI_yUSDC_yUSDT_yTUSD: "yyDAI_yUSDC_yUSDT_yTUSD",
-});
-export type EthereumAsset = (typeof EthereumAssets)[keyof typeof EthereumAssets];
+} as const;
+export const EthereumAsset = Type.Enum(EthereumAssets);
+export type EthereumAsset = Static<typeof EthereumAsset>;
 
-export const Assets = enumify({
+export const Assets = {
   ...Cryptocurrencies,
-  ...EthereumAssets,
   ...FiatCurrencies,
-});
-export type Asset = (typeof Assets)[keyof typeof Assets];
+  ...EthereumAssets,
+} as const;
+export const Asset = Type.Enum(Assets);
+export type Asset = Static<typeof Asset>
