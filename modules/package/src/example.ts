@@ -60,7 +60,8 @@ const transactions = getTransactions({ logger });
 
   // calculate & print capital gains
   for (const event of vm.json.events) {
-    if (event.type === EventTypes.Trade) {
+    switch(event.type) {
+    case EventTypes.Trade: {
       event.outputs.forEach(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
         const takePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
@@ -83,6 +84,7 @@ const transactions = getTransactions({ logger });
           unit
         }`);
       });
+    }
     }
   }
 

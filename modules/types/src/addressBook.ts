@@ -4,7 +4,6 @@ import { Logger } from "./logger";
 import { SecurityProvider } from "./security";
 import { Store } from "./store";
 import { Address } from "./strings";
-import { enumToSchema } from "./utils";
 
 ////////////////////////////////////////
 // JSON Schema
@@ -18,7 +17,7 @@ export const PrivateCategories = {
   Private: "Private",
   Self: "Self", // User controlled
 } as const;
-export const PrivateCategory = enumToSchema(PrivateCategories);
+export const PrivateCategory = Type.Enum(PrivateCategories);
 export type PrivateCategory = Static<typeof PrivateCategory>;
 
 export const PublicCategories = {
@@ -30,14 +29,14 @@ export const PublicCategories = {
   Proxy: "Proxy",
   Public: "Public",
 } as const;
-export const PublicCategory = enumToSchema(PublicCategories);
+export const PublicCategory = Type.Enum(PublicCategories);
 export type PublicCategory = Static<typeof PublicCategory>;
 
 export const AddressCategories = {
   ...PublicCategories,
   ...PrivateCategories,
 } as const;
-export const AddressCategory = enumToSchema(AddressCategories);
+export const AddressCategory = Type.Enum(AddressCategories);
 export type AddressCategory = Static<typeof AddressCategory>;
 
 export const AddressEntry = Type.Object({

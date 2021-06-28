@@ -1,16 +1,15 @@
-import { Static } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 
 import { PhysicalGuardians, DigitalGuardians } from "./security";
-import { enumToSchema } from "./utils";
 
 // All physical security providers have an associated fiat currency
 export const FiatCurrencies = { ...PhysicalGuardians } as const;
-export const FiatCurrency = enumToSchema(FiatCurrencies);
+export const FiatCurrency = Type.Enum(FiatCurrencies);
 export type FiatCurrency = Static<typeof FiatCurrency>;
 
 // All digital security providers have an associated native cryptocurrency
 export const Cryptocurrencies = { ...DigitalGuardians } as const;
-export const Cryptocurrency = enumToSchema(Cryptocurrencies);
+export const Cryptocurrency = Type.Enum(Cryptocurrencies);
 export type Cryptocurrency = Static<typeof Cryptocurrency>;
 
 export const EthereumAssets = {
@@ -172,7 +171,7 @@ export const EthereumAssets = {
   yyDAI_yUSDC_yUSDT_yBUSD: "yyDAI_yUSDC_yUSDT_yBUSD",
   yyDAI_yUSDC_yUSDT_yTUSD: "yyDAI_yUSDC_yUSDT_yTUSD",
 } as const;
-export const EthereumAsset = enumToSchema(EthereumAssets);
+export const EthereumAsset = Type.Enum(EthereumAssets);
 export type EthereumAsset = Static<typeof EthereumAsset>;
 
 export const Assets = {
@@ -180,5 +179,5 @@ export const Assets = {
   ...FiatCurrencies,
   ...EthereumAssets,
 } as const;
-export const Asset = enumToSchema(Assets);
+export const Asset = Type.Enum(Assets);
 export type Asset = Static<typeof Asset>

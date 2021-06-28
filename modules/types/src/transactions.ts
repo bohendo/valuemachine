@@ -7,7 +7,6 @@ import { Logger } from "./logger";
 import { SecurityProviders } from "./security";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
-import { enumToSchema } from "./utils";
 
 ////////////////////////////////////////
 // JSON Schema
@@ -18,7 +17,7 @@ export const CsvSources = {
   Wyre: "Wyre",
   Wazirx: "Wazirx",
 } as const;
-export const CsvSource = enumToSchema(CsvSources);
+export const CsvSource = Type.Enum(CsvSources);
 export type CsvSource = Static<typeof CsvSource>;
 
 // Set default guardians for external sources
@@ -43,14 +42,14 @@ export const EthereumSources = {
   Weth: "Weth",
   Yearn: "Yearn",
 } as const;
-export const EthereumSource = enumToSchema(EthereumSources);
+export const EthereumSource = Type.Enum(EthereumSources);
 export type EthereumSource = Static<typeof EthereumSource>;
 
 export const TransactionSources = {
   ...CsvSources,
   ...EthereumSources,
 } as const;
-export const TransactionSource = enumToSchema(TransactionSources);
+export const TransactionSource = Type.Enum(TransactionSources);
 export type TransactionSource = Static<typeof TransactionSource>;
 
 export const TransferCategories = {
@@ -65,7 +64,7 @@ export const TransferCategories = {
   Deposit: "Deposit",
   Withdraw: "Withdraw",
 } as const;
-export const TransferCategory = enumToSchema(TransferCategories);
+export const TransferCategory = Type.Enum(TransferCategories);
 export type TransferCategory = Static<typeof TransferCategory>;
 
 export const Transfer = Type.Object({

@@ -1,11 +1,10 @@
-import { Static } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBookJson } from "./addressBook";
 import { ChainDataJson } from "./chainData";
 import { PricesJson } from "./prices";
 import { ValueMachineJson } from "./vm";
 import { TransactionsJson } from "./transactions";
-import { enumToSchema } from "./utils";
 
 export const StoreKeys = {
   AddressBook: "AddressBook",
@@ -14,7 +13,7 @@ export const StoreKeys = {
   Transactions: "Transactions",
   ValueMachine: "ValueMachine",
 } as const;
-export const StoreKey = enumToSchema(StoreKeys);
+export const StoreKey = Type.Enum(StoreKeys);
 export type StoreKey = Static<typeof StoreKey>;
 
 interface StoreTypeMap {

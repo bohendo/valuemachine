@@ -1,3 +1,4 @@
+import { AddressZero } from "@ethersproject/constants";
 import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
@@ -7,7 +8,6 @@ import { Store } from "./store";
 import { SecurityProvider } from "./security";
 import { Account, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
-import { enumToSchema } from "./utils";
 
 ////////////////////////////////////////
 // JSON Schema
@@ -41,13 +41,12 @@ export const EventTypes = {
   Expense: "Expense",
   Debt: "Debt",
 } as const;
-export const EventType = enumToSchema(EventTypes);
+export const EventType = Type.Enum(EventTypes);
 export type EventType = Static<typeof EventType>;
 
 const BaseEvent = Type.Object({
   date: TimestampString,
   newBalances: Balances,
-  type: EventType,
 });
 type BaseEvent = Static<typeof BaseEvent>;
 
@@ -57,7 +56,7 @@ export const DebtEvent = Type.Intersect([
     account: Account,
     inputs: Type.Array(ChunkIndex),
     outputs: Type.Array(ChunkIndex),
-    // TODO: specify type
+    type: Type.Literal(EventTypes.Debt),
   }),
 ]);
 export type DebtEvent = Static<typeof DebtEvent>;
@@ -68,6 +67,7 @@ export const TradeEvent = Type.Intersect([
     account: Account,
     inputs: Type.Array(ChunkIndex),
     outputs: Type.Array(ChunkIndex),
+    type: Type.Literal(EventTypes.Trade),
   }),
 ]);
 export type TradeEvent = Static<typeof TradeEvent>;
@@ -77,6 +77,7 @@ export const ExpenseEvent = Type.Intersect([
   Type.Object({
     account: Account,
     outputs: Type.Array(ChunkIndex),
+    type: Type.Literal(EventTypes.Expense),
   }),
 ]);
 export type ExpenseEvent = Static<typeof ExpenseEvent>;
@@ -86,6 +87,7 @@ export const IncomeEvent = Type.Intersect([
   Type.Object({
     account: Account,
     inputs: Type.Array(ChunkIndex),
+    type: Type.Literal(EventTypes.Income),
   }),
 ]);
 export type IncomeEvent = Static<typeof IncomeEvent>;
@@ -99,6 +101,7 @@ export const JurisdictionChangeEvent = Type.Intersect([
     toJurisdiction: SecurityProvider,
     chunks: Type.Array(ChunkIndex),
     insecurePath: Type.Array(ChunkIndex),
+    type: Type.Literal(EventTypes.JurisdictionChange),
   }),
 ]);
 export type JurisdictionChangeEvent = Static<typeof JurisdictionChangeEvent>;
@@ -114,6 +117,19 @@ export type Event = Static<typeof Event>;
 
 export const Events = Type.Array(Event);
 export type Events = Static<typeof Events>;
+
+const exampleEvent = {
+  account: AddressZero,
+  date: new Date(0).toISOString(),
+  inputs: [],
+  newBalances: {},
+  outputs: [],
+  type: EventTypes.Trade,
+} as Event;
+
+if (exampleEvent.type === EventTypes.Trade) {
+  console.log(`Detected a trade event from account ${exampleEvent.account}`);
+}
 
 ////////////////////////////////////////
 // Hydrated Data aka types w indexes replaced w referenced values
