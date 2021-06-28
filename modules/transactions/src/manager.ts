@@ -7,7 +7,10 @@ import {
   TransactionsJson,
   TransactionsParams,
 } from "@valuemachine/types";
-import { getLogger, getTransactionsError } from "@valuemachine/utils";
+import {
+  getLogger,
+  getTransactionsError,
+} from "@valuemachine/utils";
 
 import {
   mergeCoinbaseTransactions,
@@ -24,6 +27,9 @@ export const getTransactions = ({
 }: TransactionsParams): Transactions => {
   const log = (logger || getLogger()).child({ module: "Transactions" });
   const json = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
+
+  const error = getTransactionsError(json);
+  if (error) throw new Error(error);
 
   log.debug(`Loaded transaction data containing ${
     json.length

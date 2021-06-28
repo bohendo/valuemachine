@@ -16,7 +16,6 @@ import {
   TransactionSources,
   Transfer,
   TransferCategories,
-  TransferCategory,
   ValueMachine,
   ValueMachineParams,
 } from "@valuemachine/types";
@@ -25,6 +24,7 @@ import {
   eq,
   getEmptyValueMachine,
   getLogger,
+  getValueMachineError,
   gt,
   lt,
   mul,
@@ -51,10 +51,10 @@ export const getValueMachine = ({
   const json = vmJson || store?.load(StoreKeys.ValueMachine) || getEmptyValueMachine();
   const save = (): void => store?.save(StoreKeys.ValueMachine, json);
 
-  json.chunks = json.chunks || [];
-  json.events = json.events || [];
+  const error = getValueMachineError(json);
+  if (error) throw new Error(error);
 
-  let newEvents = [] as Events;
+  let newEvents = [] as Events; // index will be added when we add new events to total
 
   ////////////////////////////////////////
   // Simple Utils
@@ -94,6 +94,7 @@ export const getValueMachine = ({
 
   const getEvent = (index: number): HydratedEvent => {
     const target = json.events[index] as any;
+    if (!target) throw new Error(`No event exists at index ${index}`);
     return JSON.parse(JSON.stringify({
       ...target,
       chunks: target?.chunks?.map(fromIndex) || undefined,
@@ -368,15 +369,15 @@ export const getValueMachine = ({
     chunksOut.forEach(chunk => { chunk.outputs = chunksIn.map(toIndex); });
     chunksIn.forEach(chunk => { chunk.inputs = chunksOut.map(toIndex); });
     // emit trade event
-    const tradeEvent = {
+    newEvents.push({
       date: json.date,
+      index: json.events.length + newEvents.length,
       type: EventTypes.Trade,
       inputs: chunksIn.map(toIndex),
       outputs: chunksOut.map(toIndex),
       account,
       newBalances: getNetWorth(account),
-    } as TradeEvent;
-    newEvents.push(tradeEvent);
+    } as TradeEvent);
   };
 
   const moveValue = (quantity: DecimalString, asset: Asset, from: Account, to: Account): void => {
@@ -388,6 +389,7 @@ export const getValueMachine = ({
       const newGuard = addressBook.getGuardian(to);
       newEvents.push({
         date: json.date,
+        index: json.events.length + newEvents.length,
         newBalances: { [asset]: getBalance(asset) },
         from: from,
         fromJurisdiction: oldGuard,
@@ -406,7 +408,7 @@ export const getValueMachine = ({
   const execute = (tx: Transaction): Events => {
     log.debug(`Processing transaction ${tx.index} from ${tx.date}`);
     json.date = tx.date;
-    newEvents = [] as Events;
+    newEvents = []; // reset new events
 
     const handleTransfer = (
       transfer: Transfer,
@@ -420,6 +422,7 @@ export const getValueMachine = ({
         const disposed = disposeValue(quantity, asset, from);
         newEvents.push({
           account: from,
+          index: json.events.length + newEvents.length,
           date: json.date,
           newBalances: { [asset]: getBalance(asset) },
           outputs: disposed.map(toIndex),
@@ -430,6 +433,7 @@ export const getValueMachine = ({
         const received = receiveValue(quantity, asset, to);
         newEvents.push({
           account: to,
+          index: json.events.length + newEvents.length,
           date: json.date,
           inputs: received.map(toIndex),
           newBalances: { [asset]: getBalance(asset) },
@@ -494,7 +498,9 @@ export const getValueMachine = ({
       swapsOut.forEach(handleTransfer);
     }
 
-    json.events.push(...newEvents);
+    for (const newEvent of newEvents) {
+      json.events.push(newEvent);
+    }
     return newEvents;
   };
 

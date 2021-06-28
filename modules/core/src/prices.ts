@@ -20,6 +20,7 @@ import {
   eq,
   getEmptyPrices,
   getLogger,
+  getPricesError,
   gt,
   mul,
   round,
@@ -36,6 +37,9 @@ export const getPrices = (params?: PricesParams): Prices => {
   const json = pricesJson || store?.load(StoreKeys.Prices) || getEmptyPrices();
   const save = (): void => store?.save(StoreKeys.Prices, json);
   const log = (logger || getLogger()).child({ module: "Prices" });
+
+  const error = getPricesError(json);
+  if (error) throw new Error(error);
 
   const ethish = [ETH, WETH] as Asset[];
 

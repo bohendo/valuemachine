@@ -46,6 +46,7 @@ export type EventType = Static<typeof EventType>;
 const BaseEvent = Type.Object({
   date: TimestampString,
   newBalances: Balances,
+  index: Type.Number(),
 });
 type BaseEvent = Static<typeof BaseEvent>;
 

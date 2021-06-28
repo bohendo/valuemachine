@@ -17,8 +17,9 @@ import {
   TransactionsJson,
 } from "@valuemachine/types";
 import {
-  getEthTransactionError,
+  getChainDataError,
   getEmptyChainData,
+  getEthTransactionError,
   getLogger,
   toBN,
 } from "@valuemachine/utils";
@@ -34,6 +35,9 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
   const save = () => store
     ? store.save(StoreKeys.ChainData, json)
     : log.warn(`No store provided, can't save chain data`);
+
+  const error = getChainDataError(json);
+  if (error) throw new Error(error);
 
   if (!json.addresses) json.addresses = {};
   if (!json.calls) json.calls = [];

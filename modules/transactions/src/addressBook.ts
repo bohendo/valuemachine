@@ -16,11 +16,12 @@ import {
   StoreKeys,
 } from "@valuemachine/types";
 import {
-  getLogger,
-  getEmptyAddressBook,
   fmtAddress,
   fmtAddressEntry,
+  getAddressBookError,
   getAddressEntryError,
+  getEmptyAddressBook,
+  getLogger,
 } from "@valuemachine/utils";
 
 import { publicAddresses } from "./ethereum";
@@ -46,6 +47,9 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     .concat(publicAddresses, hardcoded, json)
     .filter(entry => !!entry)
     .map(fmtAddressEntry);
+
+  const error = getAddressBookError(addressBook);
+  if (error) throw new Error(error);
 
   // Sanity check: it shouldn't have two entries for the same address
   let addresses = [];

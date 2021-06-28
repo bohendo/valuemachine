@@ -24,12 +24,13 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import ClearIcon from "@material-ui/icons/Delete";
 import SyncIcon from "@material-ui/icons/Sync";
-import { describeChunk } from "valuemachine";
+import { describeChunk, describeEvent } from "valuemachine";
 import {
   AddressBook,
   Assets,
   Event,
   Events,
+  HydratedEvents,
   EventTypes,
   Prices,
   Transactions,
@@ -79,11 +80,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 export const EventRow = ({
   addressBook,
   event,
-  vm,
 }: {
   addressBook: AddressBook;
   event: Event;
-  vm: ValueMachine;
 }) => {
   const [open, setOpen] = useState(false);
   const classes = useStyles();
@@ -97,8 +96,8 @@ export const EventRow = ({
 
   const chunksToDisplay = (chunks, prefix) => {
     const output = {};
-    for (const i of chunks) {
-      const description = describeChunk(vm.getChunk(i));
+    for (const chunk of chunks) {
+      const description = describeChunk(chunk);
       output[(prefix || "") + description.split(":")[0]] = description.split(":")[1];
     }
     return output;
@@ -134,7 +133,7 @@ export const EventRow = ({
       <TableRow>
         <TableCell> {event.date.replace("T", " ").replace(".000Z", "")} </TableCell>
         <TableCell> {event.type} </TableCell>
-        <TableCell> {`${event.type} event on ${event.date}`} </TableCell>
+        <TableCell> {describeEvent(event)} </TableCell>
         <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
           Details
           <IconButton aria-label="expand row" size="small" >
@@ -213,7 +212,7 @@ export const ValueMachineExplorer = ({
   const [filterAccount, setFilterAccount] = useState("");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterType, setFilterType] = useState("");
-  const [filteredEvents, setFilteredEvents] = useState([] as any);
+  const [filteredEvents, setFilteredEvents] = useState([] as HydratedEvents);
   const classes = useStyles();
 
   useEffect(() => {
@@ -246,8 +245,10 @@ export const ValueMachineExplorer = ({
       : (e1.purchaseDate > e2.purchaseDate) ? 1
       : (e1.purchaseDate < e2.purchaseDate) ? -1
       : 0
-    ) || []);
+    ).map((e: Event) => vm.getEvent(e.index)) || []);
   }, [vm, filterAccount, filterAsset, filterType]);
+
+  console.log(`Rendering filtered events: ${JSON.stringify(filteredEvents, null, 2)}`);
 
   const handleFilterAccountChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterAccount(event.target.value);
@@ -421,14 +422,13 @@ export const ValueMachineExplorer = ({
             <TableBody>
               {filteredEvents
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((event: Events, i: number) => (
+                .map((event: HydratedEvents, i: number) => (
                   <EventRow
                     key={i}
                     prices={prices}
                     addressBook={addressBook}
                     event={event}
                     unit={unit}
-                    vm={vm}
                   />
                 ))}
             </TableBody>

@@ -1,3 +1,3 @@
 export { getPrices } from "./prices";
 export { getValueMachine } from "./vm";
-export { describeChunk } from "./utils";
+export { describeChunk, describeEvent } from "./utils";
