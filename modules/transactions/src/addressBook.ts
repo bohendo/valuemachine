@@ -1,4 +1,4 @@
-import { isAddress as isEthAddress, getAddress as getEthAddress } from "@ethersproject/address";
+import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
   Account,
   AddressEntry,
@@ -19,6 +19,7 @@ import {
   getLogger,
   getEmptyAddressBook,
   fmtAddress,
+  fmtAddressEntry,
   getAddressEntryError,
 } from "@valuemachine/utils";
 
@@ -32,8 +33,10 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   ////////////////////////////////////////
   // Helpers
 
-  const getEntry = (address: Address): AddressEntry | undefined =>
-    addressBook.find(row => row.address === fmtAddress(address));
+  const getEntry = (address: Address): AddressEntry | undefined => {
+    const target = fmtAddress(address);
+    return addressBook.find(row => row.address === target);
+  };
 
   ////////////////////////////////////////
   // Init Code
@@ -41,19 +44,8 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   // Merge hardcoded public addresses with those supplied by the user
   const addressBook = []
     .concat(publicAddresses, hardcoded, json)
-    .filter(entry => !!entry);
-
-  // Update input addresses w proper formatting eg valid checksums
-  addressBook.forEach(row => {
-    row.address = fmtAddress(row.address);
-  });
-
-  // Set default guardians
-  addressBook.forEach(entry => {
-    entry.guardian = entry.guardian || (
-      isEthAddress(entry.address) ? SecurityProviders.ETH : SecurityProviders.None
-    );
-  });
+    .filter(entry => !!entry)
+    .map(fmtAddressEntry);
 
   // Sanity check: it shouldn't have two entries for the same address
   let addresses = [];
