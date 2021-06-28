@@ -1,13 +1,28 @@
-import { AssetChunk, ChunkIndex, Event, EventTypes, HydratedEvent } from "@valuemachine/types";
-import { round } from "@valuemachine/utils";
+import {
+  AssetChunk,
+  Balances,
+  ChunkIndex,
+  Event,
+  EventTypes,
+  HydratedEvent,
+} from "@valuemachine/types";
+import { add, gt, round } from "@valuemachine/utils";
 
-const { Expense, Income /*, Trade, Debt, Jurisdiction */ } = EventTypes;
+const { Expense, Income, Trade, Debt, JurisdictionChange } = EventTypes;
 const toDate = timestamp => timestamp?.includes("T") ? timestamp.split("T")[0] : timestamp;
 
 const sumChunks = (chunks: Array<AssetChunk | ChunkIndex>) => {
-  return typeof chunks[0] === "number"
-    ? `${chunks.length} chunks`
-    : `${round(chunks[0].quantity)} ${chunks[0].asset}`;
+  const totals = {} as Balances;
+  if (!chunks?.length) return totals;
+  if (typeof chunks[0] === "number") return `${chunks.length} chunks`;
+  chunks.forEach(chunk => {
+    if (typeof chunk !== "number" && gt(chunk.quantity, "0")) {
+      totals[chunk.asset] = add(totals[chunk.asset], chunk.quantity);
+    }
+  });
+  return Object.entries(totals)
+    .map(([asset, amount]) => `${round(amount, 4)} ${asset}`)
+    .join(" and ");
 };
 
 export const describeChunk = (chunk: AssetChunk): string => {
@@ -16,7 +31,28 @@ export const describeChunk = (chunk: AssetChunk): string => {
   } - ${toDate(chunk.disposeDate) || "present"}`;
 };
 
-export const describeEvent = (event: Event | HydratedEvent): string =>
-  event.type === Expense ? `${event.type} of ${sumChunks(event.outputs)} on ${event.date}`
-  : event.type === Income ? `${event.type} of ${sumChunks(event.inputs)} on ${event.date}`
-  : `${event.type} event on ${event.date}`;
+export const describeEvent = (event: Event | HydratedEvent): string => {
+  const date = event.date.split("T")[0];
+  if (event.type === Income) {
+    const inputs = event.inputs?.length ? sumChunks(event.inputs) : "";
+    return `${event.type} of ${inputs} on ${date}`;
+  } else if (event.type === Expense) {
+    const outputs = event.outputs?.length ? sumChunks(event.outputs) : "";
+    return `${event.type} of ${outputs} on ${date}`;
+  } else if (event.type === Trade) {
+    const inputs = event.inputs?.length ? sumChunks(event.inputs) : "";
+    const outputs = event.outputs?.length ? sumChunks(event.outputs) : "";
+    return `Traded ${outputs} for ${inputs} on ${date}`;
+  } else if (event.type === Debt) {
+    const inputs = event.inputs?.length ? sumChunks(event.inputs) : "";
+    const outputs = event.outputs?.length ? sumChunks(event.outputs) : "";
+    return inputs ? `Borrowed ${inputs} on ${date}` : `Repayed ${outputs} on ${date}`;
+  } else if (event.type === JurisdictionChange) {
+    const chunks = event.chunks?.length ? sumChunks(event.chunks) : "";
+    return `Moved ${chunks} from ${
+      event.fromJurisdiction
+    } jurisdiction to ${event.toJurisdiction} on ${date}`;
+  } else {
+    return `Unknown event`;
+  }
+};
