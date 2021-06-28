@@ -24,6 +24,7 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import ClearIcon from "@material-ui/icons/Delete";
 import SyncIcon from "@material-ui/icons/Sync";
+import { describeChunk } from "valuemachine";
 import {
   AddressBook,
   Assets,
@@ -91,22 +92,13 @@ export const EventRow = ({
     if (event && open) console.log(event);
   }, [event, open]);
 
-  const toDate = timestamp => timestamp?.includes("T") ? timestamp.split("T")[0] : timestamp;
-
   const balToStr = (balances) =>
     Object.entries(balances || {}).map(([asset, bal]) => `${round(bal)} ${asset}`).join(" and ");
-
-  const describeChunk = (chunkIndex) => {
-    const chunk = vm.getChunk(chunkIndex);
-    return `Chunk ${chunk.index}: ${round(chunk.quantity)} ${chunk.asset} held from ${
-      toDate(chunk.receiveDate)
-    } - ${toDate(chunk.disposeDate) || "present"}`;
-  };
 
   const chunksToDisplay = (chunks, prefix) => {
     const output = {};
     for (const i of chunks) {
-      const description = describeChunk(i);
+      const description = describeChunk(vm.getChunk(i));
       output[(prefix || "") + description.split(":")[0]] = description.split(":")[1];
     }
     return output;
