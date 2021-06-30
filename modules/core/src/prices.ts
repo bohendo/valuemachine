@@ -203,7 +203,9 @@ export const getPrices = (params?: PricesParams): Prices => {
   ): Promise<string | undefined> => {
     // derived from output of https://api.coingecko.com/api/v3/coins/list
     const unit = formatUnit(givenUnit);
-    const coinId = coingecko.list.find(entry => entry.symbol === asset.toLowerCase())?.id;
+    const coinId = coingecko.list.find(entry =>
+      entry.symbol === asset || entry.symbol === asset.toLowerCase()
+    )?.id;
     if (!coinId) {
       log.warn(`Asset "${asset}" is not available on CoinGecko`);
       return undefined;

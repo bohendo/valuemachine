@@ -142,7 +142,7 @@ describe("Prices", () => {
 
   // Tests that require network calls might be fragile, skip them for now
   it.skip("should fetch a price of assets not in the Assets enum", async () => {
-    expect(await prices.syncPrice(new Date().toISOString(), "IDLE", USD)).to.be.ok;
+    expect(await prices.syncPrice(new Date().toISOString(), "idleUSDTYield", USD)).to.be.ok;
   });
 
   // Tests that require network calls might be fragile, skip them for now
