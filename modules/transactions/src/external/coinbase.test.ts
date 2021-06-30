@@ -1,7 +1,7 @@
 import { CsvSources, Transactions } from "@valuemachine/types";
+import { getTransactionsError } from "@valuemachine/utils";
 
-import { getAddressBook } from "../addressBook";
-import { getTransactions } from "../index";
+import { getAddressBook, getTransactions } from "../index";
 import {
   expect,
   testLogger,
@@ -32,6 +32,12 @@ describe("Coinbase", () => {
     expect(txns.json.length).to.equal(0);
   });
 
+  it("should generate valid transactions", async () => {
+    txns.mergeCsv(exampleCoinbaseCsv, CsvSources.Coinbase);
+    const txError = getTransactionsError(txns.json);
+    expect(txError).to.be.null;
+  });
+
   it("should merge coinbase data multiple times without creaing duplicates", async () => {
     txns.mergeCsv(exampleCoinbaseCsv, CsvSources.Coinbase);
     expect(txns.json.length).to.equal(3);
@@ -40,4 +46,3 @@ describe("Coinbase", () => {
   });
 
 });
-
