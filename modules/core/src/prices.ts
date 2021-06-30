@@ -126,7 +126,7 @@ export const getPrices = (params?: PricesParams): Prices => {
       !unvisited.has(start) || !unvisited.has(target) ||
       !countPrices(date, start) || !countPrices(date, target)
     ) {
-      log.info(`${target} to ${start} exchange rate is unavailable on ${date}`);
+      log.debug(`${target} to ${start} exchange rate is unavailable on ${date}`);
       return [];
     }
     const distances = {} as { [to: string]: { distance: number; path: Asset[]; } };
@@ -169,7 +169,7 @@ export const getPrices = (params?: PricesParams): Prices => {
         } else {
           // Are there any other unvisited nodes to check?
           if (!branches.length || unvisited.size === 0) {
-            log.info(`No exchange-rate-path exists between ${start} and ${target}`);
+            log.debug(`No exchange-rate-path exists between ${start} and ${target}`);
             log.debug(json[date], `Prices we have so far`);
             log.debug(distances, `Final distances from ${start} to ${target}`);
             return [];
@@ -387,7 +387,6 @@ export const getPrices = (params?: PricesParams): Prices => {
   ): string | undefined => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
-    log.debug(`Getting ${unit} price of ${asset} on ${date}..`);
     if (assetsAreClose(asset, unit)) return "1";
     if (json[date]?.[unit]?.[asset]) return formatPrice(json[date][unit][asset]);
     if (json[date]?.[asset]?.[unit]) return formatPrice(div("1", json[date][asset][unit]));
@@ -402,7 +401,7 @@ export const getPrices = (params?: PricesParams): Prices => {
         } else if (json[date]?.[step]?.[prev]) {
           price = mul(price, div("1", json[date]?.[step]?.[prev]));
         }
-        log.debug(`Got price of ${step}: ${formatPrice(price)} ${unit}`);
+        log.debug(`Got path to price of ${step}: ${formatPrice(price)} ${unit}`);
       }
       prev = step;
     });

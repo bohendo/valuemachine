@@ -59,29 +59,26 @@ const transactions = getTransactions({ logger });
   }
 
   // calculate & print capital gains
+  console.log(`    Quantity |       Asset | Receive Date | Dispose Date | Capital Change (USD)`);
   for (const event of vm.json.events) {
     switch(event.type) {
     case EventTypes.Trade: {
       event.outputs.forEach(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const takePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
-        const givePrice = prices.getPrice(chunk.disposeDate, chunk.asset);
+        const takePrice = prices.getNearest(chunk.receiveDate, chunk.asset);
+        const givePrice = prices.getNearest(chunk.disposeDate, chunk.asset);
         if (!takePrice || !givePrice) return;
         const change = mul(chunk.quantity, sub(givePrice, takePrice));
         console.log(`${
-          addressBook.getName(event.account)
-        } got a chunk of ${
-          round(chunk.quantity, 4)
-        } ${
-          chunk.asset
-        } on ${
-          chunk.receiveDate
-        } and gave it away on ${
-          chunk.disposeDate
-        } for a capital change of ${
+          round(chunk.quantity, 4).padStart(12, " ")
+        } | ${
+          chunk.asset.padStart(12, " ")
+        } | ${
+          chunk.receiveDate.split("T")[0].padStart(12, " ")
+        } | ${
+          chunk.disposeDate.split("T")[0].padStart(12, " ")
+        } | ${
           round(change, 2)
-        } ${
-          unit
         }`);
       });
     }
