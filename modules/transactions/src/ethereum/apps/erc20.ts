@@ -22,7 +22,7 @@ import {
 const source = TransactionSources.ERC20;
 const {
   BAT, CHERRY, GEN, GNO, GRT, OMG, REP, REPv2, SNT,
-  SNX, SNX, SPANK, sUSD, USDC, USDT, WBTC, ZRX,
+  SNX, SPANK, sUSD, USDC, USDT, WBTC, ZRX,
   linkCRV, usdp3CRV, ankrCRV, yDAI_yUSDC_yUSDT_yTUSD, musd3CRV, gusd3CRV,
   dusd3CRV, usdn3CRV, ust3CRV, husd3CRV, yDAI_yUSDC_yUSDT_yBUSD,
   crvPlain3andSUSD, _3Crv, eursCRV, hCRV, _1INCH,

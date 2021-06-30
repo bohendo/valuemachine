@@ -214,7 +214,7 @@ export const getPrices = (params?: PricesParams): Prices => {
     const coingeckoUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/history?date=${
       `${date.split("-")[2]}-${date.split("-")[1]}-${date.split("-")[0]}`
     }`;
-    log.info(`Fetching ${unit} price of ${asset} on ${date} from ${coingeckoUrl}`);
+    log.debug(`Fetching ${unit} price of ${asset} on ${date} from ${coingeckoUrl}`);
     const attempt = async () => (await axios.get(coingeckoUrl, { timeout: 10000 })).data;
     let price;
     try {

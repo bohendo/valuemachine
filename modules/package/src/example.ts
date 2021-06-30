@@ -59,7 +59,7 @@ const transactions = getTransactions({ logger });
   }
 
   // calculate & print capital gains
-  console.log(`    Quantity |       Asset | Receive Date | Dispose Date | Capital Change (USD)`);
+  console.log(`    Quantity |        Asset | Receive Date | Dispose Date | Capital Change (USD)`);
   for (const event of vm.json.events) {
     switch(event.type) {
     case EventTypes.Trade: {
