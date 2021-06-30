@@ -43,7 +43,6 @@ export const EthereumAssets = {
   hCRV: "hCRV",
   HEGIC: "HEGIC",
   husd3CRV: "husd3CRV",
-  IDLE: "IDLE",
   idleDAI: "idleDAI",
   linkCRV: "linkCRV",
   MKR: "MKR",

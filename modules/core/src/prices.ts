@@ -28,7 +28,9 @@ import {
 } from "@valuemachine/utils";
 import axios from "axios";
 
-import * as coingeckoList from "./coingecko.json";
+import * as coingecko from "./coingecko.json";
+
+console.log(`Got coingecko list w length: ${coingecko.list.length}`);
 
 const { ETH, WETH } = Assets;
 
@@ -201,7 +203,7 @@ export const getPrices = (params?: PricesParams): Prices => {
   ): Promise<string | undefined> => {
     // derived from output of https://api.coingecko.com/api/v3/coins/list
     const unit = formatUnit(givenUnit);
-    const coinId = coingeckoList.find(entry => entry.symbol === asset).id;
+    const coinId = coingecko.list.find(entry => entry.symbol === asset.toLowerCase())?.id;
     if (!coinId) {
       log.warn(`Asset "${asset}" is not available on CoinGecko`);
       return undefined;
@@ -438,7 +440,6 @@ export const getPrices = (params?: PricesParams): Prices => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
     if (assetsAreClose(asset, unit)) return "1";
-    log.debug(`Syncing ${unit} price of ${asset} on ${date}`);
     if (!json[date]) json[date] = {};
     if (!json[date][unit]) json[date][unit] = {};
     if (!json[date][unit][asset]) {
