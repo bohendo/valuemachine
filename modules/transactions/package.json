@@ -1,6 +1,6 @@
 {
   "name": "@valuemachine/transactions",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Utilities for generating well-formatted transactions",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
@@ -24,8 +24,8 @@
     "@ethersproject/providers": "5.4.0",
     "@ethersproject/strings": "5.4.0",
     "@ethersproject/units": "5.4.0",
-    "@valuemachine/types": "0.5.1",
-    "@valuemachine/utils": "0.5.1",
+    "@valuemachine/types": "0.5.2",
+    "@valuemachine/utils": "0.5.2",
     "axios": "0.21.1",
     "csv-parse": "4.16.0"
   },
