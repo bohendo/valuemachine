@@ -49,7 +49,10 @@ export const TransactionSources = {
   ...CsvSources,
   ...EthereumSources,
 } as const;
-export const TransactionSource = Type.Enum(TransactionSources);
+export const TransactionSource = Type.Union([
+  Type.Enum(TransactionSources),
+  Type.String(), // Allow arbitrary sources in app-level code
+]);
 export type TransactionSource = Static<typeof TransactionSource>;
 
 export const TransferCategories = {
