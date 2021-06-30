@@ -179,5 +179,8 @@ export const Assets = {
   ...FiatCurrencies,
   ...EthereumAssets,
 } as const;
-export const Asset = Type.Enum(Assets);
+export const Asset = Type.Union([
+  Type.Enum(Assets),
+  Type.String(), // Allow arbitrary assets in app-level code
+]);
 export type Asset = Static<typeof Asset>
