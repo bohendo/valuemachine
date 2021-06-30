@@ -409,6 +409,27 @@ export const getPrices = (params?: PricesParams): Prices => {
     return formatPrice(price);
   };
 
+  const getNearest = (
+    rawDate: DateString,
+    asset: Asset,
+    givenUnit?: Asset,
+  ): string | undefined => {
+    const date = formatDate(rawDate);
+    const unit = formatUnit(givenUnit);
+    log.debug(`Getting ${unit} price of ${asset} on date closest to ${date}..`);
+    let price = getPrice(date, asset, givenUnit);
+    if (price) return price;
+    const diff = (d1, d2) => new Date(d1).getTime() - new Date(d2).getTime();
+    const availableDates = Object.keys(json).sort((d1, d2) => {
+      return diff(d1, date) - diff(d2, date);
+    });
+    for (const candidate of availableDates) {
+      price = getPrice(candidate, asset, givenUnit);
+      if (price) return price;
+    }
+    return undefined;
+  };
+
   const merge = (prices: PricesJson): void => {
     Object.entries(prices).forEach(([date, priceList]) => {
       Object.entries(priceList).forEach(([unit, prices]) => {
@@ -579,6 +600,7 @@ export const getPrices = (params?: PricesParams): Prices => {
 
   return {
     getPrice,
+    getNearest,
     setPrice,
     json,
     merge,

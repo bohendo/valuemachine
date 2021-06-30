@@ -5,6 +5,7 @@ import {
   Prices,
 } from "@valuemachine/types";
 import {
+  add,
   div,
   gt,
   mul,
@@ -31,6 +32,17 @@ describe("Prices", () => {
   beforeEach(() => {
     prices = getPrices({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
+  });
+
+  it("should get nearest prices", async () => {
+    const usdPerEth = "1234";
+    const plusOneDay = d => new Date(new Date(d).getTime() + (1000 * 60 * 60 * 24)).toISOString();
+    const plusOne = n => add(n, "1");
+    prices.merge({
+      [plusOneDay(date)]: { USD: { ETH: usdPerEth } },
+      [plusOneDay(plusOneDay(date))]: { USD: { ETH: plusOne(usdPerEth) } },
+    });
+    expect(round(prices.getNearest(date, ETH, USD))).to.equal(round(usdPerEth));
   });
 
   it("should calculate some prices from traded chunks", async () => {

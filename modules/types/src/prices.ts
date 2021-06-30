@@ -29,6 +29,7 @@ export type PricesParams = {
 
 export interface Prices {
   getPrice: (date: TimestampString, asset: Asset, unit?: Asset) => string | undefined;
+  getNearest: (date: TimestampString, asset: Asset, unit?: Asset) => string | undefined;
   setPrice: (price: DecimalString, rawDate: DateString, asset: Asset, givenUnit?: Asset) => void;
   json: PricesJson;
   merge: (prices: PricesJson) => void;
