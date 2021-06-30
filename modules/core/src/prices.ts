@@ -19,6 +19,7 @@ import {
   div,
   eq,
   getEmptyPrices,
+  assetsAreClose,
   getLogger,
   getPricesError,
   gt,
@@ -27,10 +28,9 @@ import {
 } from "@valuemachine/utils";
 import axios from "axios";
 
-const {
-  BAT, BCH, BTC, CHERRY, COMP, DAI, ETH, GEN, GNO, LTC, MKR, OMG,
-  REP, REPv2, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
-} = Assets;
+import * as coingeckoList from "./coingecko.json";
+
+const { ETH, WETH } = Assets;
 
 export const getPrices = (params?: PricesParams): Prices => {
   const { logger, store, json: pricesJson, unit: defaultUnit } = params || {};
@@ -40,8 +40,6 @@ export const getPrices = (params?: PricesParams): Prices => {
 
   const error = getPricesError(json);
   if (error) throw new Error(error);
-
-  const ethish = [ETH, WETH] as Asset[];
 
   log.debug(`Loaded prices for ${
     Object.keys(json).length
@@ -203,37 +201,7 @@ export const getPrices = (params?: PricesParams): Prices => {
   ): Promise<string | undefined> => {
     // derived from output of https://api.coingecko.com/api/v3/coins/list
     const unit = formatUnit(givenUnit);
-    const getCoinId = (asset: Asset): string | undefined => {
-      switch (asset) {
-      case BAT: return "basic-attention-token";
-      case BCH: return "bitcoin-cash";
-      case BTC: return "bitcoin";
-      case CHERRY: return "cherry";
-      case COMP: return "compound-governance-token";
-      case DAI: return "dai";
-      case ETH: return "ethereum";
-      case GEN: return "daostack";
-      case GNO: return "gnosis";
-      case LTC: return "litecoin";
-      case MKR: return "maker";
-      case OMG: return "omisego";
-      case REP: return "augur";
-      case REPv2: return "augur";
-      case SAI: return "sai";
-      case SNT: return "status";
-      case SNX: return "havven";
-      case SNXv1: return "havven";
-      case SPANK: return "spankchain";
-      case UNI: return "uniswap";
-      case USDC: return "usd-coin";
-      case USDT: return "tether";
-      case WBTC: return "wrapped-bitcoin";
-      case WETH: return "weth";
-      case YFI: return "yearn-finance";
-      default: return undefined;
-      }
-    };
-    const coinId = getCoinId(asset);
+    const coinId = coingeckoList.find(entry => entry.symbol === asset).id;
     if (!coinId) {
       log.warn(`Asset "${asset}" is not available on CoinGecko`);
       return undefined;
@@ -416,7 +384,7 @@ export const getPrices = (params?: PricesParams): Prices => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
     log.debug(`Getting ${unit} price of ${asset} on ${date}..`);
-    if (asset === unit || (ethish.includes(asset) && ethish.includes(unit))) return "1";
+    if (assetsAreClose(asset, unit)) return "1";
     if (json[date]?.[unit]?.[asset]) return formatPrice(json[date][unit][asset]);
     if (json[date]?.[asset]?.[unit]) return formatPrice(div("1", json[date][asset][unit]));
     const path = getPath(date, unit, asset);
@@ -469,7 +437,7 @@ export const getPrices = (params?: PricesParams): Prices => {
   ): Promise<string | undefined> => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
-    if (asset === unit || (ethish.includes(asset) && ethish.includes(unit))) return "1";
+    if (assetsAreClose(asset, unit)) return "1";
     log.debug(`Syncing ${unit} price of ${asset} on ${date}`);
     if (!json[date]) json[date] = {};
     if (!json[date][unit]) json[date][unit] = {};
