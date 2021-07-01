@@ -19,7 +19,6 @@ import { gt, getNewContractAddress } from "@valuemachine/utils";
 import { appParsers } from "./apps";
 
 const { ETH } = Assets;
-
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
 export const parseEthTx = (
@@ -38,10 +37,6 @@ export const parseEthTx = (
     : (isSelf(from) && !isSelf(to)) ? Expense
     : (isSelf(to) && !isSelf(from)) ? Income
     : Unknown;
-
-  if (!ethTx.logs) {
-    throw new Error(`Missing logs for tx ${ethTx.hash}, did fetchChainData get interrupted?`);
-  }
 
   let tx = {
     date: (new Date(ethTx.timestamp)).toISOString(),
