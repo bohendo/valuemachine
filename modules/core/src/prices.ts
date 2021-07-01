@@ -30,8 +30,6 @@ import axios from "axios";
 
 import * as coingecko from "./coingecko.json";
 
-console.log(`Got coingecko list w length: ${coingecko.list.length}`);
-
 const { ETH, WETH } = Assets;
 
 export const getPrices = (params?: PricesParams): Prices => {
