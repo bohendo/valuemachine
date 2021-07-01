@@ -13,7 +13,10 @@ export const StoreKeys = {
   Transactions: "Transactions",
   ValueMachine: "ValueMachine",
 } as const;
-export const StoreKey = Type.Enum(StoreKeys);
+export const StoreKey = Type.Union([
+  Type.String(),
+  Type.Enum(StoreKeys),
+]);
 export type StoreKey = Static<typeof StoreKey>;
 
 interface StoreTypeMap {
