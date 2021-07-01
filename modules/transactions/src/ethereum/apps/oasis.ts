@@ -97,7 +97,7 @@ export const oasisParser = (
   for (const txLog of ethTx.logs) {
     const address = txLog.address;
     if (machineAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+      tx.sources = rmDups([source, ...tx.sources]);
       const event = parseEvent(oasisInterface, txLog);
 
       if (event.name === "LogTake") {

@@ -220,13 +220,13 @@ export const makerParser = (
   const ethish = [WETH, ETH, PETH] as Asset[];
 
   if (machineAddresses.some(e => e.address === ethTx.to)) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+    tx.sources = rmDups([source, ...tx.sources]);
   }
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
   if (ethTx.to === migrationAddress) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+    tx.sources = rmDups([source, ...tx.sources]);
     const swapOut = tx.transfers.find(t => t.asset === SAI);
     const swapIn = tx.transfers.find(t => t.asset === DAI);
     if (swapOut) {
@@ -253,7 +253,7 @@ export const makerParser = (
     const address = txLog.address;
     const index = txLog.index || 1;
     if (machineAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+      tx.sources = rmDups([source, ...tx.sources]);
     }
     if (tokenAddresses.some(e => e.address === address)) {
       const asset = getName(address) as Asset;

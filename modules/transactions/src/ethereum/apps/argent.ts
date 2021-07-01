@@ -66,7 +66,7 @@ export const argentParser = (
   const { getName, isSelf } = addressBook;
 
   if (relayerAddresses.some(entry => ethTx.from === entry.address)) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+    tx.sources = rmDups([source, ...tx.sources]);
   }
 
   for (const txLog of ethTx.logs) {
@@ -78,7 +78,7 @@ export const argentParser = (
       if (!isSelf(event.args.wallet)) {
         log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);
       }
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+      tx.sources = rmDups([source, ...tx.sources]);
 
       if (event.name === "TokenConverted") {
         const { destAmount, destToken, srcAmount, srcToken } = event.args;

@@ -222,7 +222,7 @@ export const uniswapParser = (
   )) {
     const address = txLog.address;
     const index = txLog.index || 1;
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+    tx.sources = rmDups([source, ...tx.sources]);
 
     // Parse events
     let subsrc, event;

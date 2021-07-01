@@ -109,7 +109,7 @@ export const erc20Parser = (
     if (isToken(address)) {
       const event = parseEvent(erc20Interface, txLog);
       if (!event.name) continue;
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+      tx.sources = rmDups([source, ...tx.sources]);
       const asset = getName(address) as Asset;
       // Skip transfers that don't concern self accounts
       if (!isSelf(event.args.from) && !isSelf(event.args.to)) {

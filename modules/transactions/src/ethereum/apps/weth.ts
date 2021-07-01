@@ -69,7 +69,7 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${source} ${event.name} of amount ${amount}`);
         }
-        tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+        tx.sources = rmDups([source, ...tx.sources]);
         tx.transfers.push({
           asset,
           category: SwapIn,
@@ -107,7 +107,7 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${source} ${event.name} of amount ${amount}`);
         }
-        tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+        tx.sources = rmDups([source, ...tx.sources]);
         tx.transfers.push({
           asset,
           category: SwapOut,

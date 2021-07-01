@@ -121,7 +121,7 @@ export const tornadoParser = (
   });
 
   if (isTornadoTx) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+    tx.sources = rmDups([source, ...tx.sources]);
   }
 
   // log.debug(tx, `Done parsing ${source}`);

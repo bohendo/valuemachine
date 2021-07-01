@@ -76,7 +76,7 @@ export const etherdeltaParser = (
         log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);
         continue;
       }
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+      tx.sources = rmDups([source, ...tx.sources]);
       const account = `${source}-${user.toLowerCase().substring(0, 8)}`;
       const exchange = `${source}-exchange`;
 

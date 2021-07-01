@@ -76,7 +76,7 @@ export const idleParser = (
     const address = txLog.address;
 
     if (idleV1Addresses.some(idleToken => idleToken.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+      tx.sources = rmDups([source, ...tx.sources]);
       const idleTransfer = tx.transfers.find(t => t.asset === getName(address));
       if (!idleTransfer) {
         log.warn(`Can't find a transfer for ${getName(address)}`);

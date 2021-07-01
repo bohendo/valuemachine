@@ -152,13 +152,13 @@ export const compoundParser = (
   };
 
   if (compoundAddresses.some(e => e.address === ethTx.to)) {
-    tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+    tx.sources = rmDups([source, ...tx.sources]);
   }
 
   for (const txLog of ethTx.logs) {
     const address = txLog.address;
     if (compoundAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]) as TransactionSource[];
+      tx.sources = rmDups([source, ...tx.sources]);
     }
 
     ////////////////////////////////////////

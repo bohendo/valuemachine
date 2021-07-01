@@ -113,7 +113,7 @@ export const mergeTransaction = (
       // use external date so we can detect external dups more easily later
       date: externalTx.date,
       // merge sources
-      sources: rmDups([...externalTx.sources, ...newTx.sources]) as TransactionSource[],
+      sources: rmDups([...externalTx.sources, ...newTx.sources]),
     };
     ethTransfer.category = externalTransfer.category;
     if (ethTransfer.category === Deposit) {
@@ -194,7 +194,7 @@ export const mergeTransaction = (
       // use external date so we can detect external dups more easily later
       date: newTx.date,
       // merge sources
-      sources: rmDups([...ethTx.sources, ...newTx.sources]) as TransactionSource[],
+      sources: rmDups([...ethTx.sources, ...newTx.sources]),
     };
     ethTransfer.category = extTransfer.category;
     if (ethTransfer.category === Deposit) {
