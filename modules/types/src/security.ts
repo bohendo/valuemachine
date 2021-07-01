@@ -26,5 +26,8 @@ export const SecurityProviders = {
   ...PhysicalGuardians,
   None: "None",
 } as const;
-export const SecurityProvider = Type.Enum(SecurityProviders);
+export const SecurityProvider = Type.Union([
+  Type.String(),
+  Type.Enum(SecurityProviders),
+]);
 export type SecurityProvider = Static<typeof SecurityProvider>;
