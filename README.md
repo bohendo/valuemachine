@@ -5,6 +5,8 @@ The value machine is a set of tools for in-depth analysis of an individual's fin
 
 These tools are **jurisdiction-neutral** ie there is zero business logic that is specific to any country's particular tax system.
 
+## Example Usage
+
 To calculate the capital gains & losses for an eth address:
 
 ```typescript
@@ -99,4 +101,25 @@ const addressBook = getAddressBook({ json: addressBookJson, logger });
   }
 
 })();
+```
+
+## Address Categories
+
+The most important distinction between accounts
+
+## Transfer Categories
+
+```
+export const TransferCategories = {
+  Internal: "Internal", // generic self -> self transfer
+  Deposit: "Deposit", // self chain-address account (eg `0xabc123`) -> self abstract account (eg `Maker-CDP-123`)
+  Withdraw: "Withdraw", // self abstract account -> self chain-address account
+  Income: "Income", // external -> self account
+  Expense: "Expense", // self account -> external
+  SwapIn: "SwapIn", // external -> self account (vm pairs these w SwapOut transfers to detect trades)
+  SwapOut: "SwapOut", // self account -> external (paired with SwapIn transfers)
+  Borrow: "Borrow", // external -> self account (vm also creates equal & opposite debt for the receiving account)
+  Repay: "Repay", // self account -> external (vm also annihilates an equal amount of debt)
+  Unknown: "Unknown", // error: given the address book we should at least be able to sort into income/expense/internal
+} as const;
 ```
