@@ -500,8 +500,8 @@ export const getPrices = (params?: PricesParams): Prices => {
         if (chunk.disposeDate && chunk.outputs?.length) {
           dates.push(chunk.disposeDate);
         }
-        if (chunk.receiveDate && chunk.inputs?.length) {
-          dates.push(chunk.receiveDate);
+        if (chunk.history[0]?.date && chunk.inputs?.length) {
+          dates.push(chunk.history[0]?.date);
         }
         return Array.from(new Set(dates));
       }, []).sort(chrono)
@@ -517,7 +517,7 @@ export const getPrices = (params?: PricesParams): Prices => {
           return output;
         }, {}),
         in: chunks.reduce((input, chunk) => {
-          if (chunk.receiveDate === date && chunk.inputs?.length) {
+          if (chunk.history[0]?.date === date && chunk.inputs?.length) {
             input[chunk.asset] = input[chunk.asset] || "0";
             input[chunk.asset] = add(input[chunk.asset], chunk.quantity);
           }
@@ -582,9 +582,9 @@ export const getPrices = (params?: PricesParams): Prices => {
     log.info(chunkPrices, "Merged new prices");
 
     for (const chunk of chunks) {
-      const { asset, receiveDate, disposeDate } = chunk;
+      const { asset, history, disposeDate } = chunk;
       if (unit === asset) continue;
-      for (const rawDate of [receiveDate, disposeDate]) {
+      for (const rawDate of [history[0]?.date, disposeDate]) {
         const date = rawDate ? formatDate(rawDate) : null;
         if (!date) continue;
         chunkPrices[date] = chunkPrices[date] || {};

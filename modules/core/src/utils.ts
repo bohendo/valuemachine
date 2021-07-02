@@ -27,7 +27,7 @@ const sumChunks = (chunks: Array<AssetChunk | ChunkIndex>) => {
 
 export const describeChunk = (chunk: AssetChunk): string => {
   return `Chunk ${chunk.index}: ${round(chunk.quantity)} ${chunk.asset} held from ${
-    toDate(chunk.receiveDate)
+    toDate(chunk.history[0].date)
   } - ${toDate(chunk.disposeDate) || "present"}`;
 };
 

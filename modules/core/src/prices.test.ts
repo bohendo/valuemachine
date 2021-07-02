@@ -50,7 +50,7 @@ describe("Prices", () => {
     await prices.syncChunks([
       {
         asset: ETH,
-        receiveDate: getDate(1),
+        history: [{ date: getDate(1), guard: ETH }],
         disposeDate: getDate(2),
         quantity: amts[0],
         index: 0,
@@ -59,7 +59,7 @@ describe("Prices", () => {
       },
       {
         asset: UNI,
-        receiveDate: getDate(2),
+        history: [{ date: getDate(2), guard: ETH }],
         disposeDate: getDate(3),
         quantity: amts[1],
         index: 1,
@@ -68,7 +68,7 @@ describe("Prices", () => {
       },
       {
         asset: ETH,
-        receiveDate: getDate(3),
+        history: [{ date: getDate(3), guard: ETH }],
         disposeDate: getDate(4),
         quantity: amts[2],
         index: 2,

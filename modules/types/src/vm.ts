@@ -17,7 +17,11 @@ export type ChunkIndex = Static<typeof ChunkIndex>;
 export const AssetChunk = Type.Object({
   asset: Asset,
   quantity: DecimalString,
-  receiveDate: TimestampString,
+  // receiveDate = history[0].date
+  history: Type.Array(Type.Object({
+    date: TimestampString,
+    guard: SecurityProvider,
+  })),
   disposeDate: Type.Optional(TimestampString), // undefined if we still own this chunk
   unsecured: Type.Optional(DecimalString), // should always be <= quantity but it isn't
   account: Type.Optional(Account), // undefined if we no longer own this chunk

@@ -126,7 +126,10 @@ export const getValueMachine = ({
       account,
       index: json.chunks.length,
       inputs: [],
-      receiveDate: json.date,
+      history: [{
+        date: json.date,
+        guard: addressBook.getGuardian(account),
+      }],
       unsecured: isPhysicallyGuarded(account) ? "0" : quantity,
     };
     json.chunks.push(newChunk);
@@ -151,7 +154,7 @@ export const getValueMachine = ({
       quantity: amtNeeded,
       index: json.chunks.length,
     }));
-    json.chunks.push(newChunk); // not minting bc we want to keep receiveDate the same
+    json.chunks.push(newChunk);
     oldChunk.quantity = leftover;
     log.debug(`Split ${asset} chunk of ${total} into ${amtNeeded} and ${leftover}`);
     // Add the new chunk's index alongside the old one anywhere it was referenced
@@ -397,7 +400,7 @@ export const getValueMachine = ({
   const moveValue = (quantity: DecimalString, asset: Asset, from: Account, to: Account): void => {
     const toMove = getChunks(quantity, asset, from);
     toMove.forEach(chunk => { chunk.account = to; });
-    if (isPhysicallyGuarded(to) && !isPhysicallyGuarded(from)) {
+    if (addressBook.getGuardian(to) !== addressBook.getGuardian(from)) {
       // Handle jurisdiction change
       const oldGuard = addressBook.getGuardian(from);
       const newGuard = addressBook.getGuardian(to);

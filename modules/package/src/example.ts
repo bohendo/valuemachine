@@ -51,8 +51,8 @@ const transactions = getTransactions({ logger });
   const unit = "USD";
   const prices = getPrices({ logger, store, unit });
   for (const chunk of vm.json.chunks) {
-    const { asset, receiveDate, disposeDate } = chunk;
-    for (const date of [receiveDate, disposeDate]) {
+    const { asset, history, disposeDate } = chunk;
+    for (const date of [history[0]?.date, disposeDate]) {
       if (!date) continue;
       await prices.syncPrice(date, asset);
     }
@@ -65,7 +65,7 @@ const transactions = getTransactions({ logger });
     case EventTypes.Trade: {
       event.outputs.forEach(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const takePrice = prices.getNearest(chunk.receiveDate, chunk.asset);
+        const takePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset);
         const givePrice = prices.getNearest(chunk.disposeDate, chunk.asset);
         if (!takePrice || !givePrice) return;
         const change = mul(chunk.quantity, sub(givePrice, takePrice));
@@ -74,7 +74,7 @@ const transactions = getTransactions({ logger });
         } | ${
           chunk.asset.padStart(12, " ")
         } | ${
-          chunk.receiveDate.split("T")[0].padStart(12, " ")
+          chunk.history[0]?.date.split("T")[0].padStart(12, " ")
         } | ${
           chunk.disposeDate.split("T")[0].padStart(12, " ")
         } | ${

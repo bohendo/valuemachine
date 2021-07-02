@@ -20,11 +20,10 @@ import {
 } from "./testUtils";
 
 const { ETH, UniV2_UNI_ETH, UNI, USD } = Assets;
-const { Deposit, Expense, Income, SwapIn, SwapOut } = TransferCategories;
+const { Deposit, Withdraw, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Coinbase } = TransactionSources;
-const log = testLogger.child({
+const log = testLogger.child({ module: "TestVM",
   // level: "debug",
-  module: "TestVM",
 });
 
 const ethAccount = AddressOne;
@@ -42,6 +41,32 @@ describe("VM", () => {
     expect(Object.keys(prices.json).length).to.equal(0);
     vm = getValueMachine({ addressBook, logger: log });
     expect(vm).to.be.ok;
+  });
+
+  it("should process a jurisdiction change", async () => {
+    const transactions = [
+      getTx([
+        { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
+      ]), getTx([
+        { asset: ETH, category: Deposit, from: ethAccount, quantity: "5.00", to: usdAccount },
+      ]), getTx([
+        { asset: ETH, category: Withdraw, from: usdAccount, quantity: "5.00", to: ethAccount },
+      ]),
+    ];
+    const start = Date.now();
+    for (const transaction of transactions) {
+      const newEvents = vm.execute(transaction);
+      log.debug(vm.getNetWorth(), "new portfolio");
+      log.debug(newEvents, "new events");
+    }
+    log.info(`Done processing ${transactions.length} transactions at a rate of ${
+      Math.round(transactions.length * 10000/(Date.now() - start))/10
+    } tx/s`);
+    log.info(vm.json.events, `All events`);
+    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.JurisdictionChange);
+    expect(vm.json.events[2]?.type).to.equal(EventTypes.JurisdictionChange);
+    expect(vm.json.events[2]?.newBalances?.[ETH]).to.equal("10.0");
   });
 
   it("should process several incomes and then a trade", async () => {
