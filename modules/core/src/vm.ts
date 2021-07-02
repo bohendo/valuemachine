@@ -130,7 +130,6 @@ export const getValueMachine = ({
         date: json.date,
         guard: addressBook.getGuard(account),
       }],
-      unsecured: isPhysicallyGuarded(account) ? "0" : quantity,
     };
     json.chunks.push(newChunk);
     return newChunk;

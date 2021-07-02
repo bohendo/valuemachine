@@ -23,7 +23,6 @@ export const AssetChunk = Type.Object({
     guard: Guard,
   })),
   disposeDate: Type.Optional(TimestampString), // undefined if we still own this chunk
-  unsecured: Type.Optional(DecimalString), // should always be <= quantity but it isn't
   account: Type.Optional(Account), // undefined if we no longer own this chunk
   index: ChunkIndex, // used as a unique identifier, should never change
   inputs: Type.Array(ChunkIndex), // source chunks traded for this one
