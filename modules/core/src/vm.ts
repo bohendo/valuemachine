@@ -9,7 +9,7 @@ import {
   EventTypes,
   HydratedAssetChunk,
   HydratedEvent,
-  PhysicalGuardians,
+  PhysicalGuards,
   StoreKeys,
   TradeEvent,
   Transaction,
@@ -64,7 +64,7 @@ export const getValueMachine = ({
   const fromIndex = (chunkIndex: ChunkIndex): AssetChunk => json.chunks[chunkIndex];
 
   const isPhysicallyGuarded = (account) => 
-    Object.keys(PhysicalGuardians).includes(addressBook.getGuardian(account));
+    Object.keys(PhysicalGuards).includes(addressBook.getGuard(account));
 
   const isHeld = (account: Account, asset: Asset) => (chunk: AssetChunk): boolean =>
     chunk.account === account && chunk.asset === asset;
@@ -128,7 +128,7 @@ export const getValueMachine = ({
       inputs: [],
       history: [{
         date: json.date,
-        guard: addressBook.getGuardian(account),
+        guard: addressBook.getGuard(account),
       }],
       unsecured: isPhysicallyGuarded(account) ? "0" : quantity,
     };
@@ -400,10 +400,10 @@ export const getValueMachine = ({
   const moveValue = (quantity: DecimalString, asset: Asset, from: Account, to: Account): void => {
     const toMove = getChunks(quantity, asset, from);
     toMove.forEach(chunk => { chunk.account = to; });
-    if (addressBook.getGuardian(to) !== addressBook.getGuardian(from)) {
+    if (addressBook.getGuard(to) !== addressBook.getGuard(from)) {
       // Handle jurisdiction change
-      const oldGuard = addressBook.getGuardian(from);
-      const newGuard = addressBook.getGuardian(to);
+      const oldGuard = addressBook.getGuard(from);
+      const newGuard = addressBook.getGuard(to);
       newEvents.push({
         date: json.date,
         index: json.events.length + newEvents.length,

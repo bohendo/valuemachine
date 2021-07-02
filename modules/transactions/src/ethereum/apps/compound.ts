@@ -10,7 +10,6 @@ import {
   Logger,
   Transaction,
   TransactionSources,
-  TransactionSource,
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";

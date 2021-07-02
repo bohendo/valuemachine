@@ -11,8 +11,8 @@ import {
   jurisdictions,
   PrivateCategories,
   PublicCategories,
-  SecurityProvider,
-  SecurityProviders,
+  Guard,
+  Guards,
   StoreKeys,
 } from "@valuemachine/types";
 import {
@@ -94,16 +94,16 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     return address;
   };
 
-  const getGuardian = (account: Account): SecurityProvider => {
-    if (!account) return SecurityProviders.None;
-    const guardian = getEntry(account)?.guardian;
-    if (guardian) return guardian;
+  const getGuard = (account: Account): Guard => {
+    if (!account) return Guards.None;
+    const guard = getEntry(account)?.guard;
+    if (guard) return guard;
     const source = account.split("-")[0];
     if (Object.keys(EthereumSources).includes(source)) {
-      return SecurityProviders.ETH;
+      return Guards.ETH;
     }
     return jurisdictions[source]
-      || (Object.keys(SecurityProviders).includes(source) ? source : SecurityProviders.None);
+      || (Object.keys(Guards).includes(source) ? source : Guards.None);
   };
 
   // Only really useful for ERC20 addresses
@@ -113,7 +113,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   return {
     addresses,
     getName,
-    getGuardian,
+    getGuard,
     getDecimals,
     isCategory,
     isPublic,

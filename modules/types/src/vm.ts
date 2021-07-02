@@ -4,7 +4,7 @@ import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { SecurityProvider } from "./security";
+import { Guard } from "./guards";
 import { Account, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
 
@@ -20,7 +20,7 @@ export const AssetChunk = Type.Object({
   // receiveDate = history[0].date
   history: Type.Array(Type.Object({
     date: TimestampString,
-    guard: SecurityProvider,
+    guard: Guard,
   })),
   disposeDate: Type.Optional(TimestampString), // undefined if we still own this chunk
   unsecured: Type.Optional(DecimalString), // should always be <= quantity but it isn't
@@ -99,10 +99,10 @@ export type IncomeEvent = Static<typeof IncomeEvent>;
 export const JurisdictionChangeEvent = Type.Intersect([
   BaseEvent,
   Type.Object({
-    fromJurisdiction: SecurityProvider,
+    fromJurisdiction: Guard,
     from: Account,
     to: Account,
-    toJurisdiction: SecurityProvider,
+    toJurisdiction: Guard,
     chunks: Type.Array(ChunkIndex),
     insecurePath: Type.Array(ChunkIndex),
     type: Type.Literal(EventTypes.JurisdictionChange),

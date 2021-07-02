@@ -1,14 +1,14 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { PhysicalGuardians, DigitalGuardians } from "./security";
+import { PhysicalGuards, DigitalGuards } from "./guards";
 
 // All physical security providers have an associated fiat currency
-export const FiatCurrencies = { ...PhysicalGuardians } as const;
+export const FiatCurrencies = { ...PhysicalGuards } as const;
 export const FiatCurrency = Type.Enum(FiatCurrencies);
 export type FiatCurrency = Static<typeof FiatCurrency>;
 
 // All digital security providers have an associated native cryptocurrency
-export const Cryptocurrencies = { ...DigitalGuardians } as const;
+export const Cryptocurrencies = { ...DigitalGuards } as const;
 export const Cryptocurrency = Type.Enum(Cryptocurrencies);
 export type Cryptocurrency = Static<typeof Cryptocurrency>;
 

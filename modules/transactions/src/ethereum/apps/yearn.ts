@@ -153,7 +153,7 @@ const yVaultV2Interface = new Interface([
   "event UpdateDepositLimit(uint256 depositLimit)",
   "event UpdatePerformanceFee(uint256 performanceFee)",
   "event UpdateManagementFee(uint256 managementFee)",
-  "event UpdateGuardian(address guardian)",
+  "event UpdateGuardian(address guard)",
   "event EmergencyShutdown(bool active)",
   "event UpdateWithdrawalQueue(address[20] queue)",
   "event StrategyUpdateDebtRatio(address indexed strategy, uint256 debtRatio)",

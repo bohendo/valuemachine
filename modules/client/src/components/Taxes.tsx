@@ -26,7 +26,7 @@ import {
   DecimalString,
   EventTypes,
   Prices,
-  SecurityProviders,
+  Guards,
   TransferCategories,
   ValueMachine,
 } from "@valuemachine/types";
@@ -135,8 +135,8 @@ export const TaxesExplorer = ({
       .filter(e => e.type === EventTypes.Trade || (
         e.type === EventTypes.Transfer && e.category === TransferCategories.Income
       )).reduce((all, cur) => {
-        const jur = addressBook.getGuardian(cur.to || cur.account || "");
-        if (Object.keys(SecurityProviders).includes(jur)) {
+        const jur = addressBook.getGuard(cur.to || cur.account || "");
+        if (Object.keys(Guards).includes(jur)) {
           all.add(jur);
         }
         return all;
@@ -152,7 +152,7 @@ export const TaxesExplorer = ({
     let cumulativeChange = "0";
     setTaxes(
       vm?.json?.events.filter(evt => {
-        const toJur = addressBook.getGuardian(evt.to || evt.account || "");
+        const toJur = addressBook.getGuard(evt.to || evt.account || "");
         return toJur === jurisdiction && (
           evt.type === EventTypes.Trade
           || evt.type === EventTypes.JurisdictionChange
@@ -163,8 +163,8 @@ export const TaxesExplorer = ({
           return output.concat(...evt.outputs?.map(chunk => {
             const price = prices.getPrice(evt.date, chunk.asset);
             const value = mul(chunk.quantity, price);
-            if (chunk.receiveDate) {
-              const receivePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
+            if (chunk.history[0]?.date) {
+              const receivePrice = prices.getPrice(chunk.history[0]?.date, chunk.asset);
               const capitalChange = mul(chunk.quantity, sub(price, receivePrice));
               cumulativeChange = add(cumulativeChange, capitalChange);
               return {
@@ -357,7 +357,7 @@ export const TaxesExplorer = ({
                     <TableCell> {`${fmtNum(row.amount)} ${row.asset}`} </TableCell>
                     <TableCell> {fmtNum(row.price)} </TableCell>
                     <TableCell> {fmtNum(row.value)} </TableCell>
-                    <TableCell> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
+                    <TableCell> {row.history[0]?.date.replace("T", " ").replace(".000Z", "")} </TableCell>
                     <TableCell> {fmtNum(row.receivePrice)} </TableCell>
                     <TableCell> {fmtNum(row.capitalChange)} </TableCell>
                     <TableCell> {fmtNum(row.cumulativeChange)} </TableCell>

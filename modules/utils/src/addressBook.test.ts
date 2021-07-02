@@ -1,5 +1,5 @@
 import { AddressZero } from "@ethersproject/constants";
-import { AddressCategories, SecurityProviders } from "@valuemachine/types";
+import { AddressCategories, Guards } from "@valuemachine/types";
 
 import { getAddressBookError } from "./addressBook";
 import { expect } from "./testUtils";
@@ -8,7 +8,7 @@ const validAddressBookEntry = {
   address: AddressZero,
   name: "zero",
   decimals: 0,
-  guardian: SecurityProviders.ETH,
+  guard: Guards.ETH,
   category: AddressCategories.Burn,
 };
 

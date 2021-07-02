@@ -35,7 +35,7 @@ import {
   AddressCategories,
   AddressEntry,
   AddressBookJson,
-  SecurityProviders,
+  Guards,
 } from "@valuemachine/types";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
@@ -162,7 +162,7 @@ const EditEntry = ({
     } else if (
       newEntry.address !== entry.address ||
       newEntry.category !== entry.category ||
-      newEntry.guardian !== entry.guardian ||
+      newEntry.guard !== entry.guard ||
       newEntry.name !== entry.name
     ) {
       setEntryModified(true);
@@ -227,15 +227,15 @@ const EditEntry = ({
 
         <Grid item md={4}>
           <FormControl className={classes.select}>
-            <InputLabel id="select-new-guardian">Guardian</InputLabel>
+            <InputLabel id="select-new-guard">Guard</InputLabel>
             <Select
-              labelId={`select-${entry?.address}-guardian`}
-              id={`select-${entry?.address}-guardian`}
-              name="guardian"
-              value={newEntry?.guardian || SecurityProviders.ETH}
+              labelId={`select-${entry?.address}-guard`}
+              id={`select-${entry?.address}-guard`}
+              name="guard"
+              value={newEntry?.guard || Guards.ETH}
               onChange={handleEntryChange}
             >
-              {Object.keys(SecurityProviders).map((cat, i) => (
+              {Object.keys(Guards).map((cat, i) => (
                 <MenuItem key={i} value={cat}>{cat}</MenuItem>
               ))}
             </Select>
@@ -324,7 +324,7 @@ const AddressRow = ({
       <TableRow>
         <TableCell> {entry.name} </TableCell>
         <TableCell> {entry.category} </TableCell>
-        <TableCell> {entry.guardian || SecurityProviders.None} </TableCell>
+        <TableCell> {entry.guard || Guards.None} </TableCell>
         <TableCell> <HexString value={entry.address}/> </TableCell>
         <TableCell>
           <IconButton color="secondary" onClick={toggleEditMode}>
@@ -383,7 +383,7 @@ const AddressRow = ({
 const getEmptyEntry = (): AddressEntry => ({
   address: "",
   category: AddressCategories.Self,
-  guardian: SecurityProviders.ETH,
+  guard: Guards.ETH,
   name: "",
 });
 
@@ -749,7 +749,7 @@ export const AddressBookManager = ({
               <TableRow>
                 <TableCell><strong> Account name </strong></TableCell>
                 <TableCell><strong> Category </strong></TableCell>
-                <TableCell><strong> Guardian </strong></TableCell>
+                <TableCell><strong> Guard </strong></TableCell>
                 <TableCell><strong> Eth Address </strong></TableCell>
                 <TableCell><strong> Edit </strong></TableCell>
                 <TableCell><strong> Sync </strong></TableCell>

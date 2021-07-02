@@ -3,7 +3,7 @@ import {
   AddressBookJson,
   AddressCategory,
   AddressEntry,
-  SecurityProviders,
+  Guards,
 } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
@@ -36,8 +36,8 @@ export const fmtAddress = (address: string) =>
 
 export const fmtAddressEntry = (entry: AddressEntry): AddressEntry => {
   entry.address = fmtAddress(entry.address);
-  entry.guardian = entry.guardian || (
-    isEthAddress(entry.address) ? SecurityProviders.ETH : SecurityProviders.None
+  entry.guard = entry.guard || (
+    isEthAddress(entry.address) ? Guards.ETH : Guards.None
   );
   const error = getAddressEntryError(entry);
   if (error) throw new Error(error);

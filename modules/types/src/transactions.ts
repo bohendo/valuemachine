@@ -4,7 +4,7 @@ import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
 import { EthTransaction } from "./chainData";
 import { Logger } from "./logger";
-import { SecurityProviders } from "./security";
+import { Guards } from "./guards";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
 
@@ -20,12 +20,12 @@ export const CsvSources = {
 export const CsvSource = Type.Enum(CsvSources);
 export type CsvSource = Static<typeof CsvSource>;
 
-// Set default guardians for external sources
+// Set default guards for external sources
 export const jurisdictions = {
-  [CsvSources.Coinbase]: SecurityProviders.USD,
-  [CsvSources.DigitalOcean]: SecurityProviders.USD,
-  [CsvSources.Wyre]: SecurityProviders.USD,
-  [CsvSources.Wazirx]: SecurityProviders.INR,
+  [CsvSources.Coinbase]: Guards.USD,
+  [CsvSources.DigitalOcean]: Guards.USD,
+  [CsvSources.Wyre]: Guards.USD,
+  [CsvSources.Wazirx]: Guards.INR,
 };
 
 export const EthereumSources = {
