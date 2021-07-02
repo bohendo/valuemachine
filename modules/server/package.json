@@ -15,10 +15,10 @@
   "dependencies": {
     "@ethersproject/address": "5.4.0",
     "@ethersproject/bytes": "5.4.0",
-    "@valuemachine/core": "0.5.3",
-    "@valuemachine/transactions": "0.5.3",
-    "@valuemachine/types": "0.5.3",
-    "@valuemachine/utils": "0.5.3",
+    "@valuemachine/core": "0.6.0",
+    "@valuemachine/transactions": "0.6.0",
+    "@valuemachine/types": "0.6.0",
+    "@valuemachine/utils": "0.6.0",
     "axios": "0.21.1",
     "express": "4.17.1",
     "nodemon": "2.0.9"
