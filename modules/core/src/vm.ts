@@ -9,7 +9,6 @@ import {
   EventTypes,
   HydratedAssetChunk,
   HydratedEvent,
-  PhysicalGuards,
   StoreKeys,
   TradeEvent,
   Transaction,
@@ -62,9 +61,6 @@ export const getValueMachine = ({
 
   const toIndex = (chunk: AssetChunk): ChunkIndex => chunk.index;
   const fromIndex = (chunkIndex: ChunkIndex): AssetChunk => json.chunks[chunkIndex];
-
-  const isPhysicallyGuarded = (account) => 
-    Object.keys(PhysicalGuards).includes(addressBook.getGuard(account));
 
   const isHeld = (account: Account, asset: Asset) => (chunk: AssetChunk): boolean =>
     chunk.account === account && chunk.asset === asset;
