@@ -8,7 +8,7 @@ import {
   AddressCategories,
   AddressCategory,
   EthereumSources,
-  jurisdictions,
+  guards,
   PrivateCategories,
   PublicCategories,
   Guard,
@@ -102,7 +102,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     if (Object.keys(EthereumSources).includes(source)) {
       return Guards.ETH;
     }
-    return jurisdictions[source]
+    return guards[source]
       || (Object.keys(Guards).includes(source) ? source : Guards.None);
   };
 

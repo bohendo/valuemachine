@@ -38,7 +38,7 @@ export const Balances = Type.Dict(DecimalString);
 export type Balances = Static<typeof Balances>;
 
 export const EventTypes = {
-  JurisdictionChange: "JurisdictionChange",
+  GuardChange: "GuardChange",
   Trade: "Trade",
   Income: "Income",
   Expense: "Expense",
@@ -96,25 +96,25 @@ export const IncomeEvent = Type.Intersect([
 ]);
 export type IncomeEvent = Static<typeof IncomeEvent>;
 
-export const JurisdictionChangeEvent = Type.Intersect([
+export const GuardChangeEvent = Type.Intersect([
   BaseEvent,
   Type.Object({
-    fromJurisdiction: Guard,
+    fromGuard: Guard,
     from: Account,
     to: Account,
-    toJurisdiction: Guard,
+    toGuard: Guard,
     chunks: Type.Array(ChunkIndex),
     insecurePath: Type.Array(ChunkIndex),
-    type: Type.Literal(EventTypes.JurisdictionChange),
+    type: Type.Literal(EventTypes.GuardChange),
   }),
 ]);
-export type JurisdictionChangeEvent = Static<typeof JurisdictionChangeEvent>;
+export type GuardChangeEvent = Static<typeof GuardChangeEvent>;
 
 export const Event = Type.Union([
   DebtEvent,
   ExpenseEvent,
   IncomeEvent,
-  JurisdictionChangeEvent,
+  GuardChangeEvent,
   TradeEvent,
 ]);
 export type Event = Static<typeof Event>;
@@ -168,20 +168,20 @@ export const HydratedExpenseEvent = Type.Intersect([
 ]);
 export type HydratedExpenseEvent = Static<typeof HydratedExpenseEvent>;
 
-export const HydratedJurisdictionChangeEvent = Type.Intersect([
-  JurisdictionChangeEvent,
+export const HydratedGuardChangeEvent = Type.Intersect([
+  GuardChangeEvent,
   Type.Object({
     chunks: AssetChunks,
     insecurePath: AssetChunks,
   }),
 ]);
-export type HydratedJurisdictionChangeEvent = Static<typeof HydratedJurisdictionChangeEvent>;
+export type HydratedGuardChangeEvent = Static<typeof HydratedGuardChangeEvent>;
 
 export const HydratedEvent = Type.Union([
   DebtEvent,
   ExpenseEvent,
   IncomeEvent,
-  JurisdictionChangeEvent,
+  GuardChangeEvent,
   TradeEvent,
 ]);
 export type HydratedEvent = Static<typeof HydratedEvent>;

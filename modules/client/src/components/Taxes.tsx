@@ -96,17 +96,17 @@ export const TaxesExplorer = ({
   const classes = useStyles();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
-  const [allJurisdictions, setAllJurisdictions] = useState([]);
-  const [jurisdiction, setJurisdiction] = React.useState(0);
+  const [allGuards, setAllGuards] = useState([]);
+  const [guard, setGuard] = React.useState(0);
   const [taxes, setTaxes] = React.useState([] as TaxRow[]);
   const [fromDate, setFromDate] = React.useState("");
   const [toDate, setToDate] = React.useState("");
 
   const fmtNum = num => {
-    const round = defaultRound(num, jurisdiction === ETH ? 4 : 2);
+    const round = defaultRound(num, guard === ETH ? 4 : 2);
     const insert = (str: string, index: number, char: string = ",") =>
       str.substring(0, index) + char + str.substring(index);
-    if (jurisdiction === Assets.INR) {
+    if (guard === Assets.INR) {
       const neg = round.startsWith("-") ? "-" : "";
       const [int, dec] = round.replace("-", "").split(".");
       const len = int.length;
@@ -131,7 +131,7 @@ export const TaxesExplorer = ({
 
   useEffect(() => {
     if (!addressBook || !vm?.json?.events?.length) return;
-    const newJurisdictions = Array.from(vm.json.events
+    const newGuards = Array.from(vm.json.events
       .filter(e => e.type === EventTypes.Trade || (
         e.type === EventTypes.Transfer && e.category === TransferCategories.Income
       )).reduce((all, cur) => {
@@ -142,20 +142,20 @@ export const TaxesExplorer = ({
         return all;
       }, new Set())
     ).sort();
-    setAllJurisdictions(newJurisdictions);
-    setJurisdiction(newJurisdictions[0]);
+    setAllGuards(newGuards);
+    setGuard(newGuards[0]);
   }, [addressBook, vm]);
 
   useEffect(() => {
-    if (!addressBook || !jurisdiction || !vm?.json?.events?.length) return;
+    if (!addressBook || !guard || !vm?.json?.events?.length) return;
     let cumulativeIncome = "0";
     let cumulativeChange = "0";
     setTaxes(
       vm?.json?.events.filter(evt => {
         const toJur = addressBook.getGuard(evt.to || evt.account || "");
-        return toJur === jurisdiction && (
+        return toJur === guard && (
           evt.type === EventTypes.Trade
-          || evt.type === EventTypes.JurisdictionChange
+          || evt.type === EventTypes.GuardChange
           || (evt.type === EventTypes.Transfer && evt.category === TransferCategories.Income)
         );
       }).reduce((output, evt) => {
@@ -204,8 +204,8 @@ export const TaxesExplorer = ({
             cumulativeChange,
             cumulativeIncome,
           });
-        } else if (evt.type === EventTypes.JurisdictionChange) {
-          console.warn(evt, `Temporarily pretending this jurisdiction change is income`);
+        } else if (evt.type === EventTypes.GuardChange) {
+          console.warn(evt, `Temporarily pretending this guard change is income`);
           const price = prices.getPrice(evt.date, evt.asset);
           const income = mul(evt.quantity, price);
           cumulativeIncome = add(cumulativeIncome, income);
@@ -225,9 +225,9 @@ export const TaxesExplorer = ({
         } else {
           return output;
         }
-      }, []).filter(row => row.asset !== jurisdiction)
+      }, []).filter(row => row.asset !== guard)
     );
-  }, [addressBook, jurisdiction, vm, prices]);
+  }, [addressBook, guard, vm, prices]);
 
   const handleExport = () => {
     if (!taxes?.length) { console.warn("Nothing to export"); return; }
@@ -240,7 +240,7 @@ export const TaxesExplorer = ({
       ),
       Object.keys(taxes[0]),
     );
-    const name = `${jurisdiction}-taxes.csv`;
+    const name = `${guard}-taxes.csv`;
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
     a.href = "data:" + data;
@@ -248,8 +248,8 @@ export const TaxesExplorer = ({
     a.click();
   };
 
-  const handleJurisdictionChange = (event: React.ChangeEvent<{ value: string }>) => {
-    setJurisdiction(event.target.value);
+  const handleGuardChange = (event: React.ChangeEvent<{ value: string }>) => {
+    setGuard(event.target.value);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -269,7 +269,7 @@ export const TaxesExplorer = ({
       <Divider/>
 
       <Typography variant="body1" className={classes.root}>
-        Physical security provided by: {allJurisdictions.join(", ")}
+        Physical security provided by: {allGuards.join(", ")}
       </Typography>
 
       <Grid
@@ -282,15 +282,15 @@ export const TaxesExplorer = ({
 
         <Grid item md={4}>
           <FormControl className={classes.select}>
-            <InputLabel id="select-jurisdiction">Jurisdication</InputLabel>
+            <InputLabel id="select-guard">Guard</InputLabel>
             <Select
-              labelId="select-jurisdiction"
-              id="select-jurisdiction"
-              value={jurisdiction || ""}
-              onChange={handleJurisdictionChange}
+              labelId="select-guard"
+              id="select-guard"
+              value={guard || ""}
+              onChange={handleGuardChange}
             >
               <MenuItem value={""}>-</MenuItem>
-              {allJurisdictions?.map((jur, i) => <MenuItem key={i} value={jur}>{jur}</MenuItem>)}
+              {allGuards?.map((jur, i) => <MenuItem key={i} value={jur}>{jur}</MenuItem>)}
             </Select>
           </FormControl>
         </Grid>
@@ -319,7 +319,7 @@ export const TaxesExplorer = ({
       <Paper className={classes.paper}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {`${taxes.length} Taxable ${jurisdiction} Events`}
+          {`${taxes.length} Taxable ${guard} Events`}
         </Typography>
 
         <TableContainer>
@@ -338,13 +338,13 @@ export const TaxesExplorer = ({
                 <TableCell><strong> Date </strong></TableCell>
                 <TableCell><strong> Action </strong></TableCell>
                 <TableCell><strong> Asset </strong></TableCell>
-                <TableCell><strong> {`Price (${jurisdiction}/Asset)`} </strong></TableCell>
-                <TableCell><strong> {`Value (${jurisdiction})`} </strong></TableCell>
+                <TableCell><strong> {`Price (${guard}/Asset)`} </strong></TableCell>
+                <TableCell><strong> {`Value (${guard})`} </strong></TableCell>
                 <TableCell><strong> Receive Date </strong></TableCell>
-                <TableCell><strong> {`Receive Price (${jurisdiction}/Asset)`} </strong></TableCell>
-                <TableCell><strong> {`Capital Change (${jurisdiction})`} </strong></TableCell>
-                <TableCell><strong> {`Cumulative Change (${jurisdiction})`} </strong></TableCell>
-                <TableCell><strong> {`Cumulative Income (${jurisdiction})`} </strong></TableCell>
+                <TableCell><strong> {`Receive Price (${guard}/Asset)`} </strong></TableCell>
+                <TableCell><strong> {`Capital Change (${guard})`} </strong></TableCell>
+                <TableCell><strong> {`Cumulative Change (${guard})`} </strong></TableCell>
+                <TableCell><strong> {`Cumulative Income (${guard})`} </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

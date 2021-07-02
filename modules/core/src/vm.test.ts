@@ -43,7 +43,7 @@ describe("VM", () => {
     expect(vm).to.be.ok;
   });
 
-  it("should process a jurisdiction change", async () => {
+  it("should process a guard change", async () => {
     const transactions = [
       getTx([
         { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
@@ -64,8 +64,8 @@ describe("VM", () => {
     } tx/s`);
     log.info(vm.json.events, `All events`);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
-    expect(vm.json.events[1]?.type).to.equal(EventTypes.JurisdictionChange);
-    expect(vm.json.events[2]?.type).to.equal(EventTypes.JurisdictionChange);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.GuardChange);
+    expect(vm.json.events[2]?.type).to.equal(EventTypes.GuardChange);
     expect(vm.json.events[2]?.newBalances?.[ETH]).to.equal("10.0");
   });
 
@@ -110,7 +110,7 @@ describe("VM", () => {
     } tx/s`);
   });
 
-  it("should process internal transfers between jurisdictions", async () => {
+  it("should process internal transfers between guards", async () => {
     const transactions = [
       getTx([
         // Income

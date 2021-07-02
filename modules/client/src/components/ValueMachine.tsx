@@ -166,11 +166,11 @@ export const EventRow = ({
                   ...chunksToDisplay(event.outputs, "Gave "),
                   ...chunksToDisplay(event.inputs, "Took "),
 
-                } : event.type === EventTypes.JurisdictionChange ? {
+                } : event.type === EventTypes.GuardChange ? {
                   ["From"]: event.from,
-                  ["From Jurisdiction"]: event.oldJurisdiction,
+                  ["From Guard"]: event.oldGuard,
                   ["To"]: event.to,
-                  ["To Jurisdiction"]: event.newJurisdiction,
+                  ["To Guard"]: event.newGuard,
                   [`New Balances`]: balToStr(event.newBalances),
                   ...chunksToDisplay(event.chunks),
 
@@ -233,7 +233,7 @@ export const ValueMachineExplorer = ({
         || event.asset === filterAsset
         || Object.keys(event.inputs).includes(filterAsset)
         || Object.keys(event.outputs).includes(filterAsset)
-        || event.newJurisdiction === filterAsset || event.oldJurisdiction === filterAsset
+        || event.newGuard === filterAsset || event.oldGuard === filterAsset
       )
       && (!filterType || event.category === filterType || event.type === filterType)
       && (!filterAccount || (event.to === filterAccount || event.from === filterAccount))
@@ -382,7 +382,7 @@ export const ValueMachineExplorer = ({
           <MenuItem value={""}>-</MenuItem>
           {[
             Income, Expense, Deposit, Withdraw, Borrow, Repay,
-            EventTypes.Trade, EventTypes.JurisdictionChange,
+            EventTypes.Trade, EventTypes.GuardChange,
           ].map((type, i) => (
             <MenuItem key={i} value={type}>{type}</MenuItem>
           ))}

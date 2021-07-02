@@ -401,7 +401,7 @@ export const getValueMachine = ({
     const toMove = getChunks(quantity, asset, from);
     toMove.forEach(chunk => { chunk.account = to; });
     if (addressBook.getGuard(to) !== addressBook.getGuard(from)) {
-      // Handle jurisdiction change
+      // Handle guard change
       const oldGuard = addressBook.getGuard(from);
       const newGuard = addressBook.getGuard(to);
       newEvents.push({
@@ -409,12 +409,12 @@ export const getValueMachine = ({
         index: json.events.length + newEvents.length,
         newBalances: {},
         from: from,
-        fromJurisdiction: oldGuard,
+        fromGuard: oldGuard,
         to: to,
-        toJurisdiction: newGuard,
+        toGuard: newGuard,
         chunks: toMove.map(toIndex),
         insecurePath: [],
-        type: EventTypes.JurisdictionChange,
+        type: EventTypes.GuardChange,
       });
     }
   };
