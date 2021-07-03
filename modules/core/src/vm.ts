@@ -395,6 +395,7 @@ export const getValueMachine = ({
   const moveValue = (quantity: DecimalString, asset: Asset, from: Account, to: Account): void => {
     const toMove = getChunks(quantity, asset, from);
     toMove.forEach(chunk => { chunk.account = to; });
+    // Handle guard change
     const oldGuard = addressBook.getGuard(from);
     const newGuard = addressBook.getGuard(to);
     if (newGuard !== oldGuard) {
@@ -402,9 +403,6 @@ export const getValueMachine = ({
         date: json.date,
         guard: newGuard,
       }); });
-      // Handle guard change
-      const oldGuard = addressBook.getGuard(from);
-      const newGuard = addressBook.getGuard(to);
       newEvents.push({
         date: json.date,
         index: json.events.length + newEvents.length,
