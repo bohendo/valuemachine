@@ -98,12 +98,12 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     if (!account) return Guards.None;
     const guard = getEntry(account)?.guard;
     if (guard) return guard;
-    const source = account.split("-")[0];
-    if (Object.keys(EthereumSources).includes(source)) {
+    const prefix = account.split("-")[0];
+    if (!prefix) return Guards.None;
+    if (Object.keys(EthereumSources).includes(prefix)) {
       return Guards.ETH;
     }
-    return guards[source]
-      || (Object.keys(Guards).includes(source) ? source : Guards.None);
+    return guards[prefix] || prefix;
   };
 
   // Only really useful for ERC20 addresses

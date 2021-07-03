@@ -535,7 +535,7 @@ export const getPrices = (params?: PricesParams): Prices => {
           out: assets.out.map(asset => swap.out[asset]),
         };
 
-        log.debug(`Parsing swap of [${assets.out}] for [${assets.in}] on ${date}`);
+        log.info(`Calculating prices on ${date} from swap of [${assets.out}] for [${assets.in}]`);
         // Assumes that the input and output have equal value
         if (assets.in.length === 1 && assets.out.length === 1) {
           const asset = { in: assets.in[0], out: assets.out[0] };
