@@ -5,7 +5,6 @@ import {
   EthereumSources,
   TimestampString,
   Transaction,
-  TransactionSource,
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
@@ -211,9 +210,11 @@ export const mergeTransaction = (
     return transactions;
 
   ////////////////////////////////////////
-  // Handle new malformed transactions
+  // Handle new transactions of unknown source-type
   } else {
-    log.warn(newTx, `Can't tell whether this new tx is from Ethereum or an external source`);
+    log.info(`Inserting tx that isn't from an Ethereum or External source`);
+    transactions.push(newTx);
+    transactions.sort(chrono);
     return transactions;
   }
 };
