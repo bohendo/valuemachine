@@ -212,7 +212,7 @@ export const getPrices = (params?: PricesParams): Prices => {
     const coingeckoUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/history?date=${
       `${date.split("-")[2]}-${date.split("-")[1]}-${date.split("-")[0]}`
     }`;
-    log.debug(`Fetching ${unit} price of ${asset} on ${date} from ${coingeckoUrl}`);
+    log.info(`Fetching ${unit} price of ${asset} on ${date} from ${coingeckoUrl}`);
     const attempt = async () => (await axios.get(coingeckoUrl, { timeout: 10000 })).data;
     let price;
     try {
@@ -535,7 +535,7 @@ export const getPrices = (params?: PricesParams): Prices => {
           out: assets.out.map(asset => swap.out[asset]),
         };
 
-        log.info(`Parsing swap of [${assets.out}] for [${assets.in}] on ${date}`);
+        log.debug(`Parsing swap of [${assets.out}] for [${assets.in}] on ${date}`);
         // Assumes that the input and output have equal value
         if (assets.in.length === 1 && assets.out.length === 1) {
           const asset = { in: assets.in[0], out: assets.out[0] };
@@ -579,7 +579,6 @@ export const getPrices = (params?: PricesParams): Prices => {
       });
 
     merge(chunkPrices);
-    log.info(chunkPrices, "Merged new prices");
 
     for (const chunk of chunks) {
       const { asset, history, disposeDate } = chunk;

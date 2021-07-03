@@ -80,15 +80,6 @@ export const erc20Addresses = [
 const erc20Interface = new Interface([
   "event Approval(address indexed from, address indexed to, uint amount)",
   "event Transfer(address indexed from, address indexed to, uint amount)",
-  "function allowance(address owner, address spender) view returns (uint)",
-  "function approve(address spender, uint amount) returns (bool)",
-  "function balanceOf(address owner) view returns (uint)",
-  "function decimals() view returns (uint)",
-  "function name() view returns (string)",
-  "function symbol() view returns (string)",
-  "function totalSupply() view returns (uint)",
-  "function transfer(address recipient, uint amount)",
-  "function transferFrom(address sender, address recipient, uint amount)"
 ]);
 
 ////////////////////////////////////////
