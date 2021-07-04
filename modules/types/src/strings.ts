@@ -1,6 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 
-export const Address = Type.RegEx(/^0x[a-fA-F0-9]{40}$/);
+export const EthAddress = Type.RegEx(/^0x[a-fA-F0-9]{40}$/);
+export type EthAddress = Static<typeof Address>;
+
+export const Address = Type.Union([EthAddress, Type.String()]);
 export type Address = Static<typeof Address>;
 
 export const Account = Type.RegEx(/^[-a-zA-Z0-9]+$/);
