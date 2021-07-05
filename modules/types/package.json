@@ -1,6 +1,6 @@
 {
   "name": "@valuemachine/types",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "Types and interfaces for interacting with the valuemachine",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
