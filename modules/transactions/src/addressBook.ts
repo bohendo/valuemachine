@@ -98,6 +98,9 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     if (!account) return Guards.None;
     const guard = getEntry(account)?.guard;
     if (guard) return guard;
+    if (!account.includes("-")) {
+      return isEthAddress(account) ? Guards.ETH : Guards.None;
+    }
     const prefix = account.split("-")[0];
     if (!prefix) return Guards.None;
     if (Object.keys(EthereumSources).includes(prefix)) {
