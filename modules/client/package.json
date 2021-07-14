@@ -1,7 +1,7 @@
 {
-  "name": "@valuemachine/ui",
+  "name": "@valuemachine/react",
   "version": "0.0.1",
-  "description": "Example UI that utilizes & is helpful in debugging the valuemachine",
+  "description": "Helpful react components for interacting with vm data",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
   "main": "dist/index.js",
