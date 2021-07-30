@@ -44,6 +44,7 @@ export const EvmSources = {
   Idle: "Idle",
   Maker: "Maker",
   Oasis: "Oasis",
+  Polygon: "Polygon",
   Quickswap: "Quickswap",
   Tornado: "Tornado",
   Uniswap: "Uniswap",

@@ -19,6 +19,7 @@ import {
   rmDups,
   setAddressCategory,
   valuesAreClose,
+  assetsAreClose,
 } from "@valuemachine/utils";
 
 const source = TransactionSources.Aave;
@@ -157,7 +158,8 @@ const aTokenInterface = new Interface([
 
 const associatedTransfer = (asset: string, quantity: string) =>
   (transfer: Transfer): boolean =>
-    transfer.asset === asset && valuesAreClose(transfer.quantity, quantity, div(quantity, "100"));
+    assetsAreClose(asset, transfer.asset) &&
+    valuesAreClose(transfer.quantity, quantity, div(quantity, "100"));
 
 export const aaveParser = (
   tx: Transaction,
@@ -165,35 +167,40 @@ export const aaveParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: source });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   //log.info(`Parser activated`);
-  const { getName } = addressBook;
+  const { getName, isSelf } = addressBook;
 
-  log.info(`Parsing EVM tx from ${tx.sources}`);
+  const network = tx.sources.includes(ETH) ? ETH : tx.sources.includes(MATIC) ? MATIC : "";
+  if (!network) return tx; // do nothing for unknown networks
+  log.info(`Parsing EVM tx from ${network}`);
 
   // Only check addresses for the chain
   const addresses =
-    tx.sources.includes(ETH) ? ethereumAddresses
-    : tx.sources.includes(MATIC) ? polygonAddresses
-    : { core: [], gov: [], markets: [] };
+    network === ETH ? ethereumAddresses
+    : network === MATIC ? polygonAddresses
+    : {} as any;
 
-  const stkAAVEAddress = addresses.gov.find(e => e.name === stkAAVE).address;
+  const stkAAVEAddress = addresses.gov?.find(e => e.name === stkAAVE)?.address;
+
+  const prefix = network === ETH ? "a" : network === MATIC ? "am" : "";
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    if (addresses.core.some(e => e.address === address)) {
+    if (addresses.core?.some(e => e.address === address)) {
       tx.sources = rmDups([source, ...tx.sources]);
       const event = parseEvent(lendingPoolInterface, txLog);
+      log.debug(`Parsing ${source} ${event.name} event user=${event.args.user} onBehalfOf=${event.args.onBehalfOf}`);
 
-      if (event.name === "Deposit" && (event.args.user===event.args.onBehalfOf) ){
+      if (event.name === "Deposit" && (isSelf(event.args.user) || isSelf(event.args.onBehalfOf))) {
         log.debug("event is : " + event.name);
         const asset = getName(event.args.reserve) as Asset ;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(event.args.reserve),
         );
-        const aAsset = "a"+asset;
-        const aTokenAddress = addresses.markets.find(entry => entry.name === aAsset)?.address;
+        const aAsset = `${prefix}${asset.replace(/^W/, "")}`;
+        const aTokenAddress = addresses.markets?.find(entry => entry.name === aAsset)?.address;
         const amount2 = formatUnits(
           event.args.amount,
           addressBook.getDecimals(aTokenAddress),
@@ -212,15 +219,15 @@ export const aaveParser = (
           tx.method = "Deposit";
         }
 
-      } else if (event.name === "Withdraw" && (event.args.user===event.args.to)) {
+      } else if (event.name === "Withdraw" && event.args.user === event.args.to) {
         log.debug("event is : " + event.name);
         const asset = getName(event.args.reserve) as Asset ;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(event.args.reserve),
         );
-        const aAsset = "a"+asset;
-        const aTokenAddress = addresses.markets.find(entry => entry.name === aAsset)?.address;
+        const aAsset = `${prefix}${asset.replace(/^W/, "")}`;
+        const aTokenAddress = addresses.markets?.find(entry => entry.name === aAsset)?.address;
         const amount2 = formatUnits(
           event.args.amount,
           addressBook.getDecimals(aTokenAddress),

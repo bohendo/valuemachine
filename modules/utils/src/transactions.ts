@@ -2,7 +2,6 @@ import { Interface } from "@ethersproject/abi";
 import { isHexString, hexDataLength } from "@ethersproject/bytes";
 import {
   Asset,
-  Assets,
   DecimalString,
   EvmTransactionLog,
   Transaction,
@@ -12,8 +11,6 @@ import {
 
 import { diff, gt, lt } from "./math";
 import { ajv, formatErrors } from "./validate";
-
-const { ETH, WETH } = Assets;
 
 export const getEmptyTransactions = (): TransactionsJson => [];
 
@@ -32,10 +29,12 @@ export const diffAsc = (compareTo: DecimalString) => (t1: Transfer, t2: Transfer
     diff(t2.quantity, compareTo),
   ) ? 1 : -1;
 
-export const ETHish = [ETH, WETH] as Asset[];
+// Ignores "W" prefix so that wrapped assets (eg WETH) are close to the underlying (eg ETH)
 export const assetsAreClose = (asset1: Asset, asset2: Asset): boolean =>
   asset1 === asset2 || (
-    ETHish.includes(asset1) && ETHish.includes(asset2)
+    asset1.startsWith("W") && asset1.substring(1) === asset2
+  ) || (
+    asset2.startsWith("W") && asset2.substring(1) === asset1
   );
 
 // for abbreviating account labels
