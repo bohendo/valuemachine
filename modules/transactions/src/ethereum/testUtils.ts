@@ -10,12 +10,12 @@ import {
   Logger,
   Transaction,
 } from "@valuemachine/types";
-import { getEmptyChainData, getFileStore } from "@valuemachine/utils";
+import { getEmptyEvmData, getFileStore } from "@valuemachine/utils";
 
 import { getAddressBook } from "../addressBook";
 import { env, testLogger } from "../testUtils";
 
-import { getChainData } from "./chainData";
+import { getEthereumData } from "./ethData";
 
 export * from "../testUtils";
 
@@ -37,9 +37,9 @@ export const parseEthTx = async ({
     logger: testLogger,
   });
   const testStore = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
-  const chainData = getChainData({
+  const ethData = getEthereumData({
     json: {
-      ...getEmptyChainData(),
+      ...getEmptyEvmData(),
       calls: !calls ? [] : calls.map(call => ({
         block: 1,
         from: AddressZero,
@@ -53,6 +53,6 @@ export const parseEthTx = async ({
     logger,
     store: testStore,
   });
-  await chainData.syncTransaction(hash, env.etherscanKey);
-  return chainData.getTransaction(hash, addressBook);
+  await ethData.syncTransaction(hash, env.etherscanKey);
+  return ethData.getTransaction(hash, addressBook);
 };

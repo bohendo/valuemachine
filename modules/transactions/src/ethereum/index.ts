@@ -1,3 +1,3 @@
 export { publicAddresses } from "./addresses";
-export { getChainData } from "./chainData";
+export { getEthereumData } from "./ethData";
 export { parseEthTx } from "./parser";

@@ -5,16 +5,17 @@ import {
   Address,
   AddressBook,
   Bytes32,
-  ChainData,
-  ChainDataJson,
+  EvmData,
+  EvmDataJson,
   Logger,
   Store,
+  StoreKeys,
   Transaction,
   TransactionsJson,
 } from "@valuemachine/types";
 import {
   chrono,
-  getEmptyChainData,
+  getEmptyEvmData,
   getEthTransactionError,
   getLogger,
 } from "@valuemachine/utils";
@@ -22,26 +23,24 @@ import axios from "axios";
 
 import { parsePolygonTx } from "./parser";
 
-const PolygonStoreKey = "PolygonData";
-
 export const getPolygonData = (params?: {
   covalentKey: string;
-  json?: ChainDataJson;
+  json?: EvmDataJson;
   logger?: Logger,
   store?: Store,
-}): ChainData => {
-  const { covalentKey, json: chainDataJson, logger, store } = params || {};
+}): EvmData => {
+  const { covalentKey, json: polygonDataJson, logger, store } = params || {};
   const chainId = "137";
 
   const log = (logger || getLogger()).child?.({ module: "PolygonData" });
-  const json = chainDataJson || store?.load(PolygonStoreKey as any) || getEmptyChainData();
+  const json = polygonDataJson || store?.load(StoreKeys.PolygonData) || getEmptyEvmData();
   const save = () => store
-    ? store.save(PolygonStoreKey as any, json)
-    : log.warn(`No store provided, can't save chain data`);
+    ? store.save(StoreKeys.PolygonData, json)
+    : log.warn(`No store provided, can't save polygon data`);
 
   log.info(`Loaded polygon data containing ${
     json.transactions.length
-  } transactions from ${chainDataJson ? "input" : store ? "store" : "default"}`);
+  } transactions from ${polygonDataJson ? "input" : store ? "store" : "default"}`);
 
   ////////////////////////////////////////
   // Internal Heleprs

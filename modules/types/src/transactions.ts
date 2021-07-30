@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
-import { EthTransaction } from "./chainData";
+import { EthTransaction } from "./evmData";
 import { Logger } from "./logger";
 import { Guards } from "./guards";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";

@@ -1,14 +1,15 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBookJson } from "./addressBook";
-import { ChainDataJson } from "./chainData";
+import { EvmDataJson } from "./evmData";
 import { PricesJson } from "./prices";
 import { ValueMachineJson } from "./vm";
 import { TransactionsJson } from "./transactions";
 
 export const StoreKeys = {
   AddressBook: "AddressBook",
-  ChainData: "ChainData",
+  EthereumData: "EthereumData",
+  PolygonData: "PolygonData",
   Prices: "Prices",
   Transactions: "Transactions",
   ValueMachine: "ValueMachine",
@@ -21,7 +22,8 @@ export type StoreKey = Static<typeof StoreKey>;
 
 interface StoreTypeMap {
   [StoreKeys.AddressBook]: AddressBookJson;
-  [StoreKeys.ChainData]: ChainDataJson;
+  [StoreKeys.EthereumData]: EvmDataJson;
+  [StoreKeys.PolygonData]: EvmDataJson;
   [StoreKeys.Prices]: PricesJson;
   [StoreKeys.Transactions]: TransactionsJson;
   [StoreKeys.ValueMachine]: ValueMachineJson;

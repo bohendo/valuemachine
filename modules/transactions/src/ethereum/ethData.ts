@@ -7,9 +7,9 @@ import {
   Address,
   AddressBook,
   Bytes32,
-  ChainData,
-  ChainDataJson,
-  ChainDataParams,
+  EvmData,
+  EvmDataJson,
+  EvmDataParams,
   EthCall,
   EthParser,
   StoreKeys,
@@ -17,8 +17,8 @@ import {
   TransactionsJson,
 } from "@valuemachine/types";
 import {
-  getChainDataError,
-  getEmptyChainData,
+  getEvmDataError,
+  getEmptyEvmData,
   getEthTransactionError,
   getLogger,
   toBN,
@@ -27,25 +27,25 @@ import axios from "axios";
 
 import { parseEthTx } from "./parser";
 
-export const getChainData = (params?: ChainDataParams): ChainData => {
-  const { json: chainDataJson, etherscanKey, logger, store } = params || {};
-  const log = (logger || getLogger()).child?.({ module: "ChainData" });
-  const json = chainDataJson || store?.load(StoreKeys.ChainData) || getEmptyChainData();
+export const getEthereumData = (params?: EvmDataParams): EvmData => {
+  const { json: ethDataJson, etherscanKey, logger, store } = params || {};
+  const log = (logger || getLogger()).child?.({ module: "EthereumData" });
+  const json = ethDataJson || store?.load(StoreKeys.EthereumData) || getEmptyEvmData();
 
   const save = () => store
-    ? store.save(StoreKeys.ChainData, json)
-    : log.warn(`No store provided, can't save chain data`);
+    ? store.save(StoreKeys.EthereumData, json)
+    : log.warn(`No store provided, can't save eth data`);
 
-  const error = getChainDataError(json);
+  const error = getEvmDataError(json);
   if (error) throw new Error(error);
 
   if (!json.addresses) json.addresses = {};
   if (!json.calls) json.calls = [];
   if (!json.transactions) json.transactions = [];
 
-  log.info(`Loaded chain data containing ${
+  log.info(`Loaded eth data containing ${
     json.transactions.length
-  } EthTxs from ${chainDataJson ? "input" : store ? "store" : "default"}`);
+  } EthTxs from ${ethDataJson ? "input" : store ? "store" : "default"}`);
 
   ////////////////////////////////////////
   // Internal Helper Functions
@@ -129,9 +129,9 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
       ) === oldElem.value,
     ).length;
 
-  const merge = (newJson: ChainDataJson): void => {
+  const merge = (newJson: EvmDataJson): void => {
     if (!newJson.addresses || !newJson.transactions || !newJson.calls) {
-      throw new Error(`Invalid ChainDataJson, got keys: ${Object.keys(newJson)}`);
+      throw new Error(`Invalid EvmDataJson, got keys: ${Object.keys(newJson)}`);
     }
     let before;
     before = Object.keys(json.addresses).length; 
@@ -174,7 +174,7 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
     if (!getEthTransactionError(existing)) {
       return;
     }
-    log.info(`Fetching chain data for tx ${txHash}`);
+    log.info(`Fetching eth data for tx ${txHash}`);
     const provider = getProvider(key);
     log.debug(`Sent request for tx ${txHash}`);
     const [response, receipt] = await Promise.all([
@@ -392,8 +392,8 @@ export const getChainData = (params?: ChainDataParams): ChainData => {
   ////////////////////////////////////////
   // One more bit of init code before returning
 
-  if (chainDataJson && store) {
-    merge(store.load(StoreKeys.ChainData));
+  if (ethDataJson && store) {
+    merge(store.load(StoreKeys.EthereumData));
   }
 
   return {

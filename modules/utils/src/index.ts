@@ -1,5 +1,5 @@
 export * from "./addressBook";
-export * from "./chainData";
+export * from "./evmData";
 export * from "./logger";
 export * from "./math";
 export * from "./prices";

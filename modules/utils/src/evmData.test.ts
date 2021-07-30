@@ -1,6 +1,6 @@
 import { AddressZero, HashZero } from "@ethersproject/constants";
 
-import { getChainDataError } from "./chainData";
+import { getEvmDataError } from "./evmData";
 import { expect } from "./testUtils";
 
 const validAddressHistory = {
@@ -40,35 +40,35 @@ const validEthTx = {
   value: "0",
 };
 
-const validChainData = {
+const validEvmData = {
   addresses: validAddressHistory,
   transactions: [validEthTx],
   calls: [validEthCall],
 };
 
-describe("ChainData", () => {
+describe("EvmData", () => {
 
   it("should return no errors if json is valid", async () => {
-    expect(getChainDataError(validChainData)).to.be.null;
+    expect(getEvmDataError(validEvmData)).to.be.null;
   });
 
   it("should return an error if an eth tx is invalid", async () => {
-    expect(getChainDataError({
-      ...validChainData,
+    expect(getEvmDataError({
+      ...validEvmData,
       transactions: [{ ...validEthTx, block: "0" }],
     })).to.be.a("string");
   });
 
   it("should return an error if an eth call is invalid", async () => {
-    expect(getChainDataError({
-      ...validChainData,
+    expect(getEvmDataError({
+      ...validEvmData,
       calls: [{ ...validEthCall, hash: AddressZero }],
     })).to.be.a("string");
   });
 
   it("should return an error if an address history entry is invalid", async () => {
-    expect(getChainDataError({
-      ...validChainData,
+    expect(getEvmDataError({
+      ...validEvmData,
       addresses: { ...validAddressHistory, lastUpdated: undefined },
     })).to.be.a("string");
   });

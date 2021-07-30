@@ -4,7 +4,7 @@ import { getLogger } from "@valuemachine/utils";
 import express from "express";
 
 import { env } from "./env";
-import { chainData, getLogAndSend, STATUS_YOUR_BAD, STATUS_MY_BAD } from "./utils";
+import { ethData, getLogAndSend, STATUS_YOUR_BAD, STATUS_MY_BAD } from "./utils";
 
 const log = getLogger(env.logLevel).child({ module: "Transactions" });
 
@@ -26,7 +26,7 @@ transactionsRouter.post("/eth", async (req, res) => {
     return logAndSend(`Eth data for ${selfAddresses.length} addresses is already syncing.`);
   }
   selfAddresses.forEach(address => queue.push(address));
-  const sync = new Promise(res => chainData.syncAddressBook(addressBook).then(() => {
+  const sync = new Promise(res => ethData.syncAddressBook(addressBook).then(() => {
     log.warn(`Successfully synced history for ${selfAddresses.length} addresses`);
     queue = queue.filter(address => !selfAddresses.includes(address));
     res(true);
@@ -43,7 +43,7 @@ transactionsRouter.post("/eth", async (req, res) => {
       if (didSync) {
         try {
           const start = Date.now();
-          const transactionsJson = chainData.getTransactions(addressBook);
+          const transactionsJson = ethData.getTransactions(addressBook);
           res.json(transactionsJson);
           log.info(`Returned ${transactionsJson.length} transactions at a rate of ${
             Math.round((100000 * transactionsJson.length)/(Date.now() - start)) / 100

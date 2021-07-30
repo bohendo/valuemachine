@@ -51,7 +51,7 @@ export const EthTransaction = Type.Object({
 });
 export type EthTransaction = Static<typeof EthTransaction>;
 
-export const ChainDataJson = Type.Object({
+export const EvmDataJson = Type.Object({
   addresses: Type.Dict(Type.Object({
     history: Type.Array(Bytes32), /* List of tx hashes that interact with this address */
     lastUpdated: TimestampString,
@@ -59,22 +59,22 @@ export const ChainDataJson = Type.Object({
   calls: Type.Array(EthCall), // Note: we can have multiple calls per txHash
   transactions: Type.Array(EthTransaction),
 });
-export type ChainDataJson = Static<typeof ChainDataJson>;
+export type EvmDataJson = Static<typeof EvmDataJson>;
 
 ////////////////////////////////////////
 // Function Interfaces
 
-export type ChainDataParams = {
-  json?: ChainDataJson;
+export type EvmDataParams = {
+  json?: EvmDataJson;
   etherscanKey?: string;
   logger?: Logger;
   store?: Store;
 };
 
-export interface ChainData {
+export interface EvmData {
   getTransaction: (hash: Bytes32, addressBook: AddressBook, parsers?: EthParser[]) => Transaction;
   getTransactions: (addressBook: AddressBook, parsers?: EthParser[]) => TransactionsJson;
-  json: ChainDataJson;
+  json: EvmDataJson;
   syncAddressBook: (addressBook: AddressBook, key?: string) => Promise<void>;
   syncTransaction: (hash: Bytes32, key?: string) => Promise<void>;
 }
