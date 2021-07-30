@@ -35,7 +35,7 @@ export const uniswapv3Addresses = [
 
 export const uniswapv3Parser = (
   tx: Transaction,
-  _ethTx: EvmTransaction,
+  _evmTx: EvmTransaction,
   addressBook: AddressBook,
   _logger: Logger,
 ): Transaction => {

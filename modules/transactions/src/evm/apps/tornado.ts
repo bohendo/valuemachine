@@ -6,7 +6,6 @@ import {
   Logger,
   Transaction,
   TransactionSources,
-  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -74,11 +73,11 @@ const closestTenPow = amt => amt.startsWith("0.")
 
 export const tornadoParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { isSelf } = addressBook;
 
   let isTornadoTx = false;

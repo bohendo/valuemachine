@@ -73,6 +73,7 @@ export const EthereumAssets = {
   musd3CRV: "musd3CRV",
   OMG: "OMG",
   PETH: "PETH",
+  RAI: "RAI",
   REP: "REP",
   REPv2: "REPv2",
   SAI: "SAI",

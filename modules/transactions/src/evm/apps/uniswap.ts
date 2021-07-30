@@ -189,11 +189,11 @@ const abrv = str => str.substring(0, 8).toLowerCase(); // for abbreviating accou
 
 export const uniswapParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
   const getSwaps = () => {
@@ -215,7 +215,7 @@ export const uniswapParser = (
     return { in: swapsIn, out: swapsOut };
   };
 
-  for (const txLog of ethTx.logs.filter(
+  for (const txLog of evmTx.logs.filter(
     l => uniswapAddresses.some(e => e.address === l.address)
   )) {
     const address = txLog.address;

@@ -11,7 +11,6 @@ import {
   Logger,
   Transaction,
   TransactionSources,
-  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -49,11 +48,11 @@ const etherdeltaInterface = new Interface([
 
 export const etherdeltaParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf } = addressBook;
 
   const getAsset = (address: Address): Asset => {
@@ -61,7 +60,7 @@ export const etherdeltaParser = (
     else return getName(address) as Asset;
   };
 
-  for (const txLog of ethTx.logs) {
+  for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (address === etherdeltaAddress) {
       const index = txLog.index || 1;

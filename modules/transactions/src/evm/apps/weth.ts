@@ -9,7 +9,6 @@ import {
   Logger,
   Transaction,
   TransactionSources,
-  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -46,14 +45,14 @@ const wethInterface = new Interface([
 
 export const wethParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, isSelf } = addressBook;
 
-  for (const txLog of ethTx.logs) {
+  for (const txLog of evmTx.logs) {
     const address = getAddress(txLog.address);
     if (address === wethAddress) {
       const asset = WETH;
@@ -85,7 +84,7 @@ export const wethParser = (
         if (swapOut >= 0) {
           tx.transfers[swapOut].category = SwapOut;
           tx.transfers[swapOut].index = index - 0.1;
-          if (ethTx.to === wethAddress) {
+          if (evmTx.to === wethAddress) {
             tx.method = "Trade";
           }
           // If there's a same-value eth transfer to the swap recipient, index it before
@@ -123,7 +122,7 @@ export const wethParser = (
         if (swapIn >= 0) {
           tx.transfers[swapIn].category = SwapIn;
           tx.transfers[swapIn].index = index + 0.1;
-          if (ethTx.to === wethAddress) {
+          if (evmTx.to === wethAddress) {
             tx.method = "Trade";
           }
           // If there's a same-value eth transfer from the swap recipient, index it after

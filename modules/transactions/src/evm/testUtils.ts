@@ -4,6 +4,7 @@ import path from "path";
 import { AddressZero } from "@ethersproject/constants";
 import {
   Address,
+  AddressBook,
   AddressCategories,
   Bytes32,
   EvmTransfer,
@@ -15,9 +16,16 @@ import { getEmptyEvmData, getFileStore } from "@valuemachine/utils";
 import { getAddressBook } from "../addressBook";
 import { env, testLogger } from "../testUtils";
 
-import { getEthereumData } from "./ethData";
+import { getPolygonData } from "./polygon";
+import { getEthereumData } from "./ethereum";
 
 export * from "../testUtils";
+
+export const getTestAddressBook = (selfAddress: Address): AddressBook => 
+  getAddressBook({
+    json: [{ address: selfAddress, name: "test-self", category: AddressCategories.Self }],
+    logger: testLogger,
+  });
 
 export const parseEthTx = async ({
   hash,
@@ -32,10 +40,7 @@ export const parseEthTx = async ({
   logger?: Logger;
   storePath?: string;
 }): Promise<Transaction> => {
-  const addressBook = getAddressBook({
-    json: [{ address: selfAddress, name: "test-self", category: AddressCategories.Self }],
-    logger: testLogger,
-  });
+  const addressBook = getTestAddressBook(selfAddress);
   const testStore = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
   const ethData = getEthereumData({
     json: {
@@ -56,3 +61,26 @@ export const parseEthTx = async ({
   await ethData.syncTransaction(hash, env.etherscanKey);
   return ethData.getTransaction(hash, addressBook);
 };
+
+export const parsePolygonTx = async ({
+  hash,
+  selfAddress,
+  logger,
+  storePath,
+}: {
+  hash: Bytes32;
+  selfAddress: Address;
+  logger?: Logger;
+  storePath?: string;
+}): Promise<Transaction> => {
+  const addressBook = getTestAddressBook(selfAddress);
+  const testStore = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
+  const polygonData = getPolygonData({
+    covalentKey: env.covalentKey,
+    logger,
+    store: testStore,
+  });
+  await polygonData.syncTransaction(hash);
+  return polygonData.getTransaction(hash, addressBook);
+};
+

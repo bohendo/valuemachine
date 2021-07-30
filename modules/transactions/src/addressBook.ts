@@ -24,7 +24,7 @@ import {
   getLogger,
 } from "@valuemachine/utils";
 
-import { publicAddresses } from "./ethereum";
+import { publicAddresses } from "./evm";
 
 export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const { json: addressBookJson, hardcoded, logger, store } = params || {};

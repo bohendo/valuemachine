@@ -12,7 +12,6 @@ import {
   Logger,
   Transaction,
   TransactionSources,
-  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -209,23 +208,23 @@ const parseLogNote = (
 
 export const makerParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf } = addressBook;
   // log.debug(tx, `Parsing in-progress tx`);
 
   const ethish = [WETH, ETH, PETH] as Asset[];
 
-  if (machineAddresses.some(e => e.address === ethTx.to)) {
+  if (machineAddresses.some(e => e.address === evmTx.to)) {
     tx.sources = rmDups([source, ...tx.sources]);
   }
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
-  if (ethTx.to === migrationAddress) {
+  if (evmTx.to === migrationAddress) {
     tx.sources = rmDups([source, ...tx.sources]);
     const swapOut = tx.transfers.find(t => t.asset === SAI);
     const swapIn = tx.transfers.find(t => t.asset === DAI);
@@ -249,7 +248,7 @@ export const makerParser = (
   // PETH/SAI/DAI
   // Process token interactions before any of the rest of the maker machinery
   // So that they have all the transfers needed to search through
-  for (const txLog of ethTx.logs) {
+  for (const txLog of evmTx.logs) {
     const address = txLog.address;
     const index = txLog.index || 1;
     if (machineAddresses.some(e => e.address === address)) {
@@ -316,7 +315,7 @@ export const makerParser = (
     }
   }
 
-  for (const txLog of ethTx.logs) {
+  for (const txLog of evmTx.logs) {
     const address = txLog.address;
     const index = txLog.index || 1;
 
@@ -341,7 +340,7 @@ export const makerParser = (
       if (logNote.name === "slip") {
         // NOTE: Hacky fix assumes that the joiner calls transfer immediately after slip
         // slip accepts ilk which is a bytes32 that maps to the token address, not super useful
-        const assetAddress = ethTx.logs.find(l => l.index === index + 1).address;
+        const assetAddress = evmTx.logs.find(l => l.index === index + 1).address;
         if (!assetAddress) {
           log.warn(`Vat.${logNote.name}: Can't find a token address for ilk ${logNote.args[0]}`);
           continue;
@@ -517,10 +516,10 @@ export const makerParser = (
         if (swapOut) {
           swapOut.category = SwapOut;
           swapOut.to = address;
-          if (ethTx.to === tubAddress) {
+          if (evmTx.to === tubAddress) {
             tx.method = "Trade";
           }
-        } else if (ethTx.to === tubAddress) {
+        } else if (evmTx.to === tubAddress) {
           // Not a problem if we're interacting via a proxy bc this wouldn't interact w self
           log.warn(`Tub.${logNote.name}: Can't find a WETH transfer of ${wad}`);
         }
@@ -539,10 +538,10 @@ export const makerParser = (
         if (swapIn) {
           swapIn.category = SwapIn;
           swapIn.from = address;
-          if (ethTx.to === tubAddress) {
+          if (evmTx.to === tubAddress) {
             tx.method = "Trade";
           }
-        } else if (ethTx.to === tubAddress) {
+        } else if (evmTx.to === tubAddress) {
           // Not a problem if we're interacting via a proxy bc this wouldn't interact w self
           log.warn(`Tub.${logNote.name}: Can't find a WETH transfer of ${wad}`);
         }
@@ -606,7 +605,7 @@ export const makerParser = (
           borrow.category = Borrow;
           borrow.from = account;
           tx.method = "Borrow";
-        } else if (!ethTx.logs.find(l =>
+        } else if (!evmTx.logs.find(l =>
           l.index > index
           && l.address === saiAddress
           && parseEvent(tokenInterface, l).name === "Mint"
@@ -626,7 +625,7 @@ export const makerParser = (
           repay.category = Repay;
           repay.to = account;
           tx.method = "Repayment";
-        } else if (!ethTx.logs.find(l =>
+        } else if (!evmTx.logs.find(l =>
           l.index > index
           && l.address === saiAddress
           && parseEvent(tokenInterface, l).name === "Burn"

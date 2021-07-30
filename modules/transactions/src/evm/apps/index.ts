@@ -7,11 +7,28 @@ import { idleAddresses, idleParser } from "./idle";
 import { makerAddresses, makerParser } from "./maker";
 import { oasisAddresses, oasisParser } from "./oasis";
 import { polygonAddresses, polygonParser } from "./polygon";
+import { quickswapAddresses, quickswapParser } from "./quickswap";
 import { tornadoAddresses, tornadoParser } from "./tornado";
 import { uniswapAddresses, uniswapParser } from "./uniswap";
 import { uniswapv3Addresses, uniswapv3Parser } from "./uniswapv3";
 import { wethAddresses, wethParser } from "./weth";
 import { yearnAddresses, yearnParser } from "./yearn";
+
+export { aaveParser } from "./aave";
+export { argentParser } from "./argent";
+export { compoundParser } from "./compound";
+export { erc20Parser } from "./erc20";
+export { etherdeltaParser } from "./etherdelta";
+export { idleParser } from "./idle";
+export { makerParser } from "./maker";
+export { oasisParser } from "./oasis";
+export { polygonParser } from "./polygon";
+export { quickswapParser } from "./quickswap";
+export { tornadoParser } from "./tornado";
+export { uniswapParser } from "./uniswap";
+export { uniswapv3Parser } from "./uniswapv3";
+export { wethParser } from "./weth";
+export { yearnParser } from "./yearn";
 
 export const appAddresses = [
   ...aaveAddresses,
@@ -23,6 +40,7 @@ export const appAddresses = [
   ...makerAddresses,
   ...oasisAddresses,
   ...polygonAddresses,
+  ...quickswapAddresses,
   ...tornadoAddresses,
   ...uniswapAddresses,
   ...uniswapv3Addresses,
@@ -37,6 +55,7 @@ export const appParsers = [
   wethParser,
   oasisParser,
   polygonParser,
+  quickswapParser,
   makerParser,
   compoundParser,
   aaveParser,

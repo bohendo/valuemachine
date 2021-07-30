@@ -9,7 +9,6 @@ import {
   Logger,
   Transaction,
   TransactionSources,
-  TransactionSource,
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
@@ -71,16 +70,16 @@ const oasisInterface = new Interface([
 
 export const oasisParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isCategory, isSelf } = addressBook;
 
   const isSelfy = (address: string): boolean =>
     isSelf(address) || (
-      isSelf(ethTx.from) && isCategory(AddressCategories.Proxy)(address) && address === ethTx.to
+      isSelf(evmTx.from) && isCategory(AddressCategories.Proxy)(address) && address === evmTx.to
     );
 
   const ethish = [WETH, ETH] as Asset[];
@@ -94,7 +93,7 @@ export const oasisParser = (
   let inTotal = "0";
   let outTotal = "0";
 
-  for (const txLog of ethTx.logs) {
+  for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (machineAddresses.some(e => e.address === address)) {
       tx.sources = rmDups([source, ...tx.sources]);
@@ -103,7 +102,7 @@ export const oasisParser = (
       if (event.name === "LogTake") {
         log.info(`Parsing ${source} ${event.name} event`);
         let inAmt, inGem, outAmt, outGem;
-        // ethTx.to might be a proxy which counts as self as far as this logic is concerned
+        // evmTx.to might be a proxy which counts as self as far as this logic is concerned
         if (isSelfy(event.args.maker)) {
           inGem = getName(event.args.buy_gem);
           outGem = getName(event.args.pay_gem);

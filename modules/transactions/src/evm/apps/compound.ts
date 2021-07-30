@@ -124,11 +124,11 @@ const associatedTransfer = (asset: string, quantity: string) =>
 
 export const compoundParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf } = addressBook;
 
   // TODO: how could we not hardcode these again & also not introduce cyclic dependencies?
@@ -150,11 +150,11 @@ export const compoundParser = (
     }
   };
 
-  if (compoundAddresses.some(e => e.address === ethTx.to)) {
+  if (compoundAddresses.some(e => e.address === evmTx.to)) {
     tx.sources = rmDups([source, ...tx.sources]);
   }
 
-  for (const txLog of ethTx.logs) {
+  for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (compoundAddresses.some(e => e.address === address)) {
       tx.sources = rmDups([source, ...tx.sources]);

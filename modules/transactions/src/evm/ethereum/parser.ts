@@ -16,7 +16,7 @@ import {
 } from "@valuemachine/types";
 import { gt, getNewContractAddress } from "@valuemachine/utils";
 
-import { appParsers } from "./apps";
+import { appParsers } from "../apps";
 
 const { ETH } = Assets;
 const { Expense, Income, Internal, Unknown } = TransferCategories;

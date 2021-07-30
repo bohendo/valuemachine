@@ -1,5 +1,10 @@
 export { getAddressBook } from "./addressBook";
-export { getEthereumData, publicAddresses } from "./ethereum";
-export { getPolygonData } from "./polygon";
+export {
+  ethereumAddresses,
+  getEthereumData,
+  getPolygonData,
+  polygonAddresses,
+  publicAddresses,
+} from "./evm";
 export { getTransactions } from "./manager";
 export { describeTransaction } from "./utils";

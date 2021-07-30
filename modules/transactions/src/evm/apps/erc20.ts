@@ -6,11 +6,11 @@ import {
   AddressCategories,
   Assets,
   Asset,
+  Guards,
   EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
-  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -26,6 +26,7 @@ const {
   linkCRV, usdp3CRV, ankrCRV, yDAI_yUSDC_yUSDT_yTUSD, musd3CRV, gusd3CRV,
   dusd3CRV, usdn3CRV, ust3CRV, husd3CRV, yDAI_yUSDC_yUSDT_yBUSD,
   crvPlain3andSUSD, _3Crv, eursCRV, hCRV, _1INCH,
+  DAI, WETH, WMATIC,
 } = Assets;
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
@@ -33,14 +34,14 @@ const { Expense, Income, Internal, Unknown } = TransferCategories;
 /// Addresses
 
 // Simple, standalone tokens only. App-specific tokens can be found in that app's parser.
-export const erc20Addresses = [
+const ethereumAddresses = [
   { name: BAT, address: "0x0d8775f648430679a709e98d2b0cb6250d2887ef" },
   { name: CHERRY, address: "0x4ecb692b0fedecd7b486b4c99044392784877e8c" },
   { name: GEN, address: "0x543ff227f64aa17ea132bf9886cab5db55dcaddf" },
   { name: GNO, address: "0x6810e776880c02933d47db1b9fc05908e5386b96" },
   { name: GRT, address: "0xc944e90c64b2c07662a292be6244bdf05cda44a7" },
   { name: OMG, address: "0xd26114cd6ee289accf82350c8d8487fedb8a0c07" },
-  // re v0 -> v1 migration: https://medium.com/@AugurProject/augur-launches-794fa7f88c6a
+  // re REPv0 -> REPv1 migration: https://medium.com/@AugurProject/augur-launches-794fa7f88c6a
   { name: REP, address: "0xe94327d07fc17907b4db788e5adf2ed424addff6" }, // version 0
   { name: REP, address: "0x1985365e9f78359a9b6ad760e32412f4a445e862" }, // version 1
   { name: REPv2, address: "0x221657776846890989a759ba2973e427dff5c9bb" }, // version 2
@@ -54,7 +55,6 @@ export const erc20Addresses = [
   { name: USDT, address: "0xdac17f958d2ee523a2206206994597c13d831ec7", decimals: 6 },
   { name: WBTC, address: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", decimals: 8 },
   { name: ZRX, address: "0xe41d2489571d322189246dafa5ebde1f4699f498" },
-
   { name: linkCRV, address: "0xcee60cfa923170e4f8204ae08b4fa6a3f5656f3a" },
   { name: usdp3CRV, address: "0x7eb40e450b9655f4b3cc4259bcc731c63ff55ae6" },
   { name: ankrCRV, address: "0xaa17a236f2badc98ddc0cf999abb47d47fc0a6cf" },
@@ -71,8 +71,21 @@ export const erc20Addresses = [
   { name: eursCRV, address: "0x194ebd173f6cdace046c53eacce9b953f28411d1" },
   { name: hCRV, address: "0xb19059ebb43466c323583928285a49f558e572fd" },
   { name: _1INCH, address: "0x111111111117dc0aa78b770fa6a738034120c302" },
+].map(setAddressCategory(AddressCategories.ERC20, Guards.ETH));
 
-].map(setAddressCategory(AddressCategories.ERC20));
+const polygonAddresses = [
+  { name: DAI, address: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063" },
+  { name: USDC, address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", decimals: 6 },
+  { name: USDT, address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6 },
+  { name: WBTC, address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6", decimals: 8 },
+  { name: WETH, address: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619" },
+  { name: WMATIC, address: "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270" },
+].map(setAddressCategory(AddressCategories.ERC20, Guards.MATIC));
+
+export const erc20Addresses = [
+  ...ethereumAddresses,
+  ...polygonAddresses,
+];
 
 ////////////////////////////////////////
 /// ABIs
@@ -87,14 +100,14 @@ const erc20Interface = new Interface([
 
 export const erc20Parser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf, isToken } = addressBook;
 
-  for (const txLog of ethTx.logs) {
+  for (const txLog of evmTx.logs) {
     const address = txLog.address;
     // Only parse known, ERC20 compliant tokens
     if (isToken(address)) {
@@ -118,13 +131,13 @@ export const erc20Parser = (
           : isSelf(to) && !isSelf(from) ? Income
           : Unknown;
         tx.transfers.push({ asset, category, from, index: txLog.index, quantity: amount, to });
-        if (ethTx.to === address) {
+        if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
 
       } else if (event.name === "Approval") {
         log.debug(`Parsing ${source} ${event.name} event for ${asset}`);
-        if (ethTx.to === address) {
+        if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
 

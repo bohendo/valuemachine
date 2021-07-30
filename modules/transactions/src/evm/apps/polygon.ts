@@ -66,21 +66,21 @@ const wethInterface = new Interface([
 
 export const polygonParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: source });
   const { getName, isToken, getDecimals } = addressBook;
 
-  if (getName(ethTx.to) === ZapperPolygonBridge) {
-    const account = ethTx.from;
+  if (getName(evmTx.to) === ZapperPolygonBridge) {
+    const account = evmTx.from;
     tx.sources = rmDups([source, ...tx.sources]);
     tx.method = `Zap to Polygon`;
     log.info(`Parsing ${tx.method}`);
 
     // Get all erc20 transfers (even non-self ones)
-    const erc20Transfers = ethTx.logs
+    const erc20Transfers = evmTx.logs
       .filter(txLog => isToken(txLog.address))
       .map((txLog): Transfer => {
         const address = txLog.address;
@@ -176,7 +176,7 @@ export const polygonParser = (
     });
 
     // parse bridge?
-    ethTx.logs
+    evmTx.logs
       .filter(txLog => getName(txLog.address) === PlasmaBridge) 
       .forEach(txLog => {
         const event = parseEvent(plasmaBridgeInterface, txLog);
@@ -195,7 +195,7 @@ export const polygonParser = (
 
   // If not a zap bridge, then parse events normally
   } else {
-    for (const txLog of ethTx.logs) {
+    for (const txLog of evmTx.logs) {
       const address = txLog.address;
       if (polygonAddresses.map(e => e.address).includes(address)) {
         tx.sources = rmDups([source, ...tx.sources]);

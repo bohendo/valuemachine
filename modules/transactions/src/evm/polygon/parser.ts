@@ -6,11 +6,8 @@ import {
   Transaction,
 } from "@valuemachine/types";
 
-import { parseEvmTx } from "../evmParser";
-
-import { erc20Parser } from "./erc20";
-//import { aaveParser } from "./aave";
-import { quickswapParser } from "./quickswap";
+import { aaveParser, erc20Parser, quickswapParser } from "../apps";
+import { parseEvmTx } from "../parser";
 
 export const parsePolygonTx = (
   polygonTx: EvmTransaction,
@@ -22,5 +19,5 @@ export const parsePolygonTx = (
     addressBook,
     logger,
     Assets.MATIC,
-    [erc20Parser, quickswapParser],
+    [erc20Parser, quickswapParser, aaveParser],
   );

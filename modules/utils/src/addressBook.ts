@@ -3,6 +3,7 @@ import {
   AddressBookJson,
   AddressCategory,
   AddressEntry,
+  Guard,
   Guards,
 } from "@valuemachine/types";
 
@@ -44,6 +45,10 @@ export const fmtAddressEntry = (entry: AddressEntry): AddressEntry => {
   return entry;
 };
 
-export const setAddressCategory = (category: AddressCategory) =>
+export const setAddressCategory = (category: AddressCategory, guard?: Guard) =>
   (entry: Partial<AddressEntry>): AddressEntry =>
-    fmtAddressEntry({ ...entry, category } as AddressEntry);
+    fmtAddressEntry({
+      ...entry,
+      category,
+      guard: guard || entry.guard || isEthAddress(entry.address) ? Guards.ETH : Guards.None,
+    } as AddressEntry);

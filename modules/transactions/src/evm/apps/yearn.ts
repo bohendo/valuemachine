@@ -8,7 +8,6 @@ import {
   Logger,
   Transaction,
   TransactionSources,
-  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -170,8 +169,8 @@ const yVaultV2Interface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
-const vaultToToken = (token: string): Asset | undefined => {
-  switch (token) {
+const vaultToToken = (yAsset: string): Asset | undefined => {
+  switch (yAsset) {
   case y3Crv: return _3Crv;
   case yBUSDv3: return BUSD;
   case yDAI: return DAI;
@@ -216,14 +215,14 @@ const vaultToToken = (token: string): Asset | undefined => {
 
 export const yearnParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
-  for (const txLog of ethTx.logs) {
+  for (const txLog of evmTx.logs) {
     const address = txLog.address;
 
     if (yTokens.some(yToken => yToken.address === address)) {

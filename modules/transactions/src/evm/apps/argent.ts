@@ -7,7 +7,6 @@ import {
   Logger,
   Transaction,
   TransactionSources,
-  TransactionSource,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -58,18 +57,18 @@ const makerManagerV1Interface = new Interface([
 
 export const argentParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${ethTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
-  if (relayerAddresses.some(entry => ethTx.from === entry.address)) {
+  if (relayerAddresses.some(entry => evmTx.from === entry.address)) {
     tx.sources = rmDups([source, ...tx.sources]);
   }
 
-  for (const txLog of ethTx.logs) {
+  for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (address === makerManagerAddress) {
       const subsrc = `${source} MakerManager`;

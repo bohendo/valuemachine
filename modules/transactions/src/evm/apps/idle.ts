@@ -1,11 +1,10 @@
-import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import { Interface } from "@ethersproject/abi";
 import {
-  Address,
   AddressBook,
   AddressCategories,
   Assets,
+  Asset,
   EvmTransaction,
   Logger,
   Transaction,
@@ -18,13 +17,12 @@ import {
   parseEvent,
 } from "@valuemachine/utils";
 
-import { publicAddresses } from "../addresses";
-
 const source = TransactionSources.Idle;
 const { Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 const {
   IDLE, idleDAISafe, idleDAIYield, idleRAIYield, idleSUSDYield, idleTUSDYield,
   idleUSDCSafe, idleUSDCYield, idleUSDTSafe, idleUSDTYield, idleWBTCYield, idleWETHYield,
+  DAI, RAI, sUSD, TUSD, USDC, USDT, WBTC, WETH,
 } = Assets;
 
 ////////////////////////////////////////
@@ -70,26 +68,34 @@ const stkIDLEInterface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
+const idleToToken = (idleAsset: string): Asset | undefined => {
+  switch (idleAsset) {
+  case idleDAIYield: return DAI;
+  case idleRAIYield: return RAI;
+  case idleSUSDYield: return sUSD;
+  case idleTUSDYield: return TUSD;
+  case idleUSDCYield: return USDC;
+  case idleUSDTYield: return USDT;
+  case idleWBTCYield: return WBTC;
+  case idleWETHYield: return WETH;
+  case idleDAISafe: return DAI;
+  case idleUSDCSafe: return USDC;
+  case idleUSDTSafe: return USDT;
+  default: return undefined;
+  }
+};
+
 export const idleParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: source });
   const { isSelf } = addressBook;
 
-  const idleTokenToUnderlyingAddress = (idleAddress: Address): Address => {
-    const idleName = idleAddresses.find(entry => entry.address === idleAddress)?.name || "";
-    if (!idleName) return AddressZero;
-    const underlyingName = idleName.replace(/^idle/, "").replace(/(Yield|Safe)$/, "");
-    const underlyingAddress = publicAddresses.find(entry => entry.name === underlyingName)?.address;
-    log.info(`Mapped ${idleName} to underlying ${underlyingName} w address ${underlyingAddress}`);
-    return underlyingAddress;
-  };
-
-  for (const ethTxLog of ethTx.logs) {
-    const address = ethTxLog.address;
+  for (const txLog of evmTx.logs) {
+    const address = txLog.address;
     const asset = addressBook.getName(address);
 
     ////////////////////
@@ -98,7 +104,7 @@ export const idleParser = (
       tx.sources = rmDups([source, ...tx.sources]);
       const name = addressBook.getName(address);
       if (name === stkIDLE) {
-        const event = parseEvent(stkIDLEInterface, ethTxLog);
+        const event = parseEvent(stkIDLEInterface, txLog);
         const account = `${stkIDLE}-${event.args.provider}`;
 
         if (event.name === "Deposit") {
@@ -144,8 +150,7 @@ export const idleParser = (
       tx.sources = rmDups([source, ...tx.sources]);
       log.info(`Found interaction with Idle ${addressBook.getName(address)}`);
 
-      const underlyingAddress = idleTokenToUnderlyingAddress(address);
-      const underlyingAsset = addressBook.getName(underlyingAddress);
+      const underlyingAsset = idleToToken(addressBook.getName(address));
 
       log.info(`Looking for associated ${underlyingAsset} transfer`);
       const tokenTransfer = tx.transfers.find(transfer => transfer.asset === underlyingAsset);

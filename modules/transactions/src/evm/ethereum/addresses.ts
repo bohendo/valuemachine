@@ -2,8 +2,6 @@ import { AddressZero } from "@ethersproject/constants";
 import { AddressCategories } from "@valuemachine/types";
 import { setAddressCategory } from "@valuemachine/utils";
 
-import { appAddresses } from "./apps";
-
 const burnAddresses = [
   { name: "dead", address: "0x000000000000000000000000000000000000dead" },
   { name: "deadbeef", address: "0x00000000000000000000000000000000deadbeef" },
@@ -77,8 +75,7 @@ const exchangeAddresses = [
   { name: "airswap", address: "0x8fd3121013a07c57f0d69646e86e7a4880b467b7" },
 ].map(setAddressCategory(AddressCategories.Exchange));
 
-export const publicAddresses = [
-  ...appAddresses,
+export const publicEthereumAddresses = [
   ...burnAddresses,
   ...defiAddresses,
   ...donationAddresses,
