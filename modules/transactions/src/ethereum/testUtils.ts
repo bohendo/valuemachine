@@ -30,13 +30,13 @@ export const parseEthTx = async ({
   selfAddress: Address;
   calls?: EthCall[];
   logger?: Logger;
-  storePath: string;
+  storePath?: string;
 }): Promise<Transaction> => {
   const addressBook = getAddressBook({
     json: [{ address: selfAddress, name: "test-self", category: AddressCategories.Self }],
     logger: testLogger,
   });
-  const testStore = getFileStore(path.join(__dirname, storePath || "./testData"), fs);
+  const testStore = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
   const chainData = getChainData({
     json: {
       ...getEmptyChainData(),

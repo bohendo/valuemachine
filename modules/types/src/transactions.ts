@@ -29,6 +29,7 @@ export const guards = {
 };
 
 export const EthereumSources = {
+  Aave: "Aave",
   Argent: "Argent",
   Compound: "Compound",
   Idle: "Idle",
@@ -45,9 +46,17 @@ export const EthereumSources = {
 export const EthereumSource = Type.Enum(EthereumSources);
 export type EthereumSource = Static<typeof EthereumSource>;
 
+export const PolygonSources = {
+  Polygon: "Polygon",
+  Quickswap: "Quickswap",
+} as const;
+export const PolygonSource = Type.Enum(PolygonSources);
+export type PolygonSource = Static<typeof PolygonSource>;
+
 export const TransactionSources = {
   ...CsvSources,
   ...EthereumSources,
+  ...PolygonSources,
 } as const;
 export const TransactionSource = Type.Union([
   Type.Enum(TransactionSources),

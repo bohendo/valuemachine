@@ -6,6 +6,7 @@ export const DigitalGuards = {
   BTC: "BTC",
   ETH: "ETH",
   LTC: "LTC",
+  MATIC: "MATIC",
 } as const;
 export const DigitalGuard = Type.Enum(DigitalGuards);
 export type DigitalGuard = Static<typeof DigitalGuard>;
