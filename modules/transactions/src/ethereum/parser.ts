@@ -5,13 +5,13 @@ import {
   Address,
   AddressBook,
   Assets,
-  EthCall,
-  EthTransaction,
+  EvmTransfer,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
   TransferCategories,
-  EthParser,
+  EvmParser,
   TransferCategory,
 } from "@valuemachine/types";
 import { gt, getNewContractAddress } from "@valuemachine/utils";
@@ -22,11 +22,11 @@ const { ETH } = Assets;
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
 export const parseEthTx = (
-  ethTx: EthTransaction,
-  ethCalls: EthCall[],
+  ethTx: EvmTransaction,
+  ethCalls: EvmTransfer[],
   addressBook: AddressBook,
   logger: Logger,
-  extraParsers = [] as EthParser[],
+  extraParsers = [] as EvmParser[],
 ): Transaction => {
   const { isSelf } = addressBook;
   const log = logger.child({ module: `Eth${ethTx.hash?.substring(0, 8)}` });
@@ -87,7 +87,7 @@ export const parseEthTx = (
   }
 
   // Add internal eth calls to the transfers array
-  ethCalls.filter((call: EthCall) => call.hash === ethTx.hash).forEach((call: EthCall) => {
+  ethCalls.filter((call: EvmTransfer) => call.hash === ethTx.hash).forEach((call: EvmTransfer) => {
     if (
       // Calls that don't interact with self addresses don't matter
       (isSelf(call.to) || isSelf(call.from))
@@ -124,7 +124,7 @@ export const parseEthTx = (
 
   // Give a default eth-related source if no app-specific parsers were triggered
   if (!tx.sources.length) {
-    tx.sources.push(TransactionSources.EthTx);
+    tx.sources.push(TransactionSources.Ethereum);
   }
 
   tx.transfers = tx.transfers

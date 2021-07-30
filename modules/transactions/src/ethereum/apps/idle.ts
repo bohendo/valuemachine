@@ -6,7 +6,7 @@ import {
   AddressBook,
   AddressCategories,
   Assets,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
@@ -72,7 +72,7 @@ const stkIDLEInterface = new Interface([
 
 export const idleParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

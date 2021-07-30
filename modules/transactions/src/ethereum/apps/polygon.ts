@@ -6,7 +6,7 @@ import {
   AddressCategories,
   Assets,
   TransactionSources,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   Transfer,
@@ -66,7 +66,7 @@ const wethInterface = new Interface([
 
 export const polygonParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

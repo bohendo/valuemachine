@@ -4,7 +4,7 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
@@ -216,7 +216,7 @@ const vaultToToken = (token: string): Asset | undefined => {
 
 export const yearnParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

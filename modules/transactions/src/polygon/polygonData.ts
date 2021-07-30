@@ -16,7 +16,7 @@ import {
 import {
   chrono,
   getEmptyEvmData,
-  getEthTransactionError,
+  getEvmTransactionError,
   getLogger,
 } from "@valuemachine/utils";
 import axios from "axios";
@@ -46,13 +46,13 @@ export const getPolygonData = (params?: {
   // Internal Heleprs
 
   /*
-  export const EthTransactionLog = Type.Object({
+  export const EvmTransactionLog = Type.Object({
     address: Address,
     data: HexString,
     index: Type.Number(),
     topics: Type.Array(Bytes32),
   });
-  export const EthTransaction = Type.Object({
+  export const EvmTransaction = Type.Object({
     block: Type.Number(),
     data: HexString,
     from: Address,
@@ -61,7 +61,7 @@ export const getPolygonData = (params?: {
     gasUsed: HexString,
     hash: Bytes32,
     index: Type.Number(),
-    logs: Type.Array(EthTransactionLog),
+    logs: Type.Array(EvmTransactionLog),
     nonce: Type.Number(),
     status: Type.Optional(Type.Number()),
     timestamp: TimestampString,
@@ -150,7 +150,7 @@ export const getPolygonData = (params?: {
         items.find(item => item.tx_hash === txHash)
         || await fetchTx(txHash)
       );
-      const error = getEthTransactionError(polygonTx);
+      const error = getEvmTransactionError(polygonTx);
       if (error) throw new Error(error);
       json.transactions.push(polygonTx);
       save();
@@ -178,12 +178,12 @@ export const getPolygonData = (params?: {
       throw new Error(`Cannot sync an invalid tx hash: ${txHash}`);
     }
     const existing = json.transactions.find(existing => existing.hash === txHash);
-    if (!getEthTransactionError(existing)) {
+    if (!getEvmTransactionError(existing)) {
       return;
     }
     log.info(`Fetching polygon data for tx ${txHash}`);
     const polygonTx = formatCovalentTx(await fetchTx(txHash));
-    const error = getEthTransactionError(polygonTx);
+    const error = getEvmTransactionError(polygonTx);
     if (error) throw new Error(error);
     // log.debug(polygonTx, `Parsed raw polygon tx to a valid evm tx`);
     json.transactions.push(polygonTx);

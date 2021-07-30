@@ -5,7 +5,7 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
@@ -71,7 +71,7 @@ const oasisInterface = new Interface([
 
 export const oasisParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

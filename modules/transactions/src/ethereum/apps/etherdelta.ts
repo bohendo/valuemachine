@@ -7,7 +7,7 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
@@ -49,7 +49,7 @@ const etherdeltaInterface = new Interface([
 
 export const etherdeltaParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

@@ -6,7 +6,7 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
@@ -124,7 +124,7 @@ const associatedTransfer = (asset: string, quantity: string) =>
 
 export const compoundParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

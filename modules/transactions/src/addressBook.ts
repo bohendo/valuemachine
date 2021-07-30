@@ -7,7 +7,7 @@ import {
   AddressBookParams,
   AddressCategories,
   AddressCategory,
-  EthereumSources,
+  EvmSources,
   guards,
   PrivateCategories,
   PublicCategories,
@@ -103,7 +103,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     }
     const prefix = account.split("-")[0];
     if (!prefix) return Guards.None;
-    if (Object.keys(EthereumSources).includes(prefix)) {
+    if (Object.keys(EvmSources).includes(prefix)) {
       return Guards.ETH;
     }
     return guards[prefix] || prefix;

@@ -7,8 +7,8 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  EthTransaction,
-  EthTransactionLog,
+  EvmTransaction,
+  EvmTransactionLog,
   Logger,
   Transaction,
   TransactionSources,
@@ -189,7 +189,7 @@ const proxyInterface = new Interface([
 
 const parseLogNote = (
   iface: Interface,
-  ethLog: EthTransactionLog,
+  ethLog: EvmTransactionLog,
 ): { name: string; args: string[]; } => ({
   name: Object.values(iface.functions).find(e =>
     ethLog.topics[0].startsWith(iface.getSighash(e))
@@ -209,7 +209,7 @@ const parseLogNote = (
 
 export const makerParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

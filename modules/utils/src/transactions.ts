@@ -4,7 +4,7 @@ import {
   Asset,
   Assets,
   DecimalString,
-  EthTransactionLog,
+  EvmTransactionLog,
   Transaction,
   TransactionsJson,
   Transfer,
@@ -52,7 +52,7 @@ export const chrono = (e1: Transaction, e2: Transaction): number =>
 
 export const parseEvent = (
   iface: Interface,
-  ethLog: EthTransactionLog,
+  ethLog: EvmTransactionLog,
 ): { name: string; args: { [key: string]: string }; } => {
   const name = Object.values(iface.events).find(e =>
     iface.getEventTopic(e) === ethLog.topics[0]

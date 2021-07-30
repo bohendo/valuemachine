@@ -2,7 +2,7 @@ import {
   AddressBook,
   Assets,
   AddressCategories,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
@@ -74,7 +74,7 @@ const closestTenPow = amt => amt.startsWith("0.")
 
 export const tornadoParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

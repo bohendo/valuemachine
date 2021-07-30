@@ -4,7 +4,7 @@ import {
   Asset,
   AddressBook,
   AddressCategories,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   Transfer,
@@ -139,7 +139,7 @@ const associatedTransfer = (asset: string, quantity: string) =>
 
 export const aaveParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

@@ -10,7 +10,7 @@ const validAddressHistory = {
   },
 };
 
-const validEthCall = {
+const validEvmTransfer = {
   hash: HashZero,
   block: 0,
   from: AddressZero,
@@ -43,7 +43,7 @@ const validEthTx = {
 const validEvmData = {
   addresses: validAddressHistory,
   transactions: [validEthTx],
-  calls: [validEthCall],
+  calls: [validEvmTransfer],
 };
 
 describe("EvmData", () => {
@@ -62,7 +62,7 @@ describe("EvmData", () => {
   it("should return an error if an eth call is invalid", async () => {
     expect(getEvmDataError({
       ...validEvmData,
-      calls: [{ ...validEthCall, hash: AddressZero }],
+      calls: [{ ...validEvmTransfer, hash: AddressZero }],
     })).to.be.a("string");
   });
 

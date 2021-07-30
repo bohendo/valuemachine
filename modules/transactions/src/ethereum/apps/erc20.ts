@@ -6,7 +6,7 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
@@ -87,7 +87,7 @@ const erc20Interface = new Interface([
 
 export const erc20Parser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

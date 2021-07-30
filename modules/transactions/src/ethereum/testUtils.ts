@@ -6,7 +6,7 @@ import {
   Address,
   AddressCategories,
   Bytes32,
-  EthCall,
+  EvmTransfer,
   Logger,
   Transaction,
 } from "@valuemachine/types";
@@ -28,7 +28,7 @@ export const parseEthTx = async ({
 }: {
   hash: Bytes32;
   selfAddress: Address;
-  calls?: EthCall[];
+  calls?: EvmTransfer[];
   logger?: Logger;
   storePath?: string;
 }): Promise<Transaction> => {

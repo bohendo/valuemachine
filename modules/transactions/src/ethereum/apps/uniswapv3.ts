@@ -1,7 +1,7 @@
 import {
   AddressBook,
   AddressCategories,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
@@ -35,7 +35,7 @@ export const uniswapv3Addresses = [
 
 export const uniswapv3Parser = (
   tx: Transaction,
-  _ethTx: EthTransaction,
+  _ethTx: EvmTransaction,
   addressBook: AddressBook,
   _logger: Logger,
 ): Transaction => {

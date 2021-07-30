@@ -1,7 +1,7 @@
 import {
   AddressBook,
   Assets,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
 } from "@valuemachine/types";
@@ -13,7 +13,7 @@ import { erc20Parser } from "./erc20";
 import { quickswapParser } from "./quickswap";
 
 export const parsePolygonTx = (
-  polygonTx: EthTransaction,
+  polygonTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction =>

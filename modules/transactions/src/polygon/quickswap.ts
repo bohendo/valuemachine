@@ -1,7 +1,7 @@
 import {
   AddressBook,
   AddressCategories,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
@@ -33,7 +33,7 @@ export const quickswapAddresses = [
 
 export const quickswapParser = (
   tx: Transaction,
-  _ethTx: EthTransaction,
+  _ethTx: EvmTransaction,
   _addressBook: AddressBook,
   _logger: Logger,
 ): Transaction => {

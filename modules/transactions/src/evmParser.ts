@@ -6,8 +6,8 @@ import {
   Asset,
   Assets,
   AddressBook,
-  EthTransaction,
-  EthParser,
+  EvmTransaction,
+  EvmParser,
   Logger,
   Transaction,
   TransferCategories,
@@ -18,11 +18,11 @@ import { gt } from "@valuemachine/utils";
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
 export const parseEvmTx = (
-  evmTx: EthTransaction,
+  evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
   nativeAsset = Assets.ETH as Asset,
-  appParsers = [] as EthParser[],
+  appParsers = [] as EvmParser[],
 ): Transaction => {
   const { isSelf } = addressBook;
   const log = logger.child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });

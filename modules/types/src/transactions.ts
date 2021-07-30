@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
-import { EthTransaction } from "./evmData";
+import { EvmTransaction } from "./evmData";
 import { Logger } from "./logger";
 import { Guards } from "./guards";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
@@ -28,35 +28,41 @@ export const guards = {
   [CsvSources.Wazirx]: Guards.INR,
 };
 
-export const EthereumSources = {
+export const ChainSources = {
+  Ethereum: "Ethereum",
+  Polygon: "Polygon",
+} as const;
+export const ChainSource = Type.Enum(ChainSources);
+export type ChainSource = Static<typeof ChainSource>;
+
+// Solidity-based evm apps, might be exist on multiple chains
+export const EvmSources = {
   Aave: "Aave",
   Argent: "Argent",
   Compound: "Compound",
-  Idle: "Idle",
   ERC20: "ERC20",
-  EthTx: "EthTx",
   EtherDelta: "EtherDelta",
+  Idle: "Idle",
   Maker: "Maker",
   Oasis: "Oasis",
+  Quickswap: "Quickswap",
   Tornado: "Tornado",
   Uniswap: "Uniswap",
   Weth: "Weth",
   Yearn: "Yearn",
 } as const;
-export const EthereumSource = Type.Enum(EthereumSources);
-export type EthereumSource = Static<typeof EthereumSource>;
+export const EvmSource = Type.Enum(EvmSources);
+export type EvmSource = Static<typeof EvmSource>;
 
 export const PolygonSources = {
-  Polygon: "Polygon",
-  Quickswap: "Quickswap",
 } as const;
 export const PolygonSource = Type.Enum(PolygonSources);
 export type PolygonSource = Static<typeof PolygonSource>;
 
 export const TransactionSources = {
   ...CsvSources,
-  ...EthereumSources,
-  ...PolygonSources,
+  ...EvmSources,
+  ...ChainSources,
 } as const;
 export const TransactionSource = Type.Union([
   Type.Enum(TransactionSources),
@@ -111,9 +117,9 @@ export type CsvParser = (
   logger: Logger,
 ) => Transaction;
 
-export type EthParser = (
+export type EvmParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ) => Transaction;

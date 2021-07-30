@@ -10,8 +10,8 @@ import {
   EvmData,
   EvmDataJson,
   EvmDataParams,
-  EthCall,
-  EthParser,
+  EvmTransfer,
+  EvmParser,
   StoreKeys,
   Transaction,
   TransactionsJson,
@@ -19,7 +19,7 @@ import {
 import {
   getEvmDataError,
   getEmptyEvmData,
-  getEthTransactionError,
+  getEvmTransactionError,
   getLogger,
   toBN,
 } from "@valuemachine/utils";
@@ -157,7 +157,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     return;
   };
 
-  const getEthCalls = (testFn: (_call: EthCall) => boolean): EthCall[] =>
+  const getEvmTransfers = (testFn: (_call: EvmTransfer) => boolean): EvmTransfer[] =>
     JSON.parse(JSON.stringify(json.calls.filter(testFn)));
 
   ////////////////////////////////////////
@@ -171,7 +171,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       throw new Error(`Cannot sync an invalid tx hash: ${txHash}`);
     }
     const existing = json.transactions.find(existing => existing.hash === txHash);
-    if (!getEthTransactionError(existing)) {
+    if (!getEvmTransactionError(existing)) {
       return;
     }
     log.info(`Fetching eth data for tx ${txHash}`);
@@ -221,7 +221,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       to: response.to ? getAddress(response.to) : null,
       value: formatEther(response.value),
     };
-    const error = getEthTransactionError(newTx);
+    const error = getEvmTransactionError(newTx);
     if (error) {
       throw new Error(error);
     }
@@ -264,9 +264,9 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       isHexString(hash) && hexDataLength(hash) === 32
     ))).sort();
     json.addresses[address].history = history;
-    const oldEthCalls = JSON.parse(JSON.stringify(json.calls));
+    const oldEvmTransfers = JSON.parse(JSON.stringify(json.calls));
     for (const call of callHistory) {
-      if (getDups(oldEthCalls, call) > 0) {
+      if (getDups(oldEvmTransfers, call) > 0) {
         log.debug(`Skipping eth call, dup detected`);
         continue;
       }
@@ -353,7 +353,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const getTransactions = (
     addressBook: AddressBook,
-    extraParsers?: EthParser[],
+    extraParsers?: EvmParser[],
   ): TransactionsJson => {
     const selfAddresses = addressBook.json
       .map(entry => entry.address)
@@ -369,7 +369,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     log.info(`Parsing ${selfTransactionHashes.length} eth transactions`);
     return selfTransactionHashes.map(hash => parseEthTx(
       json.transactions.find(tx => tx.hash === hash),
-      getEthCalls((call: EthCall) => call.hash === hash),
+      getEvmTransfers((call: EvmTransfer) => call.hash === hash),
       addressBook,
       logger,
       extraParsers,
@@ -379,11 +379,11 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   const getTransaction = (
     hash: Bytes32,
     addressBook: AddressBook,
-    extraParsers?: EthParser[],
+    extraParsers?: EvmParser[],
   ): Transaction =>
     parseEthTx(
       json.transactions.find(tx => tx.hash === hash),
-      getEthCalls((call: EthCall) => call.hash === hash),
+      getEvmTransfers((call: EvmTransfer) => call.hash === hash),
       addressBook,
       logger,
       extraParsers,

@@ -3,7 +3,7 @@ import {
   Assets,
   AddressBook,
   AddressCategories,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransactionSources,
@@ -189,7 +189,7 @@ const abrv = str => str.substring(0, 8).toLowerCase(); // for abbreviating accou
 
 export const uniswapParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

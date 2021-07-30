@@ -1,7 +1,7 @@
 import { hexlify } from "@ethersproject/bytes";
 import { keccak256 } from "@ethersproject/keccak256";
 import { encode } from "@ethersproject/rlp";
-import { Address, EthTransaction, EvmDataJson } from "@valuemachine/types";
+import { Address, EvmTransaction, EvmDataJson } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
 
@@ -22,9 +22,9 @@ export const getEvmDataError = (evmDataJson: EvmDataJson): string | null =>
     : validateEvmData.errors.length ? formatErrors(validateEvmData.errors)
     : `Invalid EvmData: ${JSON.stringify(evmDataJson)}`;
 
-const validateEthTransaction = ajv.compile(EthTransaction);
-export const getEthTransactionError = (ethTx: EthTransaction): string | null =>
-  validateEthTransaction(ethTx)
+const validateEvmTransaction = ajv.compile(EvmTransaction);
+export const getEvmTransactionError = (ethTx: EvmTransaction): string | null =>
+  validateEvmTransaction(ethTx)
     ? null
-    : validateEthTransaction.errors.length ? formatErrors(validateEthTransaction.errors)
-    : `Invalid EthTransaction: ${JSON.stringify(ethTx)}`;
+    : validateEvmTransaction.errors.length ? formatErrors(validateEvmTransaction.errors)
+    : `Invalid EvmTransaction: ${JSON.stringify(ethTx)}`;

@@ -6,7 +6,7 @@ import {
   AddressBook,
   AddressCategories,
   Assets,
-  EthTransaction,
+  EvmTransaction,
   Logger,
   Transaction,
   TransferCategories,
@@ -47,7 +47,7 @@ const getAccount = address => `${MATIC}-${getAddress(address)}`;
 
 export const erc20Parser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  ethTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
