@@ -376,7 +376,7 @@ export const getPrices = (params?: PricesParams): Prices => {
   };
 
   ////////////////////////////////////////
-  // External Methods
+  // Exported Methods
 
   const getPrice = (
     rawDate: DateString,

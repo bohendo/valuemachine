@@ -20,7 +20,7 @@ export const CsvSources = {
 export const CsvSource = Type.Enum(CsvSources);
 export type CsvSource = Static<typeof CsvSource>;
 
-// Set default guards for external sources
+// Set default guards for csv sources
 export const guards = {
   [CsvSources.Coinbase]: Guards.USD,
   [CsvSources.DigitalOcean]: Guards.USD,

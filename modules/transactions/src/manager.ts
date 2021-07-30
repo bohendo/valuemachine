@@ -17,7 +17,7 @@ import {
   mergeDigitalOceanTransactions,
   mergeWazirxTransactions,
   mergeWyreTransactions,
-} from "./external";
+} from "./csv";
 import { mergeTransaction } from "./merge";
 
 export const getTransactions = ({

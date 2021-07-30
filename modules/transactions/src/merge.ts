@@ -89,9 +89,9 @@ export const mergeTransaction = (
       );
 
     const mergeCandidateIndex = transactions.findIndex(tx =>
-      // the candidate only has external sources
+      // the candidate only has csv sources
       tx.sources.every(src => Object.keys(CsvSources).includes(src))
-      // external tx & new eth tx have timestamps that are close to each other
+      // csv tx & new eth tx have timestamps that are close to each other
       && datesAreClose(tx.date, newTx.date)
       // the candidate has exactly 1 mergable transfer
       && tx.transfers.filter(isMergable).length === 1
@@ -104,21 +104,21 @@ export const mergeTransaction = (
       return transactions;
     }
 
-    const externalTx = transactions[mergeCandidateIndex];
-    const externalTransfer = externalTx.transfers.find(isMergable);
+    const csvTx = transactions[mergeCandidateIndex];
+    const csvTransfer = csvTx.transfers.find(isMergable);
     transactions[mergeCandidateIndex] = {
       // prioritize new eth tx values by default
-      ...externalTx, ...newTx,
-      // use external date so we can detect external dups more easily later
-      date: externalTx.date,
+      ...csvTx, ...newTx,
+      // use csv date so we can detect csv dups more easily later
+      date: csvTx.date,
       // merge sources
-      sources: rmDups([...externalTx.sources, ...newTx.sources]),
+      sources: rmDups([...csvTx.sources, ...newTx.sources]),
     };
-    ethTransfer.category = externalTransfer.category;
+    ethTransfer.category = csvTransfer.category;
     if (ethTransfer.category === Deposit) {
-      ethTransfer.to = externalTransfer.to;
+      ethTransfer.to = csvTransfer.to;
     } else {
-      ethTransfer.from = externalTransfer.from;
+      ethTransfer.from = csvTransfer.from;
     }
 
     log.info(
@@ -128,7 +128,7 @@ export const mergeTransaction = (
     return transactions;
 
   ////////////////////////////////////////
-  // Handle new external transactions
+  // Handle new csv transactions
   } else if (
     newTx.sources.every(src => Object.keys(CsvSources).includes(src))
     && newTx.sources.length === 1
@@ -145,20 +145,20 @@ export const mergeTransaction = (
         valuesAreClose(t1.quantity, t2.quantity, div(t2.quantity, "100"))
       ))
     )) {
-      log.debug(`Skipping duplicate external tx: ${newTx.method}`);
+      log.debug(`Skipping duplicate csv tx: ${newTx.method}`);
       return transactions;
     }
 
-    // Mergable external txns can only contain one transfer
+    // Mergable csv txns can only contain one transfer
     if (newTx.transfers.length !== 1) {
       transactions.push(newTx);
       transactions.sort(chrono);
-      log.debug(`Inserted external tx w ${newTx.transfers.length} transfers: ${newTx.method}`);
+      log.debug(`Inserted csv tx w ${newTx.transfers.length} transfers: ${newTx.method}`);
       return transactions;
     }
     const extTransfer = newTx.transfers[0];
 
-    // Does this transfer have the same asset & similar quantity as the new external tx
+    // Does this transfer have the same asset & similar quantity as the new csv tx
     const isMergable = (transfer: Transfer): boolean => 
       ((extTransfer.category === Deposit && transfer.category === Expense) ||
        (extTransfer.category === Withdraw && transfer.category === Income))
@@ -172,7 +172,7 @@ export const mergeTransaction = (
     const mergeCandidateIndex = transactions.findIndex(tx =>
       // the candidate only has ethereum sources
       tx.sources.every(src => Object.keys(EthereumSources).includes(src))
-      // eth tx & new external tx have timestamps that are close each other
+      // eth tx & new csv tx have timestamps that are close each other
       && datesAreClose(tx.date, newTx.date)
       // the candidate has exactly 1 mergable transfer
       && tx.transfers.filter(isMergable).length === 1
@@ -181,7 +181,7 @@ export const mergeTransaction = (
     if (mergeCandidateIndex < 0) {
       transactions.push(newTx);
       transactions.sort(chrono);
-      log.debug(`Inserted new external tx: ${newTx.method}`);
+      log.debug(`Inserted new csv tx: ${newTx.method}`);
       return transactions;
     }
 
@@ -190,7 +190,7 @@ export const mergeTransaction = (
     transactions[mergeCandidateIndex] = {
       // prioritize existing eth tx props by default
       ...newTx, ...ethTx,
-      // use external date so we can detect external dups more easily later
+      // use csv date so we can detect csv dups more easily later
       date: newTx.date,
       // merge sources
       sources: rmDups([...ethTx.sources, ...newTx.sources]),
@@ -205,14 +205,14 @@ export const mergeTransaction = (
     transactions.sort(chrono);
     log.info(
       transactions[mergeCandidateIndex],
-      `Merged transactions[${mergeCandidateIndex}] into new external tx: ${newTx.method}`,
+      `Merged transactions[${mergeCandidateIndex}] into new csv tx: ${newTx.method}`,
     );
     return transactions;
 
   ////////////////////////////////////////
   // Handle new transactions of unknown source-type
   } else {
-    log.info(`Inserting tx that isn't from an Ethereum or External source`);
+    log.info(`Inserting tx that isn't from an Ethereum or Csv source`);
     transactions.push(newTx);
     transactions.sort(chrono);
     return transactions;
