@@ -9,7 +9,7 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = TransactionSources.Uniswap;
+const source = TransactionSources.Uniswap + "V3";
 const logger = testLogger.child({ module: `Test${source}`,
   // level: "debug",
 });

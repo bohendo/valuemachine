@@ -8,7 +8,7 @@ import {
 
 const source = TransactionSources.Idle;
 const logger = testLogger.child({ module: `Test${source}`,
-  // level: "debug", // Uncomment to enable verbose logging
+  // level: "debug",
 });
 
 describe(source, () => {

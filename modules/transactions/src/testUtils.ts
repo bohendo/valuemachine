@@ -13,3 +13,5 @@ export const env = {
 };
 
 export const testLogger = getLogger(env.logLevel).child({ module: "TestUtils" });
+
+testLogger.info(env, "starting tx tests in env");
