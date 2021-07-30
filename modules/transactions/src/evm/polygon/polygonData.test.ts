@@ -1,7 +1,6 @@
 import { ChainData, Guards } from "@valuemachine/types";
 import { getTransactionsError } from "@valuemachine/utils";
 
-import { getPolygonData } from "./polygonData";
 import {
   env,
   expect,
@@ -9,7 +8,9 @@ import {
   testStore,
   testLogger,
   parsePolygonTx,
-} from "./testUtils";
+} from "../testUtils";
+
+import { getPolygonData } from "./polygonData";
 
 const logger = testLogger.child({ module: `TestPolygon`,
   // level: "debug", // Uncomment to enable verbose logging

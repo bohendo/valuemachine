@@ -23,7 +23,9 @@ import {
 
 const source = TransactionSources.Aave;
 
-const { AAVE, amAAVE, amDAI, amUSDC, amWBTC, amWETH, amUSDT, amMATIC } = Assets;
+const {
+  ETH, MATIC, AAVE, stkAAVE, amAAVE, amDAI, amUSDC, amWBTC, amWETH, amUSDT, amMATIC
+} = Assets;
 const { SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 //////////////////////////////
@@ -53,8 +55,8 @@ const ethereumAddresses = {
     { name: "LendingPool", address: "0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9" },
   ].map(setAddressCategory(AddressCategories.Defi, Guards.ETH)),
   gov: [
-    { name: "AAVE", address: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9" },
-    { name: "stkAAVE", address: "0x4da27a545c0c5B758a6BA100e3a049001de870f5" },
+    { name: AAVE, address: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9" },
+    { name: stkAAVE, address: "0x4da27a545c0c5B758a6BA100e3a049001de870f5" },
   ].map(setAddressCategory(AddressCategories.ERC20, Guards.ETH)),
   markets: [
     { name: "aDAI", address: "0x028171bca77440897b824ca71d1c56cac55b68a3" },
@@ -167,13 +169,15 @@ export const aaveParser = (
   //log.info(`Parser activated`);
   const { getName } = addressBook;
 
+  log.info(`Parsing EVM tx from ${tx.sources}`);
+
   // Only check addresses for the chain
   const addresses =
-    tx.sources.includes(TransactionSources.Ethereum) ? ethereumAddresses
-    : tx.sources.includes(TransactionSources.Polygon) ? polygonAddresses
+    tx.sources.includes(ETH) ? ethereumAddresses
+    : tx.sources.includes(MATIC) ? polygonAddresses
     : { core: [], gov: [], markets: [] };
 
-  const stkAAVEAddress = addresses.gov.find(e => e.name === "stkAAVE").address;
+  const stkAAVEAddress = addresses.gov.find(e => e.name === stkAAVE).address;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
@@ -276,8 +280,8 @@ export const aaveParser = (
       const event = parseEvent(aaveStakeInterface, txLog);
       if (event.name === "Staked"&& (event.args.from===event.args.onBehalfOf) ) {
         log.debug("event is : " + event.name);
-        const asset1 = "AAVE" as Asset ;
-        const asset2 = "stkAAVE" as Asset ;
+        const asset1 = AAVE;
+        const asset2 = stkAAVE;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(address),
@@ -299,8 +303,8 @@ export const aaveParser = (
 
       } else if (event.name === "Redeem" && (event.args.from===event.args.to)) {
         log.debug("event is : " + event.name);
-        const asset1 = "AAVE" as Asset ;
-        const asset2 = "stkAAVE" as Asset ;
+        const asset1 = AAVE;
+        const asset2 = stkAAVE;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(address),

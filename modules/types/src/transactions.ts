@@ -4,7 +4,7 @@ import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
 import { EvmTransaction } from "./evmData";
 import { Logger } from "./logger";
-import { Guards } from "./guards";
+import { DigitalGuards, Guards } from "./guards";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
 
@@ -29,8 +29,7 @@ export const guards = {
 };
 
 export const ChainSources = {
-  Ethereum: "Ethereum",
-  Polygon: "Polygon",
+  ...DigitalGuards,
 } as const;
 export const ChainSource = Type.Enum(ChainSources);
 export type ChainSource = Static<typeof ChainSource>;
@@ -53,11 +52,6 @@ export const EvmSources = {
 } as const;
 export const EvmSource = Type.Enum(EvmSources);
 export type EvmSource = Static<typeof EvmSource>;
-
-export const PolygonSources = {
-} as const;
-export const PolygonSource = Type.Enum(PolygonSources);
-export type PolygonSource = Static<typeof PolygonSource>;
 
 export const TransactionSources = {
   ...CsvSources,

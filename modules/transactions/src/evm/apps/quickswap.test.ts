@@ -4,7 +4,7 @@ import {
   parsePolygonTx,
   expect,
   testLogger,
-} from "./testUtils";
+} from "../testUtils";
 
 const source = TransactionSources.Quickswap;
 const logger = testLogger.child({ module: `Test${source}`,

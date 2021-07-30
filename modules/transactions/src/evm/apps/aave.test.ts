@@ -15,7 +15,7 @@ const logger = testLogger.child({ module: `Test${source}`,
   // level: "debug",
 });
 
-describe(source, () => {
+describe.only(source, () => {
 
   it("should handle deposits to v2", async () => {
     const tx = await parseEthTx({

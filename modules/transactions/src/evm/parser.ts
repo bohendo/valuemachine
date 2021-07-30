@@ -7,18 +7,20 @@ import {
   Assets,
   AddressBook,
   EvmTransaction,
+  EvmTransfer,
   EvmParser,
   Logger,
   Transaction,
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
-import { gt } from "@valuemachine/utils";
+import { gt, getNewContractAddress } from "@valuemachine/utils";
 
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
 export const parseEvmTx = (
   evmTx: EvmTransaction,
+  evmTransfers: EvmTransfer[],
   addressBook: AddressBook,
   logger: Logger,
   nativeAsset = Assets.ETH as Asset,
@@ -66,7 +68,7 @@ export const parseEvmTx = (
     log.info(`Detected a failed tx`);
     return tx;
   }
-  
+
   // Transaction Value
   if (gt(evmTx.value, "0") && (isSelf(evmTx.to) || isSelf(evmTx.from))) {
     tx.transfers.push({
@@ -79,10 +81,46 @@ export const parseEvmTx = (
     });
   }
 
-  // Activate app-specific parsers
-  for (const appParser of appParsers) {
-    tx = appParser(tx, evmTx, addressBook, log);
+  // Detect contract creations
+  if (evmTx.to === null) {
+    // derived from: https://evmereum.stackexchange.com/a/46960
+    const newContract = getNewContractAddress(evmTx.from, evmTx.nonce);
+    evmTx.to = newContract; // overwrite to make later steps simpler
+    tx.method = "Contract Creation";
+    log.info(`Detected a newly created contract`);
   }
+
+  // Add internal evm transfers to the transfers array
+  evmTransfers?.filter((call: EvmTransfer) => call.hash === evmTx.hash)
+    .forEach((call: EvmTransfer) => {
+      if (
+        // Calls that don't interact with self addresses don't matter
+        (isSelf(call.to) || isSelf(call.from))
+        // Calls with zero value don't matter
+        && gt(call.value, "0")
+      ) {
+        tx.transfers.push({
+          asset: nativeAsset,
+          category: getSimpleCategory(call.to, call.from),
+          // Internal evm transfers have no index, put incoming transfers first & outgoing last
+          // This makes underflows less likely during VM processesing
+          index: isSelf(call.to) ? 1 : 10000,
+          from: getAddress(call.from),
+          quantity: call.value,
+          to: getAddress(call.to),
+        });
+      }
+    });
+
+  // Activate pipeline of app-specific parsers
+  appParsers.forEach(parser => {
+    try {
+      tx = parser(tx, evmTx, addressBook, log);
+    } catch (e) {
+      // If one of them fails, log the error & move on
+      log.error(e);
+    }
+  });
 
   tx.transfers = tx.transfers
     // Filter out no-op transfers
