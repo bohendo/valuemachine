@@ -3,18 +3,22 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
 import {
   Address,
+  AddressBook,
   Asset,
   Assets,
-  AddressBook,
+  EvmParser,
+  Evm,
+  Evms,
   EvmTransaction,
   EvmTransfer,
-  EvmParser,
   Logger,
   Transaction,
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
-import { gt, getNewContractAddress } from "@valuemachine/utils";
+import { gt, getLogger, getNewContractAddress } from "@valuemachine/utils";
+
+// import { addressToAccount } from "./utils";
 
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
@@ -22,19 +26,19 @@ export const parseEvmTx = (
   evmTx: EvmTransaction,
   evmTransfers: EvmTransfer[],
   addressBook: AddressBook,
-  logger: Logger,
+  logger?: Logger,
+  chainId = 1 as number,
+  evm = Evms.Ethereum as Evm,
   nativeAsset = Assets.ETH as Asset,
   appParsers = [] as EvmParser[],
+  fmtAddress = getAddress as (address: string) => string,
 ): Transaction => {
   const { isSelf } = addressBook;
-  const log = logger.child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });
+  const log = (logger || getLogger()).child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });
   // log.debug(evmTx, `Parsing evm tx`);
 
-  const getAccount = (address: string): string => {
-    if (nativeAsset === Assets.ETH) return getAddress(address);
-    if (nativeAsset === Assets.MATIC) return `${nativeAsset}-${getAddress(address)}`;
-    // if (nativeAsset === Assets.ONE) return address; // use "oneAbC.." format instead of "0xabc.."
-    return isAddress(address) ? getAddress(address) : address;
+  const addressToAccount = (address: string): string => {
+    return `evm:${chainId}${fmtAddress(address)}`;
   };
 
   const getSimpleCategory = (to: Address, from: Address): TransferCategory =>
@@ -46,7 +50,7 @@ export const parseEvmTx = (
   let tx = {
     date: (new Date(evmTx.timestamp)).toISOString(),
     hash: evmTx.hash,
-    sources: [nativeAsset],
+    sources: [evm],
     transfers: [],
   } as Transaction;
 
@@ -55,10 +59,10 @@ export const parseEvmTx = (
     tx.transfers.push({
       asset: nativeAsset,
       category: Expense,
-      from: getAccount(evmTx.from),
+      from: addressToAccount(evmTx.from),
       index: -1,
       quantity: formatEther(BigNumber.from(evmTx.gasUsed).mul(evmTx.gasPrice)),
-      to: nativeAsset,
+      to: evm,
     });
   }
 
@@ -74,10 +78,10 @@ export const parseEvmTx = (
     tx.transfers.push({
       asset: nativeAsset,
       category: getSimpleCategory(evmTx.to, evmTx.from),
-      from: getAccount(evmTx.from),
+      from: addressToAccount(evmTx.from),
       index: 0,
       quantity: evmTx.value,
-      to: getAccount(evmTx.to),
+      to: addressToAccount(evmTx.to),
     });
   }
 
@@ -133,8 +137,8 @@ export const parseEvmTx = (
     // Make sure all evm addresses are checksummed
     .map(transfer => ({
       ...transfer,
-      from: isAddress(transfer.from) ? getAccount(transfer.from) : transfer.from,
-      to: isAddress(transfer.to) ? getAccount(transfer.to) : transfer.to,
+      from: isAddress(transfer.from) ? addressToAccount(transfer.from) : transfer.from,
+      to: isAddress(transfer.to) ? addressToAccount(transfer.to) : transfer.to,
     }))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);

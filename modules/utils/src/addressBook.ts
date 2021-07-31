@@ -38,7 +38,7 @@ export const fmtAddress = (address: string) =>
 export const fmtAddressEntry = (entry: AddressEntry): AddressEntry => {
   entry.address = fmtAddress(entry.address);
   entry.guard = entry.guard || (
-    isEthAddress(entry.address) ? Guards.ETH : Guards.None
+    isEthAddress(entry.address) ? Guards.Ethereum : Guards.None
   );
   const error = getAddressEntryError(entry);
   if (error) throw new Error(error);
@@ -50,5 +50,5 @@ export const setAddressCategory = (category: AddressCategory, guard?: Guard) =>
     fmtAddressEntry({
       ...entry,
       category,
-      guard: guard || entry.guard || isEthAddress(entry.address) ? Guards.ETH : Guards.None,
+      guard: guard || entry.guard || isEthAddress(entry.address) ? Guards.Ethereum : Guards.None,
     } as AddressEntry);

@@ -2,6 +2,7 @@ import {
   AddressBook,
   Assets,
   EvmParser,
+  Evms,
   EvmTransaction,
   Logger,
   Transaction,
@@ -18,9 +19,11 @@ export const parsePolygonTx = (
 ): Transaction =>
   parseEvmTx(
     polygonTx,
-    [], // No EvmTransfers are available for polygon
+    [], // EvmTransfers are not available for polygon
     addressBook,
     logger,
+    137,
+    Evms.Polygon,
     Assets.MATIC,
     [ // Order matters! Complex parsers usually depend on simple ones so put ERC20 first
       erc20Parser,

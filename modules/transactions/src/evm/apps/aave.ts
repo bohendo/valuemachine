@@ -36,10 +36,10 @@ const { SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const polygonAddresses = {
   core: [
     { name: "LendingPool", address: "0x8dff5e27ea6b7ac08ebfdf9eb090f32ee9a30fcf" },
-  ].map(setAddressCategory(AddressCategories.Defi, Guards.MATIC)),
+  ].map(setAddressCategory(AddressCategories.Defi, Guards.Polygon)),
   gov: [
     { name: AAVE, address: "0xD6DF932A45C0f255f85145f286eA0b292B21C90B" },
-  ].map(setAddressCategory(AddressCategories.ERC20, Guards.MATIC)),
+  ].map(setAddressCategory(AddressCategories.ERC20, Guards.Polygon)),
   markets: [
     { name: amAAVE, address: "0x1d2a0E5EC8E5bBDCA5CB219e649B565d8e5c3360" },
     { name: amDAI, address: "0x27F8D03b3a2196956ED754baDc28D73be8830A6e" },
@@ -48,17 +48,17 @@ const polygonAddresses = {
     { name: amWETH, address: "0x28424507fefb6f7f8E9D3860F56504E4e5f5f390" },
     { name: amWBTC, address: "0x5c2ed810328349100A66B82b78a1791B101C9D61" },
     { name: amMATIC, address: "0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac4" },
-  ].map(setAddressCategory(AddressCategories.ERC20, Guards.MATIC)),
+  ].map(setAddressCategory(AddressCategories.ERC20, Guards.Polygon)),
 };
 
 const ethereumAddresses = {
   core: [
     { name: "LendingPool", address: "0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9" },
-  ].map(setAddressCategory(AddressCategories.Defi, Guards.ETH)),
+  ].map(setAddressCategory(AddressCategories.Defi, Guards.Ethereum)),
   gov: [
     { name: AAVE, address: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9" },
     { name: stkAAVE, address: "0x4da27a545c0c5B758a6BA100e3a049001de870f5" },
-  ].map(setAddressCategory(AddressCategories.ERC20, Guards.ETH)),
+  ].map(setAddressCategory(AddressCategories.ERC20, Guards.Ethereum)),
   markets: [
     { name: "aDAI", address: "0x028171bca77440897b824ca71d1c56cac55b68a3" },
     { name: "aAAVE", address: "0xffc97d72e13e01096502cb8eb52dee56f74dad7b" },
@@ -98,7 +98,7 @@ const ethereumAddresses = {
     { name: "RENFIL", address: "0xD5147bc8e386d91Cc5DBE72099DAC6C9b99276F5" },
     { name: "RAI", address: "0x03ab458634910aad20ef5f1c8ee96f1d6ac54919" },
     { name: "ARAI", address: "0xc9bc48c72154ef3e5425641a3c747242112a46af" },
-  ].map(setAddressCategory(AddressCategories.ERC20, Guards.ETH)),
+  ].map(setAddressCategory(AddressCategories.ERC20, Guards.Ethereum)),
 };
 
 export const aaveAddresses = [

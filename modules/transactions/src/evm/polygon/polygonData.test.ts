@@ -39,14 +39,14 @@ describe("Polygon Data", () => {
       logger,
     });
     expect(tx).to.be.ok;
-    expect(tx.sources).to.include(Guards.MATIC);
+    expect(tx.sources).to.include(Guards.Polygon);
     expect(getTransactionsError([tx])).to.be.null;
   });
 
   it.skip("should sync & parse an address book", async () => {
     await polygonData.syncAddressBook(addressBook);
     const transactions = polygonData.getTransactions(addressBook);
-    expect(transactions[0].sources).to.include(Guards.MATIC);
+    expect(transactions[0].sources).to.include(Guards.Polygon);
     expect(getTransactionsError(transactions)).to.be.null;
   });
 

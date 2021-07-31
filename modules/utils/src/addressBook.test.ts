@@ -8,7 +8,7 @@ const validAddressBookEntry = {
   address: AddressZero,
   name: "zero",
   decimals: 0,
-  guard: Guards.ETH,
+  guard: Guards.Ethereum,
   category: AddressCategories.Burn,
 };
 

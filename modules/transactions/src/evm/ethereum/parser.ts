@@ -2,6 +2,7 @@ import {
   AddressBook,
   Assets,
   EvmParser,
+  Evms,
   EvmTransaction,
   EvmTransfer,
   Logger,
@@ -39,6 +40,8 @@ export const parseEthTx = (
     ethTransfers,
     addressBook,
     logger,
+    1,
+    Evms.Ethereum,
     Assets.ETH,
     [ // Order matters! Complex parsers usually depend on simple ones so put ERC20 & weth first
       erc20Parser,

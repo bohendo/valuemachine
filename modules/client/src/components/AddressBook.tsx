@@ -232,7 +232,7 @@ const EditEntry = ({
               labelId={`select-${entry?.address}-guard`}
               id={`select-${entry?.address}-guard`}
               name="guard"
-              value={newEntry?.guard || Guards.ETH}
+              value={newEntry?.guard || Guards.Ethereum}
               onChange={handleEntryChange}
             >
               {Object.keys(Guards).map((cat, i) => (
@@ -383,7 +383,7 @@ const AddressRow = ({
 const getEmptyEntry = (): AddressEntry => ({
   address: "",
   category: AddressCategories.Self,
-  guard: Guards.ETH,
+  guard: Guards.Ethereum,
   name: "",
 });
 

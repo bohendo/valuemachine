@@ -6,12 +6,12 @@ import { appAddresses } from "./apps";
 
 export const ethereumAddresses = [
   ...publicEthereumAddresses,
-  ...appAddresses.filter(e => e.guard === Guards.ETH),
+  ...appAddresses.filter(e => e.guard === Guards.Ethereum),
 ];
 
 export const polygonAddresses = [
   ...publicPolygonAddresses,
-  ...appAddresses.filter(e => e.guard === Guards.MATIC),
+  ...appAddresses.filter(e => e.guard === Guards.Polygon),
 ];
 
 export const publicAddresses = [

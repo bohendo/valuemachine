@@ -1,6 +1,7 @@
 import { HashZero } from "@ethersproject/constants";
 import {
   Assets,
+  Guards,
   Transaction,
   TransactionSources,
   TransferCategories,
@@ -14,7 +15,7 @@ import {
 
 const { ETH } = Assets;
 const { Expense, Deposit } = TransferCategories;
-const { Coinbase } = TransactionSources;
+const { Coinbase, Ethereum } = TransactionSources;
 const csvSource = Coinbase;
 const log = testLogger.child({ module: "TestMerge",
   // level: "debug",
@@ -44,7 +45,7 @@ const getCsvTx = (): Transaction => ({
 const getEthTx = (): Transaction => ({
   date: timestamp,
   hash: HashZero,
-  sources: [TransactionSources.ETH],
+  sources: [Ethereum],
   transfers: [
     {
       asset: ETH,
@@ -52,7 +53,7 @@ const getEthTx = (): Transaction => ({
       from: AddressOne,
       index: -1,
       quantity: "0.000000004294967296",
-      to: ETH,
+      to: Guards.Ethereum,
     },
     {
       asset: ETH,
@@ -78,7 +79,7 @@ describe("Merge", () => {
     expect(txns.length).to.equal(1);
     const tx = txns[0];
     expect(tx.sources).to.include(csvSource);
-    expect(tx.sources).to.include(TransactionSources.ETH);
+    expect(tx.sources).to.include(Ethereum);
     expect(tx.transfers[1].category).to.equal(Deposit);
     expect(tx.transfers[1].to).to.include(csvSource);
   });
@@ -97,7 +98,7 @@ describe("Merge", () => {
     expect(txns.length).to.equal(1);
     const tx = txns[0];
     expect(tx.sources).to.include(csvSource);
-    expect(tx.sources).to.include(TransactionSources.ETH);
+    expect(tx.sources).to.include(Ethereum);
     expect(tx.transfers[1].category).to.equal(Deposit);
     expect(tx.transfers[1].to).to.include(csvSource);
   });
