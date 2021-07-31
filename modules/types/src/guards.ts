@@ -1,5 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
+import { EvmNames } from "./evmData";
 import { FiatCurrencies, Cryptocurrencies } from "./assets";
 
 export const Evms = {
@@ -33,7 +34,7 @@ export const UtxoIdMapping = {
 
 // Security providers on the internet aka blockchains
 export const DigitalGuards = {
-  ...Evms,
+  ...EvmNames,
   ...Utxos,
 } as const;
 export const DigitalGuard = Type.Enum(DigitalGuards);

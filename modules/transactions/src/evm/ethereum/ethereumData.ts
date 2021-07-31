@@ -6,12 +6,14 @@ import { formatEther } from "@ethersproject/units";
 import {
   Address,
   AddressBook,
+  Cryptocurrencies,
   Bytes32,
   EvmData,
   EvmDataJson,
   EvmDataParams,
   EvmTransfer,
   EvmParser,
+  EvmNames,
   StoreKeys,
   Transaction,
   TransactionsJson,
@@ -31,6 +33,12 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   const { json: ethDataJson, etherscanKey, logger, store } = params || {};
   const log = (logger || getLogger()).child?.({ module: "EthereumData" });
   const json = ethDataJson || store?.load(StoreKeys.EthereumData) || getEmptyEvmData();
+
+  const metadata = {
+    id: 1,
+    name: EvmNames.Ethereum,
+    feeAsset: Cryptocurrencies.ETH,
+  };
 
   const save = () => store
     ? store.save(StoreKeys.EthereumData, json)
@@ -370,6 +378,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     return selfTransactionHashes.map(hash => parseEthTx(
       json.transactions.find(tx => tx.hash === hash),
       getEvmTransfers((call: EvmTransfer) => call.hash === hash),
+      metadata,
       addressBook,
       logger,
       extraParsers,
@@ -384,6 +393,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     parseEthTx(
       json.transactions.find(tx => tx.hash === hash),
       getEvmTransfers((call: EvmTransfer) => call.hash === hash),
+      metadata,
       addressBook,
       logger,
       extraParsers,

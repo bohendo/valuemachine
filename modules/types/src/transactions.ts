@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
-import { EvmTransaction } from "./evmData";
+import { EvmMetadata, EvmTransaction } from "./evmData";
 import { Logger } from "./logger";
 import { DigitalGuards, Guards } from "./guards";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
@@ -115,7 +115,8 @@ export type CsvParser = (
 
 export type EvmParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
+  evmMetadata: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ) => Transaction;

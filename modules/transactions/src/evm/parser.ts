@@ -4,42 +4,33 @@ import { formatEther } from "@ethersproject/units";
 import {
   Address,
   AddressBook,
-  Asset,
-  Assets,
   EvmParser,
-  Evm,
-  Evms,
   EvmTransaction,
   EvmTransfer,
+  EvmMetadata,
   Logger,
   Transaction,
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
-import { gt, getLogger, getNewContractAddress } from "@valuemachine/utils";
-
-// import { addressToAccount } from "./utils";
+import { gt, getNewContractAddress } from "@valuemachine/utils";
 
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
 export const parseEvmTx = (
   evmTx: EvmTransaction,
   evmTransfers: EvmTransfer[],
+  evmMetadata: EvmMetadata,
   addressBook: AddressBook,
   logger?: Logger,
-  chainId = 1 as number,
-  evm = Evms.Ethereum as Evm,
-  nativeAsset = Assets.ETH as Asset,
   appParsers = [] as EvmParser[],
-  fmtAddress = getAddress as (address: string) => string,
 ): Transaction => {
   const { isSelf } = addressBook;
-  const log = (logger || getLogger()).child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });
+  const log = logger.child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });
+  const getAccount = (address: string, venue?: string) =>
+    `evm:${evmMetadata.id}${venue ? `-${venue}` : ""}:${getAddress(address)}`;
   // log.debug(evmTx, `Parsing evm tx`);
 
-  const addressToAccount = (address: string): string => {
-    return `evm:${chainId}${fmtAddress(address)}`;
-  };
 
   const getSimpleCategory = (to: Address, from: Address): TransferCategory =>
     (isSelf(to) && isSelf(from)) ? Internal
@@ -50,19 +41,19 @@ export const parseEvmTx = (
   let tx = {
     date: (new Date(evmTx.timestamp)).toISOString(),
     hash: evmTx.hash,
-    sources: [evm],
+    sources: [evmMetadata.name],
     transfers: [],
   } as Transaction;
 
   // Transaction Fee
   if (isSelf(evmTx.from)) {
     tx.transfers.push({
-      asset: nativeAsset,
+      asset: evmMetadata.feeAsset,
       category: Expense,
-      from: addressToAccount(evmTx.from),
+      from: getAccount(evmTx.from),
       index: -1,
       quantity: formatEther(BigNumber.from(evmTx.gasUsed).mul(evmTx.gasPrice)),
-      to: evm,
+      to: evmMetadata.name,
     });
   }
 
@@ -76,12 +67,12 @@ export const parseEvmTx = (
   // Transaction Value
   if (gt(evmTx.value, "0") && (isSelf(evmTx.to) || isSelf(evmTx.from))) {
     tx.transfers.push({
-      asset: nativeAsset,
+      asset: evmMetadata.feeAsset,
       category: getSimpleCategory(evmTx.to, evmTx.from),
-      from: addressToAccount(evmTx.from),
+      from: getAccount(evmTx.from),
       index: 0,
       quantity: evmTx.value,
-      to: addressToAccount(evmTx.to),
+      to: getAccount(evmTx.to),
     });
   }
 
@@ -104,7 +95,7 @@ export const parseEvmTx = (
         && gt(call.value, "0")
       ) {
         tx.transfers.push({
-          asset: nativeAsset,
+          asset: evmMetadata.feeAsset,
           category: getSimpleCategory(call.to, call.from),
           // Internal evm transfers have no index, put incoming transfers first & outgoing last
           // This makes underflows less likely during VM processesing
@@ -119,7 +110,7 @@ export const parseEvmTx = (
   // Activate pipeline of app-specific parsers
   appParsers.forEach(parser => {
     try {
-      tx = parser(tx, evmTx, addressBook, log);
+      tx = parser(tx, evmTx, addressBook, log, getAccount);
     } catch (e) {
       // If one of them fails, log the error & move on
       log.error(e);
@@ -137,8 +128,8 @@ export const parseEvmTx = (
     // Make sure all evm addresses are checksummed
     .map(transfer => ({
       ...transfer,
-      from: isAddress(transfer.from) ? addressToAccount(transfer.from) : transfer.from,
-      to: isAddress(transfer.to) ? addressToAccount(transfer.to) : transfer.to,
+      from: isAddress(transfer.from) ? getAccount(transfer.from) : transfer.from,
+      to: isAddress(transfer.to) ? getAccount(transfer.to) : transfer.to,
     }))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);

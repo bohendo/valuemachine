@@ -1,5 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
+import { Cryptocurrency } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
 import { AddressBook } from "./addressBook";
@@ -14,6 +15,20 @@ import {
 
 ////////////////////////////////////////
 // JSON Schema
+
+export const EvmNames = {
+  Ethereum: "Ethereum",
+  EthereumClassic: "EthereumClassic",
+  Polygon: "Polygon",
+} as const;
+export const EvmName = Type.String(); // allow arbitrary evms in app-level code
+export type EvmName = Static<typeof EvmName>;
+
+export const EvmMetadata = Type.Object({
+  id: Type.Number(),
+  name: EvmName,
+  feeAsset: Cryptocurrency,
+});
 
 export const EvmTransfer = Type.Object({
   block: Type.Number(),
@@ -37,7 +52,8 @@ export const EvmTransaction = Type.Object({
   block: Type.Number(),
   data: HexString,
   from: Address,
-  gasLimit: HexString,
+  gasLimit: HexString, // rm?
+  // consolidate into gasFee?
   gasPrice: HexString,
   gasUsed: HexString,
   hash: Bytes32,
@@ -46,6 +62,7 @@ export const EvmTransaction = Type.Object({
   nonce: Type.Number(),
   status: Type.Optional(Type.Number()),
   timestamp: TimestampString,
+  // transfers: Type.Array(EvmTransfer),
   to: Type.Union([Address, Type.Null()]),
   value: DecimalString,
 });

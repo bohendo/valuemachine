@@ -1,8 +1,7 @@
 import {
   AddressBook,
-  Assets,
   EvmParser,
-  Evms,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -13,6 +12,7 @@ import { parseEvmTx } from "../parser";
 
 export const parsePolygonTx = (
   polygonTx: EvmTransaction,
+  polygonMetadata: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
   extraParsers?: EvmParser[],
@@ -20,11 +20,9 @@ export const parsePolygonTx = (
   parseEvmTx(
     polygonTx,
     [], // EvmTransfers are not available for polygon
+    polygonMetadata,
     addressBook,
     logger,
-    137,
-    Evms.Polygon,
-    Assets.MATIC,
     [ // Order matters! Complex parsers usually depend on simple ones so put ERC20 first
       erc20Parser,
       quickswapParser,

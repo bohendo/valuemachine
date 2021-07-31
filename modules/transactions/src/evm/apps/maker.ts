@@ -9,6 +9,7 @@ import {
   Asset,
   EvmTransaction,
   EvmTransactionLog,
+  EvmNames,
   Logger,
   Transaction,
   TransactionSources,
@@ -552,7 +553,7 @@ export const makerParser = (
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
-          && t.to !== ETH
+          && !Object.keys(EvmNames).includes(t.to)
           && ([Expense, Deposit] as string[]).includes(t.category)
           && (tubAddress === t.to || isSelf(t.from))
         ).sort(diffAsc(wad))[0];

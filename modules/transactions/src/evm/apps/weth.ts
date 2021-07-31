@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { getAddress } from "@ethersproject/address";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -25,7 +24,7 @@ const source = TransactionSources.Weth;
 /// Addresses
 
 export const wethAddresses = [
-  { name: WETH, address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
+  { name: WETH, address: "evm:1:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 const wethAddress = wethAddresses.find(e => e.name === WETH).address;
@@ -48,12 +47,14 @@ export const wethParser = (
   evmTx: EvmTransaction,
   addressBook: AddressBook,
   logger: Logger,
+  addressToAccount: (str: string) => string,
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, isSelf } = addressBook;
 
   for (const txLog of evmTx.logs) {
-    const address = getAddress(txLog.address);
+    const address = txLog.address;
+    const contract = addressToAccount(address);
     if (address === wethAddress) {
       const asset = WETH;
       const event = parseEvent(wethInterface, txLog);
@@ -72,28 +73,28 @@ export const wethParser = (
         tx.transfers.push({
           asset,
           category: SwapIn,
-          from: address,
+          from: contract,
           index,
           quantity: amount,
-          to: event.args.dst,
+          to: addressToAccount(event.args.dst),
         });
-        const swapOut = tx.transfers.findIndex(t =>
+        const swapOut = tx.transfers.find(t =>
           t.asset === ETH && t.quantity === amount
-          && isSelf(t.from) && t.to === address
+          && isSelf(t.from) && t.to === contract
         );
-        if (swapOut >= 0) {
-          tx.transfers[swapOut].category = SwapOut;
-          tx.transfers[swapOut].index = index - 0.1;
+        if (swapOut) {
+          swapOut.category = SwapOut;
+          swapOut.index = index - 0.1;
           if (evmTx.to === wethAddress) {
             tx.method = "Trade";
           }
           // If there's a same-value eth transfer to the swap recipient, index it before
-          const transfer = tx.transfers.findIndex(t =>
+          const transfer = tx.transfers.find(t =>
             t.asset === ETH && t.quantity === amount
-            && t.to === tx.transfers[swapOut].from
+            && t.to === swapOut.from
           );
-          if (transfer >= 0) {
-            tx.transfers[transfer].index = index - 0.2;
+          if (transfer) {
+            transfer.index = index - 0.2;
           }
         } else {
           log.warn(`Couldn't find an eth call associated w deposit of ${amount} WETH`);
@@ -110,28 +111,28 @@ export const wethParser = (
         tx.transfers.push({
           asset,
           category: SwapOut,
-          from: event.args.src,
+          from: addressToAccount(event.args.src),
           index,
           quantity: amount,
-          to: address,
+          to: contract,
         });
-        const swapIn = tx.transfers.findIndex(t =>
+        const swapIn = tx.transfers.find(t =>
           t.asset === ETH && t.quantity === amount
-          && isSelf(t.to) && t.from === address
+          && isSelf(t.to) && t.from === contract
         );
-        if (swapIn >= 0) {
-          tx.transfers[swapIn].category = SwapIn;
-          tx.transfers[swapIn].index = index + 0.1;
+        if (swapIn) {
+          swapIn.category = SwapIn;
+          swapIn.index = index + 0.1;
           if (evmTx.to === wethAddress) {
             tx.method = "Trade";
           }
           // If there's a same-value eth transfer from the swap recipient, index it after
-          const transfer = tx.transfers.findIndex(t =>
+          const transfer = tx.transfers.find(t =>
             t.asset === ETH && t.quantity === amount
-            && t.from === tx.transfers[swapIn].to
+            && t.from === swapIn.to
           );
-          if (transfer >= 0) {
-            tx.transfers[transfer].index = index + 0.2;
+          if (transfer) {
+            transfer.index = index + 0.2;
           }
         } else {
           log.warn(`Couldn't find an eth call associated w withdrawal of ${amount} WETH`);

@@ -35,7 +35,8 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   // Helpers
 
   const getEntry = (address: Address): AddressEntry | undefined => {
-    const target = fmtAddress(address);
+    if (!address) return undefined;
+    const target = fmtAddress(address.includes(":") ? address.split(":").pop() : address);
     return addressBook.find(row => row.address === target);
   };
 
@@ -95,13 +96,14 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   };
 
   const getGuard = (account: Account): Guard => {
-    if (!account) return Guards.None;
-    const guard = getEntry(account)?.guard;
+    const address = account.includes(":") ? account.split(":").pop() : account;
+    if (!address) return Guards.None;
+    const guard = getEntry(address)?.guard;
     if (guard) return guard;
-    if (!account.includes("-")) {
-      return isEthAddress(account) ? Guards.Ethereum : Guards.None;
+    if (!address.includes("-")) {
+      return isEthAddress(address) ? Guards.Ethereum : Guards.None;
     }
-    const prefix = account.split("-")[0];
+    const prefix = address.split("-")[0];
     if (!prefix) return Guards.None;
     if (Object.keys(EvmSources).includes(prefix)) {
       return Guards.Ethereum;
