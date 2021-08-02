@@ -173,10 +173,9 @@ export const aaveParser = (
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
-  //log.info(`Parser activated`);
   const { getName, isSelf } = addressBook;
 
-  log.info(`Parsing EVM tx from network ${evmMeta.name}`);
+  // log.info(`Parsing EVM tx from network ${evmMeta.name}`);
 
   // Only check addresses for the chain
   const addresses =

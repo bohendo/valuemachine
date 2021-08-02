@@ -19,7 +19,6 @@ export const parsePolygonTx = (
 ): Transaction =>
   parseEvmTx(
     polygonTx,
-    [], // EvmTransfers are not available for polygon
     polygonMetadata,
     addressBook,
     logger,

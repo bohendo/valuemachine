@@ -7,8 +7,7 @@ import { ajv, formatErrors } from "./validate";
 
 export const getEmptyEvmData = (): EvmDataJson => ({
   addresses: {},
-  calls: [],
-  transactions: [],
+  transactions: {},
 });
 
 export const getNewContractAddress = (from: Address, nonce: number): Address => `0x${

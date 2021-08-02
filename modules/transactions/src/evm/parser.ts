@@ -19,7 +19,6 @@ const { Expense, Income, Internal, Unknown } = TransferCategories;
 
 export const parseEvmTx = (
   evmTx: EvmTransaction,
-  evmTransfers: EvmTransfer[],
   evmMetadata: EvmMetadata,
   addressBook: AddressBook,
   logger?: Logger,
@@ -86,26 +85,25 @@ export const parseEvmTx = (
   }
 
   // Add internal evm transfers to the transfers array
-  evmTransfers?.filter((call: EvmTransfer) => call.hash === evmTx.hash)
-    .forEach((call: EvmTransfer) => {
-      if (
-        // Calls that don't interact with self addresses don't matter
-        (isSelf(call.to) || isSelf(call.from))
-        // Calls with zero value don't matter
-        && gt(call.value, "0")
-      ) {
-        tx.transfers.push({
-          asset: evmMetadata.feeAsset,
-          category: getSimpleCategory(call.to, call.from),
-          // Internal evm transfers have no index, put incoming transfers first & outgoing last
-          // This makes underflows less likely during VM processesing
-          index: isSelf(call.to) ? 1 : 10000,
-          from: getAddress(call.from),
-          quantity: call.value,
-          to: getAddress(call.to),
-        });
-      }
-    });
+  evmTx.transfers.forEach((evmTransfer: EvmTransfer) => {
+    if (
+      // Calls that don't interact with self addresses don't matter
+      (isSelf(evmTransfer.to) || isSelf(evmTransfer.from))
+      // Calls with zero value don't matter
+      && gt(evmTransfer.value, "0")
+    ) {
+      tx.transfers.push({
+        asset: evmMetadata.feeAsset,
+        category: getSimpleCategory(evmTransfer.to, evmTransfer.from),
+        // Internal evm transfers have no index, put incoming transfers first & outgoing last
+        // This makes underflows less likely during VM processesing
+        index: isSelf(evmTransfer.to) ? 1 : 10000,
+        from: getAddress(evmTransfer.from),
+        quantity: evmTransfer.value,
+        to: getAddress(evmTransfer.to),
+      });
+    }
+  });
 
   // Activate pipeline of app-specific parsers
   appParsers.forEach(parser => {

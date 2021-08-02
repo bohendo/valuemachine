@@ -32,10 +32,10 @@ export const EvmMetadata = Type.Object({
 export type EvmMetadata = Static<typeof EvmMetadata>;
 
 export const EvmTransfer = Type.Object({
-  block: Type.Number(),
+  // block: Type.Number(),
+  // hash: Bytes32,
+  // timestamp: TimestampString,
   from: Address,
-  hash: Bytes32,
-  timestamp: TimestampString,
   to: Address,
   value: DecimalString,
 });
@@ -50,20 +50,20 @@ export const EvmTransactionLog = Type.Object({
 export type EvmTransactionLog = Static<typeof EvmTransactionLog>;
 
 export const EvmTransaction = Type.Object({
-  block: Type.Number(),
-  data: HexString,
-  from: Address,
-  gasLimit: HexString, // rm?
+  // block: Type.Number(),
+  // data: HexString,
+  // gasLimit: HexString, // rm?
   // consolidate into gasFee?
+  // index: Type.Number(),
+  from: Address,
   gasPrice: HexString,
   gasUsed: HexString,
   hash: Bytes32,
-  index: Type.Number(),
   logs: Type.Array(EvmTransactionLog),
   nonce: Type.Number(),
   status: Type.Optional(Type.Number()),
   timestamp: TimestampString,
-  // transfers: Type.Array(EvmTransfer),
+  transfers: Type.Array(EvmTransfer),
   to: Type.Union([Address, Type.Null()]),
   value: DecimalString,
 });
@@ -74,8 +74,7 @@ export const EvmDataJson = Type.Object({
     history: Type.Array(Bytes32), /* List of tx hashes that interact with this address */
     lastUpdated: TimestampString,
   })),
-  calls: Type.Array(EvmTransfer), // Note: we can have multiple calls per txHash
-  transactions: Type.Array(EvmTransaction),
+  transactions: Type.Dict(EvmTransaction),
 });
 export type EvmDataJson = Static<typeof EvmDataJson>;
 
@@ -83,8 +82,9 @@ export type EvmDataJson = Static<typeof EvmDataJson>;
 // Function Interfaces
 
 export type EvmDataParams = {
-  json?: EvmDataJson;
+  covalentKey?: string;
   etherscanKey?: string;
+  json?: EvmDataJson;
   logger?: Logger;
   store?: Store;
 };

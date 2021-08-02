@@ -14,12 +14,12 @@ import {
 const source = TransactionSources.Aave;
 const { Expense, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const logger = testLogger.child({ module: `Test${source}`,
-  level: "debug",
+  // level: "debug",
 });
 
 describe(source, () => {
 
-  it.only("should handle deposits to v2", async () => {
+  it("should handle deposits to v2", async () => {
     const tx = await parseEthTx({
       selfAddress: "0x7d12d0d36f8291e8f7adec4cf59df6cc01d0ab97",
       hash: "0x23219928262c3933be579182cf8b466585b84d5e249413d3c9613837d51393e0",

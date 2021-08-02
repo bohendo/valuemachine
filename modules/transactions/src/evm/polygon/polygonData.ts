@@ -19,6 +19,7 @@ import {
 import {
   chrono,
   getEmptyEvmData,
+  getEvmDataError,
   getEvmTransactionError,
   getLogger,
 } from "@valuemachine/utils";
@@ -28,20 +29,23 @@ import { parsePolygonTx } from "./parser";
 
 export const getPolygonData = (params?: {
   covalentKey: string;
+  etherscanKey: string;
   json?: EvmDataJson;
   logger?: Logger,
   store?: Store,
 }): EvmData => {
   const { covalentKey, json: polygonDataJson, logger, store } = params || {};
-
   const log = (logger || getLogger()).child?.({ module: "PolygonData" });
   const json = polygonDataJson || store?.load(StoreKeys.PolygonData) || getEmptyEvmData();
   const save = () => store
     ? store.save(StoreKeys.PolygonData, json)
     : log.warn(`No store provided, can't save polygon data`);
 
+  const error = getEvmDataError(json);
+  if (error) throw new Error(error);
+
   log.info(`Loaded polygon data containing ${
-    json.transactions.length
+    Object.keys(json.transactions).length
   } transactions from ${polygonDataJson ? "input" : store ? "store" : "default"}`);
 
   const metadata = {
@@ -79,14 +83,14 @@ export const getPolygonData = (params?: {
   */
 
   const formatCovalentTx = rawTx => ({
-    block: rawTx.block_height,
-    data: "0x", // not available?
+    // block: rawTx.block_height,
+    // data: "0x", // not available?
+    // gasLimit: hexlify(rawTx.gas_offered),
+    // index: rawTx.tx_offset,
     from: getAddress(rawTx.from_address),
-    gasLimit: hexlify(rawTx.gas_offered),
     gasPrice: hexlify(rawTx.gas_price),
     gasUsed: hexlify(rawTx.gas_spent),
     hash: rawTx.tx_hash,
-    index: rawTx.tx_offset,
     logs: rawTx.log_events.map(evt => ({
       address: getAddress(evt.sender_address),
       index: evt.log_offset,
@@ -96,6 +100,7 @@ export const getPolygonData = (params?: {
     nonce: 0, // not available?
     status: rawTx.successful ? 1 : 0,
     timestamp: rawTx.block_signed_at,
+    transfers: [], // not available, get from etherscan
     to: getAddress(rawTx.to_address),
     value: formatEther(rawTx.value),
   });
@@ -160,7 +165,7 @@ export const getPolygonData = (params?: {
       );
       const error = getEvmTransactionError(polygonTx);
       if (error) throw new Error(error);
-      json.transactions.push(polygonTx);
+      json.transactions[polygonTx.hash] = polygonTx;
       save();
     }
     return;
@@ -174,7 +179,7 @@ export const getPolygonData = (params?: {
     addressBook: AddressBook,
   ): Transaction =>
     parsePolygonTx(
-      json.transactions.find(tx => tx.hash === hash),
+      json.transactions[hash],
       metadata,
       addressBook,
       logger,
@@ -186,7 +191,7 @@ export const getPolygonData = (params?: {
     if (!txHash) {
       throw new Error(`Cannot sync an invalid tx hash: ${txHash}`);
     }
-    const existing = json.transactions.find(existing => existing.hash === txHash);
+    const existing = json.transactions[txHash];
     if (!getEvmTransactionError(existing)) {
       return;
     }
@@ -195,7 +200,7 @@ export const getPolygonData = (params?: {
     const error = getEvmTransactionError(polygonTx);
     if (error) throw new Error(error);
     // log.debug(polygonTx, `Parsed raw polygon tx to a valid evm tx`);
-    json.transactions.push(polygonTx);
+    json.transactions[polygonTx.hash] = polygonTx;
     save();
     return;
   };
@@ -225,7 +230,7 @@ export const getPolygonData = (params?: {
     ));
     log.info(`Parsing ${selfTransactionHashes.length} polygon transactions`);
     return selfTransactionHashes.map(hash => parsePolygonTx(
-      json.transactions.find(tx => tx.hash === hash),
+      json.transactions[hash],
       metadata,
       addressBook,
       logger,

@@ -3,7 +3,6 @@ import {
   EvmParser,
   EvmMetadata,
   EvmTransaction,
-  EvmTransfer,
   Logger,
   Transaction,
 } from "@valuemachine/types";
@@ -29,7 +28,6 @@ import { parseEvmTx } from "../parser";
 
 export const parseEthTx = (
   ethTx: EvmTransaction,
-  ethTransfers: EvmTransfer[],
   ethMetadata: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
@@ -37,7 +35,6 @@ export const parseEthTx = (
 ): Transaction =>
   parseEvmTx(
     ethTx,
-    ethTransfers,
     ethMetadata,
     addressBook,
     logger,
