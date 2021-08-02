@@ -27,9 +27,9 @@ const source = TransactionSources.Argent;
 const makerManagerAddress = "0x7557f4199aa99e5396330bac3b7bdaa262cb1913";
 
 const relayerAddresses = [
-  { name: "argent-relayer", address: "0xdd5a1c148ca114af2f4ebc639ce21fed4730a608" },
-  { name: "argent-relayer", address: "0x0385b3f162a0e001b60ecb84d3cb06199d78f666" },
-  { name: "argent-relayer", address: "0xf27696c8bca7d54d696189085ae1283f59342fa6" },
+  { name: "argent-relayer", address: "evm:1:0xdd5a1c148ca114af2f4ebc639ce21fed4730a608" },
+  { name: "argent-relayer", address: "evm:1:0x0385b3f162a0e001b60ecb84d3cb06199d78f666" },
+  { name: "argent-relayer", address: "evm:1:0xf27696c8bca7d54d696189085ae1283f59342fa6" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const managerAddresses = [

@@ -20,7 +20,7 @@ const store = getFileStore(path.join(__dirname, "../exampleData"), fs);
 
 // Gather & categorize the addresses we want to analyze
 const addressBookJson = [{
-  address: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
+  address: "evm:1:0x1057bea69c9add11c6e3de296866aff98366cfe3",
   category: AddressCategories.Self, // this is a string of the key name so just "Self" is fine too
   name: "bohendo.eth",
 }];

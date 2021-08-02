@@ -19,11 +19,11 @@ const source = TransactionSources.Uniswap + "V3";
 /// Addresses
 
 const routerAddresses = [
-  { name: "UniswapRouterV3", address: "0xe592427a0aece92de3edee1f18e0157c05861564" },
+  { name: "UniswapRouterV3", address: "evm:1:0xe592427a0aece92de3edee1f18e0157c05861564" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const marketAddresses = [
-  { name: "UniV3_MATIC_USDT", address: "0x972f43Bb94B76B9e2D036553d818879860b6A114" },
+  { name: "UniV3_MATIC_USDT", address: "evm:1:0x972f43Bb94B76B9e2D036553d818879860b6A114" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 export const uniswapv3Addresses = [
