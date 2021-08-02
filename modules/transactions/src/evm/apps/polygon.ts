@@ -1,14 +1,16 @@
 import { Interface } from "@ethersproject/abi";
+import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
   Assets,
-  TransactionSources,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
+  TransactionSources,
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
@@ -67,14 +69,16 @@ const wethInterface = new Interface([
 export const polygonParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: source });
+  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getName, isToken, getDecimals } = addressBook;
 
   if (getName(evmTx.to) === ZapperPolygonBridge) {
-    const account = evmTx.from;
+    const account = getAccount(evmTx.from);
     tx.sources = rmDups([source, ...tx.sources]);
     tx.method = `Zap to Polygon`;
     log.info(`Parsing ${tx.method}`);
@@ -89,10 +93,10 @@ export const polygonParser = (
           return {
             asset: getName(address),
             category: TransferCategories.Unknown,
-            from: event.args.from === AddressZero ? address : event.args.from,
+            from: getAccount(event.args.from === AddressZero ? address : event.args.from),
             index: txLog.index,
             quantity: formatUnits(event.args.amount, getDecimals(address)),
-            to: event.args.to === AddressZero ? address : event.args.to,
+            to: getAccount(event.args.to === AddressZero ? address : event.args.to),
           };
         } else if (event.name === "Deposit") {
           const swapOut = tx.transfers.find(transfer =>

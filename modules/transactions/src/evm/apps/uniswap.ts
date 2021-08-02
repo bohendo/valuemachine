@@ -1,8 +1,10 @@
 import { Interface } from "@ethersproject/abi";
+import { getAddress } from "@ethersproject/address";
 import {
   Assets,
   AddressBook,
   AddressCategories,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -185,15 +187,15 @@ const airdropInterface = new Interface([
 ////////////////////////////////////////
 /// Parser
 
-const abrv = str => str.substring(0, 8).toLowerCase(); // for abbreviating account labels
-
 export const uniswapParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getName, isSelf } = addressBook;
 
   const getSwaps = () => {
@@ -255,11 +257,11 @@ export const uniswapParser = (
       log.info(`Parsing ${subsrc} ${event.name}`);
       swaps.in.forEach(swap => {
         swap.category = SwapIn;
-        swap.from = address;
+        swap.from = getAccount(address);
       });
       swaps.out.forEach(swap => {
         swap.category = SwapOut;
-        swap.to = address;
+        swap.to = getAccount(address);
       });
       swaps.in.forEach(swap => { swap.index = swap.index || index; });
       swaps.out.forEach(swap => { swap.index = swap.index || index; });
@@ -309,7 +311,7 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      const account = `${source}-${getName(address)}-${abrv(deposit.from)}`;
+      const account = `evm:${evmMeta.id}-${source}-${getName(address)}:${deposit.from}`;
       deposit.category = Deposit;
       deposit.to = account;
       tx.method = "Deposit";
@@ -328,7 +330,7 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      const account = `${source}-${getName(address)}-${abrv(withdraw.to)}`;
+      const account = `evm:${evmMeta.id}-${source}-${getName(address)}:${withdraw.to}`;
       withdraw.category = Withdraw;
       withdraw.from = account;
       tx.method = "Withdraw";

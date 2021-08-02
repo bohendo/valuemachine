@@ -4,9 +4,12 @@ import { hexlify } from "@ethersproject/bytes";
 import {
   Address,
   AddressBook,
+  Assets,
   Bytes32,
   EvmData,
   EvmDataJson,
+  EvmMetadata,
+  EvmNames,
   Logger,
   Store,
   StoreKeys,
@@ -30,7 +33,6 @@ export const getPolygonData = (params?: {
   store?: Store,
 }): EvmData => {
   const { covalentKey, json: polygonDataJson, logger, store } = params || {};
-  const chainId = "137";
 
   const log = (logger || getLogger()).child?.({ module: "PolygonData" });
   const json = polygonDataJson || store?.load(StoreKeys.PolygonData) || getEmptyEvmData();
@@ -41,6 +43,12 @@ export const getPolygonData = (params?: {
   log.info(`Loaded polygon data containing ${
     json.transactions.length
   } transactions from ${polygonDataJson ? "input" : store ? "store" : "default"}`);
+
+  const metadata = {
+    id: 137,
+    name: EvmNames.Polygon,
+    feeAsset: Assets.MATIC,
+  } as EvmMetadata;
 
   ////////////////////////////////////////
   // Internal Heleprs
@@ -121,7 +129,7 @@ export const getPolygonData = (params?: {
   };
 
   const fetchTx = async (txHash: Bytes32): Promise<any> => {
-    const data = await queryCovalent(`${chainId}/transaction_v2/${txHash}`);
+    const data = await queryCovalent(`${metadata.id}/transaction_v2/${txHash}`);
     return data?.items?.[0];
   };
 
@@ -131,10 +139,10 @@ export const getPolygonData = (params?: {
       log.info(`Info for address ${address} is up to date`);
       return;
     }
-    let data = await queryCovalent(`${chainId}/address/${address}/transactions_v2`);
+    let data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`);
     const items = data?.items;
     while (items && data.pagination.has_more) {
-      data = await queryCovalent(`${chainId}/address/${address}/transactions_v2`, {
+      data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`, {
         ["page-number"]: data.pagination.page_number + 1,
       });
       items.push(...data.items);
@@ -167,6 +175,7 @@ export const getPolygonData = (params?: {
   ): Transaction =>
     parsePolygonTx(
       json.transactions.find(tx => tx.hash === hash),
+      metadata,
       addressBook,
       logger,
     );
@@ -217,6 +226,7 @@ export const getPolygonData = (params?: {
     log.info(`Parsing ${selfTransactionHashes.length} polygon transactions`);
     return selfTransactionHashes.map(hash => parsePolygonTx(
       json.transactions.find(tx => tx.hash === hash),
+      metadata,
       addressBook,
       logger,
     )).sort(chrono);

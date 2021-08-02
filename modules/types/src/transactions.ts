@@ -116,7 +116,7 @@ export type CsvParser = (
 export type EvmParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
-  evmMetadata: EvmMetadata,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ) => Transaction;

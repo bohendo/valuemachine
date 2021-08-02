@@ -3,6 +3,7 @@ import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -58,6 +59,7 @@ const makerManagerV1Interface = new Interface([
 export const argentParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  _evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {

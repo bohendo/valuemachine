@@ -110,7 +110,7 @@ export const parseEvmTx = (
   // Activate pipeline of app-specific parsers
   appParsers.forEach(parser => {
     try {
-      tx = parser(tx, evmTx, addressBook, log, getAccount);
+      tx = parser(tx, evmTx, evmMetadata, addressBook, log);
     } catch (e) {
       // If one of them fails, log the error & move on
       log.error(e);

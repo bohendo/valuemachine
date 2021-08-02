@@ -29,6 +29,7 @@ export const EvmMetadata = Type.Object({
   name: EvmName,
   feeAsset: Cryptocurrency,
 });
+export type EvmMetadata = Static<typeof EvmMetadata>;
 
 export const EvmTransfer = Type.Object({
   block: Type.Number(),

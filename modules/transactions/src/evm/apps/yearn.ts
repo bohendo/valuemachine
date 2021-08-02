@@ -1,9 +1,11 @@
 import { Interface } from "@ethersproject/abi";
+import { getAddress } from "@ethersproject/address";
 import {
   AddressBook,
   AddressCategories,
   Assets,
   Asset,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -216,10 +218,12 @@ const vaultToToken = (yAsset: string): Asset | undefined => {
 export const yearnParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getName, isSelf } = addressBook;
 
   for (const txLog of evmTx.logs) {
@@ -252,15 +256,15 @@ export const yearnParser = (
       } else {
         if (isSelf(transfer.from) && isSelf(yTransfer.to)) { // deposit
           transfer.category = SwapOut;
-          transfer.to = address;
+          transfer.to = getAccount(address);
           yTransfer.category = SwapIn;
-          yTransfer.from = address;
+          yTransfer.from = getAccount(address);
           tx.method = "Deposit";
         } else { // withdraw
           transfer.category = isSelf(transfer.to) ? SwapIn : SwapOut;
-          transfer.from = address;
+          transfer.from = getAccount(address);
           yTransfer.category = isSelf(yTransfer.to) ? SwapIn : SwapOut;
-          yTransfer.to = address;
+          yTransfer.to = getAccount(address);
           tx.method = "Withdraw";
         }
       }
@@ -271,7 +275,7 @@ export const yearnParser = (
       if (!event.name) continue;
       log.info(`Parsing yGov ${event.name}`);
       if (event.name === "Staked") {
-        const account = `${source}-Gov-${abrv(event.args.user)}`;
+        const account = `evm:${evmMeta.id}-${source}-Gov:${abrv(event.args.user)}`;
         const deposit = tx.transfers.find(t => t.asset === YFI && t.to === govAddress);
         if (deposit) {
           deposit.category = Deposit;
@@ -282,7 +286,7 @@ export const yearnParser = (
         }
 
       } else if (event.name === "Withdrawn") {
-        const account = `${source}-Gov-${abrv(event.args.user)}`;
+        const account = `evm:${evmMeta.id}-${source}-Gov:${abrv(event.args.user)}`;
         const withdraw = tx.transfers.find(t => t.asset === YFI && t.from === govAddress);
         if (withdraw) {
           withdraw.category = Withdraw;

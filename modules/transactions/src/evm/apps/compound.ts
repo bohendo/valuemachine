@@ -1,4 +1,5 @@
 import { Interface } from "@ethersproject/abi";
+import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -6,6 +7,7 @@ import {
   AddressCategories,
   Assets,
   Asset,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -125,10 +127,12 @@ const associatedTransfer = (asset: string, quantity: string) =>
 export const compoundParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getDecimals, getName, isSelf } = addressBook;
 
   // TODO: how could we not hardcode these again & also not introduce cyclic dependencies?
@@ -156,6 +160,7 @@ export const compoundParser = (
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
+    const contract = getAccount(txLog.address);
     if (compoundAddresses.some(e => e.address === address)) {
       tx.sources = rmDups([source, ...tx.sources]);
     }
@@ -183,7 +188,7 @@ export const compoundParser = (
             tx.transfers.push({
               asset,
               category: Income,
-              from: address,
+              from: contract,
               index: deposit.index - 1,
               quantity: interest,
               to: account
@@ -211,7 +216,7 @@ export const compoundParser = (
             tx.transfers.push({
               asset,
               category: Income,
-              from: address,
+              from: contract,
               index: withdraw.index - 1,
               quantity: interest,
               to: account
@@ -300,9 +305,9 @@ export const compoundParser = (
           log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${cAsset}`);
         } else {
           swapOut.category = SwapOut;
-          swapOut.to = address;
+          swapOut.to = contract;
           swapIn.category = SwapIn;
-          swapIn.from = address;
+          swapIn.from = contract;
           tx.method = "Deposit";
         }
 
@@ -319,9 +324,9 @@ export const compoundParser = (
           log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${asset}`);
         } else {
           swapOut.category = SwapOut;
-          swapOut.to = address;
+          swapOut.to = contract;
           swapIn.category = SwapIn;
-          swapIn.from = address;
+          swapIn.from = contract;
           tx.method = "Withdraw";
         }
 
@@ -332,7 +337,7 @@ export const compoundParser = (
         const borrow = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = address; // should this be a non-address account?
+          borrow.from = contract; // should this be a non-address account?
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
@@ -345,7 +350,7 @@ export const compoundParser = (
         const repay = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (repay) {
           repay.category = Repay;
-          repay.to = address; // should this be a non-address account?
+          repay.to = contract; // should this be a non-address account?
           tx.method = "Repayment";
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);

@@ -1,4 +1,5 @@
 import { Interface } from "@ethersproject/abi";
+import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -7,6 +8,7 @@ import {
   AddressCategories,
   Assets,
   Asset,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -49,10 +51,13 @@ const etherdeltaInterface = new Interface([
 export const etherdeltaParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const getAccount = (address, prefix) =>
+    `evm:${evmMeta.id}${prefix ? `-${prefix}` : ""}:${getAddress(address)}`;
   const { getDecimals, getName, isSelf } = addressBook;
 
   const getAsset = (address: Address): Asset => {
@@ -76,7 +81,7 @@ export const etherdeltaParser = (
         continue;
       }
       tx.sources = rmDups([source, ...tx.sources]);
-      const account = `${source}-${user.toLowerCase().substring(0, 8)}`;
+      const account = getAccount(user, source);
       const exchange = `${source}-exchange`;
 
       if (event.name === "Deposit" || event.name === "Withdraw") {

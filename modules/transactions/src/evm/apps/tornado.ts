@@ -1,7 +1,9 @@
+import { getAddress } from "@ethersproject/address";
 import {
   AddressBook,
   Assets,
   AddressCategories,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -74,10 +76,12 @@ const closestTenPow = amt => amt.startsWith("0.")
 export const tornadoParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { isSelf } = addressBook;
 
   let isTornadoTx = false;
@@ -113,7 +117,7 @@ export const tornadoParser = (
       index: 0,
       from: source,
       quantity: sub(total, withdraw.quantity),
-      to: relayerAddress,
+      to: getAccount(relayerAddress),
     });
     tx.method = "Withdraw";
     log.info(`Found ${source} ${tx.method}`);

@@ -1,9 +1,11 @@
 import { Interface } from "@ethersproject/abi";
+import { getAddress } from "@ethersproject/address";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
   Assets,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -45,16 +47,17 @@ const wethInterface = new Interface([
 export const wethParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
-  addressToAccount: (str: string) => string,
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getDecimals, isSelf } = addressBook;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    const contract = addressToAccount(address);
+    const contract = getAccount(address);
     if (address === wethAddress) {
       const asset = WETH;
       const event = parseEvent(wethInterface, txLog);
@@ -76,7 +79,7 @@ export const wethParser = (
           from: contract,
           index,
           quantity: amount,
-          to: addressToAccount(event.args.dst),
+          to: getAccount(event.args.dst),
         });
         const swapOut = tx.transfers.find(t =>
           t.asset === ETH && t.quantity === amount
@@ -111,7 +114,7 @@ export const wethParser = (
         tx.transfers.push({
           asset,
           category: SwapOut,
-          from: addressToAccount(event.args.src),
+          from: getAccount(event.args.src),
           index,
           quantity: amount,
           to: contract,

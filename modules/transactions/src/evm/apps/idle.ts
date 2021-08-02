@@ -1,10 +1,12 @@
-import { formatUnits } from "@ethersproject/units";
+import { getAddress } from "@ethersproject/address";
 import { Interface } from "@ethersproject/abi";
+import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
   Assets,
   Asset,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -88,6 +90,7 @@ const idleToToken = (idleAsset: string): Asset | undefined => {
 export const idleParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
@@ -105,7 +108,7 @@ export const idleParser = (
       const name = addressBook.getName(address);
       if (name === stkIDLE) {
         const event = parseEvent(stkIDLEInterface, txLog);
-        const account = `${stkIDLE}-${event.args.provider}`;
+        const account = `evm:${evmMeta.id}-${stkIDLE}:${getAddress(event.args.provider)}`;
 
         if (event.name === "Deposit") {
           const value = formatUnits(

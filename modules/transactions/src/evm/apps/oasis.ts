@@ -1,10 +1,12 @@
 import { Interface } from "@ethersproject/abi";
+import { getAddress } from "@ethersproject/address";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
   Assets,
   Asset,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -71,10 +73,12 @@ const oasisInterface = new Interface([
 export const oasisParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getDecimals, getName, isCategory, isSelf } = addressBook;
 
   const isSelfy = (address: string): boolean =>
@@ -131,7 +135,7 @@ export const oasisParser = (
         const swapIn = tx.transfers.find(findSwap(inAmt, inAsset));
         if (swapIn) {
           swapIn.category = SwapIn;
-          swapIn.from = address;
+          swapIn.from = getAccount(address);
         } else {
           log.debug(`Can't find swap in transfer for ${inAmt} ${inAsset}`);
         }
@@ -139,7 +143,7 @@ export const oasisParser = (
         const swapOut = tx.transfers.find(findSwap(outAmt, outAsset));
         if (swapOut) {
           swapOut.category = SwapOut;
-          swapOut.to = address;
+          swapOut.to = getAccount(address);
           outAsset = swapOut.asset;
         } else {
           log.debug(`Can't find swap out transfer for ${outAmt} ${outAsset}`);
@@ -161,14 +165,12 @@ export const oasisParser = (
   const swapIn = tx.transfers.find(findSwap(inTotal, inAsset));
   if (swapIn) {
     swapIn.category = SwapIn;
-    inAsset = swapIn.asset;
   } else {
     log.debug(`Can't find swap in transfer for ${inTotal} ${inAsset}`);
   }
   const swapOut = tx.transfers.find(findSwap(outTotal, outAsset));
   if (swapOut) {
     swapOut.category = SwapOut;
-    outAsset = swapOut.asset;
   } else {
     log.debug(`Can't find swap out transfer for ${outTotal} ${outAsset}`);
   }

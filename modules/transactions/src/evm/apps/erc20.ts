@@ -1,4 +1,5 @@
 import { Interface } from "@ethersproject/abi";
+import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -7,6 +8,7 @@ import {
   Assets,
   Asset,
   Guards,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -101,14 +103,17 @@ const erc20Interface = new Interface([
 export const erc20Parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getDecimals, getName, isSelf, isToken } = addressBook;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
+    const contract = getAccount(txLog.address);
     // Only parse known, ERC20 compliant tokens
     if (isToken(address)) {
       const event = parseEvent(erc20Interface, txLog);
@@ -124,20 +129,20 @@ export const erc20Parser = (
 
       if (event.name === "Transfer") {
         log.debug(`Parsing ${source} ${event.name} of ${amount} ${asset}`);
-        const from = event.args.from === AddressZero ? address : event.args.from;
-        const to = event.args.to === AddressZero ? address : event.args.to;
+        const from = event.args.from === AddressZero ? contract : event.args.from;
+        const to = event.args.to === AddressZero ? contract : event.args.to;
         const category = isSelf(from) && isSelf(to) ? Internal
           : isSelf(from) && !isSelf(to) ? Expense
           : isSelf(to) && !isSelf(from) ? Income
           : Unknown;
         tx.transfers.push({ asset, category, from, index: txLog.index, quantity: amount, to });
-        if (evmTx.to === address) {
+        if (evmTx.to === contract) {
           tx.method = `${asset} ${event.name}`;
         }
 
       } else if (event.name === "Approval") {
         log.debug(`Parsing ${source} ${event.name} event for ${asset}`);
-        if (evmTx.to === address) {
+        if (evmTx.to === contract) {
           tx.method = `${asset} ${event.name}`;
         }
 

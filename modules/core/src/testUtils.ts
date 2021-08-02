@@ -51,6 +51,6 @@ export const getTx = (transfers: Transfer[]): Transaction => ({
     new Date(timestamp).getTime() + (txIndex * 24 * 60 * 60 * 1000)
   ).toISOString(),
   index: txIndex++,
-  sources: [TransactionSources.ETH],
+  sources: [TransactionSources.Ethereum],
   transfers: transfers || [],
 });
