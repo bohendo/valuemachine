@@ -41,7 +41,7 @@ describe.only("Ethereum Data", () => {
     expect(getTransactionsError([tx])).to.be.null;
   });
 
-  it.only("should sync & parse an address book", async () => {
+  it.skip("should sync & parse an address book", async () => {
     const addressBook = getTestAddressBook(
       "evm:1:0x1057bea69c9add11c6e3de296866aff98366cfe3",
       "evm:1:0x2610a8d6602d7744174181348104dafc2ad94b28",
