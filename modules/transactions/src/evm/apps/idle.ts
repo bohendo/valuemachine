@@ -14,7 +14,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  rmDups,
+  dedup,
   setAddressCategory,
   parseEvent,
 } from "@valuemachine/utils";
@@ -104,7 +104,7 @@ export const idleParser = (
     ////////////////////
     // Stake/Unstake
     if (govAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
       const name = addressBook.getName(address);
       if (name === stkIDLE) {
         const event = parseEvent(stkIDLEInterface, txLog);
@@ -150,7 +150,7 @@ export const idleParser = (
     ////////////////////
     // Deposit/Withdraw
     } else if (marketAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
       log.info(`Found interaction with Idle ${addressBook.getName(address)}`);
 
       const underlyingAsset = idleToToken(addressBook.getName(address));

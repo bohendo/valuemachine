@@ -19,7 +19,7 @@ import {
 import {
   div,
   parseEvent,
-  rmDups,
+  dedup,
   setAddressCategory,
   valuesAreClose,
   assetsAreClose,
@@ -194,7 +194,7 @@ export const aaveParser = (
     const address = txLog.address;
     const contract = getAccount(txLog.address);
     if (addresses.core?.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
       const event = parseEvent(lendingPoolInterface, txLog);
       log.debug(`Parsing ${source} ${event.name} event user=${event.args.user} onBehalfOf=${event.args.onBehalfOf}`);
 

@@ -12,7 +12,7 @@ import {
 } from "@valuemachine/types";
 import {
   mul,
-  rmDups,
+  dedup,
   setAddressCategory,
   sub,
 } from "@valuemachine/utils";
@@ -124,7 +124,7 @@ export const tornadoParser = (
   });
 
   if (isTornadoTx) {
-    tx.sources = rmDups([source, ...tx.sources]);
+    tx.sources = dedup([source, ...tx.sources]);
   }
 
   // log.debug(tx, `Done parsing ${source}`);

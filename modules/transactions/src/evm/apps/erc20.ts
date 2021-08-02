@@ -18,7 +18,7 @@ import {
 import {
   setAddressCategory,
   parseEvent,
-  rmDups,
+  dedup,
 } from "@valuemachine/utils";
 
 const source = TransactionSources.ERC20;
@@ -118,7 +118,7 @@ export const erc20Parser = (
     if (isToken(address)) {
       const event = parseEvent(erc20Interface, txLog);
       if (!event.name) continue;
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
       const asset = getName(address) as Asset;
       // Skip transfers that don't concern self accounts
       if (!isSelf(event.args.from) && !isSelf(event.args.to)) {

@@ -16,7 +16,7 @@ import {
   abrv,
   assetsAreClose,
   parseEvent,
-  rmDups,
+  dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
 
@@ -230,7 +230,7 @@ export const yearnParser = (
     const address = txLog.address;
 
     if (yTokens.some(yToken => yToken.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
       const yTransfer = tx.transfers.find(t => t.asset === getName(address));
       if (!yTransfer) {
         log.warn(`Can't find a transfer for ${getName(address)}`);
@@ -270,7 +270,7 @@ export const yearnParser = (
       }
 
     } else if (address === govAddress) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
       const event = parseEvent(yGovInterface, txLog);
       if (!event.name) continue;
       log.info(`Parsing yGov ${event.name}`);

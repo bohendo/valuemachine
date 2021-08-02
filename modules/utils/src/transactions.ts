@@ -40,7 +40,7 @@ export const assetsAreClose = (asset1: Asset, asset2: Asset): boolean =>
 // for abbreviating account labels
 export const abrv = str => str?.substring(0, 8)?.toLowerCase();
 
-export const rmDups = <T>(array: T[]): T[] =>
+export const dedup = <T>(array: T[]): T[] =>
   Array.from(new Set([...array]));
 
 export const valuesAreClose = (q1: DecimalString, q2: DecimalString, wiggleRoom = "0.000001") =>

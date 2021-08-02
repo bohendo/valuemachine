@@ -17,7 +17,7 @@ import {
 import {
   add,
   parseEvent,
-  rmDups,
+  dedup,
   setAddressCategory,
   valuesAreClose,
 } from "@valuemachine/utils";
@@ -100,7 +100,7 @@ export const oasisParser = (
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (machineAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
       const event = parseEvent(oasisInterface, txLog);
 
       if (event.name === "LogTake") {

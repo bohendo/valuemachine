@@ -19,9 +19,13 @@ import { getEthereumData } from "./ethereum";
 
 export * from "../testUtils";
 
-export const getTestAddressBook = (selfAddress: Address): AddressBook => 
+export const getTestAddressBook = (...selfAddresses: Address[]): AddressBook => 
   getAddressBook({
-    json: [{ address: selfAddress, name: "test-self", category: AddressCategories.Self }],
+    json: selfAddresses.map((address, i) => ({
+      address,
+      name: `test-self-${i}`,
+      category: AddressCategories.Self,
+    })),
     logger: testLogger,
   });
 

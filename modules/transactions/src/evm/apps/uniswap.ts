@@ -14,7 +14,7 @@ import {
 } from "@valuemachine/types";
 import {
   parseEvent,
-  rmDups,
+  dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
 
@@ -222,7 +222,7 @@ export const uniswapParser = (
   )) {
     const address = txLog.address;
     const index = txLog.index || 1;
-    tx.sources = rmDups([source, ...tx.sources]);
+    tx.sources = dedup([source, ...tx.sources]);
 
     // Parse events
     let subsrc, event;

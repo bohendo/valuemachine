@@ -19,7 +19,7 @@ import {
   div,
   gt,
   parseEvent,
-  rmDups,
+  dedup,
   setAddressCategory,
   sub,
   valuesAreClose,
@@ -155,14 +155,14 @@ export const compoundParser = (
   };
 
   if (compoundAddresses.some(e => e.address === evmTx.to)) {
-    tx.sources = rmDups([source, ...tx.sources]);
+    tx.sources = dedup([source, ...tx.sources]);
   }
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     const contract = getAccount(txLog.address);
     if (compoundAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
     }
 
     ////////////////////////////////////////

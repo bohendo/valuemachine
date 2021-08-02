@@ -13,7 +13,7 @@ import {
   div,
   getLogger,
   isHash,
-  rmDups,
+  dedup,
   valuesAreClose,
 } from "@valuemachine/utils";
 
@@ -112,7 +112,7 @@ export const mergeTransaction = (
       // use csv date so we can detect csv dups more easily later
       date: csvTx.date,
       // merge sources
-      sources: rmDups([...csvTx.sources, ...newTx.sources]),
+      sources: dedup([...csvTx.sources, ...newTx.sources]),
     };
     ethTransfer.category = csvTransfer.category;
     if (ethTransfer.category === Deposit) {
@@ -193,7 +193,7 @@ export const mergeTransaction = (
       // use csv date so we can detect csv dups more easily later
       date: newTx.date,
       // merge sources
-      sources: rmDups([...ethTx.sources, ...newTx.sources]),
+      sources: dedup([...ethTx.sources, ...newTx.sources]),
     };
     ethTransfer.category = extTransfer.category;
     if (ethTransfer.category === Deposit) {

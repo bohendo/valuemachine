@@ -12,7 +12,7 @@ import {
 import { getEthereumData } from "./ethereumData";
 
 const logger = testLogger.child({ module: `TestEthereum`,
-  level: "debug",
+  level: "info",
 });
 
 describe.only("Ethereum Data", () => {
@@ -41,10 +41,14 @@ describe.only("Ethereum Data", () => {
     expect(getTransactionsError([tx])).to.be.null;
   });
 
-  it.skip("should sync & parse an address book", async () => {
-    const addressBook = getTestAddressBook("evm:1:0xDD8251bB8e7Ba07DfcD9e1842CD9E3cDfc0399C8");
+  it.only("should sync & parse an address book", async () => {
+    const addressBook = getTestAddressBook(
+      "evm:1:0x1057bea69c9add11c6e3de296866aff98366cfe3",
+      "evm:1:0x2610a8d6602d7744174181348104dafc2ad94b28",
+    );
     await ethData.syncAddressBook(addressBook);
     const transactions = ethData.getTransactions(addressBook);
+    logger.info(transactions, "transactions");
     expect(transactions[0].sources).to.include(Guards.Ethereum);
     expect(getTransactionsError(transactions)).to.be.null;
   });

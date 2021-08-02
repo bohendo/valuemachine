@@ -1,7 +1,5 @@
 import { isAddress as isEthAddress, getAddress } from "@ethersproject/address";
-import { BigNumber } from "@ethersproject/bignumber";
-import { hexDataLength, hexlify, isHexString } from "@ethersproject/bytes";
-import { EtherscanProvider } from "@ethersproject/providers";
+import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
 import {
   Address,
@@ -15,18 +13,17 @@ import {
   EvmTransaction,
   EvmTransfer,
   StoreKeys,
-  TimestampString,
   Transaction,
   TransactionsJson,
 } from "@valuemachine/types";
 import {
   chrono,
+  dedup,
   getBytes32Error,
-  getEvmDataError,
   getEmptyEvmData,
+  getEvmDataError,
   getEvmTransactionError,
   getLogger,
-  toBN,
 } from "@valuemachine/utils";
 import axios from "axios";
 
@@ -38,7 +35,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   const json = ethDataJson || store?.load(StoreKeys.EthereumData) || getEmptyEvmData();
   const save = () => store
     ? store.save(StoreKeys.EthereumData, json)
-    : log.warn(`No store provided, can't save eth data`);
+    : log.debug(`No store provided, can't save eth data`);
 
   const error = getEvmDataError(json);
   if (error) throw new Error(error);
@@ -56,10 +53,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   ////////////////////////////////////////
   // Internal Helper Functions
 
-  const simpleChrono = (ts1: TimestampString, ts2: TimestampString): number =>
-    new Date(ts1).getTime() - new Date(ts2).getTime();
-
-  const formatCovalentTx = rawTx => ({
+  const formatCovalentTx = (rawTx): EvmTransaction => ({
     // block: rawTx.block_height,
     // data: "0x", // not available?
     // gasLimit: hexlify(rawTx.gas_offered),
@@ -77,21 +71,26 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     nonce: 0, // not available?
     status: rawTx.successful ? 1 : 0,
     timestamp: rawTx.block_signed_at,
-    transfers: [], // not available, get from etherscan
-    to: getAddress(rawTx.to_address),
+    transfers: [], // not available from covalent, get from etherscan
+    to: rawTx.to_address ? getAddress(rawTx.to_address) : null,
     value: formatEther(rawTx.value),
   });
 
-  const covalentUrl = "https://api.covalenthq.com/v1";
+  const formatEtherscanTransfer = (rawTransfer): EvmTransfer => ({
+    to: getAddress(rawTransfer.to),
+    from: getAddress(rawTransfer.from),
+    value: formatEther(rawTransfer.value),
+  });
+
   const queryCovalent = async (path: string, query?: any): Promise<any> => {
     if (!covalentKey) throw new Error(`A covalent api key is required to sync eth data`);
-    const url = `${covalentUrl}/${path}/?${
+    const url = `https://api.covalenthq.com/v1/${path}/?${
       Object.entries(query || {}).reduce((querystring, entry) => {
         querystring += `${entry[0]}=${entry[1]}&`;
         return querystring;
       }, "")
     }key=${covalentKey}`;
-    log.info(`GET ${url}`);
+    log.debug(`GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`);
     let res;
     try {
       res = await axios(url);
@@ -110,11 +109,76 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     return res.data.data;
   };
 
-  const fetchCovalentTx = async (txHash: Bytes32): Promise<EvmTransaction> => {
-    const data = await queryCovalent(`${metadata.id}/transaction_v2/${txHash}`);
-    return formatCovalentTx(data?.items?.[0]);
+  const queryEtherscan = async (
+    action: string,
+    address: Address,
+  ): Promise<any[] | undefined> => {
+    const target = action === "txlist" ? "transaction history"
+      : action === "txlistinternal" ? "internal call history"
+      : action === "tokentx" ? "token history"
+      : "";
+    const url = `https://api.etherscan.io/api?module=account&` +
+      `action=${action}&` +
+      `address=${address}&` +
+      `apikey=${etherscanKey || ""}&sort=asc`;
+    log.debug(`GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`);
+    try {
+      const result = (await axios.get(url, { timeout: 10000 })).data.result;
+      if (typeof result === "string") {
+        log.warn(`Failed to get ${target}: ${result}`);
+        return undefined;
+      }
+      log.info(`Received ${result.length} ${target} results from Etherscan`);
+      return result;
+    } catch (e) {
+      log.warn(e.message);
+      return undefined;
+    }
   };
 
+  const fetchTransfersByTx = async (txHash: Bytes32): Promise<EvmTransfer[]> => {
+    if (!etherscanKey) {
+      log.warn(`An etherscan api key is required to fetch internal transfers`);
+      return [];
+    }
+    const url = `https://api.etherscan.io/api?module=account&` +
+      `action=txlistinternal&` +
+      `txhash=${txHash}&` +
+      `apikey=${etherscanKey || ""}&sort=asc`;
+    try {
+      log.debug(`GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`);
+      const result = (await axios.get(url, { timeout: 10000 })).data.result;
+      if (typeof result === "string") {
+        log.warn(`Failed to get internal transfers for tx ${txHash}: ${result}`);
+        return [];
+      }
+      log.info(`Received ${result.length} internal transfers from Etherscan`);
+      return result.map(formatEtherscanTransfer);
+    } catch (e) {
+      log.warn(e.message);
+      return [];
+    }
+  };
+
+  const fetchTx = async (txHash: Bytes32): Promise<EvmTransaction> => {
+    log.info(`Fetching transaction ${txHash}`);
+    const [txRes, transferRes] = await Promise.all([
+      queryCovalent(`${metadata.id}/transaction_v2/${txHash}`),
+      fetchTransfersByTx(txHash),
+    ]);
+    if (txRes?.items?.[0]) {
+      const tx = formatCovalentTx(txRes?.items?.[0]);
+      tx.transfers = transferRes;
+      return tx;
+    } else {
+      throw new Error(`Failed to fetch tx ${txHash}`);
+    }
+  };
+
+  const logProg = (list: any[], elem: any): string =>
+    `${list.indexOf(elem)+1}/${list.length}`;
+
+  /* It really sucks to get a full tx from Etherscan, use Covalent instead
   const fetchEtherscanTx = async (txHash: Bytes32): Promise<EvmTransaction> => {
     log.warn(`Fetching transactions from Etherscan is slow, provide covalent api key to speed up`);
     const provider = new EtherscanProvider("homestead", etherscanKey);
@@ -135,7 +199,9 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
           return new Date(val).toISOString();
         }
       } catch (e) {
-        log.error(`Failed to get timestamp from object: ${JSON.stringify(tx, null, 2)}: ${e.stack}`);
+        log.error(`Failed to get timestamp from object: ${
+          JSON.stringify(tx, null, 2)
+        }: ${e.stack}`);
         throw e;
       }
     };
@@ -180,78 +246,42 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     };
     return newTx;
   };
-
-  const fetchTx = async (txHash: Bytes32): Promise<EvmTransaction> => {
-    let tx: EvmTransaction;
-    if (covalentKey) {
-      log.info(`Fetching eth data from covalent for tx ${txHash}`);
-      tx = await fetchCovalentTx(txHash);
-    } else {
-      log.info(`Fetching eth data from etherscan for tx ${txHash}`);
-      tx = await fetchEtherscanTx(txHash);
-    }
-    tx.transfers = await fetchTransfersByTx(txHash);
-    return tx;
-  };
-
-  const logProg = (list: any[], elem: any): string =>
-    `${list.indexOf(elem)+1}/${list.length}`;
-
-  const fetchTransfersByTx = async (txHash: Bytes32): Promise<EvmTransfer[]> => {
-    if (!etherscanKey) {
-      log.warn(`An etherscan api key is required to fetch internal transfers`);
-      return [];
-    }
-    const url = `https://api.etherscan.io/api?module=account&` +
-      `action=txlistinternal&` +
-      `txhash=${txHash}&` +
-      `apikey=${etherscanKey || ""}&sort=asc`;
-    try {
-      const result = (await axios.get(url, { timeout: 10000 })).data.result;
-      if (typeof result === "string") {
-        log.warn(`Failed to get internal transfers for tx ${txHash}: ${result}`);
-        return [];
-      }
-      log.info(`Received ${result.length} internal transfers from Etherscan`);
-      return result.map(res => ({
-        to: res.to,
-        from: res.from,
-        value: res.value,
-      }));
-    } catch (e) {
-      log.warn(e.message);
-      return [];
-    }
-  };
-
-  const fetchHistory = async (
-    action: string,
-    address: Address,
-  ): Promise<any[] | undefined> => {
-    const target = action === "txlist" ? "transaction history"
-      : action === "txlistinternal" ? "internal call history"
-      : action === "tokentx" ? "token history"
-      : "";
-    const url = `https://api.etherscan.io/api?module=account&` +
-      `action=${action}&` +
-      `address=${address}&` +
-      `apikey=${etherscanKey || ""}&sort=asc`;
-    log.info(`Sent request for ${target} from Etherscan`);
-    try {
-      const result = (await axios.get(url, { timeout: 10000 })).data.result;
-      if (typeof result === "string") {
-        log.warn(`Failed to get ${target}: ${result}`);
-        return undefined;
-      }
-      log.info(`Received ${result.length} ${target} results from Etherscan`);
-      return result;
-    } catch (e) {
-      log.warn(e.message);
-      return undefined;
-    }
-  };
+  */
 
   /*
+  const syncAddress = async (_address: Address): Promise<void> => {
+    const address = getAddress(_address);
+    if (!json.addresses[address]) {
+      json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
+    }
+    const lastUpdated = (new Date()).toISOString();
+    const [txHistory, callHistory, tokenHistory] = await Promise.all([
+      queryEtherscan("txlist", address),
+      queryEtherscan("txlistinternal", address),
+      queryEtherscan("tokentx", address),
+    ]);
+    if (!txHistory || !callHistory || !tokenHistory) {
+      throw new Error(`Unable to fetch history of ${address} from etherscan`);
+    }
+    const history = Array.from(new Set([
+      ...json.addresses[address].history,
+      ...txHistory,
+      ...callHistory,
+      ...tokenHistory
+    ].map(tx => tx.hash || tx).filter(hash =>
+      isHexString(hash) && hexDataLength(hash) === 32
+    ))).sort();
+    json.addresses[address].history = history;
+    json.addresses[address].lastUpdated = lastUpdated;
+    save();
+    log.info(`Saved history & lastUpdated for address ${address}`);
+    for (const hash of history) {
+      await syncTransaction(hash);
+    }
+    return;
+  };
+  */
+
   // Beware of edge case: a tx makes 2 identical internal transfers and
   // the to & from are both tracked accounts so we get these calls in the txHistory of both.
   // We do want to include these two identical transfers so we can't naively dedup
@@ -267,39 +297,45 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       ) === oldElem.value,
     ).length;
 
-  const syncAddress = async (address: Address): Promise<void> => {
-    const yesterday = Date.now() - 1000 * 60 * 60 * 24;
-    if (new Date(json.addresses[address]?.lastUpdated || 0).getTime() > yesterday) {
-      log.info(`Info for address ${address} is up to date`);
-      return;
-    }
+  const syncAddress = async (rawAddress: Address): Promise<void> => {
+    const address = getAddress(rawAddress);
     let data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`);
-    const items = data?.items;
-    while (items && data.pagination.has_more) {
+    const covalentTxns = [];
+    covalentTxns.push(...data?.items);
+    while (covalentTxns && data.pagination.has_more) {
       data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`, {
         ["page-number"]: data.pagination.page_number + 1,
       });
-      items.push(...data.items);
+      covalentTxns.push(...data.items);
     }
-    const history = items?.map(item => item.tx_hash).sort() || [];
+    const txns = covalentTxns.map(formatCovalentTx);
+    const transfers = await queryEtherscan("txlistinternal", address);
+    const history = dedup(txns.map(tx => tx.hash).concat(transfers.map(t => t.hash))).sort();
+    log.info(`Found ${history.length} historical transactions for ${address}`);
     json.addresses[address] = {
       lastUpdated: new Date().toISOString(),
       history,
     };
     save();
     for (const txHash of history) {
-      const ethTx = formatCovalentTx(
-        items.find(item => item.tx_hash === txHash)
-        || await fetchTx(txHash)
-      );
-      const error = getEvmTransactionError(ethTx);
+      let tx = txns.find(tx => tx.hash === txHash);
+      if (tx) {
+        const oldTransfers = JSON.parse(JSON.stringify(tx.transfers));
+        for (const transfer of transfers.filter(t => t.hash === txHash)) {
+          if (getDups(oldTransfers, transfer) === 0) {
+            tx.transfers.push(transfer);
+          }
+        }
+      } else {
+        tx = await fetchTx(txHash);
+      }
+      const error = getEvmTransactionError(tx);
       if (error) throw new Error(error);
-      json.transactions[ethTx.hash] = ethTx;
+      json.transactions[tx.hash] = tx;
       save();
     }
     return;
   };
-  */
 
   ////////////////////////////////////////
   // Exported Methods
@@ -323,43 +359,16 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     return;
   };
 
-  const syncAddress = async (_address: Address): Promise<void> => {
-    const address = getAddress(_address);
-    if (!json.addresses[address]) {
-      json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
-    }
-    const lastUpdated = (new Date()).toISOString();
-    const [txHistory, callHistory, tokenHistory] = await Promise.all([
-      fetchHistory("txlist", address),
-      fetchHistory("txlistinternal", address),
-      fetchHistory("tokentx", address),
-    ]);
-    if (!txHistory || !callHistory || !tokenHistory) {
-      throw new Error(`Unable to fetch history of ${address} from etherscan`);
-    }
-    const history = Array.from(new Set([
-      ...json.addresses[address].history,
-      ...txHistory,
-      ...callHistory,
-      ...tokenHistory
-    ].map(tx => tx.hash || tx).filter(hash =>
-      isHexString(hash) && hexDataLength(hash) === 32
-    ))).sort();
-    json.addresses[address].history = history;
-    json.addresses[address].lastUpdated = lastUpdated;
-    save();
-    log.info(`Saved history & lastUpdated for address ${address}`);
-    for (const hash of history) {
-      await syncTransaction(hash);
-    }
-    return;
-  };
-
   const syncAddressBook = async (addressBook: AddressBook): Promise<void> => {
     const zeroDate = new Date(0).toISOString();
     const selfAddresses = addressBook.json
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
+      .map(address =>
+        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // CAIP-10 on this evm
+        : address.includes(":") ? "" // CAIP-10 address on different evm
+        : address // non-CAIP-10 address
+      )
       .filter(address => isEthAddress(address))
       .map(address => getAddress(address));
     const addresses = selfAddresses.filter(address => {
@@ -371,7 +380,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       }
       const lastAction = json.addresses[address].history
         .map(txHash => json.transactions[txHash].timestamp || new Date(0))
-        .sort(simpleChrono)
+        .sort((ts1, ts2) => new Date(ts1).getTime() - new Date(ts2).getTime())
         .reverse()[0];
       if (!lastAction) {
         log.info(`No activity detected for address ${address}`);
@@ -387,7 +396,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
         return false;
       }
       // Don't sync any active addresses if they've been synced recently
-      if (Date.now() - new Date(lastUpdated).getTime() < 6 * hour) {
+      if (Date.now() - new Date(lastUpdated).getTime() < 18 * hour) {
         log.debug(`Skipping active (${lastAction}) address ${address}`);
         return false;
       }
@@ -416,6 +425,11 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     const selfAddresses = addressBook.json
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
+      .map(address =>
+        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // CAIP-10 on this evm
+        : address.includes(":") ? "" // CAIP-10 address on different evm
+        : address // non-CAIP-10 address
+      )
       .filter(address => isEthAddress(address))
       .map(address => getAddress(address));
     const selfTransactionHashes = Array.from(new Set(

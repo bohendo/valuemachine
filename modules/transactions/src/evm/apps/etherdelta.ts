@@ -17,7 +17,7 @@ import {
 } from "@valuemachine/types";
 import {
   parseEvent,
-  rmDups,
+  dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
 
@@ -80,7 +80,7 @@ export const etherdeltaParser = (
         log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);
         continue;
       }
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
       const account = getAccount(user, source);
       const exchange = `${source}-exchange`;
 

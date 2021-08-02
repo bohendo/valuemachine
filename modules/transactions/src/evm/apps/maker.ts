@@ -25,7 +25,7 @@ import {
   eq,
   gt,
   parseEvent,
-  rmDups,
+  dedup,
   round,
   setAddressCategory,
   toBN,
@@ -218,20 +218,22 @@ export const makerParser = (
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
   const getAccount = (address: string, app?: string): string =>
-    `evm:${evmMeta.id}${app ? `-${app}` : ""}:${getAddress(address)}`;
+    `evm:${evmMeta.id}${app ? `-${app}` : ""}:${
+      getAddress(address.includes(":") ? address.split(":").pop() : address)
+    }`;
   const { getDecimals, getName, isSelf } = addressBook;
   // log.debug(tx, `Parsing in-progress tx`);
 
   const ethish = [WETH, ETH, PETH] as Asset[];
 
   if (machineAddresses.some(e => e.address === evmTx.to)) {
-    tx.sources = rmDups([source, ...tx.sources]);
+    tx.sources = dedup([source, ...tx.sources]);
   }
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
   if (evmTx.to === migrationAddress) {
-    tx.sources = rmDups([source, ...tx.sources]);
+    tx.sources = dedup([source, ...tx.sources]);
     const swapOut = tx.transfers.find(t => t.asset === SAI);
     const swapIn = tx.transfers.find(t => t.asset === DAI);
     if (swapOut) {
@@ -258,7 +260,7 @@ export const makerParser = (
     const address = txLog.address;
     const index = txLog.index || 1;
     if (machineAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
     }
     if (tokenAddresses.some(e => e.address === address)) {
       const asset = getName(address) as Asset;

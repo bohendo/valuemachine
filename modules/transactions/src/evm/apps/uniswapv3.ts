@@ -9,7 +9,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  rmDups,
+  dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
 
@@ -47,12 +47,12 @@ export const uniswapv3Parser = (
     if (fromName.startsWith("Uni") && fromName.includes("V3")) {
       transfer.category = TransferCategories.SwapIn;
       tx.method = source;
-      tx.sources = rmDups([...tx.sources, source]);
+      tx.sources = dedup([...tx.sources, source]);
     }
     if (toName.startsWith("Uni") && toName.includes("V3")) {
       transfer.category = TransferCategories.SwapOut;
       tx.method = source;
-      tx.sources = rmDups([...tx.sources, source]);
+      tx.sources = dedup([...tx.sources, source]);
     }
   });
   return tx;
