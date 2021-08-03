@@ -55,7 +55,7 @@ export type AddressBookJson = Static<typeof AddressBookJson>;
 // Function Interfaces
 
 export type AddressBookParams = {
-  json?: AddressBookJson; // for user-defined addresses saved eg in localstorage
+  json?: AddressBookJson | AddressEntry[]; // for user-defined addresses saved eg in localstorage
   hardcoded?: AddressEntry[]; // for list of addresess saved in app-level code
   logger?: Logger;
   store?: Store;

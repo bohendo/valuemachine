@@ -490,7 +490,7 @@ export const AddressBookManager = ({
   };
 
   const addNewAddress = (editedEntry: AddressEntry) => {
-    editEntry(addressBook.json.length, editedEntry);
+    editEntry(Object.keys(addressBook.json).length, editedEntry);
   };
 
   const deleteAddresses = async () => {
@@ -754,7 +754,6 @@ export const AddressBookManager = ({
                   <AddressRow
                     otherAddresses={[...allAddresses.slice(0, i), ...allAddresses.slice(i + 1)]}
                     key={i}
-                    index={addressBook.json.findIndex(e => e.address === entry.address)}
                     editEntry={editEntry}
                     entry={entry}
                   />

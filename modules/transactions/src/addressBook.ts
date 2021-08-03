@@ -37,7 +37,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
 
   // Merge hardcoded public addresses with those supplied by the user
   [
-    Object.values(json || {}),
+    json.length ? json : Object.values(json || {}),
     publicAddresses,
     hardcoded,
   ]

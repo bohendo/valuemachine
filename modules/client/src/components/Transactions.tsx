@@ -248,7 +248,9 @@ export const TransactionExplorer = ({
     if (syncing) return;
     // Sync Chain Data
     const newTransactions = getTransactions({ logger });
-    const selfAddresses = addressBook.json.filter(e => e.category === AddressCategories.Self);
+    const selfAddresses = Object.values(addressBook.json).filter(e =>
+      e.category === AddressCategories.Self
+    );
     if (selfAddresses?.length) {
       let isEthSynced = false;
       let isPolygonSynced = false;
@@ -257,7 +259,7 @@ export const TransactionExplorer = ({
         try {
           if (!isEthSynced) {
             setSyncing(`Syncing Ethereum data for ${selfAddresses.length} addresses`);
-            const resEth = await axios.post("/api/ethereum", { addressBook: selfAddresses });
+            const resEth = await axios.post("/api/ethereum", { addressBook: addressBook.json });
             // console.log(`Got ${resEth.data.length} Eth transactions`);
             if (resEth.status === 200 && typeof(resEth.data) === "object") {
               newTransactions.merge(resEth.data);
