@@ -12,10 +12,10 @@ import {
 import { getEthereumData } from "./ethereumData";
 
 const logger = testLogger.child({ module: `TestEthereum`,
-  level: "info",
+  // level: "info",
 });
 
-describe.only("Ethereum Data", () => {
+describe("Ethereum Data", () => {
   let ethData: ChainData;
   beforeEach(() => {
     ethData = getEthereumData({

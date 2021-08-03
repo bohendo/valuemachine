@@ -16,11 +16,12 @@ import {
 } from "@valuemachine/types";
 import {
   add,
-  parseEvent,
   dedup,
   setAddressCategory,
   valuesAreClose,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const { ETH, WETH } = Assets;
 const { Income, Expense, SwapIn, SwapOut } = TransferCategories;

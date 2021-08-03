@@ -18,12 +18,13 @@ import {
 import {
   div,
   gt,
-  parseEvent,
   dedup,
   setAddressCategory,
   sub,
   valuesAreClose,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.Compound;
 const {

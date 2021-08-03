@@ -3,7 +3,7 @@ import { Guards, AddressCategories } from "@valuemachine/types";
 import { setAddressCategory } from "@valuemachine/utils";
 
 const burnAddresses = [
-  { name: "void", address: AddressZero },
+  { name: "void", address: `evm:137:${AddressZero}` },
 ].map(setAddressCategory(AddressCategories.Burn, Guards.Polygon));
 
 const defiAddresses = [

@@ -5,7 +5,7 @@ import { setAddressCategory } from "@valuemachine/utils";
 const burnAddresses = [
   { name: "dead", address: "evm:1:0x000000000000000000000000000000000000dead" },
   { name: "deadbeef", address: "evm:1:0x00000000000000000000000000000000deadbeef" },
-  { name: "void", address: AddressZero },
+  { name: "void", address: `evm:1:${AddressZero}` },
 ].map(setAddressCategory(AddressCategories.Burn));
 
 const defiAddresses = [

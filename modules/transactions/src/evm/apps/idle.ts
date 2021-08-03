@@ -16,8 +16,9 @@ import {
 import {
   dedup,
   setAddressCategory,
-  parseEvent,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.Idle;
 const { Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;

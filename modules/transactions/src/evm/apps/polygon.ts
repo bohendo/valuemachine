@@ -15,10 +15,11 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  parseEvent,
   dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.Polygon;
 const { MATIC, ETH, WETH } = Assets;

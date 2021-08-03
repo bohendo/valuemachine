@@ -12,10 +12,11 @@ import {
   chrono,
   div,
   getLogger,
-  isHash,
   dedup,
   valuesAreClose,
 } from "@valuemachine/utils";
+
+import { isHash } from "./utils";
 
 const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 

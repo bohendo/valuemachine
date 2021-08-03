@@ -18,19 +18,18 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  abrv,
   abs,
-  diffAsc,
   div,
   eq,
   gt,
-  parseEvent,
   dedup,
   round,
   setAddressCategory,
   toBN,
   valuesAreClose,
 } from "@valuemachine/utils";
+
+import { diffAsc, parseEvent } from "../utils";
 
 const { DAI, ETH, MKR, PETH, SAI, WETH } = Assets;
 const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
@@ -204,7 +203,7 @@ const parseLogNote = (
     .map(str => [HashZero, "0x"].includes(str)
       ? "0x00"
       : str.startsWith("0x000000000000000000000000")
-        ? `0x${str.substring(26)}`
+        ? `0x${str.substring(26)}` // TODO: add evm:chainId prefix?
         : str
     ),
 });
@@ -353,7 +352,7 @@ export const makerParser = (
           log.warn(`Vat.${logNote.name}: Can't find a token address for ilk ${logNote.args[0]}`);
           continue;
         }
-        const vault = `${source}-${abrv(logNote.args[0])}`;
+        const vault = `${source}-${logNote.args[0]}`;
         const wad = formatUnits(
           toBN(logNote.args[2] || "0x00").fromTwos(256),
           getDecimals(assetAddress),
@@ -385,7 +384,7 @@ export const makerParser = (
 
       // Borrow/Repay DAI
       } else if (logNote.name === "frob") {
-        const vault = `${source}-${abrv(logNote.args[0])}`;
+        const vault = `${source}-${logNote.args[0]}`;
         const dart = formatUnits(toBN(logNote.args[5] || "0x00").fromTwos(256));
         if (eq(dart, "0")) {
           log.debug(`Vat.${logNote.name}: Skipping zero-value change in ${vault} debt`);
@@ -429,7 +428,7 @@ export const makerParser = (
         );
         if (deposit) {
           deposit.category = Deposit;
-          deposit.to = `evm:${evmMeta.id}-${source}-DSR:${abrv(deposit.from)}`;
+          deposit.to = `evm:${evmMeta.id}-${source}-DSR:${deposit.from.split(":").pop()}`;
           tx.method = "Deposit";
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI expense of about ${wad}`);
@@ -444,7 +443,7 @@ export const makerParser = (
         );
         if (withdraw) {
           withdraw.category = Withdraw;
-          withdraw.from = `evm:${evmMeta.id}-${source}-DSR:${abrv(withdraw.to)}`;
+          withdraw.from = `evm:${evmMeta.id}-${source}-DSR:${withdraw.to.split(":").pop()}`;
           tx.method = "Withdraw";
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI income of about ${wad}`);

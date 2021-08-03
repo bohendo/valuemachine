@@ -17,9 +17,10 @@ import {
 } from "@valuemachine/types";
 import {
   setAddressCategory,
-  parseEvent,
   dedup,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.ERC20;
 const {
@@ -112,8 +113,7 @@ export const erc20Parser = (
   const { getDecimals, getName, isSelf, isToken } = addressBook;
 
   for (const txLog of evmTx.logs) {
-    const address = txLog.address;
-    const contract = getAccount(txLog.address);
+    const address = getAccount(txLog.address);
     // Only parse known, ERC20 compliant tokens
     if (isToken(address)) {
       const event = parseEvent(erc20Interface, txLog);
@@ -129,20 +129,20 @@ export const erc20Parser = (
 
       if (event.name === "Transfer") {
         log.debug(`Parsing ${source} ${event.name} of ${amount} ${asset}`);
-        const from = event.args.from === AddressZero ? contract : event.args.from;
-        const to = event.args.to === AddressZero ? contract : event.args.to;
+        const from = event.args.from === AddressZero ? address : event.args.from;
+        const to = event.args.to === AddressZero ? address : event.args.to;
         const category = isSelf(from) && isSelf(to) ? Internal
           : isSelf(from) && !isSelf(to) ? Expense
           : isSelf(to) && !isSelf(from) ? Income
           : Unknown;
         tx.transfers.push({ asset, category, from, index: txLog.index, quantity: amount, to });
-        if (evmTx.to === contract) {
+        if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
 
       } else if (event.name === "Approval") {
         log.debug(`Parsing ${source} ${event.name} event for ${asset}`);
-        if (evmTx.to === contract) {
+        if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
 

@@ -18,12 +18,13 @@ import {
 } from "@valuemachine/types";
 import {
   div,
-  parseEvent,
   dedup,
   setAddressCategory,
   valuesAreClose,
   assetsAreClose,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.Aave;
 
@@ -175,7 +176,7 @@ export const aaveParser = (
   const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getName, isSelf } = addressBook;
 
-  // log.info(`Parsing EVM tx from network ${evmMeta.name}`);
+  log.info(`Parsing EVM tx from network ${evmMeta.name}`);
 
   // Only check addresses for the chain
   const addresses =
@@ -189,10 +190,8 @@ export const aaveParser = (
 
   const stkAAVEAddress = addresses.gov?.find(e => e.name === stkAAVE)?.address;
 
-
   for (const txLog of evmTx.logs) {
-    const address = txLog.address;
-    const contract = getAccount(txLog.address);
+    const address = getAccount(txLog.address);
     if (addresses.core?.some(e => e.address === address)) {
       tx.sources = dedup([source, ...tx.sources]);
       const event = parseEvent(lendingPoolInterface, txLog);
@@ -219,9 +218,9 @@ export const aaveParser = (
           log.debug(`${event.name}: Can't find swapIn of ${amount2} ${aAsset}`);
         } else {
           swapOut.category = SwapOut;
-          swapOut.to = contract;
+          swapOut.to = address;
           swapIn.category = SwapIn;
-          swapIn.from = contract;
+          swapIn.from = address;
           tx.method = "Deposit";
         }
 
@@ -247,9 +246,9 @@ export const aaveParser = (
           log.debug(`${event.name}: Can't find swapIn of ${amount} ${asset}`);
         } else {
           swapOut.category = SwapOut;
-          swapOut.to = contract;
+          swapOut.to = address;
           swapIn.category = SwapIn;
-          swapIn.from = contract;
+          swapIn.from = address;
           tx.method = "Withdraw";
         }
 
@@ -263,7 +262,7 @@ export const aaveParser = (
         const borrow = tx.transfers.find(associatedTransfer(asset, amount));
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = contract; // should this be a non-address account?
+          borrow.from = address; // should this be a non-address account?
         } else {
           log.debug(`${event.name}: Can't find borrow of ${amount} ${asset}`);
         }
@@ -279,7 +278,7 @@ export const aaveParser = (
         const repay = tx.transfers.find(associatedTransfer(asset, amount));
         if (repay) {
           repay.category = Repay;
-          repay.from = contract; // should this be a non-address account?
+          repay.from = address; // should this be a non-address account?
         } else {
           log.debug(`${event.name}: Can't find repayment of ${amount} ${asset}`);
         }
@@ -307,9 +306,9 @@ export const aaveParser = (
           log.debug(`${event.name}: Can't find swapIn of ${amount} ${asset2}`);
         } else {
           swapOut.category = SwapOut;
-          swapOut.to = contract;
+          swapOut.to = address;
           swapIn.category = SwapIn;
-          swapIn.from = contract;
+          swapIn.from = address;
           tx.method = "Deposit";
           log.debug(`${event.name}: for ${amount} ${asset1} has been processed`);
         }
@@ -330,9 +329,9 @@ export const aaveParser = (
           log.debug(`${event.name}: Can't find swapIn of ${amount} ${asset1}`);
         } else {
           swapOut.category = SwapOut;
-          swapOut.to = contract;
+          swapOut.to = address;
           swapIn.category = SwapIn;
-          swapIn.from = contract;
+          swapIn.from = address;
           tx.method = "Withdraw";
           log.debug(`${event.name}: for ${amount} ${asset1} has been processed`);
         }

@@ -14,7 +14,7 @@ import {
 const source = TransactionSources.Aave;
 const { Expense, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const logger = testLogger.child({ module: `Test${source}`,
-  // level: "debug",
+  level: "debug",
 });
 
 describe(source, () => {

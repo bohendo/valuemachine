@@ -1,5 +1,3 @@
-import { Interface } from "@ethersproject/abi";
-import { getAddress } from "@ethersproject/address";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -13,10 +11,11 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  parseEvent,
   dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const { ETH, WETH } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
@@ -34,12 +33,12 @@ const wethAddress = wethAddresses.find(e => e.name === WETH).address;
 ////////////////////////////////////////
 /// Interfaces
 
-const wethInterface = new Interface([
+const wethAbi = [
   "event Approval(address indexed s/rc, address indexed guy, uint256 wad)",
   "event Deposit(address indexed dst, uint256 wad)",
   "event Transfer(address indexed src, address indexed dst, uint256 wad)",
   "event Withdrawal(address indexed src, uint256 wad)",
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -52,15 +51,13 @@ export const wethParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
-  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getDecimals, isSelf } = addressBook;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    const contract = getAccount(address);
     if (address === wethAddress) {
       const asset = WETH;
-      const event = parseEvent(wethInterface, txLog);
+      const event = parseEvent(wethAbi, txLog);
       if (!event.name) continue;
       const amount = formatUnits(event.args.wad, getDecimals(address));
       const index = txLog.index || 1;
@@ -76,14 +73,14 @@ export const wethParser = (
         tx.transfers.push({
           asset,
           category: SwapIn,
-          from: contract,
+          from: address,
           index,
           quantity: amount,
-          to: getAccount(event.args.dst),
+          to: event.args.dst,
         });
         const swapOut = tx.transfers.find(t =>
           t.asset === ETH && t.quantity === amount
-          && isSelf(t.from) && t.to === contract
+          && isSelf(t.from) && t.to === address
         );
         if (swapOut) {
           swapOut.category = SwapOut;
@@ -114,14 +111,14 @@ export const wethParser = (
         tx.transfers.push({
           asset,
           category: SwapOut,
-          from: getAccount(event.args.src),
+          from: event.args.src,
           index,
           quantity: amount,
-          to: contract,
+          to: address,
         });
         const swapIn = tx.transfers.find(t =>
           t.asset === ETH && t.quantity === amount
-          && isSelf(t.to) && t.from === contract
+          && isSelf(t.to) && t.from === address
         );
         if (swapIn) {
           swapIn.category = SwapIn;

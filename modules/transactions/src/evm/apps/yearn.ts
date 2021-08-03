@@ -13,12 +13,12 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  abrv,
   assetsAreClose,
-  parseEvent,
   dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.Yearn;
 const { Internal, Deposit, Withdraw, SwapOut, SwapIn } = TransferCategories;
@@ -275,7 +275,7 @@ export const yearnParser = (
       if (!event.name) continue;
       log.info(`Parsing yGov ${event.name}`);
       if (event.name === "Staked") {
-        const account = `evm:${evmMeta.id}-${source}-Gov:${abrv(event.args.user)}`;
+        const account = `evm:${evmMeta.id}-${source}-Gov:${event.args.user}`;
         const deposit = tx.transfers.find(t => t.asset === YFI && t.to === govAddress);
         if (deposit) {
           deposit.category = Deposit;
@@ -286,7 +286,7 @@ export const yearnParser = (
         }
 
       } else if (event.name === "Withdrawn") {
-        const account = `evm:${evmMeta.id}-${source}-Gov:${abrv(event.args.user)}`;
+        const account = `evm:${evmMeta.id}-${source}-Gov:${event.args.user}`;
         const withdraw = tx.transfers.find(t => t.asset === YFI && t.from === govAddress);
         if (withdraw) {
           withdraw.category = Withdraw;

@@ -9,7 +9,7 @@ import {
   Logger,
   Transaction,
 } from "@valuemachine/types";
-import { getEmptyEvmData, getFileStore } from "@valuemachine/utils";
+import { getFileStore } from "@valuemachine/utils";
 
 import { getAddressBook } from "../addressBook";
 import { env, testLogger } from "../testUtils";
@@ -45,7 +45,6 @@ export const parseEthTx = async ({
   const ethData = getEthereumData({
     covalentKey: env.covalentKey,
     etherscanKey: env.etherscanKey,
-    json: getEmptyEvmData(),
     logger,
     store: testStore,
   });

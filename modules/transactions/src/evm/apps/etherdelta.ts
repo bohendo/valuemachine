@@ -16,10 +16,11 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  parseEvent,
   dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.EtherDelta;
 const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;

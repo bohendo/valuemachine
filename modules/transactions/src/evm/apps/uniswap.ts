@@ -13,10 +13,11 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  parseEvent,
   dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const { UNI,
   UniV2_1INCH_ETH, UniV2_AAVE_ETH, UniV2_COMP_ETH, UniV2_CREAM_ETH, UniV2_DAI_ETH, UniV2_DAI_USDC,
