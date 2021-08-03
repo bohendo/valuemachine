@@ -80,7 +80,7 @@ export const tornadoParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { isSelf } = addressBook;
 

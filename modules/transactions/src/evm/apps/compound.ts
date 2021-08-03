@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -132,8 +131,7 @@ export const compoundParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
-  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf } = addressBook;
 
   // TODO: how could we not hardcode these again & also not introduce cyclic dependencies?
@@ -161,7 +159,7 @@ export const compoundParser = (
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    const contract = getAccount(txLog.address);
+    const contract = txLog.address;
     if (compoundAddresses.some(e => e.address === address)) {
       tx.sources = dedup([source, ...tx.sources]);
     }
@@ -170,7 +168,7 @@ export const compoundParser = (
     // Compound V1
     if (address === compoundV1Address) {
       const subsrc = `${source}V1`;
-      const event = parseEvent(compoundV1Interface, txLog);
+      const event = parseEvent(compoundV1Interface, txLog, evmMeta);
       log.info(`Found ${subsrc} ${event.name} event`);
       const amount = formatUnits(event.args.amount, getDecimals(event.args.asset));
       const asset = getName(event.args.asset) as Asset;
@@ -257,7 +255,7 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V2: Comptroller
     } else if (comptrollerAddress === address) {
-      const event = parseEvent(comptrollerInterface, txLog);
+      const event = parseEvent(comptrollerInterface, txLog, evmMeta);
       if (event.name === "MarketEntered") {
         tx.method = `${getName(event.args.cToken)} market entry`;
           
@@ -266,7 +264,7 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V2: COMP gov token
     } else if (compAddress === address) {
-      const event = parseEvent(cTokenInterface, txLog);
+      const event = parseEvent(cTokenInterface, txLog, evmMeta);
       if (event.name === "Transfer") {
         if (isSelf(event.args.to) && event.args.from === comptrollerAddress) {
           const amount = formatUnits(
@@ -286,7 +284,7 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V2: cTokens
     } else if (cTokenAddresses.some(a => address === a.address)) {
-      const event = parseEvent(cTokenInterface, txLog);
+      const event = parseEvent(cTokenInterface, txLog, evmMeta);
       if (!event.name) continue;
       const cAsset = getName(address);
       const asset = cAsset.replace(/^c/, "");

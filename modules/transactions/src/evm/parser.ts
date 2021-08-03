@@ -1,4 +1,4 @@
-import { isAddress, getAddress } from "@ethersproject/address";
+import { isAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
 import {
@@ -26,10 +26,7 @@ export const parseEvmTx = (
 ): Transaction => {
   const { isSelf } = addressBook;
   const log = logger.child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });
-  const getAccount = (address: string, venue?: string) =>
-    `evm:${evmMetadata.id}${venue ? `-${venue}` : ""}:${getAddress(address)}`;
   // log.debug(evmTx, `Parsing evm tx`);
-
 
   const getSimpleCategory = (to: Address, from: Address): TransferCategory =>
     (isSelf(to) && isSelf(from)) ? Internal
@@ -49,7 +46,7 @@ export const parseEvmTx = (
     tx.transfers.push({
       asset: evmMetadata.feeAsset,
       category: Expense,
-      from: getAccount(evmTx.from),
+      from: evmTx.from,
       index: -1,
       quantity: formatEther(BigNumber.from(evmTx.gasUsed).mul(evmTx.gasPrice)),
       to: evmMetadata.name,
@@ -68,10 +65,10 @@ export const parseEvmTx = (
     tx.transfers.push({
       asset: evmMetadata.feeAsset,
       category: getSimpleCategory(evmTx.to, evmTx.from),
-      from: getAccount(evmTx.from),
+      from: evmTx.from,
       index: 0,
       quantity: evmTx.value,
-      to: getAccount(evmTx.to),
+      to: evmTx.to,
     });
   }
 
@@ -98,9 +95,9 @@ export const parseEvmTx = (
         // Internal evm transfers have no index, put incoming transfers first & outgoing last
         // This makes underflows less likely during VM processesing
         index: isSelf(evmTransfer.to) ? 1 : 10000,
-        from: getAddress(evmTransfer.from),
+        from: evmTransfer.from,
         quantity: evmTransfer.value,
-        to: getAddress(evmTransfer.to),
+        to: evmTransfer.to,
       });
     }
   });
@@ -123,12 +120,6 @@ export const parseEvmTx = (
     ) && (
       gt(transfer.quantity, "0")
     ))
-    // Make sure all evm addresses are checksummed
-    .map(transfer => ({
-      ...transfer,
-      from: isAddress(transfer.from) ? getAccount(transfer.from) : transfer.from,
-      to: isAddress(transfer.to) ? getAccount(transfer.to) : transfer.to,
-    }))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);
 

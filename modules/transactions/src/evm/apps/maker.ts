@@ -215,7 +215,7 @@ export const makerParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const getAccount = (address: string, app?: string): string =>
     `evm:${evmMeta.id}${app ? `-${app}` : ""}:${
       getAddress(address.includes(":") ? address.split(":").pop() : address)
@@ -263,11 +263,11 @@ export const makerParser = (
     }
     if (tokenAddresses.some(e => e.address === address)) {
       const asset = getName(address) as Asset;
-      const event = parseEvent(tokenInterface, txLog);
+      const event = parseEvent(tokenInterface, txLog, evmMeta);
       if (!event.name) continue;
       const wad = formatUnits(event.args.wad, getDecimals(address));
       if (!isSelf(event.args.guy)) {
-        log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
+        log.debug(`Skipping ${asset} ${event.name} that doesn't involve us (${event.args.guy})`);
         continue;
       }
       if (event.name === "Mint") {
@@ -329,7 +329,7 @@ export const makerParser = (
     ////////////////////////////////////////
     // Proxy Managers
     if (proxyAddresses.some(e => address === e.address)) {
-      const event = parseEvent(proxyInterface, txLog);
+      const event = parseEvent(proxyInterface, txLog, evmMeta);
       if (event?.name === "Created") {
         tx.method = "Proxy Creation";
       }
@@ -454,7 +454,7 @@ export const makerParser = (
     // SCD Cage
     // During global settlement, the cage is used to redeem no-longer-stable-coins for collateral
     } else if (address === cageAddress) {
-      const event = parseEvent(cageInterface, txLog);
+      const event = parseEvent(cageInterface, txLog, evmMeta);
       if (event?.name === "FreeCash") {
         const wad = formatUnits(event.args[1], 18);
         log.info(`Parsing SaiCage FreeCash event for ${wad} ETH`);
@@ -489,7 +489,7 @@ export const makerParser = (
     ////////////////////////////////////////
     // SCD Tub
     } else if (address === tubAddress) {
-      const event = parseEvent(tubInterface, txLog);
+      const event = parseEvent(tubInterface, txLog, evmMeta);
       if (event?.name === "LogNewCup") {
         tx.method = `Create CDP-${toBN(event.args.cup)}`;
         continue;
@@ -613,7 +613,7 @@ export const makerParser = (
         } else if (!evmTx.logs.find(l =>
           l.index > index
           && l.address === saiAddress
-          && parseEvent(tokenInterface, l).name === "Mint"
+          && parseEvent(tokenInterface, l, evmMeta).name === "Mint"
         )) {
           // Only warn if there is NOT an upcoming SAI mint evet
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
@@ -633,7 +633,7 @@ export const makerParser = (
         } else if (!evmTx.logs.find(l =>
           l.index > index
           && l.address === saiAddress
-          && parseEvent(tokenInterface, l).name === "Burn"
+          && parseEvent(tokenInterface, l, evmMeta).name === "Burn"
         )) {
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
         }

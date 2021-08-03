@@ -195,7 +195,7 @@ export const uniswapParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getName, isSelf } = addressBook;
 
@@ -229,16 +229,16 @@ export const uniswapParser = (
     let subsrc, event;
     if (v2MarketAddresses.some(e => e.address === address)) {
       subsrc = `${source}V2`;
-      event = parseEvent(uniswapV2Interface, txLog);
+      event = parseEvent(uniswapV2Interface, txLog, evmMeta);
     } else if (v1MarketAddresses.some(e => e.address === address)) {
       subsrc = `${source}V1`;
-      event = parseEvent(uniswapV1Interface, txLog);
+      event = parseEvent(uniswapV1Interface, txLog, evmMeta);
     } else if (stakingAddresses.some(e => e.address === address)) {
       subsrc = `${source}V2`;
-      event = parseEvent(stakingInterface, txLog);
+      event = parseEvent(stakingInterface, txLog, evmMeta);
     } else if (airdropAddresses.some(e => e.address === address)) {
       subsrc = `${source}V2`;
-      event = parseEvent(airdropInterface, txLog);
+      event = parseEvent(airdropInterface, txLog, evmMeta);
     } else {
       log.debug(`Skipping ${getName(address)} event`);
       continue;

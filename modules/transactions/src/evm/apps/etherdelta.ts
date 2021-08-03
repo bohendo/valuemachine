@@ -56,7 +56,7 @@ export const etherdeltaParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const getAccount = (address, prefix) =>
     `evm:${evmMeta.id}${prefix ? `-${prefix}` : ""}:${getAddress(address)}`;
   const { getDecimals, getName, isSelf } = addressBook;
@@ -70,7 +70,7 @@ export const etherdeltaParser = (
     const address = txLog.address;
     if (address === etherdeltaAddress) {
       const index = txLog.index || 1;
-      const event = parseEvent(etherdeltaInterface, txLog);
+      const event = parseEvent(etherdeltaInterface, txLog, evmMeta);
       if (!event.name) continue;
       // Skip transfers that don't concern self accounts
       const user = [event.args.user, event.args.get, event.args.give].reduce(

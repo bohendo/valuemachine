@@ -12,7 +12,7 @@ import {
 const source = TransactionSources.Compound;
 const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const logger = testLogger.child({ module: `Test${source}`,
-  // level: "debug",
+  // level: "info",
 });
 
 describe(source, () => {
@@ -83,11 +83,6 @@ describe(source, () => {
     const tx = await parseEthTx({
       hash: "0x032e9d84b07fdd3e546b44b4fa034d1b470e927188df9594af7e5d656588aad0",
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
-      calls: [{
-        from: "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5",
-        to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
-        value: "1.0"
-      }],
       logger,
     });
     expect(tx.sources).to.include(source);
@@ -103,7 +98,7 @@ describe(source, () => {
       logger,
     });
     expect(tx.sources).to.include(source);
-    expect(tx.transfers.length).to.equal(2);
+    expect(tx.transfers.length).to.equal(3);
     const repay = tx.transfers[1];
     expect(repay.category).to.equal(Repay);
   });

@@ -89,7 +89,7 @@ export const polygonParser = (
       .filter(txLog => isToken(txLog.address))
       .map((txLog): Transfer => {
         const address = txLog.address;
-        const event = parseEvent(wethInterface, txLog);
+        const event = parseEvent(wethInterface, txLog, evmMeta);
         if (event.name === "Transfer") {
           return {
             asset: getName(address),
@@ -184,7 +184,7 @@ export const polygonParser = (
     evmTx.logs
       .filter(txLog => getName(txLog.address) === PlasmaBridge) 
       .forEach(txLog => {
-        const event = parseEvent(plasmaBridgeInterface, txLog);
+        const event = parseEvent(plasmaBridgeInterface, txLog, evmMeta);
         log.info(`Got plasma bridge event: ${event.name}`);
         if (event.name === "NewDepositBlock") {
           tx.transfers.push({
@@ -205,7 +205,7 @@ export const polygonParser = (
       if (polygonAddresses.map(e => e.address).includes(address)) {
         tx.sources = dedup([source, ...tx.sources]);
         const name = getName(address);
-        const event = parseEvent(plasmaBridgeInterface, txLog);
+        const event = parseEvent(plasmaBridgeInterface, txLog, evmMeta);
         if (event?.name === "NewDepositBlock") {
           const quantity = formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token));
           const asset = getName(event.args.token);

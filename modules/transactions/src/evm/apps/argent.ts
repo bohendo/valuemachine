@@ -23,9 +23,9 @@ const source = TransactionSources.Argent;
 
 ////////////////////////////////////////
 /// Addresses
-
 // Find more manager addresses at https://github.com/argentlabs/argent-contracts/releases/tag/2.1
-const makerManagerAddress = "0x7557f4199aa99e5396330bac3b7bdaa262cb1913";
+
+const makerManager = "ArgentMakerManager";
 
 const relayerAddresses = [
   { name: "argent-relayer", address: "evm:1:0xdd5a1c148ca114af2f4ebc639ce21fed4730a608" },
@@ -34,13 +34,15 @@ const relayerAddresses = [
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const managerAddresses = [
-  { name: "argent-maker", address: makerManagerAddress },
+  { name: makerManager, address: "evm:1:0x7557f4199aa99e5396330bac3b7bdaa262cb1913" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 export const argentAddresses = [
   ...relayerAddresses,
   ...managerAddresses,
 ];
+
+const makerManagerAddress = argentAddresses.find(e => e.name === makerManager)?.address;
 
 ////////////////////////////////////////
 /// Interfaces
@@ -60,11 +62,11 @@ const makerManagerV1Interface = new Interface([
 export const argentParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
-  _evmMeta: EvmMetadata,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
   if (relayerAddresses.some(entry => evmTx.from === entry.address)) {
@@ -75,7 +77,7 @@ export const argentParser = (
     const address = txLog.address;
     if (address === makerManagerAddress) {
       const subsrc = `${source} MakerManager`;
-      const event = parseEvent(makerManagerV1Interface, txLog);
+      const event = parseEvent(makerManagerV1Interface, txLog, evmMeta);
       if (!event.name) continue;
       if (!isSelf(event.args.wallet)) {
         log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);

@@ -34,7 +34,7 @@ const wethAddress = wethAddresses.find(e => e.name === WETH).address;
 /// Interfaces
 
 const wethAbi = [
-  "event Approval(address indexed s/rc, address indexed guy, uint256 wad)",
+  "event Approval(address indexed src, address indexed guy, uint256 wad)",
   "event Deposit(address indexed dst, uint256 wad)",
   "event Transfer(address indexed src, address indexed dst, uint256 wad)",
   "event Withdrawal(address indexed src, uint256 wad)",
@@ -50,14 +50,14 @@ export const wethParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, isSelf } = addressBook;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (address === wethAddress) {
       const asset = WETH;
-      const event = parseEvent(wethAbi, txLog);
+      const event = parseEvent(wethAbi, txLog, evmMeta);
       if (!event.name) continue;
       const amount = formatUnits(event.args.wad, getDecimals(address));
       const index = txLog.index || 1;

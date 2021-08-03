@@ -32,22 +32,6 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const log = (logger || getLogger()).child({ module: "AddressBook" });
 
   ////////////////////////////////////////
-  // Helpers
-
-  const isSameAddress = (a1: Address, a2: Address): boolean => {
-    if (a1.includes(":") && a2.includes(":")) return a1 === a2;
-    const t1 = fmtAddress(a1.includes(":") ? a1.split(":").pop() : a1);
-    const t2 = fmtAddress(a2.includes(":") ? a2.split(":").pop() : a2);
-    return t1 === t2;
-  };
-
-  const getEntry = (address: Address): AddressEntry | undefined => {
-    if (!address) return undefined;
-    const target = fmtAddress(address.includes(":") ? address.split(":").pop() : address);
-    return addressBook.find(row => isSameAddress(row.address, target));
-  };
-
-  ////////////////////////////////////////
   // Init Code
 
   // Merge hardcoded public addresses with those supplied by the user
@@ -70,6 +54,21 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     addresses.push(row.address);
   });
   addresses = addresses.sort();
+
+  ////////////////////////////////////////
+  // Helpers
+
+  const isSameAddress = (a1: Address, a2: Address): boolean => {
+    if (a1.includes(":") && a2.includes(":")) return a1.toLowerCase() === a2.toLowerCase();
+    const t1 = fmtAddress(a1.includes(":") ? a1.split(":").pop() : a1);
+    const t2 = fmtAddress(a2.includes(":") ? a2.split(":").pop() : a2);
+    return t1.toLowerCase() === t2.toLowerCase();
+  };
+
+  const getEntry = (address: Address): AddressEntry | undefined => {
+    if (!address) return undefined;
+    return addressBook.find(row => isSameAddress(row.address, fmtAddress(address)));
+  };
 
   ////////////////////////////////////////
   // Exports

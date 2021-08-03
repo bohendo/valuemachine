@@ -78,7 +78,7 @@ export const oasisParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getDecimals, getName, isCategory, isSelf } = addressBook;
 
@@ -102,7 +102,7 @@ export const oasisParser = (
     const address = txLog.address;
     if (machineAddresses.some(e => e.address === address)) {
       tx.sources = dedup([source, ...tx.sources]);
-      const event = parseEvent(oasisInterface, txLog);
+      const event = parseEvent(oasisInterface, txLog, evmMeta);
 
       if (event.name === "LogTake") {
         log.info(`Parsing ${source} ${event.name} event`);

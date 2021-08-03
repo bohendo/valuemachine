@@ -222,7 +222,7 @@ export const yearnParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getName, isSelf } = addressBook;
 
@@ -271,7 +271,7 @@ export const yearnParser = (
 
     } else if (address === govAddress) {
       tx.sources = dedup([source, ...tx.sources]);
-      const event = parseEvent(yGovInterface, txLog);
+      const event = parseEvent(yGovInterface, txLog, evmMeta);
       if (!event.name) continue;
       log.info(`Parsing yGov ${event.name}`);
       if (event.name === "Staked") {

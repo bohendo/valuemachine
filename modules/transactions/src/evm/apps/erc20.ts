@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -77,12 +76,12 @@ const ethereumAddresses = [
 ].map(setAddressCategory(AddressCategories.ERC20, Guards.Ethereum));
 
 const polygonAddresses = [
-  { name: DAI, address: "evm:1:0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063" },
-  { name: USDC, address: "evm:1:0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", decimals: 6 },
-  { name: USDT, address: "evm:1:0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6 },
-  { name: WBTC, address: "evm:1:0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6", decimals: 8 },
-  { name: WETH, address: "evm:1:0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619" },
-  { name: WMATIC, address: "evm:1:0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270" },
+  { name: DAI, address: "evm:137:0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063" },
+  { name: USDC, address: "evm:137:0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", decimals: 6 },
+  { name: USDT, address: "evm:137:0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6 },
+  { name: WBTC, address: "evm:137:0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6", decimals: 8 },
+  { name: WETH, address: "evm:137:0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619" },
+  { name: WMATIC, address: "evm:137:0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270" },
 ].map(setAddressCategory(AddressCategories.ERC20, Guards.Polygon));
 
 export const erc20Addresses = [
@@ -108,29 +107,28 @@ export const erc20Parser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
-  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf, isToken } = addressBook;
 
   for (const txLog of evmTx.logs) {
-    const address = getAccount(txLog.address);
+    const address = txLog.address;
     // Only parse known, ERC20 compliant tokens
     if (isToken(address)) {
-      const event = parseEvent(erc20Interface, txLog);
+      const event = parseEvent(erc20Interface, txLog, evmMeta);
       if (!event.name) continue;
       tx.sources = dedup([source, ...tx.sources]);
       const asset = getName(address) as Asset;
       // Skip transfers that don't concern self accounts
       if (!isSelf(event.args.from) && !isSelf(event.args.to)) {
-        log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
+        log.debug(`Skipping ${asset} ${event.name} that doesn't involve us (${event.args.to})`);
         continue;
       }
       const amount = formatUnits(event.args.amount, getDecimals(address));
 
       if (event.name === "Transfer") {
-        log.debug(`Parsing ${source} ${event.name} of ${amount} ${asset}`);
-        const from = event.args.from === AddressZero ? address : event.args.from;
-        const to = event.args.to === AddressZero ? address : event.args.to;
+        log.info(`Parsing ${source} ${event.name} of ${amount} ${asset}`);
+        const from = event.args.from.endsWith(AddressZero) ? address : event.args.from;
+        const to = event.args.to.endsWith(AddressZero) ? address : event.args.to;
         const category = isSelf(from) && isSelf(to) ? Internal
           : isSelf(from) && !isSelf(to) ? Expense
           : isSelf(to) && !isSelf(from) ? Income

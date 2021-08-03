@@ -108,7 +108,7 @@ export const idleParser = (
       tx.sources = dedup([source, ...tx.sources]);
       const name = addressBook.getName(address);
       if (name === stkIDLE) {
-        const event = parseEvent(stkIDLEInterface, txLog);
+        const event = parseEvent(stkIDLEInterface, txLog, evmMeta);
         const account = `evm:${evmMeta.id}-${stkIDLE}:${getAddress(event.args.provider)}`;
 
         if (event.name === "Deposit") {

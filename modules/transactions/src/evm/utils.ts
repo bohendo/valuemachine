@@ -1,7 +1,8 @@
-import { Interface } from "@ethersproject/abi";
+import { /*defaultAbiCoder, AbiCoder,*/ Interface } from "@ethersproject/abi";
 import {
   DecimalString,
   EvmTransactionLog,
+  EvmMetadata,
   Transfer,
 } from "@valuemachine/types";
 import { diff, gt } from "@valuemachine/utils";
@@ -14,14 +15,34 @@ export const diffAsc = (compareTo: DecimalString) => (t1: Transfer, t2: Transfer
     diff(t2.quantity, compareTo),
   ) ? 1 : -1;
 
+// TODO: clean up if/when I get feedback on https://github.com/ethers-io/ethers.js/issues/1831
 export const parseEvent = (
   abi: any,
-  ethLog: EvmTransactionLog,
+  evmLog: EvmTransactionLog,
+  evmMeta: EvmMetadata,
 ): { name: string; args: { [key: string]: string }; } => {
   const iface = abi.length ? new Interface(abi) : abi as Interface;
   const name = Object.values(iface.events).find(e =>
-    iface.getEventTopic(e) === ethLog.topics[0]
+    iface.getEventTopic(e) === evmLog.topics[0]
   )?.name;
-  const args = name ? iface.parseLog(ethLog).args : [];
+  const formatAddress = (address: string): string => `evm:${evmMeta.id}:${address}`;
+  const rawArgs = name ? iface.parseLog({
+    data: evmLog.data,
+    topics: evmLog.topics,
+  }).args : [];
+  /*
+  const coder = new AbiCoder((type: string, value: any) => {
+    if (type === "address") {
+      return formatAddress(value);
+    } else {
+      return value;
+    }
+  });
+  */
+  const args = rawArgs.map(arg => arg.lenght === 42 ? formatAddress(arg) : arg) as any;
+  Object.keys(rawArgs).forEach(key => {
+    if ((key as any) % 1 === 0) return;
+    args[key] = rawArgs[key].length === 42 ? formatAddress(rawArgs[key]) : rawArgs[key];
+  });
   return { name, args };
 };

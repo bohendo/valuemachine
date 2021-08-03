@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { getAddress } from "@ethersproject/address";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -172,11 +171,8 @@ export const aaveParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
-  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
-
-  log.info(`Parsing EVM tx from network ${evmMeta.name}`);
 
   // Only check addresses for the chain
   const addresses =
@@ -191,19 +187,19 @@ export const aaveParser = (
   const stkAAVEAddress = addresses.gov?.find(e => e.name === stkAAVE)?.address;
 
   for (const txLog of evmTx.logs) {
-    const address = getAccount(txLog.address);
+    const address = txLog.address;
     if (addresses.core?.some(e => e.address === address)) {
       tx.sources = dedup([source, ...tx.sources]);
-      const event = parseEvent(lendingPoolInterface, txLog);
-      log.debug(`Parsing ${source} ${event.name} event user=${event.args.user} onBehalfOf=${event.args.onBehalfOf}`);
+      const event = parseEvent(lendingPoolInterface, txLog, evmMeta);
+      if (!event.name) continue;
 
       if (event.name === "Deposit" && (isSelf(event.args.user) || isSelf(event.args.onBehalfOf))) {
-        log.debug("event is : " + event.name);
-        const asset = getName(event.args.reserve) as Asset ;
+        const asset = getName(event.args.reserve) as Asset;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(event.args.reserve),
         );
+        log.info(`Parsing ${source} ${event.name} event of ${amount} ${asset}`);
         const aAsset = `${prefix}${asset.replace(/^W/, "")}`;
         const aTokenAddress = addresses.markets?.find(entry => entry.name === aAsset)?.address;
         const amount2 = formatUnits(
@@ -213,9 +209,9 @@ export const aaveParser = (
         const swapOut = tx.transfers.find(associatedTransfer(asset, amount));
         const swapIn = tx.transfers.find(associatedTransfer(aAsset,amount2));
         if (!swapOut) {
-          log.debug(`${event.name}: Can't find swapOut of ${amount} ${asset}`);
+          log.warn(`${event.name}: Can't find swapOut of ${amount} ${asset}`);
         } else if (!swapIn) {
-          log.debug(`${event.name}: Can't find swapIn of ${amount2} ${aAsset}`);
+          log.warn(`${event.name}: Can't find swapIn of ${amount2} ${aAsset}`);
         } else {
           swapOut.category = SwapOut;
           swapOut.to = address;
@@ -225,12 +221,12 @@ export const aaveParser = (
         }
 
       } else if (event.name === "Withdraw" && event.args.user === event.args.to) {
-        log.debug("event is : " + event.name);
         const asset = getName(event.args.reserve) as Asset ;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(event.args.reserve),
         );
+        log.info(`Parsing ${source} ${event.name} event of ${amount} ${asset}`);
         const aAsset = `${prefix}${asset.replace(/^W/, "")}`;
         const aTokenAddress = addresses.markets?.find(entry => entry.name === aAsset)?.address;
         const amount2 = formatUnits(
@@ -241,9 +237,9 @@ export const aaveParser = (
         const swapIn = tx.transfers.find(associatedTransfer(asset,amount));
 
         if (!swapOut) {
-          log.debug(`${event.name}: Can't find swapOut of ${amount} ${aAsset}`);
+          log.warn(`${event.name}: Can't find swapOut of ${amount} ${aAsset}`);
         } else if (!swapIn) {
-          log.debug(`${event.name}: Can't find swapIn of ${amount} ${asset}`);
+          log.warn(`${event.name}: Can't find swapIn of ${amount} ${asset}`);
         } else {
           swapOut.category = SwapOut;
           swapOut.to = address;
@@ -253,34 +249,34 @@ export const aaveParser = (
         }
 
       } else if (event.name === "Borrow" && (event.args.user===event.args.onBehalfOf) ) {
-        log.debug("event is : " + event.name);
         const asset = getName(event.args.reserve) as Asset ;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(event.args.reserve),
         );
+        log.info(`Parsing ${source} ${event.name} event of ${amount} ${asset}`);
         const borrow = tx.transfers.find(associatedTransfer(asset, amount));
         if (borrow) {
           borrow.category = Borrow;
           borrow.from = address; // should this be a non-address account?
         } else {
-          log.debug(`${event.name}: Can't find borrow of ${amount} ${asset}`);
+          log.warn(`${event.name}: Can't find borrow of ${amount} ${asset}`);
         }
         tx.method = "Borrow";
 
       } else if (event.name === "Repay"&& (event.args.user===event.args.repayer) ) {
-        log.debug("event is : " + event.name);
         const asset = getName(event.args.reserve) as Asset ;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(event.args.reserve),
         );
+        log.info(`Parsing ${source} ${event.name} event of ${amount} ${asset}`);
         const repay = tx.transfers.find(associatedTransfer(asset, amount));
         if (repay) {
           repay.category = Repay;
           repay.from = address; // should this be a non-address account?
         } else {
-          log.debug(`${event.name}: Can't find repayment of ${amount} ${asset}`);
+          log.warn(`${event.name}: Can't find repayment of ${amount} ${asset}`);
         }
         tx.method = "Repay";
 
@@ -289,21 +285,21 @@ export const aaveParser = (
       }
 
     } else if (stkAAVEAddress === address) {
-      const event = parseEvent(aaveStakeInterface, txLog);
+      const event = parseEvent(aaveStakeInterface, txLog, evmMeta);
       if (event.name === "Staked"&& (event.args.from===event.args.onBehalfOf) ) {
-        log.debug("event is : " + event.name);
         const asset1 = AAVE;
         const asset2 = stkAAVE;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(address),
         );
+        log.info(`Parsing ${source} ${event.name} of ${amount} ${asset1}`);
         const swapOut = tx.transfers.find(associatedTransfer(asset1, amount));
         const swapIn = tx.transfers.find(associatedTransfer(asset2,amount));
         if (!swapOut) {
-          log.debug(`${event.name}: Can't find swapOut of ${amount} ${asset1}`);
+          log.warn(`${event.name}: Can't find swapOut of ${amount} ${asset1}`);
         } else if (!swapIn) {
-          log.debug(`${event.name}: Can't find swapIn of ${amount} ${asset2}`);
+          log.warn(`${event.name}: Can't find swapIn of ${amount} ${asset2}`);
         } else {
           swapOut.category = SwapOut;
           swapOut.to = address;
@@ -314,19 +310,19 @@ export const aaveParser = (
         }
 
       } else if (event.name === "Redeem" && (event.args.from===event.args.to)) {
-        log.debug("event is : " + event.name);
         const asset1 = AAVE;
         const asset2 = stkAAVE;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(address),
         );
+        log.info(`Parsing ${source} ${event.name} of ${amount} ${asset2}`);
         const swapOut = tx.transfers.find(associatedTransfer(asset2, amount));
         const swapIn = tx.transfers.find(associatedTransfer(asset1,amount));
         if (!swapOut) {
-          log.debug(`${event.name}: Can't find swapOut of ${amount} ${asset2}`);
+          log.warn(`${event.name}: Can't find swapOut of ${amount} ${asset2}`);
         } else if (!swapIn) {
-          log.debug(`${event.name}: Can't find swapIn of ${amount} ${asset1}`);
+          log.warn(`${event.name}: Can't find swapIn of ${amount} ${asset1}`);
         } else {
           swapOut.category = SwapOut;
           swapOut.to = address;

@@ -13,10 +13,10 @@ import {
 const source = TransactionSources.Weth;
 const { SwapIn, SwapOut } = TransferCategories;
 const logger = testLogger.child({ module: `Test${source}`,
-  level: "info",
+  // level: "debug",
 });
 
-describe.only(source, () => {
+describe(source, () => {
   it("should parse a weth deposit", async () => {
     const tx = await parseEthTx({
       hash: "0xbbbd2b0c777b8f7ce7b3d16ba42452c6b50e6145a22b769ae61620d7ed549db4",

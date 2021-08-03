@@ -1,9 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 
-export const EthAddress = Type.RegEx(/^0x[a-fA-F0-9]{40}$/);
-export type EthAddress = Static<typeof Address>;
+export const EvmAddress = Type.RegEx(/^0x[a-fA-F0-9]{40}$/);
+export type EvmAddress = Static<typeof Address>;
 
-export const Address = Type.Union([EthAddress, Type.String()]);
+export const Address = Type.Union([EvmAddress, Type.String()]);
 export type Address = Static<typeof Address>;
 
 // eg evm:1:0xabc123.. (chainType:chainId:address a la CAIP-10) for on-chain accounts

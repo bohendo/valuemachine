@@ -1,8 +1,8 @@
-import { isAddress as isEthAddress, getAddress } from "@ethersproject/address";
+import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
 import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
 import {
-  Address,
+  EvmAddress,
   AddressBook,
   Bytes32,
   Cryptocurrencies,
@@ -52,6 +52,9 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   ////////////////////////////////////////
   // Internal Helper Functions
+
+  // CAIP-10
+  const getAddress = (address: string): string => `evm:${metadata.id}:${getEvmAddress(address)}`;
 
   const formatCovalentTx = (rawTx): EvmTransaction => ({
     // block: rawTx.block_height,
@@ -111,7 +114,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const queryEtherscan = async (
     action: string,
-    address: Address,
+    address: EvmAddress,
   ): Promise<any[] | undefined> => {
     const target = action === "txlist" ? "transaction history"
       : action === "txlistinternal" ? "internal call history"
@@ -249,7 +252,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   */
 
   /*
-  const syncAddress = async (_address: Address): Promise<void> => {
+  const syncAddress = async (_address: EvmAddress): Promise<void> => {
     const address = getAddress(_address);
     if (!json.addresses[address]) {
       json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
@@ -297,8 +300,10 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       ) === oldElem.value,
     ).length;
 
-  const syncAddress = async (rawAddress: Address): Promise<void> => {
-    const address = getAddress(rawAddress);
+  const syncAddress = async (rawAddress: EvmAddress): Promise<void> => {
+    const address = getEvmAddress(
+      rawAddress.includes(":") ? rawAddress.split(":").pop() : rawAddress
+    );
     let data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`);
     const covalentTxns = [];
     covalentTxns.push(...data?.items);
@@ -369,8 +374,8 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
         : address.includes(":") ? "" // CAIP-10 address on different evm
         : address // non-CAIP-10 address
       )
-      .filter(address => isEthAddress(address))
-      .map(address => getAddress(address));
+      .filter(address => isEvmAddress(address))
+      .map(address => getEvmAddress(address));
     const addresses = selfAddresses.filter(address => {
       if (
         !json.addresses[address] ||
@@ -430,8 +435,8 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
         : address.includes(":") ? "" // CAIP-10 address on different evm
         : address // non-CAIP-10 address
       )
-      .filter(address => isEthAddress(address))
-      .map(address => getAddress(address));
+      .filter(address => isEvmAddress(address))
+      .map(address => getEvmAddress(address));
     const selfTransactionHashes = Array.from(new Set(
       selfAddresses.reduce((all, address) => {
         log.info(`Adding ${json.addresses[address]?.history?.length || 0} entries for ${address} (${all.length} so far)`);
