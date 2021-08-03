@@ -4,7 +4,6 @@ import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import Collapse from "@material-ui/core/Collapse";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
@@ -26,10 +25,9 @@ import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/AddCircle";
 import DownloadIcon from "@material-ui/icons/GetApp";
-import RemoveIcon from "@material-ui/icons/RemoveCircle";
+import RemoveIcon from "@material-ui/icons/Delete";
 import SaveIcon from "@material-ui/icons/Save";
 import EditIcon from "@material-ui/icons/Edit";
-import SyncIcon from "@material-ui/icons/Sync";
 import { Alert } from "@material-ui/lab";
 import {
   AddressCategories,
@@ -285,15 +283,11 @@ const AddressRow = ({
   index,
   editEntry,
   entry,
-  syncAddress,
-  syncing,
   otherAddresses,
 }: {
   index: number;
   editEntry: any;
   entry: AddressEntry;
-  syncAddress: any;
-  syncing: any;
   otherAddresses: string;
 }) => {
   const [editMode, setEditMode] = useState(false);
@@ -330,19 +324,6 @@ const AddressRow = ({
           <IconButton color="secondary" onClick={toggleEditMode}>
             <EditIcon />
           </IconButton>
-        </TableCell>
-        <TableCell>
-          {entry.category === AddressCategories.Self ?
-            !syncing[entry.address] ?
-              <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
-                <SyncIcon />
-              </IconButton>
-              :
-              <IconButton>
-                <CircularProgress size={20}/>
-              </IconButton>
-            : undefined
-          }
         </TableCell>
       </TableRow>
       <TableRow>
@@ -411,7 +392,6 @@ export const AddressBookManager = ({
     message: "",
     severity: "info" as "info" | "error" | "warning" | "success"
   });
-  const [syncing, setSyncing] = useState({} as { [address: string]: boolean });
   const [allAddresses, setAllAddresses] = useState([]);
   const [newEntry, setNewEntry] = useState(getEmptyEntry);
   const classes = useStyles();
@@ -537,38 +517,8 @@ export const AddressBookManager = ({
     editEntry(addressBook.json.length, editedEntry);
   };
 
-  const syncAddress = async (address: string) => {
-    console.log(`Syncing ${address}..`);
-    setSyncing({ ...syncing, [address]: true });
-    let n = 0;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      try {
-        const response = await axios.get(`/api/chaindata/${address}`);
-        console.log(`attempt ${n++}:`, response);
-        if (response.status === 200 && typeof response.data === "object") {
-          const history = response.data;
-          console.log(`Got address history:`, history);
-          setSyncing({ ...syncing, [address]: false });
-          break;
-        }
-      } catch (e) {
-        console.warn(e.message);
-      }
-      await new Promise(res => setTimeout(res, 10_000));
-    }
-    // TODO: Set success alert message
-    console.log(`Successfuly synced address history for ${address}`);
-  };
-
   const reset = async () => {
     setAddressBookJson([]);
-  };
-
-  const syncAll = async () => {
-    for (const entry of addressBook.json.filter(e => e.category === AddressCategories.Self)) {
-      await syncAddress(entry.address);
-    }
   };
 
   const handleChangePage = (event, newPage) => {
@@ -677,28 +627,13 @@ export const AddressBookManager = ({
           <Button
             className={classes.syncAll}
             color="primary"
-            onClick={syncAll}
-            size="medium"
-            disabled={Object.values(syncing).some(val => !!val)}
-            startIcon={Object.values(syncing).some(val => !!val)
-              ? <CircularProgress size={20} />
-              : <SyncIcon />
-            }
-            variant="contained"
-          >
-            Sync All
-          </Button>
-
-          <Button
-            className={classes.syncAll}
-            color="primary"
             onClick={reset}
             size="medium"
             disabled={!addressBook.json?.length}
             startIcon={<RemoveIcon/>}
             variant="contained"
           >
-            Remove All
+            Clear Addresses
           </Button>
 
         </Grid>
@@ -752,7 +687,6 @@ export const AddressBookManager = ({
                 <TableCell><strong> Guard </strong></TableCell>
                 <TableCell><strong> Eth Address </strong></TableCell>
                 <TableCell><strong> Edit </strong></TableCell>
-                <TableCell><strong> Sync </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -765,8 +699,6 @@ export const AddressBookManager = ({
                     index={addressBook.json.findIndex(e => e.address === entry.address)}
                     editEntry={editEntry}
                     entry={entry}
-                    syncAddress={syncAddress}
-                    syncing={syncing}
                   />
 
                 ))}
