@@ -1,22 +1,23 @@
-import { Interface } from "@ethersproject/abi";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
   Assets,
-  TransactionSources,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
+  TransactionSources,
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  parseEvent,
-  rmDups,
+  dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.Polygon;
 const { MATIC, ETH, WETH } = Assets;
@@ -28,18 +29,18 @@ const ZapperPolygonBridge = "ZapperPolygonBridge";
 const PlasmaBridge = "PlasmaBridge";
 
 export const govAddresses = [
-  { name: MATIC, address: "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0" },
+  { name: MATIC, address: "evm:1:0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 export const bridgeAddresses = [
-  { name: PlasmaBridge, address: "0x401F6c983eA34274ec46f84D70b31C151321188b" },
-  { name: ZapperPolygonBridge, address: "0xe34b087bf3c99e664316a15b01e5295eb3512760" },
+  { name: PlasmaBridge, address: "evm:1:0x401F6c983eA34274ec46f84D70b31C151321188b" },
+  { name: ZapperPolygonBridge, address: "evm:1:0xe34b087bf3c99e664316a15b01e5295eb3512760" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 export const miscAddresses = [
-  { name: "FlashWallet", address: "0x22F9dCF4647084d6C31b2765F6910cd85C178C18" },
-  { name: "ZeroEx", address: "0xDef1C0ded9bec7F1a1670819833240f027b25EfF" },
-  { name: "PolygonStateSyncer", address: "0x28e4F3a7f651294B9564800b2D01f35189A5bFbE" },
+  { name: "FlashWallet", address: "evm:1:0x22F9dCF4647084d6C31b2765F6910cd85C178C18" },
+  { name: "ZeroEx", address: "evm:1:0xDef1C0ded9bec7F1a1670819833240f027b25EfF" },
+  { name: "PolygonStateSyncer", address: "evm:1:0x28e4F3a7f651294B9564800b2D01f35189A5bFbE" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 export const polygonAddresses = [
@@ -48,34 +49,35 @@ export const polygonAddresses = [
   ...miscAddresses,
 ];
 
-const plasmaBridgeInterface = new Interface([
+const plasmaBridgeAbi = [
   "event NewDepositBlock(address indexed owner, address indexed token, uint256 amountOrNFTId, uint256 depositBlockId)",
   "event MaxErc20DepositUpdate(uint256 indexed oldLimit, uint256 indexed newLimit)",
   "event ProxyUpdated(address indexed _new, address indexed _old)",
   "event OwnerUpdate(address _prevOwner, address _newOwner)",
   "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)"
-]);
+];
 
-const wethInterface = new Interface([
+const wethAbi = [
   "event Approval(address indexed from, address indexed to, uint amount)",
   "event Deposit(address indexed from, uint256 amount)",
   "event Transfer(address indexed from, address indexed to, uint amount)",
   "event Withdrawal(address indexed to, uint256 amount)",
-]);
-
+];
 
 export const polygonParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: source });
   const { getName, isToken, getDecimals } = addressBook;
+  const addressZero = `evm:${evmMeta.id}:${AddressZero}`; 
 
   if (getName(evmTx.to) === ZapperPolygonBridge) {
     const account = evmTx.from;
-    tx.sources = rmDups([source, ...tx.sources]);
+    tx.sources = dedup([source, ...tx.sources]);
     tx.method = `Zap to Polygon`;
     log.info(`Parsing ${tx.method}`);
 
@@ -84,15 +86,15 @@ export const polygonParser = (
       .filter(txLog => isToken(txLog.address))
       .map((txLog): Transfer => {
         const address = txLog.address;
-        const event = parseEvent(wethInterface, txLog);
+        const event = parseEvent(wethAbi, txLog, evmMeta);
         if (event.name === "Transfer") {
           return {
             asset: getName(address),
             category: TransferCategories.Unknown,
-            from: event.args.from === AddressZero ? address : event.args.from,
+            from: event.args.from === addressZero ? address : event.args.from,
             index: txLog.index,
             quantity: formatUnits(event.args.amount, getDecimals(address)),
-            to: event.args.to === AddressZero ? address : event.args.to,
+            to: event.args.to === addressZero ? address : event.args.to,
           };
         } else if (event.name === "Deposit") {
           const swapOut = tx.transfers.find(transfer =>
@@ -179,7 +181,7 @@ export const polygonParser = (
     evmTx.logs
       .filter(txLog => getName(txLog.address) === PlasmaBridge) 
       .forEach(txLog => {
-        const event = parseEvent(plasmaBridgeInterface, txLog);
+        const event = parseEvent(plasmaBridgeAbi, txLog, evmMeta);
         log.info(`Got plasma bridge event: ${event.name}`);
         if (event.name === "NewDepositBlock") {
           tx.transfers.push({
@@ -198,9 +200,9 @@ export const polygonParser = (
     for (const txLog of evmTx.logs) {
       const address = txLog.address;
       if (polygonAddresses.map(e => e.address).includes(address)) {
-        tx.sources = rmDups([source, ...tx.sources]);
+        tx.sources = dedup([source, ...tx.sources]);
         const name = getName(address);
-        const event = parseEvent(plasmaBridgeInterface, txLog);
+        const event = parseEvent(plasmaBridgeAbi, txLog, evmMeta);
         if (event?.name === "NewDepositBlock") {
           const quantity = formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token));
           const asset = getName(event.args.token);

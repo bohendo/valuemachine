@@ -1,10 +1,10 @@
 import { formatUnits } from "@ethersproject/units";
-import { Interface } from "@ethersproject/abi";
 import {
   AddressBook,
   AddressCategories,
   Assets,
   Asset,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -12,10 +12,11 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  rmDups,
+  dedup,
   setAddressCategory,
-  parseEvent,
 } from "@valuemachine/utils";
+
+import { getAppAccount, parseEvent } from "../utils";
 
 const source = TransactionSources.Idle;
 const { Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
@@ -31,22 +32,22 @@ const {
 const stkIDLE = "stkIDLE";
 
 const govAddresses = [
-  { name: IDLE, address: "0x875773784Af8135eA0ef43b5a374AaD105c5D39e" },
-  { name: stkIDLE, address: "0xaAC13a116eA7016689993193FcE4BadC8038136f" },
+  { name: IDLE, address: "evm:1:0x875773784Af8135eA0ef43b5a374AaD105c5D39e" },
+  { name: stkIDLE, address: "evm:1:0xaAC13a116eA7016689993193FcE4BadC8038136f" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 const marketAddresses = [
-  { name: idleDAIYield, address: "0x3fe7940616e5bc47b0775a0dccf6237893353bb4" },
-  { name: idleRAIYield, address: "0x5C960a3DCC01BE8a0f49c02A8ceBCAcf5D07fABe" },
-  { name: idleSUSDYield, address: "0xF52CDcD458bf455aeD77751743180eC4A595Fd3F" },
-  { name: idleTUSDYield, address: "0xc278041fDD8249FE4c1Aad1193876857EEa3D68c" },
-  { name: idleUSDCYield, address: "0x5274891bEC421B39D23760c04A6755eCB444797C" },
-  { name: idleUSDTYield, address: "0xF34842d05A1c888Ca02769A633DF37177415C2f8" },
-  { name: idleWBTCYield, address: "0x8C81121B15197fA0eEaEE1DC75533419DcfD3151" },
-  { name: idleWETHYield, address: "0xC8E6CA6E96a326dC448307A5fDE90a0b21fd7f80" },
-  { name: idleDAISafe, address: "0xa14ea0e11121e6e951e87c66afe460a00bcd6a16" },
-  { name: idleUSDCSafe, address: "0x3391bc034f2935eF0E1e41619445F998b2680D35" },
-  { name: idleUSDTSafe, address: "0x28fAc5334C9f7262b3A3Fe707e250E01053e07b5" },
+  { name: idleDAIYield, address: "evm:1:0x3fe7940616e5bc47b0775a0dccf6237893353bb4" },
+  { name: idleRAIYield, address: "evm:1:0x5C960a3DCC01BE8a0f49c02A8ceBCAcf5D07fABe" },
+  { name: idleSUSDYield, address: "evm:1:0xF52CDcD458bf455aeD77751743180eC4A595Fd3F" },
+  { name: idleTUSDYield, address: "evm:1:0xc278041fDD8249FE4c1Aad1193876857EEa3D68c" },
+  { name: idleUSDCYield, address: "evm:1:0x5274891bEC421B39D23760c04A6755eCB444797C" },
+  { name: idleUSDTYield, address: "evm:1:0xF34842d05A1c888Ca02769A633DF37177415C2f8" },
+  { name: idleWBTCYield, address: "evm:1:0x8C81121B15197fA0eEaEE1DC75533419DcfD3151" },
+  { name: idleWETHYield, address: "evm:1:0xC8E6CA6E96a326dC448307A5fDE90a0b21fd7f80" },
+  { name: idleDAISafe, address: "evm:1:0xa14ea0e11121e6e951e87c66afe460a00bcd6a16" },
+  { name: idleUSDCSafe, address: "evm:1:0x3391bc034f2935eF0E1e41619445F998b2680D35" },
+  { name: idleUSDTSafe, address: "evm:1:0x28fAc5334C9f7262b3A3Fe707e250E01053e07b5" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 export const idleAddresses = [
@@ -55,15 +56,15 @@ export const idleAddresses = [
 ];
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const stkIDLEInterface = new Interface([
+const stkIDLEAbi = [
   "event ApplyOwnership(address admin)",
   "event CommitOwnership(address admin)",
   "event Deposit(address indexed provider, uint256 value, uint256 indexed locktime, int128 type, uint256 ts)",
   "event Supply(uint256 prevSupply, uint256 supply)",
   "event Withdraw(address indexed provider, uint256 value, uint256 ts)",
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -88,6 +89,7 @@ const idleToToken = (idleAsset: string): Asset | undefined => {
 export const idleParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
@@ -101,11 +103,11 @@ export const idleParser = (
     ////////////////////
     // Stake/Unstake
     if (govAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
       const name = addressBook.getName(address);
       if (name === stkIDLE) {
-        const event = parseEvent(stkIDLEInterface, txLog);
-        const account = `${stkIDLE}-${event.args.provider}`;
+        const event = parseEvent(stkIDLEAbi, txLog, evmMeta);
+        const account = getAppAccount(event.args.provider, stkIDLE);
 
         if (event.name === "Deposit") {
           const value = formatUnits(
@@ -147,7 +149,7 @@ export const idleParser = (
     ////////////////////
     // Deposit/Withdraw
     } else if (marketAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
       log.info(`Found interaction with Idle ${addressBook.getName(address)}`);
 
       const underlyingAsset = idleToToken(addressBook.getName(address));

@@ -1,10 +1,9 @@
-import { Interface } from "@ethersproject/abi";
-import { getAddress } from "@ethersproject/address";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
   Assets,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -12,10 +11,11 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  parseEvent,
-  rmDups,
+  dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const { ETH, WETH } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
@@ -25,20 +25,20 @@ const source = TransactionSources.Weth;
 /// Addresses
 
 export const wethAddresses = [
-  { name: WETH, address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
+  { name: WETH, address: "evm:1:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 const wethAddress = wethAddresses.find(e => e.name === WETH).address;
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const wethInterface = new Interface([
-  "event Approval(address indexed s/rc, address indexed guy, uint256 wad)",
+const wethAbi = [
+  "event Approval(address indexed src, address indexed guy, uint256 wad)",
   "event Deposit(address indexed dst, uint256 wad)",
   "event Transfer(address indexed src, address indexed dst, uint256 wad)",
   "event Withdrawal(address indexed src, uint256 wad)",
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -46,17 +46,18 @@ const wethInterface = new Interface([
 export const wethParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, isSelf } = addressBook;
 
   for (const txLog of evmTx.logs) {
-    const address = getAddress(txLog.address);
+    const address = txLog.address;
     if (address === wethAddress) {
       const asset = WETH;
-      const event = parseEvent(wethInterface, txLog);
+      const event = parseEvent(wethAbi, txLog, evmMeta);
       if (!event.name) continue;
       const amount = formatUnits(event.args.wad, getDecimals(address));
       const index = txLog.index || 1;
@@ -68,7 +69,7 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${source} ${event.name} of amount ${amount}`);
         }
-        tx.sources = rmDups([source, ...tx.sources]);
+        tx.sources = dedup([source, ...tx.sources]);
         tx.transfers.push({
           asset,
           category: SwapIn,
@@ -77,23 +78,23 @@ export const wethParser = (
           quantity: amount,
           to: event.args.dst,
         });
-        const swapOut = tx.transfers.findIndex(t =>
+        const swapOut = tx.transfers.find(t =>
           t.asset === ETH && t.quantity === amount
           && isSelf(t.from) && t.to === address
         );
-        if (swapOut >= 0) {
-          tx.transfers[swapOut].category = SwapOut;
-          tx.transfers[swapOut].index = index - 0.1;
+        if (swapOut) {
+          swapOut.category = SwapOut;
+          swapOut.index = index - 0.1;
           if (evmTx.to === wethAddress) {
             tx.method = "Trade";
           }
           // If there's a same-value eth transfer to the swap recipient, index it before
-          const transfer = tx.transfers.findIndex(t =>
+          const transfer = tx.transfers.find(t =>
             t.asset === ETH && t.quantity === amount
-            && t.to === tx.transfers[swapOut].from
+            && t.to === swapOut.from
           );
-          if (transfer >= 0) {
-            tx.transfers[transfer].index = index - 0.2;
+          if (transfer) {
+            transfer.index = index - 0.2;
           }
         } else {
           log.warn(`Couldn't find an eth call associated w deposit of ${amount} WETH`);
@@ -106,7 +107,7 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${source} ${event.name} of amount ${amount}`);
         }
-        tx.sources = rmDups([source, ...tx.sources]);
+        tx.sources = dedup([source, ...tx.sources]);
         tx.transfers.push({
           asset,
           category: SwapOut,
@@ -115,23 +116,23 @@ export const wethParser = (
           quantity: amount,
           to: address,
         });
-        const swapIn = tx.transfers.findIndex(t =>
+        const swapIn = tx.transfers.find(t =>
           t.asset === ETH && t.quantity === amount
           && isSelf(t.to) && t.from === address
         );
-        if (swapIn >= 0) {
-          tx.transfers[swapIn].category = SwapIn;
-          tx.transfers[swapIn].index = index + 0.1;
+        if (swapIn) {
+          swapIn.category = SwapIn;
+          swapIn.index = index + 0.1;
           if (evmTx.to === wethAddress) {
             tx.method = "Trade";
           }
           // If there's a same-value eth transfer from the swap recipient, index it after
-          const transfer = tx.transfers.findIndex(t =>
+          const transfer = tx.transfers.find(t =>
             t.asset === ETH && t.quantity === amount
-            && t.from === tx.transfers[swapIn].to
+            && t.from === swapIn.to
           );
-          if (transfer >= 0) {
-            tx.transfers[transfer].index = index + 0.2;
+          if (transfer) {
+            transfer.index = index + 0.2;
           }
         } else {
           log.warn(`Couldn't find an eth call associated w withdrawal of ${amount} WETH`);

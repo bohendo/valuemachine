@@ -1,10 +1,10 @@
-import { Interface } from "@ethersproject/abi";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
   Assets,
   Asset,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -14,11 +14,12 @@ import {
 } from "@valuemachine/types";
 import {
   add,
-  parseEvent,
-  rmDups,
+  dedup,
   setAddressCategory,
   valuesAreClose,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const { ETH, WETH } = Assets;
 const { Income, Expense, SwapIn, SwapOut } = TransferCategories;
@@ -28,14 +29,14 @@ const source = TransactionSources.Oasis;
 /// Addresses
 
 const proxyAddresses = [
-  { name: "oasis-proxy", address: "0x793ebbe21607e4f04788f89c7a9b97320773ec59" },
+  { name: "oasis-proxy", address: "evm:1:0x793ebbe21607e4f04788f89c7a9b97320773ec59" },
 ].map(setAddressCategory(AddressCategories.Proxy));
 
 const machineAddresses = [
-  { name: "oasis-v1", address: "0x14fbca95be7e99c15cc2996c6c9d841e54b79425" },
-  { name: "oasis-v2", address: "0xb7ac09c2c0217b07d7c103029b4918a2c401eecb" },
-  { name: "eth2dai", address: "0x39755357759ce0d7f32dc8dc45414cca409ae24e" },
-  { name: "OasisDex", address: "0x794e6e91555438afc3ccf1c5076a74f42133d08d" },
+  { name: "oasis-v1", address: "evm:1:0x14fbca95be7e99c15cc2996c6c9d841e54b79425" },
+  { name: "oasis-v2", address: "evm:1:0xb7ac09c2c0217b07d7c103029b4918a2c401eecb" },
+  { name: "eth2dai", address: "evm:1:0x39755357759ce0d7f32dc8dc45414cca409ae24e" },
+  { name: "OasisDex", address: "evm:1:0x794e6e91555438afc3ccf1c5076a74f42133d08d" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 export const oasisAddresses = [
@@ -44,9 +45,9 @@ export const oasisAddresses = [
 ];
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const oasisInterface = new Interface([
+const oasisAbi = [
   "event LogNote(bytes4 indexed sig, address indexed guy, bytes32 indexed foo, bytes32 indexed bar, uint256 wad, bytes fax) anonymous",
   "event LogItemUpdate(uint256 id)",
   "event LogTrade(uint256 pay_amt, address indexed pay_gem, uint256 buy_amt, address indexed buy_gem)",
@@ -63,7 +64,7 @@ const oasisInterface = new Interface([
   "event LogRemTokenPairWhitelist(address baseToken, address quoteToken)",
   "event LogInsert(address keeper, uint256 id)",
   "event LogDelete(address keeper, uint256 id)"
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -71,10 +72,11 @@ const oasisInterface = new Interface([
 export const oasisParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isCategory, isSelf } = addressBook;
 
   const isSelfy = (address: string): boolean =>
@@ -96,8 +98,8 @@ export const oasisParser = (
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (machineAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
-      const event = parseEvent(oasisInterface, txLog);
+      tx.sources = dedup([source, ...tx.sources]);
+      const event = parseEvent(oasisAbi, txLog, evmMeta);
 
       if (event.name === "LogTake") {
         log.info(`Parsing ${source} ${event.name} event`);
@@ -161,14 +163,12 @@ export const oasisParser = (
   const swapIn = tx.transfers.find(findSwap(inTotal, inAsset));
   if (swapIn) {
     swapIn.category = SwapIn;
-    inAsset = swapIn.asset;
   } else {
     log.debug(`Can't find swap in transfer for ${inTotal} ${inAsset}`);
   }
   const swapOut = tx.transfers.find(findSwap(outTotal, outAsset));
   if (swapOut) {
     swapOut.category = SwapOut;
-    outAsset = swapOut.asset;
   } else {
     log.debug(`Can't find swap out transfer for ${outTotal} ${outAsset}`);
   }

@@ -32,14 +32,6 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const log = (logger || getLogger()).child({ module: "AddressBook" });
 
   ////////////////////////////////////////
-  // Helpers
-
-  const getEntry = (address: Address): AddressEntry | undefined => {
-    const target = fmtAddress(address);
-    return addressBook.find(row => row.address === target);
-  };
-
-  ////////////////////////////////////////
   // Init Code
 
   // Merge hardcoded public addresses with those supplied by the user
@@ -62,6 +54,19 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     addresses.push(row.address);
   });
   addresses = addresses.sort();
+
+  ////////////////////////////////////////
+  // Helpers
+
+  const isSameAddress = (a1: Address, a2: Address): boolean =>
+    a1.includes(":") && a2.includes(":")
+      ? a1 === a2
+      : a1.split(":").pop() === a2.split(":").pop();
+
+  const getEntry = (address: Address): AddressEntry | undefined => {
+    if (!address) return undefined;
+    return addressBook.find(row => isSameAddress(row.address, fmtAddress(address)));
+  };
 
   ////////////////////////////////////////
   // Exports
@@ -95,16 +100,17 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   };
 
   const getGuard = (account: Account): Guard => {
-    if (!account) return Guards.None;
-    const guard = getEntry(account)?.guard;
+    const address = account.includes(":") ? account.split(":").pop() : account;
+    if (!address) return Guards.None;
+    const guard = getEntry(address)?.guard;
     if (guard) return guard;
-    if (!account.includes("-")) {
-      return isEthAddress(account) ? Guards.ETH : Guards.None;
+    if (!address.includes("-")) {
+      return isEthAddress(address) ? Guards.Ethereum : Guards.None;
     }
-    const prefix = account.split("-")[0];
+    const prefix = address.split("-")[0];
     if (!prefix) return Guards.None;
     if (Object.keys(EvmSources).includes(prefix)) {
-      return Guards.ETH;
+      return Guards.Ethereum;
     }
     return guards[prefix] || prefix;
   };

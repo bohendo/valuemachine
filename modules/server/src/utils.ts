@@ -14,7 +14,12 @@ export const STATUS_YOUR_BAD = 400;
 export const STATUS_MY_BAD = 500;
 
 export const store = getFileStore("/data", fs);
-export const ethData = getEthereumData({ logger: log, store, etherscanKey: env.etherscanKey });
+export const ethData = getEthereumData({
+  covalentKey: env.covalentKey,
+  etherscanKey: env.etherscanKey,
+  logger: log,
+  store,
+});
 
 export const getLogAndSend = (res) => (message, code = STATUS_SUCCESS): void => {
   if (code === STATUS_SUCCESS) {

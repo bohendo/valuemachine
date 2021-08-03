@@ -34,7 +34,6 @@ describe(source, () => {
     expect(swapIn.quantity).to.equal(swapOut.quantity);
   });
 
-  // eg 0x6bd79c3ef5947fe0e5f89f4060eca295277b949dcbd849f69533ffd757ac1bcd
   it("should parse a weth withdrawal", async () => {
     const tx = await parseEthTx({
       hash: "0xe02431babbcfc97367fd652176bd3af33c3626a9c40427f80ea31025bef43d36",

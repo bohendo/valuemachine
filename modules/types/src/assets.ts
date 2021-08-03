@@ -1,16 +1,27 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { PhysicalGuards, DigitalGuards } from "./guards";
-
-// All physical security providers have an associated fiat currency
-export const FiatCurrencies = { ...PhysicalGuards } as const;
-export const FiatCurrency = Type.Enum(FiatCurrencies);
-export type FiatCurrency = Static<typeof FiatCurrency>;
-
-// All digital security providers have an associated native cryptocurrency
-export const Cryptocurrencies = { ...DigitalGuards } as const;
+// Native currency of each standalone blockchain
+export const Cryptocurrencies = {
+  BCH: "BCH",
+  BTC: "BTC",
+  ETC: "ETC",
+  ETH: "ETH",
+  LTC: "LTC",
+  MATIC: "MATIC",
+} as const;
 export const Cryptocurrency = Type.Enum(Cryptocurrencies);
 export type Cryptocurrency = Static<typeof Cryptocurrency>;
+
+// Traditional central-bank controlled currencies
+export const FiatCurrencies = {
+  CZK: "CZK",
+  EUR: "EUR",
+  GBP: "GBP",
+  INR: "INR",
+  USD: "USD",
+} as const;
+export const FiatCurrency = Type.Enum(FiatCurrencies);
+export type FiatCurrency = Static<typeof FiatCurrency>;
 
 export const EthereumAssets = {
   [Cryptocurrencies.ETH]: Cryptocurrencies.ETH,

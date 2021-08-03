@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -6,6 +5,7 @@ import {
   AddressCategories,
   Assets,
   Asset,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -16,12 +16,13 @@ import {
 import {
   div,
   gt,
-  parseEvent,
-  rmDups,
+  dedup,
   setAddressCategory,
   sub,
   valuesAreClose,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.Compound;
 const {
@@ -36,28 +37,28 @@ const comptroller = "comptroller";
 const compoundV1 = "compound-v1";
 
 const machineryAddresses = [
-  { name: compoundV1, address: "0x3fda67f7583380e67ef93072294a7fac882fd7e7" },
-  { name: "maximillion", address: "0xf859a1ad94bcf445a406b892ef0d3082f4174088" },
-  { name: comptroller, address: "0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b" },
+  { name: compoundV1, address: "evm:1:0x3fda67f7583380e67ef93072294a7fac882fd7e7" },
+  { name: "maximillion", address: "evm:1:0xf859a1ad94bcf445a406b892ef0d3082f4174088" },
+  { name: comptroller, address: "evm:1:0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const cTokenAddresses = [
-  { name: cBAT, address: "0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e" },
-  { name: cCOMP, address: "0x70e36f6bf80a52b3b46b3af8e106cc0ed743e8e4" },
-  { name: cDAI, address: "0x5d3a536e4d6dbd6114cc1ead35777bab948e3643" },
-  { name: cETH, address: "0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5" },
-  { name: cREP, address: "0x158079ee67fce2f58472a96584a73c7ab9ac95c1" },
-  { name: cSAI, address: "0xf5dce57282a584d2746faf1593d3121fcac444dc" },
-  { name: cUNI, address: "0x35a18000230da775cac24873d00ff85bccded550" },
-  { name: cUSDC, address: "0x39aa39c021dfbae8fac545936693ac917d5e7563" },
-  { name: cUSDT, address: "0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9" },
-  { name: cWBTC, address: "0xc11b1268c1a384e55c48c2391d8d480264a3a7f4" },
-  { name: cWBTCv2, address: "0xccf4429db6322d5c611ee964527d42e5d685dd6a" },
-  { name: cZRX, address: "0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407" },
+  { name: cBAT, address: "evm:1:0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e" },
+  { name: cCOMP, address: "evm:1:0x70e36f6bf80a52b3b46b3af8e106cc0ed743e8e4" },
+  { name: cDAI, address: "evm:1:0x5d3a536e4d6dbd6114cc1ead35777bab948e3643" },
+  { name: cETH, address: "evm:1:0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5" },
+  { name: cREP, address: "evm:1:0x158079ee67fce2f58472a96584a73c7ab9ac95c1" },
+  { name: cSAI, address: "evm:1:0xf5dce57282a584d2746faf1593d3121fcac444dc" },
+  { name: cUNI, address: "evm:1:0x35a18000230da775cac24873d00ff85bccded550" },
+  { name: cUSDC, address: "evm:1:0x39aa39c021dfbae8fac545936693ac917d5e7563" },
+  { name: cUSDT, address: "evm:1:0xf650c3d88d12db855b8bf7d11be6c55a4e07dcc9" },
+  { name: cWBTC, address: "evm:1:0xc11b1268c1a384e55c48c2391d8d480264a3a7f4" },
+  { name: cWBTCv2, address: "evm:1:0xccf4429db6322d5c611ee964527d42e5d685dd6a" },
+  { name: cZRX, address: "evm:1:0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 const govTokenAddresses = [
-  { name: COMP, address: "0xc00e94cb662c3520282e6f5717214004a7f26888" },
+  { name: COMP, address: "evm:1:0xc00e94cb662c3520282e6f5717214004a7f26888" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 export const compoundAddresses = [
@@ -71,17 +72,17 @@ const compoundV1Address = compoundAddresses.find(e => e.name === compoundV1).add
 const compAddress = compoundAddresses.find(e => e.name === COMP).address;
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const compoundV1Interface = new Interface([
+const compoundV1Abi = [
   "event BorrowRepaid(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
   "event BorrowTaken(address account, address asset, uint256 amount, uint256 startingBalance, uint256 borrowAmountWithFee, uint256 newBalance)",
   "event EquityWithdrawn(address asset, uint256 equityAvailableBefore, uint256 amount, address owner)",
   "event SupplyReceived(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
   "event SupplyWithdrawn(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
-]);
+];
 
-const comptrollerInterface = new Interface([
+const comptrollerAbi = [
   "event ActionPaused(address cToken, string action, bool pauseState)",
   "event ActionPaused(string action, bool pauseState)",
   "event CompGranted(address recipient, uint256 amount)",
@@ -100,9 +101,9 @@ const comptrollerInterface = new Interface([
   "event NewLiquidationIncentive(uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa)",
   "event NewPauseGuardian(address oldPauseGuardian, address newPauseGuardian)",
   "event NewPriceOracle(address oldPriceOracle, address newPriceOracle)",
-]);
+];
 
-const cTokenInterface = new Interface([
+const cTokenAbi = [
   "event AccrueInterest(uint256 cashPrior, uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows)",
   "event AccrueInterest(uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows)",
   "event Approval(address indexed owner, address indexed spender, uint256 amount)",
@@ -113,7 +114,7 @@ const cTokenInterface = new Interface([
   "event ReservesAdded(address benefactor, uint256 addAmount, uint256 newTotalReserves)",
   "event ReservesReduced(address admin, uint256 reduceAmount, uint256 newTotalReserves)",
   "event Transfer(address indexed from, address indexed to, uint256 amount)",
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -125,10 +126,11 @@ const associatedTransfer = (asset: string, quantity: string) =>
 export const compoundParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf } = addressBook;
 
   // TODO: how could we not hardcode these again & also not introduce cyclic dependencies?
@@ -151,20 +153,21 @@ export const compoundParser = (
   };
 
   if (compoundAddresses.some(e => e.address === evmTx.to)) {
-    tx.sources = rmDups([source, ...tx.sources]);
+    tx.sources = dedup([source, ...tx.sources]);
   }
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
+    const contract = txLog.address;
     if (compoundAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
     }
 
     ////////////////////////////////////////
     // Compound V1
     if (address === compoundV1Address) {
       const subsrc = `${source}V1`;
-      const event = parseEvent(compoundV1Interface, txLog);
+      const event = parseEvent(compoundV1Abi, txLog, evmMeta);
       log.info(`Found ${subsrc} ${event.name} event`);
       const amount = formatUnits(event.args.amount, getDecimals(event.args.asset));
       const asset = getName(event.args.asset) as Asset;
@@ -183,7 +186,7 @@ export const compoundParser = (
             tx.transfers.push({
               asset,
               category: Income,
-              from: address,
+              from: contract,
               index: deposit.index - 1,
               quantity: interest,
               to: account
@@ -211,7 +214,7 @@ export const compoundParser = (
             tx.transfers.push({
               asset,
               category: Income,
-              from: address,
+              from: contract,
               index: withdraw.index - 1,
               quantity: interest,
               to: account
@@ -251,7 +254,7 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V2: Comptroller
     } else if (comptrollerAddress === address) {
-      const event = parseEvent(comptrollerInterface, txLog);
+      const event = parseEvent(comptrollerAbi, txLog, evmMeta);
       if (event.name === "MarketEntered") {
         tx.method = `${getName(event.args.cToken)} market entry`;
           
@@ -260,7 +263,7 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V2: COMP gov token
     } else if (compAddress === address) {
-      const event = parseEvent(cTokenInterface, txLog);
+      const event = parseEvent(cTokenAbi, txLog, evmMeta);
       if (event.name === "Transfer") {
         if (isSelf(event.args.to) && event.args.from === comptrollerAddress) {
           const amount = formatUnits(
@@ -280,7 +283,7 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V2: cTokens
     } else if (cTokenAddresses.some(a => address === a.address)) {
-      const event = parseEvent(cTokenInterface, txLog);
+      const event = parseEvent(cTokenAbi, txLog, evmMeta);
       if (!event.name) continue;
       const cAsset = getName(address);
       const asset = cAsset.replace(/^c/, "");
@@ -300,9 +303,9 @@ export const compoundParser = (
           log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${cAsset}`);
         } else {
           swapOut.category = SwapOut;
-          swapOut.to = address;
+          swapOut.to = contract;
           swapIn.category = SwapIn;
-          swapIn.from = address;
+          swapIn.from = contract;
           tx.method = "Deposit";
         }
 
@@ -319,9 +322,9 @@ export const compoundParser = (
           log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${asset}`);
         } else {
           swapOut.category = SwapOut;
-          swapOut.to = address;
+          swapOut.to = contract;
           swapIn.category = SwapIn;
-          swapIn.from = address;
+          swapIn.from = contract;
           tx.method = "Withdraw";
         }
 
@@ -332,7 +335,7 @@ export const compoundParser = (
         const borrow = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = address; // should this be a non-address account?
+          borrow.from = contract; // should this be a non-address account?
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
@@ -345,7 +348,7 @@ export const compoundParser = (
         const repay = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (repay) {
           repay.category = Repay;
-          repay.to = address; // should this be a non-address account?
+          repay.to = contract; // should this be a non-address account?
           tx.method = "Repayment";
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);

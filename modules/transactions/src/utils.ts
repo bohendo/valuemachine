@@ -1,3 +1,4 @@
+import { isHexString, hexDataLength } from "@ethersproject/bytes";
 import {
   AddressBook,
   Transaction,
@@ -8,3 +9,5 @@ export const describeTransaction = (addressBook: AddressBook, tx: Transaction): 
     addressBook.isSelf(tx.transfers[0].to) ? tx.transfers[0].to : tx.transfers[0].from
   )}`;
 };
+
+export const isHash = (str: string): boolean => isHexString(str) && hexDataLength(str) === 32;

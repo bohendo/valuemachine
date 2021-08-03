@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
-import { EvmTransaction } from "./evmData";
+import { EvmMetadata, EvmTransaction } from "./evmData";
 import { Logger } from "./logger";
 import { DigitalGuards, Guards } from "./guards";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
@@ -22,10 +22,10 @@ export type CsvSource = Static<typeof CsvSource>;
 
 // Set default guards for csv sources
 export const guards = {
-  [CsvSources.Coinbase]: Guards.USD,
-  [CsvSources.DigitalOcean]: Guards.USD,
-  [CsvSources.Wyre]: Guards.USD,
-  [CsvSources.Wazirx]: Guards.INR,
+  [CsvSources.Coinbase]: Guards.USA,
+  [CsvSources.DigitalOcean]: Guards.USA,
+  [CsvSources.Wyre]: Guards.USA,
+  [CsvSources.Wazirx]: Guards.IND,
 };
 
 export const ChainSources = {
@@ -96,6 +96,7 @@ export const Transaction = Type.Object({
   hash: Type.Optional(Bytes32), // convert to uuid
   index: Type.Optional(Type.Number()),
   sources: Type.Array(TransactionSource),
+  // guards: Type.Array(TransactionSource),
   transfers: Type.Array(Transfer),
 });
 export type Transaction = Static<typeof Transaction>;
@@ -114,7 +115,8 @@ export type CsvParser = (
 
 export type EvmParser = (
   tx: Transaction,
-  ethTx: EvmTransaction,
+  evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ) => Transaction;

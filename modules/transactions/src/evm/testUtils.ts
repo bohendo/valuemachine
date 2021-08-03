@@ -1,17 +1,15 @@
 import fs from "fs";
 import path from "path";
 
-import { AddressZero } from "@ethersproject/constants";
 import {
   Address,
   AddressBook,
   AddressCategories,
   Bytes32,
-  EvmTransfer,
   Logger,
   Transaction,
 } from "@valuemachine/types";
-import { getEmptyEvmData, getFileStore } from "@valuemachine/utils";
+import { getFileStore } from "@valuemachine/utils";
 
 import { getAddressBook } from "../addressBook";
 import { env, testLogger } from "../testUtils";
@@ -21,40 +19,32 @@ import { getEthereumData } from "./ethereum";
 
 export * from "../testUtils";
 
-export const getTestAddressBook = (selfAddress: Address): AddressBook => 
+export const getTestAddressBook = (...selfAddresses: Address[]): AddressBook => 
   getAddressBook({
-    json: [{ address: selfAddress, name: "test-self", category: AddressCategories.Self }],
+    json: selfAddresses.map((address, i) => ({
+      address,
+      name: `test-self-${i}`,
+      category: AddressCategories.Self,
+    })),
     logger: testLogger,
   });
 
 export const parseEthTx = async ({
   hash,
   selfAddress,
-  calls,
   logger,
   storePath,
 }: {
   hash: Bytes32;
   selfAddress: Address;
-  calls?: EvmTransfer[];
   logger?: Logger;
   storePath?: string;
 }): Promise<Transaction> => {
   const addressBook = getTestAddressBook(selfAddress);
   const testStore = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
   const ethData = getEthereumData({
-    json: {
-      ...getEmptyEvmData(),
-      calls: !calls ? [] : calls.map(call => ({
-        block: 1,
-        from: AddressZero,
-        timestamp: "2000-01-01T01:00:00.000Z",
-        to: AddressZero,
-        value: "0.1",
-        ...call,
-        hash
-      })),
-    },
+    covalentKey: env.covalentKey,
+    etherscanKey: env.etherscanKey,
     logger,
     store: testStore,
   });
@@ -77,6 +67,7 @@ export const parsePolygonTx = async ({
   const testStore = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
   const polygonData = getPolygonData({
     covalentKey: env.covalentKey,
+    etherscanKey: env.etherscanKey,
     logger,
     store: testStore,
   });

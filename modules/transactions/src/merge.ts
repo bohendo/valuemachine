@@ -1,8 +1,8 @@
 import {
-  Assets,
-  CsvSources,
-  Logger,
   ChainSources,
+  CsvSources,
+  Guards,
+  Logger,
   TimestampString,
   Transaction,
   Transfer,
@@ -12,10 +12,11 @@ import {
   chrono,
   div,
   getLogger,
-  isHash,
-  rmDups,
+  dedup,
   valuesAreClose,
 } from "@valuemachine/utils";
+
+import { isHash } from "./utils";
 
 const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 
@@ -50,7 +51,7 @@ export const mergeTransaction = (
   ////////////////////////////////////////
   // Handle new ethereum transactions
   if (
-    newTx.sources.includes(ChainSources.ETH)
+    newTx.sources.includes(ChainSources.Ethereum)
     && isHash(newTx.hash)
   ) {
     log = (logger || getLogger()).child({ module: `MergeEthTx` });
@@ -67,7 +68,7 @@ export const mergeTransaction = (
     // Mergable eth txns can only contain one notable transfer
     const transfers = newTx.transfers.filter(transfer =>
       ([Income, Expense] as string[]).includes(transfer.category)
-      && transfer.to !== Assets.ETH
+      && transfer.to !== Guards.Ethereum
     );
     if (transfers.length !== 1) {
       transactions.push(newTx);
@@ -112,7 +113,7 @@ export const mergeTransaction = (
       // use csv date so we can detect csv dups more easily later
       date: csvTx.date,
       // merge sources
-      sources: rmDups([...csvTx.sources, ...newTx.sources]),
+      sources: dedup([...csvTx.sources, ...newTx.sources]),
     };
     ethTransfer.category = csvTransfer.category;
     if (ethTransfer.category === Deposit) {
@@ -171,7 +172,7 @@ export const mergeTransaction = (
 
     const mergeCandidateIndex = transactions.findIndex(tx =>
       // the candidate only has ethereum sources
-      tx.sources.includes(ChainSources.ETH)
+      tx.sources.includes(ChainSources.Ethereum)
       // eth tx & new csv tx have timestamps that are close each other
       && datesAreClose(tx.date, newTx.date)
       // the candidate has exactly 1 mergable transfer
@@ -193,7 +194,7 @@ export const mergeTransaction = (
       // use csv date so we can detect csv dups more easily later
       date: newTx.date,
       // merge sources
-      sources: rmDups([...ethTx.sources, ...newTx.sources]),
+      sources: dedup([...ethTx.sources, ...newTx.sources]),
     };
     ethTransfer.category = extTransfer.category;
     if (ethTransfer.category === Deposit) {

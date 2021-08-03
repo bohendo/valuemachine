@@ -107,11 +107,11 @@ run-example: package
 
 test-all: package
 	bash ops/test-unit.sh utils test
-	sleep 1
+	@sleep 1
 	bash ops/test-unit.sh transactions test
-	sleep 1
+	@sleep 1
 	bash ops/test-unit.sh core test
-	sleep 1
+	@sleep 1
 	bash ops/test-unit.sh package test
 
 ########################################

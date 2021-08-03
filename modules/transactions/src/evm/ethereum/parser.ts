@@ -1,9 +1,8 @@
 import {
   AddressBook,
-  Assets,
   EvmParser,
+  EvmMetadata,
   EvmTransaction,
-  EvmTransfer,
   Logger,
   Transaction,
 } from "@valuemachine/types";
@@ -29,22 +28,20 @@ import { parseEvmTx } from "../parser";
 
 export const parseEthTx = (
   ethTx: EvmTransaction,
-  ethTransfers: EvmTransfer[],
+  ethMetadata: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
   extraParsers?: EvmParser[],
 ): Transaction =>
   parseEvmTx(
     ethTx,
-    ethTransfers,
+    ethMetadata,
     addressBook,
     logger,
-    Assets.ETH,
     [ // Order matters! Complex parsers usually depend on simple ones so put ERC20 & weth first
       erc20Parser,
       wethParser,
       oasisParser,
-      polygonParser,
       quickswapParser,
       makerParser,
       compoundParser,
@@ -55,6 +52,7 @@ export const parseEthTx = (
       idleParser,
       yearnParser,
       tornadoParser,
+      polygonParser,
       argentParser,
     ].concat(extraParsers || []),
   );

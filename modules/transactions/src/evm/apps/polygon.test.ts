@@ -11,7 +11,7 @@ import {
 
 const source = TransactionSources.Polygon;
 const logger = testLogger.child({ module: `Test${source}`,
-  // level: "debug", // Uncomment to enable verbose logging
+  // level: "debug",
 });
 
 describe("Polygon Bridge", () => {

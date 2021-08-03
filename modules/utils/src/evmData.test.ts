@@ -10,25 +10,12 @@ const validAddressHistory = {
   },
 };
 
-const validEvmTransfer = {
-  hash: HashZero,
-  block: 0,
-  from: AddressZero,
-  to: AddressZero,
-  timestamp: new Date(0).toISOString(),
-  value: "0",
-};
-
 const validEthTx = {
   hash: HashZero,
-  block: 0,
-  data: "0x",
   from: AddressZero,
   to: AddressZero,
-  gasLimit: "0x",
   gasPrice: "0x",
   gasUsed: "0x",
-  index: 0,
   logs: [{
     address: AddressZero,
     data: HashZero,
@@ -37,13 +24,19 @@ const validEthTx = {
   }],
   nonce: 0,
   timestamp: new Date(0).toISOString(),
+  transfers: [{
+    from: AddressZero,
+    to: AddressZero,
+    value: "0",
+  }],
   value: "0",
 };
 
 const validEvmData = {
   addresses: validAddressHistory,
-  transactions: [validEthTx],
-  calls: [validEvmTransfer],
+  transactions: {
+    [validEthTx.hash]: validEthTx,
+  },
 };
 
 describe("EvmData", () => {
@@ -55,14 +48,7 @@ describe("EvmData", () => {
   it("should return an error if an eth tx is invalid", async () => {
     expect(getEvmDataError({
       ...validEvmData,
-      transactions: [{ ...validEthTx, block: "0" }],
-    })).to.be.a("string");
-  });
-
-  it("should return an error if an eth call is invalid", async () => {
-    expect(getEvmDataError({
-      ...validEvmData,
-      calls: [{ ...validEvmTransfer, hash: AddressZero }],
+      transactions: { [validEthTx.hash]: { ...validEthTx, gasPrice: 0 } },
     })).to.be.a("string");
   });
 

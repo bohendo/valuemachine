@@ -7,27 +7,28 @@ import {
   AddressCategories,
   Assets,
   Asset,
+  EvmMetadata,
   EvmTransaction,
   EvmTransactionLog,
+  EvmNames,
   Logger,
   Transaction,
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  abrv,
   abs,
-  diffAsc,
   div,
   eq,
   gt,
-  parseEvent,
-  rmDups,
+  dedup,
   round,
   setAddressCategory,
   toBN,
   valuesAreClose,
 } from "@valuemachine/utils";
+
+import { diffAsc, getAppAccount, parseEvent } from "../utils";
 
 const { DAI, ETH, MKR, PETH, SAI, WETH } = Assets;
 const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
@@ -45,35 +46,35 @@ const migration = "mcd-migration";
 const pit = "scd-gen-pit";
 
 const proxyAddresses = [
-  { name: "maker-proxy-registry", address: "0x4678f0a6958e4d2bc4f1baf7bc52e8f3564f3fe4" },
-  { name: "maker-proxy-factory", address: "0xa26e15c895efc0616177b7c1e7270a4c7d51c997" },
+  { name: "maker-proxy-registry", address: "evm:1:0x4678f0a6958e4d2bc4f1baf7bc52e8f3564f3fe4" },
+  { name: "maker-proxy-factory", address: "evm:1:0xa26e15c895efc0616177b7c1e7270a4c7d51c997" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const machineAddresses = [
   // Single-collateral DAI
-  { name: cage, address: "0x9fdc15106da755f9ffd5b0ba9854cfb89602e0fd" },
-  { name: pit, address: "0x69076e44a9c70a67d5b79d95795aba299083c275" },
-  { name: "scd-tap", address: "0xbda109309f9fafa6dd6a9cb9f1df4085b27ee8ef" },
-  { name: tub, address: "0x448a5065aebb8e423f0896e6c5d525c040f59af3" },
-  { name: "scd-vox", address: "0x9b0f70df76165442ca6092939132bbaea77f2d7a" },
+  { name: cage, address: "evm:1:0x9fdc15106da755f9ffd5b0ba9854cfb89602e0fd" },
+  { name: pit, address: "evm:1:0x69076e44a9c70a67d5b79d95795aba299083c275" },
+  { name: "scd-tap", address: "evm:1:0xbda109309f9fafa6dd6a9cb9f1df4085b27ee8ef" },
+  { name: tub, address: "evm:1:0x448a5065aebb8e423f0896e6c5d525c040f59af3" },
+  { name: "scd-vox", address: "evm:1:0x9b0f70df76165442ca6092939132bbaea77f2d7a" },
   // Multi-collateral DAI (deployed on Nov 18th 2019)
-  { name: "mcd-dai-join", address: "0x9759a6ac90977b93b58547b4a71c78317f391a28" },
-  { name: "mcd-gem-join", address: "0x2f0b23f53734252bda2277357e97e1517d6b042a" },
-  { name: migration, address: "0xc73e0383f3aff3215e6f04b0331d58cecf0ab849" },
-  { name: DSR, address: "0x197e90f9fad81970ba7976f33cbd77088e5d7cf7" }, // aka the Pot
-  { name: "mcd-sai-join", address: "0xad37fd42185ba63009177058208dd1be4b136e6b" },
-  { name: vat, address: "0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b" },
-  { name: "mcd-manager", address: "0x5ef30b9986345249bc32d8928b7ee64de9435e39" },
+  { name: "mcd-dai-join", address: "evm:1:0x9759a6ac90977b93b58547b4a71c78317f391a28" },
+  { name: "mcd-gem-join", address: "evm:1:0x2f0b23f53734252bda2277357e97e1517d6b042a" },
+  { name: migration, address: "evm:1:0xc73e0383f3aff3215e6f04b0331d58cecf0ab849" },
+  { name: DSR, address: "evm:1:0x197e90f9fad81970ba7976f33cbd77088e5d7cf7" }, // aka the Pot
+  { name: "mcd-sai-join", address: "evm:1:0xad37fd42185ba63009177058208dd1be4b136e6b" },
+  { name: vat, address: "evm:1:0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b" },
+  { name: "mcd-manager", address: "evm:1:0x5ef30b9986345249bc32d8928b7ee64de9435e39" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const tokenAddresses = [
-  { name: SAI, address: "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
-  { name: PETH, address: "0xf53ad2c6851052a81b42133467480961b2321c09" },
-  { name: DAI, address: "0x6b175474e89094c44da98b954eedeac495271d0f" },
+  { name: SAI, address: "evm:1:0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
+  { name: PETH, address: "evm:1:0xf53ad2c6851052a81b42133467480961b2321c09" },
+  { name: DAI, address: "evm:1:0x6b175474e89094c44da98b954eedeac495271d0f" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 const govTokenAddresses = [
-  { name: MKR, address: "0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2" },
+  { name: MKR, address: "evm:1:0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 export const makerAddresses = [
@@ -93,17 +94,17 @@ const migrationAddress = makerAddresses.find(e => e.name.endsWith(migration))?.a
 const scdPitAddress = makerAddresses.find(e => e.name.endsWith(pit))?.address;
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const tokenInterface = new Interface([
+const tokenAbi = [
   "event Approval(address indexed src, address indexed guy, uint256 wad)",
   "event Burn(address indexed guy, uint256 wad)",
   "event LogNote(bytes4 indexed sig, address indexed guy, bytes32 indexed foo, bytes32 indexed bar, uint256 wad, bytes fax) anonymous",
   "event Mint(address indexed guy, uint256 wad)",
   "event Transfer(address indexed src, address indexed dst, uint256 wad)"
-]);
+];
 
-const tubInterface = new Interface([
+const tubAbi = [
   "event LogNewCup(address indexed lad, bytes32 cup)",
   "event LogNote(bytes4 indexed sig, address indexed guy, bytes32 indexed foo, bytes32 indexed bar, uint256 wad, bytes fax) anonymous",
   "function join(uint256 wad)",
@@ -116,17 +117,17 @@ const tubInterface = new Interface([
   "function wipe(bytes32 cup, uint256 wad)",
   "function shut(bytes32 cup)",
   "function bite(bytes32 cup)",
-]);
+];
 
-const cageInterface = new Interface([
+const cageAbi = [
   "event FreeCash(address sender, uint256 amount)",
   "function freeCash(uint256 wad) returns (uint256 cashoutBalance)",
   "function sai() view returns (address)",
   "function tap() view returns (address)",
   "function weth() view returns (address)"
-]);
+];
 
-const vatInterface = new Interface([
+const vatAbi = [
   "event LogNote(bytes4 indexed sig, bytes32 indexed arg1, bytes32 indexed arg2, bytes32 indexed arg3, bytes data) anonymous",
   "function cage()",
   "function can(address, address) view returns (uint256)",
@@ -156,9 +157,9 @@ const vatInterface = new Interface([
   "function urns(bytes32, address) view returns (uint256 ink, uint256 art)",
   "function vice() view returns (uint256)",
   "function wards(address) view returns (uint256)"
-]);
+];
 
-const potInterface = new Interface([
+const potAbi = [
   "event LogNote(bytes4 indexed sig, address indexed usr, bytes32 indexed arg1, bytes32 indexed arg2, bytes data) anonymous",
   "function Pie() view returns (uint256)",
   "function cage()",
@@ -177,55 +178,60 @@ const potInterface = new Interface([
   "function vat() view returns (address)",
   "function vow() view returns (address)",
   "function wards(address) view returns (uint256)"
-]);
+];
 
-const proxyInterface = new Interface([
+const proxyAbi = [
   "event Created(address indexed sender, address indexed owner, address proxy, address cache)"
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
 
 const parseLogNote = (
-  iface: Interface,
+  abi: string[],
   ethLog: EvmTransactionLog,
-): { name: string; args: string[]; } => ({
-  name: Object.values(iface.functions).find(e =>
-    ethLog.topics[0].startsWith(iface.getSighash(e))
-  )?.name,
-  args: ethLog.data
-    .substring(2 + 64 + 64 + 8)
-    .match(/.{1,64}/g)
-    .filter(e => e !== "0".repeat(64 - 8))
-    .map(s => `0x${s}`)
-    .map(str => [HashZero, "0x"].includes(str)
-      ? "0x00"
-      : str.startsWith("0x000000000000000000000000")
-        ? `0x${str.substring(26)}`
-        : str
-    ),
-});
+): { name: string; args: string[]; } => {
+  const iface = new Interface(abi);
+  return {
+    name: Object.values(iface.functions).find(e =>
+      ethLog.topics[0].startsWith(iface.getSighash(e))
+    )?.name,
+    args: ethLog.data
+      .substring(2 + 64 + 64 + 8)
+      .match(/.{1,64}/g)
+      .filter(e => e !== "0".repeat(64 - 8))
+      .map(s => `0x${s}`)
+      .map(str => [HashZero, "0x"].includes(str)
+        ? "0x00"
+        : str.startsWith("0x000000000000000000000000")
+          ? `0x${str.substring(26)}`
+          : str
+      ),
+  };
+};
 
 export const makerParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const addressZero = `evm:${evmMeta.id}:${AddressZero}`; 
   const { getDecimals, getName, isSelf } = addressBook;
   // log.debug(tx, `Parsing in-progress tx`);
 
   const ethish = [WETH, ETH, PETH] as Asset[];
 
   if (machineAddresses.some(e => e.address === evmTx.to)) {
-    tx.sources = rmDups([source, ...tx.sources]);
+    tx.sources = dedup([source, ...tx.sources]);
   }
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
   if (evmTx.to === migrationAddress) {
-    tx.sources = rmDups([source, ...tx.sources]);
+    tx.sources = dedup([source, ...tx.sources]);
     const swapOut = tx.transfers.find(t => t.asset === SAI);
     const swapIn = tx.transfers.find(t => t.asset === DAI);
     if (swapOut) {
@@ -252,15 +258,15 @@ export const makerParser = (
     const address = txLog.address;
     const index = txLog.index || 1;
     if (machineAddresses.some(e => e.address === address)) {
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
     }
     if (tokenAddresses.some(e => e.address === address)) {
       const asset = getName(address) as Asset;
-      const event = parseEvent(tokenInterface, txLog);
+      const event = parseEvent(tokenAbi, txLog, evmMeta);
       if (!event.name) continue;
       const wad = formatUnits(event.args.wad, getDecimals(address));
       if (!isSelf(event.args.guy)) {
-        log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
+        log.debug(`Skipping ${asset} ${event.name} that doesn't involve us (${event.args.guy})`);
         continue;
       }
       if (event.name === "Mint") {
@@ -279,7 +285,7 @@ export const makerParser = (
           tx.transfers.push({
             asset,
             category: Borrow,
-            from: AddressZero, // placeholder, we'll set the real value while parsing Vat events
+            from: addressZero, // we'll set the real value while parsing Vat events
             index,
             quantity: wad,
             to: event.args.guy,
@@ -304,7 +310,7 @@ export const makerParser = (
             from: event.args.guy,
             index,
             quantity: wad,
-            to: AddressZero, // placeholder, we'll set the real value while parsing Vat events
+            to: addressZero, // we'll set the real value while parsing Vat events
           });
         }
       } else if (["Approval", "Transfer"].includes(event.name)) {
@@ -322,7 +328,7 @@ export const makerParser = (
     ////////////////////////////////////////
     // Proxy Managers
     if (proxyAddresses.some(e => address === e.address)) {
-      const event = parseEvent(proxyInterface, txLog);
+      const event = parseEvent(proxyAbi, txLog, evmMeta);
       if (event?.name === "Created") {
         tx.method = "Proxy Creation";
       }
@@ -330,7 +336,7 @@ export const makerParser = (
     ////////////////////////////////////////
     // MCD Vat aka Vault manager
     } else if (address === vatAddress) {
-      const logNote = parseLogNote(vatInterface, txLog);
+      const logNote = parseLogNote(vatAbi, txLog);
       if (!logNote.name) continue;
       log.debug(`Found Vat call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
         logNote.args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
@@ -345,7 +351,7 @@ export const makerParser = (
           log.warn(`Vat.${logNote.name}: Can't find a token address for ilk ${logNote.args[0]}`);
           continue;
         }
-        const vault = `${source}-${abrv(logNote.args[0])}`;
+        const vault = `${source}-Vault/${logNote.args[0]}`;
         const wad = formatUnits(
           toBN(logNote.args[2] || "0x00").fromTwos(256),
           getDecimals(assetAddress),
@@ -361,14 +367,12 @@ export const makerParser = (
         );
         if (transfer) {
           if (gt(wad, "0")) {
-            const account = `${vault}-${abrv(transfer.from)}`;
             transfer.category = Deposit;
-            transfer.to = account;
+            transfer.to = getAppAccount(transfer.from, vault);
             tx.method = "Deposit";
           } else {
-            const account = `${vault}-${abrv(transfer.to)}`;
             transfer.category = Withdraw;
-            transfer.from = account;
+            transfer.from = getAppAccount(transfer.to, vault);
             tx.method = "Withdraw";
           }
         } else {
@@ -377,7 +381,7 @@ export const makerParser = (
 
       // Borrow/Repay DAI
       } else if (logNote.name === "frob") {
-        const vault = `${source}-${abrv(logNote.args[0])}`;
+        const vault = `${source}-Vault/${logNote.args[0]}`;
         const dart = formatUnits(toBN(logNote.args[5] || "0x00").fromTwos(256));
         if (eq(dart, "0")) {
           log.debug(`Vat.${logNote.name}: Skipping zero-value change in ${vault} debt`);
@@ -391,11 +395,11 @@ export const makerParser = (
         if (transfer) {
           if (gt(dart, "0")) {
             transfer.category = Borrow;
-            transfer.from = `${vault}-${abrv(transfer.to)}`;
+            transfer.from = getAppAccount(transfer.to, vault);
             tx.method = "Borrow";
           } else {
             transfer.category = Repay;
-            transfer.to = `${vault}-${abrv(transfer.from)}`;
+            transfer.to = getAppAccount(transfer.from, vault);
             tx.method = "Repayment";
           }
         } else {
@@ -406,7 +410,7 @@ export const makerParser = (
     ////////////////////////////////////////
     // MCD Pot aka DSR
     } else if (address === dsrAddress) {
-      const logNote = parseLogNote(potInterface, txLog);
+      const logNote = parseLogNote(potAbi, txLog);
       if (!logNote.name) continue;
       log.debug(`Found Pot call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
         logNote.args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
@@ -420,9 +424,8 @@ export const makerParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (deposit) {
-          const account = `${source}-DSR-${abrv(deposit.from)}`;
           deposit.category = Deposit;
-          deposit.to = account;
+          deposit.to = getAppAccount(deposit.from, `${source}/DSR`);
           tx.method = "Deposit";
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI expense of about ${wad}`);
@@ -436,9 +439,8 @@ export const makerParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (withdraw) {
-          const account = `${source}-DSR-${abrv(withdraw.to)}`;
           withdraw.category = Withdraw;
-          withdraw.from = account;
+          withdraw.from = getAppAccount(withdraw.to, `${source}/DSR`);
           tx.method = "Withdraw";
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI income of about ${wad}`);
@@ -449,7 +451,7 @@ export const makerParser = (
     // SCD Cage
     // During global settlement, the cage is used to redeem no-longer-stable-coins for collateral
     } else if (address === cageAddress) {
-      const event = parseEvent(cageInterface, txLog);
+      const event = parseEvent(cageAbi, txLog, evmMeta);
       if (event?.name === "FreeCash") {
         const wad = formatUnits(event.args[1], 18);
         log.info(`Parsing SaiCage FreeCash event for ${wad} ETH`);
@@ -484,12 +486,12 @@ export const makerParser = (
     ////////////////////////////////////////
     // SCD Tub
     } else if (address === tubAddress) {
-      const event = parseEvent(tubInterface, txLog);
+      const event = parseEvent(tubAbi, txLog, evmMeta);
       if (event?.name === "LogNewCup") {
         tx.method = `Create CDP-${toBN(event.args.cup)}`;
         continue;
       }
-      const logNote = parseLogNote(tubInterface, txLog);
+      const logNote = parseLogNote(tubAbi, txLog);
       if (!logNote.name || logNote.name === "open") continue;
       log.debug(`Found Tub call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
         logNote.args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
@@ -548,17 +550,17 @@ export const makerParser = (
 
       // PETH -> CDP: Categorize PETH transfer as deposit
       } else if (logNote.name === "lock") {
-        const account = `${source}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${source}-CDP/${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
-          && t.to !== ETH
+          && !Object.keys(EvmNames).includes(t.to)
           && ([Expense, Deposit] as string[]).includes(t.category)
           && (tubAddress === t.to || isSelf(t.from))
         ).sort(diffAsc(wad))[0];
         if (transfer) {
           transfer.category = Deposit;
-          transfer.to = account;
+          transfer.to = getAppAccount(transfer.from, cdp);
           tx.method = "Deposit";
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a P/W/ETH transfer of about ${wad}`);
@@ -566,7 +568,7 @@ export const makerParser = (
 
       // PETH <- CDP: Categorize PETH transfer as withdraw
       } else if (logNote.name === "free") {
-        const account = `${source}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${source}-CDP/${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
@@ -586,7 +588,7 @@ export const makerParser = (
         const transfer = transfers[0];
         if (transfer) {
           transfer.category = Withdraw;
-          transfer.from = account;
+          transfer.from = getAppAccount(transfer.to, cdp);
           tx.method = "Withdraw";
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a PETH transfer of about ${wad}`);
@@ -594,7 +596,7 @@ export const makerParser = (
 
       // SAI <- CDP
       } else if (logNote.name === "draw") {
-        const account = `${source}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${source}-CDP/${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const borrow = tx.transfers.filter(t =>
           isSelf(t.to)
@@ -603,12 +605,12 @@ export const makerParser = (
         ).sort(diffAsc(wad))[0];
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = account;
+          borrow.from = getAppAccount(borrow.to, cdp);
           tx.method = "Borrow";
         } else if (!evmTx.logs.find(l =>
           l.index > index
           && l.address === saiAddress
-          && parseEvent(tokenInterface, l).name === "Mint"
+          && parseEvent(tokenAbi, l, evmMeta).name === "Mint"
         )) {
           // Only warn if there is NOT an upcoming SAI mint evet
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
@@ -616,19 +618,19 @@ export const makerParser = (
 
       // SAI -> CDP
       } else if (logNote.name === "wipe") {
-        const account = `${source}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${source}-CDP/${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const repay = tx.transfers.filter(t =>
           t.asset === SAI && ([Expense, Repay] as string[]).includes(t.category)
         ).sort(diffAsc(wad))[0];
         if (repay) {
           repay.category = Repay;
-          repay.to = account;
+          repay.to = getAppAccount(repay.from, cdp);
           tx.method = "Repayment";
         } else if (!evmTx.logs.find(l =>
           l.index > index
           && l.address === saiAddress
-          && parseEvent(tokenInterface, l).name === "Burn"
+          && parseEvent(tokenAbi, l, evmMeta).name === "Burn"
         )) {
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
         }

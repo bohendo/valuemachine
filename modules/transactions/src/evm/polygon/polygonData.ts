@@ -1,12 +1,15 @@
-import { getAddress, isAddress } from "@ethersproject/address";
+import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
 import { formatEther } from "@ethersproject/units";
 import { hexlify } from "@ethersproject/bytes";
 import {
   Address,
   AddressBook,
+  Assets,
   Bytes32,
   EvmData,
   EvmDataJson,
+  EvmMetadata,
+  EvmNames,
   Logger,
   Store,
   StoreKeys,
@@ -16,6 +19,7 @@ import {
 import {
   chrono,
   getEmptyEvmData,
+  getEvmDataError,
   getEvmTransactionError,
   getLogger,
 } from "@valuemachine/utils";
@@ -25,60 +29,46 @@ import { parsePolygonTx } from "./parser";
 
 export const getPolygonData = (params?: {
   covalentKey: string;
+  etherscanKey: string;
   json?: EvmDataJson;
   logger?: Logger,
   store?: Store,
 }): EvmData => {
   const { covalentKey, json: polygonDataJson, logger, store } = params || {};
-  const chainId = "137";
-
   const log = (logger || getLogger()).child?.({ module: "PolygonData" });
   const json = polygonDataJson || store?.load(StoreKeys.PolygonData) || getEmptyEvmData();
   const save = () => store
     ? store.save(StoreKeys.PolygonData, json)
     : log.warn(`No store provided, can't save polygon data`);
 
+  const error = getEvmDataError(json);
+  if (error) throw new Error(error);
+
   log.info(`Loaded polygon data containing ${
-    json.transactions.length
+    Object.keys(json.transactions).length
   } transactions from ${polygonDataJson ? "input" : store ? "store" : "default"}`);
+
+  const metadata = {
+    id: 137,
+    name: EvmNames.Polygon,
+    feeAsset: Assets.MATIC,
+  } as EvmMetadata;
 
   ////////////////////////////////////////
   // Internal Heleprs
 
-  /*
-  export const EvmTransactionLog = Type.Object({
-    address: Address,
-    data: HexString,
-    index: Type.Number(),
-    topics: Type.Array(Bytes32),
-  });
-  export const EvmTransaction = Type.Object({
-    block: Type.Number(),
-    data: HexString,
-    from: Address,
-    gasLimit: HexString,
-    gasPrice: HexString,
-    gasUsed: HexString,
-    hash: Bytes32,
-    index: Type.Number(),
-    logs: Type.Array(EvmTransactionLog),
-    nonce: Type.Number(),
-    status: Type.Optional(Type.Number()),
-    timestamp: TimestampString,
-    to: Type.Union([Address, Type.Null()]),
-    value: DecimalString,
-  });
-  */
+  // CAIP-10
+  const getAddress = (address: string): string => `evm:${metadata.id}:${getEvmAddress(address)}`;
 
   const formatCovalentTx = rawTx => ({
-    block: rawTx.block_height,
-    data: "0x", // not available?
+    // block: rawTx.block_height,
+    // data: "0x", // not available?
+    // gasLimit: hexlify(rawTx.gas_offered),
+    // index: rawTx.tx_offset,
     from: getAddress(rawTx.from_address),
-    gasLimit: hexlify(rawTx.gas_offered),
     gasPrice: hexlify(rawTx.gas_price),
     gasUsed: hexlify(rawTx.gas_spent),
     hash: rawTx.tx_hash,
-    index: rawTx.tx_offset,
     logs: rawTx.log_events.map(evt => ({
       address: getAddress(evt.sender_address),
       index: evt.log_offset,
@@ -88,6 +78,7 @@ export const getPolygonData = (params?: {
     nonce: 0, // not available?
     status: rawTx.successful ? 1 : 0,
     timestamp: rawTx.block_signed_at,
+    transfers: [], // not available, get from etherscan
     to: getAddress(rawTx.to_address),
     value: formatEther(rawTx.value),
   });
@@ -121,20 +112,23 @@ export const getPolygonData = (params?: {
   };
 
   const fetchTx = async (txHash: Bytes32): Promise<any> => {
-    const data = await queryCovalent(`${chainId}/transaction_v2/${txHash}`);
+    const data = await queryCovalent(`${metadata.id}/transaction_v2/${txHash}`);
     return data?.items?.[0];
   };
 
-  const syncAddress = async (address: Address): Promise<void> => {
+  const syncAddress = async (rawAddress: Address): Promise<void> => {
+    const address = getEvmAddress(
+      rawAddress.includes(":") ? rawAddress.split(":").pop() : rawAddress
+    );
     const yesterday = Date.now() - 1000 * 60 * 60 * 24;
     if (new Date(json.addresses[address]?.lastUpdated || 0).getTime() > yesterday) {
       log.info(`Info for address ${address} is up to date`);
       return;
     }
-    let data = await queryCovalent(`${chainId}/address/${address}/transactions_v2`);
+    let data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`);
     const items = data?.items;
     while (items && data.pagination.has_more) {
-      data = await queryCovalent(`${chainId}/address/${address}/transactions_v2`, {
+      data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`, {
         ["page-number"]: data.pagination.page_number + 1,
       });
       items.push(...data.items);
@@ -152,11 +146,14 @@ export const getPolygonData = (params?: {
       );
       const error = getEvmTransactionError(polygonTx);
       if (error) throw new Error(error);
-      json.transactions.push(polygonTx);
+      json.transactions[polygonTx.hash] = polygonTx;
       save();
     }
     return;
   };
+
+  const logProg = (list: any[], elem: any): string =>
+    `${list.indexOf(elem)+1}/${list.length}`;
 
   ////////////////////////////////////////
   // Exported Methods
@@ -166,7 +163,8 @@ export const getPolygonData = (params?: {
     addressBook: AddressBook,
   ): Transaction =>
     parsePolygonTx(
-      json.transactions.find(tx => tx.hash === hash),
+      json.transactions[hash],
+      metadata,
       addressBook,
       logger,
     );
@@ -177,7 +175,7 @@ export const getPolygonData = (params?: {
     if (!txHash) {
       throw new Error(`Cannot sync an invalid tx hash: ${txHash}`);
     }
-    const existing = json.transactions.find(existing => existing.hash === txHash);
+    const existing = json.transactions[txHash];
     if (!getEvmTransactionError(existing)) {
       return;
     }
@@ -186,20 +184,68 @@ export const getPolygonData = (params?: {
     const error = getEvmTransactionError(polygonTx);
     if (error) throw new Error(error);
     // log.debug(polygonTx, `Parsed raw polygon tx to a valid evm tx`);
-    json.transactions.push(polygonTx);
+    json.transactions[polygonTx.hash] = polygonTx;
     save();
     return;
   };
 
   const syncAddressBook = async (addressBook: AddressBook): Promise<void> => {
-    log.info(`addressBook has ${addressBook.json.length} entries`);
-    for (const entry of addressBook.json) {
-      const address = entry.address;
-      if (addressBook.isSelf(address) && isAddress(address)) {
-        await syncAddress(address);
+    const zeroDate = new Date(0).toISOString();
+    const selfAddresses = addressBook.json
+      .map(entry => entry.address)
+      .filter(address => addressBook.isSelf(address))
+      .map(address =>
+        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // CAIP-10 on this evm
+        : address.includes(":") ? "" // CAIP-10 address on different evm
+        : address // non-CAIP-10 address
+      )
+      .filter(address => isEvmAddress(address))
+      .map(address => getEvmAddress(address));
+    const addresses = selfAddresses.filter(address => {
+      if (
+        !json.addresses[address] ||
+        json.addresses[address].lastUpdated === zeroDate
+      ) {
+        return true;
+      }
+      const lastAction = json.addresses[address].history
+        .map(txHash => json.transactions[txHash].timestamp || new Date(0))
+        .sort((ts1, ts2) => new Date(ts1).getTime() - new Date(ts2).getTime())
+        .reverse()[0];
+      if (!lastAction) {
+        log.info(`No activity detected for address ${address}`);
+        return true;
+      }
+      const hour = 60 * 60 * 1000;
+      const month = 30 * 24 * hour;
+      const lastUpdated = json.addresses[address]?.lastUpdated || zeroDate;
+      log.info(`${address} last action was on ${lastAction}, last updated on ${lastUpdated}`);
+      // Don't sync any addresses w no recent activity if they have been synced before
+      if (lastUpdated && Date.now() - new Date(lastAction).getTime() > 12 * month) {
+        log.debug(`Skipping retired (${lastAction}) address ${address}`);
+        return false;
+      }
+      // Don't sync any active addresses if they've been synced recently
+      if (Date.now() - new Date(lastUpdated).getTime() < 18 * hour) {
+        log.debug(`Skipping active (${lastAction}) address ${address}`);
+        return false;
+      }
+      return true;
+    });
+    // Fetch tx history for addresses that need to be updated
+    log.info(`Fetching tx history for ${addresses.length} out-of-date addresses`);
+    for (const address of addresses) {
+      // Find the most recent tx timestamp that involved any interaction w this address
+      log.info(`Fetching history for address ${logProg(addresses, address)}: ${address}`);
+      await syncAddress(address);
+    }
+    log.info(`Fetching tx data for ${selfAddresses.length} addresses`);
+    for (const address of selfAddresses) {
+      log.debug(`Syncing transactions for address ${logProg(selfAddresses, address)}: ${address}`);
+      for (const hash of json.addresses[address] ? json.addresses[address].history : []) {
+        await syncTransaction(hash);
       }
     }
-    return;
   };
 
   const getTransactions = (
@@ -208,7 +254,8 @@ export const getPolygonData = (params?: {
     const selfAddresses = addressBook.json
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
-      .filter(address => isAddress(address));
+      .filter(address => isEvmAddress(address))
+      .map(address => getEvmAddress(address));
     const selfTransactionHashes = Array.from(new Set(
       selfAddresses.reduce((all, address) => {
         return all.concat(json.addresses[address]?.history || []);
@@ -216,7 +263,8 @@ export const getPolygonData = (params?: {
     ));
     log.info(`Parsing ${selfTransactionHashes.length} polygon transactions`);
     return selfTransactionHashes.map(hash => parsePolygonTx(
-      json.transactions.find(tx => tx.hash === hash),
+      json.transactions[hash],
+      metadata,
       addressBook,
       logger,
     )).sort(chrono);

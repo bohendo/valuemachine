@@ -117,7 +117,7 @@ describe(source, () => {
       hash: "0x292ec1392e758f33e77bd077334b413e5337f86698e99396befc123f8579f9fa",
       logger,
     });
-    expect(tx.sources).to.include(Guards.MATIC);
+    expect(tx.sources).to.include(Guards.Polygon);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);

@@ -1,4 +1,4 @@
-import { isAddress as isEthAddress, getAddress as getEthAddress } from "@ethersproject/address";
+import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
 import {
   AddressBookJson,
   AddressCategory,
@@ -32,13 +32,21 @@ export const getAddressEntryError = (addressEntry: AddressEntry): string | null 
 ////////////////////
 // Formatters
 
-export const fmtAddress = (address: string) =>
-  isEthAddress(address) ? getEthAddress(address) : address;
+export const fmtAddress = (address: string) => {
+  if (address.includes(":")) {
+    const parts = address.split(":");
+    const suffix = parts.pop();
+    const prefix = parts.join(":"); // leftover after popping the address off
+    return `${prefix}:${isEvmAddress(suffix) ? getEvmAddress(suffix) : suffix}`;
+  } else {
+    return isEvmAddress(address) ? getEvmAddress(address) : address;
+  }
+};
 
 export const fmtAddressEntry = (entry: AddressEntry): AddressEntry => {
   entry.address = fmtAddress(entry.address);
   entry.guard = entry.guard || (
-    isEthAddress(entry.address) ? Guards.ETH : Guards.None
+    isEvmAddress(entry.address) ? Guards.Ethereum : Guards.None
   );
   const error = getAddressEntryError(entry);
   if (error) throw new Error(error);
@@ -50,5 +58,5 @@ export const setAddressCategory = (category: AddressCategory, guard?: Guard) =>
     fmtAddressEntry({
       ...entry,
       category,
-      guard: guard || entry.guard || isEthAddress(entry.address) ? Guards.ETH : Guards.None,
+      guard: guard || entry.guard || isEvmAddress(entry.address) ? Guards.Ethereum : Guards.None,
     } as AddressEntry);

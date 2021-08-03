@@ -1,8 +1,8 @@
-import { Interface } from "@ethersproject/abi";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
+  EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
@@ -11,9 +11,10 @@ import {
 } from "@valuemachine/types";
 import {
   setAddressCategory,
-  parseEvent,
-  rmDups,
+  dedup,
 } from "@valuemachine/utils";
+
+import { parseEvent } from "../utils";
 
 //const { ETH, WETH } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
@@ -21,18 +22,18 @@ const source = TransactionSources.Argent;
 
 ////////////////////////////////////////
 /// Addresses
-
 // Find more manager addresses at https://github.com/argentlabs/argent-contracts/releases/tag/2.1
-const makerManagerAddress = "0x7557f4199aa99e5396330bac3b7bdaa262cb1913";
+
+const makerManager = "ArgentMakerManager";
 
 const relayerAddresses = [
-  { name: "argent-relayer", address: "0xdd5a1c148ca114af2f4ebc639ce21fed4730a608" },
-  { name: "argent-relayer", address: "0x0385b3f162a0e001b60ecb84d3cb06199d78f666" },
-  { name: "argent-relayer", address: "0xf27696c8bca7d54d696189085ae1283f59342fa6" },
+  { name: "argent-relayer", address: "evm:1:0xdd5a1c148ca114af2f4ebc639ce21fed4730a608" },
+  { name: "argent-relayer", address: "evm:1:0x0385b3f162a0e001b60ecb84d3cb06199d78f666" },
+  { name: "argent-relayer", address: "evm:1:0xf27696c8bca7d54d696189085ae1283f59342fa6" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const managerAddresses = [
-  { name: "argent-maker", address: makerManagerAddress },
+  { name: makerManager, address: "evm:1:0x7557f4199aa99e5396330bac3b7bdaa262cb1913" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 export const argentAddresses = [
@@ -40,17 +41,19 @@ export const argentAddresses = [
   ...managerAddresses,
 ];
 
-////////////////////////////////////////
-/// Interfaces
+const makerManagerAddress = argentAddresses.find(e => e.name === makerManager)?.address;
 
-const makerManagerV1Interface = new Interface([
+////////////////////////////////////////
+/// Abis
+
+const makerManagerV1Abi = [
   "event TokenConverted(address indexed wallet, address srcToken, uint256 srcAmount, address destToken, uint256 destAmount)",
   "event TransactionExecuted(address indexed wallet, bool indexed success, bytes32 signedHash)",
   "event ModuleCreated(bytes32 name)",
   "event ModuleInitialised(address wallet)",
   "event InvestmentAdded(address indexed wallet, address token, uint256 invested, uint256 period)",
   "event InvestmentRemoved(address indexed wallet, address token, uint256 fraction)"
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -58,26 +61,27 @@ const makerManagerV1Interface = new Interface([
 export const argentParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
   if (relayerAddresses.some(entry => evmTx.from === entry.address)) {
-    tx.sources = rmDups([source, ...tx.sources]);
+    tx.sources = dedup([source, ...tx.sources]);
   }
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (address === makerManagerAddress) {
       const subsrc = `${source} MakerManager`;
-      const event = parseEvent(makerManagerV1Interface, txLog);
+      const event = parseEvent(makerManagerV1Abi, txLog, evmMeta);
       if (!event.name) continue;
       if (!isSelf(event.args.wallet)) {
         log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);
       }
-      tx.sources = rmDups([source, ...tx.sources]);
+      tx.sources = dedup([source, ...tx.sources]);
 
       if (event.name === "TokenConverted") {
         const { destAmount, destToken, srcAmount, srcToken } = event.args;

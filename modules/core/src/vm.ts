@@ -27,7 +27,7 @@ import {
   gt,
   lt,
   mul,
-  rmDups,
+  dedup,
   sub,
 } from "@valuemachine/utils";
 
@@ -477,8 +477,8 @@ export const getValueMachine = ({
     if (swapsIn.length && swapsOut.length) {
       // Sum transfers & subtract refunds to get total values traded
       const sum = (acc, cur) => add(acc, cur.quantity);
-      const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
-      const assetsIn = rmDups(swapsIn.map(swap => swap.asset)
+      const assetsOut = dedup(swapsOut.map(swap => swap.asset));
+      const assetsIn = dedup(swapsIn.map(swap => swap.asset)
         .filter(asset => !assetsOut.includes(asset)) // remove refunds from the output asset list
       );
       const amtsOut = assetsOut.map(asset =>
