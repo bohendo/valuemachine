@@ -18,7 +18,6 @@ import {
 import {
   fmtAddress,
   fmtAddressEntry,
-  getAddressBookError,
   getAddressEntryError,
   getEmptyAddressBook,
   getLogger,
@@ -34,38 +33,41 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   ////////////////////////////////////////
   // Init Code
 
+  const addressBook = {};
+
   // Merge hardcoded public addresses with those supplied by the user
-  const addressBook = []
-    .concat(publicAddresses, hardcoded, json)
+  [
+    Object.values(json || {}),
+    publicAddresses,
+    hardcoded,
+  ]
+    .flat()
     .filter(entry => !!entry)
-    .map(fmtAddressEntry);
-
-  const error = getAddressBookError(addressBook);
-  if (error) throw new Error(error);
-
-  // Sanity check: it shouldn't have two entries for the same address
-  let addresses = [];
-  addressBook.forEach(row => {
-    const error = getAddressEntryError(row);
-    if (error) throw new Error(error);
-    if (addresses.includes(row.address)) {
-      log.warn(`Address book has multiple entries for address ${row.address}`);
-    }
-    addresses.push(row.address);
-  });
-  addresses = addresses.sort();
+    .map(fmtAddressEntry)
+    .forEach(entry => {
+      if (!entry) {
+        log.warn(entry, `Discarding empty entry`);
+        return;
+      }
+      const error = getAddressEntryError(entry);
+      if (error) {
+        log.warn(entry, `Discarding entry: ${error}`);
+      } else if (addressBook[entry.address]) {
+        log.warn(entry, `Entry for ${entry.address} already exists, discarding duplicate`);
+      } else {
+        addressBook[entry.address] = entry;
+      }
+    });
 
   ////////////////////////////////////////
   // Helpers
 
-  const isSameAddress = (a1: Address, a2: Address): boolean =>
-    a1.includes(":") && a2.includes(":")
-      ? a1 === a2
-      : a1.split(":").pop() === a2.split(":").pop();
-
   const getEntry = (address: Address): AddressEntry | undefined => {
     if (!address) return undefined;
-    return addressBook.find(row => isSameAddress(row.address, fmtAddress(address)));
+    return addressBook[address] || (address.includes(":")
+      ? addressBook[address.split(":").pop()]
+      : Object.values(addressBook).find((entry: AddressEntry) => entry?.address?.endsWith(address))
+    );
   };
 
   ////////////////////////////////////////
@@ -120,7 +122,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     getEntry(address)?.decimals || 18;
 
   return {
-    addresses,
+    addresses: Object.keys(addressBook),
     getName,
     getGuard,
     getDecimals,

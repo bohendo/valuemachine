@@ -9,7 +9,7 @@ import {
 
 import { ajv, formatErrors } from "./validate";
 
-export const getEmptyAddressBook = (): AddressBookJson => [];
+export const getEmptyAddressBook = (): AddressBookJson => ({});
 
 ////////////////////
 // Validators
@@ -44,12 +44,12 @@ export const fmtAddress = (address: string) => {
 };
 
 export const fmtAddressEntry = (entry: AddressEntry): AddressEntry => {
+  const error = getAddressEntryError(entry);
+  if (error) throw new Error(error);
   entry.address = fmtAddress(entry.address);
   entry.guard = entry.guard || (
     isEvmAddress(entry.address) ? Guards.Ethereum : Guards.None
   );
-  const error = getAddressEntryError(entry);
-  if (error) throw new Error(error);
   return entry;
 };
 

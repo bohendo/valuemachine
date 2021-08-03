@@ -23,11 +23,14 @@ export const testStore = getFileStore(path.join(__dirname, "../testData"), fs);
 
 export const getTestAddressBook = (...selfAddresses: Address[]): AddressBook => 
   getAddressBook({
-    json: selfAddresses.map((address, i) => ({
-      address,
-      name: `test-self-${i}`,
-      category: AddressCategories.Self,
-    })),
+    json: selfAddresses.reduce((addressBookJson, address, i) => {
+      addressBookJson[address] = {
+        address,
+        name: `test-self-${i}`,
+        category: AddressCategories.Self,
+      };
+      return addressBookJson;
+    }, {}),
     logger: testLogger,
   });
 

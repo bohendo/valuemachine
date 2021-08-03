@@ -48,7 +48,7 @@ export const AddressEntry = Type.Object({
 });
 export type AddressEntry = Static<typeof AddressEntry>;
 
-export const AddressBookJson = Type.Array(AddressEntry);
+export const AddressBookJson = Type.Dict(AddressEntry);
 export type AddressBookJson = Static<typeof AddressBookJson>;
 
 ////////////////////////////////////////
@@ -56,7 +56,7 @@ export type AddressBookJson = Static<typeof AddressBookJson>;
 
 export type AddressBookParams = {
   json?: AddressBookJson; // for user-defined addresses saved eg in localstorage
-  hardcoded?: AddressBookJson; // for addresess saved in app-level code
+  hardcoded?: AddressEntry[]; // for list of addresess saved in app-level code
   logger?: Logger;
   store?: Store;
 }

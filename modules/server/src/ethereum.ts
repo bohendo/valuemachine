@@ -37,7 +37,7 @@ ethereumRouter.post("/", async (req, res) => {
   });
   await handlePoller(
     addressBook,
-    addressBook.json.map(entry => entry.address).filter(addressBook.isSelf).filter(isEthAddress),
+    addressBook.addresses.filter(addressBook.isSelf).filter(isEthAddress),
     res,
   );
 });

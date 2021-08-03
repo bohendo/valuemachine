@@ -217,6 +217,7 @@ export const makerParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
+  const start = Date.now();
   const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
   const addressZero = `evm:${evmMeta.id}:${AddressZero}`; 
   const { getDecimals, getName, isSelf } = addressBook;
@@ -655,5 +656,6 @@ export const makerParser = (
   }
 
   // log.debug(tx, `Done parsing ${source}`);
+  log.info(`Finished parsing maker stuff in ${Date.now() - start} ms`);
   return tx;
 };

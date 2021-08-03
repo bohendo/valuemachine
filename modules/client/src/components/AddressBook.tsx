@@ -401,11 +401,13 @@ export const AddressBookManager = ({
   const classes = useStyles();
 
   useEffect(() => {
-    setAllAddresses(addressBook.json.map(entry => entry.address));
+    setAllAddresses(addressBook.addresses);
   }, [addressBook]);
 
   useEffect(() => {
-    setFilteredAddresses(addressBook.json.filter(entry =>
+    setFilteredAddresses(Object.values(
+      addressBook.json
+    ).filter(entry =>
       !filterCategory || entry.category === filterCategory
     ).sort((e1, e2) =>
       // put self addresses first
@@ -452,11 +454,9 @@ export const AddressBookManager = ({
           throw new Error("Imported file does not contain an address book");
         }
         console.log(`File with an address book has been loaded:`, importedAddresses);
-        const newAddressBook = [...addressBook.json]; // create new array to ensure it re-renders
+        const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders
         importedAddresses.forEach(entry => {
-          if (!addressBook.json.some(e => e?.address === entry?.address)) {
-            newAddressBook.push(entry);
-          }
+          newAddressBook[entry.address] = entry;
         });
         setAddressBookJson(newAddressBook);
       } catch (e) {
@@ -474,24 +474,18 @@ export const AddressBookManager = ({
     a.click();
   };
 
-  const editEntry = (index: number, editedEntry?: AddressEntry) => {
-    if (index >= 0 && index <= allAddresses.length) {
-      console.log(`${
-        !editedEntry ? "Deleting" : index === allAddresses.length ? "Creating" : "Updating"
-      } ${JSON.stringify(editedEntry)}`);
-      const newAddressBook = [...addressBook.json]; // create new array to ensure it re-renders
-      if (!editedEntry) {
-        newAddressBook.splice(index,1);
-      } else {
-        newAddressBook[index] = editedEntry;
-      }
-      setAddressBookJson(newAddressBook);
-      // Don't reset new entry fields when we modify an existing one
-      if (editedEntry && index === allAddresses.length) {
-        setNewEntry(getEmptyEntry);
-      }
+  const editEntry = (editedEntry?: AddressEntry) => {
+    console.log(`Setting [${editedEntry.address}] = ${JSON.stringify(editedEntry)}`);
+    const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders
+    if (editedEntry) {
+      delete newAddressBook[editedEntry.address];
     } else {
-      console.log(`index ${index} is out of range, expected 0-${allAddresses.length}`);
+      newAddressBook[editedEntry.address] = editedEntry;
+    }
+    setAddressBookJson(newAddressBook);
+    // Don't reset new entry fields when we modify an existing one
+    if (editedEntry) {
+      setNewEntry(getEmptyEntry);
     }
   };
 
@@ -602,7 +596,7 @@ export const AddressBookManager = ({
             color="primary"
             onClick={deleteAddresses}
             size="medium"
-            disabled={!addressBook.json?.length}
+            disabled={!Object.keys(addressBook.json || {}).length}
             startIcon={<RemoveIcon/>}
             variant="contained"
           >
@@ -718,7 +712,7 @@ export const AddressBookManager = ({
           onChange={handleFilterChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(addressBook.json.map(e => e.category))).map(cat => (
+          {Array.from(new Set(Object.values(addressBook.json).map(e => e.category))).map(cat => (
             <MenuItem key={cat} value={cat}>{cat}</MenuItem>
           ))}
         </Select>
@@ -727,9 +721,9 @@ export const AddressBookManager = ({
       <Paper className={classes.table}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredAddresses.length === addressBook.json.length
+          {filteredAddresses.length === Object.keys(addressBook.json).length
             ? `${filteredAddresses.length} Addresses`
-            : `${filteredAddresses.length} of ${addressBook.json.length} Addresses`
+            : `${filteredAddresses.length} of ${Object.keys(addressBook.json).length} Addresses`
           }
         </Typography>
 

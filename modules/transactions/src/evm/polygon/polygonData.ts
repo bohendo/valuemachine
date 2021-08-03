@@ -191,7 +191,7 @@ export const getPolygonData = (params?: {
 
   const syncAddressBook = async (addressBook: AddressBook): Promise<void> => {
     const zeroDate = new Date(0).toISOString();
-    const selfAddresses = addressBook.json
+    const selfAddresses = Object.values(addressBook.json)
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .map(address =>
@@ -251,7 +251,7 @@ export const getPolygonData = (params?: {
   const getTransactions = (
     addressBook: AddressBook,
   ): TransactionsJson => {
-    const selfAddresses = addressBook.json
+    const selfAddresses = Object.values(addressBook.json)
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .filter(address => isEvmAddress(address))
