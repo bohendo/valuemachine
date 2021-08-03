@@ -310,7 +310,7 @@ export const TransactionExplorer = ({
         startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
         variant="outlined"
       >
-        Sync Chain Data Transactions
+        Sync Transactions
       </Button>
 
       <Button

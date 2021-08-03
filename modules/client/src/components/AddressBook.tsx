@@ -32,9 +32,12 @@ import {
   AddressCategories,
   AddressEntry,
   AddressBookJson,
+  CsvSources,
   Guards,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
+
+import { CsvFile } from "../types";
 
 import { HexString } from "./HexString";
 
@@ -87,10 +90,13 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   subtitle: {
     margin: theme.spacing(2),
   },
-  syncAll: {
+  deleteAll: {
     margin: theme.spacing(2),
   },
   paper: {
+    padding: theme.spacing(2),
+  },
+  table: {
     minWidth: "600px",
     padding: theme.spacing(2),
   },
@@ -369,12 +375,18 @@ const getEmptyEntry = (): AddressEntry => ({
 export const AddressBookManager = ({
   addressBook,
   setAddressBookJson,
+  csvFiles,
+  setCsvFiles,
 }: {
   addressBook: AddressBookJson,
   setAddressBookJson: (val: AddressBookJson) => void,
+  csvFiles: CsvFile[],
+  setCsvFiles: (val: CsvFile[]) => void,
 }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
+
+  const [importFileType, setImportFileType] = useState("");
 
   const [filteredAddresses, setFilteredAddresses] = useState([]);
   const [filterCategory, setFilterCategory] = useState("");
@@ -425,7 +437,7 @@ export const AddressBookManager = ({
     });
   };
 
-  const handleImport = (event) => {
+  const handleAddressBookImport = (event) => {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -487,8 +499,12 @@ export const AddressBookManager = ({
     editEntry(addressBook.json.length, editedEntry);
   };
 
-  const reset = async () => {
+  const deleteAddresses = async () => {
     setAddressBookJson([]);
+  };
+
+  const deleteCsvFiles = async () => {
+    setCsvFiles([]);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -503,6 +519,32 @@ export const AddressBookManager = ({
   const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
     setFilterCategory(event.target.value);
     setPage(0);
+  };
+
+  const handleFileTypeChange = (event: React.ChangeEvent<{ value: boolean }>) => {
+    console.log(`Setting file type based on event target:`, event.target);
+    setImportFileType(event.target.value);
+  };
+
+  const handleCsvFileImport = (event: any) => {
+    const file = event.target.files[0];
+    console.log(`Importing ${importFileType} file`, file);
+    if (!importFileType || !file) return;
+    const reader = new FileReader();
+    reader.readAsText(file);
+    reader.onload = () => {
+      try {
+        const importedFile = reader.result as string;
+        console.log(`Imported ${file.name}`);
+        setCsvFiles(oldCsvFiles => oldCsvFiles.concat({
+          name: file.name,
+          data: importedFile,
+          type: importFileType,
+        }));
+      } catch (e) {
+        console.error(e);
+      }
+    };
   };
 
   return (
@@ -540,7 +582,7 @@ export const AddressBookManager = ({
               id="profile-importer"
               accept="application/json"
               type="file"
-              onChange={handleImport}
+              onChange={handleAddressBookImport}
             />
             <CardHeader title={"Export Address Book"}/>
             <Button
@@ -556,20 +598,111 @@ export const AddressBookManager = ({
           </Card>
 
           <Button
-            className={classes.syncAll}
+            className={classes.deleteAll}
             color="primary"
-            onClick={reset}
+            onClick={deleteAddresses}
             size="medium"
             disabled={!addressBook.json?.length}
             startIcon={<RemoveIcon/>}
             variant="contained"
           >
-            Clear Addresses
+            Delete Address Book
+          </Button>
+        </Grid>
+
+      </Grid>
+
+      <Divider/>
+      <Typography variant="h4" className={classes.subtitle}>
+        Manage CSV Files
+      </Typography>
+
+      <Grid
+        alignContent="center"
+        justify="center"
+        container
+        spacing={1}
+        className={classes.root}
+      >
+
+        <Grid item md={6}>
+          <Card className={classes.root}>
+            <CardHeader title={"Import CSV File"}/>
+            <FormControl className={classes.select}>
+              <InputLabel id="select-file-type-label">File Type</InputLabel>
+              <Select
+                labelId="select-file-type-label"
+                id="select-file-type"
+                value={importFileType || ""}
+                onChange={handleFileTypeChange}
+              >
+                <MenuItem value={""}>-</MenuItem>
+                <MenuItem value={CsvSources.Coinbase}>{CsvSources.Coinbase}</MenuItem>
+                <MenuItem value={CsvSources.DigitalOcean}>{CsvSources.DigitalOcean}</MenuItem>
+                <MenuItem value={CsvSources.Wyre}>{CsvSources.Wyre}</MenuItem>
+                <MenuItem value={CsvSources.Wazirx}>{CsvSources.Wazirx}</MenuItem>
+              </Select>
+            </FormControl>
+            <input
+              accept="text/csv"
+              className={classes.importer}
+              disabled={!importFileType}
+              id="file-importer"
+              onChange={handleCsvFileImport}
+              type="file"
+            />
+          </Card>
+
+          <Button
+            className={classes.deleteAll}
+            color="primary"
+            onClick={deleteCsvFiles}
+            size="medium"
+            disabled={!csvFiles?.length}
+            startIcon={<RemoveIcon/>}
+            variant="contained"
+          >
+            Delete Csv Files
           </Button>
 
         </Grid>
 
+        <Grid item md={6}>
+
+          <Paper className={classes.paper}>
+            <Typography align="center" variant="h4" className={classes.title} component="div">
+              {`${csvFiles.length} CSV Files`}
+            </Typography>
+            {csvFiles.length ? (
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><strong> File Name </strong></TableCell>
+                      <TableCell><strong> File Type </strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {csvFiles.map((csvFile: { name: string; type: string; data: string }, i) => (
+                      <TableRow key={i}>
+                        <TableCell><strong> {csvFile.name.toString()} </strong></TableCell>
+                        <TableCell><strong> {csvFile.type.toString()} </strong></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : null}
+          </Paper>
+
+        </Grid>
+
       </Grid>
+
+
+
+
+
 
       <Divider/>
       <Typography variant="h4" className={classes.subtitle}>
@@ -591,7 +724,7 @@ export const AddressBookManager = ({
         </Select>
       </FormControl>
 
-      <Paper className={classes.paper}>
+      <Paper className={classes.table}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
           {filteredAddresses.length === addressBook.json.length

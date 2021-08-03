@@ -28,6 +28,7 @@ import { PriceManager } from "./components/Prices";
 import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
+import { getEmptyCsv } from "./types";
 
 const store = getLocalStore(localStorage);
 const logger = getLogger("warn");
@@ -40,6 +41,7 @@ const {
   Prices: PricesStore
 } = StoreKeys;
 const UnitStore = "Unit";
+const CsvStore = "Csv";
 
 const darkTheme = createMuiTheme({
   palette: {
@@ -73,6 +75,7 @@ const App: React.FC = () => {
   const [vmJson, setVMJson] = useState(store.load(ValueMachineStore));
   const [pricesJson, setPricesJson] = useState(store.load(PricesStore));
   // Extra UI-specific data from localstorage
+  const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsv());
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
 
   // Utilities derived from localstorage data
@@ -149,6 +152,12 @@ const App: React.FC = () => {
   }, [pricesJson, unit]);
 
   useEffect(() => {
+    if (!csvFiles?.length) return;
+    console.log(`Saving ${csvFiles.length} csv files`);
+    store.save(CsvStore, csvFiles);
+  }, [csvFiles]);
+
+  useEffect(() => {
     if (!unit) return;
     console.log(`Saving unit`, unit);
     store.save(UnitStore, unit);
@@ -210,6 +219,8 @@ const App: React.FC = () => {
               <AddressBookManager
                 addressBook={addressBook}
                 setAddressBookJson={setAddressBookJson}
+                csvFiles={csvFiles}
+                setCsvFiles={setCsvFiles}
               />
             </Route>
 
