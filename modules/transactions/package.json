@@ -12,7 +12,7 @@
   "files": ["dist", "src"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"
+    "test": "ts-mocha --check-leaks --color --exit --timeout 60000 'src/**/*.test.ts'"
   },
   "dependencies": {
     "@ethersproject/abi": "5.4.0",
