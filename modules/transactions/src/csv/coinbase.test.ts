@@ -7,9 +7,8 @@ import {
   testLogger,
 } from "../testUtils";
 
-const log = testLogger.child({
+const log = testLogger.child({ module: "TestTransactions" }, {
   // level: "debug",
-  module: "TestTransactions",
 });
 
 const timestamp = "2018-01-02T01:00:00Z";

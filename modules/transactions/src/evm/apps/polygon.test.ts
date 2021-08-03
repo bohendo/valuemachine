@@ -10,7 +10,7 @@ import {
 } from "../testUtils";
 
 const source = TransactionSources.Polygon;
-const logger = testLogger.child({ module: `Test${source}`,
+const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",
 });
 

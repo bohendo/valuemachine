@@ -6,7 +6,7 @@ import {
   testLogger,
 } from "./testUtils";
 
-const log = testLogger.child({ module: "TestAddressBook",
+const log = testLogger.child({ module: "TestAddressBook" }, {
   // level: "debug",
 });
 

@@ -11,7 +11,7 @@ import {
 
 import { getEthereumData } from "./ethereumData";
 
-const logger = testLogger.child({ module: `TestEthereum`,
+const logger = testLogger.child({ module: `TestEthereum` }, {
   level: "debug",
 });
 

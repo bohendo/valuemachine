@@ -11,7 +11,7 @@ import {
 
 const source = TransactionSources.Maker;
 const { Expense, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
-const logger = testLogger.child({ module: `Test${source}`,
+const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",
 });
 

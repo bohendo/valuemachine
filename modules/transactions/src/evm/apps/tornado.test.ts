@@ -12,7 +12,7 @@ import {
 
 const source = TransactionSources.Tornado;
 const { Expense, Deposit, Withdraw } = TransferCategories;
-const logger = testLogger.child({ module: `Test${source}`,
+const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",
 });
 

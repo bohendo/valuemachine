@@ -12,8 +12,8 @@ import {
 
 import { getPolygonData } from "./polygonData";
 
-const logger = testLogger.child({ module: `TestPolygon`,
-  // level: "debug", // Uncomment to enable verbose logging
+const logger = testLogger.child({ module: `TestPolygon` }, {
+  // level: "debug",
 });
 
 describe("Polygon Data", () => {

@@ -17,7 +17,7 @@ const { ETH } = Assets;
 const { Expense, Deposit } = TransferCategories;
 const { Coinbase, Ethereum } = TransactionSources;
 const csvSource = Coinbase;
-const log = testLogger.child({ module: "TestMerge",
+const log = testLogger.child({ module: "TestMerge" }, {
   // level: "debug",
 });
 

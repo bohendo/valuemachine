@@ -11,7 +11,7 @@ import {
 
 const source = TransactionSources.EtherDelta;
 const { Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
-const log = testLogger.child({ module: `Test${source}`,
+const log = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",
 });
 

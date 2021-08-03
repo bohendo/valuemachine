@@ -11,7 +11,7 @@ import {
 
 const source = TransactionSources.Uniswap;
 const { Expense, SwapIn, SwapOut } = TransferCategories;
-const logger = testLogger.child({ module: `Test${source}`,
+const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",
 });
 
