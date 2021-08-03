@@ -13,9 +13,9 @@ const authType = "Basic";
 const restrictedMethods = ["DELETE", "POST", "PUT"];
 const restrictedPaths = [
   "/auth",
-  "/chaindata",
+  "/ethereum",
+  "/polygon",
   "/prices",
-  "/transactions",
 ];
 
 authRouter.use((req, res, next) => {

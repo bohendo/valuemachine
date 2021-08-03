@@ -1,6 +1,5 @@
 import fs from "fs";
 
-import { hexDataLength, isHexString } from "@ethersproject/bytes";
 import { getEthereumData } from "@valuemachine/transactions";
 import { getFileStore, getLogger } from "@valuemachine/utils";
 
@@ -31,18 +30,4 @@ export const getLogAndSend = (res) => (message, code = STATUS_SUCCESS): void => 
   }
   res.status(code).send(message);
   return;
-};
-
-export const isValidAddress = (value: any): boolean => {
-  if (typeof value !== "string") {
-    log.info(`value ${value} is not a string`);
-    return false;
-  } else if (!isHexString(value)) {
-    log.info(`value ${value} is not a hex string`);
-    return false;
-  } else if (hexDataLength(value) !== 20) {
-    log.info(`value ${value} is not 20 bytes long`);
-    return false;
-  }
-  return true;
 };
