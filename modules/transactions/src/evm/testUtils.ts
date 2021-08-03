@@ -19,6 +19,8 @@ import { getEthereumData } from "./ethereum";
 
 export * from "../testUtils";
 
+export const testStore = getFileStore(path.join(__dirname, "../testData"), fs);
+
 export const getTestAddressBook = (...selfAddresses: Address[]): AddressBook => 
   getAddressBook({
     json: selfAddresses.map((address, i) => ({
@@ -41,12 +43,12 @@ export const parseEthTx = async ({
   storePath?: string;
 }): Promise<Transaction> => {
   const addressBook = getTestAddressBook(selfAddress);
-  const testStore = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
+  const store = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
   const ethData = getEthereumData({
     covalentKey: env.covalentKey,
     etherscanKey: env.etherscanKey,
     logger,
-    store: testStore,
+    store,
   });
   await ethData.syncTransaction(hash, env.etherscanKey);
   return ethData.getTransaction(hash, addressBook);
@@ -64,12 +66,12 @@ export const parsePolygonTx = async ({
   storePath?: string;
 }): Promise<Transaction> => {
   const addressBook = getTestAddressBook(selfAddress);
-  const testStore = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
+  const store = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
   const polygonData = getPolygonData({
     covalentKey: env.covalentKey,
     etherscanKey: env.etherscanKey,
     logger,
-    store: testStore,
+    store,
   });
   await polygonData.syncTransaction(hash);
   return polygonData.getTransaction(hash, addressBook);

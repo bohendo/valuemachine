@@ -1,4 +1,4 @@
-import { ChainData, Guards } from "@valuemachine/types";
+import { Guards } from "@valuemachine/types";
 import { getTransactionsError } from "@valuemachine/utils";
 
 import {
@@ -12,25 +12,18 @@ import {
 import { getEthereumData } from "./ethereumData";
 
 const logger = testLogger.child({ module: `TestEthereum`,
-  // level: "info",
+  level: "debug",
 });
 
+// Skip tests that require network calls
 describe("Ethereum Data", () => {
-  let ethData: ChainData;
-  beforeEach(() => {
-    ethData = getEthereumData({
+  it.skip("should sync & parse a transaction", async () => {
+    const ethData = getEthereumData({
       covalentKey: env.covalentKey,
       etherscanKey: env.etherscanKey,
       // store: testStore,
       logger,
     });
-  });
-
-  it("should create a eth data manager", async () => {
-    expect(ethData).to.be.ok;
-  });
-
-  it("should sync & parse a transaction", async () => {
     const addressBook = getTestAddressBook("evm:1:0x1057bea69c9add11c6e3de296866aff98366cfe3");
     const hash = "0x9f7342f3f37a9fa74857afd9c56e4a290af983758df8a937dcd78e2588ba6c4e";
     await ethData.syncTransaction(hash, env.etherscanKey);
@@ -42,16 +35,16 @@ describe("Ethereum Data", () => {
   });
 
   it.skip("should sync & parse an address book", async () => {
-    const addressBook = getTestAddressBook(
-      "evm:1:0x1057bea69c9add11c6e3de296866aff98366cfe3",
-      "evm:1:0x2610a8d6602d7744174181348104dafc2ad94b28",
-    );
+    const ethData = getEthereumData({
+      covalentKey: env.covalentKey,
+      etherscanKey: env.etherscanKey,
+      // store: testStore,
+      logger,
+    });
+    const addressBook = getTestAddressBook("evm:1:0xDD8251bB8e7Ba07DfcD9e1842CD9E3cDfc0399C8");
     await ethData.syncAddressBook(addressBook);
     const transactions = ethData.getTransactions(addressBook);
-    logger.info(transactions, "transactions");
     expect(transactions[0].sources).to.include(Guards.Ethereum);
     expect(getTransactionsError(transactions)).to.be.null;
   });
-
 });
-

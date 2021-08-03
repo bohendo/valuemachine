@@ -37,8 +37,8 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     ? store.save(StoreKeys.EthereumData, json)
     : log.debug(`No store provided, can't save eth data`);
 
-  const error = getEvmDataError(json);
-  if (error) throw new Error(error);
+  const inputError = getEvmDataError(json);
+  if (inputError) throw new Error(inputError);
 
   log.info(`Loaded eth data containing ${
     Object.keys(json.transactions).length
@@ -181,110 +181,6 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   const logProg = (list: any[], elem: any): string =>
     `${list.indexOf(elem)+1}/${list.length}`;
 
-  /* It really sucks to get a full tx from Etherscan, use Covalent instead
-  const fetchEtherscanTx = async (txHash: Bytes32): Promise<EvmTransaction> => {
-    log.warn(`Fetching transactions from Etherscan is slow, provide covalent api key to speed up`);
-    const provider = new EtherscanProvider("homestead", etherscanKey);
-    const [response, receipt] = await Promise.all([
-      await provider.getTransaction(txHash),
-      await provider.getTransactionReceipt(txHash),
-    ]);
-    log.debug(`Fetched transaction + receipt from etherscan for tx ${txHash}`);
-    const toNum = (num: BigNumber | number): number =>
-      parseInt(toBN(num.toString()).toString(), 10);
-    const block = toNum(receipt.blockNumber);
-    const toTimestamp = (tx: any): string => {
-      const val = `${tx.timestamp || tx.timeStamp}`;
-      try {
-        if (val.match(/^[0-9]+$/)) {
-          return new Date(parseInt(val) * 1000).toISOString();
-        } else {
-          return new Date(val).toISOString();
-        }
-      } catch (e) {
-        log.error(`Failed to get timestamp from object: ${
-          JSON.stringify(tx, null, 2)
-        }: ${e.stack}`);
-        throw e;
-      }
-    };
-    let timestamp;
-    if (response.timestamp) {
-      timestamp = toTimestamp(response);
-    } else {
-      const blockData = await provider.getBlock(block);
-      timestamp = toTimestamp(blockData);
-      log.debug(`Fetched timestamp from etherscan for block ${block}: ${timestamp}`);
-    }
-    const toHex = (num: BigNumber | number): string => hexlify(toBN(num));
-    const newTx = {
-      // block,
-      // data: response.data || "0x",
-      from: getAddress(response.from),
-      // gasLimit: toHex(response.gasLimit),
-      gasPrice: toHex(response.gasPrice),
-      gasUsed: toHex(receipt.gasUsed),
-      hash: txHash,
-      // index: receipt.transactionIndex,
-      logs: receipt.logs.map(log => ({
-        address: getAddress(log.address),
-        data: log.data,
-        index: log.logIndex,
-        topics: log.topics,
-      })),
-      nonce: toNum(response.nonce),
-      status:
-        // If post-byzantium, then the receipt already has a status, yay
-        typeof receipt.status === "number" ? receipt.status
-        // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
-        : toBN(response.gasLimit).gt(toBN(receipt.gasUsed)) ? 1
-        // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-        : toBN(response.gasLimit).eq(toBN("21000")) ? 1
-        // Otherwise it PROBABLY failed
-        : 0,
-      timestamp,
-      to: response.to ? getAddress(response.to) : null,
-      transfers: [], // need a separate call to etherscan to get this info
-      value: formatEther(response.value),
-    };
-    return newTx;
-  };
-  */
-
-  /*
-  const syncAddress = async (_address: EvmAddress): Promise<void> => {
-    const address = getAddress(_address);
-    if (!json.addresses[address]) {
-      json.addresses[address] = { history: [], lastUpdated: new Date(0).toISOString() };
-    }
-    const lastUpdated = (new Date()).toISOString();
-    const [txHistory, callHistory, tokenHistory] = await Promise.all([
-      queryEtherscan("txlist", address),
-      queryEtherscan("txlistinternal", address),
-      queryEtherscan("tokentx", address),
-    ]);
-    if (!txHistory || !callHistory || !tokenHistory) {
-      throw new Error(`Unable to fetch history of ${address} from etherscan`);
-    }
-    const history = Array.from(new Set([
-      ...json.addresses[address].history,
-      ...txHistory,
-      ...callHistory,
-      ...tokenHistory
-    ].map(tx => tx.hash || tx).filter(hash =>
-      isHexString(hash) && hexDataLength(hash) === 32
-    ))).sort();
-    json.addresses[address].history = history;
-    json.addresses[address].lastUpdated = lastUpdated;
-    save();
-    log.info(`Saved history & lastUpdated for address ${address}`);
-    for (const hash of history) {
-      await syncTransaction(hash);
-    }
-    return;
-  };
-  */
-
   // Beware of edge case: a tx makes 2 identical internal transfers and
   // the to & from are both tracked accounts so we get these calls in the txHistory of both.
   // We do want to include these two identical transfers so we can't naively dedup
@@ -334,8 +230,8 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       } else {
         tx = await fetchTx(txHash);
       }
-      const error = getEvmTransactionError(tx);
-      if (error) throw new Error(error);
+      const txError = getEvmTransactionError(tx);
+      if (txError) throw new Error(txError);
       json.transactions[tx.hash] = tx;
       save();
     }
@@ -355,10 +251,8 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       return;
     }
     const tx = await fetchTx(txHash);
-    const error = getEvmTransactionError(tx);
-    if (error) {
-      throw new Error(error);
-    }
+    const txError = getEvmTransactionError(tx);
+    if (txError) throw new Error(txError);
     json.transactions[txHash] = tx;
     save();
     return;
