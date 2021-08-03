@@ -15,7 +15,7 @@
     "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"
   },
   "dependencies": {
-    "@ethersproject/bignumber": "5.4.0",
+    "@ethersproject/bignumber": "5.4.1",
     "@ethersproject/constants": "5.4.0",
     "@ethersproject/units": "5.4.0",
     "@valuemachine/transactions": "0.6.4",
