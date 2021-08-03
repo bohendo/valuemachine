@@ -329,8 +329,8 @@ export const TaxesExplorer = ({
             count={taxes.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
           <Table>
             <TableHead>
@@ -372,8 +372,8 @@ export const TaxesExplorer = ({
             count={taxes.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </TableContainer>
       </Paper>

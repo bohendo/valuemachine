@@ -3,7 +3,7 @@ import {
   CssBaseline,
   Theme,
   ThemeProvider,
-  createMuiTheme,
+  createTheme,
   createStyles,
   makeStyles,
 } from "@material-ui/core";
@@ -43,7 +43,7 @@ const {
 const UnitStore = "Unit";
 const CsvStore = "Csv";
 
-const darkTheme = createMuiTheme({
+const darkTheme = createTheme({
   palette: {
     primary: {
       main: "#deaa56",

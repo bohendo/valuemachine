@@ -557,7 +557,7 @@ export const AddressBookManager = ({
       <Grid
         alignContent="center"
         alignItems="center"
-        justify="center"
+        justifyContent="center"
         container
         spacing={1}
         className={classes.root}
@@ -619,7 +619,7 @@ export const AddressBookManager = ({
 
       <Grid
         alignContent="center"
-        justify="center"
+        justifyContent="center"
         container
         spacing={1}
         className={classes.root}
@@ -740,8 +740,8 @@ export const AddressBookManager = ({
             count={filteredAddresses.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
           <Table size="small">
             <TableHead>
@@ -774,8 +774,8 @@ export const AddressBookManager = ({
             count={filteredAddresses.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </TableContainer>
       </Paper>

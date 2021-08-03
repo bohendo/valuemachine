@@ -405,8 +405,8 @@ export const ValueMachineExplorer = ({
             count={filteredEvents.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
           <Table>
             <TableHead>
@@ -437,8 +437,8 @@ export const ValueMachineExplorer = ({
             count={filteredEvents.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </TableContainer>
       </Paper>
