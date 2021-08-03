@@ -42,7 +42,6 @@ export const parseEthTx = (
       erc20Parser,
       wethParser,
       oasisParser,
-      polygonParser,
       quickswapParser,
       makerParser,
       compoundParser,
@@ -53,6 +52,7 @@ export const parseEthTx = (
       idleParser,
       yearnParser,
       tornadoParser,
+      polygonParser,
       argentParser,
     ].concat(extraParsers || []),
   );

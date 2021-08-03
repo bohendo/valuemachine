@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -20,7 +19,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { parseEvent } from "../utils";
+import { getAppAccount, parseEvent } from "../utils";
 
 const source = TransactionSources.EtherDelta;
 const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
@@ -57,14 +56,11 @@ export const etherdeltaParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
-  const getAccount = (address, prefix) =>
-    `evm:${evmMeta.id}${prefix ? `-${prefix}` : ""}:${getAddress(address)}`;
+
   const { getDecimals, getName, isSelf } = addressBook;
 
-  const getAsset = (address: Address): Asset => {
-    if (address === AddressZero) return Assets.ETH;
-    else return getName(address) as Asset;
-  };
+  const getAsset = (address: Address): Asset =>
+    address.endsWith(AddressZero) ? Assets.ETH : getName(address);
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
@@ -82,13 +78,12 @@ export const etherdeltaParser = (
         continue;
       }
       tx.sources = dedup([source, ...tx.sources]);
-      const account = getAccount(user, source);
-      const exchange = `${source}-exchange`;
+      const account = getAppAccount(user, source);
 
       if (event.name === "Deposit" || event.name === "Withdraw") {
-        log.info(`Parsing ${source} ${event.name}`);
         const asset = getAsset(event.args.token);
         const quantity = formatUnits(event.args.amount, getDecimals(event.args.token));
+        log.info(`Parsing ${source} ${event.name} of ${quantity} ${asset}`);
         const transfer = tx.transfers.find(transfer =>
           ([Income, Expense, Deposit, Withdraw] as string[]).includes(transfer.category)
           && transfer.asset === asset
@@ -116,12 +111,12 @@ export const etherdeltaParser = (
           from: account,
           index,
           quantity: formatUnits(event.args.amountGet, getDecimals(event.args.tokenGet)),
-          to: exchange,
+          to: source,
         };
         const swapIn = {
           asset: getAsset(event.args.tokenGive),
           category: SwapIn,
-          from:  exchange,
+          from:  source,
           index,
           quantity: formatUnits(event.args.amountGive, getDecimals(event.args.tokenGiv)),
           to: account,

@@ -1,4 +1,3 @@
-import { getAddress } from "@ethersproject/address";
 import { Interface } from "@ethersproject/abi";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -18,7 +17,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { parseEvent } from "../utils";
+import { getAppAccount, parseEvent } from "../utils";
 
 const source = TransactionSources.Idle;
 const { Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
@@ -109,7 +108,7 @@ export const idleParser = (
       const name = addressBook.getName(address);
       if (name === stkIDLE) {
         const event = parseEvent(stkIDLEInterface, txLog, evmMeta);
-        const account = `evm:${evmMeta.id}-${stkIDLE}:${getAddress(event.args.provider)}`;
+        const account = getAppAccount(event.args.provider, stkIDLE);
 
         if (event.name === "Deposit") {
           const value = formatUnits(

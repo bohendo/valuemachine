@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { getAddress } from "@ethersproject/address";
 import {
   AddressBook,
   AddressCategories,
@@ -223,7 +222,6 @@ export const yearnParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
-  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getName, isSelf } = addressBook;
 
   for (const txLog of evmTx.logs) {
@@ -256,15 +254,15 @@ export const yearnParser = (
       } else {
         if (isSelf(transfer.from) && isSelf(yTransfer.to)) { // deposit
           transfer.category = SwapOut;
-          transfer.to = getAccount(address);
+          transfer.to = address;
           yTransfer.category = SwapIn;
-          yTransfer.from = getAccount(address);
+          yTransfer.from = address;
           tx.method = "Deposit";
         } else { // withdraw
           transfer.category = isSelf(transfer.to) ? SwapIn : SwapOut;
-          transfer.from = getAccount(address);
+          transfer.from = address;
           yTransfer.category = isSelf(yTransfer.to) ? SwapIn : SwapOut;
-          yTransfer.to = getAccount(address);
+          yTransfer.to = address;
           tx.method = "Withdraw";
         }
       }

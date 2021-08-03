@@ -1,4 +1,3 @@
-import { getAddress } from "@ethersproject/address";
 import {
   AddressBook,
   Assets,
@@ -25,7 +24,7 @@ const source = TransactionSources.Tornado;
 ////////////////////////////////////////
 /// Addresses
 
-const relayer = "tornado-relayer";
+const relayer = "TornadoRelayer";
 
 // vTORN is non-transferrable so is not an ERC20
 const miscAddresses = [
@@ -81,7 +80,6 @@ export const tornadoParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
-  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { isSelf } = addressBook;
 
   let isTornadoTx = false;
@@ -117,7 +115,7 @@ export const tornadoParser = (
       index: 0,
       from: source,
       quantity: sub(total, withdraw.quantity),
-      to: getAccount(relayerAddress),
+      to: relayerAddress,
     });
     tx.method = "Withdraw";
     log.info(`Found ${source} ${tx.method}`);

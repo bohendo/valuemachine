@@ -35,17 +35,16 @@ export const quickswapAddresses = [
 export const quickswapParser = (
   tx: Transaction,
   _evmTx: EvmTransaction,
-  evmMeta: EvmMetadata,
+  _evmMeta: EvmMetadata,
   _addressBook: AddressBook,
   _logger: Logger,
 ): Transaction => {
-  const prefix = `evm:${evmMeta.id}`;
   tx.transfers.forEach(transfer => {
-    if (quickswapAddresses.some(e => `${prefix}:${e.address}` === transfer.from)) {
+    if (quickswapAddresses.some(e => e.address === transfer.from)) {
       transfer.category = TransferCategories.SwapIn;
       tx.method = source;
     }
-    if (quickswapAddresses.some(e => `${prefix}:${e.address}` === transfer.to)) {
+    if (quickswapAddresses.some(e => e.address === transfer.to)) {
       transfer.category = TransferCategories.SwapOut;
       tx.method = source;
     }

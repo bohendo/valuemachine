@@ -12,7 +12,6 @@ const logger = testLogger.child({ module: `Test${source}`,
 });
 
 describe(source, () => {
-
   it("should handle a swap", async () => {
     const tx = await parsePolygonTx({
       selfAddress: "0x8266c20cb25a5e1425cb126d78799b2a138b6c46",
@@ -22,6 +21,5 @@ describe(source, () => {
     expect(tx.sources).to.include(Guards.Polygon);
     expect(tx.method).to.match(/swap/i);
   });
-
 });
 

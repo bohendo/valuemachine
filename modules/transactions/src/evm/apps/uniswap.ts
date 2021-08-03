@@ -1,5 +1,4 @@
 import { Interface } from "@ethersproject/abi";
-import { getAddress } from "@ethersproject/address";
 import {
   Assets,
   AddressBook,
@@ -196,7 +195,6 @@ export const uniswapParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
-  const getAccount = address => `evm:${evmMeta.id}:${getAddress(address)}`;
   const { getName, isSelf } = addressBook;
 
   const getSwaps = () => {
@@ -258,11 +256,11 @@ export const uniswapParser = (
       log.info(`Parsing ${subsrc} ${event.name}`);
       swaps.in.forEach(swap => {
         swap.category = SwapIn;
-        swap.from = getAccount(address);
+        swap.from = address;
       });
       swaps.out.forEach(swap => {
         swap.category = SwapOut;
-        swap.to = getAccount(address);
+        swap.to = address;
       });
       swaps.in.forEach(swap => { swap.index = swap.index || index; });
       swaps.out.forEach(swap => { swap.index = swap.index || index; });
