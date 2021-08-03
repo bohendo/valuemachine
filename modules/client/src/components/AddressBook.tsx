@@ -26,7 +26,6 @@ import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/AddCircle";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import RemoveIcon from "@material-ui/icons/Delete";
-import SaveIcon from "@material-ui/icons/Save";
 import EditIcon from "@material-ui/icons/Edit";
 import { Alert } from "@material-ui/lab";
 import {
@@ -35,7 +34,6 @@ import {
   AddressBookJson,
   Guards,
 } from "@valuemachine/types";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 
 import { HexString } from "./HexString";
@@ -369,13 +367,9 @@ const getEmptyEntry = (): AddressEntry => ({
 });
 
 export const AddressBookManager = ({
-  apiKey,
-  setApiKey,
   addressBook,
   setAddressBookJson,
 }: {
-  apiKey: string,
-  setApiKey: (val: string) => void,
   addressBook: AddressBookJson,
   setAddressBookJson: (val: AddressBookJson) => void,
 }) => {
@@ -384,8 +378,6 @@ export const AddressBookManager = ({
 
   const [filteredAddresses, setFilteredAddresses] = useState([]);
   const [filterCategory, setFilterCategory] = useState("");
-
-  const [newApiKey, setNewApiKey] = useState({ value: "", display: "", error: "" });
 
   const [statusAlert, setStatusAlert] = useState({
     open: false,
@@ -399,10 +391,6 @@ export const AddressBookManager = ({
   useEffect(() => {
     setAllAddresses(addressBook.json.map(entry => entry.address));
   }, [addressBook]);
-
-  useEffect(() => {
-    setNewApiKey({ value: apiKey || "", error: "" });
-  }, [apiKey]);
 
   useEffect(() => {
     setFilteredAddresses(addressBook.json.filter(entry =>
@@ -434,24 +422,6 @@ export const AddressBookManager = ({
     setStatusAlert({
       ...statusAlert,
       open: false,
-    });
-  };
-
-  const handleApiKeyChange = (event: React.ChangeEvent<{ value: string }>) => {
-    setNewApiKey({ value: event.target.value, error: "" });
-  };
-
-  const handleApiKeySave = async () => {
-    console.log(`Validating profile creds for anon:${newApiKey.value}...`);
-    const authorization = `Basic ${btoa(`anon:${newApiKey.value}`)}`;
-    axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
-      if (authRes.status === 200) {
-        setApiKey(newApiKey.value);
-      } else {
-        console.error(authRes);
-      }
-    }).catch(() => {
-      setNewApiKey(old => ({ ...old, error: "Invalid Auth Token" }));
     });
   };
 
@@ -538,45 +508,6 @@ export const AddressBookManager = ({
   return (
     <div className={classes.root}>
 
-      <Typography variant="h4" className={classes.subtitle}>
-        Authentication
-      </Typography>
-
-      <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
-
-        <Grid item>
-          <TextField
-            autoComplete="off"
-            helperText={newApiKey.error || "Register an auth token to sync chain data"}
-            error={!!newApiKey.error}
-            id="auth-token"
-            label="Auth Token"
-            margin="normal"
-            onChange={handleApiKeyChange}
-            value={newApiKey.value}
-            variant="outlined"
-          />
-        </Grid>
-
-        {newApiKey.value !== apiKey ?
-          <Grid item>
-            <Button
-              className={classes.button}
-              color="primary"
-              onClick={handleApiKeySave}
-              size="small"
-              startIcon={<SaveIcon />}
-              variant="contained"
-            >
-              Save Token
-            </Button>
-          </Grid>
-          : undefined
-        }
-
-      </Grid>
-
-      <Divider/>
       <Typography variant="h4" className={classes.subtitle}>
         Manage Address Book
       </Typography>

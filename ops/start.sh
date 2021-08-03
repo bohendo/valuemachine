@@ -18,7 +18,6 @@ fi
 # shellcheck disable=SC1091
 if [[ -f .env ]]; then source .env; fi
 
-VM_ADMIN_TOKEN="${VM_ADMIN_TOKEN:-abc123}"
 VM_COVALENT_KEY="${VM_COVALENT_KEY:-}"
 VM_DOMAINNAME="${VM_DOMAINNAME:-}"
 VM_EMAIL="${VM_EMAIL:-noreply@gmail.com}"
@@ -37,7 +36,6 @@ then export VM_PROD=true
 fi
 
 echo "Launching $project in env:"
-echo "- VM_ADMIN_TOKEN=$VM_ADMIN_TOKEN"
 echo "- VM_COVALENT_KEY=$VM_COVALENT_KEY"
 echo "- VM_DOMAINNAME=$VM_DOMAINNAME"
 echo "- VM_EMAIL=$VM_EMAIL"
@@ -71,7 +69,6 @@ common="networks:
 
 server_internal_port=8080
 server_env="environment:
-      VM_ADMIN_TOKEN: '$VM_ADMIN_TOKEN'
       VM_COVALENT_KEY: '$VM_COVALENT_KEY'
       VM_ETHERSCAN_KEY: '$VM_ETHERSCAN_KEY'
       VM_LOG_LEVEL: '$VM_LOG_LEVEL'

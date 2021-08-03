@@ -250,10 +250,6 @@ export const TransactionExplorer = ({
   };
 
   const syncTxns = async () => {
-    if (!axios.defaults.headers.common.authorization) {
-      console.warn(`Auth header not set yet..`);
-      return;
-    }
     setSyncing(true);
     console.log(`Syncing eth transactions for ${addressBook.json.length} addresses..`);
     let n = 0;

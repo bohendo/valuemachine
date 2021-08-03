@@ -18,7 +18,6 @@ import {
   StoreKeys,
 } from "@valuemachine/types";
 import { getLocalStore, getLogger } from "@valuemachine/utils";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
@@ -41,7 +40,6 @@ const {
   Prices: PricesStore
 } = StoreKeys;
 const UnitStore = "Unit";
-const ApiKeyStore = "ApiKey";
 
 const darkTheme = createMuiTheme({
   palette: {
@@ -76,7 +74,6 @@ const App: React.FC = () => {
   const [pricesJson, setPricesJson] = useState(store.load(PricesStore));
   // Extra UI-specific data from localstorage
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
-  const [apiKey, setApiKey] = useState(store.load(ApiKeyStore) || "");
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook({
@@ -157,22 +154,6 @@ const App: React.FC = () => {
     store.save(UnitStore, unit);
   }, [unit]);
 
-  useEffect(() => {
-    if (!apiKey) return;
-    const authorization = `Basic ${btoa(`anon:${apiKey}`)}`;
-    axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
-      if (authRes.status === 200) {
-        axios.defaults.headers.common.authorization = authorization;
-        console.log(`Successfully authorized with server, saving api key`);
-        store.save(ApiKeyStore, apiKey);
-      } else {
-        console.log(`Unsuccessful authorization`, authRes);
-      }
-    }).catch((err) => {
-      console.warn(`Auth token "${apiKey}" is invalid: ${err.message}`);
-    });
-  }, [apiKey]);
-
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -227,8 +208,6 @@ const App: React.FC = () => {
 
             <Route exact path="/address-book">
               <AddressBookManager
-                apiKey={apiKey}
-                setApiKey={setApiKey}
                 addressBook={addressBook}
                 setAddressBookJson={setAddressBookJson}
               />

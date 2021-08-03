@@ -1,7 +1,6 @@
 import { getLogger } from "@valuemachine/utils";
 import express from "express";
 
-import { authRouter } from "./auth";
 import { env } from "./env";
 import { pricesRouter } from "./prices";
 import { ethereumRouter } from "./ethereum";
@@ -13,9 +12,6 @@ const log = getLogger(env.logLevel).child({ module: "Entry" });
 log.info(`Starting server in env: ${JSON.stringify(env, null, 2)}`);
 
 const app = express();
-
-app.use(authRouter);
-app.get("/auth", (req, res) => { res.send("Success"); });
 
 app.use(express.json({ limit: "10mb" }));
 
