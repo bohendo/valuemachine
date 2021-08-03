@@ -21,11 +21,6 @@ describe(source, () => {
       hash: "0x25e3f8798ff7f1e85f1ee5479d8e74c861ca97963a8356c9c6b7a6505b007423",
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
-      calls: [{
-        from: "0x09cabec1ead1c0ba254b09efb3ee13841712be14",
-        to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
-        value: "7.139681444502334347"
-      }]
     });
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(3);
@@ -57,11 +52,6 @@ describe(source, () => {
       hash: "0x24751ebed5fe45966c73858bcc01eab12d45d2ee6ff956c1c7cb31b8f89d3d15",
       selfAddress: "0xd0353030484a97ae850f7f35f5bc09797de792f2",
       logger,
-      calls: [{
-        from: "0x09cabec1ead1c0ba254b09efb3ee13841712be14",
-        to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
-        value: "7.139681444502334347"
-      }]
     });
     expect(tx.method.toLowerCase()).to.include("supply liquidity");
     expect(tx.transfers.length).to.equal(3);
@@ -75,11 +65,6 @@ describe(source, () => {
       hash: "0x3377b07094bcf5f911ceeaf284bb2d4a2a56f8a316923890e47c07f71f111825",
       selfAddress: "0xfbb1068305c8ddd36f85d84880b2903d4b45e876",
       logger,
-      calls: [{
-        from: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
-        to: "0xfbb1068305c8ddd36f85d84880b2903d4b45e876",
-        value: "5.834880677808569597"
-      }]
     });
     expect(tx.method.toLowerCase()).to.include("remove liquidity");
     expect(tx.transfers.length).to.equal(4);

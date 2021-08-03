@@ -34,11 +34,6 @@ describe(source, () => {
       hash: "0xdd6beaa1dfed839747217c721696d81984e2507ef973cd3efb9e0cfe486a0b80",
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
-      calls: [{
-        from: "0xb541fc07bc7619fd4062a54d96268525cbc6ffef",
-        to: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
-        value: "0.079"
-      }]
     });
     expect(tx.sources).to.include(source);
     expect(tx.transfers.length).to.equal(2);

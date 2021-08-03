@@ -38,11 +38,6 @@ describe(source, () => {
     const tx = await parseEthTx({
       hash: "0xe02431babbcfc97367fd652176bd3af33c3626a9c40427f80ea31025bef43d36",
       selfAddress: "0x2b6dfd49bf64eef655026f1ab66b77156d0328bf",
-      calls: [{
-        from: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-        to: "0x2b6dfd49bf64eef655026f1ab66b77156d0328bf",
-        value: "17.528858650249368919"
-      }],
       logger,
     });
     expect(tx.sources).to.include(source);
