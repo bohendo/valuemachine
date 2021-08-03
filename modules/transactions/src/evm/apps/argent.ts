@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -45,16 +44,16 @@ export const argentAddresses = [
 const makerManagerAddress = argentAddresses.find(e => e.name === makerManager)?.address;
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const makerManagerV1Interface = new Interface([
+const makerManagerV1Abi = [
   "event TokenConverted(address indexed wallet, address srcToken, uint256 srcAmount, address destToken, uint256 destAmount)",
   "event TransactionExecuted(address indexed wallet, bool indexed success, bytes32 signedHash)",
   "event ModuleCreated(bytes32 name)",
   "event ModuleInitialised(address wallet)",
   "event InvestmentAdded(address indexed wallet, address token, uint256 invested, uint256 period)",
   "event InvestmentRemoved(address indexed wallet, address token, uint256 fraction)"
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -77,7 +76,7 @@ export const argentParser = (
     const address = txLog.address;
     if (address === makerManagerAddress) {
       const subsrc = `${source} MakerManager`;
-      const event = parseEvent(makerManagerV1Interface, txLog, evmMeta);
+      const event = parseEvent(makerManagerV1Abi, txLog, evmMeta);
       if (!event.name) continue;
       if (!isSelf(event.args.wallet)) {
         log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);

@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -37,13 +36,13 @@ const etherdeltaAddress = etherdeltaAddresses.find(e => e.name === source).addre
 ////////////////////////////////////////
 /// ABIs
 
-const etherdeltaInterface = new Interface([
+const etherdeltaAbi = [
   "event Order(address tokenGet, uint256 amountGet, address tokenGive, uint256 amountGive, uint256 expires, uint256 nonce, address user)",
   "event Cancel(address tokenGet, uint256 amountGet, address tokenGive, uint256 amountGive, uint256 expires, uint256 nonce, address user, uint8 v, bytes32 r, bytes32 s)",
   "event Trade(address tokenGet, uint256 amountGet, address tokenGive, uint256 amountGive, address get, address give)",
   "event Deposit(address token, address user, uint256 amount, uint256 balance)",
   "event Withdraw(address token, address user, uint256 amount, uint256 balance)"
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -66,7 +65,7 @@ export const etherdeltaParser = (
     const address = txLog.address;
     if (address === etherdeltaAddress) {
       const index = txLog.index || 1;
-      const event = parseEvent(etherdeltaInterface, txLog, evmMeta);
+      const event = parseEvent(etherdeltaAbi, txLog, evmMeta);
       if (!event.name) continue;
       // Skip transfers that don't concern self accounts
       const user = [event.args.user, event.args.get, event.args.give].reduce(

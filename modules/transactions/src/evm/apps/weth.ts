@@ -31,7 +31,7 @@ export const wethAddresses = [
 const wethAddress = wethAddresses.find(e => e.name === WETH).address;
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
 const wethAbi = [
   "event Approval(address indexed src, address indexed guy, uint256 wad)",

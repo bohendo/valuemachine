@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -73,17 +72,17 @@ const compoundV1Address = compoundAddresses.find(e => e.name === compoundV1).add
 const compAddress = compoundAddresses.find(e => e.name === COMP).address;
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const compoundV1Interface = new Interface([
+const compoundV1Abi = [
   "event BorrowRepaid(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
   "event BorrowTaken(address account, address asset, uint256 amount, uint256 startingBalance, uint256 borrowAmountWithFee, uint256 newBalance)",
   "event EquityWithdrawn(address asset, uint256 equityAvailableBefore, uint256 amount, address owner)",
   "event SupplyReceived(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
   "event SupplyWithdrawn(address account, address asset, uint256 amount, uint256 startingBalance, uint256 newBalance)",
-]);
+];
 
-const comptrollerInterface = new Interface([
+const comptrollerAbi = [
   "event ActionPaused(address cToken, string action, bool pauseState)",
   "event ActionPaused(string action, bool pauseState)",
   "event CompGranted(address recipient, uint256 amount)",
@@ -102,9 +101,9 @@ const comptrollerInterface = new Interface([
   "event NewLiquidationIncentive(uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa)",
   "event NewPauseGuardian(address oldPauseGuardian, address newPauseGuardian)",
   "event NewPriceOracle(address oldPriceOracle, address newPriceOracle)",
-]);
+];
 
-const cTokenInterface = new Interface([
+const cTokenAbi = [
   "event AccrueInterest(uint256 cashPrior, uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows)",
   "event AccrueInterest(uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows)",
   "event Approval(address indexed owner, address indexed spender, uint256 amount)",
@@ -115,7 +114,7 @@ const cTokenInterface = new Interface([
   "event ReservesAdded(address benefactor, uint256 addAmount, uint256 newTotalReserves)",
   "event ReservesReduced(address admin, uint256 reduceAmount, uint256 newTotalReserves)",
   "event Transfer(address indexed from, address indexed to, uint256 amount)",
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -168,7 +167,7 @@ export const compoundParser = (
     // Compound V1
     if (address === compoundV1Address) {
       const subsrc = `${source}V1`;
-      const event = parseEvent(compoundV1Interface, txLog, evmMeta);
+      const event = parseEvent(compoundV1Abi, txLog, evmMeta);
       log.info(`Found ${subsrc} ${event.name} event`);
       const amount = formatUnits(event.args.amount, getDecimals(event.args.asset));
       const asset = getName(event.args.asset) as Asset;
@@ -255,7 +254,7 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V2: Comptroller
     } else if (comptrollerAddress === address) {
-      const event = parseEvent(comptrollerInterface, txLog, evmMeta);
+      const event = parseEvent(comptrollerAbi, txLog, evmMeta);
       if (event.name === "MarketEntered") {
         tx.method = `${getName(event.args.cToken)} market entry`;
           
@@ -264,7 +263,7 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V2: COMP gov token
     } else if (compAddress === address) {
-      const event = parseEvent(cTokenInterface, txLog, evmMeta);
+      const event = parseEvent(cTokenAbi, txLog, evmMeta);
       if (event.name === "Transfer") {
         if (isSelf(event.args.to) && event.args.from === comptrollerAddress) {
           const amount = formatUnits(
@@ -284,7 +283,7 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V2: cTokens
     } else if (cTokenAddresses.some(a => address === a.address)) {
-      const event = parseEvent(cTokenInterface, txLog, evmMeta);
+      const event = parseEvent(cTokenAbi, txLog, evmMeta);
       if (!event.name) continue;
       const cAsset = getName(address);
       const asset = cAsset.replace(/^c/, "");

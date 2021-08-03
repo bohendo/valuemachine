@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -46,9 +45,9 @@ export const oasisAddresses = [
 ];
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const oasisInterface = new Interface([
+const oasisAbi = [
   "event LogNote(bytes4 indexed sig, address indexed guy, bytes32 indexed foo, bytes32 indexed bar, uint256 wad, bytes fax) anonymous",
   "event LogItemUpdate(uint256 id)",
   "event LogTrade(uint256 pay_amt, address indexed pay_gem, uint256 buy_amt, address indexed buy_gem)",
@@ -65,7 +64,7 @@ const oasisInterface = new Interface([
   "event LogRemTokenPairWhitelist(address baseToken, address quoteToken)",
   "event LogInsert(address keeper, uint256 id)",
   "event LogDelete(address keeper, uint256 id)"
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -100,7 +99,7 @@ export const oasisParser = (
     const address = txLog.address;
     if (machineAddresses.some(e => e.address === address)) {
       tx.sources = dedup([source, ...tx.sources]);
-      const event = parseEvent(oasisInterface, txLog, evmMeta);
+      const event = parseEvent(oasisAbi, txLog, evmMeta);
 
       if (event.name === "LogTake") {
         log.info(`Parsing ${source} ${event.name} event`);

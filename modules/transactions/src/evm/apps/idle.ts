@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -57,15 +56,15 @@ export const idleAddresses = [
 ];
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const stkIDLEInterface = new Interface([
+const stkIDLEAbi = [
   "event ApplyOwnership(address admin)",
   "event CommitOwnership(address admin)",
   "event Deposit(address indexed provider, uint256 value, uint256 indexed locktime, int128 type, uint256 ts)",
   "event Supply(uint256 prevSupply, uint256 supply)",
   "event Withdraw(address indexed provider, uint256 value, uint256 ts)",
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -107,7 +106,7 @@ export const idleParser = (
       tx.sources = dedup([source, ...tx.sources]);
       const name = addressBook.getName(address);
       if (name === stkIDLE) {
-        const event = parseEvent(stkIDLEInterface, txLog, evmMeta);
+        const event = parseEvent(stkIDLEAbi, txLog, evmMeta);
         const account = getAppAccount(event.args.provider, stkIDLE);
 
         if (event.name === "Deposit") {

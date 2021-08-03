@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -92,10 +91,10 @@ export const erc20Addresses = [
 ////////////////////////////////////////
 /// ABIs
 
-const erc20Interface = new Interface([
+const erc20Abi = [
   "event Approval(address indexed from, address indexed to, uint amount)",
   "event Transfer(address indexed from, address indexed to, uint amount)",
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -114,7 +113,7 @@ export const erc20Parser = (
     const address = txLog.address;
     // Only parse known, ERC20 compliant tokens
     if (isToken(address)) {
-      const event = parseEvent(erc20Interface, txLog, evmMeta);
+      const event = parseEvent(erc20Abi, txLog, evmMeta);
       if (!event.name) continue;
       tx.sources = dedup([source, ...tx.sources]);
       const asset = getName(address) as Asset;

@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import {
   Assets,
   AddressBook,
@@ -153,36 +152,36 @@ export const uniswapAddresses = [
 ];
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const uniswapV1Interface = new Interface([
+const uniswapV1Abi = [
   "event AddLiquidity(address indexed provider, uint256 indexed eth_amount, uint256 indexed token_amount)",
   "event Approval(address indexed _owner, address indexed _spender, uint256 _value)",
   "event EthPurchase(address indexed buyer, uint256 indexed tokens_sold, uint256 indexed eth_bought)",
   "event RemoveLiquidity(address indexed provider, uint256 indexed eth_amount, uint256 indexed token_amount)",
   "event TokenPurchase(address indexed buyer, uint256 indexed eth_sold, uint256 indexed tokens_bought)",
   "event Transfer(address indexed _from, address indexed _to, uint256 _value)",
-]);
+];
 
-const uniswapV2Interface = new Interface([
+const uniswapV2Abi = [
   "event Approval(address indexed owner, address indexed spender, uint256 value)",
   "event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to)",
   "event Mint(address indexed sender, uint256 amount0, uint256 amount1)",
   "event Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to)",
   "event Sync(uint112 reserve0, uint112 reserve1)",
   "event Transfer(address indexed from, address indexed to, uint256 value)",
-]);
+];
 
-const stakingInterface = new Interface([
+const stakingAbi = [
   "event RewardAdded(uint256 reward)",
   "event RewardPaid(address indexed user, uint256 reward)",
   "event Staked(address indexed user, uint256 amount)",
   "event Withdrawn(address indexed user, uint256 amount)",
-]);
+];
 
-const airdropInterface = new Interface([
+const airdropAbi = [
   "event Claimed(uint256 index, address account, uint256 amount)",
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
@@ -227,16 +226,16 @@ export const uniswapParser = (
     let subsrc, event;
     if (v2MarketAddresses.some(e => e.address === address)) {
       subsrc = `${source}V2`;
-      event = parseEvent(uniswapV2Interface, txLog, evmMeta);
+      event = parseEvent(uniswapV2Abi, txLog, evmMeta);
     } else if (v1MarketAddresses.some(e => e.address === address)) {
       subsrc = `${source}V1`;
-      event = parseEvent(uniswapV1Interface, txLog, evmMeta);
+      event = parseEvent(uniswapV1Abi, txLog, evmMeta);
     } else if (stakingAddresses.some(e => e.address === address)) {
       subsrc = `${source}V2`;
-      event = parseEvent(stakingInterface, txLog, evmMeta);
+      event = parseEvent(stakingAbi, txLog, evmMeta);
     } else if (airdropAddresses.some(e => e.address === address)) {
       subsrc = `${source}V2`;
-      event = parseEvent(airdropInterface, txLog, evmMeta);
+      event = parseEvent(airdropAbi, txLog, evmMeta);
     } else {
       log.debug(`Skipping ${getName(address)} event`);
       continue;

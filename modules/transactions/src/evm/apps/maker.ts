@@ -94,17 +94,17 @@ const migrationAddress = makerAddresses.find(e => e.name.endsWith(migration))?.a
 const scdPitAddress = makerAddresses.find(e => e.name.endsWith(pit))?.address;
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const tokenInterface = new Interface([
+const tokenAbi = [
   "event Approval(address indexed src, address indexed guy, uint256 wad)",
   "event Burn(address indexed guy, uint256 wad)",
   "event LogNote(bytes4 indexed sig, address indexed guy, bytes32 indexed foo, bytes32 indexed bar, uint256 wad, bytes fax) anonymous",
   "event Mint(address indexed guy, uint256 wad)",
   "event Transfer(address indexed src, address indexed dst, uint256 wad)"
-]);
+];
 
-const tubInterface = new Interface([
+const tubAbi = [
   "event LogNewCup(address indexed lad, bytes32 cup)",
   "event LogNote(bytes4 indexed sig, address indexed guy, bytes32 indexed foo, bytes32 indexed bar, uint256 wad, bytes fax) anonymous",
   "function join(uint256 wad)",
@@ -117,17 +117,17 @@ const tubInterface = new Interface([
   "function wipe(bytes32 cup, uint256 wad)",
   "function shut(bytes32 cup)",
   "function bite(bytes32 cup)",
-]);
+];
 
-const cageInterface = new Interface([
+const cageAbi = [
   "event FreeCash(address sender, uint256 amount)",
   "function freeCash(uint256 wad) returns (uint256 cashoutBalance)",
   "function sai() view returns (address)",
   "function tap() view returns (address)",
   "function weth() view returns (address)"
-]);
+];
 
-const vatInterface = new Interface([
+const vatAbi = [
   "event LogNote(bytes4 indexed sig, bytes32 indexed arg1, bytes32 indexed arg2, bytes32 indexed arg3, bytes data) anonymous",
   "function cage()",
   "function can(address, address) view returns (uint256)",
@@ -157,9 +157,9 @@ const vatInterface = new Interface([
   "function urns(bytes32, address) view returns (uint256 ink, uint256 art)",
   "function vice() view returns (uint256)",
   "function wards(address) view returns (uint256)"
-]);
+];
 
-const potInterface = new Interface([
+const potAbi = [
   "event LogNote(bytes4 indexed sig, address indexed usr, bytes32 indexed arg1, bytes32 indexed arg2, bytes data) anonymous",
   "function Pie() view returns (uint256)",
   "function cage()",
@@ -178,31 +178,21 @@ const potInterface = new Interface([
   "function vat() view returns (address)",
   "function vow() view returns (address)",
   "function wards(address) view returns (uint256)"
-]);
+];
 
-const proxyInterface = new Interface([
+const proxyAbi = [
   "event Created(address indexed sender, address indexed owner, address proxy, address cache)"
-]);
+];
 
 ////////////////////////////////////////
 /// Parser
 
-export const makerParser = (
-  tx: Transaction,
-  evmTx: EvmTransaction,
-  evmMeta: EvmMetadata,
-  addressBook: AddressBook,
-  logger: Logger,
-): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
-  const addressZero = `evm:${evmMeta.id}:${AddressZero}`; 
-  const { getDecimals, getName, isSelf } = addressBook;
-  // log.debug(tx, `Parsing in-progress tx`);
-
-  const parseLogNote = (
-    iface: Interface,
-    ethLog: EvmTransactionLog,
-  ): { name: string; args: string[]; } => ({
+const parseLogNote = (
+  abi: string[],
+  ethLog: EvmTransactionLog,
+): { name: string; args: string[]; } => {
+  const iface = new Interface(abi);
+  return {
     name: Object.values(iface.functions).find(e =>
       ethLog.topics[0].startsWith(iface.getSighash(e))
     )?.name,
@@ -217,7 +207,20 @@ export const makerParser = (
           ? `0x${str.substring(26)}`
           : str
       ),
-  });
+  };
+};
+
+export const makerParser = (
+  tx: Transaction,
+  evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
+  addressBook: AddressBook,
+  logger: Logger,
+): Transaction => {
+  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const addressZero = `evm:${evmMeta.id}:${AddressZero}`; 
+  const { getDecimals, getName, isSelf } = addressBook;
+  // log.debug(tx, `Parsing in-progress tx`);
 
   const ethish = [WETH, ETH, PETH] as Asset[];
 
@@ -259,7 +262,7 @@ export const makerParser = (
     }
     if (tokenAddresses.some(e => e.address === address)) {
       const asset = getName(address) as Asset;
-      const event = parseEvent(tokenInterface, txLog, evmMeta);
+      const event = parseEvent(tokenAbi, txLog, evmMeta);
       if (!event.name) continue;
       const wad = formatUnits(event.args.wad, getDecimals(address));
       if (!isSelf(event.args.guy)) {
@@ -325,7 +328,7 @@ export const makerParser = (
     ////////////////////////////////////////
     // Proxy Managers
     if (proxyAddresses.some(e => address === e.address)) {
-      const event = parseEvent(proxyInterface, txLog, evmMeta);
+      const event = parseEvent(proxyAbi, txLog, evmMeta);
       if (event?.name === "Created") {
         tx.method = "Proxy Creation";
       }
@@ -333,7 +336,7 @@ export const makerParser = (
     ////////////////////////////////////////
     // MCD Vat aka Vault manager
     } else if (address === vatAddress) {
-      const logNote = parseLogNote(vatInterface, txLog);
+      const logNote = parseLogNote(vatAbi, txLog);
       if (!logNote.name) continue;
       log.debug(`Found Vat call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
         logNote.args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
@@ -407,7 +410,7 @@ export const makerParser = (
     ////////////////////////////////////////
     // MCD Pot aka DSR
     } else if (address === dsrAddress) {
-      const logNote = parseLogNote(potInterface, txLog);
+      const logNote = parseLogNote(potAbi, txLog);
       if (!logNote.name) continue;
       log.debug(`Found Pot call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
         logNote.args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
@@ -448,7 +451,7 @@ export const makerParser = (
     // SCD Cage
     // During global settlement, the cage is used to redeem no-longer-stable-coins for collateral
     } else if (address === cageAddress) {
-      const event = parseEvent(cageInterface, txLog, evmMeta);
+      const event = parseEvent(cageAbi, txLog, evmMeta);
       if (event?.name === "FreeCash") {
         const wad = formatUnits(event.args[1], 18);
         log.info(`Parsing SaiCage FreeCash event for ${wad} ETH`);
@@ -483,12 +486,12 @@ export const makerParser = (
     ////////////////////////////////////////
     // SCD Tub
     } else if (address === tubAddress) {
-      const event = parseEvent(tubInterface, txLog, evmMeta);
+      const event = parseEvent(tubAbi, txLog, evmMeta);
       if (event?.name === "LogNewCup") {
         tx.method = `Create CDP-${toBN(event.args.cup)}`;
         continue;
       }
-      const logNote = parseLogNote(tubInterface, txLog);
+      const logNote = parseLogNote(tubAbi, txLog);
       if (!logNote.name || logNote.name === "open") continue;
       log.debug(`Found Tub call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
         logNote.args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
@@ -607,7 +610,7 @@ export const makerParser = (
         } else if (!evmTx.logs.find(l =>
           l.index > index
           && l.address === saiAddress
-          && parseEvent(tokenInterface, l, evmMeta).name === "Mint"
+          && parseEvent(tokenAbi, l, evmMeta).name === "Mint"
         )) {
           // Only warn if there is NOT an upcoming SAI mint evet
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
@@ -627,7 +630,7 @@ export const makerParser = (
         } else if (!evmTx.logs.find(l =>
           l.index > index
           && l.address === saiAddress
-          && parseEvent(tokenInterface, l, evmMeta).name === "Burn"
+          && parseEvent(tokenAbi, l, evmMeta).name === "Burn"
         )) {
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
         }

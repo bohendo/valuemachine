@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import {
   AddressBook,
   AddressCategories,
@@ -122,9 +121,9 @@ export const yearnAddresses = [
 const govAddress = yearnAddresses.find(e => e.name === YFI).address;
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const yGovInterface = new Interface([
+const yGovAbi = [
   "event NewProposal(uint256 id, address creator, uint256 start, uint256 duration, address executor)",
   "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
   "event ProposalFinished(uint256 indexed id, uint256 _for, uint256 _against, bool quorumReached)",
@@ -135,15 +134,15 @@ const yGovInterface = new Interface([
   "event Staked(address indexed user, uint256 amount)",
   "event Vote(uint256 indexed id, address indexed voter, bool vote, uint256 weight)",
   "event Withdrawn(address indexed user, uint256 amount)",
-]);
+];
 
 /*
-const yVaultV1Interface = new Interface([
+const yVaultV1Abi = [
   "event Approval(address indexed owner, address indexed spender, uint256 value)",
   "event Transfer(address indexed from, address indexed to, uint256 value)",
-]);
+];
 
-const yVaultV2Interface = new Interface([
+const yVaultV2Abi = [
   "event Transfer(address indexed sender, address indexed receiver, uint256 value)",
   "event Approval(address indexed owner, address indexed spender, uint256 value)",
   "event UpdateGovernance(address governance)",
@@ -164,7 +163,7 @@ const yVaultV2Interface = new Interface([
   "event StrategyRevoked(address indexed strategy)",
   "event StrategyRemovedFromQueue(address indexed strategy)",
   "event StrategyAddedToQueue(address indexed strategy)",
-]);
+];
 */
 
 ////////////////////////////////////////
@@ -269,7 +268,7 @@ export const yearnParser = (
 
     } else if (address === govAddress) {
       tx.sources = dedup([source, ...tx.sources]);
-      const event = parseEvent(yGovInterface, txLog, evmMeta);
+      const event = parseEvent(yGovAbi, txLog, evmMeta);
       if (!event.name) continue;
       log.info(`Parsing yGov ${event.name}`);
       if (event.name === "Staked") {

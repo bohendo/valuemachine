@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -114,9 +113,9 @@ export const aaveAddresses = [
 ];
 
 ////////////////////////////////////////
-/// Interfaces
+/// Abis
 
-const lendingPoolInterface = new Interface([
+const lendingPoolAbi = [
   "event LiquidationCall(address indexed collateralAsset,address indexed debtAsset,address indexed user,uint256 debtToCover,uint256 liquidatedCollateralAmount,address liquidator,bool receiveAToken )",
   "event ReserveDataUpdated(address indexed reserve,uint256 liquidityRate,uint256 stableBorrowRate,uint256 variableBorrowRate,uint256 liquidityIndex,uint256 variableBorrowIndex )",
   "event ReserveUsedAsCollateralEnabled(address indexed reserve,address indexed user )",
@@ -128,9 +127,9 @@ const lendingPoolInterface = new Interface([
   "event FlashLoan(address indexed target,address indexed initiator,address indexed asset,uint256 amount,uint256 premium,uint16 referralCode )",
   "event RebalanceStableBorrowRate(address indexed reserve,address indexed user )",
   "event Swap(address indexed user,address indexed reserve,uint256 rateMode)",
-]);
+];
 
-const aaveStakeInterface = new Interface([
+const aaveStakeAbi = [
   "event Approval(address indexed owner, address indexed spender, uint256 value)",
   "event AssetConfigUpdated(address indexed asset, uint256 emission)",
   "event AssetIndexUpdated(address indexed asset, uint256 index )",
@@ -143,16 +142,16 @@ const aaveStakeInterface = new Interface([
   "event Staked(address indexed from,address indexed onBehalfOf,uint256 amount  )",
   "event Transfer(address indexed from,address indexed to,uint256 value )",
   "event UserIndexUpdated(address indexed user,address indexed asset,uint256 index )",
-]);
+];
 
 /*
-const aTokenInterface = new Interface([
+const aTokenAbi = [
   "event Transfer(address from,address to,uint256 value )",
   "event Mint(address _to,uint256 _amount,uint256 _newTotalSupply )",
   "event Burn(address account,address burnAddress,uint256 tokens,uint256 time )",
   "event Approval(address owner,address spender,uint256 value )",
   "event Withdraw(address indexed provider, uint256 value, uint256 ts)",
-]);
+];
 */
 
 
@@ -190,7 +189,7 @@ export const aaveParser = (
     const address = txLog.address;
     if (addresses.core?.some(e => e.address === address)) {
       tx.sources = dedup([source, ...tx.sources]);
-      const event = parseEvent(lendingPoolInterface, txLog, evmMeta);
+      const event = parseEvent(lendingPoolAbi, txLog, evmMeta);
       if (!event.name) continue;
 
       if (event.name === "Deposit" && (isSelf(event.args.user) || isSelf(event.args.onBehalfOf))) {
@@ -285,7 +284,7 @@ export const aaveParser = (
       }
 
     } else if (stkAAVEAddress === address) {
-      const event = parseEvent(aaveStakeInterface, txLog, evmMeta);
+      const event = parseEvent(aaveStakeAbi, txLog, evmMeta);
       if (event.name === "Staked"&& (event.args.from===event.args.onBehalfOf) ) {
         const asset1 = AAVE;
         const asset2 = stkAAVE;

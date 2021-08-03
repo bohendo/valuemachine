@@ -1,4 +1,3 @@
-import { Interface } from "@ethersproject/abi";
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
@@ -50,21 +49,20 @@ export const polygonAddresses = [
   ...miscAddresses,
 ];
 
-const plasmaBridgeInterface = new Interface([
+const plasmaBridgeAbi = [
   "event NewDepositBlock(address indexed owner, address indexed token, uint256 amountOrNFTId, uint256 depositBlockId)",
   "event MaxErc20DepositUpdate(uint256 indexed oldLimit, uint256 indexed newLimit)",
   "event ProxyUpdated(address indexed _new, address indexed _old)",
   "event OwnerUpdate(address _prevOwner, address _newOwner)",
   "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)"
-]);
+];
 
-const wethInterface = new Interface([
+const wethAbi = [
   "event Approval(address indexed from, address indexed to, uint amount)",
   "event Deposit(address indexed from, uint256 amount)",
   "event Transfer(address indexed from, address indexed to, uint amount)",
   "event Withdrawal(address indexed to, uint256 amount)",
-]);
-
+];
 
 export const polygonParser = (
   tx: Transaction,
@@ -88,7 +86,7 @@ export const polygonParser = (
       .filter(txLog => isToken(txLog.address))
       .map((txLog): Transfer => {
         const address = txLog.address;
-        const event = parseEvent(wethInterface, txLog, evmMeta);
+        const event = parseEvent(wethAbi, txLog, evmMeta);
         if (event.name === "Transfer") {
           return {
             asset: getName(address),
@@ -183,7 +181,7 @@ export const polygonParser = (
     evmTx.logs
       .filter(txLog => getName(txLog.address) === PlasmaBridge) 
       .forEach(txLog => {
-        const event = parseEvent(plasmaBridgeInterface, txLog, evmMeta);
+        const event = parseEvent(plasmaBridgeAbi, txLog, evmMeta);
         log.info(`Got plasma bridge event: ${event.name}`);
         if (event.name === "NewDepositBlock") {
           tx.transfers.push({
@@ -204,7 +202,7 @@ export const polygonParser = (
       if (polygonAddresses.map(e => e.address).includes(address)) {
         tx.sources = dedup([source, ...tx.sources]);
         const name = getName(address);
-        const event = parseEvent(plasmaBridgeInterface, txLog, evmMeta);
+        const event = parseEvent(plasmaBridgeAbi, txLog, evmMeta);
         if (event?.name === "NewDepositBlock") {
           const quantity = formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token));
           const asset = getName(event.args.token);
