@@ -58,12 +58,10 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   ////////////////////////////////////////
   // Helpers
 
-  const isSameAddress = (a1: Address, a2: Address): boolean => {
-    if (a1.includes(":") && a2.includes(":")) return a1.toLowerCase() === a2.toLowerCase();
-    const t1 = fmtAddress(a1.includes(":") ? a1.split(":").pop() : a1);
-    const t2 = fmtAddress(a2.includes(":") ? a2.split(":").pop() : a2);
-    return t1.toLowerCase() === t2.toLowerCase();
-  };
+  const isSameAddress = (a1: Address, a2: Address): boolean =>
+    a1.includes(":") && a2.includes(":")
+      ? a1 === a2
+      : a1.split(":").pop() === a2.split(":").pop();
 
   const getEntry = (address: Address): AddressEntry | undefined => {
     if (!address) return undefined;

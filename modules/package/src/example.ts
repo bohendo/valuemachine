@@ -33,7 +33,12 @@ const transactions = getTransactions({ logger });
 (async () => {
 
   // Get chain data management tools
-  const chainData = getEthereumData({ etherscanKey: process.env.ETHERSCAN_KEY, logger, store });
+  const chainData = getEthereumData({
+    etherscanKey: process.env.ETHERSCAN_KEY,
+    covalentKey: process.env.COVALENT_KEY,
+    logger,
+    store,
+  });
 
   // Fetch eth chain data, this can take a while
   await chainData.syncAddressBook(addressBook);

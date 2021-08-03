@@ -11,7 +11,7 @@ export const getEmptyEvmData = (): EvmDataJson => ({
 });
 
 export const getNewContractAddress = (from: Address, nonce: number): Address => `0x${
-  keccak256(encode([from, hexlify(nonce)])).substring(26).toLowerCase()
+  keccak256(encode([from.split(":").pop(), hexlify(nonce)])).substring(26).toLowerCase()
 }`;
 
 const validateEvmData = ajv.compile(EvmDataJson);
