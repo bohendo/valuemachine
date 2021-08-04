@@ -19,6 +19,7 @@ import {
   div,
   eq,
   getEmptyPrices,
+  assetsAreClose,
   getLogger,
   getPricesError,
   gt,
@@ -27,10 +28,9 @@ import {
 } from "@valuemachine/utils";
 import axios from "axios";
 
-const {
-  BAT, BCH, BTC, CHERRY, COMP, DAI, ETH, GEN, GNO, LTC, MKR, OMG,
-  REP, REPv2, SAI, SNT, SNX, SNXv1, SPANK, UNI, USDC, USDT, WBTC, WETH, YFI
-} = Assets;
+import * as coingecko from "./coingecko.json";
+
+const { ETH, WETH } = Assets;
 
 export const getPrices = (params?: PricesParams): Prices => {
   const { logger, store, json: pricesJson, unit: defaultUnit } = params || {};
@@ -40,8 +40,6 @@ export const getPrices = (params?: PricesParams): Prices => {
 
   const error = getPricesError(json);
   if (error) throw new Error(error);
-
-  const ethish = [ETH, WETH] as Asset[];
 
   log.debug(`Loaded prices for ${
     Object.keys(json).length
@@ -82,7 +80,7 @@ export const getPrices = (params?: PricesParams): Prices => {
         log.warn(`Request timed out, trying one more time..`);
         await new Promise(res => setTimeout(res, 1000)); // short pause
         response = await attempt();
-      } else if (e.message.includes("429")) {
+      } else if (e.message.includes("429") || e.message.toLowerCase().includes("rate limit")) {
         log.warn(`We're rate limited, pausing then trying one more time..`);
         await new Promise(res => setTimeout(res, 8000)); // long pause
         response = await attempt();
@@ -126,7 +124,7 @@ export const getPrices = (params?: PricesParams): Prices => {
       !unvisited.has(start) || !unvisited.has(target) ||
       !countPrices(date, start) || !countPrices(date, target)
     ) {
-      log.info(`${target} to ${start} exchange rate is unavailable on ${date}`);
+      log.debug(`${target} to ${start} exchange rate is unavailable on ${date}`);
       return [];
     }
     const distances = {} as { [to: string]: { distance: number; path: Asset[]; } };
@@ -169,7 +167,7 @@ export const getPrices = (params?: PricesParams): Prices => {
         } else {
           // Are there any other unvisited nodes to check?
           if (!branches.length || unvisited.size === 0) {
-            log.info(`No exchange-rate-path exists between ${start} and ${target}`);
+            log.debug(`No exchange-rate-path exists between ${start} and ${target}`);
             log.debug(json[date], `Prices we have so far`);
             log.debug(distances, `Final distances from ${start} to ${target}`);
             return [];
@@ -203,37 +201,9 @@ export const getPrices = (params?: PricesParams): Prices => {
   ): Promise<string | undefined> => {
     // derived from output of https://api.coingecko.com/api/v3/coins/list
     const unit = formatUnit(givenUnit);
-    const getCoinId = (asset: Asset): string | undefined => {
-      switch (asset) {
-      case BAT: return "basic-attention-token";
-      case BCH: return "bitcoin-cash";
-      case BTC: return "bitcoin";
-      case CHERRY: return "cherry";
-      case COMP: return "compound-governance-token";
-      case DAI: return "dai";
-      case ETH: return "ethereum";
-      case GEN: return "daostack";
-      case GNO: return "gnosis";
-      case LTC: return "litecoin";
-      case MKR: return "maker";
-      case OMG: return "omisego";
-      case REP: return "augur";
-      case REPv2: return "augur";
-      case SAI: return "sai";
-      case SNT: return "status";
-      case SNX: return "havven";
-      case SNXv1: return "havven";
-      case SPANK: return "spankchain";
-      case UNI: return "uniswap";
-      case USDC: return "usd-coin";
-      case USDT: return "tether";
-      case WBTC: return "wrapped-bitcoin";
-      case WETH: return "weth";
-      case YFI: return "yearn-finance";
-      default: return undefined;
-      }
-    };
-    const coinId = getCoinId(asset);
+    const coinId = coingecko.list.find(entry =>
+      entry.symbol === asset || entry.symbol === asset.toLowerCase()
+    )?.id;
     if (!coinId) {
       log.warn(`Asset "${asset}" is not available on CoinGecko`);
       return undefined;
@@ -406,7 +376,7 @@ export const getPrices = (params?: PricesParams): Prices => {
   };
 
   ////////////////////////////////////////
-  // External Methods
+  // Exported Methods
 
   const getPrice = (
     rawDate: DateString,
@@ -415,8 +385,7 @@ export const getPrices = (params?: PricesParams): Prices => {
   ): string | undefined => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
-    log.debug(`Getting ${unit} price of ${asset} on ${date}..`);
-    if (asset === unit || (ethish.includes(asset) && ethish.includes(unit))) return "1";
+    if (assetsAreClose(asset, unit)) return "1";
     if (json[date]?.[unit]?.[asset]) return formatPrice(json[date][unit][asset]);
     if (json[date]?.[asset]?.[unit]) return formatPrice(div("1", json[date][asset][unit]));
     const path = getPath(date, unit, asset);
@@ -430,11 +399,32 @@ export const getPrices = (params?: PricesParams): Prices => {
         } else if (json[date]?.[step]?.[prev]) {
           price = mul(price, div("1", json[date]?.[step]?.[prev]));
         }
-        log.debug(`Got price of ${step}: ${formatPrice(price)} ${unit}`);
+        log.debug(`Got path to price of ${step}: ${formatPrice(price)} ${unit}`);
       }
       prev = step;
     });
     return formatPrice(price);
+  };
+
+  const getNearest = (
+    rawDate: DateString,
+    asset: Asset,
+    givenUnit?: Asset,
+  ): string | undefined => {
+    const date = formatDate(rawDate);
+    const unit = formatUnit(givenUnit);
+    log.debug(`Getting ${unit} price of ${asset} on date closest to ${date}..`);
+    let price = getPrice(date, asset, givenUnit);
+    if (price) return price;
+    const diff = (d1, d2) => new Date(d1).getTime() - new Date(d2).getTime();
+    const availableDates = Object.keys(json).sort((d1, d2) => {
+      return diff(d1, date) - diff(d2, date);
+    });
+    for (const candidate of availableDates) {
+      price = getPrice(candidate, asset, givenUnit);
+      if (price) return price;
+    }
+    return undefined;
   };
 
   const merge = (prices: PricesJson): void => {
@@ -469,8 +459,7 @@ export const getPrices = (params?: PricesParams): Prices => {
   ): Promise<string | undefined> => {
     const date = formatDate(rawDate);
     const unit = formatUnit(givenUnit);
-    if (asset === unit || (ethish.includes(asset) && ethish.includes(unit))) return "1";
-    log.debug(`Syncing ${unit} price of ${asset} on ${date}`);
+    if (assetsAreClose(asset, unit)) return "1";
     if (!json[date]) json[date] = {};
     if (!json[date][unit]) json[date][unit] = {};
     if (!json[date][unit][asset]) {
@@ -511,8 +500,8 @@ export const getPrices = (params?: PricesParams): Prices => {
         if (chunk.disposeDate && chunk.outputs?.length) {
           dates.push(chunk.disposeDate);
         }
-        if (chunk.receiveDate && chunk.inputs?.length) {
-          dates.push(chunk.receiveDate);
+        if (chunk.history[0]?.date && chunk.inputs?.length) {
+          dates.push(chunk.history[0]?.date);
         }
         return Array.from(new Set(dates));
       }, []).sort(chrono)
@@ -528,7 +517,7 @@ export const getPrices = (params?: PricesParams): Prices => {
           return output;
         }, {}),
         in: chunks.reduce((input, chunk) => {
-          if (chunk.receiveDate === date && chunk.inputs?.length) {
+          if (chunk.history[0]?.date === date && chunk.inputs?.length) {
             input[chunk.asset] = input[chunk.asset] || "0";
             input[chunk.asset] = add(input[chunk.asset], chunk.quantity);
           }
@@ -546,7 +535,7 @@ export const getPrices = (params?: PricesParams): Prices => {
           out: assets.out.map(asset => swap.out[asset]),
         };
 
-        log.info(`Parsing swap of [${assets.out}] for [${assets.in}] on ${date}`);
+        log.info(`Calculating prices on ${date} from swap of [${assets.out}] for [${assets.in}]`);
         // Assumes that the input and output have equal value
         if (assets.in.length === 1 && assets.out.length === 1) {
           const asset = { in: assets.in[0], out: assets.out[0] };
@@ -590,12 +579,11 @@ export const getPrices = (params?: PricesParams): Prices => {
       });
 
     merge(chunkPrices);
-    log.info(chunkPrices, "Merged new prices");
 
     for (const chunk of chunks) {
-      const { asset, receiveDate, disposeDate } = chunk;
+      const { asset, history, disposeDate } = chunk;
       if (unit === asset) continue;
-      for (const rawDate of [receiveDate, disposeDate]) {
+      for (const rawDate of [history[0]?.date, disposeDate]) {
         const date = rawDate ? formatDate(rawDate) : null;
         if (!date) continue;
         chunkPrices[date] = chunkPrices[date] || {};
@@ -608,6 +596,7 @@ export const getPrices = (params?: PricesParams): Prices => {
 
   return {
     getPrice,
+    getNearest,
     setPrice,
     json,
     merge,

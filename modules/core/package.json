@@ -1,6 +1,6 @@
 {
   "name": "@valuemachine/core",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "description": "Low level utilities for portfolio and tax analysis",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
@@ -12,16 +12,16 @@
   "files": ["dist", "src"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"
+    "test": "ts-mocha --check-leaks --color --exit --timeout 60000 'src/**/*.test.ts'"
   },
   "dependencies": {
-    "@ethersproject/bignumber": "5.4.0",
+    "@ethersproject/bignumber": "5.4.1",
     "@ethersproject/constants": "5.4.0",
     "@ethersproject/units": "5.4.0",
-    "@valuemachine/transactions": "0.5.0",
-    "@valuemachine/transactions": "0.5.0",
-    "@valuemachine/types": "0.5.0",
-    "@valuemachine/utils": "0.5.0",
+    "@valuemachine/transactions": "0.7.0",
+    "@valuemachine/transactions": "0.7.0",
+    "@valuemachine/types": "0.7.0",
+    "@valuemachine/utils": "0.7.0",
     "axios": "0.21.1"
   },
   "devDependencies": {

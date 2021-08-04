@@ -2,9 +2,9 @@ import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
-import { EthTransaction } from "./chainData";
+import { EvmMetadata, EvmTransaction } from "./evmData";
 import { Logger } from "./logger";
-import { SecurityProviders } from "./security";
+import { DigitalGuards, Guards } from "./guards";
 import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
 
@@ -20,36 +20,49 @@ export const CsvSources = {
 export const CsvSource = Type.Enum(CsvSources);
 export type CsvSource = Static<typeof CsvSource>;
 
-// Set default guardians for external sources
-export const jurisdictions = {
-  [CsvSources.Coinbase]: SecurityProviders.USD,
-  [CsvSources.DigitalOcean]: SecurityProviders.USD,
-  [CsvSources.Wyre]: SecurityProviders.USD,
-  [CsvSources.Wazirx]: SecurityProviders.INR,
+// Set default guards for csv sources
+export const guards = {
+  [CsvSources.Coinbase]: Guards.USA,
+  [CsvSources.DigitalOcean]: Guards.USA,
+  [CsvSources.Wyre]: Guards.USA,
+  [CsvSources.Wazirx]: Guards.IND,
 };
 
-export const EthereumSources = {
+export const ChainSources = {
+  ...DigitalGuards,
+} as const;
+export const ChainSource = Type.Enum(ChainSources);
+export type ChainSource = Static<typeof ChainSource>;
+
+// Solidity-based evm apps, might be exist on multiple chains
+export const EvmSources = {
+  Aave: "Aave",
   Argent: "Argent",
   Compound: "Compound",
-  Idle: "Idle",
   ERC20: "ERC20",
-  EthTx: "EthTx",
   EtherDelta: "EtherDelta",
+  Idle: "Idle",
   Maker: "Maker",
   Oasis: "Oasis",
+  Polygon: "Polygon",
+  Quickswap: "Quickswap",
   Tornado: "Tornado",
   Uniswap: "Uniswap",
   Weth: "Weth",
   Yearn: "Yearn",
 } as const;
-export const EthereumSource = Type.Enum(EthereumSources);
-export type EthereumSource = Static<typeof EthereumSource>;
+export const EvmSource = Type.Enum(EvmSources);
+export type EvmSource = Static<typeof EvmSource>;
 
 export const TransactionSources = {
   ...CsvSources,
-  ...EthereumSources,
+  ...EvmSources,
+  ...ChainSources,
 } as const;
-export const TransactionSource = Type.Enum(TransactionSources);
+export const TransactionSource = Type.Union([
+  Type.Enum(TransactionSources),
+  Type.String(), // Allow arbitrary sources in app-level code
+]);
 export type TransactionSource = Static<typeof TransactionSource>;
 
 export const TransferCategories = {
@@ -83,6 +96,7 @@ export const Transaction = Type.Object({
   hash: Type.Optional(Bytes32), // convert to uuid
   index: Type.Optional(Type.Number()),
   sources: Type.Array(TransactionSource),
+  // guards: Type.Array(TransactionSource),
   transfers: Type.Array(Transfer),
 });
 export type Transaction = Static<typeof Transaction>;
@@ -99,9 +113,10 @@ export type CsvParser = (
   logger: Logger,
 ) => Transaction;
 
-export type EthParser = (
+export type EvmParser = (
   tx: Transaction,
-  ethTx: EthTransaction,
+  evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ) => Transaction;

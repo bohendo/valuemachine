@@ -1,24 +1,29 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBookJson } from "./addressBook";
-import { ChainDataJson } from "./chainData";
+import { EvmDataJson } from "./evmData";
 import { PricesJson } from "./prices";
 import { ValueMachineJson } from "./vm";
 import { TransactionsJson } from "./transactions";
 
 export const StoreKeys = {
   AddressBook: "AddressBook",
-  ChainData: "ChainData",
+  EthereumData: "EthereumData",
+  PolygonData: "PolygonData",
   Prices: "Prices",
   Transactions: "Transactions",
   ValueMachine: "ValueMachine",
 } as const;
-export const StoreKey = Type.Enum(StoreKeys);
+export const StoreKey = Type.Union([
+  Type.String(),
+  Type.Enum(StoreKeys),
+]);
 export type StoreKey = Static<typeof StoreKey>;
 
 interface StoreTypeMap {
   [StoreKeys.AddressBook]: AddressBookJson;
-  [StoreKeys.ChainData]: ChainDataJson;
+  [StoreKeys.EthereumData]: EvmDataJson;
+  [StoreKeys.PolygonData]: EvmDataJson;
   [StoreKeys.Prices]: PricesJson;
   [StoreKeys.Transactions]: TransactionsJson;
   [StoreKeys.ValueMachine]: ValueMachineJson;

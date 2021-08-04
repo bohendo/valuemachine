@@ -22,7 +22,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     },
   },
   accounts: {
-    maxWidth: "12em",
+    maxWidth: "18em",
     "& > *": {
       marginRight: theme.spacing(0),
     },
@@ -75,14 +75,13 @@ export const Dashboard: React.FC = ({
   return (<>
 
     <Typography variant="h3">
-      Abstract Accounts
+      Account Balances
     </Typography>
     <Divider/>
 
     <Table size="small" className={classes.table}>
       <TableBody>
         {Object.entries(allBalances)
-          .filter(([account, _balances]: string[]) => !isAddress(account))
           .map(([account, balances]: string[], i: number) => (
             <TableRow key={i}>
               <TableCell className={classes.accounts}>
@@ -99,31 +98,6 @@ export const Dashboard: React.FC = ({
       </TableBody>
     </Table>
 
-    <Typography variant="h3">
-      Ethereum Accounts
-    </Typography>
-    <Divider/>
-
-    <Table size="small" className={classes.table}>
-      <TableBody>
-        {Object.entries(allBalances)
-          .filter(([account, _balances]: string[]) => isAddress(account))
-          .map(([account, balances]: string[], i: number) => (
-            <TableRow key={i}>
-              <TableCell className={classes.accounts}>
-                <HexString
-                  display={addressBook.getName(account)}
-                  value={account}
-                />
-              </TableCell>
-              <TableCell>
-                <BalanceTable balances={balances}/>
-              </TableCell>
-            </TableRow>
-          ))
-        }
-      </TableBody>
-    </Table>
   </>);
 
 };

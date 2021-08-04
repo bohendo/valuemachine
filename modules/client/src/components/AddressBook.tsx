@@ -4,7 +4,6 @@ import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
-import CircularProgress from "@material-ui/core/CircularProgress";
 import Collapse from "@material-ui/core/Collapse";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
@@ -26,19 +25,19 @@ import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/AddCircle";
 import DownloadIcon from "@material-ui/icons/GetApp";
-import RemoveIcon from "@material-ui/icons/RemoveCircle";
-import SaveIcon from "@material-ui/icons/Save";
+import RemoveIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
-import SyncIcon from "@material-ui/icons/Sync";
 import { Alert } from "@material-ui/lab";
 import {
   AddressCategories,
   AddressEntry,
   AddressBookJson,
-  SecurityProviders,
+  CsvSources,
+  Guards,
 } from "@valuemachine/types";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
+
+import { CsvFile } from "../types";
 
 import { HexString } from "./HexString";
 
@@ -91,10 +90,13 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   subtitle: {
     margin: theme.spacing(2),
   },
-  syncAll: {
+  deleteAll: {
     margin: theme.spacing(2),
   },
   paper: {
+    padding: theme.spacing(2),
+  },
+  table: {
     minWidth: "600px",
     padding: theme.spacing(2),
   },
@@ -162,7 +164,7 @@ const EditEntry = ({
     } else if (
       newEntry.address !== entry.address ||
       newEntry.category !== entry.category ||
-      newEntry.guardian !== entry.guardian ||
+      newEntry.guard !== entry.guard ||
       newEntry.name !== entry.name
     ) {
       setEntryModified(true);
@@ -227,15 +229,15 @@ const EditEntry = ({
 
         <Grid item md={4}>
           <FormControl className={classes.select}>
-            <InputLabel id="select-new-guardian">Guardian</InputLabel>
+            <InputLabel id="select-new-guard">Guard</InputLabel>
             <Select
-              labelId={`select-${entry?.address}-guardian`}
-              id={`select-${entry?.address}-guardian`}
-              name="guardian"
-              value={newEntry?.guardian || SecurityProviders.ETH}
+              labelId={`select-${entry?.address}-guard`}
+              id={`select-${entry?.address}-guard`}
+              name="guard"
+              value={newEntry?.guard || Guards.Ethereum}
               onChange={handleEntryChange}
             >
-              {Object.keys(SecurityProviders).map((cat, i) => (
+              {Object.keys(Guards).map((cat, i) => (
                 <MenuItem key={i} value={cat}>{cat}</MenuItem>
               ))}
             </Select>
@@ -285,15 +287,11 @@ const AddressRow = ({
   index,
   editEntry,
   entry,
-  syncAddress,
-  syncing,
   otherAddresses,
 }: {
   index: number;
   editEntry: any;
   entry: AddressEntry;
-  syncAddress: any;
-  syncing: any;
   otherAddresses: string;
 }) => {
   const [editMode, setEditMode] = useState(false);
@@ -324,25 +322,12 @@ const AddressRow = ({
       <TableRow>
         <TableCell> {entry.name} </TableCell>
         <TableCell> {entry.category} </TableCell>
-        <TableCell> {entry.guardian || SecurityProviders.None} </TableCell>
+        <TableCell> {entry.guard || Guards.None} </TableCell>
         <TableCell> <HexString value={entry.address}/> </TableCell>
         <TableCell>
           <IconButton color="secondary" onClick={toggleEditMode}>
             <EditIcon />
           </IconButton>
-        </TableCell>
-        <TableCell>
-          {entry.category === AddressCategories.Self ?
-            !syncing[entry.address] ?
-              <IconButton color="secondary" onClick={() => syncAddress(entry.address)}>
-                <SyncIcon />
-              </IconButton>
-              :
-              <IconButton>
-                <CircularProgress size={20}/>
-              </IconButton>
-            : undefined
-          }
         </TableCell>
       </TableRow>
       <TableRow>
@@ -383,49 +368,46 @@ const AddressRow = ({
 const getEmptyEntry = (): AddressEntry => ({
   address: "",
   category: AddressCategories.Self,
-  guardian: SecurityProviders.ETH,
+  guard: Guards.Ethereum,
   name: "",
 });
 
 export const AddressBookManager = ({
-  apiKey,
-  setApiKey,
   addressBook,
   setAddressBookJson,
+  csvFiles,
+  setCsvFiles,
 }: {
-  apiKey: string,
-  setApiKey: (val: string) => void,
   addressBook: AddressBookJson,
   setAddressBookJson: (val: AddressBookJson) => void,
+  csvFiles: CsvFile[],
+  setCsvFiles: (val: CsvFile[]) => void,
 }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
 
+  const [importFileType, setImportFileType] = useState("");
+
   const [filteredAddresses, setFilteredAddresses] = useState([]);
   const [filterCategory, setFilterCategory] = useState("");
-
-  const [newApiKey, setNewApiKey] = useState({ value: "", display: "", error: "" });
 
   const [statusAlert, setStatusAlert] = useState({
     open: false,
     message: "",
     severity: "info" as "info" | "error" | "warning" | "success"
   });
-  const [syncing, setSyncing] = useState({} as { [address: string]: boolean });
   const [allAddresses, setAllAddresses] = useState([]);
   const [newEntry, setNewEntry] = useState(getEmptyEntry);
   const classes = useStyles();
 
   useEffect(() => {
-    setAllAddresses(addressBook.json.map(entry => entry.address));
+    setAllAddresses(addressBook.addresses);
   }, [addressBook]);
 
   useEffect(() => {
-    setNewApiKey({ value: apiKey || "", error: "" });
-  }, [apiKey]);
-
-  useEffect(() => {
-    setFilteredAddresses(addressBook.json.filter(entry =>
+    setFilteredAddresses(Object.values(
+      addressBook.json
+    ).filter(entry =>
       !filterCategory || entry.category === filterCategory
     ).sort((e1, e2) =>
       // put self addresses first
@@ -457,25 +439,7 @@ export const AddressBookManager = ({
     });
   };
 
-  const handleApiKeyChange = (event: React.ChangeEvent<{ value: string }>) => {
-    setNewApiKey({ value: event.target.value, error: "" });
-  };
-
-  const handleApiKeySave = async () => {
-    console.log(`Validating profile creds for anon:${newApiKey.value}...`);
-    const authorization = `Basic ${btoa(`anon:${newApiKey.value}`)}`;
-    axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
-      if (authRes.status === 200) {
-        setApiKey(newApiKey.value);
-      } else {
-        console.error(authRes);
-      }
-    }).catch(() => {
-      setNewApiKey(old => ({ ...old, error: "Invalid Auth Token" }));
-    });
-  };
-
-  const handleImport = (event) => {
+  const handleAddressBookImport = (event) => {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -490,11 +454,9 @@ export const AddressBookManager = ({
           throw new Error("Imported file does not contain an address book");
         }
         console.log(`File with an address book has been loaded:`, importedAddresses);
-        const newAddressBook = [...addressBook.json]; // create new array to ensure it re-renders
+        const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders
         importedAddresses.forEach(entry => {
-          if (!addressBook.json.some(e => e?.address === entry?.address)) {
-            newAddressBook.push(entry);
-          }
+          newAddressBook[entry.address] = entry;
         });
         setAddressBookJson(newAddressBook);
       } catch (e) {
@@ -512,63 +474,31 @@ export const AddressBookManager = ({
     a.click();
   };
 
-  const editEntry = (index: number, editedEntry?: AddressEntry) => {
-    if (index >= 0 && index <= allAddresses.length) {
-      console.log(`${
-        !editedEntry ? "Deleting" : index === allAddresses.length ? "Creating" : "Updating"
-      } ${JSON.stringify(editedEntry)}`);
-      const newAddressBook = [...addressBook.json]; // create new array to ensure it re-renders
-      if (!editedEntry) {
-        newAddressBook.splice(index,1);
-      } else {
-        newAddressBook[index] = editedEntry;
-      }
-      setAddressBookJson(newAddressBook);
-      // Don't reset new entry fields when we modify an existing one
-      if (editedEntry && index === allAddresses.length) {
-        setNewEntry(getEmptyEntry);
-      }
+  const editEntry = (editedEntry?: AddressEntry) => {
+    console.log(`Setting [${editedEntry.address}] = ${JSON.stringify(editedEntry)}`);
+    const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders
+    if (editedEntry) {
+      delete newAddressBook[editedEntry.address];
     } else {
-      console.log(`index ${index} is out of range, expected 0-${allAddresses.length}`);
+      newAddressBook[editedEntry.address] = editedEntry;
+    }
+    setAddressBookJson(newAddressBook);
+    // Don't reset new entry fields when we modify an existing one
+    if (editedEntry) {
+      setNewEntry(getEmptyEntry);
     }
   };
 
   const addNewAddress = (editedEntry: AddressEntry) => {
-    editEntry(addressBook.json.length, editedEntry);
+    editEntry(Object.keys(addressBook.json).length, editedEntry);
   };
 
-  const syncAddress = async (address: string) => {
-    console.log(`Syncing ${address}..`);
-    setSyncing({ ...syncing, [address]: true });
-    let n = 0;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      try {
-        const response = await axios.get(`/api/chaindata/${address}`);
-        console.log(`attempt ${n++}:`, response);
-        if (response.status === 200 && typeof response.data === "object") {
-          const history = response.data;
-          console.log(`Got address history:`, history);
-          setSyncing({ ...syncing, [address]: false });
-          break;
-        }
-      } catch (e) {
-        console.warn(e.message);
-      }
-      await new Promise(res => setTimeout(res, 10_000));
-    }
-    // TODO: Set success alert message
-    console.log(`Successfuly synced address history for ${address}`);
-  };
-
-  const reset = async () => {
+  const deleteAddresses = async () => {
     setAddressBookJson([]);
   };
 
-  const syncAll = async () => {
-    for (const entry of addressBook.json.filter(e => e.category === AddressCategories.Self)) {
-      await syncAddress(entry.address);
-    }
+  const deleteCsvFiles = async () => {
+    setCsvFiles([]);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -585,48 +515,35 @@ export const AddressBookManager = ({
     setPage(0);
   };
 
+  const handleFileTypeChange = (event: React.ChangeEvent<{ value: boolean }>) => {
+    console.log(`Setting file type based on event target:`, event.target);
+    setImportFileType(event.target.value);
+  };
+
+  const handleCsvFileImport = (event: any) => {
+    const file = event.target.files[0];
+    console.log(`Importing ${importFileType} file`, file);
+    if (!importFileType || !file) return;
+    const reader = new FileReader();
+    reader.readAsText(file);
+    reader.onload = () => {
+      try {
+        const importedFile = reader.result as string;
+        console.log(`Imported ${file.name}`);
+        setCsvFiles(oldCsvFiles => oldCsvFiles.concat({
+          name: file.name,
+          data: importedFile,
+          type: importFileType,
+        }));
+      } catch (e) {
+        console.error(e);
+      }
+    };
+  };
+
   return (
     <div className={classes.root}>
 
-      <Typography variant="h4" className={classes.subtitle}>
-        Authentication
-      </Typography>
-
-      <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
-
-        <Grid item>
-          <TextField
-            autoComplete="off"
-            helperText={newApiKey.error || "Register an auth token to sync chain data"}
-            error={!!newApiKey.error}
-            id="auth-token"
-            label="Auth Token"
-            margin="normal"
-            onChange={handleApiKeyChange}
-            value={newApiKey.value}
-            variant="outlined"
-          />
-        </Grid>
-
-        {newApiKey.value !== apiKey ?
-          <Grid item>
-            <Button
-              className={classes.button}
-              color="primary"
-              onClick={handleApiKeySave}
-              size="small"
-              startIcon={<SaveIcon />}
-              variant="contained"
-            >
-              Save Token
-            </Button>
-          </Grid>
-          : undefined
-        }
-
-      </Grid>
-
-      <Divider/>
       <Typography variant="h4" className={classes.subtitle}>
         Manage Address Book
       </Typography>
@@ -634,7 +551,7 @@ export const AddressBookManager = ({
       <Grid
         alignContent="center"
         alignItems="center"
-        justify="center"
+        justifyContent="center"
         container
         spacing={1}
         className={classes.root}
@@ -659,7 +576,7 @@ export const AddressBookManager = ({
               id="profile-importer"
               accept="application/json"
               type="file"
-              onChange={handleImport}
+              onChange={handleAddressBookImport}
             />
             <CardHeader title={"Export Address Book"}/>
             <Button
@@ -675,35 +592,111 @@ export const AddressBookManager = ({
           </Card>
 
           <Button
-            className={classes.syncAll}
+            className={classes.deleteAll}
             color="primary"
-            onClick={syncAll}
+            onClick={deleteAddresses}
             size="medium"
-            disabled={Object.values(syncing).some(val => !!val)}
-            startIcon={Object.values(syncing).some(val => !!val)
-              ? <CircularProgress size={20} />
-              : <SyncIcon />
-            }
-            variant="contained"
-          >
-            Sync All
-          </Button>
-
-          <Button
-            className={classes.syncAll}
-            color="primary"
-            onClick={reset}
-            size="medium"
-            disabled={!addressBook.json?.length}
+            disabled={!Object.keys(addressBook.json || {}).length}
             startIcon={<RemoveIcon/>}
             variant="contained"
           >
-            Remove All
+            Delete Address Book
+          </Button>
+        </Grid>
+
+      </Grid>
+
+      <Divider/>
+      <Typography variant="h4" className={classes.subtitle}>
+        Manage CSV Files
+      </Typography>
+
+      <Grid
+        alignContent="center"
+        justifyContent="center"
+        container
+        spacing={1}
+        className={classes.root}
+      >
+
+        <Grid item md={6}>
+          <Card className={classes.root}>
+            <CardHeader title={"Import CSV File"}/>
+            <FormControl className={classes.select}>
+              <InputLabel id="select-file-type-label">File Type</InputLabel>
+              <Select
+                labelId="select-file-type-label"
+                id="select-file-type"
+                value={importFileType || ""}
+                onChange={handleFileTypeChange}
+              >
+                <MenuItem value={""}>-</MenuItem>
+                <MenuItem value={CsvSources.Coinbase}>{CsvSources.Coinbase}</MenuItem>
+                <MenuItem value={CsvSources.DigitalOcean}>{CsvSources.DigitalOcean}</MenuItem>
+                <MenuItem value={CsvSources.Wyre}>{CsvSources.Wyre}</MenuItem>
+                <MenuItem value={CsvSources.Wazirx}>{CsvSources.Wazirx}</MenuItem>
+              </Select>
+            </FormControl>
+            <input
+              accept="text/csv"
+              className={classes.importer}
+              disabled={!importFileType}
+              id="file-importer"
+              onChange={handleCsvFileImport}
+              type="file"
+            />
+          </Card>
+
+          <Button
+            className={classes.deleteAll}
+            color="primary"
+            onClick={deleteCsvFiles}
+            size="medium"
+            disabled={!csvFiles?.length}
+            startIcon={<RemoveIcon/>}
+            variant="contained"
+          >
+            Delete Csv Files
           </Button>
 
         </Grid>
 
+        <Grid item md={6}>
+
+          <Paper className={classes.paper}>
+            <Typography align="center" variant="h4" className={classes.title} component="div">
+              {`${csvFiles.length} CSV Files`}
+            </Typography>
+            {csvFiles.length ? (
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><strong> File Name </strong></TableCell>
+                      <TableCell><strong> File Type </strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {csvFiles.map((csvFile: { name: string; type: string; data: string }, i) => (
+                      <TableRow key={i}>
+                        <TableCell><strong> {csvFile.name.toString()} </strong></TableCell>
+                        <TableCell><strong> {csvFile.type.toString()} </strong></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : null}
+          </Paper>
+
+        </Grid>
+
       </Grid>
+
+
+
+
+
 
       <Divider/>
       <Typography variant="h4" className={classes.subtitle}>
@@ -719,18 +712,18 @@ export const AddressBookManager = ({
           onChange={handleFilterChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(addressBook.json.map(e => e.category))).map(cat => (
+          {Array.from(new Set(Object.values(addressBook.json).map(e => e.category))).map(cat => (
             <MenuItem key={cat} value={cat}>{cat}</MenuItem>
           ))}
         </Select>
       </FormControl>
 
-      <Paper className={classes.paper}>
+      <Paper className={classes.table}>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredAddresses.length === addressBook.json.length
+          {filteredAddresses.length === Object.keys(addressBook.json).length
             ? `${filteredAddresses.length} Addresses`
-            : `${filteredAddresses.length} of ${addressBook.json.length} Addresses`
+            : `${filteredAddresses.length} of ${Object.keys(addressBook.json).length} Addresses`
           }
         </Typography>
 
@@ -741,18 +734,17 @@ export const AddressBookManager = ({
             count={filteredAddresses.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
           <Table size="small">
             <TableHead>
               <TableRow>
                 <TableCell><strong> Account name </strong></TableCell>
                 <TableCell><strong> Category </strong></TableCell>
-                <TableCell><strong> Guardian </strong></TableCell>
+                <TableCell><strong> Guard </strong></TableCell>
                 <TableCell><strong> Eth Address </strong></TableCell>
                 <TableCell><strong> Edit </strong></TableCell>
-                <TableCell><strong> Sync </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -762,11 +754,8 @@ export const AddressBookManager = ({
                   <AddressRow
                     otherAddresses={[...allAddresses.slice(0, i), ...allAddresses.slice(i + 1)]}
                     key={i}
-                    index={addressBook.json.findIndex(e => e.address === entry.address)}
                     editEntry={editEntry}
                     entry={entry}
-                    syncAddress={syncAddress}
-                    syncing={syncing}
                   />
 
                 ))}
@@ -778,8 +767,8 @@ export const AddressBookManager = ({
             count={filteredAddresses.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </TableContainer>
       </Paper>

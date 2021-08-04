@@ -4,7 +4,7 @@ import addFormats from "ajv-formats";
 export const ajv = addFormats(new Ajv()).addKeyword("kind").addKeyword("modifier");
 
 export const formatErrors = errors => errors.map(error =>
-  `${error.instancePath.replace("", "")}: ${error.message}`
+  `${error.instancePath ? error.instancePath + ": " : ""}${error.message}`
 ).slice(0, 2).join(", ");
 
 const isSameType = (actual: any, expected: string): boolean => {

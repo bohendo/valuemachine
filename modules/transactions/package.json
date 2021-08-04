@@ -1,6 +1,6 @@
 {
   "name": "@valuemachine/transactions",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "description": "Utilities for generating well-formatted transactions",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
@@ -12,22 +12,23 @@
   "files": ["dist", "src"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "ts-mocha --check-leaks --exit --timeout 60000 'src/**/*.test.ts'"
+    "test": "ts-mocha --check-leaks --color --exit --timeout 60000 'src/**/*.test.ts'"
   },
   "dependencies": {
     "@ethersproject/abi": "5.4.0",
     "@ethersproject/address": "5.4.0",
-    "@ethersproject/bignumber": "5.4.0",
+    "@ethersproject/bignumber": "5.4.1",
     "@ethersproject/bytes": "5.4.0",
     "@ethersproject/constants": "5.4.0",
-    "@ethersproject/contracts": "5.4.0",
-    "@ethersproject/providers": "5.4.0",
+    "@ethersproject/contracts": "5.4.1",
+    "@ethersproject/providers": "5.4.3",
     "@ethersproject/strings": "5.4.0",
     "@ethersproject/units": "5.4.0",
-    "@valuemachine/types": "0.5.0",
-    "@valuemachine/utils": "0.5.0",
+    "@valuemachine/types": "0.7.0",
+    "@valuemachine/utils": "0.7.0",
     "axios": "0.21.1",
-    "csv-parse": "4.16.0"
+    "csv-parse": "4.16.0",
+    "queue": "6.0.2"
   },
   "devDependencies": {
     "@types/node": "15.0.2",

@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { Logger } from "./logger";
-import { SecurityProvider } from "./security";
+import { Guard } from "./guards";
 import { Store } from "./store";
 import { Address } from "./strings";
 
@@ -44,19 +44,19 @@ export const AddressEntry = Type.Object({
   category: AddressCategory,
   decimals: Type.Optional(Type.Number()), // for ERC20 token addresses
   name: Type.String(),
-  guardian: Type.Optional(SecurityProvider),
+  guard: Type.Optional(Guard),
 });
 export type AddressEntry = Static<typeof AddressEntry>;
 
-export const AddressBookJson = Type.Array(AddressEntry);
+export const AddressBookJson = Type.Record(Type.String(), AddressEntry);
 export type AddressBookJson = Static<typeof AddressBookJson>;
 
 ////////////////////////////////////////
 // Function Interfaces
 
 export type AddressBookParams = {
-  json?: AddressBookJson; // for user-defined addresses saved eg in localstorage
-  hardcoded?: AddressBookJson; // for addresess saved in app-level code
+  json?: AddressBookJson | AddressEntry[]; // for user-defined addresses saved eg in localstorage
+  hardcoded?: AddressEntry[]; // for list of addresess saved in app-level code
   logger?: Logger;
   store?: Store;
 }
@@ -64,7 +64,7 @@ export type AddressBookParams = {
 export interface AddressBook {
   addresses: Address[];
   getName(address: Address): string;
-  getGuardian(address: Address): SecurityProvider;
+  getGuard(address: Address): Guard;
   getDecimals(address: Address): number;
   isCategory(category: AddressCategory): (address: Address) => boolean;
   isPublic(address: Address): boolean;

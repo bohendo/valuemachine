@@ -105,6 +105,15 @@ watch-core: core
 run-example: package
 	bash ops/test-unit.sh package test
 
+test-all: package
+	bash ops/test-unit.sh utils test
+	@sleep 1
+	bash ops/test-unit.sh transactions test
+	@sleep 1
+	bash ops/test-unit.sh core test
+	@sleep 1
+	bash ops/test-unit.sh package test
+
 ########################################
 # Common Prerequisites
 

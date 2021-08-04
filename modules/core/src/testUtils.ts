@@ -31,15 +31,15 @@ export const AddressOne = "0x1111111111111111111111111111111111111111";
 export const AddressTwo = "0x2222222222222222222222222222222222222222";
 export const AddressThree = "0x3333333333333333333333333333333333333333";
 export const testToken = "0x9999999999999999999999999999999999999999";
-export const getTestAddressBook = (json: AddressBookJson = []): AddressBook =>
+export const getTestAddressBook = (json: AddressBookJson = {}): AddressBook =>
   getAddressBook({
-    json: [
-      { name: "Self1", category: AddressCategories.Self, address: AddressOne },
-      { name: "Self2", category: AddressCategories.Self, address: AddressTwo },
-      { name: "NotMe", category: AddressCategories.Private, address: AddressThree },
-      { name: "TestToken", category: AddressCategories.ERC20, address: testToken },
+    json: {
+      [AddressOne]: { name: "Self1", category: AddressCategories.Self, address: AddressOne },
+      [AddressTwo]: { name: "Self2", category: AddressCategories.Self, address: AddressTwo },
+      [AddressThree]: { name: "NotMe", category: AddressCategories.Private, address: AddressThree },
+      [testToken]: { name: "TestToken", category: AddressCategories.ERC20, address: testToken },
       ...json,
-    ],
+    },
     logger: testLogger,
   });
 
@@ -51,6 +51,6 @@ export const getTx = (transfers: Transfer[]): Transaction => ({
     new Date(timestamp).getTime() + (txIndex * 24 * 60 * 60 * 1000)
   ).toISOString(),
   index: txIndex++,
-  sources: [TransactionSources.EthTx],
+  sources: [TransactionSources.Ethereum],
   transfers: transfers || [],
 });

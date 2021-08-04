@@ -1,7 +1,7 @@
 {
-  "name": "@valuemachine/ui",
+  "name": "@valuemachine/react",
   "version": "0.0.1",
-  "description": "Example UI that utilizes & is helpful in debugging the valuemachine",
+  "description": "Helpful react components for interacting with vm data",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
   "main": "dist/index.js",
@@ -19,20 +19,20 @@
   "dependencies": {
     "@ethersproject/address": "5.4.0",
     "@ethersproject/bytes": "5.4.0",
-    "@valuemachine/core": "0.5.0",
-    "@valuemachine/transactions": "0.5.0",
-    "@valuemachine/types": "0.5.0",
-    "@valuemachine/utils": "0.5.0",
-    "@material-ui/core": "4.11.4",
+    "@valuemachine/core": "0.7.0",
+    "@valuemachine/transactions": "0.7.0",
+    "@valuemachine/types": "0.7.0",
+    "@valuemachine/utils": "0.7.0",
+    "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.11.2",
-    "@material-ui/lab": "4.0.0-alpha.58",
+    "@material-ui/lab": "4.0.0-alpha.60",
     "axios": "0.21.1",
     "json2csv": "5.0.6",
     "react": "17.0.2",
     "react-copy-to-clipboard": "5.0.3",
     "react-dom": "17.0.2",
     "react-router-dom": "5.2.0",
-    "valuemachine": "0.5.0"
+    "valuemachine": "0.7.0"
   },
   "devDependencies": {
     "@types/node": "15.0.2",

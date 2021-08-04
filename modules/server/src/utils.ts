@@ -1,7 +1,6 @@
 import fs from "fs";
 
-import { hexDataLength, isHexString } from "@ethersproject/bytes";
-import { getChainData } from "@valuemachine/transactions";
+import { getEthereumData } from "@valuemachine/transactions";
 import { getFileStore, getLogger } from "@valuemachine/utils";
 
 import { env } from "./env";
@@ -14,7 +13,12 @@ export const STATUS_YOUR_BAD = 400;
 export const STATUS_MY_BAD = 500;
 
 export const store = getFileStore("/data", fs);
-export const chainData = getChainData({ logger: log, store, etherscanKey: env.etherscanKey });
+export const ethData = getEthereumData({
+  covalentKey: env.covalentKey,
+  etherscanKey: env.etherscanKey,
+  logger: log,
+  store,
+});
 
 export const getLogAndSend = (res) => (message, code = STATUS_SUCCESS): void => {
   if (code === STATUS_SUCCESS) {
@@ -26,18 +30,4 @@ export const getLogAndSend = (res) => (message, code = STATUS_SUCCESS): void => 
   }
   res.status(code).send(message);
   return;
-};
-
-export const isValidAddress = (value: any): boolean => {
-  if (typeof value !== "string") {
-    log.info(`value ${value} is not a string`);
-    return false;
-  } else if (!isHexString(value)) {
-    log.info(`value ${value} is not a hex string`);
-    return false;
-  } else if (hexDataLength(value) !== 20) {
-    log.info(`value ${value} is not 20 bytes long`);
-    return false;
-  }
-  return true;
 };

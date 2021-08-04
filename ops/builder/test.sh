@@ -53,7 +53,7 @@ then
         done
       fi
 
-      sleep 2
+      sleep 4
       echo "Re-running tests..."
 
       prev_checksum="$(getChecksum)"

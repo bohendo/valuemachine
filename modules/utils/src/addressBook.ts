@@ -1,14 +1,15 @@
-import { isAddress as isEthAddress, getAddress as getEthAddress } from "@ethersproject/address";
+import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
 import {
   AddressBookJson,
   AddressCategory,
   AddressEntry,
-  SecurityProviders,
+  Guard,
+  Guards,
 } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
 
-export const getEmptyAddressBook = (): AddressBookJson => [];
+export const getEmptyAddressBook = (): AddressBookJson => ({});
 
 ////////////////////
 // Validators
@@ -31,19 +32,31 @@ export const getAddressEntryError = (addressEntry: AddressEntry): string | null 
 ////////////////////
 // Formatters
 
-export const fmtAddress = (address: string) =>
-  isEthAddress(address) ? getEthAddress(address) : address;
+export const fmtAddress = (address: string) => {
+  if (address.includes(":")) {
+    const parts = address.split(":");
+    const suffix = parts.pop();
+    const prefix = parts.join(":"); // leftover after popping the address off
+    return `${prefix}:${isEvmAddress(suffix) ? getEvmAddress(suffix) : suffix}`;
+  } else {
+    return isEvmAddress(address) ? getEvmAddress(address) : address;
+  }
+};
 
 export const fmtAddressEntry = (entry: AddressEntry): AddressEntry => {
-  entry.address = fmtAddress(entry.address);
-  entry.guardian = entry.guardian || (
-    isEthAddress(entry.address) ? SecurityProviders.ETH : SecurityProviders.None
-  );
   const error = getAddressEntryError(entry);
   if (error) throw new Error(error);
+  entry.address = fmtAddress(entry.address);
+  entry.guard = entry.guard || (
+    isEvmAddress(entry.address) ? Guards.Ethereum : Guards.None
+  );
   return entry;
 };
 
-export const setAddressCategory = (category: AddressCategory) =>
+export const setAddressCategory = (category: AddressCategory, guard?: Guard) =>
   (entry: Partial<AddressEntry>): AddressEntry =>
-    fmtAddressEntry({ ...entry, category } as AddressEntry);
+    fmtAddressEntry({
+      ...entry,
+      category,
+      guard: guard || entry.guard || isEvmAddress(entry.address) ? Guards.Ethereum : Guards.None,
+    } as AddressEntry);

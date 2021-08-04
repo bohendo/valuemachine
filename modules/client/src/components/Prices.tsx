@@ -231,8 +231,8 @@ export const PriceManager = ({
             count={Object.keys(filteredPrices).length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
           <Table className={classes.table}>
             <TableHead>
@@ -288,8 +288,8 @@ export const PriceManager = ({
             count={Object.keys(filteredPrices).length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </TableContainer>
       </Paper>

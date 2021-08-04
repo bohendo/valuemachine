@@ -9,7 +9,6 @@ import {
   EventTypes,
   HydratedAssetChunk,
   HydratedEvent,
-  PhysicalGuardians,
   StoreKeys,
   TradeEvent,
   Transaction,
@@ -28,7 +27,7 @@ import {
   gt,
   lt,
   mul,
-  rmDups,
+  dedup,
   sub,
 } from "@valuemachine/utils";
 
@@ -62,9 +61,6 @@ export const getValueMachine = ({
 
   const toIndex = (chunk: AssetChunk): ChunkIndex => chunk.index;
   const fromIndex = (chunkIndex: ChunkIndex): AssetChunk => json.chunks[chunkIndex];
-
-  const isPhysicallyGuarded = (account) => 
-    Object.keys(PhysicalGuardians).includes(addressBook.getGuardian(account));
 
   const isHeld = (account: Account, asset: Asset) => (chunk: AssetChunk): boolean =>
     chunk.account === account && chunk.asset === asset;
@@ -126,8 +122,10 @@ export const getValueMachine = ({
       account,
       index: json.chunks.length,
       inputs: [],
-      receiveDate: json.date,
-      unsecured: isPhysicallyGuarded(account) ? "0" : quantity,
+      history: [{
+        date: json.date,
+        guard: addressBook.getGuard(account),
+      }],
     };
     json.chunks.push(newChunk);
     return newChunk;
@@ -151,7 +149,7 @@ export const getValueMachine = ({
       quantity: amtNeeded,
       index: json.chunks.length,
     }));
-    json.chunks.push(newChunk); // not minting bc we want to keep receiveDate the same
+    json.chunks.push(newChunk);
     oldChunk.quantity = leftover;
     log.debug(`Split ${asset} chunk of ${total} into ${amtNeeded} and ${leftover}`);
     // Add the new chunk's index alongside the old one anywhere it was referenced
@@ -397,21 +395,25 @@ export const getValueMachine = ({
   const moveValue = (quantity: DecimalString, asset: Asset, from: Account, to: Account): void => {
     const toMove = getChunks(quantity, asset, from);
     toMove.forEach(chunk => { chunk.account = to; });
-    if (isPhysicallyGuarded(to) && !isPhysicallyGuarded(from)) {
-      // Handle jurisdiction change
-      const oldGuard = addressBook.getGuardian(from);
-      const newGuard = addressBook.getGuardian(to);
+    // Handle guard change
+    const oldGuard = addressBook.getGuard(from);
+    const newGuard = addressBook.getGuard(to);
+    if (newGuard !== oldGuard) {
+      toMove.forEach(chunk => { chunk.history.push({
+        date: json.date,
+        guard: newGuard,
+      }); });
       newEvents.push({
         date: json.date,
         index: json.events.length + newEvents.length,
         newBalances: {},
         from: from,
-        fromJurisdiction: oldGuard,
+        fromGuard: oldGuard,
         to: to,
-        toJurisdiction: newGuard,
+        toGuard: newGuard,
         chunks: toMove.map(toIndex),
         insecurePath: [],
-        type: EventTypes.JurisdictionChange,
+        type: EventTypes.GuardChange,
       });
     }
   };
@@ -475,8 +477,8 @@ export const getValueMachine = ({
     if (swapsIn.length && swapsOut.length) {
       // Sum transfers & subtract refunds to get total values traded
       const sum = (acc, cur) => add(acc, cur.quantity);
-      const assetsOut = rmDups(swapsOut.map(swap => swap.asset));
-      const assetsIn = rmDups(swapsIn.map(swap => swap.asset)
+      const assetsOut = dedup(swapsOut.map(swap => swap.asset));
+      const assetsIn = dedup(swapsIn.map(swap => swap.asset)
         .filter(asset => !assetsOut.includes(asset)) // remove refunds from the output asset list
       );
       const amtsOut = assetsOut.map(asset =>

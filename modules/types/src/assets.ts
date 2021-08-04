@@ -1,23 +1,44 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { PhysicalGuardians, DigitalGuardians } from "./security";
-
-// All physical security providers have an associated fiat currency
-export const FiatCurrencies = { ...PhysicalGuardians } as const;
-export const FiatCurrency = Type.Enum(FiatCurrencies);
-export type FiatCurrency = Static<typeof FiatCurrency>;
-
-// All digital security providers have an associated native cryptocurrency
-export const Cryptocurrencies = { ...DigitalGuardians } as const;
+// Native currency of each standalone blockchain
+export const Cryptocurrencies = {
+  BCH: "BCH",
+  BTC: "BTC",
+  ETC: "ETC",
+  ETH: "ETH",
+  LTC: "LTC",
+  MATIC: "MATIC",
+} as const;
 export const Cryptocurrency = Type.Enum(Cryptocurrencies);
 export type Cryptocurrency = Static<typeof Cryptocurrency>;
+
+// Traditional central-bank controlled currencies
+export const FiatCurrencies = {
+  CZK: "CZK",
+  EUR: "EUR",
+  GBP: "GBP",
+  INR: "INR",
+  USD: "USD",
+} as const;
+export const FiatCurrency = Type.Enum(FiatCurrencies);
+export type FiatCurrency = Static<typeof FiatCurrency>;
 
 export const EthereumAssets = {
   [Cryptocurrencies.ETH]: Cryptocurrencies.ETH,
   _1INCH: "_1INCH",
   _3Crv: "_3Crv",
+  aAAVE: "aAAVE",
+  AAVE: "AAVE",
+  aBAT: "aBAT",
+  aDAI: "aDAI",
+  aMATIC: "aMATIC",
   ankrCRV: "ankrCRV",
+  aUSDC: "aUSDC",
+  aUSDT: "aUSDT",
+  aWBTC: "aWBTC",
+  aWETH: "aWETH",
   BAT: "BAT",
+  BUSD: "BUSD",
   cBAT: "cBAT",
   cCOMP: "cCOMP",
   cDAI: "cDAI",
@@ -34,32 +55,47 @@ export const EthereumAssets = {
   cWBTCv2: "cWBTCv2",
   cZRX: "cZRX",
   DAI: "DAI",
-  idleDAI: "idleDAI",
   dusd3CRV: "dusd3CRV",
   eursCRV: "eursCRV",
   GEN: "GEN",
   GNO: "GNO",
   GRT: "GRT",
   gusd3CRV: "gusd3CRV",
+  GUSD: "GUSD",
   hCRV: "hCRV",
   HEGIC: "HEGIC",
   husd3CRV: "husd3CRV",
+  IDLE: "IDLE",
+  idleDAI: "idleDAI",
+  idleDAISafe: "idleDAISafe",
+  idleDAIYield: "idleDAIYield",
+  idleRAIYield: "idleRAIYield",
+  idleSUSDYield: "idleSUSDYield",
+  idleTUSDYield: "idleTUSDYield",
+  idleUSDCSafe: "idleUSDCSafe",
+  idleUSDCYield: "idleUSDCYield",
+  idleUSDTSafe: "idleUSDTSafe",
+  idleUSDTYield: "idleUSDTYield",
+  idleWBTCYield: "idleWBTCYield",
+  idleWETHYield: "idleWETHYield",
   linkCRV: "linkCRV",
+  MATIC: "MATIC",
   MKR: "MKR",
   musd3CRV: "musd3CRV",
   OMG: "OMG",
   PETH: "PETH",
+  RAI: "RAI",
   REP: "REP",
   REPv2: "REPv2",
   SAI: "SAI",
   SNT: "SNT",
   SNX: "SNX",
-  SNXv1: "SNXv1",
   SPANK: "SPANK",
+  stkAAVE: "stkAAVE",
   sUSD: "sUSD",
   sUSDT: "sUSDT",
-  sUSDv1: "sUSDv1",
   TORN: "TORN",
+  TUSD: "TUSD",
   UNI: "UNI",
   UniV2_1INCH_ETH: "UniV2_1INCH_ETH",
   UniV2_AAVE_ETH: "UniV2_AAVE_ETH",
@@ -106,25 +142,21 @@ export const EthereumAssets = {
   USDC: "USDC",
   usdn3CRV: "usdn3CRV",
   usdp3CRV: "usdp3CRV",
+  usdt3CRV: "usdt3CRV",
   USDT: "USDT",
   ust3CRV: "ust3CRV",
   WBTC: "WBTC",
   WETH: "WETH",
-  yDAI_yUSDC_yUSDT_yBUSD: "yDAI_yUSDC_yUSDT_yBUSD",
-  yDAI_yUSDC_yUSDT_yTUSD: "yDAI_yUSDC_yUSDT_yTUSD",
-  ZRX: "ZRX",
-  TUSD: "TUSD",
-  GUSD: "GUSD",
-  BUSD: "BUSD",
-  usdt3CRV: "usdt3CRV",
-  // yearn.finance
-  YFI: "YFI",
   y3Crv: "y3Crv",
   yBUSDv3: "yBUSDv3",
   yDAI: "yDAI",
+  yDAI_yUSDC_yUSDT_yBUSD: "yDAI_yUSDC_yUSDT_yBUSD",
+  yDAI_yUSDC_yUSDT_yTUSD: "yDAI_yUSDC_yUSDT_yTUSD",
   yDAIv2: "yDAIv2",
   yDAIv3: "yDAIv3",
+  YFI: "YFI",
   yGUSD: "yGUSD",
+  ysUSDTv2: "ysUSDTv2",
   yTUSD: "yTUSD",
   yTUSDv2: "yTUSDv2",
   yUSDC: "yUSDC",
@@ -133,12 +165,10 @@ export const EthereumAssets = {
   yUSDT: "yUSDT",
   yUSDTv2: "yUSDTv2",
   yUSDTv3: "yUSDTv3",
-  yWBTCv2: "yWBTCv2",
-  yWETH: "yWETH",
-  yYFI: "yYFI",
-  ysUSDTv2: "ysUSDTv2",
   yv1INCH: "yv1INCH",
+  yvankrCRV: "yvankrCRV",
   yvBOOST: "yvBOOST",
+  yvcrvPlain3andSUSD: "yvcrvPlain3andSUSD",
   yvCurve_BBTC: "yvCurve_BBTC",
   yvCurve_FRAX: "yvCurve_FRAX",
   yvCurve_IronBank: "yvCurve_IronBank",
@@ -151,12 +181,6 @@ export const EthereumAssets = {
   yvCurve_sETH: "yvCurve_sETH",
   yvCurve_stETH: "yvCurve_stETH",
   yvCurve_tBTC: "yvCurve_tBTC",
-  yvUSDT: "yvUSDT",
-  yvWBTC: "yvWBTC",
-  yvWETH: "yvWETH",
-  yvYFI: "yvYFI",
-  yvankrCRV: "yvankrCRV",
-  yvcrvPlain3andSUSD: "yvcrvPlain3andSUSD",
   yvdusd3CRV: "yvdusd3CRV",
   yveursCRV: "yveursCRV",
   yvgusd3CRV: "yvgusd3CRV",
@@ -167,17 +191,43 @@ export const EthereumAssets = {
   yvusdn3CRV: "yvusdn3CRV",
   yvusdp3CRV: "yvusdp3CRV",
   yvusdt3CRV: "yvusdt3CRV",
+  yvUSDT: "yvUSDT",
   yvust3CRV: "yvust3CRV",
+  yvWBTC: "yvWBTC",
+  yvWETH: "yvWETH",
+  yvYFI: "yvYFI",
+  yWBTCv2: "yWBTCv2",
+  yWETH: "yWETH",
   yyDAI_yUSDC_yUSDT_yBUSD: "yyDAI_yUSDC_yUSDT_yBUSD",
   yyDAI_yUSDC_yUSDT_yTUSD: "yyDAI_yUSDC_yUSDT_yTUSD",
+  yYFI: "yYFI",
+  ZRX: "ZRX",
 } as const;
 export const EthereumAsset = Type.Enum(EthereumAssets);
 export type EthereumAsset = Static<typeof EthereumAsset>;
 
+export const PolygonAssets = {
+  [Cryptocurrencies.MATIC]: Cryptocurrencies.MATIC,
+  amAAVE: "amAAVE",
+  amDAI: "amDAI",
+  amMATIC: "amMATIC",
+  amUSDC: "amUSDC",
+  amUSDT: "amUSDT",
+  amWBTC: "amWBTC",
+  amWETH: "amWETH",
+  WMATIC: "WMATIC",
+} as const;
+export const PolygonAsset = Type.Enum(PolygonAssets);
+export type PolygonAsset = Static<typeof PolygonAsset>;
+
 export const Assets = {
   ...Cryptocurrencies,
-  ...FiatCurrencies,
   ...EthereumAssets,
+  ...FiatCurrencies,
+  ...PolygonAssets,
 } as const;
-export const Asset = Type.Enum(Assets);
+export const Asset = Type.Union([
+  Type.Enum(Assets),
+  Type.String(), // Allow arbitrary assets in app-level code
+]);
 export type Asset = Static<typeof Asset>

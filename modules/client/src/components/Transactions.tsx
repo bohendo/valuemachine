@@ -22,24 +22,27 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
-import { describeTransaction } from "@valuemachine/transactions";
+import { describeTransaction, getTransactions } from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
   Assets,
-  CsvSources,
   Transaction,
   Transactions,
   TransactionsJson,
   TransactionSources,
   Transfer,
 } from "@valuemachine/types";
-import { round } from "@valuemachine/utils";
+import { getLogger, round } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+import { CsvFile } from "../types";
+
 import { HexString } from "./HexString";
 import { InputDate } from "./InputDate";
+
+const logger = getLogger("info");
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   row: {
@@ -151,28 +154,25 @@ const TransactionRow = ({
 
 export const TransactionExplorer = ({
   addressBook,
+  csvFiles,
   transactions,
-  setTransactions,
+  setTransactionsJson,
 }: {
   addressBook: AddressBook;
+  csvFiles: CsvFile[],
   transactions: Transactions;
-  setTransactions: (val: Transactions) => void;
+  setTransactionsJson: (val: TransactionsJson) => void;
 }) => {
-  const [syncing, setSyncing] = useState(false);
+  const [syncing, setSyncing] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
-
   const [filterAccount, setFilterAccount] = useState("");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
   const [filterSource, setFilterSource] = useState("");
   const [filterStartDate, setFilterStartDate] = useState("");
-
   const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
-
   const [ourAssets, setOurAssets] = useState([]);
-
-  const [importFileType, setImportFileType] = useState("");
   const classes = useStyles();
 
   const hasAccount = (account: string) => (tx: Transaction): boolean =>
@@ -239,60 +239,64 @@ export const TransactionExplorer = ({
     setFilterAsset(event.target.value);
   };
 
-  const handleFileTypeChange = (event: React.ChangeEvent<{ value: boolean }>) => {
-    console.log(`Setting file type based on event target:`, event.target);
-    setImportFileType(event.target.value);
-  };
-
   const resetTxns = () => {
-    setTransactions([]);
+    setTransactionsJson([]);
     console.log(`Successfully cleared tx data from localstorage`);
   };
 
   const syncTxns = async () => {
-    if (!axios.defaults.headers.common.authorization) {
-      console.warn(`Auth header not set yet..`);
-      return;
-    }
-    setSyncing(true);
-    console.log(`Syncing eth transactions for ${addressBook.json.length} addresses..`);
-    let n = 0;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      try {
-        const res = (await axios.post("/api/transactions/eth", { addressBook: addressBook.json }));
-        console.log(`attempt ${n++}:`, res);
-        if (res.status === 200 && typeof res.data === "object") {
-          console.log(`Successfully fetched ${res.data?.length || 0} transactions`, res.data);
-          transactions.merge(res.data);
-          setTransactions([...transactions.json]);
-          setSyncing(false);
+    if (syncing) return;
+    // Sync Chain Data
+    const newTransactions = getTransactions({ logger });
+    const selfAddresses = Object.values(addressBook.json).filter(e =>
+      e.category === AddressCategories.Self
+    );
+    if (selfAddresses?.length) {
+      let isEthSynced = false;
+      let isPolygonSynced = false;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        try {
+          if (!isEthSynced) {
+            setSyncing(`Syncing Ethereum data for ${selfAddresses.length} addresses`);
+            const resEth = await axios.post("/api/ethereum", { addressBook: addressBook.json });
+            console.log(`Got ${resEth.data.length} Eth transactions`);
+            if (resEth.status === 200 && typeof(resEth.data) === "object") {
+              newTransactions.merge(resEth.data);
+              isEthSynced = true;
+            } else {
+              await new Promise((res) => setTimeout(res, 10000));
+              continue;
+            }
+          }
+          if (!isPolygonSynced) {
+            setSyncing(`Syncing Polygon data for ${selfAddresses.length} addresses`);
+            const resPolygon = await axios.post("/api/polygon", { addressBook: addressBook.json });
+            console.log(`Got ${resPolygon.data.length} Polygon transactions`);
+            if (resPolygon.status === 200 && typeof(resPolygon.data) === "object") {
+              newTransactions.merge(resPolygon.data);
+              isPolygonSynced = true;
+            } else {
+              await new Promise((res) => setTimeout(res, 10000));
+              continue;
+            }
+          }
           break;
-        } else {
-          console.log(res.data);
+        } catch (e) {
+          console.warn(e);
+          await new Promise((res) => setTimeout(res, 10000));
         }
-      } catch (e) {
-        console.warn(e.message);
       }
-      await new Promise(res => setTimeout(res, 10_000));
     }
-  };
-
-  const handleImport = (event: any) => {
-    const file = event.target.files[0];
-    console.log(`Importing file of type ${importFileType}`);
-    if (!importFileType || !file) return;
-    const reader = new FileReader();
-    reader.readAsText(file);
-    reader.onload = () => {
-      try {
-        const importedFile = reader.result as string;
-        transactions.mergeCsv(importedFile, importFileType);
-        setTransactions([...transactions.json]);
-      } catch (e) {
-        console.error(e);
+    if (csvFiles?.length) {
+      console.warn(csvFiles);
+      for (const csvFile of csvFiles) {
+        setSyncing(`Merging ${csvFile.type} data from ${csvFile.name}`);
+        newTransactions.mergeCsv(csvFile.data, csvFile.type);
       }
-    };
+    }
+    setTransactionsJson(newTransactions.json);
+    setSyncing("");
   };
 
   return (
@@ -303,18 +307,15 @@ export const TransactionExplorer = ({
       </Typography>
 
       <Divider/>
-      <Typography variant="h4" className={classes.subtitle}>
-        Management
-      </Typography>
 
       <Button
         className={classes.button}
-        disabled={syncing}
+        disabled={!!syncing}
         onClick={syncTxns}
         startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
         variant="outlined"
       >
-        Sync Chain Data Transactions
+        Sync Transactions
       </Button>
 
       <Button
@@ -327,30 +328,9 @@ export const TransactionExplorer = ({
         Clear Transactions
       </Button>
 
-      <FormControl className={classes.select}>
-        <InputLabel id="select-file-type-label">File Type</InputLabel>
-        <Select
-          labelId="select-file-type-label"
-          id="select-file-type"
-          value={importFileType || ""}
-          onChange={handleFileTypeChange}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          <MenuItem value={CsvSources.Coinbase}>{CsvSources.Coinbase}</MenuItem>
-          <MenuItem value={CsvSources.DigitalOcean}>{CsvSources.DigitalOcean}</MenuItem>
-          <MenuItem value={CsvSources.Wyre}>{CsvSources.Wyre}</MenuItem>
-          <MenuItem value={CsvSources.Wazirx}>{CsvSources.Wazirx}</MenuItem>
-        </Select>
-      </FormControl>
-
-      <input
-        accept="text/csv"
-        className={classes.importer}
-        disabled={!importFileType}
-        id="file-importer"
-        onChange={handleImport}
-        type="file"
-      />
+      <Typography variant="overline" className={classes.subtitle}>
+        {syncing}
+      </Typography>
 
       <Divider/>
       <Typography variant="h4" className={classes.subtitle}>
@@ -437,8 +417,8 @@ export const TransactionExplorer = ({
             count={filteredTxns.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
           <Table size="small">
             <TableHead>
@@ -465,8 +445,8 @@ export const TransactionExplorer = ({
             count={filteredTxns.length}
             rowsPerPage={rowsPerPage}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </TableContainer>
       </Paper>

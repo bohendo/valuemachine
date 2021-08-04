@@ -3,7 +3,7 @@ import {
   CssBaseline,
   Theme,
   ThemeProvider,
-  createMuiTheme,
+  createTheme,
   createStyles,
   makeStyles,
 } from "@material-ui/core";
@@ -18,7 +18,6 @@ import {
   StoreKeys,
 } from "@valuemachine/types";
 import { getLocalStore, getLogger } from "@valuemachine/utils";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
@@ -29,6 +28,7 @@ import { PriceManager } from "./components/Prices";
 import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
+import { getEmptyCsv } from "./types";
 
 const store = getLocalStore(localStorage);
 const logger = getLogger("warn");
@@ -41,9 +41,9 @@ const {
   Prices: PricesStore
 } = StoreKeys;
 const UnitStore = "Unit";
-const ApiKeyStore = "ApiKey";
+const CsvStore = "Csv";
 
-const darkTheme = createMuiTheme({
+const darkTheme = createTheme({
   palette: {
     primary: {
       main: "#deaa56",
@@ -75,8 +75,8 @@ const App: React.FC = () => {
   const [vmJson, setVMJson] = useState(store.load(ValueMachineStore));
   const [pricesJson, setPricesJson] = useState(store.load(PricesStore));
   // Extra UI-specific data from localstorage
+  const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsv());
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
-  const [apiKey, setApiKey] = useState(store.load(ApiKeyStore) || "");
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook({
@@ -152,26 +152,16 @@ const App: React.FC = () => {
   }, [pricesJson, unit]);
 
   useEffect(() => {
+    if (!csvFiles?.length) return;
+    console.log(`Saving ${csvFiles.length} csv files`);
+    store.save(CsvStore, csvFiles);
+  }, [csvFiles]);
+
+  useEffect(() => {
     if (!unit) return;
     console.log(`Saving unit`, unit);
     store.save(UnitStore, unit);
   }, [unit]);
-
-  useEffect(() => {
-    if (!apiKey) return;
-    const authorization = `Basic ${btoa(`anon:${apiKey}`)}`;
-    axios.get("/api/auth", { headers: { authorization } }).then((authRes) => {
-      if (authRes.status === 200) {
-        axios.defaults.headers.common.authorization = authorization;
-        console.log(`Successfully authorized with server, saving api key`);
-        store.save(ApiKeyStore, apiKey);
-      } else {
-        console.log(`Unsuccessful authorization`, authRes);
-      }
-    }).catch((err) => {
-      console.warn(`Auth token "${apiKey}" is invalid: ${err.message}`);
-    });
-  }, [apiKey]);
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -220,17 +210,18 @@ const App: React.FC = () => {
             <Route exact path="/transactions">
               <TransactionExplorer
                 addressBook={addressBook}
+                csvFiles={csvFiles}
                 transactions={transactions}
-                setTransactions={setTransactionsJson}
+                setTransactionsJson={setTransactionsJson}
               />
             </Route>
 
             <Route exact path="/address-book">
               <AddressBookManager
-                apiKey={apiKey}
-                setApiKey={setApiKey}
                 addressBook={addressBook}
                 setAddressBookJson={setAddressBookJson}
+                csvFiles={csvFiles}
+                setCsvFiles={setCsvFiles}
               />
             </Route>
 

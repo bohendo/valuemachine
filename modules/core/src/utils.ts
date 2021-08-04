@@ -8,7 +8,7 @@ import {
 } from "@valuemachine/types";
 import { add, gt, round } from "@valuemachine/utils";
 
-const { Expense, Income, Trade, Debt, JurisdictionChange } = EventTypes;
+const { Expense, Income, Trade, Debt, GuardChange } = EventTypes;
 const toDate = timestamp => timestamp?.includes("T") ? timestamp.split("T")[0] : timestamp;
 
 const sumChunks = (chunks: Array<AssetChunk | ChunkIndex>) => {
@@ -27,7 +27,7 @@ const sumChunks = (chunks: Array<AssetChunk | ChunkIndex>) => {
 
 export const describeChunk = (chunk: AssetChunk): string => {
   return `Chunk ${chunk.index}: ${round(chunk.quantity)} ${chunk.asset} held from ${
-    toDate(chunk.receiveDate)
+    toDate(chunk.history[0].date)
   } - ${toDate(chunk.disposeDate) || "present"}`;
 };
 
@@ -47,11 +47,11 @@ export const describeEvent = (event: Event | HydratedEvent): string => {
     const inputs = event.inputs?.length ? sumChunks(event.inputs) : "";
     const outputs = event.outputs?.length ? sumChunks(event.outputs) : "";
     return inputs ? `Borrowed ${inputs} on ${date}` : `Repayed ${outputs} on ${date}`;
-  } else if (event.type === JurisdictionChange) {
+  } else if (event.type === GuardChange) {
     const chunks = event.chunks?.length ? sumChunks(event.chunks) : "";
     return `Moved ${chunks} from ${
-      event.fromJurisdiction
-    } jurisdiction to ${event.toJurisdiction} on ${date}`;
+      event.fromGuard
+    } guard to ${event.toGuard} on ${date}`;
   } else {
     return `Unknown event`;
   }

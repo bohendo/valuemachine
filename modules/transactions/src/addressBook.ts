@@ -1,67 +1,79 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
   Account,
-  AddressEntry,
   Address,
   AddressBook,
+  AddressBookJson,
   AddressBookParams,
   AddressCategories,
   AddressCategory,
-  EthereumSources,
-  jurisdictions,
+  AddressEntry,
+  EvmSources,
+  Guard,
+  Guards,
+  guards,
   PrivateCategories,
   PublicCategories,
-  SecurityProvider,
-  SecurityProviders,
   StoreKeys,
 } from "@valuemachine/types";
 import {
   fmtAddress,
   fmtAddressEntry,
-  getAddressBookError,
   getAddressEntryError,
   getEmptyAddressBook,
   getLogger,
 } from "@valuemachine/utils";
 
-import { publicAddresses } from "./ethereum";
+import { publicAddresses } from "./evm";
 
 export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const { json: addressBookJson, hardcoded, logger, store } = params || {};
-  const json = addressBookJson || store?.load(StoreKeys.AddressBook) || getEmptyAddressBook();
   const log = (logger || getLogger()).child({ module: "AddressBook" });
+  const input = addressBookJson || store?.load(StoreKeys.AddressBook) || getEmptyAddressBook();
+  const json = input.length ? (input as AddressEntry[]).reduce((out, entry) => {
+    out[entry.address] = entry;
+    return out;
+  }, {}) : input as AddressBookJson;
+
+  ////////////////////////////////////////
+  // Init Code
+
+  const addressBook = {};
+
+  // Merge hardcoded public addresses with those supplied by the user
+  [
+    Object.values(json || {}),
+    publicAddresses,
+    hardcoded,
+  ]
+    .flat()
+    .filter(entry => !!entry)
+    .map(fmtAddressEntry)
+    .forEach(entry => {
+      if (!entry) {
+        log.warn(entry, `Discarding empty entry`);
+        return;
+      }
+      const error = getAddressEntryError(entry);
+      if (error) {
+        log.warn(entry, `Discarding entry: ${error}`);
+      } else if (addressBook[entry.address]) {
+        log.warn(entry, `Entry for ${entry.address} already exists, discarding duplicate`);
+      } else {
+        addressBook[entry.address] = entry;
+      }
+    });
 
   ////////////////////////////////////////
   // Helpers
 
   const getEntry = (address: Address): AddressEntry | undefined => {
-    const target = fmtAddress(address);
-    return addressBook.find(row => row.address === target);
+    if (!address) return undefined;
+    return addressBook[address] || (address.includes(":")
+      ? addressBook[address.split(":").pop()]
+      : Object.values(addressBook).find((entry: AddressEntry) => entry?.address?.endsWith(address))
+    );
   };
-
-  ////////////////////////////////////////
-  // Init Code
-
-  // Merge hardcoded public addresses with those supplied by the user
-  const addressBook = []
-    .concat(publicAddresses, hardcoded, json)
-    .filter(entry => !!entry)
-    .map(fmtAddressEntry);
-
-  const error = getAddressBookError(addressBook);
-  if (error) throw new Error(error);
-
-  // Sanity check: it shouldn't have two entries for the same address
-  let addresses = [];
-  addressBook.forEach(row => {
-    const error = getAddressEntryError(row);
-    if (error) throw new Error(error);
-    if (addresses.includes(row.address)) {
-      log.warn(`Address book has multiple entries for address ${row.address}`);
-    }
-    addresses.push(row.address);
-  });
-  addresses = addresses.sort();
 
   ////////////////////////////////////////
   // Exports
@@ -94,16 +106,20 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     return address;
   };
 
-  const getGuardian = (account: Account): SecurityProvider => {
-    if (!account) return SecurityProviders.None;
-    const guardian = getEntry(account)?.guardian;
-    if (guardian) return guardian;
-    const source = account.split("-")[0];
-    if (Object.keys(EthereumSources).includes(source)) {
-      return SecurityProviders.ETH;
+  const getGuard = (account: Account): Guard => {
+    const address = account.includes(":") ? account.split(":").pop() : account;
+    if (!address) return Guards.None;
+    const guard = getEntry(address)?.guard;
+    if (guard) return guard;
+    if (!address.includes("-")) {
+      return isEthAddress(address) ? Guards.Ethereum : Guards.None;
     }
-    return jurisdictions[source]
-      || (Object.keys(SecurityProviders).includes(source) ? source : SecurityProviders.None);
+    const prefix = address.split("-")[0];
+    if (!prefix) return Guards.None;
+    if (Object.keys(EvmSources).includes(prefix)) {
+      return Guards.Ethereum;
+    }
+    return guards[prefix] || prefix;
   };
 
   // Only really useful for ERC20 addresses
@@ -111,9 +127,9 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     getEntry(address)?.decimals || 18;
 
   return {
-    addresses,
+    addresses: Object.keys(addressBook),
     getName,
-    getGuardian,
+    getGuard,
     getDecimals,
     isCategory,
     isPublic,

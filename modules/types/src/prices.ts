@@ -10,11 +10,11 @@ import { AssetChunk } from "./vm";
 // JSON Schema
 
 // unit:asset:price where price is the number of units per asset
-export const PriceList = Type.Dict(Type.Dict(DecimalString));
+export const PriceList = Type.Record(Type.String(), Type.Record(Type.String(), DecimalString));
 export type PriceList = Static<typeof PriceList>;
 
 // date:PriceList
-export const PricesJson = Type.Dict(PriceList);
+export const PricesJson = Type.Record(Type.String(), PriceList);
 export type PricesJson = Static<typeof PricesJson>;
 
 ////////////////////////////////////////
@@ -29,6 +29,7 @@ export type PricesParams = {
 
 export interface Prices {
   getPrice: (date: TimestampString, asset: Asset, unit?: Asset) => string | undefined;
+  getNearest: (date: TimestampString, asset: Asset, unit?: Asset) => string | undefined;
   setPrice: (price: DecimalString, rawDate: DateString, asset: Asset, givenUnit?: Asset) => void;
   json: PricesJson;
   merge: (prices: PricesJson) => void;

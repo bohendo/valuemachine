@@ -5,7 +5,7 @@ import {
   getAddressBook,
   getPrices,
   getTransactions, 
-  getChainData, 
+  getEthereumData, 
   getValueMachine,
   types,
   utils,
@@ -19,11 +19,10 @@ const logger = getLogger("info");
 const store = getFileStore(path.join(__dirname, "../exampleData"), fs);
 
 // Gather & categorize the addresses we want to analyze
-const addressBookJson = [{
-  address: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
-  category: AddressCategories.Self, // this is a string of the key name so just "Self" is fine too
-  name: "bohendo.eth",
-}];
+const address = "evm:1:0x8dD2470FA76bfEd24b7ef69a83F0063A6C03cA3f";
+const addressBookJson = {
+  [address]: { address, category: AddressCategories.Self, name: "bohendo.argent.xyz" },
+};
 const addressBook = getAddressBook({ json: addressBookJson, logger });
 
 // Get tools for gathering & processing transactions
@@ -33,7 +32,12 @@ const transactions = getTransactions({ logger });
 (async () => {
 
   // Get chain data management tools
-  const chainData = getChainData({ etherscanKey: process.env.ETHERSCAN_KEY, logger, store });
+  const chainData = getEthereumData({
+    etherscanKey: process.env.ETHERSCAN_KEY,
+    covalentKey: process.env.COVALENT_KEY,
+    logger,
+    store,
+  });
 
   // Fetch eth chain data, this can take a while
   await chainData.syncAddressBook(addressBook);
@@ -51,37 +55,34 @@ const transactions = getTransactions({ logger });
   const unit = "USD";
   const prices = getPrices({ logger, store, unit });
   for (const chunk of vm.json.chunks) {
-    const { asset, receiveDate, disposeDate } = chunk;
-    for (const date of [receiveDate, disposeDate]) {
+    const { asset, history, disposeDate } = chunk;
+    for (const date of [history[0]?.date, disposeDate]) {
       if (!date) continue;
       await prices.syncPrice(date, asset);
     }
   }
 
   // calculate & print capital gains
+  console.log(`    Quantity |        Asset | Receive Date | Dispose Date | Capital Change (USD)`);
   for (const event of vm.json.events) {
     switch(event.type) {
     case EventTypes.Trade: {
       event.outputs.forEach(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const takePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
-        const givePrice = prices.getPrice(chunk.disposeDate, chunk.asset);
+        const takePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset);
+        const givePrice = prices.getNearest(chunk.disposeDate, chunk.asset);
         if (!takePrice || !givePrice) return;
         const change = mul(chunk.quantity, sub(givePrice, takePrice));
         console.log(`${
-          addressBook.getName(event.account)
-        } got a chunk of ${
-          round(chunk.quantity, 4)
-        } ${
-          chunk.asset
-        } on ${
-          chunk.receiveDate
-        } and gave it away on ${
-          chunk.disposeDate
-        } for a capital change of ${
+          round(chunk.quantity, 4).padStart(12, " ")
+        } | ${
+          chunk.asset.padStart(12, " ")
+        } | ${
+          chunk.history[0]?.date.split("T")[0].padStart(12, " ")
+        } | ${
+          chunk.disposeDate.split("T")[0].padStart(12, " ")
+        } | ${
           round(change, 2)
-        } ${
-          unit
         }`);
       });
     }

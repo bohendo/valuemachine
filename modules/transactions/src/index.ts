@@ -1,4 +1,10 @@
 export { getAddressBook } from "./addressBook";
-export { getChainData, publicAddresses } from "./ethereum";
+export {
+  ethereumAddresses,
+  getEthereumData,
+  getPolygonData,
+  polygonAddresses,
+  publicAddresses,
+} from "./evm";
 export { getTransactions } from "./manager";
 export { describeTransaction } from "./utils";

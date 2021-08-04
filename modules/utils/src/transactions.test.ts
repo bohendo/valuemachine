@@ -6,7 +6,7 @@ import { expect } from "./testUtils";
 
 const validTransaction = {
   date: new Date(0).toISOString(),
-  sources: [TransactionSources.EthTx],
+  sources: [TransactionSources.Ethereum],
   transfers: [{
     asset: Assets.ETH,
     category: TransferCategories.Expense,

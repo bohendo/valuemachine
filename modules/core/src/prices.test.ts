@@ -5,6 +5,7 @@ import {
   Prices,
 } from "@valuemachine/types";
 import {
+  add,
   div,
   gt,
   mul,
@@ -33,12 +34,23 @@ describe("Prices", () => {
     expect(Object.keys(prices.json).length).to.equal(0);
   });
 
+  it("should get nearest prices", async () => {
+    const usdPerEth = "1234";
+    const plusOneDay = d => new Date(new Date(d).getTime() + (1000 * 60 * 60 * 24)).toISOString();
+    const plusOne = n => add(n, "1");
+    prices.merge({
+      [plusOneDay(date)]: { USD: { ETH: usdPerEth } },
+      [plusOneDay(plusOneDay(date))]: { USD: { ETH: plusOne(usdPerEth) } },
+    });
+    expect(round(prices.getNearest(date, ETH, USD))).to.equal(round(usdPerEth));
+  });
+
   it("should calculate some prices from traded chunks", async () => {
     const amts = ["1", "50", "2"];
     await prices.syncChunks([
       {
         asset: ETH,
-        receiveDate: getDate(1),
+        history: [{ date: getDate(1), guard: ETH }],
         disposeDate: getDate(2),
         quantity: amts[0],
         index: 0,
@@ -47,7 +59,7 @@ describe("Prices", () => {
       },
       {
         asset: UNI,
-        receiveDate: getDate(2),
+        history: [{ date: getDate(2), guard: ETH }],
         disposeDate: getDate(3),
         quantity: amts[1],
         index: 1,
@@ -56,7 +68,7 @@ describe("Prices", () => {
       },
       {
         asset: ETH,
-        receiveDate: getDate(3),
+        history: [{ date: getDate(3), guard: ETH }],
         disposeDate: getDate(4),
         quantity: amts[2],
         index: 2,
@@ -138,6 +150,11 @@ describe("Prices", () => {
     } });
     log.info(prices.json, `All prices`);
     expect(prices.getPrice(date, "CETH", ETH)).to.be.ok;
+  });
+
+  // Tests that require network calls might be fragile, skip them for now
+  it.skip("should fetch a price of assets not in the Assets enum", async () => {
+    expect(await prices.syncPrice(new Date().toISOString(), "idleUSDTYield", USD)).to.be.ok;
   });
 
   // Tests that require network calls might be fragile, skip them for now
