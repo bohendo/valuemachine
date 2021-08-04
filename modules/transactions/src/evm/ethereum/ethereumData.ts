@@ -108,7 +108,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       res = await attempt();
     } catch (e) {
       const msg = e.message.toLowerCase();
-      if (msg.includes("timeout") || msg.includes("eai_again")) {
+      if (msg.includes("timeout") || msg.includes("eai_again") || msg.includes("econnreset")) {
         log.warn(`Request timed out, trying one more time..`);
         await new Promise(res => setTimeout(res, 1000)); // short pause
         res = await attempt();
@@ -259,16 +259,21 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
         }
         log.info(`Syncing transaction data for ${txHash}`);
         let tx = transactions.find(tx => tx.hash === txHash);
-        if (tx) {
-          // etherscan only returns transfers relevant to the given address, get the rest of them
-          tx.transfers = await fetchTransfers(tx.hash);
-        } else {
-          const [txRes, transfers] = await Promise.all([
-            fetchTx(txHash),
-            fetchTransfers(txHash),
-          ]);
-          tx = txRes;
-          tx.transfers = transfers;
+        try {
+          if (tx) {
+            // etherscan only returns transfers relevant to the given address, get the rest of them
+            tx.transfers = await fetchTransfers(tx.hash);
+          } else {
+            const [txRes, transfers] = await Promise.all([
+              fetchTx(txHash),
+              fetchTransfers(txHash),
+            ]);
+            tx = txRes;
+            tx.transfers = transfers;
+          }
+        } catch (e) {
+          log.error(e.message);
+          return;
         }
         const txError = getEvmTransactionError(tx);
         if (txError) {
@@ -304,16 +309,19 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     if (!getEvmTransactionError(json.transactions[txHash])) {
       return;
     }
-    const [tx, transfers] = await Promise.all([
-      fetchTx(txHash),
-      fetchTransfers(txHash),
-    ]);
-    tx.transfers = transfers;
-    const txError = getEvmTransactionError(tx);
-    if (txError) throw new Error(txError);
-    json.transactions[txHash] = tx;
-    save();
-    return;
+    try {
+      const [tx, transfers] = await Promise.all([
+        fetchTx(txHash),
+        fetchTransfers(txHash),
+      ]);
+      tx.transfers = transfers;
+      const txError = getEvmTransactionError(tx);
+      if (txError) throw new Error(txError);
+      json.transactions[txHash] = tx;
+      save();
+    } catch (e) {
+      log.error(e.message);
+    }
   };
 
   const syncAddressBook = async (addressBook: AddressBook): Promise<void> => {
