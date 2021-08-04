@@ -93,6 +93,14 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
         if (e?.response?.data.error_message) log.error(e.response.data.error_message);
         if (typeof e?.response === "string") log.error(res);
         return e.response;
+      }).then(res => {
+        if (typeof res === "string") {
+          log.error(msg);
+          log.error(res);
+          return undefined;
+        } else {
+          return res;
+        }
       });
     };
     let res;
@@ -153,7 +161,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const fetchTransfers = async (txHash: Bytes32): Promise<EvmTransfer[]> => {
     const transfers = await queryEtherscan(txHash);
-    if (transfers) {
+    if (transfers?.length) {
       return transfers.map(formatEtherscanTransfer);
     } else {
       throw new Error(`Failed to fetch internal transfers for tx ${txHash}`);
@@ -162,7 +170,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const fetchTransferHistory = async (address: EvmAddress): Promise<Bytes32[]> => {
     const transfers = await queryEtherscan(address);
-    if (transfers) {
+    if (transfers?.length) {
       return transfers
         .filter(t => gt(t.value, "0"))
         .map(t => t.hash)
