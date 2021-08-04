@@ -14,7 +14,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@sinclair/typebox": "0.17.1"
+    "@sinclair/typebox": "0.20.4"
   },
   "devDependencies": {
     "@types/node": "15.0.2",

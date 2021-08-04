@@ -70,11 +70,11 @@ export const EvmTransaction = Type.Object({
 export type EvmTransaction = Static<typeof EvmTransaction>;
 
 export const EvmDataJson = Type.Object({
-  addresses: Type.Dict(Type.Object({
+  addresses: Type.Record(Type.String(), Type.Object({
     history: Type.Array(Bytes32), /* List of tx hashes that interact with this address */
     lastUpdated: TimestampString,
   })),
-  transactions: Type.Dict(EvmTransaction),
+  transactions: Type.Record(Type.String(), EvmTransaction),
 });
 export type EvmDataJson = Static<typeof EvmDataJson>;
 

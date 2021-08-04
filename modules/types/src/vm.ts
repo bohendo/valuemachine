@@ -33,7 +33,7 @@ export type AssetChunk = Static<typeof AssetChunk>;
 export const AssetChunks = Type.Array(AssetChunk);
 export type AssetChunks = Static<typeof AssetChunks>;
 
-export const Balances = Type.Dict(DecimalString);
+export const Balances = Type.Record(Type.String(), DecimalString);
 export type Balances = Static<typeof Balances>;
 
 export const EventTypes = {

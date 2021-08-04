@@ -48,7 +48,7 @@ export const AddressEntry = Type.Object({
 });
 export type AddressEntry = Static<typeof AddressEntry>;
 
-export const AddressBookJson = Type.Dict(AddressEntry);
+export const AddressBookJson = Type.Record(Type.String(), AddressEntry);
 export type AddressBookJson = Static<typeof AddressBookJson>;
 
 ////////////////////////////////////////
