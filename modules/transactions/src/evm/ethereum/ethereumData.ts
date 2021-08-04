@@ -26,6 +26,8 @@ import {
   getLogger,
 } from "@valuemachine/utils";
 import axios from "axios";
+// eslint-disable-next-line import/no-unresolved
+import getQueue from "queue";
 
 import { parseEthTx } from "./parser";
 
@@ -35,7 +37,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   const json = ethDataJson || store?.load(StoreKeys.EthereumData) || getEmptyEvmData();
   const save = () => store
     ? store.save(StoreKeys.EthereumData, json)
-    : log.debug(`No store provided, can't save eth data`);
+    : undefined; // log.debug(`No store provided, can't save eth data`);
 
   const inputError = getEvmDataError(json);
   if (inputError) throw new Error(inputError);
@@ -53,7 +55,6 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   ////////////////////////////////////////
   // Internal Helper Functions
 
-  // CAIP-10
   const getAddress = (address: string): string => `evm:${metadata.id}:${getEvmAddress(address)}`;
 
   const formatCovalentTx = (rawTx): EvmTransaction => ({
@@ -80,107 +81,125 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   });
 
   const formatEtherscanTransfer = (rawTransfer): EvmTransfer => ({
-    to: getAddress(rawTransfer.to),
+    to: rawTransfer.to ? getAddress(rawTransfer.to) : null,
     from: getAddress(rawTransfer.from),
     value: formatEther(rawTransfer.value),
   });
 
-  const queryCovalent = async (path: string, query?: any): Promise<any> => {
-    if (!covalentKey) throw new Error(`A covalent api key is required to sync eth data`);
-    const url = `https://api.covalenthq.com/v1/${path}/?${
-      Object.entries(query || {}).reduce((querystring, entry) => {
-        querystring += `${entry[0]}=${entry[1]}&`;
-        return querystring;
-      }, "")
-    }key=${covalentKey}`;
-    log.debug(`GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`);
-    let res;
+  const retry = async (attempt: () => Promise<any>): Promise<any> => {
+    let response;
+    const assertResponse = (res: any): void => {
+      if (typeof res === "string") throw new Error(res);
+      if (res.status !== 200) throw new Error(`Bad response status: ${res.status} (${Object.keys(res)})`);
+      if (res.data.error) throw new Error(res.data.error_message);
+    };
     try {
-      res = await axios(url);
+      response = await attempt();
+      assertResponse(response);
     } catch (e) {
-      log.warn(`Axios error: ${e.message}`);
-      return;
+      const msg = e.message.toLowerCase();
+      if (msg.includes("timeout") || msg.includes("eai_again")) {
+        log.warn(`Request timed out, trying one more time..`);
+        await new Promise(res => setTimeout(res, 1000)); // short pause
+        response = await attempt();
+      } else if (msg.includes("rate limit") || msg.includes("429")) {
+        log.warn(`We're rate limited, pausing then trying one more time..`);
+        await new Promise(res => setTimeout(res, 8000)); // long pause
+        response = await attempt();
+      } else {
+        throw e;
+      }
     }
-    if (res.status !== 200) {
-      log.warn(`Unsuccessful status: ${res.status}`);
-      return;
-    }
-    if (res.data.error) {
-      log.warn(`Covalent error: ${res.data.error_message}`);
-      return;
-    }
-    return res.data.data;
+    assertResponse(response);
+    return response;
   };
 
   const queryEtherscan = async (
-    action: string,
-    address: EvmAddress,
-  ): Promise<any[] | undefined> => {
-    const target = action === "txlist" ? "transaction history"
-      : action === "txlistinternal" ? "internal call history"
-      : action === "tokentx" ? "token history"
-      : "";
+    target: EvmAddress | Bytes32,
+  ): Promise<any> => {
+    const targetType = isEvmAddress(target) ? "address" : "txhash";
     const url = `https://api.etherscan.io/api?module=account&` +
-      `action=${action}&` +
-      `address=${address}&` +
+      `action=txlistinternal&` +
+      `${targetType}=${target}&` +
       `apikey=${etherscanKey || ""}&sort=asc`;
-    log.debug(`GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`);
+    const attempt = async () => {
+      log.debug(`GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`);
+      return await axios.get(url, { timeout: 10000 });
+    };
     try {
-      const result = (await axios.get(url, { timeout: 10000 })).data.result;
-      if (typeof result === "string") {
-        log.warn(`Failed to get ${target}: ${result}`);
-        return undefined;
-      }
-      log.info(`Received ${result.length} ${target} results from Etherscan`);
-      return result;
+      const response = await retry(attempt);
+      return response?.data?.result;
     } catch (e) {
-      log.warn(e.message);
-      return undefined;
+      log.error(e.message);
+    }
+    return undefined;
+  };
+
+  const queryCovalent = async (path: string, args?: any): Promise<any> => {
+    if (!covalentKey) throw new Error(`A covalent api key is required to sync eth data`);
+    const url = `https://api.covalenthq.com/v1/${path}/?${
+      Object.entries(args || {}).reduce((argString, entry) => {
+        argString += `${entry[0]}=${entry[1]}&`;
+        return argString;
+      }, "")
+    }key=${covalentKey}`;
+    const attempt = async () => {
+      log.debug(`GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`);
+      return await axios.get(url, { timeout: 10000 });
+    };
+    try {
+      const response = await retry(attempt);
+      return response?.data?.data;
+    } catch (e) {
+      log.error(e.message);
+    }
+    return undefined;
+  };
+
+  const fetchTransfers = async (txHash: Bytes32): Promise<EvmTransfer[]> => {
+    const transfers = await queryEtherscan(txHash);
+    if (transfers) {
+      return transfers.map(formatEtherscanTransfer);
+    } else {
+      throw new Error(`Failed to fetch internal transfers for tx ${txHash}`);
     }
   };
 
-  const fetchTransfersByTx = async (txHash: Bytes32): Promise<EvmTransfer[]> => {
-    if (!etherscanKey) {
-      log.warn(`An etherscan api key is required to fetch internal transfers`);
-      return [];
+  const fetchTransferHistory = async (address: EvmAddress): Promise<Bytes32[]> => {
+    const transfers = await queryEtherscan(address);
+    if (transfers) {
+      return transfers.map(t => t.hash).filter(hash => !!hash).sort();
+    } else {
+      throw new Error(`Failed to fetch internal transfer history for ${address}`);
     }
-    const url = `https://api.etherscan.io/api?module=account&` +
-      `action=txlistinternal&` +
-      `txhash=${txHash}&` +
-      `apikey=${etherscanKey || ""}&sort=asc`;
-    try {
-      log.debug(`GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`);
-      const result = (await axios.get(url, { timeout: 10000 })).data.result;
-      if (typeof result === "string") {
-        log.warn(`Failed to get internal transfers for tx ${txHash}: ${result}`);
-        return [];
-      }
-      log.info(`Received ${result.length} internal transfers from Etherscan`);
-      return result.map(formatEtherscanTransfer);
-    } catch (e) {
-      log.warn(e.message);
-      return [];
+  };
+
+  const fetchTxHistory = async (address: EvmAddress): Promise<EvmTransaction[]> => {
+    let data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`);
+    if (!data?.items) {
+      throw new Error(`Failed to fetch transaction history for ${address}`);
     }
+    const transactions = [];
+    transactions.push(...data.items);
+    while (transactions && data.pagination.has_more) {
+      data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`, {
+        ["page-number"]: data.pagination.page_number + 1,
+      });
+      if (data?.items) transactions.push(...data.items);
+    }
+    return transactions.map(formatCovalentTx);
   };
 
   const fetchTx = async (txHash: Bytes32): Promise<EvmTransaction> => {
-    log.info(`Fetching transaction ${txHash}`);
-    const [txRes, transferRes] = await Promise.all([
-      queryCovalent(`${metadata.id}/transaction_v2/${txHash}`),
-      fetchTransfersByTx(txHash),
-    ]);
-    if (txRes?.items?.[0]) {
-      const tx = formatCovalentTx(txRes?.items?.[0]);
-      tx.transfers = transferRes;
-      return tx;
+    const tx = await queryCovalent(`${metadata.id}/transaction_v2/${txHash}`);
+    if (tx?.items?.[0]) {
+      return formatCovalentTx(tx?.items?.[0]);
     } else {
-      throw new Error(`Failed to fetch tx ${txHash}`);
+      throw new Error(`Failed to fetch transaction ${txHash}`);
     }
   };
 
-  const logProg = (list: any[], elem: any): string =>
-    `${list.indexOf(elem)+1}/${list.length}`;
-
+  /*
   // Beware of edge case: a tx makes 2 identical internal transfers and
   // the to & from are both tracked accounts so we get these calls in the txHistory of both.
   // We do want to include these two identical transfers so we can't naively dedup
@@ -195,46 +214,60 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
         newElem.value.includes(".") ? newElem.value : formatEther(newElem.value)
       ) === oldElem.value,
     ).length;
+  */
 
   const syncAddress = async (rawAddress: EvmAddress): Promise<void> => {
     const address = getEvmAddress(
       rawAddress.includes(":") ? rawAddress.split(":").pop() : rawAddress
     );
-    let data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`);
-    const covalentTxns = [];
-    covalentTxns.push(...data?.items);
-    while (covalentTxns && data.pagination.has_more) {
-      data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`, {
-        ["page-number"]: data.pagination.page_number + 1,
-      });
-      covalentTxns.push(...data.items);
-    }
-    const txns = covalentTxns.map(formatCovalentTx);
-    const transfers = await queryEtherscan("txlistinternal", address);
-    const history = dedup(txns.map(tx => tx.hash).concat(transfers.map(t => t.hash))).sort();
-    log.info(`Found ${history.length} historical transactions for ${address}`);
+    log.info(`Fetching transaction history of ${address}`);
+    const [transactions, transferHashes] = await Promise.all([
+      fetchTxHistory(address),
+      fetchTransferHistory(address),
+    ]);
+    const history = dedup(transactions.map(tx => tx.hash).concat(transferHashes)).sort();
     json.addresses[address] = {
       lastUpdated: new Date().toISOString(),
       history,
     };
     save();
-    for (const txHash of history) {
-      let tx = txns.find(tx => tx.hash === txHash);
-      if (tx) {
-        const oldTransfers = JSON.parse(JSON.stringify(tx.transfers));
-        for (const transfer of transfers.filter(t => t.hash === txHash)) {
-          if (getDups(oldTransfers, transfer) === 0) {
-            tx.transfers.push(transfer);
-          }
+    log.info(`Saved ${history.length} historical transactions for ${address}`);
+    const q = getQueue({ autostart: true, concurrency: 4 });
+    history.forEach(txHash => {
+      q.push(async () => {
+        if (!getEvmTransactionError(json.transactions[txHash])) {
+          return;
         }
-      } else {
-        tx = await fetchTx(txHash);
-      }
-      const txError = getEvmTransactionError(tx);
-      if (txError) throw new Error(txError);
-      json.transactions[tx.hash] = tx;
-      save();
-    }
+        log.info(`Syncing transaction data for ${txHash}`);
+        let tx = transactions.find(tx => tx.hash === txHash);
+        if (tx) {
+          // etherscan only returns transfers relevant to the given address, get the rest of them
+          tx.transfers = await fetchTransfers(tx.hash);
+        } else {
+          const [txRes, transfers] = await Promise.all([
+            fetchTx(txHash),
+            fetchTransfers(txHash),
+          ]);
+          tx = txRes;
+          tx.transfers = transfers;
+        }
+        const txError = getEvmTransactionError(tx);
+        if (txError) throw new Error(txError);
+        json.transactions[tx.hash] = tx;
+        save();
+      });
+    });
+    await new Promise<void>((res, rej) => {
+      q.on("end", error => {
+        if (error) {
+          log.error(error);
+          rej(error);
+        } else {
+          log.info(`Successfully synced data for address ${address}`);
+          res();
+        }
+      });
+    });
     return;
   };
 
@@ -246,11 +279,14 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   ): Promise<void> => {
     const txHashError = getBytes32Error(txHash);
     if (txHashError) throw new Error(txHashError);
-    const existing = json.transactions[txHash];
-    if (!getEvmTransactionError(existing)) {
+    if (!getEvmTransactionError(json.transactions[txHash])) {
       return;
     }
-    const tx = await fetchTx(txHash);
+    const [tx, transfers] = await Promise.all([
+      fetchTx(txHash),
+      fetchTransfers(txHash),
+    ]);
+    tx.transfers = transfers;
     const txError = getEvmTransactionError(tx);
     if (txError) throw new Error(txError);
     json.transactions[txHash] = tx;
@@ -264,9 +300,9 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .map(address =>
-        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // CAIP-10 on this evm
-        : address.includes(":") ? "" // CAIP-10 address on different evm
-        : address // non-CAIP-10 address
+        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // address on this evm
+        : address.includes(":") ? "" // address on a different evm
+        : address // generic address applies to all evms
       )
       .filter(address => isEvmAddress(address))
       .map(address => getEvmAddress(address));
@@ -304,13 +340,9 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     // Fetch tx history for addresses that need to be updated
     log.info(`Fetching tx history for ${addresses.length} out-of-date addresses`);
     for (const address of addresses) {
-      // Find the most recent tx timestamp that involved any interaction w this address
-      log.info(`Fetching history for address ${logProg(addresses, address)}: ${address}`);
       await syncAddress(address);
     }
-    log.info(`Fetching tx data for ${selfAddresses.length} addresses`);
     for (const address of selfAddresses) {
-      log.debug(`Syncing transactions for address ${logProg(selfAddresses, address)}: ${address}`);
       for (const hash of json.addresses[address] ? json.addresses[address].history : []) {
         await syncTransaction(hash);
       }
@@ -333,11 +365,13 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       .map(address => getEvmAddress(address));
     const selfTransactionHashes = Array.from(new Set(
       selfAddresses.reduce((all, address) => {
-        log.info(`Adding ${json.addresses[address]?.history?.length || 0} entries for ${address} (${all.length} so far)`);
+        log.info(`Parsing ${
+          json.addresses[address]?.history?.length || 0
+        } transactions from ${address} (${all.length} so far)`);
         return all.concat(json.addresses[address]?.history || []);
       }, [])
     ));
-    log.info(`Parsing ${selfTransactionHashes.length} eth transactions`);
+    log.info(`Parsing a total of ${selfTransactionHashes.length} eth transactions`);
     return selfTransactionHashes.map(hash => parseEthTx(
       json.transactions[hash],
       metadata,

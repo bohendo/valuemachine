@@ -80,7 +80,7 @@ export const getPrices = (params?: PricesParams): Prices => {
         log.warn(`Request timed out, trying one more time..`);
         await new Promise(res => setTimeout(res, 1000)); // short pause
         response = await attempt();
-      } else if (e.message.includes("429")) {
+      } else if (e.message.includes("429") || e.message.toLowerCase().includes("rate limit")) {
         log.warn(`We're rate limited, pausing then trying one more time..`);
         await new Promise(res => setTimeout(res, 8000)); // long pause
         response = await attempt();

@@ -1,18 +1,19 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
   Account,
-  AddressEntry,
   Address,
   AddressBook,
+  AddressBookJson,
   AddressBookParams,
   AddressCategories,
   AddressCategory,
+  AddressEntry,
   EvmSources,
+  Guard,
+  Guards,
   guards,
   PrivateCategories,
   PublicCategories,
-  Guard,
-  Guards,
   StoreKeys,
 } from "@valuemachine/types";
 import {
@@ -27,8 +28,12 @@ import { publicAddresses } from "./evm";
 
 export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const { json: addressBookJson, hardcoded, logger, store } = params || {};
-  const json = addressBookJson || store?.load(StoreKeys.AddressBook) || getEmptyAddressBook();
   const log = (logger || getLogger()).child({ module: "AddressBook" });
+  const input = addressBookJson || store?.load(StoreKeys.AddressBook) || getEmptyAddressBook();
+  const json = input.length ? (input as AddressEntry[]).reduce((out, entry) => {
+    out[entry.address] = entry;
+    return out;
+  }, {}) : input as AddressBookJson;
 
   ////////////////////////////////////////
   // Init Code
@@ -37,7 +42,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
 
   // Merge hardcoded public addresses with those supplied by the user
   [
-    json.length ? json : Object.values(json || {}),
+    Object.values(json || {}),
     publicAddresses,
     hardcoded,
   ]

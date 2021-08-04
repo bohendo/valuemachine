@@ -27,7 +27,8 @@
     "@valuemachine/types": "0.6.4",
     "@valuemachine/utils": "0.6.4",
     "axios": "0.21.1",
-    "csv-parse": "4.16.0"
+    "csv-parse": "4.16.0",
+    "queue": "6.0.2"
   },
   "devDependencies": {
     "@types/node": "15.0.2",
