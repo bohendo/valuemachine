@@ -333,8 +333,8 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       ) {
         return true;
       }
-      const lastAction = json.addresses[address].history
-        .map(txHash => json.transactions[txHash].timestamp || new Date(0))
+      const lastAction = json.addresses[address]?.history
+        .map(txHash => json.transactions[txHash]?.timestamp || new Date(0))
         .sort((ts1, ts2) => new Date(ts1).getTime() - new Date(ts2).getTime())
         .reverse()[0];
       if (!lastAction) {
