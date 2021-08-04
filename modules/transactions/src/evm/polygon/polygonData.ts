@@ -203,8 +203,7 @@ export const getPolygonData = (params?: {
       .map(address => getEvmAddress(address));
     const addresses = selfAddresses.filter(address => {
       if (
-        !json.addresses[address] ||
-        json.addresses[address].lastUpdated === zeroDate
+        !json.addresses[address] || json.addresses[address].lastUpdated === zeroDate
       ) {
         return true;
       }
