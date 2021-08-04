@@ -87,16 +87,16 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     const attempt = async () => {
       const msg = `GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`;
       log.debug(msg);
-      return axios.get(url, { timeout: 10000 }).catch(e => {
+      return await axios.get(url, { timeout: 10000 }).catch(e => {
         log.error(msg);
         log.error(e.message);
-        if (e?.response?.data.error_message) log.error(e.response.data.error_message);
-        if (typeof e?.response === "string") log.error(res);
-        return e.response;
+        if (e?.response?.data?.error_message) log.error(e.response.data.error_message);
+        if (typeof e?.response === "string") log.error(e.response);
+        return undefined;
       }).then(res => {
-        if (typeof res === "string") {
+        if (!res || typeof res === "string") {
           log.error(msg);
-          log.error(res);
+          log.error(`Response: ${res}`);
           return undefined;
         } else {
           return res;
@@ -161,7 +161,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const fetchTransfers = async (txHash: Bytes32): Promise<EvmTransfer[]> => {
     const transfers = await queryEtherscan(txHash);
-    if (transfers?.length) {
+    if (transfers) {
       return transfers.map(formatEtherscanTransfer);
     } else {
       log.error(transfers);
@@ -171,7 +171,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const fetchTransferHistory = async (address: EvmAddress): Promise<Bytes32[]> => {
     const transfers = await queryEtherscan(address);
-    if (transfers?.length) {
+    if (transfers) {
       return transfers
         .filter(t => gt(t.value, "0"))
         .map(t => t.hash)
