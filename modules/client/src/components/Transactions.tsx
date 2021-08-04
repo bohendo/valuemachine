@@ -289,9 +289,11 @@ export const TransactionExplorer = ({
       }
     }
     if (csvFiles?.length) {
-      console.warn(csvFiles);
       for (const csvFile of csvFiles) {
-        setSyncing(`Merging ${csvFile.type} data from ${csvFile.name}`);
+        setSyncing(`Parsing ${
+          csvFile.data.split("\n").length
+        } rows of ${csvFile.type} data from ${csvFile.name}`);
+        await new Promise((res) => setTimeout(res, 200)); // let sync message re-render
         newTransactions.mergeCsv(csvFile.data, csvFile.type);
       }
     }

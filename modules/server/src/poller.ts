@@ -4,13 +4,13 @@ import { Address, AddressBook, Guard, TransactionsJson } from "@valuemachine/typ
 import { env } from "./env";
 import { getLogAndSend, STATUS_MY_BAD } from "./utils";
 
-const log = getLogger(env.logLevel).child({ module: "Transactions" });
 
 export const getPollerHandler = (
   syncData: (addressBook: AddressBook) => Promise<void>,
   getData: (addressBook: AddressBook) => TransactionsJson,
   dataType: Guard,
 ) => {
+  const log = getLogger("debug" || env.logLevel).child({ module: `${dataType}Poller` });
   let syncing = [];
   return async (
     addressBook: AddressBook,
@@ -46,7 +46,7 @@ export const getPollerHandler = (
           try {
             const start = Date.now();
             const transactionsJson = getData(addressBook);
-            res.json(transactionsJson.sort(chrono));
+            res.json(transactionsJson.sort(chrono)); // TODO: make sure getData returns sorted txns
             log.info(`Returned ${transactionsJson.length} ${dataType} transactions at a rate of ${
               Math.round((100000 * transactionsJson.length)/(Date.now() - start)) / 100
             } tx/sec`);
@@ -79,9 +79,7 @@ export const getPollerHandler = (
       log.warn(`Encountered an error while syncing ${label} for ${addresses}: ${e.message}`);
       syncing = syncing.filter(address => addresses.includes(address));
     });
-    log.info(`Synced ${label} for ${addresses.length} addresses successfully? ${
-      await sync
-    }`);
+    log.info(`Synced ${label} for ${addresses.length} addresses successfully? ${await sync}`);
     return;
   };
 };

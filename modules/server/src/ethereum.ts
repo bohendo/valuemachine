@@ -8,17 +8,17 @@ import { env } from "./env";
 import { getPollerHandler } from "./poller";
 import { getLogAndSend, store, STATUS_YOUR_BAD } from "./utils";
 
-const log = getLogger(env.logLevel).child({ module: "Transactions" });
+const log = getLogger(env.logLevel).child({ module: `${Guards.Ethereum}Transactions` });
 
-const chainData = getEthereumData({
+const ethereumData = getEthereumData({
   etherscanKey: env.etherscanKey,
   covalentKey: env.covalentKey,
   logger: log,
   store,
 });
 const handlePoller = getPollerHandler(
-  chainData.syncAddressBook,
-  (addressBook: AddressBook) => chainData.getTransactions(addressBook),
+  ethereumData.syncAddressBook,
+  (addressBook: AddressBook) => ethereumData.getTransactions(addressBook),
   Guards.Ethereum,
 );
 
@@ -27,6 +27,7 @@ export const ethereumRouter = express.Router();
 ethereumRouter.post("/", async (req, res) => {
   const logAndSend = getLogAndSend(res);
   const addressBookJson = req.body.addressBook;
+  log.info(addressBookJson, "Got address book");
   const addressBookError = getAddressBookError(addressBookJson);
   if (addressBookError) {
     return logAndSend(`[Eth] Invalid AddressBook: ${addressBookError}`, STATUS_YOUR_BAD);
