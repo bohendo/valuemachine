@@ -210,8 +210,9 @@ const App: React.FC = () => {
             <Route exact path="/transactions">
               <TransactionExplorer
                 addressBook={addressBook}
+                csvFiles={csvFiles}
                 transactions={transactions}
-                setTransactions={setTransactionsJson}
+                setTransactionsJson={setTransactionsJson}
               />
             </Route>
 

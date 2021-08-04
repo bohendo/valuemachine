@@ -75,11 +75,11 @@ export const getPolygonData = (params?: {
       topics: evt.raw_log_topics,
       data: evt.raw_log_data || "0x",
     })),
-    nonce: 0, // not available?
+    nonce: 0, // TODO: We need this to calculate the addresses of newly created contracts
     status: rawTx.successful ? 1 : 0,
     timestamp: rawTx.block_signed_at,
     transfers: [], // not available, get from etherscan
-    to: getAddress(rawTx.to_address),
+    to: rawTx.to_address ? getAddress(rawTx.to_address) : null,
     value: formatEther(rawTx.value),
   });
 
@@ -208,8 +208,8 @@ export const getPolygonData = (params?: {
       ) {
         return true;
       }
-      const lastAction = json.addresses[address].history
-        .map(txHash => json.transactions[txHash].timestamp || new Date(0))
+      const lastAction = json.addresses[address]?.history
+        .map(txHash => json.transactions[txHash]?.timestamp || new Date(0))
         .sort((ts1, ts2) => new Date(ts1).getTime() - new Date(ts2).getTime())
         .reverse()[0];
       if (!lastAction) {

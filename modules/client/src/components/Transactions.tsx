@@ -156,12 +156,12 @@ export const TransactionExplorer = ({
   addressBook,
   csvFiles,
   transactions,
-  setTransactions,
+  setTransactionsJson,
 }: {
   addressBook: AddressBook;
   csvFiles: CsvFile[],
   transactions: Transactions;
-  setTransactions: (val: Transactions) => void;
+  setTransactionsJson: (val: TransactionsJson) => void;
 }) => {
   const [syncing, setSyncing] = useState("");
   const [page, setPage] = useState(0);
@@ -240,7 +240,7 @@ export const TransactionExplorer = ({
   };
 
   const resetTxns = () => {
-    setTransactions([]);
+    setTransactionsJson([]);
     console.log(`Successfully cleared tx data from localstorage`);
   };
 
@@ -260,7 +260,7 @@ export const TransactionExplorer = ({
           if (!isEthSynced) {
             setSyncing(`Syncing Ethereum data for ${selfAddresses.length} addresses`);
             const resEth = await axios.post("/api/ethereum", { addressBook: addressBook.json });
-            // console.log(`Got ${resEth.data.length} Eth transactions`);
+            console.log(`Got ${resEth.data.length} Eth transactions`);
             if (resEth.status === 200 && typeof(resEth.data) === "object") {
               newTransactions.merge(resEth.data);
               isEthSynced = true;
@@ -271,7 +271,7 @@ export const TransactionExplorer = ({
           }
           if (!isPolygonSynced) {
             setSyncing(`Syncing Polygon data for ${selfAddresses.length} addresses`);
-            const resPolygon = await axios.post("/api/polygon", { addressBook: selfAddresses });
+            const resPolygon = await axios.post("/api/polygon", { addressBook: addressBook.json });
             console.log(`Got ${resPolygon.data.length} Polygon transactions`);
             if (resPolygon.status === 200 && typeof(resPolygon.data) === "object") {
               newTransactions.merge(resPolygon.data);
@@ -284,16 +284,18 @@ export const TransactionExplorer = ({
           break;
         } catch (e) {
           console.warn(e);
+          await new Promise((res) => setTimeout(res, 10000));
         }
       }
     }
-    if (csvFiles.length) {
+    if (csvFiles?.length) {
+      console.warn(csvFiles);
       for (const csvFile of csvFiles) {
         setSyncing(`Merging ${csvFile.type} data from ${csvFile.name}`);
-        newTransactions.mergeCsv(csvFile.data, csvFile.type as any);
+        newTransactions.mergeCsv(csvFile.data, csvFile.type);
       }
     }
-    setTransactions(newTransactions);
+    setTransactionsJson(newTransactions.json);
     setSyncing("");
   };
 

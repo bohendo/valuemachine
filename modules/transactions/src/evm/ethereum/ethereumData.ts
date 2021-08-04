@@ -24,6 +24,7 @@ import {
   getEvmDataError,
   getEvmTransactionError,
   getLogger,
+  gt,
 } from "@valuemachine/utils";
 import axios from "axios";
 // eslint-disable-next-line import/no-unresolved
@@ -58,10 +59,6 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   const getAddress = (address: string): string => `evm:${metadata.id}:${getEvmAddress(address)}`;
 
   const formatCovalentTx = (rawTx): EvmTransaction => ({
-    // block: rawTx.block_height,
-    // data: "0x", // not available?
-    // gasLimit: hexlify(rawTx.gas_offered),
-    // index: rawTx.tx_offset,
     from: getAddress(rawTx.from_address),
     gasPrice: hexlify(rawTx.gas_price),
     gasUsed: hexlify(rawTx.gas_spent),
@@ -72,7 +69,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       topics: evt.raw_log_topics,
       data: evt.raw_log_data || "0x",
     })),
-    nonce: 0, // not available?
+    nonce: 0, // TODO: We need this to calculate the addresses of newly created contracts
     status: rawTx.successful ? 1 : 0,
     timestamp: rawTx.block_signed_at,
     transfers: [], // not available from covalent, get from etherscan
@@ -86,74 +83,72 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     value: formatEther(rawTransfer.value),
   });
 
-  const retry = async (attempt: () => Promise<any>): Promise<any> => {
-    let response;
-    const assertResponse = (res: any): void => {
-      if (typeof res === "string") throw new Error(res);
-      if (res.status !== 200) throw new Error(`Bad response status: ${res.status} (${Object.keys(res)})`);
-      if (res.data.error) throw new Error(res.data.error_message);
+  const wget = async (url: string): Promise<any> => {
+    const attempt = async () => {
+      const msg = `GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`;
+      log.debug(msg);
+      return axios.get(url, { timeout: 10000 }).catch(e => {
+        log.error(msg);
+        log.error(e.message);
+        if (e?.response?.data.error_message) log.error(e.response.data.error_message);
+        if (typeof e?.response === "string") log.error(res);
+        return e.response;
+      });
     };
+    let res;
     try {
-      response = await attempt();
-      assertResponse(response);
+      res = await attempt();
     } catch (e) {
       const msg = e.message.toLowerCase();
       if (msg.includes("timeout") || msg.includes("eai_again")) {
         log.warn(`Request timed out, trying one more time..`);
         await new Promise(res => setTimeout(res, 1000)); // short pause
-        response = await attempt();
+        res = await attempt();
       } else if (msg.includes("rate limit") || msg.includes("429")) {
         log.warn(`We're rate limited, pausing then trying one more time..`);
         await new Promise(res => setTimeout(res, 8000)); // long pause
-        response = await attempt();
+        res = await attempt();
       } else {
         throw e;
       }
     }
-    assertResponse(response);
-    return response;
+    return res;
   };
 
   const queryEtherscan = async (
     target: EvmAddress | Bytes32,
+    action: string = "txlistinternal",
   ): Promise<any> => {
+    if (!etherscanKey) throw new Error(`Etherscan key required`);
     const targetType = isEvmAddress(target) ? "address" : "txhash";
     const url = `https://api.etherscan.io/api?module=account&` +
-      `action=txlistinternal&` +
+      `action=${action}&` +
       `${targetType}=${target}&` +
-      `apikey=${etherscanKey || ""}&sort=asc`;
-    const attempt = async () => {
-      log.debug(`GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`);
-      return await axios.get(url, { timeout: 10000 });
-    };
+      `apikey=${etherscanKey}&sort=asc`;
     try {
-      const response = await retry(attempt);
+      const response = await wget(url);
       return response?.data?.result;
     } catch (e) {
       log.error(e.message);
+      return undefined;
     }
-    return undefined;
   };
 
-  const queryCovalent = async (path: string, args?: any): Promise<any> => {
-    if (!covalentKey) throw new Error(`A covalent api key is required to sync eth data`);
+  const queryCovalent = async (path: string, args: any = {}): Promise<any> => {
+    if (!covalentKey) throw new Error(`Covalent key required`);
     const url = `https://api.covalenthq.com/v1/${path}/?${
-      Object.entries(args || {}).reduce((argString, entry) => {
+      Object.entries(args).reduce((argString, entry) => {
         argString += `${entry[0]}=${entry[1]}&`;
         return argString;
       }, "")
     }key=${covalentKey}`;
-    const attempt = async () => {
-      log.debug(`GET ${url.replace(/\??(api)?key=[^&]+&?/, "")}`);
-      return await axios.get(url, { timeout: 10000 });
-    };
     try {
-      const response = await retry(attempt);
+      const response = await wget(url);
       return response?.data?.data;
     } catch (e) {
       log.error(e.message);
+      return undefined;
     }
-    return undefined;
   };
 
   const fetchTransfers = async (txHash: Bytes32): Promise<EvmTransfer[]> => {
@@ -168,7 +163,11 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   const fetchTransferHistory = async (address: EvmAddress): Promise<Bytes32[]> => {
     const transfers = await queryEtherscan(address);
     if (transfers) {
-      return transfers.map(t => t.hash).filter(hash => !!hash).sort();
+      return transfers
+        .filter(t => gt(t.value, "0"))
+        .map(t => t.hash)
+        .filter(hash => !!hash)
+        .sort();
     } else {
       throw new Error(`Failed to fetch internal transfer history for ${address}`);
     }
@@ -182,6 +181,9 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     const transactions = [];
     transactions.push(...data.items);
     while (transactions && data.pagination.has_more) {
+      if (data.pagination.page_number > 10) {
+        throw new Error(`Transaction history of ${address} is too big`);
+      }
       data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`, {
         ["page-number"]: data.pagination.page_number + 1,
       });
@@ -221,10 +223,17 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       rawAddress.includes(":") ? rawAddress.split(":").pop() : rawAddress
     );
     log.info(`Fetching transaction history of ${address}`);
-    const [transactions, transferHashes] = await Promise.all([
-      fetchTxHistory(address),
-      fetchTransferHistory(address),
-    ]);
+    let transactions: EvmTransaction[];
+    let transferHashes: string[];
+    try {
+      [transactions, transferHashes] = await Promise.all([
+        fetchTxHistory(address),
+        fetchTransferHistory(address),
+      ]);
+    } catch (e) {
+      log.error(e.message);
+      return;
+    }
     const history = dedup(transactions.map(tx => tx.hash).concat(transferHashes)).sort();
     json.addresses[address] = {
       lastUpdated: new Date().toISOString(),
@@ -252,9 +261,12 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
           tx.transfers = transfers;
         }
         const txError = getEvmTransactionError(tx);
-        if (txError) throw new Error(txError);
-        json.transactions[tx.hash] = tx;
-        save();
+        if (txError) {
+          log.error(txError);
+        } else {
+          json.transactions[tx.hash] = tx;
+          save();
+        }
       });
     });
     await new Promise<void>((res, rej) => {

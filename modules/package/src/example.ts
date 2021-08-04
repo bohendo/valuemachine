@@ -19,9 +19,9 @@ const logger = getLogger("info");
 const store = getFileStore(path.join(__dirname, "../exampleData"), fs);
 
 // Gather & categorize the addresses we want to analyze
-const address = "evm:1:0x6b175474e89094c44da98b954eedeac495271d0f";
+const address = "evm:1:0x8dD2470FA76bfEd24b7ef69a83F0063A6C03cA3f";
 const addressBookJson = {
-  [address]: { address, category: AddressCategories.Self, name: "bohendo.eth" },
+  [address]: { address, category: AddressCategories.Self, name: "bohendo.argent.xyz" },
 };
 const addressBook = getAddressBook({ json: addressBookJson, logger });
 

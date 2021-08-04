@@ -32,11 +32,8 @@ export const EvmMetadata = Type.Object({
 export type EvmMetadata = Static<typeof EvmMetadata>;
 
 export const EvmTransfer = Type.Object({
-  // block: Type.Number(),
-  // hash: Bytes32,
-  // timestamp: TimestampString,
   from: Address,
-  to: Address,
+  to: Type.Union([Address, Type.Null()]),
   value: DecimalString,
 });
 export type EvmTransfer = Static<typeof EvmTransfer>;
@@ -50,11 +47,6 @@ export const EvmTransactionLog = Type.Object({
 export type EvmTransactionLog = Static<typeof EvmTransactionLog>;
 
 export const EvmTransaction = Type.Object({
-  // block: Type.Number(),
-  // data: HexString,
-  // gasLimit: HexString, // rm?
-  // consolidate into gasFee?
-  // index: Type.Number(),
   from: Address,
   gasPrice: HexString,
   gasUsed: HexString,

@@ -29,7 +29,7 @@ ethereumRouter.post("/", async (req, res) => {
   const addressBookJson = req.body.addressBook;
   const addressBookError = getAddressBookError(addressBookJson);
   if (addressBookError) {
-    return logAndSend("Invalid AddressBook" + addressBookError, STATUS_YOUR_BAD);
+    return logAndSend(`[Eth] Invalid AddressBook: ${addressBookError}`, STATUS_YOUR_BAD);
   }
   const addressBook = getAddressBook({
     json: addressBookJson,
