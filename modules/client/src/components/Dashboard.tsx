@@ -1,4 +1,3 @@
-import { isAddress } from "@ethersproject/address";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Divider from "@material-ui/core/Divider";
 import Table from "@material-ui/core/Table";
@@ -8,8 +7,6 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import { AddressBook, ValueMachine } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
-
-import { HexString } from "./HexString";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   table: {
