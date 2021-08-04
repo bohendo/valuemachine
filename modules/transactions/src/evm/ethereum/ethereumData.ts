@@ -164,6 +164,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
     if (transfers?.length) {
       return transfers.map(formatEtherscanTransfer);
     } else {
+      log.error(transfesrs);
       throw new Error(`Failed to fetch internal transfers for tx ${txHash}`);
     }
   };
@@ -177,6 +178,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
         .filter(hash => !!hash)
         .sort();
     } else {
+      log.error(transfesrs);
       throw new Error(`Failed to fetch internal transfer history for ${address}`);
     }
   };
