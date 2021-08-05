@@ -156,7 +156,12 @@ package: core transactions utils types $(shell find modules/package $(find_optio
 	$(docker_run) "cd modules/package && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-client-bundle: core $(shell find modules/client $(find_options))
+react: package $(shell find modules/package $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/react && npm run build"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+client-bundle: package $(shell find modules/client $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/client && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
