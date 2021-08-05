@@ -3,7 +3,7 @@ set -e
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)
 
-do_not_upgrade='webpack webpack-cli ts-loader'
+do_not_upgrade=''
 
 if [[ -n "$do_not_upgrade" ]]
 then
