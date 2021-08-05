@@ -17,8 +17,8 @@
     "@sinclair/typebox": "0.20.4"
   },
   "devDependencies": {
-    "@types/node": "15.0.2",
+    "@types/node": "16.4.12",
     "pino": "6.13.0",
-    "typescript": "4.2.4"
+    "typescript": "4.3.5"
   }
 }

@@ -11,7 +11,7 @@ for ignored in $do_not_upgrade
 do filter_cmd="$filter_cmd${ignored//\//\\/}\|"
 done
 filter_cmd="${filter_cmd::-2}\)|/d"
-echo "filtering according to cmd: $filter_cmd"
+#echo "filtering according to cmd: $filter_cmd"
 
 ########################################
 ## Define Helper Functions

@@ -1,7 +1,7 @@
 {
-  "name": "@valuemachine/react",
+  "name": "@valuemachine/ui",
   "version": "0.0.1",
-  "description": "Helpful react components for interacting with vm data",
+  "description": "User interface optimized for debugging the valuemachine",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
   "main": "dist/index.js",
@@ -35,11 +35,11 @@
     "valuemachine": "0.7.0"
   },
   "devDependencies": {
-    "@types/node": "15.0.2",
-    "@types/react": "17.0.5",
-    "@types/react-dom": "17.0.3",
+    "@types/node": "16.4.12",
+    "@types/react": "17.0.15",
+    "@types/react-dom": "17.0.9",
     "react-scripts": "4.0.3",
-    "typescript": "4.2.4"
+    "typescript": "4.3.5"
   },
   "eslintConfig": {
     "extends": "../../.eslintrc.js"
