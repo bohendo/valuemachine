@@ -38,7 +38,7 @@ $(shell mkdir -p .flags)
 
 default: dev
 dev: proxy package
-prod: dev server webserver
+prod: dev server-image webserver
 all: prod
 
 start: dev
@@ -161,12 +161,12 @@ react: package $(shell find modules/package $(find_options))
 	$(docker_run) "cd modules/react && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-client-bundle: package $(shell find modules/client $(find_options))
+client: package $(shell find modules/client $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/client && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-server-bundle: core $(shell find modules/server $(find_options))
+server: core $(shell find modules/server $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/server && npm run build && touch src/entry.ts"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
@@ -180,13 +180,13 @@ proxy: $(shell find ops/proxy $(find_options))
 	docker tag $(project)_proxy $(project)_proxy:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-server: server-bundle $(shell find modules/server/ops $(find_options))
+server-image: server $(shell find modules/server/ops $(find_options))
 	$(log_start)
 	docker build --file modules/server/ops/Dockerfile $(image_cache) --tag $(project) modules/server
 	docker tag $(project) $(project):$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-webserver: client-bundle $(shell find modules/client/ops $(find_options))
+webserver: client $(shell find modules/client/ops $(find_options))
 	$(log_start)
 	docker build --file modules/client/ops/Dockerfile $(cache_from) --tag $(project)_webserver:latest modules/client
 	docker tag $(project)_webserver:latest $(project)_webserver:$(commit)

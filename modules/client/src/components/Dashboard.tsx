@@ -49,13 +49,14 @@ export const BalanceTable = ({
   );
 };
 
-export const Dashboard: React.FC = ({
-  addressBook,
-  vm,
-}: {
+type PropTypes = {
   addressBook: AddressBook;
   vm: ValueMachine;
-}) => {
+};
+export const Dashboard: React.FC<PropTypes> = ({
+  addressBook,
+  vm,
+}: PropTypes) => {
   const [allBalances, setAllBalances] = useState({});
   console.log(`We have ${addressBook?.addresses?.length} addresses`);
   const classes = useStyles();
@@ -79,7 +80,7 @@ export const Dashboard: React.FC = ({
     <Table size="small" className={classes.table}>
       <TableBody>
         {Object.entries(allBalances)
-          .map(([account, balances]: string[], i: number) => (
+          .map(([account, balances]: any, i: number) => (
             <TableRow key={i}>
               <TableCell className={classes.accounts}>
                 <Typography noWrap>

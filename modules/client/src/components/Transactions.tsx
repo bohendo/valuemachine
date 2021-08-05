@@ -26,10 +26,13 @@ import { describeTransaction, getTransactions } from "@valuemachine/transactions
 import {
   AddressBook,
   AddressCategories,
+  Asset,
   Assets,
+  CsvSource,
   Transaction,
   Transactions,
   TransactionsJson,
+  TransactionSource,
   TransactionSources,
   Transfer,
 } from "@valuemachine/types";
@@ -152,17 +155,18 @@ const TransactionRow = ({
   );
 };
 
-export const TransactionExplorer = ({
-  addressBook,
-  csvFiles,
-  transactions,
-  setTransactionsJson,
-}: {
+type PropTypes = {
   addressBook: AddressBook;
   csvFiles: CsvFile[],
   transactions: Transactions;
   setTransactionsJson: (val: TransactionsJson) => void;
-}) => {
+};
+export const TransactionExplorer: React.FC<PropTypes> = ({
+  addressBook,
+  csvFiles,
+  transactions,
+  setTransactionsJson,
+}: PropTypes) => {
   const [syncing, setSyncing] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
@@ -172,7 +176,7 @@ export const TransactionExplorer = ({
   const [filterSource, setFilterSource] = useState("");
   const [filterStartDate, setFilterStartDate] = useState("");
   const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
-  const [ourAssets, setOurAssets] = useState([]);
+  const [ourAssets, setOurAssets] = useState([] as Asset[]);
   const classes = useStyles();
 
   const hasAccount = (account: string) => (tx: Transaction): boolean =>
@@ -180,10 +184,10 @@ export const TransactionExplorer = ({
     || tx.transfers.some(t => t.from === account)
     || tx.transfers.some(t => t.to === account);
 
-  const hasAsset = (asset: Assets) => (tx: Transaction): boolean =>
+  const hasAsset = (asset: Asset) => (tx: Transaction): boolean =>
     !asset || tx.transfers.some(t => t.asset === asset);
 
-  const hasSource = (source: TransactionSources) => (tx: Transaction): boolean =>
+  const hasSource = (source: TransactionSource) => (tx: Transaction): boolean =>
     !source
     || (tx?.sources || []).includes(source)
     || tx.transfers.some(t => addressBook.getName(t.from).startsWith(source))
@@ -227,15 +231,18 @@ export const TransactionExplorer = ({
     setPage(0);
   };
 
-  const changeFilterSource = (event: React.ChangeEvent<{ value: string }>) => {
+  const changeFilterSource = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setFilterSource(event.target.value);
   };
 
-  const changeFilterAccount = (event: React.ChangeEvent<{ value: string }>) => {
+  const changeFilterAccount = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setFilterAccount(event.target.value);
   };
 
-  const changeFilterAsset = (event: React.ChangeEvent<{ value: string }>) => {
+  const changeFilterAsset = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setFilterAsset(event.target.value);
   };
 
@@ -294,7 +301,7 @@ export const TransactionExplorer = ({
           csvFile.data.split("\n").length
         } rows of ${csvFile.type} data from ${csvFile.name}`);
         await new Promise((res) => setTimeout(res, 200)); // let sync message re-render
-        newTransactions.mergeCsv(csvFile.data, csvFile.type);
+        newTransactions.mergeCsv(csvFile.data, csvFile.type as CsvSource);
       }
     }
     setTransactionsJson(newTransactions.json);
@@ -394,11 +401,13 @@ export const TransactionExplorer = ({
       </FormControl>
 
       <InputDate
+        id="filter-end-date"
         label="Filter End Date"
         setDate={setFilterEndDate}
       />
 
       <InputDate
+        id="filter-start-date"
         label="Filter Start Date"
         setDate={setFilterStartDate}
       />

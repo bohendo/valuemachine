@@ -211,7 +211,7 @@ export interface ValueMachine {
   getBalance: (account: Account, asset: Asset) => DecimalString;
   getChunk: (index: ChunkIndex) => HydratedAssetChunk;
   getEvent: (index: number) => HydratedEvent;
-  getNetWorth: () => Balances;
+  getNetWorth: (account?: string) => Balances;
   json: ValueMachineJson;
   save: () => void;
 }

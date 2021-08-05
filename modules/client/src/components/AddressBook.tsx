@@ -31,6 +31,7 @@ import { Alert } from "@material-ui/lab";
 import {
   AddressCategories,
   AddressEntry,
+  AddressBook,
   AddressBookJson,
   CsvSources,
   Guards,
@@ -102,16 +103,17 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-const EditEntry = ({
+type EditEntryProps = {
+  entry: Partial<AddressEntry>;
+  setEntry: (entry: AddressEntry) => void;
+  addresses: string[];
+};
+const EditEntry: React.FC<EditEntryProps> = ({
   entry,
   setEntry,
   addresses,
-}: {
-  entry: AddressEntry;
-  setEntry: (entry: AddressEntry) => void;
-  addresses: string[];
-}) => {
-  const [newEntry, setNewEntry] = useState({});
+}: EditEntryProps) => {
+  const [newEntry, setNewEntry] = useState({} as Partial<AddressEntry>);
   const [entryModified, setEntryModified] = useState(false);
   const [newEntryError, setNewEntryError] = useState("");
   const classes = useStyles();
@@ -127,7 +129,7 @@ const EditEntry = ({
     }
   }, [entryModified]);
 
-  const getErrors = (candidate: AddressEntry): string => {
+  const getErrors = (candidate: Partial<AddressEntry>): string => {
     console.log(`Checking ${addresses.length} addresses for dups.. first few: ${addresses.slice(0, 2)}`);
     if (!candidate?.address) {
       return "Address is required";
@@ -146,8 +148,10 @@ const EditEntry = ({
     }
   };
 
-  const handleEntryChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    const newNewEntry = { ...newEntry, [event.target.name]: event.target.value };
+  const handleEntryChange = (event: React.ChangeEvent<{ name?: string; value: unknown; }>) => {
+    const { name, value } = event.target;
+    if (typeof name !== "string" || typeof value !== "string") return;
+    const newNewEntry = { ...newEntry, [name]: value };
     setNewEntry(newNewEntry);
     setNewEntryError(getErrors(newNewEntry));
   };
@@ -177,7 +181,7 @@ const EditEntry = ({
     if (!newEntry) return;
     const errors = getErrors(newEntry);
     if (!errors) {
-      setEntry(newEntry);
+      setEntry(newEntry as AddressEntry);
     } else {
       setNewEntryError(errors);
     }
@@ -283,19 +287,20 @@ const EditEntry = ({
   );
 };
 
-const AddressRow = ({
-  index,
+type AddressRowProps = {
+  address: string;
+  editEntry: (s: string, e?: AddressEntry) => void;
+  entry: AddressEntry;
+  otherAddresses: string[];
+};
+const AddressRow: React.FC<AddressRowProps> = ({
+  address,
   editEntry,
   entry,
   otherAddresses,
-}: {
-  index: number;
-  editEntry: any;
-  entry: AddressEntry;
-  otherAddresses: string;
-}) => {
+}: AddressRowProps) => {
   const [editMode, setEditMode] = useState(false);
-  const [newEntry, setNewEntry] = useState({});
+  const [newEntry, setNewEntry] = useState({} as Partial<AddressEntry>);
   const classes = useStyles();
 
   const toggleEditMode = () => {
@@ -308,12 +313,12 @@ const AddressRow = ({
   };
 
   const handleDelete = () => {
-    editEntry(index, undefined);
+    editEntry(address);
     setEditMode(false);
   };
 
   const handleEdit = (editedEntry) => {
-    editEntry(index, editedEntry);
+    editEntry(address, editedEntry);
     setEditMode(false);
   };
 
@@ -372,23 +377,24 @@ const getEmptyEntry = (): AddressEntry => ({
   name: "",
 });
 
-export const AddressBookManager = ({
+type PropTypes = {
+  addressBook: AddressBook,
+  setAddressBookJson: (val: AddressBookJson) => void,
+  csvFiles: CsvFile[],
+  setCsvFiles: (val: CsvFile[]) => void,
+};
+export const AddressBookManager: React.FC<PropTypes> = ({
   addressBook,
   setAddressBookJson,
   csvFiles,
   setCsvFiles,
-}: {
-  addressBook: AddressBookJson,
-  setAddressBookJson: (val: AddressBookJson) => void,
-  csvFiles: CsvFile[],
-  setCsvFiles: (val: CsvFile[]) => void,
-}) => {
+}: PropTypes) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
 
   const [importFileType, setImportFileType] = useState("");
 
-  const [filteredAddresses, setFilteredAddresses] = useState([]);
+  const [filteredAddresses, setFilteredAddresses] = useState([] as AddressEntry[]);
   const [filterCategory, setFilterCategory] = useState("");
 
   const [statusAlert, setStatusAlert] = useState({
@@ -396,7 +402,7 @@ export const AddressBookManager = ({
     message: "",
     severity: "info" as "info" | "error" | "warning" | "success"
   });
-  const [allAddresses, setAllAddresses] = useState([]);
+  const [allAddresses, setAllAddresses] = useState([] as string[]);
   const [newEntry, setNewEntry] = useState(getEmptyEntry);
   const classes = useStyles();
 
@@ -446,7 +452,8 @@ export const AddressBookManager = ({
     reader.readAsText(file);
     reader.onload = () => {
       try {
-        const importedData = JSON.parse(reader.result) as any;
+        if (!reader.result) return;
+        const importedData = JSON.parse(reader.result as string) as any;
         const importedAddresses = importedData.addressBook
           ? importedData.addressBook
           : importedData;
@@ -474,13 +481,15 @@ export const AddressBookManager = ({
     a.click();
   };
 
-  const editEntry = (editedEntry?: AddressEntry) => {
-    console.log(`Setting [${editedEntry.address}] = ${JSON.stringify(editedEntry)}`);
+  const editEntry = (address: string, editedEntry?: AddressEntry): void => {
     const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders
     if (editedEntry) {
-      delete newAddressBook[editedEntry.address];
-    } else {
+      if (editedEntry.address !== address) {
+        delete newAddressBook[address];
+      }
       newAddressBook[editedEntry.address] = editedEntry;
+    } else {
+      delete newAddressBook[address];
     }
     setAddressBookJson(newAddressBook);
     // Don't reset new entry fields when we modify an existing one
@@ -490,11 +499,11 @@ export const AddressBookManager = ({
   };
 
   const addNewAddress = (editedEntry: AddressEntry) => {
-    editEntry(Object.keys(addressBook.json).length, editedEntry);
+    editEntry(editedEntry.address, editedEntry);
   };
 
   const deleteAddresses = async () => {
-    setAddressBookJson([]);
+    setAddressBookJson({});
   };
 
   const deleteCsvFiles = async () => {
@@ -510,13 +519,15 @@ export const AddressBookManager = ({
     setPage(0);
   };
 
-  const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
+  const handleFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setFilterCategory(event.target.value);
     setPage(0);
   };
 
-  const handleFileTypeChange = (event: React.ChangeEvent<{ value: boolean }>) => {
-    console.log(`Setting file type based on event target:`, event.target);
+  const handleFileTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
+    console.log(`Setting file type based on event target:`, event.target.value);
     setImportFileType(event.target.value);
   };
 
@@ -530,11 +541,11 @@ export const AddressBookManager = ({
       try {
         const importedFile = reader.result as string;
         console.log(`Imported ${file.name}`);
-        setCsvFiles(oldCsvFiles => oldCsvFiles.concat({
+        setCsvFiles([...csvFiles, {
           name: file.name,
           data: importedFile,
           type: importFileType,
-        }));
+        }] as CsvFile[]);
       } catch (e) {
         console.error(e);
       }
@@ -755,6 +766,7 @@ export const AddressBookManager = ({
                     otherAddresses={[...allAddresses.slice(0, i), ...allAddresses.slice(i + 1)]}
                     key={i}
                     editEntry={editEntry}
+                    address={entry.address}
                     entry={entry}
                   />
 
@@ -775,7 +787,7 @@ export const AddressBookManager = ({
 
       <Snackbar
         open={statusAlert.open}
-        autoHideDuration={6000}j
+        autoHideDuration={6000}
         onClose={handleClose}
         message={statusAlert.message}
         className={classes.snackbar}

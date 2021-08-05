@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "tsc && react-scripts build",
     "test": "echo 'No client unit tests available, try Cypress'",
     "eject": "react-scripts eject"
   },

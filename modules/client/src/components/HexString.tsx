@@ -14,13 +14,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export const HexString = ({
-  value,
-  display,
-}: {
+type PropTypes = {
   value: string,
   display?: string,
-}) => {
+};
+export const HexString: React.FC<PropTypes> = ({
+  value,
+  display,
+}: PropTypes) => {
   const [copied, setCopied] = useState(false);
   const classes = useStyles();
 

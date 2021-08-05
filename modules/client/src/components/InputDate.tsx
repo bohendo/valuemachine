@@ -8,15 +8,16 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-export const InputDate = ({
-  id,
-  label,
-  setDate,
-}: {
+type PropTypes = {
   id: string;
   label: string;
   setDate: (val: string) => void;
-}) => {
+};
+export const InputDate: React.FC<PropTypes> = ({
+  id,
+  label,
+  setDate,
+}: PropTypes) => {
   const classes = useStyles();
   const [display, setDisplay] = useState("");
   const [error, setError] = useState("");
@@ -24,7 +25,8 @@ export const InputDate = ({
   const slugify = str =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
 
-  const changeFilterDate = (event: React.ChangeEvent<{ value: string }>) => {
+  const changeFilterDate = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     const display = event.target.value;
     let error, value;
     if (display.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
@@ -53,7 +55,7 @@ export const InputDate = ({
       className={classes.dateFilter}
       error={!!error}
       helperText={error || "YYYY-MM-DD"}
-      id={slugify(label)}
+      id={id || slugify(label)}
       label={label}
       margin="normal"
       name={id}
