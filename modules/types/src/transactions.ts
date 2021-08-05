@@ -93,10 +93,14 @@ export type Transfer = Static<typeof Transfer>;
 export const Transaction = Type.Object({
   date: TimestampString,
   method: Type.Optional(Type.String()),
-  hash: Type.Optional(Bytes32), // convert to uuid
+
+  hash: Type.Optional(Bytes32), // add chain prefix to convert to uuid??
+
   index: Type.Optional(Type.Number()),
   sources: Type.Array(TransactionSource),
+
   // guards: Type.Array(TransactionSource),
+
   transfers: Type.Array(Transfer),
 });
 export type Transaction = Static<typeof Transaction>;
