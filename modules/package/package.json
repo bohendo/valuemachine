@@ -8,10 +8,12 @@
   "repository": { "type": "git", "url": "git+ssh://git@gitlab.com/bohendo/valuemachine.git" },
   "bugs": { "url": "https://gitlab.com/bohendo/valuemachine/issues" },
   "main": "dist/index.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
+  "iife": "dist/index-iife.js",
   "files": ["dist", "src"],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "rm -rf dist && tsc && rollup --config rollup.config.js",
     "test": "node dist/example.js"
   },
   "dependencies": {
@@ -21,6 +23,10 @@
     "@valuemachine/utils": "0.7.0"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "20.0.0",
+    "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-typescript": "8.2.5",
+    "rollup": "2.56.0",
     "typescript": "4.3.5"
   }
 }
