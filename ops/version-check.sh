@@ -5,13 +5,18 @@ root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)
 
 do_not_upgrade='webpack'
 
-# Create the sed command to remove any ignored packages
-filter_cmd="/^\("
-for ignored in $do_not_upgrade
-do filter_cmd="$filter_cmd${ignored//\//\\/}\|"
-done
-filter_cmd="${filter_cmd::-2}\)|/d"
-#echo "filtering according to cmd: $filter_cmd"
+if [[ -n "$do_not_upgrade" ]]
+then
+  # Create the sed command to remove any ignored packages
+  filter_args=""
+  for ignored in $do_not_upgrade
+  do filter_args="$filter_args\<${ignored//\//\\/}\>\|"
+  done
+  filter_cmd="/\(${filter_args::-2}\)[^-]/d"
+else
+  filter_cmd='s/ / /' # no-op
+fi
+#echo "filtering packages to ignore with sed cmd '$filter_cmd'"
 
 ########################################
 ## Define Helper Functions
@@ -37,19 +42,27 @@ function printOutdated {
       | sed 's/|\+/|/g' \
       | tr -d ' \t' \
       | cut -d "|" -f 2-4 \
-      | sed "$filter_cmd" \
       | tr '|' ' ' \
       | awk '$3 != $4' \
-      | awk "$format"
+      | awk "$format" \
+      | sed "$filter_cmd" \
     )
-    upgrades=$(echo "$davidRes" | grep "npm install" | cut -d " " -f 4- | tr '\n\r' ' ')
+    upgrades=$(echo "$davidRes" \
+      | grep "npm install" \
+      | cut -d " " -f 4- \
+      | tr ' ' '\n' \
+      | sed "$filter_cmd" \
+      | tr '\n' ' ' \
+      | sed 's/\(^ \+\| \+$\)//g' \
+    )
+
     if [[ -z "$table" ]]
     then echo "All packages are up to date"
     else
       echo "$table"
       echo
       # shellcheck disable=SC2016
-      echo "for f in $upgrades; do bash ops/upgrade-package.sh "'${f%@*} ${f##*@}'"; done"
+      echo "for f in $upgrades; do bash ops/upgrade-package.sh "'"${f%@*}" "${f##*@}"'"; done"
     fi
   fi
 
