@@ -4,10 +4,10 @@
   "description": "Server-side valuemachine logic",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
-  "main": "dist/src/entry.js",
-  "module": "dist/index.esm.js",
-  "types": "dist/src/entry.d.ts",
-  "iife": "dist/index-iife.js",
+  "main": "dist/bundle.js",
+  "module": "dist/bundle.esm.js",
+  "types": "dist/index.d.ts",
+  "iife": "dist/bundle-iife.js",
   "files": ["dist", "src"],
   "scripts": {
     "build": "rm -rf dist && tsc && rollup --config rollup.config.js"
@@ -21,7 +21,8 @@
     "@valuemachine/utils": "0.7.0",
     "axios": "0.21.1",
     "express": "4.17.1",
-    "nodemon": "2.0.12"
+    "nodemon": "2.0.12",
+    "util": "0.12.4"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "20.0.0",

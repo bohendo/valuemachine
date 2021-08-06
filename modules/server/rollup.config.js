@@ -23,11 +23,17 @@ export default {
     },
   ],
   plugins: [
+    resolve({
+      mainFields: ["browser", "module", "main"],
+      preferBuiltins: true,
+    }),
     ts(),
-    resolve(),
     json(),
     commonjs({
       include: ["./src/entry.ts", /node_modules/],
+      namedExports: {
+        "node_modules/util/util.js": ["inherits"]
+      }
     })
   ],
 };
