@@ -12,7 +12,7 @@
   "types": "dist/index.d.ts",
   "files": ["dist", "src"],
   "scripts": {
-    "build": "rm -rf dist && tsc && rollup --config rollup.config.js",
+    "build": "tsc && rollup --config rollup.config.js",
     "test": "ts-mocha --check-leaks --color --exit --timeout 60000 'src/**/*.test.ts'"
   },
   "dependencies": {
