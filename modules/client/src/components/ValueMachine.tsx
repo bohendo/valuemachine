@@ -24,7 +24,7 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import ClearIcon from "@material-ui/icons/Delete";
 import SyncIcon from "@material-ui/icons/Sync";
-import { describeChunk, describeEvent } from "valuemachine";
+import { HexString } from "@valuemachine/react";
 import {
   Account,
   AddressBook,
@@ -42,9 +42,8 @@ import {
   round as defaultRound,
   getEmptyValueMachine,
 } from "@valuemachine/utils";
+import { describeChunk, describeEvent } from "valuemachine";
 import React, { useEffect, useState } from "react";
-
-import { HexString } from "./HexString";
 
 const { Income, Expense, Deposit, Withdraw, Borrow, Repay } = TransferCategories;
 const round = num => defaultRound(num, 4);

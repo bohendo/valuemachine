@@ -28,6 +28,7 @@ import DownloadIcon from "@material-ui/icons/GetApp";
 import RemoveIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
 import { Alert } from "@material-ui/lab";
+import { HexString } from "@valuemachine/react";
 import {
   AddressCategories,
   AddressEntry,
@@ -39,8 +40,6 @@ import {
 import React, { useEffect, useState } from "react";
 
 import { CsvFile } from "../types";
-
-import { HexString } from "./HexString";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {

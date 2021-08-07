@@ -22,6 +22,7 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
+import { HexString } from "@valuemachine/react";
 import { describeTransaction, getTransactions } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -42,7 +43,6 @@ import axios from "axios";
 
 import { CsvFile } from "../types";
 
-import { HexString } from "./HexString";
 import { InputDate } from "./InputDate";
 
 const logger = getLogger("info");

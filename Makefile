@@ -37,7 +37,7 @@ $(shell mkdir -p .flags)
 # Command & Control Aliases
 
 default: dev
-dev: proxy package
+dev: proxy react
 prod: dev server-image webserver
 all: prod
 
@@ -163,7 +163,7 @@ react: package $(shell find modules/package $(find_options))
 	$(docker_run) "cd modules/react && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-client: package $(shell find modules/client $(find_options))
+client: react $(shell find modules/client $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/client && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@

@@ -10,6 +10,7 @@ export default {
   output: [{
     file: pkg.main,
     format: "cjs",
+    sourcemap: true,
   }],
   onwarn: (warning, warn) => {
     // Ignore known warnings
@@ -18,6 +19,7 @@ export default {
     if (warning.code === "EVAL" && fromPkg("depd")) return;
     warn(warning);
   },
+  external: [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies), "react/jsx-runtime"],
   plugins: [
     NodeResolve({
       exportConditions: ["node"],
@@ -26,7 +28,7 @@ export default {
     Typescript({
       noEmitOnError: true,
       outputToFilesystem: true,
-      sourceMap: false,
+      sourceMap: true,
     }),
     Json({
       compact: true,

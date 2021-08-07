@@ -8,18 +8,18 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import {
-  getAddressBook,
-  getPrices,
-  getTransactions,
-  getValueMachine,
-} from "valuemachine";
-import {
   Assets,
   StoreKeys,
 } from "@valuemachine/types";
 import { getLocalStore, getLogger } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
+import {
+  getAddressBook,
+  getPrices,
+  getTransactions,
+  getValueMachine,
+} from "valuemachine";
 
 import { AddressBookManager } from "./components/AddressBook";
 import { Dashboard } from "./components/Dashboard";
