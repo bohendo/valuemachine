@@ -1,5 +1,6 @@
 import CommonJs from "@rollup/plugin-commonjs";
 import Json from "@rollup/plugin-json";
+import NodeResolve from "@rollup/plugin-node-resolve";
 import Typescript from "@rollup/plugin-typescript";
 
 import pkg from "./package.json";
@@ -18,8 +19,9 @@ export default {
       exports: "named",
     },
   ],
-  external: [...Object.keys(pkg.dependencies), "csv-parse/lib/sync"],
+  external: [...Object.keys(pkg.dependencies)],
   plugins: [
+    NodeResolve(),
     Json({
       compact: true,
     }),

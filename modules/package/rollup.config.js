@@ -1,5 +1,6 @@
 import CommonJs from "@rollup/plugin-commonjs";
 import Json from "@rollup/plugin-json";
+import NodeResolve from "@rollup/plugin-node-resolve";
 import Typescript from "@rollup/plugin-typescript";
 
 import pkg from "./package.json";
@@ -18,6 +19,7 @@ export default {
   ],
   external: Object.keys(pkg.dependencies),
   plugins: [
+    NodeResolve(),
     Json({
       compact: true,
     }),
