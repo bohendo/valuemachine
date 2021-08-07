@@ -1,6 +1,6 @@
-import ts from "@rollup/plugin-typescript";
-import commonjs from "@rollup/plugin-commonjs";
-import json from "@rollup/plugin-json";
+import CommonJs from "@rollup/plugin-commonjs";
+import Json from "@rollup/plugin-json";
+import Typescript from "@rollup/plugin-typescript";
 
 import pkg from "./package.json";
 
@@ -15,15 +15,17 @@ export default {
       file: pkg.module,
       format: "esm",
     },
-    {
-      file: pkg.iife,
-      format: "iife",
-      name: "window.types",
-    },
   ],
+  external: Object.keys(pkg.dependencies),
   plugins: [
-    commonjs(),
-    ts(),
-    json(),
+    Json({
+      compact: true,
+    }),
+    Typescript({
+      noEmitOnError: true,
+      outputToFilesystem: true,
+      sourceMap: false,
+    }),
+    CommonJs(),
   ],
 };

@@ -10,7 +10,6 @@
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
-  "iife": "dist/index-iife.js",
   "files": ["dist", "src"],
   "scripts": {
     "build": "rm -rf dist && tsc && rollup --config rollup.config.js",

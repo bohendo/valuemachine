@@ -10,21 +10,23 @@
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
-  "iife": "dist/index-iife.js",
   "files": ["dist", "src"],
   "scripts": {
     "build": "rm -rf dist && tsc && rollup --config rollup.config.js"
   },
   "dependencies": {
-    "@sinclair/typebox": "0.20.4"
+    "@sinclair/typebox": "0.20.4",
+    "pino": "6.13.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "20.0.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-typescript": "8.2.5",
     "@types/node": "16.4.13",
-    "pino": "6.13.0",
     "rollup": "2.56.0",
+    "rollup-plugin-node-builtins": "2.1.2",
+    "rollup-plugin-node-globals": "1.4.0",
+    "rollup-plugin-node-polyfills": "0.2.1",
     "typescript": "4.3.5"
   }
 }
