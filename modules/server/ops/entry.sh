@@ -2,7 +2,7 @@
 set -e
 
 dev_target="src/entry.ts"
-prod_target="dist/bundle-iife.js"
+prod_target="dist/bundle.js"
 
 if [[ -d "modules/server" ]]
 then cd modules/server
