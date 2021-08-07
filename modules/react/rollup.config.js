@@ -6,7 +6,7 @@ import Typescript from "@rollup/plugin-typescript";
 import pkg from "./package.json";
 
 export default {
-  input: "./src/entry.ts",
+  input: "./src/index.ts",
   output: [{
     file: pkg.main,
     format: "cjs",
@@ -32,7 +32,7 @@ export default {
       compact: true,
     }),
     CommonJs({
-      include: ["./src/entry.ts", /node_modules/],
+      include: ["./src/index.ts", /node_modules/],
     }),
   ],
 };

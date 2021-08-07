@@ -67,6 +67,8 @@ reset-images:
 	rm .flags/proxy .flags/server-image .flags/webserver
 
 purge: clean
+	rm -rf modules/*/.rollup.cache
+	rm -rf package-lock.json
 
 push: push-commit
 push-commit:

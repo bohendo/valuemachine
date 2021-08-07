@@ -1,9 +1,6 @@
 import CommonJs from "@rollup/plugin-commonjs";
 import Json from "@rollup/plugin-json";
 import Typescript from "@rollup/plugin-typescript";
-//import NodeGlobals from "rollup-plugin-node-globals";
-//import NodeBuiltins from "rollup-plugin-node-builtins";
-import NodePolyfills from "rollup-plugin-node-polyfills";
 
 import pkg from "./package.json";
 
@@ -23,7 +20,6 @@ export default {
   ],
   external: Object.keys(pkg.dependencies),
   plugins: [
-    NodePolyfills(),
     Json({
       compact: true,
     }),

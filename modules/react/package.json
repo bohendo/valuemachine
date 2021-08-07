@@ -11,24 +11,21 @@
     "src"
   ],
   "scripts": {
-    "build": "webpack --config ops/webpack.config.js",
-    "prebuild": "mkdir -p ./dist && rm -rf ./dist/*"
+    "build": "rm -rf dist && tsc && rollup --config rollup.config.js"
   },
   "dependencies": {
-    "prop-types": "15.7.2",
-    "react-dom": "15.6.1",
+    "@material-ui/core": "4.12.3",
     "react": "17.0.2",
     "react-copy-to-clipboard": "5.0.3",
+    "react-dom": "15.6.1",
     "react-dom": "17.0.2"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "20.0.0",
     "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-node-resolve": "13.0.4",
     "@rollup/plugin-typescript": "8.2.5",
     "rollup": "2.56.0",
-    "rollup-plugin-node-builtins": "2.1.2",
-    "rollup-plugin-node-globals": "1.4.0",
-    "rollup-plugin-node-polyfills": "0.2.1",
     "typescript": "4.3.5"
   }
 }
