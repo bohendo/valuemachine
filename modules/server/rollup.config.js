@@ -1,39 +1,46 @@
-import ts from "@rollup/plugin-typescript";
-import resolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import json from "@rollup/plugin-json";
+import CommonJs from "@rollup/plugin-commonjs";
+import Json from "@rollup/plugin-json";
+import NodeResolve from "@rollup/plugin-node-resolve";
+import Typescript from "@rollup/plugin-typescript";
+//import NodeBuiltins from "rollup-plugin-node-builtins";
+//import NodeGlobals from "rollup-plugin-node-globals";
+//import NodePolyfills from "rollup-plugin-node-polyfills";
 
 import pkg from "./package.json";
 
 export default {
   input: "./src/entry.ts",
-  output: [
-    {
-      file: pkg.main,
-      format: "cjs",
-    },
-    {
-      file: pkg.module,
-      format: "esm",
-    },
-    {
-      file: pkg.iife,
-      format: "iife",
-      name: "window.types",
-    },
-  ],
+  output: [{
+    file: pkg.main,
+    format: "cjs",
+    sourcemap: true,
+  }],
   plugins: [
-    resolve({
-      mainFields: ["browser", "module", "main"],
+    NodeResolve({
+      browser: false,
+      exportConditions: ["node"],
+      mainFields: ["module", "main"],
       preferBuiltins: true,
     }),
-    ts(),
-    json(),
-    commonjs({
+    Typescript({
+      outputToFilesystem: true,
+      sourceMap: true,
+      target: "es6",
+    }),
+    Json({
+      compact: true,
+      preferConst: false,
+      namedExports: false,
+    }),
+    CommonJs({
       include: ["./src/entry.ts", /node_modules/],
-      namedExports: {
-        "node_modules/util/util.js": ["inherits"]
-      }
-    })
+      // ignore: ["os", "stream"],
+      // ignoreDynamicRequires: true,
+      // requireReturnsDefault: "namespace",
+      // transformMixedEsModules: true,
+    }),
+    //NodeGlobals(),
+    //NodeBuiltins(),
+    //NodePolyfills(),
   ],
 };

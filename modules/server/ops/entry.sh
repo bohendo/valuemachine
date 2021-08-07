@@ -1,9 +1,12 @@
 #!/bin/bash
 set -e
 
+dev_target="src/entry.ts"
+prod_target="dist/bundle-iife.js"
+
 if [[ -d "modules/server" ]]
 then cd modules/server
-elif [[ ! -f "src/entry.ts" && ! -f "dist/bundle.js" ]]
+elif [[ ! -f "$dev_target" && ! -f "$prod_target" ]]
 then echo "Fatal: couldn't find file to run" && exit 1
 fi
 
@@ -14,7 +17,7 @@ fi
 if [[ "$VM_PROD" == "true" ]]
 then
   echo "Starting valuemachine server in prod-mode"
-  exec node --no-deprecation dist/bundle.js
+  exec node --no-deprecation "$prod_target"
 else
   echo "Starting valuemachine server in dev-mode"
   exec ./node_modules/.bin/nodemon \
@@ -26,5 +29,5 @@ else
     --polling-interval 1000 \
     --watch src \
     --exec "node -r ts-node/register" \
-    ./src/entry.ts
+    "$dev_target"
 fi
