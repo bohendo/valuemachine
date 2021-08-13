@@ -1,29 +1,16 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import Collapse from "@material-ui/core/Collapse";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
-import IconButton from "@material-ui/core/IconButton";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
-import Paper from "@material-ui/core/Paper";
 import Select from "@material-ui/core/Select";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
-import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
-import { HexString } from "@valuemachine/react";
-import { describeTransaction, getTransactions } from "@valuemachine/transactions";
+import { TransactionTable } from "@valuemachine/react";
+import { getTransactions } from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
@@ -35,32 +22,22 @@ import {
   TransactionsJson,
   TransactionSource,
   TransactionSources,
-  Transfer,
 } from "@valuemachine/types";
-import { getLogger, round } from "@valuemachine/utils";
+import { getLogger } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 import { CsvFile } from "../types";
 
 import { InputDate } from "./InputDate";
+// import { TransactionTable } from "./TransactionTable";
+//
 
 const logger = getLogger("info");
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  row: {
-    "& > *": {
-      borderBottom: "unset",
-    },
-  },
   button: {
     margin: theme.spacing(3),
-  },
-  spinner: {
-    padding: "0",
-  },
-  importer: {
-    margin: theme.spacing(4),
   },
   select: {
     margin: theme.spacing(3),
@@ -72,88 +49,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   subtitle: {
     margin: theme.spacing(2),
   },
-  paper: {
-    minWidth: "850px",
-    padding: theme.spacing(2),
-  },
-  dateFilter: {
-    margin: theme.spacing(2),
-  },
 }));
-
-const TransactionRow = ({
-  addressBook,
-  tx,
-}: {
-  addressBook: AddressBook;
-  tx: Transaction;
-}) => {
-  const [open, setOpen] = useState(false);
-  const classes = useStyles();
-  return (
-    <React.Fragment>
-      <TableRow className={classes.row}>
-        <TableCell> {
-          (new Date(tx.date)).toISOString().replace("T", " ").replace(".000Z", "")
-        } </TableCell>
-        <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
-        <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
-        <TableCell> {tx.sources.join(", ")} </TableCell>
-        <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
-          {`${tx.transfers.length} transfer${tx.transfers.length === 1 ? "" : "s"}`}
-          <IconButton aria-label="expand row" size="small" >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box pb={2} px={4}>
-              <Typography variant="h6" gutterBottom component="div">
-                Transfers
-              </Typography>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong> Category </strong></TableCell>
-                    <TableCell><strong> Asset </strong></TableCell>
-                    <TableCell><strong> Amount </strong></TableCell>
-                    <TableCell><strong> From </strong></TableCell>
-                    <TableCell><strong> To </strong></TableCell>
-                    <TableCell><strong> Index </strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {tx.transfers.map((transfer: Transfer, i: number) => (
-                    <TableRow key={i}>
-                      <TableCell> {transfer.category} </TableCell>
-                      <TableCell> {transfer.asset} </TableCell>
-                      <TableCell> {round(transfer.quantity, 4)} </TableCell>
-                      <TableCell>
-                        <HexString
-                          display={addressBook?.getName(transfer.from)}
-                          value={transfer.from}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <HexString
-                          display={addressBook?.getName(transfer.to)}
-                          value={transfer.to}
-                        />
-                      </TableCell>
-                      <TableCell> {transfer.index} </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </React.Fragment>
-  );
-};
 
 type PropTypes = {
   addressBook: AddressBook;
@@ -168,8 +64,6 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
   setTransactionsJson,
 }: PropTypes) => {
   const [syncing, setSyncing] = useState("");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [filterAccount, setFilterAccount] = useState("");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
@@ -196,7 +90,6 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
   useEffect(() => {
     const getDate = (timestamp: string): string =>
       (new Date(timestamp)).toISOString().split("T")[0];
-    setPage(0);
     setFilteredTxns(transactions?.json
       .filter(tx => !filterStartDate || getDate(tx.date) >= getDate(filterStartDate))
       .filter(tx => !filterEndDate || getDate(tx.date) <= getDate(filterEndDate))
@@ -221,15 +114,6 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
         .filter(asset => transactions?.json?.some(hasAsset(asset)))
     );
   }, [addressBook, transactions]);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
 
   const changeFilterSource = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
@@ -412,55 +296,15 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
         setDate={setFilterStartDate}
       />
 
-      <Paper className={classes.paper}>
+      <Typography align="center" variant="h4" className={classes.title} component="div">
+        {filteredTxns.length === transactions?.json.length
+          ? `${filteredTxns.length} Transactions`
+          : `${filteredTxns.length} of ${transactions?.json?.length} Transactions`
+        }
+      </Typography>
 
-        <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredTxns.length === transactions?.json.length
-            ? `${filteredTxns.length} Transactions`
-            : `${filteredTxns.length} of ${transactions?.json?.length} Transactions`
-          }
-        </Typography>
 
-        <TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[25, 50, 100, 250]}
-            component="div"
-            count={filteredTxns.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell><strong> Date </strong></TableCell>
-                <TableCell><strong> Description </strong></TableCell>
-                <TableCell><strong> Hash </strong></TableCell>
-                <TableCell><strong> Sources </strong></TableCell>
-                <TableCell><strong> Transfers </strong></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredTxns
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((tx: Transaction, i: number) => (
-                  <TransactionRow addressBook={addressBook} key={i} tx={tx} />
-                ))
-              }
-            </TableBody>
-          </Table>
-          <TablePagination
-            rowsPerPageOptions={[25, 50, 100, 250]}
-            component="div"
-            count={filteredTxns.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </TableContainer>
-      </Paper>
+      <TransactionTable addressBook={addressBook} transactionsJson={filteredTxns} />
 
     </React.Fragment>
   );

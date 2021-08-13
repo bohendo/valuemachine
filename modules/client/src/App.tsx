@@ -46,7 +46,7 @@ const CsvStore = "Csv" as any;
 const darkTheme = createTheme({
   palette: {
     primary: {
-      main: "#deaa56",
+      main: "#801010",
     },
     secondary: {
       main: "#e699a6",

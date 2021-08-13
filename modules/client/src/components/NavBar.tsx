@@ -21,6 +21,7 @@ import {
 import React from "react";
 import { Link } from "react-router-dom";
 
+
 const useStyles = makeStyles((theme: Theme) => createStyles({
   homeButton: {
     marginRight: theme.spacing(2),
@@ -31,12 +32,12 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   select: {
     "& > *": {
       "& > svg": {
-        color: "black", // carrot icon
+        color: "inherit", // carrot icon
       },
       "&::before": {
-        borderColor: "black", // underline
+        borderColor: "inherit", // underline
       },
-      color: "black", // label & selection text
+      color: "inherit", // label & selection text
     },
   },
   title: {
