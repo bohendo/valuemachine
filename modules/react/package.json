@@ -30,7 +30,7 @@
     "@rollup/plugin-commonjs": "20.0.0",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-typescript": "8.2.5",
-    "rollup": "2.56.0",
+    "rollup": "2.56.2",
     "typescript": "4.3.5"
   }
 }
