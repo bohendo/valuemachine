@@ -128,6 +128,7 @@ export const TransactionTable = withStyles({ paper: { minWidth: "850px", padding
     <React.Fragment>
 
       <TableContainer>
+
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"

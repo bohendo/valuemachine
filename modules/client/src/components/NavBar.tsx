@@ -13,6 +13,8 @@ import PricesIcon from "@material-ui/icons/LocalOffer";
 import TaxesIcon from "@material-ui/icons/AccountBalance";
 import ValueMachineIcon from "@material-ui/icons/PlayCircleFilled";
 import TransactionsIcon from "@material-ui/icons/Receipt";
+import LightIcon from "@material-ui/icons/BrightnessHigh";
+import DarkIcon from "@material-ui/icons/Brightness4";
 import {
   Asset,
   Cryptocurrencies,
@@ -23,9 +25,6 @@ import { Link } from "react-router-dom";
 
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  homeButton: {
-    marginRight: theme.spacing(2),
-  },
   navButton: {
     marginLeft: theme.spacing(2),
   },
@@ -43,15 +42,22 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   title: {
     flexGrow: 1,
   },
+  toggle: {
+    paddingLeft: theme.spacing(4),
+  },
 }));
 
 type PropTypes = {
   unit: Asset;
   setUnit: (val: Asset) => void;
+  theme: Asset;
+  setTheme: (val: Asset) => void;
 }
 export const NavBar: React.FC<PropTypes> = ({
   unit,
   setUnit,
+  theme,
+  setTheme,
 }: PropTypes) => {
   const classes = useStyles();
 
@@ -60,43 +66,25 @@ export const NavBar: React.FC<PropTypes> = ({
     setUnit(event.target.value);
   };
 
+  const toggleTheme = () => {
+    if (theme === "light") {
+      setTheme("dark");
+    } else {
+      setTheme("light");
+    }
+  };
+
   return (
     <AppBar position="absolute">
       <Toolbar>
         <IconButton
+          color="inherit"
           component={Link}
           edge="start"
           to={"/"}
-          color="inherit"
-          className={classes.homeButton}
         >
           <HomeIcon />
         </IconButton>
-
-        <Typography
-          className={classes.title}
-          variant="h6"
-          color="inherit"
-          align={"center"}
-          component="h1"
-          noWrap
-        >
-          Dashboard
-        </Typography>
-
-        <FormControl focused={false} className={classes.select}>
-          <InputLabel id="select-unit-label">Units</InputLabel>
-          <Select
-            labelId="select-unit-label"
-            id="select-unit"
-            value={unit || ""}
-            onChange={handleUnitChange}
-          >
-            {[Cryptocurrencies.ETH, Cryptocurrencies.BTC, ...Object.keys({ ...FiatCurrencies })]
-              .map(asset => <MenuItem key={asset} value={asset}>{asset}</MenuItem>)
-            }
-          </Select>
-        </FormControl>
 
         <IconButton
           component={Link}
@@ -147,6 +135,40 @@ export const NavBar: React.FC<PropTypes> = ({
           aria-label="address-book"
         >
           <AccountIcon />
+        </IconButton>
+
+        <Typography
+          className={classes.title}
+          variant="h6"
+          color="inherit"
+          align={"center"}
+          component="h1"
+          noWrap
+        >
+          Dashboard
+        </Typography>
+
+        <FormControl focused={false} className={classes.select}>
+          <InputLabel id="select-unit-label">Units</InputLabel>
+          <Select
+            labelId="select-unit-label"
+            id="select-unit"
+            value={unit || ""}
+            onChange={handleUnitChange}
+          >
+            {[Cryptocurrencies.ETH, Cryptocurrencies.BTC, ...Object.keys({ ...FiatCurrencies })]
+              .map(asset => <MenuItem key={asset} value={asset}>{asset}</MenuItem>)
+            }
+          </Select>
+        </FormControl>
+
+        <IconButton
+          className={classes.toggle}
+          color="secondary"
+          edge="start"
+          onClick={toggleTheme}
+        >
+          {theme === "dark" ? <LightIcon /> : <DarkIcon />}
         </IconButton>
 
       </Toolbar>

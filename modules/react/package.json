@@ -15,7 +15,6 @@
     "build": "tsc && rollup --config rollup.config.js"
   },
   "dependencies": {
-    "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.11.2",
     "@valuemachine/transactions": "0.7.0",
     "@valuemachine/types": "0.7.0",
@@ -23,6 +22,7 @@
     "react-copy-to-clipboard": "5.0.4"
   },
   "peerDependencies": {
+    "@material-ui/core": "4.12.3",
     "react": "17.0.2",
     "react-dom": "17.0.2"
   },

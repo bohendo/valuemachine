@@ -308,10 +308,10 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
         }
       </Typography>
 
-
       <Paper className={classes?.paper || ""}>
         <TransactionTable addressBook={addressBook} transactionsJson={filteredTxns} />
       </Paper>
+
 
     </React.Fragment>
   );

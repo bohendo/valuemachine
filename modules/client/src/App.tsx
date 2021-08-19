@@ -42,16 +42,32 @@ const {
 } = StoreKeys;
 const UnitStore = "Unit" as any;
 const CsvStore = "Csv" as any;
+const ThemeStore = "Theme" as any;
+
+const lightRed = "#e699a6";
+const darkRed = "#801010";
 
 const darkTheme = createTheme({
   palette: {
     primary: {
-      main: "#801010",
+      main: darkRed,
     },
     secondary: {
-      main: "#e699a6",
+      main: lightRed,
     },
     type: "dark",
+  },
+});
+
+const lightTheme = createTheme({
+  palette: {
+    primary: {
+      main: lightRed,
+    },
+    secondary: {
+      main: darkRed,
+    },
+    type: "light",
   },
 });
 
@@ -77,6 +93,7 @@ const App: React.FC = () => {
   // Extra UI-specific data from localstorage
   const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsv());
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
+  const [theme, setTheme] = useState(store.load(ThemeStore) || "dark");
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook({
@@ -161,10 +178,16 @@ const App: React.FC = () => {
     store.save(UnitStore, unit);
   }, [unit]);
 
+  useEffect(() => {
+    if (!theme) return;
+    console.log(`Saving theme`, theme);
+    store.save(ThemeStore, theme);
+  }, [theme]);
+
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
       <CssBaseline />
-      <NavBar unit={unit} setUnit={setUnit} />
+      <NavBar unit={unit} setUnit={setUnit} theme={theme} setTheme={setTheme} />
       <main className={classes.main}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
