@@ -1,4 +1,4 @@
-import { withStyles } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
@@ -24,16 +24,24 @@ import React, { useEffect, useState } from "react";
 
 import { HexString } from "./HexString";
 
-const TransactionRow = withStyles({ row: { "& > *": { borderBottom: "unset" } } })(({
+const useStyles = makeStyles((theme) => ({
+  row: {
+    "& > *": {
+      borderBottom: "unset",
+      margin: theme.spacing(0),
+    },
+  },
+}));
+
+const TransactionRow = ({
   addressBook,
-  classes,
   tx,
 }: {
   addressBook: AddressBook;
-  classes?: any;
   tx: Transaction;
 }) => {
   const [open, setOpen] = useState(false);
+  const classes = useStyles();
   return (
     <React.Fragment>
       <TableRow className={classes?.row || ""}>
@@ -97,9 +105,9 @@ const TransactionRow = withStyles({ row: { "& > *": { borderBottom: "unset" } } 
       </TableRow>
     </React.Fragment>
   );
-});
+};
 
-export const TransactionTable = withStyles({ paper: { minWidth: "850px", padding: "4em" } })(({
+export const TransactionTable = ({
   addressBook,
   //classes,
   transactionsJson,
@@ -128,6 +136,9 @@ export const TransactionTable = withStyles({ paper: { minWidth: "850px", padding
     <React.Fragment>
 
       <TableContainer>
+
+        {/*
+        */}
 
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
@@ -168,8 +179,9 @@ export const TransactionTable = withStyles({ paper: { minWidth: "850px", padding
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
+
       </TableContainer>
 
     </React.Fragment>
   );
-});
+};

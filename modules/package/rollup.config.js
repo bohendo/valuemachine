@@ -17,7 +17,7 @@ export default {
       format: "esm",
     },
   ],
-  external: Object.keys(pkg.dependencies),
+  external: [/node_modules/, ...Object.keys(pkg.dependencies)],
   plugins: [
     NodeResolve(),
     Json({

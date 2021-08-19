@@ -19,7 +19,11 @@ export default {
       sourcemap: true,
     },
   ],
-  external: [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)],
+  external: [
+    /node_modules/,
+    ...Object.keys(pkg.dependencies),
+    ...Object.keys(pkg.peerDependencies),
+  ],
   plugins: [
     NodeResolve({
       preferBuiltins: true,
