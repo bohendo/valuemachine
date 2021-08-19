@@ -8,24 +8,24 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import {
-  getAddressBook,
-  getPrices,
-  getTransactions,
-  getValueMachine,
-} from "valuemachine";
-import {
   Assets,
   StoreKeys,
 } from "@valuemachine/types";
 import { getLocalStore, getLogger } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
+import {
+  getAddressBook,
+  getPrices,
+  getTransactions,
+  getValueMachine,
+} from "valuemachine";
 
 import { AddressBookManager } from "./components/AddressBook";
 import { Dashboard } from "./components/Dashboard";
 import { NavBar } from "./components/NavBar";
 import { PriceManager } from "./components/Prices";
-import { TaxesExplorer } from "./components/Taxes";
+// import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
 import { getEmptyCsv } from "./types";
@@ -40,13 +40,13 @@ const {
   ValueMachine: ValueMachineStore,
   Prices: PricesStore
 } = StoreKeys;
-const UnitStore = "Unit";
-const CsvStore = "Csv";
+const UnitStore = "Unit" as any;
+const CsvStore = "Csv" as any;
 
 const darkTheme = createTheme({
   palette: {
     primary: {
-      main: "#deaa56",
+      main: "#801010",
     },
     secondary: {
       main: "#e699a6",
@@ -84,7 +84,6 @@ const App: React.FC = () => {
     logger,
   }));
   const [transactions, setTransactions] = useState(getTransactions({
-    addressBook,
     json: transactionsJson,
     store,
     logger,
@@ -119,7 +118,6 @@ const App: React.FC = () => {
     console.log(`Refreshing ${transactionsJson.length} transactions`);
     store.save(TransactionsStore, transactionsJson);
     setTransactions(getTransactions({
-      addressBook,
       json: transactionsJson,
       store,
       logger,
@@ -179,6 +177,7 @@ const App: React.FC = () => {
               />
             </Route>
 
+            {/*
             <Route exact path="/taxes">
               <TaxesExplorer
                 addressBook={addressBook}
@@ -186,6 +185,7 @@ const App: React.FC = () => {
                 prices={prices}
               />
             </Route>
+            */}
 
             <Route exact path="/prices">
               <PriceManager
@@ -200,10 +200,8 @@ const App: React.FC = () => {
               <ValueMachineExplorer
                 addressBook={addressBook}
                 vm={vm}
-                prices={prices}
                 setVMJson={setVMJson}
                 transactions={transactions}
-                unit={unit}
               />
             </Route>
 

@@ -19,8 +19,8 @@ import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
 import {
-  Assets,
-  Blockchains,
+  Asset,
+  Cryptocurrencies,
   EthereumAssets,
   Prices,
   PricesJson,
@@ -72,17 +72,18 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-export const PriceManager = ({
+type PropTypes = {
+  prices: Prices;
+  setPricesJson: (val: PricesJson) => void;
+  vm: ValueMachine,
+  unit: Asset,
+};
+export const PriceManager: React.FC<PropTypes> = ({
   prices,
   setPricesJson,
   vm,
   unit,
-}: {
-  prices: Prices;
-  setPricesJson: (val: PricesJson) => void;
-  vm: ValueMachine,
-  unit: Assets,
-}) => {
+}: PropTypes) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [syncing, setSyncing] = useState(false);
@@ -105,11 +106,13 @@ export const PriceManager = ({
           newFilteredPrices[date][unit][asset] = price;
         }
       });
+      return null;
     });
     setFilteredPrices(newFilteredPrices);
   }, [unit, prices, filterAsset, filterDate]);
 
-  const handleFilterChange = (event: React.ChangeEvent<{ value: string }>) => {
+  const handleFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setFilterAsset(event.target.value);
   };
 
@@ -205,13 +208,14 @@ export const PriceManager = ({
           onChange={handleFilterChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys({ ...EthereumAssets, ...Blockchains }).map(asset => (
+          {Object.keys({ ...EthereumAssets, ...Cryptocurrencies }).map(asset => (
             <MenuItem key={asset} value={asset}>{asset}</MenuItem>
           ))}
         </Select>
       </FormControl>
 
       <InputDate
+        id="prices-filter-date"
         label="Filter Date"
         setDate={setFilterDate}
       />

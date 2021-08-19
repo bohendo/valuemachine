@@ -1,6 +1,6 @@
 export * from "./addressBook";
 export * from "./evmData";
-export * from "./logger";
+export { getLogger } from "./logger";
 export * from "./math";
 export * from "./prices";
 export * from "./store";

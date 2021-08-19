@@ -21,12 +21,16 @@ import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import {
   AddressBook,
+  Asset,
   Assets,
   DateString,
   DecimalString,
   EventTypes,
-  Prices,
+  Guard,
+  GuardChangeEvent,
   Guards,
+  Prices,
+  TradeEvent,
   TransferCategories,
   ValueMachine,
 } from "@valuemachine/types";
@@ -72,9 +76,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 type TaxRow = {
   date: DateString;
-  action: EventTypes.Trade | TransferCategories.Income | TransferCategories.Deposit;
+  action: string;
   amount: DecimalString;
-  asset: Assets;
+  asset: Asset;
   price: DecimalString;
   value: DecimalString;
   receiveDate: DateString;
@@ -84,29 +88,30 @@ type TaxRow = {
   cumulativeIncome: DecimalString;
 };
 
-export const TaxesExplorer = ({
-  addressBook,
-  vm,
-  prices,
-}: {
+type PropTypes = {
   addressBook: AddressBook;
   vm: ValueMachine,
   prices: Prices,
-}) => {
+};
+export const TaxesExplorer: React.FC<PropTypes> = ({
+  addressBook,
+  vm,
+  prices,
+}: PropTypes) => {
   const classes = useStyles();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
-  const [allGuards, setAllGuards] = useState([]);
-  const [guard, setGuard] = React.useState(0);
+  const [allGuards, setAllGuards] = useState([] as Guard[]);
+  const [guard, setGuard] = React.useState(Guards.Ethereum as Guard);
   const [taxes, setTaxes] = React.useState([] as TaxRow[]);
   const [fromDate, setFromDate] = React.useState("");
   const [toDate, setToDate] = React.useState("");
 
   const fmtNum = num => {
-    const round = defaultRound(num, guard === ETH ? 4 : 2);
+    const round = defaultRound(num, guard === Guards.Ethereum ? 4 : 2);
     const insert = (str: string, index: number, char: string = ",") =>
       str.substring(0, index) + char + str.substring(index);
-    if (guard === Assets.INR) {
+    if (guard === Guards.IND) {
       const neg = round.startsWith("-") ? "-" : "";
       const [int, dec] = round.replace("-", "").split(".");
       const len = int.length;
@@ -132,16 +137,16 @@ export const TaxesExplorer = ({
   useEffect(() => {
     if (!addressBook || !vm?.json?.events?.length) return;
     const newGuards = Array.from(vm.json.events
-      .filter(e => e.type === EventTypes.Trade || (
-        e.type === EventTypes.Transfer && e.category === TransferCategories.Income
-      )).reduce((all, cur) => {
-        const jur = addressBook.getGuard(cur.to || cur.account || "");
+      .filter(
+        e => e.type === EventTypes.Trade || e.type === EventTypes.Income
+      ).reduce((all, evt) => {
+        const jur = addressBook.getGuard((evt as TradeEvent).account || "");
         if (Object.keys(Guards).includes(jur)) {
           all.add(jur);
         }
         return all;
       }, new Set())
-    ).sort();
+    ).sort() as Guard[];
     setAllGuards(newGuards);
     setGuard(newGuards[0]);
   }, [addressBook, vm]);
@@ -152,80 +157,84 @@ export const TaxesExplorer = ({
     let cumulativeChange = "0";
     setTaxes(
       vm?.json?.events.filter(evt => {
-        const toJur = addressBook.getGuard(evt.to || evt.account || "");
+        const toJur = addressBook.getGuard(
+          (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
+        );
         return toJur === guard && (
           evt.type === EventTypes.Trade
           || evt.type === EventTypes.GuardChange
-          || (evt.type === EventTypes.Transfer && evt.category === TransferCategories.Income)
+          || evt.type === EventTypes.Income
         );
       }).reduce((output, evt) => {
+        const date = (evt as any).date || new Date().toISOString();
         if (evt.type === EventTypes.Trade) {
-          return output.concat(...evt.outputs?.map(chunk => {
-            const price = prices.getPrice(evt.date, chunk.asset);
-            const value = mul(chunk.quantity, price);
+          return output.concat(...evt.outputs?.map(chunkIndex => {
+            const chunk = vm.getChunk(chunkIndex);
+            const price = prices.getPrice(date, chunk.asset);
+            const value = mul(chunk.quantity, price || "0");
             if (chunk.history[0]?.date) {
               const receivePrice = prices.getPrice(chunk.history[0]?.date, chunk.asset);
-              const capitalChange = mul(chunk.quantity, sub(price, receivePrice));
+              const capitalChange = mul(chunk.quantity, sub(price || "0", receivePrice || "0"));
               cumulativeChange = add(cumulativeChange, capitalChange);
               return {
-                date: evt.date,
+                date: date,
                 action: EventTypes.Trade,
                 amount: chunk.quantity,
                 asset: chunk.asset,
                 price,
                 value,
                 receivePrice,
-                receiveDate: evt.date, // wrong!
+                receiveDate: date, // wrong!
                 capitalChange,
                 cumulativeChange,
                 cumulativeIncome,
-              };
+              } as TaxRow;
             } else {
               return {
-                date: evt.date,
-                receiveDate: evt.date, // wrong!
-              };
+                date: date,
+                receiveDate: date, // wrong!
+              } as TaxRow;
             }
           }));
-        } else if (evt.category === TransferCategories.Income) {
-          const price = prices.getPrice(evt.date, evt.asset);
-          const income = mul(evt.quantity, price);
+        } else if (evt.type === TransferCategories.Income) {
+          const price = prices.getPrice(date, ETH/*TODO evt.asset*/);
+          const income = mul("0"/*TODO evt.quantity*/, price || "0");
           cumulativeIncome = add(cumulativeIncome, income);
           return output.concat({
-            date: evt.date,
+            date: date,
             action: TransferCategories.Income,
-            amount: evt.quantity,
-            asset: evt.asset,
+            amount: "0", // TODO evt.quantity,
+            asset: ETH, // TODO evt.asset
             price,
             value: income,
             receivePrice: price,
-            receiveDate: evt.date,
+            receiveDate: date,
             capitalChange: "0",
             cumulativeChange,
             cumulativeIncome,
-          });
+          } as TaxRow);
         } else if (evt.type === EventTypes.GuardChange) {
           console.warn(evt, `Temporarily pretending this guard change is income`);
-          const price = prices.getPrice(evt.date, evt.asset);
-          const income = mul(evt.quantity, price);
+          const price = prices.getPrice(date, ETH /*TODO evt.asset*/);
+          const income = mul("0"/*TODO evt.quantity*/, price || "0");
           cumulativeIncome = add(cumulativeIncome, income);
           return output.concat({
-            date: evt.date,
+            date: date,
             action: TransferCategories.Deposit,
-            amount: evt.quantity,
-            asset: evt.asset,
+            amount: "0", // TODO evt.quantity,
+            asset: ETH, // TODO evt.asset
             price,
             value: income,
             receivePrice: price,
-            receiveDate: evt.date,
+            receiveDate: date,
             capitalChange: "0",
             cumulativeChange,
             cumulativeIncome,
-          });
+          } as TaxRow);
         } else {
           return output;
         }
-      }, []).filter(row => row.asset !== guard)
+      }, [] as TaxRow[])
     );
   }, [addressBook, guard, vm, prices]);
 
@@ -248,7 +257,8 @@ export const TaxesExplorer = ({
     a.click();
   };
 
-  const handleGuardChange = (event: React.ChangeEvent<{ value: string }>) => {
+  const handleGuardChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setGuard(event.target.value);
   };
 
@@ -290,7 +300,7 @@ export const TaxesExplorer = ({
               onChange={handleGuardChange}
             >
               <MenuItem value={""}>-</MenuItem>
-              {allGuards?.map((jur, i) => <MenuItem key={i} value={jur}>{jur}</MenuItem>)}
+              {allGuards?.map((grd, i) => <MenuItem key={i} value={grd}>{grd}</MenuItem>)}
             </Select>
           </FormControl>
         </Grid>
@@ -298,8 +308,8 @@ export const TaxesExplorer = ({
         <Grid item md={8}>
           <Card className={classes.exportCard}>
             <CardHeader title={"Export CSV"}/>
-            <InputDate label="From Date" setDate={setFromDate} />
-            <InputDate label="To Date" setDate={setToDate} />
+            <InputDate id="from-date" label="From Date" setDate={setFromDate} />
+            <InputDate id="to-date" label="To Date" setDate={setToDate} />
             <Button
               className={classes.exportButton}
               color="primary"
@@ -357,7 +367,7 @@ export const TaxesExplorer = ({
                     <TableCell> {`${fmtNum(row.amount)} ${row.asset}`} </TableCell>
                     <TableCell> {fmtNum(row.price)} </TableCell>
                     <TableCell> {fmtNum(row.value)} </TableCell>
-                    <TableCell> {row.history[0]?.date.replace("T", " ").replace(".000Z", "")} </TableCell>
+                    <TableCell> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
                     <TableCell> {fmtNum(row.receivePrice)} </TableCell>
                     <TableCell> {fmtNum(row.capitalChange)} </TableCell>
                     <TableCell> {fmtNum(row.cumulativeChange)} </TableCell>

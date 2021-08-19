@@ -13,9 +13,14 @@ import PricesIcon from "@material-ui/icons/LocalOffer";
 import TaxesIcon from "@material-ui/icons/AccountBalance";
 import ValueMachineIcon from "@material-ui/icons/PlayCircleFilled";
 import TransactionsIcon from "@material-ui/icons/Receipt";
-import { Assets, Cryptocurrencies, FiatCurrencies } from "@valuemachine/types";
+import {
+  Asset,
+  Cryptocurrencies,
+  FiatCurrencies,
+} from "@valuemachine/types";
 import React from "react";
 import { Link } from "react-router-dom";
+
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   homeButton: {
@@ -27,12 +32,12 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   select: {
     "& > *": {
       "& > svg": {
-        color: "black", // carrot icon
+        color: "inherit", // carrot icon
       },
       "&::before": {
-        borderColor: "black", // underline
+        borderColor: "inherit", // underline
       },
-      color: "black", // label & selection text
+      color: "inherit", // label & selection text
     },
   },
   title: {
@@ -40,16 +45,18 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-export const NavBar = ({
+type PropTypes = {
+  unit: Asset;
+  setUnit: (val: Asset) => void;
+}
+export const NavBar: React.FC<PropTypes> = ({
   unit,
   setUnit,
-}: {
-  unit: Assets;
-  setUnit: (val: Assets) => void;
-}) => {
+}: PropTypes) => {
   const classes = useStyles();
 
-  const handleUnitChange = (event: React.ChangeEvent<{ value: string }>) => {
+  const handleUnitChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setUnit(event.target.value);
   };
 
@@ -85,8 +92,7 @@ export const NavBar = ({
             value={unit || ""}
             onChange={handleUnitChange}
           >
-            {[Cryptocurrencies.ETH, Cryptocurrencies.BTC]
-              .concat(Object.keys({ ...FiatCurrencies }))
+            {[Cryptocurrencies.ETH, Cryptocurrencies.BTC, ...Object.keys({ ...FiatCurrencies })]
               .map(asset => <MenuItem key={asset} value={asset}>{asset}</MenuItem>)
             }
           </Select>

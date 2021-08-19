@@ -3,7 +3,7 @@ set -e
 
 # Order Matters!
 # This is the order they'll be published in, dependencies should come before dependents
-packages="types utils transactions core package"
+packages="types utils transactions core package react"
 
 root=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )
 project=$(grep -m 1 '"name":' "$root/package.json" | cut -d '"' -f 4)

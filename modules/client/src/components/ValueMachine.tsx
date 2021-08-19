@@ -24,16 +24,17 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import ClearIcon from "@material-ui/icons/Delete";
 import SyncIcon from "@material-ui/icons/Sync";
-import { describeChunk, describeEvent } from "valuemachine";
+import { HexString } from "@valuemachine/react";
 import {
+  Account,
   AddressBook,
-  Assets,
   Event,
-  Events,
-  HydratedEvents,
   EventTypes,
-  Prices,
+  GuardChangeEvent,
+  HydratedEvent,
+  TradeEvent,
   Transactions,
+  TransactionsJson,
   TransferCategories,
   ValueMachine,
 } from "@valuemachine/types";
@@ -41,9 +42,8 @@ import {
   round as defaultRound,
   getEmptyValueMachine,
 } from "@valuemachine/utils";
+import { describeChunk, describeEvent } from "valuemachine";
 import React, { useEffect, useState } from "react";
-
-import { HexString } from "./HexString";
 
 const { Income, Expense, Deposit, Withdraw, Borrow, Repay } = TransferCategories;
 const round = num => defaultRound(num, 4);
@@ -77,13 +77,14 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-export const EventRow = ({
-  addressBook,
-  event,
-}: {
+type EventRowProps = {
   addressBook: AddressBook;
   event: Event;
-}) => {
+};
+export const EventRow: React.FC<EventRowProps> = ({
+  addressBook,
+  event,
+}: EventRowProps) => {
   const [open, setOpen] = useState(false);
   const classes = useStyles();
 
@@ -94,11 +95,11 @@ export const EventRow = ({
   const balToStr = (balances) =>
     Object.entries(balances || {}).map(([asset, bal]) => `${round(bal)} ${asset}`).join(" and ");
 
-  const chunksToDisplay = (chunks, prefix) => {
+  const chunksToDisplay = (chunks, prefix = "") => {
     const output = {};
     for (const chunk of chunks) {
       const description = describeChunk(chunk);
-      output[(prefix || "") + description.split(":")[0]] = description.split(":")[1];
+      output[prefix + description.split(":")[0]] = description.split(":")[1];
     }
     return output;
   };
@@ -106,23 +107,27 @@ export const EventRow = ({
   const SimpleTable = ({
     data,
   }: {
-    data: any;
+    data: { [key: string]: string };
   }) => {
     return (
       <Table size="small">
         <TableBody>
-          {Object.entries(data).map(([key, value]: string[], i: number) => (
-            <TableRow key={i}>
-              <TableCell className={classes.subtable}> {key} </TableCell>
-              <TableCell> {
-                isHexString(value)
-                  ? <HexString value={value} display={addressBook?.getName(value)}/>
-                  : <Typography> {
-                    typeof value === "string" ? value : JSON.stringify(value)
-                  } </Typography>
-              }</TableCell>
-            </TableRow>
-          ))}
+          {Object.entries(data).map((e: string[], i: number) => {
+            const key = e[0] as string;
+            const value = e[1] as string;
+            return (
+              <TableRow key={i}>
+                <TableCell className={classes.subtable}> {key} </TableCell>
+                <TableCell> {
+                  isHexString(value)
+                    ? <HexString value={value} display={addressBook?.getName(value)}/>
+                    : <Typography> {
+                      typeof value === "string" ? value : JSON.stringify(value)
+                    } </Typography>
+                }</TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     );
@@ -146,7 +151,7 @@ export const EventRow = ({
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box pb={2} px={4}>
               <Typography variant="h6" gutterBottom component="div">
-                {`${event.category || event.type} Details`}
+                {`${event.type} Details`}
               </Typography>
               <SimpleTable data={
 
@@ -167,10 +172,10 @@ export const EventRow = ({
                   ...chunksToDisplay(event.inputs, "Took "),
 
                 } : event.type === EventTypes.GuardChange ? {
-                  ["From"]: event.from,
-                  ["From Guard"]: event.oldGuard,
-                  ["To"]: event.to,
-                  ["To Guard"]: event.newGuard,
+                  ["From"]: (event as GuardChangeEvent).from,
+                  ["From Guard"]: (event as GuardChangeEvent).fromGuard,
+                  ["To"]: (event as GuardChangeEvent).to,
+                  ["To Guard"]: (event as GuardChangeEvent).toGuard,
                   [`New Balances`]: balToStr(event.newBalances),
                   ...chunksToDisplay(event.chunks),
 
@@ -189,30 +194,27 @@ export const EventRow = ({
   );
 };
 
-export const ValueMachineExplorer = ({
-  addressBook,
-  vm,
-  prices,
-  setVMJson,
-  transactions,
-  unit,
-}: {
+type PropTypes = {
   addressBook: AddressBook;
   vm: ValueMachine;
-  prices: Prices;
   setVMJson: (vmJson: any) => void;
   transactions: Transactions;
-  unit: Assets;
-}) => {
+};
+export const ValueMachineExplorer: React.FC<PropTypes> = ({
+  addressBook,
+  vm,
+  setVMJson,
+  transactions,
+}: PropTypes) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
-  const [syncing, setSyncing] = useState({ transactions: false, prices: false });
-  const [accounts, setAccounts] = useState([]);
-  const [newTransactions, setNewTransactions] = useState([]);
+  const [syncing, setSyncing] = useState({ transactions: false, state: false, prices: false });
+  const [accounts, setAccounts] = useState([] as Account[]);
+  const [newTransactions, setNewTransactions] = useState([] as TransactionsJson);
   const [filterAccount, setFilterAccount] = useState("");
-  const [filterAsset, setFilterAsset] = useState("");
+  const [filterAsset, setFilterAsset] = useState(""); // TODO: rm
   const [filterType, setFilterType] = useState("");
-  const [filteredEvents, setFilteredEvents] = useState([] as HydratedEvents);
+  const [filteredEvents, setFilteredEvents] = useState([] as HydratedEvent[]);
   const classes = useStyles();
 
   useEffect(() => {
@@ -229,34 +231,32 @@ export const ValueMachineExplorer = ({
   useEffect(() => {
     setPage(0);
     setFilteredEvents(vm.json?.events?.filter(event =>
-      (!filterAsset
-        || event.asset === filterAsset
-        || Object.keys(event.inputs).includes(filterAsset)
-        || Object.keys(event.outputs).includes(filterAsset)
-        || event.newGuard === filterAsset || event.oldGuard === filterAsset
-      )
-      && (!filterType || event.category === filterType || event.type === filterType)
-      && (!filterAccount || (event.to === filterAccount || event.from === filterAccount))
-    ).sort((e1: Events, e2: Events) =>
+      (!filterAsset)
+      && (!filterType || event.type === filterType)
+      && (!filterAccount || (
+        (event as GuardChangeEvent).to === filterAccount ||
+        (event as GuardChangeEvent).from === filterAccount ||
+        (event as TradeEvent).account === filterAccount))
+    ).sort((e1: Event, e2: Event) =>
       // Sort by date, newest first
       (e1.date > e2.date) ? -1
       : (e1.date < e2.date) ? 1
-      // Then by purchase date, oldest first
-      : (e1.purchaseDate > e2.purchaseDate) ? 1
-      : (e1.purchaseDate < e2.purchaseDate) ? -1
       : 0
     ).map((e: Event) => vm.getEvent(e.index)) || []);
   }, [vm, filterAccount, filterAsset, filterType]);
 
-  const handleFilterAccountChange = (event: React.ChangeEvent<{ value: string }>) => {
+  const handleFilterAccountChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setFilterAccount(event.target.value);
   };
 
-  const handleFilterAssetChange = (event: React.ChangeEvent<{ value: string }>) => {
+  const handleFilterAssetChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setFilterAsset(event.target.value);
   };
 
-  const handleFilterTypeChange = (event: React.ChangeEvent<{ value: string }>) => {
+  const handleFilterTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setFilterType(event.target.value);
   };
 
@@ -269,10 +269,11 @@ export const ValueMachineExplorer = ({
     console.log(`Processing ${newTransactions?.length} new transactions`);
     let start = Date.now();
     for (const transaction of newTransactions) {
+      if (!transaction) continue;
       vm.execute(transaction);
       await new Promise(res => setTimeout(res, 1)); // Yield to other pending operations
       const chunk = 100;
-      if (transaction.index % chunk === 0) {
+      if (transaction.index && transaction.index % chunk === 0) {
         console.info(`Processed transactions ${transaction.index - chunk}-${
           transaction.index
         } at a rate of ${Math.round((100000*chunk)/(Date.now() - start))/100} tx/sec`);
@@ -365,7 +366,7 @@ export const ValueMachineExplorer = ({
           onChange={handleFilterAssetChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(vm.json?.events?.map(e => e.asset))).map((asset, i) => (
+          {Array.from(new Set(vm.json?.chunks?.map(c => c.asset))).map((asset, i) => (
             <MenuItem key={i} value={asset}>{asset}</MenuItem>
           ))}
         </Select>
@@ -420,13 +421,11 @@ export const ValueMachineExplorer = ({
             <TableBody>
               {filteredEvents
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((event: HydratedEvents, i: number) => (
+                .map((event: HydratedEvent, i: number) => (
                   <EventRow
                     key={i}
-                    prices={prices}
                     addressBook={addressBook}
                     event={event}
-                    unit={unit}
                   />
                 ))}
             </TableBody>
