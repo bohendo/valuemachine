@@ -47,6 +47,9 @@ start: dev
 start-prod:
 	VM_PROD=true bash ops/start.sh
 
+start-storybook: react
+	bash ops/start-storybook.sh
+
 stop:
 	bash ops/stop.sh
 
