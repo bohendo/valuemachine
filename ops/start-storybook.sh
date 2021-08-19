@@ -16,6 +16,7 @@ fi
 
 docker run \
   "${interactive[@]}" \
+  --detach \
   --entrypoint="npm" \
   --name="${project}_storybook" \
   --network "$project" \
