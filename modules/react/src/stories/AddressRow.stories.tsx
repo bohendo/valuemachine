@@ -1,5 +1,8 @@
 import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
+import {
+  AddressCategories,
+} from "@valuemachine/types";
 
 import { AddressRow } from "../AddressRow";
 
@@ -8,11 +11,13 @@ const Template: ComponentStory<typeof AddressRow> = (args) => <AddressRow {...ar
 
 export const Example = Template.bind({});
 Example.args = {
+  address: "evm:1:0x1057Bea69c9ADD11c6e3dE296866AFf98366CFE3",
+  editEntry: console.log,
   entry: {
     name: "bohendo.eth",
     address: "evm:1:0x1057Bea69c9ADD11c6e3dE296866AFf98366CFE3",
+    category: AddressCategories.Self,
   },
-  setEntry: console.log,
-  addresses: [],
+  otherAddresses: [],
 };
 

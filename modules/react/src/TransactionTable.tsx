@@ -42,9 +42,6 @@ export const TransactionTable = ({
 
       <TableContainer>
 
-        {/*
-        */}
-
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"

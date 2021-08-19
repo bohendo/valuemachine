@@ -704,10 +704,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
       </Grid>
 
 
-
-
-
-
       <Divider/>
       <Typography variant="h4" className={classes.subtitle}>
         Address Book Filters
