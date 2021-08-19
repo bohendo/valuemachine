@@ -5,6 +5,7 @@ import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
+import Paper from "@material-ui/core/Paper";
 import Select from "@material-ui/core/Select";
 import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
@@ -48,6 +49,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
   subtitle: {
     margin: theme.spacing(2),
+  },
+  paper: {
+    minWidth: "850px",
+    padding: "4em",
   },
 }));
 
@@ -304,7 +309,9 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
       </Typography>
 
 
-      <TransactionTable addressBook={addressBook} transactionsJson={filteredTxns} />
+      <Paper className={classes?.paper || ""}>
+        <TransactionTable addressBook={addressBook} transactionsJson={filteredTxns} />
+      </Paper>
 
     </React.Fragment>
   );

@@ -1,8 +1,7 @@
-//import { withStyles } from "@material-ui/core/styles";
+import { withStyles } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
-import Paper from "@material-ui/core/Paper";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -25,7 +24,7 @@ import React, { useEffect, useState } from "react";
 
 import { HexString } from "./HexString";
 
-const TransactionRow = /*withStyles({ row: { "& > *": { borderBottom: "unset" } } })*/({
+const TransactionRow = withStyles({ row: { "& > *": { borderBottom: "unset" } } })(({
   addressBook,
   classes,
   tx,
@@ -98,17 +97,17 @@ const TransactionRow = /*withStyles({ row: { "& > *": { borderBottom: "unset" } 
       </TableRow>
     </React.Fragment>
   );
-};
+});
 
-export const TransactionTable = /*withStyles({ paper: { minWidth: "850px", padding: "4em" } })*/({
+export const TransactionTable = withStyles({ paper: { minWidth: "850px", padding: "4em" } })(({
   addressBook,
-  classes,
+  //classes,
   transactionsJson,
 }: {
   addressBook: AddressBook;
-  classes?: any;
+  //classes?: any;
   transactionsJson: TransactionsJson;
-}) => (<Typography>HELLO FROM NEXT DOOR</Typography>)/*{
+}) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
 
@@ -128,50 +127,48 @@ export const TransactionTable = /*withStyles({ paper: { minWidth: "850px", paddi
   return (
     <React.Fragment>
 
-      <Paper className={classes?.paper || ""}>
-        <TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[25, 50, 100, 250]}
-            component="div"
-            count={transactionsJson.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
+      <TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[25, 50, 100, 250]}
+          component="div"
+          count={transactionsJson.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
 
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell><strong> Date </strong></TableCell>
-                <TableCell><strong> Description </strong></TableCell>
-                <TableCell><strong> Hash </strong></TableCell>
-                <TableCell><strong> Sources </strong></TableCell>
-                <TableCell><strong> Transfers </strong></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {transactionsJson
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((tx: Transaction, i: number) => (
-                  <TransactionRow addressBook={addressBook} key={i} tx={tx} />
-                ))
-              }
-            </TableBody>
-          </Table>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell><strong> Date </strong></TableCell>
+              <TableCell><strong> Description </strong></TableCell>
+              <TableCell><strong> Hash </strong></TableCell>
+              <TableCell><strong> Sources </strong></TableCell>
+              <TableCell><strong> Transfers </strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {transactionsJson
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((tx: Transaction, i: number) => (
+                <TransactionRow addressBook={addressBook} key={i} tx={tx} />
+              ))
+            }
+          </TableBody>
+        </Table>
 
-          <TablePagination
-            rowsPerPageOptions={[25, 50, 100, 250]}
-            component="div"
-            count={transactionsJson.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </TableContainer>
-      </Paper>
+        <TablePagination
+          rowsPerPageOptions={[25, 50, 100, 250]}
+          component="div"
+          count={transactionsJson.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </TableContainer>
 
     </React.Fragment>
   );
-}*/;
+});
