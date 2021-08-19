@@ -20,7 +20,7 @@
     "@valuemachine/transactions": "0.7.0",
     "@valuemachine/types": "0.7.0",
     "@valuemachine/utils": "0.7.0",
-    "react-copy-to-clipboard": "5.0.3"
+    "react-copy-to-clipboard": "5.0.4"
   },
   "peerDependencies": {
     "react": "17.0.2",
