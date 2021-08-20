@@ -67,9 +67,9 @@ export const EventTable: React.FC<EventTableProps> = ({
     setFilteredEvents(vm.json?.events?.filter(event =>
       (!filterType || event.type === filterType)
       && (!filterAccount || (
-        (event as GuardChangeEvent).to === filterAccount ||
-        (event as GuardChangeEvent).from === filterAccount ||
-        (event as TradeEvent).account === filterAccount))
+        (event as GuardChangeEvent).to?.endsWith(filterAccount) ||
+        (event as GuardChangeEvent).from?.endsWith(filterAccount) ||
+        (event as TradeEvent).account?.endsWith(filterAccount)))
     ).sort((e1: Event, e2: Event) =>
       // Sort by date, newest first
       (e1.date > e2.date) ? -1
