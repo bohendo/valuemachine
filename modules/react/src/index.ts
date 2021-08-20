@@ -4,6 +4,7 @@ export { AddressRow } from "./AddressRow";
 export { AddressTable } from "./AddressTable";
 export { CsvPorter } from "./CsvPorter";
 export { CsvTable } from "./CsvTable";
+export { DateInput } from "./DateInput";
 export { EventRow } from "./EventRow";
 export { EventTable } from "./EventTable";
 export { HexString } from "./HexString";

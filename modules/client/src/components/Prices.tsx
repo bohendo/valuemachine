@@ -18,6 +18,7 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
+import { DateInput } from "@valuemachine/react";
 import {
   Asset,
   Cryptocurrencies,
@@ -30,7 +31,6 @@ import { sigfigs } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-import { InputDate } from "./InputDate";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -214,7 +214,7 @@ export const PriceManager: React.FC<PropTypes> = ({
         </Select>
       </FormControl>
 
-      <InputDate
+      <DateInput
         id="prices-filter-date"
         label="Filter Date"
         setDate={setFilterDate}

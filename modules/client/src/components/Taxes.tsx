@@ -19,6 +19,7 @@ import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
+import { DateInput } from "@valuemachine/react";
 import {
   AddressBook,
   Asset,
@@ -42,8 +43,6 @@ import {
 } from "@valuemachine/utils";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
-
-import { InputDate } from "./InputDate";
 
 const { ETH } = Assets;
 
@@ -308,8 +307,8 @@ export const TaxesExplorer: React.FC<PropTypes> = ({
         <Grid item md={8}>
           <Card className={classes.exportCard}>
             <CardHeader title={"Export CSV"}/>
-            <InputDate id="from-date" label="From Date" setDate={setFromDate} />
-            <InputDate id="to-date" label="To Date" setDate={setToDate} />
+            <DateInput id="from-date" label="From Date" setDate={setFromDate} />
+            <DateInput id="to-date" label="To Date" setDate={setToDate} />
             <Button
               className={classes.exportButton}
               color="primary"
