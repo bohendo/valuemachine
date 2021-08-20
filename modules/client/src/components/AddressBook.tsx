@@ -9,7 +9,6 @@ import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
 import Select from "@material-ui/core/Select";
-import Snackbar from "@material-ui/core/Snackbar";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -19,7 +18,6 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import RemoveIcon from "@material-ui/icons/Delete";
-import { Alert } from "@material-ui/lab";
 import { AddressTable, AddressEditor } from "@valuemachine/react";
 import {
   AddressCategories,
@@ -116,11 +114,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   const [importFileType, setImportFileType] = useState("");
   const [filteredAddresses, setFilteredAddresses] = useState([] as AddressEntry[]);
   const [filterCategory, setFilterCategory] = useState("");
-  const [statusAlert, setStatusAlert] = useState({
-    open: false,
-    message: "",
-    severity: "info" as "info" | "error" | "warning" | "success"
-  });
   const [allAddresses, setAllAddresses] = useState([] as string[]);
   const [newEntry, setNewEntry] = useState(getEmptyEntry);
   const classes = useStyles();
@@ -156,13 +149,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
           : 0
     ));
   }, [addressBook, filterCategory]);
-
-  const handleClose = () => {
-    setStatusAlert({
-      ...statusAlert,
-      open: false,
-    });
-  };
 
   const handleAddressBookImport = (event) => {
     const file = event.target.files[0];
@@ -446,17 +432,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
         setAddressBookJson={setAddressBookJson}
       />
 
-      <Snackbar
-        open={statusAlert.open}
-        autoHideDuration={6000}
-        onClose={handleClose}
-        message={statusAlert.message}
-        className={classes.snackbar}
-      >
-        <Alert onClose={handleClose} severity={statusAlert.severity}>
-          {statusAlert.message}
-        </Alert>
-      </Snackbar>
     </div>
   );
 };
