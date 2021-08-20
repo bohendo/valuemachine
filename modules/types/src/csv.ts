@@ -12,5 +12,4 @@ export type CsvFile = Static<typeof CsvFile>;
 export const CsvFiles = Type.Array(CsvFile);
 export type CsvFiles = Static<typeof CsvFiles>;
 
-export const getEmptyCsv = (): CsvFiles => [];
-
+export const getEmptyCsv = (): CsvFiles => []; // TODO: move to utils
