@@ -27,7 +27,7 @@ export type EvmName = Static<typeof EvmName>;
 export const EvmMetadata = Type.Object({
   id: Type.Number(),
   name: EvmName,
-  feeAsset: Cryptocurrency,
+  feeAsset: Type.Union([Cryptocurrency, Type.String()]), // allow arbirary fee assets
 });
 export type EvmMetadata = Static<typeof EvmMetadata>;
 
