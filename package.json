@@ -1,6 +1,6 @@
 {
   "name": "valuemachine",
-  "version": "0.7.3",
+  "version": "0.8.1",
   "description": "Low level utilities for portfolio and tax analysis",
   "repository": {
     "type": "git",
@@ -14,11 +14,13 @@
   },
   "homepage": "https://gitlab.com/bohendo/valuemachine#readme",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "4.29.0",
-    "@typescript-eslint/parser": "4.29.0",
+    "david": "12.0.0",
+    "@typescript-eslint/eslint-plugin": "4.29.2",
+    "@typescript-eslint/parser": "4.29.2",
     "eslint": "7.32.0",
-    "eslint-plugin-import": "2.23.4",
+    "eslint-plugin-import": "2.24.1",
     "eslint-plugin-react": "7.24.0",
-    "eslint-plugin-unused-imports": "1.1.2"
+    "eslint-plugin-unused-imports": "1.1.4",
+    "tslib": "2.3.1"
   }
 }

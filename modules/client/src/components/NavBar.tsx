@@ -13,84 +13,78 @@ import PricesIcon from "@material-ui/icons/LocalOffer";
 import TaxesIcon from "@material-ui/icons/AccountBalance";
 import ValueMachineIcon from "@material-ui/icons/PlayCircleFilled";
 import TransactionsIcon from "@material-ui/icons/Receipt";
-import { Assets, Cryptocurrencies, FiatCurrencies } from "@valuemachine/types";
+import LightIcon from "@material-ui/icons/BrightnessHigh";
+import DarkIcon from "@material-ui/icons/Brightness4";
+import {
+  Asset,
+  Cryptocurrencies,
+  FiatCurrencies,
+} from "@valuemachine/types";
 import React from "react";
 import { Link } from "react-router-dom";
 
+
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  homeButton: {
-    marginRight: theme.spacing(2),
-  },
   navButton: {
     marginLeft: theme.spacing(2),
   },
   select: {
     "& > *": {
       "& > svg": {
-        color: "black", // carrot icon
+        color: "inherit", // carrot icon
       },
       "&::before": {
-        borderColor: "black", // underline
+        borderColor: "inherit", // underline
       },
-      color: "black", // label & selection text
+      color: "inherit", // label & selection text
     },
   },
   title: {
     flexGrow: 1,
   },
+  toggle: {
+    paddingLeft: theme.spacing(4),
+  },
 }));
 
-export const NavBar = ({
+type PropTypes = {
+  unit: Asset;
+  setUnit: (val: Asset) => void;
+  theme: Asset;
+  setTheme: (val: Asset) => void;
+}
+export const NavBar: React.FC<PropTypes> = ({
   unit,
   setUnit,
-}: {
-  unit: Assets;
-  setUnit: (val: Assets) => void;
-}) => {
+  theme,
+  setTheme,
+}: PropTypes) => {
   const classes = useStyles();
 
-  const handleUnitChange = (event: React.ChangeEvent<{ value: string }>) => {
+  const handleUnitChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
     setUnit(event.target.value);
+  };
+
+  const toggleTheme = () => {
+    if (theme === "light") {
+      setTheme("dark");
+    } else {
+      setTheme("light");
+    }
   };
 
   return (
     <AppBar position="absolute">
       <Toolbar>
         <IconButton
+          color="inherit"
           component={Link}
           edge="start"
           to={"/"}
-          color="inherit"
-          className={classes.homeButton}
         >
           <HomeIcon />
         </IconButton>
-
-        <Typography
-          className={classes.title}
-          variant="h6"
-          color="inherit"
-          align={"center"}
-          component="h1"
-          noWrap
-        >
-          Dashboard
-        </Typography>
-
-        <FormControl focused={false} className={classes.select}>
-          <InputLabel id="select-unit-label">Units</InputLabel>
-          <Select
-            labelId="select-unit-label"
-            id="select-unit"
-            value={unit || ""}
-            onChange={handleUnitChange}
-          >
-            {[Cryptocurrencies.ETH, Cryptocurrencies.BTC]
-              .concat(Object.keys({ ...FiatCurrencies }))
-              .map(asset => <MenuItem key={asset} value={asset}>{asset}</MenuItem>)
-            }
-          </Select>
-        </FormControl>
 
         <IconButton
           component={Link}
@@ -141,6 +135,40 @@ export const NavBar = ({
           aria-label="address-book"
         >
           <AccountIcon />
+        </IconButton>
+
+        <Typography
+          className={classes.title}
+          variant="h6"
+          color="inherit"
+          align={"center"}
+          component="h1"
+          noWrap
+        >
+          Dashboard
+        </Typography>
+
+        <FormControl focused={false} className={classes.select}>
+          <InputLabel id="select-unit-label">Units</InputLabel>
+          <Select
+            labelId="select-unit-label"
+            id="select-unit"
+            value={unit || ""}
+            onChange={handleUnitChange}
+          >
+            {[Cryptocurrencies.ETH, Cryptocurrencies.BTC, ...Object.keys({ ...FiatCurrencies })]
+              .map(asset => <MenuItem key={asset} value={asset}>{asset}</MenuItem>)
+            }
+          </Select>
+        </FormControl>
+
+        <IconButton
+          className={classes.toggle}
+          color="secondary"
+          edge="start"
+          onClick={toggleTheme}
+        >
+          {theme === "dark" ? <LightIcon /> : <DarkIcon />}
         </IconButton>
 
       </Toolbar>

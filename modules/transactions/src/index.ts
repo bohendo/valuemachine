@@ -2,6 +2,7 @@ export { getAddressBook } from "./addressBook";
 export {
   ethereumAddresses,
   getEthereumData,
+  parseEvmTx,
   getPolygonData,
   polygonAddresses,
   publicAddresses,

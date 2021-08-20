@@ -37,8 +37,8 @@ $(shell mkdir -p .flags)
 # Command & Control Aliases
 
 default: dev
-dev: proxy package
-prod: dev server webserver
+dev: proxy react
+prod: dev server-image webserver
 all: prod
 
 start: dev
@@ -46,6 +46,9 @@ start: dev
 
 start-prod:
 	VM_PROD=true bash ops/start.sh
+
+start-storybook: react
+	bash ops/start-storybook.sh
 
 stop:
 	bash ops/stop.sh
@@ -64,9 +67,11 @@ clean: stop
 	docker container prune -f
 
 reset-images:
-	rm .flags/proxy .flags/server .flags/webserver
+	rm .flags/proxy .flags/server-image .flags/webserver
 
 purge: clean
+	rm -rf modules/*/.rollup.cache
+	rm -rf package-lock.json
 
 push: push-commit
 push-commit:
@@ -156,12 +161,17 @@ package: core transactions utils types $(shell find modules/package $(find_optio
 	$(docker_run) "cd modules/package && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-client-bundle: core $(shell find modules/client $(find_options))
+react: package $(shell find modules/react $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/react && npm run build"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+client: react $(shell find modules/client $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/client && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-server-bundle: core $(shell find modules/server $(find_options))
+server: core $(shell find modules/server $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/server && npm run build && touch src/entry.ts"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
@@ -175,13 +185,13 @@ proxy: $(shell find ops/proxy $(find_options))
 	docker tag $(project)_proxy $(project)_proxy:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-server: server-bundle $(shell find modules/server/ops $(find_options))
+server-image: server $(shell find modules/server/ops $(find_options))
 	$(log_start)
 	docker build --file modules/server/ops/Dockerfile $(image_cache) --tag $(project) modules/server
 	docker tag $(project) $(project):$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-webserver: client-bundle $(shell find modules/client/ops $(find_options))
+webserver: client $(shell find modules/client/ops $(find_options))
 	$(log_start)
 	docker build --file modules/client/ops/Dockerfile $(cache_from) --tag $(project)_webserver:latest modules/client
 	docker tag $(project)_webserver:latest $(project)_webserver:$(commit)

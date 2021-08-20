@@ -24,6 +24,7 @@ then
     Makefile \
     modules/*/ops \
     modules/*/package.json \
+    modules/*/rollup.config.js \
     modules/*/src \
     ops \
     package.json \

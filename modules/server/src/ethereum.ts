@@ -27,10 +27,9 @@ export const ethereumRouter = express.Router();
 ethereumRouter.post("/", async (req, res) => {
   const logAndSend = getLogAndSend(res);
   const addressBookJson = req.body.addressBook;
-  log.info(addressBookJson, "Got address book");
   const addressBookError = getAddressBookError(addressBookJson);
   if (addressBookError) {
-    return logAndSend(`[Eth] Invalid AddressBook: ${addressBookError}`, STATUS_YOUR_BAD);
+    return logAndSend(`Invalid AddressBook: ${addressBookError}`, STATUS_YOUR_BAD);
   }
   const addressBook = getAddressBook({
     json: addressBookJson,

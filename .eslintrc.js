@@ -39,6 +39,7 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/no-redeclare": "off",
     "comma-dangle": ["warn", "only-multiline"],
+    "import/no-anonymous-default-export": "off",
     "import/order": [
       1,
       {

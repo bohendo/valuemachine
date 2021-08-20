@@ -8,24 +8,24 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import {
-  getAddressBook,
-  getPrices,
-  getTransactions,
-  getValueMachine,
-} from "valuemachine";
-import {
   Assets,
   StoreKeys,
 } from "@valuemachine/types";
 import { getLocalStore, getLogger } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
+import {
+  getAddressBook,
+  getPrices,
+  getTransactions,
+  getValueMachine,
+} from "valuemachine";
 
 import { AddressBookManager } from "./components/AddressBook";
 import { Dashboard } from "./components/Dashboard";
 import { NavBar } from "./components/NavBar";
 import { PriceManager } from "./components/Prices";
-import { TaxesExplorer } from "./components/Taxes";
+// import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
 import { getEmptyCsv } from "./types";
@@ -40,18 +40,34 @@ const {
   ValueMachine: ValueMachineStore,
   Prices: PricesStore
 } = StoreKeys;
-const UnitStore = "Unit";
-const CsvStore = "Csv";
+const UnitStore = "Unit" as any;
+const CsvStore = "Csv" as any;
+const ThemeStore = "Theme" as any;
+
+const lightRed = "#e699a6";
+const darkRed = "#801010";
 
 const darkTheme = createTheme({
   palette: {
     primary: {
-      main: "#deaa56",
+      main: darkRed,
     },
     secondary: {
-      main: "#e699a6",
+      main: lightRed,
     },
     type: "dark",
+  },
+});
+
+const lightTheme = createTheme({
+  palette: {
+    primary: {
+      main: lightRed,
+    },
+    secondary: {
+      main: darkRed,
+    },
+    type: "light",
   },
 });
 
@@ -77,6 +93,7 @@ const App: React.FC = () => {
   // Extra UI-specific data from localstorage
   const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsv());
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
+  const [theme, setTheme] = useState(store.load(ThemeStore) || "dark");
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook({
@@ -84,7 +101,6 @@ const App: React.FC = () => {
     logger,
   }));
   const [transactions, setTransactions] = useState(getTransactions({
-    addressBook,
     json: transactionsJson,
     store,
     logger,
@@ -119,7 +135,6 @@ const App: React.FC = () => {
     console.log(`Refreshing ${transactionsJson.length} transactions`);
     store.save(TransactionsStore, transactionsJson);
     setTransactions(getTransactions({
-      addressBook,
       json: transactionsJson,
       store,
       logger,
@@ -163,10 +178,16 @@ const App: React.FC = () => {
     store.save(UnitStore, unit);
   }, [unit]);
 
+  useEffect(() => {
+    if (!theme) return;
+    console.log(`Saving theme`, theme);
+    store.save(ThemeStore, theme);
+  }, [theme]);
+
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
       <CssBaseline />
-      <NavBar unit={unit} setUnit={setUnit} />
+      <NavBar unit={unit} setUnit={setUnit} theme={theme} setTheme={setTheme} />
       <main className={classes.main}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
@@ -179,6 +200,7 @@ const App: React.FC = () => {
               />
             </Route>
 
+            {/*
             <Route exact path="/taxes">
               <TaxesExplorer
                 addressBook={addressBook}
@@ -186,6 +208,7 @@ const App: React.FC = () => {
                 prices={prices}
               />
             </Route>
+            */}
 
             <Route exact path="/prices">
               <PriceManager
@@ -200,10 +223,8 @@ const App: React.FC = () => {
               <ValueMachineExplorer
                 addressBook={addressBook}
                 vm={vm}
-                prices={prices}
                 setVMJson={setVMJson}
                 transactions={transactions}
-                unit={unit}
               />
             </Route>
 

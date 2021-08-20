@@ -1,7 +1,7 @@
 {
-  "name": "@valuemachine/react",
+  "name": "@valuemachine/ui",
   "version": "0.0.1",
-  "description": "Helpful react components for interacting with vm data",
+  "description": "User interface optimized for debugging the valuemachine",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
   "main": "dist/index.js",
@@ -12,34 +12,34 @@
   ],
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "tsc && react-scripts build",
     "test": "echo 'No client unit tests available, try Cypress'",
     "eject": "react-scripts eject"
   },
   "dependencies": {
     "@ethersproject/address": "5.4.0",
     "@ethersproject/bytes": "5.4.0",
-    "@valuemachine/core": "0.7.0",
-    "@valuemachine/transactions": "0.7.0",
-    "@valuemachine/types": "0.7.0",
-    "@valuemachine/utils": "0.7.0",
+    "@ethersproject/units": "5.4.0",
     "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.11.2",
     "@material-ui/lab": "4.0.0-alpha.60",
+    "@valuemachine/react": "0.8.1",
+    "@valuemachine/transactions": "0.8.1",
+    "@valuemachine/types": "0.8.1",
+    "@valuemachine/utils": "0.8.1",
     "axios": "0.21.1",
     "json2csv": "5.0.6",
     "react": "17.0.2",
-    "react-copy-to-clipboard": "5.0.3",
     "react-dom": "17.0.2",
     "react-router-dom": "5.2.0",
-    "valuemachine": "0.7.0"
+    "valuemachine": "0.8.1"
   },
   "devDependencies": {
-    "@types/node": "15.0.2",
-    "@types/react": "17.0.5",
-    "@types/react-dom": "17.0.3",
+    "@types/node": "16.6.2",
+    "@types/react": "17.0.19",
+    "@types/react-dom": "17.0.9",
     "react-scripts": "4.0.3",
-    "typescript": "4.2.4"
+    "typescript": "4.3.5"
   },
   "eslintConfig": {
     "extends": "../../.eslintrc.js"

@@ -36,7 +36,7 @@ export const AddressCategories = {
   ...PublicCategories,
   ...PrivateCategories,
 } as const;
-export const AddressCategory = Type.Enum(AddressCategories);
+export const AddressCategory = Type.String(); // allow arbitrary categories in app-level code
 export type AddressCategory = Static<typeof AddressCategory>;
 
 export const AddressEntry = Type.Object({
