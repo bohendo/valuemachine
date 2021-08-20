@@ -3,27 +3,21 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import Divider from "@material-ui/core/Divider";
-import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Paper from "@material-ui/core/Paper";
-import Select from "@material-ui/core/Select";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import RemoveIcon from "@material-ui/icons/Delete";
-import { AddressEditor, AddressPorter, AddressTable } from "@valuemachine/react";
+import {
+  AddressEditor,
+  AddressPorter,
+  AddressTable,
+  CsvPorter,
+  CsvTable,
+} from "@valuemachine/react";
 import {
   AddressCategories,
   AddressEntry,
   AddressBook,
   AddressBookJson,
-  CsvSources,
   Guards,
 } from "@valuemachine/types";
 import React, { useState } from "react";
@@ -33,60 +27,21 @@ import { CsvFile } from "../types";
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
     margin: theme.spacing(1),
-    maxWidth: "98%",
   },
-  divider: {
-    marginBottom: theme.spacing(2),
-    marginTop: theme.spacing(2),
-  },
-  select: {
-    margin: theme.spacing(3),
-    minWidth: 160,
-  },
-  input: {
+  card: {
     margin: theme.spacing(1),
-    minWidth: 120,
-    maxWidth: 300,
   },
-  exporter: {
-    marginBottom: theme.spacing(4),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(0),
-  },
-  importer: {
-    marginBottom: theme.spacing(1),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(0),
-  },
-  syncing: {
-    marginTop: theme.spacing(4),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-  },
-  snackbar: {
-    width: "100%"
-  },
-  button: {
-    marginBottom: theme.spacing(1.5),
-    marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
+  grid: {
+    margin: theme.spacing(1),
+    maxWidth: "98%",
   },
   title: {
     margin: theme.spacing(2),
   },
-  subtitle: {
-    margin: theme.spacing(2),
-  },
-  deleteAll: {
+  button: {
     margin: theme.spacing(2),
   },
   paper: {
-    padding: theme.spacing(2),
-  },
-  table: {
-    minWidth: "600px",
     padding: theme.spacing(2),
   },
 }));
@@ -110,7 +65,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   csvFiles,
   setCsvFiles,
 }: PropTypes) => {
-  const [importFileType, setImportFileType] = useState("");
   const [newEntry, setNewEntry] = useState(getEmptyEntry);
   const classes = useStyles();
 
@@ -143,37 +97,10 @@ export const AddressBookManager: React.FC<PropTypes> = ({
     setCsvFiles([]);
   };
 
-  const handleFileTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    console.log(`Setting file type based on event target:`, event.target.value);
-    setImportFileType(event.target.value);
-  };
-
-  const handleCsvFileImport = (event: any) => {
-    const file = event.target.files[0];
-    console.log(`Importing ${importFileType} file`, file);
-    if (!importFileType || !file) return;
-    const reader = new FileReader();
-    reader.readAsText(file);
-    reader.onload = () => {
-      try {
-        const importedFile = reader.result as string;
-        console.log(`Imported ${file.name}`);
-        setCsvFiles([...csvFiles, {
-          name: file.name,
-          data: importedFile,
-          type: importFileType,
-        }] as CsvFile[]);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-  };
-
   return (
     <div className={classes.root}>
 
-      <Typography variant="h4" className={classes.subtitle}>
+      <Typography variant="h4" className={classes.title}>
         Manage Address Book
       </Typography>
 
@@ -183,11 +110,11 @@ export const AddressBookManager: React.FC<PropTypes> = ({
         justifyContent="center"
         container
         spacing={1}
-        className={classes.root}
+        className={classes.grid}
       >
 
         <Grid item md={8}>
-          <Card className={classes.root}>
+          <Card className={classes.card}>
             <CardHeader title={"Add new Address"} />
             <AddressEditor
               entry={newEntry}
@@ -205,7 +132,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
           />
 
           <Button
-            className={classes.deleteAll}
+            className={classes.button}
             color="primary"
             onClick={deleteAddresses}
             size="medium"
@@ -220,7 +147,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
       </Grid>
 
       <Divider/>
-      <Typography variant="h4" className={classes.subtitle}>
+      <Typography variant="h4" className={classes.title}>
         Manage CSV Files
       </Typography>
 
@@ -229,39 +156,16 @@ export const AddressBookManager: React.FC<PropTypes> = ({
         justifyContent="center"
         container
         spacing={1}
-        className={classes.root}
+        className={classes.grid}
       >
 
         <Grid item md={6}>
-          <Card className={classes.root}>
-            <CardHeader title={"Import CSV File"}/>
-            <FormControl className={classes.select}>
-              <InputLabel id="select-file-type-label">File Type</InputLabel>
-              <Select
-                labelId="select-file-type-label"
-                id="select-file-type"
-                value={importFileType || ""}
-                onChange={handleFileTypeChange}
-              >
-                <MenuItem value={""}>-</MenuItem>
-                <MenuItem value={CsvSources.Coinbase}>{CsvSources.Coinbase}</MenuItem>
-                <MenuItem value={CsvSources.DigitalOcean}>{CsvSources.DigitalOcean}</MenuItem>
-                <MenuItem value={CsvSources.Wyre}>{CsvSources.Wyre}</MenuItem>
-                <MenuItem value={CsvSources.Wazirx}>{CsvSources.Wazirx}</MenuItem>
-              </Select>
-            </FormControl>
-            <input
-              accept="text/csv"
-              className={classes.importer}
-              disabled={!importFileType}
-              id="file-importer"
-              onChange={handleCsvFileImport}
-              type="file"
-            />
-          </Card>
-
+          <CsvPorter
+            csvFiles={csvFiles}
+            setCsvFiles={setCsvFiles}
+          />
           <Button
-            className={classes.deleteAll}
+            className={classes.button}
             color="primary"
             onClick={deleteCsvFiles}
             size="medium"
@@ -271,37 +175,10 @@ export const AddressBookManager: React.FC<PropTypes> = ({
           >
             Delete Csv Files
           </Button>
-
         </Grid>
 
         <Grid item md={6}>
-
-          <Paper className={classes.paper}>
-            <Typography align="center" variant="h4" className={classes.title} component="div">
-              {`${csvFiles.length} CSV Files`}
-            </Typography>
-            {csvFiles.length ? (
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell><strong> File Name </strong></TableCell>
-                      <TableCell><strong> File Type </strong></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {csvFiles.map((csvFile: { name: string; type: string; data: string }, i) => (
-                      <TableRow key={i}>
-                        <TableCell><strong> {csvFile.name.toString()} </strong></TableCell>
-                        <TableCell><strong> {csvFile.type.toString()} </strong></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : null}
-          </Paper>
-
+          <CsvTable csvFiles={csvFiles}/>
         </Grid>
 
       </Grid>

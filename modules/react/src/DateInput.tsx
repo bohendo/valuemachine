@@ -8,16 +8,16 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-type InputDateProps = {
+type DateInputProps = {
   id: string;
   label: string;
   setDate: (val: string) => void;
 };
-export const InputDate: React.FC<InputDateProps> = ({
+export const DateInput: React.FC<DateInputProps> = ({
   id,
   label,
   setDate,
-}: InputDateProps) => {
+}: DateInputProps) => {
   const classes = useStyles();
   const [display, setDisplay] = useState("");
   const [error, setError] = useState("");

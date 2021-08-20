@@ -2,6 +2,8 @@ export { AddressEditor } from "./AddressEditor";
 export { AddressPorter } from "./AddressPorter";
 export { AddressRow } from "./AddressRow";
 export { AddressTable } from "./AddressTable";
+export { CsvPorter } from "./CsvPorter";
+export { CsvTable } from "./CsvTable";
 export { HexString } from "./HexString";
 export { TransactionRow } from "./TransactionRow";
 export { TransactionTable } from "./TransactionTable";
