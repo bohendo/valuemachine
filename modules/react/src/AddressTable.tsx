@@ -85,14 +85,14 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-type PropTypes = {
+type AddressTableProps = {
   addressBook: AddressBook,
   setAddressBookJson: (val: AddressBookJson) => void,
 };
-export const AddressTable: React.FC<PropTypes> = ({
+export const AddressTable: React.FC<AddressTableProps> = ({
   addressBook,
   setAddressBookJson,
-}: PropTypes) => {
+}: AddressTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [filteredEntries, setFilteredEntries] = useState([] as AddressEntry[]);

@@ -18,7 +18,7 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import RemoveIcon from "@material-ui/icons/Delete";
-import { AddressTable, AddressEditor } from "@valuemachine/react";
+import { AddressEditor, AddressPorter, AddressTable } from "@valuemachine/react";
 import {
   AddressCategories,
   AddressEntry,
@@ -112,43 +112,8 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   setCsvFiles,
 }: PropTypes) => {
   const [importFileType, setImportFileType] = useState("");
-  const [filteredAddresses, setFilteredAddresses] = useState([] as AddressEntry[]);
-  const [filterCategory, setFilterCategory] = useState("");
-  const [allAddresses, setAllAddresses] = useState([] as string[]);
   const [newEntry, setNewEntry] = useState(getEmptyEntry);
   const classes = useStyles();
-
-  useEffect(() => {
-    setAllAddresses(addressBook.addresses);
-  }, [addressBook]);
-
-  useEffect(() => {
-    setFilteredAddresses(Object.values(
-      addressBook.json
-    ).filter(entry =>
-      !filterCategory || entry.category === filterCategory
-    ).sort((e1, e2) =>
-      // put self addresses first
-      (
-        e1.category !== AddressCategories.Self &&
-        e2.category === AddressCategories.Self
-      ) ? 1
-        : (
-          e1.category === AddressCategories.Self &&
-          e2.category !== AddressCategories.Self
-        ) ? -1
-          // sort by category
-          : (e1.category.toLowerCase() > e2.category.toLowerCase()) ? 1
-          : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
-          // then sort by name
-          : (e1.name.toLowerCase() > e2.name.toLowerCase()) ? 1
-          : (e1.name.toLowerCase() < e2.name.toLowerCase()) ? -1
-          // then sort by address
-          : (e1.address.toLowerCase() > e2.address.toLowerCase()) ? 1
-          : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
-          : 0
-    ));
-  }, [addressBook, filterCategory]);
 
   const handleAddressBookImport = (event) => {
     const file = event.target.files[0];
@@ -215,11 +180,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
     setCsvFiles([]);
   };
 
-  const handleFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterCategory(event.target.value);
-  };
-
   const handleFileTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     console.log(`Setting file type based on event target:`, event.target.value);
@@ -269,33 +229,17 @@ export const AddressBookManager: React.FC<PropTypes> = ({
             <AddressEditor
               entry={newEntry}
               setEntry={addNewAddress}
-              addresses={allAddresses}
+              addresses={Object.values(addressBook.json).map(e => e.address)}
             />
           </Card>
         </Grid>
 
         <Grid item md={4}>
-          <Card className={classes.root}>
-            <CardHeader title={"Import Address Book"}/>
-            <input
-              className={classes.importer}
-              id="profile-importer"
-              accept="application/json"
-              type="file"
-              onChange={handleAddressBookImport}
-            />
-            <CardHeader title={"Export Address Book"}/>
-            <Button
-              className={classes.exporter}
-              color="primary"
-              onClick={handleExport}
-              size="small"
-              startIcon={<DownloadIcon />}
-              variant="contained"
-            >
-              Download
-            </Button>
-          </Card>
+
+          <AddressPorter
+            addressBook={addressBook}
+            setAddressBookJson={setAddressBookJson}
+          />
 
           <Button
             className={classes.deleteAll}
@@ -399,33 +343,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
 
       </Grid>
 
-
       <Divider/>
-      <Typography variant="h4" className={classes.subtitle}>
-        Address Book Filters
-      </Typography>
-
-      <FormControl className={classes.select}>
-        <InputLabel id="select-filter-category">Filter Category</InputLabel>
-        <Select
-          labelId="select-filter-category"
-          id="select-filter-category"
-          value={filterCategory || ""}
-          onChange={handleFilterChange}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {Array.from(new Set(Object.values(addressBook.json).map(e => e.category))).map(cat => (
-            <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
-      <Typography align="center" variant="h4" className={classes.title} component="div">
-        {filteredAddresses.length === Object.keys(addressBook.json).length
-          ? `${filteredAddresses.length} Addresses`
-          : `${filteredAddresses.length} of ${Object.keys(addressBook.json).length} Addresses`
-        }
-      </Typography>
 
       <AddressTable
         addressBook={addressBook}
