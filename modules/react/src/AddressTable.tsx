@@ -23,17 +23,17 @@ import React, { useEffect, useState } from "react";
 import { AddressRow } from "./AddressRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  select: {
-    marginBottom: theme.spacing(2),
-    marginLeft: theme.spacing(2),
-    minWidth: 160,
+  paper: {
+    minWidth: "600px",
+    padding: theme.spacing(2),
   },
   title: {
     margin: theme.spacing(1),
   },
-  paper: {
-    minWidth: "600px",
-    padding: theme.spacing(2),
+  select: {
+    marginBottom: theme.spacing(2),
+    marginLeft: theme.spacing(2),
+    minWidth: 160,
   },
 }));
 

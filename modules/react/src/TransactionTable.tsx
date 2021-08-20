@@ -118,7 +118,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const changeFilterAccount = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     setFilterAccount(event.target.value);
-    console.log(`Set filter account to ${event.target.value}`);
   };
 
   const changeFilterAsset = (event: React.ChangeEvent<{ value: unknown }>) => {
