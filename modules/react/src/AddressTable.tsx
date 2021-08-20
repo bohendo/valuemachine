@@ -93,6 +93,7 @@ export const AddressTable: React.FC<PropTypes> = ({
 
   useEffect(() => {
     setAllAddresses(addressBook.addresses);
+    setPage(0);
   }, [addressBook]);
 
   const editEntry = (address: string, editedEntry?: AddressEntry): void => {
