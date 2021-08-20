@@ -15,7 +15,7 @@
     "build": "tsc && rollup --config rollup.config.js"
   },
   "dependencies": {
-    "@sinclair/typebox": "0.20.4",
+    "@sinclair/typebox": "0.20.5",
     "pino": "6.13.0"
   },
   "devDependencies": {
