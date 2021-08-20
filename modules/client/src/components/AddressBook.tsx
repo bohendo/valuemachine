@@ -16,7 +16,6 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import DownloadIcon from "@material-ui/icons/GetApp";
 import RemoveIcon from "@material-ui/icons/Delete";
 import { AddressEditor, AddressPorter, AddressTable } from "@valuemachine/react";
 import {
@@ -27,7 +26,7 @@ import {
   CsvSources,
   Guards,
 } from "@valuemachine/types";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { CsvFile } from "../types";
 
@@ -114,42 +113,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   const [importFileType, setImportFileType] = useState("");
   const [newEntry, setNewEntry] = useState(getEmptyEntry);
   const classes = useStyles();
-
-  const handleAddressBookImport = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.readAsText(file);
-    reader.onload = () => {
-      try {
-        if (!reader.result) return;
-        const importedData = JSON.parse(reader.result as string) as any;
-        const importedAddresses = importedData.addressBook
-          ? importedData.addressBook
-          : importedData;
-        if (!importedAddresses?.length) {
-          throw new Error("Imported file does not contain an address book");
-        }
-        console.log(`File with an address book has been loaded:`, importedAddresses);
-        const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders
-        importedAddresses.forEach(entry => {
-          newAddressBook[entry.address] = entry;
-        });
-        setAddressBookJson(newAddressBook);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-  };
-
-  const handleExport = () => {
-    const output = JSON.stringify({ addressBook: addressBook.json }, null, 2);
-    const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
-    const a = document.createElement("a");
-    a.href = "data:" + data;
-    a.download = "addressBook.json";
-    a.click();
-  };
 
   const editEntry = (address: string, editedEntry?: AddressEntry): void => {
     const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders

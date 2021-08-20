@@ -13,5 +13,3 @@ Example.args = {
   addressBook,
   setAddressBookJson: console.log,
 };
-
-

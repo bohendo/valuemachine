@@ -23,63 +23,15 @@ import React, { useEffect, useState } from "react";
 import { AddressRow } from "./AddressRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  root: {
-    margin: theme.spacing(1),
-    maxWidth: "98%",
-  },
-  divider: {
-    marginBottom: theme.spacing(2),
-    marginTop: theme.spacing(2),
-  },
   select: {
     marginBottom: theme.spacing(2),
     marginLeft: theme.spacing(2),
     minWidth: 160,
   },
-  input: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-    maxWidth: 300,
-  },
-  exporter: {
-    marginBottom: theme.spacing(4),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(0),
-  },
-  importer: {
-    marginBottom: theme.spacing(1),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(0),
-  },
-  syncing: {
-    marginTop: theme.spacing(4),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-  },
-  snackbar: {
-    width: "100%"
-  },
-  button: {
-    marginBottom: theme.spacing(1.5),
-    marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
-  },
   title: {
-    margin: theme.spacing(0),
-    marginBottom: theme.spacing(-2),
-  },
-  subtitle: {
-    margin: theme.spacing(2),
-  },
-  deleteAll: {
-    margin: theme.spacing(2),
+    margin: theme.spacing(1),
   },
   paper: {
-    padding: theme.spacing(2),
-  },
-  table: {
     minWidth: "600px",
     padding: theme.spacing(2),
   },
@@ -159,7 +111,7 @@ export const AddressTable: React.FC<AddressTableProps> = ({
   };
 
   return (
-    <Paper className={classes.table}>
+    <Paper className={classes.paper}>
 
       <TableContainer>
 
