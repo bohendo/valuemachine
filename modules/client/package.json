@@ -23,16 +23,16 @@
     "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.11.2",
     "@material-ui/lab": "4.0.0-alpha.60",
-    "@valuemachine/react": "0.7.0",
-    "@valuemachine/transactions": "0.7.0",
-    "@valuemachine/types": "0.7.0",
-    "@valuemachine/utils": "0.7.0",
+    "@valuemachine/react": "0.8.0",
+    "@valuemachine/transactions": "0.8.0",
+    "@valuemachine/types": "0.8.0",
+    "@valuemachine/utils": "0.8.0",
     "axios": "0.21.1",
     "json2csv": "5.0.6",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-router-dom": "5.2.0",
-    "valuemachine": "0.7.0"
+    "valuemachine": "0.8.0"
   },
   "devDependencies": {
     "@types/node": "16.6.2",
