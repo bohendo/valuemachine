@@ -5,7 +5,6 @@ import {
   Asset,
   Assets,
   EvmMetadata,
-  EvmNames,
   EvmTransaction,
   Guards,
   Logger,
@@ -53,6 +52,7 @@ const polygonAddresses = {
   ].map(setAddressCategory(AddressCategories.ERC20, Guards.Polygon)),
 };
 
+// TODO: import & use shared asset names
 const ethereumAddresses = {
   core: [
     { name: "LendingPool", address: "evm:1:0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9" },
@@ -175,12 +175,12 @@ export const aaveParser = (
 
   // Only check addresses for the chain
   const addresses =
-    evmMeta.name === EvmNames.Ethereum ? ethereumAddresses
-    : evmMeta.name === EvmNames.Polygon ? polygonAddresses
+    evmMeta.name === Guards.Ethereum ? ethereumAddresses
+    : evmMeta.name === Guards.Polygon ? polygonAddresses
     : {} as any;
 
-  const prefix = evmMeta.name === EvmNames.Ethereum ? "a"
-    : evmMeta.name === EvmNames.Polygon ? "am"
+  const prefix = evmMeta.name === Guards.Ethereum ? "a"
+    : evmMeta.name === Guards.Polygon ? "am"
     : "";
 
   const stkAAVEAddress = addresses.gov?.find(e => e.name === stkAAVE)?.address;

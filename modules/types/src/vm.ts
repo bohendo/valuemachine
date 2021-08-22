@@ -17,16 +17,15 @@ export type ChunkIndex = Static<typeof ChunkIndex>;
 export const AssetChunk = Type.Object({
   asset: Asset,
   quantity: DecimalString,
-  // receiveDate = history[0].date
-  history: Type.Array(Type.Object({
-    date: TimestampString,
-    guard: Guard,
+  history: Type.Array(Type.Object({ // length should always be >= 1
+    date: TimestampString, // receiveDate = history[0].date
+    guard: Guard, // TODO: use account here
   })),
   disposeDate: Type.Optional(TimestampString), // undefined if we still own this chunk
   account: Type.Optional(Account), // undefined if we no longer own this chunk
   index: ChunkIndex, // used as a unique identifier, should never change
-  inputs: Type.Array(ChunkIndex), // source chunks traded for this one
-  outputs: Type.Optional(Type.Array(ChunkIndex)), // sink chunks that we gave this one away for
+  inputs: Type.Array(ChunkIndex), // chunks given away in exchange for this one
+  outputs: Type.Optional(Type.Array(ChunkIndex)), // chunks that we got in exchange for this one
 });
 export type AssetChunk = Static<typeof AssetChunk>;
 
@@ -43,7 +42,7 @@ export const EventTypes = {
   Expense: "Expense",
   Debt: "Debt",
 } as const;
-export const EventType = Type.Enum(EventTypes);
+export const EventType = Type.Enum(EventTypes); // NOT extensible
 export type EventType = Static<typeof EventType>;
 
 const BaseEvent = Type.Object({

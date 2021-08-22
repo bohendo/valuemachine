@@ -11,7 +11,7 @@ import {
   Assets,
   StoreKeys,
 } from "@valuemachine/types";
-import { getLocalStore, getLogger } from "@valuemachine/utils";
+import { getEmptyCsvFiles, getLocalStore, getLogger } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 import {
@@ -28,7 +28,6 @@ import { PriceManager } from "./components/Prices";
 // import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
-import { getEmptyCsv } from "./types";
 
 const store = getLocalStore(localStorage);
 const logger = getLogger("warn");
@@ -36,12 +35,12 @@ const logger = getLogger("warn");
 // localstorage keys
 const {
   AddressBook: AddressBookStore,
+  CsvFiles: CsvStore,
+  Prices: PricesStore,
   Transactions: TransactionsStore,
   ValueMachine: ValueMachineStore,
-  Prices: PricesStore
 } = StoreKeys;
 const UnitStore = "Unit" as any;
-const CsvStore = "Csv" as any;
 const ThemeStore = "Theme" as any;
 
 const lightRed = "#e699a6";
@@ -91,7 +90,7 @@ const App: React.FC = () => {
   const [vmJson, setVMJson] = useState(store.load(ValueMachineStore));
   const [pricesJson, setPricesJson] = useState(store.load(PricesStore));
   // Extra UI-specific data from localstorage
-  const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsv());
+  const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsvFiles());
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
   const [theme, setTheme] = useState(store.load(ThemeStore) || "dark");
 

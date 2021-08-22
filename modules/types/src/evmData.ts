@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { Cryptocurrency } from "./assets";
+import { DigitalGuard } from "./guards";
 import { Logger } from "./logger";
 import { Store } from "./store";
 import { AddressBook } from "./addressBook";
@@ -16,18 +16,10 @@ import {
 ////////////////////////////////////////
 // JSON Schema
 
-export const EvmNames = {
-  Ethereum: "Ethereum",
-  EthereumClassic: "EthereumClassic",
-  Polygon: "Polygon",
-} as const;
-export const EvmName = Type.String(); // allow arbitrary evms in app-level code
-export type EvmName = Static<typeof EvmName>;
-
 export const EvmMetadata = Type.Object({
-  id: Type.Number(),
-  name: EvmName,
-  feeAsset: Type.Union([Cryptocurrency, Type.String()]), // allow arbirary fee assets
+  id: Type.Number(), // value returned from chainId opcode
+  name: DigitalGuard, // common name
+  feeAsset: Type.String(), // native token used to pay security fees
 });
 export type EvmMetadata = Static<typeof EvmMetadata>;
 

@@ -9,7 +9,7 @@ export const Cryptocurrencies = {
   LTC: "LTC",
   MATIC: "MATIC",
 } as const;
-export const Cryptocurrency = Type.Enum(Cryptocurrencies);
+export const Cryptocurrency = Type.String(); // Extensible
 export type Cryptocurrency = Static<typeof Cryptocurrency>;
 
 // Traditional central-bank controlled currencies
@@ -20,7 +20,7 @@ export const FiatCurrencies = {
   INR: "INR",
   USD: "USD",
 } as const;
-export const FiatCurrency = Type.Enum(FiatCurrencies);
+export const FiatCurrency = Type.String(); // Extensible
 export type FiatCurrency = Static<typeof FiatCurrency>;
 
 export const EthereumAssets = {
@@ -203,7 +203,7 @@ export const EthereumAssets = {
   yYFI: "yYFI",
   ZRX: "ZRX",
 } as const;
-export const EthereumAsset = Type.Enum(EthereumAssets);
+export const EthereumAsset = Type.String(); // Extensible
 export type EthereumAsset = Static<typeof EthereumAsset>;
 
 export const PolygonAssets = {
@@ -217,7 +217,7 @@ export const PolygonAssets = {
   amWETH: "amWETH",
   WMATIC: "WMATIC",
 } as const;
-export const PolygonAsset = Type.Enum(PolygonAssets);
+export const PolygonAsset = Type.String(); // Extensible
 export type PolygonAsset = Static<typeof PolygonAsset>;
 
 export const Assets = {
@@ -226,8 +226,5 @@ export const Assets = {
   ...FiatCurrencies,
   ...PolygonAssets,
 } as const;
-export const Asset = Type.Union([
-  Type.Enum(Assets),
-  Type.String(), // Allow arbitrary assets in app-level code
-]);
+export const Asset = Type.String(); // Extensible
 export type Asset = Static<typeof Asset>

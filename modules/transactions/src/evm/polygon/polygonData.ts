@@ -9,7 +9,7 @@ import {
   EvmData,
   EvmDataJson,
   EvmMetadata,
-  EvmNames,
+  Guards,
   Logger,
   Store,
   StoreKeys,
@@ -50,7 +50,7 @@ export const getPolygonData = (params?: {
 
   const metadata = {
     id: 137,
-    name: EvmNames.Polygon,
+    name: Guards.Polygon,
     feeAsset: Assets.MATIC,
   } as EvmMetadata;
 

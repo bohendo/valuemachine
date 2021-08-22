@@ -18,11 +18,10 @@ import {
   AddressEntry,
   AddressBook,
   AddressBookJson,
+  CsvFiles,
   Guards,
 } from "@valuemachine/types";
 import React, { useState } from "react";
-
-import { CsvFile } from "../types";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -56,8 +55,8 @@ const getEmptyEntry = (): AddressEntry => ({
 type PropTypes = {
   addressBook: AddressBook,
   setAddressBookJson: (val: AddressBookJson) => void,
-  csvFiles: CsvFile[],
-  setCsvFiles: (val: CsvFile[]) => void,
+  csvFiles: CsvFiles,
+  setCsvFiles: (val: CsvFiles) => void,
 };
 export const AddressBookManager: React.FC<PropTypes> = ({
   addressBook,

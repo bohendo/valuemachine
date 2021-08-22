@@ -2,16 +2,16 @@ import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersp
 import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
 import {
-  EvmAddress,
   AddressBook,
   Bytes32,
   Cryptocurrencies,
+  EvmAddress,
   EvmData,
   EvmDataParams,
-  EvmNames,
   EvmParser,
   EvmTransaction,
   EvmTransfer,
+  Guards,
   StoreKeys,
   Transaction,
   TransactionsJson,
@@ -49,7 +49,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const metadata = {
     id: 1,
-    name: EvmNames.Ethereum,
+    name: Guards.Ethereum,
     feeAsset: Cryptocurrencies.ETH,
   };
 

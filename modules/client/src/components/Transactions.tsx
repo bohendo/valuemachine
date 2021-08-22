@@ -10,6 +10,7 @@ import { getTransactions } from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
+  CsvFiles,
   CsvSource,
   Transactions,
   TransactionsJson,
@@ -17,8 +18,6 @@ import {
 import { getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
 import axios from "axios";
-
-import { CsvFile } from "../types";
 
 const logger = getLogger("info");
 
@@ -44,7 +43,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 type PropTypes = {
   addressBook: AddressBook;
-  csvFiles: CsvFile[],
+  csvFiles: CsvFiles,
   transactions: Transactions;
   setTransactionsJson: (val: TransactionsJson) => void;
 };

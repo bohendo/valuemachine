@@ -17,7 +17,7 @@ export const CsvSources = {
   Wyre: "Wyre",
   Wazirx: "Wazirx",
 } as const;
-export const CsvSource = Type.Enum(CsvSources);
+export const CsvSource = Type.String(); // Extensible
 export type CsvSource = Static<typeof CsvSource>;
 
 // Set default guards for csv sources
@@ -31,7 +31,7 @@ export const guards = {
 export const ChainSources = {
   ...DigitalGuards,
 } as const;
-export const ChainSource = Type.Enum(ChainSources);
+export const ChainSource = Type.String(); // Extensible
 export type ChainSource = Static<typeof ChainSource>;
 
 // Solidity-based evm apps, might be exist on multiple chains
@@ -51,7 +51,7 @@ export const EvmSources = {
   Weth: "Weth",
   Yearn: "Yearn",
 } as const;
-export const EvmSource = Type.Enum(EvmSources);
+export const EvmSource = Type.String(); // Extensible
 export type EvmSource = Static<typeof EvmSource>;
 
 export const TransactionSources = {
@@ -59,10 +59,7 @@ export const TransactionSources = {
   ...EvmSources,
   ...ChainSources,
 } as const;
-export const TransactionSource = Type.Union([
-  Type.Enum(TransactionSources),
-  Type.String(), // Allow arbitrary sources in app-level code
-]);
+export const TransactionSource = Type.String();
 export type TransactionSource = Static<typeof TransactionSource>;
 
 export const TransferCategories = {
@@ -77,7 +74,7 @@ export const TransferCategories = {
   Deposit: "Deposit",
   Withdraw: "Withdraw",
 } as const;
-export const TransferCategory = Type.Enum(TransferCategories);
+export const TransferCategory = Type.Enum(TransferCategories); // NOT Extensible
 export type TransferCategory = Static<typeof TransferCategory>;
 
 export const Transfer = Type.Object({
@@ -92,15 +89,11 @@ export type Transfer = Static<typeof Transfer>;
 
 export const Transaction = Type.Object({
   date: TimestampString,
-  method: Type.Optional(Type.String()),
-
-  hash: Type.Optional(Bytes32), // add chain prefix to convert to uuid??
-
+  method: Type.Optional(Type.String()), // improves human-readability
+  hash: Type.Optional(Bytes32), // add guard prefix to convert to uuid??
   index: Type.Optional(Type.Number()),
   sources: Type.Array(TransactionSource),
-
   // guards: Type.Array(TransactionSource),
-
   transfers: Type.Array(Transfer),
 });
 export type Transaction = Static<typeof Transaction>;
