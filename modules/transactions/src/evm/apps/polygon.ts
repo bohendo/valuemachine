@@ -29,18 +29,18 @@ const ZapperPolygonBridge = "ZapperPolygonBridge";
 const PlasmaBridge = "PlasmaBridge";
 
 export const govAddresses = [
-  { name: MATIC, address: "evm:1:0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0" },
+  { name: MATIC, address: "Ethereum/0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 export const bridgeAddresses = [
-  { name: PlasmaBridge, address: "evm:1:0x401F6c983eA34274ec46f84D70b31C151321188b" },
-  { name: ZapperPolygonBridge, address: "evm:1:0xe34b087bf3c99e664316a15b01e5295eb3512760" },
+  { name: PlasmaBridge, address: "Ethereum/0x401F6c983eA34274ec46f84D70b31C151321188b" },
+  { name: ZapperPolygonBridge, address: "Ethereum/0xe34b087bf3c99e664316a15b01e5295eb3512760" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 export const miscAddresses = [
-  { name: "FlashWallet", address: "evm:1:0x22F9dCF4647084d6C31b2765F6910cd85C178C18" },
-  { name: "ZeroEx", address: "evm:1:0xDef1C0ded9bec7F1a1670819833240f027b25EfF" },
-  { name: "PolygonStateSyncer", address: "evm:1:0x28e4F3a7f651294B9564800b2D01f35189A5bFbE" },
+  { name: "FlashWallet", address: "Ethereum/0x22F9dCF4647084d6C31b2765F6910cd85C178C18" },
+  { name: "ZeroEx", address: "Ethereum/0xDef1C0ded9bec7F1a1670819833240f027b25EfF" },
+  { name: "PolygonStateSyncer", address: "Ethereum/0x28e4F3a7f651294B9564800b2D01f35189A5bFbE" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 export const polygonAddresses = [
@@ -73,7 +73,7 @@ export const polygonParser = (
 ): Transaction => {
   const log = logger.child({ module: source });
   const { getName, isToken, getDecimals } = addressBook;
-  const addressZero = `evm:${evmMeta.id}:${AddressZero}`; 
+  const addressZero = `${evmMeta.name}/${AddressZero}`; 
 
   if (getName(evmTx.to) === ZapperPolygonBridge) {
     const account = evmTx.from;

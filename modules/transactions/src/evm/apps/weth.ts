@@ -25,7 +25,7 @@ const source = TransactionSources.Weth;
 /// Addresses
 
 export const wethAddresses = [
-  { name: WETH, address: "evm:1:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
+  { name: WETH, address: "Ethereum/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 const wethAddress = wethAddresses.find(e => e.name === WETH).address;

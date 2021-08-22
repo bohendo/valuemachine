@@ -31,7 +31,7 @@ export const parseEvent = (
   const name = Object.values(iface.events).find(e =>
     iface.getEventTopic(e) === evmLog.topics[0]
   )?.name;
-  const formatAddress = (address: string): string => `evm:${evmMeta.id}:${address}`;
+  const formatAddress = (address: string): string => `${evmMeta.name}/${address}`;
   const rawArgs = name ? iface.parseLog({
     data: evmLog.data,
     topics: evmLog.topics,

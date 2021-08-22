@@ -20,7 +20,7 @@ export const csvFiles = [{
   data: coinbaseData,
 }];
 
-const getAddress = (val: string): string => `evm:1:0x${val.repeat(40).substring(0, 40)}`;
+const getAddress = (val: string): string => `Ethereum/0x${val.repeat(40).substring(0, 40)}`;
 const one = getAddress("1");
 const two = getAddress("2");
 const three = getAddress("3");

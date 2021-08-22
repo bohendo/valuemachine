@@ -56,7 +56,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   ////////////////////////////////////////
   // Internal Helper Functions
 
-  const getAddress = (address: string): string => `evm:${metadata.id}:${getEvmAddress(address)}`;
+  const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
 
   const formatCovalentTx = (rawTx): EvmTransaction => ({
     from: getAddress(rawTx.from_address),
@@ -230,7 +230,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const syncAddress = async (rawAddress: EvmAddress): Promise<void> => {
     const address = getEvmAddress(
-      rawAddress.includes(":") ? rawAddress.split(":").pop() : rawAddress
+      rawAddress.includes("/") ? rawAddress.split("/").pop() : rawAddress
     );
     log.info(`Fetching transaction history of ${address}`);
     let transactions: EvmTransaction[];
@@ -330,8 +330,8 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .map(address =>
-        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // address on this evm
-        : address.includes(":") ? "" // address on a different evm
+        address.startsWith(`${metadata.name}/`) ? address.split("/").pop() // address on this evm
+        : address.includes("/") ? "" // address on a different evm
         : address // generic address applies to all evms
       )
       .filter(address => isEvmAddress(address))
@@ -387,8 +387,8 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .map(address =>
-        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // CAIP-10 on this evm
-        : address.includes(":") ? "" // CAIP-10 address on different evm
+        address.startsWith(`${metadata.name}:`) ? address.split("/").pop() // CAIP-10 on this evm
+        : address.includes("/") ? "" // CAIP-10 address on different evm
         : address // non-CAIP-10 address
       )
       .filter(address => isEvmAddress(address))

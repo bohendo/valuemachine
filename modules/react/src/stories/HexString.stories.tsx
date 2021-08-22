@@ -8,7 +8,7 @@ const Template: ComponentStory<typeof HexString> = (args) => <HexString {...args
 
 export const Address = Template.bind({});
 Address.args = {
-  value: "evm:1:0x1057Bea69c9ADD11c6e3dE296866AFf98366CFE3",
+  value: "Ethereum/0x1057Bea69c9ADD11c6e3dE296866AFf98366CFE3",
   display: "bohendo.eth",
 };
 

@@ -9,12 +9,12 @@ export { getPolygonData } from "./polygon";
 
 export const ethereumAddresses = [
   ...publicEthereumAddresses,
-  ...appAddresses.filter(e => e.address.startsWith("evm:1:")),
+  ...appAddresses.filter(e => e.address.startsWith("Ethereum/")),
 ];
 
 export const polygonAddresses = [
   ...publicPolygonAddresses,
-  ...appAddresses.filter(e => e.address.startsWith("evm:137:")),
+  ...appAddresses.filter(e => e.address.startsWith("Polygon/")),
 ];
 
 export const publicAddresses = [

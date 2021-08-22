@@ -28,7 +28,7 @@ const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategori
 
 // Simple, standalone tokens only. App-specific tokens can be found in that app's parser.
 export const etherdeltaAddresses = [
-  { name: source, address: "evm:1:0x8d12a197cb00d4747a1fe03395095ce2a5cc6819" },
+  { name: source, address: "Ethereum/0x8d12a197cb00d4747a1fe03395095ce2a5cc6819" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const etherdeltaAddress = etherdeltaAddresses.find(e => e.name === source).address;

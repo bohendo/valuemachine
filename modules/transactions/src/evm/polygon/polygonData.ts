@@ -58,7 +58,7 @@ export const getPolygonData = (params?: {
   // Internal Heleprs
 
   // CAIP-10
-  const getAddress = (address: string): string => `evm:${metadata.id}:${getEvmAddress(address)}`;
+  const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
 
   const formatCovalentTx = rawTx => ({
     // block: rawTx.block_height,
@@ -118,7 +118,7 @@ export const getPolygonData = (params?: {
 
   const syncAddress = async (rawAddress: Address): Promise<void> => {
     const address = getEvmAddress(
-      rawAddress.includes(":") ? rawAddress.split(":").pop() : rawAddress
+      rawAddress.includes("/") ? rawAddress.split("/").pop() : rawAddress
     );
     const yesterday = Date.now() - 1000 * 60 * 60 * 24;
     if (new Date(json.addresses[address]?.lastUpdated || 0).getTime() > yesterday) {
@@ -195,8 +195,8 @@ export const getPolygonData = (params?: {
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .map(address =>
-        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // CAIP-10 on this evm
-        : address.includes(":") ? "" // CAIP-10 address on different evm
+        address.startsWith(`${metadata.name}/`) ? address.split("/").pop() // CAIP-10 on this evm
+        : address.includes("/") ? "" // CAIP-10 address on different evm
         : address // non-CAIP-10 address
       )
       .filter(address => isEvmAddress(address))
