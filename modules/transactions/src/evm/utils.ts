@@ -9,8 +9,9 @@ import { diff, gt } from "@valuemachine/utils";
 
 export const getAppAccount = (address: string, app: string): string => {
   if (!address || !app) return "";
-  const [chainType, chainId, simpleAddress] = address.split(":");
-  return `${chainType}:${chainId}/${app}:${simpleAddress}`;
+  const parts = address.split("/");
+  parts.splice(-1, 0, app);
+  return parts.join("/");
 };
 
 // Smallest difference is first, largest is last

@@ -161,7 +161,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const fetchTransfers = async (txHash: Bytes32): Promise<EvmTransfer[]> => {
     const transfers = await queryEtherscan(txHash);
-    if (transfers) {
+    if (typeof transfers.map === "function") {
       return transfers.map(formatEtherscanTransfer);
     } else {
       log.error(transfers);
@@ -387,7 +387,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .map(address =>
-        address.startsWith(`${metadata.name}:`) ? address.split("/").pop() // CAIP-10 on this evm
+        address.startsWith(`${metadata.name}/`) ? address.split("/").pop() // CAIP-10 on this evm
         : address.includes("/") ? "" // CAIP-10 address on different evm
         : address // non-CAIP-10 address
       )

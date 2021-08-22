@@ -69,8 +69,8 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
 
   const getEntry = (address: Address): AddressEntry | undefined => {
     if (!address) return undefined;
-    return addressBook[address] || (address.includes(":")
-      ? addressBook[address.split(":").pop()]
+    return addressBook[address] || (address.includes("/")
+      ? addressBook[address.split("/").pop()]
       : Object.values(addressBook).find((entry: AddressEntry) => entry?.address?.endsWith(address))
     );
   };
@@ -107,7 +107,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   };
 
   const getGuard = (account: Account): Guard => {
-    const address = account.includes(":") ? account.split(":").pop() : account;
+    const address = account.includes("/") ? account.split("/").pop() : account;
     if (!address) return Guards.None;
     const guard = getEntry(address)?.guard;
     if (guard) return guard;

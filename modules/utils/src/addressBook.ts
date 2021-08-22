@@ -31,11 +31,11 @@ export const getAddressEntryError = (addressEntry: AddressEntry): string | null 
 // Formatters
 
 export const fmtAddress = (address: string) => {
-  if (address.includes(":")) {
-    const parts = address.split(":");
+  if (address.includes("/")) {
+    const parts = address.split("/");
     const suffix = parts.pop();
-    const prefix = parts.join(":"); // leftover after popping the address off
-    return `${prefix}:${isEvmAddress(suffix) ? getEvmAddress(suffix) : suffix}`;
+    const prefix = parts.join("/"); // leftover after popping the address off
+    return `${prefix}/${isEvmAddress(suffix) ? getEvmAddress(suffix) : suffix}`;
   } else {
     return isEvmAddress(address) ? getEvmAddress(address) : address;
   }
