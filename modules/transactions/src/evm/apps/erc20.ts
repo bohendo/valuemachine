@@ -72,7 +72,7 @@ const ethereumAddresses = [
   { name: eursCRV, address: "evm:1:0x194ebd173f6cdace046c53eacce9b953f28411d1" },
   { name: hCRV, address: "evm:1:0xb19059ebb43466c323583928285a49f558e572fd" },
   { name: _1INCH, address: "evm:1:0x111111111117dc0aa78b770fa6a738034120c302" },
-].map(setAddressCategory(AddressCategories.ERC20, Guards.Ethereum));
+].map(setAddressCategory(AddressCategories.ERC20));
 
 const polygonAddresses = [
   { name: DAI, address: "evm:137:0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063" },
@@ -81,7 +81,7 @@ const polygonAddresses = [
   { name: WBTC, address: "evm:137:0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6", decimals: 8 },
   { name: WETH, address: "evm:137:0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619" },
   { name: WMATIC, address: "evm:137:0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270" },
-].map(setAddressCategory(AddressCategories.ERC20, Guards.Polygon));
+].map(setAddressCategory(AddressCategories.ERC20));
 
 export const erc20Addresses = [
   ...ethereumAddresses,

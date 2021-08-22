@@ -1,12 +1,12 @@
 import { AddressZero } from "@ethersproject/constants";
-import { Assets, TransferCategories, TransactionSources } from "@valuemachine/types";
+import { Assets, TransferCategories } from "@valuemachine/types";
 
 import { getTransactionsError } from "./transactions";
 import { expect } from "./testUtils";
 
 const validTransaction = {
   date: new Date(0).toISOString(),
-  sources: [TransactionSources.Ethereum],
+  sources: [],
   transfers: [{
     asset: Assets.ETH,
     category: TransferCategories.Expense,

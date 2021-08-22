@@ -1,4 +1,4 @@
-import { aaveAddresses, aaveParser } from "./aave";
+import { app as aave } from "./aave";
 import { argentAddresses, argentParser } from "./argent";
 import { compoundAddresses, compoundParser } from "./compound";
 import { erc20Addresses, erc20Parser } from "./erc20";
@@ -14,7 +14,8 @@ import { uniswapv3Addresses, uniswapv3Parser } from "./uniswapv3";
 import { wethAddresses, wethParser } from "./weth";
 import { yearnAddresses, yearnParser } from "./yearn";
 
-export { aaveParser } from "./aave";
+export const aaveParser = aave.parser;
+
 export { argentParser } from "./argent";
 export { compoundParser } from "./compound";
 export { erc20Parser } from "./erc20";
@@ -31,7 +32,7 @@ export { wethParser } from "./weth";
 export { yearnParser } from "./yearn";
 
 export const appAddresses = [
-  ...aaveAddresses,
+  ...aave.addresses,
   ...argentAddresses,
   ...compoundAddresses,
   ...etherdeltaAddresses,
@@ -58,7 +59,7 @@ export const appParsers = [
   quickswapParser,
   makerParser,
   compoundParser,
-  aaveParser,
+  aave.parser,
   etherdeltaParser,
   uniswapParser,
   uniswapv3Parser,

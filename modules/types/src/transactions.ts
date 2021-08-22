@@ -34,7 +34,8 @@ export const ChainSources = {
 export const ChainSource = Type.String(); // Extensible
 export type ChainSource = Static<typeof ChainSource>;
 
-// Solidity-based evm apps, might be exist on multiple chains
+// TODO: move these definitiions to modules/transactions/src/evm/apps
+// Solidity-based evm apps, might exist on multiple chains
 export const EvmSources = {
   Aave: "Aave",
   Argent: "Argent",
@@ -44,7 +45,7 @@ export const EvmSources = {
   Idle: "Idle",
   Maker: "Maker",
   Oasis: "Oasis",
-  Polygon: "Polygon",
+  Polygon: "Polygon", // rename to bridge?
   Quickswap: "Quickswap",
   Tornado: "Tornado",
   Uniswap: "Uniswap",
