@@ -46,7 +46,7 @@ const transactions = getTransactions({ logger });
   transactions.merge(chainData.getTransactions(addressBook));
 
   // Create a value machine & process our transactions
-  const vm = getValueMachine({ addressBook, logger });
+  const vm = getValueMachine({ logger });
   for (const transaction of transactions.json) {
     vm.execute(transaction);
   }
