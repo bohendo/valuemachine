@@ -9,7 +9,6 @@ import {
   AddressCategory,
   AddressEntry,
   EvmSources,
-  Guard,
   Guards,
   guards,
   PrivateCategories,
@@ -106,22 +105,6 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     return address;
   };
 
-  const getGuard = (account: Account): Guard => {
-    const address = account.includes("/") ? account.split("/").pop() : account;
-    if (!address) return Guards.None;
-    const guard = getEntry(address)?.guard;
-    if (guard) return guard;
-    if (!address.includes("-")) {
-      return isEthAddress(address) ? Guards.Ethereum : Guards.None;
-    }
-    const prefix = address.split("-")[0];
-    if (!prefix) return Guards.None;
-    if (Object.keys(EvmSources).includes(prefix)) {
-      return Guards.Ethereum;
-    }
-    return guards[prefix] || prefix;
-  };
-
   // Only really useful for ERC20 addresses
   const getDecimals = (address: Address): number =>
     getEntry(address)?.decimals || 18;
@@ -129,7 +112,6 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   return {
     addresses: Object.keys(addressBook),
     getName,
-    getGuard,
     getDecimals,
     isCategory,
     isPublic,

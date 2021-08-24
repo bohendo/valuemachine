@@ -52,6 +52,7 @@ const defiAddresses = [
   { name: "spankchain", address: "Ethereum/0xb5e658dccc93ca08c88e8bb89dfb4cae854e2d57" },
   { name: "status-username-registrar", address: "Ethereum/0xdb5ac1a559b02e12f29fc0ec0e37be8e046def49" },
   { name: "thecyber", address: "Ethereum/0x0734d56da60852a03e2aafae8a36ffd8c12b32f1" },
+  { name: "UnchainedIndex", address: "Ethereum/0xcFd7F3b24f3551741f922Fd8c4381AA4E00FC8FD" },
   { name: "urbit-azimuth", address: "Ethereum/0x6ac07b7c4601b5ce11de8dfe6335b871c7c4dd4d" },
   { name: "zk-money", address: "Ethereum/0x737901bea3eeb88459df9ef1be8ff3ae1b42a2ba" },
 ].map(setAddressCategory(AddressCategories.Defi));

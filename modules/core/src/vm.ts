@@ -42,7 +42,6 @@ const isIncomeSource = (account: Account): boolean =>
   account.startsWith(`${TransactionSources.Tornado}`);
 
 export const getValueMachine = ({
-  addressBook,
   logger,
   store,
   json: vmJson,
@@ -124,7 +123,7 @@ export const getValueMachine = ({
       inputs: [],
       history: [{
         date: json.date,
-        guard: addressBook.getGuard(account),
+        guard: account.split("/")[0],
       }],
     };
     json.chunks.push(newChunk);
@@ -396,8 +395,8 @@ export const getValueMachine = ({
     const toMove = getChunks(quantity, asset, from);
     toMove.forEach(chunk => { chunk.account = to; });
     // Handle guard change
-    const oldGuard = addressBook.getGuard(from);
-    const newGuard = addressBook.getGuard(to);
+    const oldGuard = from.split("/")[0];
+    const newGuard = to.split("/")[0];
     if (newGuard !== oldGuard) {
       toMove.forEach(chunk => { chunk.history.push({
         date: json.date,

@@ -7,9 +7,9 @@ use(promised);
 export { expect } from "chai";
 
 export const env = {
-  logLevel: process.env.LOG_LEVEL || "error",
-  etherscanKey: process.env.ETHERSCAN_KEY || "",
   covalentKey: process.env.COVALENT_KEY || "",
+  etherscanKey: process.env.ETHERSCAN_KEY || "",
+  logLevel: process.env.LOG_LEVEL || "error",
 };
 
 export const testLogger = getLogger(env.logLevel).child({ module: "TestUtils" });

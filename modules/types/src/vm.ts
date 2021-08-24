@@ -1,6 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { AddressBook } from "./addressBook";
 import { Asset } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
@@ -198,7 +197,6 @@ export type ValueMachineJson = Static<typeof ValueMachineJson>;
 // Function Interfaces
 
 export type ValueMachineParams = {
-  addressBook: AddressBook;
   json?: ValueMachineJson;
   logger?: Logger;
   store?: Store;
