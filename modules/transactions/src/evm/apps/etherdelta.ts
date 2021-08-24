@@ -10,7 +10,6 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -21,7 +20,7 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = TransactionSources.EtherDelta;
+const source = "EtherDelta";
 const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 
 ////////////////////////////////////////

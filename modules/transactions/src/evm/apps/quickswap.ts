@@ -5,12 +5,11 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import { setAddressCategory } from "@valuemachine/utils";
 
-const source = TransactionSources.Quickswap;
+const source = "Quickswap";
 
 const govAddresses = [
   { name: "QUICK", address: "Polygon/0x831753dd7087cac61ab5644b308642cc1c33dc13" },

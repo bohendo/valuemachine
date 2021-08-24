@@ -5,12 +5,10 @@ import {
   AddressCategories,
   Assets,
   Asset,
-  Guards,
   EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -20,7 +18,7 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = TransactionSources.ERC20;
+const source = "ERC20";
 const {
   BAT, CHERRY, GEN, GNO, GRT, OMG, REP, REPv2, SNT,
   SNX, SPANK, sUSD, USDC, USDT, WBTC, ZRX,

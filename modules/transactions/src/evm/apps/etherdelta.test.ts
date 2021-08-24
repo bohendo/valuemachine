@@ -1,5 +1,4 @@
 import {
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 
@@ -9,7 +8,7 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = TransactionSources.EtherDelta;
+const source = "EtherDelta";
 const { Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 const log = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",

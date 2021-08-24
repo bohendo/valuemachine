@@ -1,5 +1,4 @@
 import {
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 
@@ -9,7 +8,7 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = TransactionSources.Maker;
+const source = "Maker";
 const { Expense, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",

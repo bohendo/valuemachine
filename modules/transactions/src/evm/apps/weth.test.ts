@@ -1,6 +1,5 @@
 import {
   Assets,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 
@@ -10,7 +9,7 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = TransactionSources.Weth;
+const source = "Weth";
 const { SwapIn, SwapOut } = TransferCategories;
 const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",

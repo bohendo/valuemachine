@@ -6,7 +6,6 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
@@ -28,7 +27,7 @@ const { UNI,
   UniV2_USDC_GRT, UniV2_USDC_USDT, UniV2_WBTC_ETH, UniV2_WBTC_USDC, UniV2_WDOGE_ETH, UniV2_YFI_ETH,
 } = Assets;
 const { Income, Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
-const source = TransactionSources.Uniswap;
+const source = "Uniswap";
 
 ////////////////////////////////////////
 /// Addresses

@@ -6,7 +6,6 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -18,7 +17,7 @@ import { parseEvent } from "../utils";
 
 //const { ETH, WETH } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
-const source = TransactionSources.Argent;
+const source = "Argent";
 
 ////////////////////////////////////////
 /// Addresses

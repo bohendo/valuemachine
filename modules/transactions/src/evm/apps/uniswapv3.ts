@@ -5,7 +5,6 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -13,7 +12,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-const source = TransactionSources.Uniswap + "V3";
+const source = "UniswapV3";
 
 ////////////////////////////////////////
 /// Addresses

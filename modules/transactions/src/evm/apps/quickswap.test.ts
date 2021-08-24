@@ -1,4 +1,4 @@
-import { Guards, TransactionSources } from "@valuemachine/types";
+import { Guards } from "@valuemachine/types";
 
 import {
   parsePolygonTx,
@@ -6,7 +6,7 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = TransactionSources.Quickswap;
+const source = "Quickswap";
 const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",
 });

@@ -13,7 +13,6 @@ import {
   Guards,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -34,7 +33,7 @@ import { diffAsc, parseEvent } from "../utils";
 const { DAI, ETH, MKR, PETH, SAI, WETH } = Assets;
 const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
-const source = TransactionSources.Maker;
+const source = "Maker";
 
 ////////////////////////////////////////
 /// Addresses

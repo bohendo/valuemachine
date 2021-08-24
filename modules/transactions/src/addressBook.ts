@@ -1,6 +1,5 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
-  Account,
   Address,
   AddressBook,
   AddressBookJson,
@@ -8,9 +7,6 @@ import {
   AddressCategories,
   AddressCategory,
   AddressEntry,
-  EvmSources,
-  Guards,
-  guards,
   PrivateCategories,
   PublicCategories,
   StoreKeys,

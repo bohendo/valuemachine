@@ -8,7 +8,6 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
@@ -19,7 +18,7 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = TransactionSources.Polygon;
+const source = "Polygon";
 const { MATIC, ETH, WETH } = Assets;
 
 ////////////////////////////////////////

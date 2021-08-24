@@ -7,7 +7,6 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -19,7 +18,7 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = TransactionSources.Yearn;
+const source = "Yearn";
 const { Internal, Deposit, Withdraw, SwapOut, SwapIn } = TransferCategories;
 const { YFI,
   yBUSDv3, yDAIv2, yDAIv3, ysUSDTv2, yTUSDv2,

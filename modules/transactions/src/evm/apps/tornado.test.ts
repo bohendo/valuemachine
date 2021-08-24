@@ -1,5 +1,4 @@
 import {
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 
@@ -10,7 +9,7 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = TransactionSources.Tornado;
+const source = "Tornado";
 const { Expense, Deposit, Withdraw } = TransferCategories;
 const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",

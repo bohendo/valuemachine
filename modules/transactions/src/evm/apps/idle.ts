@@ -8,7 +8,6 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -19,7 +18,7 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = TransactionSources.Idle;
+const source = "Idle";
 const { Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 const {
   IDLE, idleDAISafe, idleDAIYield, idleRAIYield, idleSUSDYield, idleTUSDYield,

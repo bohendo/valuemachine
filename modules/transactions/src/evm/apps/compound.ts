@@ -9,7 +9,6 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
@@ -25,7 +24,7 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = TransactionSources.Compound;
+export const source = "Compound";
 const {
   COMP, cBAT, cCOMP, cDAI, cETH, cREP, cSAI, cUNI, cUSDC, cUSDT, cWBTC, cWBTCv2, cZRX
 } = Assets;

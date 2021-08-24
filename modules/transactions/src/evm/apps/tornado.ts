@@ -6,7 +6,6 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -19,7 +18,7 @@ import {
 const { TORN } = Assets;
 const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 
-const source = TransactionSources.Tornado;
+const source = "Tornado";
 
 ////////////////////////////////////////
 /// Addresses

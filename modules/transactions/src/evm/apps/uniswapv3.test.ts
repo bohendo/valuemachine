@@ -1,5 +1,4 @@
 import {
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 
@@ -9,7 +8,7 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = TransactionSources.Uniswap + "V3";
+const source = "UniswapV3";
 const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",
 });

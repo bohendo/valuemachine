@@ -1,12 +1,10 @@
-import { TransactionSources } from "@valuemachine/types";
-
 import {
   parseEthTx,
   expect,
   testLogger,
 } from "../testUtils";
 
-const source = TransactionSources.ERC20;
+const source = "ERC20";
 const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",
 });

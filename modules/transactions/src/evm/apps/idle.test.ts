@@ -1,4 +1,4 @@
-import { TransactionSources, TransferCategories } from "@valuemachine/types";
+import { TransferCategories } from "@valuemachine/types";
 
 import {
   parseEthTx,
@@ -6,7 +6,7 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = TransactionSources.Idle;
+const source = "Idle";
 const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",
 });
