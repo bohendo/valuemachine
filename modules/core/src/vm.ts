@@ -123,7 +123,7 @@ export const getValueMachine = ({
       inputs: [],
       history: [{
         date: json.date,
-        guard: account.split("/")[0],
+        account,
       }],
     };
     json.chunks.push(newChunk);
@@ -393,23 +393,30 @@ export const getValueMachine = ({
 
   const moveValue = (quantity: DecimalString, asset: Asset, from: Account, to: Account): void => {
     const toMove = getChunks(quantity, asset, from);
-    toMove.forEach(chunk => { chunk.account = to; });
+    toMove.forEach(chunk => {
+      chunk.account = to;
+      const prev = chunk.history[chunk.history.length - 1];
+      if (prev.account === from && prev.account !== to) {
+        chunk.history.push({ date: json.date, account: to });
+      } else if (prev.account !== from && prev.account !== to) {
+        log.warn(`chunk ${chunk.index} is being moved from ${
+          from
+        } but the prev history entry is: ${JSON.stringify(prev)}`);
+        chunk.history.push({ date: json.date, account: to });
+      } else if (prev.account !== from && prev.account === to) {
+        log.warn(`chunk ${chunk.index} is being moved to ${
+          to
+        } but the prev history entry is already: ${JSON.stringify(prev)}`);
+      }
+    });
     // Handle guard change
-    const oldGuard = from.split("/")[0];
-    const newGuard = to.split("/")[0];
-    if (newGuard !== oldGuard) {
-      toMove.forEach(chunk => { chunk.history.push({
-        date: json.date,
-        guard: newGuard,
-      }); });
+    if (to.split("/")[0] !== from.split("/")[0]) {
       newEvents.push({
         date: json.date,
         index: json.events.length + newEvents.length,
         newBalances: {},
         from: from,
-        fromGuard: oldGuard,
         to: to,
-        toGuard: newGuard,
         chunks: toMove.map(toIndex),
         insecurePath: [],
         type: EventTypes.GuardChange,

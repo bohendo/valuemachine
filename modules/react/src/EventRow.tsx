@@ -151,9 +151,7 @@ export const EventRow: React.FC<EventRowProps> = ({
 
                 } : event.type === EventTypes.GuardChange ? {
                   ["From"]: (event as GuardChangeEvent).from,
-                  ["From Guard"]: (event as GuardChangeEvent).fromGuard,
                   ["To"]: (event as GuardChangeEvent).to,
-                  ["To Guard"]: (event as GuardChangeEvent).toGuard,
                   [`New Balances`]: balToStr(event.newBalances),
                   ...chunksToDisplay(event.chunks),
 

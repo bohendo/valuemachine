@@ -8,9 +8,9 @@ export type Address = Static<typeof Address>;
 
 // <guard>[/<venue>/<subvenue>]/address
 // eg Ethereum/0xabc123.. for simple on-chain accounts
-// eg Ethereum/Compound/v1/0xabc123.. for on-chain deposits
-// eg USD/Coinbase/1 for off-chain trad fi
-export const Account = Type.RegEx(/^[-a-zA-Z0-9/:]+$/);
+// eg Ethereum/Maker/CDP-123/0xabc123.. for on-chain deposits
+// eg USA/Coinbase/1 for off-chain trad fi services
+export const Account = Type.RegEx(/^[-/a-zA-Z0-9]+$/);
 export type Account = Static<typeof Account>;
 
 export const Bytes32 = Type.RegEx(/^0x[a-fA-F0-9]{64}$/);

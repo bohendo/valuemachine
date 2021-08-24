@@ -3,7 +3,6 @@ import { Static, Type } from "@sinclair/typebox";
 import { Asset } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { Guard } from "./guards";
 import { Account, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
 
@@ -18,7 +17,7 @@ export const AssetChunk = Type.Object({
   quantity: DecimalString,
   history: Type.Array(Type.Object({ // length should always be >= 1
     date: TimestampString, // receiveDate = history[0].date
-    guard: Guard, // TODO: use account here
+    account: Account,
   })),
   disposeDate: Type.Optional(TimestampString), // undefined if we still own this chunk
   account: Type.Optional(Account), // undefined if we no longer own this chunk
@@ -96,10 +95,8 @@ export type IncomeEvent = Static<typeof IncomeEvent>;
 export const GuardChangeEvent = Type.Intersect([
   BaseEvent,
   Type.Object({
-    fromGuard: Guard,
     from: Account,
     to: Account,
-    toGuard: Guard,
     chunks: Type.Array(ChunkIndex),
     insecurePath: Type.Array(ChunkIndex),
     type: Type.Literal(EventTypes.GuardChange),
