@@ -1,13 +1,12 @@
 import {
   AddressCategories,
-  Assets,
   Guards,
 } from "@valuemachine/types";
 import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { assets } from "./assets";
+import { Tokens as assets } from "../assets";
 
 const { Polygon, Ethereum } = Guards;
 

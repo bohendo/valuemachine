@@ -1,6 +1,6 @@
+import { addresses } from "./addresses";
 import { assets } from "./assets";
 import {
-  erc20Addresses as addresses,
   erc20Parser as parser,
   appName as name,
 } from "./erc20";

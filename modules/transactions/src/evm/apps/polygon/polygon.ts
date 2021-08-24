@@ -3,7 +3,6 @@ import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
-  Assets,
   EvmMetadata,
   EvmTransaction,
   Logger,
@@ -15,11 +14,12 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
+import { EvmAssets } from "../../assets";
 import { parseEvent } from "../utils";
 
 export const appName = "Polygon";
 
-const { MATIC, ETH, WETH } = Assets;
+const { MATIC, ETH, WETH } = EvmAssets;
 
 ////////////////////////////////////////
 /// Addresses

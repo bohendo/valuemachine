@@ -11,8 +11,12 @@ import { setAddressCategory } from "@valuemachine/utils";
 
 export const appName = "Quickswap";
 
+export const assets = {
+  QUICK: "QUICK",
+} as const;
+
 const govAddresses = [
-  { name: "QUICK", address: "Polygon/0x831753dd7087cac61ab5644b308642cc1c33dc13" },
+  { name: assets.QUICK, address: "Polygon/0x831753dd7087cac61ab5644b308642cc1c33dc13" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 const routerAddresses = [

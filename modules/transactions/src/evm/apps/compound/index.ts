@@ -1,8 +1,8 @@
+import { addresses } from "./addresses";
+import { assets } from "./assets";
 import {
-  compoundAddresses as addresses,
-  compoundParser as parser,
+  parser,
   appName as name,
 } from "./compound";
-import { assets } from "./assets";
 
 export const app = { addresses, assets, name, parser };

@@ -1,8 +1,10 @@
 export const assets = {
 
+  // Gov tokens
   AAVE: "AAVE",
   stkAAVE: "stkAAVE",
 
+  // Ethereum markets
   aAAVE: "aAAVE",
   aBAL: "aBAL",
   aBAT: "aBAT",
@@ -29,6 +31,7 @@ export const assets = {
   aYFI: "aYFI",
   aZRX: "aZRX",
 
+  // Polygon markets
   amAAVE: "amAAVE",
   amDAI: "amDAI",
   amMATIC: "amMATIC",

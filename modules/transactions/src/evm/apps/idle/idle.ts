@@ -2,7 +2,6 @@ import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
-  Assets,
   Asset,
   EvmMetadata,
   EvmTransaction,
@@ -15,6 +14,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
+import { EvmAssets } from "../../assets";
 import { parseEvent } from "../utils";
 
 export const appName = "Idle";
@@ -24,7 +24,7 @@ const {
   IDLE, idleDAISafe, idleDAIYield, idleRAIYield, idleSUSDYield, idleTUSDYield,
   idleUSDCSafe, idleUSDCYield, idleUSDTSafe, idleUSDTYield, idleWBTCYield, idleWETHYield,
   DAI, RAI, sUSD, TUSD, USDC, USDT, WBTC, WETH,
-} = Assets;
+} = EvmAssets;
 
 ////////////////////////////////////////
 /// Addresses

@@ -1,6 +1,5 @@
 import {
   AddressBook,
-  Assets,
   AddressCategories,
   EvmMetadata,
   EvmTransaction,
@@ -14,8 +13,11 @@ import {
   sub,
 } from "@valuemachine/utils";
 
-const { TORN } = Assets;
 const { Income, Expense, Deposit, Withdraw } = TransferCategories;
+
+export const assets = {
+  TORN: "TORN",
+} as const;
 
 export const appName = "Tornado";
 
@@ -31,7 +33,7 @@ const miscAddresses = [
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const govTokenAddresses = [
-  { name: TORN, address: "Ethereum/0x77777feddddffc19ff86db637967013e6c6a116c" },
+  { name: assets.TORN, address: "Ethereum/0x77777feddddffc19ff86db637967013e6c6a116c" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 const mixerAddresses = [

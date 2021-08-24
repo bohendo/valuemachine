@@ -6,7 +6,6 @@ import {
   AddressBook,
   AddressCategories,
   Asset,
-  Assets,
   EvmMetadata,
   EvmTransaction,
   EvmTransactionLog,
@@ -27,11 +26,12 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
+import { EvmAssets } from "../../assets";
 import { diffAsc, parseEvent } from "../utils";
 
 export const appName = "Maker";
 
-const { DAI, ETH, MKR, PETH, SAI, WETH } = Assets;
+const { DAI, ETH, MKR, PETH, SAI, WETH } = EvmAssets;
 const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 ////////////////////////////////////////

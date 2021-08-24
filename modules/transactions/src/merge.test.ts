@@ -1,12 +1,12 @@
 import { HashZero } from "@ethersproject/constants";
 import {
-  Assets,
   Guards,
   Transaction,
   TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 
+import { Assets } from "./assets";
 import { mergeTransaction } from "./merge";
 import {
   expect,

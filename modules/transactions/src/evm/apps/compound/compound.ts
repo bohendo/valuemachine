@@ -86,7 +86,7 @@ const associatedTransfer = (asset: string, quantity: string) =>
   (transfer: Transfer): boolean =>
     transfer.asset === asset && valuesAreClose(transfer.quantity, quantity, div(quantity, "100"));
 
-export const compoundParser = (
+export const parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

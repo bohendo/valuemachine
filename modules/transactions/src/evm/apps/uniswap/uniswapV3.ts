@@ -1,34 +1,13 @@
 import {
   AddressBook,
-  AddressCategories,
   EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  setAddressCategory,
-} from "@valuemachine/utils";
 
 export const appName = "UniswapV3";
-
-////////////////////////////////////////
-/// Addresses
-
-const routerAddresses = [
-  { name: "UniswapRouterV3", address: "Ethereum/0xe592427a0aece92de3edee1f18e0157c05861564" },
-].map(setAddressCategory(AddressCategories.Defi));
-
-const marketAddresses = [
-  { name: "UniV3_MATIC_USDT", address: "Ethereum/0x972f43Bb94B76B9e2D036553d818879860b6A114" },
-  { name: "UniV3_ETH_USDT", address: "Ethereum/0x11b815efB8f581194ae79006d24E0d814B7697F6" },
-].map(setAddressCategory(AddressCategories.Defi));
-
-export const uniswapV3Addresses = [
-  ...marketAddresses,
-  ...routerAddresses,
-];
 
 ////////////////////////////////////////
 /// Parser

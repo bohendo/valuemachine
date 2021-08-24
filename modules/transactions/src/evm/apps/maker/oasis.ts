@@ -2,7 +2,6 @@ import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
-  Assets,
   Asset,
   EvmMetadata,
   EvmTransaction,
@@ -17,9 +16,10 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
+import { EvmAssets } from "../../assets";
 import { parseEvent } from "../utils";
 
-const { ETH, WETH } = Assets;
+const { ETH, WETH } = EvmAssets;
 const { Income, Expense, SwapIn, SwapOut } = TransferCategories;
 export const appName = "Oasis";
 

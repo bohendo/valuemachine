@@ -1,8 +1,8 @@
 import { appAddresses } from "./apps";
 
 export { AppNames } from "./apps";
+export { EvmAssets } from "./assets";
 export { parseEvmTx } from "./parser";
-
 export { getEthereumData } from "./ethereum";
 export { getPolygonData } from "./polygon";
 

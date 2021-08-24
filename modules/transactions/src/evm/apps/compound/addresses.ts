@@ -22,7 +22,7 @@ const coreAddresses = [
   },
 ].map(setAddressCategory(AddressCategories.Defi));
 
-const cTokenAddresses = [
+export const cTokenAddresses = [
   {
     address: "Ethereum/0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e",
     decimals: 8,
@@ -92,7 +92,7 @@ const govTokenAddresses = [
   },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
-export const compoundAddresses = [
+export const addresses = [
   ...cTokenAddresses,
   ...govTokenAddresses,
   ...coreAddresses,

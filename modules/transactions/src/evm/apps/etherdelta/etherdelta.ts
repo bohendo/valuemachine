@@ -4,7 +4,6 @@ import {
   Address,
   AddressBook,
   AddressCategories,
-  Assets,
   Asset,
   EvmMetadata,
   EvmTransaction,
@@ -17,6 +16,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
+import { EvmAssets } from "../../assets";
 import { parseEvent } from "../utils";
 
 export const appName = "EtherDelta";
@@ -59,7 +59,7 @@ export const etherdeltaParser = (
   const { getDecimals, getName, isSelf } = addressBook;
 
   const getAsset = (address: Address): Asset =>
-    address.endsWith(AddressZero) ? Assets.ETH : getName(address);
+    address.endsWith(AddressZero) ? EvmAssets.ETH : getName(address);
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;

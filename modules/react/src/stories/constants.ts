@@ -1,8 +1,7 @@
 import { getValueMachine } from "@valuemachine/core";
-import { AppNames, getAddressBook, getTransactions } from "@valuemachine/transactions";
+import { AppNames, Assets, getAddressBook, getTransactions } from "@valuemachine/transactions";
 import {
   AddressCategories,
-  Assets,
   CsvSources,
   Guards,
   EventTypes,

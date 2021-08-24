@@ -2,7 +2,6 @@ import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   AddressCategories,
-  Assets,
   EvmMetadata,
   EvmTransaction,
   Logger,
@@ -13,21 +12,26 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
+import { Assets } from "../../../assets";
 import { parseEvent } from "../utils";
 
 export const appName = "Weth";
 
-const { ETH, WETH } = Assets;
+const { ETH } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
+
+export const assets = {
+  WETH: "WETH",
+} as const;
 
 ////////////////////////////////////////
 /// Addresses
 
 export const wethAddresses = [
-  { name: WETH, address: "Ethereum/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
+  { name: assets.WETH, address: "Ethereum/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
-const wethAddress = wethAddresses.find(e => e.name === WETH).address;
+const wethAddress = wethAddresses.find(e => e.name === assets.WETH).address;
 
 ////////////////////////////////////////
 /// Abis
@@ -55,7 +59,7 @@ export const wethParser = (
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (address === wethAddress) {
-      const asset = WETH;
+      const asset = assets.WETH;
       const event = parseEvent(wethAbi, txLog, evmMeta);
       if (!event.name) continue;
       const amount = formatUnits(event.args.wad, getDecimals(address));
