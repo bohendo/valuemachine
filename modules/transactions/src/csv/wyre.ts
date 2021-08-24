@@ -1,5 +1,4 @@
 import {
-  Assets,
   Asset,
   Logger,
   Transaction,
@@ -9,6 +8,7 @@ import {
 import csv from "csv-parse/lib/sync";
 import { gt } from "@valuemachine/utils";
 
+import { Assets } from "../assets";
 import { mergeTransaction } from "../merge";
 
 const { DAI, ETH, SAI, USD } = Assets;

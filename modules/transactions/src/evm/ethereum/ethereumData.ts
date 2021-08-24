@@ -4,7 +4,6 @@ import { formatEther } from "@ethersproject/units";
 import {
   AddressBook,
   Bytes32,
-  Cryptocurrencies,
   EvmAddress,
   EvmData,
   EvmDataParams,
@@ -27,8 +26,9 @@ import {
   gt,
 } from "@valuemachine/utils";
 import axios from "axios";
-// eslint-disable-next-line import/no-unresolved
 import getQueue from "queue";
+
+import { Assets } from "../../assets";
 
 import { parseEthTx } from "./parser";
 
@@ -50,7 +50,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   const metadata = {
     id: 1,
     name: Guards.Ethereum,
-    feeAsset: Cryptocurrencies.ETH,
+    feeAsset: Assets.ETH,
   };
 
   ////////////////////////////////////////

@@ -1,7 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { FiatCurrencies, Cryptocurrencies } from "./assets";
-
 // Security providers on the internet aka blockchains
 export const DigitalGuards = {
   Bitcoin: "Bitcoin",
@@ -35,6 +33,7 @@ export const Guards = {
 export const Guard = Type.String(); // Extensible
 export type Guard = Static<typeof Guard>;
 
+/*
 // Every guard has exactly one special asset that it uses to accept security fees
 export const SecurityFeeAssets = {
   [DigitalGuards.Bitcoin]: Cryptocurrencies.BTC,
@@ -50,3 +49,4 @@ export const SecurityFeeAssets = {
   [PhysicalGuards.ROU]: FiatCurrencies.EUR,
   [PhysicalGuards.USA]: FiatCurrencies.USD,
 } as const;
+*/

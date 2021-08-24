@@ -2,7 +2,6 @@ import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   Asset,
-  Assets,
   EvmMetadata,
   EvmTransaction,
   Guards,
@@ -20,6 +19,7 @@ import {
 import { parseEvent } from "../../utils";
 
 import { addresses, defiAddresses } from "./addresses";
+import { assets } from "./assets";
 
 export const appName = "Aave";
 
@@ -89,7 +89,7 @@ export const parser = (
     : evmMeta.name === Guards.Polygon ? "am"
     : "";
 
-  const stkAAVEAddress = addresses.find(e => e.name === Assets.stkAAVE)?.address;
+  const stkAAVEAddress = addresses.find(e => e.name === assets.stkAAVE)?.address;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
@@ -192,8 +192,8 @@ export const parser = (
     } else if (stkAAVEAddress === address) {
       const event = parseEvent(aaveStakeAbi, txLog, evmMeta);
       if (event.name === "Staked" && (event.args.from===event.args.onBehalfOf) ) {
-        const asset1 = Assets.AAVE;
-        const asset2 = Assets.stkAAVE;
+        const asset1 = assets.AAVE;
+        const asset2 = assets.stkAAVE;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(address),
@@ -215,8 +215,8 @@ export const parser = (
         }
 
       } else if (event.name === "Redeem" && (event.args.from===event.args.to)) {
-        const asset1 = Assets.AAVE;
-        const asset2 = Assets.stkAAVE;
+        const asset1 = assets.AAVE;
+        const asset2 = assets.stkAAVE;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(address),

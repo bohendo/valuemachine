@@ -1,3 +1,4 @@
+import { addresses } from "./addresses";
 import { app as aave } from "./aave";
 import { app as argent } from "./argent";
 import { app as compound } from "./compound";
@@ -44,7 +45,24 @@ export const AppNames = {
   [yearn.name]: yearn.name,
 } as const;
 
+export const AppAssets = {
+  ...aave.assets,
+  ...argent.assets,
+  ...compound.assets,
+  ...erc20.assets,
+  ...etherdelta.assets,
+  ...idle.assets,
+  ...maker.assets,
+  ...polygon.assets,
+  ...quickswap.assets,
+  ...tornado.assets,
+  ...uniswap.assets,
+  ...weth.assets,
+  ...yearn.assets,
+} as const;
+
 export const appAddresses = [
+  ...addresses,
   ...aave.addresses,
   ...argent.addresses,
   ...compound.addresses,

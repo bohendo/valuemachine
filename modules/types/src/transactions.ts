@@ -1,11 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { AddressBook } from "./addressBook";
-import { Asset } from "./assets";
 import { EvmMetadata, EvmTransaction } from "./evmData";
 import { Logger } from "./logger";
 import { DigitalGuards, Guards } from "./guards";
-import { Account, Bytes32, DecimalString, TimestampString } from "./strings";
+import { Account, Asset, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
 
 ////////////////////////////////////////

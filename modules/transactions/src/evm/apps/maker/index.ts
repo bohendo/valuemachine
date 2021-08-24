@@ -7,4 +7,4 @@ import { oasisAddresses, oasisParser } from "./oasis";
 
 const addresses = [...coreAddresses, ...oasisAddresses];
 
-export const app = { addresses, name, parser, oasisParser };
+export const app = { addresses, assets: {}, name, parser, oasisParser };

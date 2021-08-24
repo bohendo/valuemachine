@@ -1,5 +1,5 @@
 import { AddressZero } from "@ethersproject/constants";
-import { Assets, TransferCategories } from "@valuemachine/types";
+import { TransferCategories } from "@valuemachine/types";
 
 import { getTransactionsError } from "./transactions";
 import { expect } from "./testUtils";
@@ -9,7 +9,7 @@ const validTransaction = {
   date: new Date(0).toISOString(),
   sources: [],
   transfers: [{
-    asset: Assets.ETH,
+    asset: "ETH",
     category: TransferCategories.Expense,
     from: AddressZero,
     to: AddressZero,

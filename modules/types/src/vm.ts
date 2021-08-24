@@ -1,9 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { Asset } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { Account, DecimalString, TimestampString } from "./strings";
+import { Account, Asset, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
 
 ////////////////////////////////////////

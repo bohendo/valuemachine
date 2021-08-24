@@ -7,4 +7,4 @@ import { uniswapV3Addresses, uniswapV3Parser } from "./uniswapV3";
 
 const addresses = [...coreAddresses, ...uniswapV3Addresses];
 
-export const app = { addresses, name, parser, uniswapV3Parser };
+export const app = { addresses, assets: {}, name, parser, uniswapV3Parser };

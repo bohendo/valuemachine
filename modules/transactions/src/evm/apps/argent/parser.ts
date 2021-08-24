@@ -14,7 +14,6 @@ import { managerAddresses, relayerAddresses } from "./addresses";
 
 export const appName = "Argent";
 
-//const { ETH, WETH } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
 
 const makerManagerAddress = managerAddresses.find(e => e.name === "ArgentMakerManager")?.address;

@@ -4,4 +4,4 @@ import {
   appName as name,
 } from "./quickswap";
 
-export const app = { addresses, name, parser };
+export const app = { addresses, assets: {}, name, parser };

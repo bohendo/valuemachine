@@ -3,5 +3,6 @@ import {
   compoundParser as parser,
   appName as name,
 } from "./compound";
+import { assets } from "./assets";
 
-export const app = { addresses, name, parser };
+export const app = { addresses, assets, name, parser };

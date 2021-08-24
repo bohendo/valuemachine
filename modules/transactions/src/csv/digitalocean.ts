@@ -1,5 +1,4 @@
 import {
-  Assets,
   Transaction,
   TransactionSources,
   Logger,
@@ -7,6 +6,7 @@ import {
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 
+import { Assets } from "../assets";
 import { mergeTransaction } from "../merge";
 
 export const mergeDigitalOceanTransactions = (

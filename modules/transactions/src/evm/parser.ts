@@ -113,7 +113,7 @@ export const parseEvmTx = (
       log.error(e);
     }
   });
-  tx.apps = dedup(tx.apps);
+  tx.apps = dedup(tx.apps).sort();
 
   tx.transfers = tx.transfers
     // Filter out no-op transfers

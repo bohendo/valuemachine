@@ -4,7 +4,6 @@ import { hexlify } from "@ethersproject/bytes";
 import {
   Address,
   AddressBook,
-  Assets,
   Bytes32,
   EvmData,
   EvmDataJson,
@@ -24,6 +23,8 @@ import {
   getLogger,
 } from "@valuemachine/utils";
 import axios from "axios";
+
+import { Assets } from "../../assets";
 
 import { parsePolygonTx } from "./parser";
 

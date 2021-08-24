@@ -4,4 +4,4 @@ import {
   appName as name,
 } from "./polygon";
 
-export const app = { addresses, name, parser };
+export const app = { addresses, assets: {}, name, parser };
