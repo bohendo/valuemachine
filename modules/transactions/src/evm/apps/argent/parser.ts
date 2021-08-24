@@ -1,7 +1,6 @@
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
-  AddressCategories,
   EvmMetadata,
   EvmTransaction,
   Logger,
@@ -9,38 +8,19 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  setAddressCategory,
   dedup,
 } from "@valuemachine/utils";
 
 import { parseEvent } from "../utils";
 
+import { managerAddresses, relayerAddresses } from "./addresses";
+
+export const appName = "Argent";
+
 //const { ETH, WETH } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
-const source = "Argent";
 
-////////////////////////////////////////
-/// Addresses
-// Find more manager addresses at https://github.com/argentlabs/argent-contracts/releases/tag/2.1
-
-const makerManager = "ArgentMakerManager";
-
-const relayerAddresses = [
-  { name: "argent-relayer", address: "Ethereum/0xdd5a1c148ca114af2f4ebc639ce21fed4730a608" },
-  { name: "argent-relayer", address: "Ethereum/0x0385b3f162a0e001b60ecb84d3cb06199d78f666" },
-  { name: "argent-relayer", address: "Ethereum/0xf27696c8bca7d54d696189085ae1283f59342fa6" },
-].map(setAddressCategory(AddressCategories.Defi));
-
-const managerAddresses = [
-  { name: makerManager, address: "Ethereum/0x7557f4199aa99e5396330bac3b7bdaa262cb1913" },
-].map(setAddressCategory(AddressCategories.Defi));
-
-export const argentAddresses = [
-  ...relayerAddresses,
-  ...managerAddresses,
-];
-
-const makerManagerAddress = argentAddresses.find(e => e.name === makerManager)?.address;
+const makerManagerAddress = managerAddresses.find(e => e.name === "ArgentMakerManager")?.address;
 
 ////////////////////////////////////////
 /// Abis
@@ -57,30 +37,30 @@ const makerManagerV1Abi = [
 ////////////////////////////////////////
 /// Parser
 
-export const argentParser = (
+export const parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
   if (relayerAddresses.some(entry => evmTx.from === entry.address)) {
-    tx.sources = dedup([source, ...tx.sources]);
+    tx.sources = dedup([appName, ...tx.sources]);
   }
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (address === makerManagerAddress) {
-      const subsrc = `${source} MakerManager`;
+      const subsrc = `${appName} MakerManager`;
       const event = parseEvent(makerManagerV1Abi, txLog, evmMeta);
       if (!event.name) continue;
       if (!isSelf(event.args.wallet)) {
-        log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);
+        log.debug(`Skipping ${appName} ${event.name} that doesn't involve us`);
       }
-      tx.sources = dedup([source, ...tx.sources]);
+      tx.sources = dedup([appName, ...tx.sources]);
 
       if (event.name === "TokenConverted") {
         const { destAmount, destToken, srcAmount, srcToken } = event.args;
@@ -116,7 +96,7 @@ export const argentParser = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${source}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };
 

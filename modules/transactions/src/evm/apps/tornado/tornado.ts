@@ -18,7 +18,7 @@ import {
 const { TORN } = Assets;
 const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 
-const source = "Tornado";
+export const appName = "Tornado";
 
 ////////////////////////////////////////
 /// Addresses
@@ -78,7 +78,7 @@ export const tornadoParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { isSelf } = addressBook;
 
   let isTornadoTx = false;
@@ -93,9 +93,9 @@ export const tornadoParser = (
   ).forEach(deposit => {
     isTornadoTx = true;
     deposit.category = Deposit;
-    deposit.to = source;
+    deposit.to = appName;
     tx.method = "Deposit";
-    log.info(`Found ${source} ${tx.method}`);
+    log.info(`Found ${appName} ${tx.method}`);
   });
 
   tx.transfers.filter(transfer =>
@@ -105,26 +105,26 @@ export const tornadoParser = (
   ).forEach(withdraw => {
     isTornadoTx = true;
     withdraw.category = Withdraw;
-    withdraw.from = source;
+    withdraw.from = appName;
     const total = closestTenPow(withdraw.quantity);
     const asset = withdraw.asset;
     tx.transfers.push({
       asset,
       category: Expense,
       index: 0,
-      from: source,
+      from: appName,
       quantity: sub(total, withdraw.quantity),
       to: relayerAddress,
     });
     tx.method = "Withdraw";
-    log.info(`Found ${source} ${tx.method}`);
+    log.info(`Found ${appName} ${tx.method}`);
   });
 
   if (isTornadoTx) {
-    tx.sources = dedup([source, ...tx.sources]);
+    tx.sources = dedup([appName, ...tx.sources]);
   }
 
-  // log.debug(tx, `Done parsing ${source}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };
 

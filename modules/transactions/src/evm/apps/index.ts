@@ -1,52 +1,47 @@
 import { app as aave } from "./aave";
-import { argentAddresses, argentParser } from "./argent";
-import { compoundAddresses, compoundParser } from "./compound";
-import { erc20Addresses, erc20Parser } from "./erc20";
-import { etherdeltaAddresses, etherdeltaParser } from "./etherdelta";
-import { idleAddresses, idleParser } from "./idle";
-import { makerAddresses, makerParser } from "./maker";
-import { oasisAddresses, oasisParser } from "./oasis";
-import { polygonAddresses, polygonParser } from "./polygon";
-import { quickswapAddresses, quickswapParser } from "./quickswap";
-import { tornadoAddresses, tornadoParser } from "./tornado";
-import { uniswapAddresses, uniswapParser } from "./uniswap";
-import { uniswapv3Addresses, uniswapv3Parser } from "./uniswapv3";
-import { wethAddresses, wethParser } from "./weth";
-import { yearnAddresses, yearnParser } from "./yearn";
+import { app as argent } from "./argent";
+import { app as compound } from "./compound";
+import { app as erc20 } from "./erc20";
+import { app as etherdelta } from "./etherdelta";
+import { app as idle } from "./idle";
+import { app as maker } from "./maker";
+import { app as polygon } from "./polygon";
+import { app as quickswap } from "./quickswap";
+import { app as tornado } from "./tornado";
+import { app as uniswap } from "./uniswap";
+import { app as weth } from "./weth";
+import { app as yearn } from "./yearn";
 
 export const aaveParser = aave.parser;
-
-export { argentParser } from "./argent";
-export { compoundParser } from "./compound";
-export { erc20Parser } from "./erc20";
-export { etherdeltaParser } from "./etherdelta";
-export { idleParser } from "./idle";
-export { makerParser } from "./maker";
-export { oasisParser } from "./oasis";
-export { polygonParser } from "./polygon";
-export { quickswapParser } from "./quickswap";
-export { tornadoParser } from "./tornado";
-export { uniswapParser } from "./uniswap";
-export { uniswapv3Parser } from "./uniswapv3";
-export { wethParser } from "./weth";
-export { yearnParser } from "./yearn";
+export const argentParser = argent.parser;
+export const compoundParser = compound.parser;
+export const erc20Parser = erc20.parser;
+export const etherdeltaParser = etherdelta.parser;
+export const idleParser = idle.parser;
+export const makerParser = maker.parser;
+export const oasisParser = maker.oasisParser;
+export const polygonParser = polygon.parser;
+export const quickswapParser = quickswap.parser;
+export const tornadoParser = tornado.parser;
+export const uniswapParser = uniswap.parser;
+export const uniswapV3Parser = uniswap.uniswapV3Parser;
+export const wethParser = weth.parser;
+export const yearnParser = yearn.parser;
 
 export const appAddresses = [
   ...aave.addresses,
-  ...argentAddresses,
-  ...compoundAddresses,
-  ...etherdeltaAddresses,
-  ...idleAddresses,
-  ...erc20Addresses,
-  ...makerAddresses,
-  ...oasisAddresses,
-  ...polygonAddresses,
-  ...quickswapAddresses,
-  ...tornadoAddresses,
-  ...uniswapAddresses,
-  ...uniswapv3Addresses,
-  ...wethAddresses,
-  ...yearnAddresses,
+  ...argent.addresses,
+  ...compound.addresses,
+  ...etherdelta.addresses,
+  ...idle.addresses,
+  ...erc20.addresses,
+  ...maker.addresses,
+  ...polygon.addresses,
+  ...quickswap.addresses,
+  ...tornado.addresses,
+  ...uniswap.addresses,
+  ...weth.addresses,
+  ...yearn.addresses,
 ];
 
 // Order matters!
@@ -54,15 +49,15 @@ export const appAddresses = [
 export const appParsers = [
   erc20Parser,
   wethParser,
-  oasisParser,
   polygonParser,
   quickswapParser,
   makerParser,
+  oasisParser,
   compoundParser,
   aave.parser,
   etherdeltaParser,
   uniswapParser,
-  uniswapv3Parser,
+  uniswapV3Parser,
   idleParser,
   yearnParser,
   tornadoParser,

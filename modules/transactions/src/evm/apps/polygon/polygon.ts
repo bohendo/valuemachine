@@ -18,7 +18,8 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = "Polygon";
+export const appName = "Polygon";
+
 const { MATIC, ETH, WETH } = Assets;
 
 ////////////////////////////////////////
@@ -70,13 +71,13 @@ export const polygonParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: source });
+  const log = logger.child({ module: appName });
   const { getName, isToken, getDecimals } = addressBook;
   const addressZero = `${evmMeta.name}/${AddressZero}`; 
 
   if (getName(evmTx.to) === ZapperPolygonBridge) {
     const account = evmTx.from;
-    tx.sources = dedup([source, ...tx.sources]);
+    tx.sources = dedup([appName, ...tx.sources]);
     tx.method = `Zap to Polygon`;
     log.info(`Parsing ${tx.method}`);
 
@@ -199,7 +200,7 @@ export const polygonParser = (
     for (const txLog of evmTx.logs) {
       const address = txLog.address;
       if (polygonAddresses.map(e => e.address).includes(address)) {
-        tx.sources = dedup([source, ...tx.sources]);
+        tx.sources = dedup([appName, ...tx.sources]);
         const name = getName(address);
         const event = parseEvent(plasmaBridgeAbi, txLog, evmMeta);
         if (event?.name === "NewDepositBlock") {

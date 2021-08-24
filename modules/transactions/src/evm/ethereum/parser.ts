@@ -20,7 +20,7 @@ import {
   quickswapParser,
   tornadoParser,
   uniswapParser,
-  uniswapv3Parser,
+  uniswapV3Parser,
   wethParser,
   yearnParser,
 } from "../apps";
@@ -48,7 +48,7 @@ export const parseEthTx = (
       aaveParser,
       etherdeltaParser,
       uniswapParser,
-      uniswapv3Parser,
+      uniswapV3Parser,
       idleParser,
       yearnParser,
       tornadoParser,

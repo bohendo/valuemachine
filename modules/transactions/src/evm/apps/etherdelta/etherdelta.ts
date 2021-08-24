@@ -20,7 +20,8 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = "EtherDelta";
+export const appName = "EtherDelta";
+
 const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 
 ////////////////////////////////////////
@@ -28,10 +29,10 @@ const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategori
 
 // Simple, standalone tokens only. App-specific tokens can be found in that app's parser.
 export const etherdeltaAddresses = [
-  { name: source, address: "Ethereum/0x8d12a197cb00d4747a1fe03395095ce2a5cc6819" },
+  { name: appName, address: "Ethereum/0x8d12a197cb00d4747a1fe03395095ce2a5cc6819" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
-const etherdeltaAddress = etherdeltaAddresses.find(e => e.name === source).address;
+const etherdeltaAddress = etherdeltaAddresses.find(e => e.name === appName).address;
 
 ////////////////////////////////////////
 /// ABIs
@@ -54,7 +55,7 @@ export const etherdeltaParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
 
   const { getDecimals, getName, isSelf } = addressBook;
 
@@ -73,16 +74,16 @@ export const etherdeltaParser = (
         undefined,
       );
       if (!user) {
-        log.debug(`Skipping ${source} ${event.name} that doesn't involve us`);
+        log.debug(`Skipping ${appName} ${event.name} that doesn't involve us`);
         continue;
       }
-      tx.sources = dedup([source, ...tx.sources]);
-      const account = insertVenue(user, source);
+      tx.sources = dedup([appName, ...tx.sources]);
+      const account = insertVenue(user, appName);
 
       if (event.name === "Deposit" || event.name === "Withdraw") {
         const asset = getAsset(event.args.token);
         const quantity = formatUnits(event.args.amount, getDecimals(event.args.token));
-        log.info(`Parsing ${source} ${event.name} of ${quantity} ${asset}`);
+        log.info(`Parsing ${appName} ${event.name} of ${quantity} ${asset}`);
         const transfer = tx.transfers.find(transfer =>
           ([Income, Expense, Deposit, Withdraw] as string[]).includes(transfer.category)
           && transfer.asset === asset
@@ -99,23 +100,23 @@ export const etherdeltaParser = (
             tx.method = event.name;
           }
         } else {
-          log.warn(`Unable to find a ${source} transfer of ${quantity} ${asset}`);
+          log.warn(`Unable to find a ${appName} transfer of ${quantity} ${asset}`);
         }
 
       } else if (event.name === "Trade") {
-        log.info(`Parsing ${source} ${event.name}`);
+        log.info(`Parsing ${appName} ${event.name}`);
         const swapOut = {
           asset: getAsset(event.args.tokenGet),
           category: SwapOut,
           from: account,
           index,
           quantity: formatUnits(event.args.amountGet, getDecimals(event.args.tokenGet)),
-          to: source,
+          to: appName,
         };
         const swapIn = {
           asset: getAsset(event.args.tokenGive),
           category: SwapIn,
-          from:  source,
+          from:  appName,
           index,
           quantity: formatUnits(event.args.amountGive, getDecimals(event.args.tokenGiv)),
           to: account,
@@ -125,13 +126,13 @@ export const etherdeltaParser = (
         tx.method = "Trade";
 
       } else {
-        log.warn(event, `Skipping ${source} ${event.name} event bc idk how to handle it`);
+        log.warn(event, `Skipping ${appName} ${event.name} event bc idk how to handle it`);
       }
 
     }
   }
 
-  // log.debug(tx, `Done parsing ${source}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };
 

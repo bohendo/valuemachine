@@ -17,6 +17,8 @@ import {
 
 import { parseEvent } from "../utils";
 
+export const appName = "Uniswap";
+
 const { UNI,
   UniV2_1INCH_ETH, UniV2_AAVE_ETH, UniV2_COMP_ETH, UniV2_CREAM_ETH, UniV2_DAI_ETH, UniV2_DAI_USDC,
   UniV2_DPI_ETH, UniV2_ESD_USDC, UniV2_ETH_AMPL, UniV2_ETH_cDAI, UniV2_ETH_CHERRY, UniV2_ETH_CRV,
@@ -27,7 +29,6 @@ const { UNI,
   UniV2_USDC_GRT, UniV2_USDC_USDT, UniV2_WBTC_ETH, UniV2_WBTC_USDC, UniV2_WDOGE_ETH, UniV2_YFI_ETH,
 } = Assets;
 const { Income, Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
-const source = "Uniswap";
 
 ////////////////////////////////////////
 /// Addresses
@@ -193,7 +194,7 @@ export const uniswapParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
   const getSwaps = () => {
@@ -220,21 +221,21 @@ export const uniswapParser = (
   )) {
     const address = txLog.address;
     const index = txLog.index || 1;
-    tx.sources = dedup([source, ...tx.sources]);
+    tx.sources = dedup([appName, ...tx.sources]);
 
     // Parse events
     let subsrc, event;
     if (v2MarketAddresses.some(e => e.address === address)) {
-      subsrc = `${source}V2`;
+      subsrc = `${appName}V2`;
       event = parseEvent(uniswapV2Abi, txLog, evmMeta);
     } else if (v1MarketAddresses.some(e => e.address === address)) {
-      subsrc = `${source}V1`;
+      subsrc = `${appName}V1`;
       event = parseEvent(uniswapV1Abi, txLog, evmMeta);
     } else if (stakingAddresses.some(e => e.address === address)) {
-      subsrc = `${source}V2`;
+      subsrc = `${appName}V2`;
       event = parseEvent(stakingAbi, txLog, evmMeta);
     } else if (airdropAddresses.some(e => e.address === address)) {
-      subsrc = `${source}V2`;
+      subsrc = `${appName}V2`;
       event = parseEvent(airdropAbi, txLog, evmMeta);
     } else {
       log.debug(`Skipping ${getName(address)} event`);
@@ -309,7 +310,7 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      const account = insertVenue(deposit.from, source);
+      const account = insertVenue(deposit.from, appName);
       deposit.category = Deposit;
       deposit.to = account;
       tx.method = "Deposit";
@@ -328,7 +329,7 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      const account = insertVenue(withdraw.to, source);
+      const account = insertVenue(withdraw.to, appName);
       withdraw.category = Withdraw;
       withdraw.from = account;
       tx.method = "Withdraw";
@@ -338,6 +339,6 @@ export const uniswapParser = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${source}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };

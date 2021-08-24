@@ -18,7 +18,8 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = "Idle";
+export const appName = "Idle";
+
 const { Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 const {
   IDLE, idleDAISafe, idleDAIYield, idleRAIYield, idleSUSDYield, idleTUSDYield,
@@ -93,7 +94,7 @@ export const idleParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: source });
+  const log = logger.child({ module: appName });
   const { isSelf } = addressBook;
 
   for (const txLog of evmTx.logs) {
@@ -103,7 +104,7 @@ export const idleParser = (
     ////////////////////
     // Stake/Unstake
     if (govAddresses.some(e => e.address === address)) {
-      tx.sources = dedup([source, ...tx.sources]);
+      tx.sources = dedup([appName, ...tx.sources]);
       const name = addressBook.getName(address);
       if (name === stkIDLE) {
         const event = parseEvent(stkIDLEAbi, txLog, evmMeta);
@@ -149,7 +150,7 @@ export const idleParser = (
     ////////////////////
     // Deposit/Withdraw
     } else if (marketAddresses.some(e => e.address === address)) {
-      tx.sources = dedup([source, ...tx.sources]);
+      tx.sources = dedup([appName, ...tx.sources]);
       log.info(`Found interaction with Idle ${addressBook.getName(address)}`);
 
       const underlyingAsset = idleToToken(addressBook.getName(address));

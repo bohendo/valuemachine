@@ -18,7 +18,8 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = "Yearn";
+export const appName = "Yearn";
+
 const { Internal, Deposit, Withdraw, SwapOut, SwapIn } = TransferCategories;
 const { YFI,
   yBUSDv3, yDAIv2, yDAIv3, ysUSDTv2, yTUSDv2,
@@ -220,14 +221,14 @@ export const yearnParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
 
     if (yTokens.some(yToken => yToken.address === address)) {
-      tx.sources = dedup([source, ...tx.sources]);
+      tx.sources = dedup([appName, ...tx.sources]);
       const yTransfer = tx.transfers.find(t => t.asset === getName(address));
       if (!yTransfer) {
         log.warn(`Can't find a transfer for ${getName(address)}`);
@@ -267,12 +268,12 @@ export const yearnParser = (
       }
 
     } else if (address === govAddress) {
-      tx.sources = dedup([source, ...tx.sources]);
+      tx.sources = dedup([appName, ...tx.sources]);
       const event = parseEvent(yGovAbi, txLog, evmMeta);
       if (!event.name) continue;
       log.info(`Parsing yGov ${event.name}`);
       if (event.name === "Staked") {
-        const account = insertVenue(event.args.user, `${source}-Gov`);
+        const account = insertVenue(event.args.user, `${appName}-Gov`);
         const deposit = tx.transfers.find(t => t.asset === YFI && t.to === govAddress);
         if (deposit) {
           deposit.category = Deposit;
@@ -283,7 +284,7 @@ export const yearnParser = (
         }
 
       } else if (event.name === "Withdrawn") {
-        const account = insertVenue(event.args.user, `${source}-Gov`);
+        const account = insertVenue(event.args.user, `${appName}-Gov`);
         const withdraw = tx.transfers.find(t => t.asset === YFI && t.from === govAddress);
         if (withdraw) {
           withdraw.category = Withdraw;
@@ -300,6 +301,6 @@ export const yearnParser = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${source}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };

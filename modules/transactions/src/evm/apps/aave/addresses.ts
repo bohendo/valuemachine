@@ -7,34 +7,36 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
+import { assets } from "./assets";
+
 const { Polygon, Ethereum } = Guards;
 
 // https://docs.aave.com/developers/deployed-contracts/deployed-contracts
 
 const erc20Addresses = [{
   address: `${Polygon}/0xD6DF932A45C0f255f85145f286eA0b292B21C90B`,
-  name: Assets.AAVE,
+  name: assets.AAVE,
 }, {
   address: `${Ethereum}/0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9`,
-  name: Assets.AAVE,
+  name: assets.AAVE,
 }, {
   address: `${Polygon}/0x1d2a0E5EC8E5bBDCA5CB219e649B565d8e5c3360`,
-  name: Assets.amAAVE,
+  name: assets.amAAVE,
 }, {
   address: `${Polygon}/0x27F8D03b3a2196956ED754baDc28D73be8830A6e`,
-  name: Assets.amDAI,
+  name: assets.amDAI,
 }, {
   address: `${Polygon}/0x1a13F4Ca1d028320A707D99520AbFefca3998b7F`,
-  name: Assets.amUSDC,
+  name: assets.amUSDC,
 }, {
   address: `${Polygon}/0x60D55F02A771d515e077c9C2403a1ef324885CeC`,
-  name: Assets.amUSDT,
+  name: assets.amUSDT,
 }, {
   address: `${Polygon}/0x28424507fefb6f7f8E9D3860F56504E4e5f5f390`,
-  name: Assets.amWETH,
+  name: assets.amWETH,
 }, {
   address: `${Polygon}/0x5c2ed810328349100A66B82b78a1791B101C9D61`,
-  name: Assets.amWBTC,
+  name: assets.amWBTC,
 }, {
   address: `${Polygon}/0x8dF3aad3a84da6b69A4DA8aeC3eA40d9091B2Ac4`,
   name: Assets.amMATIC,

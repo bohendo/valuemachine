@@ -12,7 +12,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-const source = "UniswapV3";
+export const appName = "UniswapV3";
 
 ////////////////////////////////////////
 /// Addresses
@@ -26,7 +26,7 @@ const marketAddresses = [
   { name: "UniV3_ETH_USDT", address: "Ethereum/0x11b815efB8f581194ae79006d24E0d814B7697F6" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
-export const uniswapv3Addresses = [
+export const uniswapV3Addresses = [
   ...marketAddresses,
   ...routerAddresses,
 ];
@@ -34,7 +34,7 @@ export const uniswapv3Addresses = [
 ////////////////////////////////////////
 /// Parser
 
-export const uniswapv3Parser = (
+export const uniswapV3Parser = (
   tx: Transaction,
   _evmTx: EvmTransaction,
   _evmMeta: EvmMetadata,
@@ -46,13 +46,13 @@ export const uniswapv3Parser = (
     const toName = addressBook.getName(transfer.to);
     if (fromName.startsWith("Uni") && fromName.includes("V3")) {
       transfer.category = TransferCategories.SwapIn;
-      tx.method = source;
-      tx.sources = dedup([...tx.sources, source]);
+      tx.method = appName;
+      tx.sources = dedup([...tx.sources, appName]);
     }
     if (toName.startsWith("Uni") && toName.includes("V3")) {
       transfer.category = TransferCategories.SwapOut;
-      tx.method = source;
-      tx.sources = dedup([...tx.sources, source]);
+      tx.method = appName;
+      tx.sources = dedup([...tx.sources, appName]);
     }
   });
   return tx;

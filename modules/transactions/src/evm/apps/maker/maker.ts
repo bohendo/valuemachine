@@ -30,10 +30,10 @@ import {
 
 import { diffAsc, parseEvent } from "../utils";
 
+export const appName = "Maker";
+
 const { DAI, ETH, MKR, PETH, SAI, WETH } = Assets;
 const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
-
-const source = "Maker";
 
 ////////////////////////////////////////
 /// Addresses
@@ -217,7 +217,7 @@ export const makerParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const addressZero = `${evmMeta.name}/${AddressZero}`; 
   const { getDecimals, getName, isSelf } = addressBook;
   // log.debug(tx, `Parsing in-progress tx`);
@@ -225,13 +225,13 @@ export const makerParser = (
   const ethish = [WETH, ETH, PETH] as Asset[];
 
   if (machineAddresses.some(e => e.address === evmTx.to)) {
-    tx.sources = dedup([source, ...tx.sources]);
+    tx.sources = dedup([appName, ...tx.sources]);
   }
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
   if (evmTx.to === migrationAddress) {
-    tx.sources = dedup([source, ...tx.sources]);
+    tx.sources = dedup([appName, ...tx.sources]);
     const swapOut = tx.transfers.find(t => t.asset === SAI);
     const swapIn = tx.transfers.find(t => t.asset === DAI);
     if (swapOut) {
@@ -258,7 +258,7 @@ export const makerParser = (
     const address = txLog.address;
     const index = txLog.index || 1;
     if (machineAddresses.some(e => e.address === address)) {
-      tx.sources = dedup([source, ...tx.sources]);
+      tx.sources = dedup([appName, ...tx.sources]);
     }
     if (tokenAddresses.some(e => e.address === address)) {
       const asset = getName(address) as Asset;
@@ -351,7 +351,7 @@ export const makerParser = (
           log.warn(`Vat.${logNote.name}: Can't find a token address for ilk ${logNote.args[0]}`);
           continue;
         }
-        const vault = `${source}-Vault-${logNote.args[0].replace(/0+$/, "")}`;
+        const vault = `${appName}-Vault-${logNote.args[0].replace(/0+$/, "")}`;
         const wad = formatUnits(
           toBN(logNote.args[2] || "0x00").fromTwos(256),
           getDecimals(assetAddress),
@@ -381,7 +381,7 @@ export const makerParser = (
 
       // Borrow/Repay DAI
       } else if (logNote.name === "frob") {
-        const vault = `${source}-Vault-${logNote.args[0].replace(/0+$/, "")}`;
+        const vault = `${appName}-Vault-${logNote.args[0].replace(/0+$/, "")}`;
         const dart = formatUnits(toBN(logNote.args[5] || "0x00").fromTwos(256));
         if (eq(dart, "0")) {
           log.debug(`Vat.${logNote.name}: Skipping zero-value change in ${vault} debt`);
@@ -425,7 +425,7 @@ export const makerParser = (
         );
         if (deposit) {
           deposit.category = Deposit;
-          deposit.to = insertVenue(deposit.from, `${source}-DSR`);
+          deposit.to = insertVenue(deposit.from, `${appName}-DSR`);
           tx.method = "Deposit";
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI expense of about ${wad}`);
@@ -440,7 +440,7 @@ export const makerParser = (
         );
         if (withdraw) {
           withdraw.category = Withdraw;
-          withdraw.from = insertVenue(withdraw.to, `${source}-DSR`);
+          withdraw.from = insertVenue(withdraw.to, `${appName}-DSR`);
           tx.method = "Withdraw";
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI income of about ${wad}`);
@@ -550,7 +550,7 @@ export const makerParser = (
 
       // PETH -> CDP: Categorize PETH transfer as deposit
       } else if (logNote.name === "lock") {
-        const cdp = `${source}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
@@ -568,7 +568,7 @@ export const makerParser = (
 
       // PETH <- CDP: Categorize PETH transfer as withdraw
       } else if (logNote.name === "free") {
-        const cdp = `${source}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
@@ -596,7 +596,7 @@ export const makerParser = (
 
       // SAI <- CDP
       } else if (logNote.name === "draw") {
-        const cdp = `${source}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const borrow = tx.transfers.filter(t =>
           isSelf(t.to)
@@ -618,7 +618,7 @@ export const makerParser = (
 
       // SAI -> CDP
       } else if (logNote.name === "wipe") {
-        const cdp = `${source}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const repay = tx.transfers.filter(t =>
           t.asset === SAI && ([Expense, Repay] as string[]).includes(t.category)
@@ -654,6 +654,6 @@ export const makerParser = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${source}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };

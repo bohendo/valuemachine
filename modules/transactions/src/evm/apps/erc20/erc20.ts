@@ -18,7 +18,8 @@ import {
 
 import { parseEvent } from "../utils";
 
-const source = "ERC20";
+export const appName = "ERC20";
+
 const {
   BAT, CHERRY, GEN, GNO, GRT, OMG, REP, REPv2, SNT,
   SNX, SPANK, sUSD, USDC, USDT, WBTC, ZRX,
@@ -104,7 +105,7 @@ export const erc20Parser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf, isToken } = addressBook;
 
   for (const txLog of evmTx.logs) {
@@ -113,7 +114,7 @@ export const erc20Parser = (
     if (isToken(address)) {
       const event = parseEvent(erc20Abi, txLog, evmMeta);
       if (!event.name) continue;
-      tx.sources = dedup([source, ...tx.sources]);
+      tx.sources = dedup([appName, ...tx.sources]);
       const asset = getName(address) as Asset;
       // Skip transfers that don't concern self accounts
       if (!isSelf(event.args.from) && !isSelf(event.args.to)) {
@@ -123,7 +124,7 @@ export const erc20Parser = (
       const amount = formatUnits(event.args.amount, getDecimals(address));
 
       if (event.name === "Transfer") {
-        log.info(`Parsing ${source} ${event.name} of ${amount} ${asset}`);
+        log.info(`Parsing ${appName} ${event.name} of ${amount} ${asset}`);
         const from = event.args.from.endsWith(AddressZero) ? address : event.args.from;
         const to = event.args.to.endsWith(AddressZero) ? address : event.args.to;
         const category = isSelf(from) && isSelf(to) ? Internal
@@ -136,7 +137,7 @@ export const erc20Parser = (
         }
 
       } else if (event.name === "Approval") {
-        log.debug(`Parsing ${source} ${event.name} event for ${asset}`);
+        log.debug(`Parsing ${appName} ${event.name} event for ${asset}`);
         if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
@@ -148,6 +149,6 @@ export const erc20Parser = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${source}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };

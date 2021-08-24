@@ -16,9 +16,10 @@ import {
 
 import { parseEvent } from "../utils";
 
+export const appName = "Weth";
+
 const { ETH, WETH } = Assets;
 const { SwapIn, SwapOut } = TransferCategories;
-const source = "Weth";
 
 ////////////////////////////////////////
 /// Addresses
@@ -49,7 +50,7 @@ export const wethParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, isSelf } = addressBook;
 
   for (const txLog of evmTx.logs) {
@@ -66,9 +67,9 @@ export const wethParser = (
           log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
           continue;
         } else {
-          log.info(`Parsing ${source} ${event.name} of amount ${amount}`);
+          log.info(`Parsing ${appName} ${event.name} of amount ${amount}`);
         }
-        tx.sources = dedup([source, ...tx.sources]);
+        tx.sources = dedup([appName, ...tx.sources]);
         tx.transfers.push({
           asset,
           category: SwapIn,
@@ -104,9 +105,9 @@ export const wethParser = (
           log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
           continue;
         } else {
-          log.info(`Parsing ${source} ${event.name} of amount ${amount}`);
+          log.info(`Parsing ${appName} ${event.name} of amount ${amount}`);
         }
-        tx.sources = dedup([source, ...tx.sources]);
+        tx.sources = dedup([appName, ...tx.sources]);
         tx.transfers.push({
           asset,
           category: SwapOut,
@@ -138,14 +139,14 @@ export const wethParser = (
         }
 
       } else if (event.name === "Transfer" || event.name === "Approval") {
-        log.debug(`Skipping ${source} ${event.name} that was already processed`);
+        log.debug(`Skipping ${appName} ${event.name} that was already processed`);
       } else {
-        log.warn(`Unknown ${source} event`);
+        log.warn(`Unknown ${appName} event`);
       }
 
     }
   }
 
-  // log.debug(tx, `Done parsing ${source}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };

@@ -22,7 +22,7 @@ import { parseEvent } from "../utils";
 
 const { ETH, WETH } = Assets;
 const { Income, Expense, SwapIn, SwapOut } = TransferCategories;
-const source = "Oasis";
+export const appName = "Oasis";
 
 ////////////////////////////////////////
 /// Addresses
@@ -75,7 +75,7 @@ export const oasisParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isCategory, isSelf } = addressBook;
 
   const isSelfy = (address: string): boolean =>
@@ -97,11 +97,11 @@ export const oasisParser = (
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (machineAddresses.some(e => e.address === address)) {
-      tx.sources = dedup([source, ...tx.sources]);
+      tx.sources = dedup([appName, ...tx.sources]);
       const event = parseEvent(oasisAbi, txLog, evmMeta);
 
       if (event.name === "LogTake") {
-        log.info(`Parsing ${source} ${event.name} event`);
+        log.info(`Parsing ${appName} ${event.name} event`);
         let inAmt, inGem, outAmt, outGem;
         // evmTx.to might be a proxy which counts as self as far as this logic is concerned
         if (isSelfy(event.args.maker)) {
@@ -149,13 +149,13 @@ export const oasisParser = (
         inTotal = add(inTotal, inAmt);
         outTotal = add(outTotal, outAmt);
       } else {
-        log.debug(`Skipping ${source} ${event.name || "Unknown"} event`);
+        log.debug(`Skipping ${appName} ${event.name || "Unknown"} event`);
       }
 
     }
   }
 
-  if (!tx.sources.includes(source)) {
+  if (!tx.sources.includes(appName)) {
     return tx;
   }
 
@@ -173,7 +173,7 @@ export const oasisParser = (
   }
   tx.method = "Trade";
 
-  // log.debug(tx, `Done parsing ${source}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };
 

@@ -24,7 +24,7 @@ import {
 
 import { parseEvent } from "../utils";
 
-export const source = "Compound";
+export const appName = "Compound";
 const {
   COMP, cBAT, cCOMP, cDAI, cETH, cREP, cSAI, cUNI, cUSDC, cUSDT, cWBTC, cWBTCv2, cZRX
 } = Assets;
@@ -130,7 +130,7 @@ export const compoundParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${source}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf } = addressBook;
 
   // TODO: how could we not hardcode these again & also not introduce cyclic dependencies?
@@ -153,20 +153,20 @@ export const compoundParser = (
   };
 
   if (compoundAddresses.some(e => e.address === evmTx.to)) {
-    tx.sources = dedup([source, ...tx.sources]);
+    tx.sources = dedup([appName, ...tx.sources]);
   }
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     const contract = txLog.address;
     if (compoundAddresses.some(e => e.address === address)) {
-      tx.sources = dedup([source, ...tx.sources]);
+      tx.sources = dedup([appName, ...tx.sources]);
     }
 
     ////////////////////////////////////////
     // Compound V1
     if (address === compoundV1Address) {
-      const subsrc = `${source}-v1`;
+      const subsrc = `${appName}-v1`;
       const event = parseEvent(compoundV1Abi, txLog, evmMeta);
       log.info(`Found ${subsrc} ${event.name} event`);
       const amount = formatUnits(event.args.amount, getDecimals(event.args.asset));
@@ -356,12 +356,12 @@ export const compoundParser = (
 
 
       } else {
-        log.debug(`Skipping ${source} ${event.name} event`);
+        log.debug(`Skipping ${appName} ${event.name} event`);
       }
 
     }
   }
 
-  // log.debug(tx, `Done parsing ${source}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };

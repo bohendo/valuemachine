@@ -34,30 +34,8 @@ export const ChainSources = {
 export const ChainSource = Type.String(); // Extensible
 export type ChainSource = Static<typeof ChainSource>;
 
-// TODO: move these definitiions to modules/transactions/src/evm/apps
-// Solidity-based evm apps, might exist on multiple chains
-export const EvmSources = {
-  Aave: "Aave",
-  Argent: "Argent",
-  Compound: "Compound",
-  ERC20: "ERC20",
-  EtherDelta: "EtherDelta",
-  Idle: "Idle",
-  Maker: "Maker",
-  Oasis: "Oasis",
-  Polygon: "Polygon", // rename to bridge?
-  Quickswap: "Quickswap",
-  Tornado: "Tornado",
-  Uniswap: "Uniswap",
-  Weth: "Weth",
-  Yearn: "Yearn",
-} as const;
-export const EvmSource = Type.String(); // Extensible
-export type EvmSource = Static<typeof EvmSource>;
-
 export const TransactionSources = {
   ...CsvSources,
-  ...EvmSources,
   ...ChainSources,
 } as const;
 export const TransactionSource = Type.String();
@@ -89,12 +67,12 @@ export const Transfer = Type.Object({
 export type Transfer = Static<typeof Transfer>;
 
 export const Transaction = Type.Object({
+  apps: Type.Array(Type.String()),
   date: TimestampString,
-  method: Type.Optional(Type.String()), // improves human-readability
   hash: Type.Optional(Bytes32), // add guard prefix to convert to uuid??
   index: Type.Optional(Type.Number()),
+  method: Type.Optional(Type.String()), // improves human-readability
   sources: Type.Array(TransactionSource),
-  // guards: Type.Array(TransactionSource),
   transfers: Type.Array(Transfer),
 });
 export type Transaction = Static<typeof Transaction>;
