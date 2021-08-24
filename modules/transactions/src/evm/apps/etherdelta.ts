@@ -15,10 +15,11 @@ import {
 } from "@valuemachine/types";
 import {
   dedup,
+  insertVenue,
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { getAppAccount, parseEvent } from "../utils";
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.EtherDelta;
 const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
@@ -77,7 +78,7 @@ export const etherdeltaParser = (
         continue;
       }
       tx.sources = dedup([source, ...tx.sources]);
-      const account = getAppAccount(user, source);
+      const account = insertVenue(user, source);
 
       if (event.name === "Deposit" || event.name === "Withdraw") {
         const asset = getAsset(event.args.token);

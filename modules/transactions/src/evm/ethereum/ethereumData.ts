@@ -408,7 +408,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       addressBook,
       logger,
       extraParsers,
-    )).sort(chrono);
+    )).filter(tx => tx.transfers?.length).sort(chrono);
   };
 
   const getTransaction = (

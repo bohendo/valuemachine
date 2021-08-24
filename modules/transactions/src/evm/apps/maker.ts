@@ -18,17 +18,18 @@ import {
 } from "@valuemachine/types";
 import {
   abs,
+  dedup,
   div,
   eq,
   gt,
-  dedup,
+  insertVenue,
   round,
   setAddressCategory,
   toBN,
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { diffAsc, getAppAccount, parseEvent } from "../utils";
+import { diffAsc, parseEvent } from "../utils";
 
 const { DAI, ETH, MKR, PETH, SAI, WETH } = Assets;
 const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
@@ -351,7 +352,7 @@ export const makerParser = (
           log.warn(`Vat.${logNote.name}: Can't find a token address for ilk ${logNote.args[0]}`);
           continue;
         }
-        const vault = `${source}-Vault/${logNote.args[0]}`;
+        const vault = `${source}-Vault-${logNote.args[0].replace(/0+$/, "")}`;
         const wad = formatUnits(
           toBN(logNote.args[2] || "0x00").fromTwos(256),
           getDecimals(assetAddress),
@@ -368,11 +369,11 @@ export const makerParser = (
         if (transfer) {
           if (gt(wad, "0")) {
             transfer.category = Deposit;
-            transfer.to = getAppAccount(transfer.from, vault);
+            transfer.to = insertVenue(transfer.from, vault);
             tx.method = "Deposit";
           } else {
             transfer.category = Withdraw;
-            transfer.from = getAppAccount(transfer.to, vault);
+            transfer.from = insertVenue(transfer.to, vault);
             tx.method = "Withdraw";
           }
         } else {
@@ -381,7 +382,7 @@ export const makerParser = (
 
       // Borrow/Repay DAI
       } else if (logNote.name === "frob") {
-        const vault = `${source}-Vault/${logNote.args[0]}`;
+        const vault = `${source}-Vault-${logNote.args[0].replace(/0+$/, "")}`;
         const dart = formatUnits(toBN(logNote.args[5] || "0x00").fromTwos(256));
         if (eq(dart, "0")) {
           log.debug(`Vat.${logNote.name}: Skipping zero-value change in ${vault} debt`);
@@ -395,11 +396,11 @@ export const makerParser = (
         if (transfer) {
           if (gt(dart, "0")) {
             transfer.category = Borrow;
-            transfer.from = getAppAccount(transfer.to, vault);
+            transfer.from = insertVenue(transfer.to, vault);
             tx.method = "Borrow";
           } else {
             transfer.category = Repay;
-            transfer.to = getAppAccount(transfer.from, vault);
+            transfer.to = insertVenue(transfer.from, vault);
             tx.method = "Repayment";
           }
         } else {
@@ -425,7 +426,7 @@ export const makerParser = (
         );
         if (deposit) {
           deposit.category = Deposit;
-          deposit.to = getAppAccount(deposit.from, `${source}/DSR`);
+          deposit.to = insertVenue(deposit.from, `${source}-DSR`);
           tx.method = "Deposit";
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI expense of about ${wad}`);
@@ -440,7 +441,7 @@ export const makerParser = (
         );
         if (withdraw) {
           withdraw.category = Withdraw;
-          withdraw.from = getAppAccount(withdraw.to, `${source}/DSR`);
+          withdraw.from = insertVenue(withdraw.to, `${source}-DSR`);
           tx.method = "Withdraw";
         } else {
           log.warn(`Pot.${logNote.name}: Can't find a DAI income of about ${wad}`);
@@ -550,7 +551,7 @@ export const makerParser = (
 
       // PETH -> CDP: Categorize PETH transfer as deposit
       } else if (logNote.name === "lock") {
-        const cdp = `${source}-CDP/${toBN(logNote.args[1])}`;
+        const cdp = `${source}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
@@ -560,7 +561,7 @@ export const makerParser = (
         ).sort(diffAsc(wad))[0];
         if (transfer) {
           transfer.category = Deposit;
-          transfer.to = getAppAccount(transfer.from, cdp);
+          transfer.to = insertVenue(transfer.from, cdp);
           tx.method = "Deposit";
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a P/W/ETH transfer of about ${wad}`);
@@ -568,7 +569,7 @@ export const makerParser = (
 
       // PETH <- CDP: Categorize PETH transfer as withdraw
       } else if (logNote.name === "free") {
-        const cdp = `${source}-CDP/${toBN(logNote.args[1])}`;
+        const cdp = `${source}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
@@ -588,7 +589,7 @@ export const makerParser = (
         const transfer = transfers[0];
         if (transfer) {
           transfer.category = Withdraw;
-          transfer.from = getAppAccount(transfer.to, cdp);
+          transfer.from = insertVenue(transfer.to, cdp);
           tx.method = "Withdraw";
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a PETH transfer of about ${wad}`);
@@ -596,7 +597,7 @@ export const makerParser = (
 
       // SAI <- CDP
       } else if (logNote.name === "draw") {
-        const cdp = `${source}-CDP/${toBN(logNote.args[1])}`;
+        const cdp = `${source}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const borrow = tx.transfers.filter(t =>
           isSelf(t.to)
@@ -605,7 +606,7 @@ export const makerParser = (
         ).sort(diffAsc(wad))[0];
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = getAppAccount(borrow.to, cdp);
+          borrow.from = insertVenue(borrow.to, cdp);
           tx.method = "Borrow";
         } else if (!evmTx.logs.find(l =>
           l.index > index
@@ -618,14 +619,14 @@ export const makerParser = (
 
       // SAI -> CDP
       } else if (logNote.name === "wipe") {
-        const cdp = `${source}-CDP/${toBN(logNote.args[1])}`;
+        const cdp = `${source}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const repay = tx.transfers.filter(t =>
           t.asset === SAI && ([Expense, Repay] as string[]).includes(t.category)
         ).sort(diffAsc(wad))[0];
         if (repay) {
           repay.category = Repay;
-          repay.to = getAppAccount(repay.from, cdp);
+          repay.to = insertVenue(repay.from, cdp);
           tx.method = "Repayment";
         } else if (!evmTx.logs.find(l =>
           l.index > index

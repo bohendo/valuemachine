@@ -13,6 +13,7 @@ import {
 import {
   assetsAreClose,
   dedup,
+  insertVenue,
   setAddressCategory,
 } from "@valuemachine/utils";
 
@@ -272,7 +273,7 @@ export const yearnParser = (
       if (!event.name) continue;
       log.info(`Parsing yGov ${event.name}`);
       if (event.name === "Staked") {
-        const account = `${evmMeta.name}/${source}-Gov:${event.args.user}`;
+        const account = insertVenue(event.args.user, `${source}-Gov`);
         const deposit = tx.transfers.find(t => t.asset === YFI && t.to === govAddress);
         if (deposit) {
           deposit.category = Deposit;
@@ -283,7 +284,7 @@ export const yearnParser = (
         }
 
       } else if (event.name === "Withdrawn") {
-        const account = `${evmMeta.name}/${source}-Gov:${event.args.user}`;
+        const account = insertVenue(event.args.user, `${source}-Gov`);
         const withdraw = tx.transfers.find(t => t.asset === YFI && t.from === govAddress);
         if (withdraw) {
           withdraw.category = Withdraw;

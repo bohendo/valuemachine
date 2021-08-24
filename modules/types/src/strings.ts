@@ -6,7 +6,7 @@ export type EvmAddress = Static<typeof Address>;
 export const Address = Type.Union([EvmAddress, Type.String()]);
 export type Address = Static<typeof Address>;
 
-// <guard>[/<venue>/<subvenue>]/address
+// <guard>[/<venue>]/address
 // eg Ethereum/0xabc123.. for simple on-chain accounts
 // eg Ethereum/Maker/CDP-123/0xabc123.. for on-chain deposits
 // eg USA/Coinbase/1 for off-chain trad fi services

@@ -14,9 +14,10 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
+  dedup,
   div,
   gt,
-  dedup,
+  insertVenue,
   setAddressCategory,
   sub,
   valuesAreClose,
@@ -166,12 +167,12 @@ export const compoundParser = (
     ////////////////////////////////////////
     // Compound V1
     if (address === compoundV1Address) {
-      const subsrc = `${source}V1`;
+      const subsrc = `${source}-v1`;
       const event = parseEvent(compoundV1Abi, txLog, evmMeta);
       log.info(`Found ${subsrc} ${event.name} event`);
       const amount = formatUnits(event.args.amount, getDecimals(event.args.asset));
       const asset = getName(event.args.asset) as Asset;
-      const account = `${source}-${event.args.account?.substring(0, 8)}`;
+      const account = insertVenue(event.args.account, subsrc);
 
       if (event.name === "SupplyReceived") {
         const oldBal = formatUnits(event.args.startingBalance, getDecimals(event.args.asset));

@@ -12,7 +12,7 @@ import {
 const source = TransactionSources.Compound;
 const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const logger = testLogger.child({ module: `Test${source}` }, {
-  // level: "info",
+  // level: "debug",
 });
 
 describe(source, () => {

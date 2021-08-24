@@ -7,13 +7,6 @@ import {
 } from "@valuemachine/types";
 import { diff, gt } from "@valuemachine/utils";
 
-export const getAppAccount = (address: string, app: string): string => {
-  if (!address || !app) return "";
-  const parts = address.split("/");
-  parts.splice(-1, 0, app);
-  return parts.join("/");
-};
-
 // Smallest difference is first, largest is last
 // If diff in 1 is greater than diff in 2, swap them
 export const diffAsc = (compareTo: DecimalString) => (t1: Transfer, t2: Transfer): number =>

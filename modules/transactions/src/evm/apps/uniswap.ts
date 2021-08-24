@@ -12,6 +12,7 @@ import {
 } from "@valuemachine/types";
 import {
   dedup,
+  insertVenue,
   setAddressCategory,
 } from "@valuemachine/utils";
 
@@ -309,7 +310,7 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      const account = `${evmMeta.name}/${source}-${getName(address)}:${deposit.from}`;
+      const account = insertVenue(deposit.from, source);
       deposit.category = Deposit;
       deposit.to = account;
       tx.method = "Deposit";
@@ -328,7 +329,7 @@ export const uniswapParser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      const account = `${evmMeta.name}/${source}-${getName(address)}:${withdraw.to}`;
+      const account = insertVenue(withdraw.to, source);
       withdraw.category = Withdraw;
       withdraw.from = account;
       tx.method = "Withdraw";

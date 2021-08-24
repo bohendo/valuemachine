@@ -266,7 +266,7 @@ export const getPolygonData = (params?: {
       metadata,
       addressBook,
       logger,
-    )).sort(chrono);
+    )).filter(tx => tx.transfers?.length).sort(chrono);
   };
 
   return {

@@ -13,10 +13,11 @@ import {
 } from "@valuemachine/types";
 import {
   dedup,
+  insertVenue,
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { getAppAccount, parseEvent } from "../utils";
+import { parseEvent } from "../utils";
 
 const source = TransactionSources.Idle;
 const { Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
@@ -107,7 +108,7 @@ export const idleParser = (
       const name = addressBook.getName(address);
       if (name === stkIDLE) {
         const event = parseEvent(stkIDLEAbi, txLog, evmMeta);
-        const account = getAppAccount(event.args.provider, stkIDLE);
+        const account = insertVenue(event.args?.provider, stkIDLE);
 
         if (event.name === "Deposit") {
           const value = formatUnits(

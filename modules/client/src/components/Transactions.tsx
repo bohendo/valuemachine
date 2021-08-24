@@ -77,7 +77,7 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
           if (!isEthSynced) {
             setSyncing(`Syncing Ethereum data for ${selfAddresses.length} addresses`);
             const resEth = await axios.post("/api/ethereum", { addressBook: addressBook.json });
-            console.log(`Got ${resEth.data.length} Eth transactions`);
+            console.log(`Got ${resEth.data.length} Eth transactions`, resEth.data);
             if (resEth.status === 200 && typeof(resEth.data) === "object") {
               newTransactions.merge(resEth.data);
               isEthSynced = true;

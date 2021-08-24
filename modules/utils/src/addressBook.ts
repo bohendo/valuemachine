@@ -1,5 +1,6 @@
 import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
 import {
+  Account,
   AddressBookJson,
   AddressCategory,
   AddressEntry,
@@ -39,6 +40,14 @@ export const fmtAddress = (address: string) => {
   } else {
     return isEvmAddress(address) ? getEvmAddress(address) : address;
   }
+};
+
+export const insertVenue = (account: Account, venue: string): string => {
+  if (!account) return "";
+  if (!venue) return account;
+  const parts = account.split("/");
+  parts.splice(-1, 0, venue);
+  return fmtAddress(parts.join("/"));
 };
 
 export const fmtAddressEntry = (entry: AddressEntry): AddressEntry => {

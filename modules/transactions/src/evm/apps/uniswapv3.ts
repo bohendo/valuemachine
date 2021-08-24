@@ -24,6 +24,7 @@ const routerAddresses = [
 
 const marketAddresses = [
   { name: "UniV3_MATIC_USDT", address: "Ethereum/0x972f43Bb94B76B9e2D036553d818879860b6A114" },
+  { name: "UniV3_ETH_USDT", address: "Ethereum/0x11b815efB8f581194ae79006d24E0d814B7697F6" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 export const uniswapv3Addresses = [
