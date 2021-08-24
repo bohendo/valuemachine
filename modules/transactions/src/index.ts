@@ -1,5 +1,6 @@
 export { getAddressBook } from "./addressBook";
 export {
+  AppNames,
   ethereumAddresses,
   getEthereumData,
   parseEvmTx,

@@ -13,16 +13,15 @@ import {
 } from "@valuemachine/types";
 import {
   div,
-  dedup,
   valuesAreClose,
   assetsAreClose,
 } from "@valuemachine/utils";
 
 import { parseEvent } from "../../utils";
 
-import { addresses } from "./addresses";
+import { addresses, defiAddresses } from "./addresses";
 
-export const name = "Aave";
+export const appName = "Aave";
 
 const { SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
@@ -83,7 +82,7 @@ export const parser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${name}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
   const prefix = evmMeta.name === Guards.Ethereum ? "a"
@@ -94,8 +93,8 @@ export const parser = (
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    if (addresses.some(e => e.address === address)) {
-      tx.sources = dedup([name, ...tx.sources]);
+    if (defiAddresses.some(e => e.address === address)) {
+      tx.apps.push(appName);
       const event = parseEvent(lendingPoolAbi, txLog, evmMeta);
       if (!event.name) continue;
 
@@ -105,7 +104,7 @@ export const parser = (
           event.args.amount,
           addressBook.getDecimals(event.args.reserve),
         );
-        log.info(`Parsing ${name} ${event.name} event of ${amount} ${asset}`);
+        log.info(`Parsing ${appName} ${event.name} event of ${amount} ${asset}`);
         const aAsset = `${prefix}${asset.replace(/^W/, "")}`;
         const aTokenAddress = addresses?.find(entry => entry.name === aAsset)?.address;
         const amount2 = formatUnits(
@@ -132,7 +131,7 @@ export const parser = (
           event.args.amount,
           addressBook.getDecimals(event.args.reserve),
         );
-        log.info(`Parsing ${name} ${event.name} event of ${amount} ${asset}`);
+        log.info(`Parsing ${appName} ${event.name} event of ${amount} ${asset}`);
         const aAsset = `${prefix}${asset.replace(/^W/, "")}`;
         const aTokenAddress = addresses?.find(entry => entry.name === aAsset)?.address;
         const amount2 = formatUnits(
@@ -160,7 +159,7 @@ export const parser = (
           event.args.amount,
           addressBook.getDecimals(event.args.reserve),
         );
-        log.info(`Parsing ${name} ${event.name} event of ${amount} ${asset}`);
+        log.info(`Parsing ${appName} ${event.name} event of ${amount} ${asset}`);
         const borrow = tx.transfers.find(associatedTransfer(asset, amount));
         if (borrow) {
           borrow.category = Borrow;
@@ -176,7 +175,7 @@ export const parser = (
           event.args.amount,
           addressBook.getDecimals(event.args.reserve),
         );
-        log.info(`Parsing ${name} ${event.name} event of ${amount} ${asset}`);
+        log.info(`Parsing ${appName} ${event.name} event of ${amount} ${asset}`);
         const repay = tx.transfers.find(associatedTransfer(asset, amount));
         if (repay) {
           repay.category = Repay;
@@ -192,14 +191,14 @@ export const parser = (
 
     } else if (stkAAVEAddress === address) {
       const event = parseEvent(aaveStakeAbi, txLog, evmMeta);
-      if (event.name === "Staked"&& (event.args.from===event.args.onBehalfOf) ) {
+      if (event.name === "Staked" && (event.args.from===event.args.onBehalfOf) ) {
         const asset1 = Assets.AAVE;
         const asset2 = Assets.stkAAVE;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(address),
         );
-        log.info(`Parsing ${name} ${event.name} of ${amount} ${asset1}`);
+        log.info(`Parsing ${appName} ${event.name} of ${amount} ${asset1}`);
         const swapOut = tx.transfers.find(associatedTransfer(asset1, amount));
         const swapIn = tx.transfers.find(associatedTransfer(asset2,amount));
         if (!swapOut) {
@@ -222,7 +221,7 @@ export const parser = (
           event.args.amount,
           addressBook.getDecimals(address),
         );
-        log.info(`Parsing ${name} ${event.name} of ${amount} ${asset2}`);
+        log.info(`Parsing ${appName} ${event.name} of ${amount} ${asset2}`);
         const swapOut = tx.transfers.find(associatedTransfer(asset2, amount));
         const swapIn = tx.transfers.find(associatedTransfer(asset1,amount));
         if (!swapOut) {
@@ -247,4 +246,4 @@ export const parser = (
   return tx;
 };
 
-export const app = { addresses, name, parser };
+export const app = { addresses, appName, parser };

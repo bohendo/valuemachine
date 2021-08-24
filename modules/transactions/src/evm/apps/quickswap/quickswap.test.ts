@@ -19,6 +19,7 @@ describe(source, () => {
       logger,
     });
     expect(tx.sources).to.include(Guards.Polygon);
+    expect(tx.apps).to.include(source);
     expect(tx.method).to.match(/swap/i);
   });
 });

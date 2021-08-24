@@ -1,5 +1,5 @@
 import { getValueMachine } from "@valuemachine/core";
-import { getAddressBook, getTransactions } from "@valuemachine/transactions";
+import { AppNames, getAddressBook, getTransactions } from "@valuemachine/transactions";
 import {
   AddressCategories,
   Assets,
@@ -50,7 +50,8 @@ export const transactions = getTransactions({
     index: 0,
     date: "2020-01-01T01:00:00Z",
     hash: "0x0000000000000000000000000000000000000000000000000000000000000002",
-    sources: [TransactionSources.Ethereum, TransactionSources.ERC20],
+    sources: [TransactionSources.Ethereum],
+    apps: [AppNames.ERC20],
     transfers: [{
       index: 0,
       category: TransferCategories.Income,
@@ -63,7 +64,8 @@ export const transactions = getTransactions({
     index: 1,
     date: "2020-01-02T01:00:00Z",
     hash: "0x0000000000000000000000000000000000000000000000000000000000000002",
-    sources: [TransactionSources.Ethereum, TransactionSources.ERC20],
+    sources: [TransactionSources.Ethereum],
+    apps: [AppNames.ERC20],
     transfers: [{
       index: -1,
       category: TransferCategories.Expense,
@@ -84,6 +86,7 @@ export const transactions = getTransactions({
     date: "2020-01-03T01:00:00Z",
     hash: "0x0000000000000000000000000000000000000000000000000000000000000001",
     sources: [TransactionSources.Ethereum],
+    apps: [],
     transfers: [{
       index: -1,
       category: TransferCategories.Expense,

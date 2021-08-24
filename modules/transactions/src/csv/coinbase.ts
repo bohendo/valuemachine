@@ -39,6 +39,7 @@ export const mergeCoinbaseTransactions = (
     const external = `${asset}-account`;
 
     const transaction = {
+      apps: [],
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],

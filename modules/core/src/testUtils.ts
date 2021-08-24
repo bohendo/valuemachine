@@ -52,5 +52,6 @@ export const getTx = (transfers: Transfer[]): Transaction => ({
   ).toISOString(),
   index: txIndex++,
   sources: [TransactionSources.Ethereum],
+  apps: [],
   transfers: transfers || [],
 });

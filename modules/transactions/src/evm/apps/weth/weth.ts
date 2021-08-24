@@ -10,7 +10,6 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
 
@@ -69,7 +68,7 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${appName} ${event.name} of amount ${amount}`);
         }
-        tx.sources = dedup([appName, ...tx.sources]);
+        tx.apps.push(appName);
         tx.transfers.push({
           asset,
           category: SwapIn,
@@ -107,7 +106,7 @@ export const wethParser = (
         } else {
           log.info(`Parsing ${appName} ${event.name} of amount ${amount}`);
         }
-        tx.sources = dedup([appName, ...tx.sources]);
+        tx.apps.push(appName);
         tx.transfers.push({
           asset,
           category: SwapOut,

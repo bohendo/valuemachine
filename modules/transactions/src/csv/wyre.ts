@@ -50,6 +50,7 @@ export const mergeWyreTransactions = (
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
     const transaction = {
+      apps: [],
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],

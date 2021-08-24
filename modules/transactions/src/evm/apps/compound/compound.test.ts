@@ -21,7 +21,7 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Deposit);
@@ -33,7 +33,7 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const income = tx.transfers[1];
     expect(income.category).to.equal(Income);
@@ -60,7 +60,7 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const withdraw = tx.transfers[1];
     expect(withdraw.category).to.equal(SwapIn);
@@ -74,7 +74,7 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(1);
   });
 
@@ -84,7 +84,7 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const borrow = tx.transfers[1];
     expect(borrow.category).to.equal(Borrow);
@@ -96,7 +96,7 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const repay = tx.transfers[1];
     expect(repay.category).to.equal(Repay);

@@ -21,7 +21,7 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);
@@ -37,7 +37,7 @@ describe(source, () => {
       selfAddress: "0x56178a0d5f301baf6cf3e1cd53d9863437345bf9",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.method.toLowerCase()).to.include("trade");
     expect(tx.transfers.length).to.equal(2);
     const swapOut = tx.transfers[0];
@@ -52,6 +52,7 @@ describe(source, () => {
       selfAddress: "0xd0353030484a97ae850f7f35f5bc09797de792f2",
       logger,
     });
+    expect(tx.apps).to.include(source);
     expect(tx.method.toLowerCase()).to.include("supply liquidity");
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[0].category).to.equal(SwapOut);
@@ -65,6 +66,7 @@ describe(source, () => {
       selfAddress: "0xfbb1068305c8ddd36f85d84880b2903d4b45e876",
       logger,
     });
+    expect(tx.apps).to.include(source);
     expect(tx.method.toLowerCase()).to.include("remove liquidity");
     expect(tx.transfers.length).to.equal(4);
     expect(tx.transfers[0].category).to.equal(Expense);

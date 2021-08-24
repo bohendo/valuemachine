@@ -21,7 +21,7 @@ describe(source, () => {
       selfAddress: "0x213fe7e177160991829a4d0a598a848d2448f384",
       logger: log,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);
@@ -35,7 +35,7 @@ describe(source, () => {
       selfAddress: "0x213fe7e177160991829a4d0a598a848d2448f384",
       logger: log,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);
@@ -51,7 +51,7 @@ describe(source, () => {
       selfAddress: "0x213fe7e177160991829a4d0a598a848d2448f384",
       logger: log,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);

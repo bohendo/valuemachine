@@ -26,6 +26,7 @@ export const mergeDigitalOceanTransactions = (
     } = row;
     log.info(`Paid digital ocean for ${description}`);
     const transaction = {
+      apps: [],
       date: (new Date(date)).toISOString(),
       method: "Payment",
       sources: [source],

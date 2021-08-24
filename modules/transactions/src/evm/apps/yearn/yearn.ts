@@ -11,7 +11,6 @@ import {
 } from "@valuemachine/types";
 import {
   assetsAreClose,
-  dedup,
   insertVenue,
   setAddressCategory,
 } from "@valuemachine/utils";
@@ -228,7 +227,7 @@ export const yearnParser = (
     const address = txLog.address;
 
     if (yTokens.some(yToken => yToken.address === address)) {
-      tx.sources = dedup([appName, ...tx.sources]);
+      tx.apps.push(appName);
       const yTransfer = tx.transfers.find(t => t.asset === getName(address));
       if (!yTransfer) {
         log.warn(`Can't find a transfer for ${getName(address)}`);
@@ -268,7 +267,7 @@ export const yearnParser = (
       }
 
     } else if (address === govAddress) {
-      tx.sources = dedup([appName, ...tx.sources]);
+      tx.apps.push(appName);
       const event = parseEvent(yGovAbi, txLog, evmMeta);
       if (!event.name) continue;
       log.info(`Parsing yGov ${event.name}`);

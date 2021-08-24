@@ -120,6 +120,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!addressBookJson) return;
+    // TODO: if json has error, clear local storage & reset var
     console.log(`Refreshing ${addressBookJson.length} address book entries`);
     store.save(AddressBookStore, addressBookJson);
     setAddressBook(getAddressBook({

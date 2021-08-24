@@ -2,6 +2,7 @@ import { publicEthereumAddresses } from "./ethereum";
 import { publicPolygonAddresses } from "./polygon";
 import { appAddresses } from "./apps";
 
+export { AppNames } from "./apps";
 export { parseEvmTx } from "./parser";
 
 export { getEthereumData } from "./ethereum";

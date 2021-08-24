@@ -28,6 +28,22 @@ export const uniswapV3Parser = uniswap.uniswapV3Parser;
 export const wethParser = weth.parser;
 export const yearnParser = yearn.parser;
 
+export const AppNames = {
+  [aave.name]: aave.name,
+  [argent.name]: argent.name,
+  [compound.name]: compound.name,
+  [erc20.name]: erc20.name,
+  [etherdelta.name]: etherdelta.name,
+  [idle.name]: idle.name,
+  [maker.name]: maker.name,
+  [polygon.name]: polygon.name,
+  [quickswap.name]: quickswap.name,
+  [tornado.name]: tornado.name,
+  [uniswap.name]: uniswap.name,
+  [weth.name]: weth.name,
+  [yearn.name]: yearn.name,
+} as const;
+
 export const appAddresses = [
   ...aave.addresses,
   ...argent.addresses,

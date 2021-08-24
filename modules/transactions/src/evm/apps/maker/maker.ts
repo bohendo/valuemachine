@@ -17,7 +17,6 @@ import {
 } from "@valuemachine/types";
 import {
   abs,
-  dedup,
   div,
   eq,
   gt,
@@ -225,13 +224,13 @@ export const makerParser = (
   const ethish = [WETH, ETH, PETH] as Asset[];
 
   if (machineAddresses.some(e => e.address === evmTx.to)) {
-    tx.sources = dedup([appName, ...tx.sources]);
+    tx.apps.push(appName);
   }
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
   if (evmTx.to === migrationAddress) {
-    tx.sources = dedup([appName, ...tx.sources]);
+    tx.apps.push(appName);
     const swapOut = tx.transfers.find(t => t.asset === SAI);
     const swapIn = tx.transfers.find(t => t.asset === DAI);
     if (swapOut) {
@@ -258,7 +257,7 @@ export const makerParser = (
     const address = txLog.address;
     const index = txLog.index || 1;
     if (machineAddresses.some(e => e.address === address)) {
-      tx.sources = dedup([appName, ...tx.sources]);
+      tx.apps.push(appName);
     }
     if (tokenAddresses.some(e => e.address === address)) {
       const asset = getName(address) as Asset;

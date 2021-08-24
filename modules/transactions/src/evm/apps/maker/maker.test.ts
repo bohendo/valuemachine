@@ -21,7 +21,7 @@ describe(source, () => {
       selfAddress: "0x213fe7e177160991829a4d0a598a848d2448f384",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
     expect(swapOut.category).to.equal(SwapOut);

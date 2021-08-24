@@ -7,9 +7,6 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  dedup,
-} from "@valuemachine/utils";
 
 import { parseEvent } from "../utils";
 
@@ -48,7 +45,7 @@ export const parser = (
   const { getName, isSelf } = addressBook;
 
   if (relayerAddresses.some(entry => evmTx.from === entry.address)) {
-    tx.sources = dedup([appName, ...tx.sources]);
+    tx.apps.push(appName);
   }
 
   for (const txLog of evmTx.logs) {
@@ -60,7 +57,7 @@ export const parser = (
       if (!isSelf(event.args.wallet)) {
         log.debug(`Skipping ${appName} ${event.name} that doesn't involve us`);
       }
-      tx.sources = dedup([appName, ...tx.sources]);
+      tx.apps.push(appName);
 
       if (event.name === "TokenConverted") {
         const { destAmount, destToken, srcAmount, srcToken } = event.args;

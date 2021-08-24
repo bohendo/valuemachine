@@ -28,6 +28,7 @@ export const mergeWazirxTransactions = (
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
 
     const transaction = {
+      apps: [],
       // trailing Z is important bc it designates GMT times insead of local time
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
       sources: [source],

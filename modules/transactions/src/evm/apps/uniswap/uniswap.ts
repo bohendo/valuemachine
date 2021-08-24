@@ -10,7 +10,6 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  dedup,
   insertVenue,
   setAddressCategory,
 } from "@valuemachine/utils";
@@ -221,7 +220,7 @@ export const uniswapParser = (
   )) {
     const address = txLog.address;
     const index = txLog.index || 1;
-    tx.sources = dedup([appName, ...tx.sources]);
+    tx.apps.push(appName);
 
     // Parse events
     let subsrc, event;

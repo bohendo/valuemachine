@@ -16,7 +16,7 @@ describe(source, () => {
       selfAddress: "0x0f66cfe7e71ec4c700076eae12981fdd225b7274",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     expect(tx.method.toLowerCase()).to.include("transfer");
   });
@@ -27,7 +27,7 @@ describe(source, () => {
       selfAddress: "0x99c35a4ccd7642c3d7675b06a7721321a68d7874",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(1);
     expect(tx.method.toLowerCase()).to.include("approval");
   });

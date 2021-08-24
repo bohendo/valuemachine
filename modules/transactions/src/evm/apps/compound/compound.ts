@@ -13,7 +13,6 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  dedup,
   div,
   gt,
   insertVenue,
@@ -153,14 +152,14 @@ export const compoundParser = (
   };
 
   if (compoundAddresses.some(e => e.address === evmTx.to)) {
-    tx.sources = dedup([appName, ...tx.sources]);
+    tx.apps.push(appName);
   }
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     const contract = txLog.address;
     if (compoundAddresses.some(e => e.address === address)) {
-      tx.sources = dedup([appName, ...tx.sources]);
+      tx.apps.push(appName);
     }
 
     ////////////////////////////////////////

@@ -12,7 +12,6 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  dedup,
   setAddressCategory,
 } from "@valuemachine/utils";
 
@@ -77,7 +76,7 @@ export const polygonParser = (
 
   if (getName(evmTx.to) === ZapperPolygonBridge) {
     const account = evmTx.from;
-    tx.sources = dedup([appName, ...tx.sources]);
+    tx.apps.push(appName);
     tx.method = `Zap to Polygon`;
     log.info(`Parsing ${tx.method}`);
 
@@ -200,7 +199,7 @@ export const polygonParser = (
     for (const txLog of evmTx.logs) {
       const address = txLog.address;
       if (polygonAddresses.map(e => e.address).includes(address)) {
-        tx.sources = dedup([appName, ...tx.sources]);
+        tx.apps.push(appName);
         const name = getName(address);
         const event = parseEvent(plasmaBridgeAbi, txLog, evmMeta);
         if (event?.name === "NewDepositBlock") {

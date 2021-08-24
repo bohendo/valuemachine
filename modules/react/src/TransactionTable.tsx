@@ -12,6 +12,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import { AppNames } from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
@@ -59,10 +60,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const [filterAsset, setFilterAsset] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
   const [filterSource, setFilterSource] = useState("");
+  const [filterApp, setFilterApp] = useState("");
   const [filterStartDate, setFilterStartDate] = useState("");
   const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
   const [ourAssets, setOurAssets] = useState([] as Asset[]);
   const classes = useStyles();
+
+  console.log(`Filtering on app ${filterApp}`);
 
   const hasAccount = (account: string) => (tx: Transaction): boolean =>
     !account
@@ -73,10 +77,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     !asset || tx.transfers.some(t => t.asset === asset);
 
   const hasSource = (source: TransactionSource) => (tx: Transaction): boolean =>
-    !source
-    || (tx?.sources || []).includes(source)
-    || tx.transfers.some(t => addressBook.getName(t.from).startsWith(source))
-    || tx.transfers.some(t => addressBook.getName(t.to).startsWith(source));
+    !source || (tx?.sources || []).includes(source);
+
+  const hasApp = (app: string) => (tx: Transaction): boolean =>
+    !app || (tx?.apps || []).includes(app);
 
   useEffect(() => {
     const getDate = (timestamp: string): string =>
@@ -87,6 +91,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       .filter(hasAsset(filterAsset))
       .filter(hasAccount(filterAccount))
       .filter(hasSource(filterSource))
+      .filter(hasApp(filterApp))
       .sort((e1: Transaction, e2: Transaction) =>
         (e1.date > e2.date) ? -1 : (e1.date < e2.date) ? 1 : 0
       )
@@ -94,7 +99,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     addressBook, transactions,
-    filterAccount, filterAsset, filterSource, filterStartDate, filterEndDate,
+    filterAccount, filterApp, filterAsset, filterSource, filterStartDate, filterEndDate,
   ]);
 
   useEffect(() => {
@@ -113,6 +118,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const changeFilterSource = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     setFilterSource(event.target.value);
+  };
+
+  const changeFilterApp = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
+    setFilterApp(event.target.value);
   };
 
   const changeFilterAccount = (event: React.ChangeEvent<{ value: unknown }>) => {
@@ -200,6 +210,25 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           </Select>
         </FormControl>
 
+        <FormControl className={classes.select}>
+          <InputLabel id="select-filter-app">Filter App</InputLabel>
+          <Select
+            labelId="select-filter-app"
+            id="select-filter-app"
+            value={filterApp || ""}
+            onChange={changeFilterApp}
+          >
+            <MenuItem value={""}>-</MenuItem>
+            {Object.keys(AppNames)
+              // TODO: the following line crashes the page when txns are cleared
+              // .filter(app => transactions?.some(hasApp(app)))
+              .map(app => (
+                <MenuItem key={app} value={app}>{app}</MenuItem>
+              ))
+            };
+          </Select>
+        </FormControl>
+
         <DateInput
           id="filter-end-date"
           label="Filter End Date"
@@ -219,6 +248,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
               <TableCell><strong> Date </strong></TableCell>
               <TableCell><strong> Description </strong></TableCell>
               <TableCell><strong> Hash </strong></TableCell>
+              <TableCell><strong> Apps </strong></TableCell>
               <TableCell><strong> Sources </strong></TableCell>
               <TableCell><strong> Transfers </strong></TableCell>
             </TableRow>

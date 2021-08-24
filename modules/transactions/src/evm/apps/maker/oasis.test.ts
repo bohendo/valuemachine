@@ -21,7 +21,7 @@ describe(source, () => {
       selfAddress: "0x213fe7e177160991829a4d0a598a848d2448f384",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const base = tx.transfers[0];
     expect(base.category).to.equal(Expense);
@@ -37,7 +37,7 @@ describe(source, () => {
       selfAddress: "0x0005abcbb9533cf6f9370505ffef25393e0d2852",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(1);
     const swapIn = tx.transfers[0];
     expect(swapIn.category).to.equal(SwapIn);
@@ -49,7 +49,7 @@ describe(source, () => {
       selfAddress: "0xada083a3c06ee526f827b43695f2dcff5c8c892b",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
     expect(swapOut.category).to.equal(SwapOut);

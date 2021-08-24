@@ -13,7 +13,6 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  dedup,
   insertVenue,
   setAddressCategory,
 } from "@valuemachine/utils";
@@ -77,7 +76,7 @@ export const etherdeltaParser = (
         log.debug(`Skipping ${appName} ${event.name} that doesn't involve us`);
         continue;
       }
-      tx.sources = dedup([appName, ...tx.sources]);
+      tx.apps.push(appName);
       const account = insertVenue(user, appName);
 
       if (event.name === "Deposit" || event.name === "Withdraw") {

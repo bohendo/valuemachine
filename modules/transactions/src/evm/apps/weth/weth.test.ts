@@ -22,7 +22,7 @@ describe(source, () => {
       selfAddress: "0xd8011dd927e9751a6dd3414b75933ca7c2f07b96",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
     expect(swapOut.asset).to.equal(Assets.ETH);
@@ -39,7 +39,7 @@ describe(source, () => {
       selfAddress: "0x2b6dfd49bf64eef655026f1ab66b77156d0328bf",
       logger,
     });
-    expect(tx.sources).to.include(source);
+    expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
     expect(swapOut.asset).to.equal(Assets.WETH);

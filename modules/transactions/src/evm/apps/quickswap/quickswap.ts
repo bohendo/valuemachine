@@ -40,10 +40,12 @@ export const quickswapParser = (
   tx.transfers.forEach(transfer => {
     if (quickswapAddresses.some(e => e.address === transfer.from)) {
       transfer.category = TransferCategories.SwapIn;
+      tx.apps.push(appName);
       tx.method = appName;
     }
     if (quickswapAddresses.some(e => e.address === transfer.to)) {
       transfer.category = TransferCategories.SwapOut;
+      tx.apps.push(appName);
       tx.method = appName;
     }
   });

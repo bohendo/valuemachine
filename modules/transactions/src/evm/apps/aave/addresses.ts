@@ -164,7 +164,7 @@ const erc20Addresses = [{
   address: `${Ethereum}/0xc9bc48c72154ef3e5425641a3c747242112a46af`,
 }].map(setAddressCategory(AddressCategories.ERC20));
 
-const defiAddresses = [{
+export const defiAddresses = [{
   name: "LendingPool",
   address: `${Polygon}/0x8dff5e27ea6b7ac08ebfdf9eb090f32ee9a30fcf`,
 }, {

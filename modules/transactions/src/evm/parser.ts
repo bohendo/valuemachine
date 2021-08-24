@@ -13,7 +13,7 @@ import {
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
-import { gt, getNewContractAddress } from "@valuemachine/utils";
+import { dedup, gt, getNewContractAddress } from "@valuemachine/utils";
 
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
@@ -36,6 +36,7 @@ export const parseEvmTx = (
     : Unknown;
 
   let tx = {
+    apps: [],
     date: (new Date(evmTx.timestamp)).toISOString(),
     hash: evmTx.hash,
     sources: [evmMetadata.name],
@@ -112,6 +113,7 @@ export const parseEvmTx = (
       log.error(e);
     }
   });
+  tx.apps = dedup(tx.apps);
 
   tx.transfers = tx.transfers
     // Filter out no-op transfers

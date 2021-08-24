@@ -13,7 +13,6 @@ import {
 } from "@valuemachine/types";
 import {
   setAddressCategory,
-  dedup,
 } from "@valuemachine/utils";
 
 import { parseEvent } from "../utils";
@@ -114,7 +113,7 @@ export const erc20Parser = (
     if (isToken(address)) {
       const event = parseEvent(erc20Abi, txLog, evmMeta);
       if (!event.name) continue;
-      tx.sources = dedup([appName, ...tx.sources]);
+      tx.apps.push(appName);
       const asset = getName(address) as Asset;
       // Skip transfers that don't concern self accounts
       if (!isSelf(event.args.from) && !isSelf(event.args.to)) {

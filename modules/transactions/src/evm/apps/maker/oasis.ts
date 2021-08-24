@@ -13,7 +13,6 @@ import {
 } from "@valuemachine/types";
 import {
   add,
-  dedup,
   setAddressCategory,
   valuesAreClose,
 } from "@valuemachine/utils";
@@ -97,7 +96,7 @@ export const oasisParser = (
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (machineAddresses.some(e => e.address === address)) {
-      tx.sources = dedup([appName, ...tx.sources]);
+      tx.apps.push(appName);
       const event = parseEvent(oasisAbi, txLog, evmMeta);
 
       if (event.name === "LogTake") {
@@ -155,7 +154,7 @@ export const oasisParser = (
     }
   }
 
-  if (!tx.sources.includes(appName)) {
+  if (!tx.apps.includes(appName)) {
     return tx;
   }
 

@@ -1,4 +1,7 @@
 import {
+  AppNames,
+} from "@valuemachine/transactions";
+import {
   Account,
   Asset,
   AssetChunk,
@@ -12,7 +15,6 @@ import {
   StoreKeys,
   TradeEvent,
   Transaction,
-  TransactionSources,
   Transfer,
   TransferCategories,
   ValueMachine,
@@ -38,8 +40,8 @@ const {
 // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
 // Withdrawing more than we deposited is assumed to represent income rather than a loan
 const isIncomeSource = (account: Account): boolean =>
-  account.startsWith(`${TransactionSources.Maker}-DSR`) ||
-  account.startsWith(`${TransactionSources.Tornado}`);
+  account.startsWith(`${AppNames.Maker}-DSR`) ||
+  account.startsWith(`${AppNames.Tornado}`);
 
 export const getValueMachine = ({
   logger,

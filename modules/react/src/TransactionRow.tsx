@@ -47,6 +47,7 @@ export const TransactionRow = ({
         } </TableCell>
         <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
         <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
+        <TableCell> {tx.apps.join(", ")} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
           {`${tx.transfers.length} transfer${tx.transfers.length === 1 ? "" : "s"}`}
