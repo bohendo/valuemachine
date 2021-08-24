@@ -103,7 +103,6 @@ export const transactions = getTransactions({
 });
 
 export const vm = getValueMachine({
-  addressBook,
   json: {
     chunks: [{
       asset: Assets.ETH,

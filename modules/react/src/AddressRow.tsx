@@ -11,7 +11,6 @@ import RemoveIcon from "@material-ui/icons/Delete";
 import EditIcon from "@material-ui/icons/Edit";
 import {
   AddressEntry,
-  Guards,
 } from "@valuemachine/types";
 import React, { useState } from "react";
 
@@ -120,7 +119,6 @@ export const AddressRow: React.FC<AddressRowProps> = ({
       <TableRow>
         <TableCell> {entry.name} </TableCell>
         <TableCell> {entry.category} </TableCell>
-        <TableCell> {entry.guard || Guards.None} </TableCell>
         <TableCell> <HexString value={entry.address}/> </TableCell>
         <TableCell>
           <IconButton color="secondary" onClick={toggleEditMode}>

@@ -105,7 +105,6 @@ const App: React.FC = () => {
     logger,
   }));
   const [vm, setVM] = useState(getValueMachine({
-    addressBook,
     json: vmJson,
     logger,
     store,
@@ -146,7 +145,6 @@ const App: React.FC = () => {
     console.log(`Refreshing ${vmJson.chunks.length} value machine chunks`);
     store.save(ValueMachineStore, vmJson);
     setVM(getValueMachine({
-      addressBook,
       json: vmJson,
       logger,
       store,

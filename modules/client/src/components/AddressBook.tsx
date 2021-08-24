@@ -19,7 +19,6 @@ import {
   AddressBook,
   AddressBookJson,
   CsvFiles,
-  Guards,
 } from "@valuemachine/types";
 import React, { useState } from "react";
 
@@ -48,7 +47,6 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 const getEmptyEntry = (): AddressEntry => ({
   address: "",
   category: AddressCategories.Self,
-  guard: Guards.Ethereum,
   name: "",
 });
 

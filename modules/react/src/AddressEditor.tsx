@@ -11,7 +11,6 @@ import AddIcon from "@material-ui/icons/AddCircle";
 import {
   AddressCategories,
   AddressEntry,
-  Guards,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
@@ -140,7 +139,6 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
     } else if (
       newEntry.address !== entry.address ||
       newEntry.category !== entry.category ||
-      newEntry.guard !== entry.guard ||
       newEntry.name !== entry.name
     ) {
       setEntryModified(true);
@@ -197,23 +195,6 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
             >
               <MenuItem value={""}>-</MenuItem>
               {Object.keys(AddressCategories).map((cat, i) => (
-                <MenuItem key={i} value={cat}>{cat}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-
-        <Grid item md={4}>
-          <FormControl className={classes.select}>
-            <InputLabel id="select-new-guard">Guard</InputLabel>
-            <Select
-              labelId={`select-${entry?.address}-guard`}
-              id={`select-${entry?.address}-guard`}
-              name="guard"
-              value={newEntry?.guard || Guards.Ethereum}
-              onChange={handleEntryChange}
-            >
-              {Object.keys(Guards).map((cat, i) => (
                 <MenuItem key={i} value={cat}>{cat}</MenuItem>
               ))}
             </Select>
