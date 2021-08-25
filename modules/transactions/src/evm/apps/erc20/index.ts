@@ -1,8 +1,8 @@
 import { addresses } from "./addresses";
-import { assets } from "./assets";
+import { enums } from "./enums";
 import {
   erc20Parser as parser,
   appName as name,
 } from "./erc20";
 
-export const app = { addresses, assets, name, parser };
+export const app = { addresses, enums, name, parser };

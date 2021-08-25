@@ -57,3 +57,6 @@ export const assets = {
   yyDAI_yUSDC_yUSDT_yTUSD: "yyDAI_yUSDC_yUSDT_yTUSD",
 
 } as const;
+
+export const names = {} as const;
+export const enums = { assets, names };

@@ -7,3 +7,6 @@ export const assets = {
   PETH: "PETH",
 
 } as const;
+
+export const names = {} as const;
+export const enums = { assets, names };

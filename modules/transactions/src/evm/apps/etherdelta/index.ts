@@ -4,4 +4,4 @@ import {
   appName as name,
 } from "./etherdelta";
 
-export const app = { addresses, assets: {}, name, parser };
+export const app = { addresses, enums: {}, name, parser };

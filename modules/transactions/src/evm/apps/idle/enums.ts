@@ -15,3 +15,6 @@ export const assets = {
   idleWETHYield: "idleWETHYield",
 
 } as const;
+
+export const names = {} as const;
+export const enums = { assets, names };

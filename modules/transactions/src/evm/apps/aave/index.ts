@@ -1,5 +1,5 @@
 import { addresses } from "./addresses";
 import { appName as name, parser } from "./parser";
-import { assets } from "./assets";
+import { enums } from "./enums";
 
-export const app = { addresses, assets, name, parser };
+export const app = { addresses, enums, name, parser };

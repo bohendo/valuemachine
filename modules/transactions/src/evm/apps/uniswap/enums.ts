@@ -46,3 +46,6 @@ export const assets = {
   UniV2_YFI_ETH: "UniV2_YFI_ETH",
 
 } as const;
+
+export const names = {} as const;
+export const enums = { assets, names };
