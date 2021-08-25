@@ -15,7 +15,7 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { EvmAssets } from "../../assets";
+import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
 import { exchangeAddresses } from "./addresses";

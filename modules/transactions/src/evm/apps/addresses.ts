@@ -2,6 +2,30 @@ import { AddressZero } from "@ethersproject/constants";
 import { AddressCategories } from "@valuemachine/types";
 import { setAddressCategory } from "@valuemachine/utils";
 
+import { addresses as aave } from "./aave/addresses";
+import { addresses as compound } from "./compound/addresses";
+import { addresses as erc20 } from "./erc20/addresses";
+import { addresses as idle } from "./idle/addresses";
+import { addresses as maker } from "./maker/addresses";
+import { addresses as quickswap } from "./quickswap/addresses";
+import { addresses as tornado } from "./tornado/addresses";
+import { addresses as uniswap } from "./uniswap/addresses";
+import { addresses as wethEnums } from "./weth/addresses";
+import { addresses as yearn } from "./yearn/addresses";
+
+const appAddresses = [
+  ...aave,
+  ...compound,
+  ...erc20,
+  ...idle,
+  ...maker,
+  ...quickswap,
+  ...tornado,
+  ...uniswap,
+  ...wethEnums,
+  ...yearn,
+];
+
 const bridgeAddresses = [
   { name: "ChildChain", address: "Polygon/0xD9c7C4ED4B66858301D0cb28Cc88bf655Fe34861" },
 ].map(setAddressCategory(AddressCategories.Defi));
@@ -81,6 +105,7 @@ const exchangeAddresses = [
 ].map(setAddressCategory(AddressCategories.Exchange));
 
 export const addresses = [
+  ...appAddresses,
   ...bridgeAddresses,
   ...burnAddresses,
   ...defiAddresses,

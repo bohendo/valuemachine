@@ -2,7 +2,6 @@ import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
-  AddressCategories,
   EvmMetadata,
   EvmTransaction,
   Logger,
@@ -10,12 +9,11 @@ import {
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  setAddressCategory,
-} from "@valuemachine/utils";
 
-import { EvmAssets } from "../../assets";
+import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
+
+import { addresses } from "./addresses";
 
 export const appName = "Polygon";
 
@@ -26,27 +24,6 @@ const { MATIC, ETH, WETH } = EvmAssets;
 
 const ZapperPolygonBridge = "ZapperPolygonBridge";
 const PlasmaBridge = "PlasmaBridge";
-
-export const govAddresses = [
-  { name: MATIC, address: "Ethereum/0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0" },
-].map(setAddressCategory(AddressCategories.ERC20));
-
-export const bridgeAddresses = [
-  { name: PlasmaBridge, address: "Ethereum/0x401F6c983eA34274ec46f84D70b31C151321188b" },
-  { name: ZapperPolygonBridge, address: "Ethereum/0xe34b087bf3c99e664316a15b01e5295eb3512760" },
-].map(setAddressCategory(AddressCategories.Defi));
-
-export const miscAddresses = [
-  { name: "FlashWallet", address: "Ethereum/0x22F9dCF4647084d6C31b2765F6910cd85C178C18" },
-  { name: "ZeroEx", address: "Ethereum/0xDef1C0ded9bec7F1a1670819833240f027b25EfF" },
-  { name: "PolygonStateSyncer", address: "Ethereum/0x28e4F3a7f651294B9564800b2D01f35189A5bFbE" },
-].map(setAddressCategory(AddressCategories.Defi));
-
-export const polygonAddresses = [
-  ...govAddresses,
-  ...bridgeAddresses,
-  ...miscAddresses,
-];
 
 const plasmaBridgeAbi = [
   "event NewDepositBlock(address indexed owner, address indexed token, uint256 amountOrNFTId, uint256 depositBlockId)",
@@ -63,7 +40,7 @@ const wethAbi = [
   "event Withdrawal(address indexed to, uint256 amount)",
 ];
 
-export const polygonParser = (
+export const parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,
@@ -198,7 +175,7 @@ export const polygonParser = (
   } else {
     for (const txLog of evmTx.logs) {
       const address = txLog.address;
-      if (polygonAddresses.map(e => e.address).includes(address)) {
+      if (addresses.map(e => e.address).includes(address)) {
         tx.apps.push(appName);
         const name = getName(address);
         const event = parseEvent(plasmaBridgeAbi, txLog, evmMeta);

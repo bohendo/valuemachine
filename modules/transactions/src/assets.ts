@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { EvmAssets } from "./evm/assets";
+import { EvmAssets } from "./evm/enums";
 
 // Native currency of each standalone blockchain
 export const Cryptocurrencies = {

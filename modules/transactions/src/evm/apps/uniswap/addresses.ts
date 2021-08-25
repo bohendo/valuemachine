@@ -5,7 +5,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { assets } from "./assets";
+import { assets } from "./enums";
 
 const factoryAddresses = [
   { name: "UniswapFactoryV1", address: "Ethereum/0xc0a47dfe034b400b47bdad5fecda2621de6c4d95" },

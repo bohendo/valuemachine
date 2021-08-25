@@ -2,14 +2,16 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { EvmAssets } from "../../assets";
+import { EvmAssets } from "../../enums";
 import {
   parseEthTx,
   expect,
   testLogger,
 } from "../testUtils";
 
-const source = "Weth";
+import { names } from "./enums";
+
+const source = names.Weth;
 const { SwapIn, SwapOut } = TransferCategories;
 const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",

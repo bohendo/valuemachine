@@ -8,13 +8,13 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { EvmAssets } from "../../assets";
+import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
-import { assets } from "./assets";
+import { assets, apps } from "./enums";
 import { addresses } from "./addresses";
 
-export const appName = "Weth";
+export const appName = apps.Weth;
 
 const { ETH } = EvmAssets;
 const { SwapIn, SwapOut } = TransferCategories;

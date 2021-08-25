@@ -19,7 +19,7 @@ import {
 import { parseEvent } from "../../utils";
 
 import { addresses, defiAddresses } from "./addresses";
-import { assets } from "./assets";
+import { assets } from "./enums";
 
 export const appName = "Aave";
 

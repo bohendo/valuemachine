@@ -5,7 +5,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { assets } from "./assets";
+import { assets } from "./enums";
 
 export const coreAddresses = [
   { name: "stkIDLE", address: "Ethereum/0xaAC13a116eA7016689993193FcE4BadC8038136f" },

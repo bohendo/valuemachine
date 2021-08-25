@@ -5,11 +5,11 @@ export {
   FiatCurrencies,
 } from "./assets";
 export {
-  AppNames,
-  getEthereumData,
-  parseEvmTx,
-  getPolygonData,
+  EvmApps,
   EvmAssets,
+  getEthereumData,
+  getPolygonData,
+  parseEvmTx,
   publicAddresses,
 } from "./evm";
 export { getTransactions } from "./manager";

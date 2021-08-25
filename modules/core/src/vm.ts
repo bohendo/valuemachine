@@ -1,5 +1,5 @@
 import {
-  AppNames,
+  EvmApps,
 } from "@valuemachine/transactions";
 import {
   Account,
@@ -40,8 +40,8 @@ const {
 // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
 // Withdrawing more than we deposited is assumed to represent income rather than a loan
 const isIncomeSource = (account: Account): boolean =>
-  account.startsWith(`${AppNames.Maker}-DSR`) ||
-  account.startsWith(`${AppNames.Tornado}`);
+  account.startsWith(`${EvmApps.Maker}-DSR`) ||
+  account.startsWith(`${EvmApps.Tornado}`);
 
 export const getValueMachine = ({
   logger,

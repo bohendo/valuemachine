@@ -5,7 +5,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { assets } from "./assets";
+import { assets } from "./enums";
 
 // Simple, standalone tokens only. App-specific tokens can be found in that app's parser.
 const ethereumAddresses = [

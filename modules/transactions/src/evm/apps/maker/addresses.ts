@@ -5,7 +5,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { assets } from "./assets";
+import { assets } from "./enums";
 
 const DSR = "DSR";
 const tub = "scd-tub";

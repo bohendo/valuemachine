@@ -16,7 +16,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { EvmAssets } from "../../assets";
+import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
 export const appName = "EtherDelta";

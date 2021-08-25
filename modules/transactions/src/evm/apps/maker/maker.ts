@@ -24,7 +24,7 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { EvmAssets } from "../../assets";
+import { EvmAssets } from "../../enums";
 import { diffAsc, parseEvent } from "../utils";
 
 import {
@@ -33,7 +33,7 @@ import {
   factoryAddresses,
   tokenAddresses,
 } from "./addresses";
-import { assets } from "./assets";
+import { assets } from "./enums";
 
 export const appName = "Maker";
 

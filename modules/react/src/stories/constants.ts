@@ -1,5 +1,5 @@
 import { getValueMachine } from "@valuemachine/core";
-import { AppNames, Assets, getAddressBook, getTransactions } from "@valuemachine/transactions";
+import { EvmApps, Assets, getAddressBook, getTransactions } from "@valuemachine/transactions";
 import {
   AddressCategories,
   CsvSources,
@@ -50,7 +50,7 @@ export const transactions = getTransactions({
     date: "2020-01-01T01:00:00Z",
     hash: "0x0000000000000000000000000000000000000000000000000000000000000002",
     sources: [TransactionSources.Ethereum],
-    apps: [AppNames.ERC20],
+    apps: [EvmApps.ERC20],
     transfers: [{
       index: 0,
       category: TransferCategories.Income,
@@ -64,7 +64,7 @@ export const transactions = getTransactions({
     date: "2020-01-02T01:00:00Z",
     hash: "0x0000000000000000000000000000000000000000000000000000000000000002",
     sources: [TransactionSources.Ethereum],
-    apps: [AppNames.ERC20],
+    apps: [EvmApps.ERC20],
     transfers: [{
       index: -1,
       category: TransferCategories.Expense,

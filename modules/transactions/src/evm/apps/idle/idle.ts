@@ -12,7 +12,7 @@ import {
   insertVenue,
 } from "@valuemachine/utils";
 
-import { EvmAssets } from "../../assets";
+import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
 import { coreAddresses, govAddresses, marketAddresses } from "./addresses";

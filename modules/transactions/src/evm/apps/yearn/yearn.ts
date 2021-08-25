@@ -12,10 +12,9 @@ import {
   insertVenue,
 } from "@valuemachine/utils";
 
-import { Tokens } from "../assets";
+import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
-import { assets } from "./assets";
 import { govAddress, yTokenAddresses } from "./addresses";
 
 export const appName = "Yearn";
@@ -73,44 +72,44 @@ const yVaultV2Abi = [
 
 const vaultToToken = (yAsset: string): Asset | undefined => {
   switch (yAsset) {
-  case assets.y3Crv: return Tokens._3Crv;
-  case assets.yBUSDv3: return Tokens.BUSD;
-  case assets.yDAI: return Tokens.DAI;
-  case assets.yDAIv2: return Tokens.DAI;
-  case assets.yDAIv3: return Tokens.DAI;
-  case assets.yGUSD: return Tokens.GUSD;
-  case assets.ysUSDTv2: return Tokens.sUSDT;
-  case assets.yTUSD: return Tokens.TUSD;
-  case assets.yTUSDv2: return Tokens.TUSD;
-  case assets.yUSDC: return Tokens.USDC;
-  case assets.yUSDCv2: return Tokens.USDC;
-  case assets.yUSDCv3: return Tokens.USDC;
-  case assets.yUSDT: return Tokens.USDT;
-  case assets.yUSDTv2: return Tokens.USDT;
-  case assets.yUSDTv3: return Tokens.USDT;
-  case assets.yv1INCH: return Tokens._1INCH;
-  case assets.yvankrCRV: return Tokens.ankrCRV;
-  case assets.yvcrvPlain3andSUSD: return Tokens.crvPlain3andSUSD;
-  case assets.yvdusd3CRV: return Tokens.dusd3CRV;
-  case assets.yveursCRV: return Tokens.eursCRV;
-  case assets.yvgusd3CRV: return Tokens.gusd3CRV;
-  case assets.yvhCRV: return Tokens.hCRV;
-  case assets.yvhusd3CRV: return Tokens.husd3CRV;
-  case assets.yvlinkCRV: return Tokens.linkCRV;
-  case assets.yvmusd3CRV: return Tokens.musd3CRV;
-  case assets.yvusdn3CRV: return Tokens.usdn3CRV;
-  case assets.yvusdp3CRV: return Tokens.usdp3CRV;
-  case assets.yvusdt3CRV: return Tokens.usdt3CRV;
-  case assets.yvUSDT: return Tokens.USDT;
-  case assets.yvust3CRV: return Tokens.ust3CRV;
-  case assets.yvWBTC: return Tokens.WBTC;
-  case assets.yvWETH: return Tokens.WETH;
-  case assets.yvYFI: return Tokens.YFI;
-  case assets.yWBTCv2: return Tokens.WBTC;
-  case assets.yWETH: return Tokens.WETH;
-  case assets.yyDAI_yUSDC_yUSDT_yBUSD: return Tokens.yDAI_yUSDC_yUSDT_yBUSD;
-  case assets.yyDAI_yUSDC_yUSDT_yTUSD: return Tokens.yDAI_yUSDC_yUSDT_yTUSD;
-  case assets.yYFI: return Tokens.YFI;
+  case EvmAssets.y3Crv: return EvmAssets._3Crv;
+  case EvmAssets.yBUSDv3: return EvmAssets.BUSD;
+  case EvmAssets.yDAI: return EvmAssets.DAI;
+  case EvmAssets.yDAIv2: return EvmAssets.DAI;
+  case EvmAssets.yDAIv3: return EvmAssets.DAI;
+  case EvmAssets.yGUSD: return EvmAssets.GUSD;
+  case EvmAssets.ysUSDTv2: return EvmAssets.sUSDT;
+  case EvmAssets.yTUSD: return EvmAssets.TUSD;
+  case EvmAssets.yTUSDv2: return EvmAssets.TUSD;
+  case EvmAssets.yUSDC: return EvmAssets.USDC;
+  case EvmAssets.yUSDCv2: return EvmAssets.USDC;
+  case EvmAssets.yUSDCv3: return EvmAssets.USDC;
+  case EvmAssets.yUSDT: return EvmAssets.USDT;
+  case EvmAssets.yUSDTv2: return EvmAssets.USDT;
+  case EvmAssets.yUSDTv3: return EvmAssets.USDT;
+  case EvmAssets.yv1INCH: return EvmAssets._1INCH;
+  case EvmAssets.yvankrCRV: return EvmAssets.ankrCRV;
+  case EvmAssets.yvcrvPlain3andSUSD: return EvmAssets.crvPlain3andSUSD;
+  case EvmAssets.yvdusd3CRV: return EvmAssets.dusd3CRV;
+  case EvmAssets.yveursCRV: return EvmAssets.eursCRV;
+  case EvmAssets.yvgusd3CRV: return EvmAssets.gusd3CRV;
+  case EvmAssets.yvhCRV: return EvmAssets.hCRV;
+  case EvmAssets.yvhusd3CRV: return EvmAssets.husd3CRV;
+  case EvmAssets.yvlinkCRV: return EvmAssets.linkCRV;
+  case EvmAssets.yvmusd3CRV: return EvmAssets.musd3CRV;
+  case EvmAssets.yvusdn3CRV: return EvmAssets.usdn3CRV;
+  case EvmAssets.yvusdp3CRV: return EvmAssets.usdp3CRV;
+  case EvmAssets.yvusdt3CRV: return EvmAssets.usdt3CRV;
+  case EvmAssets.yvUSDT: return EvmAssets.USDT;
+  case EvmAssets.yvust3CRV: return EvmAssets.ust3CRV;
+  case EvmAssets.yvWBTC: return EvmAssets.WBTC;
+  case EvmAssets.yvWETH: return EvmAssets.WETH;
+  case EvmAssets.yvYFI: return EvmAssets.YFI;
+  case EvmAssets.yWBTCv2: return EvmAssets.WBTC;
+  case EvmAssets.yWETH: return EvmAssets.WETH;
+  case EvmAssets.yyDAI_yUSDC_yUSDT_yBUSD: return EvmAssets.yDAI_yUSDC_yUSDT_yBUSD;
+  case EvmAssets.yyDAI_yUSDC_yUSDT_yTUSD: return EvmAssets.yDAI_yUSDC_yUSDT_yTUSD;
+  case EvmAssets.yYFI: return EvmAssets.YFI;
   default: return undefined;
   }
 };
@@ -179,7 +178,7 @@ export const yearnParser = (
       log.info(`Parsing yGov ${event.name}`);
       if (event.name === "Staked") {
         const account = insertVenue(event.args.user, `${appName}-Gov`);
-        const deposit = tx.transfers.find(t => t.asset === assets.YFI && t.to === govAddress);
+        const deposit = tx.transfers.find(t => t.asset === EvmAssets.YFI && t.to === govAddress);
         if (deposit) {
           deposit.category = Deposit;
           deposit.to = account;
@@ -190,7 +189,7 @@ export const yearnParser = (
 
       } else if (event.name === "Withdrawn") {
         const account = insertVenue(event.args.user, `${appName}-Gov`);
-        const withdraw = tx.transfers.find(t => t.asset === assets.YFI && t.from === govAddress);
+        const withdraw = tx.transfers.find(t => t.asset === EvmAssets.YFI && t.from === govAddress);
         if (withdraw) {
           withdraw.category = Withdraw;
           withdraw.from = account;

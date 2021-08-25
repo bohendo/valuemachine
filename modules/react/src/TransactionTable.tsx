@@ -12,7 +12,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import { AppNames, Assets } from "@valuemachine/transactions";
+import { EvmApps, Assets } from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
@@ -218,7 +218,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             onChange={changeFilterApp}
           >
             <MenuItem value={""}>-</MenuItem>
-            {Object.keys(AppNames)
+            {Object.keys(EvmApps)
               // TODO: the following line crashes the page when txns are cleared
               // .filter(app => transactions?.some(hasApp(app)))
               .map(app => (

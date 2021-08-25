@@ -1,4 +1,4 @@
-export const names = {
+export const apps = {
   Weth: "Weth",
 } as const;
 
@@ -7,6 +7,6 @@ export const assets = {
 } as const;
 
 export const enums = {
+  apps,
   assets,
-  names,
 };

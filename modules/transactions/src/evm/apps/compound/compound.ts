@@ -20,7 +20,7 @@ import {
 
 import { parseEvent } from "../utils";
 
-import { assets } from "./assets";
+import { assets } from "./enums";
 import { addresses, cTokenAddresses } from "./addresses";
 
 export const appName = "Compound";
