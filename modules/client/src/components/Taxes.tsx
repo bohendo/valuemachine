@@ -21,9 +21,11 @@ import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import { DateInput } from "@valuemachine/react";
 import {
+  Assets,
+} from "@valuemachine/transactions";
+import {
   AddressBook,
   Asset,
-  Assets,
   DateString,
   DecimalString,
   EventTypes,
