@@ -52,11 +52,11 @@ const erc20Addresses = [{
   name: assets.aBAT,
   address: `${Ethereum}/0x05ec93c0365baaeabf7aeffb0972ea7ecdd39cf1`,
 }, {
-  address: `${Ethereum}:0x3Ed3B47Dd13EC9a98b44e6204A523E766B225811`,
+  address: `${Ethereum}/0x3Ed3B47Dd13EC9a98b44e6204A523E766B225811`,
   decimals: 6,
   name: assets.aUSDT,
 }, {
-  address: `${Ethereum}:0x9ff58f4fFB29fA2266Ab25e75e2A8b3503311656`,
+  address: `${Ethereum}/0x9ff58f4fFB29fA2266Ab25e75e2A8b3503311656`,
   decimals: 8,
   name: assets.aWBTC,
 }, {
