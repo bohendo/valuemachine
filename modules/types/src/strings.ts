@@ -14,7 +14,7 @@ export type Address = Static<typeof Address>;
 export const Account = Type.RegEx(/^[-/a-zA-Z0-9]+$/); // TODO: tighten regex
 export type Account = Static<typeof Account>;
 
-export const Asset = Type.RegEx(/^[_a-zA-Z0-9]{1,16}$/);
+export const Asset = Type.RegEx(/^[_a-zA-Z0-9]{1,32}$/);
 export type Asset = Static<typeof Asset>;
 
 export const Bytes32 = Type.RegEx(/^0x[a-fA-F0-9]{64}$/);
