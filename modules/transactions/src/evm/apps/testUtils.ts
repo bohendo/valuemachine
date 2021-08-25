@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 import {
-  Address,
+  Account,
   AddressBook,
   AddressCategories,
   Bytes32,
@@ -20,7 +20,7 @@ export * from "../../testUtils";
 
 export const testStore = getFileStore(path.join(__dirname, "../../testData"), fs);
 
-export const getTestAddressBook = (...selfAddresses: Address[]): AddressBook => 
+export const getTestAddressBook = (...selfAddresses: Account[]): AddressBook => 
   getAddressBook({
     json: selfAddresses.reduce((addressBookJson, address, i) => {
       addressBookJson[address] = {
@@ -37,10 +37,9 @@ export const parseEthTx = async ({
   hash,
   selfAddress,
   logger,
-  storePath,
 }: {
   hash: Bytes32;
-  selfAddress: Address;
+  selfAddress: Account;
   logger?: Logger;
   storePath?: string;
 }): Promise<Transaction> => {
@@ -59,10 +58,9 @@ export const parsePolygonTx = async ({
   hash,
   selfAddress,
   logger,
-  storePath,
 }: {
   hash: Bytes32;
-  selfAddress: Address;
+  selfAddress: Account;
   logger?: Logger;
   storePath?: string;
 }): Promise<Transaction> => {

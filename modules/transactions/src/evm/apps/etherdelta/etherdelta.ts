@@ -1,7 +1,7 @@
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
-  Address,
+  Account,
   AddressBook,
   AddressCategories,
   Asset,
@@ -58,7 +58,7 @@ export const etherdeltaParser = (
 
   const { getDecimals, getName, isSelf } = addressBook;
 
-  const getAsset = (address: Address): Asset =>
+  const getAsset = (address: Account): Asset =>
     address.endsWith(AddressZero) ? EvmAssets.ETH : getName(address);
 
   for (const txLog of evmTx.logs) {

@@ -2,7 +2,7 @@ import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersp
 import { formatEther } from "@ethersproject/units";
 import { hexlify } from "@ethersproject/bytes";
 import {
-  Address,
+  Account,
   AddressBook,
   Bytes32,
   EvmData,
@@ -117,7 +117,7 @@ export const getPolygonData = (params?: {
     return data?.items?.[0];
   };
 
-  const syncAddress = async (rawAddress: Address): Promise<void> => {
+  const syncAddress = async (rawAddress: Account): Promise<void> => {
     const address = getEvmAddress(
       rawAddress.includes("/") ? rawAddress.split("/").pop() : rawAddress
     );

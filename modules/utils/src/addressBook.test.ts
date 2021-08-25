@@ -18,7 +18,7 @@ describe("AddressBook", () => {
 
   it("should return no errors if json is valid", async () => {
     // const log = getLogger("info").child({ module: "TestAddressBook" });
-    // log.info(validAddressBookEntry, "checking to see whether a valid address book produces errors");
+    // log.info(validAddressBookEntry, "checking whether a valid address book produces errors");
     expect(getAddressBookError({ [address]: validAddressBookEntry })).to.be.null;
   });
 

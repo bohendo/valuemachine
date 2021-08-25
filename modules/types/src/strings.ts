@@ -1,11 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 
 export const EvmAddress = Type.RegEx(/^0x[a-fA-F0-9]{40}$/);
-export type EvmAddress = Static<typeof Address>;
-
-// TODO: remove & replace usage w EvmAddress or Account
-export const Address = Type.Union([EvmAddress, Type.String()]);
-export type Address = Static<typeof Address>;
+export type EvmAddress = Static<typeof EvmAddress>;
 
 // <guard>[/<venue>]/address
 // eg Ethereum/0xabc123.. for simple on-chain accounts

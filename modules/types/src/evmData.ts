@@ -6,7 +6,7 @@ import { Store } from "./store";
 import { AddressBook } from "./addressBook";
 import { EvmParser, Transaction, TransactionsJson } from "./transactions";
 import {
-  Address,
+  Account,
   Bytes32,
   DecimalString,
   HexString,
@@ -24,14 +24,14 @@ export const EvmMetadata = Type.Object({
 export type EvmMetadata = Static<typeof EvmMetadata>;
 
 export const EvmTransfer = Type.Object({
-  from: Address,
-  to: Type.Union([Address, Type.Null()]),
+  from: Account,
+  to: Type.Union([Account, Type.Null()]),
   value: DecimalString,
 });
 export type EvmTransfer = Static<typeof EvmTransfer>;
 
 export const EvmTransactionLog = Type.Object({
-  address: Address,
+  address: Account,
   data: HexString,
   index: Type.Number(),
   topics: Type.Array(Bytes32),
@@ -39,7 +39,7 @@ export const EvmTransactionLog = Type.Object({
 export type EvmTransactionLog = Static<typeof EvmTransactionLog>;
 
 export const EvmTransaction = Type.Object({
-  from: Address,
+  from: Account,
   gasPrice: HexString,
   gasUsed: HexString,
   hash: Bytes32,
@@ -48,7 +48,7 @@ export const EvmTransaction = Type.Object({
   status: Type.Optional(Type.Number()),
   timestamp: TimestampString,
   transfers: Type.Array(EvmTransfer),
-  to: Type.Union([Address, Type.Null()]),
+  to: Type.Union([Account, Type.Null()]),
   value: DecimalString,
 });
 export type EvmTransaction = Static<typeof EvmTransaction>;

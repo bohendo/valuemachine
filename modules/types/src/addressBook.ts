@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { Address } from "./strings";
+import { Account } from "./strings";
 
 ////////////////////////////////////////
 // JSON Schema
@@ -41,7 +41,7 @@ export const AddressCategory = Type.String(); // Extensible
 export type AddressCategory = Static<typeof AddressCategory>;
 
 export const AddressEntry = Type.Object({
-  address: Address,
+  address: Account,
   category: AddressCategory,
   decimals: Type.Optional(Type.Number()), // for ERC20 token addresses
   name: Type.String(),
@@ -62,13 +62,13 @@ export type AddressBookParams = {
 }
 
 export interface AddressBook {
-  addresses: Address[];
-  getName(address: Address): string;
-  getDecimals(address: Address): number;
-  isCategory(category: AddressCategory): (address: Address) => boolean;
-  isPublic(address: Address): boolean;
-  isPrivate(address: Address): boolean;
-  isSelf(address: Address): boolean;
-  isToken(address: Address): boolean;
+  addresses: Account[];
+  getName(address: Account): string;
+  getDecimals(address: Account): number;
+  isCategory(category: AddressCategory): (address: Account) => boolean;
+  isPublic(address: Account): boolean;
+  isPrivate(address: Account): boolean;
+  isSelf(address: Account): boolean;
+  isToken(address: Account): boolean;
   json: AddressBookJson;
 }

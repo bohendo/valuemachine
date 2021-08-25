@@ -1,6 +1,6 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
-  Address,
+  Account,
   AddressBook,
   AddressBookJson,
   AddressBookParams,
@@ -62,7 +62,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   ////////////////////////////////////////
   // Helpers
 
-  const getEntry = (address: Address): AddressEntry | undefined => {
+  const getEntry = (address: Account): AddressEntry | undefined => {
     if (!address) return undefined;
     return addressBook[address] || (address.includes("/")
       ? addressBook[address.split("/").pop()]
@@ -73,15 +73,15 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   ////////////////////////////////////////
   // Exports
 
-  const isCategory = (category: AddressCategory) => (address: Address): boolean =>
+  const isCategory = (category: AddressCategory) => (address: Account): boolean =>
     address && category && getEntry(address)?.category === category;
 
-  const isPublic = (address: Address): boolean => {
+  const isPublic = (address: Account): boolean => {
     const entry = getEntry(address);
     return entry && Object.keys(PublicCategories).some(category => category === entry.category);
   };
 
-  const isPrivate = (address: Address): boolean => {
+  const isPrivate = (address: Account): boolean => {
     const entry = getEntry(address);
     return entry && Object.keys(PrivateCategories).some(category => category === entry.category);
   };
@@ -90,7 +90,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
 
   const isToken = isCategory(AddressCategories.ERC20);
 
-  const getName = (address: Address): string => {
+  const getName = (address: Account): string => {
     if (!address) return "";
     const name = getEntry(address)?.name;
     if (name) return name;
@@ -102,7 +102,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   };
 
   // Only really useful for ERC20 addresses
-  const getDecimals = (address: Address): number =>
+  const getDecimals = (address: Account): number =>
     getEntry(address)?.decimals || 18;
 
   return {

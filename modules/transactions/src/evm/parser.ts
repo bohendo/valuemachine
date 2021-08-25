@@ -2,7 +2,7 @@ import { isAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
 import {
-  Address,
+  Account,
   AddressBook,
   EvmParser,
   EvmTransaction,
@@ -29,7 +29,7 @@ export const parseEvmTx = (
   const log = logger.child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });
   // log.debug(evmTx, `Parsing evm tx`);
 
-  const getSimpleCategory = (to: Address, from: Address): TransferCategory =>
+  const getSimpleCategory = (to: Account, from: Account): TransferCategory =>
     (isSelf(to) && isSelf(from)) ? Internal
     : (isSelf(from) && !isSelf(to)) ? Expense
     : (isSelf(to) && !isSelf(from)) ? Income
