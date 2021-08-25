@@ -2,7 +2,6 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import {  } from "../parser";
 import {
   expect,
   parseEthTx,

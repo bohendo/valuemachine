@@ -69,6 +69,7 @@ export const parser = (
     isTornadoTx = true;
     withdraw.category = Withdraw;
     withdraw.from = appName;
+    withdraw.index = withdraw.index || 1;
     const total = closestTenPow(withdraw.quantity);
     const asset = withdraw.asset;
     tx.transfers.push({

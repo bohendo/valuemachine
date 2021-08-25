@@ -23,12 +23,9 @@ describe(source, () => {
     });
     expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
-    const swapIn = tx.transfers[1];
-    expect(swapIn.category).to.equal(SwapIn);
-    const swapOut = tx.transfers[2];
-    expect(swapOut.category).to.equal(SwapOut);
+    expect(tx.transfers[0].category).to.equal(Expense);
+    expect(tx.transfers[1].category).to.equal(SwapOut);
+    expect(tx.transfers[2].category).to.equal(SwapIn);
   });
 
   it("should handle a v2 swap", async () => {
@@ -40,10 +37,8 @@ describe(source, () => {
     expect(tx.apps).to.include(source);
     expect(tx.method.toLowerCase()).to.include("trade");
     expect(tx.transfers.length).to.equal(2);
-    const swapOut = tx.transfers[0];
-    expect(swapOut.category).to.equal(SwapOut);
-    const swapIn = tx.transfers[1];
-    expect(swapIn.category).to.equal(SwapIn);
+    expect(tx.transfers[0].category).to.equal(SwapOut);
+    expect(tx.transfers[1].category).to.equal(SwapIn);
   });
 
   it("should handle liquidity deposit to v2", async () => {
@@ -70,8 +65,8 @@ describe(source, () => {
     expect(tx.method.toLowerCase()).to.include("remove liquidity");
     expect(tx.transfers.length).to.equal(4);
     expect(tx.transfers[0].category).to.equal(Expense);
-    expect(tx.transfers[1].category).to.equal(SwapIn);
-    expect(tx.transfers[2].category).to.equal(SwapOut);
+    expect(tx.transfers[1].category).to.equal(SwapOut);
+    expect(tx.transfers[2].category).to.equal(SwapIn);
     expect(tx.transfers[3].category).to.equal(SwapIn);
   });
 
