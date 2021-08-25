@@ -10,12 +10,12 @@ import {
 
 const source = "UniswapV3";
 const logger = testLogger.child({ module: `Test${source}` }, {
-  level: "debug",
+  // level: "debug",
 });
 
 describe(source, () => {
 
-  it.only("should handle swaps", async () => {
+  it("should handle swaps", async () => {
     const tx = await parseEthTx({
       selfAddress: "0x8266C20Cb25A5E1425cb126D78799B2A138B6c46",
       hash: "0x7f9a66b6e82dfc72d107d43a1a3170464cdad7ad90574ac0e390022ca9add50a",

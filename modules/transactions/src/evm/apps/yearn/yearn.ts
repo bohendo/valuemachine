@@ -143,7 +143,7 @@ export const yearnParser = (
       log.info(`Parsing yToken transfer of ${yTransfer.quantity} ${yTransfer.asset}`);
       const transfer = tx.transfers.find(t =>
         t.category !== Internal
-        && t.to !== evmMeta.feeAsset
+        && t.to !== evmMeta.name
         && assetsAreClose(t.asset, asset)
         && (
           (isSelf(t.to) && isSelf(yTransfer.from)) ||
@@ -155,14 +155,18 @@ export const yearnParser = (
       } else {
         if (isSelf(transfer.from) && isSelf(yTransfer.to)) { // deposit
           transfer.category = SwapOut;
+          transfer.index = transfer.index || txLog.index - 0.1;
           transfer.to = address;
           yTransfer.category = SwapIn;
           yTransfer.from = address;
+          yTransfer.index = yTransfer.index || txLog.index + 0.1;
           tx.method = "Deposit";
         } else { // withdraw
           transfer.category = isSelf(transfer.to) ? SwapIn : SwapOut;
           transfer.from = address;
+          transfer.index = transfer.index || txLog.index + 0.1;
           yTransfer.category = isSelf(yTransfer.to) ? SwapIn : SwapOut;
+          yTransfer.index = yTransfer.index || txLog.index - 0.1;
           yTransfer.to = address;
           tx.method = "Withdraw";
         }

@@ -7,8 +7,10 @@ import {
 
 import { assets } from "./assets";
 
-const machineryAddresses = [
-  { name: "yGovernance", address: "Ethereum/0xba37b002abafdd8e89a1995da52740bbc013d992" },
+const yGov = "yGovernance";
+
+const coreAddresses = [
+  { name: yGov, address: "Ethereum/0xba37b002abafdd8e89a1995da52740bbc013d992" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const yVaultV1Addresses = [{
@@ -170,12 +172,12 @@ const govTokenAddresses = [{
   address: "Ethereum/0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e",
 }].map(setAddressCategory(AddressCategories.ERC20));
 
-export const yTokenAddresses = [...yVaultV1Addresses, ...yVaultV2Addresses];
-
-export const govAddress = govTokenAddresses.find(e => e.name === assets.YFI).address;
-
 export const addresses = [
   ...govTokenAddresses,
-  ...yTokenAddresses,
-  ...machineryAddresses,
+  ...yVaultV1Addresses,
+  ...yVaultV2Addresses,
+  ...coreAddresses,
 ];
+
+export const yTokenAddresses = [...yVaultV1Addresses, ...yVaultV2Addresses];
+export const govAddress = addresses.find(e => e.name === yGov).address;

@@ -94,9 +94,7 @@ export const parseEvmTx = (
       tx.transfers.push({
         asset: evmMetadata.feeAsset,
         category: getSimpleCategory(evmTransfer.to, evmTransfer.from),
-        // Internal evm transfers have no index, put incoming transfers first & outgoing last
-        // This makes underflows less likely during VM processesing
-        index: isSelf(evmTransfer.to) ? 1 : 10000,
+        index: 0, // Internal evm transfers have no index
         from: evmTransfer.from,
         quantity: evmTransfer.value,
         to: evmTransfer.to,
