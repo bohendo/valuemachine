@@ -23,10 +23,8 @@ describe(source, () => {
     });
     expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
-    const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(SwapOut);
-    const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(SwapIn);
+    expect(tx.transfers[1].category).to.equal(SwapOut);
+    expect(tx.transfers[2].category).to.equal(SwapIn);
   });
 
   it("should handle a PETH withdrawal with duplicate events", async () => {
@@ -36,8 +34,7 @@ describe(source, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(2);
-    const withdraw = tx.transfers[1];
-    expect(withdraw.category).to.equal(Withdraw);
+    expect(tx.transfers[1].category).to.equal(Withdraw);
   });
 
   it("should handle a SAI borrow", async () => {
@@ -47,8 +44,7 @@ describe(source, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(2);
-    const borrow = tx.transfers[1];
-    expect(borrow.category).to.equal(Borrow);
+    expect(tx.transfers[1].category).to.equal(Borrow);
   });
 
   it("should handle a SAI repayment", async () => {
@@ -58,10 +54,8 @@ describe(source, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(3);
-    const repay = tx.transfers[1];
-    expect(repay.category).to.equal(Repay);
-    const fee = tx.transfers[2];
-    expect(fee.category).to.equal(Expense);
+    expect(tx.transfers[1].category).to.equal(Repay);
+    expect(tx.transfers[2].category).to.equal(Expense);
   });
 
   it("should handle a SAI cage cashout", async () => {
@@ -71,10 +65,8 @@ describe(source, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(3);
-    const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(SwapOut);
-    const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(SwapIn);
+    expect(tx.transfers[1].category).to.equal(SwapOut);
+    expect(tx.transfers[2].category).to.equal(SwapIn);
   });
 
   it("should handle a SAI to DAI migration", async () => {
@@ -84,10 +76,8 @@ describe(source, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(3);
-    const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(SwapOut);
-    const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(SwapIn);
+    expect(tx.transfers[1].category).to.equal(SwapOut);
+    expect(tx.transfers[2].category).to.equal(SwapIn);
   });
 
   it("should handle a DAI deposit to DSR", async () => {
@@ -97,7 +87,41 @@ describe(source, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(2);
-    const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(Deposit);
+    expect(tx.transfers[1].category).to.equal(Deposit);
   });
+
+  it("should parse a repayment w fee paid in SAI", async () => {
+    const tx = await parseEthTx({
+      hash: "0x5919e3da5827d30bc63c8b3023ccefa8d7691fe2d442cab1a18c121fc791200a",
+      selfAddress: "0xfdbbfb0fe2986672af97eca0e797d76a0bbf35c9",
+      logger,
+    });
+    expect(tx.transfers.length).to.equal(3);
+    expect(tx.transfers[0].category).to.equal(Expense);
+    expect(tx.transfers[1].category).to.equal(Repay);
+    expect(tx.transfers[2].category).to.equal(Expense);
+    expect(tx.transfers[2].to).to.include("CDP");
+  });
+
+  it("should parse a CDP deposit via proxy", async () => {
+    const tx = await parseEthTx({
+      hash: "0x26e7fb1c36992b85d764e8b8ffba44356013e2713b421e190277e05a785716d0",
+      selfAddress: "0xa1700938bd2943abfb923d67054287d07bd0cd30",
+      logger,
+    });
+    expect(tx.transfers.length).to.equal(2);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);
+  });
+
+  it("should parse a CDP withdraw via proxy", async () => {
+    const tx = await parseEthTx({
+      hash: "0x30e97ec8235ae69d24873e5596fb708d0622ea817a468ab7111f926a6f9c3387",
+      selfAddress: "0x452e1928aa6c88e690f26ea08ec119bf816c8568",
+      logger,
+    });
+    expect(tx.transfers.length).to.equal(3);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.Withdraw);
+  });
+
 });

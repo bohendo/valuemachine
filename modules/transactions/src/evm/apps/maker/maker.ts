@@ -49,7 +49,6 @@ const tub = "scd-tub";
 const vat = "mcd-vat";
 const cage = "scd-cage";
 const migration = "mcd-migration";
-const pit = "scd-gen-pit";
 
 const saiAddress = addresses.find(e => e.name === SAI)?.address;
 const tubAddress = addresses.find(e => e.name.endsWith(tub))?.address;
@@ -58,7 +57,6 @@ const dsrAddress = addresses.find(e => e.name.endsWith(DSR))?.address;
 const pethAddress = addresses.find(e => e.name === PETH)?.address;
 const cageAddress = addresses.find(e => e.name.endsWith(cage))?.address;
 const migrationAddress = addresses.find(e => e.name.endsWith(migration))?.address;
-const scdPitAddress = addresses.find(e => e.name.endsWith(pit))?.address;
 
 ////////////////////////////////////////
 /// Abis
@@ -336,10 +334,12 @@ export const makerParser = (
           if (gt(wad, "0")) {
             transfer.category = Deposit;
             transfer.to = insertVenue(transfer.from, vault);
+            transfer.index = transfer.index || txLog.index;
             tx.method = "Deposit";
           } else {
             transfer.category = Withdraw;
             transfer.from = insertVenue(transfer.to, vault);
+            transfer.index = transfer.index || txLog.index;
             tx.method = "Withdraw";
           }
         } else {
@@ -612,7 +612,7 @@ export const makerParser = (
         );
         if (fee) {
           fee.category = Expense;
-          fee.to = scdPitAddress;
+          fee.to = insertVenue(fee.from, cdp);
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a MKR/SAI fee`);
         }
