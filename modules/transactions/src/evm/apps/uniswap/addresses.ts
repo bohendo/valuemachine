@@ -130,4 +130,5 @@ export const addresses = [
   ...stakingAddresses,
   ...v1MarketAddresses,
   ...v2MarketAddresses,
+  ...v3MarketAddresses,
 ];

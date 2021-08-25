@@ -1,7 +1,7 @@
+import { addresses } from "./addresses";
+import { assets } from "./assets";
 import {
-  assets,
-  wethAddresses as addresses,
-  wethParser as parser,
+  parser,
   appName as name,
 } from "./weth";
 

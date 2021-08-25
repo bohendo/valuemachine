@@ -12,35 +12,17 @@ import {
 } from "@valuemachine/types";
 import {
   add,
-  setAddressCategory,
   valuesAreClose,
 } from "@valuemachine/utils";
 
 import { EvmAssets } from "../../assets";
 import { parseEvent } from "../utils";
 
+import { exchangeAddresses } from "./addresses";
+
 const { ETH, WETH } = EvmAssets;
 const { Income, Expense, SwapIn, SwapOut } = TransferCategories;
 export const appName = "Oasis";
-
-////////////////////////////////////////
-/// Addresses
-
-const proxyAddresses = [
-  { name: "oasis-proxy", address: "Ethereum/0x793ebbe21607e4f04788f89c7a9b97320773ec59" },
-].map(setAddressCategory(AddressCategories.Proxy));
-
-const machineAddresses = [
-  { name: "oasis-v1", address: "Ethereum/0x14fbca95be7e99c15cc2996c6c9d841e54b79425" },
-  { name: "oasis-v2", address: "Ethereum/0xb7ac09c2c0217b07d7c103029b4918a2c401eecb" },
-  { name: "eth2dai", address: "Ethereum/0x39755357759ce0d7f32dc8dc45414cca409ae24e" },
-  { name: "OasisDex", address: "Ethereum/0x794e6e91555438afc3ccf1c5076a74f42133d08d" },
-].map(setAddressCategory(AddressCategories.Defi));
-
-export const oasisAddresses = [
-  ...proxyAddresses,
-  ...machineAddresses,
-];
 
 ////////////////////////////////////////
 /// Abis
@@ -95,7 +77,7 @@ export const oasisParser = (
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    if (machineAddresses.some(e => e.address === address)) {
+    if (exchangeAddresses.some(e => e.address === address)) {
       tx.apps.push(appName);
       const event = parseEvent(oasisAbi, txLog, evmMeta);
 

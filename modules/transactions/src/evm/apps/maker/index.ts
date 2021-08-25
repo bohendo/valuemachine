@@ -1,10 +1,9 @@
+import { addresses } from "./addresses";
+import { assets } from "./assets";
 import {
-  makerAddresses as coreAddresses,
   makerParser as parser,
   appName as name,
 } from "./maker";
-import { oasisAddresses, oasisParser } from "./oasis";
+import { oasisParser } from "./oasis";
 
-const addresses = [...coreAddresses, ...oasisAddresses];
-
-export const app = { addresses, assets: {}, name, parser, oasisParser };
+export const app = { addresses, assets, name, parser, oasisParser };

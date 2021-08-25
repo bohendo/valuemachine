@@ -1,7 +1,5 @@
-import {
-  idleAddresses as addresses,
-  idleParser as parser,
-  appName as name,
-} from "./idle";
+import { addresses } from "./addresses";
+import { assets } from "./assets";
+import { parser, appName as name } from "./idle";
 
-export const app = { addresses, assets: {}, name, parser };
+export const app = { addresses, assets, name, parser };

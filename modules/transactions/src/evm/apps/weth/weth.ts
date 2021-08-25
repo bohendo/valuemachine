@@ -1,37 +1,25 @@
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
-  AddressCategories,
   EvmMetadata,
   EvmTransaction,
   Logger,
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  setAddressCategory,
-} from "@valuemachine/utils";
 
-import { Assets } from "../../../assets";
+import { EvmAssets } from "../../assets";
 import { parseEvent } from "../utils";
+
+import { assets } from "./assets";
+import { addresses } from "./addresses";
 
 export const appName = "Weth";
 
-const { ETH } = Assets;
+const { ETH } = EvmAssets;
 const { SwapIn, SwapOut } = TransferCategories;
 
-export const assets = {
-  WETH: "WETH",
-} as const;
-
-////////////////////////////////////////
-/// Addresses
-
-export const wethAddresses = [
-  { name: assets.WETH, address: "Ethereum/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" },
-].map(setAddressCategory(AddressCategories.ERC20));
-
-const wethAddress = wethAddresses.find(e => e.name === assets.WETH).address;
+const wethAddress = addresses.find(e => e.name === assets.WETH).address;
 
 ////////////////////////////////////////
 /// Abis
@@ -46,7 +34,7 @@ const wethAbi = [
 ////////////////////////////////////////
 /// Parser
 
-export const wethParser = (
+export const parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

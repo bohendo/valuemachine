@@ -1,30 +1,23 @@
-// TODO: import assets directly from the file where they're defined
-import { app as aave } from "./aave";
-import { app as argent } from "./argent";
-import { app as compound } from "./compound";
-import { app as erc20 } from "./erc20";
-import { app as etherdelta } from "./etherdelta";
-import { app as idle } from "./idle";
-import { app as maker } from "./maker";
-import { app as polygon } from "./polygon";
-import { app as quickswap } from "./quickswap";
-import { app as tornado } from "./tornado";
-import { app as uniswap } from "./uniswap";
-import { app as weth } from "./weth";
-import { app as yearn } from "./yearn";
+import { assets as aaveAssets } from "./aave/assets";
+import { assets as compoundAssets } from "./compound/assets";
+import { assets as erc20Assets } from "./erc20/assets";
+import { assets as idleAssets } from "./idle/assets";
+import { assets as makerAssets } from "./maker/assets";
+import { assets as quickswapAssets } from "./quickswap/assets";
+import { assets as tornadoAssets } from "./tornado/assets";
+import { assets as uniswapAssets } from "./uniswap/assets";
+import { assets as wethAssets } from "./weth/assets";
+import { assets as yearnAssets } from "./yearn/assets";
 
 export const Tokens = {
-  ...aave.assets,
-  ...argent.assets,
-  ...compound.assets,
-  ...erc20.assets,
-  ...etherdelta.assets,
-  ...idle.assets,
-  ...maker.assets,
-  ...polygon.assets,
-  ...quickswap.assets,
-  ...tornado.assets,
-  ...uniswap.assets,
-  ...weth.assets,
-  ...yearn.assets,
+  ...aaveAssets,
+  ...compoundAssets,
+  ...erc20Assets,
+  ...idleAssets,
+  ...makerAssets,
+  ...quickswapAssets,
+  ...tornadoAssets,
+  ...uniswapAssets,
+  ...wethAssets,
+  ...yearnAssets,
 } as const;

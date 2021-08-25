@@ -1,8 +1,8 @@
+import { addresses } from "./addresses";
+import { assets } from "./assets";
 import {
-  quickswapAddresses as addresses,
-  quickswapParser as parser,
+  parser,
   appName as name,
-  assets,
 } from "./quickswap";
 
 export const app = { addresses, assets, name, parser };

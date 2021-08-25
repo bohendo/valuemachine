@@ -1,8 +1,8 @@
 import {
-  Assets,
   TransferCategories,
 } from "@valuemachine/types";
 
+import { EvmAssets } from "../../assets";
 import {
   parseEthTx,
   expect,
@@ -25,10 +25,10 @@ describe(source, () => {
     expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
-    expect(swapOut.asset).to.equal(Assets.ETH);
+    expect(swapOut.asset).to.equal(EvmAssets.ETH);
     expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
-    expect(swapIn.asset).to.equal(Assets.WETH);
+    expect(swapIn.asset).to.equal(EvmAssets.WETH);
     expect(swapIn.category).to.equal(SwapIn);
     expect(swapIn.quantity).to.equal(swapOut.quantity);
   });
@@ -42,10 +42,10 @@ describe(source, () => {
     expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
-    expect(swapOut.asset).to.equal(Assets.WETH);
+    expect(swapOut.asset).to.equal(EvmAssets.WETH);
     expect(swapOut.category).to.equal(SwapOut);
     const swapIn = tx.transfers[2];
-    expect(swapIn.asset).to.equal(Assets.ETH);
+    expect(swapIn.asset).to.equal(EvmAssets.ETH);
     expect(swapIn.category).to.equal(SwapIn);
     expect(swapIn.quantity).to.equal(swapOut.quantity);
   });

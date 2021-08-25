@@ -1,8 +1,8 @@
+import { addresses } from "./addresses";
+import { assets } from "./assets";
 import {
-  tornadoAddresses as addresses,
-  tornadoParser as parser,
+  parser,
   appName as name,
-  assets,
 } from "./tornado";
 
 export const app = { addresses, assets, name, parser };
