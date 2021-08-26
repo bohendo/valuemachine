@@ -1,12 +1,12 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { Cryptocurrency } from "./assets";
+import { DigitalGuard } from "./guards";
 import { Logger } from "./logger";
 import { Store } from "./store";
 import { AddressBook } from "./addressBook";
-import { EvmParser, Transaction, TransactionsJson } from "./transactions";
+import { EvmParsers, Transaction, TransactionsJson } from "./transactions";
 import {
-  Address,
+  Account,
   Bytes32,
   DecimalString,
   HexString,
@@ -16,30 +16,22 @@ import {
 ////////////////////////////////////////
 // JSON Schema
 
-export const EvmNames = {
-  Ethereum: "Ethereum",
-  EthereumClassic: "EthereumClassic",
-  Polygon: "Polygon",
-} as const;
-export const EvmName = Type.String(); // allow arbitrary evms in app-level code
-export type EvmName = Static<typeof EvmName>;
-
 export const EvmMetadata = Type.Object({
-  id: Type.Number(),
-  name: EvmName,
-  feeAsset: Type.Union([Cryptocurrency, Type.String()]), // allow arbirary fee assets
+  id: Type.Number(), // value returned from chainId opcode
+  name: DigitalGuard, // common name
+  feeAsset: Type.String(), // native token used to pay security fees
 });
 export type EvmMetadata = Static<typeof EvmMetadata>;
 
 export const EvmTransfer = Type.Object({
-  from: Address,
-  to: Type.Union([Address, Type.Null()]),
+  from: Account,
+  to: Type.Union([Account, Type.Null()]),
   value: DecimalString,
 });
 export type EvmTransfer = Static<typeof EvmTransfer>;
 
 export const EvmTransactionLog = Type.Object({
-  address: Address,
+  address: Account,
   data: HexString,
   index: Type.Number(),
   topics: Type.Array(Bytes32),
@@ -47,7 +39,7 @@ export const EvmTransactionLog = Type.Object({
 export type EvmTransactionLog = Static<typeof EvmTransactionLog>;
 
 export const EvmTransaction = Type.Object({
-  from: Address,
+  from: Account,
   gasPrice: HexString,
   gasUsed: HexString,
   hash: Bytes32,
@@ -56,7 +48,7 @@ export const EvmTransaction = Type.Object({
   status: Type.Optional(Type.Number()),
   timestamp: TimestampString,
   transfers: Type.Array(EvmTransfer),
-  to: Type.Union([Address, Type.Null()]),
+  to: Type.Union([Account, Type.Null()]),
   value: DecimalString,
 });
 export type EvmTransaction = Static<typeof EvmTransaction>;
@@ -82,8 +74,8 @@ export type EvmDataParams = {
 };
 
 export interface EvmData {
-  getTransaction: (hash: Bytes32, addressBook: AddressBook, parsers?: EvmParser[]) => Transaction;
-  getTransactions: (addressBook: AddressBook, parsers?: EvmParser[]) => TransactionsJson;
+  getTransaction: (hash: Bytes32, addressBook: AddressBook, parsers?: EvmParsers) => Transaction;
+  getTransactions: (addressBook: AddressBook, parsers?: EvmParsers) => TransactionsJson;
   json: EvmDataJson;
   syncAddressBook: (addressBook: AddressBook, key?: string) => Promise<void>;
   syncTransaction: (hash: Bytes32, key?: string) => Promise<void>;

@@ -2,14 +2,14 @@ import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersp
 import { formatEther } from "@ethersproject/units";
 import { hexlify } from "@ethersproject/bytes";
 import {
-  Address,
+  Account,
   AddressBook,
-  Assets,
   Bytes32,
   EvmData,
   EvmDataJson,
   EvmMetadata,
-  EvmNames,
+  EvmParsers,
+  Guards,
   Logger,
   Store,
   StoreKeys,
@@ -24,6 +24,8 @@ import {
   getLogger,
 } from "@valuemachine/utils";
 import axios from "axios";
+
+import { Assets } from "../../assets";
 
 import { parsePolygonTx } from "./parser";
 
@@ -50,7 +52,7 @@ export const getPolygonData = (params?: {
 
   const metadata = {
     id: 137,
-    name: EvmNames.Polygon,
+    name: Guards.Polygon,
     feeAsset: Assets.MATIC,
   } as EvmMetadata;
 
@@ -58,7 +60,7 @@ export const getPolygonData = (params?: {
   // Internal Heleprs
 
   // CAIP-10
-  const getAddress = (address: string): string => `evm:${metadata.id}:${getEvmAddress(address)}`;
+  const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
 
   const formatCovalentTx = rawTx => ({
     // block: rawTx.block_height,
@@ -116,9 +118,9 @@ export const getPolygonData = (params?: {
     return data?.items?.[0];
   };
 
-  const syncAddress = async (rawAddress: Address): Promise<void> => {
+  const syncAddress = async (rawAddress: Account): Promise<void> => {
     const address = getEvmAddress(
-      rawAddress.includes(":") ? rawAddress.split(":").pop() : rawAddress
+      rawAddress.includes("/") ? rawAddress.split("/").pop() : rawAddress
     );
     const yesterday = Date.now() - 1000 * 60 * 60 * 24;
     if (new Date(json.addresses[address]?.lastUpdated || 0).getTime() > yesterday) {
@@ -158,17 +160,6 @@ export const getPolygonData = (params?: {
   ////////////////////////////////////////
   // Exported Methods
 
-  const getTransaction = (
-    hash: Bytes32,
-    addressBook: AddressBook,
-  ): Transaction =>
-    parsePolygonTx(
-      json.transactions[hash],
-      metadata,
-      addressBook,
-      logger,
-    );
-
   const syncTransaction = async (
     txHash: string,
   ): Promise<void> => {
@@ -195,8 +186,8 @@ export const getPolygonData = (params?: {
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .map(address =>
-        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // CAIP-10 on this evm
-        : address.includes(":") ? "" // CAIP-10 address on different evm
+        address.startsWith(`${metadata.name}/`) ? address.split("/").pop() // CAIP-10 on this evm
+        : address.includes("/") ? "" // CAIP-10 address on different evm
         : address // non-CAIP-10 address
       )
       .filter(address => isEvmAddress(address))
@@ -249,6 +240,7 @@ export const getPolygonData = (params?: {
 
   const getTransactions = (
     addressBook: AddressBook,
+    extraParsers?: EvmParsers,
   ): TransactionsJson => {
     const selfAddresses = Object.values(addressBook.json)
       .map(entry => entry.address)
@@ -266,8 +258,22 @@ export const getPolygonData = (params?: {
       metadata,
       addressBook,
       logger,
-    )).sort(chrono);
+      extraParsers,
+    )).filter(tx => tx.transfers?.length).sort(chrono);
   };
+
+  const getTransaction = (
+    hash: Bytes32,
+    addressBook: AddressBook,
+    extraParsers?: EvmParsers,
+  ): Transaction =>
+    parsePolygonTx(
+      json.transactions[hash],
+      metadata,
+      addressBook,
+      logger,
+      extraParsers,
+    );
 
   return {
     getTransaction,

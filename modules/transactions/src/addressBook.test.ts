@@ -12,12 +12,12 @@ const log = testLogger.child({ module: "TestAddressBook" }, {
 
 describe("AddressBook", () => {
 
-  it("should return a valid guard", async () => {
-    const addressBook = getAddressBook();
+  it("should return a valid name", async () => {
+    const addressBook = getAddressBook({ logger: log });
     const address = AddressZero.replace("000", "001");
-    const guard = addressBook.getGuard(address);
-    log.info(`${address} is guarded by ${guard}`);
-    expect(guard).to.be.ok;
+    const name = addressBook.getName(address);
+    log.info(`${address} is also known as ${name}`);
+    expect(name).to.be.a("string");
   });
 
 });

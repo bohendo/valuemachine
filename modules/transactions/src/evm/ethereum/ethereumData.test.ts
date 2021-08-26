@@ -24,7 +24,7 @@ describe("Ethereum Data", () => {
       // store: testStore,
       logger,
     });
-    const addressBook = getTestAddressBook("evm:1:0x1057bea69c9add11c6e3de296866aff98366cfe3");
+    const addressBook = getTestAddressBook("Ethereum/0x1057bea69c9add11c6e3de296866aff98366cfe3");
     const hash = "0x9f7342f3f37a9fa74857afd9c56e4a290af983758df8a937dcd78e2588ba6c4e";
     await ethData.syncTransaction(hash, env.etherscanKey);
     const tx = ethData.getTransaction(hash, addressBook);
@@ -41,7 +41,7 @@ describe("Ethereum Data", () => {
       // store: testStore,
       logger,
     });
-    const addressBook = getTestAddressBook("evm:1:0xDD8251bB8e7Ba07DfcD9e1842CD9E3cDfc0399C8");
+    const addressBook = getTestAddressBook("Ethereum/0xDD8251bB8e7Ba07DfcD9e1842CD9E3cDfc0399C8");
     await ethData.syncAddressBook(addressBook);
     const transactions = ethData.getTransactions(addressBook);
     expect(transactions[0].sources).to.include(Guards.Ethereum);

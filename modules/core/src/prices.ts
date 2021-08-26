@@ -1,12 +1,14 @@
-import { publicAddresses } from "@valuemachine/transactions";
+import {
+  Assets,
+  EvmAssets,
+  FiatCurrencies,
+  publicAddresses,
+} from "@valuemachine/transactions";
 import {
   Asset,
   AssetChunk,
-  Assets,
   DateString,
   DecimalString,
-  EthereumAssets,
-  FiatCurrencies,
   Prices,
   PricesJson,
   PricesParams,
@@ -466,8 +468,8 @@ export const getPrices = (params?: PricesParams): Prices => {
       let price = getPrice(date, asset, unit);
       if (
         !price &&
-        Object.keys(EthereumAssets).includes(asset) &&
-        Object.keys(EthereumAssets).includes(unit)
+        Object.keys(EvmAssets).includes(asset) &&
+        Object.keys(EvmAssets).includes(unit)
         && !!price // Don't actually use uniswap prices until issue #103 is resolved
       ) {
         price = await getUniswapPrice(date, asset, unit);

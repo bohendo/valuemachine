@@ -1,5 +1,4 @@
 import {
-  Assets,
   Asset,
   Logger,
   Transaction,
@@ -9,6 +8,7 @@ import {
 import csv from "csv-parse/lib/sync";
 import { gt } from "@valuemachine/utils";
 
+import { Assets } from "../assets";
 import { mergeTransaction } from "../merge";
 
 const { DAI, ETH, SAI, USD } = Assets;
@@ -50,6 +50,7 @@ export const mergeWyreTransactions = (
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
     const transaction = {
+      apps: [],
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],

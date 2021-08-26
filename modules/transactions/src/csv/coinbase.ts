@@ -1,7 +1,8 @@
 import {
+  Guards,
+  Logger,
   Transaction,
   TransactionSources,
-  Logger,
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
@@ -11,6 +12,8 @@ import { gt } from "@valuemachine/utils";
 import { mergeTransaction } from "../merge";
 
 const { Expense, SwapIn, SwapOut, Deposit, Withdraw, Unknown } = TransferCategories;
+
+const guard = Guards.USA; // Coinbase jurisdiction
 
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
@@ -31,11 +34,12 @@ export const mergeCoinbaseTransactions = (
       ["USD Fees"]: fees,
     } = row;
 
-    const account = `${source}-account`;
-    const exchange = `${source}-exchange`;
+    const account = `${guard}/${source}/1`;
+    const exchange = `${guard}/${source}`;
     const external = `${asset}-account`;
 
     const transaction = {
+      apps: [],
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],

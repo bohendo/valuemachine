@@ -1,5 +1,5 @@
+import { Assets } from "@valuemachine/transactions";
 import {
-  Assets,
   AssetChunk,
   DateString,
   Prices,

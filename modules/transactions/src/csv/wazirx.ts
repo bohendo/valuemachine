@@ -1,5 +1,4 @@
 import {
-  Assets,
   Logger,
   Transaction,
   TransactionSources,
@@ -7,6 +6,7 @@ import {
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 
+import { Assets } from "../assets";
 import { mergeTransaction } from "../merge";
 
 const { INR } = Assets;
@@ -28,6 +28,7 @@ export const mergeWazirxTransactions = (
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
 
     const transaction = {
+      apps: [],
       // trailing Z is important bc it designates GMT times insead of local time
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
       sources: [source],

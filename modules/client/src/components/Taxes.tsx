@@ -21,9 +21,11 @@ import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import { DateInput } from "@valuemachine/react";
 import {
+  Assets,
+} from "@valuemachine/transactions";
+import {
   AddressBook,
   Asset,
-  Assets,
   DateString,
   DecimalString,
   EventTypes,
@@ -139,7 +141,7 @@ export const TaxesExplorer: React.FC<PropTypes> = ({
       .filter(
         e => e.type === EventTypes.Trade || e.type === EventTypes.Income
       ).reduce((all, evt) => {
-        const jur = addressBook.getGuard((evt as TradeEvent).account || "");
+        const jur = (evt as TradeEvent).account.split("/")[0];
         if (Object.keys(Guards).includes(jur)) {
           all.add(jur);
         }
@@ -156,9 +158,9 @@ export const TaxesExplorer: React.FC<PropTypes> = ({
     let cumulativeChange = "0";
     setTaxes(
       vm?.json?.events.filter(evt => {
-        const toJur = addressBook.getGuard(
+        const toJur = (
           (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
-        );
+        ).split("/")[0];
         return toJur === guard && (
           evt.type === EventTypes.Trade
           || evt.type === EventTypes.GuardChange

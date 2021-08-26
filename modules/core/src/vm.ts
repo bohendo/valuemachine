@@ -1,4 +1,7 @@
 import {
+  EvmApps,
+} from "@valuemachine/transactions";
+import {
   Account,
   Asset,
   AssetChunk,
@@ -12,7 +15,6 @@ import {
   StoreKeys,
   TradeEvent,
   Transaction,
-  TransactionSources,
   Transfer,
   TransferCategories,
   ValueMachine,
@@ -38,11 +40,10 @@ const {
 // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
 // Withdrawing more than we deposited is assumed to represent income rather than a loan
 const isIncomeSource = (account: Account): boolean =>
-  account.startsWith(`${TransactionSources.Maker}-DSR`) ||
-  account.startsWith(`${TransactionSources.Tornado}`);
+  account.startsWith(`${EvmApps.Maker}-DSR`) ||
+  account.startsWith(`${EvmApps.Tornado}`);
 
 export const getValueMachine = ({
-  addressBook,
   logger,
   store,
   json: vmJson,
@@ -124,7 +125,7 @@ export const getValueMachine = ({
       inputs: [],
       history: [{
         date: json.date,
-        guard: addressBook.getGuard(account),
+        account,
       }],
     };
     json.chunks.push(newChunk);
@@ -394,23 +395,30 @@ export const getValueMachine = ({
 
   const moveValue = (quantity: DecimalString, asset: Asset, from: Account, to: Account): void => {
     const toMove = getChunks(quantity, asset, from);
-    toMove.forEach(chunk => { chunk.account = to; });
+    toMove.forEach(chunk => {
+      chunk.account = to;
+      const prev = chunk.history[chunk.history.length - 1];
+      if (prev.account === from && prev.account !== to) {
+        chunk.history.push({ date: json.date, account: to });
+      } else if (prev.account !== from && prev.account !== to) {
+        log.warn(`chunk ${chunk.index} is being moved from ${
+          from
+        } but the prev history entry is: ${JSON.stringify(prev)}`);
+        chunk.history.push({ date: json.date, account: to });
+      } else if (prev.account !== from && prev.account === to) {
+        log.warn(`chunk ${chunk.index} is being moved to ${
+          to
+        } but the prev history entry is already: ${JSON.stringify(prev)}`);
+      }
+    });
     // Handle guard change
-    const oldGuard = addressBook.getGuard(from);
-    const newGuard = addressBook.getGuard(to);
-    if (newGuard !== oldGuard) {
-      toMove.forEach(chunk => { chunk.history.push({
-        date: json.date,
-        guard: newGuard,
-      }); });
+    if (to.split("/")[0] !== from.split("/")[0]) {
       newEvents.push({
         date: json.date,
         index: json.events.length + newEvents.length,
         newBalances: {},
         from: from,
-        fromGuard: oldGuard,
         to: to,
-        toGuard: newGuard,
         chunks: toMove.map(toIndex),
         insecurePath: [],
         type: EventTypes.GuardChange,

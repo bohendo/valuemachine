@@ -18,11 +18,9 @@ import {
   AddressEntry,
   AddressBook,
   AddressBookJson,
-  Guards,
+  CsvFiles,
 } from "@valuemachine/types";
 import React, { useState } from "react";
-
-import { CsvFile } from "../types";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -49,15 +47,14 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 const getEmptyEntry = (): AddressEntry => ({
   address: "",
   category: AddressCategories.Self,
-  guard: Guards.Ethereum,
   name: "",
 });
 
 type PropTypes = {
   addressBook: AddressBook,
   setAddressBookJson: (val: AddressBookJson) => void,
-  csvFiles: CsvFile[],
-  setCsvFiles: (val: CsvFile[]) => void,
+  csvFiles: CsvFiles,
+  setCsvFiles: (val: CsvFiles) => void,
 };
 export const AddressBookManager: React.FC<PropTypes> = ({
   addressBook,

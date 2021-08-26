@@ -19,7 +19,7 @@ const logger = getLogger("info");
 const store = getFileStore(path.join(__dirname, "../exampleData"), fs);
 
 // Gather & categorize the addresses we want to analyze
-const address = "evm:1:0x8dD2470FA76bfEd24b7ef69a83F0063A6C03cA3f";
+const address = "Ethereum/0x8dD2470FA76bfEd24b7ef69a83F0063A6C03cA3f";
 const addressBookJson = {
   [address]: { address, category: AddressCategories.Self, name: "bohendo.argent.xyz" },
 };
@@ -46,7 +46,7 @@ const transactions = getTransactions({ logger });
   transactions.merge(chainData.getTransactions(addressBook));
 
   // Create a value machine & process our transactions
-  const vm = getValueMachine({ addressBook, logger });
+  const vm = getValueMachine({ logger });
   for (const transaction of transactions.json) {
     vm.execute(transaction);
   }

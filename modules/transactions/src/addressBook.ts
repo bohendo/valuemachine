@@ -1,17 +1,12 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
   Account,
-  Address,
   AddressBook,
   AddressBookJson,
   AddressBookParams,
   AddressCategories,
   AddressCategory,
   AddressEntry,
-  EvmSources,
-  Guard,
-  Guards,
-  guards,
   PrivateCategories,
   PublicCategories,
   StoreKeys,
@@ -67,10 +62,10 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   ////////////////////////////////////////
   // Helpers
 
-  const getEntry = (address: Address): AddressEntry | undefined => {
+  const getEntry = (address: Account): AddressEntry | undefined => {
     if (!address) return undefined;
-    return addressBook[address] || (address.includes(":")
-      ? addressBook[address.split(":").pop()]
+    return addressBook[address] || (address.includes("/")
+      ? addressBook[address.split("/").pop()]
       : Object.values(addressBook).find((entry: AddressEntry) => entry?.address?.endsWith(address))
     );
   };
@@ -78,15 +73,15 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   ////////////////////////////////////////
   // Exports
 
-  const isCategory = (category: AddressCategory) => (address: Address): boolean =>
+  const isCategory = (category: AddressCategory) => (address: Account): boolean =>
     address && category && getEntry(address)?.category === category;
 
-  const isPublic = (address: Address): boolean => {
+  const isPublic = (address: Account): boolean => {
     const entry = getEntry(address);
     return entry && Object.keys(PublicCategories).some(category => category === entry.category);
   };
 
-  const isPrivate = (address: Address): boolean => {
+  const isPrivate = (address: Account): boolean => {
     const entry = getEntry(address);
     return entry && Object.keys(PrivateCategories).some(category => category === entry.category);
   };
@@ -95,41 +90,32 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
 
   const isToken = isCategory(AddressCategories.ERC20);
 
-  const getName = (address: Address): string => {
+  const getName = (address: Account): string => {
     if (!address) return "";
     const name = getEntry(address)?.name;
     if (name) return name;
-    if (isEthAddress(address)) {
-      const ethAddress = fmtAddress(address);
-      return `${ethAddress.substring(0, 6)}..${ethAddress.substring(ethAddress.length - 4)}`;
+    const parts = address.split("/");
+    const suffix = parts.pop();
+    if (isEthAddress(suffix)) {
+      const ethAddress = fmtAddress(suffix);
+      if (parts.length > 0) {
+        return `${parts.join("/")}/${
+          ethAddress.substring(0, 6)
+        }..${ethAddress.substring(ethAddress.length - 4)}`;
+      } else {
+        return `${ethAddress.substring(0, 6)}..${ethAddress.substring(ethAddress.length - 4)}`;
+      }
     }
-    return address;
-  };
-
-  const getGuard = (account: Account): Guard => {
-    const address = account.includes(":") ? account.split(":").pop() : account;
-    if (!address) return Guards.None;
-    const guard = getEntry(address)?.guard;
-    if (guard) return guard;
-    if (!address.includes("-")) {
-      return isEthAddress(address) ? Guards.Ethereum : Guards.None;
-    }
-    const prefix = address.split("-")[0];
-    if (!prefix) return Guards.None;
-    if (Object.keys(EvmSources).includes(prefix)) {
-      return Guards.Ethereum;
-    }
-    return guards[prefix] || prefix;
+    return suffix;
   };
 
   // Only really useful for ERC20 addresses
-  const getDecimals = (address: Address): number =>
+  const getDecimals = (address: Account): number =>
     getEntry(address)?.decimals || 18;
 
   return {
     addresses: Object.keys(addressBook),
     getName,
-    getGuard,
     getDecimals,
     isCategory,
     isPublic,

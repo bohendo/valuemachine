@@ -20,9 +20,11 @@ import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
 import { DateInput } from "@valuemachine/react";
 import {
-  Asset,
   Cryptocurrencies,
-  EthereumAssets,
+  FiatCurrencies,
+} from "@valuemachine/transactions";
+import {
+  Asset,
   Prices,
   PricesJson,
   ValueMachine,
@@ -208,7 +210,7 @@ export const PriceManager: React.FC<PropTypes> = ({
           onChange={handleFilterChange}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys({ ...EthereumAssets, ...Cryptocurrencies }).map(asset => (
+          {Object.keys({ ...FiatCurrencies, ...Cryptocurrencies }).map(asset => (
             <MenuItem key={asset} value={asset}>{asset}</MenuItem>
           ))}
         </Select>

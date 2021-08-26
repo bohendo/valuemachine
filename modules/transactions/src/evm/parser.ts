@@ -2,9 +2,9 @@ import { isAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
 import {
-  Address,
+  Account,
   AddressBook,
-  EvmParser,
+  EvmParsers,
   EvmTransaction,
   EvmTransfer,
   EvmMetadata,
@@ -13,7 +13,7 @@ import {
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
-import { gt, getNewContractAddress } from "@valuemachine/utils";
+import { dedup, gt, getNewContractAddress } from "@valuemachine/utils";
 
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
@@ -22,19 +22,21 @@ export const parseEvmTx = (
   evmMetadata: EvmMetadata,
   addressBook: AddressBook,
   logger?: Logger,
-  appParsers = [] as EvmParser[],
+  appParsers = [] as EvmParsers[],
 ): Transaction => {
+  if (!evmTx || !evmTx.hash) throw new Error(`Invalid evm tx: ${JSON.stringify(evmTx)}`);
   const { isSelf } = addressBook;
   const log = logger.child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });
   // log.debug(evmTx, `Parsing evm tx`);
 
-  const getSimpleCategory = (to: Address, from: Address): TransferCategory =>
+  const getSimpleCategory = (to: Account, from: Account): TransferCategory =>
     (isSelf(to) && isSelf(from)) ? Internal
     : (isSelf(from) && !isSelf(to)) ? Expense
     : (isSelf(to) && !isSelf(from)) ? Income
     : Unknown;
 
   let tx = {
+    apps: [],
     date: (new Date(evmTx.timestamp)).toISOString(),
     hash: evmTx.hash,
     sources: [evmMetadata.name],
@@ -92,9 +94,7 @@ export const parseEvmTx = (
       tx.transfers.push({
         asset: evmMetadata.feeAsset,
         category: getSimpleCategory(evmTransfer.to, evmTransfer.from),
-        // Internal evm transfers have no index, put incoming transfers first & outgoing last
-        // This makes underflows less likely during VM processesing
-        index: isSelf(evmTransfer.to) ? 1 : 10000,
+        index: 0, // Internal evm transfers have no index
         from: evmTransfer.from,
         quantity: evmTransfer.value,
         to: evmTransfer.to,
@@ -102,15 +102,17 @@ export const parseEvmTx = (
     }
   });
 
-  // Activate pipeline of app-specific parsers
-  appParsers.forEach(parser => {
-    try {
-      tx = parser(tx, evmTx, evmMetadata, addressBook, log);
-    } catch (e) {
-      // If one of them fails, log the error & move on
-      log.error(e);
-    }
-  });
+  // Activate pipeline of app-specific inserters
+  appParsers.forEach(app => { app?.insert?.forEach(parser => {
+    try { tx = parser(tx, evmTx, evmMetadata, addressBook, log); }
+    catch (e) { log.error(e); } // If one of them fails, log the error & move on
+  }); });
+  // Activate pipeline of app-specific modifiers
+  appParsers.forEach(app => { app?.modify?.forEach(parser => {
+    try { tx = parser(tx, evmTx, evmMetadata, addressBook, log); }
+    catch (e) { log.error(e); } // If one of them fails, log the error & move on
+  }); });
+  tx.apps = dedup(tx.apps).sort();
 
   tx.transfers = tx.transfers
     // Filter out no-op transfers

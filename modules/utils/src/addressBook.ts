@@ -1,10 +1,9 @@
 import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
 import {
+  Account,
   AddressBookJson,
   AddressCategory,
   AddressEntry,
-  Guard,
-  Guards,
 } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
@@ -33,30 +32,34 @@ export const getAddressEntryError = (addressEntry: AddressEntry): string | null 
 // Formatters
 
 export const fmtAddress = (address: string) => {
-  if (address.includes(":")) {
-    const parts = address.split(":");
+  if (address.includes("/")) {
+    const parts = address.split("/");
     const suffix = parts.pop();
-    const prefix = parts.join(":"); // leftover after popping the address off
-    return `${prefix}:${isEvmAddress(suffix) ? getEvmAddress(suffix) : suffix}`;
+    const prefix = parts.join("/"); // leftover after popping the address off
+    return `${prefix}/${isEvmAddress(suffix) ? getEvmAddress(suffix) : suffix}`;
   } else {
     return isEvmAddress(address) ? getEvmAddress(address) : address;
   }
+};
+
+export const insertVenue = (account: Account, venue: string): string => {
+  if (!account) return "";
+  if (!venue) return account;
+  const parts = account.split("/");
+  parts.splice(-1, 0, venue);
+  return fmtAddress(parts.join("/"));
 };
 
 export const fmtAddressEntry = (entry: AddressEntry): AddressEntry => {
   const error = getAddressEntryError(entry);
   if (error) throw new Error(error);
   entry.address = fmtAddress(entry.address);
-  entry.guard = entry.guard || (
-    isEvmAddress(entry.address) ? Guards.Ethereum : Guards.None
-  );
   return entry;
 };
 
-export const setAddressCategory = (category: AddressCategory, guard?: Guard) =>
+export const setAddressCategory = (category: AddressCategory) =>
   (entry: Partial<AddressEntry>): AddressEntry =>
     fmtAddressEntry({
       ...entry,
       category,
-      guard: guard || entry.guard || isEvmAddress(entry.address) ? Guards.Ethereum : Guards.None,
     } as AddressEntry);

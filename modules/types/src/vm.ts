@@ -1,11 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { AddressBook } from "./addressBook";
-import { Asset } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { Guard } from "./guards";
-import { Account, DecimalString, TimestampString } from "./strings";
+import { Account, Asset, DecimalString, TimestampString } from "./strings";
 import { Transaction } from "./transactions";
 
 ////////////////////////////////////////
@@ -17,16 +14,15 @@ export type ChunkIndex = Static<typeof ChunkIndex>;
 export const AssetChunk = Type.Object({
   asset: Asset,
   quantity: DecimalString,
-  // receiveDate = history[0].date
-  history: Type.Array(Type.Object({
-    date: TimestampString,
-    guard: Guard,
+  history: Type.Array(Type.Object({ // length should always be >= 1
+    date: TimestampString, // receiveDate = history[0].date
+    account: Account,
   })),
   disposeDate: Type.Optional(TimestampString), // undefined if we still own this chunk
   account: Type.Optional(Account), // undefined if we no longer own this chunk
   index: ChunkIndex, // used as a unique identifier, should never change
-  inputs: Type.Array(ChunkIndex), // source chunks traded for this one
-  outputs: Type.Optional(Type.Array(ChunkIndex)), // sink chunks that we gave this one away for
+  inputs: Type.Array(ChunkIndex), // chunks given away in exchange for this one
+  outputs: Type.Optional(Type.Array(ChunkIndex)), // chunks that we got in exchange for this one
 });
 export type AssetChunk = Static<typeof AssetChunk>;
 
@@ -43,7 +39,7 @@ export const EventTypes = {
   Expense: "Expense",
   Debt: "Debt",
 } as const;
-export const EventType = Type.Enum(EventTypes);
+export const EventType = Type.Enum(EventTypes); // NOT extensible
 export type EventType = Static<typeof EventType>;
 
 const BaseEvent = Type.Object({
@@ -98,10 +94,8 @@ export type IncomeEvent = Static<typeof IncomeEvent>;
 export const GuardChangeEvent = Type.Intersect([
   BaseEvent,
   Type.Object({
-    fromGuard: Guard,
     from: Account,
     to: Account,
-    toGuard: Guard,
     chunks: Type.Array(ChunkIndex),
     insecurePath: Type.Array(ChunkIndex),
     type: Type.Literal(EventTypes.GuardChange),
@@ -199,7 +193,6 @@ export type ValueMachineJson = Static<typeof ValueMachineJson>;
 // Function Interfaces
 
 export type ValueMachineParams = {
-  addressBook: AddressBook;
   json?: ValueMachineJson;
   logger?: Logger;
   store?: Store;

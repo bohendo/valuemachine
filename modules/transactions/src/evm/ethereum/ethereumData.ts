@@ -2,16 +2,15 @@ import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersp
 import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
 import {
-  EvmAddress,
   AddressBook,
   Bytes32,
-  Cryptocurrencies,
+  EvmAddress,
   EvmData,
   EvmDataParams,
-  EvmNames,
-  EvmParser,
+  EvmParsers,
   EvmTransaction,
   EvmTransfer,
+  Guards,
   StoreKeys,
   Transaction,
   TransactionsJson,
@@ -27,8 +26,9 @@ import {
   gt,
 } from "@valuemachine/utils";
 import axios from "axios";
-// eslint-disable-next-line import/no-unresolved
 import getQueue from "queue";
+
+import { Assets } from "../../assets";
 
 import { parseEthTx } from "./parser";
 
@@ -49,14 +49,14 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const metadata = {
     id: 1,
-    name: EvmNames.Ethereum,
-    feeAsset: Cryptocurrencies.ETH,
+    name: Guards.Ethereum,
+    feeAsset: Assets.ETH,
   };
 
   ////////////////////////////////////////
   // Internal Helper Functions
 
-  const getAddress = (address: string): string => `evm:${metadata.id}:${getEvmAddress(address)}`;
+  const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
 
   const formatCovalentTx = (rawTx): EvmTransaction => ({
     from: getAddress(rawTx.from_address),
@@ -161,7 +161,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const fetchTransfers = async (txHash: Bytes32): Promise<EvmTransfer[]> => {
     const transfers = await queryEtherscan(txHash);
-    if (transfers) {
+    if (typeof transfers.map === "function") {
       return transfers.map(formatEtherscanTransfer);
     } else {
       log.error(transfers);
@@ -230,7 +230,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const syncAddress = async (rawAddress: EvmAddress): Promise<void> => {
     const address = getEvmAddress(
-      rawAddress.includes(":") ? rawAddress.split(":").pop() : rawAddress
+      rawAddress.includes("/") ? rawAddress.split("/").pop() : rawAddress
     );
     log.info(`Fetching transaction history of ${address}`);
     let transactions: EvmTransaction[];
@@ -330,8 +330,8 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .map(address =>
-        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // address on this evm
-        : address.includes(":") ? "" // address on a different evm
+        address.startsWith(`${metadata.name}/`) ? address.split("/").pop() // address on this evm
+        : address.includes("/") ? "" // address on a different evm
         : address // generic address applies to all evms
       )
       .filter(address => isEvmAddress(address))
@@ -381,14 +381,14 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const getTransactions = (
     addressBook: AddressBook,
-    extraParsers?: EvmParser[],
+    extraParsers?: EvmParsers,
   ): TransactionsJson => {
     const selfAddresses = Object.values(addressBook.json)
       .map(entry => entry.address)
       .filter(address => addressBook.isSelf(address))
       .map(address =>
-        address.startsWith(`evm:${metadata.id}:`) ? address.split(":").pop() // CAIP-10 on this evm
-        : address.includes(":") ? "" // CAIP-10 address on different evm
+        address.startsWith(`${metadata.name}/`) ? address.split("/").pop() // CAIP-10 on this evm
+        : address.includes("/") ? "" // CAIP-10 address on different evm
         : address // non-CAIP-10 address
       )
       .filter(address => isEvmAddress(address))
@@ -408,13 +408,13 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
       addressBook,
       logger,
       extraParsers,
-    )).sort(chrono);
+    )).filter(tx => tx.transfers?.length).sort(chrono);
   };
 
   const getTransaction = (
     hash: Bytes32,
     addressBook: AddressBook,
-    extraParsers?: EvmParser[],
+    extraParsers?: EvmParsers,
   ): Transaction =>
     parseEthTx(
       json.transactions[hash],

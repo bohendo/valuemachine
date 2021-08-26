@@ -1,10 +1,15 @@
 export { getAddressBook } from "./addressBook";
 export {
-  ethereumAddresses,
+  Assets,
+  Cryptocurrencies,
+  FiatCurrencies,
+} from "./assets";
+export {
+  EvmApps,
+  EvmAssets,
   getEthereumData,
-  parseEvmTx,
   getPolygonData,
-  polygonAddresses,
+  parseEvmTx,
   publicAddresses,
 } from "./evm";
 export { getTransactions } from "./manager";

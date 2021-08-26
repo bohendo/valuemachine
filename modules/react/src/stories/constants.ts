@@ -1,8 +1,7 @@
 import { getValueMachine } from "@valuemachine/core";
-import { getAddressBook, getTransactions } from "@valuemachine/transactions";
+import { EvmApps, Assets, getAddressBook, getTransactions } from "@valuemachine/transactions";
 import {
   AddressCategories,
-  Assets,
   CsvSources,
   Guards,
   EventTypes,
@@ -20,7 +19,7 @@ export const csvFiles = [{
   data: coinbaseData,
 }];
 
-const getAddress = (val: string): string => `evm:1:0x${val.repeat(40).substring(0, 40)}`;
+const getAddress = (val: string): string => `Ethereum/0x${val.repeat(40).substring(0, 40)}`;
 const one = getAddress("1");
 const two = getAddress("2");
 const three = getAddress("3");
@@ -50,7 +49,8 @@ export const transactions = getTransactions({
     index: 0,
     date: "2020-01-01T01:00:00Z",
     hash: "0x0000000000000000000000000000000000000000000000000000000000000002",
-    sources: [TransactionSources.Ethereum, TransactionSources.ERC20],
+    sources: [TransactionSources.Ethereum],
+    apps: [EvmApps.ERC20],
     transfers: [{
       index: 0,
       category: TransferCategories.Income,
@@ -63,7 +63,8 @@ export const transactions = getTransactions({
     index: 1,
     date: "2020-01-02T01:00:00Z",
     hash: "0x0000000000000000000000000000000000000000000000000000000000000002",
-    sources: [TransactionSources.Ethereum, TransactionSources.ERC20],
+    sources: [TransactionSources.Ethereum],
+    apps: [EvmApps.ERC20],
     transfers: [{
       index: -1,
       category: TransferCategories.Expense,
@@ -84,6 +85,7 @@ export const transactions = getTransactions({
     date: "2020-01-03T01:00:00Z",
     hash: "0x0000000000000000000000000000000000000000000000000000000000000001",
     sources: [TransactionSources.Ethereum],
+    apps: [],
     transfers: [{
       index: -1,
       category: TransferCategories.Expense,
@@ -103,12 +105,11 @@ export const transactions = getTransactions({
 });
 
 export const vm = getValueMachine({
-  addressBook,
   json: {
     chunks: [{
       asset: Assets.ETH,
       quantity: "1.00",
-      history: [{ date: "2020-01-01T01:00:00Z", guard: Guards.Ethereum }],
+      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
       disposeDate: "2020-01-03T01:00:00Z",
       index: 0,
       inputs: [],
@@ -116,7 +117,7 @@ export const vm = getValueMachine({
     }, {
       asset: Assets.ETH,
       quantity: "0.01",
-      history: [{ date: "2020-01-01T01:00:00Z", guard: Guards.Ethereum }],
+      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
       disposeDate: "2020-01-02T01:00:00Z",
       index: 1,
       inputs: [],
@@ -124,7 +125,7 @@ export const vm = getValueMachine({
     }, {
       asset: Assets.ETH,
       quantity: "0.01",
-      history: [{ date: "2020-01-01T01:00:00Z", guard: Guards.Ethereum }],
+      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
       disposeDate: "2020-01-03T01:00:00Z",
       index: 2,
       inputs: [],

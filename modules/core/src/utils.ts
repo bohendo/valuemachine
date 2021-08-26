@@ -50,8 +50,8 @@ export const describeEvent = (event: Event | HydratedEvent): string => {
   } else if (event.type === GuardChange) {
     const chunks = event.chunks?.length ? sumChunks(event.chunks) : "";
     return `Moved ${chunks} from ${
-      event.fromGuard
-    } guard to ${event.toGuard} on ${date}`;
+      event.from.split("/")[0]
+    } guard to ${event.to.split("/")[0]} on ${date}`;
   } else {
     return `Unknown event`;
   }

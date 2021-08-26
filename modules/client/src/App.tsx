@@ -8,18 +8,20 @@ import {
   makeStyles,
 } from "@material-ui/core";
 import {
+  getPrices,
+  getValueMachine,
+} from "@valuemachine/core";
+import {
   Assets,
+  getAddressBook,
+  getTransactions,
+} from "@valuemachine/transactions";
+import {
   StoreKeys,
 } from "@valuemachine/types";
-import { getLocalStore, getLogger } from "@valuemachine/utils";
+import { getEmptyCsvFiles, getLocalStore, getLogger } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
-import {
-  getAddressBook,
-  getPrices,
-  getTransactions,
-  getValueMachine,
-} from "valuemachine";
 
 import { AddressBookManager } from "./components/AddressBook";
 import { Dashboard } from "./components/Dashboard";
@@ -28,7 +30,6 @@ import { PriceManager } from "./components/Prices";
 // import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
-import { getEmptyCsv } from "./types";
 
 const store = getLocalStore(localStorage);
 const logger = getLogger("warn");
@@ -36,12 +37,12 @@ const logger = getLogger("warn");
 // localstorage keys
 const {
   AddressBook: AddressBookStore,
+  CsvFiles: CsvStore,
+  Prices: PricesStore,
   Transactions: TransactionsStore,
   ValueMachine: ValueMachineStore,
-  Prices: PricesStore
 } = StoreKeys;
 const UnitStore = "Unit" as any;
-const CsvStore = "Csv" as any;
 const ThemeStore = "Theme" as any;
 
 const lightRed = "#e699a6";
@@ -91,7 +92,7 @@ const App: React.FC = () => {
   const [vmJson, setVMJson] = useState(store.load(ValueMachineStore));
   const [pricesJson, setPricesJson] = useState(store.load(PricesStore));
   // Extra UI-specific data from localstorage
-  const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsv());
+  const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsvFiles());
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
   const [theme, setTheme] = useState(store.load(ThemeStore) || "dark");
 
@@ -106,7 +107,6 @@ const App: React.FC = () => {
     logger,
   }));
   const [vm, setVM] = useState(getValueMachine({
-    addressBook,
     json: vmJson,
     logger,
     store,
@@ -122,6 +122,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!addressBookJson) return;
+    // TODO: if json has error, clear local storage & reset var
     console.log(`Refreshing ${addressBookJson.length} address book entries`);
     store.save(AddressBookStore, addressBookJson);
     setAddressBook(getAddressBook({
@@ -147,7 +148,6 @@ const App: React.FC = () => {
     console.log(`Refreshing ${vmJson.chunks.length} value machine chunks`);
     store.save(ValueMachineStore, vmJson);
     setVM(getValueMachine({
-      addressBook,
       json: vmJson,
       logger,
       store,

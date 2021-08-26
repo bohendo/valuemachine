@@ -1,5 +1,5 @@
 import { chrono, getLogger } from "@valuemachine/utils";
-import { Address, AddressBook, Guard, TransactionsJson } from "@valuemachine/types";
+import { Account, AddressBook, Guard, TransactionsJson } from "@valuemachine/types";
 
 import { env } from "./env";
 import { getLogAndSend, STATUS_MY_BAD } from "./utils";
@@ -14,7 +14,7 @@ export const getPollerHandler = (
   let syncing = [];
   return async (
     addressBook: AddressBook,
-    addresses: Address[],
+    addresses: Account[],
     res: any,
   ): Promise<void> => {
     const logAndSend = getLogAndSend(res);

@@ -1,9 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { Asset } from "./assets";
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { DateString, DecimalString, TimestampString } from "./strings";
+import { Asset, DateString, DecimalString, TimestampString } from "./strings";
 import { AssetChunk } from "./vm";
 
 ////////////////////////////////////////

@@ -16,9 +16,11 @@ import TransactionsIcon from "@material-ui/icons/Receipt";
 import LightIcon from "@material-ui/icons/BrightnessHigh";
 import DarkIcon from "@material-ui/icons/Brightness4";
 import {
-  Asset,
   Cryptocurrencies,
   FiatCurrencies,
+} from "@valuemachine/transactions";
+import {
+  Asset
 } from "@valuemachine/types";
 import React from "react";
 import { Link } from "react-router-dom";

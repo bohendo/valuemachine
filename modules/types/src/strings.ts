@@ -1,15 +1,17 @@
 import { Static, Type } from "@sinclair/typebox";
 
 export const EvmAddress = Type.RegEx(/^0x[a-fA-F0-9]{40}$/);
-export type EvmAddress = Static<typeof Address>;
+export type EvmAddress = Static<typeof EvmAddress>;
 
-export const Address = Type.Union([EvmAddress, Type.String()]);
-export type Address = Static<typeof Address>;
-
-// eg evm:1/Compound:0xabc123.. (chainType:chainId/app:address a la CAIP-10) for on-chain accounts
-// eg USD:Coinbase:1 (jurisdiction:venue:accountIndex) for off-chain trad fi
-export const Account = Type.RegEx(/^[-a-zA-Z0-9/:]+$/);
+// <guard>[/<venue>]/address
+// eg Ethereum/0xabc123.. for simple on-chain accounts
+// eg Ethereum/Maker/CDP-123/0xabc123.. for on-chain deposits
+// eg USA/Coinbase/1 for off-chain trad fi services
+export const Account = Type.RegEx(/^[-/a-zA-Z0-9]+$/); // TODO: tighten regex
 export type Account = Static<typeof Account>;
+
+export const Asset = Type.RegEx(/^[_a-zA-Z0-9]{1,32}$/);
+export type Asset = Static<typeof Asset>;
 
 export const Bytes32 = Type.RegEx(/^0x[a-fA-F0-9]{64}$/);
 export type Bytes32 = Static<typeof Bytes32>;
