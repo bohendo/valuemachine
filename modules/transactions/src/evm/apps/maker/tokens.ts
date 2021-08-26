@@ -89,15 +89,14 @@ export const tokenParser = (
       if (event.name === "Mint") {
         log.info(`Parsing ${asset} ${event.name} of ${wad}`);
         if (address === pethAddress) {
-          const swapIn = {
+          tx.transfers.push({
             asset,
             category: SwapIn,
             from: tubAddress,
             index,
             quantity: wad,
             to: event.args.guy,
-          };
-          tx.transfers.push(swapIn);
+          });
         } else {
           tx.transfers.push({
             asset,
@@ -111,15 +110,14 @@ export const tokenParser = (
       } else if (event.name === "Burn") {
         log.info(`Parsing ${asset} ${event.name} of ${wad}`);
         if (address === pethAddress) {
-          const swapOut = {
+          tx.transfers.push({
             asset,
             category: SwapOut,
             from: event.args.guy,
             index,
             quantity: wad,
             to: tubAddress,
-          };
-          tx.transfers.push(swapOut);
+          });
         } else {
           tx.transfers.push({
             asset,

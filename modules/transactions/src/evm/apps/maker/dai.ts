@@ -200,6 +200,9 @@ export const daiParser = (
         log.info(`Found a change in ${vault} collateral of about ${wad} ${asset}`);
         const transfer = tx.transfers.find(transfer =>
           (
+            transfer.category === TransferCategories.Expense ||
+            transfer.category === TransferCategories.Income
+          ) && (
             transfer.asset === asset || (
               ethish.includes(asset) && ethish.includes(transfer.asset)
             )
@@ -231,7 +234,10 @@ export const daiParser = (
         }
         log.info(`Found a change in ${vault} debt of about ${round(dart)} DAI`);
         const transfer = tx.transfers.find(transfer =>
-          transfer.asset === DAI
+          (
+            transfer.category === TransferCategories.Expense ||
+            transfer.category === TransferCategories.Income
+          ) && transfer.asset === DAI
           && valuesAreClose(transfer.quantity, abs(dart), div(abs(dart), "10"))
         );
         if (transfer) {

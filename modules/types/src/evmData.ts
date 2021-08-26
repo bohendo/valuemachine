@@ -4,7 +4,7 @@ import { DigitalGuard } from "./guards";
 import { Logger } from "./logger";
 import { Store } from "./store";
 import { AddressBook } from "./addressBook";
-import { EvmParser, Transaction, TransactionsJson } from "./transactions";
+import { EvmParsers, Transaction, TransactionsJson } from "./transactions";
 import {
   Account,
   Bytes32,
@@ -74,8 +74,8 @@ export type EvmDataParams = {
 };
 
 export interface EvmData {
-  getTransaction: (hash: Bytes32, addressBook: AddressBook, parsers?: EvmParser[]) => Transaction;
-  getTransactions: (addressBook: AddressBook, parsers?: EvmParser[]) => TransactionsJson;
+  getTransaction: (hash: Bytes32, addressBook: AddressBook, parsers?: EvmParsers) => Transaction;
+  getTransactions: (addressBook: AddressBook, parsers?: EvmParsers) => TransactionsJson;
   json: EvmDataJson;
   syncAddressBook: (addressBook: AddressBook, key?: string) => Promise<void>;
   syncTransaction: (hash: Bytes32, key?: string) => Promise<void>;

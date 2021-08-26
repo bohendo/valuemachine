@@ -16,7 +16,7 @@ const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
 
-describe.only(appName, () => {
+describe(appName, () => {
   it("should handle a WETH to PETH swap", async () => {
     const tx = await parseEthTx({
       hash: "0x25441cec88c76e0f3a00b9ecbcc803f8cd8aff9de358e39c6b3f44dfdafd2aed",

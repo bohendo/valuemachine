@@ -7,7 +7,7 @@ import {
   EvmAddress,
   EvmData,
   EvmDataParams,
-  EvmParser,
+  EvmParsers,
   EvmTransaction,
   EvmTransfer,
   Guards,
@@ -381,7 +381,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
 
   const getTransactions = (
     addressBook: AddressBook,
-    extraParsers?: EvmParser[],
+    extraParsers?: EvmParsers,
   ): TransactionsJson => {
     const selfAddresses = Object.values(addressBook.json)
       .map(entry => entry.address)
@@ -414,7 +414,7 @@ export const getEthereumData = (params?: EvmDataParams): EvmData => {
   const getTransaction = (
     hash: Bytes32,
     addressBook: AddressBook,
-    extraParsers?: EvmParser[],
+    extraParsers?: EvmParsers,
   ): Transaction =>
     parseEthTx(
       json.transactions[hash],

@@ -4,7 +4,7 @@ import { formatEther } from "@ethersproject/units";
 import {
   Account,
   AddressBook,
-  EvmParser,
+  EvmParsers,
   EvmTransaction,
   EvmTransfer,
   EvmMetadata,
@@ -22,7 +22,7 @@ export const parseEvmTx = (
   evmMetadata: EvmMetadata,
   addressBook: AddressBook,
   logger?: Logger,
-  appParsers = [] as EvmParser[],
+  appParsers = [] as EvmParsers[],
 ): Transaction => {
   if (!evmTx || !evmTx.hash) throw new Error(`Invalid evm tx: ${JSON.stringify(evmTx)}`);
   const { isSelf } = addressBook;

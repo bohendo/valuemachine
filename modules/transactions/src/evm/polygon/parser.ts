@@ -1,6 +1,6 @@
 import {
   AddressBook,
-  EvmParser,
+  EvmParsers,
   EvmMetadata,
   EvmTransaction,
   Logger,
@@ -15,7 +15,7 @@ export const parsePolygonTx = (
   polygonMetadata: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
-  extraParsers = [] as EvmParser[],
+  extraParsers = { insert: [], modify: [] } as EvmParsers,
 ): Transaction =>
   parseEvmTx(
     polygonTx,

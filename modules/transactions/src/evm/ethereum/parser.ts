@@ -29,7 +29,7 @@ export const parseEthTx = (
   ethMetadata: EvmMetadata,
   addressBook: AddressBook,
   logger: Logger,
-  extraParsers = [] as EvmParsers[],
+  extraParsers = { insert: [], modify: [] } as EvmParsers,
 ): Transaction =>
   parseEvmTx(
     ethTx,

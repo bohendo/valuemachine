@@ -4,6 +4,6 @@ import { oasisParser } from "./oasis";
 import { tokenParser } from "./tokens";
 
 export const insert = [tokenParser];
-export const modify = [oasisParser, saiParser, daiParser];
+export const modify = [saiParser, daiParser, oasisParser];
 
 export const parsers = { insert, modify };

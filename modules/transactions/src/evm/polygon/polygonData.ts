@@ -8,6 +8,7 @@ import {
   EvmData,
   EvmDataJson,
   EvmMetadata,
+  EvmParsers,
   Guards,
   Logger,
   Store,
@@ -159,17 +160,6 @@ export const getPolygonData = (params?: {
   ////////////////////////////////////////
   // Exported Methods
 
-  const getTransaction = (
-    hash: Bytes32,
-    addressBook: AddressBook,
-  ): Transaction =>
-    parsePolygonTx(
-      json.transactions[hash],
-      metadata,
-      addressBook,
-      logger,
-    );
-
   const syncTransaction = async (
     txHash: string,
   ): Promise<void> => {
@@ -250,6 +240,7 @@ export const getPolygonData = (params?: {
 
   const getTransactions = (
     addressBook: AddressBook,
+    extraParsers?: EvmParsers,
   ): TransactionsJson => {
     const selfAddresses = Object.values(addressBook.json)
       .map(entry => entry.address)
@@ -267,8 +258,22 @@ export const getPolygonData = (params?: {
       metadata,
       addressBook,
       logger,
+      extraParsers,
     )).filter(tx => tx.transfers?.length).sort(chrono);
   };
+
+  const getTransaction = (
+    hash: Bytes32,
+    addressBook: AddressBook,
+    extraParsers?: EvmParsers,
+  ): Transaction =>
+    parsePolygonTx(
+      json.transactions[hash],
+      metadata,
+      addressBook,
+      logger,
+      extraParsers,
+    );
 
   return {
     getTransaction,
