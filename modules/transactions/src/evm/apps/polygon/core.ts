@@ -41,7 +41,7 @@ const wethAbi = [
   "event Withdrawal(address indexed to, uint256 amount)",
 ];
 
-export const parser = (
+export const coreParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

@@ -35,7 +35,7 @@ const closestTenPow = amt => amt.startsWith("0.")
   ? mul("10", "0." + "0".repeat(amt.match(/0.0*/)[0].length - 2) + "1")
   : "1" + "0".repeat(amt.split(".")[0].length);
 
-export const parser = (
+export const coreParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

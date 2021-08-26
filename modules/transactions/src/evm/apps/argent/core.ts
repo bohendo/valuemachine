@@ -33,7 +33,7 @@ const makerManagerV1Abi = [
 ////////////////////////////////////////
 /// Parser
 
-export const parser = (
+export const coreParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

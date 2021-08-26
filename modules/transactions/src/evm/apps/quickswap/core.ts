@@ -12,7 +12,7 @@ import { apps } from "./enums";
 
 const appName = apps.Quickswap;
 
-export const parser = (
+export const coreParser = (
   tx: Transaction,
   _evmTx: EvmTransaction,
   _evmMeta: EvmMetadata,

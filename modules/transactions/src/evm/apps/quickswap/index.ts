@@ -1,5 +1,3 @@
-import { addresses } from "./addresses";
-import { enums } from "./enums";
-import { parser } from "./quickswap";
-
-export const app = { addresses, enums, parsers: [parser] };
+export { addresses } from "./addresses";
+export { enums } from "./enums";
+export { parsers } from "./parsers";

@@ -16,7 +16,7 @@ const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
 
-describe(appName, () => {
+describe.only(appName, () => {
   it("should handle a WETH to PETH swap", async () => {
     const tx = await parseEthTx({
       hash: "0x25441cec88c76e0f3a00b9ecbcc803f8cd8aff9de358e39c6b3f44dfdafd2aed",
@@ -39,7 +39,7 @@ describe(appName, () => {
     expect(tx.transfers[1].category).to.equal(Withdraw);
   });
 
-  it.only("should handle a SAI borrow", async () => {
+  it("should handle a SAI borrow", async () => {
     const tx = await parseEthTx({
       hash: "0x39ac4111ceaac95a9eee278b05ca38db3142a188bb33d5aa1c646546fc8d31c6",
       selfAddress: "0x213fe7e177160991829a4d0a598a848d2448f384",

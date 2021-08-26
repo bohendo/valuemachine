@@ -58,7 +58,7 @@ const idleToToken = (idleAsset: string): Asset | undefined => {
   }
 };
 
-export const parser = (
+export const coreParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

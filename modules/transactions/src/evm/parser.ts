@@ -102,15 +102,16 @@ export const parseEvmTx = (
     }
   });
 
-  // Activate pipeline of app-specific parsers
-  appParsers.forEach(parser => {
-    try {
-      tx = parser(tx, evmTx, evmMetadata, addressBook, log);
-    } catch (e) {
-      // If one of them fails, log the error & move on
-      log.error(e);
-    }
-  });
+  // Activate pipeline of app-specific inserters
+  appParsers.forEach(app => { app?.insert?.forEach(parser => {
+    try { tx = parser(tx, evmTx, evmMetadata, addressBook, log); }
+    catch (e) { log.error(e); } // If one of them fails, log the error & move on
+  }); });
+  // Activate pipeline of app-specific modifiers
+  appParsers.forEach(app => { app?.modify?.forEach(parser => {
+    try { tx = parser(tx, evmTx, evmMetadata, addressBook, log); }
+    catch (e) { log.error(e); } // If one of them fails, log the error & move on
+  }); });
   tx.apps = dedup(tx.apps).sort();
 
   tx.transfers = tx.transfers

@@ -75,7 +75,7 @@ const associatedTransfer = (asset: string, quantity: string) =>
     assetsAreClose(asset, transfer.asset) &&
     valuesAreClose(transfer.quantity, quantity, div(quantity, "100"));
 
-export const parser = (
+export const coreParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,
@@ -245,5 +245,3 @@ export const parser = (
 
   return tx;
 };
-
-export const app = { addresses, appName, parser };

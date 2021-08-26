@@ -34,7 +34,7 @@ const wethAbi = [
 ////////////////////////////////////////
 /// Parser
 
-export const parser = (
+export const coreParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

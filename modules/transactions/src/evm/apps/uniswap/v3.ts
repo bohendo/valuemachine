@@ -12,7 +12,7 @@ export const appName = "UniswapV3";
 ////////////////////////////////////////
 /// Parser
 
-export const uniswapV3Parser = (
+export const v3Parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

@@ -96,6 +96,11 @@ export type EvmParser = (
   logger: Logger,
 ) => Transaction;
 
+export type EvmParsers = {
+  insert: EvmParser[];
+  modify: EvmParser[];
+};
+
 export type TransactionsParams = {
   json?: TransactionsJson;
   logger?: Logger;

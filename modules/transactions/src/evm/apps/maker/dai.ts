@@ -31,7 +31,7 @@ import {
 } from "./addresses";
 import { apps, assets } from "./enums";
 
-const appName = apps.Maker;
+const appName = apps.Dai;
 
 const { ETH, WETH } = EvmAssets;
 const { DAI, PETH, SAI } = assets;

@@ -51,7 +51,7 @@ const proxyAbi = [
 ////////////////////////////////////////
 /// Parser
 
-export const parser = (
+export const tokenParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

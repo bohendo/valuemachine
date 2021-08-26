@@ -27,5 +27,5 @@ export const parsePolygonTx = (
       quickswapParsers,
       aaveParsers,
       extraParsers,
-    ].flat(),
+    ],
   );
