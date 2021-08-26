@@ -5,4 +5,4 @@ import { uniswapV3Parser } from "./uniswapV3";
 
 export { addresses } from "./addresses";
 
-export const app = { addresses, enums, parser, uniswapV3Parser };
+export const app = { addresses, enums, parsers: [parser, uniswapV3Parser] };
