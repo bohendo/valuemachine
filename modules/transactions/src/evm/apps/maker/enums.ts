@@ -1,6 +1,8 @@
 export const apps = {
   Maker: "Maker",
   Oasis: "Oasis",
+  Dai: "Oasis",
+  Sai: "Oasis",
 } as const;
 
 export const assets = {

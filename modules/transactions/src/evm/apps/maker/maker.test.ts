@@ -39,7 +39,7 @@ describe(appName, () => {
     expect(tx.transfers[1].category).to.equal(Withdraw);
   });
 
-  it("should handle a SAI borrow", async () => {
+  it.only("should handle a SAI borrow", async () => {
     const tx = await parseEthTx({
       hash: "0x39ac4111ceaac95a9eee278b05ca38db3142a188bb33d5aa1c646546fc8d31c6",
       selfAddress: "0x213fe7e177160991829a4d0a598a848d2448f384",
