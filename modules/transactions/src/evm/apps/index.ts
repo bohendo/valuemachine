@@ -1,4 +1,3 @@
-import { addresses } from "./addresses";
 import { app as aave } from "./aave";
 import { app as argent } from "./argent";
 import { app as compound } from "./compound";
@@ -12,6 +11,8 @@ import { app as tornado } from "./tornado";
 import { app as uniswap } from "./uniswap";
 import { app as weth } from "./weth";
 import { app as yearn } from "./yearn";
+
+export { addresses } from "./addresses";
 
 export const aaveParser = aave.parser;
 export const argentParser = argent.parser;
@@ -60,23 +61,6 @@ export const AppAssets = {
   ...weth.enums.assets,
   ...yearn.enums.assets,
 } as const;
-
-export const appAddresses = [
-  ...addresses,
-  ...aave.addresses,
-  ...argent.addresses,
-  ...compound.addresses,
-  ...etherdelta.addresses,
-  ...idle.addresses,
-  ...erc20.addresses,
-  ...maker.addresses,
-  ...polygon.addresses,
-  ...quickswap.addresses,
-  ...tornado.addresses,
-  ...uniswap.addresses,
-  ...weth.addresses,
-  ...yearn.addresses,
-];
 
 // Order matters!
 // Complex parsers usually depend on simple ones so put ERC20 & weth first

@@ -13,7 +13,7 @@ const log = testLogger.child({ module: "TestAddressBook" }, {
 describe("AddressBook", () => {
 
   it("should return a valid name", async () => {
-    const addressBook = getAddressBook();
+    const addressBook = getAddressBook({ logger: log });
     const address = AddressZero.replace("000", "001");
     const name = addressBook.getName(address);
     log.info(`${address} is also known as ${name}`);

@@ -9,9 +9,9 @@ import {
   testLogger,
 } from "../testUtils";
 
-import { names } from "./enums";
+import { apps } from "./enums";
 
-const appName = names.Weth;
+const appName = apps.Weth;
 const { SwapIn, SwapOut } = TransferCategories;
 const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",

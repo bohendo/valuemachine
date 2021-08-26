@@ -94,11 +94,19 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     if (!address) return "";
     const name = getEntry(address)?.name;
     if (name) return name;
-    if (isEthAddress(address)) {
-      const ethAddress = fmtAddress(address);
-      return `${ethAddress.substring(0, 6)}..${ethAddress.substring(ethAddress.length - 4)}`;
+    const parts = address.split("/");
+    const suffix = parts.pop();
+    if (isEthAddress(suffix)) {
+      const ethAddress = fmtAddress(suffix);
+      if (parts.length > 0) {
+        return `${parts.join("/")}/${
+          ethAddress.substring(0, 6)
+        }..${ethAddress.substring(ethAddress.length - 4)}`;
+      } else {
+        return `${ethAddress.substring(0, 6)}..${ethAddress.substring(ethAddress.length - 4)}`;
+      }
     }
-    return address;
+    return suffix;
   };
 
   // Only really useful for ERC20 addresses

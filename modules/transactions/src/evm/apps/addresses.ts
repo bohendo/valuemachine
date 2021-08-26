@@ -7,6 +7,7 @@ import { addresses as compound } from "./compound/addresses";
 import { addresses as erc20 } from "./erc20/addresses";
 import { addresses as idle } from "./idle/addresses";
 import { addresses as maker } from "./maker/addresses";
+import { addresses as polygon } from "./polygon/addresses";
 import { addresses as quickswap } from "./quickswap/addresses";
 import { addresses as tornado } from "./tornado/addresses";
 import { addresses as uniswap } from "./uniswap/addresses";
@@ -19,6 +20,7 @@ const appAddresses = [
   ...erc20,
   ...idle,
   ...maker,
+  ...polygon,
   ...quickswap,
   ...tornado,
   ...uniswap,
