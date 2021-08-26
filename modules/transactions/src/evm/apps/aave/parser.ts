@@ -19,9 +19,9 @@ import {
 import { parseEvent } from "../../utils";
 
 import { addresses, defiAddresses } from "./addresses";
-import { assets } from "./enums";
+import { apps, assets } from "./enums";
 
-export const appName = "Aave";
+export const appName = apps.Aave;
 
 const { SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 

@@ -1,8 +1,5 @@
+import { addresses } from "./addresses";
 import { enums } from "./enums";
-import {
-  etherdeltaAddresses as addresses,
-  etherdeltaParser as parser,
-  appName as name,
-} from "./etherdelta";
+import { parser } from "./etherdelta";
 
-export const app = { addresses, enums, name, parser };
+export const app = { addresses, enums, parser };

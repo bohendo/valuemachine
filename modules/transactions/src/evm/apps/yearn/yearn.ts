@@ -114,7 +114,7 @@ const vaultToToken = (yAsset: string): Asset | undefined => {
   }
 };
 
-export const yearnParser = (
+export const parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

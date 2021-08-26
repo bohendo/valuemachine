@@ -8,12 +8,12 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = "Yearn";
-const logger = testLogger.child({ module: `Test${source}` }, {
+const appName = "Yearn";
+const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
 
-describe(source, () => {
+describe(appName, () => {
 
   it("should parse a yearn deposit", async () => {
     const tx = await parseEthTx({
@@ -21,7 +21,7 @@ describe(source, () => {
       selfAddress: "0x0979b13d93a61562cea2149264ce709d05c82b55",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
@@ -33,7 +33,7 @@ describe(source, () => {
       selfAddress: "0x6f76019451b4e379e89ef4421ac6dea3e9ec89f2",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
@@ -45,7 +45,7 @@ describe(source, () => {
       selfAddress: "0x09ea768029069eeb979015a64f261e7789e5e450",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);
   });
@@ -57,7 +57,7 @@ describe(source, () => {
       selfAddress: "0x09ea768029069eeb979015a64f261e7789e5e450",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Withdraw);
   });
@@ -68,7 +68,7 @@ describe(source, () => {
       selfAddress: "0x09ea768029069eeb979015a64f261e7789e5e450",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.method.toLowerCase()).to.include("register");
   });
 
@@ -78,7 +78,7 @@ describe(source, () => {
       selfAddress: "0x49a8d81868f2acb9a6368bc0ef994cb988f17407",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Withdraw);
     expect(tx.transfers[2].category).to.equal(TransferCategories.Income);

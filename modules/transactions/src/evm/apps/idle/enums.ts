@@ -1,7 +1,9 @@
+export const apps = {
+  Idle: "Idle",
+} as const;
+
 export const assets = {
-
   IDLE: "IDLE",
-
   idleDAISafe: "idleDAISafe",
   idleDAIYield: "idleDAIYield",
   idleRAIYield: "idleRAIYield",
@@ -13,8 +15,6 @@ export const assets = {
   idleUSDTYield: "idleUSDTYield",
   idleWBTCYield: "idleWBTCYield",
   idleWETHYield: "idleWETHYield",
-
 } as const;
 
-export const apps = {} as const;
 export const enums = { assets, apps };

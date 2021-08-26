@@ -8,20 +8,22 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = "Tornado";
+import { apps } from "./enums";
+
+const appName = apps.Tornado;
 const { Expense, Deposit, Withdraw } = TransferCategories;
-const logger = testLogger.child({ module: `Test${source}` }, {
+const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
 
-describe(source, () => {
+describe(appName, () => {
   it("should handle deposits to tornado", async () => {
     const tx = await parseEthTx({
       hash: "0x5e70e647a5dee8cc7eaddc302f2a7501e29ed00d325eaec85a3bde5c02abf1ec",
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
     expect(deposit.category).to.equal(Deposit);
@@ -33,7 +35,7 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);

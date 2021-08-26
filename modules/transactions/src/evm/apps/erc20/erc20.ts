@@ -12,7 +12,9 @@ import {
 
 import { parseEvent } from "../utils";
 
-export const appName = "ERC20";
+import { apps } from "./enums";
+
+export const appName = apps.ERC20;
 
 const { Expense, Income, Internal, Unknown } = TransferCategories;
 
@@ -27,7 +29,7 @@ const erc20Abi = [
 ////////////////////////////////////////
 /// Parser
 
-export const erc20Parser = (
+export const parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

@@ -11,20 +11,20 @@ import {
 
 import { names } from "./enums";
 
-const source = names.Weth;
+const appName = names.Weth;
 const { SwapIn, SwapOut } = TransferCategories;
-const logger = testLogger.child({ module: `Test${source}` }, {
+const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
 
-describe(source, () => {
+describe(appName, () => {
   it("should parse a weth deposit", async () => {
     const tx = await parseEthTx({
       hash: "0xbbbd2b0c777b8f7ce7b3d16ba42452c6b50e6145a22b769ae61620d7ed549db4",
       selfAddress: "0xd8011dd927e9751a6dd3414b75933ca7c2f07b96",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
     expect(swapOut.asset).to.equal(EvmAssets.ETH);
@@ -41,7 +41,7 @@ describe(source, () => {
       selfAddress: "0x2b6dfd49bf64eef655026f1ab66b77156d0328bf",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     const swapOut = tx.transfers[1];
     expect(swapOut.asset).to.equal(EvmAssets.WETH);

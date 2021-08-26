@@ -33,9 +33,9 @@ import {
   factoryAddresses,
   tokenAddresses,
 } from "./addresses";
-import { assets } from "./enums";
+import { apps, assets } from "./enums";
 
-export const appName = "Maker";
+const appName = apps.Maker;
 
 const { ETH, WETH } = EvmAssets;
 const { DAI, MKR, PETH, SAI } = assets;
@@ -175,7 +175,7 @@ const parseLogNote = (
   };
 };
 
-export const makerParser = (
+export const parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

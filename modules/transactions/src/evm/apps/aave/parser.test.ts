@@ -10,9 +10,9 @@ import {
   testLogger,
 } from "../testUtils";
 
-import { appName } from "./parser";
+import { apps } from "./enums";
 
-const { Expense, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
+const appName = apps.Aave;
 const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
@@ -28,11 +28,11 @@ describe(appName, () => {
     // expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
+    expect(fee.category).to.equal(TransferCategories.Expense);
     const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(SwapOut);
+    expect(deposit.category).to.equal(TransferCategories.SwapOut);
     const aToken = tx.transfers[2];
-    expect(aToken.category).to.equal(SwapIn);
+    expect(aToken.category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle withdrawals from v2", async () => {
@@ -44,11 +44,11 @@ describe(appName, () => {
     // expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
+    expect(fee.category).to.equal(TransferCategories.Expense);
     const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(SwapIn);
+    expect(deposit.category).to.equal(TransferCategories.SwapIn);
     const aToken = tx.transfers[2];
-    expect(aToken.category).to.equal(SwapOut);
+    expect(aToken.category).to.equal(TransferCategories.SwapOut);
   });
 
   it("should handle borrow from v2", async () => {
@@ -60,9 +60,9 @@ describe(appName, () => {
     // expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
+    expect(fee.category).to.equal(TransferCategories.Expense);
     const borrow = tx.transfers[1];
-    expect(borrow.category).to.equal(Borrow);
+    expect(borrow.category).to.equal(TransferCategories.Borrow);
   });
 
   it.skip("should handle repay to v2", async () => {
@@ -74,9 +74,9 @@ describe(appName, () => {
     // expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
     const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
+    expect(fee.category).to.equal(TransferCategories.Expense);
     const repay = tx.transfers[1];
-    expect(repay.category).to.equal(Repay);
+    expect(repay.category).to.equal(TransferCategories.Repay);
   });
 
   it("should handle staking aave", async () => {
@@ -88,11 +88,11 @@ describe(appName, () => {
     // expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
+    expect(fee.category).to.equal(TransferCategories.Expense);
     const swapIn= tx.transfers[1];
-    expect(swapIn.category).to.equal(SwapIn);
+    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
     const swapOut = tx.transfers[2];
-    expect(swapOut.category).to.equal(SwapOut);
+    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
   });
 
   it("should handle unstaking aave", async () => {
@@ -104,11 +104,11 @@ describe(appName, () => {
     // expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
+    expect(fee.category).to.equal(TransferCategories.Expense);
     const swapIn= tx.transfers[2];
-    expect(swapIn.category).to.equal(SwapIn);
+    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
     const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(SwapOut);
+    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
   });
 
   it("should handle a deposit on polygon", async () => {

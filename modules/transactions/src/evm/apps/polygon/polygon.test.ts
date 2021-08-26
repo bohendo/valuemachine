@@ -8,8 +8,10 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = "Polygon";
-const logger = testLogger.child({ module: `Test${source}` }, {
+import { apps } from "./enums";
+
+const appName = apps.Polygon;
+const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
 
@@ -21,7 +23,7 @@ describe("Polygon Bridge", () => {
       hash: "0xafe41962f39cf25034aecd3f3278e8f7ed0b4dc60e612c10c68c8599a29dad45",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(6);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
@@ -37,7 +39,7 @@ describe("Polygon Bridge", () => {
       hash: "0x08d2277c687bbe4e3bd3baf27ef4c7b2a97f2fb282c72f7eff211c5d16f7e02b",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);

@@ -29,20 +29,20 @@ export const uniswapV3Parser = uniswap.uniswapV3Parser;
 export const wethParser = weth.parser;
 export const yearnParser = yearn.parser;
 
-export const EvmApps = {
-  [aave.name]: aave.name,
-  [argent.name]: argent.name,
-  [compound.name]: compound.name,
-  [erc20.name]: erc20.name,
-  [etherdelta.name]: etherdelta.name,
-  [idle.name]: idle.name,
-  [maker.name]: maker.name,
-  [polygon.name]: polygon.name,
-  [quickswap.name]: quickswap.name,
-  [tornado.name]: tornado.name,
-  [uniswap.name]: uniswap.name,
-  [weth.name]: weth.name,
-  [yearn.name]: yearn.name,
+export const AppNames = {
+  ...aave.enums.apps,
+  ...argent.enums.apps,
+  ...compound.enums.apps,
+  ...erc20.enums.apps,
+  ...etherdelta.enums.apps,
+  ...idle.enums.apps,
+  ...maker.enums.apps,
+  ...polygon.enums.apps,
+  ...quickswap.enums.apps,
+  ...tornado.enums.apps,
+  ...uniswap.enums.apps,
+  ...weth.enums.apps,
+  ...yearn.enums.apps,
 } as const;
 
 export const AppAssets = {

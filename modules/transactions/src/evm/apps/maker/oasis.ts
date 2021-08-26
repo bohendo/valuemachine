@@ -19,10 +19,11 @@ import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
 import { exchangeAddresses } from "./addresses";
+import { apps } from "./enums";
 
 const { ETH, WETH } = EvmAssets;
 const { Income, Expense, SwapIn, SwapOut } = TransferCategories;
-export const appName = "Oasis";
+const appName = apps.Oasis;
 
 ////////////////////////////////////////
 /// Abis

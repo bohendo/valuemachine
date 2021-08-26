@@ -3,7 +3,6 @@ import { formatUnits } from "@ethersproject/units";
 import {
   Account,
   AddressBook,
-  AddressCategories,
   Asset,
   EvmMetadata,
   EvmTransaction,
@@ -13,25 +12,17 @@ import {
 } from "@valuemachine/types";
 import {
   insertVenue,
-  setAddressCategory,
 } from "@valuemachine/utils";
 
 import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
-export const appName = "EtherDelta";
+import { etherdeltaAddress } from "./addresses";
+import { apps } from "./enums";
+
+export const appName = apps.EtherDelta;
 
 const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
-
-////////////////////////////////////////
-/// Addresses
-
-// Simple, standalone tokens only. App-specific tokens can be found in that app's parser.
-export const etherdeltaAddresses = [
-  { name: appName, address: "Ethereum/0x8d12a197cb00d4747a1fe03395095ce2a5cc6819" },
-].map(setAddressCategory(AddressCategories.Defi));
-
-const etherdeltaAddress = etherdeltaAddresses.find(e => e.name === appName).address;
 
 ////////////////////////////////////////
 /// ABIs
@@ -47,7 +38,7 @@ const etherdeltaAbi = [
 ////////////////////////////////////////
 /// Parser
 
-export const etherdeltaParser = (
+export const parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

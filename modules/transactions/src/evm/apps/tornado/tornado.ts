@@ -12,10 +12,11 @@ import {
 } from "@valuemachine/utils";
 
 import { addresses, mixerAddresses } from "./addresses";
+import { apps } from "./enums";
+
+const appName = apps.Tornado;
 
 const { Income, Expense, Deposit, Withdraw } = TransferCategories;
-
-export const appName = "Tornado";
 
 ////////////////////////////////////////
 /// Addresses

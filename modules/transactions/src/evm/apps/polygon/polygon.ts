@@ -14,8 +14,9 @@ import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
 import { addresses } from "./addresses";
+import { apps } from "./enums";
 
-export const appName = "Polygon";
+export const appName = apps.Polygon;
 
 const { MATIC, ETH, WETH } = EvmAssets;
 

@@ -60,7 +60,7 @@ const airdropAbi = [
 ////////////////////////////////////////
 /// Parser
 
-export const uniswapParser = (
+export const parser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,

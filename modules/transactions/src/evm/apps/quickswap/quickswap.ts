@@ -8,8 +8,9 @@ import {
 } from "@valuemachine/types";
 
 import { addresses } from "./addresses";
+import { apps } from "./enums";
 
-export const appName = "Quickswap";
+const appName = apps.Quickswap;
 
 export const parser = (
   tx: Transaction,

@@ -8,20 +8,22 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = "Maker";
+import { apps } from "./enums";
+
+const appName = apps.Maker;
 const { Expense, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
-const logger = testLogger.child({ module: `Test${source}` }, {
+const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
 
-describe(source, () => {
+describe(appName, () => {
   it("should handle a WETH to PETH swap", async () => {
     const tx = await parseEthTx({
       hash: "0x25441cec88c76e0f3a00b9ecbcc803f8cd8aff9de358e39c6b3f44dfdafd2aed",
       selfAddress: "0x213fe7e177160991829a4d0a598a848d2448f384",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[1].category).to.equal(SwapOut);
     expect(tx.transfers[2].category).to.equal(SwapIn);

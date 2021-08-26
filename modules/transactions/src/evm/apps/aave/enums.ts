@@ -1,3 +1,7 @@
+export const apps = {
+  Aave: "Aave",
+} as const;
+
 export const assets = {
 
   // Gov tokens
@@ -42,5 +46,4 @@ export const assets = {
 
 } as const;
 
-export const apps = {} as const;
 export const enums = { assets, apps };

@@ -6,12 +6,14 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = "Quickswap";
-const logger = testLogger.child({ module: `Test${source}` }, {
+import { apps } from "./enums";
+
+const appName = apps.Quickswap;
+const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
 
-describe(source, () => {
+describe(appName, () => {
   it("should handle a swap", async () => {
     const tx = await parsePolygonTx({
       selfAddress: "0x8266c20cb25a5e1425cb126d78799b2a138b6c46",
@@ -19,7 +21,7 @@ describe(source, () => {
       logger,
     });
     expect(tx.sources).to.include(Guards.Polygon);
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.method).to.match(/swap/i);
   });
 });

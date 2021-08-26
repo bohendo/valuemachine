@@ -6,19 +6,21 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = "Idle";
-const logger = testLogger.child({ module: `Test${source}` }, {
+import { apps } from "./enums";
+
+const appName = apps.Idle;
+const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
 
-describe(source, () => {
+describe(appName, () => {
   it("should handle deposits to idle DAI", async () => {
     const tx = await parseEthTx({
       selfAddress: "0x2b4d4a660cddae942c26821a5512c32023719476",
       hash: "0xbf0ddcf082109eb0431e2d244c7d27eb1b3ae653411ba35f4288979e63a8dfb0",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.method).to.match(/deposit/i);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
@@ -31,7 +33,7 @@ describe(source, () => {
       hash: "0x240991b841d2378c588d3bced7d477ac0405d1ba7cafac2e10f5a9451334cdd6",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.method).to.match(/withdrawal/i);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Income);
@@ -47,7 +49,7 @@ describe(source, () => {
       hash: "0x5ac6f4515725f036121fa897d370f782bee17806db305559e681044871e560b0",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.method).to.match(/stake/i);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);
   });

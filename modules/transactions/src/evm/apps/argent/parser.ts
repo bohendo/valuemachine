@@ -11,9 +11,9 @@ import {
 import { parseEvent } from "../utils";
 
 import { managerAddresses, relayerAddresses } from "./addresses";
+import { apps } from "./enums";
 
-export const appName = "Argent";
-
+const appName = apps.Argent;
 const { SwapIn, SwapOut } = TransferCategories;
 
 const makerManagerAddress = managerAddresses.find(e => e.name === "ArgentMakerManager")?.address;

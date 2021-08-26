@@ -1,3 +1,7 @@
+export const apps = {
+  ERC20: "ERC20",
+} as const;
+
 export const assets = {
 
   _1INCH: "_1INCH",
@@ -61,5 +65,4 @@ export const assets = {
 
 } as const;
 
-export const apps = {} as const;
 export const enums = { assets, apps };

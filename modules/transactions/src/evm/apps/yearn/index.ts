@@ -1,8 +1,5 @@
 import { addresses } from "./addresses";
 import { enums } from "./enums";
-import {
-  yearnParser as parser,
-  appName as name,
-} from "./yearn";
+import { parser } from "./yearn";
 
-export const app = { addresses, enums, name, parser };
+export const app = { addresses, enums, parser };

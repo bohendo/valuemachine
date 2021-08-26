@@ -16,8 +16,9 @@ import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
 import { coreAddresses, govAddresses, marketAddresses } from "./addresses";
+import { apps } from "./enums";
 
-export const appName = "Idle";
+export const appName = apps.Idle;
 
 const { Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 const {
