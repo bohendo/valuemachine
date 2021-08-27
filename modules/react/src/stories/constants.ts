@@ -109,7 +109,10 @@ export const vm = getValueMachine({
     chunks: [{
       asset: Assets.ETH,
       quantity: "1.00",
-      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
+      history: [
+        { date: "2020-01-01T01:00:00Z", account: one },
+        { date: "2020-01-02T01:00:00Z", account: two },
+      ],
       disposeDate: "2020-01-03T01:00:00Z",
       index: 0,
       inputs: [],
@@ -117,7 +120,9 @@ export const vm = getValueMachine({
     }, {
       asset: Assets.ETH,
       quantity: "0.01",
-      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
+      history: [
+        { date: "2020-01-01T01:00:00Z", account: one },
+      ],
       disposeDate: "2020-01-02T01:00:00Z",
       index: 1,
       inputs: [],
@@ -125,7 +130,10 @@ export const vm = getValueMachine({
     }, {
       asset: Assets.ETH,
       quantity: "0.01",
-      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
+      history: [
+        { date: "2020-01-01T01:00:00Z", account: one },
+        { date: "2020-01-02T01:00:00Z", account: two },
+      ],
       disposeDate: "2020-01-03T01:00:00Z",
       index: 2,
       inputs: [],

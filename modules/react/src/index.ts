@@ -2,6 +2,7 @@ export { AddressEditor } from "./AddressEditor";
 export { AddressPorter } from "./AddressPorter";
 export { AddressRow } from "./AddressRow";
 export { AddressTable } from "./AddressTable";
+export { ChunkTable } from "./ChunkTable";
 export { CsvPorter } from "./CsvPorter";
 export { CsvTable } from "./CsvTable";
 export { DateInput } from "./DateInput";

@@ -59,6 +59,10 @@ restart: dev stop
 restart-prod: stop
 	VM_PROD=true bash ops/start.sh
 
+restart-storybook:
+	docker container stop $(project)_storybook
+	bash ops/start-storybook.sh
+
 clean: stop
 	rm -rf modules/*/build
 	rm -rf modules/*/dist
