@@ -15,78 +15,21 @@ import {
 import React, { useState } from "react";
 
 import { AddressEditor } from "./AddressEditor";
-import { HexString } from "./HexString";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  root: {
-    margin: theme.spacing(1),
-    maxWidth: "98%",
-  },
-  divider: {
-    marginBottom: theme.spacing(2),
-    marginTop: theme.spacing(2),
-  },
-  select: {
-    margin: theme.spacing(3),
-    minWidth: 160,
-  },
-  input: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-    maxWidth: 300,
-  },
-  exporter: {
-    marginBottom: theme.spacing(4),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(0),
-  },
-  importer: {
-    marginBottom: theme.spacing(1),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(0),
-  },
-  syncing: {
-    marginTop: theme.spacing(4),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-  },
-  snackbar: {
-    width: "100%"
-  },
   button: {
     marginBottom: theme.spacing(1.5),
     marginLeft: theme.spacing(2),
     marginRight: theme.spacing(2),
   },
-  title: {
-    margin: theme.spacing(2),
-  },
-  subtitle: {
-    margin: theme.spacing(2),
-  },
-  deleteAll: {
-    margin: theme.spacing(2),
-  },
-  paper: {
-    padding: theme.spacing(2),
-  },
-  table: {
-    minWidth: "600px",
-    padding: theme.spacing(2),
-  },
 }));
 
-
 type AddressRowProps = {
-  address: string;
   editEntry: (s: string, e?: AddressEntry) => void;
   entry: AddressEntry;
   otherAddresses: string[];
 };
 export const AddressRow: React.FC<AddressRowProps> = ({
-  address,
   editEntry,
   entry,
   otherAddresses,
@@ -105,12 +48,12 @@ export const AddressRow: React.FC<AddressRowProps> = ({
   };
 
   const handleDelete = () => {
-    editEntry(address);
+    editEntry(entry.address);
     setEditMode(false);
   };
 
   const handleEdit = (editedEntry) => {
-    editEntry(address, editedEntry);
+    editEntry(entry.address, editedEntry);
     setEditMode(false);
   };
 
@@ -119,7 +62,7 @@ export const AddressRow: React.FC<AddressRowProps> = ({
       <TableRow>
         <TableCell> {entry.name} </TableCell>
         <TableCell> {entry.category} </TableCell>
-        <TableCell> <HexString value={entry.address}/> </TableCell>
+        <TableCell><pre> {entry.address} </pre></TableCell>
         <TableCell>
           <IconButton color="secondary" onClick={toggleEditMode}>
             <EditIcon />

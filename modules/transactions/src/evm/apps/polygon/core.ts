@@ -18,7 +18,7 @@ import { apps } from "./enums";
 
 export const appName = apps.Polygon;
 
-const { MATIC, ETH, WETH } = EvmAssets;
+const { ETH, WETH } = EvmAssets;
 
 ////////////////////////////////////////
 /// Addresses
@@ -167,7 +167,7 @@ export const coreParser = (
             from: event.args.owner,
             index: txLog.index,
             quantity: formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token)),
-            to: `${MATIC}-${event.args.owner}`,
+            to: `Polygon/${event.args.owner.split("/").pop()}`,
           });
         }
       });
@@ -191,7 +191,7 @@ export const coreParser = (
           );
           if (deposit) {
             deposit.category = TransferCategories.Deposit;
-            deposit.to = `${MATIC}-${event.args.owner}`;
+            deposit.to = `Polygon/${event.args.owner.split("/").pop()}`;
             tx.method = "Plasma Bridge to Polygon";
           } else {
             log.warn(`Couldn't find deposit of ${quantity} ${asset}`);

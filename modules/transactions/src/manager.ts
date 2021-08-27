@@ -20,11 +20,9 @@ import {
 } from "./csv";
 import { mergeTransaction } from "./merge";
 
-export const getTransactions = ({
-  json: transactionsJson,
-  logger,
-  store,
-}: TransactionsParams): Transactions => {
+export const getTransactions = (params?: TransactionsParams): Transactions => {
+  const { json: transactionsJson, logger, store } = params || {};
+
   const log = (logger || getLogger()).child({ module: "Transactions" });
   const json = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
 

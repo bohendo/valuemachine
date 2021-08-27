@@ -83,15 +83,18 @@ export const AddressTable: React.FC<AddressTableProps> = ({
     ));
   }, [addressBook, filterCategory]);
 
-  const editEntry = (address: string, editedEntry?: AddressEntry): void => {
-    const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders
+  const editEntry = (oldAddress: string, editedEntry?: AddressEntry): void => {
+    const newAddressBook = { ...addressBook.json }; // create new obj to ensure it re-renders
     if (editedEntry) {
-      if (editedEntry.address !== address) {
-        delete newAddressBook[address];
+      if (editedEntry.address !== oldAddress) {
+        console.log(`Replacing old entry for ${oldAddress}`);
+        delete newAddressBook[oldAddress];
       }
+      console.log(`Setting new entry for ${editedEntry.address}`);
       newAddressBook[editedEntry.address] = editedEntry;
     } else {
-      delete newAddressBook[address];
+      console.log(`Removing old entry for ${oldAddress}`);
+      delete newAddressBook[oldAddress];
     }
     setAddressBookJson(newAddressBook);
   };
@@ -156,7 +159,6 @@ export const AddressTable: React.FC<AddressTableProps> = ({
                   }
                   key={i}
                   editEntry={editEntry}
-                  address={entry.address}
                   entry={entry}
                 />
 

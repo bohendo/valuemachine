@@ -13,11 +13,11 @@ import {
 import React from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  title: {
-    marginBottom: theme.spacing(2),
-  },
   paper: {
     padding: theme.spacing(2),
+  },
+  title: {
+    marginBottom: theme.spacing(2),
   },
   table: {
     minWidth: "200px",
@@ -34,34 +34,30 @@ export const CsvTable: React.FC<CsvTableProps> = ({
   const classes = useStyles();
 
   return (
-    <React.Fragment>
-
-      <Paper className={classes.paper}>
-        <Typography align="center" variant="h4" className={classes.title} component="div">
-          {`${csvFiles.length} CSV File${csvFiles.length === 1 ? "" : "s"}`}
-        </Typography>
-        {csvFiles.length ? (
-          <TableContainer>
-            <Table size="small" className={classes.table}>
-              <TableHead>
-                <TableRow>
-                  <TableCell><strong> File Name </strong></TableCell>
-                  <TableCell><strong> File Type </strong></TableCell>
+    <Paper className={classes.paper}>
+      <Typography align="center" variant="h4" className={classes.title} component="div">
+        {`${csvFiles.length} CSV File${csvFiles.length === 1 ? "" : "s"}`}
+      </Typography>
+      {csvFiles.length ? (
+        <TableContainer>
+          <Table size="small" className={classes.table}>
+            <TableHead>
+              <TableRow>
+                <TableCell><strong> File Name </strong></TableCell>
+                <TableCell><strong> File Type </strong></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {csvFiles.map((csvFile: { name: string; type: string; data: string }, i) => (
+                <TableRow key={i}>
+                  <TableCell> {csvFile.name.toString()} </TableCell>
+                  <TableCell> {csvFile.type.toString()} </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {csvFiles.map((csvFile: { name: string; type: string; data: string }, i) => (
-                  <TableRow key={i}>
-                    <TableCell> {csvFile.name.toString()} </TableCell>
-                    <TableCell> {csvFile.type.toString()} </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : null}
-      </Paper>
-
-    </React.Fragment>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : null}
+    </Paper>
   );
 };

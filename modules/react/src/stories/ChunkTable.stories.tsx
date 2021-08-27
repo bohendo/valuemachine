@@ -1,18 +1,19 @@
 import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
-import { EventRow } from "../EventRow";
+import { ChunkTable } from "../ChunkTable";
 
 import { addressBook, vm } from "./constants";
 
 export default {
-  title: "EventRow",
-  component: EventRow,
-} as ComponentMeta<typeof EventRow>;
-const Template: ComponentStory<typeof EventRow> = (args) => <EventRow {...args} />;
+  title: "ChunkTable",
+  component: ChunkTable,
+} as ComponentMeta<typeof ChunkTable>;
+const Template: ComponentStory<typeof ChunkTable> = (args) => <ChunkTable {...args} />;
 
 export const Example = Template.bind({});
 Example.args = {
   addressBook,
-  event: vm.getEvent(0),
+  vm,
 };
+

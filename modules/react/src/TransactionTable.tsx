@@ -65,8 +65,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const [ourAssets, setOurAssets] = useState([] as Asset[]);
   const classes = useStyles();
 
-  console.log(`Filtering on app ${filterApp}`);
-
   const hasAccount = (account: string) => (tx: Transaction): boolean =>
     !account
     || tx.transfers.some(t => t.from.endsWith(account))

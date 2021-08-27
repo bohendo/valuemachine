@@ -16,37 +16,12 @@ import {
   EventTypes,
   GuardChangeEvent,
 } from "@valuemachine/types";
-import {
-  round as defaultRound,
-} from "@valuemachine/utils";
 import { describeChunk, describeEvent } from "@valuemachine/core";
 import React, { useEffect, useState } from "react";
 
 import { HexString } from "./HexString";
 
-const round = num => defaultRound(num, 4);
-
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  button: {
-    margin: theme.spacing(3),
-  },
-  paper: {
-    minWidth: "500px",
-    padding: theme.spacing(2),
-  },
-  spinner: {
-    padding: "0",
-  },
-  importer: {
-    margin: theme.spacing(4),
-  },
-  select: {
-    margin: theme.spacing(3),
-    minWidth: 160,
-  },
-  title: {
-    margin: theme.spacing(2),
-  },
   subtitle: {
     margin: theme.spacing(2),
   },
@@ -70,14 +45,10 @@ export const EventRow: React.FC<EventRowProps> = ({
     if (event && open) console.log(event);
   }, [event, open]);
 
-  const balToStr = (balances) =>
-    Object.entries(balances || {}).map(([asset, bal]) => `${round(bal)} ${asset}`).join(" and ");
-
-  const chunksToDisplay = (chunks, prefix = "") => {
+  const chunksToDisplay = (chunks, prefix?: string) => {
     const output = {};
     for (const chunk of chunks) {
-      const description = describeChunk(chunk);
-      output[prefix + description.split(":")[0]] = description.split(":")[1];
+      output[`${prefix || ""}Chunk #${chunk.index}`] = describeChunk(chunk);
     }
     return output;
   };
@@ -95,7 +66,7 @@ export const EventRow: React.FC<EventRowProps> = ({
             const value = e[1] as string;
             return (
               <TableRow key={i}>
-                <TableCell className={classes.subtable}> {key} </TableCell>
+                <TableCell className={classes.subtable}><strong> {key} </strong></TableCell>
                 <TableCell> {
                   isHexString(value)
                     ? <HexString value={value} display={addressBook?.getName(value)}/>
@@ -135,29 +106,24 @@ export const EventRow: React.FC<EventRowProps> = ({
 
                 (event.type === EventTypes.Expense) ? {
                   Account: event.account,
-                  [`New Balances`]: balToStr(event.newBalances),
                   ...chunksToDisplay(event.outputs),
 
                 } : event.type === EventTypes.Income ? {
                   Account: event.account,
-                  [`New Balances`]: balToStr(event.newBalances),
                   ...chunksToDisplay(event.inputs),
 
                 } : event.type === EventTypes.Debt ? {
                   Account: event.account,
-                  [`New Balances`]: balToStr(event.newBalances),
                   ...chunksToDisplay(event.outputs, "Gave "),
                   ...chunksToDisplay(event.inputs, "Took "),
 
                 } : event.type === EventTypes.GuardChange ? {
                   ["From"]: (event as GuardChangeEvent).from,
                   ["To"]: (event as GuardChangeEvent).to,
-                  [`New Balances`]: balToStr(event.newBalances),
                   ...chunksToDisplay(event.chunks),
 
                 } : event.type === EventTypes.Trade ? {
                   Account: event.account,
-                  [`New Balances`]: balToStr(event.newBalances),
                   ...chunksToDisplay(event.outputs, "Gave "),
                   ...chunksToDisplay(event.inputs, "Took "),
                 } : {}

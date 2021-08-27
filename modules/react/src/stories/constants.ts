@@ -1,4 +1,4 @@
-import { getValueMachine } from "@valuemachine/core";
+import { getPrices, getValueMachine } from "@valuemachine/core";
 import { EvmApps, Assets, getAddressBook, getTransactions } from "@valuemachine/transactions";
 import {
   AddressCategories,
@@ -23,6 +23,17 @@ const getAddress = (val: string): string => `Ethereum/0x${val.repeat(40).substri
 const one = getAddress("1");
 const two = getAddress("2");
 const three = getAddress("3");
+
+export const guard = Guards.USA;
+
+export const balances = {
+  BCH: "0",
+  BTC: "0.137",
+  DAI: "20000.02",
+  ETH: "1.370",
+  INR: "700000.07",
+  USD: "1000.01",
+};
 
 export const addressBook = getAddressBook({
   json: {
@@ -98,7 +109,7 @@ export const transactions = getTransactions({
       category: TransferCategories.Expense,
       asset: Assets.ETH,
       from: two,
-      quantity: "1.0",
+      quantity: "0.5",
       to: three,
     }],
   }],
@@ -108,47 +119,71 @@ export const vm = getValueMachine({
   json: {
     chunks: [{
       asset: Assets.ETH,
-      quantity: "1.00",
-      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
-      disposeDate: "2020-01-03T01:00:00Z",
+      quantity: "0.50",
+      history: [
+        { date: "2020-01-01T01:00:00Z", account: one },
+        { date: "2020-01-02T01:00:00Z", account: two },
+      ],
+      account: one,
+      disposeDate: "2020-01-03T01:00:00.000Z",
       index: 0,
       inputs: [],
-      outputs: [],
+      outputs: Array.from(Array(25).keys()) // inconsistent for demo purposes
     }, {
       asset: Assets.ETH,
       quantity: "0.01",
-      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
-      disposeDate: "2020-01-02T01:00:00Z",
+      history: [
+        { date: "2020-01-01T01:00:00Z", account: one },
+      ],
+      disposeDate: "2020-01-02T01:00:00.000Z",
       index: 1,
       inputs: [],
       outputs: [],
     }, {
       asset: Assets.ETH,
       quantity: "0.01",
-      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
-      disposeDate: "2020-01-03T01:00:00Z",
+      history: [
+        { date: "2020-01-01T01:00:00Z", account: one },
+        { date: "2020-01-02T01:00:00Z", account: two },
+      ],
+      disposeDate: "2020-01-03T01:00:00.000Z",
       index: 2,
       inputs: [],
       outputs: [],
+    }, {
+      asset: Assets.ETH,
+      quantity: "0.50",
+      history: [
+        { date: "2020-01-01T01:00:00Z", account: one },
+        { date: "2020-01-02T01:00:00Z", account: two },
+      ],
+      index: 3,
+      inputs: [],
+      outputs: [],
+    }, {
+      asset: Assets.DAI,
+      quantity: "50",
+      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
+      account: two,
+      index: 4,
+      inputs: [],
+      outputs: Array.from(Array(25).keys()) // inconsistent for demo purposes
     }],
     date: (new Date(0)).toISOString(),
     events: [{
       date: "2020-01-01T01:00:00Z", 
-      newBalances: {},
       index: 0,
       type: EventTypes.Income,
       account: one,
       inputs: [0, 1, 2],
     }, {
       date: "2020-01-02T01:00:00Z", 
-      newBalances: {},
       index: 1,
       type: EventTypes.Expense,
       account: one,
       outputs: [1],
     }, {
       date: "2020-01-03T01:00:00Z", 
-      newBalances: {},
       index: 2,
       type: EventTypes.Expense,
       account: two,
@@ -156,3 +191,5 @@ export const vm = getValueMachine({
     }],
   },
 });
+
+export const prices = getPrices();

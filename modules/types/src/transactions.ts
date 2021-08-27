@@ -3,7 +3,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { AddressBook } from "./addressBook";
 import { EvmMetadata, EvmTransaction } from "./evmData";
 import { Logger } from "./logger";
-import { DigitalGuards, Guards } from "./guards";
+import { DigitalGuards } from "./guards";
 import { Account, Asset, Bytes32, DecimalString, TimestampString } from "./strings";
 import { Store } from "./store";
 
@@ -18,14 +18,6 @@ export const CsvSources = {
 } as const;
 export const CsvSource = Type.String(); // Extensible
 export type CsvSource = Static<typeof CsvSource>;
-
-// Set default guards for csv sources
-export const guards = {
-  [CsvSources.Coinbase]: Guards.USA,
-  [CsvSources.DigitalOcean]: Guards.USA,
-  [CsvSources.Wyre]: Guards.USA,
-  [CsvSources.Wazirx]: Guards.IND,
-};
 
 export const ChainSources = {
   ...DigitalGuards,

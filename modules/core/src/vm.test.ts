@@ -68,7 +68,6 @@ describe("VM", () => {
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
     expect(vm.json.events[1]?.type).to.equal(EventTypes.GuardChange);
     expect(vm.json.events[2]?.type).to.equal(EventTypes.GuardChange);
-    expect(vm.json.events[2]?.newBalances?.[ETH]).to.equal("10.0");
   });
 
   it("should process several incomes and then a trade", async () => {
@@ -237,7 +236,6 @@ describe("VM", () => {
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
     expect(vm.json.events[1]?.type).to.equal(EventTypes.Expense);
     expect(vm.json.events[2]?.type).to.equal(EventTypes.Expense);
-    expect(vm.json.events[2]?.newBalances?.[ETH]).to.equal("4.9");
   });
 
   it("should process out of order eth transfers", async () => {
@@ -263,7 +261,6 @@ describe("VM", () => {
     } tx/s`);
     const events = vm.json.events;
     log.info(events, `All events`);
-    expect(events[events.length - 1]?.newBalances?.[ETH]).to.equal("0.9");
   });
 
   it("should process out of order eth swaps", async () => {
@@ -290,7 +287,6 @@ describe("VM", () => {
     } tx/s`);
     const events = vm.json.events;
     log.info(events, `All events`);
-    expect(events[events.length - 1]?.newBalances?.[ETH]).to.equal("0.7");
   });
 
 });

@@ -90,23 +90,25 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
 
   const isToken = isCategory(AddressCategories.ERC20);
 
+  // If venue is present, return venue/name else return name
   const getName = (address: Account): string => {
     if (!address) return "";
-    const name = getEntry(address)?.name;
-    if (name) return name;
     const parts = address.split("/");
+    const prefix = parts.length === 3 ? `${parts[1]}/` : "";
+    const name = getEntry(address)?.name;
+    if (name) return `${prefix}${name}`;
     const suffix = parts.pop();
     if (isEthAddress(suffix)) {
       const ethAddress = fmtAddress(suffix);
       if (parts.length > 0) {
-        return `${parts.join("/")}/${
+        return `${prefix}${parts.join("/")}/${
           ethAddress.substring(0, 6)
         }..${ethAddress.substring(ethAddress.length - 4)}`;
       } else {
-        return `${ethAddress.substring(0, 6)}..${ethAddress.substring(ethAddress.length - 4)}`;
+        return `${prefix}${ethAddress.substring(0, 6)}..${ethAddress.substring(ethAddress.length - 4)}`;
       }
     }
-    return suffix;
+    return `${prefix}${suffix}`;
   };
 
   // Only really useful for ERC20 addresses

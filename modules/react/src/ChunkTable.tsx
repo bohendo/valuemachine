@@ -16,16 +16,14 @@ import Typography from "@material-ui/core/Typography";
 import {
   Account,
   AddressBook,
-  Event,
-  EventTypes,
-  GuardChangeEvent,
-  HydratedEvent,
-  TradeEvent,
+  Asset,
+  AssetChunk,
   ValueMachine,
 } from "@valuemachine/types";
+import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
-import { EventRow } from "./EventRow";
+import { ChunkRow } from "./ChunkRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
@@ -42,20 +40,21 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-type EventTableProps = {
+type ChunkTableProps = {
   addressBook: AddressBook;
   vm: ValueMachine;
 };
-export const EventTable: React.FC<EventTableProps> = ({
+export const ChunkTable: React.FC<ChunkTableProps> = ({
   addressBook,
   vm,
-}: EventTableProps) => {
+}: ChunkTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [accounts, setAccounts] = useState([] as Account[]);
+  const [assets, setAssets] = useState([] as Asset[]);
   const [filterAccount, setFilterAccount] = useState("");
-  const [filterType, setFilterType] = useState("");
-  const [filteredEvents, setFilteredEvents] = useState([] as HydratedEvent[]);
+  const [filterAsset, setFilterAsset] = useState("");
+  const [filteredChunks, setFilteredChunks] = useState([] as AssetChunk[]);
   const classes = useStyles();
 
   useEffect(() => {
@@ -63,29 +62,27 @@ export const EventTable: React.FC<EventTableProps> = ({
   }, [addressBook, vm]);
 
   useEffect(() => {
+    setAssets(dedup(vm.json.chunks.map(chunk => chunk.asset)));
+  }, [addressBook, vm]);
+
+  useEffect(() => {
     setPage(0);
-    setFilteredEvents(vm.json?.events?.filter(event =>
-      (!filterType || event.type === filterType)
-      && (!filterAccount || (
-        (event as GuardChangeEvent).to?.endsWith(filterAccount) ||
-        (event as GuardChangeEvent).from?.endsWith(filterAccount) ||
-        (event as TradeEvent).account?.endsWith(filterAccount)))
-    ).sort((e1: Event, e2: Event) =>
-      // Sort by date, newest first
-      (e1.date > e2.date) ? -1
-      : (e1.date < e2.date) ? 1
-      : 0
-    ).map((e: Event) => vm.getEvent(e.index)) || []);
-  }, [vm, filterAccount, filterType]);
+    setFilteredChunks(vm.json?.chunks?.filter(chunk =>
+      (!filterAccount || (
+        chunk.history?.some(hist => hist.account.endsWith(filterAccount)) ||
+        chunk.account?.endsWith(filterAccount)))
+      && (!filterAsset || chunk.asset === filterAsset)
+    ).sort((c1: AssetChunk, c2: AssetChunk) => c1.index - c2.index) || []);
+  }, [vm, filterAccount, filterAsset]);
 
   const handleFilterAccountChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     setFilterAccount(event.target.value);
   };
 
-  const handleFilterTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleFilterAssetChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
-    setFilterType(event.target.value);
+    setFilterAsset(event.target.value);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -103,9 +100,9 @@ export const EventTable: React.FC<EventTableProps> = ({
       <TableContainer>
 
         <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredEvents.length === vm.json?.events?.length
-            ? `${filteredEvents.length} Events`
-            : `${filteredEvents.length} of ${vm.json?.events?.length || 0} Events`
+          {filteredChunks.length === vm.json?.chunks?.length
+            ? `${filteredChunks.length} Chunks`
+            : `${filteredChunks.length} of ${vm.json?.chunks?.length || 0} Chunks`
           }
         </Typography>
 
@@ -131,16 +128,18 @@ export const EventTable: React.FC<EventTableProps> = ({
         </FormControl>
 
         <FormControl className={classes.select}>
-          <InputLabel id="select-filter-type">Filter Type</InputLabel>
+          <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
           <Select
-            labelId="select-filter-type"
-            id="select-filter-type"
-            value={filterType || ""}
-            onChange={handleFilterTypeChange}
+            labelId="select-filter-asset"
+            id="select-filter-asset"
+            value={filterAsset || ""}
+            onChange={handleFilterAssetChange}
           >
             <MenuItem value={""}>-</MenuItem>
-            {Object.keys(EventTypes).map((type, i) => (
-              <MenuItem key={i} value={type}>{type}</MenuItem>
+            {assets.sort().map((asset, i) => (
+              <MenuItem key={i} value={asset}>
+                {addressBook?.getName(asset) || asset}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -148,21 +147,21 @@ export const EventTable: React.FC<EventTableProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell><strong> Date </strong></TableCell>
-              <TableCell><strong> Type </strong></TableCell>
-              <TableCell><strong> Description </strong></TableCell>
-              <TableCell><strong> Details </strong></TableCell>
+              <TableCell><strong> Index </strong></TableCell>
+              <TableCell><strong> Asset </strong></TableCell>
+              <TableCell><strong> Quantity </strong></TableCell>
+              <TableCell><strong> Receive Date </strong></TableCell>
+              <TableCell><strong> Dispose Date </strong></TableCell>
+              <TableCell><strong> Inputs </strong></TableCell>
+              <TableCell><strong> Outputs </strong></TableCell>
+              <TableCell><strong> History </strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredEvents
+            {filteredChunks
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((event: HydratedEvent, i: number) => (
-                <EventRow
-                  key={i}
-                  addressBook={addressBook}
-                  event={event}
-                />
+              .map((chunk: AssetChunk, i: number) => (
+                <ChunkRow key={i} addressBook={addressBook} chunk={chunk}/>
               ))}
           </TableBody>
         </Table>
@@ -170,7 +169,7 @@ export const EventTable: React.FC<EventTableProps> = ({
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"
-          count={filteredEvents.length}
+          count={filteredChunks.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

@@ -43,11 +43,9 @@ const isIncomeSource = (account: Account): boolean =>
   account.startsWith(`${EvmApps.Maker}-DSR`) ||
   account.startsWith(`${EvmApps.Tornado}`);
 
-export const getValueMachine = ({
-  logger,
-  store,
-  json: vmJson,
-}: ValueMachineParams): ValueMachine => {
+export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
+  const { logger, store, json: vmJson } = params || {};
+
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
   const json = vmJson || store?.load(StoreKeys.ValueMachine) || getEmptyValueMachine();
   const save = (): void => store?.save(StoreKeys.ValueMachine, json);
@@ -70,9 +68,9 @@ export const getValueMachine = ({
   // Getters
 
   const getAccounts = (): Account[] => Array.from(json.chunks.reduce((accounts, chunk) => {
-    if (chunk.account) accounts.add(chunk.account);
+    chunk.history.forEach(entry => { accounts.add(entry.account); });
     return accounts;
-  }, new Set<string>()));
+  }, new Set<string>())).sort();
 
   const getBalance = (asset: Asset, account?: Account): DecimalString =>
     json.chunks.reduce((balance, chunk) => {
@@ -261,7 +259,6 @@ export const getValueMachine = ({
           type: EventTypes.Income,
           inputs: [newChunk.index],
           account,
-          newBalances: {},
         });
       }
       return newChunk;
@@ -389,7 +386,6 @@ export const getValueMachine = ({
       inputs: chunksIn.map(toIndex),
       outputs: chunksOut.map(toIndex),
       account,
-      newBalances: {},
     } as TradeEvent);
   };
 
@@ -416,7 +412,6 @@ export const getValueMachine = ({
       newEvents.push({
         date: json.date,
         index: json.events.length + newEvents.length,
-        newBalances: {},
         from: from,
         to: to,
         chunks: toMove.map(toIndex),
@@ -448,7 +443,6 @@ export const getValueMachine = ({
           account: from,
           index: json.events.length + newEvents.length,
           date: json.date,
-          newBalances: {},
           outputs: disposed.map(toIndex),
           type: EventTypes.Expense,
         });
@@ -460,7 +454,6 @@ export const getValueMachine = ({
           index: json.events.length + newEvents.length,
           date: json.date,
           inputs: received.map(toIndex),
-          newBalances: {},
           type: EventTypes.Income,
         });
       } else {
@@ -523,7 +516,6 @@ export const getValueMachine = ({
     }
 
     for (const newEvent of newEvents) {
-      newEvent.newBalances = getNetWorth();
       json.events.push(newEvent);
     }
     return newEvents;

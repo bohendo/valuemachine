@@ -1,12 +1,13 @@
 export { AddressEditor } from "./AddressEditor";
 export { AddressPorter } from "./AddressPorter";
-export { AddressRow } from "./AddressRow";
 export { AddressTable } from "./AddressTable";
+export { Balances } from "./Balances";
+export { BalanceTable } from "./BalanceTable";
+export { ChunkTable } from "./ChunkTable";
 export { CsvPorter } from "./CsvPorter";
 export { CsvTable } from "./CsvTable";
 export { DateInput } from "./DateInput";
-export { EventRow } from "./EventRow";
 export { EventTable } from "./EventTable";
 export { HexString } from "./HexString";
-export { TransactionRow } from "./TransactionRow";
+export { TaxTable } from "./TaxTable";
 export { TransactionTable } from "./TransactionTable";

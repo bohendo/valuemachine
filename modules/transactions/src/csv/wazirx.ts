@@ -1,4 +1,5 @@
 import {
+  Guards,
   Logger,
   Transaction,
   TransactionSources,
@@ -8,6 +9,9 @@ import csv from "csv-parse/lib/sync";
 
 import { Assets } from "../assets";
 import { mergeTransaction } from "../merge";
+import { getGuard } from "../utils";
+
+const guard = Guards.IND;
 
 const { INR } = Assets;
 const { Internal, Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
@@ -35,8 +39,8 @@ export const mergeWazirxTransactions = (
       transfers: [],
     } as Transaction;
 
-    const account = `${source}-account`;
-    const exchange = `${source}-exchange`;
+    const account = `${guard}/${source}/account`;
+    const exchange = `${guard}/${source}`;
     let index = 0;
 
     if (row["Transaction"]) {
@@ -46,7 +50,7 @@ export const mergeWazirxTransactions = (
         ["Volume"]: quantity,
       } = row;
 
-      const external = `${currency}-account`;
+      const external = `${getGuard(currency)}/unknown`;
 
       if (txType === "Deposit") {
         transaction.transfers.push({

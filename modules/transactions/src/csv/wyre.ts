@@ -1,5 +1,6 @@
 import {
   Asset,
+  Guards,
   Logger,
   Transaction,
   TransactionSources,
@@ -10,6 +11,9 @@ import { gt } from "@valuemachine/utils";
 
 import { Assets } from "../assets";
 import { mergeTransaction } from "../merge";
+import { getGuard } from "../utils";
+
+const guard = Guards.USA;
 
 const { DAI, ETH, SAI, USD } = Assets;
 const { Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
@@ -36,8 +40,8 @@ export const mergeWyreTransactions = (
       ["Type"]: txType,
     } = row;
 
-    const account = `${source}-account`;
-    const exchange = `${source}-exchange`;
+    const account = `${guard}/${source}/account`;
+    const exchange = `${guard}/${source}`;
 
     const fixAssetType = (asset: Asset): Asset =>
       asset === DAI && new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime()
@@ -79,7 +83,7 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({
         asset: destType,
         category: Deposit,
-        from: `${destType}-account`,
+        from: `${getGuard(destType)}/unknown`,
         quantity: destQuantity,
         to: account,
       });
@@ -89,7 +93,7 @@ export const mergeWyreTransactions = (
       transaction.transfers.push({
         asset: sourceType,
         category: SwapOut,
-        from: `${sourceType}-account`,
+        from: `${getGuard(sourceType)}/unknown`,
         quantity: sourceQuantity,
         to: exchange,
       });
@@ -108,7 +112,7 @@ export const mergeWyreTransactions = (
         category: Withdraw,
         from: account,
         quantity: destQuantity,
-        to: `${destType}-account`,
+        to: `${getGuard(destType)}/unknown`,
       });
       transaction.method = "Withdraw";
 
@@ -125,7 +129,7 @@ export const mergeWyreTransactions = (
         category: SwapIn,
         from: exchange,
         quantity: destQuantity,
-        to: `${destType}-account`,
+        to: `${getGuard(destType)}/unknown`,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
     }

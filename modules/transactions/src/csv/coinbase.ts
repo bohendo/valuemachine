@@ -10,10 +10,11 @@ import csv from "csv-parse/lib/sync";
 import { gt } from "@valuemachine/utils";
 
 import { mergeTransaction } from "../merge";
+import { getGuard } from "../utils";
+
+const guard = Guards.USA;
 
 const { Expense, SwapIn, SwapOut, Deposit, Withdraw, Unknown } = TransferCategories;
-
-const guard = Guards.USA; // Coinbase jurisdiction
 
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
@@ -34,9 +35,9 @@ export const mergeCoinbaseTransactions = (
       ["USD Fees"]: fees,
     } = row;
 
-    const account = `${guard}/${source}/1`;
+    const account = `${guard}/${source}/account`;
     const exchange = `${guard}/${source}`;
-    const external = `${asset}-account`;
+    const external = `${getGuard(asset)}/unknown`;
 
     const transaction = {
       apps: [],
