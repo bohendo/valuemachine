@@ -57,6 +57,7 @@ export const fmtAddressEntry = (entry: AddressEntry): AddressEntry => {
   return entry;
 };
 
+// Careful: this will silently discard duplicate entries
 export const fmtAddressBook = (addressBookJson: AddressBookJson): AddressBookJson => {
   const error = getAddressBookError(addressBookJson);
   if (error) throw new Error(error);
@@ -65,6 +66,7 @@ export const fmtAddressBook = (addressBookJson: AddressBookJson): AddressBookJso
     const cleanAddress = fmtAddress(address);
     cleanAddressBook[cleanAddress] = {
       ...addressBookJson[address],
+      ...addressBookJson[cleanAddress], // perfer data from checksummed address entries
       address: cleanAddress,
     };
   });
