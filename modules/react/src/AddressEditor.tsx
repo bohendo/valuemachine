@@ -1,4 +1,5 @@
 import { isAddress } from "@ethersproject/address";
+import { isHexString } from "@ethersproject/bytes";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import FormControl from "@material-ui/core/FormControl";
@@ -48,8 +49,12 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
   const getErrors = (candidate: Partial<AddressEntry>): string => {
     if (!candidate?.address) {
       return "Address is required";
+    } else if (!isHexString(candidate.address)) {
+      return "Invalid hex string";
+    } else if (candidate.address.length !== 42) {
+      return "Invalid length";
     } else if (!isAddress(candidate.address)) {
-      return "Invalid address";
+      return "Invalid checksum";
     } else if (addresses?.includes(candidate.address)) {
       return `Address ${
         candidate.address.substring(0,6)
