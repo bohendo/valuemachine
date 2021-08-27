@@ -58,7 +58,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   const classes = useStyles();
 
   useEffect(() => {
-    setAccounts(addressBook.addresses.filter(a => addressBook.isSelf(a)));
+    setAccounts(vm.getAccounts());
   }, [addressBook, vm]);
 
   useEffect(() => {

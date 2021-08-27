@@ -7,6 +7,7 @@ import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import { AddressBook, ValueMachine } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
+import { gt } from "@valuemachine/utils";
 
 import { Balances } from "./Balances";
 import { HexString } from "./HexString";
@@ -68,16 +69,17 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
         <TableBody>
           {Object.entries(allBalances)
             .sort((e1, e2) => e1[0] > e2[0] ? 1 : -1)
-            .map(([account, balances]: any, i: number) => (
-              <TableRow key={i}>
-                <TableCell className={classes.accountCell}>
-                  <HexString value={account} display={addressBook.getName(account)}/>
-                </TableCell>
-                <TableCell className={classes.balanceCell}>
-                  <Balances balances={balances}/>
-                </TableCell>
-              </TableRow>
-            ))
+            .map(([account, balances]: any, i: number) =>
+              Object.values(balances).some(bal => gt(bal, "0")) ? (
+                <TableRow key={i}>
+                  <TableCell className={classes.accountCell}>
+                    <HexString value={account} display={addressBook.getName(account)}/>
+                  </TableCell>
+                  <TableCell className={classes.balanceCell}>
+                    <Balances balances={balances}/>
+                  </TableCell>
+                </TableRow>
+              ) : null)
           }
         </TableBody>
       </Table>

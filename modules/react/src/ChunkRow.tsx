@@ -14,14 +14,9 @@ import {
   AddressBook,
   AssetChunk,
 } from "@valuemachine/types";
-import {
-  round as defaultRound,
-} from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { HexString } from "./HexString";
-
-const round = num => defaultRound(num, 4);
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   putsRow: {
@@ -52,7 +47,7 @@ export const ChunkRow: React.FC<ChunkRowProps> = ({
       <TableRow>
         <TableCell> {chunk.index} </TableCell>
         <TableCell> {chunk.asset} </TableCell>
-        <TableCell> {round(chunk.quantity)} </TableCell>
+        <TableCell> {chunk.quantity} </TableCell>
         <TableCell> {
           fmtDate(chunk.history[0].date)
         } </TableCell>

@@ -25,11 +25,12 @@ const two = getAddress("2");
 const three = getAddress("3");
 
 export const balances = {
-  ETH: "1.370",
+  BCH: "0",
   BTC: "0.137",
-  USD: "1000.01",
-  INR: "700000.07",
   DAI: "20000.02",
+  ETH: "1.370",
+  INR: "700000.07",
+  USD: "1000.01",
 };
 
 export const addressBook = getAddressBook({
@@ -169,21 +170,18 @@ export const vm = getValueMachine({
     date: (new Date(0)).toISOString(),
     events: [{
       date: "2020-01-01T01:00:00Z", 
-      newBalances: {}, // inconsistent for demo purposes
       index: 0,
       type: EventTypes.Income,
       account: one,
       inputs: [0, 1, 2],
     }, {
       date: "2020-01-02T01:00:00Z", 
-      newBalances: {},
       index: 1,
       type: EventTypes.Expense,
       account: one,
       outputs: [1],
     }, {
       date: "2020-01-03T01:00:00Z", 
-      newBalances: {},
       index: 2,
       type: EventTypes.Expense,
       account: two,

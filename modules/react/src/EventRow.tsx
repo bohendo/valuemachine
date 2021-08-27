@@ -48,7 +48,7 @@ export const EventRow: React.FC<EventRowProps> = ({
   const chunksToDisplay = (chunks, prefix?: string) => {
     const output = {};
     for (const chunk of chunks) {
-      output[`${prefix}Chunk #${chunk.index}`] = describeChunk(chunk);
+      output[`${prefix || ""}Chunk #${chunk.index}`] = describeChunk(chunk);
     }
     return output;
   };
