@@ -19,7 +19,20 @@ import {
 import {
   StoreKeys,
 } from "@valuemachine/types";
-import { getEmptyCsvFiles, getLocalStore, getLogger } from "@valuemachine/utils";
+import {
+  fmtAddressBook,
+  getAddressBookError,
+  getTransactionsError,
+  getValueMachineError,
+  getPricesError,
+  getEmptyCsvFiles,
+  getEmptyAddressBook,
+  getEmptyTransactions,
+  getEmptyValueMachine,
+  getEmptyPrices,
+  getLocalStore,
+  getLogger,
+} from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
@@ -97,73 +110,74 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState(store.load(ThemeStore) || "dark");
 
   // Utilities derived from localstorage data
-  const [addressBook, setAddressBook] = useState(getAddressBook({
-    json: addressBookJson,
-    logger,
-  }));
-  const [transactions, setTransactions] = useState(getTransactions({
-    json: transactionsJson,
-    store,
-    logger,
-  }));
-  const [vm, setVM] = useState(getValueMachine({
-    json: vmJson,
-    logger,
-    store,
-  }));
-  const [prices, setPrices] = useState(getPrices({
-    store,
-    logger,
-    json: pricesJson,
-    unit
-  }));
+  const [addressBook, setAddressBook] = useState(getAddressBook());
+  const [transactions, setTransactions] = useState(getTransactions());
+  const [vm, setVM] = useState(getValueMachine());
+  const [prices, setPrices] = useState(getPrices());
 
   const classes = useStyles();
 
   useEffect(() => {
     if (!addressBookJson) return;
-    // TODO: if json has error, clear local storage & reset var
-    console.log(`Refreshing ${addressBookJson.length} address book entries`);
-    store.save(AddressBookStore, addressBookJson);
-    setAddressBook(getAddressBook({
-      json: addressBookJson,
-      logger
-    }));
+    if (getAddressBookError(addressBookJson)) {
+      console.log(`Removing invalid address book`);
+      const newAddressBookJson = getEmptyAddressBook();
+      store.save(AddressBookStore, newAddressBookJson);
+      setAddressBookJson(newAddressBookJson);
+    } else {
+      const cleanAddressBook = fmtAddressBook(addressBookJson);
+      console.log(`Refreshing ${Object.keys(cleanAddressBook).length} address book entries`);
+      store.save(AddressBookStore, cleanAddressBook);
+      setAddressBook(getAddressBook({
+        json: cleanAddressBook,
+        logger
+      }));
+    }
   }, [addressBookJson]);
 
   useEffect(() => {
     if (!addressBook || !transactionsJson) return;
-    console.log(`Refreshing ${transactionsJson.length} transactions`);
-    store.save(TransactionsStore, transactionsJson);
-    setTransactions(getTransactions({
-      json: transactionsJson,
-      store,
-      logger,
-    }));
+    if (getTransactionsError(transactionsJson)) {
+      console.log(`Removing ${transactionsJson?.length || "0"} invalid transactions`);
+      const newTransactionsJson = getEmptyTransactions();
+      store.save(TransactionsStore, newTransactionsJson);
+      setTransactionsJson(newTransactionsJson);
+    } else {
+      console.log(`Refreshing ${transactionsJson.length} transactions`);
+      store.save(TransactionsStore, transactionsJson);
+      setTransactions(getTransactions({ json: transactionsJson, store, logger }));
+    }
   }, [addressBook, transactionsJson]);
 
   useEffect(() => {
     if (!addressBook || !vmJson) return;
-    console.log(`Refreshing ${vmJson.events.length} value machine events`);
-    console.log(`Refreshing ${vmJson.chunks.length} value machine chunks`);
-    store.save(ValueMachineStore, vmJson);
-    setVM(getValueMachine({
-      json: vmJson,
-      logger,
-      store,
-    }));
+    if (getValueMachineError(vmJson)) {
+      console.log(`Removing invalid vm`);
+      const newVMJson = getEmptyValueMachine();
+      store.save(ValueMachineStore, newVMJson);
+      setVMJson(newVMJson);
+    } else {
+      console.log(`Refreshing vm w ${
+        vmJson.events?.length || "0"
+      } events & ${vmJson.chunks?.length || "0"} chunks`);
+      store.save(ValueMachineStore, vmJson);
+      setVM(getValueMachine({ json: vmJson, logger, store }));
+    }
+
   }, [addressBook, vmJson]);
 
   useEffect(() => {
     if (!pricesJson || !unit) return;
-    console.log(`Refreshing ${Object.keys(pricesJson).length} price entries`);
-    store.save(PricesStore, pricesJson);
-    setPrices(getPrices({
-      json: pricesJson,
-      logger,
-      store,
-      unit
-    }));
+    if (getPricesError(pricesJson)) {
+      console.log(`Removing ${pricesJson?.length || "0"} invalid prices`);
+      const newPricesJson = getEmptyPrices();
+      store.save(PricesStore, newPricesJson);
+      setPricesJson(newPricesJson);
+    } else {
+      console.log(`Refreshing ${Object.keys(pricesJson).length} price entries`);
+      store.save(PricesStore, pricesJson);
+      setPrices(getPrices({ json: pricesJson, logger, store, unit }));
+    }
   }, [pricesJson, unit]);
 
   useEffect(() => {

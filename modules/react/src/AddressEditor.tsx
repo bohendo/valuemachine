@@ -46,7 +46,6 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
   const classes = useStyles();
 
   const getErrors = (candidate: Partial<AddressEntry>): string => {
-    console.log(`Checking ${addresses.length} addresses for dups.. first few: ${addresses.slice(0, 2)}`);
     if (!candidate?.address) {
       return "Address is required";
     } else if (!isAddress(candidate.address)) {
