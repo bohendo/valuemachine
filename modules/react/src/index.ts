@@ -1,6 +1,8 @@
 export { AddressEditor } from "./AddressEditor";
 export { AddressPorter } from "./AddressPorter";
 export { AddressTable } from "./AddressTable";
+export { Balances } from "./Balances";
+export { BalanceTable } from "./BalanceTable";
 export { ChunkTable } from "./ChunkTable";
 export { CsvPorter } from "./CsvPorter";
 export { CsvTable } from "./CsvTable";

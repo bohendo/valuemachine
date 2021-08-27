@@ -24,6 +24,14 @@ const one = getAddress("1");
 const two = getAddress("2");
 const three = getAddress("3");
 
+export const balances = {
+  ETH: "1.370",
+  BTC: "0.137",
+  USD: "1000.01",
+  INR: "700000.07",
+  DAI: "20000.02",
+};
+
 export const addressBook = getAddressBook({
   json: {
     [one]: {
@@ -113,10 +121,11 @@ export const vm = getValueMachine({
         { date: "2020-01-01T01:00:00Z", account: one },
         { date: "2020-01-02T01:00:00Z", account: two },
       ],
+      account: one,
       disposeDate: "2020-01-03T01:00:00.000Z",
       index: 0,
       inputs: [],
-      outputs: Array.from(Array(25).keys()) // wrong for demo purposes
+      outputs: Array.from(Array(25).keys()) // inconsistent for demo purposes
     }, {
       asset: Assets.ETH,
       quantity: "0.01",
@@ -148,11 +157,19 @@ export const vm = getValueMachine({
       index: 3,
       inputs: [],
       outputs: [],
+    }, {
+      asset: Assets.DAI,
+      quantity: "50",
+      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
+      account: one,
+      index: 4,
+      inputs: [],
+      outputs: Array.from(Array(25).keys()) // inconsistent for demo purposes
     }],
     date: (new Date(0)).toISOString(),
     events: [{
       date: "2020-01-01T01:00:00Z", 
-      newBalances: {},
+      newBalances: {}, // inconsistent for demo purposes
       index: 0,
       type: EventTypes.Income,
       account: one,
