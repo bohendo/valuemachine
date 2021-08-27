@@ -1,4 +1,4 @@
-import { getValueMachine } from "@valuemachine/core";
+import { getPrices, getValueMachine } from "@valuemachine/core";
 import { EvmApps, Assets, getAddressBook, getTransactions } from "@valuemachine/transactions";
 import {
   AddressCategories,
@@ -23,6 +23,8 @@ const getAddress = (val: string): string => `Ethereum/0x${val.repeat(40).substri
 const one = getAddress("1");
 const two = getAddress("2");
 const three = getAddress("3");
+
+export const guard = Guards.USA;
 
 export const balances = {
   BCH: "0",
@@ -189,3 +191,5 @@ export const vm = getValueMachine({
     }],
   },
 });
+
+export const prices = getPrices();
