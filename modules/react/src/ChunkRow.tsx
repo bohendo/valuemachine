@@ -24,9 +24,9 @@ import { HexString } from "./HexString";
 const round = num => defaultRound(num, 4);
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  subtable: {
-    maxWidth: theme.spacing(12),
-  },
+  putsRow: {
+    maxWidth: theme.spacing(32),
+  }
 }));
 
 type ChunkRowProps = {
@@ -44,6 +44,9 @@ export const ChunkRow: React.FC<ChunkRowProps> = ({
     if (chunk && open) console.log(chunk);
   }, [chunk, open]);
 
+  const fmtDate = (dateStr?: string): string =>
+    (dateStr || "").replace("T", " ").replace(/(.000)?Z/, "");
+
   return (
     <React.Fragment>
       <TableRow>
@@ -51,15 +54,15 @@ export const ChunkRow: React.FC<ChunkRowProps> = ({
         <TableCell> {chunk.asset} </TableCell>
         <TableCell> {round(chunk.quantity)} </TableCell>
         <TableCell> {
-          chunk.history[0].date.replace("T", " ").replace("Z", "")
+          fmtDate(chunk.history[0].date)
         } </TableCell>
         <TableCell> {
-          chunk.disposeDate?.replace("T", " ").replace("Z", "") || "Presently Held"
+          fmtDate(chunk.disposeDate)|| "Presently Held"
         } </TableCell>
-        <TableCell> {chunk.inputs?.join(", ")} </TableCell>
-        <TableCell> {chunk.outputs?.join(", ")} </TableCell>
+        <TableCell className={classes.putsRow}> {chunk.inputs?.join(", ")} </TableCell>
+        <TableCell className={classes.putsRow}> {chunk.outputs?.join(", ")} </TableCell>
         <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
-          Details
+          History
           <IconButton aria-label="expand row" size="small" >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
@@ -93,8 +96,8 @@ export const ChunkRow: React.FC<ChunkRowProps> = ({
                         <TableCell> {
                           <HexString value={account} display={addressBook?.getName(account)}/>
                         }</TableCell>
-                        <TableCell className={classes.subtable}> {date} </TableCell>
-                        <TableCell className={classes.subtable}> {nextDate} </TableCell>
+                        <TableCell> {fmtDate(date)} </TableCell>
+                        <TableCell> {fmtDate(nextDate)} </TableCell>
                       </TableRow>
                     );
                   })}

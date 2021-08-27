@@ -63,9 +63,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
       (!filterAccount || (
         chunk.history?.some(hist => hist.account.endsWith(filterAccount)) ||
         chunk.account?.endsWith(filterAccount)))
-    ).sort((c1: AssetChunk, c2: AssetChunk) => c1.index - c2.index).map(
-      (c: AssetChunk) => vm.getChunk(c.index)
-    ) || []);
+    ).sort((c1: AssetChunk, c2: AssetChunk) => c1.index - c2.index) || []);
   }, [vm, filterAccount]);
 
   const handleFilterAccountChange = (event: React.ChangeEvent<{ value: unknown }>) => {

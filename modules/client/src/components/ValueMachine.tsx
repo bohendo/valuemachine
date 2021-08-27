@@ -2,10 +2,12 @@ import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Divider from "@material-ui/core/Divider";
+import Tabs from "@material-ui/core/Tabs";
+import Tab from "@material-ui/core/Tab";
 import Typography from "@material-ui/core/Typography";
 import ClearIcon from "@material-ui/icons/Delete";
 import SyncIcon from "@material-ui/icons/Sync";
-import { EventTable } from "@valuemachine/react";
+import { ChunkTable, EventTable } from "@valuemachine/react";
 import {
   AddressBook,
   Transactions,
@@ -24,6 +26,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
     margin: theme.spacing(3),
   },
+  tabs: {
+    margin: theme.spacing(1),
+  },
 }));
 
 type ValueMachineExplorerProps = {
@@ -38,6 +43,7 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
   setVMJson,
   transactions,
 }: ValueMachineExplorerProps) => {
+  const [tab, setTab] = useState(0);
   const [syncing, setSyncing] = useState({ transactions: false, state: false, prices: false });
   const [newTransactions, setNewTransactions] = useState([] as TransactionsJson);
   const classes = useStyles();
@@ -79,6 +85,10 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
     setVMJson(getEmptyValueMachine());
   };
 
+  const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+    setTab(newValue);
+  };
+
   return (
     <>
       <Typography variant="h3">
@@ -112,7 +122,16 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
 
       <Divider/>
 
-      <EventTable addressBook={addressBook} vm={vm}/>
+      <Tabs value={tab} onChange={handleTabChange} className={classes.tabs} centered>
+        <Tab label="Events"/>
+        <Tab label="Chunks"/>
+      </Tabs>
+      <div hidden={tab !== 0}>
+        <EventTable addressBook={addressBook} vm={vm}/>
+      </div>
+      <div hidden={tab !== 1}>
+        <ChunkTable addressBook={addressBook} vm={vm}/>
+      </div>
 
     </>
   );
