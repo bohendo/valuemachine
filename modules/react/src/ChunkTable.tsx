@@ -19,8 +19,9 @@ import {
   AssetChunk,
   ValueMachine,
 } from "@valuemachine/types";
-import { describeChunk } from "@valuemachine/core";
 import React, { useEffect, useState } from "react";
+
+import { ChunkRow } from "./ChunkRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
@@ -120,7 +121,8 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
               <TableCell><strong> Index </strong></TableCell>
               <TableCell><strong> Asset </strong></TableCell>
               <TableCell><strong> Quantity </strong></TableCell>
-              <TableCell><strong> Description </strong></TableCell>
+              <TableCell><strong> Receive Date </strong></TableCell>
+              <TableCell><strong> Dispose Date </strong></TableCell>
               <TableCell><strong> Inputs </strong></TableCell>
               <TableCell><strong> Outputs </strong></TableCell>
               <TableCell><strong> History </strong></TableCell>
@@ -130,15 +132,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
             {filteredChunks
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((chunk: AssetChunk, i: number) => (
-                <TableRow key={i}>
-                  <TableCell> {chunk.index} </TableCell>
-                  <TableCell> {chunk.asset} </TableCell>
-                  <TableCell> {chunk.quantity} </TableCell>
-                  <TableCell> {describeChunk(chunk)} </TableCell>
-                  <TableCell> {chunk.inputs?.join(", ")} </TableCell>
-                  <TableCell> {chunk.outputs?.join(", ")} </TableCell>
-                  <TableCell><pre> {JSON.stringify(chunk.history, null, 2)} </pre></TableCell>
-                </TableRow>
+                <ChunkRow key={i} addressBook={addressBook} chunk={chunk}/>
               ))}
           </TableBody>
         </Table>

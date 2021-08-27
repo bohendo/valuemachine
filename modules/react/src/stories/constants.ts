@@ -98,7 +98,7 @@ export const transactions = getTransactions({
       category: TransferCategories.Expense,
       asset: Assets.ETH,
       from: two,
-      quantity: "1.0",
+      quantity: "0.5",
       to: three,
     }],
   }],
@@ -108,7 +108,7 @@ export const vm = getValueMachine({
   json: {
     chunks: [{
       asset: Assets.ETH,
-      quantity: "1.00",
+      quantity: "0.50",
       history: [
         { date: "2020-01-01T01:00:00Z", account: one },
         { date: "2020-01-02T01:00:00Z", account: two },
@@ -136,6 +136,16 @@ export const vm = getValueMachine({
       ],
       disposeDate: "2020-01-03T01:00:00Z",
       index: 2,
+      inputs: [],
+      outputs: [],
+    }, {
+      asset: Assets.ETH,
+      quantity: "0.50",
+      history: [
+        { date: "2020-01-01T01:00:00Z", account: one },
+        { date: "2020-01-02T01:00:00Z", account: two },
+      ],
+      index: 3,
       inputs: [],
       outputs: [],
     }],

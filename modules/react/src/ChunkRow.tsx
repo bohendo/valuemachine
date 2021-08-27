@@ -1,10 +1,10 @@
-import { isHexString } from "@ethersproject/bytes";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
 import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
+import TableHead from "@material-ui/core/TableHead";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
@@ -12,14 +12,11 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import {
   AddressBook,
-  Event,
-  EventTypes,
-  GuardChangeEvent,
+  AssetChunk,
 } from "@valuemachine/types";
 import {
   round as defaultRound,
 } from "@valuemachine/utils";
-import { describeChunk, describeEvent } from "@valuemachine/core";
 import React, { useEffect, useState } from "react";
 
 import { HexString } from "./HexString";
@@ -32,68 +29,35 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-type EventRowProps = {
+type ChunkRowProps = {
   addressBook: AddressBook;
-  event: Event;
+  chunk: AssetChunk;
 };
-export const EventRow: React.FC<EventRowProps> = ({
+export const ChunkRow: React.FC<ChunkRowProps> = ({
   addressBook,
-  event,
-}: EventRowProps) => {
+  chunk,
+}: ChunkRowProps) => {
   const [open, setOpen] = useState(false);
   const classes = useStyles();
 
   useEffect(() => {
-    if (event && open) console.log(event);
-  }, [event, open]);
-
-  const balToStr = (balances) =>
-    Object.entries(balances || {}).map(([asset, bal]) => `${round(bal)} ${asset}`).join(" and ");
-
-  const chunksToDisplay = (chunks, prefix = "") => {
-    const output = {};
-    for (const chunk of chunks) {
-      const description = describeChunk(chunk);
-      output[prefix + description.split(":")[0]] = description.split(":")[1];
-    }
-    return output;
-  };
-
-  const SimpleTable = ({
-    data,
-  }: {
-    data: { [key: string]: string };
-  }) => {
-    return (
-      <Table size="small">
-        <TableBody>
-          {Object.entries(data).map((e: string[], i: number) => {
-            const key = e[0] as string;
-            const value = e[1] as string;
-            return (
-              <TableRow key={i}>
-                <TableCell className={classes.subtable}> {key} </TableCell>
-                <TableCell> {
-                  isHexString(value)
-                    ? <HexString value={value} display={addressBook?.getName(value)}/>
-                    : <Typography> {
-                      typeof value === "string" ? value : JSON.stringify(value)
-                    } </Typography>
-                }</TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    );
-  };
+    if (chunk && open) console.log(chunk);
+  }, [chunk, open]);
 
   return (
     <React.Fragment>
       <TableRow>
-        <TableCell> {event.date.replace("T", " ").replace(".000Z", "")} </TableCell>
-        <TableCell> {event.type} </TableCell>
-        <TableCell> {describeEvent(event)} </TableCell>
+        <TableCell> {chunk.index} </TableCell>
+        <TableCell> {chunk.asset} </TableCell>
+        <TableCell> {round(chunk.quantity)} </TableCell>
+        <TableCell> {
+          chunk.history[0].date.replace("T", " ").replace("Z", "")
+        } </TableCell>
+        <TableCell> {
+          chunk.disposeDate?.replace("T", " ").replace("Z", "") || "Presently Held"
+        } </TableCell>
+        <TableCell> {chunk.inputs?.join(", ")} </TableCell>
+        <TableCell> {chunk.outputs?.join(", ")} </TableCell>
         <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
           Details
           <IconButton aria-label="expand row" size="small" >
@@ -106,39 +70,37 @@ export const EventRow: React.FC<EventRowProps> = ({
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box pb={2} px={4}>
               <Typography variant="h6" gutterBottom component="div">
-                {`${event.type} Details`}
+                {`Ownership History`}
               </Typography>
-              <SimpleTable data={
 
-                (event.type === EventTypes.Expense) ? {
-                  Account: event.account,
-                  [`New Balances`]: balToStr(event.newBalances),
-                  ...chunksToDisplay(event.outputs),
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell><strong> Account </strong></TableCell>
+                    <TableCell><strong> Receieve Date </strong></TableCell>
+                    <TableCell><strong> Dispose Date </strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {chunk.history.map((history: { date: string; account: string }, i: number) => {
+                    const date = history.date;
+                    const nextDate = chunk.history[i + 1]?.date
+                      || chunk.disposeDate
+                      || "Presently Held";
+                    const account = history.account;
+                    return (
+                      <TableRow key={i}>
+                        <TableCell> {
+                          <HexString value={account} display={addressBook?.getName(account)}/>
+                        }</TableCell>
+                        <TableCell className={classes.subtable}> {date} </TableCell>
+                        <TableCell className={classes.subtable}> {nextDate} </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
 
-                } : event.type === EventTypes.Income ? {
-                  Account: event.account,
-                  [`New Balances`]: balToStr(event.newBalances),
-                  ...chunksToDisplay(event.inputs),
-
-                } : event.type === EventTypes.Debt ? {
-                  Account: event.account,
-                  [`New Balances`]: balToStr(event.newBalances),
-                  ...chunksToDisplay(event.outputs, "Gave "),
-                  ...chunksToDisplay(event.inputs, "Took "),
-
-                } : event.type === EventTypes.GuardChange ? {
-                  ["From"]: (event as GuardChangeEvent).from,
-                  ["To"]: (event as GuardChangeEvent).to,
-                  [`New Balances`]: balToStr(event.newBalances),
-                  ...chunksToDisplay(event.chunks),
-
-                } : event.type === EventTypes.Trade ? {
-                  Account: event.account,
-                  [`New Balances`]: balToStr(event.newBalances),
-                  ...chunksToDisplay(event.outputs, "Gave "),
-                  ...chunksToDisplay(event.inputs, "Took "),
-                } : {}
-              }/>
             </Box>
           </Collapse>
         </TableCell>
