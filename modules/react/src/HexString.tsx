@@ -9,9 +9,6 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: "12em",
     margin: theme.spacing(0),
   },
-  pre: {
-    margin: theme.spacing(0),
-  },
 }));
 
 export const HexString = ({

@@ -27,29 +27,6 @@ import { HexString } from "./HexString";
 const round = num => defaultRound(num, 4);
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  button: {
-    margin: theme.spacing(3),
-  },
-  paper: {
-    minWidth: "500px",
-    padding: theme.spacing(2),
-  },
-  spinner: {
-    padding: "0",
-  },
-  importer: {
-    margin: theme.spacing(4),
-  },
-  select: {
-    margin: theme.spacing(3),
-    minWidth: 160,
-  },
-  title: {
-    margin: theme.spacing(2),
-  },
-  subtitle: {
-    margin: theme.spacing(2),
-  },
   subtable: {
     maxWidth: theme.spacing(12),
   },

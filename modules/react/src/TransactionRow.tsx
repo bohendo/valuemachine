@@ -41,7 +41,7 @@ export const TransactionRow = ({
   const classes = useStyles();
   return (
     <React.Fragment>
-      <TableRow className={classes?.row || ""}>
+      <TableRow className={classes.row || ""}>
         <TableCell> {
           (new Date(tx.date)).toISOString().replace("T", " ").replace(".000Z", "")
         } </TableCell>
