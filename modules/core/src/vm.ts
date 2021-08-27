@@ -68,9 +68,9 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   // Getters
 
   const getAccounts = (): Account[] => Array.from(json.chunks.reduce((accounts, chunk) => {
-    if (chunk.account) accounts.add(chunk.account);
+    chunk.history.forEach(entry => { accounts.add(entry.account); });
     return accounts;
-  }, new Set<string>()));
+  }, new Set<string>())).sort();
 
   const getBalance = (asset: Asset, account?: Account): DecimalString =>
     json.chunks.reduce((balance, chunk) => {
@@ -259,7 +259,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           type: EventTypes.Income,
           inputs: [newChunk.index],
           account,
-          newBalances: {},
         });
       }
       return newChunk;
@@ -387,7 +386,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       inputs: chunksIn.map(toIndex),
       outputs: chunksOut.map(toIndex),
       account,
-      newBalances: {},
     } as TradeEvent);
   };
 
@@ -414,7 +412,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       newEvents.push({
         date: json.date,
         index: json.events.length + newEvents.length,
-        newBalances: {},
         from: from,
         to: to,
         chunks: toMove.map(toIndex),
@@ -446,7 +443,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           account: from,
           index: json.events.length + newEvents.length,
           date: json.date,
-          newBalances: {},
           outputs: disposed.map(toIndex),
           type: EventTypes.Expense,
         });
@@ -458,7 +454,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           index: json.events.length + newEvents.length,
           date: json.date,
           inputs: received.map(toIndex),
-          newBalances: {},
           type: EventTypes.Income,
         });
       } else {
@@ -521,7 +516,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     }
 
     for (const newEvent of newEvents) {
-      newEvent.newBalances = getNetWorth();
       json.events.push(newEvent);
     }
     return newEvents;
