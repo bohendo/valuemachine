@@ -57,6 +57,20 @@ export const fmtAddressEntry = (entry: AddressEntry): AddressEntry => {
   return entry;
 };
 
+export const fmtAddressBook = (addressBookJson: AddressBookJson): AddressBookJson => {
+  const error = getAddressBookError(addressBookJson);
+  if (error) throw new Error(error);
+  const cleanAddressBook = {} as AddressBookJson;
+  Object.keys(addressBookJson).forEach(address => {
+    const cleanAddress = fmtAddress(address);
+    cleanAddressBook[cleanAddress] = {
+      ...addressBookJson[address],
+      address: cleanAddress,
+    };
+  });
+  return cleanAddressBook;
+};
+
 export const setAddressCategory = (category: AddressCategory) =>
   (entry: Partial<AddressEntry>): AddressEntry =>
     fmtAddressEntry({

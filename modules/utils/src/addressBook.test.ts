@@ -1,8 +1,8 @@
+import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import { AddressCategories, Guards } from "@valuemachine/types";
 
-import { getAddressBookError } from "./addressBook";
-// import { getLogger } from "./logger";
+import { getAddressBookError, fmtAddressBook } from "./addressBook";
 import { expect } from "./testUtils";
 
 const address = AddressZero;
@@ -17,8 +17,6 @@ const validAddressBookEntry = {
 describe("AddressBook", () => {
 
   it("should return no errors if json is valid", async () => {
-    // const log = getLogger("info").child({ module: "TestAddressBook" });
-    // log.info(validAddressBookEntry, "checking whether a valid address book produces errors");
     expect(getAddressBookError({ [address]: validAddressBookEntry })).to.be.null;
   });
 
@@ -34,6 +32,22 @@ describe("AddressBook", () => {
       ...validAddressBookEntry,
       name: undefined,
     } }) || "").to.include("name");
+  });
+
+  it("should format addresses properly", async () => {
+    const lowercase = "0x1057bea69c9add11c6e3de296866aff98366cfe3";
+    const checksummed = getAddress(lowercase);
+    const clean = fmtAddressBook({
+      [lowercase]: {
+        address: lowercase,
+        name: "bohendo.eth",
+        category: AddressCategories.Self,
+      },
+    });
+    expect(lowercase).to.not.equal(checksummed);
+    expect(Object.keys(clean)).to.include(checksummed);
+    expect(clean[checksummed].address).to.equal(checksummed);
+    expect(clean[lowercase]?.address).to.be.undefined;
   });
 
 });
