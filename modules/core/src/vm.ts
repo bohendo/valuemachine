@@ -43,11 +43,9 @@ const isIncomeSource = (account: Account): boolean =>
   account.startsWith(`${EvmApps.Maker}-DSR`) ||
   account.startsWith(`${EvmApps.Tornado}`);
 
-export const getValueMachine = ({
-  logger,
-  store,
-  json: vmJson,
-}: ValueMachineParams): ValueMachine => {
+export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
+  const { logger, store, json: vmJson } = params || {};
+
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
   const json = vmJson || store?.load(StoreKeys.ValueMachine) || getEmptyValueMachine();
   const save = (): void => store?.save(StoreKeys.ValueMachine, json);
