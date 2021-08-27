@@ -16,9 +16,11 @@ import Typography from "@material-ui/core/Typography";
 import {
   Account,
   AddressBook,
+  Asset,
   AssetChunk,
   ValueMachine,
 } from "@valuemachine/types";
+import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { ChunkRow } from "./ChunkRow";
@@ -49,7 +51,9 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [accounts, setAccounts] = useState([] as Account[]);
+  const [assets, setAssets] = useState([] as Asset[]);
   const [filterAccount, setFilterAccount] = useState("");
+  const [filterAsset, setFilterAsset] = useState("");
   const [filteredChunks, setFilteredChunks] = useState([] as AssetChunk[]);
   const classes = useStyles();
 
@@ -58,17 +62,27 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   }, [addressBook, vm]);
 
   useEffect(() => {
+    setAssets(dedup(vm.json.chunks.map(chunk => chunk.asset)));
+  }, [addressBook, vm]);
+
+  useEffect(() => {
     setPage(0);
     setFilteredChunks(vm.json?.chunks?.filter(chunk =>
       (!filterAccount || (
         chunk.history?.some(hist => hist.account.endsWith(filterAccount)) ||
         chunk.account?.endsWith(filterAccount)))
+      && (!filterAsset || chunk.asset === filterAsset)
     ).sort((c1: AssetChunk, c2: AssetChunk) => c1.index - c2.index) || []);
-  }, [vm, filterAccount]);
+  }, [vm, filterAccount, filterAsset]);
 
   const handleFilterAccountChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     setFilterAccount(event.target.value);
+  };
+
+  const handleFilterAssetChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
+    setFilterAsset(event.target.value);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -110,6 +124,23 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
                 </MenuItem>
               ))
             }
+          </Select>
+        </FormControl>
+
+        <FormControl className={classes.select}>
+          <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
+          <Select
+            labelId="select-filter-asset"
+            id="select-filter-asset"
+            value={filterAsset || ""}
+            onChange={handleFilterAssetChange}
+          >
+            <MenuItem value={""}>-</MenuItem>
+            {assets.sort().map((asset, i) => (
+              <MenuItem key={i} value={asset}>
+                {addressBook?.getName(asset) || asset}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
