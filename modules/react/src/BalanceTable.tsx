@@ -67,6 +67,7 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
         </TableHead>
         <TableBody>
           {Object.entries(allBalances)
+            .sort((e1, e2) => e1[0] > e2[0] ? 1 : -1)
             .map(([account, balances]: any, i: number) => (
               <TableRow key={i}>
                 <TableCell className={classes.accountCell}>

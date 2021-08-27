@@ -15,7 +15,6 @@ import {
 import React, { useState } from "react";
 
 import { AddressEditor } from "./AddressEditor";
-import { HexString } from "./HexString";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
@@ -26,13 +25,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 type AddressRowProps = {
-  address: string;
   editEntry: (s: string, e?: AddressEntry) => void;
   entry: AddressEntry;
   otherAddresses: string[];
 };
 export const AddressRow: React.FC<AddressRowProps> = ({
-  address,
   editEntry,
   entry,
   otherAddresses,
@@ -51,12 +48,12 @@ export const AddressRow: React.FC<AddressRowProps> = ({
   };
 
   const handleDelete = () => {
-    editEntry(address);
+    editEntry(entry.address);
     setEditMode(false);
   };
 
   const handleEdit = (editedEntry) => {
-    editEntry(address, editedEntry);
+    editEntry(entry.address, editedEntry);
     setEditMode(false);
   };
 
@@ -65,7 +62,7 @@ export const AddressRow: React.FC<AddressRowProps> = ({
       <TableRow>
         <TableCell> {entry.name} </TableCell>
         <TableCell> {entry.category} </TableCell>
-        <TableCell> <HexString value={entry.address}/> </TableCell>
+        <TableCell><pre> {entry.address} </pre></TableCell>
         <TableCell>
           <IconButton color="secondary" onClick={toggleEditMode}>
             <EditIcon />

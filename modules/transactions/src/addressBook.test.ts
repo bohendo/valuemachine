@@ -15,7 +15,7 @@ describe("AddressBook", () => {
   it("should return a valid name", async () => {
     const addressBook = getAddressBook({ logger: log });
     const address = AddressZero.replace("000", "001");
-    const name = addressBook.getName(address);
+    const name = addressBook.getName("Ethereum/0x1111111111111111111111111111111111111111");
     log.info(`${address} is also known as ${name}`);
     expect(name).to.be.a("string");
   });

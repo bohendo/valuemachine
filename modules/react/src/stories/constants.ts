@@ -161,7 +161,7 @@ export const vm = getValueMachine({
       asset: Assets.DAI,
       quantity: "50",
       history: [{ date: "2020-01-01T01:00:00Z", account: one }],
-      account: one,
+      account: two,
       index: 4,
       inputs: [],
       outputs: Array.from(Array(25).keys()) // inconsistent for demo purposes

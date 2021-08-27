@@ -98,17 +98,17 @@ dls:
 
 test-utils: utils
 	bash ops/test-unit.sh utils test
-watch-utils: utils
+watch-utils: types
 	bash ops/test-unit.sh utils watch
 
 test-transactions: transactions
 	bash ops/test-unit.sh transactions test
-watch-transactions: transactions
+watch-transactions: utils
 	bash ops/test-unit.sh transactions watch
 
 test-core: core
 	bash ops/test-unit.sh core test
-watch-core: core
+watch-core: transactions
 	bash ops/test-unit.sh core watch
 
 run-example: package

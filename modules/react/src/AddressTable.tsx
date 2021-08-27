@@ -159,7 +159,6 @@ export const AddressTable: React.FC<AddressTableProps> = ({
                   }
                   key={i}
                   editEntry={editEntry}
-                  address={entry.address}
                   entry={entry}
                 />
 
