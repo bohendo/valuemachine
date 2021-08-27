@@ -40,7 +40,7 @@ import { AddressBookManager } from "./components/AddressBook";
 import { Dashboard } from "./components/Dashboard";
 import { NavBar } from "./components/NavBar";
 import { PriceManager } from "./components/Prices";
-// import { TaxesExplorer } from "./components/Taxes";
+import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
 
@@ -214,7 +214,6 @@ const App: React.FC = () => {
               />
             </Route>
 
-            {/*
             <Route exact path="/taxes">
               <TaxesExplorer
                 addressBook={addressBook}
@@ -222,7 +221,6 @@ const App: React.FC = () => {
                 prices={prices}
               />
             </Route>
-            */}
 
             <Route exact path="/prices">
               <PriceManager

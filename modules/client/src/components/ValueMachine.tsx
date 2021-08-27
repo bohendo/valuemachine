@@ -117,7 +117,7 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
         startIcon={<ClearIcon/>}
         variant="outlined"
       >
-        Clear Events
+        Clear VM Data
       </Button>
 
       <Divider/>
