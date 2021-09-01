@@ -23,7 +23,6 @@ import {
   Guards,
   Prices,
   TradeEvent,
-  TransferCategories,
   ValueMachine,
 } from "@valuemachine/types";
 import {
@@ -35,6 +34,22 @@ import {
 import React, { useEffect, useState } from "react";
 
 const { ETH } = Assets;
+
+// Every guard has exactly one special asset that it uses to accept security fees
+const securityFeeAssetMap = {
+  [Guards.Bitcoin]: Assets.BTC,
+  [Guards.BitcoinCash]: Assets.BCH,
+  [Guards.Ethereum]: Assets.ETH,
+  [Guards.EthereumClassic]: Assets.ETC,
+  [Guards.Litecoin]: Assets.LTC,
+  [Guards.Polygon]: Assets.MATIC,
+  [Guards.CZE]: Assets.CZK,
+  [Guards.EST]: Assets.EUR,
+  [Guards.GBR]: Assets.GBP,
+  [Guards.IND]: Assets.INR,
+  [Guards.ROU]: Assets.EUR,
+  [Guards.USA]: Assets.USD,
+} as const;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -93,6 +108,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [taxes, setTaxes] = React.useState([] as TaxRow[]);
+  const [feeAsset, setFeeAsset] = React.useState(ETH);
 
   const fmtNum = num => {
     const round = defaultRound(num, guard === Guards.Ethereum ? 4 : 2);
@@ -120,6 +136,10 @@ export const TaxTable: React.FC<TaxTableProps> = ({
     }
     return commify(round);
   };
+
+  useEffect(() => {
+    setFeeAsset(securityFeeAssetMap[guard]);
+  }, [guard]);
 
   useEffect(() => {
     if (!addressBook || !guard || !vm?.json?.events?.length) return;
@@ -166,13 +186,13 @@ export const TaxTable: React.FC<TaxTableProps> = ({
               } as TaxRow;
             }
           }));
-        } else if (evt.type === TransferCategories.Income) {
+        } else if (evt.type === EventTypes.Income) {
           const price = prices.getPrice(date, ETH/*TODO evt.asset*/);
           const income = mul("0"/*TODO evt.quantity*/, price || "0");
           cumulativeIncome = add(cumulativeIncome, income);
           return output.concat({
             date: date,
-            action: TransferCategories.Income,
+            action: EventTypes.Income,
             amount: "0", // TODO evt.quantity,
             asset: ETH, // TODO evt.asset
             price,
@@ -190,7 +210,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
           cumulativeIncome = add(cumulativeIncome, income);
           return output.concat({
             date: date,
-            action: TransferCategories.Deposit,
+            action: EventTypes.GuardChange,
             amount: "0", // TODO evt.quantity,
             asset: ETH, // TODO evt.asset
             price,
@@ -240,13 +260,13 @@ export const TaxTable: React.FC<TaxTableProps> = ({
               <TableCell><strong> Date </strong></TableCell>
               <TableCell><strong> Action </strong></TableCell>
               <TableCell><strong> Asset </strong></TableCell>
-              <TableCell><strong> {`Price (${guard}/Asset)`} </strong></TableCell>
-              <TableCell><strong> {`Value (${guard})`} </strong></TableCell>
+              <TableCell><strong> {`Price (${feeAsset}/Asset)`} </strong></TableCell>
+              <TableCell><strong> {`Value (${feeAsset})`} </strong></TableCell>
               <TableCell><strong> Receive Date </strong></TableCell>
-              <TableCell><strong> {`Receive Price (${guard}/Asset)`} </strong></TableCell>
-              <TableCell><strong> {`Capital Change (${guard})`} </strong></TableCell>
-              <TableCell><strong> {`Cumulative Change (${guard})`} </strong></TableCell>
-              <TableCell><strong> {`Cumulative Income (${guard})`} </strong></TableCell>
+              <TableCell><strong> {`Receive Price (${feeAsset}/Asset)`} </strong></TableCell>
+              <TableCell><strong> {`Capital Change (${feeAsset})`} </strong></TableCell>
+              <TableCell><strong> {`Cumulative Change (${feeAsset})`} </strong></TableCell>
+              <TableCell><strong> {`Cumulative Income (${feeAsset})`} </strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
