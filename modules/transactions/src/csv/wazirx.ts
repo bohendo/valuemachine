@@ -1,12 +1,11 @@
 import {
-  Guards,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 
+import { CsvSources, Guards } from "../enums";
 import { Assets } from "../assets";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
@@ -21,7 +20,7 @@ export const mergeWazirxTransactions = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const source = TransactionSources.Wazirx;
+  const source = CsvSources.Wazirx;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {

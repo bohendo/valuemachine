@@ -1,15 +1,14 @@
 import {
   Asset,
-  Guards,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 import { gt } from "@valuemachine/utils";
 
 import { Assets } from "../assets";
+import { CsvSources, Guards } from "../enums";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
 
@@ -23,7 +22,7 @@ export const mergeWyreTransactions = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const source = TransactionSources.Wyre;
+  const source = CsvSources.Wyre;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of wyre data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {

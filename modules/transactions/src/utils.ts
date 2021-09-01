@@ -1,13 +1,12 @@
 import { isHexString, hexDataLength } from "@ethersproject/bytes";
 import {
   Asset,
-  Guards,
   Guard,
   AddressBook,
   Transaction,
 } from "@valuemachine/types";
 
-import { Assets } from "./assets";
+import { Assets, Guards } from "./enums";
 
 export const describeTransaction = (addressBook: AddressBook, tx: Transaction): string => {
   return `${tx.method || "Method Call"} by ${addressBook.getName(

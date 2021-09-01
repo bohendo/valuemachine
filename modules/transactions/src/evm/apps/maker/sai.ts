@@ -8,7 +8,6 @@ import {
   EvmMetadata,
   EvmTransaction,
   EvmTransactionLog,
-  Guards,
   Logger,
   Transaction,
   TransferCategories,
@@ -21,7 +20,7 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { EvmAssets } from "../../enums";
+import { Assets, Guards } from "../../../enums";
 import { diffAsc, parseEvent } from "../utils";
 
 import {
@@ -32,7 +31,7 @@ import { apps, assets } from "./enums";
 
 const appName = apps.Sai;
 
-const { ETH, WETH } = EvmAssets;
+const { ETH, WETH } = Assets;
 const { MKR, PETH, SAI } = assets;
 const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 

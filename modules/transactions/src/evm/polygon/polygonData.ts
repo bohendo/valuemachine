@@ -9,7 +9,6 @@ import {
   EvmDataJson,
   EvmMetadata,
   EvmParsers,
-  Guards,
   Logger,
   Store,
   StoreKeys,
@@ -25,7 +24,7 @@ import {
 } from "@valuemachine/utils";
 import axios from "axios";
 
-import { Assets } from "../../assets";
+import { Assets, Guards } from "../../enums";
 
 import { parsePolygonTx } from "./parser";
 

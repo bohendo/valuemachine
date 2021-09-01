@@ -1,4 +1,4 @@
-import { CsvSources, Transactions } from "@valuemachine/types";
+import { Transactions } from "@valuemachine/types";
 import { getTransactionsError } from "@valuemachine/utils";
 
 import { getAddressBook, getTransactions } from "../index";
@@ -6,6 +6,8 @@ import {
   expect,
   testLogger,
 } from "../testUtils";
+
+import { CsvSources } from "./enums";
 
 const log = testLogger.child({ module: "TestTransactions" }, {
   // level: "debug",

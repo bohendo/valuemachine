@@ -10,7 +10,6 @@ import {
   EvmParsers,
   EvmTransaction,
   EvmTransfer,
-  Guards,
   StoreKeys,
   Transaction,
   TransactionsJson,
@@ -28,7 +27,7 @@ import {
 import axios from "axios";
 import getQueue from "queue";
 
-import { Assets } from "../../assets";
+import { Assets, Guards } from "../../enums";
 
 import { parseEthTx } from "./parser";
 

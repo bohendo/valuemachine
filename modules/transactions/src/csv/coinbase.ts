@@ -1,14 +1,13 @@
 import {
-  Guards,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 import { gt } from "@valuemachine/utils";
 
+import { CsvSources, Guards } from "../enums";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
 
@@ -21,7 +20,7 @@ export const mergeCoinbaseTransactions = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const source = TransactionSources.Coinbase;
+  const source = CsvSources.Coinbase;
   const log = logger.child({ module: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of coinbase data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {

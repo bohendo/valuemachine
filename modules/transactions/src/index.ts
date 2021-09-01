@@ -1,12 +1,11 @@
 export { getAddressBook } from "./addressBook";
 export {
-  Assets,
-  Cryptocurrencies,
-  FiatCurrencies,
-} from "./assets";
+  Cryptocurrencies, FiatCurrencies, Assets,
+  DigitalGuards, PhysicalGuards, Guards,
+  CsvSources, EvmSources, TransactionSources,
+  EvmApps, EvmNames, EvmAssets,
+} from "./enums";
 export {
-  EvmApps,
-  EvmAssets,
   getEthereumData,
   getPolygonData,
   parseEvmTx,
