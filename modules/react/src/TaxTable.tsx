@@ -12,6 +12,7 @@ import Typography from "@material-ui/core/Typography";
 import {
   Assets,
   Guards,
+  securityFeeAssetMap,
 } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -34,22 +35,6 @@ import {
 import React, { useEffect, useState } from "react";
 
 const { ETH } = Assets;
-
-// Every guard has exactly one special asset that it uses to accept security fees
-const securityFeeAssetMap = {
-  [Guards.Bitcoin]: Assets.BTC,
-  [Guards.BitcoinCash]: Assets.BCH,
-  [Guards.Ethereum]: Assets.ETH,
-  [Guards.EthereumClassic]: Assets.ETC,
-  [Guards.Litecoin]: Assets.LTC,
-  [Guards.Polygon]: Assets.MATIC,
-  [Guards.CZE]: Assets.CZK,
-  [Guards.EST]: Assets.EUR,
-  [Guards.GBR]: Assets.GBP,
-  [Guards.IND]: Assets.INR,
-  [Guards.ROU]: Assets.EUR,
-  [Guards.USA]: Assets.USD,
-} as const;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -108,8 +93,9 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [taxes, setTaxes] = React.useState([] as TaxRow[]);
-  const [feeAsset, setFeeAsset] = React.useState(ETH);
+  const [unit, setUnit] = React.useState(ETH);
 
+  // Locale-dependent rounding & commification
   const fmtNum = num => {
     const round = defaultRound(num, guard === Guards.Ethereum ? 4 : 2);
     const insert = (str: string, index: number, char: string = ",") =>
@@ -138,7 +124,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   };
 
   useEffect(() => {
-    setFeeAsset(securityFeeAssetMap[guard]);
+    setUnit(securityFeeAssetMap[guard]);
   }, [guard]);
 
   useEffect(() => {
@@ -156,77 +142,83 @@ export const TaxTable: React.FC<TaxTableProps> = ({
           || evt.type === EventTypes.Income
         );
       }).reduce((output, evt) => {
-        const date = (evt as any).date || new Date().toISOString();
+        const date = evt.date || new Date().toISOString();
+
         if (evt.type === EventTypes.Trade) {
-          return output.concat(...evt.outputs?.map(chunkIndex => {
+          if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return output; }
+          return output.concat(...evt.outputs.map(chunkIndex => {
             const chunk = vm.getChunk(chunkIndex);
-            const price = prices.getPrice(date, chunk.asset);
-            const value = mul(chunk.quantity, price || "0");
-            if (chunk.history[0]?.date) {
-              const receivePrice = prices.getPrice(chunk.history[0]?.date, chunk.asset);
-              const capitalChange = mul(chunk.quantity, sub(price || "0", receivePrice || "0"));
-              cumulativeChange = add(cumulativeChange, capitalChange);
-              return {
-                date: date,
-                action: EventTypes.Trade,
-                amount: chunk.quantity,
-                asset: chunk.asset,
-                price,
-                value,
-                receivePrice,
-                receiveDate: date, // wrong!
-                capitalChange,
-                cumulativeChange,
-                cumulativeIncome,
-              } as TaxRow;
-            } else {
-              return {
-                date: date,
-                receiveDate: date, // wrong!
-              } as TaxRow;
-            }
+            const price = prices.getNearest(date, chunk.asset, unit) || "0";
+            const value = mul(chunk.quantity, price);
+            const receivePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset, unit);
+            const capitalChange = mul(chunk.quantity, sub(price, receivePrice || "0"));
+            cumulativeChange = add(cumulativeChange, capitalChange);
+            return {
+              date: date,
+              action: EventTypes.Trade,
+              amount: chunk.quantity,
+              asset: chunk.asset,
+              price,
+              value,
+              receivePrice,
+              receiveDate: chunk.history[0].date,
+              capitalChange,
+              cumulativeChange,
+              cumulativeIncome,
+            } as TaxRow;
           }));
+
         } else if (evt.type === EventTypes.Income) {
-          const price = prices.getPrice(date, ETH/*TODO evt.asset*/);
-          const income = mul("0"/*TODO evt.quantity*/, price || "0");
-          cumulativeIncome = add(cumulativeIncome, income);
-          return output.concat({
-            date: date,
-            action: EventTypes.Income,
-            amount: "0", // TODO evt.quantity,
-            asset: ETH, // TODO evt.asset
-            price,
-            value: income,
-            receivePrice: price,
-            receiveDate: date,
-            capitalChange: "0",
-            cumulativeChange,
-            cumulativeIncome,
-          } as TaxRow);
-        } else if (evt.type === EventTypes.GuardChange) {
-          console.warn(evt, `Temporarily pretending this guard change is income`);
-          const price = prices.getPrice(date, ETH /*TODO evt.asset*/);
-          const income = mul("0"/*TODO evt.quantity*/, price || "0");
-          cumulativeIncome = add(cumulativeIncome, income);
-          return output.concat({
-            date: date,
-            action: EventTypes.GuardChange,
-            amount: "0", // TODO evt.quantity,
-            asset: ETH, // TODO evt.asset
-            price,
-            value: income,
-            receivePrice: price,
-            receiveDate: date,
-            capitalChange: "0",
-            cumulativeChange,
-            cumulativeIncome,
-          } as TaxRow);
+          if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); return output; }
+          return output.concat(...evt.inputs.map(chunkIndex => {
+            const chunk = vm.getChunk(chunkIndex);
+            const price = prices.getNearest(date, chunk.asset, unit) || "0";
+            const income = mul(chunk.quantity, price);
+            cumulativeIncome = add(cumulativeIncome, income);
+            return {
+              date: date,
+              action: EventTypes.Income,
+              amount: chunk.quantity,
+              asset: chunk.asset,
+              price,
+              value: income,
+              receivePrice: price,
+              receiveDate: date,
+              capitalChange: "0",
+              cumulativeChange,
+              cumulativeIncome,
+            } as TaxRow;
+          }));
+
+        } else if (evt.type === EventTypes.GuardChange && evt.to?.split("/").pop() === guard) {
+          if (!evt.chunks) { console.warn(`Missing ${evt.type} chunks`, evt); return output; }
+          return output.concat(...evt.chunks.map(chunkIndex => {
+            const chunk = vm.getChunk(chunkIndex);
+            const price = prices.getNearest(date, chunk.asset, unit) || "0";
+            console.warn(evt, `Temporarily pretending this guard change is income`);
+            const income = mul(chunk.quantity, price);
+            cumulativeIncome = add(cumulativeIncome, income);
+            return {
+              date: date,
+              action: "Deposit",
+              amount: chunk.quantity,
+              asset: chunk.asset,
+              price,
+              value: income,
+              receivePrice: price,
+              receiveDate: chunk.history[0].date,
+              capitalChange: "0",
+              cumulativeChange,
+              cumulativeIncome,
+            } as TaxRow;
+          }));
+
         } else {
           return output;
         }
       }, [] as TaxRow[])
     );
-  }, [addressBook, guard, vm, prices]);
+  }, [addressBook, guard, vm, prices, unit]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -260,13 +252,13 @@ export const TaxTable: React.FC<TaxTableProps> = ({
               <TableCell><strong> Date </strong></TableCell>
               <TableCell><strong> Action </strong></TableCell>
               <TableCell><strong> Asset </strong></TableCell>
-              <TableCell><strong> {`Price (${feeAsset}/Asset)`} </strong></TableCell>
-              <TableCell><strong> {`Value (${feeAsset})`} </strong></TableCell>
+              <TableCell><strong> {`Price (${unit}/Asset)`} </strong></TableCell>
+              <TableCell><strong> {`Value (${unit})`} </strong></TableCell>
               <TableCell><strong> Receive Date </strong></TableCell>
-              <TableCell><strong> {`Receive Price (${feeAsset}/Asset)`} </strong></TableCell>
-              <TableCell><strong> {`Capital Change (${feeAsset})`} </strong></TableCell>
-              <TableCell><strong> {`Cumulative Change (${feeAsset})`} </strong></TableCell>
-              <TableCell><strong> {`Cumulative Income (${feeAsset})`} </strong></TableCell>
+              <TableCell><strong> {`Receive Price (${unit}/Asset)`} </strong></TableCell>
+              <TableCell><strong> {`Capital Change (${unit})`} </strong></TableCell>
+              <TableCell><strong> {`Cumulative Change (${unit})`} </strong></TableCell>
+              <TableCell><strong> {`Cumulative Income (${unit})`} </strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

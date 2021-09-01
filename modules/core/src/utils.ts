@@ -51,7 +51,7 @@ export const describeEvent = (event: Event | HydratedEvent): string => {
     const chunks = event.chunks?.length ? sumChunks(event.chunks) : "";
     return `Moved ${chunks} from ${
       event.from.split("/")[0]
-    } guard to ${event.to.split("/")[0]} on ${date}`;
+    } to ${event.to.split("/")[0]} on ${date}`;
   } else {
     return `Unknown event`;
   }

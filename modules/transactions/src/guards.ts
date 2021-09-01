@@ -30,7 +30,7 @@ export const Guards = {
   None: "None",
 } as const;
 
-// Every guard has exactly one special asset that it uses to accept security fees
+// Every guard has exactly one special asset that it uses to accept security fees aka taxes
 export const securityFeeAssetMap = {
   [Guards.Bitcoin]: Assets.BTC,
   [Guards.BitcoinCash]: Assets.BCH,

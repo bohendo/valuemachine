@@ -1,9 +1,10 @@
-import { isHexString, hexDataLength } from "@ethersproject/bytes";
+import { hexDataLength, hexlify, hexZeroPad, isHexString } from "@ethersproject/bytes";
 import {
+  AddressBook,
   Asset,
   Guard,
-  AddressBook,
   Transaction,
+  Transfer,
 } from "@valuemachine/types";
 
 import { Assets, Guards } from "./enums";
@@ -28,3 +29,16 @@ export const getGuard = (asset: Asset): Guard =>
   : asset === Assets.GBP ? Guards.GBR
   : asset === Assets.INR ? Guards.IND
   : Guards.Ethereum;
+
+
+let txIndex = 0;
+export const getTestTx = (transfers: Transfer[]): Transaction => ({
+  date: new Date(
+    new Date("2020-01-01T01:00:00Z").getTime() + (txIndex * 24 * 60 * 60 * 1000)
+  ).toISOString(),
+  hash: hexZeroPad(hexlify(txIndex), 32),
+  index: txIndex++,
+  sources: [],
+  apps: [],
+  transfers: transfers || [],
+});

@@ -1,17 +1,21 @@
-import { muiTheme } from 'storybook-addon-material-ui'
+import { muiTheme } from "storybook-addon-material-ui"
 
 export const decorators = [
   muiTheme(),
   (Story) => (
-    <div style={{ margin: '3em' }}>
+    <div style={{ padding: "3em" }}>
       <Story />
     </div>
   ),
-
 ];
 
 export const parameters = {
-  actions: { argTypesRegex: "^on[A-Z].*" },
+  actions: {
+    argTypesRegex: "^on[A-Z].*",
+  },
+  backgrounds: {
+    default: "dark",
+  },
   controls: {
     matchers: {
       color: /(background|color)$/i,

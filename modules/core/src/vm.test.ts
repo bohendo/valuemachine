@@ -1,5 +1,6 @@
 import {
   Assets,
+  getTestTx,
   TransactionSources,
 } from "@valuemachine/transactions";
 import {
@@ -17,7 +18,6 @@ import {
   AddressThree,
   expect,
   getTestAddressBook,
-  getTx,
   testLogger,
 } from "./testUtils";
 
@@ -47,11 +47,11 @@ describe("VM", () => {
 
   it("should process a guard change", async () => {
     const transactions = [
-      getTx([
+      getTestTx([
         { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         { asset: ETH, category: Deposit, from: ethAccount, quantity: "5.00", to: usdAccount },
-      ]), getTx([
+      ]), getTestTx([
         { asset: ETH, category: Withdraw, from: usdAccount, quantity: "5.00", to: ethAccount },
       ]),
     ];
@@ -71,35 +71,33 @@ describe("VM", () => {
   });
 
   it("should process several incomes and then a trade", async () => {
-    const transactions = [
-      getTx([
-        // Income
-        { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
-      ]), getTx([
-        // Income
-        { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
-      ]), getTx([
-        // Income
-        { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
-      ]), getTx([
-        // Income
-        { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
-      ]), getTx([
-        // Trade ETH for UNI
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "3.0", to: notMe },
-        { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
-      ]), getTx([
-        // Trade UNI for ETH
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
-        { asset: ETH, category: SwapIn, from: notMe, quantity: "2.0", to: ethAccount },
-      ]), getTx([
-        // Send ETH to usdAccount
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
-      ]),
-    ];
+    const transactions = [getTestTx([
+      // Income
+      { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
+    ]), getTestTx([
+      // Income
+      { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
+    ]), getTestTx([
+      // Income
+      { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
+    ]), getTestTx([
+      // Income
+      { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
+    ]), getTestTx([
+      // Trade ETH for UNI
+      { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+      { asset: ETH, category: SwapOut, from: ethAccount, quantity: "3.0", to: notMe },
+      { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
+    ]), getTestTx([
+      // Trade UNI for ETH
+      { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+      { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
+      { asset: ETH, category: SwapIn, from: notMe, quantity: "2.0", to: ethAccount },
+    ]), getTestTx([
+      // Send ETH to usdAccount
+      { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+      { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
+    ])];
     const start = Date.now();
     for (const transaction of transactions) {
       const newEvents = vm.execute(transaction);
@@ -113,20 +111,20 @@ describe("VM", () => {
 
   it("should process internal transfers between guards", async () => {
     const transactions = [
-      getTx([
+      getTestTx([
         // Income
         { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // Trade ETH for UNI
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.0", to: notMe },
         { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // Trade UNI for ETH
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
         { asset: ETH, category: SwapIn, from: notMe, quantity: "2.5", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // Send ETH to usdAccount
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
@@ -145,32 +143,32 @@ describe("VM", () => {
 
   it("should process an investment into uniswap LP tokens", async () => {
     const transactions = [
-      getTx([
+      getTestTx([
         // Income
         { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // Trade ETH for UNI
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.5", to: notMe },
         { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // Trade UNI + ETH for LP
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.50", to: notMe },
         { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
         { asset: UniV2_UNI_ETH, category: SwapIn, from: notMe, quantity: "0.01", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // Trade LP for UNI + ETH
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: UniV2_UNI_ETH, category: SwapOut, from: ethAccount, quantity: "0.01", to: notMe },
         { asset: ETH, category: SwapIn, from: notMe, quantity: "3.00", to: ethAccount },
         { asset: UNI, category: SwapIn, from: notMe, quantity: "75.00", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // Trade UNI for ETH
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: UNI, category: SwapOut, from: ethAccount, quantity: "75.00", to: notMe },
         { asset: ETH, category: SwapIn, from: notMe, quantity: "2.0", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // Send ETH to usdAccount
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
@@ -189,12 +187,12 @@ describe("VM", () => {
 
   it("should process newly purchased crypto", async () => {
     const transactions = [
-      getTx([
+      getTestTx([
         // Trade USD for ETH
         { asset: USD, category: Expense, from: usdAccount, quantity: "10", to: notMe },
         { asset: USD, category: SwapOut, from: usdAccount, quantity: "100", to: notMe },
         { asset: ETH, category: SwapIn, from: notMe, quantity: "1.0", to: usdAccount },
-      ]), getTx([
+      ]), getTestTx([
         // Trade more USD for ETH
         { asset: USD, category: Expense, from: usdAccount, quantity: "10", to: notMe },
         { asset: USD, category: SwapOut, from: usdAccount, quantity: "100", to: notMe },
@@ -214,10 +212,10 @@ describe("VM", () => {
 
   it("should process a partial swap", async () => {
     const transactions = [
-      getTx([
+      getTestTx([
         // Income
         { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // Partial swap
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: ETH, category: SwapOut, from: ethAccount, quantity: "5.00", to: notMe },
@@ -240,10 +238,10 @@ describe("VM", () => {
 
   it("should process out of order eth transfers", async () => {
     const transactions = [
-      getTx([
+      getTestTx([
         // Income
         { asset: ETH, category: Income, from: notMe, quantity: "1.00", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // spend too much then get sufficient income
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
         { asset: ETH, category: Expense, from: ethAccount, quantity: "2.00", to: notMe },
@@ -265,10 +263,10 @@ describe("VM", () => {
 
   it("should process out of order eth swaps", async () => {
     const transactions = [
-      getTx([
+      getTestTx([
         // Income
         { asset: ETH, category: Income, from: notMe, quantity: "1.00", to: ethAccount },
-      ]), getTx([
+      ]), getTestTx([
         // spend too much then get sufficient income
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH, index: 0 },
         { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.20", to: notMe, index: 1 },
