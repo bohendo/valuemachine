@@ -4,6 +4,7 @@ export {
   describeChunk,
   describeEvent,
 } from "@valuemachine/core";
+export * as components from "@valuemachine/react";
 export {
   getAddressBook,
   getEthereumData,

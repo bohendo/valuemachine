@@ -27,12 +27,9 @@ export default {
       noEmitOnError: true,
       outputToFilesystem: true,
       sourceMap: false,
+      tsconfig: "./tsconfig.json"
     }),
-    Json({
-      compact: true,
-    }),
-    CommonJs({
-      include: ["./src/entry.ts", /node_modules/],
-    }),
+    Json({ compact: true }),
+    CommonJs({ include: ["./src/entry.ts", /node_modules/] }),
   ],
 };

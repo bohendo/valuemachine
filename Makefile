@@ -160,14 +160,14 @@ core: transactions utils types $(shell find modules/core $(find_options))
 	$(docker_run) "cd modules/core && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-package: core transactions utils types $(shell find modules/package $(find_options))
-	$(log_start)
-	$(docker_run) "cd modules/package && npm run build"
-	$(log_finish) && mv -f $(totalTime) .flags/$@
-
-react: package $(shell find modules/react $(find_options))
+react: core transactions utils types $(shell find modules/react $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/react && npm run build"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+package: react core transactions utils types $(shell find modules/package $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/package && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 client: react $(shell find modules/client $(find_options))

@@ -4,11 +4,9 @@
   "description": "Server-side valuemachine logic",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
-  "main": "dist/bundle.js",
-  "types": "dist/index.d.ts",
-  "files": ["dist", "src"],
+  "main": "./dist/index.js",
   "scripts": {
-    "build": "tsc && rollup --config rollup.config.js"
+    "build": "rollup --config rollup.config.js"
   },
   "dependencies": {
     "@ethersproject/address": "5.4.0",

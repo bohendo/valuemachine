@@ -7,25 +7,26 @@
   "homepage": "https://gitlab.com/bohendo/valuemachine#readme",
   "repository": { "type": "git", "url": "git+ssh://git@gitlab.com/bohendo/valuemachine.git" },
   "bugs": { "url": "https://gitlab.com/bohendo/valuemachine/issues" },
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
-  "files": ["dist", "src"],
+  "main": "dist/bundle.js",
+  "module": "dist/bundle.esm.js",
+  "types": "dist/bundle.d.ts",
+  "files": ["dist/bundle.js", "dist/bundle.esm.js", "dist/bundle.d.ts"],
   "scripts": {
-    "build": "tsc && rollup --config rollup.config.js",
+    "build": "rollup --config rollup.config.js",
     "test": "node dist/example.js"
   },
   "dependencies": {
     "@valuemachine/core": "0.9.1",
+    "@valuemachine/react": "0.9.1",
     "@valuemachine/transactions": "0.9.1",
     "@valuemachine/types": "0.9.1",
     "@valuemachine/utils": "0.9.1"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "20.0.0",
-    "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-node-resolve": "13.0.4",
     "@rollup/plugin-typescript": "8.2.5",
     "rollup": "2.56.3",
+    "rollup-plugin-dts": "4.0.0",
     "typescript": "4.3.5"
   }
 }
