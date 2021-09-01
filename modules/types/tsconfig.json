@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": "./",
+    "declarationDir": ".",
     "outDir": "dist"
   },
   "exclude": ["dist", "node_modules"],
