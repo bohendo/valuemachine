@@ -11,6 +11,7 @@ import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
 import {
   Assets,
+  Guards,
 } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -20,7 +21,6 @@ import {
   EventTypes,
   Guard,
   GuardChangeEvent,
-  Guards,
   Prices,
   TradeEvent,
   ValueMachine,

@@ -1,10 +1,10 @@
 import {
   Assets,
+  TransactionSources,
 } from "@valuemachine/transactions";
 import {
   EventTypes,
   Prices,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import {

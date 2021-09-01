@@ -1,14 +1,11 @@
-import { Guards } from "@valuemachine/types";
-
+import { EvmApps, TransactionSources } from "../../../enums";
 import {
   parsePolygonTx,
   expect,
   testLogger,
 } from "../testUtils";
 
-import { apps } from "./enums";
-
-const appName = apps.Quickswap;
+const appName = EvmApps.Quickswap;
 const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
@@ -20,7 +17,7 @@ describe(appName, () => {
       hash: "0xfbf4af6a377016d3b2ce8cd413f83487954723dafd9b7ad70079b0276209958a",
       logger,
     });
-    expect(tx.sources).to.include(Guards.Polygon);
+    expect(tx.sources).to.include(TransactionSources.Polygon);
     expect(tx.apps).to.include(appName);
     expect(tx.method).to.match(/swap/i);
   });

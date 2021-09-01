@@ -7,8 +7,10 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import {
   CsvFiles,
-  CsvSources,
 } from "@valuemachine/types";
+import { 
+  CsvSources,
+} from "@valuemachine/transactions";
 import React, { useState } from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({

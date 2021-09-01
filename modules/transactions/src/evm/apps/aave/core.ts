@@ -190,6 +190,7 @@ export const coreParser = (
       }
 
     } else if (stkAAVEAddress === address) {
+      tx.apps.push(appName);
       const event = parseEvent(aaveStakeAbi, txLog, evmMeta);
       if (event.name === "Staked" && (event.args.from===event.args.onBehalfOf) ) {
         const asset1 = assets.AAVE;

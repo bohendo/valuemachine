@@ -1,6 +1,5 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
-import { getAddressBook, getEthereumData } from "@valuemachine/transactions";
-import { AddressBook, Guards } from "@valuemachine/types";
+import { getAddressBook, getEthereumData, Guards } from "@valuemachine/transactions";
 import { getAddressBookError, getLogger } from "@valuemachine/utils";
 import express from "express";
 
@@ -18,7 +17,7 @@ const ethereumData = getEthereumData({
 });
 const handlePoller = getPollerHandler(
   ethereumData.syncAddressBook,
-  (addressBook: AddressBook) => ethereumData.getTransactions(addressBook),
+  ethereumData.getTransactions,
   Guards.Ethereum,
 );
 

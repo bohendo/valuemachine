@@ -12,7 +12,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import { EvmApps, Assets } from "@valuemachine/transactions";
+import { Assets, EvmApps, TransactionSources } from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
@@ -21,7 +21,6 @@ import {
   Transactions,
   TransactionsJson,
   TransactionSource,
-  TransactionSources,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 

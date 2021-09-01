@@ -13,6 +13,8 @@ import DownloadIcon from "@material-ui/icons/GetApp";
 import { DateInput, TaxTable } from "@valuemachine/react";
 import {
   Assets,
+  Guards,
+  PhysicalGuards,
 } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -22,8 +24,6 @@ import {
   EventTypes,
   Guard,
   GuardChangeEvent,
-  Guards,
-  PhysicalGuards,
   Prices,
   TradeEvent,
   TransferCategories,

@@ -1,5 +1,6 @@
 import {
   getAddressBook,
+  TransactionSources,
 } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -7,7 +8,6 @@ import {
   AddressCategories,
   Transaction,
   Transfer,
-  TransactionSources,
 } from "@valuemachine/types";
 import {
   getLogger,
