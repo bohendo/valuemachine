@@ -149,24 +149,28 @@ export const TaxTable: React.FC<TaxTableProps> = ({
           return output.concat(...evt.outputs.map(chunkIndex => {
             const chunk = vm.getChunk(chunkIndex);
             const price = prices.getNearest(date, chunk.asset, unit) || "0";
-            const value = mul(chunk.quantity, price);
-            const receivePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset, unit);
-            const capitalChange = mul(chunk.quantity, sub(price, receivePrice || "0"));
-            cumulativeChange = add(cumulativeChange, capitalChange);
-            return {
-              date: date,
-              action: EventTypes.Trade,
-              amount: chunk.quantity,
-              asset: chunk.asset,
-              price,
-              value,
-              receivePrice,
-              receiveDate: chunk.history[0].date,
-              capitalChange,
-              cumulativeChange,
-              cumulativeIncome,
-            } as TaxRow;
-          }));
+            if (chunk.asset !== unit && price !== "0") {
+              const value = mul(chunk.quantity, price);
+              const receivePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset, unit);
+              const capitalChange = mul(chunk.quantity, sub(price, receivePrice || "0"));
+              cumulativeChange = add(cumulativeChange, capitalChange);
+              return {
+                date: date,
+                action: EventTypes.Trade,
+                amount: chunk.quantity,
+                asset: chunk.asset,
+                price,
+                value,
+                receivePrice,
+                receiveDate: chunk.history[0].date,
+                capitalChange,
+                cumulativeChange,
+                cumulativeIncome,
+              } as TaxRow;
+            } else {
+              return null;
+            }
+          }).filter(row => !!row) as TaxRow[]);
 
         } else if (evt.type === EventTypes.Income) {
           if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); return output; }
