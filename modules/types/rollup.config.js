@@ -1,4 +1,3 @@
-import Json from "@rollup/plugin-json";
 import Typescript from "@rollup/plugin-typescript";
 import TypeDeclarations from "rollup-plugin-dts";
 
@@ -19,9 +18,6 @@ export default [
     ],
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
     plugins: [
-      Json({
-        compact: true,
-      }),
       Typescript({
         noEmitOnError: true,
         outputToFilesystem: true,
