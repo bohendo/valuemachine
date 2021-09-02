@@ -23,6 +23,7 @@
     "@valuemachine/utils": "0.9.1"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "20.0.0",
     "@rollup/plugin-node-resolve": "13.0.4",
     "@rollup/plugin-typescript": "8.2.5",
     "rollup": "2.56.3",

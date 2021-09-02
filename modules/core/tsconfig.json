@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "declarationDir": ".",
+    "declarationDir": ".tscache",
     "outDir": "dist"
   },
   "exclude": ["src/**/*.test.ts", "dist", "node_modules"],
