@@ -11,7 +11,7 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Maker;
-const { Expense, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
+const { Expense, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
@@ -36,7 +36,7 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(2);
-    expect(tx.transfers[1].category).to.equal(Withdraw);
+    expect(tx.transfers[1].category).to.equal(Internal);
   });
 
   it("should handle a SAI borrow", async () => {
@@ -89,7 +89,7 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(2);
-    expect(tx.transfers[1].category).to.equal(Deposit);
+    expect(tx.transfers[1].category).to.equal(Internal);
   });
 
   it("should parse a repayment w fee paid in SAI", async () => {
@@ -112,7 +112,7 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(2);
-    expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 
   it("should parse a CDP withdraw via proxy", async () => {
@@ -123,7 +123,7 @@ describe(appName, () => {
     });
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
-    expect(tx.transfers[2].category).to.equal(TransferCategories.Withdraw);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.Internal);
   });
 
 });

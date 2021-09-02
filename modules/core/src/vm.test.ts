@@ -22,7 +22,7 @@ import {
 } from "./testUtils";
 
 const { ETH, UniV2_UNI_ETH, UNI, USD } = Assets;
-const { Deposit, Withdraw, Expense, Income, SwapIn, SwapOut } = TransferCategories;
+const { Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Coinbase } = TransactionSources;
 const log = testLogger.child({ module: "TestVM",
   // level: "debug",
@@ -50,9 +50,9 @@ describe("VM", () => {
       getTestTx([
         { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
       ]), getTestTx([
-        { asset: ETH, category: Deposit, from: ethAccount, quantity: "5.00", to: usdAccount },
+        { asset: ETH, category: Internal, from: ethAccount, quantity: "5.00", to: usdAccount },
       ]), getTestTx([
-        { asset: ETH, category: Withdraw, from: usdAccount, quantity: "5.00", to: ethAccount },
+        { asset: ETH, category: Internal, from: usdAccount, quantity: "5.00", to: ethAccount },
       ]),
     ];
     const start = Date.now();
@@ -96,7 +96,7 @@ describe("VM", () => {
     ]), getTestTx([
       // Send ETH to usdAccount
       { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-      { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
+      { asset: ETH, category: Internal, from: ethAccount, quantity: "3.0", to: usdAccount },
     ])];
     const start = Date.now();
     for (const transaction of transactions) {
@@ -127,7 +127,7 @@ describe("VM", () => {
       ]), getTestTx([
         // Send ETH to usdAccount
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
+        { asset: ETH, category: Internal, from: ethAccount, quantity: "3.0", to: usdAccount },
       ]),
     ];
     const start = Date.now();
@@ -171,7 +171,7 @@ describe("VM", () => {
       ]), getTestTx([
         // Send ETH to usdAccount
         { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: Deposit, from: ethAccount, quantity: "3.0", to: usdAccount },
+        { asset: ETH, category: Internal, from: ethAccount, quantity: "3.0", to: usdAccount },
       ]),
     ];
     const start = Date.now();

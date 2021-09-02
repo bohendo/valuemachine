@@ -14,7 +14,7 @@ import {
 } from "@valuemachine/types";
 
 const { ETH, UNI, USD } = Assets;
-const { Deposit, Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;
+const { Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Ethereum, USA } = Guards;
 
 const coinbaseData =
@@ -87,7 +87,7 @@ export const transactions = getTransactions({
   ]), getTestTx([
     // Deposit
     { category: Expense, asset: ETH, from: two, quantity: "0.01", to: Ethereum },
-    { category: Deposit, asset: UNI, from: two, quantity: "200", to: coinbase },
+    { category: Internal, asset: UNI, from: two, quantity: "200", to: coinbase },
   ]), getTestTx([
     // Sale
     { category: SwapOut, asset: UNI, from: coinbase, quantity: "200", to: exchange },

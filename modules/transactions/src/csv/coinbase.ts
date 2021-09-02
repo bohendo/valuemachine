@@ -13,7 +13,7 @@ import { getGuard } from "../utils";
 
 const guard = Guards.USA;
 
-const { Expense, SwapIn, SwapOut, Deposit, Withdraw, Unknown } = TransferCategories;
+const { Expense, SwapIn, SwapOut, Internal, Unknown } = TransferCategories;
 
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
@@ -48,11 +48,11 @@ export const mergeCoinbaseTransactions = (
     let [from, to, category] = ["", "", Unknown as TransferCategory];
 
     if (txType === "Send") {
-      [from, to, category] = [account, external, Withdraw];
+      [from, to, category] = [account, external, Internal];
       transaction.method = "Withdraw";
 
     } else if (txType === "Receive") {
-      [from, to, category] = [external, account, Deposit];
+      [from, to, category] = [external, account, Internal];
       transaction.method = "Deposit";
 
     } else if (txType === "Sell") {

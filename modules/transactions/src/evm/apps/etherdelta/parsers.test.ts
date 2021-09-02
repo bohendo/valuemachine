@@ -11,7 +11,7 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.EtherDelta;
-const { Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
+const { Expense, Internal, SwapIn, SwapOut } = TransferCategories;
 const log = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
@@ -28,7 +28,7 @@ describe(appName, () => {
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);
     const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(Deposit);
+    expect(deposit.category).to.equal(Internal);
   });
 
   it("should handle a trade", async () => {
@@ -58,6 +58,6 @@ describe(appName, () => {
     const fee = tx.transfers[0];
     expect(fee.category).to.equal(Expense);
     const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(Withdraw);
+    expect(deposit.category).to.equal(Internal);
   });
 });

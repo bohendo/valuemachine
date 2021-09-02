@@ -21,12 +21,11 @@ export const TransferCategories = {
   Unknown: "Unknown",
   Expense: "Expense",
   Income: "Income",
+  Refund: "Refund",
   SwapIn: "SwapIn",
   SwapOut: "SwapOut",
   Borrow: "Borrow",
   Repay: "Repay",
-  Deposit: "Deposit",
-  Withdraw: "Withdraw",
 } as const;
 export const TransferCategory = Type.Enum(TransferCategories); // NOT Extensible
 export type TransferCategory = Static<typeof TransferCategory>;

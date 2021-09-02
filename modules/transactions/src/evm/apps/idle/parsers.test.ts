@@ -51,6 +51,6 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.method).to.match(/stake/i);
-    expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 });

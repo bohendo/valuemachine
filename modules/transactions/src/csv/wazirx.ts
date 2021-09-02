@@ -13,7 +13,7 @@ import { getGuard } from "../utils";
 const guard = Guards.IND;
 
 const { INR } = Assets;
-const { Internal, Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
+const { Internal, Expense, SwapIn, SwapOut } = TransferCategories;
 
 export const mergeWazirxTransactions = (
   oldTransactions: Transaction[],
@@ -54,7 +54,7 @@ export const mergeWazirxTransactions = (
       if (txType === "Deposit") {
         transaction.transfers.push({
           asset: currency,
-          category: currency === INR ? Internal : Deposit,
+          category: Internal,
           from: external,
           index,
           quantity,
@@ -65,7 +65,7 @@ export const mergeWazirxTransactions = (
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
           asset: currency,
-          category: currency === INR ? Internal : Withdraw,
+          category: Internal,
           from: account,
           index,
           quantity,

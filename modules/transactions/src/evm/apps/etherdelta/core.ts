@@ -22,7 +22,7 @@ import { apps } from "./enums";
 
 export const appName = apps.EtherDelta;
 
-const { Income, Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
+const { Income, Expense, Internal, SwapIn, SwapOut } = TransferCategories;
 
 ////////////////////////////////////////
 /// ABIs
@@ -75,17 +75,17 @@ export const coreParser = (
         const quantity = formatUnits(event.args.amount, getDecimals(event.args.token));
         log.info(`Parsing ${appName} ${event.name} of ${quantity} ${asset}`);
         const transfer = tx.transfers.find(transfer =>
-          ([Income, Expense, Deposit, Withdraw] as string[]).includes(transfer.category)
+          ([Income, Expense, Internal] as string[]).includes(transfer.category)
           && transfer.asset === asset
           && transfer.quantity === quantity
         );
         if (transfer) {
           if (event.name === "Deposit") {
-            transfer.category = Deposit;
+            transfer.category = Internal;
             transfer.to = account;
             tx.method = event.name;
           } else {
-            transfer.category = Withdraw;
+            transfer.category = Internal;
             transfer.from = account;
             tx.method = event.name;
           }

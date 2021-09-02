@@ -19,7 +19,7 @@ import { govAddress, yTokenAddresses } from "./addresses";
 
 export const appName = "Yearn";
 
-const { Internal, Deposit, Withdraw, SwapOut, SwapIn } = TransferCategories;
+const { Internal, SwapOut, SwapIn } = TransferCategories;
 
 ////////////////////////////////////////
 /// Abis
@@ -180,7 +180,7 @@ export const coreParser = (
         const account = insertVenue(event.args.user, `${appName}-Gov`);
         const deposit = tx.transfers.find(t => t.asset === EvmAssets.YFI && t.to === govAddress);
         if (deposit) {
-          deposit.category = Deposit;
+          deposit.category = Internal;
           deposit.to = account;
           tx.method = "Deposit";
         } else {
@@ -191,7 +191,7 @@ export const coreParser = (
         const account = insertVenue(event.args.user, `${appName}-Gov`);
         const withdraw = tx.transfers.find(t => t.asset === EvmAssets.YFI && t.from === govAddress);
         if (withdraw) {
-          withdraw.category = Withdraw;
+          withdraw.category = Internal;
           withdraw.from = account;
           tx.method = "Withdraw";
         } else {

@@ -15,7 +15,7 @@ import { getGuard } from "../utils";
 const guard = Guards.USA;
 
 const { DAI, ETH, SAI, USD } = Assets;
-const { Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
+const { Expense, SwapIn, SwapOut, Internal } = TransferCategories;
 
 export const mergeWyreTransactions = (
   oldTransactions: Transaction[],
@@ -81,7 +81,7 @@ export const mergeWyreTransactions = (
     } else if (txType === "INCOMING" && destType === sourceType) {
       transaction.transfers.push({
         asset: destType,
-        category: Deposit,
+        category: Internal,
         from: `${getGuard(destType)}/unknown`,
         quantity: destQuantity,
         to: account,
@@ -108,7 +108,7 @@ export const mergeWyreTransactions = (
     } else if (txType === "OUTGOING" && destType === sourceType) {
       transaction.transfers.push({
         asset: destType,
-        category: Withdraw,
+        category: Internal,
         from: account,
         quantity: destQuantity,
         to: `${getGuard(destType)}/unknown`,

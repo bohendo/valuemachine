@@ -23,7 +23,7 @@ import {
 
 export const appName = "Uniswap";
 
-const { Income, Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
+const { Income, Expense, SwapIn, SwapOut, Internal } = TransferCategories;
 
 ////////////////////////////////////////
 /// Abis
@@ -176,7 +176,7 @@ export const v2Parser = (
         isSelf(transfer.from)
           && stakingAddresses.some(e => transfer.to === e.address)
           && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([Expense, Deposit] as string[]).includes(transfer.category)
+          && ([Expense, Internal] as string[]).includes(transfer.category)
       );
       if (!deposit) {
         log.warn(`${subsrc} ${event.name} couldn't find a deposit to ${address}`);
@@ -184,7 +184,7 @@ export const v2Parser = (
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
       const account = insertVenue(deposit.from, appName);
-      deposit.category = Deposit;
+      deposit.category = Internal;
       deposit.to = account;
       tx.method = "Deposit";
 
@@ -195,7 +195,7 @@ export const v2Parser = (
         isSelf(transfer.to)
           && stakingAddresses.some(e => transfer.from === e.address)
           && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([Income, Withdraw] as string[]).includes(transfer.category)
+          && ([Income, Internal] as string[]).includes(transfer.category)
       );
       if (!withdraw) {
         log.warn(`${subsrc} ${event.name} couldn't find a withdraw from staking pool}`);
@@ -203,7 +203,7 @@ export const v2Parser = (
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
       const account = insertVenue(withdraw.to, appName);
-      withdraw.category = Withdraw;
+      withdraw.category = Internal;
       withdraw.from = account;
       tx.method = "Withdraw";
 

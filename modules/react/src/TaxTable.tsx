@@ -241,15 +241,6 @@ export const TaxTable: React.FC<TaxTableProps> = ({
       </Typography>
 
       <TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[25, 50, 100, 250]}
-          component="div"
-          count={taxes.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
         <Table>
           <TableHead>
             <TableRow>

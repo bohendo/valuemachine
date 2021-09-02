@@ -9,7 +9,7 @@ import {
 } from "../testUtils";
 
 const source = "Compound";
-const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
+const { Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const logger = testLogger.child({ module: `Test${source}` }, {
   // level: "debug",
 });
@@ -24,7 +24,7 @@ describe(source, () => {
     expect(tx.apps).to.include(source);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(Deposit);
+    expect(deposit.category).to.equal(Internal);
   });
 
   it("should handle withdrawals from comound v1", async () => {
@@ -38,7 +38,7 @@ describe(source, () => {
     const income = tx.transfers[1];
     expect(income.category).to.equal(Income);
     const withdraw = tx.transfers[2];
-    expect(withdraw.category).to.equal(Withdraw);
+    expect(withdraw.category).to.equal(Internal);
   });
 
   it("should handle deposits to compound v2", async () => {

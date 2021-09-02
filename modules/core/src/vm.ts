@@ -34,7 +34,7 @@ import {
 } from "@valuemachine/utils";
 
 const {
-  Internal, Deposit, Withdraw, Income, SwapIn, Borrow, Expense, SwapOut, Repay,
+  Internal, Income, SwapIn, Borrow, Expense, SwapOut, Repay,
 } = TransferCategories;
 
 // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
@@ -434,7 +434,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     ): void => {
       const { asset, category, from, quantity, to } = transfer;
       // Move funds from one account to another
-      if (([Internal, Deposit, Withdraw, Repay, Borrow] as string[]).includes(category)) {
+      if (([Internal, Repay, Borrow] as string[]).includes(category)) {
         moveValue(quantity, asset, from, to);
       // Send funds out of our accounts
       } else if (([Expense, SwapOut] as string[]).includes(category)) {

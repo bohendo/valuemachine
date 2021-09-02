@@ -30,7 +30,7 @@ describe("Polygon Bridge", () => {
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
     expect(tx.transfers[3].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[4].category).to.equal(TransferCategories.SwapIn);
-    expect(tx.transfers[5].category).to.equal(TransferCategories.Deposit);
+    expect(tx.transfers[5].category).to.equal(TransferCategories.Internal);
   });
 
   it("should handle plasma bridge to matic", async () => {
@@ -42,7 +42,7 @@ describe("Polygon Bridge", () => {
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
-    expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 
 });

@@ -25,7 +25,7 @@ import { addresses, cTokenAddresses } from "./addresses";
 
 export const appName = "Compound";
 
-const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
+const { Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 ////////////////////////////////////////
 /// Addresses
@@ -155,7 +155,7 @@ export const coreParser = (
               to: account
             });
           }
-          deposit.category = Deposit;
+          deposit.category = Internal;
           deposit.to = account;
           tx.method = "Deposit";
         } else {
@@ -183,7 +183,7 @@ export const coreParser = (
               to: account
             });
           }
-          withdraw.category = Withdraw;
+          withdraw.category = Internal;
           withdraw.from = account;
           tx.method = "Withdraw";
         } else {

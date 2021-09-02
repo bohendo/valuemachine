@@ -33,7 +33,7 @@ const appName = apps.Sai;
 
 const { ETH, WETH } = Assets;
 const { MKR, PETH, SAI } = assets;
-const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
+const { Expense, Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 ////////////////////////////////////////
 /// Addresses
@@ -198,11 +198,11 @@ export const saiParser = (
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
           && !Object.keys(Guards).includes(t.to)
-          && ([Expense, Deposit] as string[]).includes(t.category)
+          && ([Expense, Internal] as string[]).includes(t.category)
           && (tubAddress === t.to || isSelf(t.from))
         ).sort(diffAsc(wad))[0];
         if (transfer) {
-          transfer.category = Deposit;
+          transfer.category = Internal;
           transfer.to = insertVenue(transfer.from, cdp);
           tx.method = "Deposit";
         } else {
@@ -215,7 +215,7 @@ export const saiParser = (
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
-          && ([Income, Withdraw] as string[]).includes(t.category)
+          && ([Income, Internal] as string[]).includes(t.category)
           && (tubAddress === t.from || isSelf(t.to))
         ).sort(diffAsc(wad)).sort((t1, t2) =>
           // First try to match a PETH transfer
@@ -230,7 +230,7 @@ export const saiParser = (
         );
         const transfer = transfers[0];
         if (transfer) {
-          transfer.category = Withdraw;
+          transfer.category = Internal;
           transfer.from = insertVenue(transfer.to, cdp);
           tx.method = "Withdraw";
         } else {

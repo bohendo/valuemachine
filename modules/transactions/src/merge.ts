@@ -18,7 +18,7 @@ import {
   CsvSources,
 } from "./enums";
 
-const { Income, Expense, Deposit, Withdraw } = TransferCategories;
+const { Income, Expense, Internal } = TransferCategories;
 
 ////////////////////////////////////////
 // Internal Helper Functions
@@ -88,10 +88,10 @@ export const mergeTransaction = (
 
     // Does this transfer have the same asset & similar quantity as the new evm tx
     const isMergable = (transfer: Transfer): boolean => 
-      ((transfer.category === Deposit && evmTransfer.category === Expense) ||
-       (transfer.category === Withdraw && evmTransfer.category === Income))
-      && transfer.asset === evmTransfer.asset
-      && valuesAreClose(
+      transfer.category === Internal &&
+      (evmTransfer.category === Expense || evmTransfer.category === Income) &&
+      transfer.asset === evmTransfer.asset &&
+      valuesAreClose(
         transfer.quantity,
         evmTransfer.quantity,
         wiggleRoom,
@@ -124,7 +124,7 @@ export const mergeTransaction = (
       sources: dedup([...csvTx.sources, ...newTx.sources]),
     };
     evmTransfer.category = csvTransfer.category;
-    if (evmTransfer.category === Deposit) {
+    if (evmTransfer.category === Internal) {
       evmTransfer.to = csvTransfer.to;
     } else {
       evmTransfer.from = csvTransfer.from;
@@ -163,10 +163,7 @@ export const mergeTransaction = (
     // Mergable csv txns can only contain one transfer
     const extTransfer = newTx.transfers[0];
     const wiggleRoom = div(extTransfer.quantity, "100");
-    if (
-      newTx.transfers.length !== 1 ||
-      (extTransfer.category !== Deposit && extTransfer.category !== Withdraw)
-    ) {
+    if (newTx.transfers.length !== 1 || extTransfer.category !== Internal) {
       transactions.push(newTx);
       transactions.sort(chrono);
       log.debug(`Inserted csv tx w ${newTx.transfers.length} transfers: ${newTx.method}`);
@@ -175,10 +172,10 @@ export const mergeTransaction = (
 
     // Does this transfer have the same asset & similar quantity as the new csv tx
     const isMergable = (transfer: Transfer): boolean => 
-      ((extTransfer.category === Deposit && transfer.category === Expense) ||
-       (extTransfer.category === Withdraw && transfer.category === Income))
-      && transfer.asset === extTransfer.asset
-      && valuesAreClose(
+      extTransfer.category === Internal &&
+      (transfer.category === Expense || transfer.category === Income) &&
+      transfer.asset === extTransfer.asset &&
+      valuesAreClose(
         transfer.quantity,
         extTransfer.quantity,
         wiggleRoom,
@@ -211,7 +208,7 @@ export const mergeTransaction = (
       sources: dedup([...evmTx.sources, ...newTx.sources]),
     };
     evmTransfer.category = extTransfer.category;
-    if (evmTransfer.category === Deposit) {
+    if (evmTransfer.category === Internal) {
       evmTransfer.to = extTransfer.to;
     } else {
       evmTransfer.from = extTransfer.from;
