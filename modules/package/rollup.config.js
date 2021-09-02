@@ -5,6 +5,17 @@ import TypeDeclarations from "rollup-plugin-dts";
 
 import pkg from "./package.json";
 
+const plugins = [
+  NodeResolve(),
+  Typescript({
+    noEmitOnError: true,
+    outputToFilesystem: true,
+    sourceMap: false,
+    tsconfig: "./tsconfig.json"
+  }),
+  CommonJs({ extensions: [".js", ".ts"] }),
+];
+
 export default [
   {
     input: "./src/index.ts",
@@ -19,16 +30,7 @@ export default [
       },
     ],
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
-    plugins: [
-      NodeResolve(),
-      Typescript({
-        noEmitOnError: true,
-        outputToFilesystem: true,
-        sourceMap: false,
-        tsconfig: "./tsconfig.json"
-      }),
-      CommonJs({ extensions: [".js", ".ts"] }),
-    ],
+    plugins,
   },
   {
     input: "./src/example.ts",
@@ -37,19 +39,10 @@ export default [
       format: "cjs",
     },
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
-    plugins: [
-      NodeResolve(),
-      Typescript({
-        noEmitOnError: true,
-        outputToFilesystem: true,
-        sourceMap: false,
-        tsconfig: "./tsconfig.json"
-      }),
-      CommonJs({ extensions: [".js", ".ts"] }),
-    ],
+    plugins,
   },
   {
-    input: "./dist/index.d.ts",
+    input: "./dist/.ts.cache/index.d.ts",
     output: [{ file: pkg.types, format: "es" }],
     plugins: [TypeDeclarations()],
   }

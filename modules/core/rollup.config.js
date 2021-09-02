@@ -33,7 +33,7 @@ export default [
     ],
   },
   {
-    input: "./dist/.tscache/index.d.ts",
+    input: "./dist/.ts.cache/index.d.ts",
     output: [{ file: pkg.types, format: "es" }],
     plugins: [TypeDeclarations()],
   }
