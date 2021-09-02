@@ -262,7 +262,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"
-          count={transactions?.json?.length || 0}
+          count={filteredTxns?.length || 0}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
