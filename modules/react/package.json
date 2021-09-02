@@ -1,6 +1,6 @@
 {
   "name": "@valuemachine/react",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "Helpful react components for interacting with a valuemachine",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
@@ -15,10 +15,10 @@
   "dependencies": {
     "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.11.2",
-    "@valuemachine/core": "0.9.1",
-    "@valuemachine/transactions": "0.9.1",
-    "@valuemachine/types": "0.9.1",
-    "@valuemachine/utils": "0.9.1",
+    "@valuemachine/core": "0.10.0",
+    "@valuemachine/transactions": "0.10.0",
+    "@valuemachine/types": "0.10.0",
+    "@valuemachine/utils": "0.10.0",
     "react": "17.0.2",
     "react-copy-to-clipboard": "5.0.4",
     "react-dom": "17.0.2"
