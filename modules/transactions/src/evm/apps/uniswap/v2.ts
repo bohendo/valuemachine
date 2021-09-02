@@ -132,16 +132,16 @@ export const v2Parser = (
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      swaps.in.forEach(swap => {
-        swap.category = swaps.out.some(swapOut => swapOut.asset === swap.asset) ? Refund : SwapIn;
-        swap.from = address;
-      });
       swaps.out.forEach(swap => {
         swap.category = SwapOut;
         swap.to = address;
       });
-      swaps.in.forEach(swap => { swap.index = "index" in swap ? swap.index : index; });
+      swaps.in.forEach(swap => {
+        swap.category = swaps.out.some(swapOut => swapOut.asset === swap.asset) ? Refund : SwapIn;
+        swap.from = address;
+      });
       swaps.out.forEach(swap => { swap.index = "index" in swap ? swap.index : index; });
+      swaps.in.forEach(swap => { swap.index = "index" in swap ? swap.index : index; });
 
       ////////////////////////////////////////
       // Swaps

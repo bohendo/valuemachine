@@ -5,19 +5,19 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { assets } from "./enums";
+import { assets, contracts } from "./enums";
 
 const coreAddresses = [
   {
-    name: "compound-v1",
+    name: contracts.CompoundV1,
     address: "Ethereum/0x3fda67f7583380e67ef93072294a7fac882fd7e7",
   },
   {
-    name: "maximillion",
+    name: contracts.Maximillion,
     address: "Ethereum/0xf859a1ad94bcf445a406b892ef0d3082f4174088",
   },
   {
-    name: "comptroller",
+    name: contracts.Comptroller,
     address: "Ethereum/0x3d9819210a31b4961b30ef54be2aed79b9c9cd3b",
   },
 ].map(setAddressCategory(AddressCategories.Defi));
@@ -97,3 +97,8 @@ export const addresses = [
   ...govTokenAddresses,
   ...coreAddresses,
 ];
+
+export const maximillionAddress = addresses.find(e => e.name === contracts.Maximillion).address;
+export const comptrollerAddress = addresses.find(e => e.name === contracts.Comptroller).address;
+export const compoundV1Address = addresses.find(e => e.name === contracts.CompoundV1).address;
+export const compAddress = addresses.find(e => e.name === assets.COMP).address;

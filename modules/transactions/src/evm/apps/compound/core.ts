@@ -20,19 +20,19 @@ import {
 
 import { parseEvent } from "../utils";
 
-import { assets } from "./enums";
-import { addresses, cTokenAddresses } from "./addresses";
+import { apps, assets } from "./enums";
+import {
+  addresses,
+  compAddress,
+  compoundV1Address,
+  comptrollerAddress,
+  cTokenAddresses,
+  maximillionAddress,
+} from "./addresses";
 
-export const appName = "Compound";
+export const appName = apps.Compound;
 
 const { Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
-
-////////////////////////////////////////
-/// Addresses
-
-const comptrollerAddress = addresses.find(e => e.name === "comptroller").address;
-const compoundV1Address = addresses.find(e => e.name === "compound-v1").address;
-const compAddress = addresses.find(e => e.name === assets.COMP).address;
 
 ////////////////////////////////////////
 /// Abis
@@ -121,7 +121,6 @@ export const coreParser = (
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    const contract = txLog.address;
     if (addresses.some(e => e.address === address)) {
       tx.apps.push(appName);
     }
@@ -149,7 +148,7 @@ export const coreParser = (
             tx.transfers.push({
               asset,
               category: Income,
-              from: contract,
+              from: address,
               index: deposit.index - 1,
               quantity: interest,
               to: account
@@ -177,7 +176,7 @@ export const coreParser = (
             tx.transfers.push({
               asset,
               category: Income,
-              from: contract,
+              from: address,
               index: withdraw.index - 1,
               quantity: interest,
               to: account
@@ -206,6 +205,15 @@ export const coreParser = (
           repay.category = Repay;
           repay.to = account;
           tx.method = "Repayment";
+          const refund = tx.transfers.find(transfer =>
+            transfer.asset === repay.asset &&
+            isSelf(transfer.to) &&
+            transfer.from === maximillionAddress
+          );
+          if (refund) {
+            refund.category = TransferCategories.Refund;
+            refund.index = "index" in refund ? refund.index : txLog.index;
+          }
         } else {
           log.warn(tx.transfers, `Can't find an associated repay transfer`);
         }
@@ -266,9 +274,9 @@ export const coreParser = (
           log.warn(`${event.name}: Can't find swapIn of ${cTokenAmt} ${cAsset}`);
         } else {
           swapOut.category = SwapOut;
-          swapOut.to = contract;
+          swapOut.to = address;
           swapIn.category = SwapIn;
-          swapIn.from = contract;
+          swapIn.from = address;
           tx.method = "Deposit";
         }
 
@@ -285,9 +293,9 @@ export const coreParser = (
           log.warn(`${event.name}: Can't find swapIn of ${tokenAmt} ${asset}`);
         } else {
           swapOut.category = SwapOut;
-          swapOut.to = contract;
+          swapOut.to = address;
           swapIn.category = SwapIn;
-          swapIn.from = contract;
+          swapIn.from = address;
           tx.method = "Withdraw";
         }
 
@@ -298,7 +306,7 @@ export const coreParser = (
         const borrow = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = contract; // should this be a non-address account?
+          borrow.from = address; // should this be a non-address account?
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
@@ -311,8 +319,17 @@ export const coreParser = (
         const repay = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (repay) {
           repay.category = Repay;
-          repay.to = contract; // should this be a non-address account?
+          repay.to = address; // should this be a non-address account?
           tx.method = "Repayment";
+          const refund = tx.transfers.find(transfer =>
+            transfer.asset === repay.asset &&
+            isSelf(transfer.to) &&
+            transfer.from === maximillionAddress
+          );
+          if (refund) {
+            refund.category = TransferCategories.Refund;
+            refund.index = "index" in refund ? refund.index : txLog.index;
+          }
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }

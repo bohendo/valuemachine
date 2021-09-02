@@ -1,3 +1,13 @@
+export const apps = {
+  Compound: "Compound",
+} as const;
+
+export const contracts = {
+  Maximillion: "Maximillion",
+  Comptroller: "Comptroller",
+  CompoundV1: "CompoundV1",
+} as const;
+
 export const assets = {
 
   COMP: "COMP",
@@ -18,5 +28,4 @@ export const assets = {
 
 } as const;
 
-export const apps = {} as const;
 export const enums = { assets, apps };
