@@ -94,7 +94,7 @@ export const parseEvmTx = (
       tx.transfers.push({
         asset: evmMetadata.feeAsset,
         category: getSimpleCategory(evmTransfer.to, evmTransfer.from),
-        index: 0, // Internal evm transfers have no index
+        // index: 0, // Internal evm transfers have no index
         from: evmTransfer.from,
         quantity: evmTransfer.value,
         to: evmTransfer.to,

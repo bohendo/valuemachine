@@ -13,14 +13,14 @@ const factoryAddresses = [
   { name: "UniswapFactoryV3", address: "Ethereum/0x1f98431c8ad98523631ae4a59f267346ea31f984" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
-const routerAddresses = [
-  { name: "UniswapRouterV2", address: "Ethereum/0x7a250d5630b4cf539739df2c5dacb4c659f2488d" },
-  { name: "UniswapRouterV3", address: "Ethereum/0xe592427a0aece92de3edee1f18e0157c05861564" },
-].map(setAddressCategory(AddressCategories.Defi));
-
 const govTokenAddresses = [
   { name: assets.UNI, address: "Ethereum/0x1f9840a85d5af5bf1d1762f925bdaddc4201f984" },
 ].map(setAddressCategory(AddressCategories.ERC20));
+
+export const routerAddresses = [
+  { name: "UniswapRouterV2", address: "Ethereum/0x7a250d5630b4cf539739df2c5dacb4c659f2488d" },
+  { name: "UniswapRouterV3", address: "Ethereum/0xe592427a0aece92de3edee1f18e0157c05861564" },
+].map(setAddressCategory(AddressCategories.Defi));
 
 export const airdropAddresses = [
   { name: "UNI-airdropper", address: "Ethereum/0x090d4613473dee047c3f2706764f49e0821d256e" },
@@ -113,6 +113,7 @@ export const v2MarketAddresses = [
   { name: assets.UniV2_USDC_USDT, address: "Ethereum/0x3041cbd36888becc7bbcbc0045e3b1f144466f5f" },
   { name: assets.UniV2_WBTC_ETH, address: "Ethereum/0xbb2b8038a1640196fbe3e38816f3e67cba72d940" },
   { name: assets.UniV2_WBTC_USDC, address: "Ethereum/0x004375dff511095cc5a197a54140a24efef3a416" },
+  { name: assets.UniV2_WBTC_USDT, address: "Ethereum/0x0DE0Fa91b6DbaB8c8503aAA2D1DFa91a192cB149" },
   { name: assets.UniV2_WDOGE_ETH, address: "Ethereum/0xc3d7aa944105d3fafe07fc1822102449c916a8d0" },
   { name: assets.UniV2_YFI_ETH, address: "Ethereum/0x2fdbadf3c4d5a8666bc06645b8358ab803996e28" },
 ].map(setAddressCategory(AddressCategories.ERC20));
