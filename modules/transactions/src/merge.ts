@@ -26,13 +26,11 @@ const { Income, Expense, Deposit, Withdraw } = TransferCategories;
 const datesAreClose = (
   ts1: TimestampString,
   ts2: TimestampString,
-  wiggleRoom = `${1000 * 60 * 30}`,
-) =>
-  valuesAreClose(
-    new Date(ts1).getTime().toString(),
-    new Date(ts2).getTime().toString(),
-    wiggleRoom,
-  );
+  wiggleRoom = 1000 * 60 * 30, // 30 minutes
+) => Math.abs(
+  new Date(ts1).getTime() -
+  new Date(ts2).getTime()
+) < wiggleRoom;
 
 ////////////////////////////////////////
 // Exported Function
@@ -148,7 +146,7 @@ export const mergeTransaction = (
 
     // Detect & skip duplicates
     if (transactions.filter(tx => tx.sources.includes(source)).find(tx =>
-      datesAreClose(tx.date, newTx.date, "1") // ie equal w/in the margin of a rounding error
+      datesAreClose(tx.date, newTx.date, 1) // ie equal w/in the margin of a rounding error
       && newTx.transfers.every(newTransfer => tx.transfers.some(oldTransfer =>
         newTransfer.asset === oldTransfer.asset &&
         valuesAreClose(
@@ -166,8 +164,8 @@ export const mergeTransaction = (
     const extTransfer = newTx.transfers[0];
     const wiggleRoom = div(extTransfer.quantity, "100");
     if (
-      newTx.transfers.length !== 1 &&
-      (extTransfer.category === Deposit || extTransfer.category === Withdraw)
+      newTx.transfers.length !== 1 ||
+      (extTransfer.category !== Deposit && extTransfer.category !== Withdraw)
     ) {
       transactions.push(newTx);
       transactions.sort(chrono);
