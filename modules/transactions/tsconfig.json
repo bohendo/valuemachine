@@ -3,7 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "declarationDir": ".ts.cache",
-    "outDir": "dist"
+    "outDir": "dist",
+    "tsBuildInfoFile": "dist/.ts.cache/tsconfig.tsbuildinfo"
   },
   "exclude": ["src/**/*.test.ts", "dist", "node_modules"],
   "include": ["src/**/*.ts"]
