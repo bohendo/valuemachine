@@ -246,6 +246,7 @@ export const daiParser = (
             transfer.from = insertVenue(transfer.to, vault);
             tx.method = "Borrow";
           } else {
+            // TODO: tag fee transfer..?
             transfer.category = Repay;
             transfer.to = insertVenue(transfer.from, vault);
             tx.method = "Repayment";

@@ -16,7 +16,7 @@ import { apps } from "./enums";
 
 const appName = apps.Tornado;
 
-const { Income, Expense, Internal } = TransferCategories;
+const { Income, Expense, Fee, Internal } = TransferCategories;
 
 ////////////////////////////////////////
 /// Addresses
@@ -75,7 +75,7 @@ export const coreParser = (
     const asset = withdraw.asset;
     tx.transfers.push({
       asset,
-      category: Expense,
+      category: Fee,
       index: 0,
       from: appName,
       quantity: sub(total, withdraw.quantity),
