@@ -33,7 +33,7 @@ const appName = apps.Sai;
 
 const { ETH, WETH } = Assets;
 const { MKR, PETH, SAI } = assets;
-const { Expense, Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
+const { Expense, Fee, Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 ////////////////////////////////////////
 /// Addresses
@@ -287,7 +287,7 @@ export const saiParser = (
           && ([Expense, SwapOut] as string[]).includes(t.category)
         );
         if (fee) {
-          fee.category = Expense;
+          fee.category = Fee;
           fee.to = insertVenue(fee.from, cdp);
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a MKR/SAI fee`);

@@ -18,8 +18,9 @@ import { Store } from "./store";
 
 export const TransferCategories = {
   Internal: "Internal",
-  Unknown: "Unknown",
+  Unknown: "Unknown", // TODO: rm?
   Expense: "Expense",
+  Fee: "Fee",
   Income: "Income",
   Refund: "Refund",
   SwapIn: "SwapIn",

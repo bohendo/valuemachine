@@ -19,7 +19,7 @@ import {
 } from "./testUtils";
 
 const { DAI, USD, ETH, cDAI, MKR, UNI } = Assets;
-const log = testLogger.child({ module: "TestPrices",
+const log = testLogger.child({ module: "TestPrices" }, {
   // level: "debug",
 });
 

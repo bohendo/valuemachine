@@ -1,6 +1,7 @@
 import {
   Assets,
   getTestTx,
+  Guards,
   TransactionSources,
 } from "@valuemachine/transactions";
 import {
@@ -22,9 +23,10 @@ import {
 } from "./testUtils";
 
 const { ETH, UniV2_UNI_ETH, UNI, USD } = Assets;
-const { Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;
+const { Internal, Fee, Refund, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Coinbase } = TransactionSources;
-const log = testLogger.child({ module: "TestVM",
+const { Ethereum } = Guards;
+const log = testLogger.child({ module: "TestVM" }, {
   // level: "debug",
 });
 
@@ -45,33 +47,43 @@ describe("VM", () => {
     expect(vm).to.be.ok;
   });
 
-  it("should process a guard change", async () => {
-    const transactions = [
-      getTestTx([
-        { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
-      ]), getTestTx([
-        { asset: ETH, category: Internal, from: ethAccount, quantity: "5.00", to: usdAccount },
-      ]), getTestTx([
-        { asset: ETH, category: Internal, from: usdAccount, quantity: "5.00", to: ethAccount },
-      ]),
-    ];
-    const start = Date.now();
-    for (const transaction of transactions) {
-      const newEvents = vm.execute(transaction);
-      log.debug(vm.getNetWorth(), "new portfolio");
+  it("should process a trade that includes a refund", async () => {
+    [getTestTx([
+      { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
+    ]), getTestTx([
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.01", to: Ethereum },
+      { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.00", to: notMe },
+      { asset: UNI, category: SwapIn, from: notMe, quantity: "200", to: ethAccount },
+      { asset: ETH, category: Refund, from: notMe, quantity: "0.02", to: ethAccount },
+    ])].forEach(tx => {
+      const newEvents = vm.execute(tx);
       log.debug(newEvents, "new events");
-    }
-    log.info(`Done processing ${transactions.length} transactions at a rate of ${
-      Math.round(transactions.length * 10000/(Date.now() - start))/10
-    } tx/s`);
-    log.info(vm.json.events, `All events`);
+    });
+    // log.debug(vm.json.chunks, "resulting chunks");
+    expect(vm.json.events.length).to.equal(2);
+    expect(vm.json.chunks.length).to.equal(4);
+    expect(vm.json.chunks[2].quantity).to.equal("1.98");
+  });
+
+  it("should process a guard change", async () => {
+    [getTestTx([
+      { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
+    ]), getTestTx([
+      { asset: ETH, category: Internal, from: ethAccount, quantity: "5.00", to: usdAccount },
+    ]), getTestTx([
+      { asset: ETH, category: Internal, from: usdAccount, quantity: "5.00", to: ethAccount },
+    ])].forEach(tx => {
+      const newEvents = vm.execute(tx);
+      log.debug(newEvents, "new events");
+    });
+    expect(vm.json.events.length).to.equal(3);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
     expect(vm.json.events[1]?.type).to.equal(EventTypes.GuardChange);
     expect(vm.json.events[2]?.type).to.equal(EventTypes.GuardChange);
   });
 
   it("should process several incomes and then a trade", async () => {
-    const transactions = [getTestTx([
+    [getTestTx([
       // Income
       { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
     ]), getTestTx([
@@ -85,206 +97,136 @@ describe("VM", () => {
       { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
     ]), getTestTx([
       // Trade ETH for UNI
-      { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
       { asset: ETH, category: SwapOut, from: ethAccount, quantity: "3.0", to: notMe },
       { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
     ]), getTestTx([
       // Trade UNI for ETH
-      { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
       { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
       { asset: ETH, category: SwapIn, from: notMe, quantity: "2.0", to: ethAccount },
     ]), getTestTx([
       // Send ETH to usdAccount
-      { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
       { asset: ETH, category: Internal, from: ethAccount, quantity: "3.0", to: usdAccount },
-    ])];
-    const start = Date.now();
-    for (const transaction of transactions) {
-      const newEvents = vm.execute(transaction);
-      log.debug(vm.getNetWorth(), "new portfolio");
+    ])].forEach(tx => {
+      const newEvents = vm.execute(tx);
       log.debug(newEvents, "new events");
-    }
-    log.info(`Done processing ${transactions.length} transactions at a rate of ${
-      Math.round(transactions.length * 10000/(Date.now() - start))/10
-    } tx/s`);
+    });
+    expect(vm.json.events.length).to.equal(7);
   });
 
   it("should process internal transfers between guards", async () => {
-    const transactions = [
-      getTestTx([
-        // Income
-        { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
-      ]), getTestTx([
-        // Trade ETH for UNI
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.0", to: notMe },
-        { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
-      ]), getTestTx([
-        // Trade UNI for ETH
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
-        { asset: ETH, category: SwapIn, from: notMe, quantity: "2.5", to: ethAccount },
-      ]), getTestTx([
-        // Send ETH to usdAccount
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: Internal, from: ethAccount, quantity: "3.0", to: usdAccount },
-      ]),
-    ];
-    const start = Date.now();
-    for (const transaction of transactions) {
-      const newEvents = vm.execute(transaction);
-      log.debug(vm.getNetWorth(), "new portfolio");
+    [getTestTx([
+      // Income
+      { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
+    ]), getTestTx([
+      // Trade ETH for UNI
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.0", to: notMe },
+      { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
+    ]), getTestTx([
+      // Trade UNI for ETH
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
+      { asset: ETH, category: SwapIn, from: notMe, quantity: "2.5", to: ethAccount },
+    ]), getTestTx([
+      // Send ETH to usdAccount
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: ETH, category: Internal, from: ethAccount, quantity: "3.0", to: usdAccount },
+    ])].forEach(tx => {
+      const newEvents = vm.execute(tx);
       log.debug(newEvents, "new events");
-    }
-    log.info(`Done processing ${transactions.length} transactions at a rate of ${
-      Math.round(transactions.length * 10000/(Date.now() - start))/10
-    } tx/s`);
+    });
+    expect(vm.json.events.length).to.equal(4);
   });
 
   it("should process an investment into uniswap LP tokens", async () => {
-    const transactions = [
-      getTestTx([
-        // Income
-        { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
-      ]), getTestTx([
-        // Trade ETH for UNI
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.5", to: notMe },
-        { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
-      ]), getTestTx([
-        // Trade UNI + ETH for LP
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.50", to: notMe },
-        { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
-        { asset: UniV2_UNI_ETH, category: SwapIn, from: notMe, quantity: "0.01", to: ethAccount },
-      ]), getTestTx([
-        // Trade LP for UNI + ETH
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: UniV2_UNI_ETH, category: SwapOut, from: ethAccount, quantity: "0.01", to: notMe },
-        { asset: ETH, category: SwapIn, from: notMe, quantity: "3.00", to: ethAccount },
-        { asset: UNI, category: SwapIn, from: notMe, quantity: "75.00", to: ethAccount },
-      ]), getTestTx([
-        // Trade UNI for ETH
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: UNI, category: SwapOut, from: ethAccount, quantity: "75.00", to: notMe },
-        { asset: ETH, category: SwapIn, from: notMe, quantity: "2.0", to: ethAccount },
-      ]), getTestTx([
-        // Send ETH to usdAccount
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: Internal, from: ethAccount, quantity: "3.0", to: usdAccount },
-      ]),
-    ];
-    const start = Date.now();
-    for (const transaction of transactions) {
-      const newEvents = vm.execute(transaction);
-      log.debug(vm.getNetWorth(), "new portfolio");
+    [getTestTx([
+      // Income
+      { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
+    ]), getTestTx([
+      // Trade ETH for UNI
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.5", to: notMe },
+      { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: ethAccount },
+    ]), getTestTx([
+      // Trade UNI + ETH for LP
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.50", to: notMe },
+      { asset: UNI, category: SwapOut, from: ethAccount, quantity: "50.00", to: notMe },
+      { asset: UniV2_UNI_ETH, category: SwapIn, from: notMe, quantity: "0.01", to: ethAccount },
+    ]), getTestTx([
+      // Trade LP for UNI + ETH
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: UniV2_UNI_ETH, category: SwapOut, from: ethAccount, quantity: "0.01", to: notMe },
+      { asset: ETH, category: SwapIn, from: notMe, quantity: "3.00", to: ethAccount },
+      { asset: UNI, category: SwapIn, from: notMe, quantity: "75.00", to: ethAccount },
+    ]), getTestTx([
+      // Trade UNI for ETH
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: UNI, category: SwapOut, from: ethAccount, quantity: "75.00", to: notMe },
+      { asset: ETH, category: SwapIn, from: notMe, quantity: "2.0", to: ethAccount },
+    ]), getTestTx([
+      // Send ETH to usdAccount
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: ETH, category: Internal, from: ethAccount, quantity: "3.0", to: usdAccount },
+    ])].forEach(tx => {
+      const newEvents = vm.execute(tx);
       log.debug(newEvents, "new events");
-    }
-    log.info(`Done processing ${transactions.length} transactions at a rate of ${
-      Math.round(transactions.length * 10000/(Date.now() - start))/10
-    } tx/s`);
+    });
+    expect(vm.json.events.length).to.equal(6);
   });
 
   it("should process newly purchased crypto", async () => {
-    const transactions = [
-      getTestTx([
-        // Trade USD for ETH
-        { asset: USD, category: Expense, from: usdAccount, quantity: "10", to: notMe },
-        { asset: USD, category: SwapOut, from: usdAccount, quantity: "100", to: notMe },
-        { asset: ETH, category: SwapIn, from: notMe, quantity: "1.0", to: usdAccount },
-      ]), getTestTx([
-        // Trade more USD for ETH
-        { asset: USD, category: Expense, from: usdAccount, quantity: "10", to: notMe },
-        { asset: USD, category: SwapOut, from: usdAccount, quantity: "100", to: notMe },
-        { asset: ETH, category: SwapIn, from: notMe, quantity: "1.0", to: usdAccount },
-      ]),
-    ];
-    const start = Date.now();
-    for (const transaction of transactions) {
-      const newEvents = vm.execute(transaction);
-      log.debug(vm.getNetWorth(), "new portfolio");
+    [getTestTx([
+      // Trade USD for ETH
+      { asset: USD, category: Fee, from: usdAccount, quantity: "10", to: notMe },
+      { asset: USD, category: SwapOut, from: usdAccount, quantity: "100", to: notMe },
+      { asset: ETH, category: SwapIn, from: notMe, quantity: "1.0", to: usdAccount },
+    ]), getTestTx([
+      // Trade more USD for ETH
+      { asset: USD, category: Fee, from: usdAccount, quantity: "10", to: notMe },
+      { asset: USD, category: SwapOut, from: usdAccount, quantity: "100", to: notMe },
+      { asset: ETH, category: SwapIn, from: notMe, quantity: "1.0", to: usdAccount },
+    ])].forEach(tx => {
+      const newEvents = vm.execute(tx);
       log.debug(newEvents, "new events");
-    }
-    log.info(`Done processing ${transactions.length} transactions at a rate of ${
-      Math.round(transactions.length * 10000/(Date.now() - start))/10
-    } tx/s`);
+    });
+    expect(vm.json.events.length).to.equal(2);
   });
 
   it("should process a partial swap", async () => {
-    const transactions = [
-      getTestTx([
-        // Income
-        { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
-      ]), getTestTx([
-        // Partial swap
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "5.00", to: notMe },
-      ]),
-    ];
-    const start = Date.now();
-    for (const transaction of transactions) {
-      const newEvents = vm.execute(transaction);
-      log.debug(vm.getNetWorth(), "new portfolio");
+    [getTestTx([
+      // Income
+      { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },
+    ]), getTestTx([
+      // Partial swap
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: ETH, category: SwapOut, from: ethAccount, quantity: "5.00", to: notMe },
+    ])].forEach(tx => {
+      const newEvents = vm.execute(tx);
       log.debug(newEvents, "new events");
-    }
-    log.info(`Done processing ${transactions.length} transactions at a rate of ${
-      Math.round(transactions.length * 10000/(Date.now() - start))/10
-    } tx/s`);
-    log.info(vm.json.events, `All events`);
+    });
+    expect(vm.json.events.length).to.equal(2);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
     expect(vm.json.events[1]?.type).to.equal(EventTypes.Expense);
-    expect(vm.json.events[2]?.type).to.equal(EventTypes.Expense);
   });
 
   it("should process out of order eth transfers", async () => {
-    const transactions = [
-      getTestTx([
-        // Income
-        { asset: ETH, category: Income, from: notMe, quantity: "1.00", to: ethAccount },
-      ]), getTestTx([
-        // spend too much then get sufficient income
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH },
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "2.00", to: notMe },
-        { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
-      ]),
-    ];
-    const start = Date.now();
-    for (const transaction of transactions) {
-      const newEvents = vm.execute(transaction);
-      log.debug(vm.getNetWorth(), "new portfolio");
+    [getTestTx([
+      // Income
+      { asset: ETH, category: Income, from: notMe, quantity: "1.00", to: ethAccount },
+    ]), getTestTx([
+      // spend too much then get sufficient income
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: ETH, category: Expense, from: ethAccount, quantity: "2.00", to: notMe },
+      { asset: ETH, category: Income, from: notMe, quantity: "2.00", to: ethAccount },
+    ])].forEach(tx => {
+      const newEvents = vm.execute(tx);
       log.debug(newEvents, "new events");
-    }
-    log.info(`Done processing ${transactions.length} transactions at a rate of ${
-      Math.round(transactions.length * 10000/(Date.now() - start))/10
-    } tx/s`);
-    const events = vm.json.events;
-    log.info(events, `All events`);
-  });
-
-  it("should process out of order eth swaps", async () => {
-    const transactions = [
-      getTestTx([
-        // Income
-        { asset: ETH, category: Income, from: notMe, quantity: "1.00", to: ethAccount },
-      ]), getTestTx([
-        // spend too much then get sufficient income
-        { asset: ETH, category: Expense, from: ethAccount, quantity: "0.1", to: ETH, index: 0 },
-        { asset: ETH, category: SwapOut, from: ethAccount, quantity: "2.20", to: notMe, index: 1 },
-        { asset: UNI, category: SwapIn, from: notMe, quantity: "100", to: ethAccount, index: 2 },
-        { asset: ETH, category: SwapIn, from: notMe, quantity: "2.0", to: ethAccount, index: 3 },
-      ]),
-    ];
-    const start = Date.now();
-    for (const transaction of transactions) {
-      const newEvents = vm.execute(transaction);
-      log.debug(vm.getNetWorth(), "new portfolio");
-      log.debug(newEvents, "new events");
-    }
-    log.info(`Done processing ${transactions.length} transactions at a rate of ${
-      Math.round(transactions.length * 10000/(Date.now() - start))/10
-    } tx/s`);
-    const events = vm.json.events;
-    log.info(events, `All events`);
+    });
+    expect(vm.json.events.length).to.equal(3);
   });
 
 });

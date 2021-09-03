@@ -29,12 +29,13 @@ import {
   gt,
   lt,
   mul,
-  dedup,
   sub,
 } from "@valuemachine/utils";
 
+import { sumTransfers, diffBalances } from "./utils";
+
 const {
-  Internal, Income, SwapIn, Borrow, Expense, SwapOut, Repay,
+  Internal, Income, SwapIn, Borrow, Expense, Fee, SwapOut, Repay, Refund
 } = TransferCategories;
 
 // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
@@ -436,6 +437,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       // Move funds from one account to another
       if (([Internal, Repay, Borrow] as string[]).includes(category)) {
         moveValue(quantity, asset, from, to);
+
+      // Fees should be handled w/out emitting an event
+      } else if (category === Fee) {
+        disposeValue(quantity, asset, from);
+
       // Send funds out of our accounts
       } else if (([Expense, SwapOut] as string[]).includes(category)) {
         const disposed = disposeValue(quantity, asset, from);
@@ -446,6 +452,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           outputs: disposed.map(toIndex),
           type: EventTypes.Expense,
         });
+
       // Receive funds into one of our accounts
       } else if (([Income, SwapIn] as string[]).includes(category)) {
         const received = receiveValue(quantity, asset, to);
@@ -461,14 +468,57 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       }
     };
 
-    // Process normal transfers & set swaps aside to process more deeply
+    const moving = [];
+    const incoming = [];
+    const outgoing = [];
+    const refunds = [];
+    tx.transfers.forEach(transfer => {
+      if (transfer.category === Internal) {
+        moving.push(transfer);
+      } else if (([Income, SwapIn, Borrow] as string[]).includes(transfer.category)) {
+        incoming.push(transfer);
+      } else if (transfer.category === Refund) {
+        refunds.push(transfer);
+      } else if (([Expense, Fee, SwapOut, Repay] as string[]).includes(transfer.category)) {
+        outgoing.push(transfer);
+      } else {
+        throw new Error(`Unknown transfer category: ${transfer.category}`);
+      }
+    });
+
+    // Subtract refunds from associated outgoing transfers
+    if (refunds.length) {
+      refunds.forEach(refund => {
+        const refunded = outgoing.find(transfer =>
+          transfer.asset === refund.asset &&
+          refund.from === transfer.to &&
+          lt(refund.quantity, transfer.quantity)
+        );
+        if (refunded) {
+          log.info(`Subtracting refund of ${refund.quantity} ${
+            refund.asset
+          } from ${refunded.category} of ${refunded.quantity} ${refunded.asset}`);
+          refunded.quantity = sub(refunded.quantity, refund.quantity);
+        } else {
+          log.warn(`Can't find matching transfer for refund of ${
+            refund.quantity
+          } ${refund.asset} from ${refund.from}, treating it as income`);
+          incoming.push(refund);
+        }
+      });
+    }
+
+    // Process normal transfers & set swaps aside to process more carefully
     const swapsIn = [];
     const swapsOut = [];
+    // const refunds = [];
     tx.transfers.forEach(transfer => {
       if (transfer.category === SwapIn) {
         swapsIn.push(transfer);
       } else if (transfer.category === SwapOut) {
         swapsOut.push(transfer);
+      } else if (transfer.category === Refund) {
+        refunds.push(transfer);
       } else {
         handleTransfer(transfer);
       }
@@ -476,34 +526,18 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
     // Process Trade
     if (swapsIn.length && swapsOut.length) {
-      // Sum transfers & subtract refunds to get total values traded
-      const sum = (acc, cur) => add(acc, cur.quantity);
-      const assetsOut = dedup(swapsOut.map(swap => swap.asset));
-      const assetsIn = dedup(swapsIn.map(swap => swap.asset)
-        .filter(asset => !assetsOut.includes(asset)) // remove refunds from the output asset list
-      );
-      const amtsOut = assetsOut.map(asset =>
-        swapsIn
-          .filter(swap => swap.asset === asset)
-          .map(swap => ({ ...swap, quantity: mul(swap.quantity, "-1") })) // subtract refunds
-          .concat(
-            swapsOut.filter(swap => swap.asset === asset)
-          ).reduce(sum, "0")
-      );
-      const amtsIn = assetsIn.map(asset =>
-        swapsIn.filter(swap => swap.asset === asset).reduce(sum, "0")
-      );
-      const inputs = {};
-      assetsIn.forEach((asset, index) => {
-        inputs[asset] = amtsIn[index];
-      });
-      const outputs = {};
-      assetsOut.forEach((asset, index) => {
-        outputs[asset] = amtsOut[index];
-      });
-      // TODO: abort or handle when to/from values aren't consistent among swap chunks
-      // eg we could add a synthetic internal transfer then make the swap touch only one account
+      if (
+        // All self accounts should be the same in all swap transfers
+        !swapsIn.every(swap => swap.to === swapsIn[0].to) ||
+        !swapsOut.every(swap => swap.from === swapsIn[0].to)
+      ) {
+        // TODO: how do we handle when to/from values aren't consistent among swap transfers?
+        // eg add a synthetic internal transfer to ensure the trade only involve one account
+        log.warn(`Assets moved accounts mid-trade`);
+      }
       const account = swapsIn[0].to || swapsOut[0].from;
+      // Sum transfers & subtract duplicates to get total values traded
+      const [inputs, outputs] = diffBalances([sumTransfers(swapsIn), sumTransfers(swapsOut)]);
       tradeValue(account, inputs, outputs);
 
     // If no matching swaps, process them like normal transfers

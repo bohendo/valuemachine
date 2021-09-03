@@ -13,7 +13,7 @@ import { getGuard } from "../utils";
 
 const guard = Guards.USA;
 
-const { Expense, SwapIn, SwapOut, Internal, Unknown } = TransferCategories;
+const { Fee, SwapIn, SwapOut, Internal, Unknown } = TransferCategories;
 
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
@@ -83,7 +83,7 @@ export const mergeCoinbaseTransactions = (
     if (gt(fees, "0")) {
       transaction.transfers.push({
         asset: "USD",
-        category: Expense,
+        category: Fee,
         from: account,
         quantity: fees,
         to: exchange,

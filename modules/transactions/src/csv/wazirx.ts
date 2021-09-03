@@ -13,7 +13,7 @@ import { getGuard } from "../utils";
 const guard = Guards.IND;
 
 const { INR } = Assets;
-const { Internal, Expense, SwapIn, SwapOut } = TransferCategories;
+const { Internal, Fee, SwapIn, SwapOut } = TransferCategories;
 
 export const mergeWazirxTransactions = (
   oldTransactions: Transaction[],
@@ -135,7 +135,7 @@ export const mergeWazirxTransactions = (
 
       transaction.transfers.push({
         asset: feeAsset,
-        category: Expense,
+        category: Fee,
         from: account,
         index: index++,
         quantity: feeAmount,

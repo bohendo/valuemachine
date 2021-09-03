@@ -15,7 +15,7 @@ import { getGuard } from "../utils";
 const guard = Guards.USA;
 
 const { DAI, ETH, SAI, USD } = Assets;
-const { Expense, SwapIn, SwapOut, Internal } = TransferCategories;
+const { Fee, SwapIn, SwapOut, Internal } = TransferCategories;
 
 export const mergeWyreTransactions = (
   oldTransactions: Transaction[],
@@ -135,7 +135,7 @@ export const mergeWyreTransactions = (
 
     // Add fees paid to exchange
     const feeTransfer = {
-      category: Expense,
+      category: Fee,
       from: account,
       to: exchange,
     };
