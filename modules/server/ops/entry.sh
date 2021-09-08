@@ -6,8 +6,10 @@ prod_target="dist/bundle.js"
 
 if [[ -d "modules/server" ]]
 then cd modules/server
-elif [[ ! -f "$dev_target" && ! -f "$prod_target" ]]
-then echo "Fatal: couldn't find file to run" && exit 1
+fi
+
+if [[ ! -f "$dev_target" && ! -f "$prod_target" ]]
+then echo "Fatal: couldn't find file to run" && pwd && ls && exit 1
 fi
 
 if [[ ! -d "/data" ]]
