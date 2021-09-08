@@ -11,7 +11,6 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Maker;
-const { Expense, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
@@ -25,8 +24,8 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.transfers[1].category).to.equal(SwapOut);
-    expect(tx.transfers[2].category).to.equal(SwapIn);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle a PETH withdrawal with duplicate events", async () => {
@@ -36,7 +35,7 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(2);
-    expect(tx.transfers[1].category).to.equal(Internal);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 
   it("should handle a SAI borrow", async () => {
@@ -46,7 +45,7 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(2);
-    expect(tx.transfers[1].category).to.equal(Borrow);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Borrow);
   });
 
   it("should handle a SAI repayment", async () => {
@@ -56,8 +55,8 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.transfers[1].category).to.equal(Repay);
-    expect(tx.transfers[2].category).to.equal(Expense);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.Fee);
   });
 
   it("should handle a SAI cage cashout", async () => {
@@ -67,8 +66,8 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.transfers[1].category).to.equal(SwapOut);
-    expect(tx.transfers[2].category).to.equal(SwapIn);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle a SAI to DAI migration", async () => {
@@ -78,8 +77,8 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.transfers[1].category).to.equal(SwapOut);
-    expect(tx.transfers[2].category).to.equal(SwapIn);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle a DAI deposit to DSR", async () => {
@@ -89,7 +88,7 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(2);
-    expect(tx.transfers[1].category).to.equal(Internal);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 
   it("should parse a repayment w fee paid in SAI", async () => {
@@ -99,9 +98,9 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.transfers[0].category).to.equal(Expense);
-    expect(tx.transfers[1].category).to.equal(Repay);
-    expect(tx.transfers[2].category).to.equal(Expense);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[2].to).to.include("CDP");
   });
 

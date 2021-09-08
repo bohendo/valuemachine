@@ -7,7 +7,7 @@ import {
   Event,
   EventTypes,
   HydratedEvent,
-  Transfers,
+  Transfer,
 } from "@valuemachine/types";
 import { add, eq, gt, round, sub } from "@valuemachine/utils";
 
@@ -28,8 +28,8 @@ const sumValue = (values: Array<Value>): Balances => {
   });
   return totals;
 };
-export const sumTransfers = (transfers: Transfers[]): Balances => sumValue(transfers as Value[]);
-export const sumChunks = (chunks: Transfers[]): Balances => sumValue(chunks as Value[]);
+export const sumTransfers = (transfers: Transfer[]): Balances => sumValue(transfers as Value[]);
+export const sumChunks = (chunks: AssetChunk[]): Balances => sumValue(chunks as Value[]);
 
 // annihilate values that are present in both balances
 export const diffBalances = (balancesList: Balances[]): Balances[] => {
@@ -60,9 +60,11 @@ export const describeChunk = (chunk: AssetChunk): string => {
 
 export const describeEvent = (event: Event | HydratedEvent): string => {
   const describeChunks = (chunks: Array<AssetChunk | ChunkIndex>): string =>
-    Object.entries(sumChunks(chunks))
-      .map(([asset, amount]) => `${round(amount, 4)} ${asset}`)
-      .join(" and ");
+    typeof chunks[0] === "number"
+      ? `${chunks.length} chunks`
+      : Object.entries(sumChunks(chunks as AssetChunk[]))
+        .map(([asset, amount]) => `${round(amount, 4)} ${asset}`)
+        .join(" and ");
   const date = event.date.split("T")[0];
   if (event.type === Income) {
     const inputs = event.inputs?.length ? describeChunks(event.inputs) : "";

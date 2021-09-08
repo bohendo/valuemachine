@@ -2,7 +2,6 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { EvmAssets } from "../../enums";
 import {
   parseEthTx,
   expect,
@@ -12,7 +11,6 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Weth;
-const { SwapIn, SwapOut } = TransferCategories;
 const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
@@ -26,13 +24,9 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const swapOut = tx.transfers[1];
-    expect(swapOut.asset).to.equal(EvmAssets.ETH);
-    expect(swapOut.category).to.equal(SwapOut);
-    const swapIn = tx.transfers[2];
-    expect(swapIn.asset).to.equal(EvmAssets.WETH);
-    expect(swapIn.category).to.equal(SwapIn);
-    expect(swapIn.quantity).to.equal(swapOut.quantity);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[1].quantity).to.equal(tx.transfers[2].quantity);
   });
 
   it("should parse a weth withdrawal", async () => {
@@ -43,12 +37,8 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const swapOut = tx.transfers[1];
-    expect(swapOut.asset).to.equal(EvmAssets.WETH);
-    expect(swapOut.category).to.equal(SwapOut);
-    const swapIn = tx.transfers[2];
-    expect(swapIn.asset).to.equal(EvmAssets.ETH);
-    expect(swapIn.category).to.equal(SwapIn);
-    expect(swapIn.quantity).to.equal(swapOut.quantity);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[1].quantity).to.equal(tx.transfers[2].quantity);
   });
 });

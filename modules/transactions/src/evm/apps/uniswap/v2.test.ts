@@ -24,7 +24,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
@@ -51,7 +51,7 @@ describe(appName, () => {
     expect(tx.apps).to.include(appName);
     expect(tx.method.toLowerCase()).to.include("trade");
     expect(tx.transfers.length).to.equal(4);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
     expect(tx.transfers[3].category).to.equal(TransferCategories.Refund);
@@ -80,7 +80,7 @@ describe(appName, () => {
     expect(tx.apps).to.include(appName);
     expect(tx.method.toLowerCase()).to.include("remove liquidity");
     expect(tx.transfers.length).to.equal(4);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
     expect(tx.transfers[3].category).to.equal(TransferCategories.SwapIn);

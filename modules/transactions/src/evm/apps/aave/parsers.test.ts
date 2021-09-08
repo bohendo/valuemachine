@@ -25,12 +25,9 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(TransferCategories.Expense);
-    const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(TransferCategories.SwapOut);
-    const aToken = tx.transfers[2];
-    expect(aToken.category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle withdrawals from v2", async () => {
@@ -41,12 +38,9 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(TransferCategories.Expense);
-    const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(TransferCategories.SwapIn);
-    const aToken = tx.transfers[2];
-    expect(aToken.category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapOut);
   });
 
   it("should handle borrow from v2", async () => {
@@ -57,10 +51,8 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(TransferCategories.Expense);
-    const borrow = tx.transfers[1];
-    expect(borrow.category).to.equal(TransferCategories.Borrow);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Borrow);
   });
 
   it.skip("should handle repay to v2", async () => {
@@ -71,10 +63,8 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(TransferCategories.Expense);
-    const repay = tx.transfers[1];
-    expect(repay.category).to.equal(TransferCategories.Repay);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
   });
 
   it("should handle staking aave", async () => {
@@ -85,12 +75,9 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(TransferCategories.Expense);
-    const swapIn= tx.transfers[1];
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
-    const swapOut = tx.transfers[2];
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapOut);
   });
 
   it("should handle unstaking aave", async () => {
@@ -101,12 +88,9 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(TransferCategories.Expense);
-    const swapIn= tx.transfers[2];
-    expect(swapIn.category).to.equal(TransferCategories.SwapIn);
-    const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
   });
 
   it("should handle a deposit on polygon", async () => {
@@ -117,7 +101,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.sources).to.include(TransactionSources.Polygon);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });

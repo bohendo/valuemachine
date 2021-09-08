@@ -24,8 +24,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(TransferCategories.Internal);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 
   it("should handle withdrawals from compound v1", async () => {
@@ -36,10 +35,8 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const income = tx.transfers[1];
-    expect(income.category).to.equal(TransferCategories.Income);
-    const withdraw = tx.transfers[2];
-    expect(withdraw.category).to.equal(TransferCategories.Internal);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Income);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.Internal);
   });
 
   it("should handle deposits to compound v2", async () => {
@@ -49,10 +46,8 @@ describe(appName, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(3);
-    const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(TransferCategories.SwapOut);
-    const cToken = tx.transfers[2];
-    expect(cToken.category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle withdrawals from compound v2", async () => {
@@ -63,10 +58,8 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const withdraw = tx.transfers[1];
-    expect(withdraw.category).to.equal(TransferCategories.SwapIn);
-    const cToken = tx.transfers[2];
-    expect(cToken.category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapOut);
   });
 
   it("should handle compound v2 market entries", async () => {
@@ -87,8 +80,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    const borrow = tx.transfers[1];
-    expect(borrow.category).to.equal(TransferCategories.Borrow);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Borrow);
   });
 
   it("should handle repayments to compound v2", async () => {
@@ -99,7 +91,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
     expect(tx.transfers[2].category).to.equal(TransferCategories.Refund);
   });
