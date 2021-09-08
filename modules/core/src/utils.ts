@@ -22,7 +22,7 @@ const sumValue = (values: Array<Value>): Balances => {
   const totals = {} as Balances;
   if (!values?.length) return totals;
   values.forEach(value => {
-    if (typeof value !== "number" && gt(value.quantity, "0")) {
+    if (value?.quantity && !eq(value.quantity, "0")) {
       totals[value.asset] = add(totals[value.asset], value.quantity);
     }
   });

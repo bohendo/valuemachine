@@ -16,17 +16,25 @@ import { Store } from "./store";
 ////////////////////////////////////////
 // JSON Schema
 
-export const TransferCategories = {
-  Internal: "Internal",
-  Unknown: "Unknown", // TODO: rm?
+export const OutgoingTransfers = {
   Expense: "Expense",
   Fee: "Fee",
+  Repay: "Repay",
+  SwapOut: "SwapOut",
+} as const;
+
+export const IncomingTransfers = {
   Income: "Income",
   Refund: "Refund",
-  SwapIn: "SwapIn",
-  SwapOut: "SwapOut",
   Borrow: "Borrow",
-  Repay: "Repay",
+  SwapIn: "SwapIn",
+} as const;
+
+export const TransferCategories = {
+  ...OutgoingTransfers,
+  ...IncomingTransfers,
+  Internal: "Internal",
+  Unknown: "Unknown", // TODO: rm?
 } as const;
 export const TransferCategory = Type.Enum(TransferCategories); // NOT Extensible
 export type TransferCategory = Static<typeof TransferCategory>;

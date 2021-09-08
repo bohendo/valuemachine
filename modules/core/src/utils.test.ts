@@ -4,11 +4,24 @@ import { AssetChunk } from "@valuemachine/types";
 import {
   expect,
 } from "./testUtils";
-import { sumChunks, diffBalances } from "./utils";
+import { sumChunks, sumTransfers, diffBalances } from "./utils";
 
 describe("Utils", () => {
+
   it("should sum chunks", async () => {
     expect(sumChunks([{
+      asset: Assets.ETH,
+      quantity: "-1.0",
+    }, {
+      asset: Assets.ETH,
+      quantity: "2.0",
+    }] as AssetChunk[])).to.deep.equal({
+      ETH: "1.0",
+    });
+  });
+
+  it("should sum transfers", async () => {
+    expect(sumTransfers([{
       asset: Assets.ETH,
       quantity: "1.0",
     }, {
@@ -22,6 +35,7 @@ describe("Utils", () => {
       RAI: "3.0",
     });
   });
+
   it("should diff balances", async () => {
     expect(diffBalances([{
       ETH: "4.0",
@@ -34,4 +48,5 @@ describe("Utils", () => {
       RAI: "3.0",
     }]);
   });
+
 });
