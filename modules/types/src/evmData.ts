@@ -1,6 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { DigitalGuard } from "./guards";
 import { Logger } from "./logger";
 import { Store } from "./store";
 import { AddressBook } from "./addressBook";
@@ -9,6 +8,7 @@ import {
   Account,
   Bytes32,
   DecimalString,
+  Guard,
   HexString,
   TimestampString,
 } from "./strings";
@@ -18,7 +18,7 @@ import {
 
 export const EvmMetadata = Type.Object({
   id: Type.Number(), // value returned from chainId opcode
-  name: DigitalGuard, // common name
+  name: Guard, // common name
   feeAsset: Type.String(), // native token used to pay security fees
 });
 export type EvmMetadata = Static<typeof EvmMetadata>;

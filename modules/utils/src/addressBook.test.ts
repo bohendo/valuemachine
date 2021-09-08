@@ -1,6 +1,6 @@
 import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
-import { AddressCategories, Guards } from "@valuemachine/types";
+import { AddressCategories } from "@valuemachine/types";
 
 import { getAddressBookError, fmtAddressBook } from "./addressBook";
 import { getLogger } from "./logger";
@@ -12,7 +12,6 @@ const validAddressBookEntry = {
   address,
   name: "zero",
   decimals: 0,
-  guard: Guards.Ethereum,
   category: AddressCategories.Burn,
 };
 

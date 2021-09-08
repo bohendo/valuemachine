@@ -16,7 +16,7 @@ import { apps } from "./enums";
 
 const appName = apps.Tornado;
 
-const { Income, Expense, Deposit, Withdraw } = TransferCategories;
+const { Income, Expense, Fee, Internal } = TransferCategories;
 
 ////////////////////////////////////////
 /// Addresses
@@ -53,10 +53,10 @@ export const coreParser = (
   tx.transfers.filter(transfer =>
     isSelf(transfer.from)
       && mixerAddresses.some(e => transfer.to === e.address)
-      && ([Expense, Deposit] as string[]).includes(transfer.category)
+      && ([Expense, Internal] as string[]).includes(transfer.category)
   ).forEach(deposit => {
     isTornadoTx = true;
-    deposit.category = Deposit;
+    deposit.category = Internal;
     deposit.to = appName;
     tx.method = "Deposit";
     log.info(`Found ${appName} ${tx.method}`);
@@ -65,17 +65,17 @@ export const coreParser = (
   tx.transfers.filter(transfer =>
     isSelf(transfer.to)
       && mixerAddresses.some(e => transfer.from === e.address)
-      && ([Income, Withdraw] as string[]).includes(transfer.category)
+      && ([Income, Internal] as string[]).includes(transfer.category)
   ).forEach(withdraw => {
     isTornadoTx = true;
-    withdraw.category = Withdraw;
+    withdraw.category = Internal;
     withdraw.from = appName;
     withdraw.index = withdraw.index || 1;
     const total = closestTenPow(withdraw.quantity);
     const asset = withdraw.asset;
     tx.transfers.push({
       asset,
-      category: Expense,
+      category: Fee,
       index: 0,
       from: appName,
       quantity: sub(total, withdraw.quantity),

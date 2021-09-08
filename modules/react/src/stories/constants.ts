@@ -1,13 +1,21 @@
-import { getPrices, getValueMachine } from "@valuemachine/core";
-import { EvmApps, Assets, getAddressBook, getTransactions } from "@valuemachine/transactions";
+import { getValueMachine, getPrices } from "@valuemachine/core";
+import {
+  Assets,
+  CsvSources,
+  getAddressBook,
+  getTestTx,
+  getTransactions,
+  Guards,
+  TransactionSources,
+} from "@valuemachine/transactions";
 import {
   AddressCategories,
-  CsvSources,
-  Guards,
-  EventTypes,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
+
+const { ETH, UNI, USD } = Assets;
+const { Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;
+const { Ethereum, USA } = Guards;
 
 const coinbaseData =
 `Timestamp,           Transaction Type,Asset,Quantity Transacted,      USD Spot Price at Transaction,USD Subtotal,USD Total (inclusive of fees),USD Fees,Notes
@@ -23,8 +31,11 @@ const getAddress = (val: string): string => `Ethereum/0x${val.repeat(40).substri
 const one = getAddress("1");
 const two = getAddress("2");
 const three = getAddress("3");
+const coinbase = `${USA}/${TransactionSources.Coinbase}/account`;
+const exchange = `${USA}/${TransactionSources.Coinbase}`;
 
-export const guard = Guards.USA;
+export const guard = USA;
+export const unit = USD;
 
 export const balances = {
   BCH: "0",
@@ -46,6 +57,7 @@ export const addressBook = getAddressBook({
       address: two,
       name: "self-2",
       category: AddressCategories.Self,
+      guard,
     },
     [three]: {
       address: three,
@@ -56,140 +68,44 @@ export const addressBook = getAddressBook({
 });
 
 export const transactions = getTransactions({
-  json: [{
-    index: 0,
-    date: "2020-01-01T01:00:00Z",
-    hash: "0x0000000000000000000000000000000000000000000000000000000000000002",
-    sources: [TransactionSources.Ethereum],
-    apps: [EvmApps.ERC20],
-    transfers: [{
-      index: 0,
-      category: TransferCategories.Income,
-      asset: Assets.ETH,
-      from: three,
-      quantity: "1.02",
-      to: one,
-    }],
-  }, {
-    index: 1,
-    date: "2020-01-02T01:00:00Z",
-    hash: "0x0000000000000000000000000000000000000000000000000000000000000002",
-    sources: [TransactionSources.Ethereum],
-    apps: [EvmApps.ERC20],
-    transfers: [{
-      index: -1,
-      category: TransferCategories.Expense,
-      asset: Assets.ETH,
-      from: one,
-      quantity: "0.01",
-      to: Guards.Ethereum,
-    }, {
-      index: 0,
-      category: TransferCategories.Internal,
-      asset: Assets.ETH,
-      from: one,
-      quantity: "1.01",
-      to: two,
-    }],
-  }, {
-    index: 2,
-    date: "2020-01-03T01:00:00Z",
-    hash: "0x0000000000000000000000000000000000000000000000000000000000000001",
-    sources: [TransactionSources.Ethereum],
-    apps: [],
-    transfers: [{
-      index: -1,
-      category: TransferCategories.Expense,
-      asset: Assets.ETH,
-      from: two,
-      quantity: "0.01",
-      to: Guards.Ethereum,
-    }, {
-      index: 0,
-      category: TransferCategories.Expense,
-      asset: Assets.ETH,
-      from: two,
-      quantity: "0.5",
-      to: three,
-    }],
-  }],
+  json: [getTestTx([
+    // Income
+    { category: Income, asset: ETH, from: three, quantity: "1.04", to: one },
+  ]), getTestTx([
+    // Internal transfer
+    { category: Expense, asset: ETH, from: one, quantity: "0.01", to: Ethereum },
+    { index: 0, category: Internal, asset: ETH, from: one, quantity: "1.03", to: two },
+  ]), getTestTx([
+    // Expense
+    { category: Expense, asset: ETH, from: two, quantity: "0.01", to: Ethereum },
+    { category: Expense, asset: ETH, from: two, quantity: "0.5", to: three },
+  ]), getTestTx([
+    // Trade
+    { category: Expense, asset: ETH, from: two, quantity: "0.01", to: Ethereum },
+    { category: SwapOut, asset: ETH, from: two, quantity: "0.25", to: three },
+    { category: SwapIn, asset: UNI, from: three, quantity: "200", to: two },
+  ]), getTestTx([
+    // Deposit
+    { category: Expense, asset: ETH, from: two, quantity: "0.01", to: Ethereum },
+    { category: Internal, asset: UNI, from: two, quantity: "200", to: coinbase },
+  ]), getTestTx([
+    // Sale
+    { category: SwapOut, asset: UNI, from: coinbase, quantity: "200", to: exchange },
+    { category: SwapIn, asset: USD, from: exchange, quantity: "1200", to: coinbase },
+  ])],
 });
 
-export const vm = getValueMachine({
+export const vm = getValueMachine();
+// Generate value machine data from transactions
+transactions.json.forEach(tx => vm.execute(tx));
+
+console.log(`Setting price on date ${transactions.json[4].date}`);
+export const prices = getPrices({
   json: {
-    chunks: [{
-      asset: Assets.ETH,
-      quantity: "0.50",
-      history: [
-        { date: "2020-01-01T01:00:00Z", account: one },
-        { date: "2020-01-02T01:00:00Z", account: two },
-      ],
-      account: one,
-      disposeDate: "2020-01-03T01:00:00.000Z",
-      index: 0,
-      inputs: [],
-      outputs: Array.from(Array(25).keys()) // inconsistent for demo purposes
-    }, {
-      asset: Assets.ETH,
-      quantity: "0.01",
-      history: [
-        { date: "2020-01-01T01:00:00Z", account: one },
-      ],
-      disposeDate: "2020-01-02T01:00:00.000Z",
-      index: 1,
-      inputs: [],
-      outputs: [],
-    }, {
-      asset: Assets.ETH,
-      quantity: "0.01",
-      history: [
-        { date: "2020-01-01T01:00:00Z", account: one },
-        { date: "2020-01-02T01:00:00Z", account: two },
-      ],
-      disposeDate: "2020-01-03T01:00:00.000Z",
-      index: 2,
-      inputs: [],
-      outputs: [],
-    }, {
-      asset: Assets.ETH,
-      quantity: "0.50",
-      history: [
-        { date: "2020-01-01T01:00:00Z", account: one },
-        { date: "2020-01-02T01:00:00Z", account: two },
-      ],
-      index: 3,
-      inputs: [],
-      outputs: [],
-    }, {
-      asset: Assets.DAI,
-      quantity: "50",
-      history: [{ date: "2020-01-01T01:00:00Z", account: one }],
-      account: two,
-      index: 4,
-      inputs: [],
-      outputs: Array.from(Array(25).keys()) // inconsistent for demo purposes
-    }],
-    date: (new Date(0)).toISOString(),
-    events: [{
-      date: "2020-01-01T01:00:00Z", 
-      index: 0,
-      type: EventTypes.Income,
-      account: one,
-      inputs: [0, 1, 2],
-    }, {
-      date: "2020-01-02T01:00:00Z", 
-      index: 1,
-      type: EventTypes.Expense,
-      account: one,
-      outputs: [1],
-    }, {
-      date: "2020-01-03T01:00:00Z", 
-      index: 2,
-      type: EventTypes.Expense,
-      account: two,
-      outputs: [0, 2],
-    }],
+    // At the time of depositing UNI onto coinbase
+    [transactions.json[4].date.split("T")[0]]: { [USD]: { [UNI]: "4" } },
+    // At the time of selling UNI on coinbase
+    [transactions.json[5].date.split("T")[0]]: { [USD]: { [UNI]: "6" } },
   },
 });
-
-export const prices = getPrices();
+prices.syncChunks(vm.json.chunks);

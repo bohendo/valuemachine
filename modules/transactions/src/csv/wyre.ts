@@ -1,29 +1,28 @@
 import {
   Asset,
-  Guards,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 import { gt } from "@valuemachine/utils";
 
 import { Assets } from "../assets";
+import { CsvSources, Guards } from "../enums";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
 
 const guard = Guards.USA;
 
 const { DAI, ETH, SAI, USD } = Assets;
-const { Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
+const { Fee, SwapIn, SwapOut, Internal } = TransferCategories;
 
 export const mergeWyreTransactions = (
   oldTransactions: Transaction[],
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const source = TransactionSources.Wyre;
+  const source = CsvSources.Wyre;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of wyre data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
@@ -82,7 +81,7 @@ export const mergeWyreTransactions = (
     } else if (txType === "INCOMING" && destType === sourceType) {
       transaction.transfers.push({
         asset: destType,
-        category: Deposit,
+        category: Internal,
         from: `${getGuard(destType)}/unknown`,
         quantity: destQuantity,
         to: account,
@@ -109,7 +108,7 @@ export const mergeWyreTransactions = (
     } else if (txType === "OUTGOING" && destType === sourceType) {
       transaction.transfers.push({
         asset: destType,
-        category: Withdraw,
+        category: Internal,
         from: account,
         quantity: destQuantity,
         to: `${getGuard(destType)}/unknown`,
@@ -136,7 +135,7 @@ export const mergeWyreTransactions = (
 
     // Add fees paid to exchange
     const feeTransfer = {
-      category: Expense,
+      category: Fee,
       from: account,
       to: exchange,
     };

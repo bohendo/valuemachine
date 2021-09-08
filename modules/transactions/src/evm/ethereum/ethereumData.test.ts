@@ -1,6 +1,6 @@
-import { Guards } from "@valuemachine/types";
 import { getTransactionsError } from "@valuemachine/utils";
 
+import { Guards } from "../../enums";
 import {
   env,
   expect,

@@ -47,7 +47,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 
 
@@ -59,7 +59,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    expect(tx.transfers[1].category).to.equal(TransferCategories.Withdraw);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 
   it("should parse a yGov registration", async () => { // withdraw
@@ -80,7 +80,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    expect(tx.transfers[1].category).to.equal(TransferCategories.Withdraw);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
     expect(tx.transfers[2].category).to.equal(TransferCategories.Income);
   });
 

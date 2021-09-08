@@ -1,7 +1,6 @@
 export * from "./addressBook";
 export * from "./csv";
 export * from "./evmData";
-export * from "./guards";
 export * from "./logger";
 export * from "./prices";
 export * from "./store";

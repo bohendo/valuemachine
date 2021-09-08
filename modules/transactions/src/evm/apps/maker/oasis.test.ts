@@ -11,7 +11,6 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Oasis;
-const { Expense, SwapIn, SwapOut } = TransferCategories;
 const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
@@ -25,12 +24,9 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const base = tx.transfers[0];
-    expect(base.category).to.equal(Expense);
-    const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(SwapOut);
-    const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(SwapIn);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle a v1 sell", async () => {
@@ -41,8 +37,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(1);
-    const swapIn = tx.transfers[0];
-    expect(swapIn.category).to.equal(SwapIn);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle a swap via proxy", async () => {
@@ -53,10 +48,8 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(SwapOut);
-    const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(SwapIn);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
 });

@@ -20,7 +20,7 @@ import { apps } from "./enums";
 
 export const appName = apps.Idle;
 
-const { Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
+const { Internal, SwapIn, SwapOut } = TransferCategories;
 const {
   IDLE, idleDAISafe, idleDAIYield, idleRAIYield, idleSUSDYield, idleTUSDYield,
   idleUSDCSafe, idleUSDCYield, idleUSDTSafe, idleUSDTYield, idleWBTCYield, idleWETHYield,
@@ -91,7 +91,7 @@ export const coreParser = (
             transfer.asset === IDLE && transfer.quantity === value && isSelf(transfer.from)
           );
           if (deposit) {
-            deposit.category = Deposit;
+            deposit.category = Internal;
             deposit.to = account;
             tx.method = "Stake";
           } else {
@@ -108,7 +108,7 @@ export const coreParser = (
             transfer.asset === IDLE && transfer.quantity === value && isSelf(transfer.to)
           );
           if (withdraw) {
-            withdraw.category = Withdraw;
+            withdraw.category = Internal;
             withdraw.from = account;
             tx.method = "Unstake";
           } else {

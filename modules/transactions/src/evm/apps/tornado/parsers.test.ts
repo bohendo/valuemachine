@@ -11,7 +11,6 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Tornado;
-const { Expense, Deposit, Withdraw } = TransferCategories;
 const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
@@ -26,7 +25,7 @@ describe(appName, () => {
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
     const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(Deposit);
+    expect(deposit.category).to.equal(TransferCategories.Internal);
   });
 
   it("should handle withdraws from tornado", async () => {
@@ -37,10 +36,8 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
-    const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(Withdraw);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 
 });

@@ -8,37 +8,35 @@ import {
   testLogger,
 } from "../testUtils";
 
-const source = "Compound";
-const { Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
-const logger = testLogger.child({ module: `Test${source}` }, {
+import { apps } from "./enums";
+
+const appName = apps.Compound;
+const logger = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
 
-describe(source, () => {
-  it("should handle deposits to comound v1", async () => {
+describe(appName, () => {
+  it("should handle deposits to compound v1", async () => {
     const tx = await parseEthTx({
       hash: "0x4bd1cb92d370a3b69b697e606e905d76a003b28c1605d2e46c9a887202b72ae0",
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(Deposit);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 
-  it("should handle withdrawals from comound v1", async () => {
+  it("should handle withdrawals from compound v1", async () => {
     const tx = await parseEthTx({
       hash: "0x1ebdcb2989fe980c40bbce3e68a9d74832ab67a4a0ded2be503ec61335e4bad6",
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const income = tx.transfers[1];
-    expect(income.category).to.equal(Income);
-    const withdraw = tx.transfers[2];
-    expect(withdraw.category).to.equal(Withdraw);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Income);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.Internal);
   });
 
   it("should handle deposits to compound v2", async () => {
@@ -48,10 +46,8 @@ describe(source, () => {
       logger,
     });
     expect(tx.transfers.length).to.equal(3);
-    const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(SwapOut);
-    const cToken = tx.transfers[2];
-    expect(cToken.category).to.equal(SwapIn);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle withdrawals from compound v2", async () => {
@@ -60,12 +56,10 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const withdraw = tx.transfers[1];
-    expect(withdraw.category).to.equal(SwapIn);
-    const cToken = tx.transfers[2];
-    expect(cToken.category).to.equal(SwapOut);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapOut);
   });
 
   it("should handle compound v2 market entries", async () => {
@@ -74,7 +68,7 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(1);
   });
 
@@ -84,10 +78,9 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    const borrow = tx.transfers[1];
-    expect(borrow.category).to.equal(Borrow);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Borrow);
   });
 
   it("should handle repayments to compound v2", async () => {
@@ -96,10 +89,11 @@ describe(source, () => {
       selfAddress: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
       logger,
     });
-    expect(tx.apps).to.include(source);
+    expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const repay = tx.transfers[1];
-    expect(repay.category).to.equal(Repay);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.Refund);
   });
 
 });

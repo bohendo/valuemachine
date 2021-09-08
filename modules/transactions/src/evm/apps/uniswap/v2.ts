@@ -15,15 +15,17 @@ import { parseEvent } from "../utils";
 
 import {
   addresses,
+  routerAddresses,
   airdropAddresses,
   stakingAddresses,
   v1MarketAddresses,
   v2MarketAddresses,
 } from "./addresses";
+import { apps } from "./enums";
 
-export const appName = "Uniswap";
+const appName = apps.Uniswap;
 
-const { Income, Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
+const { Income, Expense, Refund, SwapIn, SwapOut, Internal } = TransferCategories;
 
 ////////////////////////////////////////
 /// Abis
@@ -72,14 +74,16 @@ export const v2Parser = (
 
   const getSwaps = () => {
     const swapsOut = tx.transfers.filter((transfer: Transfer): boolean =>
-      isSelf(transfer.from)
-        && addresses.some(e => transfer.to === e.address)
-        && ([Expense, SwapOut] as string[]).includes(transfer.category)
+      isSelf(transfer.from) && (
+        routerAddresses.some(e => transfer.to === e.address) ||
+        v2MarketAddresses.some(e => transfer.to === e.address)
+      ) && transfer.category === Expense
     );
     const swapsIn = tx.transfers.filter((transfer: Transfer): boolean =>
-      isSelf(transfer.to)
-        && addresses.some(e => transfer.from === e.address)
-        && ([Income, SwapIn] as string[]).includes(transfer.category)
+      isSelf(transfer.to) && (
+        routerAddresses.some(e => transfer.from === e.address) ||
+        v2MarketAddresses.some(e => transfer.from === e.address)
+      ) && transfer.category === Income
     );
     // SwapIn entries for assets that don't exist in swapsOut should come first
     const ofType = asset => swap => swap.asset === asset;
@@ -122,21 +126,22 @@ export const v2Parser = (
       "Swap", "Mint", "Burn", // V2
     ].includes(event.name)) {
       const swaps = getSwaps();
+      log.info(swaps, `Got swaps:`);
       if (!swaps.in.length || !swaps.out.length) {
         log.warn(`Missing ${subsrc} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
         continue;
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
-      swaps.in.forEach(swap => {
-        swap.category = SwapIn;
-        swap.from = address;
-      });
       swaps.out.forEach(swap => {
         swap.category = SwapOut;
         swap.to = address;
       });
-      swaps.in.forEach(swap => { swap.index = swap.index || index; });
-      swaps.out.forEach(swap => { swap.index = swap.index || index; });
+      swaps.in.forEach(swap => {
+        swap.category = swaps.out.some(swapOut => swapOut.asset === swap.asset) ? Refund : SwapIn;
+        swap.from = address;
+      });
+      swaps.out.forEach(swap => { swap.index = "index" in swap ? swap.index : index; });
+      swaps.in.forEach(swap => { swap.index = "index" in swap ? swap.index : index; });
 
       ////////////////////////////////////////
       // Swaps
@@ -176,7 +181,7 @@ export const v2Parser = (
         isSelf(transfer.from)
           && stakingAddresses.some(e => transfer.to === e.address)
           && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([Expense, Deposit] as string[]).includes(transfer.category)
+          && ([Expense, Internal] as string[]).includes(transfer.category)
       );
       if (!deposit) {
         log.warn(`${subsrc} ${event.name} couldn't find a deposit to ${address}`);
@@ -184,7 +189,7 @@ export const v2Parser = (
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
       const account = insertVenue(deposit.from, appName);
-      deposit.category = Deposit;
+      deposit.category = Internal;
       deposit.to = account;
       tx.method = "Deposit";
 
@@ -195,7 +200,7 @@ export const v2Parser = (
         isSelf(transfer.to)
           && stakingAddresses.some(e => transfer.from === e.address)
           && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([Income, Withdraw] as string[]).includes(transfer.category)
+          && ([Income, Internal] as string[]).includes(transfer.category)
       );
       if (!withdraw) {
         log.warn(`${subsrc} ${event.name} couldn't find a withdraw from staking pool}`);
@@ -203,7 +208,7 @@ export const v2Parser = (
       }
       log.info(`Parsing ${subsrc} ${event.name}`);
       const account = insertVenue(withdraw.to, appName);
-      withdraw.category = Withdraw;
+      withdraw.category = Internal;
       withdraw.from = account;
       tx.method = "Withdraw";
 

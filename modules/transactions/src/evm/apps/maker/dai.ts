@@ -35,7 +35,7 @@ const appName = apps.Dai;
 
 const { ETH, WETH } = EvmAssets;
 const { DAI, PETH, SAI } = assets;
-const { Expense, Income, Deposit, Withdraw, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
+const { Expense, Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 ////////////////////////////////////////
 /// Addresses
@@ -210,12 +210,12 @@ export const daiParser = (
         );
         if (transfer) {
           if (gt(wad, "0")) {
-            transfer.category = Deposit;
+            transfer.category = Internal;
             transfer.to = insertVenue(transfer.from, vault);
             transfer.index = transfer.index || txLog.index;
             tx.method = "Deposit";
           } else {
-            transfer.category = Withdraw;
+            transfer.category = Internal;
             transfer.from = insertVenue(transfer.to, vault);
             transfer.index = transfer.index || txLog.index;
             tx.method = "Withdraw";
@@ -246,6 +246,7 @@ export const daiParser = (
             transfer.from = insertVenue(transfer.to, vault);
             tx.method = "Borrow";
           } else {
+            // TODO: tag fee transfer..?
             transfer.category = Repay;
             transfer.to = insertVenue(transfer.from, vault);
             tx.method = "Repayment";
@@ -272,7 +273,7 @@ export const daiParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (deposit) {
-          deposit.category = Deposit;
+          deposit.category = Internal;
           deposit.to = insertVenue(deposit.from, `${appName}-DSR`);
           tx.method = "Deposit";
         } else {
@@ -287,7 +288,7 @@ export const daiParser = (
           valuesAreClose(t.quantity, wad, div(wad, "10"))
         );
         if (withdraw) {
-          withdraw.category = Withdraw;
+          withdraw.category = Internal;
           withdraw.from = insertVenue(withdraw.to, `${appName}-DSR`);
           tx.method = "Withdraw";
         } else {

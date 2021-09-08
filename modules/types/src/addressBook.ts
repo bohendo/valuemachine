@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { Account } from "./strings";
+import { Account, Guard } from "./strings";
 
 ////////////////////////////////////////
 // JSON Schema
@@ -45,6 +45,7 @@ export const AddressEntry = Type.Object({
   category: AddressCategory,
   decimals: Type.Optional(Type.Number()), // for ERC20 token addresses
   name: Type.String(),
+  guard: Type.Optional(Guard), // EOAs should be secured by a physical guard too
 });
 export type AddressEntry = Static<typeof AddressEntry>;
 

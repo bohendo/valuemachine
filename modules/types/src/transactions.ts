@@ -3,46 +3,38 @@ import { Static, Type } from "@sinclair/typebox";
 import { AddressBook } from "./addressBook";
 import { EvmMetadata, EvmTransaction } from "./evmData";
 import { Logger } from "./logger";
-import { DigitalGuards } from "./guards";
-import { Account, Asset, Bytes32, DecimalString, TimestampString } from "./strings";
+import {
+  Account,
+  Asset,
+  Bytes32,
+  DecimalString,
+  TimestampString,
+  TransactionSource,
+} from "./strings";
 import { Store } from "./store";
 
 ////////////////////////////////////////
 // JSON Schema
 
-export const CsvSources = {
-  Coinbase: "Coinbase",
-  DigitalOcean: "DigitalOcean",
-  Wyre: "Wyre",
-  Wazirx: "Wazirx",
+export const OutgoingTransfers = {
+  Expense: "Expense",
+  Fee: "Fee",
+  Repay: "Repay",
+  SwapOut: "SwapOut",
 } as const;
-export const CsvSource = Type.String(); // Extensible
-export type CsvSource = Static<typeof CsvSource>;
 
-export const ChainSources = {
-  ...DigitalGuards,
+export const IncomingTransfers = {
+  Income: "Income",
+  Refund: "Refund",
+  Borrow: "Borrow",
+  SwapIn: "SwapIn",
 } as const;
-export const ChainSource = Type.String(); // Extensible
-export type ChainSource = Static<typeof ChainSource>;
-
-export const TransactionSources = {
-  ...CsvSources,
-  ...ChainSources,
-} as const;
-export const TransactionSource = Type.String();
-export type TransactionSource = Static<typeof TransactionSource>;
 
 export const TransferCategories = {
+  ...OutgoingTransfers,
+  ...IncomingTransfers,
   Internal: "Internal",
-  Unknown: "Unknown",
-  Expense: "Expense",
-  Income: "Income",
-  SwapIn: "SwapIn",
-  SwapOut: "SwapOut",
-  Borrow: "Borrow",
-  Repay: "Repay",
-  Deposit: "Deposit",
-  Withdraw: "Withdraw",
+  Unknown: "Unknown", // TODO: rm?
 } as const;
 export const TransferCategory = Type.Enum(TransferCategories); // NOT Extensible
 export type TransferCategory = Static<typeof TransferCategory>;
@@ -101,6 +93,6 @@ export type TransactionsParams = {
 
 export type Transactions = {
   json: TransactionsJson;
-  mergeCsv: (csvData: string, parser: CsvSource | CsvParser) => void;
+  mergeCsv: (csvData: string, parser: TransactionSource | CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
 };

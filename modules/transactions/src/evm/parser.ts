@@ -15,7 +15,7 @@ import {
 } from "@valuemachine/types";
 import { dedup, gt, getNewContractAddress } from "@valuemachine/utils";
 
-const { Expense, Income, Internal, Unknown } = TransferCategories;
+const { Expense, Fee, Income, Internal, Unknown } = TransferCategories;
 
 export const parseEvmTx = (
   evmTx: EvmTransaction,
@@ -47,7 +47,7 @@ export const parseEvmTx = (
   if (isSelf(evmTx.from)) {
     tx.transfers.push({
       asset: evmMetadata.feeAsset,
-      category: Expense,
+      category: Fee,
       from: evmTx.from,
       index: -1,
       quantity: formatEther(BigNumber.from(evmTx.gasUsed).mul(evmTx.gasPrice)),
@@ -94,7 +94,7 @@ export const parseEvmTx = (
       tx.transfers.push({
         asset: evmMetadata.feeAsset,
         category: getSimpleCategory(evmTransfer.to, evmTransfer.from),
-        index: 0, // Internal evm transfers have no index
+        // index: 0, // Internal evm transfers have no index
         from: evmTransfer.from,
         quantity: evmTransfer.value,
         to: evmTransfer.to,

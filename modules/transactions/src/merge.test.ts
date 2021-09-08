@@ -1,12 +1,10 @@
 import { HashZero } from "@ethersproject/constants";
 import {
-  Guards,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 
-import { Assets } from "./assets";
+import { Assets, Guards, TransactionSources } from "./enums";
 import { mergeTransaction } from "./merge";
 import {
   expect,
@@ -14,7 +12,7 @@ import {
 } from "./testUtils";
 
 const { ETH } = Assets;
-const { Expense, Deposit } = TransferCategories;
+const { Expense, Internal } = TransferCategories;
 const { Coinbase, Ethereum } = TransactionSources;
 const csvSource = Coinbase;
 const log = testLogger.child({ module: "TestMerge" }, {
@@ -33,7 +31,7 @@ const getCsvTx = (): Transaction => ({
   transfers: [
     {
       asset: ETH,
-      category: Deposit,
+      category: Internal,
       from: "ETH-account",
       quantity: value.substring(0, 10),
       to: `${csvSource}-account`
@@ -80,7 +78,7 @@ describe("Merge", () => {
     const tx = txns[0];
     expect(tx.sources).to.include(csvSource);
     expect(tx.sources).to.include(Ethereum);
-    expect(tx.transfers[1].category).to.equal(Deposit);
+    expect(tx.transfers[1].category).to.equal(Internal);
     expect(tx.transfers[1].to).to.include(csvSource);
   });
 
@@ -99,7 +97,7 @@ describe("Merge", () => {
     const tx = txns[0];
     expect(tx.sources).to.include(csvSource);
     expect(tx.sources).to.include(Ethereum);
-    expect(tx.transfers[1].category).to.equal(Deposit);
+    expect(tx.transfers[1].category).to.equal(Internal);
     expect(tx.transfers[1].to).to.include(csvSource);
   });
 

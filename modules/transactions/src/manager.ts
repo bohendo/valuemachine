@@ -1,10 +1,9 @@
 import {
   CsvParser,
-  CsvSource,
-  CsvSources,
   StoreKeys,
   Transactions,
   TransactionsJson,
+  TransactionSource,
   TransactionsParams,
 } from "@valuemachine/types";
 import {
@@ -18,6 +17,7 @@ import {
   mergeWazirxTransactions,
   mergeWyreTransactions,
 } from "./csv";
+import { CsvSources } from "./enums";
 import { mergeTransaction } from "./merge";
 
 export const getTransactions = (params?: TransactionsParams): Transactions => {
@@ -57,7 +57,7 @@ export const getTransactions = (params?: TransactionsParams): Transactions => {
   ////////////////////////////////////////
   // Exported Methods
 
-  const mergeCsv = (csvData: string, parser: CsvSource | CsvParser): void => {
+  const mergeCsv = (csvData: string, parser: TransactionSource | CsvParser): void => {
     if (parser === CsvSources.Coinbase) {
       mergeCoinbaseTransactions(json, csvData, log);
     } else if (parser === CsvSources.DigitalOcean) {

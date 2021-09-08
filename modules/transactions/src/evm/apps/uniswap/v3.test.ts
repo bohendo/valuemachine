@@ -23,7 +23,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.method).to.match(/swap/i);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });

@@ -512,16 +512,14 @@ export const getPrices = (params?: PricesParams): Prices => {
       .map(date => ({
         date,
         out: chunks.reduce((output, chunk) => {
-          if (chunk.disposeDate === date && chunk.outputs?.length) {
-            output[chunk.asset] = output[chunk.asset] || "0";
-            output[chunk.asset] = add(output[chunk.asset], chunk.quantity);
+          if (chunk.disposeDate === date && chunk.outputs?.length && gt(chunk.quantity, "0")) {
+            output[chunk.asset] = add(output[chunk.asset] || "0", chunk.quantity);
           }
           return output;
         }, {}),
         in: chunks.reduce((input, chunk) => {
-          if (chunk.history[0]?.date === date && chunk.inputs?.length) {
-            input[chunk.asset] = input[chunk.asset] || "0";
-            input[chunk.asset] = add(input[chunk.asset], chunk.quantity);
+          if (chunk.history[0]?.date === date && chunk.inputs?.length && gt(chunk.quantity, "0")) {
+            input[chunk.asset] = add(input[chunk.asset] || "0", chunk.quantity);
           }
           return input;
         }, {}),
@@ -531,7 +529,10 @@ export const getPrices = (params?: PricesParams): Prices => {
       .forEach(swap => {
         const date = formatDate(swap.date);
         const prices = {};
-        const assets = { in: Object.keys(swap.in), out: Object.keys(swap.out) };
+        const assets = {
+          in: Object.keys(swap.in).filter(asset => gt(swap.in[asset], "0")),
+          out: Object.keys(swap.out).filter(asset => gt(swap.out[asset], "0")),
+        };
         const amts = {
           in: assets.in.map(asset => swap.in[asset]),
           out: assets.out.map(asset => swap.out[asset]),
@@ -542,6 +543,7 @@ export const getPrices = (params?: PricesParams): Prices => {
         if (assets.in.length === 1 && assets.out.length === 1) {
           const asset = { in: assets.in[0], out: assets.out[0] };
           const amt = { in: amts.in[0], out: amts.out[0] };
+          if (eq(amt.in, "0") || eq(amt.out, "0")) return;
           prices[asset.out] = prices[asset.out] || {};
           prices[asset.in] = prices[asset.in] || {};
           prices[asset.out][asset.in] = div(amt.out, amt.in);

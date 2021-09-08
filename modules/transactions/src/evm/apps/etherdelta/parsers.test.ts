@@ -11,7 +11,6 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.EtherDelta;
-const { Expense, Deposit, Withdraw, SwapIn, SwapOut } = TransferCategories;
 const log = testLogger.child({ module: `Test${appName}` }, {
   // level: "debug",
 });
@@ -25,10 +24,8 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
-    const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(Deposit);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 
   it("should handle a trade", async () => {
@@ -39,12 +36,9 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
-    const swapOut = tx.transfers[1];
-    expect(swapOut.category).to.equal(SwapOut);
-    const swapIn = tx.transfers[2];
-    expect(swapIn.category).to.equal(SwapIn);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle a withdraw", async () => {
@@ -55,9 +49,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
-    const fee = tx.transfers[0];
-    expect(fee.category).to.equal(Expense);
-    const deposit = tx.transfers[1];
-    expect(deposit.category).to.equal(Withdraw);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 });

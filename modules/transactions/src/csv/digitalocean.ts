@@ -1,12 +1,12 @@
 import {
   Transaction,
-  TransactionSources,
   Logger,
   TransferCategories,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 
 import { Assets } from "../assets";
+import { CsvSources } from "../enums";
 import { mergeTransaction } from "../merge";
 
 export const mergeDigitalOceanTransactions = (
@@ -14,7 +14,7 @@ export const mergeDigitalOceanTransactions = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const source = TransactionSources.DigitalOcean;
+  const source = CsvSources.DigitalOcean;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of digital ocean data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {

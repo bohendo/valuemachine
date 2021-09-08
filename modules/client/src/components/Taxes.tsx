@@ -12,7 +12,7 @@ import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import { DateInput, TaxTable } from "@valuemachine/react";
 import {
-  Assets,
+  Guards,
 } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -21,23 +21,12 @@ import {
   DecimalString,
   EventTypes,
   Guard,
-  GuardChangeEvent,
-  Guards,
-  PhysicalGuards,
   Prices,
   TradeEvent,
-  TransferCategories,
   ValueMachine,
 } from "@valuemachine/types";
-import {
-  add,
-  mul,
-  sub,
-} from "@valuemachine/utils";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
-
-const { ETH } = Assets;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -110,95 +99,13 @@ export const TaxesExplorer: React.FC<PropTypes> = ({
         return all;
       }, new Set())
     ).sort() as Guard[];
-    setAllGuards(newGuards.filter(g => Object.keys(PhysicalGuards).includes(g)));
+    setAllGuards(newGuards);
     setGuard(newGuards[0]);
   }, [addressBook, vm]);
 
   useEffect(() => {
     if (!addressBook || !guard || !vm?.json?.events?.length) return;
-    let cumulativeIncome = "0";
-    let cumulativeChange = "0";
-    setTaxes(
-      vm?.json?.events.filter(evt => {
-        const toJur = (
-          (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
-        ).split("/")[0];
-        return toJur === guard && (
-          evt.type === EventTypes.Trade
-          || evt.type === EventTypes.GuardChange
-          || evt.type === EventTypes.Income
-        );
-      }).reduce((output, evt) => {
-        const date = (evt as any).date || new Date().toISOString();
-        if (evt.type === EventTypes.Trade) {
-          return output.concat(...evt.outputs?.map(chunkIndex => {
-            const chunk = vm.getChunk(chunkIndex);
-            const price = prices.getPrice(date, chunk.asset);
-            const value = mul(chunk.quantity, price || "0");
-            if (chunk.history[0]?.date) {
-              const receivePrice = prices.getPrice(chunk.history[0]?.date, chunk.asset);
-              const capitalChange = mul(chunk.quantity, sub(price || "0", receivePrice || "0"));
-              cumulativeChange = add(cumulativeChange, capitalChange);
-              return {
-                date: date,
-                action: EventTypes.Trade,
-                amount: chunk.quantity,
-                asset: chunk.asset,
-                price,
-                value,
-                receivePrice,
-                receiveDate: date, // wrong!
-                capitalChange,
-                cumulativeChange,
-                cumulativeIncome,
-              } as TaxRow;
-            } else {
-              return {
-                date: date,
-                receiveDate: date, // wrong!
-              } as TaxRow;
-            }
-          }));
-        } else if (evt.type === TransferCategories.Income) {
-          const price = prices.getPrice(date, ETH/*TODO evt.asset*/);
-          const income = mul("0"/*TODO evt.quantity*/, price || "0");
-          cumulativeIncome = add(cumulativeIncome, income);
-          return output.concat({
-            date: date,
-            action: TransferCategories.Income,
-            amount: "0", // TODO evt.quantity,
-            asset: ETH, // TODO evt.asset
-            price,
-            value: income,
-            receivePrice: price,
-            receiveDate: date,
-            capitalChange: "0",
-            cumulativeChange,
-            cumulativeIncome,
-          } as TaxRow);
-        } else if (evt.type === EventTypes.GuardChange) {
-          console.warn(evt, `Temporarily pretending this guard change is income`);
-          const price = prices.getPrice(date, ETH /*TODO evt.asset*/);
-          const income = mul("0"/*TODO evt.quantity*/, price || "0");
-          cumulativeIncome = add(cumulativeIncome, income);
-          return output.concat({
-            date: date,
-            action: TransferCategories.Deposit,
-            amount: "0", // TODO evt.quantity,
-            asset: ETH, // TODO evt.asset
-            price,
-            value: income,
-            receivePrice: price,
-            receiveDate: date,
-            capitalChange: "0",
-            cumulativeChange,
-            cumulativeIncome,
-          } as TaxRow);
-        } else {
-          return output;
-        }
-      }, [] as TaxRow[])
-    );
+    setTaxes([] as TaxRow[]); // TODO: put events->tax logic into the csv exporter component?
   }, [addressBook, guard, vm, prices]);
 
   const handleExport = () => {
@@ -233,7 +140,7 @@ export const TaxesExplorer: React.FC<PropTypes> = ({
       <Divider/>
 
       <Typography variant="body1" className={classes.root}>
-        Physical security provided by: {allGuards.join(", ")}
+        Security provided by: {allGuards.join(", ")}
       </Typography>
 
       <Grid

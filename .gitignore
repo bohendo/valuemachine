@@ -17,6 +17,7 @@ modules/client/src/data
 
 # Cache
 **/.cache
+**/.rollup.cache
 **/.config
 **/.git
 **/.node-gyp

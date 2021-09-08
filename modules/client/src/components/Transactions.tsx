@@ -6,12 +6,14 @@ import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
 import ClearIcon from "@material-ui/icons/Delete";
 import { TransactionTable } from "@valuemachine/react";
-import { getTransactions } from "@valuemachine/transactions";
+import {
+  getTransactions,
+} from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
   CsvFiles,
-  CsvSource,
+  TransactionSource,
   Transactions,
   TransactionsJson,
 } from "@valuemachine/types";
@@ -19,7 +21,7 @@ import { getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
 import axios from "axios";
 
-const logger = getLogger("info");
+const logger = getLogger("warn");
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
@@ -111,7 +113,7 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
           csvFile.data.split("\n").length
         } rows of ${csvFile.type} data from ${csvFile.name}`);
         await new Promise((res) => setTimeout(res, 200)); // let sync message re-render
-        newTransactions.mergeCsv(csvFile.data, csvFile.type as CsvSource);
+        newTransactions.mergeCsv(csvFile.data, csvFile.type as TransactionSource);
       }
     }
     setTransactionsJson(newTransactions.json);

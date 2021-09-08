@@ -1,27 +1,26 @@
 import {
-  Guards,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
   TransferCategory,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 import { gt } from "@valuemachine/utils";
 
+import { CsvSources, Guards } from "../enums";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
 
 const guard = Guards.USA;
 
-const { Expense, SwapIn, SwapOut, Deposit, Withdraw, Unknown } = TransferCategories;
+const { Fee, SwapIn, SwapOut, Internal, Unknown } = TransferCategories;
 
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const source = TransactionSources.Coinbase;
+  const source = CsvSources.Coinbase;
   const log = logger.child({ module: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of coinbase data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
@@ -49,11 +48,11 @@ export const mergeCoinbaseTransactions = (
     let [from, to, category] = ["", "", Unknown as TransferCategory];
 
     if (txType === "Send") {
-      [from, to, category] = [account, external, Withdraw];
+      [from, to, category] = [account, external, Internal];
       transaction.method = "Withdraw";
 
     } else if (txType === "Receive") {
-      [from, to, category] = [external, account, Deposit];
+      [from, to, category] = [external, account, Internal];
       transaction.method = "Deposit";
 
     } else if (txType === "Sell") {
@@ -84,7 +83,7 @@ export const mergeCoinbaseTransactions = (
     if (gt(fees, "0")) {
       transaction.transfers.push({
         asset: "USD",
-        category: Expense,
+        category: Fee,
         from: account,
         quantity: fees,
         to: exchange,

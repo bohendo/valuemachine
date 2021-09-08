@@ -4,7 +4,6 @@ import {
   Asset,
   EvmMetadata,
   EvmTransaction,
-  Guards,
   Logger,
   Transaction,
   Transfer,
@@ -16,6 +15,7 @@ import {
   assetsAreClose,
 } from "@valuemachine/utils";
 
+import { EvmNames } from "../../enums";
 import { parseEvent } from "../../utils";
 
 import { addresses, defiAddresses } from "./addresses";
@@ -85,8 +85,8 @@ export const coreParser = (
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
-  const prefix = evmMeta.name === Guards.Ethereum ? "a"
-    : evmMeta.name === Guards.Polygon ? "am"
+  const prefix = evmMeta.name === EvmNames.Ethereum ? "a"
+    : evmMeta.name === EvmNames.Polygon ? "am"
     : "";
 
   const stkAAVEAddress = addresses.find(e => e.name === assets.stkAAVE)?.address;
@@ -190,6 +190,7 @@ export const coreParser = (
       }
 
     } else if (stkAAVEAddress === address) {
+      tx.apps.push(appName);
       const event = parseEvent(aaveStakeAbi, txLog, evmMeta);
       if (event.name === "Staked" && (event.args.from===event.args.onBehalfOf) ) {
         const asset1 = assets.AAVE;

@@ -1,6 +1,5 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
-import { getAddressBook, getPolygonData } from "@valuemachine/transactions";
-import { Guards } from "@valuemachine/types";
+import { getAddressBook, getPolygonData, Guards } from "@valuemachine/transactions";
 import { getLogger, getAddressBookError } from "@valuemachine/utils";
 import express from "express";
 

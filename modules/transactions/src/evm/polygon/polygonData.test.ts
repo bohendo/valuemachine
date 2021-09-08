@@ -1,6 +1,7 @@
-import { ChainData, Guards } from "@valuemachine/types";
+import { ChainData } from "@valuemachine/types";
 import { getTransactionsError } from "@valuemachine/utils";
 
+import { Guards } from "../../enums";
 import {
   env,
   expect,

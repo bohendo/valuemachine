@@ -22,7 +22,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.method).to.match(/deposit/i);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
@@ -35,7 +35,7 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.method).to.match(/withdrawal/i);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.Expense);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Income);
     expect(tx.transfers[2].category).to.equal(TransferCategories.Income);
     expect(tx.transfers[3].category).to.equal(TransferCategories.Income);
@@ -51,6 +51,6 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.method).to.match(/stake/i);
-    expect(tx.transfers[1].category).to.equal(TransferCategories.Deposit);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
 });

@@ -163,7 +163,7 @@ export const coreParser = (
         if (event.name === "NewDepositBlock") {
           tx.transfers.push({
             asset: getName(event.args.token),
-            category: TransferCategories.Deposit,
+            category: TransferCategories.Internal,
             from: event.args.owner,
             index: txLog.index,
             quantity: formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token)),
@@ -190,7 +190,7 @@ export const coreParser = (
             && addressBook.isSelf(transfer.from)
           );
           if (deposit) {
-            deposit.category = TransferCategories.Deposit;
+            deposit.category = TransferCategories.Internal;
             deposit.to = `Polygon/${event.args.owner.split("/").pop()}`;
             tx.method = "Plasma Bridge to Polygon";
           } else {

@@ -1,12 +1,11 @@
 import {
-  Guards,
   Logger,
   Transaction,
-  TransactionSources,
   TransferCategories,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 
+import { CsvSources, Guards } from "../enums";
 import { Assets } from "../assets";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
@@ -14,14 +13,14 @@ import { getGuard } from "../utils";
 const guard = Guards.IND;
 
 const { INR } = Assets;
-const { Internal, Expense, SwapIn, SwapOut, Deposit, Withdraw } = TransferCategories;
+const { Internal, Fee, SwapIn, SwapOut } = TransferCategories;
 
 export const mergeWazirxTransactions = (
   oldTransactions: Transaction[],
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const source = TransactionSources.Wazirx;
+  const source = CsvSources.Wazirx;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
@@ -55,7 +54,7 @@ export const mergeWazirxTransactions = (
       if (txType === "Deposit") {
         transaction.transfers.push({
           asset: currency,
-          category: currency === INR ? Internal : Deposit,
+          category: Internal,
           from: external,
           index,
           quantity,
@@ -66,7 +65,7 @@ export const mergeWazirxTransactions = (
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
           asset: currency,
-          category: currency === INR ? Internal : Withdraw,
+          category: Internal,
           from: account,
           index,
           quantity,
@@ -136,7 +135,7 @@ export const mergeWazirxTransactions = (
 
       transaction.transfers.push({
         asset: feeAsset,
-        category: Expense,
+        category: Fee,
         from: account,
         index: index++,
         quantity: feeAmount,

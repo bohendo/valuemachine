@@ -6,7 +6,7 @@ export const EvmNames = {
   Ethereum: "Ethereum",
   EthereumClassic: "EthereumClassic",
   Polygon: "Polygon",
-};
+} as const;
 
 export const EvmAssets = {
   ...Tokens,

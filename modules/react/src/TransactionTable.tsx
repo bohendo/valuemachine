@@ -12,7 +12,7 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import { EvmApps, Assets } from "@valuemachine/transactions";
+import { Assets, EvmApps, TransactionSources } from "@valuemachine/transactions";
 import {
   AddressBook,
   AddressCategories,
@@ -21,7 +21,6 @@ import {
   Transactions,
   TransactionsJson,
   TransactionSource,
-  TransactionSources,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
@@ -263,7 +262,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"
-          count={transactions?.json?.length || 0}
+          count={filteredTxns?.length || 0}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
