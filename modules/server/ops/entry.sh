@@ -16,12 +16,17 @@ if [[ ! -d "/data" ]]
 then mkdir -p /data
 fi
 
+# Otherwise pino-pretty will output white text
+# Related to: https://github.com/pinojs/pino-pretty/issues/220
+export FORCE_COLOR=1
+
 if [[ "$VM_PROD" == "true" ]]
 then
   echo "Starting valuemachine server in prod-mode"
   exec node --no-deprecation "$prod_target"
 else
-  echo "Starting valuemachine server in dev-mode"
+  echo "Starting valuemachine server in dev-mode w env:"
+  env
   exec ./node_modules/.bin/nodemon \
     --delay 1 \
     --exitcrash \
