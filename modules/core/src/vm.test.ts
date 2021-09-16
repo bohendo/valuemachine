@@ -101,6 +101,36 @@ describe("VM", () => {
     //expect(vm.json.events[2]?.inputs?.every(i => gt(vm.getChunk(i).quantity, "0"))).to.be.true;
   });
 
+  it("should emit an error event during unexpected underflows", async () => {
+    [getTestTx([ // Income
+      { asset: ETH, category: Income, from: notMe, quantity: "1.00", to: ethAccount },
+    ]), getTestTx([ // spend more than we're holding
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: ETH, category: Expense, from: ethAccount, quantity: "1.00", to: notMe },
+    ])].forEach(vm.execute);
+    expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "-0.1" });
+    expect(vm.json.events.length).to.equal(3);
+    expect(vm.json.chunks.length).to.equal(4);
+    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.Expense);
+    expect(vm.json.events[2]?.type).to.equal(EventTypes.Error);
+  });
+
+  it("should emit an error event if swap accounts don't match", async () => {
+    [getTestTx([ // Income
+      { asset: ETH, category: Income, from: notMe, quantity: "2.0", to: ethAccount },
+    ]), getTestTx([ // swap out from one account & swap into a different account
+      { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
+      { asset: ETH, category: SwapOut, from: ethAccount, quantity: "1.0", to: notMe },
+      { asset: UNI, category: SwapIn, from: notMe, quantity: "50.00", to: aaveAccount },
+    ])].forEach(vm.execute);
+    expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "0.9", [UNI]: "50.0" });
+    expect(vm.json.events.length).to.equal(4);
+    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.Error);
+    expect(vm.json.events[2]?.type).to.equal(EventTypes.Trade);
+  });
+
   it("should process borrowing & repaying a loan", async () => {
     [getTestTx([
       { asset: ETH, category: Income, from: notMe, quantity: "10.00", to: ethAccount },

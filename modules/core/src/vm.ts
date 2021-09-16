@@ -511,7 +511,14 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       ) {
         // TODO: how do we handle when to/from values aren't consistent among swap transfers?
         // eg add a synthetic internal transfer to ensure the trade only involve one account?
-        log.warn(`Assets moved accounts mid-trade, assuming the account was ${account}`);
+        const message = `Assets moved accounts mid-trade, assuming the account was ${account}`;
+        log.warn(message);
+        newEvents.push({
+          index: json.events.length + newEvents.length,
+          date: json.date,
+          message,
+          type: EventTypes.Error,
+        });
       }
       // Sum transfers & subtract duplicates to get total values traded
       const [inputs, outputs] = diffBalances([sumTransfers(swapsIn), sumTransfers(swapsOut)]);
@@ -555,15 +562,21 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       }
     });
 
-    // Finalize new events
-    for (const newEvent of newEvents) {
-      json.events.push(newEvent);
-    }
-
     // Finalize tmp chunks??
     for (const tmpChunk of tmpChunks) { json.chunks.push(tmpChunk); }
     if (tmpChunks.length) {
       log.warn(tmpChunks, `We have tmp chunks leftover`);
+      newEvents.push({
+        index: json.events.length + newEvents.length,
+        date: json.date,
+        message: "We have temporary chunks leftover",
+        type: EventTypes.Error,
+      });
+    }
+
+    // Finalize new events
+    for (const newEvent of newEvents) {
+      json.events.push(newEvent);
     }
 
     return newEvents;
