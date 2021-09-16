@@ -24,6 +24,7 @@ import {
 import {
   abs,
   add,
+  dedup,
   eq,
   getEmptyValueMachine,
   getLogger,
@@ -34,7 +35,7 @@ import {
   sub,
 } from "@valuemachine/utils";
 
-import { /*sumChunks,*/ sumTransfers, diffBalances } from "./utils";
+import { sumChunks, sumTransfers, diffBalances } from "./utils";
 
 const {
   Internal, Income, SwapIn, Borrow, Expense, Fee, SwapOut, Repay, Refund
@@ -72,6 +73,9 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   const wasHeld = (account: Account, asset: Asset) => (chunk: AssetChunk): boolean =>
     chunk.asset === asset && chunk.history.some(hist => hist.account === account);
+
+  const getLastOwner = (chunk: AssetChunk): Account =>
+    chunk.account || chunk.history[chunk.history.length - 1].account;
 
   ////////////////////////////////////////
   // Getters
@@ -230,8 +234,10 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       output.push(chunk); // if we got less than we need, move on to the next chunk
       togo = sub(togo, chunk.quantity);
     }
-    log.error(`No chunks left, we still have ${togo} ${asset} to go!`);
-    output.push(underflow(togo, asset, account));
+    if (gt(togo, "0")) {
+      log.error(`No chunks left, we still have ${togo} ${asset} to go!`);
+      output.push(underflow(togo, asset, account));
+    }
     return output;
   };
 
@@ -319,6 +325,8 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       log.debug(`Disposed of all ${asset} from ${account} and underflowed by ${rest.quantity}`);
       return [...available, rest];
     }
+    log.warn(`Wtf how is ${balance} not > or < or = to ${quantity}???`);
+    return [];
   };
 
   const tradeValue = (account: Account, swapsIn: Balances, swapsOut: Balances): void => {
@@ -490,11 +498,30 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     const swapsOut = transfers.filter(transfer => transfer.category === SwapOut);
     if (swapsIn.length && !swapsOut.length) {
       swapsIn.forEach(swap => { swap.category = Income; });
+      const message = `Swap in of ${JSON.stringify(sumChunks(swapsIn))} has no matching swaps out`;
+      log.error(message);
+      newEvents.push({
+        date: json.date,
+        index: json.events.length + newEvents.length,
+        message,
+        type: EventTypes.Error,
+      });
     } else if (swapsOut.length && !swapsIn.length) {
       swapsOut.forEach(swap => { swap.category = Expense; });
+      const message = `Swap out of ${JSON.stringify(sumChunks(swapsOut))} has no matching swaps in`;
+      log.error(message);
+      newEvents.push({
+        date: json.date,
+        index: json.events.length + newEvents.length,
+        message,
+        type: EventTypes.Error,
+      });
     // If we have matching swap transfers, process the trade first
     } else if (swapsOut.length && swapsIn.length) {
-      const account = swapsIn[0].to || swapsOut[0].from;
+      const account = swapsOut[0].from || swapsIn[0].to;
+      // Sum transfers & subtract duplicates to get total values traded
+      const [inputs, outputs] = diffBalances([sumTransfers(swapsIn), sumTransfers(swapsOut)]);
+      tradeValue(account, inputs, outputs);
       if (
         // All self accounts should be the same in all swap transfers
         !swapsIn.every(swap => swap.to === account) ||
@@ -503,17 +530,14 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         // TODO: how do we handle when to/from values aren't consistent among swap transfers?
         // eg add a synthetic internal transfer to ensure the trade only involve one account?
         const message = `Assets moved accounts mid-trade, assuming the account was ${account}`;
-        log.warn(message);
+        log.error(message);
         newEvents.push({
-          index: json.events.length + newEvents.length,
           date: json.date,
+          index: json.events.length + newEvents.length,
           message,
           type: EventTypes.Error,
         });
       }
-      // Sum transfers & subtract duplicates to get total values traded
-      const [inputs, outputs] = diffBalances([sumTransfers(swapsIn), sumTransfers(swapsOut)]);
-      tradeValue(account, inputs, outputs);
     }
 
     // Process all non-swap & non-refund transfers
@@ -555,16 +579,35 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       }
     });
 
-    // Finalize tmp chunks??
-    for (const tmpChunk of tmpChunks) { json.chunks.push(tmpChunk); }
-    if (tmpChunks.length) {
-      log.warn(tmpChunks, `We have tmp chunks leftover`);
-      newEvents.push({
-        index: json.events.length + newEvents.length,
-        date: json.date,
-        message: "We have temporary chunks leftover",
-        type: EventTypes.Error,
-      });
+    // Interpret any leftover tmp chunks as loans
+    // coalesce loans of the same asset type?!
+    tmpChunks.forEach(chunk => json.chunks.push(chunk)); // add leftovers to the master list
+    json.chunks.sort((c1, c2) => c1.index - c2.index);
+    tmpChunks.length && log.warn(`We have ${tmpChunks.length} leftover chunks`);
+    for (const asset of dedup(tmpChunks.map(chunk => chunk.asset))) {
+      for (const account of dedup(tmpChunks.map(getLastOwner))) {
+        const chunks = tmpChunks.filter(chunk =>
+          chunk.asset === asset && getLastOwner(chunk) === account
+        );
+        const total = sumChunks(chunks)[asset];
+        const debt = mintChunk(mul(total, "-1"), asset, account);
+        newEvents.push({
+          date: json.date,
+          index: json.events.length + newEvents.length,
+          type: EventTypes.Debt,
+          inputs: [...chunks.map(toIndex), debt.index],
+          outputs: [],
+          account,
+        } as DebtEvent);
+        const message = `${account} has tmp chunks totalling ${total} ${asset} leftover`;
+        log.error(message);
+        newEvents.push({
+          date: json.date,
+          index: json.events.length + newEvents.length,
+          message,
+          type: EventTypes.Error,
+        });
+      }
     }
 
     // Finalize new events
