@@ -501,9 +501,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       const message = `Swap in of ${JSON.stringify(sumChunks(swapsIn))} has no matching swaps out`;
       log.error(message);
       newEvents.push({
+        account: swapsIn[0].to,
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
+        txId: tx.hash || "?",
         type: EventTypes.Error,
       });
     } else if (swapsOut.length && !swapsIn.length) {
@@ -511,9 +513,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       const message = `Swap out of ${JSON.stringify(sumChunks(swapsOut))} has no matching swaps in`;
       log.error(message);
       newEvents.push({
+        account: swapsOut[0].from,
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
+        txId: tx.hash || "?",
         type: EventTypes.Error,
       });
     // If we have matching swap transfers, process the trade first
@@ -532,9 +536,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         const message = `Assets moved accounts mid-trade, assuming the account was ${account}`;
         log.error(message);
         newEvents.push({
+          account,
           date: json.date,
           index: json.events.length + newEvents.length,
           message,
+          txId: tx.hash || "?",
           type: EventTypes.Error,
         });
       }
@@ -602,9 +608,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         const message = `${account} has tmp chunks totalling ${total} ${asset} leftover`;
         log.error(message);
         newEvents.push({
+          account,
           date: json.date,
           index: json.events.length + newEvents.length,
           message,
+          txId: tx.hash || "?",
           type: EventTypes.Error,
         });
       }
