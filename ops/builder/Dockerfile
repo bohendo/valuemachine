@@ -1,4 +1,4 @@
-FROM node:14.15.4-alpine3.12
+FROM node:14.17.6-alpine3.14
 WORKDIR /root
 ENV HOME /root
 ENV PATH ./node_modules/.bin:/root/node_modules/.bin:$PATH
