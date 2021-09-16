@@ -1,4 +1,4 @@
-FROM node:14.17.6-alpine3.14
+FROM node:12.16.1-alpine3.11
 WORKDIR /root
 ENV HOME /root
 RUN apk add --update --no-cache bash curl git jq make openssl
