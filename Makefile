@@ -71,7 +71,7 @@ clean: stop
 	docker container prune -f
 
 reset-images:
-	rm .flags/proxy .flags/server-image .flags/webserver
+	rm -f .flags/proxy .flags/server-image .flags/webserver
 
 purge: clean
 	rm -rf modules/*/.rollup.cache
