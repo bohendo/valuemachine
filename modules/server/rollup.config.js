@@ -13,9 +13,12 @@ export default {
   }],
   onwarn: (warning, warn) => {
     // Ignore known warnings
-    const fromPkg = (pkgName) => warning.id.startsWith(`/root/node_modules/${pkgName}`);
+    const fromPkg = (pkgName) =>
+      warning.id?.startsWith(`/root/node_modules/${pkgName}`) ||
+      warning.cycle?.every(elem => elem.includes(`node_modules/${pkgName}`));
     if (warning.code === "THIS_IS_UNDEFINED" && fromPkg("@ethersproject")) return;
     if (warning.code === "EVAL" && fromPkg("depd")) return;
+    if (warning.code === "CIRCULAR_DEPENDENCY" && fromPkg("readable-stream")) return;
     warn(warning);
   },
   plugins: [
