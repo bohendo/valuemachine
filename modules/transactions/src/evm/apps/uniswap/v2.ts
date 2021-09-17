@@ -126,7 +126,7 @@ export const v2Parser = (
       "Swap", "Mint", "Burn", // V2
     ].includes(event.name)) {
       const swaps = getSwaps();
-      log.info(swaps, `Got swaps:`);
+      // log.info(swaps, `Got swaps:`);
       if (!swaps.in.length || !swaps.out.length) {
         log.warn(`Missing ${subsrc} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
         continue;
