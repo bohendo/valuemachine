@@ -1,4 +1,4 @@
-FROM haproxy:2.3.2-alpine
+FROM haproxy:2.3.14-alpine3.14
 WORKDIR /root
 ENV HOME /root
 RUN apk add --update --no-cache bash ca-certificates certbot curl iputils openssl

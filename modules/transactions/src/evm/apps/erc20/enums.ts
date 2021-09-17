@@ -11,6 +11,7 @@ export const assets = {
   BAL: "BAL",
   BAT: "BAT",
   BUSD: "BUSD",
+  GTC: "GTC",
   CHERRY: "CHERRY",
   CRV: "CRV",
   crvPlain3andSUSD: "crvPlain3andSUSD",

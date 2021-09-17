@@ -202,8 +202,8 @@ do
   fi
 done
 
-# Delete old images in prod to prevent the disk from filling up
-if [[ "$VM_PROD" == "true" ]]
+# Delete old images in prod to prevent the disk from filling up (only on prod server)
+if [[ "$VM_PROD" == "true" && "$(hostname)" == "$VM_DOMAINNAME" ]]
 then
   docker container prune --force;
   echo "Removing ${project} images that aren't tagged as $commit or $semver or latest"

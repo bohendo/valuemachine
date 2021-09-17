@@ -33,11 +33,12 @@ export const Balances = Type.Record(Type.String(), DecimalString);
 export type Balances = Static<typeof Balances>;
 
 export const EventTypes = {
-  GuardChange: "GuardChange",
-  Trade: "Trade",
-  Income: "Income",
-  Expense: "Expense",
   Debt: "Debt",
+  Error: "Error",
+  Expense: "Expense",
+  GuardChange: "GuardChange",
+  Income: "Income",
+  Trade: "Trade",
 } as const;
 export const EventType = Type.Enum(EventTypes); // NOT extensible
 export type EventType = Static<typeof EventType>;
@@ -102,11 +103,23 @@ export const GuardChangeEvent = Type.Intersect([
 ]);
 export type GuardChangeEvent = Static<typeof GuardChangeEvent>;
 
+export const ErrorEvent = Type.Intersect([
+  BaseEvent,
+  Type.Object({
+    message: Type.String(),
+    account: Account,
+    txId: Type.String(),
+    type: Type.Literal(EventTypes.Error),
+  }),
+]);
+export type ErrorEvent = Static<typeof ErrorEvent>;
+
 export const Event = Type.Union([
   DebtEvent,
   ExpenseEvent,
   IncomeEvent,
   GuardChangeEvent,
+  ErrorEvent,
   TradeEvent,
 ]);
 export type Event = Static<typeof Event>;

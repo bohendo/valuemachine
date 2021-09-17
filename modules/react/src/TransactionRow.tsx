@@ -79,7 +79,7 @@ export const TransactionRow = ({
                     <TableRow key={i}>
                       <TableCell> {transfer.category} </TableCell>
                       <TableCell> {transfer.asset} </TableCell>
-                      <TableCell> {round(transfer.quantity, 4)} </TableCell>
+                      <TableCell> {round(transfer.quantity, 8)} </TableCell>
                       <TableCell>
                         <HexString
                           display={addressBook?.getName(transfer.from)}

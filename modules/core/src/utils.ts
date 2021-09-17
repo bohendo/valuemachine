@@ -11,7 +11,7 @@ import {
 } from "@valuemachine/types";
 import { add, eq, gt, round, sub } from "@valuemachine/utils";
 
-const { Expense, Income, Trade, Debt, GuardChange } = EventTypes;
+const { Expense, Income, Trade, Debt, GuardChange, Error } = EventTypes;
 const toDate = timestamp => timestamp?.includes("T") ? timestamp.split("T")[0] : timestamp;
 
 type Value = {
@@ -85,6 +85,8 @@ export const describeEvent = (event: Event | HydratedEvent): string => {
     return `Moved ${chunks} from ${
       event.from.split("/")[0]
     } to ${event.to.split("/")[0]} on ${date}`;
+  } else if (event.type === Error) {
+    return event.message;
   } else {
     return `Unknown event`;
   }

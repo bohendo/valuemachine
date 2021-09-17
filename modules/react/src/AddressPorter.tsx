@@ -7,6 +7,9 @@ import {
   AddressBook,
   AddressBookJson,
 } from "@valuemachine/types";
+import {
+  getAddressBookError,
+} from "@valuemachine/utils";
 import React from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -50,13 +53,14 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
         const importedAddresses = importedData.addressBook
           ? importedData.addressBook
           : importedData;
-        if (!importedAddresses?.length) {
-          throw new Error("Imported file does not contain an address book");
+        if (getAddressBookError(importedAddresses)) {
+          console.error("Imported address book:", importedAddresses);
+          throw new Error("Imported file does not contain a valid address book");
         }
         console.log(`File with an address book has been loaded:`, importedAddresses);
-        const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders
-        importedAddresses.forEach(entry => {
-          newAddressBook[entry.address] = entry;
+        const newAddressBook = { ...addressBook.json }; // create new object to ensure it re-renders
+        Object.keys(importedAddresses).forEach(address => {
+          newAddressBook[address] = importedAddresses[address];
         });
         setAddressBookJson(newAddressBook);
       } catch (e) {

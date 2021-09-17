@@ -79,6 +79,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     !app || (tx?.apps || []).includes(app);
 
   useEffect(() => {
+    setPage(0);
     const getDate = (timestamp: string): string =>
       (new Date(timestamp)).toISOString().split("T")[0];
     setFilteredTxns(transactions?.json
@@ -97,10 +98,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     addressBook, transactions,
     filterAccount, filterApp, filterAsset, filterSource, filterStartDate, filterEndDate,
   ]);
-
-  useEffect(() => {
-    setPage(0);
-  }, [transactions, addressBook]);
 
   useEffect(() => {
     if (!addressBook || !transactions) return;

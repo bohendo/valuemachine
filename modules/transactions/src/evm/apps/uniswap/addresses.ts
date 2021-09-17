@@ -119,8 +119,25 @@ export const v2MarketAddresses = [
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 export const v3MarketAddresses = [
-  { name: "UniV3_MATIC_USDT", address: "Ethereum/0x972f43Bb94B76B9e2D036553d818879860b6A114" },
-  { name: "UniV3_ETH_USDT", address: "Ethereum/0x11b815efB8f581194ae79006d24E0d814B7697F6" },
+  { name: "UniV3_005_DAI_USDC", address: "Ethereum/0x6c6bc977e13df9b0de53b251522280bb72383700" },
+  { name: "UniV3_005_DAI_USDT", address: "Ethereum/0x6f48eca74b38d2936b02ab603ff4e36a6c0e3a77" },
+  { name: "UniV3_005_USDC_ETH", address: "Ethereum/0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640" },
+  { name: "UniV3_005_ETH_USDT", address: "Ethereum/0x11b815efB8f581194ae79006d24E0d814B7697F6" },
+  { name: "UniV3_005_MATIC_USDT", address: "Ethereum/0x972f43Bb94B76B9e2D036553d818879860b6A114" },
+  { name: "UniV3_005_RAI_DAI", address: "Ethereum/0xcb0c5d9d92f4f2f80cce7aa271a1e148c226e19d" },
+  { name: "UniV3_005_USDC_USDT", address: "Ethereum/0x7858e59e0c01ea06df3af3d20ac7b0003275d4bf" },
+  { name: "UniV3_005_WBTC_ETH", address: "Ethereum/0x4585fe77225b41b697c938b018e2ac67ac5a20c0" },
+  { name: "UniV3_03_COMP_ETH", address: "Ethereum/0xea4ba4ce14fdd287f380b55419b1c5b6c3f22ab6" },
+  { name: "UniV3_03_DAI_ETH", address: "Ethereum/0xC2e9F25Be6257c210d7Adf0D4Cd6E3E881ba25f8" },
+  { name: "UniV3_03_ETH_MKR", address: "Ethereum/0xe8c6c9227491c0a8156a0106a0204d881bb7e531" },
+  { name: "UniV3_03_ETH_USDC", address: "Ethereum/0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8" },
+  { name: "UniV3_03_ETH_USDT", address: "Ethereum/0x4e68ccd3e89f51c3074ca5072bbac773960dfa36" },
+  { name: "UniV3_03_ETH_WBTC", address: "Ethereum/0xcbcdf9626bc03e24f779434178a73a0b4bad62ed" },
+  { name: "UniV3_03_LINK_ETH", address: "Ethereum/0xa6cc3c2531fdaa6ae1a3ca84c2855806728693e8" },
+  { name: "UniV3_03_MATIC_ETH", address: "Ethereum/0x290a6a7460b308ee3f19023d2d00de604bcf5b42" },
+  { name: "UniV3_03_UNI_ETH", address: "Ethereum/0x1d42064fc4beb5f8aaf85f4617ae8b3b5b8bd801" },
+  { name: "UniV3_03_WBTC_USDC", address: "Ethereum/0x99ac8ca7087fa4a2a1fb6357269965a2014abc35" },
+  { name: "UniV3_03_WBTC_USDT", address: "Ethereum/0x9db9e0e53058c89e5b94e29621a205198648425b" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 export const addresses = [

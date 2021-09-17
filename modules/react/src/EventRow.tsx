@@ -126,6 +126,11 @@ export const EventRow: React.FC<EventRowProps> = ({
                   Account: event.account,
                   ...chunksToDisplay(event.outputs, "Gave "),
                   ...chunksToDisplay(event.inputs, "Took "),
+
+                } : event.type === EventTypes.Error ? {
+                  Account: event.account,
+                  ["Tx Id"]: event.txId,
+
                 } : {}
               }/>
             </Box>
