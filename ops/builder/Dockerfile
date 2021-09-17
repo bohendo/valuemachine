@@ -1,7 +1,7 @@
 FROM node:14.17.6-alpine3.14
 WORKDIR /root
 ENV HOME /root
-ENV PATH ./node_modules/.bin:/root/node_modules/.bin:$PATH
+ENV PATH $PATH:./node_modules/.bin:/root/node_modules/.bin
 RUN apk add --update --no-cache bash curl g++ gcc git jq make openssl py-pip python3
 RUN apk add --no-cache --repository="http://dl-cdn.alpinelinux.org/alpine/v3.8/main" --repository="http://dl-cdn.alpinelinux.org/alpine/v3.8/community" pdftk
 RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/ed77b63706ea721766a62ff22d3a251d8b4a6a30/wait-for-it.sh > /bin/wait-for && chmod +x /bin/wait-for
