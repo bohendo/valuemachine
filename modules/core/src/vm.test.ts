@@ -153,14 +153,20 @@ describe("VM", () => {
       { asset: ETH, category: Internal, from: ethAccount, quantity: "2.0", to: aaveAccount },
     ]), getTestTx([
       { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
-      { asset: DAI, category: Borrow, from: notMe, quantity: "200", to: aaveAccount },
-    ]), getTestTx([
+      { asset: DAI, category: Borrow, from: aaveAccount, quantity: "200", to: ethAccount },
+    ])].forEach(vm.execute);
+    // Check balances while loan is outstanding
+    expect(vm.getNetWorth(aaveAccount)).to.deep.equal({ [ETH]: "2.0", [DAI]: "-200.0" });
+    expect(vm.getNetWorth(ethAccount)).to.deep.equal({ [ETH]: "7.8", [DAI]: "200.0" });
+    [getTestTx([
       { asset: DAI, category: Income, from: notMe, quantity: "10.0", to: aaveAccount },
     ]), getTestTx([
       { asset: ETH, category: Fee, from: ethAccount, quantity: "0.1", to: Ethereum },
-      { asset: DAI, category: Repay, from: aaveAccount, quantity: "200", to: notMe },
+      { asset: DAI, category: Repay, from: ethAccount, quantity: "200", to: aaveAccount },
       { asset: DAI, category: Fee, from: aaveAccount, quantity: "10", to: notMe },
     ])].forEach(vm.execute);
+    expect(vm.getNetWorth(aaveAccount)).to.deep.equal({ [ETH]: "2.0" });
+    expect(vm.getNetWorth(ethAccount)).to.deep.equal({ [ETH]: "7.7" });
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "9.7" });
     expect(vm.json.events.length).to.equal(4);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);

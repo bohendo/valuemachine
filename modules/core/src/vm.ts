@@ -550,9 +550,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     transfers.forEach(transfer => {
       const { asset, category, from, quantity, to } = transfer;
       if (category === Borrow) {
-        borrowValue(quantity, asset, to);
+        borrowValue(quantity, asset, from);
+        moveValue(quantity, asset, from, to);
       } else if (category === Repay) {
-        repayValue(quantity, asset, from);
+        moveValue(quantity, asset, from, to);
+        repayValue(quantity, asset, to);
       } else if (category === Internal) {
         moveValue(quantity, asset, from, to);
       } else if (category === Fee) {
