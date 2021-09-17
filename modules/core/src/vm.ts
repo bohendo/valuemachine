@@ -74,8 +74,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const wasHeld = (account: Account, asset: Asset) => (chunk: AssetChunk): boolean =>
     chunk.asset === asset && chunk.history.some(hist => hist.account === account);
 
-  const getLastOwner = (chunk: AssetChunk): Account =>
-    chunk.account || chunk.history[chunk.history.length - 1].account;
+  const getFirstOwner = (chunk: AssetChunk): Account => chunk.history[0].account;
 
   ////////////////////////////////////////
   // Getters
@@ -206,7 +205,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       }
       return newChunk;
     } else {
-      log.warn(`Underflow of ${quantity} ${asset} is being handled by taking out a tmp loan`);
+      log.warn(`Underflow of ${quantity} ${asset} is being treated as a loan for ${account}`);
       const loan = mintChunk(quantity, asset, account, true);
       return loan;
     }
@@ -235,7 +234,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       togo = sub(togo, chunk.quantity);
     }
     if (gt(togo, "0")) {
-      log.error(`No chunks left, we still have ${togo} ${asset} to go!`);
+      log.warn(`${account} has no ${asset} chunks left, we still need ${togo}`);
       output.push(underflow(togo, asset, account));
     }
     return output;
@@ -591,11 +590,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     // coalesce loans of the same asset type?!
     tmpChunks.forEach(chunk => json.chunks.push(chunk)); // add leftovers to the master list
     json.chunks.sort((c1, c2) => c1.index - c2.index);
-    tmpChunks.length && log.warn(`We have ${tmpChunks.length} leftover chunks`);
+    tmpChunks.length && log.warn(tmpChunks, `We have ${tmpChunks.length} leftover chunks`);
     for (const asset of dedup(tmpChunks.map(chunk => chunk.asset))) {
-      for (const account of dedup(tmpChunks.map(getLastOwner))) {
+      for (const account of dedup(tmpChunks.map(getFirstOwner))) {
         const chunks = tmpChunks.filter(chunk =>
-          chunk.asset === asset && getLastOwner(chunk) === account
+          chunk.asset === asset && getFirstOwner(chunk) === account
         );
         const total = sumChunks(chunks)[asset];
         const debt = mintChunk(mul(total, "-1"), asset, account);
