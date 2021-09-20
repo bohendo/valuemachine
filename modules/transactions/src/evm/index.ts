@@ -2,7 +2,7 @@ import { addresses } from "./apps";
 
 export { EvmAssets, EvmApps, EvmNames } from "./enums";
 export { parseEvmTx } from "./parser";
-export { getEthereumData } from "./ethereum";
+export { getEtherscanData, getAlchemyData } from "./ethereum";
 export { getPolygonData } from "./polygon";
 
 export const publicAddresses = addresses;

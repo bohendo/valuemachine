@@ -21,6 +21,7 @@ docker run \
   "${interactive[@]}" \
   --entrypoint="bash" \
   --env="CI=$CI" \
+  --env="ALCHEMY_PROVIDER=${ALCHEMY_PROVIDER:-}" \
   --env="COVALENT_KEY=${COVALENT_KEY:-}" \
   --env="ETHERSCAN_KEY=${ETHERSCAN_KEY:-}" \
   --env="LOG_LEVEL=${LOG_LEVEL:-}" \

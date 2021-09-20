@@ -16,7 +16,7 @@ const logger = testLogger.child({ module: `TestEthereum` }, {
 });
 
 // Skip tests that require network calls unless we're actively debugging
-describe.only("Ethereum Data", () => {
+describe.skip("Etherscan Fetcher", () => {
 
   it("should sync transaction data", async () => {
     const ethData = getEtherscanData({

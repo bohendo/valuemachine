@@ -10,8 +10,7 @@ import { getLogAndSend, store, STATUS_YOUR_BAD } from "./utils";
 const log = getLogger(env.logLevel).child({ module: `${Guards.Polygon}Transactions` });
 
 const polygonData = getPolygonData({
-  etherscanKey: env.etherscanKey,
-  covalentKey: env.covalentKey,
+  apiKey: env.covalentKey,
   logger: log,
   store,
 });

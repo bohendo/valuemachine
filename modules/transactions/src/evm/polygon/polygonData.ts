@@ -21,6 +21,7 @@ import {
   getEvmDataError,
   getEvmTransactionError,
   getLogger,
+  toBN,
 } from "@valuemachine/utils";
 import axios from "axios";
 
@@ -29,13 +30,12 @@ import { Assets, Guards } from "../../enums";
 import { parsePolygonTx } from "./parser";
 
 export const getPolygonData = (params?: {
-  covalentKey: string;
-  etherscanKey: string;
+  apiKey: string;
   json?: EvmDataJson;
   logger?: Logger,
   store?: Store,
 }): EvmData => {
-  const { covalentKey, json: polygonDataJson, logger, store } = params || {};
+  const { apiKey: covalentKey, json: polygonDataJson, logger, store } = params || {};
   const log = (logger || getLogger()).child?.({ module: "PolygonData" });
   const json = polygonDataJson || store?.load(StoreKeys.PolygonData) || getEmptyEvmData();
   const save = () => store

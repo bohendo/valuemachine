@@ -15,7 +15,7 @@ import { getAddressBook } from "../addressBook";
 import { env, testLogger } from "../testUtils";
 
 import { getPolygonData } from "./polygon";
-import { getEthereumData } from "./ethereum";
+import { getEtherscanData } from "./ethereum";
 
 export * from "../testUtils";
 
@@ -47,9 +47,8 @@ export const parseEthTx = async ({
 }): Promise<Transaction> => {
   const addressBook = getTestAddressBook(selfAddress);
   const store = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
-  const ethData = getEthereumData({
-    covalentKey: env.covalentKey,
-    etherscanKey: env.etherscanKey,
+  const ethData = getEtherscanData({
+    apiKey: env.etherscanKey,
     logger,
     store,
   });
@@ -71,8 +70,7 @@ export const parsePolygonTx = async ({
   const addressBook = getTestAddressBook(selfAddress);
   const store = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
   const polygonData = getPolygonData({
-    covalentKey: env.covalentKey,
-    etherscanKey: env.etherscanKey,
+    apiKey: env.covalentKey,
     logger,
     store,
   });

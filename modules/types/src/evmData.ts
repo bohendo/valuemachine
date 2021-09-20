@@ -66,8 +66,8 @@ export type EvmDataJson = Static<typeof EvmDataJson>;
 // Function Interfaces
 
 export type EvmDataParams = {
-  covalentKey?: string;
-  etherscanKey?: string;
+  apiKey?: string;
+  providerUrl?: string;
   json?: EvmDataJson;
   logger?: Logger;
   store?: Store;

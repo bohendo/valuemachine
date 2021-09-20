@@ -9,7 +9,8 @@ export {
   securityFeeAssetMap,
 } from "./guards";
 export {
-  getEthereumData,
+  getEtherscanData,
+  getAlchemyData,
   getPolygonData,
   parseEvmTx,
   publicAddresses,

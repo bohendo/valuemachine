@@ -30,7 +30,7 @@ import { Assets, Guards } from "../../enums";
 import { parseEthTx } from "./parser";
 
 export const getEtherscanData = (params?: EvmDataParams): EvmData => {
-  const { etherscanKey, json: ethDataJson, logger, store } = params || {};
+  const { apiKey: etherscanKey, json: ethDataJson, logger, store } = params || {};
   const log = (logger || getLogger()).child?.({ module: "EthereumData" });
   const json = ethDataJson || store?.load(StoreKeys.EthereumData) || getEmptyEvmData();
   const save = () => store
@@ -60,8 +60,8 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
   const firstBlockTimeMs = 1438269988 * 1000; // timestamp of block #1 (genesis has no timestamp)
 
   const numify = (val: number | string): number => toBN(val).toNumber();
-  const stringify = (val: number | string): number => numify(val).toString();
-  const toISOString = (val?: number | string): number => new Date(
+  const stringify = (val: number | string): string => numify(val).toString();
+  const toISOString = (val?: number | string): string => new Date(
     !val ? Date.now()
     : typeof val === "number" ? val
     : val.includes("T") ? val

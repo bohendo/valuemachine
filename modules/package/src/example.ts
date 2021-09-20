@@ -4,8 +4,8 @@ import path from "path";
 import {
   getAddressBook,
   getPrices,
-  getTransactions, 
-  getEthereumData, 
+  getTransactions,
+  getEtherscanData,
   getValueMachine,
   types,
   utils,
@@ -32,9 +32,8 @@ const transactions = getTransactions({ logger });
 (async () => {
 
   // Get chain data management tools
-  const chainData = getEthereumData({
-    etherscanKey: process.env.ETHERSCAN_KEY,
-    covalentKey: process.env.COVALENT_KEY,
+  const chainData = getEtherscanData({
+    apiKey: process.env.ETHERSCAN_KEY,
     logger,
     store,
   });
