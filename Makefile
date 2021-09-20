@@ -132,7 +132,7 @@ builder: $(shell find ops/builder $(find_options))
 	docker tag $(project)_builder:latest $(project)_builder:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-node-modules: builder $(shell find modules/*/package.json $(find_options))
+node-modules: builder package.json $(shell find modules/*/package.json $(find_options))
 	$(log_start)
 	$(docker_run) "lerna bootstrap --hoist"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
