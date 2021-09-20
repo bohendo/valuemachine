@@ -58,6 +58,9 @@ export const getPolygonData = (params?: {
   ////////////////////////////////////////
   // Internal Heleprs
 
+  const numify = (val: number | string): number => toBN(val).toNumber();
+  const stringify = (val: number | string): string => numify(val).toString();
+
   // CAIP-10
   const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
 
@@ -67,14 +70,14 @@ export const getPolygonData = (params?: {
     // gasLimit: hexlify(rawTx.gas_offered),
     // index: rawTx.tx_offset,
     from: getAddress(rawTx.from_address),
-    gasPrice: hexlify(rawTx.gas_price),
-    gasUsed: hexlify(rawTx.gas_spent),
-    hash: rawTx.tx_hash,
+    gasPrice: stringify(rawTx.gas_price),
+    gasUsed: stringify(rawTx.gas_spent),
+    hash: hexlify(rawTx.tx_hash),
     logs: rawTx.log_events.map(evt => ({
       address: getAddress(evt.sender_address),
       index: evt.log_offset,
-      topics: evt.raw_log_topics,
-      data: evt.raw_log_data || "0x",
+      topics: hexlify(evt.raw_log_topics),
+      data: hexlify(evt.raw_log_data || "0x"),
     })),
     nonce: 0, // TODO: We need this to calculate the addresses of newly created contracts
     status: rawTx.successful ? 1 : 0,

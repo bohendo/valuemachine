@@ -8,6 +8,7 @@ import {
   Account,
   Bytes32,
   DecimalString,
+  IntegerString,
   Guard,
   HexString,
   TimestampString,
@@ -40,8 +41,8 @@ export type EvmTransactionLog = Static<typeof EvmTransactionLog>;
 
 export const EvmTransaction = Type.Object({
   from: Account,
-  gasPrice: HexString,
-  gasUsed: HexString,
+  gasPrice: IntegerString,
+  gasUsed: IntegerString,
   hash: Bytes32,
   logs: Type.Array(EvmTransactionLog),
   nonce: Type.Number(),

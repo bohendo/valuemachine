@@ -172,8 +172,8 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
     }
     const transaction = {
       from: getAddress(tx.from),
-      gasPrice: hexlify(tx.effectiveGasPrice || tx.gasPrice),
-      gasUsed: hexlify(receipt.gasUsed),
+      gasPrice: stringify(tx.effectiveGasPrice || tx.gasPrice),
+      gasUsed: stringify(receipt.gasUsed),
       hash: hexlify(tx.hash),
       logs: receipt.logs.map(evt => ({
         address: getAddress(evt.address),
