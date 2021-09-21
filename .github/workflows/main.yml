@@ -7,10 +7,10 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-20.04
     env:
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v1
       - run: make pull-latest
@@ -20,6 +20,9 @@ jobs:
 
   test:
     runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     needs: [build]
     steps:
       - uses: actions/checkout@v1
