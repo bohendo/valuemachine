@@ -1,11 +1,58 @@
+import { getAddress as getEvmAddress } from "@ethersproject/address";
+import { isHexString } from "@ethersproject/bytes";
+import { formatEther } from "@ethersproject/units";
 import { /*defaultAbiCoder, AbiCoder,*/ Interface } from "@ethersproject/abi";
 import {
   DecimalString,
-  EvmTransactionLog,
   EvmMetadata,
+  EvmTransactionLog,
+  EvmTransfer,
   Transfer,
 } from "@valuemachine/types";
-import { diff, gt } from "@valuemachine/utils";
+import { diff, gt, toBN } from "@valuemachine/utils";
+
+export const toNumber = (val: number | string): number => toBN(val).toNumber();
+
+export const toString = (val: number | string): string => toBN(val).toString();
+
+export const toISOString = (val?: number | string): string => {
+  const firstBlockTimeMs = 1438269988 * 1000; // timestamp of block #1 (genesis has no timestamp)
+  if (!val) {
+    return new Date().toISOString();
+  } else if (typeof val === "string" && val.includes("T")) {
+    return new Date(val).toISOString();
+  } else {
+    const time = typeof val === "number" ? val : toBN(val).toNumber();
+    return new Date(time < firstBlockTimeMs ? time * 1000 : time).toISOString();
+  }
+};
+
+export const formatTraces = (traces: any[], meta: EvmMetadata): EvmTransfer[] => {
+  const getAddress = (address: string): string => `${meta.name}/${getEvmAddress(address)}`;
+  // NOTE: The first trace represents the tx itself, ignore it
+  return traces.slice(1).map(trace => ({
+    to: trace.type === "call"
+      ? (trace.action.to ? getAddress(trace.action.to) : null)
+      : getAddress(trace.action.refundAddress),
+    from: getAddress(
+      trace.type === "call" ? trace.action.from : trace.action.address
+    ), 
+    value: formatEther(
+      trace.type === "call" ? trace.action.value : trace.action.balance
+    ),
+  })).filter(t => gt(t.value, "0"));
+};
+
+export const getStatus = (tx: any, receipt: any): number => 
+  // If post-byzantium, then the receipt already has a status, yay
+  typeof receipt.status === "number" ? receipt.status
+  : isHexString(receipt.status) ? toBN(receipt.status).toNumber()
+  // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
+  : toBN(tx.gasLimit).gt(toBN(receipt.gasUsed)) ? 1
+  // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
+  : toBN(tx.gasLimit).eq(toBN("21000")) ? 1
+  // Otherwise it PROBABLY failed
+  : 0;
 
 // Smallest difference is first, largest is last
 // If diff in 1 is greater than diff in 2, swap them
@@ -39,7 +86,7 @@ export const parseEvent = (
     }
   });
   */
-  const args = rawArgs.map(arg => arg.lenght === 42 ? formatAddress(arg) : arg) as any;
+  const args = rawArgs.map(arg => arg.length === 42 ? formatAddress(arg) : arg) as any;
   Object.keys(rawArgs).forEach(key => {
     if ((key as any) % 1 === 0) return;
     args[key] = rawArgs[key].length === 42 ? formatAddress(rawArgs[key]) : rawArgs[key];

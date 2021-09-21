@@ -14,8 +14,8 @@ const validEthTx = {
   hash: HashZero,
   from: AddressZero,
   to: AddressZero,
-  gasPrice: "0x",
-  gasUsed: "0x",
+  gasPrice: "100",
+  gasUsed: "100",
   logs: [{
     address: AddressZero,
     data: HashZero,

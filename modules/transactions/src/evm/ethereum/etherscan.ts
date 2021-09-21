@@ -1,5 +1,5 @@
 import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
-import { hexlify, isHexString } from "@ethersproject/bytes";
+import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
 import {
   AddressBook,
@@ -25,6 +25,7 @@ import {
 import axios from "axios";
 import getQueue from "queue";
 
+import { getStatus, toISOString } from "../utils";
 import { Assets, Guards } from "../../enums";
 
 import { parseEthTx } from "./parser";
@@ -56,18 +57,6 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
 
   ////////////////////////////////////////
   // Internal Helper Functions
-
-  const firstBlockTimeMs = 1438269988 * 1000; // timestamp of block #1 (genesis has no timestamp)
-
-  const numify = (val: number | string): number => toBN(val).toNumber();
-  const stringify = (val: number | string): string => numify(val).toString();
-  const toISOString = (val?: number | string): string => new Date(
-    !val ? Date.now()
-    : typeof val === "number" ? val
-    : val.includes("T") ? val
-    : numify(val) < firstBlockTimeMs ? numify(val) * 1000
-    : numify(val)
-  ).toISOString();
 
   const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
 
@@ -132,7 +121,7 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
     // Save timestamps while fetching account histories so we can reuse them later
     [...simple, ...internal, ...token, ...nft].forEach(tx => {
       if (tx.blockNumber && (tx.timestamp || tx.timeStamp)) {
-        const blockNumber = stringify(tx.blockNumber);
+        const blockNumber = toBN(tx.blockNumber).toString();
         const timestamp = toISOString(tx.timestamp || tx.timeStamp);
         timestampCache[blockNumber] = timestamp;
         log.debug(`Added new timestamp cache entry for ${blockNumber}: ${timestamp}`);
@@ -153,31 +142,22 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
       query("proxy", "eth_getTransactionReceipt", txHash),
       query("account", "txlistinternal", txHash),
     ]);
-    const timestamp = timestampCache[stringify(tx.blockNumber)] || toISOString(
+    const timestamp = timestampCache[toBN(tx.blockNumber).toString()] || toISOString(
       (await query("proxy", "eth_getBlockByNumber", receipt.blockNumber)).timestamp
     );
     const transaction = {
       from: getAddress(tx.from),
-      gasPrice: stringify(tx.effectiveGasPrice || tx.gasPrice),
-      gasUsed: stringify(receipt.gasUsed),
+      gasPrice: toBN(tx.effectiveGasPrice || tx.gasPrice).toString(),
+      gasUsed: toBN(receipt.gasUsed).toString(),
       hash: hexlify(tx.hash),
       logs: receipt.logs.map(evt => ({
         address: getAddress(evt.address),
-        index: numify(evt.logIndex),
+        index: toBN(evt.logIndex).toNumber(),
         topics: evt.topics.map(hexlify),
         data: hexlify(evt.data || "0x"),
       })),
-      nonce: numify(tx.nonce),
-      status:
-        // If post-byzantium, then the receipt already has a status, yay
-        typeof receipt.status === "number" ? receipt.status
-        : isHexString(receipt.status) ? numify(receipt.status)
-        // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
-        : (tx.gasLimit && tx.gasUsed && toBN(tx.gasLimit).gt(toBN(receipt.gasUsed))) ? 1
-        // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-        : (tx.gasLimit && toBN(tx.gasLimit).eq(toBN("21000"))) ? 1
-        // Otherwise it PROBABLY failed
-        : 0,
+      nonce: toBN(tx.nonce).toNumber(),
+      status: getStatus(tx, receipt),
       timestamp,
       transfers: transfers.map(transfer => ({
         to: transfer.to ? getAddress(transfer.to) : null,

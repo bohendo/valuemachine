@@ -1,5 +1,5 @@
 import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
-import { hexlify, isHexString } from "@ethersproject/bytes";
+import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
 import {
   AddressBook,
@@ -20,12 +20,12 @@ import {
   getEvmDataError,
   getEvmTransactionError,
   getLogger,
-  gt,
   toBN,
 } from "@valuemachine/utils";
 import axios from "axios";
 import getQueue from "queue";
 
+import { formatTraces, getStatus, toISOString } from "../utils";
 import { Assets, Guards } from "../../enums";
 
 import { parseEthTx } from "./parser";
@@ -57,18 +57,6 @@ export const getAlchemyData = (params?: EvmDataParams): EvmData => {
 
   ////////////////////////////////////////
   // Internal Helper Functions
-
-  const firstBlockTimeMs = 1438269988 * 1000; // timestamp of block #1 (genesis has no timestamp)
-
-  const numify = (val: number | string): number => toBN(val).toNumber();
-  const stringify = (val: number | string): string => toBN(val).toString();
-  const toISOString = (val?: number | string): string => new Date(
-    !val ? Date.now()
-    : typeof val === "number" ? val
-    : val.includes("T") ? val
-    : numify(val) < firstBlockTimeMs ? numify(val) * 1000
-    : numify(val)
-  ).toISOString();
 
   const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
 
@@ -152,33 +140,19 @@ export const getAlchemyData = (params?: EvmDataParams): EvmData => {
     );
     const transaction = {
       from: getAddress(tx.from),
-      gasPrice: stringify(tx.effectiveGasPrice || tx.gasPrice),
-      gasUsed: stringify(receipt.gasUsed),
+      gasPrice: toBN(tx.effectiveGasPrice || tx.gasPrice).toString(),
+      gasUsed: toBN(receipt.gasUsed).toString(),
       hash: hexlify(tx.hash),
       logs: receipt.logs.map(evt => ({
         address: getAddress(evt.address),
-        index: numify(evt.logIndex),
+        index: toBN(evt.logIndex).toNumber(),
         topics: evt.topics.map(hexlify),
         data: hexlify(evt.data || "0x"),
       })),
-      nonce: numify(tx.nonce),
-      status:
-        // If post-byzantium, then the receipt already has a status, yay
-        typeof receipt.status === "number" ? receipt.status
-        : isHexString(receipt.status) ? numify(receipt.status)
-        // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
-        : toBN(tx.gasLimit).gt(toBN(receipt.gasUsed)) ? 1
-        // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-        : toBN(tx.gasLimit).eq(toBN("21000")) ? 1
-        // Otherwise it PROBABLY failed
-        : 0,
+      nonce: toBN(tx.nonce).toNumber(),
+      status: getStatus(tx, receipt),
       timestamp,
-      // NOTE: The first trace represents the tx itself, ignore it
-      transfers: traces.slice(1).filter(trace => gt(stringify(trace.action.value), "0")).map(trace => ({
-        to: trace.action.to ? getAddress(trace.action.to) : null,
-        from: getAddress(trace.action.from),
-        value: formatEther(trace.action.value),
-      })),
+      transfers: formatTraces(traces, metadata),
       to: tx.to ? getAddress(tx.to) : null,
       value: formatEther(tx.value),
     };
