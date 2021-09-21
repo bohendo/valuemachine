@@ -20,6 +20,7 @@ import {
   getEvmDataError,
   getEvmTransactionError,
   getLogger,
+  gt,
   toBN,
 } from "@valuemachine/utils";
 import axios from "axios";
@@ -29,8 +30,8 @@ import { Assets, Guards } from "../../enums";
 
 import { parseEthTx } from "./parser";
 
-export const getEtherscanData = (params?: EvmDataParams): EvmData => {
-  const { apiKey: etherscanKey, json: ethDataJson, logger, store } = params || {};
+export const getAlchemyData = (params?: EvmDataParams): EvmData => {
+  const { providerUrl: alchemyProvider, json: ethDataJson, logger, store } = params || {};
   const log = (logger || getLogger()).child?.({ module: "EthereumData" });
   const json = ethDataJson || store?.load(StoreKeys.EthereumData) || getEmptyEvmData();
   const save = () => store
@@ -51,8 +52,8 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
   };
 
   // Mapping of blockNumber (IntegerString): timestamp (TimestampString)
-  // Bc Etherscan doesn't reliably return timestamps while fetching txns by hash
-  const timestampCache = {} as { [blockNumber: string]: string };
+  // Bc Alchemy doesn't reliably return timestamps while fetching txns by hash
+  // const timestampCache = {} as { [blockNumber: string]: string };
 
   ////////////////////////////////////////
   // Internal Helper Functions
@@ -60,7 +61,7 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
   const firstBlockTimeMs = 1438269988 * 1000; // timestamp of block #1 (genesis has no timestamp)
 
   const numify = (val: number | string): number => toBN(val).toNumber();
-  const stringify = (val: number | string): string => numify(val).toString();
+  const stringify = (val: number | string): string => toBN(val).toString();
   const toISOString = (val?: number | string): string => new Date(
     !val ? Date.now()
     : typeof val === "number" ? val
@@ -72,23 +73,16 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
   const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
 
   const query = async (
-    module: string = "account",
-    action: string = "txlistinternal",
-    target: EvmAddress | Bytes32,
+    method: string,
+    params: string[] | { [key: string]: any },
   ): Promise<any> => {
-    if (!etherscanKey) throw new Error(`Etherscan key required`);
-    const targetType = isEvmAddress(target) ? "address"
-      : target.length === 66 ? "txhash"
-      : "boolean=false&tag";
-    const url = `https://api.etherscan.io/api?` +
-      `module=${module}&` +
-      `action=${action}&` +
-      `${targetType}=${target}&` +
-      `apikey=${etherscanKey}&sort=asc`;
-    const cleanUrl = url.replace(/\??(api)?key=[^&]+&?/, "").replace(/&sort=asc$/, "");
+    if (!alchemyProvider) throw new Error(`Alchemy provider required`);
+    const url = alchemyProvider;
+    const payload = { id: 137, jsonrpc: "2.0", method, params };
+    const cleanUrl = url.replace(/\/[0-9a-zA-Z_]+$/, " ");
     const wget = async () => {
-      log.debug(`GET ${cleanUrl}`);
-      return await axios.get(url, { timeout: 10000 }).catch(e => {
+      log.debug(payload, `POST ${url}`);
+      return await axios.post(url, payload, { timeout: 10000 }).catch(e => {
         // log.error(e.message);
         if (typeof e?.response === "string") log.error(e.response);
         throw new Error(e);
@@ -102,15 +96,15 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
     } catch (e) {
       const msg = e.message.toLowerCase();
       if (msg.includes("timeout") || msg.includes("eai_again") || msg.includes("econnreset")) {
-        log.warn(`Request timed out, retrying to get ${action} for ${target}`);
+        log.warn(`Request timed out, retrying call to ${method} w params ${params}`);
         await new Promise(res => setTimeout(res, 1000)); // short pause
         res = await wget();
       } else if (msg.includes("rate limit") || msg.includes("429")) {
-        log.warn(`We're rate limited, pausing then retrying to get ${action} for ${target}`);
+        log.warn(`We're rate limited, pausing then retrying call to ${method} w params ${params}`);
         await new Promise(res => setTimeout(res, 4000)); // long pause
         res = await wget();
       } else {
-        log.error(`GET ${cleanUrl}`);
+        log.error(payload, `POST ${cleanUrl}`);
         throw e;
       }
     }
@@ -118,43 +112,43 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
     if (typeof result !== "object") {
       throw new Error(`Failed to get a valid result from ${cleanUrl}`);
     }
+    log.trace(result, `Got a valid result for ${method}`);
     return result;
   };
 
   const fetchHistory = async (address: EvmAddress): Promise<Bytes32[]> => {
-    const [simple, internal, token, nft] = await Promise.all([
-      query("account", "txlist", address),
-      query("account", "txlistinternal", address),
-      query("account", "tokentx", address),
-      query("account", "tokennfttx", address),
-    ]);
-    // Etherscan doesn't provide timestamps while fetching tx info by hash
-    // Save timestamps while fetching account histories so we can reuse them later
-    [...simple, ...internal, ...token, ...nft].forEach(tx => {
-      if (tx.blockNumber && (tx.timestamp || tx.timeStamp)) {
-        const blockNumber = stringify(tx.blockNumber);
-        const timestamp = toISOString(tx.timestamp || tx.timeStamp);
-        timestampCache[blockNumber] = timestamp;
-        log.debug(`Added new timestamp cache entry for ${blockNumber}: ${timestamp}`);
+    const fetchAllTransfers = async (baseParams: any) => {
+      const transfers = [];
+      const res = await query("alchemy_getAssetTransfers", [baseParams]);
+      transfers.push(...res.transfers);
+      let pageKey = res.pageKey;
+      while (pageKey) {
+        log.debug(`We have another page of ${address} transfers keyed on ${pageKey}`);
+        const res = await query("alchemy_getAssetTransfers", [{ ...baseParams, pageKey }]);
+        transfers.push(...res.transfers);
+        pageKey = res.pageKey;
       }
-    });
+      return transfers;
+    };
+    const [incoming, outgoing] = await Promise.all([
+      fetchAllTransfers({ fromBlock: "0x00", toAddress: address }),
+      fetchAllTransfers({ fromBlock: "0x00", fromAddress: address }),
+    ]);
     return [
-      ...simple.map(tx => tx.hash),
-      ...internal.map(tx => tx.hash),
-      ...token.map(tx => tx.hash),
-      ...nft.map(tx => tx.hash),
+      ...incoming.map(tx => tx.hash),
+      ...outgoing.map(tx => tx.hash),
     ].filter(hash => !!hash).sort();
   };
 
   const fetchTransaction = async (txHash: Bytes32): Promise<EvmTransaction> => {
-    if (!etherscanKey) throw new Error(`Etherscan key required`);
-    const [tx, receipt, transfers] = await Promise.all([
-      query("proxy", "eth_getTransactionByHash", txHash),
-      query("proxy", "eth_getTransactionReceipt", txHash),
-      query("account", "txlistinternal", txHash),
+    if (!alchemyProvider) throw new Error(`Alchemy provider required`);
+    const [tx, receipt, traces] = await Promise.all([
+      query("eth_getTransactionByHash", [txHash]),
+      query("eth_getTransactionReceipt", [txHash]),
+      query("trace_transaction", [txHash]),
     ]);
-    const timestamp = timestampCache[stringify(tx.blockNumber)] || toISOString(
-      (await query("proxy", "eth_getBlockByNumber", receipt.blockNumber)).timestamp
+    const timestamp = toISOString(
+      (await query("eth_getBlockByNumber", [receipt.blockNumber, false])).timestamp
     );
     const transaction = {
       from: getAddress(tx.from),
@@ -173,16 +167,17 @@ export const getEtherscanData = (params?: EvmDataParams): EvmData => {
         typeof receipt.status === "number" ? receipt.status
         : isHexString(receipt.status) ? numify(receipt.status)
         // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
-        : (tx.gasLimit && tx.gasUsed && toBN(tx.gasLimit).gt(toBN(receipt.gasUsed))) ? 1
+        : toBN(tx.gasLimit).gt(toBN(receipt.gasUsed)) ? 1
         // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-        : (tx.gasLimit && toBN(tx.gasLimit).eq(toBN("21000"))) ? 1
+        : toBN(tx.gasLimit).eq(toBN("21000")) ? 1
         // Otherwise it PROBABLY failed
         : 0,
       timestamp,
-      transfers: transfers.map(transfer => ({
-        to: transfer.to ? getAddress(transfer.to) : null,
-        from: getAddress(transfer.from),
-        value: formatEther(transfer.value),
+      // NOTE: The first trace represents the tx itself, ignore it
+      transfers: traces.slice(1).filter(trace => gt(stringify(trace.action.value), "0")).map(trace => ({
+        to: trace.action.to ? getAddress(trace.action.to) : null,
+        from: getAddress(trace.action.from),
+        value: formatEther(trace.action.value),
       })),
       to: tx.to ? getAddress(tx.to) : null,
       value: formatEther(tx.value),

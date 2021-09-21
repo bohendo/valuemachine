@@ -76,7 +76,7 @@ export const getPolygonData = (params?: {
     logs: rawTx.log_events.map(evt => ({
       address: getAddress(evt.sender_address),
       index: evt.log_offset,
-      topics: hexlify(evt.raw_log_topics),
+      topics: evt.raw_log_topics.map(hexlify),
       data: hexlify(evt.raw_log_data || "0x"),
     })),
     nonce: 0, // TODO: We need this to calculate the addresses of newly created contracts

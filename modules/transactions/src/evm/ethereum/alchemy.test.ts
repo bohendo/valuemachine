@@ -9,19 +9,18 @@ import {
   testLogger,
 } from "../testUtils";
 
-import { getEtherscanData } from "./etherscan";
+import { getAlchemyData } from "./alchemy";
 
 const logger = testLogger.child({ module: `TestEthereum` }, {
-  level: "trace",
+  level: "info",
 });
 
 // Skip tests that require network calls unless we're actively debugging
-describe.skip("Etherscan Fetcher", () => {
+describe.skip("Alchemy Fetcher", () => {
 
   it("should sync transaction data", async () => {
-    logger.info(env, "env");
-    const ethData = getEtherscanData({
-      apiKey: env.etherscanKey,
+    const ethData = getAlchemyData({
+      providerUrl: env.alchemyProvider,
       logger,
     });
     const addressBook = getTestAddressBook("Ethereum/0x1057bea69c9add11c6e3de296866aff98366cfe3");
@@ -35,8 +34,8 @@ describe.skip("Etherscan Fetcher", () => {
   });
 
   it("should sync transaction data for an EIP1559 tx", async () => {
-    const ethData = getEtherscanData({
-      etherscanKey: env.u,
+    const ethData = getAlchemyData({
+      providerUrl: env.alchemyProvider,
       logger,
     });
     const addressBook = getTestAddressBook("Ethereum/0x1057bea69c9add11c6e3de296866aff98366cfe3");
@@ -50,8 +49,8 @@ describe.skip("Etherscan Fetcher", () => {
   });
 
   it("should sync & parse an address book", async () => {
-    const ethData = getEtherscanData({
-      apiKey: env.etherscanKey,
+    const ethData = getAlchemyData({
+      providerUrl: env.alchemyProvider,
       logger,
     });
     const addressBook = getTestAddressBook("Ethereum/0xDD8251bB8e7Ba07DfcD9e1842CD9E3cDfc0399C8");

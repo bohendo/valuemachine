@@ -3,8 +3,8 @@
   "transactions": {
     "0x292ec1392e758f33e77bd077334b413e5337f86698e99396befc123f8579f9fa": {
       "from": "Polygon/0xada083a3c06ee526F827b43695F2DcFf5C8C892B",
-      "gasPrice": "0x77359400",
-      "gasUsed": "0x049cc4",
+      "gasPrice": "2000000000",
+      "gasUsed": "302276",
       "hash": "0x292ec1392e758f33e77bd077334b413e5337f86698e99396befc123f8579f9fa",
       "logs": [
         {
@@ -175,8 +175,8 @@
     },
     "0xfbf4af6a377016d3b2ce8cd413f83487954723dafd9b7ad70079b0276209958a": {
       "from": "Polygon/0x8266C20Cb25A5E1425cb126D78799B2A138B6c46",
-      "gasPrice": "0x3b9aca00",
-      "gasUsed": "0x02a471",
+      "gasPrice": "1000000000",
+      "gasUsed": "173169",
       "hash": "0xfbf4af6a377016d3b2ce8cd413f83487954723dafd9b7ad70079b0276209958a",
       "logs": [
         {
