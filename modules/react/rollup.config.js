@@ -11,20 +11,18 @@ export default [
       {
         file: pkg.main,
         format: "cjs",
+        sourcemap: true,
       },
       {
         file: pkg.module,
         format: "esm",
+        sourcemap: true,
       },
     ],
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
     plugins: [
       NodeResolve(),
-      Typescript({
-        outputToFilesystem: true,
-        sourceMap: false,
-        tsconfig: "./tsconfig.json"
-      }),
+      Typescript({ tsconfig: "./tsconfig.json" }),
     ],
   },
   {
