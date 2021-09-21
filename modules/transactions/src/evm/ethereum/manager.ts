@@ -174,6 +174,7 @@ export const getEthereumData = ({
         .sort((ts1, ts2) => new Date(ts1).getTime() - new Date(ts2).getTime())
         .reverse()[0];
       if (!lastAction) {
+        // TODO: should we treat unused addresses as retired instead?
         log.info(`No activity detected for address ${address}`);
         return true;
       }
@@ -198,6 +199,7 @@ export const getEthereumData = ({
     for (const address of addresses) {
       await syncAddress(address);
     }
+    // Make sure all transactions for all addresses have been synced
     for (const address of selfAddresses) {
       for (const hash of json.addresses[address] ? json.addresses[address].history : []) {
         await syncTransaction(hash);

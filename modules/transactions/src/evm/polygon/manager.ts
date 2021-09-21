@@ -227,7 +227,7 @@ export const getPolygonData = ({
       log.info(`Fetching history for address ${logProg(addresses, address)}: ${address}`);
       await syncAddress(address);
     }
-    log.info(`Fetching tx data for ${selfAddresses.length} addresses`);
+    // Make sure all transactions for all addresses have been synced
     for (const address of selfAddresses) {
       log.debug(`Syncing transactions for address ${logProg(selfAddresses, address)}: ${address}`);
       for (const hash of json.addresses[address] ? json.addresses[address].history : []) {

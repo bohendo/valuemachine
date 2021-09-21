@@ -19,7 +19,7 @@ semver=v$(shell cat package.json | grep '"version":' | awk -F '"' '{print $$4}')
 my_id=$(shell id -u):$(shell id -g)
 id=$(shell if [[ "`uname`" == "Darwin" ]]; then echo 0:0; else echo $(my_id); fi)
 interactive=$(shell if [[ -t 0 && -t 2 ]]; then echo "--interactive"; else echo ""; fi)
-docker_run=docker run --name=$(project)_builder $(interactive) --tty --rm --volume=$(cwd):/root $(project)_builder $(id)
+docker_run=docker run --env=CI=${CI} --name=$(project)_builder $(interactive) --tty --rm --volume=$(cwd):/root $(project)_builder $(id)
 
 # Pool of images to pull cached layers from during docker build steps
 image_cache=$(shell if [[ "${CI_SERVER}" == "yes" ]]; then echo "--cache-from=$(project)_builder:latest,$(project)_proxy:latest,$(project)_server:latest,$(project)_webserver:latest"; else echo ""; fi)
