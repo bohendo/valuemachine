@@ -62,11 +62,11 @@ export const getAlchemyFetcher = ({
     } catch (e) {
       const msg = e.message.toLowerCase();
       if (msg.includes("timeout") || msg.includes("eai_again") || msg.includes("econnreset")) {
-        log.warn(`Request timed out, retrying call to ${method} w params ${params}`);
+        log.warn(`Request timed out, retrying ${method} call w params ${JSON.stringify(params)}`);
         await new Promise(res => setTimeout(res, 1000)); // short pause
         res = await wget();
       } else if (msg.includes("rate limit") || msg.includes("429")) {
-        log.warn(`We're rate limited, pausing then retrying call to ${method} w params ${params}`);
+        log.warn(`We're rate limited, pausing then retrying ${method} call w params ${JSON.stringify(params)}`);
         await new Promise(res => setTimeout(res, 4000)); // long pause
         res = await wget();
       } else {

@@ -90,6 +90,10 @@ export const getEthereumData = ({
       history,
     };
     save();
+    if (!history.length) {
+      log.info(`Didn't find any ${metadata.name} activity for ${address}`);
+      return;
+    }
     log.info(`Saved ${history.length} historical transactions for ${address}`);
     const q = getQueue({ autostart: true, concurrency: 1 });
     history.forEach(txHash => {

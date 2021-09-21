@@ -90,6 +90,7 @@ export const getEtherscanFetcher = ({
     if (typeof result !== "object") {
       throw new Error(`Failed to get a valid result from ${cleanUrl}`);
     }
+    log.trace(result, `Got a valid result for ${action}`);
     return result;
   };
 
@@ -100,22 +101,18 @@ export const getEtherscanFetcher = ({
       query("account", "tokentx", address),
       query("account", "tokennfttx", address),
     ]);
+    const transactions = [...simple, ...internal, ...token, ...nft];
     // Etherscan doesn't provide timestamps while fetching tx info by hash
     // Save timestamps while fetching account histories so we can reuse them later
-    [...simple, ...internal, ...token, ...nft].forEach(tx => {
+    transactions.forEach(tx => {
       if (tx.blockNumber && (tx.timestamp || tx.timeStamp)) {
         const blockNumber = toBN(tx.blockNumber).toString();
         const timestamp = toISOString(tx.timestamp || tx.timeStamp);
         timestampCache[blockNumber] = timestamp;
-        log.debug(`Added new timestamp cache entry for ${blockNumber}: ${timestamp}`);
+        log.debug(`Cached a timestamp entry for block ${blockNumber}: ${timestamp}`);
       }
     });
-    return [
-      ...simple.map(tx => tx.hash),
-      ...internal.map(tx => tx.hash),
-      ...token.map(tx => tx.hash),
-      ...nft.map(tx => tx.hash),
-    ].filter(hash => !!hash).sort();
+    return transactions.map(tx => tx.hash).filter(hash => !!hash).sort();
   };
 
   const fetchTransaction = async (txHash: Bytes32): Promise<EvmTransaction> => {
