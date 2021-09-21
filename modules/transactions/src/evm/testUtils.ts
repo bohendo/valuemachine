@@ -70,7 +70,7 @@ export const parsePolygonTx = async ({
   const addressBook = getTestAddressBook(selfAddress);
   const store = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
   const polygonData = getPolygonData({
-    apiKey: env.covalentKey,
+    polygonscanKey: env.polygonscanKey,
     logger,
     store,
   });

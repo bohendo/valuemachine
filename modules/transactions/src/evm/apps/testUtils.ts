@@ -65,7 +65,7 @@ export const parsePolygonTx = async ({
 }): Promise<Transaction> => {
   const addressBook = getTestAddressBook(selfAddress);
   const polygonData = getPolygonData({
-    apiKey: env.covalentKey,
+    polygonscanKey: env.polygonscanKey,
     logger,
     store: testStore,
   });

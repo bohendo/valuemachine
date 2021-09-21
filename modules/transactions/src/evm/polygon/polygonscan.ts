@@ -3,6 +3,7 @@ import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
 import {
   Bytes32,
+  EvmMetadata,
   EvmAddress,
   EvmTransaction,
   Logger,
@@ -18,25 +19,25 @@ import { getStatus, toISOString } from "../utils";
 import { EvmFetcher } from "../types";
 import { Assets, Guards } from "../../enums";
 
-export const getEtherscanFetcher = ({
+export const getPolygonscanFetcher = ({
   apiKey,
   logger,
 }: {
   apiKey: string,
   logger: Logger,
 }): EvmFetcher => {
-  const log = (logger || getLogger()).child?.({ module: "EtherscanFetcher" });
+  const log = (logger || getLogger()).child?.({ module: "PolygonscanFetcher" });
 
-  if (!apiKey) throw new Error(`Etherscan api key is required`);
+  if (!apiKey) throw new Error(`Polygonscan api key is required`);
 
   const metadata = {
-    id: 1,
-    name: Guards.Ethereum,
-    feeAsset: Assets.ETH,
-  };
+    id: 137,
+    name: Guards.Polygon,
+    feeAsset: Assets.MATIC,
+  } as EvmMetadata;
 
   // Mapping of blockNumber (IntegerString): timestamp (TimestampString)
-  // Bc Etherscan doesn't reliably return timestamps while fetching txns by hash
+  // Bc Polygonscan doesn't reliably return timestamps while fetching txns by hash
   const timestampCache = {} as { [blockNumber: string]: string };
 
   ////////////////////////////////////////
@@ -52,7 +53,7 @@ export const getEtherscanFetcher = ({
     const targetType = isEvmAddress(target) ? "address"
       : target.length === 66 ? "txhash"
       : "boolean=false&tag";
-    const url = `https://api.etherscan.io/api?` +
+    const url = `https://api.polygonscan.io/api?` +
       `module=${module}&` +
       `action=${action}&` +
       `${targetType}=${target}&` +
@@ -100,7 +101,7 @@ export const getEtherscanFetcher = ({
       query("account", "tokentx", address),
       query("account", "tokennfttx", address),
     ]);
-    // Etherscan doesn't provide timestamps while fetching tx info by hash
+    // Polygonscan doesn't provide timestamps while fetching tx info by hash
     // Save timestamps while fetching account histories so we can reuse them later
     [...simple, ...internal, ...token, ...nft].forEach(tx => {
       if (tx.blockNumber && (tx.timestamp || tx.timeStamp)) {
@@ -160,4 +161,5 @@ export const getEtherscanFetcher = ({
     fetchHistory,
     fetchTransaction,
   };
+
 };

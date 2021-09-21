@@ -2,9 +2,9 @@ import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersp
 import { formatEther } from "@ethersproject/units";
 import { hexlify } from "@ethersproject/bytes";
 import {
-  Account,
   AddressBook,
   Bytes32,
+  EvmAddress,
   EvmData,
   EvmDataJson,
   EvmMetadata,
@@ -23,19 +23,28 @@ import {
   getLogger,
   toBN,
 } from "@valuemachine/utils";
-import axios from "axios";
+import getQueue from "queue";
 
+import { toISOString } from "../utils";
 import { Assets, Guards } from "../../enums";
 
+import { getCovalentFetcher } from "./covalent";
+import { getPolygonscanFetcher } from "./polygonscan";
 import { parsePolygonTx } from "./parser";
 
-export const getPolygonData = (params?: {
-  apiKey: string;
+export const getPolygonData = ({
+  covalentKey,
+  polygonscanKey,
+  json: polygonDataJson,
+  logger,
+  store,
+}: {
+  covalentKey?: string,
+  polygonscanKey?: string,
   json?: EvmDataJson;
   logger?: Logger,
   store?: Store,
 }): EvmData => {
-  const { apiKey: covalentKey, json: polygonDataJson, logger, store } = params || {};
   const log = (logger || getLogger()).child?.({ module: "PolygonData" });
   const json = polygonDataJson || store?.load(StoreKeys.PolygonData) || getEmptyEvmData();
   const save = () => store
@@ -55,13 +64,14 @@ export const getPolygonData = (params?: {
     feeAsset: Assets.MATIC,
   } as EvmMetadata;
 
+  const fetcher = covalentKey ? getCovalentFetcher({ apiKey: covalentKey, logger })
+    : polygonscanKey ? getPolygonscanFetcher({ apiKey: polygonscanKey, logger })
+    : null;
+  if (!fetcher) throw new Error(`Either an covalentKey or an polygonscanKey is required`);
+
   ////////////////////////////////////////
   // Internal Heleprs
 
-  const numify = (val: number | string): number => toBN(val).toNumber();
-  const stringify = (val: number | string): string => numify(val).toString();
-
-  // CAIP-10
   const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
 
   const formatCovalentTx = rawTx => ({
@@ -70,8 +80,8 @@ export const getPolygonData = (params?: {
     // gasLimit: hexlify(rawTx.gas_offered),
     // index: rawTx.tx_offset,
     from: getAddress(rawTx.from_address),
-    gasPrice: stringify(rawTx.gas_price),
-    gasUsed: stringify(rawTx.gas_spent),
+    gasPrice: toBN(rawTx.gas_price).toString(),
+    gasUsed: toBN(rawTx.gas_spent).toString(),
     hash: hexlify(rawTx.tx_hash),
     logs: rawTx.log_events.map(evt => ({
       address: getAddress(evt.sender_address),
@@ -87,72 +97,53 @@ export const getPolygonData = (params?: {
     value: formatEther(rawTx.value),
   });
 
-  const covalentUrl = "https://api.covalenthq.com/v1";
-  const queryCovalent = async (path: string, query?: any): Promise<any> => {
-    if (!covalentKey) throw new Error(`A covalent api key is required to sync polygon data`);
-    const url = `${covalentUrl}/${path}/?${
-      Object.entries(query || {}).reduce((querystring, entry) => {
-        querystring += `${entry[0]}=${entry[1]}&`;
-        return querystring;
-      }, "")
-    }key=${covalentKey}`;
-    log.info(`GET ${url}`);
-    let res;
-    try {
-      res = await axios(url);
-    } catch (e) {
-      log.warn(`Axios error: ${e.message}`);
-      return;
-    }
-    if (res.status !== 200) {
-      log.warn(`Unsuccessful status: ${res.status}`);
-      return;
-    }
-    if (res.data.error) {
-      log.warn(`Covalent error: ${res.data.error_message}`);
-      return;
-    }
-    return res.data.data;
-  };
-
-  const fetchTx = async (txHash: Bytes32): Promise<any> => {
-    const data = await queryCovalent(`${metadata.id}/transaction_v2/${txHash}`);
-    return data?.items?.[0];
-  };
-
-  const syncAddress = async (rawAddress: Account): Promise<void> => {
+  const syncAddress = async (rawAddress: EvmAddress): Promise<void> => {
     const address = getEvmAddress(
       rawAddress.includes("/") ? rawAddress.split("/").pop() : rawAddress
     );
-    const yesterday = Date.now() - 1000 * 60 * 60 * 24;
-    if (new Date(json.addresses[address]?.lastUpdated || 0).getTime() > yesterday) {
-      log.info(`Info for address ${address} is up to date`);
+    log.info(`Fetching transaction history of ${address}`);
+    let history: string[];
+    try {
+      history = await fetcher.fetchHistory(address);
+    } catch (e) {
+      log.error(e);
       return;
     }
-    let data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`);
-    const items = data?.items;
-    while (items && data.pagination.has_more) {
-      data = await queryCovalent(`${metadata.id}/address/${address}/transactions_v2`, {
-        ["page-number"]: data.pagination.page_number + 1,
-      });
-      items.push(...data.items);
-    }
-    const history = items?.map(item => item.tx_hash).sort() || [];
     json.addresses[address] = {
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: toISOString(Date.now()),
       history,
     };
     save();
-    for (const txHash of history) {
-      const polygonTx = formatCovalentTx(
-        items.find(item => item.tx_hash === txHash)
-        || await fetchTx(txHash)
-      );
-      const error = getEvmTransactionError(polygonTx);
-      if (error) throw new Error(error);
-      json.transactions[polygonTx.hash] = polygonTx;
-      save();
-    }
+    log.info(`Saved ${history.length} historical transactions for ${address}`);
+    const q = getQueue({ autostart: true, concurrency: 1 });
+    history.forEach(txHash => {
+      q.push(async () => {
+        if (!getEvmTransactionError(json.transactions[txHash])) {
+          return;
+        }
+        log.info(`Syncing transaction data for ${txHash}`);
+        let tx;
+        try {
+          tx = await fetcher.fetchTransaction(txHash);
+        } catch (e) {
+          log.error(e);
+          return;
+        }
+        json.transactions[tx.hash] = tx;
+        save();
+      });
+    });
+    await new Promise<void>((res, rej) => {
+      q.on("end", error => {
+        if (error) {
+          log.error(error);
+          rej(error);
+        } else {
+          log.info(`Successfully synced data for address ${address}`);
+          res();
+        }
+      });
+    });
     return;
   };
 
@@ -173,7 +164,7 @@ export const getPolygonData = (params?: {
       return;
     }
     log.info(`Fetching polygon data for tx ${txHash}`);
-    const polygonTx = formatCovalentTx(await fetchTx(txHash));
+    const polygonTx = formatCovalentTx(await fetcher.fetchTransaction(txHash));
     const error = getEvmTransactionError(polygonTx);
     if (error) throw new Error(error);
     // log.debug(polygonTx, `Parsed raw polygon tx to a valid evm tx`);

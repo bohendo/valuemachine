@@ -25,6 +25,7 @@ docker run \
   --env="COVALENT_KEY=${COVALENT_KEY:-}" \
   --env="ETHERSCAN_KEY=${ETHERSCAN_KEY:-}" \
   --env="LOG_LEVEL=${LOG_LEVEL:-}" \
+  --env="POLYGONSCAN_KEY=${POLYGONSCAN_KEY:-}" \
   --name="${project}_${cmd}_${unit}" \
   --network "$project" \
   --rm \

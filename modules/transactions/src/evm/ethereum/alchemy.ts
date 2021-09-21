@@ -2,10 +2,10 @@ import { getAddress as getEvmAddress } from "@ethersproject/address";
 import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
 import {
-  Logger,
   Bytes32,
   EvmAddress,
   EvmTransaction,
+  Logger,
 } from "@valuemachine/types";
 import {
   getEvmTransactionError,

@@ -67,6 +67,7 @@ clean: stop
 	rm -rf modules/*/build
 	rm -rf modules/*/dist
 	rm -rf modules/*/node_modules
+	rm -rf modules/*/.rollup.cache
 	rm -rf .flags/*
 	docker container prune -f
 
@@ -74,7 +75,6 @@ reset-images:
 	rm -f .flags/proxy .flags/server-image .flags/webserver
 
 purge: clean
-	rm -rf modules/*/.rollup.cache
 	rm -rf package-lock.json
 
 push: push-commit
@@ -95,6 +95,9 @@ pull-semver:
 
 dls:
 	@docker service ls && echo '=====' && docker container ls -a
+
+lint:
+	bash ops/lint.sh
 
 test-utils: utils
 	bash ops/test-unit.sh utils test
