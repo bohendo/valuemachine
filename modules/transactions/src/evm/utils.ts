@@ -19,7 +19,7 @@ export const toString = (val: number | string): string => toBN(val).toString();
 export const toISOString = (val?: number | string): string => {
   const firstBlockTimeMs = 1438269988 * 1000; // timestamp of block #1 (genesis has no timestamp)
   if (!val) {
-    return new Date().toISOString();
+    return new Date(0).toISOString();
   } else if (typeof val === "string" && val.includes("T")) {
     return new Date(val).toISOString();
   } else {
@@ -58,9 +58,9 @@ export const getStatus = (tx: any, receipt: any): number =>
   typeof receipt.status === "number" ? receipt.status
   : isHexString(receipt.status) ? toBN(receipt.status).toNumber()
   // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
-  : toBN(tx.gasLimit).gt(toBN(receipt.gasUsed)) ? 1
+  : toBN(tx.gasLimit || tx.gas).gt(toBN(receipt.gasUsed)) ? 1
   // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-  : toBN(tx.gasLimit).eq(toBN("21000")) ? 1
+  : toBN(tx.gasLimit || tx.gas).eq(toBN("21000")) ? 1
   // Otherwise it PROBABLY failed
   : 0;
 

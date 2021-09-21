@@ -6,10 +6,18 @@ import {
 
 import { getAlchemyFetcher } from "./alchemy";
 
-const logger = testLogger.child({ module: "Alchemy Fetcher" }, { level: "debug" });
+const logger = testLogger.child({ module: "Alchemy Fetcher" }, { level: "trace" });
 
 // Skip tests that require network calls unless we're actively debugging
 describe.skip("Alchemy Fetcher", () => {
+
+  it("should fetch an old transaction", async () => {
+    const fetcher = getAlchemyFetcher({ providerUrl: env.alchemyProvider, logger });
+    const hash = "0x41a3720d7b1401ebc68e53fdd829cdb30df26cc8eb8b01e35d8cf9d36468aa6e";
+    const tx = await fetcher.fetchTransaction(hash);
+    logger.info(tx);
+    expect(tx).to.be.ok;
+  });
 
   it("should fetch a transaction that includes a contract creation", async () => {
     const fetcher = getAlchemyFetcher({ providerUrl: env.alchemyProvider, logger });
