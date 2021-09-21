@@ -15,7 +15,7 @@ do
   then image=${project}
   else image=${project}_$name
   fi
-  for version in latest ${1:-$commit}
+  for version in ${1:-$commit latest}
   do
     echo "Tagging image $image:$version as $registry/$image:$version"
     docker tag "$image:$version" "$registry/$image:$version" || true

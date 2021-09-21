@@ -44,6 +44,7 @@ jobs:
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       SSH_KEY: ${{ secrets.SSH_KEY }}
+      SERVER_URL: ${{ secrets.SERVER_URL }}
     needs: [test]
     steps:
       - uses: actions/checkout@v1
