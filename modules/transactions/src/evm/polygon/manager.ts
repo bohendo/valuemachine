@@ -64,8 +64,8 @@ export const getPolygonData = ({
     feeAsset: Assets.MATIC,
   } as EvmMetadata;
 
-  const fetcher = covalentKey ? getCovalentFetcher({ apiKey: covalentKey, logger })
-    : polygonscanKey ? getPolygonscanFetcher({ apiKey: polygonscanKey, logger })
+  const fetcher = polygonscanKey ? getPolygonscanFetcher({ apiKey: polygonscanKey, logger })
+    : covalentKey ? getCovalentFetcher({ apiKey: covalentKey, logger })
     : null;
 
   ////////////////////////////////////////
