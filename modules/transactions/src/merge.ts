@@ -84,16 +84,16 @@ export const mergeTransaction = (
       return transactions;
     }
     const evmTransfer = transfers[0];
-    const wiggleRoom = div(evmTransfer.quantity, "100");
+    const wiggleRoom = div(evmTransfer.amount, "100");
 
-    // Does this transfer have the same asset & similar quantity as the new evm tx
+    // Does this transfer have the same asset & similar amount as the new evm tx
     const isMergable = (transfer: Transfer): boolean => 
       transfer.category === Internal &&
       (evmTransfer.category === Expense || evmTransfer.category === Income) &&
       transfer.asset === evmTransfer.asset &&
       valuesAreClose(
-        transfer.quantity,
-        evmTransfer.quantity,
+        transfer.amount,
+        evmTransfer.amount,
         wiggleRoom,
       );
 
@@ -150,9 +150,9 @@ export const mergeTransaction = (
       && newTx.transfers.every(newTransfer => tx.transfers.some(oldTransfer =>
         newTransfer.asset === oldTransfer.asset &&
         valuesAreClose(
-          newTransfer.quantity,
-          oldTransfer.quantity,
-          div(oldTransfer.quantity, "100"),
+          newTransfer.amount,
+          oldTransfer.amount,
+          div(oldTransfer.amount, "100"),
         )
       ))
     )) {
@@ -162,7 +162,7 @@ export const mergeTransaction = (
 
     // Mergable csv txns can only contain one transfer
     const extTransfer = newTx.transfers[0];
-    const wiggleRoom = div(extTransfer.quantity, "100");
+    const wiggleRoom = div(extTransfer.amount, "100");
     if (newTx.transfers.length !== 1 || extTransfer.category !== Internal) {
       transactions.push(newTx);
       transactions.sort(chrono);
@@ -170,14 +170,14 @@ export const mergeTransaction = (
       return transactions;
     }
 
-    // Does this transfer have the same asset & similar quantity as the new csv tx
+    // Does this transfer have the same asset & similar amount as the new csv tx
     const isMergable = (transfer: Transfer): boolean => 
       extTransfer.category === Internal &&
       (transfer.category === Expense || transfer.category === Income) &&
       transfer.asset === extTransfer.asset &&
       valuesAreClose(
-        transfer.quantity,
-        extTransfer.quantity,
+        transfer.amount,
+        extTransfer.amount,
         wiggleRoom,
       );
 

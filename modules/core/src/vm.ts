@@ -91,7 +91,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       ) || (
         account && chunk.account === account
       ))
-    ) ? add(balance, chunk.quantity) : balance,
+    ) ? add(balance, chunk.amount) : balance,
     "0");
 
   const getChunk = (index: number): HydratedAssetChunk =>
@@ -115,7 +115,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const getNetWorth = (account?: Account): Balances =>
     json.chunks.reduce((netWorth, chunk) => {
       if (chunk.account && (!account || chunk.account === account)) {
-        netWorth[chunk.asset] = add(netWorth[chunk.asset], chunk.quantity);
+        netWorth[chunk.asset] = add(netWorth[chunk.asset], chunk.amount);
       }
       return netWorth;
     }, {});
@@ -124,14 +124,14 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   // Chunk Manipulators
 
   const mintChunk = (
-    quantity: DecimalString,
+    amount: DecimalString,
     asset: Asset,
     account: Account,
     tmp?: boolean,
   ): AssetChunk => {
-    log.trace(`Minting a ${tmp ? "tmp" : "new"} chunk of ${quantity} ${asset} for ${account}`);
+    log.trace(`Minting a ${tmp ? "tmp" : "new"} chunk of ${amount} ${asset} for ${account}`);
     const newChunk = {
-      quantity,
+      amount,
       asset,
       account,
       index: json.chunks.length + tmpChunks.length,
@@ -146,14 +146,14 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   };
 
   const borrowChunks = (
-    quantity: DecimalString,
+    amount: DecimalString,
     asset: Asset,
     account: Account,
     tmp?: boolean,
   ): AssetChunk[] => {
-    log.trace(`Borrowing a ${tmp ? "tmp " : ""}chunk of ${quantity} ${asset} for ${account}`);
-    const loan = mintChunk(quantity, asset, account, tmp);
-    const debt = mintChunk(mul(quantity, "-1"), asset, account, tmp);
+    log.trace(`Borrowing a ${tmp ? "tmp " : ""}chunk of ${amount} ${asset} for ${account}`);
+    const loan = mintChunk(amount, asset, account, tmp);
+    const debt = mintChunk(mul(amount, "-1"), asset, account, tmp);
     return [loan, debt];
   };
 
@@ -161,17 +161,17 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     oldChunk: AssetChunk,
     amtNeeded: DecimalString,
   ): AssetChunk[] => {
-    const { asset, quantity: total } = oldChunk;
+    const { asset, amount: total } = oldChunk;
     const leftover = sub(total, amtNeeded);
     log.trace(`Splitting a chunk of ${total} ${asset} into ${amtNeeded} and ${leftover}`);
     // Ensure this new chunk has a completely separate memory allocation
     const newChunk = JSON.parse(JSON.stringify({
       ...oldChunk,
-      quantity: amtNeeded,
+      amount: amtNeeded,
       index: json.chunks.length,
     }));
     json.chunks.push(newChunk);
-    oldChunk.quantity = leftover;
+    oldChunk.amount = leftover;
     if ("index" in oldChunk) {
       // Add the new chunk's index alongside the old one anywhere it was referenced
       [...json.events, ...newEvents].forEach((event: any) => {
@@ -187,10 +187,10 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     return [newChunk, oldChunk];
   };
 
-  const underflow = (quantity: DecimalString, asset: Asset, account: Account): AssetChunk => {
+  const underflow = (amount: DecimalString, asset: Asset, account: Account): AssetChunk => {
     if (isIncomeSource(account)) {
-      log.warn(`Underflow of ${quantity} ${asset} is being treated as income`);
-      const newChunk = mintChunk(quantity, asset, account);
+      log.warn(`Underflow of ${amount} ${asset} is being treated as income`);
+      const newChunk = mintChunk(amount, asset, account);
       const newIncomeEvent = newEvents.find(e => e.type === EventTypes.Income);
       if (newIncomeEvent?.type === EventTypes.Income) {
         newIncomeEvent.inputs.push(newChunk.index);
@@ -205,33 +205,33 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       }
       return newChunk;
     } else {
-      log.warn(`Underflow of ${quantity} ${asset} is being treated as a loan for ${account}`);
-      const loan = mintChunk(quantity, asset, account, true);
+      log.warn(`Underflow of ${amount} ${asset} is being treated as a loan for ${account}`);
+      const loan = mintChunk(amount, asset, account, true);
       return loan;
     }
   };
 
   const getChunks = (
-    quantity: DecimalString,
+    amount: DecimalString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
-    const compare = lt(quantity, "0") ? lt : gt;
-    // If we're getting a positive quantity, get all held chunks w quantity > 0 else vice versa
+    const compare = lt(amount, "0") ? lt : gt;
+    // If we're getting a positive amount, get all held chunks w amount > 0 else vice versa
     const available = json.chunks
       .filter(isHeld(account, asset))
-      .filter(chunk => compare(chunk.quantity, "0"));
+      .filter(chunk => compare(chunk.amount, "0"));
     const output = [];
-    let togo = quantity;
+    let togo = amount;
     for (const chunk of available) {
       if (eq(togo, "0")) {
         return output;
-      } else if (compare(chunk.quantity, togo)) { // if we got more than we need, split it up
+      } else if (compare(chunk.amount, togo)) { // if we got more than we need, split it up
         const [needed, _leftover] = splitChunk(chunk, togo);
         return [...output, needed];
       }
       output.push(chunk); // if we got less than we need, move on to the next chunk
-      togo = sub(togo, chunk.quantity);
+      togo = sub(togo, chunk.amount);
     }
     if (gt(togo, "0")) {
       log.warn(`${account} has no ${asset} chunks left, we still need ${togo}`);
@@ -245,13 +245,13 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   // Returns the newly received chunks
   const receiveValue = (
-    quantity: DecimalString,
+    amount: DecimalString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
-    log.info(`Receiving ${quantity} ${asset} in ${account}`);
+    log.info(`Receiving ${amount} ${asset} in ${account}`);
     const tmpAvailable = tmpChunks.filter(wasHeld(account, asset));
-    let togo = quantity;
+    let togo = amount;
     const received = [];
     // If account has any tmp chunks, use those first (& discard any associated debt)
     if (tmpAvailable.length) {
@@ -261,24 +261,24 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       tmpAvailable.forEach(chunk => {
         if (eq(togo, "0")) return;
         // positive chunk, receive some or all of it
-        if (gt(chunk.quantity, togo)) {
+        if (gt(chunk.amount, togo)) {
           // This chunk is too big, split it up & only receive part of it
           const [toKeep, remainder] = splitChunk(chunk, togo);
           received.push(toKeep);
           tmpChunks.push(remainder);
-          togo = sub(togo, toKeep.quantity);
-          log.debug(`Received ${toKeep.quantity} from a tmp chunk of ${chunk.quantity} (${togo} to go)`);
+          togo = sub(togo, toKeep.amount);
+          log.debug(`Received ${toKeep.amount} from a tmp chunk of ${chunk.amount} (${togo} to go)`);
         } else {
           // This chunk is too small, receive all of it & move on
           received.push(chunk);
-          togo = sub(togo, chunk.quantity);
-          log.debug(`Received a tmp chunk of ${chunk.quantity} (${togo} to go)`);
+          togo = sub(togo, chunk.amount);
+          log.debug(`Received a tmp chunk of ${chunk.amount} (${togo} to go)`);
         }
       });
     }
     // add any chunks received from tmp chunks to the master list of chunks
     received.forEach(chunk => {
-      log.debug(`Moving tmp chunk of ${chunk.quantity} ${chunk.asset} to the master list of chunks`);
+      log.debug(`Moving tmp chunk of ${chunk.amount} ${chunk.asset} to the master list of chunks`);
       json.chunks.push(chunk);
     });
     json.chunks.sort((c1, c2) => c1.index - c2.index);
@@ -291,11 +291,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   // Returns the chunks we disposed of
   const disposeValue = (
-    quantity: DecimalString,
+    amount: DecimalString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
-    log.info(`Disposing of ${quantity} ${asset} from ${account}`);
+    log.info(`Disposing of ${amount} ${asset} from ${account}`);
     const disposeChunk = chunk => {
       chunk.disposeDate = json.date;
       chunk.outputs = [];
@@ -303,28 +303,28 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     };
     const balance = getBalance(asset, account);
     const available = json.chunks.filter(isHeld(account, asset));
-    if (eq(balance, quantity)) {
+    if (eq(balance, amount)) {
       available.forEach(disposeChunk);
       log.debug(`Disposed full balance of ${
-        available.map(c => c.quantity).join(" + ")
+        available.map(c => c.amount).join(" + ")
       } ${asset} from ${account}`);
       return available;
-    } else if (gt(balance, quantity)) {
-      const toDispose = getChunks(quantity, asset, account);
+    } else if (gt(balance, amount)) {
+      const toDispose = getChunks(amount, asset, account);
       toDispose.forEach(disposeChunk);
       log.debug(`Disposed of ${
-        toDispose.map(c => c.quantity).join(" + ")
+        toDispose.map(c => c.amount).join(" + ")
       } ${asset} from ${account}`);
       return toDispose;
-    } else if (lt(balance, quantity)) {
+    } else if (lt(balance, amount)) {
       available.forEach(disposeChunk);
-      const togo = sub(quantity, balance);
+      const togo = sub(amount, balance);
       const rest = underflow(togo, asset, account);
       disposeChunk(rest);
-      log.debug(`Disposed of all ${asset} from ${account} and underflowed by ${rest.quantity}`);
+      log.debug(`Disposed of all ${asset} from ${account} and underflowed by ${rest.amount}`);
       return [...available, rest];
     }
-    log.warn(`Wtf how is ${balance} not > or < or = to ${quantity}???`);
+    log.warn(`Wtf how is ${balance} not > or < or = to ${amount}???`);
     return [];
   };
 
@@ -333,14 +333,14 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     const chunksOut = [] as AssetChunk[];
     for (const swapOut of Object.entries(swapsOut)) {
       const asset = swapOut[0] as Asset;
-      const quantity = swapOut[1] as DecimalString;
-      chunksOut.push(...disposeValue(quantity, asset, account));
+      const amount = swapOut[1] as DecimalString;
+      chunksOut.push(...disposeValue(amount, asset, account));
     }
     const chunksIn = [] as AssetChunk[];
     for (const swapIn of Object.entries(swapsIn)) {
       const asset = swapIn[0] as Asset;
-      const quantity = swapIn[1] as DecimalString;
-      chunksIn.push(...receiveValue(quantity, asset, account));
+      const amount = swapIn[1] as DecimalString;
+      chunksIn.push(...receiveValue(amount, asset, account));
     }
     // Set indicies of trade input & output chunks
     chunksOut.forEach(chunk => { chunk.outputs = chunksIn.map(toIndex); });
@@ -356,9 +356,9 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     } as TradeEvent);
   };
 
-  const moveValue = (quantity: DecimalString, asset: Asset, from: Account, to: Account): void => {
-    log.info(`Moving ${quantity} ${asset} from ${from} to ${to}`);
-    const toMove = getChunks(quantity, asset, from);
+  const moveValue = (amount: DecimalString, asset: Asset, from: Account, to: Account): void => {
+    log.info(`Moving ${amount} ${asset} from ${from} to ${to}`);
+    const toMove = getChunks(amount, asset, from);
     toMove.forEach(chunk => {
       chunk.account = to;
       const prev = chunk.history[chunk.history.length - 1];
@@ -391,12 +391,12 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   // returns the new borrowed + debt chunks
   const borrowValue = (
-    quantity: DecimalString,
+    amount: DecimalString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
-    log.debug(`Borrowing ${quantity} ${asset} via account ${account}`);
-    const loan = borrowChunks(quantity, asset, account);
+    log.debug(`Borrowing ${amount} ${asset} via account ${account}`);
+    const loan = borrowChunks(amount, asset, account);
     log.info(loan, `Borrowed chunks`);
     newEvents.push({
       date: json.date,
@@ -411,26 +411,26 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   // returns the annihilated debt + repayment chunks
   const repayValue = (
-    quantity: DecimalString,
+    amount: DecimalString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
-    log.info(`Repaying ${quantity} ${asset} via account ${account}`);
+    log.info(`Repaying ${amount} ${asset} via account ${account}`);
     log.info(getNetWorth(account), `Account balance for ${account}`);
     const held = json.chunks.filter(isHeld(account, asset));
-    const positiveChunks = held.filter(chunk => gt(chunk.quantity, "0"));
-    const negativeChunks = held.filter(chunk => lt(chunk.quantity, "0"));
-    const positiveBalance = positiveChunks.reduce((acc, cur) => add(acc, cur.quantity), "0");
-    const negativeBalance = negativeChunks.reduce((acc, cur) => add(acc, cur.quantity), "0");
-    if (lt(positiveBalance, quantity)) {
-      log.warn(`Account ${account} has insufficent funds for repayment of ${quantity} ${asset}`);
+    const positiveChunks = held.filter(chunk => gt(chunk.amount, "0"));
+    const negativeChunks = held.filter(chunk => lt(chunk.amount, "0"));
+    const positiveBalance = positiveChunks.reduce((acc, cur) => add(acc, cur.amount), "0");
+    const negativeBalance = negativeChunks.reduce((acc, cur) => add(acc, cur.amount), "0");
+    if (lt(positiveBalance, amount)) {
+      log.warn(`Account ${account} has insufficent funds for repayment of ${amount} ${asset}`);
     }
-    if (lt(abs(negativeBalance), quantity)) {
-      log.warn(`Account ${account} has insufficent debt for repayment of ${quantity} ${asset}`);
+    if (lt(abs(negativeBalance), amount)) {
+      log.warn(`Account ${account} has insufficent debt for repayment of ${amount} ${asset}`);
     }
-    const toRepayWith = getChunks(quantity, asset, account);
-    const toAnnihilate = getChunks(mul(quantity, "-1"), asset, account);
-    log.info(toRepayWith, `Using the following chunks to repay ${quantity} ${asset}`);
+    const toRepayWith = getChunks(amount, asset, account);
+    const toAnnihilate = getChunks(mul(amount, "-1"), asset, account);
+    log.info(toRepayWith, `Using the following chunks to repay ${amount} ${asset}`);
     log.info(toAnnihilate, `Disposing of the following debt chunks`);
     const disposeChunk = chunk => {
       chunk.disposeDate = json.date;
@@ -476,16 +476,16 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           transfer.asset === refund.asset &&
           refund.from === transfer.to &&
           Object.keys(OutgoingTransfers).includes(transfer.category) &&
-          lt(refund.quantity, transfer.quantity)
+          lt(refund.amount, transfer.amount)
         );
         if (refunded) {
-          log.info(`Subtracting refund of ${refund.quantity} ${
+          log.info(`Subtracting refund of ${refund.amount} ${
             refund.asset
-          } from ${refunded.category} of ${refunded.quantity} ${refunded.asset}`);
-          refunded.quantity = sub(refunded.quantity, refund.quantity);
+          } from ${refunded.category} of ${refunded.amount} ${refunded.asset}`);
+          refunded.amount = sub(refunded.amount, refund.amount);
         } else {
           log.warn(`Can't find matching transfer for refund of ${
-            refund.quantity
+            refund.amount
           } ${refund.asset} from ${refund.from}, treating it as income`);
           refund.category = Income;
         }
@@ -547,21 +547,21 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
     // Process all non-swap & non-refund transfers
     transfers.forEach(transfer => {
-      const { asset, category, from, quantity, to } = transfer;
+      const { asset, category, from, amount, to } = transfer;
       if (category === Borrow) {
-        borrowValue(quantity, asset, from);
-        moveValue(quantity, asset, from, to);
+        borrowValue(amount, asset, from);
+        moveValue(amount, asset, from, to);
       } else if (category === Repay) {
-        moveValue(quantity, asset, from, to);
-        repayValue(quantity, asset, to);
+        moveValue(amount, asset, from, to);
+        repayValue(amount, asset, to);
       } else if (category === Internal) {
-        moveValue(quantity, asset, from, to);
+        moveValue(amount, asset, from, to);
       } else if (category === Fee) {
         // Fees should be handled w/out emitting an event
-        disposeValue(quantity, asset, from);
+        disposeValue(amount, asset, from);
       // Send funds out of our accounts
       } else if (category === Expense) {
-        const disposed = disposeValue(quantity, asset, from);
+        const disposed = disposeValue(amount, asset, from);
         // log.debug(disposed, `disposed of the following chunks`);
         newEvents.push({
           account: from,
@@ -572,7 +572,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         });
       // Receive funds into one of our accounts
       } else if (category === Income) {
-        const received = receiveValue(quantity, asset, to);
+        const received = receiveValue(amount, asset, to);
         // log.debug(received, `received the following chunks`);
         newEvents.push({
           account: to,

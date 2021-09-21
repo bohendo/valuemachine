@@ -45,12 +45,11 @@ export const parseEthTx = async ({
 }): Promise<Transaction> => {
   const addressBook = getTestAddressBook(selfAddress);
   const ethData = getEthereumData({
-    covalentKey: env.covalentKey,
     etherscanKey: env.etherscanKey,
     logger,
     store: testStore,
   });
-  await ethData.syncTransaction(hash, env.etherscanKey);
+  await ethData.syncTransaction(hash);
   return ethData.getTransaction(hash, addressBook);
 };
 
@@ -66,8 +65,7 @@ export const parsePolygonTx = async ({
 }): Promise<Transaction> => {
   const addressBook = getTestAddressBook(selfAddress);
   const polygonData = getPolygonData({
-    covalentKey: env.covalentKey,
-    etherscanKey: env.etherscanKey,
+    polygonscanKey: env.polygonscanKey,
     logger,
     store: testStore,
   });

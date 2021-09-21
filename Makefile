@@ -19,10 +19,10 @@ semver=v$(shell cat package.json | grep '"version":' | awk -F '"' '{print $$4}')
 my_id=$(shell id -u):$(shell id -g)
 id=$(shell if [[ "`uname`" == "Darwin" ]]; then echo 0:0; else echo $(my_id); fi)
 interactive=$(shell if [[ -t 0 && -t 2 ]]; then echo "--interactive"; else echo ""; fi)
-docker_run=docker run --name=$(project)_builder $(interactive) --tty --rm --volume=$(cwd):/root $(project)_builder $(id)
+docker_run=docker run --env=CI=${CI} --name=$(project)_builder $(interactive) --tty --rm --volume=$(cwd):/root $(project)_builder $(id)
 
 # Pool of images to pull cached layers from during docker build steps
-image_cache=$(shell if [[ "${CI_SERVER}" == "yes" ]]; then echo "--cache-from=$(project)_builder:latest,$(project)_proxy:latest,$(project)_server:latest,$(project)_webserver:latest"; else echo ""; fi)
+image_cache=$(shell if [[ -n "${CI}" || "${CI_SERVER}" == "yes" ]]; then echo "--cache-from=$(project)_builder:latest,$(project)_proxy:latest,$(project)_server:latest,$(project)_webserver:latest"; else echo ""; fi)
 
 # Helper functions
 startTime=.flags/.startTime
@@ -38,8 +38,8 @@ $(shell mkdir -p .flags)
 
 default: dev
 dev: proxy package
-prod: dev server-image webserver
-all: prod
+prod: proxy server-image webserver
+all: dev prod
 
 start: dev
 	bash ops/start.sh
@@ -67,6 +67,7 @@ clean: stop
 	rm -rf modules/*/build
 	rm -rf modules/*/dist
 	rm -rf modules/*/node_modules
+	rm -rf modules/*/.rollup.cache
 	rm -rf .flags/*
 	docker container prune -f
 
@@ -74,7 +75,6 @@ reset-images:
 	rm -f .flags/proxy .flags/server-image .flags/webserver
 
 purge: clean
-	rm -rf modules/*/.rollup.cache
 	rm -rf package-lock.json
 
 push: push-commit
@@ -95,6 +95,9 @@ pull-semver:
 
 dls:
 	@docker service ls && echo '=====' && docker container ls -a
+
+lint:
+	bash ops/lint.sh
 
 test-utils: utils
 	bash ops/test-unit.sh utils test
@@ -132,7 +135,7 @@ builder: $(shell find ops/builder $(find_options))
 	docker tag $(project)_builder:latest $(project)_builder:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-node-modules: builder $(shell find modules/*/package.json $(find_options))
+node-modules: builder package.json $(shell find modules/*/package.json $(find_options))
 	$(log_start)
 	$(docker_run) "lerna bootstrap --hoist"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
@@ -170,7 +173,7 @@ package: react core transactions utils types $(shell find modules/package $(find
 	$(docker_run) "cd modules/package && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-client: package $(shell find modules/client $(find_options))
+client: package modules/client/.env $(shell find modules/client $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/client && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@

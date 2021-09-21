@@ -26,7 +26,7 @@ describe(appName, () => {
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
-    expect(tx.transfers[1].quantity).to.equal(tx.transfers[2].quantity);
+    expect(tx.transfers[1].amount).to.equal(tx.transfers[2].amount);
   });
 
   it("should parse a weth withdrawal", async () => {
@@ -39,6 +39,6 @@ describe(appName, () => {
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
-    expect(tx.transfers[1].quantity).to.equal(tx.transfers[2].quantity);
+    expect(tx.transfers[1].amount).to.equal(tx.transfers[2].amount);
   });
 });

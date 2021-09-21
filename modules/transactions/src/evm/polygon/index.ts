@@ -1,1 +1,2 @@
-export { getPolygonData } from "./polygonData";
+export { getPolygonData } from "./manager";
+export { parsePolygonTx } from "./parser";

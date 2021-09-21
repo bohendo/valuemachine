@@ -72,12 +72,12 @@ export const coreParser = (
 
       if (event.name === "Deposit" || event.name === "Withdraw") {
         const asset = getAsset(event.args.token);
-        const quantity = formatUnits(event.args.amount, getDecimals(event.args.token));
-        log.info(`Parsing ${appName} ${event.name} of ${quantity} ${asset}`);
+        const amount = formatUnits(event.args.amount, getDecimals(event.args.token));
+        log.info(`Parsing ${appName} ${event.name} of ${amount} ${asset}`);
         const transfer = tx.transfers.find(transfer =>
           ([Income, Expense, Internal] as string[]).includes(transfer.category)
           && transfer.asset === asset
-          && transfer.quantity === quantity
+          && transfer.amount === amount
         );
         if (transfer) {
           if (event.name === "Deposit") {
@@ -90,7 +90,7 @@ export const coreParser = (
             tx.method = event.name;
           }
         } else {
-          log.warn(`Unable to find a ${appName} transfer of ${quantity} ${asset}`);
+          log.warn(`Unable to find a ${appName} transfer of ${amount} ${asset}`);
         }
 
       } else if (event.name === "Trade") {
@@ -100,7 +100,7 @@ export const coreParser = (
           category: SwapOut,
           from: account,
           index,
-          quantity: formatUnits(event.args.amountGet, getDecimals(event.args.tokenGet)),
+          amount: formatUnits(event.args.amountGet, getDecimals(event.args.tokenGet)),
           to: appName,
         };
         const swapIn = {
@@ -108,7 +108,7 @@ export const coreParser = (
           category: SwapIn,
           from:  appName,
           index,
-          quantity: formatUnits(event.args.amountGive, getDecimals(event.args.tokenGiv)),
+          amount: formatUnits(event.args.amountGive, getDecimals(event.args.tokenGiv)),
           to: account,
         };
         tx.transfers.push(swapOut);

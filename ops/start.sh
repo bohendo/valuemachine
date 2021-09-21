@@ -18,11 +18,13 @@ fi
 # shellcheck disable=SC1091
 if [[ -f .env ]]; then source .env; fi
 
+VM_ALCHEMY_PROVIDER="${VM_ALCHEMY_PROVIDER:-}"
 VM_COVALENT_KEY="${VM_COVALENT_KEY:-}"
 VM_DOMAINNAME="${VM_DOMAINNAME:-}"
 VM_EMAIL="${VM_EMAIL:-noreply@gmail.com}"
 VM_ETHERSCAN_KEY="${VM_ETHERSCAN_KEY:-}"
 VM_LOG_LEVEL="${VM_LOG_LEVEL:-info}"
+VM_POLYGONSCAN_KEY="${VM_POLYGONSCAN_KEY:-}"
 VM_PORT="${VM_PORT:-3000}"
 VM_PROD="${VM_PROD:-false}"
 VM_SEMVER="${VM_SEMVER:-false}"
@@ -36,11 +38,13 @@ then export VM_PROD=true
 fi
 
 echo "Launching $project in env:"
+echo "- VM_ALCHEMY_PROVIDER=$VM_ALCHEMY_PROVIDER"
 echo "- VM_COVALENT_KEY=$VM_COVALENT_KEY"
 echo "- VM_DOMAINNAME=$VM_DOMAINNAME"
 echo "- VM_EMAIL=$VM_EMAIL"
 echo "- VM_ETHERSCAN_KEY=$VM_ETHERSCAN_KEY"
 echo "- VM_LOG_LEVEL=$VM_LOG_LEVEL"
+echo "- VM_POLYGONSCAN_KEY=$VM_POLYGONSCAN_KEY"
 echo "- VM_PORT=$VM_PORT"
 echo "- VM_PROD=$VM_PROD"
 echo "- VM_SEMVER=$VM_SEMVER"
@@ -69,9 +73,11 @@ common="networks:
 
 server_internal_port=8080
 server_env="environment:
+      VM_ALCHEMY_PROVIDER: '$VM_ALCHEMY_PROVIDER'
       VM_COVALENT_KEY: '$VM_COVALENT_KEY'
       VM_ETHERSCAN_KEY: '$VM_ETHERSCAN_KEY'
       VM_LOG_LEVEL: '$VM_LOG_LEVEL'
+      VM_POLYGONSCAN_KEY: '$VM_POLYGONSCAN_KEY'
       VM_PORT: '$server_internal_port'
       VM_PROD: '$VM_PROD'
 "

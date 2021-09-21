@@ -33,7 +33,7 @@ const getCsvTx = (): Transaction => ({
       asset: ETH,
       category: Internal,
       from: "ETH-account",
-      quantity: value.substring(0, 10),
+      amount: value.substring(0, 10),
       to: `${csvSource}-account`
     }
   ],
@@ -50,7 +50,7 @@ const getEthTx = (): Transaction => ({
       category: Expense,
       from: AddressOne,
       index: -1,
-      quantity: "0.000000004294967296",
+      amount: "0.000000004294967296",
       to: Guards.Ethereum,
     },
     {
@@ -58,7 +58,7 @@ const getEthTx = (): Transaction => ({
       category: Expense,
       from: AddressOne,
       index: 0,
-      quantity: value,
+      amount: value,
       to: AddressTwo,
     }
   ],

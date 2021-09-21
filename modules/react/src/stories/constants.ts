@@ -70,28 +70,28 @@ export const addressBook = getAddressBook({
 export const transactions = getTransactions({
   json: [getTestTx([
     // Income
-    { category: Income, asset: ETH, from: three, quantity: "1.04", to: one },
+    { category: Income, asset: ETH, from: three, amount: "1.04", to: one },
   ]), getTestTx([
     // Internal transfer
-    { category: Expense, asset: ETH, from: one, quantity: "0.01", to: Ethereum },
-    { index: 0, category: Internal, asset: ETH, from: one, quantity: "1.03", to: two },
+    { category: Expense, asset: ETH, from: one, amount: "0.01", to: Ethereum },
+    { index: 0, category: Internal, asset: ETH, from: one, amount: "1.03", to: two },
   ]), getTestTx([
     // Expense
-    { category: Expense, asset: ETH, from: two, quantity: "0.01", to: Ethereum },
-    { category: Expense, asset: ETH, from: two, quantity: "0.5", to: three },
+    { category: Expense, asset: ETH, from: two, amount: "0.01", to: Ethereum },
+    { category: Expense, asset: ETH, from: two, amount: "0.5", to: three },
   ]), getTestTx([
     // Trade
-    { category: Expense, asset: ETH, from: two, quantity: "0.01", to: Ethereum },
-    { category: SwapOut, asset: ETH, from: two, quantity: "0.25", to: three },
-    { category: SwapIn, asset: UNI, from: three, quantity: "200", to: two },
+    { category: Expense, asset: ETH, from: two, amount: "0.01", to: Ethereum },
+    { category: SwapOut, asset: ETH, from: two, amount: "0.25", to: three },
+    { category: SwapIn, asset: UNI, from: three, amount: "200", to: two },
   ]), getTestTx([
     // Deposit
-    { category: Expense, asset: ETH, from: two, quantity: "0.01", to: Ethereum },
-    { category: Internal, asset: UNI, from: two, quantity: "200", to: coinbase },
+    { category: Expense, asset: ETH, from: two, amount: "0.01", to: Ethereum },
+    { category: Internal, asset: UNI, from: two, amount: "200", to: coinbase },
   ]), getTestTx([
     // Sale
-    { category: SwapOut, asset: UNI, from: coinbase, quantity: "200", to: exchange },
-    { category: SwapIn, asset: USD, from: exchange, quantity: "1200", to: coinbase },
+    { category: SwapOut, asset: UNI, from: coinbase, amount: "200", to: exchange },
+    { category: SwapIn, asset: USD, from: exchange, amount: "1200", to: coinbase },
   ])],
 });
 

@@ -46,7 +46,7 @@ export const mergeWazirxTransactions = (
       const {
         ["Transaction"]: txType,
         ["Currency"]: currency,
-        ["Volume"]: quantity,
+        ["Volume"]: amount,
       } = row;
 
       const external = `${getGuard(currency)}/unknown`;
@@ -57,7 +57,7 @@ export const mergeWazirxTransactions = (
           category: Internal,
           from: external,
           index,
-          quantity,
+          amount,
           to: account,
         });
         transaction.method = "Deposit";
@@ -68,7 +68,7 @@ export const mergeWazirxTransactions = (
           category: Internal,
           from: account,
           index,
-          quantity,
+          amount,
           to: external,
         });
         transaction.method = "Withdraw";
@@ -80,8 +80,8 @@ export const mergeWazirxTransactions = (
     } else if (row["Trade"]) {
       const {
         ["Market"]: market,
-        ["Volume"]: quantity,
-        ["Total"]: inrQuantity,
+        ["Volume"]: amount,
+        ["Total"]: inrAmount,
         ["Trade"]: tradeType,
         ["Fee Currency"]: feeAsset,
         ["Fee"]: feeAmount,
@@ -96,7 +96,7 @@ export const mergeWazirxTransactions = (
           category: SwapOut,
           from: account,
           index: index++,
-          quantity: inrQuantity,
+          amount: inrAmount,
           to: exchange,
         });
         transaction.transfers.push({
@@ -104,7 +104,7 @@ export const mergeWazirxTransactions = (
           category: SwapIn,
           from: exchange,
           index: index++,
-          quantity: quantity,
+          amount: amount,
           to: account,
         });
         transaction.method = tradeType;
@@ -115,7 +115,7 @@ export const mergeWazirxTransactions = (
           category: SwapOut,
           from: account,
           index: index++,
-          quantity: quantity,
+          amount: amount,
           to: exchange,
         });
         transaction.transfers.push({
@@ -123,7 +123,7 @@ export const mergeWazirxTransactions = (
           category: SwapIn,
           from: exchange,
           index: index++,
-          quantity: inrQuantity,
+          amount: inrAmount,
           to: account,
         });
         transaction.method = tradeType;
@@ -138,7 +138,7 @@ export const mergeWazirxTransactions = (
         category: Fee,
         from: account,
         index: index++,
-        quantity: feeAmount,
+        amount: feeAmount,
         to: exchange,
       });
 

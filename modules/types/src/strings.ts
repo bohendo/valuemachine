@@ -19,6 +19,9 @@ export type Bytes32 = Static<typeof Bytes32>;
 export const DateString = Type.String({ format: "date" });
 export type DateString = Static<typeof DateString>;
 
+export const IntegerString = Type.RegEx(/^-?[0-9]*$/);
+export type IntegerString = Static<typeof IntegerString>;
+
 export const DecimalString = Type.RegEx(/^-?[0-9]*\.?[0-9]*$/);
 export type DecimalString = Static<typeof DecimalString>;
 

@@ -13,7 +13,7 @@ const validTransaction = {
     category: TransferCategories.Expense,
     from: AddressZero,
     to: AddressZero,
-    quantity: "0",
+    amount: "0",
   }],
 };
 

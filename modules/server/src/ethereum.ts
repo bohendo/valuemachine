@@ -10,8 +10,8 @@ import { getLogAndSend, store, STATUS_YOUR_BAD } from "./utils";
 const log = getLogger(env.logLevel).child({ module: `${Guards.Ethereum}Transactions` });
 
 const ethereumData = getEthereumData({
+  alchemyProvider: env.alchemyProvider,
   etherscanKey: env.etherscanKey,
-  covalentKey: env.covalentKey,
   logger: log,
   store,
 });

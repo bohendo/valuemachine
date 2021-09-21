@@ -8,10 +8,8 @@ import pkg from "./package.json";
 const plugins = [
   NodeResolve(),
   Typescript({
-    noEmitOnError: true,
     outputToFilesystem: true,
-    sourceMap: false,
-    tsconfig: "./tsconfig.json"
+    tsconfig: "./tsconfig.json",
   }),
   CommonJs({ extensions: [".js", ".ts"] }),
 ];
@@ -23,10 +21,12 @@ export default [
       {
         file: pkg.main,
         format: "cjs",
+        sourcemap: true,
       },
       {
         file: pkg.module,
         format: "esm",
+        sourcemap: true,
       },
     ],
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
@@ -37,6 +37,7 @@ export default [
     output: {
       file: "./dist/example.js",
       format: "cjs",
+      sourcemap: true,
     },
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
     plugins,

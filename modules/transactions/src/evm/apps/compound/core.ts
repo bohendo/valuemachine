@@ -82,9 +82,9 @@ const cTokenAbi = [
 ////////////////////////////////////////
 /// Parser
 
-const associatedTransfer = (asset: string, quantity: string) =>
+const associatedTransfer = (asset: string, amount: string) =>
   (transfer: Transfer): boolean =>
-    transfer.asset === asset && valuesAreClose(transfer.quantity, quantity, div(quantity, "100"));
+    transfer.asset === asset && valuesAreClose(transfer.amount, amount, div(amount, "100"));
 
 export const coreParser = (
   tx: Transaction,
@@ -142,15 +142,15 @@ export const coreParser = (
         const deposit = tx.transfers.find(associatedTransfer(asset, amount));
         if (deposit) {
           const balChange = sub(newBal, oldBal);
-          const interest = sub(balChange, deposit.quantity);
-          log.debug(`Quantity Deposited: ${deposit.quantity} | Interest Acrued: ${interest}`);
+          const interest = sub(balChange, deposit.amount);
+          log.debug(`Amount Deposited: ${deposit.amount} | Interest Acrued: ${interest}`);
           if (gt(interest, "0")) {
             tx.transfers.push({
               asset,
               category: Income,
               from: address,
               index: deposit.index - 1,
-              quantity: interest,
+              amount: interest,
               to: account
             });
           }
@@ -166,11 +166,11 @@ export const coreParser = (
         const newBal = formatUnits(event.args.newBalance, getDecimals(event.args.asset));
         log.debug(`Starting Balance: ${oldBal} | New Balance: ${newBal}`);
         const withdraw = tx.transfers.find(transfer =>
-          isSelf(transfer.to) && transfer.asset === asset && transfer.quantity === amount
+          isSelf(transfer.to) && transfer.asset === asset && transfer.amount === amount
         );
         if (withdraw) {
           const principal = sub(oldBal, newBal);
-          const interest = sub(withdraw.quantity, principal);
+          const interest = sub(withdraw.amount, principal);
           log.debug(`Principal: ${principal} | Interest Acrued: ${interest}`);
           if (gt(interest, "0")) {
             tx.transfers.push({
@@ -178,7 +178,7 @@ export const coreParser = (
               category: Income,
               from: address,
               index: withdraw.index - 1,
-              quantity: interest,
+              amount: interest,
               to: account
             });
           }

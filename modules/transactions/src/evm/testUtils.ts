@@ -48,8 +48,7 @@ export const parseEthTx = async ({
   const addressBook = getTestAddressBook(selfAddress);
   const store = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
   const ethData = getEthereumData({
-    covalentKey: env.covalentKey,
-    etherscanKey: env.etherscanKey,
+    alchemyProvider: env.alchemyProvider,
     logger,
     store,
   });
@@ -71,8 +70,7 @@ export const parsePolygonTx = async ({
   const addressBook = getTestAddressBook(selfAddress);
   const store = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
   const polygonData = getPolygonData({
-    covalentKey: env.covalentKey,
-    etherscanKey: env.etherscanKey,
+    polygonscanKey: env.polygonscanKey,
     logger,
     store,
   });

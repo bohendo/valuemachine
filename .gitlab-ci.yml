@@ -15,8 +15,7 @@ build:
   script:
     - apk add bash curl git jq make
     - make pull-latest
-    - make prod
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - make all
     - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - make push
 
@@ -34,35 +33,9 @@ test:
     - make test-utils
     - make test-transactions
     - make test-core
+    - make run-example
     - make start-prod
     - make dls
     - bash ops/health-check.sh server
     - bash ops/health-check.sh webserver
     - bash ops/health-check.sh proxy
-
-deploy:
-  image: docker:stable
-  stage: deploy
-  services:
-    - name: docker:dind
-      alias: localhost
-  only:
-    refs:
-      - prod
-  script:
-    - apk add bash curl git jq make
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    - make pull-commit
-    - make push-semver
-    - >
-      docker build --tag ssh-action ops/ssh-action;
-      docker run \
-        --env=GIT_BRANCH=prod \
-        --env=GIT_PROJECT_NAME=$CI_PROJECT_NAME \
-        --env=GIT_REMOTE=origin \
-        --env=GIT_REPOSITORY_URL=$CI_REPOSITORY_URL \
-        ssh-action $SERVER_URL $SSH_KEY '
-          make pull;
-          make restart-prod;
-        '

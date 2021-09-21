@@ -139,7 +139,7 @@ export const coreParser = (
         log.warn(`Couldn't find the asset associated with ${yTransfer.asset}`);
         continue;
       }
-      log.info(`Parsing yToken transfer of ${yTransfer.quantity} ${yTransfer.asset}`);
+      log.info(`Parsing yToken transfer of ${yTransfer.amount} ${yTransfer.asset}`);
       const transfer = tx.transfers.find(t =>
         t.category !== Internal
         && t.to !== evmMeta.name

@@ -11,26 +11,36 @@ export default [
       {
         file: pkg.main,
         format: "cjs",
+        sourcemap: true,
       },
       {
         file: pkg.module,
         format: "esm",
+        sourcemap: true,
       },
     ],
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
     plugins: [
       NodeResolve(),
       Typescript({
-        noEmitOnError: true,
         outputToFilesystem: true,
-        sourceMap: false,
-        tsconfig: "./tsconfig.json"
+        tsconfig: "./tsconfig.json",
       }),
     ],
+    onwarn: (warning, warn) => {
+      console.warn(warning);
+      warn(warning);
+    },
   },
   {
     input: "./dist/.ts.cache/index.d.ts",
     output: [{ file: pkg.types, format: "es" }],
     plugins: [TypeDeclarations()],
+    onwarn: (warning, warn) => {
+      if (warning.code === "UNUSED_EXTERNAL_IMPORT" && warning.source === "@valuemachine/types") {
+        return; // idk where this warning is coming from but it doesn't seem important..
+      }
+      warn(warning);
+    },
   }
 ];

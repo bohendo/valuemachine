@@ -16,14 +16,14 @@ const toDate = timestamp => timestamp?.includes("T") ? timestamp.split("T")[0] :
 
 type Value = {
   asset: Asset;
-  quantity: DecimalString;
+  amount: DecimalString;
 };
 const sumValue = (values: Array<Value>): Balances => {
   const totals = {} as Balances;
   if (!values?.length) return totals;
   values.forEach(value => {
-    if (value?.quantity && !eq(value.quantity, "0")) {
-      totals[value.asset] = add(totals[value.asset], value.quantity);
+    if (value?.amount && !eq(value.amount, "0")) {
+      totals[value.asset] = add(totals[value.asset], value.amount);
     }
   });
   return totals;
@@ -53,7 +53,7 @@ export const diffBalances = (balancesList: Balances[]): Balances[] => {
 };
 
 export const describeChunk = (chunk: AssetChunk): string => {
-  return `${round(chunk.quantity)} ${chunk.asset} held from ${
+  return `${round(chunk.amount)} ${chunk.asset} held from ${
     toDate(chunk.history?.[0]?.date || "???")
   } - ${toDate(chunk.disposeDate) || "present"}`;
 };

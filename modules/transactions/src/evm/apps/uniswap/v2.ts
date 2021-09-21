@@ -122,7 +122,7 @@ export const v2Parser = (
     ////////////////////////////////////////
     // Core Uniswap Interactions: swap, deposit liq, withdraw liq
     if ([
-      "EthPurchase", "TokenPurchase", "AddLiquidity", "RemoveLiquidity", // V1
+      "EthPurchase", "TokenPurchase", "AddLiquidity", "RemoveLiquidity", // V1 (TODO: remove)
       "Swap", "Mint", "Burn", // V2
     ].includes(event.name)) {
       const swaps = getSwaps();

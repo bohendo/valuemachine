@@ -62,7 +62,7 @@ export const coreParser = (
           : isSelf(from) && !isSelf(to) ? Expense
           : isSelf(to) && !isSelf(from) ? Income
           : Unknown;
-        tx.transfers.push({ asset, category, from, index: txLog.index, quantity: amount, to });
+        tx.transfers.push({ asset, category, from, index: txLog.index, amount: amount, to });
         if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }

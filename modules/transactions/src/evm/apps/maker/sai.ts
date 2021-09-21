@@ -152,7 +152,7 @@ export const saiParser = (
       // WETH -> PETH: Categorize WETH transfer as a swap out
       } else if (logNote.name === "join") {
         const wad = formatUnits(logNote.args[1], 18);
-        // Get the WETH transfer with the quantity that's closest to the wad
+        // Get the WETH transfer with the amount that's closest to the wad
         const swapOut = tx.transfers.filter(t =>
           t.asset === WETH
           && t.to !== ETH
@@ -172,7 +172,7 @@ export const saiParser = (
       // PETH -> WETH: Categorize WETH transfer as a swap in
       } else if (logNote.name === "exit") {
         const wad = formatUnits(logNote.args[1], 18);
-        // Get the WETH transfer with the quantity that's closest to the wad
+        // Get the WETH transfer with the amount that's closest to the wad
         const swapIn = tx.transfers.filter(t =>
           t.asset === WETH
           && ([
@@ -306,7 +306,7 @@ export const saiParser = (
           t.asset === SAI
           && isSelf(t.from)
           && t.to === cageAddress
-          && gt(t.quantity, "0")
+          && gt(t.amount, "0")
         );
         if (swapOut) {
           swapOut.category = SwapOut;
@@ -318,7 +318,7 @@ export const saiParser = (
           t.asset === ETH
           && isSelf(t.to)
           && t.from === cageAddress
-          && valuesAreClose(t.quantity, wad, div(wad, "100"))
+          && valuesAreClose(t.amount, wad, div(wad, "100"))
         );
         if (swapIn) {
           swapIn.category = SwapIn;

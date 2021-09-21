@@ -1,2 +1,2 @@
-export { getEthereumData } from "./ethereumData";
-export { parseEthTx } from "./parser";
+export { getEthereumData } from "./manager";
+export { parseEthereumTx } from "./parser";

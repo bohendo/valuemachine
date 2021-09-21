@@ -50,7 +50,7 @@ export const parseEvmTx = (
       category: Fee,
       from: evmTx.from,
       index: -1,
-      quantity: formatEther(BigNumber.from(evmTx.gasUsed).mul(evmTx.gasPrice)),
+      amount: formatEther(BigNumber.from(evmTx.gasUsed).mul(evmTx.gasPrice)),
       to: evmMetadata.name,
     });
   }
@@ -69,7 +69,7 @@ export const parseEvmTx = (
       category: getSimpleCategory(evmTx.to, evmTx.from),
       from: evmTx.from,
       index: 0,
-      quantity: evmTx.value,
+      amount: evmTx.value,
       to: evmTx.to,
     });
   }
@@ -96,7 +96,7 @@ export const parseEvmTx = (
         category: getSimpleCategory(evmTransfer.to, evmTransfer.from),
         // index: 0, // Internal evm transfers have no index
         from: evmTransfer.from,
-        quantity: evmTransfer.value,
+        amount: evmTransfer.value,
         to: evmTransfer.to,
       });
     }
@@ -120,7 +120,7 @@ export const parseEvmTx = (
       !isAddress(transfer.from) || isSelf(transfer.from) ||
       !isAddress(transfer.to) || isSelf(transfer.to)
     ) && (
-      gt(transfer.quantity, "0")
+      gt(transfer.amount, "0")
     ))
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);

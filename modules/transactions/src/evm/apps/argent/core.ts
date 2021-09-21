@@ -65,7 +65,7 @@ export const coreParser = (
         const inAsset = getName(destToken);
         const inAmt = formatUnits(destAmount, addressBook.getDecimals(destToken));
         const swapIn = tx.transfers.find(transfer =>
-          isSelf(transfer.to) && transfer.asset === inAsset && transfer.quantity === inAmt
+          isSelf(transfer.to) && transfer.asset === inAsset && transfer.amount === inAmt
         );
         if (swapIn) {
           swapIn.category = SwapIn;
@@ -76,7 +76,7 @@ export const coreParser = (
         const outAsset = getName(srcToken);
         const outAmt = formatUnits(srcAmount, addressBook.getDecimals(srcToken));
         const swapOut = tx.transfers.find(transfer =>
-          isSelf(transfer.from) && transfer.asset === outAsset && transfer.quantity === outAmt
+          isSelf(transfer.from) && transfer.asset === outAsset && transfer.amount === outAmt
         );
         if (swapOut) {
           swapOut.category = SwapOut;

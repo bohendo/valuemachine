@@ -10,19 +10,19 @@ export default [
       {
         file: pkg.main,
         format: "cjs",
+        sourcemap: true,
       },
       {
         file: pkg.module,
         format: "esm",
+        sourcemap: true,
       },
     ],
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
     plugins: [
       Typescript({
-        noEmitOnError: true,
         outputToFilesystem: true,
-        sourceMap: false,
-        tsconfig: "./tsconfig.json"
+        tsconfig: "./tsconfig.json",
       }),
     ],
   },

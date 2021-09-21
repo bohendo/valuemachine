@@ -13,7 +13,7 @@ export type ChunkIndex = Static<typeof ChunkIndex>;
 
 export const AssetChunk = Type.Object({
   asset: Asset,
-  quantity: DecimalString,
+  amount: DecimalString,
   history: Type.Array(Type.Object({ // length should always be >= 1
     date: TimestampString, // receiveDate = history[0].date
     account: Account,

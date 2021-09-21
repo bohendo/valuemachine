@@ -14,6 +14,7 @@ export default {
   output: [{
     file: pkg.main,
     format: "cjs",
+    sourcemap: true,
   }],
   onwarn: (warning, warn) => {
     // Ignore known warnings
@@ -37,13 +38,11 @@ export default {
         "readable-stream": "stream"
       }
     }),
-    Typescript({
-      noEmitOnError: true,
-      outputToFilesystem: true,
-      sourceMap: false,
-      tsconfig: "./tsconfig.json"
-    }),
     Json({ compact: true }),
+    Typescript({
+      outputToFilesystem: true,
+      tsconfig: "./tsconfig.json",
+    }),
     CommonJs({
       include: ["./src/entry.ts", /node_modules/],
       transformMixedEsModules: true,
