@@ -173,7 +173,7 @@ package: react core transactions utils types $(shell find modules/package $(find
 	$(docker_run) "cd modules/package && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-client: package $(shell find modules/client $(find_options))
+client: package modules/client/.env $(shell find modules/client $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/client && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
