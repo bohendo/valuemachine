@@ -1,0 +1,34 @@
+name: main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: make pull-latest
+      - run: make all
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - run: make push
+
+  test:
+    runs-on: ubuntu-20.04
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v1
+      - run: make test-utils
+      - run: make test-transactions
+      - run: make test-core
+      - run: make run-example
+      - run: make start-prod
+      - run: make dls
+      - run: bash ops/health-check.sh server
+      - run: bash ops/health-check.sh webserver
+      - run: bash ops/health-check.sh proxy

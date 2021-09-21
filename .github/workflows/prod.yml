@@ -1,0 +1,53 @@
+name: prod
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  build:
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: make pull-latest
+      - run: make all
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - run: make push
+
+  test:
+    runs-on: ubuntu-20.04
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v1
+      - run: make test-utils
+      - run: make test-transactions
+      - run: make test-core
+      - run: make run-example
+      - run: make start-prod
+      - run: make dls
+      - run: bash ops/health-check.sh server
+      - run: bash ops/health-check.sh webserver
+      - run: bash ops/health-check.sh proxy
+
+  deploy:
+    runs-on: ubuntu-20.04
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v1
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - run: make pull-commit
+      - run: make push-semver
+      - run: docker build --tag ssh-action ops/ssh-action
+      - run: docker run \
+        --env=GIT_BRANCH=prod \
+        --env=GIT_PROJECT_NAME=valuemachine \
+        --env=GIT_REMOTE=origin \
+        --env=GIT_REPOSITORY_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git \
+        ssh-action $SERVER_URL $SSH_KEY '
+          make pull;
+          make restart-prod;
+        '

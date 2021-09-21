@@ -38,8 +38,8 @@ $(shell mkdir -p .flags)
 
 default: dev
 dev: proxy package
-prod: dev server-image webserver
-all: prod
+prod: proxy server-image webserver
+all: dev prod
 
 start: dev
 	bash ops/start.sh
