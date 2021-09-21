@@ -24,7 +24,10 @@ export default [
     plugins: [
       NodeResolve(),
       Json({ compact: true }),
-      Typescript({ tsconfig: "./tsconfig.json" }),
+      Typescript({
+        outputToFilesystem: true,
+        tsconfig: "./tsconfig.json",
+      }),
     ],
   },
   {

@@ -7,10 +7,10 @@ import {
 
 import { getEthereumData } from "./manager";
 
-const logger = testLogger.child({ module: `TestEthereum` }, { level: "trace" });
+const logger = testLogger.child({ module: "TestEthereumData" }, { level: "trace" });
 
 // Skip tests that require network calls unless we're actively debugging
-describe.skip("Etherscan Data Manager", () => {
+describe.skip("Ethereum Data Manager", () => {
 
   it("should fetch the same data from alchemy & etherscan", async () => {
     const addressBook = getTestAddressBook("Ethereum/0xDD8251bB8e7Ba07DfcD9e1842CD9E3cDfc0399C8");

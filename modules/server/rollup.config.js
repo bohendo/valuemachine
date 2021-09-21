@@ -39,7 +39,10 @@ export default {
       }
     }),
     Json({ compact: true }),
-    Typescript({ tsconfig: "./tsconfig.json" }),
+    Typescript({
+      outputToFilesystem: true,
+      tsconfig: "./tsconfig.json",
+    }),
     CommonJs({
       include: ["./src/entry.ts", /node_modules/],
       transformMixedEsModules: true,

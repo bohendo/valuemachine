@@ -64,7 +64,6 @@ export const getEthereumData = ({
   const fetcher = alchemyProvider ? getAlchemyFetcher({ providerUrl: alchemyProvider, logger })
     : etherscanKey ? getEtherscanFetcher({ apiKey: etherscanKey, logger })
     : null;
-  if (!fetcher) throw new Error(`Either an alchemyProvider or an etherscanKey is required`);
 
   // Mapping of blockNumber (IntegerString): timestamp (TimestampString)
   // Bc Alchemy doesn't reliably return timestamps while fetching txns by hash
@@ -74,6 +73,7 @@ export const getEthereumData = ({
   // Internal Helper Functions
 
   const syncAddress = async (rawAddress: EvmAddress): Promise<void> => {
+    if (!fetcher) throw new Error(`Either an alchemyProvider or an etherscanKey is required`);
     const address = getEvmAddress(
       rawAddress.includes("/") ? rawAddress.split("/").pop() : rawAddress
     );
@@ -134,6 +134,7 @@ export const getEthereumData = ({
     if (!getEvmTransactionError(json.transactions[txHash])) {
       return;
     }
+    if (!fetcher) throw new Error(`Either an alchemyProvider or an etherscanKey is required`);
     try {
       const tx = await fetcher.fetchTransaction(txHash);
       const txError = getEvmTransactionError(tx);

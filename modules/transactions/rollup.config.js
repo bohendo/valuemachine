@@ -22,8 +22,15 @@ export default [
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
     plugins: [
       NodeResolve(),
-      Typescript({ tsconfig: "./tsconfig.json" }),
+      Typescript({
+        outputToFilesystem: true,
+        tsconfig: "./tsconfig.json",
+      }),
     ],
+    onwarn: (warning, warn) => {
+      console.warn(warning);
+      warn(warning);
+    },
   },
   {
     input: "./dist/.ts.cache/index.d.ts",

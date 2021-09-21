@@ -22,7 +22,10 @@ export default [
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
     plugins: [
       NodeResolve(),
-      Typescript({ tsconfig: "./tsconfig.json" }),
+      Typescript({
+        outputToFilesystem: true,
+        tsconfig: "./tsconfig.json",
+      }),
     ],
   },
   {

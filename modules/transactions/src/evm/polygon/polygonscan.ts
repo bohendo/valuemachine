@@ -53,7 +53,7 @@ export const getPolygonscanFetcher = ({
     const targetType = isEvmAddress(target) ? "address"
       : target.length === 66 ? "txhash"
       : "boolean=false&tag";
-    const url = `https://api.polygonscan.io/api?` +
+    const url = `https://api.polygonscan.com/api?` +
       `module=${module}&` +
       `action=${action}&` +
       `${targetType}=${target}&` +

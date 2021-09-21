@@ -13,9 +13,9 @@ import {
 
 import { getPolygonData } from "./manager";
 
-const logger = testLogger.child({ module: `TestPolygon` }, { level: "info" });
+const logger = testLogger.child({ module: "TestPolygonData" }, { level: "info" });
 
-describe.skip("Polygon Data", () => {
+describe.skip("Polygon Data Manager", () => {
   let polygonData: ChainData;
   const testAddress = "0xada083a3c06ee526F827b43695F2DcFf5C8C892B";
   const addressBook = getTestAddressBook(testAddress);

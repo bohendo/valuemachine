@@ -7,7 +7,10 @@ import pkg from "./package.json";
 
 const plugins = [
   NodeResolve(),
-  Typescript({ tsconfig: "./tsconfig.json" }),
+  Typescript({
+    outputToFilesystem: true,
+    tsconfig: "./tsconfig.json",
+  }),
   CommonJs({ extensions: [".js", ".ts"] }),
 ];
 

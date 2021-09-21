@@ -67,7 +67,6 @@ export const getPolygonData = ({
   const fetcher = covalentKey ? getCovalentFetcher({ apiKey: covalentKey, logger })
     : polygonscanKey ? getPolygonscanFetcher({ apiKey: polygonscanKey, logger })
     : null;
-  if (!fetcher) throw new Error(`Either an covalentKey or an polygonscanKey is required`);
 
   ////////////////////////////////////////
   // Internal Heleprs
@@ -98,6 +97,7 @@ export const getPolygonData = ({
   });
 
   const syncAddress = async (rawAddress: EvmAddress): Promise<void> => {
+    if (!fetcher) throw new Error(`Either a covalentKey or a polygonscanKey is required`);
     const address = getEvmAddress(
       rawAddress.includes("/") ? rawAddress.split("/").pop() : rawAddress
     );
@@ -163,6 +163,7 @@ export const getPolygonData = ({
     if (!getEvmTransactionError(existing)) {
       return;
     }
+    if (!fetcher) throw new Error(`Either a covalentKey or a polygonscanKey is required`);
     log.info(`Fetching polygon data for tx ${txHash}`);
     const polygonTx = formatCovalentTx(await fetcher.fetchTransaction(txHash));
     const error = getEvmTransactionError(polygonTx);

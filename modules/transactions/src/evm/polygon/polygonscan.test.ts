@@ -6,46 +6,31 @@ import {
 
 import { getPolygonscanFetcher } from "./polygonscan";
 
-const logger = testLogger.child({ module: "Etherscan Fetcher" }, { level: "debug" });
+const logger = testLogger.child({ module: "Polygonscan Fetcher" }, { level: "trace" });
 
 // Skip tests that require network calls unless we're actively debugging
-describe.skip("Etherscan Fetcher", () => {
+describe.skip("Polygonscan Fetcher", () => {
 
-  it.skip("should fetch a transaction that includes a contract creation", async () => {
+  it("should fetch a simple transaction", async () => {
     const fetcher = getPolygonscanFetcher({ apiKey: env.polygonscanKey, logger });
-    const hash = "???";
+    const hash = "0xbc9eeccec4c8c020fa04feb8ff882b933dea40b46eb60a63d803c1668d87ea3c";
     const tx = await fetcher.fetchTransaction(hash);
     logger.info(tx);
     expect(tx).to.be.ok;
   });
 
-  it.skip("should fetch a transaction that includes a contract self-destruction", async () => {
+  it("should fetch history for an address", async () => {
     const fetcher = getPolygonscanFetcher({ apiKey: env.polygonscanKey, logger });
-    const hash = "???";
-    const tx = await fetcher.fetchTransaction(hash);
-    logger.info(tx);
-    expect(tx).to.be.ok;
-  });
-
-  it.skip("should fetch an EIP1559 transaction", async () => {
-    const fetcher = getPolygonscanFetcher({ apiKey: env.polygonscanKey, logger });
-    const hash = "???";
-    const tx = await fetcher.fetchTransaction(hash);
-    logger.info(tx);
-    expect(tx).to.be.ok;
-  });
-
-  it.skip("should fetch history for an address", async () => {
-    const fetcher = getPolygonscanFetcher({ apiKey: env.polygonscanKey, logger });
-    const address = "???";
+    const address = "0x1057Bea69c9ADD11c6e3dE296866AFf98366CFE3";
     const history = await fetcher.fetchHistory(address);
     logger.info(history);
     expect(history).to.be.ok;
   });
 
-  it.skip("should sync & parse an address w zero transactions", async () => {
+
+  it("should sync & parse an address w zero transactions", async () => {
     const fetcher = getPolygonscanFetcher({ apiKey: env.polygonscanKey, logger });
-    const address = "???";
+    const address = "0xBeD6B644203881AAE28072620433524a66A37B87";
     const history = await fetcher.fetchHistory(address);
     logger.info(history);
     expect(history).to.be.ok;

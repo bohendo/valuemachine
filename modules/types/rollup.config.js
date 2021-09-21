@@ -20,7 +20,10 @@ export default [
     ],
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
     plugins: [
-      Typescript({ tsconfig: "./tsconfig.json" }),
+      Typescript({
+        outputToFilesystem: true,
+        tsconfig: "./tsconfig.json",
+      }),
     ],
   },
   {
