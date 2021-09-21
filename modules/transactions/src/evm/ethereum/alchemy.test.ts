@@ -11,6 +11,24 @@ const logger = testLogger.child({ module: "Alchemy Fetcher" }, { level: "trace" 
 // Skip tests that require network calls unless we're actively debugging
 describe.skip("Alchemy Fetcher", () => {
 
+  // TODO: We still need a way to find zero-value transactions so we can account for tx fees
+  it.skip("should fetch history for an address including zero-value txns", async () => {
+    const fetcher = getAlchemyFetcher({ providerUrl: env.alchemyProvider, logger });
+    const address = "0x1057Bea69c9ADD11c6e3dE296866AFf98366CFE3";
+    const history = await fetcher.fetchHistory(address);
+    logger.info(history);
+    expect(history).to.include("0x003d029001bf6ffd60f652d91e302819c6e4f1e3af00fc5ba9f3928cbda74d2d");
+    expect(history).to.be.ok;
+  });
+
+  it("should sync & parse an address w zero transactions", async () => {
+    const fetcher = getAlchemyFetcher({ providerUrl: env.alchemyProvider, logger });
+    const address = "0xBeD6B644203881AAE28072620433524a66A37B87";
+    const history = await fetcher.fetchHistory(address);
+    logger.info(history);
+    expect(history).to.be.ok;
+  });
+
   it("should fetch an old transaction", async () => {
     const fetcher = getAlchemyFetcher({ providerUrl: env.alchemyProvider, logger });
     const hash = "0x41a3720d7b1401ebc68e53fdd829cdb30df26cc8eb8b01e35d8cf9d36468aa6e";
@@ -41,22 +59,6 @@ describe.skip("Alchemy Fetcher", () => {
     const tx = await fetcher.fetchTransaction(hash);
     logger.info(tx);
     expect(tx).to.be.ok;
-  });
-
-  it("should fetch history for an address", async () => {
-    const fetcher = getAlchemyFetcher({ providerUrl: env.alchemyProvider, logger });
-    const address = "0xDD8251bB8e7Ba07DfcD9e1842CD9E3cDfc0399C8";
-    const history = await fetcher.fetchHistory(address);
-    logger.info(history);
-    expect(history).to.be.ok;
-  });
-
-  it("should sync & parse an address w zero transactions", async () => {
-    const fetcher = getAlchemyFetcher({ providerUrl: env.alchemyProvider, logger });
-    const address = "0xBeD6B644203881AAE28072620433524a66A37B87";
-    const history = await fetcher.fetchHistory(address);
-    logger.info(history);
-    expect(history).to.be.ok;
   });
 
 });

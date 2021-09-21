@@ -61,8 +61,8 @@ export const getEthereumData = ({
     feeAsset: Assets.ETH,
   };
 
-  const fetcher = alchemyProvider ? getAlchemyFetcher({ providerUrl: alchemyProvider, logger })
-    : etherscanKey ? getEtherscanFetcher({ apiKey: etherscanKey, logger })
+  const fetcher = etherscanKey ? getEtherscanFetcher({ apiKey: etherscanKey, logger })
+    : alchemyProvider ? getAlchemyFetcher({ providerUrl: alchemyProvider, logger })
     : null;
 
   // Mapping of blockNumber (IntegerString): timestamp (TimestampString)
@@ -164,8 +164,7 @@ export const getEthereumData = ({
       .map(address => getEvmAddress(address));
     const addresses = selfAddresses.filter(address => {
       if (
-        !json.addresses[address] ||
-        json.addresses[address].lastUpdated === zeroDate
+        !json.addresses[address] || json.addresses[address].lastUpdated === zeroDate
       ) {
         return true;
       }
@@ -182,7 +181,7 @@ export const getEthereumData = ({
       const hour = 60 * 60 * 1000;
       const month = 30 * 24 * hour;
       // Don't sync any addresses w no recent activity if they have been synced before
-      if (lastUpdated && Date.now() - new Date(lastAction).getTime() > 12 * month) {
+      if (lastUpdated && Date.now() - new Date(lastAction).getTime() > 3 * month) {
         log.debug(`Skipping retired (${lastAction}) address ${address}`);
         return false;
       }

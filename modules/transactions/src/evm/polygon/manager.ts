@@ -206,7 +206,7 @@ export const getPolygonData = ({
       const hour = 60 * 60 * 1000;
       const month = 30 * 24 * hour;
       // Don't sync any addresses w no recent activity if they have been synced before
-      if (lastUpdated && Date.now() - new Date(lastAction).getTime() > 12 * month) {
+      if (lastUpdated && Date.now() - new Date(lastAction).getTime() > 3 * month) {
         log.debug(`Skipping retired (${lastAction}) address ${address}`);
         return false;
       }
