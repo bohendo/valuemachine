@@ -8,6 +8,7 @@ import {
   Logger,
 } from "@valuemachine/types";
 import {
+  dedup,
   getEvmTransactionError,
   getLogger,
   toBN,
@@ -100,10 +101,10 @@ export const getAlchemyFetcher = ({
       fetchAllTransfers({ fromBlock: "0x00", toAddress: address }),
       fetchAllTransfers({ fromBlock: "0x00", fromAddress: address }),
     ]);
-    return [
+    return dedup([
       ...incoming.map(tx => tx.hash),
       ...outgoing.map(tx => tx.hash),
-    ].filter(hash => !!hash).sort();
+    ].filter(hash => !!hash).sort());
   };
 
   const fetchTransaction = async (txHash: Bytes32): Promise<EvmTransaction> => {

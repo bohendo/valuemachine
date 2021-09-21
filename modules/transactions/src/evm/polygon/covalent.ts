@@ -8,6 +8,7 @@ import {
   Logger,
 } from "@valuemachine/types";
 import {
+  dedup,
   getLogger,
   toBN,
 } from "@valuemachine/utils";
@@ -101,7 +102,7 @@ export const getCovalentFetcher = ({
       });
       items.push(...data.items);
     }
-    return items?.map(item => item.tx_hash).sort() || [];
+    return dedup(items?.map(item => item.tx_hash).sort() || []);
   };
 
   const fetchTransaction = async (txHash: Bytes32): Promise<any> => {

@@ -8,6 +8,7 @@ import {
   Logger,
 } from "@valuemachine/types";
 import {
+  dedup,
   getEvmTransactionError,
   getLogger,
   toBN,
@@ -112,7 +113,7 @@ export const getEtherscanFetcher = ({
         log.debug(`Cached a timestamp entry for block ${blockNumber}: ${timestamp}`);
       }
     });
-    return transactions.map(tx => tx.hash).filter(hash => !!hash).sort();
+    return dedup(transactions.map(tx => tx.hash).filter(hash => !!hash).sort());
   };
 
   const fetchTransaction = async (txHash: Bytes32): Promise<EvmTransaction> => {

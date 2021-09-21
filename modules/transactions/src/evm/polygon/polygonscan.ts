@@ -9,6 +9,7 @@ import {
   Logger,
 } from "@valuemachine/types";
 import {
+  dedup,
   getEvmTransactionError,
   getLogger,
   toBN,
@@ -111,12 +112,12 @@ export const getPolygonscanFetcher = ({
         log.debug(`Added new timestamp cache entry for ${blockNumber}: ${timestamp}`);
       }
     });
-    return [
+    return dedup([
       ...simple.map(tx => tx.hash),
       ...internal.map(tx => tx.hash),
       ...token.map(tx => tx.hash),
       ...nft.map(tx => tx.hash),
-    ].filter(hash => !!hash).sort();
+    ].filter(hash => !!hash).sort());
   };
 
   const fetchTransaction = async (txHash: Bytes32): Promise<EvmTransaction> => {
