@@ -11,7 +11,7 @@ const log = getLogger(env.logLevel).child({ module: `${Guards.Ethereum}Transacti
 
 const ethereumData = getEthereumData({
   alchemyProvider: env.alchemyProvider,
-  etherscanProvider: env.etherscanProvider,
+  etherscanKey: env.etherscanKey,
   logger: log,
   store,
 });
