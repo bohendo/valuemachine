@@ -1,5 +1,5 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
-import { getAddressBook, getAlchemyData, Guards } from "@valuemachine/transactions";
+import { getAddressBook, getEthereumData, Guards } from "@valuemachine/transactions";
 import { getAddressBookError, getLogger } from "@valuemachine/utils";
 import express from "express";
 
@@ -9,8 +9,8 @@ import { getLogAndSend, store, STATUS_YOUR_BAD } from "./utils";
 
 const log = getLogger(env.logLevel).child({ module: `${Guards.Ethereum}Transactions` });
 
-const ethereumData = getAlchemyData({
-  providerUrl: env.alchemyProvider,
+const ethereumData = getEthereumData({
+  alchemyProvider: env.alchemyProvider,
   logger: log,
   store,
 });

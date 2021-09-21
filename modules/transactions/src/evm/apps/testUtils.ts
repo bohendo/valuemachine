@@ -14,7 +14,7 @@ import { getFileStore } from "@valuemachine/utils";
 import { getAddressBook } from "../../addressBook";
 import { env, testLogger } from "../../testUtils";
 import { getPolygonData } from "../polygon";
-import { getEtherscanData } from "../ethereum";
+import { getEthereumData } from "../ethereum";
 
 export * from "../../testUtils";
 
@@ -44,8 +44,8 @@ export const parseEthTx = async ({
   storePath?: string;
 }): Promise<Transaction> => {
   const addressBook = getTestAddressBook(selfAddress);
-  const ethData = getEtherscanData({
-    apiKey: env.etherscanKey,
+  const ethData = getEthereumData({
+    etherscanKey: env.etherscanKey,
     logger,
     store: testStore,
   });

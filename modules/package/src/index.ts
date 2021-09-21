@@ -8,8 +8,7 @@ export * as components from "@valuemachine/react";
 export {
   describeTransaction,
   getAddressBook,
-  getAlchemyData,
-  getEtherscanData,
+  getEthereumData,
   getPolygonData,
   getTransactions,
   publicAddresses,

@@ -1,7 +1,8 @@
+import { /*defaultAbiCoder, AbiCoder,*/ Interface } from "@ethersproject/abi";
 import { getAddress as getEvmAddress } from "@ethersproject/address";
 import { isHexString } from "@ethersproject/bytes";
+import { AddressZero } from "@ethersproject/constants";
 import { formatEther } from "@ethersproject/units";
-import { /*defaultAbiCoder, AbiCoder,*/ Interface } from "@ethersproject/abi";
 import {
   DecimalString,
   EvmMetadata,
@@ -29,16 +30,25 @@ export const toISOString = (val?: number | string): string => {
 
 export const formatTraces = (traces: any[], meta: EvmMetadata): EvmTransfer[] => {
   const getAddress = (address: string): string => `${meta.name}/${getEvmAddress(address)}`;
-  // NOTE: The first trace represents the tx itself, ignore it
+  // NOTE: The first trace represents the tx itself, ignore it here
   return traces.slice(1).map(trace => ({
-    to: trace.type === "call"
-      ? (trace.action.to ? getAddress(trace.action.to) : null)
-      : getAddress(trace.action.refundAddress),
+    to: getAddress(
+      trace.type === "call" ? trace.action.to
+      : trace.type === "create" ? trace.result.address
+      : trace.type === "suicide" ? trace.action.refundAddress
+      : AddressZero
+    ),
     from: getAddress(
-      trace.type === "call" ? trace.action.from : trace.action.address
-    ), 
+      trace.type === "call" ? trace.action.from
+      : trace.type === "create" ? trace.action.from
+      : trace.type === "suicide" ? trace.action.address
+      : AddressZero
+    ),
     value: formatEther(
-      trace.type === "call" ? trace.action.value : trace.action.balance
+      trace.type === "call" ? trace.action.value
+      : trace.type === "create" ? trace.action.value
+      : trace.type === "suicide" ? trace.action.balance
+      : "0"
     ),
   })).filter(t => gt(t.value, "0"));
 };

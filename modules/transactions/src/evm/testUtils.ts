@@ -15,7 +15,7 @@ import { getAddressBook } from "../addressBook";
 import { env, testLogger } from "../testUtils";
 
 import { getPolygonData } from "./polygon";
-import { getAlchemyData } from "./ethereum";
+import { getEthereumData } from "./ethereum";
 
 export * from "../testUtils";
 
@@ -47,8 +47,8 @@ export const parseEthTx = async ({
 }): Promise<Transaction> => {
   const addressBook = getTestAddressBook(selfAddress);
   const store = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
-  const ethData = getAlchemyData({
-    providerUrl: env.alchemyProvider,
+  const ethData = getEthereumData({
+    alchemyProvider: env.alchemyProvider,
     logger,
     store,
   });

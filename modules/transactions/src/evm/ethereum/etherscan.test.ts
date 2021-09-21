@@ -14,10 +14,24 @@ import { getEtherscanData } from "./etherscan";
 const logger = testLogger.child({ module: `TestEthereum` }, { level: "trace" });
 
 // Skip tests that require network calls unless we're actively debugging
-describe.skip("Etherscan Fetcher", () => {
+describe("Etherscan Fetcher", () => {
+
+  it("should sync a transaction that includes a contract creation", async () => {
+    const ethData = getEtherscanData({
+      apiKey: env.etherscanKey,
+      logger,
+    });
+    const addressBook = getTestAddressBook("Ethereum/0x1057bea69c9add11c6e3de296866aff98366cfe3");
+    const hash = "0x7fd11478180d9aca3d722cefe737c83c537d29b29ccc4afccea0f523005a53a4";
+    await ethData.syncTransaction(hash);
+    const tx = ethData.getTransaction(hash, addressBook);
+    logger.info(ethData.json, "ethData.json");
+    expect(tx).to.be.ok;
+    expect(tx.sources).to.include(Guards.Ethereum);
+    expect(getTransactionsError([tx])).to.be.null;
+  });
 
   it("should sync a transaction that includes a self-destruction", async () => {
-    logger.info(env, "env");
     const ethData = getEtherscanData({
       apiKey: env.etherscanKey,
       logger,
@@ -58,4 +72,16 @@ describe.skip("Etherscan Fetcher", () => {
     expect(transactions[0].sources).to.include(Guards.Ethereum);
     expect(getTransactionsError(transactions)).to.be.null;
   });
+
+  it.only("should sync & parse an address w zero transactions", async () => {
+    const ethData = getEtherscanData({
+      apiKey: env.etherscanKey,
+      logger,
+    });
+    const addressBook = getTestAddressBook("Ethereum/0xBeD6B644203881AAE28072620433524a66A37B87");
+    await ethData.syncAddressBook(addressBook);
+    const transactions = ethData.getTransactions(addressBook);
+    expect(transactions.length).to.equal(0);
+  });
+
 });

@@ -24,7 +24,7 @@ import {
 } from "../apps";
 import { parseEvmTx } from "../parser";
 
-export const parseEthTx = (
+export const parseEthereumTx = (
   ethTx: EvmTransaction,
   ethMetadata: EvmMetadata,
   addressBook: AddressBook,
