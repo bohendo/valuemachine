@@ -151,9 +151,6 @@ export const getPolygonData = ({
     return;
   };
 
-  const logProg = (list: any[], elem: any): string =>
-    `${list.indexOf(elem)+1}/${list.length}`;
-
   ////////////////////////////////////////
   // Exported Methods
 
@@ -202,12 +199,12 @@ export const getPolygonData = ({
         .reverse()[0];
       if (!lastAction) {
         log.info(`No activity detected for address ${address}`);
-        return true;
+        return !json.addresses[address]?.lastUpdated;
       }
-      const hour = 60 * 60 * 1000;
-      const month = 30 * 24 * hour;
       const lastUpdated = json.addresses[address]?.lastUpdated || zeroDate;
       log.info(`${address} last action was on ${lastAction}, last updated on ${lastUpdated}`);
+      const hour = 60 * 60 * 1000;
+      const month = 30 * 24 * hour;
       // Don't sync any addresses w no recent activity if they have been synced before
       if (lastUpdated && Date.now() - new Date(lastAction).getTime() > 12 * month) {
         log.debug(`Skipping retired (${lastAction}) address ${address}`);
@@ -223,13 +220,10 @@ export const getPolygonData = ({
     // Fetch tx history for addresses that need to be updated
     log.info(`Fetching tx history for ${addresses.length} out-of-date addresses`);
     for (const address of addresses) {
-      // Find the most recent tx timestamp that involved any interaction w this address
-      log.info(`Fetching history for address ${logProg(addresses, address)}: ${address}`);
       await syncAddress(address);
     }
     // Make sure all transactions for all addresses have been synced
     for (const address of selfAddresses) {
-      log.debug(`Syncing transactions for address ${logProg(selfAddresses, address)}: ${address}`);
       for (const hash of json.addresses[address] ? json.addresses[address].history : []) {
         await syncTransaction(hash);
       }

@@ -26,11 +26,12 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v1
-      - run: make pull-commit
+      - run: make pull-latest
       - run: make test-utils
       - run: make test-transactions
       - run: make test-core
       - run: make run-example
+      - run: make pull-commit
       - run: make start-prod
       - run: make dls
       - run: bash ops/health-check.sh server

@@ -174,14 +174,13 @@ export const getEthereumData = ({
         .sort((ts1, ts2) => new Date(ts1).getTime() - new Date(ts2).getTime())
         .reverse()[0];
       if (!lastAction) {
-        // TODO: should we treat unused addresses as retired instead?
         log.info(`No activity detected for address ${address}`);
-        return true;
+        return !json.addresses[address]?.lastUpdated;
       }
-      const hour = 60 * 60 * 1000;
-      const month = 30 * 24 * hour;
       const lastUpdated = json.addresses[address]?.lastUpdated || zeroDate;
       log.info(`${address} last action was on ${lastAction}, last updated on ${lastUpdated}`);
+      const hour = 60 * 60 * 1000;
+      const month = 30 * 24 * hour;
       // Don't sync any addresses w no recent activity if they have been synced before
       if (lastUpdated && Date.now() - new Date(lastAction).getTime() > 12 * month) {
         log.debug(`Skipping retired (${lastAction}) address ${address}`);
