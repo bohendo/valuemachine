@@ -512,14 +512,14 @@ export const getPrices = (params?: PricesParams): Prices => {
       .map(date => ({
         date,
         out: chunks.reduce((output, chunk) => {
-          if (chunk.disposeDate === date && chunk.outputs?.length && gt(chunk.quantity, "0")) {
-            output[chunk.asset] = add(output[chunk.asset] || "0", chunk.quantity);
+          if (chunk.disposeDate === date && chunk.outputs?.length && gt(chunk.amount, "0")) {
+            output[chunk.asset] = add(output[chunk.asset] || "0", chunk.amount);
           }
           return output;
         }, {}),
         in: chunks.reduce((input, chunk) => {
-          if (chunk.history[0]?.date === date && chunk.inputs?.length && gt(chunk.quantity, "0")) {
-            input[chunk.asset] = add(input[chunk.asset] || "0", chunk.quantity);
+          if (chunk.history[0]?.date === date && chunk.inputs?.length && gt(chunk.amount, "0")) {
+            input[chunk.asset] = add(input[chunk.asset] || "0", chunk.amount);
           }
           return input;
         }, {}),

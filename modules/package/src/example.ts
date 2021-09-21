@@ -62,7 +62,7 @@ const transactions = getTransactions({ logger });
   }
 
   // calculate & print capital gains
-  console.log(`    Quantity |        Asset | Receive Date | Dispose Date | Capital Change (USD)`);
+  console.log(`    Amount |        Asset | Receive Date | Dispose Date | Capital Change (USD)`);
   for (const event of vm.json.events) {
     switch(event.type) {
     case EventTypes.Trade: {
@@ -71,9 +71,9 @@ const transactions = getTransactions({ logger });
         const takePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset);
         const givePrice = prices.getNearest(chunk.disposeDate, chunk.asset);
         if (!takePrice || !givePrice) return;
-        const change = mul(chunk.quantity, sub(givePrice, takePrice));
+        const change = mul(chunk.amount, sub(givePrice, takePrice));
         console.log(`${
-          round(chunk.quantity, 4).padStart(12, " ")
+          round(chunk.amount, 4).padStart(12, " ")
         } | ${
           chunk.asset.padStart(12, " ")
         } | ${

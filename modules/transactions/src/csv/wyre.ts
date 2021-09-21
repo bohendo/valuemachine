@@ -29,12 +29,12 @@ export const mergeWyreTransactions = (
 
     const {
       ["Created At"]: date,
-      ["Dest Amount"]: destQuantity,
+      ["Dest Amount"]: destAmount,
       ["Dest Currency"]: rawDestType,
       ["Fees DAI"]: daiFees,
       ["Fees ETH"]: ethFees,
       ["Fees USD"]: usdFees,
-      ["Source Amount"]: sourceQuantity,
+      ["Source Amount"]: sourceAmount,
       ["Source Currency"]: rawSourceType,
       ["Type"]: txType,
     } = row;
@@ -66,14 +66,14 @@ export const mergeWyreTransactions = (
         asset: sourceType,
         category: SwapOut,
         from: account,
-        quantity: sourceQuantity,
+        amount: sourceAmount,
         to: exchange,
       });
       transaction.transfers.push({
         asset: destType,
         category: SwapIn,
         from: exchange,
-        quantity: destQuantity,
+        amount: destAmount,
         to: account,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
@@ -83,7 +83,7 @@ export const mergeWyreTransactions = (
         asset: destType,
         category: Internal,
         from: `${getGuard(destType)}/unknown`,
-        quantity: destQuantity,
+        amount: destAmount,
         to: account,
       });
       transaction.method = "Deposit";
@@ -93,14 +93,14 @@ export const mergeWyreTransactions = (
         asset: sourceType,
         category: SwapOut,
         from: `${getGuard(sourceType)}/unknown`,
-        quantity: sourceQuantity,
+        amount: sourceAmount,
         to: exchange,
       });
       transaction.transfers.push({
         asset: destType,
         category: SwapIn,
         from: exchange,
-        quantity: destQuantity,
+        amount: destAmount,
         to: account,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
@@ -110,7 +110,7 @@ export const mergeWyreTransactions = (
         asset: destType,
         category: Internal,
         from: account,
-        quantity: destQuantity,
+        amount: destAmount,
         to: `${getGuard(destType)}/unknown`,
       });
       transaction.method = "Withdraw";
@@ -120,14 +120,14 @@ export const mergeWyreTransactions = (
         asset: sourceType,
         category: SwapOut,
         from: account,
-        quantity: sourceQuantity,
+        amount: sourceAmount,
         to: exchange,
       });
       transaction.transfers.push({
         asset: destType,
         category: SwapIn,
         from: exchange,
-        quantity: destQuantity,
+        amount: destAmount,
         to: `${getGuard(destType)}/unknown`,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
@@ -140,11 +140,11 @@ export const mergeWyreTransactions = (
       to: exchange,
     };
     if (gt(usdFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: USD, quantity: usdFees });
+      transaction.transfers.push({ ...feeTransfer, asset: USD, amount: usdFees });
     } else if (gt(ethFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: ETH, quantity: ethFees });
+      transaction.transfers.push({ ...feeTransfer, asset: ETH, amount: ethFees });
     } else if (gt(daiFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: fixAssetType(DAI), quantity: daiFees });
+      transaction.transfers.push({ ...feeTransfer, asset: fixAssetType(DAI), amount: daiFees });
     }
 
     log.debug(transaction, "Parsed row into transaction:");

@@ -71,14 +71,14 @@ export const coreParser = (
     withdraw.category = Internal;
     withdraw.from = appName;
     withdraw.index = withdraw.index || 1;
-    const total = closestTenPow(withdraw.quantity);
+    const total = closestTenPow(withdraw.amount);
     const asset = withdraw.asset;
     tx.transfers.push({
       asset,
       category: Fee,
       index: 0,
       from: appName,
-      quantity: sub(total, withdraw.quantity),
+      amount: sub(total, withdraw.amount),
       to: relayerAddress,
     });
     tx.method = "Withdraw";

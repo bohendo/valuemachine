@@ -47,7 +47,7 @@ export const ChunkRow: React.FC<ChunkRowProps> = ({
       <TableRow>
         <TableCell> {chunk.index} </TableCell>
         <TableCell> {chunk.asset} </TableCell>
-        <TableCell> {chunk.quantity} </TableCell>
+        <TableCell> {chunk.amount} </TableCell>
         <TableCell> {
           fmtDate(chunk.history[0].date)
         } </TableCell>

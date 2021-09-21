@@ -70,10 +70,10 @@ const aTokenAbi = [
 ////////////////////////////////////////
 /// Parser
 
-const associatedTransfer = (asset: string, quantity: string) =>
+const associatedTransfer = (asset: string, amount: string) =>
   (transfer: Transfer): boolean =>
     assetsAreClose(asset, transfer.asset) &&
-    valuesAreClose(transfer.quantity, quantity, div(quantity, "100"));
+    valuesAreClose(transfer.amount, amount, div(amount, "100"));
 
 export const coreParser = (
   tx: Transaction,

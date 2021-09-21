@@ -66,11 +66,11 @@ export const coreParser = (
           category: SwapIn,
           from: address,
           index,
-          quantity: amount,
+          amount: amount,
           to: event.args.dst,
         });
         const swapOut = tx.transfers.find(t =>
-          t.asset === ETH && t.quantity === amount
+          t.asset === ETH && t.amount === amount
           && isSelf(t.from) && t.to === address
         );
         if (swapOut) {
@@ -81,7 +81,7 @@ export const coreParser = (
           }
           // If there's a same-value eth transfer to the swap recipient, index it before
           const transfer = tx.transfers.find(t =>
-            t.asset === ETH && t.quantity === amount
+            t.asset === ETH && t.amount === amount
             && t.to === swapOut.from
           );
           if (transfer) {
@@ -104,11 +104,11 @@ export const coreParser = (
           category: SwapOut,
           from: event.args.src,
           index,
-          quantity: amount,
+          amount: amount,
           to: address,
         });
         const swapIn = tx.transfers.find(t =>
-          t.asset === ETH && t.quantity === amount
+          t.asset === ETH && t.amount === amount
           && isSelf(t.to) && t.from === address
         );
         if (swapIn) {
@@ -119,7 +119,7 @@ export const coreParser = (
           }
           // If there's a same-value eth transfer from the swap recipient, index it after
           const transfer = tx.transfers.find(t =>
-            t.asset === ETH && t.quantity === amount
+            t.asset === ETH && t.amount === amount
             && t.from === swapIn.to
           );
           if (transfer) {

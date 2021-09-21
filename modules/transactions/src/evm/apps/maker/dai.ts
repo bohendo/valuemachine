@@ -206,7 +206,7 @@ export const daiParser = (
             transfer.asset === asset || (
               ethish.includes(asset) && ethish.includes(transfer.asset)
             )
-          ) && valuesAreClose(transfer.quantity, abs(wad), div(abs(wad), "10"))
+          ) && valuesAreClose(transfer.amount, abs(wad), div(abs(wad), "10"))
         );
         if (transfer) {
           if (gt(wad, "0")) {
@@ -238,7 +238,7 @@ export const daiParser = (
             transfer.category === TransferCategories.Expense ||
             transfer.category === TransferCategories.Income
           ) && transfer.asset === DAI
-          && valuesAreClose(transfer.quantity, abs(dart), div(abs(dart), "10"))
+          && valuesAreClose(transfer.amount, abs(dart), div(abs(dart), "10"))
         );
         if (transfer) {
           if (gt(dart, "0")) {
@@ -270,7 +270,7 @@ export const daiParser = (
         const deposit = tx.transfers.find(t =>
           t.asset === DAI &&
           t.category === Expense &&
-          valuesAreClose(t.quantity, wad, div(wad, "10"))
+          valuesAreClose(t.amount, wad, div(wad, "10"))
         );
         if (deposit) {
           deposit.category = Internal;
@@ -285,7 +285,7 @@ export const daiParser = (
         const withdraw = tx.transfers.find(t =>
           t.asset === DAI &&
           t.category === Income &&
-          valuesAreClose(t.quantity, wad, div(wad, "10"))
+          valuesAreClose(t.amount, wad, div(wad, "10"))
         );
         if (withdraw) {
           withdraw.category = Internal;

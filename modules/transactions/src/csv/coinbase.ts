@@ -29,8 +29,8 @@ export const mergeCoinbaseTransactions = (
       ["Timestamp"]: date,
       ["Transaction Type"]: txType,
       ["Asset"]: asset,
-      ["Quantity Transacted"]: quantity,
-      ["USD Total (inclusive of fees)"]: usdQuantity,
+      ["Quantity Transacted"]: amount,
+      ["USD Total (inclusive of fees)"]: usdAmount,
       ["USD Fees"]: fees,
     } = row;
 
@@ -61,7 +61,7 @@ export const mergeCoinbaseTransactions = (
         asset: "USD",
         category: SwapIn,
         from: exchange,
-        quantity: usdQuantity,
+        amount: usdAmount,
         to: account,
       });
       transaction.method = txType;
@@ -72,20 +72,20 @@ export const mergeCoinbaseTransactions = (
         asset: "USD",
         category: SwapOut,
         from: account,
-        quantity: usdQuantity,
+        amount: usdAmount,
         to: exchange,
       });
       transaction.method = txType;
     }
 
-    transaction.transfers.push({ asset, category, from, quantity, to });
+    transaction.transfers.push({ asset, category, from, amount, to });
 
     if (gt(fees, "0")) {
       transaction.transfers.push({
         asset: "USD",
         category: Fee,
         from: account,
-        quantity: fees,
+        amount: fees,
         to: exchange,
       });
     }

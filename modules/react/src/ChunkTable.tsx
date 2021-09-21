@@ -149,7 +149,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
             <TableRow>
               <TableCell><strong> Index </strong></TableCell>
               <TableCell><strong> Asset </strong></TableCell>
-              <TableCell><strong> Quantity </strong></TableCell>
+              <TableCell><strong> Amount </strong></TableCell>
               <TableCell><strong> Receive Date </strong></TableCell>
               <TableCell><strong> Dispose Date </strong></TableCell>
               <TableCell><strong> Inputs </strong></TableCell>

@@ -11,10 +11,10 @@ describe("Utils", () => {
   it("should sum chunks", async () => {
     expect(sumChunks([{
       asset: Assets.ETH,
-      quantity: "-1.0",
+      amount: "-1.0",
     }, {
       asset: Assets.ETH,
-      quantity: "2.0",
+      amount: "2.0",
     }] as AssetChunk[])).to.deep.equal({
       ETH: "1.0",
     });
@@ -23,13 +23,13 @@ describe("Utils", () => {
   it("should sum transfers", async () => {
     expect(sumTransfers([{
       asset: Assets.ETH,
-      quantity: "1.0",
+      amount: "1.0",
     }, {
       asset: Assets.ETH,
-      quantity: "2.0",
+      amount: "2.0",
     }, {
       asset: Assets.RAI,
-      quantity: "3.0",
+      amount: "3.0",
     }] as AssetChunk[])).to.deep.equal({
       ETH: "3.0",
       RAI: "3.0",

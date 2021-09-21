@@ -70,12 +70,12 @@ export const coreParser = (
             category: TransferCategories.Unknown,
             from: event.args.from === addressZero ? address : event.args.from,
             index: txLog.index,
-            quantity: formatUnits(event.args.amount, getDecimals(address)),
+            amount: formatUnits(event.args.amount, getDecimals(address)),
             to: event.args.to === addressZero ? address : event.args.to,
           };
         } else if (event.name === "Deposit") {
           const swapOut = tx.transfers.find(transfer =>
-            transfer.quantity === formatUnits(event.args.amount, 18)
+            transfer.amount === formatUnits(event.args.amount, 18)
             && transfer.asset === ETH
           );
           if (swapOut) {
@@ -89,7 +89,7 @@ export const coreParser = (
             category: TransferCategories.SwapIn,
             from: WETH,
             index: txLog.index,
-            quantity: formatUnits(event.args.amount, getDecimals(address)),
+            amount: formatUnits(event.args.amount, getDecimals(address)),
             to: account,
           };
         } else {
@@ -100,7 +100,7 @@ export const coreParser = (
     // Log transfers
     erc20Transfers.forEach(transfer => {
       log.info(`Found ${transfer.asset} transfer for ${
-        transfer.quantity
+        transfer.amount
       } from ${getName(transfer.from)} to ${getName(transfer.to)}`);
     });
 
@@ -109,7 +109,7 @@ export const coreParser = (
       if (getName(transfer.from) === WETH) {
         tx.transfers.push(transfer);
         log.info(`ZAP Found weth swap in of ${
-          transfer.quantity
+          transfer.amount
         } ${transfer.asset} from ${getName(transfer.from)}`);
       }
     });
@@ -122,14 +122,14 @@ export const coreParser = (
         transfer.category = TransferCategories.SwapOut;
         tx.transfers.push(transfer);
         log.info(`ZAP Found swap out of ${
-          transfer.quantity
+          transfer.amount
         } ${transfer.asset} from ${getName(transfer.from)}`);
       } else if (from.startsWith("UniV2")) {
         transfer.to = account;
         transfer.category = TransferCategories.SwapIn;
         tx.transfers.push(transfer);
         log.info(`ZAP Found swap in of ${
-          transfer.quantity
+          transfer.amount
         } ${transfer.asset} to ${getName(transfer.to)}`);
       }
     });
@@ -142,14 +142,14 @@ export const coreParser = (
         transfer.category = TransferCategories.SwapOut;
         tx.transfers.push(transfer);
         log.info(`ZAP Found swap out of ${
-          transfer.quantity
+          transfer.amount
         } ${transfer.asset} from ${getName(transfer.from)}`);
       } else if (from.startsWith("ZeroEx")) {
         transfer.to = account;
         transfer.category = TransferCategories.SwapIn;
         tx.transfers.push(transfer);
         log.info(`ZAP Found swap in of ${
-          transfer.quantity
+          transfer.amount
         } ${transfer.asset} to ${getName(transfer.to)}`);
       }
     });
@@ -166,7 +166,7 @@ export const coreParser = (
             category: TransferCategories.Internal,
             from: event.args.owner,
             index: txLog.index,
-            quantity: formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token)),
+            amount: formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token)),
             to: `Polygon/${event.args.owner.split("/").pop()}`,
           });
         }
@@ -181,12 +181,12 @@ export const coreParser = (
         const name = getName(address);
         const event = parseEvent(plasmaBridgeAbi, txLog, evmMeta);
         if (event?.name === "NewDepositBlock") {
-          const quantity = formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token));
+          const amount = formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token));
           const asset = getName(event.args.token);
           log.info(`Got a ${name} ${event.name}`);
           const deposit = tx.transfers.find(transfer =>
             transfer.asset === asset
-            && transfer.quantity === quantity
+            && transfer.amount === amount
             && addressBook.isSelf(transfer.from)
           );
           if (deposit) {
@@ -194,7 +194,7 @@ export const coreParser = (
             deposit.to = `Polygon/${event.args.owner.split("/").pop()}`;
             tx.method = "Plasma Bridge to Polygon";
           } else {
-            log.warn(`Couldn't find deposit of ${quantity} ${asset}`);
+            log.warn(`Couldn't find deposit of ${amount} ${asset}`);
           }
         }
       }

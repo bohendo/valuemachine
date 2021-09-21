@@ -21,7 +21,7 @@ export const mergeDigitalOceanTransactions = (
 
     const {
       ["description"]: description,
-      ["USD"]: quantity,
+      ["USD"]: amount,
       ["start"]: date,
     } = row;
     log.info(`Paid digital ocean for ${description}`);
@@ -36,7 +36,7 @@ export const mergeDigitalOceanTransactions = (
       asset: Assets.USD,
       category: TransferCategories.Expense,
       from: "USD-account",
-      quantity: quantity.replace("$", ""),
+      amount: amount.replace("$", ""),
       to: source,
     });
 

@@ -44,7 +44,7 @@ export const Transfer = Type.Object({
   category: TransferCategory,
   from: Account,
   index: Type.Optional(Type.Number()),
-  quantity: DecimalString,
+  amount: DecimalString,
   to: Account,
 });
 export type Transfer = Static<typeof Transfer>;

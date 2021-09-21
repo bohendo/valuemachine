@@ -94,7 +94,7 @@ export const tokenParser = (
             category: SwapIn,
             from: tubAddress,
             index,
-            quantity: wad,
+            amount: wad,
             to: event.args.guy,
           });
         } else {
@@ -103,7 +103,7 @@ export const tokenParser = (
             category: Borrow,
             from: addressZero, // we'll set the real value while parsing Vat events
             index,
-            quantity: wad,
+            amount: wad,
             to: event.args.guy,
           });
         }
@@ -115,7 +115,7 @@ export const tokenParser = (
             category: SwapOut,
             from: event.args.guy,
             index,
-            quantity: wad,
+            amount: wad,
             to: tubAddress,
           });
         } else {
@@ -124,7 +124,7 @@ export const tokenParser = (
             category: Repay,
             from: event.args.guy,
             index,
-            quantity: wad,
+            amount: wad,
             to: addressZero, // we'll set the real value while parsing Vat events
           });
         }

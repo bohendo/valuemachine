@@ -68,8 +68,8 @@ export const getStatus = (tx: any, receipt: any): number =>
 // If diff in 1 is greater than diff in 2, swap them
 export const diffAsc = (compareTo: DecimalString) => (t1: Transfer, t2: Transfer): number =>
   gt(
-    diff(t1.quantity, compareTo),
-    diff(t2.quantity, compareTo),
+    diff(t1.amount, compareTo),
+    diff(t2.amount, compareTo),
   ) ? 1 : -1;
 
 // TODO: clean up if/when I get feedback on https://github.com/ethers-io/ethers.js/issues/1831

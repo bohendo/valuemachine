@@ -150,14 +150,14 @@ export const TaxTable: React.FC<TaxTableProps> = ({
             const chunk = vm.getChunk(chunkIndex);
             const price = prices.getNearest(date, chunk.asset, unit) || "0";
             if (chunk.asset !== unit && price !== "0") {
-              const value = mul(chunk.quantity, price);
+              const value = mul(chunk.amount, price);
               const receivePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset, unit);
-              const capitalChange = mul(chunk.quantity, sub(price, receivePrice || "0"));
+              const capitalChange = mul(chunk.amount, sub(price, receivePrice || "0"));
               cumulativeChange = add(cumulativeChange, capitalChange);
               return {
                 date: date,
                 action: EventTypes.Trade,
-                amount: chunk.quantity,
+                amount: chunk.amount,
                 asset: chunk.asset,
                 price,
                 value,
@@ -177,12 +177,12 @@ export const TaxTable: React.FC<TaxTableProps> = ({
           return output.concat(...evt.inputs.map(chunkIndex => {
             const chunk = vm.getChunk(chunkIndex);
             const price = prices.getNearest(date, chunk.asset, unit) || "0";
-            const income = mul(chunk.quantity, price);
+            const income = mul(chunk.amount, price);
             cumulativeIncome = add(cumulativeIncome, income);
             return {
               date: date,
               action: EventTypes.Income,
-              amount: chunk.quantity,
+              amount: chunk.amount,
               asset: chunk.asset,
               price,
               value: income,
@@ -200,12 +200,12 @@ export const TaxTable: React.FC<TaxTableProps> = ({
             const chunk = vm.getChunk(chunkIndex);
             const price = prices.getNearest(date, chunk.asset, unit) || "0";
             console.warn(evt, `Temporarily pretending this guard change is income`);
-            const income = mul(chunk.quantity, price);
+            const income = mul(chunk.amount, price);
             cumulativeIncome = add(cumulativeIncome, income);
             return {
               date: date,
               action: "Deposit",
-              amount: chunk.quantity,
+              amount: chunk.amount,
               asset: chunk.asset,
               price,
               value: income,

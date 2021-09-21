@@ -88,7 +88,7 @@ export const coreParser = (
           );
           log.info(`Found ${event.name} ${name} event for ${value} ${IDLE}`);
           const deposit = tx.transfers.find(transfer =>
-            transfer.asset === IDLE && transfer.quantity === value && isSelf(transfer.from)
+            transfer.asset === IDLE && transfer.amount === value && isSelf(transfer.from)
           );
           if (deposit) {
             deposit.category = Internal;
@@ -105,7 +105,7 @@ export const coreParser = (
           );
           log.info(`Found ${event.name} ${name} event for ${value} ${IDLE}`);
           const withdraw = tx.transfers.find(transfer =>
-            transfer.asset === IDLE && transfer.quantity === value && isSelf(transfer.to)
+            transfer.asset === IDLE && transfer.amount === value && isSelf(transfer.to)
           );
           if (withdraw) {
             withdraw.category = Internal;
