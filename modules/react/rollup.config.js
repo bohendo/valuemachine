@@ -21,7 +21,6 @@ export default [
     plugins: [
       NodeResolve(),
       Typescript({
-        noEmitOnError: true,
         outputToFilesystem: true,
         sourceMap: false,
         tsconfig: "./tsconfig.json"

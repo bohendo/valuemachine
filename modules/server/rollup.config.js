@@ -38,7 +38,6 @@ export default {
       }
     }),
     Typescript({
-      noEmitOnError: true,
       outputToFilesystem: true,
       sourceMap: false,
       tsconfig: "./tsconfig.json"

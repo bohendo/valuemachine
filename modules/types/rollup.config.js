@@ -19,7 +19,6 @@ export default [
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
     plugins: [
       Typescript({
-        noEmitOnError: true,
         outputToFilesystem: true,
         sourceMap: false,
         tsconfig: "./tsconfig.json"
