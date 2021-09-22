@@ -10,6 +10,7 @@ import {
 import {
   getAddressBookError,
   getAddressEntryError,
+  sortAddressEntries
 } from "@valuemachine/utils";
 import React from "react";
 
@@ -79,7 +80,7 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
   };
 
   const handleExport = () => {
-    const output = JSON.stringify({ addressBook: addressBook.json }, null, 2);
+    const output = JSON.stringify(sortAddressEntries(Object.values(addressBook.json)), null, 2);
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
     a.href = "data:" + data;

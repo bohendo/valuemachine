@@ -3,6 +3,7 @@ import {
   Account,
   AddressBookJson,
   AddressCategory,
+  AddressCategories,
   AddressEntry,
 } from "@valuemachine/types";
 
@@ -79,3 +80,21 @@ export const setAddressCategory = (category: AddressCategory) =>
       ...entry,
       category,
     } as AddressEntry);
+
+// Puts addresses most relevant to the user first
+export const sortAddressEntries = (addressEntries: AddressEntry[]): AddressEntry[] =>
+  addressEntries.sort((e1, e2) =>
+    // put self addresses first
+    (e1.category !== AddressCategories.Self && e2.category === AddressCategories.Self) ? 1
+    : (e1.category === AddressCategories.Self && e2.category !== AddressCategories.Self) ? -1
+    // sort by category
+    : (e1.category.toLowerCase() > e2.category.toLowerCase()) ? 1
+    : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
+    // then sort by name
+    : (e1.name.toLowerCase() > e2.name.toLowerCase()) ? 1
+    : (e1.name.toLowerCase() < e2.name.toLowerCase()) ? -1
+    // then sort by address
+    : (e1.address.toLowerCase() > e2.address.toLowerCase()) ? 1
+    : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
+    : 0
+  );

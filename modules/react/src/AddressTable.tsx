@@ -16,8 +16,10 @@ import {
   AddressEntry,
   AddressBook,
   AddressBookJson,
-  AddressCategories,
 } from "@valuemachine/types";
+import {
+  sortAddressEntries
+} from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { AddressRow } from "./AddressRow";
@@ -56,31 +58,11 @@ export const AddressTable: React.FC<AddressTableProps> = ({
   }, [addressBook]);
 
   useEffect(() => {
-    setFilteredEntries(Object.values(
+    setFilteredEntries(sortAddressEntries(Object.values(
       addressBook.json
     ).filter(entry =>
       !filterCategory || entry.category === filterCategory
-    ).sort((e1, e2) =>
-      // put self addresses first
-      (
-        e1.category !== AddressCategories.Self &&
-        e2.category === AddressCategories.Self
-      ) ? 1
-        : (
-          e1.category === AddressCategories.Self &&
-          e2.category !== AddressCategories.Self
-        ) ? -1
-          // sort by category
-          : (e1.category.toLowerCase() > e2.category.toLowerCase()) ? 1
-          : (e1.category.toLowerCase() < e2.category.toLowerCase()) ? -1
-          // then sort by name
-          : (e1.name.toLowerCase() > e2.name.toLowerCase()) ? 1
-          : (e1.name.toLowerCase() < e2.name.toLowerCase()) ? -1
-          // then sort by address
-          : (e1.address.toLowerCase() > e2.address.toLowerCase()) ? 1
-          : (e1.address.toLowerCase() < e2.address.toLowerCase()) ? -1
-          : 0
-    ));
+    )));
   }, [addressBook, filterCategory]);
 
   const editEntry = (oldAddress: string, editedEntry?: AddressEntry): void => {
