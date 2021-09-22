@@ -150,7 +150,7 @@ export const coreParser = (
         )
       );
       if (!transfer) {
-        log.warn(yTransfer, `Couldn't find a matching ${asset} transfer`);
+        log.warn(`Couldn't find a matching ${asset} transfer`);
       } else {
         if (isSelf(transfer.from) && isSelf(yTransfer.to)) { // deposit
           transfer.category = SwapOut;

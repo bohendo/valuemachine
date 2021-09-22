@@ -1,3 +1,5 @@
+import { toUtf8Bytes } from "@ethersproject/strings";
+import { keccak256 } from "@ethersproject/keccak256";
 import {
   Logger,
   Transaction,
@@ -23,7 +25,8 @@ export const mergeWazirxTransactions = (
   const source = CsvSources.Wazirx;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
+  const dataHash = keccak256(toUtf8Bytes(csvData));
+  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
     const date = row["Date"];
 
@@ -36,7 +39,7 @@ export const mergeWazirxTransactions = (
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
       sources: [source],
       transfers: [],
-      uuid: `${source}/${date}`,
+      uuid: `${source}/${dataHash}/${rowIndex}`,
     } as Transaction;
 
     const account = `${guard}/${source}/account`;

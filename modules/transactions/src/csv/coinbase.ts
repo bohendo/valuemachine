@@ -1,3 +1,5 @@
+import { toUtf8Bytes } from "@ethersproject/strings";
+import { keccak256 } from "@ethersproject/keccak256";
 import {
   Logger,
   Transaction,
@@ -23,7 +25,8 @@ export const mergeCoinbaseTransactions = (
   const source = CsvSources.Coinbase;
   const log = logger.child({ module: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of coinbase data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
+  const dataHash = keccak256(toUtf8Bytes(csvData));
+  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
     const {
       ["Timestamp"]: date,
@@ -43,7 +46,7 @@ export const mergeCoinbaseTransactions = (
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],
-      uuid: `${source}/${date}`,
+      uuid: `${source}/${dataHash}/${rowIndex}`,
     } as Transaction;
 
     let [from, to, category] = ["", "", Unknown as TransferCategory];

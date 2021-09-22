@@ -1,3 +1,5 @@
+import { toUtf8Bytes } from "@ethersproject/strings";
+import { keccak256 } from "@ethersproject/keccak256";
 import {
   Asset,
   Logger,
@@ -25,7 +27,8 @@ export const mergeWyreTransactions = (
   const source = CsvSources.Wyre;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of wyre data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
+  const dataHash = keccak256(toUtf8Bytes(csvData));
+  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
     const {
       ["Created At"]: date,
@@ -57,7 +60,7 @@ export const mergeWyreTransactions = (
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],
-      uuid: `${source}/${date}`,
+      uuid: `${source}/${dataHash}/${rowIndex}`,
     } as Transaction;
 
     // Push transfer depending on exchange/currency types
