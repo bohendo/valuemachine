@@ -9,6 +9,7 @@ import {
 
 import {
   aaveParsers,
+  bjtjParsers,
   argentParsers,
   compoundParsers,
   erc20Parsers,
@@ -36,8 +37,9 @@ export const parseEthereumTx = (
     ethMetadata,
     addressBook,
     logger,
-    [ // Order matters! Complex parsers usually depend on simple ones so put ERC20 & weth first
+    [
       aaveParsers,
+      bjtjParsers,
       argentParsers,
       compoundParsers,
       erc20Parsers,

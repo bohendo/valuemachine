@@ -3,6 +3,7 @@ import { AddressCategories } from "@valuemachine/types";
 import { setAddressCategory } from "@valuemachine/utils";
 
 import { addresses as aave } from "./aave/addresses";
+import { addresses as bjtj } from "./bjtj/addresses";
 import { addresses as compound } from "./compound/addresses";
 import { addresses as erc20 } from "./erc20/addresses";
 import { addresses as idle } from "./idle/addresses";
@@ -16,6 +17,7 @@ import { addresses as yearn } from "./yearn/addresses";
 
 const appAddresses = [
   ...aave,
+  ...bjtj,
   ...compound,
   ...erc20,
   ...idle,
