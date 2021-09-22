@@ -31,6 +31,7 @@ export const mergeDigitalOceanTransactions = (
       method: "Payment",
       sources: [source],
       transfers: [],
+      uuid: `${source}/${date}`,
     } as Transaction;
     transaction.transfers.push({
       asset: Assets.USD,

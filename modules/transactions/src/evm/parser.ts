@@ -24,7 +24,7 @@ export const parseEvmTx = (
   logger?: Logger,
   appParsers = [] as EvmParsers[],
 ): Transaction => {
-  if (!evmTx || !evmTx.hash) throw new Error(`Invalid evm tx: ${JSON.stringify(evmTx)}`);
+  if (!evmTx?.hash) throw new Error(`Invalid evm tx: ${JSON.stringify(evmTx)}`);
   const { isSelf } = addressBook;
   const log = logger.child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });
   // log.debug(evmTx, `Parsing evm tx`);
@@ -38,7 +38,7 @@ export const parseEvmTx = (
   let tx = {
     apps: [],
     date: (new Date(evmTx.timestamp)).toISOString(),
-    hash: evmTx.hash,
+    uuid: `${evmMetadata.name}/${evmTx.hash}`,
     sources: [evmMetadata.name],
     transfers: [],
   } as Transaction;

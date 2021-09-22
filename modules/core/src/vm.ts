@@ -504,7 +504,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        txId: tx.hash || "?",
+        txId: tx.uuid,
         type: EventTypes.Error,
       });
     } else if (swapsOut.length && !swapsIn.length) {
@@ -516,7 +516,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        txId: tx.hash || "?",
+        txId: tx.uuid,
         type: EventTypes.Error,
       });
     // If we have matching swap transfers, process the trade first
@@ -539,7 +539,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           message,
-          txId: tx.hash || "?",
+          txId: tx.uuid,
           type: EventTypes.Error,
         });
       }
@@ -613,7 +613,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           message,
-          txId: tx.hash || "?",
+          txId: tx.uuid,
           type: EventTypes.Error,
         });
       }

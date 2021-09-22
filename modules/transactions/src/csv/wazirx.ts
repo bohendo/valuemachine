@@ -36,6 +36,7 @@ export const mergeWazirxTransactions = (
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
       sources: [source],
       transfers: [],
+      uuid: `${source}/${date}`,
     } as Transaction;
 
     const account = `${guard}/${source}/account`;

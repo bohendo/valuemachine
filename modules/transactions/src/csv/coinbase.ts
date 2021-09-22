@@ -43,6 +43,7 @@ export const mergeCoinbaseTransactions = (
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],
+      uuid: `${source}/${date}`,
     } as Transaction;
 
     let [from, to, category] = ["", "", Unknown as TransferCategory];

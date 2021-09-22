@@ -109,14 +109,8 @@ export const coreParser = (
           withdraw.index = "index" in withdraw ? withdraw.index : txLog.index;
           tx.method = "Withdraw";
         }
-
       }
-
-    } else {
-      log.info(`Address doesn't match ${bjtjV1Address} nor ${bjtjV2Address}: ${address}`);
-
     }
-
   }
 
   return tx;

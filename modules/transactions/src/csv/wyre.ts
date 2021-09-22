@@ -57,6 +57,7 @@ export const mergeWyreTransactions = (
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],
+      uuid: `${source}/${date}`,
     } as Transaction;
 
     // Push transfer depending on exchange/currency types

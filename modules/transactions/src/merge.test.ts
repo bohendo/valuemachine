@@ -15,9 +15,7 @@ const { ETH } = Assets;
 const { Expense, Internal } = TransferCategories;
 const { Coinbase, Ethereum } = TransactionSources;
 const csvSource = Coinbase;
-const log = testLogger.child({ module: "TestMerge" }, {
-  // level: "debug",
-});
+const log = testLogger.child({ module: "TestMerge" }, { level: "warn" });
 
 const AddressOne = "0x1111111111111111111111111111111111111111";
 const AddressTwo = "0x2222222222222222222222222222222222222222";
@@ -28,6 +26,7 @@ const getCsvTx = (): Transaction => ({
   // The csv date can be off slightly from the eth tx date
   date: timestamp, // new Date(new Date(timestamp).getTime() + (1000 * 60 * 15)).toISOString(),
   sources: [csvSource],
+  uuid: `${csvSource}/${timestamp}`,
   transfers: [
     {
       asset: ETH,
@@ -42,7 +41,7 @@ const getCsvTx = (): Transaction => ({
 
 const getEthTx = (): Transaction => ({
   date: timestamp,
-  hash: HashZero,
+  uuid: `${Ethereum}/${HashZero}`,
   sources: [Ethereum],
   transfers: [
     {

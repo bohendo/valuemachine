@@ -7,6 +7,7 @@ import { expect } from "./testUtils";
 const validTransaction = {
   apps: [],
   date: new Date(0).toISOString(),
+  uuid: "UniversallyUniqueIdentifier",
   sources: [],
   transfers: [{
     asset: "ETH",
