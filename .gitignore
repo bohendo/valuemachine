@@ -1,8 +1,9 @@
 # Don't commit personal data or backups
 **/*.log
 **/*.tar.gz
+**/*ddressBook.json
 **/.env
-**/addressBook.json
+**/.server-db
 **/docs/**
 **/events.json
 **/joint.json
@@ -13,7 +14,6 @@
 **/tax-return.pdf
 **/transactions.json
 modules/client/src/data
-**/.server-db
 
 # Cache
 **/.cache
