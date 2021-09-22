@@ -62,6 +62,7 @@ export const addresses = [
 ];
 
 export const saiAddress = addresses.find(e => e.name === assets.SAI)?.address;
+export const pethAddress = addresses.find(e => e.name === assets.PETH)?.address;
 export const tubAddress = addresses.find(e => e.name === contracts.SaiTub)?.address;
 export const cageAddress = addresses.find(e => e.name === contracts.SaiCage)?.address;
 export const saiPitAddress = addresses.find(e => e.name === contracts.SaiGemPit)?.address;

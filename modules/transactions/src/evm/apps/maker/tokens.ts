@@ -13,24 +13,16 @@ import {
 import { parseEvent } from "../utils";
 
 import {
-  addresses,
+  tubAddress,
+  pethAddress,
   factoryAddresses,
   tokenAddresses,
 } from "./addresses";
-import { apps, assets } from "./enums";
+import { apps } from "./enums";
 
 const appName = apps.Maker;
 
-const { PETH } = assets;
 const { SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
-
-////////////////////////////////////////
-/// Addresses
-
-const tub = "scd-tub";
-
-const tubAddress = addresses.find(e => e.name.endsWith(tub))?.address;
-const pethAddress = addresses.find(e => e.name === PETH)?.address;
 
 ////////////////////////////////////////
 /// Abis
@@ -74,7 +66,6 @@ export const tokenParser = (
       const asset = getName(address) as Asset;
       const event = parseEvent(tokenAbi, txLog, evmMeta);
       if (!event.name) continue;
-      tx.apps.push(appName);
       const wad = formatUnits(event.args.wad, getDecimals(address));
       if (!isSelf(event.args.guy)) {
         log.debug(`Skipping ${asset} ${event.name} that doesn't involve us (${event.args.guy})`);
@@ -82,6 +73,7 @@ export const tokenParser = (
       }
       if (event.name === "Mint") {
         log.info(`Parsing ${asset} ${event.name} of ${wad}`);
+        tx.apps.push(appName);
         if (address === pethAddress) {
           tx.transfers.push({
             asset,
@@ -103,6 +95,7 @@ export const tokenParser = (
         }
       } else if (event.name === "Burn") {
         log.info(`Parsing ${asset} ${event.name} of ${wad}`);
+        tx.apps.push(appName);
         if (address === pethAddress) {
           tx.transfers.push({
             asset,
