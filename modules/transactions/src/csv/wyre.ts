@@ -1,5 +1,3 @@
-import { toUtf8Bytes } from "@ethersproject/strings";
-import { keccak256 } from "@ethersproject/keccak256";
 import {
   Asset,
   Logger,
@@ -7,7 +5,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
-import { gt } from "@valuemachine/utils";
+import { gt, hashCsv } from "@valuemachine/utils";
 
 import { Assets } from "../assets";
 import { CsvSources, Guards } from "../enums";
@@ -27,7 +25,6 @@ export const mergeWyreTransactions = (
   const source = CsvSources.Wyre;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of wyre data`);
-  const dataHash = keccak256(toUtf8Bytes(csvData));
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
     const {
@@ -60,7 +57,7 @@ export const mergeWyreTransactions = (
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],
-      uuid: `${source}/${dataHash}/${rowIndex}`,
+      uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
 
     // Push transfer depending on exchange/currency types

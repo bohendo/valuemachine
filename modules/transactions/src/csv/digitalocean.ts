@@ -1,10 +1,9 @@
-import { toUtf8Bytes } from "@ethersproject/strings";
-import { keccak256 } from "@ethersproject/keccak256";
 import {
   Transaction,
   Logger,
   TransferCategories,
 } from "@valuemachine/types";
+import { hashCsv } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
 import { Assets } from "../assets";
@@ -19,7 +18,6 @@ export const mergeDigitalOceanTransactions = (
   const source = CsvSources.DigitalOcean;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of digital ocean data`);
-  const dataHash = keccak256(toUtf8Bytes(csvData));
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
     const {
@@ -34,7 +32,7 @@ export const mergeDigitalOceanTransactions = (
       method: "Payment",
       sources: [source],
       transfers: [],
-      uuid: `${source}/${dataHash}/${rowIndex}`,
+      uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
     transaction.transfers.push({
       asset: Assets.USD,
