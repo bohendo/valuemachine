@@ -129,6 +129,7 @@ export const EventRow: React.FC<EventRowProps> = ({
 
                 } : event.type === EventTypes.Error ? {
                   Account: event.account,
+                  ["Error Code"]: event.code,
                   ["Tx Id"]: event.txId,
 
                 } : {}

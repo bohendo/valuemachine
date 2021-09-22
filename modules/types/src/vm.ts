@@ -108,6 +108,7 @@ export const ErrorEvent = Type.Intersect([
   Type.Object({
     message: Type.String(),
     account: Account,
+    code: Type.String(),
     txId: Type.String(),
     type: Type.Literal(EventTypes.Error),
   }),
