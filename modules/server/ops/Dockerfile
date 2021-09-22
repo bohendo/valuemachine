@@ -1,6 +1,7 @@
 FROM node:14.17.6-alpine3.14
 WORKDIR /root
 ENV HOME /root
+ENV PATH $PATH:./node_modules/.bin:/root/node_modules/.bin
 RUN apk add --update --no-cache bash curl git jq make openssl
 RUN npm config set unsafe-perm true
 RUN npm install -g npm@7.23.0
