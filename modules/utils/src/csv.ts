@@ -13,4 +13,4 @@ export const getCsvFilesError = (csvFiles: CsvFiles): string | null =>
     : validateCsvFiles.errors.length ? formatErrors(validateCsvFiles.errors)
     : `Invalid CsvFiles`;
 
-export const hashCsv = (csvData: string) => keccak256(toUtf8Bytes(csvData)).substring(0, 8);
+export const hashCsv = (csvData: string) => keccak256(toUtf8Bytes(csvData)).substring(2, 10);
