@@ -1,3 +1,5 @@
+import { toUtf8Bytes } from "@ethersproject/strings";
+import { keccak256 } from "@ethersproject/keccak256";
 import { CsvFiles } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
@@ -11,3 +13,4 @@ export const getCsvFilesError = (csvFiles: CsvFiles): string | null =>
     : validateCsvFiles.errors.length ? formatErrors(validateCsvFiles.errors)
     : `Invalid CsvFiles`;
 
+export const hashCsv = (csvData: string) => keccak256(toUtf8Bytes(csvData)).substring(2, 10);

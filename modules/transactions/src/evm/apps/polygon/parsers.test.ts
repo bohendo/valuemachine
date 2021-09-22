@@ -11,9 +11,7 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Polygon;
-const logger = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe("Polygon Bridge", () => {
 

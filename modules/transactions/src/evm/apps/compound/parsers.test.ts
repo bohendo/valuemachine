@@ -11,7 +11,7 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Compound;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "silent" });
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
   it("should handle deposits to compound v1", async () => {

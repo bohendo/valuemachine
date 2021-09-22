@@ -203,3 +203,10 @@ webserver: client $(shell find modules/client/ops $(find_options))
 	docker build --file modules/client/ops/Dockerfile $(cache_from) --tag $(project)_webserver:latest modules/client
 	docker tag $(project)_webserver:latest $(project)_webserver:$(commit)
 	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+########################################
+# Extra rules
+
+ssh-action: $(shell find ops/ssh-action $(find_options))
+	docker build --file ops/ssh-action/Dockerfile --tag $(project)_ssh_action ops/ssh-action
+	docker tag $(project)_ssh_action $(project)_ssh_action:$(commit)

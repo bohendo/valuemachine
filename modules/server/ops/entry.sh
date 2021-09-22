@@ -23,7 +23,7 @@ then
 else
   echo "Starting valuemachine server in dev-mode w env:"
   env
-  exec ./node_modules/.bin/nodemon \
+  exec nodemon \
     --delay 1 \
     --exitcrash \
     --ignore ./*.test.ts \

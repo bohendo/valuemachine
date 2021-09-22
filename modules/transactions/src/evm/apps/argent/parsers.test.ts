@@ -7,9 +7,7 @@ import {
 } from "../testUtils";
 
 const source = "Argent";
-const logger = testLogger.child({ module: `Test${source}` }, {
-  // level: "debug",
-});
+const logger = testLogger.child({ module: `Test${source}` }, { level: "warn" });
 
 describe(source, () => {
   it("should parse SAI->DAI swap via argent maker manager", async () => {

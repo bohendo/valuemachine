@@ -64,11 +64,11 @@ export const mergeTransaction = (
     log = (logger || getLogger()).child({ module: `MergeEthTx` });
 
     // Detect & replace duplicates
-    const index = transactions.findIndex(tx => tx.hash === newTx.hash);
+    const index = transactions.findIndex(tx => tx.uuid === newTx.uuid);
     if (index >= 0) { // If this is NOT the first time we've encountered this evm tx
       transactions[index] = newTx;
       transactions.sort(chrono);
-      log.debug(`Replaced duplicate evm tx: ${newTx.method}`);
+      log.debug(`Replaced duplicate evm tx: ${newTx.uuid}`);
       return transactions;
     }
 
@@ -144,17 +144,18 @@ export const mergeTransaction = (
     const source = newTx.sources[0];
     log = (logger || getLogger()).child({ module: `Merge${source}Tx` });
 
-    // Detect & skip duplicates
     if (transactions.filter(tx => tx.sources.includes(source)).find(tx =>
-      datesAreClose(tx.date, newTx.date, 1) // ie equal w/in the margin of a rounding error
-      && newTx.transfers.every(newTransfer => tx.transfers.some(oldTransfer =>
-        newTransfer.asset === oldTransfer.asset &&
-        valuesAreClose(
-          newTransfer.amount,
-          oldTransfer.amount,
-          div(oldTransfer.amount, "100"),
-        )
-      ))
+      tx.uuid === newTx.uuid || (
+        datesAreClose(tx.date, newTx.date, 1) // ie equal w/in the margin of a rounding error
+        && newTx.transfers.every(newTransfer => tx.transfers.some(oldTransfer =>
+          newTransfer.asset === oldTransfer.asset &&
+          valuesAreClose(
+            newTransfer.amount,
+            oldTransfer.amount,
+            div(oldTransfer.amount, "100"),
+          )
+        ))
+      )
     )) {
       log.debug(`Skipping duplicate csv tx: ${newTx.method}`);
       return transactions;
@@ -172,10 +173,7 @@ export const mergeTransaction = (
 
     // Does this transfer have the same asset & similar amount as the new csv tx
     const isMergable = (transfer: Transfer): boolean => 
-      extTransfer.category === Internal &&
-      (transfer.category === Expense || transfer.category === Income) &&
-      transfer.asset === extTransfer.asset &&
-      valuesAreClose(
+      transfer.asset === extTransfer.asset && valuesAreClose(
         transfer.amount,
         extTransfer.amount,
         wiggleRoom,
@@ -193,7 +191,7 @@ export const mergeTransaction = (
     if (mergeCandidateIndex < 0) {
       transactions.push(newTx);
       transactions.sort(chrono);
-      log.debug(`Inserted new csv tx: ${newTx.method}`);
+      log.debug(`Inserted new csv tx: ${newTx.method} on ${newTx.date}`);
       return transactions;
     }
 

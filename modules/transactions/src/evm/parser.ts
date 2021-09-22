@@ -2,7 +2,6 @@ import { isAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
 import {
-  Account,
   AddressBook,
   EvmParsers,
   EvmTransaction,
@@ -11,11 +10,10 @@ import {
   Logger,
   Transaction,
   TransferCategories,
-  TransferCategory,
 } from "@valuemachine/types";
 import { dedup, gt, getNewContractAddress } from "@valuemachine/utils";
 
-const { Expense, Fee, Income, Internal, Unknown } = TransferCategories;
+import { categorizeTransfer } from "./utils";
 
 export const parseEvmTx = (
   evmTx: EvmTransaction,
@@ -24,21 +22,15 @@ export const parseEvmTx = (
   logger?: Logger,
   appParsers = [] as EvmParsers[],
 ): Transaction => {
-  if (!evmTx || !evmTx.hash) throw new Error(`Invalid evm tx: ${JSON.stringify(evmTx)}`);
+  if (!evmTx?.hash) throw new Error(`Invalid evm tx: ${JSON.stringify(evmTx)}`);
   const { isSelf } = addressBook;
   const log = logger.child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });
   // log.debug(evmTx, `Parsing evm tx`);
 
-  const getSimpleCategory = (to: Account, from: Account): TransferCategory =>
-    (isSelf(to) && isSelf(from)) ? Internal
-    : (isSelf(from) && !isSelf(to)) ? Expense
-    : (isSelf(to) && !isSelf(from)) ? Income
-    : Unknown;
-
   let tx = {
     apps: [],
     date: (new Date(evmTx.timestamp)).toISOString(),
-    hash: evmTx.hash,
+    uuid: `${evmMetadata.name}/${evmTx.hash}`,
     sources: [evmMetadata.name],
     transfers: [],
   } as Transaction;
@@ -47,7 +39,7 @@ export const parseEvmTx = (
   if (isSelf(evmTx.from)) {
     tx.transfers.push({
       asset: evmMetadata.feeAsset,
-      category: Fee,
+      category: TransferCategories.Fee,
       from: evmTx.from,
       index: -1,
       amount: formatEther(BigNumber.from(evmTx.gasUsed).mul(evmTx.gasPrice)),
@@ -64,14 +56,14 @@ export const parseEvmTx = (
 
   // Transaction Value
   if (gt(evmTx.value, "0") && (isSelf(evmTx.to) || isSelf(evmTx.from))) {
-    tx.transfers.push({
+    tx.transfers.push(categorizeTransfer({
+      amount: evmTx.value,
       asset: evmMetadata.feeAsset,
-      category: getSimpleCategory(evmTx.to, evmTx.from),
+      category: TransferCategories.Unknown,
       from: evmTx.from,
       index: 0,
-      amount: evmTx.value,
       to: evmTx.to,
-    });
+    }, addressBook));
   }
 
   // Detect contract creations
@@ -91,14 +83,13 @@ export const parseEvmTx = (
       // Calls with zero value don't matter
       && gt(evmTransfer.value, "0")
     ) {
-      tx.transfers.push({
-        asset: evmMetadata.feeAsset,
-        category: getSimpleCategory(evmTransfer.to, evmTransfer.from),
-        // index: 0, // Internal evm transfers have no index
-        from: evmTransfer.from,
+      tx.transfers.push(categorizeTransfer({
         amount: evmTransfer.value,
+        asset: evmMetadata.feeAsset,
+        category: TransferCategories.Unknown,
+        from: evmTransfer.from,
         to: evmTransfer.to,
-      });
+      }, addressBook));
     }
   });
 

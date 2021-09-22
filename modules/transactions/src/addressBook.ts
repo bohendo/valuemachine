@@ -7,8 +7,6 @@ import {
   AddressCategories,
   AddressCategory,
   AddressEntry,
-  PrivateCategories,
-  PublicCategories,
   StoreKeys,
 } from "@valuemachine/types";
 import {
@@ -70,21 +68,11 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     );
   };
 
-  ////////////////////////////////////////
-  // Exports
-
   const isCategory = (category: AddressCategory) => (address: Account): boolean =>
     address && category && getEntry(address)?.category === category;
 
-  const isPublic = (address: Account): boolean => {
-    const entry = getEntry(address);
-    return entry && Object.keys(PublicCategories).some(category => category === entry.category);
-  };
-
-  const isPrivate = (address: Account): boolean => {
-    const entry = getEntry(address);
-    return entry && Object.keys(PrivateCategories).some(category => category === entry.category);
-  };
+  ////////////////////////////////////////
+  // Exports
 
   const isSelf = isCategory(AddressCategories.Self);
 
@@ -115,13 +103,15 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const getDecimals = (address: Account): number =>
     getEntry(address)?.decimals || 18;
 
+  const getCategory = (address: Account): AddressCategory =>
+    getEntry(address)?.category || AddressCategories.Private;
+
   return {
     addresses: Object.keys(addressBook),
-    getName,
+    selfAddresses: Object.keys(addressBook).filter(isSelf),
+    getCategory,
     getDecimals,
-    isCategory,
-    isPublic,
-    isPrivate,
+    getName,
     isSelf,
     isToken,
     json,

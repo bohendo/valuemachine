@@ -6,7 +6,6 @@ import { Logger } from "./logger";
 import {
   Account,
   Asset,
-  Bytes32,
   DecimalString,
   TimestampString,
   TransactionSource,
@@ -52,9 +51,9 @@ export type Transfer = Static<typeof Transfer>;
 export const Transaction = Type.Object({
   apps: Type.Array(Type.String()),
   date: TimestampString,
-  hash: Type.Optional(Bytes32), // add guard prefix to convert to uuid??
+  uuid: Type.String(),
   index: Type.Optional(Type.Number()),
-  method: Type.Optional(Type.String()), // improves human-readability
+  method: Type.Optional(Type.String()),
   sources: Type.Array(TransactionSource),
   transfers: Type.Array(Transfer),
 });

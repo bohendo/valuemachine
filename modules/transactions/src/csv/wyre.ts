@@ -5,7 +5,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
-import { gt } from "@valuemachine/utils";
+import { gt, hashCsv } from "@valuemachine/utils";
 
 import { Assets } from "../assets";
 import { CsvSources, Guards } from "../enums";
@@ -25,7 +25,7 @@ export const mergeWyreTransactions = (
   const source = CsvSources.Wyre;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of wyre data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
+  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
     const {
       ["Created At"]: date,
@@ -57,6 +57,7 @@ export const mergeWyreTransactions = (
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],
+      uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
 
     // Push transfer depending on exchange/currency types

@@ -5,7 +5,7 @@ import {
   TransferCategory,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
-import { gt } from "@valuemachine/utils";
+import { gt, hashCsv } from "@valuemachine/utils";
 
 import { CsvSources, Guards } from "../enums";
 import { mergeTransaction } from "../merge";
@@ -23,7 +23,7 @@ export const mergeCoinbaseTransactions = (
   const source = CsvSources.Coinbase;
   const log = logger.child({ module: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of coinbase data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
+  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
     const {
       ["Timestamp"]: date,
@@ -43,6 +43,7 @@ export const mergeCoinbaseTransactions = (
       date: (new Date(date)).toISOString(),
       sources: [source],
       transfers: [],
+      uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
 
     let [from, to, category] = ["", "", Unknown as TransferCategory];

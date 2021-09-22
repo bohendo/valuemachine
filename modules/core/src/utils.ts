@@ -31,6 +31,9 @@ const sumValue = (values: Array<Value>): Balances => {
 export const sumTransfers = (transfers: Transfer[]): Balances => sumValue(transfers as Value[]);
 export const sumChunks = (chunks: AssetChunk[]): Balances => sumValue(chunks as Value[]);
 
+export const describeBalance = (balance: Balances): string =>
+  Object.keys(balance).map(asset => `${balance[asset]} ${asset}`).join(" and ");
+
 // annihilate values that are present in both balances
 export const diffBalances = (balancesList: Balances[]): Balances[] => {
   if (balancesList.length !== 2) return balancesList; // we can only diff 2 balances
@@ -86,7 +89,7 @@ export const describeEvent = (event: Event | HydratedEvent): string => {
       event.from.split("/")[0]
     } to ${event.to.split("/")[0]} on ${date}`;
   } else if (event.type === Error) {
-    return event.message;
+    return `${event.code}: ${event.message}`;
   } else {
     return `Unknown event`;
   }

@@ -64,11 +64,10 @@ export type AddressBookParams = {
 
 export interface AddressBook {
   addresses: Account[];
-  getName(address: Account): string;
+  selfAddresses: Account[];
+  getCategory(address: Account): AddressCategory;
   getDecimals(address: Account): number;
-  isCategory(category: AddressCategory): (address: Account) => boolean;
-  isPublic(address: Account): boolean;
-  isPrivate(address: Account): boolean;
+  getName(address: Account): string;
   isSelf(address: Account): boolean;
   isToken(address: Account): boolean;
   json: AddressBookJson;

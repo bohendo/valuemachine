@@ -4,6 +4,7 @@
     "baseUrl": ".",
     "declarationDir": ".ts.cache",
     "outDir": "dist",
+    "sourceMap": false,
     "tsBuildInfoFile": "dist/.ts.cache/tsconfig.tsbuildinfo"
   },
   "exclude": ["src/**/*.test.ts", "dist", "node_modules"],

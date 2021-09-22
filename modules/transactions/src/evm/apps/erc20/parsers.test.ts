@@ -7,9 +7,7 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.ERC20;
-const logger = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
   it("should parse erc20 transfers", async () => {

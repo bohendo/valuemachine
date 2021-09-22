@@ -13,25 +13,16 @@ import {
 import { parseEvent } from "../utils";
 
 import {
-  addresses,
-  coreAddresses,
+  tubAddress,
+  pethAddress,
   factoryAddresses,
   tokenAddresses,
 } from "./addresses";
-import { apps, assets } from "./enums";
+import { apps } from "./enums";
 
 const appName = apps.Maker;
 
-const { PETH } = assets;
 const { SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
-
-////////////////////////////////////////
-/// Addresses
-
-const tub = "scd-tub";
-
-const tubAddress = addresses.find(e => e.name.endsWith(tub))?.address;
-const pethAddress = addresses.find(e => e.name === PETH)?.address;
 
 ////////////////////////////////////////
 /// Abis
@@ -63,10 +54,6 @@ export const tokenParser = (
   const { getDecimals, getName, isSelf } = addressBook;
   // log.debug(tx, `Parsing in-progress tx`);
 
-  if (coreAddresses.some(e => e.address === evmTx.to)) {
-    tx.apps.push(appName);
-  }
-
   ////////////////////////////////////////
   // PETH/SAI/DAI
   // Process token interactions before any of the rest of the maker machinery
@@ -74,9 +61,7 @@ export const tokenParser = (
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     const index = txLog.index || 1;
-    if (coreAddresses.some(e => e.address === address)) {
-      tx.apps.push(appName);
-    }
+
     if (tokenAddresses.some(e => e.address === address)) {
       const asset = getName(address) as Asset;
       const event = parseEvent(tokenAbi, txLog, evmMeta);
@@ -88,6 +73,7 @@ export const tokenParser = (
       }
       if (event.name === "Mint") {
         log.info(`Parsing ${asset} ${event.name} of ${wad}`);
+        tx.apps.push(appName);
         if (address === pethAddress) {
           tx.transfers.push({
             asset,
@@ -109,6 +95,7 @@ export const tokenParser = (
         }
       } else if (event.name === "Burn") {
         log.info(`Parsing ${asset} ${event.name} of ${wad}`);
+        tx.apps.push(appName);
         if (address === pethAddress) {
           tx.transfers.push({
             asset,
@@ -142,6 +129,7 @@ export const tokenParser = (
       const event = parseEvent(proxyAbi, txLog, evmMeta);
       if (event?.name === "Created") {
         tx.method = "Proxy Creation";
+        tx.apps.push(appName);
       }
     }
   }

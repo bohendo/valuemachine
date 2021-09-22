@@ -46,7 +46,7 @@ export const TransactionRow = ({
           (new Date(tx.date)).toISOString().replace("T", " ").replace(".000Z", "")
         } </TableCell>
         <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
-        <TableCell> {tx.hash ? <HexString value={tx.hash} /> : "N/A"} </TableCell>
+        <TableCell> {tx.uuid ? <HexString value={tx.uuid} /> : "N/A"} </TableCell>
         <TableCell> {tx.apps.join(", ")} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>

@@ -18,26 +18,14 @@ import {
   routerAddresses,
   airdropAddresses,
   stakingAddresses,
-  v1MarketAddresses,
   v2MarketAddresses,
 } from "./addresses";
 import { apps } from "./enums";
 
-const appName = apps.Uniswap;
-
-const { Income, Expense, Refund, SwapIn, SwapOut, Internal } = TransferCategories;
+const appName = apps.UniswapV2;
 
 ////////////////////////////////////////
 /// Abis
-
-const uniswapV1Abi = [
-  "event AddLiquidity(address indexed provider, uint256 indexed eth_amount, uint256 indexed token_amount)",
-  "event Approval(address indexed _owner, address indexed _spender, uint256 _value)",
-  "event EthPurchase(address indexed buyer, uint256 indexed tokens_sold, uint256 indexed eth_bought)",
-  "event RemoveLiquidity(address indexed provider, uint256 indexed eth_amount, uint256 indexed token_amount)",
-  "event TokenPurchase(address indexed buyer, uint256 indexed eth_sold, uint256 indexed tokens_bought)",
-  "event Transfer(address indexed _from, address indexed _to, uint256 _value)",
-];
 
 const uniswapV2Abi = [
   "event Approval(address indexed owner, address indexed spender, uint256 value)",
@@ -74,16 +62,20 @@ export const v2Parser = (
 
   const getSwaps = () => {
     const swapsOut = tx.transfers.filter((transfer: Transfer): boolean =>
-      isSelf(transfer.from) && (
+      isSelf(transfer.from)
+      && !isSelf(transfer.to)
+      && (
         routerAddresses.some(e => transfer.to === e.address) ||
         v2MarketAddresses.some(e => transfer.to === e.address)
-      ) && transfer.category === Expense
+      )
     );
     const swapsIn = tx.transfers.filter((transfer: Transfer): boolean =>
-      isSelf(transfer.to) && (
+      isSelf(transfer.to)
+      && !isSelf(transfer.from)
+      && (
         routerAddresses.some(e => transfer.from === e.address) ||
         v2MarketAddresses.some(e => transfer.from === e.address)
-      ) && transfer.category === Income
+      )
     );
     // SwapIn entries for assets that don't exist in swapsOut should come first
     const ofType = asset => swap => swap.asset === asset;
@@ -98,46 +90,42 @@ export const v2Parser = (
   )) {
     const address = txLog.address;
     const index = txLog.index || 1;
-    tx.apps.push(appName);
 
     // Parse events
-    let subsrc, event;
+    let event;
     if (v2MarketAddresses.some(e => e.address === address)) {
-      subsrc = `${appName}V2`;
       event = parseEvent(uniswapV2Abi, txLog, evmMeta);
-    } else if (v1MarketAddresses.some(e => e.address === address)) {
-      subsrc = `${appName}V1`;
-      event = parseEvent(uniswapV1Abi, txLog, evmMeta);
     } else if (stakingAddresses.some(e => e.address === address)) {
-      subsrc = `${appName}V2`;
       event = parseEvent(stakingAbi, txLog, evmMeta);
     } else if (airdropAddresses.some(e => e.address === address)) {
-      subsrc = `${appName}V2`;
       event = parseEvent(airdropAbi, txLog, evmMeta);
     } else {
       log.debug(`Skipping ${getName(address)} event`);
       continue;
     }
+    tx.apps.push(appName);
 
     ////////////////////////////////////////
     // Core Uniswap Interactions: swap, deposit liq, withdraw liq
     if ([
-      "EthPurchase", "TokenPurchase", "AddLiquidity", "RemoveLiquidity", // V1 (TODO: remove)
-      "Swap", "Mint", "Burn", // V2
+      "Swap", "Mint", "Burn",
     ].includes(event.name)) {
       const swaps = getSwaps();
       // log.info(swaps, `Got swaps:`);
+      if (!swaps.in.length && !swaps.out.length) continue;
       if (!swaps.in.length || !swaps.out.length) {
-        log.warn(`Missing ${subsrc} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
+        log.warn(`Missing ${appName} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
         continue;
       }
-      log.info(`Parsing ${subsrc} ${event.name}`);
+      log.info(`Parsing ${appName} ${event.name}`);
       swaps.out.forEach(swap => {
-        swap.category = SwapOut;
+        swap.category = TransferCategories.SwapOut;
         swap.to = address;
       });
       swaps.in.forEach(swap => {
-        swap.category = swaps.out.some(swapOut => swapOut.asset === swap.asset) ? Refund : SwapIn;
+        swap.category = swaps.out.some(swapOut => swapOut.asset === swap.asset)
+          ? TransferCategories.Refund
+          : TransferCategories.SwapIn;
         swap.from = address;
       });
       swaps.out.forEach(swap => { swap.index = "index" in swap ? swap.index : index; });
@@ -157,21 +145,11 @@ export const v2Parser = (
       // Withdraw Liquidity
       } else if (["Burn", "RemoveLiquidity"].includes(event.name)) {
         tx.method = "Remove Liquidity";
-
-      } else {
-        log.warn(`Missing ${event.name} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
       }
 
     ////////////////////////////////////////
     // UNI Airdrop
     } else if (event.name === "Claimed") {
-      /*
-      const airdrop = tx.transfers.find((transfer: Transfer): boolean =>
-        airdropAddresses.some(e => transfer.from === e.address)
-        && transfer.asset === UNI
-        && transfer.category === Income
-      );
-      */
       tx.method = "Claim";
 
     ////////////////////////////////////////
@@ -179,17 +157,17 @@ export const v2Parser = (
     } else if (event.name === "Staked") {
       const deposit = tx.transfers.find((transfer: Transfer): boolean =>
         isSelf(transfer.from)
-          && stakingAddresses.some(e => transfer.to === e.address)
-          && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([Expense, Internal] as string[]).includes(transfer.category)
+        && !isSelf(transfer.to)
+        && stakingAddresses.some(e => transfer.to === e.address)
+        && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
       );
       if (!deposit) {
-        log.warn(`${subsrc} ${event.name} couldn't find a deposit to ${address}`);
+        log.warn(`${appName} ${event.name} couldn't find a deposit to ${address}`);
         continue;
       }
-      log.info(`Parsing ${subsrc} ${event.name}`);
+      log.info(`Parsing ${appName} ${event.name}`);
       const account = insertVenue(deposit.from, appName);
-      deposit.category = Internal;
+      deposit.category = TransferCategories.Internal;
       deposit.to = account;
       tx.method = "Deposit";
 
@@ -198,22 +176,22 @@ export const v2Parser = (
     } else if (event.name === "Withdrawn") {
       const withdraw = tx.transfers.find((transfer: Transfer): boolean =>
         isSelf(transfer.to)
-          && stakingAddresses.some(e => transfer.from === e.address)
-          && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
-          && ([Income, Internal] as string[]).includes(transfer.category)
+        && !isSelf(transfer.from)
+        && stakingAddresses.some(e => transfer.from === e.address)
+        && v2MarketAddresses.some(e => getName(e.address) === transfer.asset)
       );
       if (!withdraw) {
-        log.warn(`${subsrc} ${event.name} couldn't find a withdraw from staking pool}`);
+        log.warn(`${appName} ${event.name} couldn't find a withdraw from staking pool}`);
         continue;
       }
-      log.info(`Parsing ${subsrc} ${event.name}`);
+      log.info(`Parsing ${appName} ${event.name}`);
       const account = insertVenue(withdraw.to, appName);
-      withdraw.category = Internal;
+      withdraw.category = TransferCategories.Internal;
       withdraw.from = account;
       tx.method = "Withdraw";
 
     } else {
-      log.debug(`Skipping ${subsrc} ${event.name}`);
+      log.debug(`Skipping ${appName} ${event.name}`);
     }
   }
 

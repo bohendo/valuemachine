@@ -58,11 +58,13 @@ export const oasisParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
-  const { getDecimals, getName, isCategory, isSelf } = addressBook;
+  const { getDecimals, getName, getCategory, isSelf } = addressBook;
 
   const isSelfy = (address: string): boolean =>
     isSelf(address) || (
-      isSelf(evmTx.from) && isCategory(AddressCategories.Proxy)(address) && address === evmTx.to
+      isSelf(evmTx.from) &&
+      getCategory(address) === AddressCategories.Proxy &&
+      address === evmTx.to
     );
 
   const ethish = [WETH, ETH] as Asset[];

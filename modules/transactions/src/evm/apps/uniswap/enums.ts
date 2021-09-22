@@ -1,5 +1,8 @@
 export const apps = {
-  Uniswap: "Uniswap"
+  Uniswap: "Uniswap",
+  UniswapV1: "UniswapV1",
+  UniswapV2: "UniswapV2",
+  UniswapV3: "UniswapV3",
 } as const;
 
 export const assets = {

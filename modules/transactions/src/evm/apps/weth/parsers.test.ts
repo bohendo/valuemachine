@@ -11,11 +11,10 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Weth;
-const logger = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
+
   it("should parse a weth deposit", async () => {
     const tx = await parseEthTx({
       hash: "0xbbbd2b0c777b8f7ce7b3d16ba42452c6b50e6145a22b769ae61620d7ed549db4",
@@ -41,4 +40,5 @@ describe(appName, () => {
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
     expect(tx.transfers[1].amount).to.equal(tx.transfers[2].amount);
   });
+
 });

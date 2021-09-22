@@ -8,10 +8,10 @@ import {
   testLogger,
 } from "../testUtils";
 
-const appName = "Yearn";
-const logger = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+import { apps } from "./enums";
+
+const appName = apps.Yearn;
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
 
@@ -49,7 +49,6 @@ describe(appName, () => {
     expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
   });
-
 
   it("should parse a yGov withdrawal", async () => { // withdraw
     const tx = await parseEthTx({

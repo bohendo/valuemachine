@@ -11,9 +11,7 @@ import {
 } from "../testUtils";
 
 const appName = EvmApps.Aave;
-const logger = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
 

@@ -240,7 +240,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             <TableRow>
               <TableCell><strong> Date </strong></TableCell>
               <TableCell><strong> Description </strong></TableCell>
-              <TableCell><strong> Hash </strong></TableCell>
+              <TableCell><strong> Tx ID </strong></TableCell>
               <TableCell><strong> Apps </strong></TableCell>
               <TableCell><strong> Sources </strong></TableCell>
               <TableCell><strong> Transfers </strong></TableCell>

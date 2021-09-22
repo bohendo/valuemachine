@@ -10,10 +10,11 @@ import {
 
 import { apps } from "./enums";
 
-const appName = apps.Uniswap;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "silent" });
+const appName = apps.UniswapV2;
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
+
   it("should handle a v1 swap", async () => {
     const tx = await parseEthTx({
       hash: "0x25e3f8798ff7f1e85f1ee5479d8e74c861ca97963a8356c9c6b7a6505b007423",

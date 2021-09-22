@@ -11,9 +11,7 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Maker;
-const logger = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
   it("should handle a WETH to PETH swap", async () => {
@@ -101,7 +99,6 @@ describe(appName, () => {
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
     expect(tx.transfers[2].category).to.equal(TransferCategories.Fee);
-    expect(tx.transfers[2].to).to.include("CDP");
   });
 
   it("should parse a CDP deposit via proxy", async () => {

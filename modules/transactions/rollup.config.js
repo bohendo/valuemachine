@@ -27,10 +27,6 @@ export default [
         tsconfig: "./tsconfig.json",
       }),
     ],
-    onwarn: (warning, warn) => {
-      console.warn(warning);
-      warn(warning);
-    },
   },
   {
     input: "./dist/.ts.cache/index.d.ts",

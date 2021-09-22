@@ -4,11 +4,14 @@ import { isHexString } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
 import { formatEther } from "@ethersproject/units";
 import {
+  AddressBook,
+  AddressCategories,
   DecimalString,
   EvmMetadata,
   EvmTransactionLog,
   EvmTransfer,
   Transfer,
+  TransferCategories,
 } from "@valuemachine/types";
 import { diff, gt, toBN } from "@valuemachine/utils";
 
@@ -102,4 +105,39 @@ export const parseEvent = (
     args[key] = rawArgs[key].length === 42 ? formatAddress(rawArgs[key]) : rawArgs[key];
   });
   return { name, args };
+};
+
+export const categorizeTransfer = (transfer: Transfer, addressBook: AddressBook): Transfer => {
+  const { Self, Exchange, Defi } = AddressCategories;
+  const { Expense, Income, Internal, SwapIn, SwapOut, Unknown } = TransferCategories;
+  const to = addressBook.getCategory(transfer.to);
+  const from = addressBook.getCategory(transfer.from);
+
+  // Internal
+  if (to === Self && from === Self) {
+    transfer.category = Internal;
+
+  // Swaps
+  } else if (to === Self && from === Exchange) {
+    transfer.category = SwapIn;
+  } else if (from === Self && to === Exchange) {
+    transfer.category = SwapOut;
+
+  // Deposit/Withdrawals (should we update account names?)
+  } else if (to === Self && from === Defi) {
+    transfer.category = Internal;
+  } else if (from === Self && to === Defi) {
+    transfer.category = Internal;
+
+  // Income/Expense
+  } else if (to === Self) {
+    transfer.category = Income;
+  } else if (from === Self) {
+    transfer.category = Expense;
+
+  } else {
+    transfer.category = Unknown;
+  }
+
+  return transfer;
 };

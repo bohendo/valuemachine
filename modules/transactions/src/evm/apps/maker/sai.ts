@@ -24,8 +24,9 @@ import { Assets, Guards } from "../../../enums";
 import { diffAsc, parseEvent } from "../utils";
 
 import {
-  addresses,
-  coreAddresses,
+  saiPitAddress,
+  tubAddress,
+  cageAddress,
 } from "./addresses";
 import { apps, assets } from "./enums";
 
@@ -33,28 +34,10 @@ const appName = apps.Sai;
 
 const { ETH, WETH } = Assets;
 const { MKR, PETH, SAI } = assets;
-const { Expense, Fee, Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
-
-////////////////////////////////////////
-/// Addresses
-
-const tub = "scd-tub";
-const cage = "scd-cage";
-
-const saiAddress = addresses.find(e => e.name === SAI)?.address;
-const tubAddress = addresses.find(e => e.name.endsWith(tub))?.address;
-const cageAddress = addresses.find(e => e.name.endsWith(cage))?.address;
+const { Fee, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 ////////////////////////////////////////
 /// Abis
-
-const tokenAbi = [
-  "event Approval(address indexed src, address indexed guy, uint256 wad)",
-  "event Burn(address indexed guy, uint256 wad)",
-  "event LogNote(bytes4 indexed sig, address indexed guy, bytes32 indexed foo, bytes32 indexed bar, uint256 wad, bytes fax) anonymous",
-  "event Mint(address indexed guy, uint256 wad)",
-  "event Transfer(address indexed src, address indexed dst, uint256 wad)"
-];
 
 const tubAbi = [
   "event LogNewCup(address indexed lad, bytes32 cup)",
@@ -118,13 +101,8 @@ export const saiParser = (
 
   const ethish = [WETH, ETH, PETH] as Asset[];
 
-  if (coreAddresses.some(e => e.address === evmTx.to)) {
-    tx.apps.push(appName);
-  }
-
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    const index = txLog.index || 1;
 
     ////////////////////////////////////////
     // SCD Tub
@@ -134,6 +112,7 @@ export const saiParser = (
         tx.method = `Create CDP-${toBN(event.args.cup)}`;
         continue;
       }
+      tx.apps.push(appName);
       const logNote = parseLogNote(tubAbi, txLog);
       if (!logNote.name || logNote.name === "open") continue;
       log.debug(`Found Tub call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
@@ -154,9 +133,7 @@ export const saiParser = (
         const wad = formatUnits(logNote.args[1], 18);
         // Get the WETH transfer with the amount that's closest to the wad
         const swapOut = tx.transfers.filter(t =>
-          t.asset === WETH
-          && t.to !== ETH
-          && ([Expense, SwapOut] as string[]).includes(t.category)
+          t.asset === WETH && !isSelf(t.to) && isSelf(t.from)
         ).sort(diffAsc(wad))[0];
         if (swapOut) {
           swapOut.category = SwapOut;
@@ -174,11 +151,7 @@ export const saiParser = (
         const wad = formatUnits(logNote.args[1], 18);
         // Get the WETH transfer with the amount that's closest to the wad
         const swapIn = tx.transfers.filter(t =>
-          t.asset === WETH
-          && ([
-            Income,
-            SwapIn, // re-handle dup calls instead of logging warning
-          ] as string[]).includes(t.category)
+          t.asset === WETH && isSelf(t.to) && !isSelf(t.from)
         ).sort(diffAsc(wad))[0];
         if (swapIn) {
           swapIn.category = SwapIn;
@@ -198,7 +171,8 @@ export const saiParser = (
         const transfer = tx.transfers.filter(t =>
           ethish.includes(t.asset)
           && !Object.keys(Guards).includes(t.to)
-          && ([Expense, Internal] as string[]).includes(t.category)
+          && isSelf(t.from)
+          && !isSelf(t.to)
           && (tubAddress === t.to || isSelf(t.from))
         ).sort(diffAsc(wad))[0];
         if (transfer) {
@@ -215,7 +189,7 @@ export const saiParser = (
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
-          && ([Income, Internal] as string[]).includes(t.category)
+          && isSelf(t.to)
           && (tubAddress === t.from || isSelf(t.to))
         ).sort(diffAsc(wad)).sort((t1, t2) =>
           // First try to match a PETH transfer
@@ -242,20 +216,13 @@ export const saiParser = (
         const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const borrow = tx.transfers.filter(t =>
-          isSelf(t.to)
-          && t.asset === SAI
-          && ([Income, Borrow] as string[]).includes(t.category)
+          t.asset === SAI && isSelf(t.to)
         ).sort(diffAsc(wad))[0];
         if (borrow) {
           borrow.category = Borrow;
           borrow.from = insertVenue(borrow.to, cdp);
           tx.method = "Borrow";
-        } else if (!evmTx.logs.find(l =>
-          l.index > index
-          && l.address === saiAddress
-          && parseEvent(tokenAbi, l, evmMeta).name === "Mint"
-        )) {
-          // Only warn if there is NOT an upcoming SAI mint evet
+        } else {
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
         }
 
@@ -264,31 +231,24 @@ export const saiParser = (
         const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const repay = tx.transfers.filter(t =>
-          t.asset === SAI && ([Expense, Repay] as string[]).includes(t.category)
+          t.asset === SAI && isSelf(t.from) && t.category !== Fee
         ).sort(diffAsc(wad))[0];
         if (repay) {
           repay.category = Repay;
           repay.to = insertVenue(repay.from, cdp);
           tx.method = "Repayment";
-        } else if (!evmTx.logs.find(l =>
-          l.index > index
-          && l.address === saiAddress
-          && parseEvent(tokenAbi, l, evmMeta).name === "Burn"
-        )) {
+        } else {
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
         }
         // Handle MKR fee (or find the stable-coins spent to buy MKR)
         // TODO: split repayment into two transfers if we repayed with one lump of DAI
         const feeAsset = [MKR, SAI] as Asset[];
         const fee = tx.transfers.find(t =>
-          isSelf(t.from)
-          && feeAsset.includes(t.asset)
-          // Fee might be a SwapOut eg if we gave SAI to OasisDex to swap for MKR
-          && ([Expense, SwapOut] as string[]).includes(t.category)
+          isSelf(t.from) && !isSelf(t.to) && feeAsset.includes(t.asset)
         );
         if (fee) {
           fee.category = Fee;
-          fee.to = insertVenue(fee.from, cdp);
+          fee.to = saiPitAddress;
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a MKR/SAI fee`);
         }
@@ -300,6 +260,7 @@ export const saiParser = (
     } else if (address === cageAddress) {
       const event = parseEvent(cageAbi, txLog, evmMeta);
       if (event?.name === "FreeCash") {
+        tx.apps.push(appName);
         const wad = formatUnits(event.args[1], 18);
         log.info(`Parsing SaiCage FreeCash event for ${wad} ETH`);
         const swapOut = tx.transfers.find(t =>

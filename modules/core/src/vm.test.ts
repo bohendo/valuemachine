@@ -40,9 +40,7 @@ const {
 } = TransferCategories;
 const { Coinbase } = TransactionSources;
 const { Ethereum, USA } = Guards;
-const log = testLogger.child({ module: "TestVM" }, {
-  level: "silent",
-});
+const log = testLogger.child({ module: "TestVM" }, { level: "silent" });
 
 const ethAccount = `${Ethereum}/${AddressOne}`;
 const otherAccount = `${Ethereum}/${AddressTwo}`;

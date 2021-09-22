@@ -3,6 +3,7 @@ export { addresses } from "./addresses";
 export { EvmApps, Tokens } from "./enums";
 
 export { parsers as aaveParsers } from "./aave";
+export { parsers as bjtjParsers } from "./bjtj";
 export { parsers as argentParsers } from "./argent";
 export { parsers as compoundParsers } from "./compound";
 export { parsers as erc20Parsers } from "./erc20";

@@ -10,13 +10,12 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
+import { categorizeTransfer } from "../../utils";
 import { parseEvent } from "../utils";
 
 import { apps } from "./enums";
 
 export const appName = apps.ERC20;
-
-const { Expense, Income, Internal, Unknown } = TransferCategories;
 
 ////////////////////////////////////////
 /// ABIs
@@ -56,13 +55,14 @@ export const coreParser = (
 
       if (event.name === "Transfer") {
         log.info(`Parsing ${appName} ${event.name} of ${amount} ${asset}`);
-        const from = event.args.from.endsWith(AddressZero) ? address : event.args.from;
-        const to = event.args.to.endsWith(AddressZero) ? address : event.args.to;
-        const category = isSelf(from) && isSelf(to) ? Internal
-          : isSelf(from) && !isSelf(to) ? Expense
-          : isSelf(to) && !isSelf(from) ? Income
-          : Unknown;
-        tx.transfers.push({ asset, category, from, index: txLog.index, amount: amount, to });
+        tx.transfers.push(categorizeTransfer({
+          amount: amount,
+          asset,
+          category: TransferCategories.Unknown,
+          from: event.args.from.endsWith(AddressZero) ? address : event.args.from,
+          index: txLog.index,
+          to: event.args.to.endsWith(AddressZero) ? address : event.args.to,
+        }, addressBook));
         if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }

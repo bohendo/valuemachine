@@ -9,6 +9,8 @@ import {
 } from "@valuemachine/types";
 import {
   getAddressBookError,
+  getAddressEntryError,
+  sortAddressEntries
 } from "@valuemachine/utils";
 import React from "react";
 
@@ -50,18 +52,26 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
       try {
         if (!reader.result) return;
         const importedData = JSON.parse(reader.result as string) as any;
-        const importedAddresses = importedData.addressBook
-          ? importedData.addressBook
-          : importedData;
-        if (getAddressBookError(importedAddresses)) {
-          console.error("Imported address book:", importedAddresses);
-          throw new Error("Imported file does not contain a valid address book");
+        const importedAddresses = importedData.addressBook || importedData;
+        const newAddressBook = { ...addressBook.json }; // new obj to ensure it re-renders;
+        if (!getAddressBookError(importedAddresses)) {
+          console.log(`File with an address book object has been loaded:`, importedAddresses);
+          Object.keys(importedAddresses).forEach(address => {
+            newAddressBook[address] = importedAddresses[address];
+          });
+        } else if (
+          (importedAddresses.length && importedAddresses.every(e => !getAddressEntryError(e)))
+        ) {
+          console.log(`File with an array of address entries has been loaded:`, importedAddresses);
+          importedAddresses.forEach(entry => {
+            newAddressBook[entry.address] = entry;
+          });
+        } else {
+          console.error(`Imported addresses are invalid:`, importedAddresses);
+          throw new Error(`Imported file does not contain a valid address book: ${
+            getAddressBookError(importedAddresses)
+          }`);
         }
-        console.log(`File with an address book has been loaded:`, importedAddresses);
-        const newAddressBook = { ...addressBook.json }; // create new object to ensure it re-renders
-        Object.keys(importedAddresses).forEach(address => {
-          newAddressBook[address] = importedAddresses[address];
-        });
         setAddressBookJson(newAddressBook);
       } catch (e) {
         console.error(e);
@@ -70,7 +80,7 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
   };
 
   const handleExport = () => {
-    const output = JSON.stringify({ addressBook: addressBook.json }, null, 2);
+    const output = JSON.stringify(sortAddressEntries(Object.values(addressBook.json)), null, 2);
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
     a.href = "data:" + data;

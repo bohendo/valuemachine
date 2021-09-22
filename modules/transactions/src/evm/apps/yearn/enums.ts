@@ -1,3 +1,7 @@
+export const apps = {
+  Yearn: "Yearn",
+} as const;
+
 export const assets = {
 
   YFI: "YFI",
@@ -58,5 +62,4 @@ export const assets = {
 
 } as const;
 
-export const apps = {} as const;
 export const enums = { assets, apps };

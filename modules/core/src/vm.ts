@@ -35,7 +35,12 @@ import {
   sub,
 } from "@valuemachine/utils";
 
-import { sumChunks, sumTransfers, diffBalances } from "./utils";
+import {
+  describeBalance,
+  diffBalances,
+  sumChunks,
+  sumTransfers,
+} from "./utils";
 
 const {
   Internal, Income, SwapIn, Borrow, Expense, Fee, SwapOut, Repay, Refund
@@ -46,6 +51,12 @@ const {
 const isIncomeSource = (account: Account): boolean =>
   account.startsWith(`${EvmApps.Maker}-DSR`) ||
   account.startsWith(`${EvmApps.Tornado}`);
+
+const errorCodes = {
+  MISSING_SWAP: "MISSING_SWAP",
+  MULTI_ACCOUNT_SWAP: "MULTI_ACCOUNT_SWAP",
+  UNDERFLOW: "UNDERFLOW",
+};
 
 export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const { logger, store, json: vmJson } = params || {};
@@ -497,26 +508,32 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     const swapsOut = transfers.filter(transfer => transfer.category === SwapOut);
     if (swapsIn.length && !swapsOut.length) {
       swapsIn.forEach(swap => { swap.category = Income; });
-      const message = `Swap in of ${JSON.stringify(sumChunks(swapsIn))} has no matching swaps out`;
+      const message = `Swap in of ${
+        describeBalance(sumChunks(swapsIn))
+      } has no matching swaps out`;
       log.error(message);
       newEvents.push({
         account: swapsIn[0].to,
+        code: errorCodes.MISSING_SWAP,
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        txId: tx.hash || "?",
+        txId: tx.uuid,
         type: EventTypes.Error,
       });
     } else if (swapsOut.length && !swapsIn.length) {
       swapsOut.forEach(swap => { swap.category = Expense; });
-      const message = `Swap out of ${JSON.stringify(sumChunks(swapsOut))} has no matching swaps in`;
+      const message = `Swap out of ${
+        describeBalance(sumChunks(swapsOut))
+      } has no matching swaps in`;
       log.error(message);
       newEvents.push({
         account: swapsOut[0].from,
+        code: errorCodes.MISSING_SWAP,
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        txId: tx.hash || "?",
+        txId: tx.uuid,
         type: EventTypes.Error,
       });
     // If we have matching swap transfers, process the trade first
@@ -536,10 +553,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         log.error(message);
         newEvents.push({
           account,
+          code: errorCodes.MULTI_ACCOUNT_SWAP,
           date: json.date,
           index: json.events.length + newEvents.length,
           message,
-          txId: tx.hash || "?",
+          txId: tx.uuid,
           type: EventTypes.Error,
         });
       }
@@ -590,7 +608,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     // coalesce loans of the same asset type?!
     tmpChunks.forEach(chunk => json.chunks.push(chunk)); // add leftovers to the master list
     json.chunks.sort((c1, c2) => c1.index - c2.index);
-    tmpChunks.length && log.warn(tmpChunks, `We have ${tmpChunks.length} leftover chunks`);
     for (const asset of dedup(tmpChunks.map(chunk => chunk.asset))) {
       for (const account of dedup(tmpChunks.map(getFirstOwner))) {
         const chunks = tmpChunks.filter(chunk =>
@@ -606,14 +623,15 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           outputs: [],
           account,
         } as DebtEvent);
-        const message = `${account} has tmp chunks totalling ${total} ${asset} leftover`;
+        const message = `${account} disposed of assets it didn't have: ${total} ${asset}`;
         log.error(message);
         newEvents.push({
           account,
+          code: errorCodes.UNDERFLOW,
           date: json.date,
           index: json.events.length + newEvents.length,
           message,
-          txId: tx.hash || "?",
+          txId: tx.uuid,
           type: EventTypes.Error,
         });
       }

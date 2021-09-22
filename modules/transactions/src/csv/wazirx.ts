@@ -3,6 +3,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
+import { hashCsv } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
 import { CsvSources, Guards } from "../enums";
@@ -23,7 +24,7 @@ export const mergeWazirxTransactions = (
   const source = CsvSources.Wazirx;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach(row => {
+  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
     const date = row["Date"];
 
@@ -36,6 +37,7 @@ export const mergeWazirxTransactions = (
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
       sources: [source],
       transfers: [],
+      uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
 
     const account = `${guard}/${source}/account`;
