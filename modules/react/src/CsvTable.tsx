@@ -48,6 +48,7 @@ export const CsvTable: React.FC<CsvTableProps> = ({
               <TableRow>
                 <TableCell><strong> File Name </strong></TableCell>
                 <TableCell><strong> File Type </strong></TableCell>
+                <TableCell><strong> Rows </strong></TableCell>
                 <TableCell><strong> Digest </strong></TableCell>
               </TableRow>
             </TableHead>
@@ -56,6 +57,7 @@ export const CsvTable: React.FC<CsvTableProps> = ({
                 <TableRow key={i}>
                   <TableCell> {csvFile.name.toString()} </TableCell>
                   <TableCell> {csvFile.type.toString()} </TableCell>
+                  <TableCell> {csvFile.data.split(/\r\n|\r|\n/).length} </TableCell>
                   <TableCell> {hashCsv(csvFile.data)} </TableCell>
                 </TableRow>
               ))}

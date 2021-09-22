@@ -67,12 +67,12 @@ export const v1Parser = (
   )) {
     const address = txLog.address;
     const index = txLog.index || 1;
-    tx.apps.push(appName);
 
     // Parse events
     let event;
     if (v1MarketAddresses.some(e => e.address === address)) {
       event = parseEvent(uniswapV1Abi, txLog, evmMeta);
+      tx.apps.push(appName);
     } else {
       log.debug(`Skipping ${getName(address)} event`);
       continue;

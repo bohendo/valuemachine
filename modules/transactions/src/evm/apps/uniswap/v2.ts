@@ -90,7 +90,6 @@ export const v2Parser = (
   )) {
     const address = txLog.address;
     const index = txLog.index || 1;
-    tx.apps.push(appName);
 
     // Parse events
     let event;
@@ -104,6 +103,7 @@ export const v2Parser = (
       log.debug(`Skipping ${getName(address)} event`);
       continue;
     }
+    tx.apps.push(appName);
 
     ////////////////////////////////////////
     // Core Uniswap Interactions: swap, deposit liq, withdraw liq
