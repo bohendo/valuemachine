@@ -12,4 +12,13 @@ export const assets = {
   PETH: "PETH",
 } as const;
 
+export const contracts = {
+  DaiVat: "DaiVat",
+  DSR: "DSR",
+  SaiCage: "SaiCage",
+  SaiGemPit: "SaiGemPit",
+  SaiToDaiVault: "SaiToDaiVault",
+  SaiTub: "SaiTub",
+};
+
 export const enums = { assets, apps };

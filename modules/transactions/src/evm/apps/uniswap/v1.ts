@@ -10,14 +10,13 @@ import {
 
 import { parseEvent } from "../utils";
 
+import { apps } from "./enums";
 import {
   addresses,
   v1MarketAddresses,
 } from "./addresses";
 
-export const appName = "Uniswap";
-
-const { Income, Expense, SwapIn, SwapOut } = TransferCategories;
+export const appName = apps.UniswapV1;
 
 ////////////////////////////////////////
 /// Abis
@@ -47,13 +46,13 @@ export const v1Parser = (
   const getSwaps = () => {
     const swapsOut = tx.transfers.filter((transfer: Transfer): boolean =>
       isSelf(transfer.from)
-        && addresses.some(e => transfer.to === e.address)
-        && ([Expense, SwapOut] as string[]).includes(transfer.category)
+      && !isSelf(transfer.to)
+      && addresses.some(e => transfer.to === e.address)
     );
     const swapsIn = tx.transfers.filter((transfer: Transfer): boolean =>
       isSelf(transfer.to)
-        && addresses.some(e => transfer.from === e.address)
-        && ([Income, SwapIn] as string[]).includes(transfer.category)
+      && !isSelf(transfer.from)
+      && addresses.some(e => transfer.from === e.address)
     );
     // SwapIn entries for assets that don't exist in swapsOut should come first
     const ofType = asset => swap => swap.asset === asset;
@@ -71,9 +70,8 @@ export const v1Parser = (
     tx.apps.push(appName);
 
     // Parse events
-    let subsrc, event;
+    let event;
     if (v1MarketAddresses.some(e => e.address === address)) {
-      subsrc = `${appName}V1`;
       event = parseEvent(uniswapV1Abi, txLog, evmMeta);
     } else {
       log.debug(`Skipping ${getName(address)} event`);
@@ -83,21 +81,21 @@ export const v1Parser = (
     ////////////////////////////////////////
     // Core Uniswap Interactions: swap, deposit liq, withdraw liq
     if ([
-      "EthPurchase", "TokenPurchase", "AddLiquidity", "RemoveLiquidity", // V1
-      "Swap", "Mint", "Burn", // V2
+      "EthPurchase", "TokenPurchase", "AddLiquidity", "RemoveLiquidity",
     ].includes(event.name)) {
+      log.info(`Parsing ${appName} ${event.name}`);
       const swaps = getSwaps();
+      if (!swaps.in.length && !swaps.out.length) continue;
       if (!swaps.in.length || !swaps.out.length) {
-        log.warn(`Missing ${subsrc} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
+        log.warn(`Missing ${appName} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
         continue;
       }
-      log.info(`Parsing ${subsrc} ${event.name}`);
       swaps.in.forEach(swap => {
-        swap.category = SwapIn;
+        swap.category = TransferCategories.SwapIn;
         swap.from = address;
       });
       swaps.out.forEach(swap => {
-        swap.category = SwapOut;
+        swap.category = TransferCategories.SwapOut;
         swap.to = address;
       });
       swaps.in.forEach(swap => { swap.index = swap.index || index; });
@@ -117,13 +115,10 @@ export const v1Parser = (
       // Withdraw Liquidity
       } else if (["Burn", "RemoveLiquidity"].includes(event.name)) {
         tx.method = "Remove Liquidity";
-
-      } else {
-        log.warn(`Missing ${event.name} swaps: in=${swaps.in.length} out=${swaps.out.length}`);
       }
 
     } else {
-      log.debug(`Skipping ${subsrc} ${event.name}`);
+      log.debug(`Skipping ${appName} ${event.name}`);
     }
   }
 

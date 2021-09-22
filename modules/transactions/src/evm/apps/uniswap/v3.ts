@@ -7,7 +7,9 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-export const appName = "UniswapV3";
+import { apps } from "./enums";
+
+export const appName = apps.UniswapV3;
 
 ////////////////////////////////////////
 /// Parser

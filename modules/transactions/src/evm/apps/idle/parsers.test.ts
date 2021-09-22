@@ -9,9 +9,7 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Idle;
-const logger = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
   it("should handle deposits to idle DAI", async () => {

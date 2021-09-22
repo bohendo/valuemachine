@@ -6,9 +6,7 @@ import {
 } from "../testUtils";
 
 const appName = EvmApps.Quickswap;
-const logger = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
   it("should handle a swap", async () => {

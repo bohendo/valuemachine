@@ -8,10 +8,10 @@ import {
   testLogger,
 } from "../testUtils";
 
-const appName = "UniswapV3";
-const logger = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+import { apps } from "./enums";
+
+const appName = apps.UniswapV3;
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
 

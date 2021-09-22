@@ -15,11 +15,12 @@ import {
 import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
+import { apps } from "./enums";
 import { govAddress, yTokenAddresses } from "./addresses";
 
-export const appName = "Yearn";
+export const appName = apps.Yearn;
 
-const { Internal, SwapOut, SwapIn } = TransferCategories;
+const { Fee, Internal, SwapOut, SwapIn } = TransferCategories;
 
 ////////////////////////////////////////
 /// Abis
@@ -141,8 +142,7 @@ export const coreParser = (
       }
       log.info(`Parsing yToken transfer of ${yTransfer.amount} ${yTransfer.asset}`);
       const transfer = tx.transfers.find(t =>
-        t.category !== Internal
-        && t.to !== evmMeta.name
+        t.category !== Fee
         && assetsAreClose(t.asset, asset)
         && (
           (isSelf(t.to) && isSelf(yTransfer.from)) ||
@@ -194,9 +194,14 @@ export const coreParser = (
           withdraw.category = Internal;
           withdraw.from = account;
           tx.method = "Withdraw";
-        } else {
-          // We're probably withdrawing from yYFI which uses yGov internally
-          log.info(`Can't find YFI withdrawal`);
+        }
+        const income = tx.transfers.find(t =>
+          t.from === govAddress
+          && isSelf(t.to)
+          && t.asset === EvmAssets.yDAI_yUSDC_yUSDT_yTUSD
+        );
+        if (income) {
+          income.category = TransferCategories.Income;
         }
 
       } else if (event.name === "RegisterVoter") {
@@ -205,6 +210,5 @@ export const coreParser = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };

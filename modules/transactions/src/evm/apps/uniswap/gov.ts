@@ -13,6 +13,7 @@ import {
 
 import { parseEvent } from "../utils";
 
+import { apps } from "./enums";
 import {
   addresses,
   airdropAddresses,
@@ -20,7 +21,7 @@ import {
   v2MarketAddresses,
 } from "./addresses";
 
-export const appName = "Uniswap";
+export const appName = apps.UniswapV2;
 
 const { Income, Expense, Internal } = TransferCategories;
 
@@ -58,12 +59,10 @@ export const govParser = (
     tx.apps.push(appName);
 
     // Parse events
-    let subsrc, event;
+    let event;
     if (stakingAddresses.some(e => e.address === address)) {
-      subsrc = `${appName}V2`;
       event = parseEvent(stakingAbi, txLog, evmMeta);
     } else if (airdropAddresses.some(e => e.address === address)) {
-      subsrc = `${appName}V2`;
       event = parseEvent(airdropAbi, txLog, evmMeta);
     } else {
       log.debug(`Skipping ${getName(address)} event`);
@@ -92,10 +91,10 @@ export const govParser = (
           && ([Expense, Internal] as string[]).includes(transfer.category)
       );
       if (!deposit) {
-        log.warn(`${subsrc} ${event.name} couldn't find a deposit to ${address}`);
+        log.warn(`${appName} ${event.name} couldn't find a deposit to ${address}`);
         continue;
       }
-      log.info(`Parsing ${subsrc} ${event.name}`);
+      log.info(`Parsing ${appName} ${event.name}`);
       const account = insertVenue(deposit.from, appName);
       deposit.category = Internal;
       deposit.to = account;
@@ -111,17 +110,17 @@ export const govParser = (
           && ([Income, Internal] as string[]).includes(transfer.category)
       );
       if (!withdraw) {
-        log.warn(`${subsrc} ${event.name} couldn't find a withdraw from staking pool}`);
+        log.warn(`${appName} ${event.name} couldn't find a withdraw from staking pool}`);
         continue;
       }
-      log.info(`Parsing ${subsrc} ${event.name}`);
+      log.info(`Parsing ${appName} ${event.name}`);
       const account = insertVenue(withdraw.to, appName);
       withdraw.category = Internal;
       withdraw.from = account;
       tx.method = "Withdraw";
 
     } else {
-      log.debug(`Skipping ${subsrc} ${event.name}`);
+      log.debug(`Skipping ${appName} ${event.name}`);
     }
   }
 

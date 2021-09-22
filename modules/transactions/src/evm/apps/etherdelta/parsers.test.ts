@@ -11,9 +11,7 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.EtherDelta;
-const log = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
   it("should handle a deposit", async () => {

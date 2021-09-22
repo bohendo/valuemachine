@@ -11,9 +11,7 @@ import {
 import { apps } from "./enums";
 
 const appName = apps.Oasis;
-const logger = testLogger.child({ module: `Test${appName}` }, {
-  // level: "debug",
-});
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
 describe(appName, () => {
   it("should handle a v1 buy", async () => {

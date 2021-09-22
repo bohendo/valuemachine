@@ -26,8 +26,9 @@ import {
 import { EvmAssets } from "../../enums";
 
 import {
-  addresses,
-  coreAddresses,
+  dsrAddress,
+  migrationAddress,
+  vatAddress,
 } from "./addresses";
 import { apps, assets } from "./enums";
 
@@ -36,17 +37,6 @@ const appName = apps.Dai;
 const { ETH, WETH } = EvmAssets;
 const { DAI, PETH, SAI } = assets;
 const { Expense, Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
-
-////////////////////////////////////////
-/// Addresses
-
-const DSR = "DSR";
-const vat = "mcd-vat";
-const migration = "mcd-migration";
-
-const dsrAddress = addresses.find(e => e.name.endsWith(DSR))?.address;
-const vatAddress = addresses.find(e => e.name.endsWith(vat))?.address;
-const migrationAddress = addresses.find(e => e.name.endsWith(migration))?.address;
 
 ////////////////////////////////////////
 /// Abis
@@ -143,10 +133,6 @@ export const daiParser = (
 
   const ethish = [WETH, ETH, PETH] as Asset[];
 
-  if (coreAddresses.some(e => e.address === evmTx.to)) {
-    tx.apps.push(appName);
-  }
-
   ////////////////////////////////////////
   // SCD -> MCD Migration
   if (evmTx.to === migrationAddress) {
@@ -178,6 +164,7 @@ export const daiParser = (
     if (address === vatAddress) {
       const logNote = parseLogNote(vatAbi, txLog);
       if (!logNote.name) continue;
+      tx.apps.push(appName);
       log.debug(`Found Vat call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
         logNote.args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
       })`);
@@ -261,6 +248,7 @@ export const daiParser = (
     } else if (address === dsrAddress) {
       const logNote = parseLogNote(potAbi, txLog);
       if (!logNote.name) continue;
+      tx.apps.push(appName);
       log.debug(`Found Pot call ${txLog.topics[0].substring(0,10)}: ${logNote.name}(${
         logNote.args.map(a => a.length > 16 ? a.substring(0, 18) + ".." : a)
       })`);

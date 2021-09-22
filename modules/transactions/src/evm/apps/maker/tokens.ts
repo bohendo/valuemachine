@@ -14,7 +14,6 @@ import { parseEvent } from "../utils";
 
 import {
   addresses,
-  coreAddresses,
   factoryAddresses,
   tokenAddresses,
 } from "./addresses";
@@ -63,10 +62,6 @@ export const tokenParser = (
   const { getDecimals, getName, isSelf } = addressBook;
   // log.debug(tx, `Parsing in-progress tx`);
 
-  if (coreAddresses.some(e => e.address === evmTx.to)) {
-    tx.apps.push(appName);
-  }
-
   ////////////////////////////////////////
   // PETH/SAI/DAI
   // Process token interactions before any of the rest of the maker machinery
@@ -74,13 +69,12 @@ export const tokenParser = (
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     const index = txLog.index || 1;
-    if (coreAddresses.some(e => e.address === address)) {
-      tx.apps.push(appName);
-    }
+
     if (tokenAddresses.some(e => e.address === address)) {
       const asset = getName(address) as Asset;
       const event = parseEvent(tokenAbi, txLog, evmMeta);
       if (!event.name) continue;
+      tx.apps.push(appName);
       const wad = formatUnits(event.args.wad, getDecimals(address));
       if (!isSelf(event.args.guy)) {
         log.debug(`Skipping ${asset} ${event.name} that doesn't involve us (${event.args.guy})`);
@@ -142,6 +136,7 @@ export const tokenParser = (
       const event = parseEvent(proxyAbi, txLog, evmMeta);
       if (event?.name === "Created") {
         tx.method = "Proxy Creation";
+        tx.apps.push(appName);
       }
     }
   }
