@@ -21,7 +21,7 @@ import { getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
 import axios from "axios";
 
-const logger = getLogger("warn");
+const logger = getLogger("debug");
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {

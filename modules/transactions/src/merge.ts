@@ -173,10 +173,7 @@ export const mergeTransaction = (
 
     // Does this transfer have the same asset & similar amount as the new csv tx
     const isMergable = (transfer: Transfer): boolean => 
-      extTransfer.category === Internal &&
-      (transfer.category === Expense || transfer.category === Income) &&
-      transfer.asset === extTransfer.asset &&
-      valuesAreClose(
+      transfer.asset === extTransfer.asset && valuesAreClose(
         transfer.amount,
         extTransfer.amount,
         wiggleRoom,
@@ -194,7 +191,7 @@ export const mergeTransaction = (
     if (mergeCandidateIndex < 0) {
       transactions.push(newTx);
       transactions.sort(chrono);
-      log.debug(`Inserted new csv tx: ${newTx.method}`);
+      log.debug(`Inserted new csv tx: ${newTx.method} on ${newTx.date}`);
       return transactions;
     }
 
