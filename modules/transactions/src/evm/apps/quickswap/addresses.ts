@@ -16,6 +16,7 @@ const routerAddresses = [
 const marketAddresses = [
   { name: "Quickswap_DAI_USDC", address: "Polygon/0xf04adBF75cDFc5eD26eeA4bbbb991DB002036Bdd" },
   { name: "Quickswap_MATIC_USDC", address: "Polygon/0x6e7a5FAFcec6BB1e78bAE2A1F0B612012BF14827" },
+  { name: "Quickswap_MATIC_DAI", address: "Polygon/0xEEf611894CeaE652979C9D0DaE1dEb597790C6eE" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 export const addresses = [

@@ -74,7 +74,7 @@ mv package.json .package.json
 sed 's/^\(  \|	\)"version": ".*"/\1"version": "'"$version"'"/' < .package.json > package.json
 rm .package.json
 mv package-lock.json .package-lock.json
-sed 's/^\(  \|	\)"version": ".*"/\1"version": "'"$version"'"/' < .package-lock.json > package-lock.json
+sed '/"name": "'"$project"'",/!b;n;s/"version": ".*"/"version": "'"$version"'"/' < .package-lock.json > package-lock.json
 rm .package-lock.json
 
 pkgVersion=$(grep -m 1 '"version":' "$root/package.json" | cut -d '"' -f 4)

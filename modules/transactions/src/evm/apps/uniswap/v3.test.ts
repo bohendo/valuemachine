@@ -22,10 +22,24 @@ describe(appName, () => {
       logger,
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.match(/swap/i);
+    expect(tx.method).to.match(/trade/i);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
+  });
+
+  it("should handle swaps w refunds", async () => {
+    const tx = await parseEthTx({
+      selfAddress: "0x14b889b25e70f60d8dc0aa5f10c83680add61351",
+      hash: "0x5c6b0cb298522659a3062fdf123b79248c4134006160e8d448e6dc22b9500188",
+      logger,
+    });
+    expect(tx.apps).to.include(appName);
+    expect(tx.method).to.match(/trade/i);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.Refund);
+    expect(tx.transfers[3].category).to.equal(TransferCategories.SwapIn);
   });
 
 });

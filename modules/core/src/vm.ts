@@ -25,6 +25,8 @@ import {
   abs,
   add,
   dedup,
+  describeBalance,
+  diffBalances,
   eq,
   getEmptyValueMachine,
   getLogger,
@@ -33,14 +35,9 @@ import {
   lt,
   mul,
   sub,
-} from "@valuemachine/utils";
-
-import {
-  describeBalance,
-  diffBalances,
   sumChunks,
   sumTransfers,
-} from "./utils";
+} from "@valuemachine/utils";
 
 const {
   Internal, Income, SwapIn, Borrow, Expense, Fee, SwapOut, Repay, Refund
@@ -613,27 +610,29 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         const chunks = tmpChunks.filter(chunk =>
           chunk.asset === asset && getFirstOwner(chunk) === account
         );
-        const total = sumChunks(chunks)[asset];
-        const debt = mintChunk(mul(total, "-1"), asset, account);
-        newEvents.push({
-          date: json.date,
-          index: json.events.length + newEvents.length,
-          type: EventTypes.Debt,
-          inputs: [...chunks.map(toIndex), debt.index],
-          outputs: [],
-          account,
-        } as DebtEvent);
-        const message = `${account} disposed of assets it didn't have: ${total} ${asset}`;
-        log.error(message);
-        newEvents.push({
-          account,
-          code: errorCodes.UNDERFLOW,
-          date: json.date,
-          index: json.events.length + newEvents.length,
-          message,
-          txId: tx.uuid,
-          type: EventTypes.Error,
-        });
+        const total = sumChunks(chunks)[asset] || "0";
+        if (gt(total, "0")) {
+          const debt = mintChunk(mul(total, "-1"), asset, account);
+          newEvents.push({
+            date: json.date,
+            index: json.events.length + newEvents.length,
+            type: EventTypes.Debt,
+            inputs: [...chunks.map(toIndex), debt.index],
+            outputs: [],
+            account,
+          } as DebtEvent);
+          const message = `${account} disposed of assets it didn't have: ${total} ${asset}`;
+          log.error(message);
+          newEvents.push({
+            account,
+            code: errorCodes.UNDERFLOW,
+            date: json.date,
+            index: json.events.length + newEvents.length,
+            message,
+            txId: tx.uuid,
+            type: EventTypes.Error,
+          });
+        }
       }
     }
 

@@ -79,6 +79,7 @@ purge: clean
 
 push: push-commit
 push-commit:
+	bash ops/push-images.sh latest
 	bash ops/push-images.sh $(commit)
 push-semver:
 	bash ops/pull-images.sh $(commit)
@@ -125,6 +126,12 @@ test-all: package
 	bash ops/test-unit.sh core test
 	@sleep 1
 	bash ops/test-unit.sh package test
+
+publish: package
+	bash ops/npm-publish.sh
+
+deploy:
+	bash ops/deploy.sh
 
 ########################################
 # Common Prerequisites

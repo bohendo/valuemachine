@@ -1,59 +1,14 @@
 import {
-  Asset,
-  DecimalString,
   AssetChunk,
-  Balances,
   ChunkIndex,
   Event,
   EventTypes,
   HydratedEvent,
-  Transfer,
 } from "@valuemachine/types";
-import { add, eq, gt, round, sub } from "@valuemachine/utils";
+import { round, sumChunks } from "@valuemachine/utils";
 
 const { Expense, Income, Trade, Debt, GuardChange, Error } = EventTypes;
 const toDate = timestamp => timestamp?.includes("T") ? timestamp.split("T")[0] : timestamp;
-
-type Value = {
-  asset: Asset;
-  amount: DecimalString;
-};
-const sumValue = (values: Array<Value>): Balances => {
-  const totals = {} as Balances;
-  if (!values?.length) return totals;
-  values.forEach(value => {
-    if (value?.amount && !eq(value.amount, "0")) {
-      totals[value.asset] = add(totals[value.asset], value.amount);
-    }
-  });
-  return totals;
-};
-export const sumTransfers = (transfers: Transfer[]): Balances => sumValue(transfers as Value[]);
-export const sumChunks = (chunks: AssetChunk[]): Balances => sumValue(chunks as Value[]);
-
-export const describeBalance = (balance: Balances): string =>
-  Object.keys(balance).map(asset => `${balance[asset]} ${asset}`).join(" and ");
-
-// annihilate values that are present in both balances
-export const diffBalances = (balancesList: Balances[]): Balances[] => {
-  if (balancesList.length !== 2) return balancesList; // we can only diff 2 balances
-  const output = [{ ...balancesList[0] }, { ...balancesList[1] }];
-  for (const asset of Object.keys(output[0])) {
-    if (asset in output[0] && asset in output[1]) {
-      if (gt(output[0][asset], output[1][asset])) {
-        output[0][asset] = sub(output[0][asset], output[1][asset]);
-        delete output[1][asset];
-      } else {
-        output[1][asset] = sub(output[1][asset], output[0][asset]);
-        delete output[0][asset];
-        if (eq(output[1][asset], "0")) {
-          delete output[1][asset];
-        }
-      }
-    }
-  }
-  return output;
-};
 
 export const describeChunk = (chunk: AssetChunk): string => {
   return `${round(chunk.amount)} ${chunk.asset} held from ${
@@ -66,7 +21,7 @@ export const describeEvent = (event: Event | HydratedEvent): string => {
     typeof chunks[0] === "number"
       ? `${chunks.length} chunks`
       : Object.entries(sumChunks(chunks as AssetChunk[]))
-        .map(([asset, amount]) => `${round(amount, 4)} ${asset}`)
+        .map(([asset, amount]) => `${round(amount)} ${asset}`)
         .join(" and ");
   const date = event.date.split("T")[0];
   if (event.type === Income) {

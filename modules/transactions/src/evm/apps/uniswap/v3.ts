@@ -5,8 +5,13 @@ import {
   Logger,
   Transaction,
   TransferCategories,
+  Transfer,
 } from "@valuemachine/types";
 
+import {
+  v3MarketAddresses,
+  routerAddresses,
+} from "./addresses";
 import { apps } from "./enums";
 
 export const appName = apps.UniswapV3;
@@ -19,24 +24,39 @@ export const v3Parser = (
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,
   addressBook: AddressBook,
-  logger: Logger,
+  _logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
-  tx.transfers.forEach(transfer => {
-    const fromName = addressBook.getName(transfer.from);
-    const toName = addressBook.getName(transfer.to);
-    if (fromName.startsWith("Uni") && fromName.includes("V3")) {
-      log.debug(`Found Uniswap v3 interaction on ${evmMeta.name} w ${fromName}`);
-      transfer.category = TransferCategories.SwapIn;
-      tx.method = appName;
-      tx.apps.push(appName);
-    }
-    if (toName.startsWith("Uni") && toName.includes("V3")) {
-      log.debug(`Found Uniswap v3 interaction on ${evmMeta.name} w ${toName}`);
-      transfer.category = TransferCategories.SwapOut;
-      tx.method = appName;
-      tx.apps.push(appName);
-    }
+  // const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
+  const { isSelf } = addressBook;
+
+  const outAssets = [];
+  tx.transfers.filter((transfer: Transfer): boolean =>
+    isSelf(transfer.from)
+    && !isSelf(transfer.to)
+    && (
+      routerAddresses.some(e => transfer.to === e.address) ||
+      v3MarketAddresses.some(e => transfer.to === e.address)
+    )
+  ).forEach(swapOut => {
+    tx.apps.push(appName);
+    swapOut.category = TransferCategories.SwapOut;
+    outAssets.push(swapOut.asset);
   });
+
+  tx.transfers.filter((transfer: Transfer): boolean =>
+    isSelf(transfer.to)
+    && !isSelf(transfer.from)
+    && (
+      routerAddresses.some(e => transfer.from === e.address) ||
+      v3MarketAddresses.some(e => transfer.from === e.address)
+    )
+  ).forEach(swapIn => {
+    if (outAssets.length) tx.method = "Trade";
+    tx.apps.push(appName);
+    swapIn.category = outAssets.includes(swapIn.asset)
+      ? TransferCategories.Refund
+      : TransferCategories.SwapIn;
+  });
+
   return tx;
 };

@@ -4,7 +4,6 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import Divider from "@material-ui/core/Divider";
 import Typography from "@material-ui/core/Typography";
 import SyncIcon from "@material-ui/icons/Sync";
-import ClearIcon from "@material-ui/icons/Delete";
 import { TransactionTable } from "@valuemachine/react";
 import {
   getTransactions,
@@ -57,11 +56,6 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
 }: PropTypes) => {
   const [syncing, setSyncing] = useState("");
   const classes = useStyles();
-
-  const resetTxns = () => {
-    setTransactionsJson([]);
-    console.log(`Successfully cleared tx data from localstorage`);
-  };
 
   const syncTxns = async () => {
     if (syncing) return;
@@ -137,16 +131,6 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
         variant="outlined"
       >
         Sync Transactions
-      </Button>
-
-      <Button
-        className={classes.button}
-        disabled={!transactions?.json.length}
-        onClick={resetTxns}
-        startIcon={<ClearIcon/>}
-        variant="outlined"
-      >
-        Clear Transactions
       </Button>
 
       <Typography variant="overline" className={classes.subtitle}>
