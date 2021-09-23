@@ -81,7 +81,7 @@ export const diff = (a: string, b: string): string =>
   abs(sub(a, b));
 
 // Round to n decimal places
-export const round = (decStr: string, n: number): string => {
+export const round = (decStr: string, n?: number): string => {
   if (n <= 0) { return roundInt(decStr); }
   n = n || ( // If n is not provided, set it based on the magnitude of the input
     gt(decStr, "1") ? 2
