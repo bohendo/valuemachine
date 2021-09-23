@@ -56,7 +56,6 @@ export const govParser = (
     l => addresses.some(e => e.address === l.address)
   )) {
     const address = txLog.address;
-    tx.apps.push(appName);
 
     // Parse events
     let event;
@@ -68,6 +67,7 @@ export const govParser = (
       log.debug(`Skipping ${getName(address)} event`);
       continue;
     }
+    tx.apps.push(appName);
 
     ////////////////////////////////////////
     // UNI Airdrop

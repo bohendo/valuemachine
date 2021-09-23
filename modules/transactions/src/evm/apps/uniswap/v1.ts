@@ -41,7 +41,7 @@ export const v1Parser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
-  const { getName, isSelf } = addressBook;
+  const { isSelf } = addressBook;
 
   const getSwaps = () => {
     const swapsOut = tx.transfers.filter((transfer: Transfer): boolean =>
@@ -63,20 +63,13 @@ export const v1Parser = (
   };
 
   for (const txLog of evmTx.logs.filter(
-    l => addresses.some(e => e.address === l.address)
+    l => v1MarketAddresses.some(e => e.address === l.address)
   )) {
     const address = txLog.address;
     const index = txLog.index || 1;
 
-    // Parse events
-    let event;
-    if (v1MarketAddresses.some(e => e.address === address)) {
-      event = parseEvent(uniswapV1Abi, txLog, evmMeta);
-      tx.apps.push(appName);
-    } else {
-      log.debug(`Skipping ${getName(address)} event`);
-      continue;
-    }
+    const event = parseEvent(uniswapV1Abi, txLog, evmMeta);
+    tx.apps.push(appName);
 
     ////////////////////////////////////////
     // Core Uniswap Interactions: swap, deposit liq, withdraw liq
