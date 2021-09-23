@@ -150,7 +150,7 @@ export const v2Parser = (
     ////////////////////////////////////////
     // UNI Airdrop
     } else if (event.name === "Claimed") {
-      tx.method = "Claim";
+      tx.method = "UNI Claim";
 
     ////////////////////////////////////////
     // UNI Mining Pool Deposit
