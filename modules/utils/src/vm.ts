@@ -7,10 +7,8 @@ import {
   Transfer,
 } from "@valuemachine/types";
 
-import { add, eq, gt, round as defaultRound, sub } from "./math";
+import { add, eq, gt, round, sub } from "./math";
 import { ajv, formatErrors } from "./validate";
-
-const round = n => defaultRound(n, 6).replace(/0+$/, "0");
 
 export const getEmptyValueMachine = (): ValueMachineJson => ({
   chunks: [],

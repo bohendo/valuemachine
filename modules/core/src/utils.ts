@@ -21,7 +21,7 @@ export const describeEvent = (event: Event | HydratedEvent): string => {
     typeof chunks[0] === "number"
       ? `${chunks.length} chunks`
       : Object.entries(sumChunks(chunks as AssetChunk[]))
-        .map(([asset, amount]) => `${round(amount, 4)} ${asset}`)
+        .map(([asset, amount]) => `${round(amount)} ${asset}`)
         .join(" and ");
   const date = event.date.split("T")[0];
   if (event.type === Income) {

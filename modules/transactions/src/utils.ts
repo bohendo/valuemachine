@@ -7,11 +7,13 @@ import {
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
-import { describeBalance, diffBalances, sumTransfers } from "@valuemachine/utils";
+import { describeBalance, diffBalances, round, sumTransfers } from "@valuemachine/utils";
 
 import { Assets, Guards } from "./enums";
 
-const { Fee, Income, Expense, SwapIn, SwapOut } = TransferCategories;
+const {
+  Fee, Income, Expense, SwapIn, SwapOut, Refund, Borrow, Repay, Internal,
+} = TransferCategories;
 
 export const describeTransaction = (addressBook: AddressBook, tx: Transaction): string => {
   const fees = tx.transfers.filter(t => t.category === Fee);
@@ -19,25 +21,54 @@ export const describeTransaction = (addressBook: AddressBook, tx: Transaction): 
   if (!nonFee.length) {
     return `${tx.method || "Unknown method call"} by ${addressBook.getName(fees[0].from)}`;
 
-  } else if (nonFee.every(t => t.category === Income)) {
-    return `${addressBook.getName(nonFee[0].to)}${nonFee.length > 1 ? ", etc" : ""} received ${
-      describeBalance(sumTransfers(nonFee))
-    }`;
-
-  } else if (nonFee.every(t => t.category === Expense)) {
-    return `${addressBook.getName(nonFee[0].from)}${nonFee.length > 1 ? ", etc" : ""} spent ${
-      describeBalance(sumTransfers(nonFee))
-    }`;
-
-  } else if (nonFee.every(t => t.category === SwapIn || t.category === SwapOut)) {
+  } else if (nonFee.some(t => t.category === SwapIn) && nonFee.some(t => t.category === SwapOut)) {
     const [inputs, outputs] = diffBalances([sumTransfers(
-      nonFee.filter(t => t.category === SwapIn)
+      nonFee.filter(t => t.category === SwapIn || t.category === Refund)
     ), sumTransfers(
       nonFee.filter(t => t.category === SwapOut)
     )]);
     return `${addressBook.getName(
-      nonFee[0].category === SwapIn ? nonFee[0].to : nonFee[0].from
+      nonFee.find(t => t.category === SwapOut).from
     )} traded ${describeBalance(outputs)} for ${describeBalance(inputs)}`;
+
+  } else if (nonFee.some(t => t.category === Income)) {
+    return `${
+      addressBook.getName(nonFee.find(t => t.category === Income).to)
+    }${nonFee.length > 1 ? ", etc" : ""} received ${
+      describeBalance(sumTransfers(nonFee))
+    }`;
+
+  } else if (nonFee.some(t => t.category === Borrow)) {
+    return `${
+      addressBook.getName(nonFee.find(t => t.category === Borrow).to)
+    }${nonFee.length > 1 ? ", etc" : ""} borrowed ${
+      describeBalance(sumTransfers(nonFee))
+    }`;
+
+  } else if (nonFee.some(t => t.category === Repay)) {
+    return `${
+      addressBook.getName(nonFee.find(t => t.category === Repay).from)
+    }${nonFee.length > 1 ? ", etc" : ""} repayed ${
+      describeBalance(sumTransfers(nonFee))
+    }`;
+
+  } else if (nonFee.some(t => t.category === Expense)) {
+    return `${
+      addressBook.getName(nonFee.find(t => t.category === Expense).from)
+    }${nonFee.length > 1 ? ", etc" : ""} spent ${
+      describeBalance(sumTransfers(nonFee))
+    }`;
+
+  } else if (nonFee.some(t => t.category === Internal)) {
+    const transfer = nonFee.find(t => t.category === Internal);
+    return `${tx.method || "Transfer"}${nonFee.length > 1 ? ", etc" : ""} of ${
+      round(transfer.amount)} ${transfer.asset
+    } from ${
+      addressBook.getName(transfer.from)
+    } to ${
+      describeBalance(sumTransfers(nonFee))
+    }`;
+
   }
   return `${tx.method || "Unknown method call"} by ${addressBook.getName(
     addressBook.isSelf(tx.transfers[0].to) ? tx.transfers[0].to : tx.transfers[0].from
