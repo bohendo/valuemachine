@@ -108,7 +108,7 @@ export const parseEvent = (
 };
 
 export const categorizeTransfer = (transfer: Transfer, addressBook: AddressBook): Transfer => {
-  const { Self, Exchange, Defi } = AddressCategories;
+  const { Self, Exchange } = AddressCategories;
   const { Expense, Income, Internal, SwapIn, SwapOut, Unknown } = TransferCategories;
   const to = addressBook.getCategory(transfer.to);
   const from = addressBook.getCategory(transfer.from);
@@ -123,11 +123,12 @@ export const categorizeTransfer = (transfer: Transfer, addressBook: AddressBook)
   } else if (from === Self && to === Exchange) {
     transfer.category = SwapOut;
 
-  // Deposit/Withdrawals (should we update account names?)
+    /* Deposit/Withdrawals (should we update account names?)
   } else if (to === Self && from === Defi) {
     transfer.category = Internal;
   } else if (from === Self && to === Defi) {
     transfer.category = Internal;
+  */
 
   // Income/Expense
   } else if (to === Self) {

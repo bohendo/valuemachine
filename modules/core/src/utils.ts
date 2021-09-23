@@ -1,38 +1,15 @@
 import {
-  Asset,
-  DecimalString,
   AssetChunk,
   Balances,
   ChunkIndex,
   Event,
   EventTypes,
   HydratedEvent,
-  Transfer,
 } from "@valuemachine/types";
-import { add, eq, gt, round, sub } from "@valuemachine/utils";
+import { eq, gt, round, sub, sumChunks } from "@valuemachine/utils";
 
 const { Expense, Income, Trade, Debt, GuardChange, Error } = EventTypes;
 const toDate = timestamp => timestamp?.includes("T") ? timestamp.split("T")[0] : timestamp;
-
-type Value = {
-  asset: Asset;
-  amount: DecimalString;
-};
-const sumValue = (values: Array<Value>): Balances => {
-  const totals = {} as Balances;
-  if (!values?.length) return totals;
-  values.forEach(value => {
-    if (value?.amount && !eq(value.amount, "0")) {
-      totals[value.asset] = add(totals[value.asset], value.amount);
-    }
-  });
-  return totals;
-};
-export const sumTransfers = (transfers: Transfer[]): Balances => sumValue(transfers as Value[]);
-export const sumChunks = (chunks: AssetChunk[]): Balances => sumValue(chunks as Value[]);
-
-export const describeBalance = (balance: Balances): string =>
-  Object.keys(balance).map(asset => `${balance[asset]} ${asset}`).join(" and ");
 
 // annihilate values that are present in both balances
 export const diffBalances = (balancesList: Balances[]): Balances[] => {
