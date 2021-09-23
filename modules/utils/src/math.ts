@@ -81,14 +81,17 @@ export const diff = (a: string, b: string): string =>
   abs(sub(a, b));
 
 // Round to n decimal places
-export const round = (decStr: string, n?: number): string => {
+export const round = (decStr: string, n?: number, stripTrailingZeros?: boolean): string => {
   if (n <= 0) { return roundInt(decStr); }
-  n = n || ( // If n is not provided, set it based on the magnitude of the input
-    gt(decStr, "1") ? 2
-    : gt(decStr, "0.01") ? 4
-    : gt(decStr, "0.0001") ? 6
-    : 8
-  );
+  if (n === undefined) {
+    n = n || ( // If n is not provided, set it based on the magnitude of the input
+      gt(decStr, "1") ? 2
+      : gt(decStr, "0.01") ? 4
+      : gt(decStr, "0.0001") ? 6
+      : 8
+    );
+    stripTrailingZeros = true;
+  }
   const power = `1${"0".repeat(n)}`;
   let out = div(roundInt(mul(decStr, power)), power);
   // Pad with extra zeros if needed
@@ -96,8 +99,7 @@ export const round = (decStr: string, n?: number): string => {
   if (out.substring(out.indexOf(".")).length - 1 < n) {
     out = `${out}${"0".repeat(n - out.substring(out.indexOf(".")).length + 1)}`;
   }
-  // console.log(`Rounded ${decStr} to ${n || 0} decimals: ${out}`);
-  return out;
+  return stripTrailingZeros ? out.replace(/0+$/, "0") : out;
 };
 
 // Round so that there are at least n significant figures available

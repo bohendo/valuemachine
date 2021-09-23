@@ -160,8 +160,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             <MenuItem value={""}>-</MenuItem>
             {Object.values(addressBook?.json || [])
               .filter(account => account.category === AddressCategories.Self)
-              // TODO: the following line crashes the page when txns are cleared
-              // .filter(account => transactions?.some(hasAccount(account.address)))
               .map(account => (
                 <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
               ))
@@ -194,8 +192,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           >
             <MenuItem value={""}>-</MenuItem>
             {Object.keys(TransactionSources)
-              // TODO: the following line crashes the page when txns are cleared
-              // .filter(source => transactions?.some(hasSource(source)))
+              .filter(source => !transactions?.json || transactions.json.some(hasSource(source)))
               .map(source => (
                 <MenuItem key={source} value={source}>{source}</MenuItem>
               ))
@@ -213,8 +210,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           >
             <MenuItem value={""}>-</MenuItem>
             {Object.keys(EvmApps)
-              // TODO: the following line crashes the page when txns are cleared
-              // .filter(app => transactions?.some(hasApp(app)))
+              .filter(app => !transactions?.json || transactions.json.some(hasApp(app)))
               .map(app => (
                 <MenuItem key={app} value={app}>{app}</MenuItem>
               ))
