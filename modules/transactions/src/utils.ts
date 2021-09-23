@@ -7,7 +7,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
-import { describeBalance, sumTransfers } from "@valuemachine/utils";
+import { describeBalance, diffBalances, sumTransfers } from "@valuemachine/utils";
 
 import { Assets, Guards } from "./enums";
 
@@ -30,13 +30,14 @@ export const describeTransaction = (addressBook: AddressBook, tx: Transaction): 
     }`;
 
   } else if (nonFee.every(t => t.category === SwapIn || t.category === SwapOut)) {
+    const [inputs, outputs] = diffBalances([sumTransfers(
+      nonFee.filter(t => t.category === SwapIn)
+    ), sumTransfers(
+      nonFee.filter(t => t.category === SwapOut)
+    )]);
     return `${addressBook.getName(
       nonFee[0].category === SwapIn ? nonFee[0].to : nonFee[0].from
-    )} traded ${
-      describeBalance(sumTransfers(nonFee.filter(t => t.category === SwapOut)))
-    } for ${
-      describeBalance(sumTransfers(nonFee.filter(t => t.category === SwapIn)))
-    }`;
+    )} traded ${describeBalance(outputs)} for ${describeBalance(inputs)}`;
   }
   return `${tx.method || "Unknown method call"} by ${addressBook.getName(
     addressBook.isSelf(tx.transfers[0].to) ? tx.transfers[0].to : tx.transfers[0].from

@@ -26,6 +26,7 @@ import {
   add,
   dedup,
   describeBalance,
+  diffBalances,
   eq,
   getEmptyValueMachine,
   getLogger,
@@ -37,10 +38,6 @@ import {
   sumChunks,
   sumTransfers,
 } from "@valuemachine/utils";
-
-import {
-  diffBalances,
-} from "./utils";
 
 const {
   Internal, Income, SwapIn, Borrow, Expense, Fee, SwapOut, Repay, Refund

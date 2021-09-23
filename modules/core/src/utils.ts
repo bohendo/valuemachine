@@ -1,36 +1,14 @@
 import {
   AssetChunk,
-  Balances,
   ChunkIndex,
   Event,
   EventTypes,
   HydratedEvent,
 } from "@valuemachine/types";
-import { eq, gt, round, sub, sumChunks } from "@valuemachine/utils";
+import { round, sumChunks } from "@valuemachine/utils";
 
 const { Expense, Income, Trade, Debt, GuardChange, Error } = EventTypes;
 const toDate = timestamp => timestamp?.includes("T") ? timestamp.split("T")[0] : timestamp;
-
-// annihilate values that are present in both balances
-export const diffBalances = (balancesList: Balances[]): Balances[] => {
-  if (balancesList.length !== 2) return balancesList; // we can only diff 2 balances
-  const output = [{ ...balancesList[0] }, { ...balancesList[1] }];
-  for (const asset of Object.keys(output[0])) {
-    if (asset in output[0] && asset in output[1]) {
-      if (gt(output[0][asset], output[1][asset])) {
-        output[0][asset] = sub(output[0][asset], output[1][asset]);
-        delete output[1][asset];
-      } else {
-        output[1][asset] = sub(output[1][asset], output[0][asset]);
-        delete output[0][asset];
-        if (eq(output[1][asset], "0")) {
-          delete output[1][asset];
-        }
-      }
-    }
-  }
-  return output;
-};
 
 export const describeChunk = (chunk: AssetChunk): string => {
   return `${round(chunk.amount)} ${chunk.asset} held from ${
