@@ -126,6 +126,12 @@ test-all: package
 	@sleep 1
 	bash ops/test-unit.sh package test
 
+publish: package
+	bash ops/npm-publish.sh
+
+deploy:
+	bash ops/deploy.sh
+
 ########################################
 # Common Prerequisites
 
