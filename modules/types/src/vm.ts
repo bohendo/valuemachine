@@ -149,22 +149,14 @@ export const HydratedDebtEvent = Type.Intersect([
 ]);
 export type HydratedDebtEvent = Static<typeof HydratedDebtEvent>;
 
-export const HydratedTradeEvent = Type.Intersect([
-  TradeEvent,
+export const HydratedErrorEvent = Type.Intersect([
+  ErrorEvent,
   Type.Object({
-    inputs: AssetChunks,
-    outputs: AssetChunks,
+    chunks: AssetChunks,
+    insecurePath: AssetChunks,
   }),
 ]);
-export type HydratedTradeEvent = Static<typeof HydratedTradeEvent>;
-
-export const HydratedIncomeEvent = Type.Intersect([
-  IncomeEvent,
-  Type.Object({
-    inputs: AssetChunks,
-  }),
-]);
-export type HydratedIncomeEvent = Static<typeof HydratedIncomeEvent>;
+export type HydratedErrorEvent = Static<typeof HydratedErrorEvent>;
 
 export const HydratedExpenseEvent = Type.Intersect([
   ExpenseEvent,
@@ -183,12 +175,30 @@ export const HydratedGuardChangeEvent = Type.Intersect([
 ]);
 export type HydratedGuardChangeEvent = Static<typeof HydratedGuardChangeEvent>;
 
-export const HydratedEvent = Type.Union([
-  DebtEvent,
-  ExpenseEvent,
+export const HydratedIncomeEvent = Type.Intersect([
   IncomeEvent,
-  GuardChangeEvent,
+  Type.Object({
+    inputs: AssetChunks,
+  }),
+]);
+export type HydratedIncomeEvent = Static<typeof HydratedIncomeEvent>;
+
+export const HydratedTradeEvent = Type.Intersect([
   TradeEvent,
+  Type.Object({
+    inputs: AssetChunks,
+    outputs: AssetChunks,
+  }),
+]);
+export type HydratedTradeEvent = Static<typeof HydratedTradeEvent>;
+
+export const HydratedEvent = Type.Union([
+  HydratedDebtEvent,
+  HydratedErrorEvent,
+  HydratedExpenseEvent,
+  HydratedGuardChangeEvent,
+  HydratedIncomeEvent,
+  HydratedTradeEvent,
 ]);
 export type HydratedEvent = Static<typeof HydratedEvent>;
 

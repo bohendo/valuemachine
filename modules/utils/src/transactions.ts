@@ -10,12 +10,35 @@ import { ajv, formatErrors } from "./validate";
 
 export const getEmptyTransactions = (): TransactionsJson => [];
 
+const validateTransaction = ajv.compile(Transaction);
+export const getTransactionError = (tx: Transaction): string | null => {
+  if (!validateTransaction(tx)) {
+    return validateTransaction.errors.length
+      ? formatErrors(validateTransaction.errors)
+      : `Invalid Transaction`;
+  } else {
+    return null;
+  }
+};
+
 const validateTransactions = ajv.compile(TransactionsJson);
-export const getTransactionsError = (transactionsJson: TransactionsJson): string | null =>
-  validateTransactions(transactionsJson)
-    ? null
-    : validateTransactions.errors.length ? formatErrors(validateTransactions.errors)
-    : `Invalid Transactions`;
+export const getTransactionsError = (transactionsJson: TransactionsJson): string | null => {
+  if (!validateTransactions(transactionsJson)) {
+    return validateTransactions.errors.length
+      ? formatErrors(validateTransactions.errors)
+      : `Invalid Transactions`;
+  }
+  const indexErrors = transactionsJson.map((tx, index) =>
+    tx.index !== index ? `Invalid tx index, expected ${index} but got ${tx.index}` : null
+  ).filter(e => !!e);
+  if (indexErrors.length) {
+    return indexErrors.length < 3
+      ? indexErrors.join(", ")
+      : `${indexErrors[0]} (plus ${indexErrors.length - 1} more index errors)`;
+  } else {
+    return null;
+  }
+};
 
 export const dedup = <T>(array: T[]): T[] =>
   Array.from(new Set([...array]));

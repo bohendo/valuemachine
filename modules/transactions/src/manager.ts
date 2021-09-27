@@ -37,9 +37,6 @@ export const getTransactions = (params?: TransactionsParams): Transactions => {
   // Internal Helper Methods
 
   const sync = () => {
-    // Reset Indicies
-    let i = 1;
-    json.forEach(transaction => transaction.index = i++);
     // Validate
     const error = getTransactionsError(json);
     if (error) {

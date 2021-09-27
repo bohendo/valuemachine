@@ -12,9 +12,9 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import {
   AddressBook,
-  Event,
   EventTypes,
   GuardChangeEvent,
+  HydratedEvent,
 } from "@valuemachine/types";
 import { describeChunk, describeEvent } from "@valuemachine/core";
 import React, { useEffect, useState } from "react";
@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 type EventRowProps = {
   addressBook: AddressBook;
-  event: Event;
+  event: HydratedEvent;
 };
 export const EventRow: React.FC<EventRowProps> = ({
   addressBook,
@@ -48,6 +48,10 @@ export const EventRow: React.FC<EventRowProps> = ({
   const chunksToDisplay = (chunks, prefix?: string) => {
     const output = {};
     for (const chunk of chunks) {
+      if (!chunk?.index) {
+        console.warn(chunk, `Invalid chunk`);
+        continue;
+      }
       output[`${prefix || ""}Chunk #${chunk.index}`] = describeChunk(chunk);
     }
     return output;
@@ -104,7 +108,7 @@ export const EventRow: React.FC<EventRowProps> = ({
               </Typography>
               <SimpleTable data={
 
-                (event.type === EventTypes.Expense) ? {
+                event.type === EventTypes.Expense ? {
                   Account: event.account,
                   ...chunksToDisplay(event.outputs),
 

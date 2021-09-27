@@ -74,7 +74,16 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   // Simple Utils
 
   const toIndex = (chunk: AssetChunk): ChunkIndex => chunk.index;
-  const fromIndex = (chunkIndex: ChunkIndex): AssetChunk => json.chunks[chunkIndex];
+  const fromIndex = (chunkIndex: ChunkIndex): AssetChunk | undefined => {
+    if (json.chunks[chunkIndex]) {
+      return json.chunks[chunkIndex];
+    } else {
+      log.warn(`No valid chunk exists at index ${chunkIndex}: ${
+        JSON.stringify(json.chunks[chunkIndex], null, 2)
+      }`);
+      return undefined;
+    }
+  };
 
   const isHeld = (account: Account, asset: Asset) => (chunk: AssetChunk): boolean =>
     chunk.account === account && chunk.asset === asset;
@@ -105,8 +114,8 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const getChunk = (index: number): HydratedAssetChunk =>
     JSON.parse(JSON.stringify({
       ...json.chunks[index],
-      inputs: json.chunks[index]?.inputs?.map(fromIndex) || [],
-      outputs: json.chunks[index]?.outputs?.map(fromIndex) || undefined,
+      inputs: json.chunks[index]?.inputs?.map(fromIndex).filter(c => !!c) || [],
+      outputs: json.chunks[index]?.outputs?.map(fromIndex).filter(c => !!c) || undefined,
     }));
 
   const getEvent = (index: number): HydratedEvent => {
@@ -114,9 +123,9 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     if (!target) throw new Error(`No event exists at index ${index}`);
     return JSON.parse(JSON.stringify({
       ...target,
-      chunks: target?.chunks?.map(fromIndex) || undefined,
-      inputs: target?.inputs?.map(fromIndex) || undefined,
-      outputs: target?.outputs?.map(fromIndex) || undefined,
+      chunks: target?.chunks?.map(fromIndex).filter(c => !!c) || undefined,
+      inputs: target?.inputs?.map(fromIndex).filter(c => !!c) || undefined,
+      outputs: target?.outputs?.map(fromIndex).filter(c => !!c) || undefined,
     }));
   };
 
@@ -603,7 +612,10 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
     // Interpret any leftover tmp chunks as loans
     // coalesce loans of the same asset type?!
-    tmpChunks.forEach(chunk => json.chunks.push(chunk)); // add leftovers to the master list
+    tmpChunks.forEach(chunk => {
+      log.warn(chunk, `Moving chunk ${chunk.index} from tmp to master list`);
+      json.chunks.push(chunk);
+    }); // add leftovers to the master list
     json.chunks.sort((c1, c2) => c1.index - c2.index);
     for (const asset of dedup(tmpChunks.map(chunk => chunk.asset))) {
       for (const account of dedup(tmpChunks.map(getFirstOwner))) {

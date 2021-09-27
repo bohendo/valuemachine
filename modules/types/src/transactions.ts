@@ -52,7 +52,7 @@ export const Transaction = Type.Object({
   apps: Type.Array(Type.String()),
   date: TimestampString,
   uuid: Type.String(),
-  index: Type.Optional(Type.Number()),
+  index: Type.Optional(Type.Number()), // required after merging txns together
   method: Type.Optional(Type.String()),
   sources: Type.Array(TransactionSource),
   transfers: Type.Array(Transfer),

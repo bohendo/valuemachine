@@ -17,11 +17,33 @@ export const getEmptyValueMachine = (): ValueMachineJson => ({
 });
 
 const validateValueMachine = ajv.compile(ValueMachineJson);
-export const getValueMachineError = (vmJson: ValueMachineJson): string | null =>
-  validateValueMachine(vmJson)
-    ? null
-    : validateValueMachine.errors.length ? formatErrors(validateValueMachine.errors)
-    : `Invalid ValueMachine`;
+export const getValueMachineError = (vmJson: ValueMachineJson): string | null => {
+  if (!validateValueMachine(vmJson)) {
+    return validateValueMachine.errors.length
+      ? formatErrors(validateValueMachine.errors)
+      : `Invalid ValueMachine`;
+  }
+  // Enforce that chunk & event index properties match their index in the array
+  const chunkIndexErrors = vmJson.chunks.map((chunk, index) =>
+    chunk.index !== index ? `Invalid chunk index, expected ${index} but got ${chunk.index}` : null
+  ).filter(e => !!e);
+  if (chunkIndexErrors.length) {
+    return chunkIndexErrors.length < 3
+      ? chunkIndexErrors.join(", ")
+      : `${chunkIndexErrors[0]} (plus ${chunkIndexErrors.length - 1} more index errors)`;
+  }
+  const eventIndexErrors = vmJson.events.map((event, index) =>
+    event.index !== index ? `Invalid event index, expected ${index} but got ${event.index}` : null
+  ).filter(e => !!e);
+  if (eventIndexErrors.length) {
+    return eventIndexErrors.length < 3
+      ? eventIndexErrors.join(", ")
+      : `${eventIndexErrors[0]} (plus ${eventIndexErrors.length - 1} more index errors)`;
+
+  } else {
+    return null;
+  }
+};
 
 type Value = {
   asset: Asset;
