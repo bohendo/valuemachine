@@ -27,12 +27,21 @@ export const csvFiles = [{
   data: coinbaseData,
 }];
 
-const getAddress = (val: string): string => `Ethereum/0x${val.repeat(40).substring(0, 40)}`;
-const one = getAddress("1");
-const two = getAddress("2");
-const three = getAddress("3");
+export const bytes32 = `0x${"12345".repeat(64).substring(0, 64)}`;
+export const uuid = `Ethereum/${bytes32}`;
+
+const getAddress = (val: string): string => `0x${val.repeat(40).substring(0, 40)}`;
+export const address = getAddress("1");
+
+const getAccount = (val: string): string => `Ethereum/${getAddress(val)}`;
+export const account = getAccount("1");
+
+const one = account;
+const two = getAccount("2");
+const three = getAccount("3");
 const coinbase = `${USA}/${TransactionSources.Coinbase}/account`;
 const exchange = `${USA}/${TransactionSources.Coinbase}`;
+
 
 export const guard = USA;
 export const unit = USD;
@@ -50,18 +59,18 @@ export const addressBook = getAddressBook({
   json: {
     [one]: {
       address: one,
-      name: "self-1",
+      name: "one",
       category: AddressCategories.Self,
     },
     [two]: {
       address: two,
-      name: "self-2",
+      name: "two",
       category: AddressCategories.Self,
       guard,
     },
     [three]: {
       address: three,
-      name: "other-3",
+      name: "three",
       category: AddressCategories.Private,
     },
   }

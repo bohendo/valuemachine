@@ -123,7 +123,7 @@ export const EventTable: React.FC<EventTableProps> = ({
               .sort((a1, a2) => isAddress(a1) && !isAddress(a2) ? 1 : -1)
               .map((account, i) => (
                 <MenuItem key={i} value={account}>
-                  {addressBook?.getName(account) || account}
+                  {addressBook?.getName(account, true)}
                 </MenuItem>
               ))
             }

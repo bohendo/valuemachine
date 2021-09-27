@@ -3,17 +3,43 @@ import { ComponentStory, ComponentMeta } from "@storybook/react";
 
 import { HexString } from "../HexString";
 
+import { addressBook, address, account, bytes32, uuid } from "./constants";
+
 export default { title: "HexString", component: HexString } as ComponentMeta<typeof HexString>;
 const Template: ComponentStory<typeof HexString> = (args) => <HexString {...args} />;
-
-export const Address = Template.bind({});
-Address.args = {
-  value: "Ethereum/0x1057Bea69c9ADD11c6e3dE296866AFf98366CFE3",
-  display: "bohendo.eth",
-};
 
 export const Bytes32 = Template.bind({});
 Bytes32.args = {
   display: "",
-  value: "0x1fe21fc87ac66fce26d0c45ab3d88ed450133b55ab664ec2771142e700aabca2",
+  value: bytes32,
+};
+
+export const Address = Template.bind({});
+Address.args = {
+  display: "",
+  value: address,
+};
+
+export const NamedAddress = Template.bind({});
+NamedAddress.args = {
+  display: addressBook.getName(address, true),
+  value: address,
+};
+
+export const Account = Template.bind({});
+Account.args = {
+  display: "",
+  value: account,
+};
+
+export const NamedAccount = Template.bind({});
+NamedAccount.args = {
+  display: addressBook.getName(account, true),
+  value: account,
+};
+
+export const TxUuid = Template.bind({});
+TxUuid.args = {
+  display: "",
+  value: uuid,
 };

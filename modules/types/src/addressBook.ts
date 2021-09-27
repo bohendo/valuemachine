@@ -67,7 +67,7 @@ export interface AddressBook {
   selfAddresses: Account[];
   getCategory(address: Account): AddressCategory;
   getDecimals(address: Account): number;
-  getName(address: Account): string;
+  getName(address: Account, prefix?: boolean): string;
   isSelf(address: Account): boolean;
   isToken(address: Account): boolean;
   json: AddressBookJson;

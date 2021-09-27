@@ -46,13 +46,12 @@ export const TransactionRow = ({
           (new Date(tx.date)).toISOString().replace("T", " ").replace(".000Z", "")
         } </TableCell>
         <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
-        <TableCell> {tx.uuid ? <HexString value={tx.uuid} /> : "N/A"} </TableCell>
+        <TableCell> {tx.uuid ? <HexString value={tx.uuid}/> : "N/A"} </TableCell>
         <TableCell> {tx.apps.join(", ")} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
-        <TableCell
-          onClick={() => { setOpen(!open); open || console.log(tx); }}
-          style={{ minWidth: "140px" }}
-        >
+        <TableCell onClick={() => {
+          setOpen(!open); open || console.log(tx);
+        }} style={{ minWidth: "140px" }} >
           {`${tx.transfers.length} transfer${tx.transfers.length === 1 ? "" : "s"}`}
           <IconButton aria-label="expand row" size="small" >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -85,13 +84,13 @@ export const TransactionRow = ({
                       <TableCell> {round(transfer.amount)} </TableCell>
                       <TableCell>
                         <HexString
-                          display={addressBook?.getName(transfer.from)}
+                          display={addressBook?.getName(transfer.from, true)}
                           value={transfer.from}
                         />
                       </TableCell>
                       <TableCell>
                         <HexString
-                          display={addressBook?.getName(transfer.to)}
+                          display={addressBook?.getName(transfer.to, true)}
                           value={transfer.to}
                         />
                       </TableCell>

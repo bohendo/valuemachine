@@ -21,6 +21,15 @@ export const HexString = ({
   const [copied, setCopied] = useState(false);
   const classes = useStyles();
 
+  if (!display) {
+    const parts = value.split("/0x");
+    const prefix = parts.length > 1 ? `${parts[0]}/` : "";
+    const rawHex = parts.length > 1 ? parts[1] : value.replace(/^0x/, "");
+    display = `${prefix}0x${rawHex.substring(0, 4)}..${
+      rawHex.length > 40 ? "." : ""
+    }${rawHex.substring(rawHex.length - 4)}`;
+  }
+
   return (
     <CopyToClipboard
       onCopy={() => {
@@ -31,7 +40,7 @@ export const HexString = ({
     >
       <Tooltip arrow title={copied ? "Copied to clipboard" : value}>
         <Typography noWrap className={classes.label}>
-          {display || `${value.substring(0, 6)}..${value.substring(value.length - 4)}`}
+          {display}
         </Typography>
       </Tooltip>
     </CopyToClipboard>

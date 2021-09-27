@@ -120,7 +120,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
               .sort((a1, a2) => isAddress(a1) && !isAddress(a2) ? 1 : -1)
               .map((account, i) => (
                 <MenuItem key={i} value={account}>
-                  {addressBook?.getName(account) || account}
+                  {addressBook?.getName(account, true)}
                 </MenuItem>
               ))
             }
@@ -138,7 +138,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
             <MenuItem value={""}>-</MenuItem>
             {assets.sort().map((asset, i) => (
               <MenuItem key={i} value={asset}>
-                {addressBook?.getName(asset) || asset}
+                {asset}
               </MenuItem>
             ))}
           </Select>

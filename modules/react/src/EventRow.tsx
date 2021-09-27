@@ -73,7 +73,7 @@ export const EventRow: React.FC<EventRowProps> = ({
                 <TableCell className={classes.subtable}><strong> {key} </strong></TableCell>
                 <TableCell> {
                   isHexString(value)
-                    ? <HexString value={value} display={addressBook?.getName(value)}/>
+                    ? <HexString value={value} display={addressBook?.getName(value, true)}/>
                     : <Typography> {
                       typeof value === "string" ? value : JSON.stringify(value)
                     } </Typography>

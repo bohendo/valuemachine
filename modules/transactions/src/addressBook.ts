@@ -79,24 +79,22 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const isToken = isCategory(AddressCategories.ERC20);
 
   // If venue is present, return venue/name else return name
-  const getName = (address: Account): string => {
-    if (!address) return "";
-    const parts = address.split("/");
-    const prefix = parts.length === 3 ? `${parts[1]}/` : "";
-    const name = getEntry(address)?.name;
-    if (name) return `${prefix}${name}`;
-    const suffix = parts.pop();
-    if (isEthAddress(suffix)) {
-      const ethAddress = fmtAddress(suffix);
-      if (parts.length > 0) {
-        return `${prefix}${parts.join("/")}/${
-          ethAddress.substring(0, 6)
-        }..${ethAddress.substring(ethAddress.length - 4)}`;
-      } else {
-        return `${prefix}${ethAddress.substring(0, 6)}..${ethAddress.substring(ethAddress.length - 4)}`;
-      }
+  const getName = (account: Account, prefix?: boolean): string => {
+    if (!account) return "";
+    const parts = account.split("/");
+    let address = parts.pop();
+    let name = getEntry(account)?.name || getEntry(address)?.name;
+    if (isEthAddress(address)) {
+      address = fmtAddress(address);
+      name = name || `${address.substring(0, 6)}..${address.substring(address.length - 4)}`;
+    } else {
+      name = name || address;
     }
-    return `${prefix}${suffix}`;
+    return !prefix ? name : `${
+      parts.length > 0 ? `${parts[0]}/` : ""
+    }${
+      parts.length > 1 ? `${parts[1]}/` : ""
+    }${name}`;
   };
 
   // Only really useful for ERC20 addresses

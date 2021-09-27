@@ -91,7 +91,7 @@ export const ChunkRow: React.FC<ChunkRowProps> = ({
                     return (
                       <TableRow key={i}>
                         <TableCell> {
-                          <HexString value={account} display={addressBook?.getName(account)}/>
+                          <HexString value={account} display={addressBook?.getName(account, true)}/>
                         }</TableCell>
                         <TableCell> {fmtDate(date)} </TableCell>
                         <TableCell> {fmtDate(nextDate)} </TableCell>
