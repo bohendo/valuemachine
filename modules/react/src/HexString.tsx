@@ -1,10 +1,18 @@
 import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
 import { makeStyles } from "@material-ui/core/styles";
+import ExploreIcon from "@material-ui/icons/Explore";
+import { EvmNames } from "@valuemachine/transactions";
 import React, { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
+const { Ethereum, Polygon } = EvmNames;
+
 const useStyles = makeStyles((theme) => ({
+  icon: {
+    marginTop: theme.spacing(-0.5),
+  },
   label: {
     // maxWidth: "12em",
     margin: theme.spacing(0),
@@ -30,19 +38,41 @@ export const HexString = ({
     }${rawHex.substring(rawHex.length - 4)}`;
   }
 
+  const network = value.split("/")[0];
+  const explorer = network === Ethereum ? "https://etherscan.io"
+    : network === Polygon ? "https://polygonscan.com"
+    : "";
+  const hex = value.split("/").pop();
+  const link = (explorer && hex?.length === 42) ? `${explorer}/address/${hex}`
+    : (explorer && hex?.length === 66) ? `${explorer}/tx/${hex}`
+    : "";
+
   return (
-    <CopyToClipboard
-      onCopy={() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
-      text={value}
-    >
-      <Tooltip arrow title={copied ? "Copied to clipboard" : value}>
-        <Typography noWrap className={classes.label}>
-          {display}
-        </Typography>
-      </Tooltip>
-    </CopyToClipboard>
+    <React.Fragment>
+      <CopyToClipboard
+        onCopy={() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        }}
+        text={value}
+      >
+        <Tooltip arrow title={copied ? "Copied to clipboard" : value}>
+          <Typography noWrap className={classes.label}>
+            {display}
+            {link ?
+              <IconButton
+                className={classes.icon}
+                color="secondary"
+                href={link}
+                size="small"
+              >
+                <ExploreIcon/>
+              </IconButton>
+              : null
+            }
+          </Typography>
+        </Tooltip>
+      </CopyToClipboard>
+    </React.Fragment>
   );
 };
