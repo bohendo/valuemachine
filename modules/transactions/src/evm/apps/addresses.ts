@@ -99,13 +99,14 @@ const donationAddresses = [
 ].map(setAddressCategory(AddressCategories.Donation));
 
 const exchangeAddresses = [
-  { name: "idex", address: "Ethereum/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208" },
-  { name: "kyber-old", address: "Ethereum/0x9ae49c0d7f8f9ef4b864e004fe86ac8294e20950" },
-  { name: "kyber-proxy", address: "Ethereum/0x818e6fecd516ecc3849daf6845e3ec868087b755" },
-  { name: "opensea", address: "Ethereum/0x7be8076f4ea4a4ad08075c2508e481d6c946d12b" },
-  { name: "0x-v1", address: "Ethereum/0x12459c951127e0c374ff9105dda097662a027093" },
-  { name: "0x-v2", address: "Ethereum/0x4f833a24e1f95d70f028921e27040ca56e09ab0b" },
-  { name: "airswap", address: "Ethereum/0x8fd3121013a07c57f0d69646e86e7a4880b467b7" },
+  { name: "0xV1", address: "Ethereum/0x12459c951127e0c374ff9105dda097662a027093" },
+  { name: "0xV2", address: "Ethereum/0x4f833a24e1f95d70f028921e27040ca56e09ab0b" },
+  { name: "Airswap", address: "Ethereum/0x8fd3121013a07c57f0d69646e86e7a4880b467b7" },
+  { name: "BalancerVault", address: "Ethereum/0xBA12222222228d8Ba445958a75a0704d566BF2C8" },
+  { name: "Idex", address: "Ethereum/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208" },
+  { name: "KyberOld", address: "Ethereum/0x9ae49c0d7f8f9ef4b864e004fe86ac8294e20950" },
+  { name: "KyberProxy", address: "Ethereum/0x818e6fecd516ecc3849daf6845e3ec868087b755" },
+  { name: "OpenSea", address: "Ethereum/0x7be8076f4ea4a4ad08075c2508e481d6c946d12b" },
 ].map(setAddressCategory(AddressCategories.Exchange));
 
 export const addresses = [
