@@ -30,7 +30,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   navButton: {
     marginLeft: theme.spacing(2),
   },
-  select: {
+  units: {
+    minWidth: "75px",
+    marginLeft: theme.spacing(2),
+    merginRight: theme.spacing(1),
     "& > *": {
       "& > svg": {
         color: "inherit", // carrot icon
@@ -45,7 +48,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     flexGrow: 1,
   },
   toggle: {
-    paddingLeft: theme.spacing(4),
+    minWidth: "50px",
+    marginLeft: theme.spacing(1),
+  },
+  toolbar: {
+    overflow: "scroll",
   },
 }));
 
@@ -78,7 +85,7 @@ export const NavBar: React.FC<PropTypes> = ({
 
   return (
     <AppBar position="absolute">
-      <Toolbar>
+      <Toolbar className={classes.toolbar}>
         <IconButton
           color="inherit"
           component={Link}
@@ -150,7 +157,7 @@ export const NavBar: React.FC<PropTypes> = ({
           Dashboard
         </Typography>
 
-        <FormControl focused={false} className={classes.select}>
+        <FormControl focused={false} className={classes.units}>
           <InputLabel id="select-unit-label">Units</InputLabel>
           <Select
             labelId="select-unit-label"

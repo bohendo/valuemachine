@@ -27,7 +27,12 @@ const useStyles = makeStyles((theme) => ({
       borderBottom: "unset",
       margin: theme.spacing(0),
     },
+    overflow: "scroll",
   },
+  transferTable: {
+    maxWidth: "100%",
+    overflow: "scroll",
+  }
 }));
 
 export const TransactionRow = ({
@@ -61,7 +66,7 @@ export const TransactionRow = ({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box pb={2} px={4}>
+            <Box pb={2} px={4} className={classes.transferTable}>
               <Typography variant="h6" gutterBottom component="div">
                 Transfers
               </Typography>
