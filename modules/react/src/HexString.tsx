@@ -29,23 +29,24 @@ export const HexString = ({
   const [copied, setCopied] = useState(false);
   const classes = useStyles();
 
-  if (!display) {
-    const parts = value.split("/0x");
-    const prefix = parts.length > 1 ? `${parts[0]}/` : "";
-    const rawHex = parts.length > 1 ? parts[1] : value.replace(/^0x/, "");
-    display = `${prefix}0x${rawHex.substring(0, 4)}..${
-      rawHex.length > 40 ? "." : ""
-    }${rawHex.substring(rawHex.length - 4)}`;
-  }
+  const parts = value.split("/");
+  const hex = parts.pop() || "";
+  const prefix = parts.join("/");
 
-  const network = value.split("/")[0];
-  const explorer = network === Ethereum ? "https://etherscan.io"
-    : network === Polygon ? "https://polygonscan.com"
+  const explorer = !prefix ? ""
+    : prefix.startsWith(Ethereum) ? "https://etherscan.io"
+    : prefix.startsWith(Polygon) ? "https://polygonscan.com"
     : "";
-  const hex = value.split("/").pop();
-  const link = (explorer && hex?.length === 42) ? `${explorer}/address/${hex}`
-    : (explorer && hex?.length === 66) ? `${explorer}/tx/${hex}`
+
+  const link = !explorer ? ""
+    : hex?.length === 42 ? `${explorer}/address/${hex}`
+    : hex?.length === 66 ? `${explorer}/tx/${hex}`
     : "";
+
+  display = display || (hex.length < 10
+    ? `${prefix}/${hex}`
+    : `${prefix}/${hex.substring(0, 6)}..${hex.substring(hex.length - 4)}`
+  );
 
   return (
     <React.Fragment>
@@ -56,7 +57,11 @@ export const HexString = ({
         }}
         text={value}
       >
-        <Tooltip arrow title={copied ? "Copied to clipboard" : value}>
+        <Tooltip
+          arrow
+          placement="bottom-start"
+          title={copied ? "Copied to clipboard" : value}
+        >
           <Typography noWrap className={classes.label}>
             {display}
             {link ?
