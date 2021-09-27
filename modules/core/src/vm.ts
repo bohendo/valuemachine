@@ -177,6 +177,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const splitChunk = (
     oldChunk: AssetChunk,
     amtNeeded: DecimalString,
+    tmp?: boolean,
   ): AssetChunk[] => {
     const { asset, amount: total } = oldChunk;
     const leftover = sub(total, amtNeeded);
@@ -185,9 +186,9 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     const newChunk = JSON.parse(JSON.stringify({
       ...oldChunk,
       amount: amtNeeded,
-      index: json.chunks.length,
+      index: json.chunks.length + tmpChunks.length,
     }));
-    json.chunks.push(newChunk);
+    tmp ? tmpChunks.push(newChunk) : json.chunks.push(newChunk);
     oldChunk.amount = leftover;
     if ("index" in oldChunk) {
       // Add the new chunk's index alongside the old one anywhere it was referenced
@@ -196,7 +197,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         if (event.outputs?.includes(oldChunk.index)) { event.outputs.push(newChunk.index); }
         if (event.chunks?.includes(oldChunk.index)) { event.chunks.push(newChunk.index); }
       });
-      json.chunks.forEach(chunk => {
+      [...json.chunks, ...tmpChunks].forEach(chunk => {
         if (chunk.inputs?.includes(oldChunk.index)) { chunk.inputs.push(newChunk.index); }
         if (chunk.outputs?.includes(oldChunk.index)) { chunk.outputs.push(newChunk.index); }
       });
@@ -222,7 +223,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       }
       return newChunk;
     } else {
-      log.warn(`Underflow of ${amount} ${asset} is being treated as a loan for ${account}`);
+      log.warn(`Underflow of ${amount} ${asset} is being treated as a flashloan by ${account}`);
       const loan = mintChunk(amount, asset, account, true);
       return loan;
     }
@@ -272,19 +273,17 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     const received = [];
     // If account has any tmp chunks, use those first (& discard any associated debt)
     if (tmpAvailable.length) {
-      // Remove all available chunks from the list of pending tmp chunks
-      tmpChunks = tmpChunks.filter(chunk => !wasHeld(account, asset)(chunk));
-      log.debug(`Retrieved ${tmpAvailable.length} chunks for ${account} out of the tmp set (${tmpChunks.length} remaining)`);
+      log.debug(`Found ${tmpAvailable.length} chunks for ${account} out of the tmp set (${tmpChunks.length} remaining)`);
       tmpAvailable.forEach(chunk => {
         if (eq(togo, "0")) return;
-        // positive chunk, receive some or all of it
         if (gt(chunk.amount, togo)) {
           // This chunk is too big, split it up & only receive part of it
-          const [toKeep, remainder] = splitChunk(chunk, togo);
-          received.push(toKeep);
-          tmpChunks.push(remainder);
-          togo = sub(togo, toKeep.amount);
-          log.debug(`Received ${toKeep.amount} from a tmp chunk of ${chunk.amount} (${togo} to go)`);
+          const [toReceive, leftover] = splitChunk(chunk, togo, true);
+          received.push(toReceive);
+          togo = sub(togo, toReceive.amount);
+          log.debug(`Received ${toReceive.amount} ${
+            toReceive.asset
+          } from a tmp chunk leaving ${leftover.amount} behind (${togo} to go)`);
         } else {
           // This chunk is too small, receive all of it & move on
           received.push(chunk);
@@ -293,10 +292,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         }
       });
     }
-    // add any chunks received from tmp chunks to the master list of chunks
+    // move received chunks from tmp to the master list
     received.forEach(chunk => {
       log.debug(`Moving tmp chunk of ${chunk.amount} ${chunk.asset} to the master list of chunks`);
       json.chunks.push(chunk);
+      tmpChunks.splice(tmpChunks.findIndex(tmpChunk => tmpChunk.index === chunk.index), 1);
     });
     json.chunks.sort((c1, c2) => c1.index - c2.index);
     if (gt(togo, "0")) {

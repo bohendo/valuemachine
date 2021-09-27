@@ -24,6 +24,16 @@ export const getValueMachineError = (vmJson: ValueMachineJson): string | null =>
       : `Invalid ValueMachine`;
   }
   // Enforce that chunk & event index properties match their index in the array
+
+  const eventIndexErrors = vmJson.events.map((event, index) =>
+    event.index !== index ? `Invalid event index, expected ${index} but got ${event.index}` : null
+  ).filter(e => !!e);
+  if (eventIndexErrors.length) {
+    return eventIndexErrors.length < 3
+      ? eventIndexErrors.join(", ")
+      : `${eventIndexErrors[0]} (plus ${eventIndexErrors.length - 1} more index errors)`;
+  }
+
   const chunkIndexErrors = vmJson.chunks.map((chunk, index) =>
     chunk.index !== index ? `Invalid chunk index, expected ${index} but got ${chunk.index}` : null
   ).filter(e => !!e);
@@ -32,17 +42,8 @@ export const getValueMachineError = (vmJson: ValueMachineJson): string | null =>
       ? chunkIndexErrors.join(", ")
       : `${chunkIndexErrors[0]} (plus ${chunkIndexErrors.length - 1} more index errors)`;
   }
-  const eventIndexErrors = vmJson.events.map((event, index) =>
-    event.index !== index ? `Invalid event index, expected ${index} but got ${event.index}` : null
-  ).filter(e => !!e);
-  if (eventIndexErrors.length) {
-    return eventIndexErrors.length < 3
-      ? eventIndexErrors.join(", ")
-      : `${eventIndexErrors[0]} (plus ${eventIndexErrors.length - 1} more index errors)`;
 
-  } else {
-    return null;
-  }
+  return null;
 };
 
 type Value = {

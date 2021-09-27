@@ -97,23 +97,27 @@ describe("VM", () => {
   it("should process out of order eth transfers gracefully", async () => {
     [getTestTx([ // Income
       { asset: ETH, category: Income, from: notMe, amount: "1.0", to: ethAccount },
-    ]), getTestTx([ // spend too much then get sufficient income w/in the same tx
+    ]), getTestTx([ // spend too much then get sufficient income from one income transfer
       { asset: ETH, category: Fee, from: ethAccount, amount: "0.1", to: Ethereum },
       { asset: ETH, category: Expense, from: ethAccount, amount: "1.0", to: notMe },
-      { asset: ETH, category: Expense, from: otherAccount, amount: "1.0", to: notMe },
       { asset: ETH, category: Income, from: notMe, amount: "1.0", to: ethAccount },
-      { asset: ETH, category: Income, from: notMe, amount: "2.0", to: otherAccount },
+    ]), getTestTx([ // spend too much then get sufficient income from two income transfers
+      { asset: ETH, category: Expense, from: otherAccount, amount: "1.0", to: notMe },
+      { asset: ETH, category: Income, from: notMe, amount: "0.75", to: otherAccount },
+      { asset: ETH, category: Income, from: notMe, amount: "0.75", to: otherAccount },
     ])].forEach(vm.execute);
+    // log.info(vm.json.chunks, `Final chunks:`);
     expect(getValueMachineError(vm.json)).to.be.null;
-    expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "1.9" });
     expect(vm.getNetWorth(ethAccount)).to.deep.equal({ [ETH]: "0.9" });
-    expect(vm.getNetWorth(otherAccount)).to.deep.equal({ [ETH]: "1.0" });
-    expect(vm.json.events.length).to.equal(5);
+    expect(vm.getNetWorth(otherAccount)).to.deep.equal({ [ETH]: "0.5" });
+    expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "1.4" });
+    expect(vm.json.events.length).to.equal(6);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
     expect(vm.json.events[1]?.type).to.equal(EventTypes.Expense);
-    expect(vm.json.events[2]?.type).to.equal(EventTypes.Expense);
-    expect(vm.json.events[3]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[2]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[3]?.type).to.equal(EventTypes.Expense);
     expect(vm.json.events[4]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[5]?.type).to.equal(EventTypes.Income);
   });
 
   it("should emit an error event during unexpected underflows", async () => {
@@ -123,7 +127,6 @@ describe("VM", () => {
       { asset: ETH, category: Fee, from: ethAccount, amount: "0.1", to: Ethereum },
       { asset: ETH, category: Expense, from: ethAccount, amount: "1.0", to: notMe },
     ])].forEach(vm.execute);
-    // log.info(vm.json.chunks, `Final chunks:`);
     expect(getValueMachineError(vm.json)).to.be.null;
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "-0.1" });
     expect(vm.json.events.length).to.equal(4);
