@@ -206,13 +206,17 @@ export const mergeTransaction = (
       date: newTx.date,
       // merge sources
       sources: dedup([...evmTx.sources, ...newTx.sources]),
+      transfers: [
+        ...evmTx.transfers.filter(t => !isMergable(t)), // Simply insert non-mergable transfers
+        { // insert the mergable transfer w values properly merged
+          ...evmTransfer,
+          category: TransferCategories.Internal,
+          from: extTransfer.from.endsWith("unknown") ? evmTransfer.from : extTransfer.from,
+          to: extTransfer.to.endsWith("unknown") ? evmTransfer.to : extTransfer.to,
+        }
+      ].sort((t1, t2) => t1.index - t2.index), // make sure they're still sorted by index
     };
-    evmTransfer.category = extTransfer.category;
-    if (evmTransfer.category === Internal) {
-      evmTransfer.to = extTransfer.to;
-    } else {
-      evmTransfer.from = extTransfer.from;
-    }
+
     log.info(
       transactions[mergeCandidateIndex],
       `Merged transactions[${mergeCandidateIndex}] into new csv tx: ${newTx.method}`,

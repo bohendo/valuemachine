@@ -73,7 +73,9 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
               Object.values(balances).some(bal => gt(bal, "0")) ? (
                 <TableRow key={i}>
                   <TableCell className={classes.accountCell}>
-                    <HexString value={account} display={addressBook.getName(account)}/>
+                    <HexString value={account} display={
+                      `${account.split("/")[0]}/${addressBook.getName(account)}`
+                    }/>
                   </TableCell>
                   <TableCell className={classes.balanceCell}>
                     <Balances balances={balances}/>

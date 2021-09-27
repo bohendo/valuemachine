@@ -17,8 +17,8 @@ const { Coinbase, Ethereum } = TransactionSources;
 const csvSource = Coinbase;
 const log = testLogger.child({ module: "TestMerge" }, { level: "warn" });
 
-const AddressOne = "0x1111111111111111111111111111111111111111";
-const AddressTwo = "0x2222222222222222222222222222222222222222";
+const ethAccount = "Ethereum/0x1111111111111111111111111111111111111111";
+const extAccount = "Ethereum/0x2222222222222222222222222222222222222222";
 const timestamp = "2018-01-02T01:00:00Z";
 const value = "1.3141592653589793";
 
@@ -31,9 +31,9 @@ const getCsvTx = (): Transaction => ({
     {
       asset: ETH,
       category: Internal,
-      from: "ETH-account",
+      from: "Ethereum/unknown",
       amount: value.substring(0, 10),
-      to: `${csvSource}-account`
+      to: `USA/${csvSource}/account`
     }
   ],
   index: 2
@@ -47,7 +47,7 @@ const getEthTx = (): Transaction => ({
     {
       asset: ETH,
       category: Expense,
-      from: AddressOne,
+      from: ethAccount,
       index: -1,
       amount: "0.000000004294967296",
       to: Guards.Ethereum,
@@ -55,10 +55,10 @@ const getEthTx = (): Transaction => ({
     {
       asset: ETH,
       category: Expense,
-      from: AddressOne,
+      from: ethAccount,
       index: 0,
       amount: value,
-      to: AddressTwo,
+      to: extAccount,
     }
   ],
 });
@@ -79,6 +79,7 @@ describe("Merge", () => {
     expect(tx.sources).to.include(Ethereum);
     expect(tx.transfers[1].category).to.equal(Internal);
     expect(tx.transfers[1].to).to.include(csvSource);
+    expect(tx.transfers[1].from).to.equal(ethAccount);
   });
 
   it("should not insert a duplicate csv tx into an already merged tx list", async () => {
