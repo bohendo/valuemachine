@@ -92,7 +92,9 @@ export const EventRow: React.FC<EventRowProps> = ({
         <TableCell> {event.date.replace("T", " ").replace(".000Z", "")} </TableCell>
         <TableCell> {event.type} </TableCell>
         <TableCell> {describeEvent(event)} </TableCell>
-        <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
+        <TableCell onClick={() => {
+          setOpen(!open); open || console.log(event);
+        }} style={{ minWidth: "140px" }} >
           Details
           <IconButton aria-label="expand row" size="small" >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}

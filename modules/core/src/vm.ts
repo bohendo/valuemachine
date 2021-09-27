@@ -610,12 +610,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       }
     });
 
-    // Interpret any leftover tmp chunks as loans
-    // coalesce loans of the same asset type?!
-    tmpChunks.forEach(chunk => {
-      log.warn(chunk, `Moving chunk ${chunk.index} from tmp to master list`);
-      json.chunks.push(chunk);
-    }); // add leftovers to the master list
+    // Interpret any leftover tmp chunks as loans (& coalesce loans of the same asset type)
     json.chunks.sort((c1, c2) => c1.index - c2.index);
     for (const asset of dedup(tmpChunks.map(chunk => chunk.asset))) {
       for (const account of dedup(tmpChunks.map(getFirstOwner))) {
@@ -647,6 +642,13 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         }
       }
     }
+
+    // move leftover chunks from tmp to the master list
+    tmpChunks.forEach(chunk => {
+      log.warn(chunk, `Moving chunk ${chunk.index} from tmp to master list`);
+      json.chunks.push(chunk);
+    });
+    json.chunks.sort((c1, c2) => c1.index - c2.index);
 
     // Finalize new events
     for (const newEvent of newEvents) {

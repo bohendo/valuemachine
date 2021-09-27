@@ -56,7 +56,9 @@ export const ChunkRow: React.FC<ChunkRowProps> = ({
         } </TableCell>
         <TableCell className={classes.putsRow}> {chunk.inputs?.join(", ")} </TableCell>
         <TableCell className={classes.putsRow}> {chunk.outputs?.join(", ")} </TableCell>
-        <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
+        <TableCell onClick={() => {
+          setOpen(!open); open || console.log(chunk);
+        }} style={{ minWidth: "140px" }} >
           History
           <IconButton aria-label="expand row" size="small" >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}

@@ -50,7 +50,7 @@ export const TransactionRow = ({
         <TableCell> {tx.apps.join(", ")} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell
-          onClick={() => { setOpen(!open); console.log(tx); }}
+          onClick={() => { setOpen(!open); open || console.log(tx); }}
           style={{ minWidth: "140px" }}
         >
           {`${tx.transfers.length} transfer${tx.transfers.length === 1 ? "" : "s"}`}
