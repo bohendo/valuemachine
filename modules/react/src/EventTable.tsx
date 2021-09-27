@@ -16,7 +16,9 @@ import Typography from "@material-ui/core/Typography";
 import {
   Account,
   AddressBook,
+  ErrorEvent,
   Event,
+  EventErrorCodes,
   EventTypes,
   GuardChangeEvent,
   HydratedEvent,
@@ -55,6 +57,7 @@ export const EventTable: React.FC<EventTableProps> = ({
   const [accounts, setAccounts] = useState([] as Account[]);
   const [filterAccount, setFilterAccount] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [filterCode, setFilterCode] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as HydratedEvent[]);
   const classes = useStyles();
 
@@ -66,6 +69,7 @@ export const EventTable: React.FC<EventTableProps> = ({
     setPage(0);
     setFilteredEvents(vm.json?.events?.filter(event =>
       (!filterType || event.type === filterType)
+      && (!filterCode || (event as ErrorEvent)?.code === filterCode)
       && (!filterAccount || (
         (event as GuardChangeEvent).to?.endsWith(filterAccount) ||
         (event as GuardChangeEvent).from?.endsWith(filterAccount) ||
@@ -76,7 +80,7 @@ export const EventTable: React.FC<EventTableProps> = ({
       : (e1.date < e2.date) ? 1
       : 0
     ).map((e: Event) => vm.getEvent(e.index)) || []);
-  }, [vm, filterAccount, filterType]);
+  }, [vm, filterAccount, filterType, filterCode]);
 
   const handleFilterAccountChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
@@ -86,6 +90,11 @@ export const EventTable: React.FC<EventTableProps> = ({
   const handleFilterTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     setFilterType(event.target.value);
+  };
+
+  const handleFilterCodeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
+    setFilterCode(filterType === EventTypes.Error ? event.target.value : "");
   };
 
   const handleChangePage = (event, newPage) => {
@@ -144,6 +153,24 @@ export const EventTable: React.FC<EventTableProps> = ({
             ))}
           </Select>
         </FormControl>
+
+        {filterType === EventTypes.Error ?
+          <FormControl className={classes.select}>
+            <InputLabel id="select-filter-type">Filter Error Code</InputLabel>
+            <Select
+              labelId="select-filter-type"
+              id="select-filter-type"
+              value={filterCode || ""}
+              onChange={handleFilterCodeChange}
+            >
+              <MenuItem value={""}>-</MenuItem>
+              {Object.keys(EventErrorCodes).map((code, i) => (
+                <MenuItem key={i} value={code}>{code}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          : null
+        }
 
         <Table>
           <TableHead>

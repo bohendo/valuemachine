@@ -7,7 +7,9 @@ import {
   AssetChunk,
   Balances,
   ChunkIndex,
+  DebtEvent,
   DecimalString,
+  EventErrorCodes,
   Events,
   EventTypes,
   HydratedAssetChunk,
@@ -15,7 +17,6 @@ import {
   OutgoingTransfers,
   StoreKeys,
   TradeEvent,
-  DebtEvent,
   Transaction,
   TransferCategories,
   ValueMachine,
@@ -48,12 +49,6 @@ const {
 const isIncomeSource = (account: Account): boolean =>
   account.startsWith(`${EvmApps.Maker}-DSR`) ||
   account.startsWith(`${EvmApps.Tornado}`);
-
-const errorCodes = {
-  MISSING_SWAP: "MISSING_SWAP",
-  MULTI_ACCOUNT_SWAP: "MULTI_ACCOUNT_SWAP",
-  UNDERFLOW: "UNDERFLOW",
-};
 
 export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const { logger, store, json: vmJson } = params || {};
@@ -520,7 +515,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       log.error(message);
       newEvents.push({
         account: swapsIn[0].to,
-        code: errorCodes.MISSING_SWAP,
+        code: EventErrorCodes.MISSING_SWAP,
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
@@ -535,7 +530,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       log.error(message);
       newEvents.push({
         account: swapsOut[0].from,
-        code: errorCodes.MISSING_SWAP,
+        code: EventErrorCodes.MISSING_SWAP,
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
@@ -559,7 +554,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         log.error(message);
         newEvents.push({
           account,
-          code: errorCodes.MULTI_ACCOUNT_SWAP,
+          code: EventErrorCodes.MULTI_ACCOUNT_SWAP,
           date: json.date,
           index: json.events.length + newEvents.length,
           message,
@@ -632,7 +627,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           log.error(message);
           newEvents.push({
             account,
-            code: errorCodes.UNDERFLOW,
+            code: EventErrorCodes.UNDERFLOW,
             date: json.date,
             index: json.events.length + newEvents.length,
             message,

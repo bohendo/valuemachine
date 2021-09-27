@@ -40,8 +40,16 @@ export const EventTypes = {
   Income: "Income",
   Trade: "Trade",
 } as const;
-export const EventType = Type.Enum(EventTypes); // NOT extensible
+export const EventType = Type.Enum(EventTypes);
 export type EventType = Static<typeof EventType>;
+
+export const EventErrorCodes = {
+  MISSING_SWAP: "MISSING_SWAP",
+  MULTI_ACCOUNT_SWAP: "MULTI_ACCOUNT_SWAP",
+  UNDERFLOW: "UNDERFLOW",
+} as const;
+export const EventErrorCode = Type.Enum(EventErrorCodes);
+export type EventErrorCode = Static<typeof EventErrorCode>;
 
 const BaseEvent = Type.Object({
   date: TimestampString,
@@ -60,16 +68,17 @@ export const DebtEvent = Type.Intersect([
 ]);
 export type DebtEvent = Static<typeof DebtEvent>;
 
-export const TradeEvent = Type.Intersect([
+export const ErrorEvent = Type.Intersect([
   BaseEvent,
   Type.Object({
+    message: Type.String(),
     account: Account,
-    inputs: Type.Array(ChunkIndex),
-    outputs: Type.Array(ChunkIndex),
-    type: Type.Literal(EventTypes.Trade),
+    code: Type.String(),
+    txId: Type.String(),
+    type: Type.Literal(EventTypes.Error),
   }),
 ]);
-export type TradeEvent = Static<typeof TradeEvent>;
+export type ErrorEvent = Static<typeof ErrorEvent>;
 
 export const ExpenseEvent = Type.Intersect([
   BaseEvent,
@@ -80,16 +89,6 @@ export const ExpenseEvent = Type.Intersect([
   }),
 ]);
 export type ExpenseEvent = Static<typeof ExpenseEvent>;
-
-export const IncomeEvent = Type.Intersect([
-  BaseEvent,
-  Type.Object({
-    account: Account,
-    inputs: Type.Array(ChunkIndex),
-    type: Type.Literal(EventTypes.Income),
-  }),
-]);
-export type IncomeEvent = Static<typeof IncomeEvent>;
 
 export const GuardChangeEvent = Type.Intersect([
   BaseEvent,
@@ -103,24 +102,33 @@ export const GuardChangeEvent = Type.Intersect([
 ]);
 export type GuardChangeEvent = Static<typeof GuardChangeEvent>;
 
-export const ErrorEvent = Type.Intersect([
+export const IncomeEvent = Type.Intersect([
   BaseEvent,
   Type.Object({
-    message: Type.String(),
     account: Account,
-    code: Type.String(),
-    txId: Type.String(),
-    type: Type.Literal(EventTypes.Error),
+    inputs: Type.Array(ChunkIndex),
+    type: Type.Literal(EventTypes.Income),
   }),
 ]);
-export type ErrorEvent = Static<typeof ErrorEvent>;
+export type IncomeEvent = Static<typeof IncomeEvent>;
+
+export const TradeEvent = Type.Intersect([
+  BaseEvent,
+  Type.Object({
+    account: Account,
+    inputs: Type.Array(ChunkIndex),
+    outputs: Type.Array(ChunkIndex),
+    type: Type.Literal(EventTypes.Trade),
+  }),
+]);
+export type TradeEvent = Static<typeof TradeEvent>;
 
 export const Event = Type.Union([
   DebtEvent,
-  ExpenseEvent,
-  IncomeEvent,
-  GuardChangeEvent,
   ErrorEvent,
+  ExpenseEvent,
+  GuardChangeEvent,
+  IncomeEvent,
   TradeEvent,
 ]);
 export type Event = Static<typeof Event>;
