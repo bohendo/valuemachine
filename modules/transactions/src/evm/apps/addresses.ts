@@ -106,6 +106,7 @@ const exchangeAddresses = [
   { name: "Idex", address: "Ethereum/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208" },
   { name: "KyberOld", address: "Ethereum/0x9ae49c0d7f8f9ef4b864e004fe86ac8294e20950" },
   { name: "KyberProxy", address: "Ethereum/0x818e6fecd516ecc3849daf6845e3ec868087b755" },
+  { name: "KyberRouter", address: "Ethereum/0x91a502C678605fbCe581eae053319747482276b9" },
   { name: "OpenSea", address: "Ethereum/0x7be8076f4ea4a4ad08075c2508e481d6c946d12b" },
 ].map(setAddressCategory(AddressCategories.Exchange));
 
