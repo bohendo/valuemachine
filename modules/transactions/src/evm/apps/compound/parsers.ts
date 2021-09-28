@@ -18,7 +18,7 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { parseEvent } from "../utils";
+import { parseEvent } from "../../utils";
 
 import { apps, assets } from "./enums";
 import {

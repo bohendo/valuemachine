@@ -8,7 +8,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { parseEvent } from "../utils";
+import { parseEvent } from "../../utils";
 
 import { managerAddresses, relayerAddresses } from "./addresses";
 import { apps } from "./enums";

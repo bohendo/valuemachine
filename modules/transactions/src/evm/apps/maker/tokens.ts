@@ -10,8 +10,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { getTransferCategory } from "../../utils";
-import { parseEvent } from "../utils";
+import { getTransferCategory, parseEvent } from "../../utils";
 
 import {
   tubAddress,

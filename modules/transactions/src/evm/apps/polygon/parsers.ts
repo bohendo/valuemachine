@@ -10,9 +10,8 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { getTransferCategory } from "../../utils";
 import { EvmAssets } from "../../enums";
-import { parseEvent } from "../utils";
+import { getTransferCategory, parseEvent } from "../../utils";
 
 import {
   zapBridgeAddress,

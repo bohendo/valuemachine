@@ -21,7 +21,7 @@ import {
 } from "@valuemachine/utils";
 
 import { Assets, Guards } from "../../../enums";
-import { diffAsc, parseEvent } from "../utils";
+import { diffAsc, parseEvent } from "../../utils";
 
 import {
   saiPitAddress,

@@ -13,7 +13,7 @@ import {
 } from "@valuemachine/utils";
 
 import { EvmAssets } from "../../enums";
-import { parseEvent } from "../utils";
+import { parseEvent } from "../../utils";
 
 import { coreAddresses, govAddresses, marketAddresses } from "./addresses";
 import { apps } from "./enums";

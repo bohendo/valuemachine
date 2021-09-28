@@ -6,7 +6,6 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-// import { insertVenue } from "@valuemachine/utils";
 
 import { bjtjV1Address, bjtjV2Address } from "./addresses";
 import { apps } from "./enums";

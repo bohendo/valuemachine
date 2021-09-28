@@ -13,7 +13,7 @@ import {
 } from "@valuemachine/utils";
 
 import { EvmAssets } from "../../enums";
-import { parseEvent } from "../utils";
+import { parseEvent } from "../../utils";
 
 import { apps } from "./enums";
 import { govAddress, yTokenAddresses } from "./addresses";
@@ -37,36 +37,6 @@ const yGovAbi = [
   "event Vote(uint256 indexed id, address indexed voter, bool vote, uint256 weight)",
   "event Withdrawn(address indexed user, uint256 amount)",
 ];
-
-/*
-const yVaultV1Abi = [
-  "event Approval(address indexed owner, address indexed spender, uint256 value)",
-  "event Transfer(address indexed from, address indexed to, uint256 value)",
-];
-
-const yVaultV2Abi = [
-  "event Transfer(address indexed sender, address indexed receiver, uint256 value)",
-  "event Approval(address indexed owner, address indexed spender, uint256 value)",
-  "event UpdateGovernance(address governance)",
-  "event UpdateManagement(address management)",
-  "event UpdateGuestList(address guestList)",
-  "event UpdateRewards(address rewards)",
-  "event UpdateDepositLimit(uint256 depositLimit)",
-  "event UpdatePerformanceFee(uint256 performanceFee)",
-  "event UpdateManagementFee(uint256 managementFee)",
-  "event UpdateGuardian(address guard)",
-  "event EmergencyShutdown(bool active)",
-  "event UpdateWithdrawalQueue(address[20] queue)",
-  "event StrategyUpdateDebtRatio(address indexed strategy, uint256 debtRatio)",
-  "event StrategyUpdateMinDebtPerHarvest(address indexed strategy, uint256 minDebtPerHarvest)",
-  "event StrategyUpdateMaxDebtPerHarvest(address indexed strategy, uint256 maxDebtPerHarvest)",
-  "event StrategyUpdatePerformanceFee(address indexed strategy, uint256 performanceFee)",
-  "event StrategyMigrated(address indexed oldVersion, address indexed newVersion)",
-  "event StrategyRevoked(address indexed strategy)",
-  "event StrategyRemovedFromQueue(address indexed strategy)",
-  "event StrategyAddedToQueue(address indexed strategy)",
-];
-*/
 
 ////////////////////////////////////////
 /// Parser

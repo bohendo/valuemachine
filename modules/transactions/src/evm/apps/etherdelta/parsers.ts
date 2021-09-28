@@ -15,7 +15,7 @@ import {
 } from "@valuemachine/utils";
 
 import { EvmAssets } from "../../enums";
-import { parseEvent } from "../utils";
+import { parseEvent } from "../../utils";
 
 import { etherdeltaAddress } from "./addresses";
 import { apps } from "./enums";

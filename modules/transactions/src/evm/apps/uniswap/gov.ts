@@ -11,7 +11,7 @@ import {
   insertVenue,
 } from "@valuemachine/utils";
 
-import { parseEvent } from "../utils";
+import { parseEvent } from "../../utils";
 
 import { apps } from "./enums";
 import {

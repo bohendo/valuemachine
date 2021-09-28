@@ -7,11 +7,12 @@ use(promised);
 export { expect } from "chai";
 
 export const env = {
+  logLevel: process.env.LOG_LEVEL || "error",
+
   alchemyProvider: process.env.ALCHEMY_PROVIDER || "",
   covalentKey: process.env.COVALENT_KEY || "",
   etherscanKey: process.env.ETHERSCAN_KEY || "",
   polygonscanKey: process.env.POLYGONSCAN_KEY || "",
-  logLevel: process.env.LOG_LEVEL || "error",
 };
 
 export const testLogger = getLogger(env.logLevel).child({ module: "TestUtils" });
