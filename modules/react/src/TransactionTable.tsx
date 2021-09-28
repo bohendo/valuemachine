@@ -34,13 +34,13 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   title: {
     padding: theme.spacing(2),
   },
-  select: {
+  dropdown: {
     margin: theme.spacing(3),
-    minWidth: 160,
+    minWidth: theme.spacing(20),
   },
   table: {
-    overflow: "scroll",
-    minWidth: "1200px",
+    minWidth: theme.spacing(115),
+    overflow: "auto",
   },
 }));
 
@@ -147,7 +147,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         }
       </Typography>
 
-      <FormControl className={classes.select}>
+      <FormControl className={classes.dropdown}>
         <InputLabel id="select-filter-account">Filter Account</InputLabel>
         <Select
           labelId="select-filter-account"
@@ -165,7 +165,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         </Select>
       </FormControl>
 
-      <FormControl className={classes.select}>
+      <FormControl className={classes.dropdown}>
         <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
         <Select
           labelId="select-filter-asset"
@@ -180,7 +180,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         </Select>
       </FormControl>
 
-      <FormControl className={classes.select}>
+      <FormControl className={classes.dropdown}>
         <InputLabel id="select-filter-source">Filter Source</InputLabel>
         <Select
           labelId="select-filter-source"
@@ -198,7 +198,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         </Select>
       </FormControl>
 
-      <FormControl className={classes.select}>
+      <FormControl className={classes.dropdown}>
         <InputLabel id="select-filter-app">Filter App</InputLabel>
         <Select
           labelId="select-filter-app"
@@ -233,7 +233,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       <br/>
 
       <TableContainer>
-
         <Table size="small" className={classes.table}>
           <TableHead>
             <TableRow>
@@ -254,7 +253,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             }
           </TableBody>
         </Table>
-
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"
@@ -264,7 +262,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-
       </TableContainer>
 
     </Paper>

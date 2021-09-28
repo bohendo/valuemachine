@@ -22,16 +22,16 @@ import React, { useState } from "react";
 import { HexString } from "./HexString";
 
 const useStyles = makeStyles((theme) => ({
-  row: {
+  tableRow: {
     "& > *": {
       borderBottom: "unset",
       margin: theme.spacing(0),
     },
-    overflow: "scroll",
+    overflow: "auto",
   },
-  transferTable: {
-    maxWidth: "100%",
-    overflow: "scroll",
+  subTable: {
+    maxWidth: theme.spacing(111),
+    overflow: "auto",
   }
 }));
 
@@ -46,7 +46,7 @@ export const TransactionRow = ({
   const classes = useStyles();
   return (
     <React.Fragment>
-      <TableRow className={classes.row || ""}>
+      <TableRow className={classes.tableRow}>
         <TableCell> {
           (new Date(tx.date)).toISOString().replace("T", " ").replace(".000Z", "")
         } </TableCell>
@@ -66,11 +66,11 @@ export const TransactionRow = ({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box pb={2} px={4} className={classes.transferTable}>
+            <Box pb={2} px={4}>
               <Typography variant="h6" gutterBottom component="div">
                 Transfers
               </Typography>
-              <Table size="small">
+              <Table size="small" className={classes.subTable}>
                 <TableHead>
                   <TableRow>
                     <TableCell><strong> Category </strong></TableCell>

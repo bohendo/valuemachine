@@ -26,16 +26,18 @@ import { AddressRow } from "./AddressRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
-    minWidth: "600px",
-    padding: theme.spacing(2),
+    padding: theme.spacing(1),
   },
   title: {
-    margin: theme.spacing(1),
+    padding: theme.spacing(2),
   },
-  select: {
-    marginBottom: theme.spacing(2),
-    marginLeft: theme.spacing(2),
-    minWidth: 160,
+  dropdown: {
+    margin: theme.spacing(3),
+    minWidth: theme.spacing(20),
+  },
+  table: {
+    minWidth: theme.spacing(80),
+    overflow: "auto",
   },
 }));
 
@@ -107,7 +109,7 @@ export const AddressTable: React.FC<AddressTableProps> = ({
           }
         </Typography>
 
-        <FormControl className={classes.select}>
+        <FormControl className={classes.dropdown}>
           <InputLabel id="select-filter-category">Filter Category</InputLabel>
           <Select
             labelId="select-filter-category"

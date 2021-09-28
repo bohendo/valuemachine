@@ -18,11 +18,13 @@ import React, { useEffect, useState } from "react";
 const useStyles = makeStyles((theme: Theme) => createStyles({
   grid: {
     margin: theme.spacing(1),
-    maxWidth: "98%",
+  },
+  textInput: {
+    margin: theme.spacing(1),
   },
   select: {
     margin: theme.spacing(3),
-    minWidth: 160,
+    minWidth: theme.spacing(15),
   },
   button: {
     marginBottom: theme.spacing(1.5),
@@ -159,6 +161,7 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
 
       <Grid item md={6}>
         <TextField
+          className={classes.textInput}
           autoComplete="off"
           value={newEntry?.address || ""}
           error={!!newEntryError}

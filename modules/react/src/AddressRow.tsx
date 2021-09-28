@@ -17,6 +17,17 @@ import React, { useState } from "react";
 import { AddressEditor } from "./AddressEditor";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
+  tableRow: {
+    "& > *": {
+      borderBottom: "unset",
+      margin: theme.spacing(0),
+    },
+    overflow: "auto",
+  },
+  innerBox: {
+    maxWidth: theme.spacing(50),
+    overflow: "auto",
+  },
   button: {
     marginBottom: theme.spacing(1.5),
     marginLeft: theme.spacing(2),
@@ -59,7 +70,7 @@ export const AddressRow: React.FC<AddressRowProps> = ({
 
   return (
     <React.Fragment>
-      <TableRow>
+      <TableRow className={classes.tableRow}>
         <TableCell> {entry.name} </TableCell>
         <TableCell> {entry.category} </TableCell>
         <TableCell><pre> {entry.address} </pre></TableCell>
@@ -72,7 +83,7 @@ export const AddressRow: React.FC<AddressRowProps> = ({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={editMode} timeout="auto" unmountOnExit>
-            <Box py={2} px={4} >
+            <Box py={2} px={4} className={classes.innerBox}>
               <Typography variant="h6" gutterBottom component="div">
                 Edit Address
               </Typography>
