@@ -24,7 +24,8 @@ export const coreParser = (
 
   // If this eth tx is self->airswap then replace income/expense w swap in/out
   if (addressBook.isSelf(evmTx.from) && addresses.some(e => e.address === evmTx.to)) {
-    log.info(`Found ${appName} transaction from ${evmTx.from}`);
+    log.info(`Found transaction from ${evmTx.from}`);
+    tx.apps.push(appName);
     tx.transfers.forEach(transfer => {
       transfer.category = transfer.category === Expense ? SwapOut
         : transfer.category === Income ? SwapIn
