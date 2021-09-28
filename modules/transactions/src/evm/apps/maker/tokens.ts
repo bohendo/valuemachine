@@ -109,13 +109,7 @@ export const tokenParser = (
       if (!event.name) continue;
       const wad = formatUnits(event.args.wad, getDecimals(address));
 
-      if (event.name === "Transfer") {
-        const [dst, src] = [event.args.dst, event.args.src];
-        if (isSelf(dst) || isSelf(src)) {
-          log.info(`Parsing ${asset} transfer of ${wad}`); //  from ${src} to ${dst}`);
-        }
-
-      } else if (event.name === "Mint") {
+      if (event.name === "Mint") {
         log.info(`Parsing ${asset} ${event.name} of ${wad}`);
         tx.apps.push(appName);
         const guy = proxies.includes(event.args.guy) ? evmTx.from : event.args.guy;

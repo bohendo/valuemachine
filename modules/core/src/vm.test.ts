@@ -41,7 +41,7 @@ const {
 } = TransferCategories;
 const { Coinbase } = TransactionSources;
 const { Ethereum, USA } = Guards;
-const log = testLogger.child({ module: "TestVM" }, { level: "silent" });
+const log = testLogger.child({ module: "TestVM" }, { level: "info" });
 
 const ethAccount = `${Ethereum}/${AddressOne}`;
 const otherAccount = `${Ethereum}/${AddressTwo}`;
@@ -172,6 +172,32 @@ describe("VM", () => {
       { asset: ETH, category: Fee, from: ethAccount, amount: "0.1", to: Ethereum },
       { asset: DAI, category: Repay, from: ethAccount, amount: "200", to: aaveAccount },
       { asset: DAI, category: Fee, from: aaveAccount, amount: "10", to: notMe },
+    ])].forEach(vm.execute);
+    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(vm.getNetWorth(aaveAccount)).to.deep.equal({ [ETH]: "2.0" });
+    expect(vm.getNetWorth(ethAccount)).to.deep.equal({ [ETH]: "7.7" });
+    expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "9.7" });
+    expect(vm.json.events.length).to.equal(4);
+    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.Debt);
+    expect(vm.json.events[2]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[3]?.type).to.equal(EventTypes.Debt);
+  });
+
+  it("should interpret extra repayment as a fee", async () => {
+    [getTestTx([
+      { asset: ETH, category: Income, from: notMe, amount: "10.0", to: ethAccount },
+    ]), getTestTx([
+      { asset: ETH, category: Fee, from: ethAccount, amount: "0.1", to: Ethereum },
+      { asset: ETH, category: Internal, from: ethAccount, amount: "2.0", to: aaveAccount },
+    ]), getTestTx([
+      { asset: ETH, category: Fee, from: ethAccount, amount: "0.1", to: Ethereum },
+      { asset: DAI, category: Borrow, from: aaveAccount, amount: "200", to: ethAccount },
+    ]), getTestTx([
+      { asset: DAI, category: Income, from: notMe, amount: "10.0", to: ethAccount },
+    ]), getTestTx([
+      { asset: ETH, category: Fee, from: ethAccount, amount: "0.1", to: Ethereum },
+      { asset: DAI, category: Repay, from: ethAccount, amount: "210", to: aaveAccount },
     ])].forEach(vm.execute);
     expect(getValueMachineError(vm.json)).to.be.null;
     expect(vm.getNetWorth(aaveAccount)).to.deep.equal({ [ETH]: "2.0" });

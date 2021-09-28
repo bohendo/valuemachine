@@ -139,7 +139,7 @@ export const oasisParser = (
     }
   }
 
-  log.debug(tx, `Done parsing ${appName}`);
+  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };
 
