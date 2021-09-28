@@ -12,9 +12,9 @@ import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import {
   AddressBook,
-  Event,
   EventTypes,
   GuardChangeEvent,
+  HydratedEvent,
 } from "@valuemachine/types";
 import { describeChunk, describeEvent } from "@valuemachine/core";
 import React, { useEffect, useState } from "react";
@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 type EventRowProps = {
   addressBook: AddressBook;
-  event: Event;
+  event: HydratedEvent;
 };
 export const EventRow: React.FC<EventRowProps> = ({
   addressBook,
@@ -48,6 +48,10 @@ export const EventRow: React.FC<EventRowProps> = ({
   const chunksToDisplay = (chunks, prefix?: string) => {
     const output = {};
     for (const chunk of chunks) {
+      if (!chunk?.index) {
+        console.warn(chunk, `Invalid chunk`);
+        continue;
+      }
       output[`${prefix || ""}Chunk #${chunk.index}`] = describeChunk(chunk);
     }
     return output;
@@ -69,7 +73,7 @@ export const EventRow: React.FC<EventRowProps> = ({
                 <TableCell className={classes.subtable}><strong> {key} </strong></TableCell>
                 <TableCell> {
                   isHexString(value)
-                    ? <HexString value={value} display={addressBook?.getName(value)}/>
+                    ? <HexString value={value} display={addressBook?.getName(value, true)}/>
                     : <Typography> {
                       typeof value === "string" ? value : JSON.stringify(value)
                     } </Typography>
@@ -88,7 +92,9 @@ export const EventRow: React.FC<EventRowProps> = ({
         <TableCell> {event.date.replace("T", " ").replace(".000Z", "")} </TableCell>
         <TableCell> {event.type} </TableCell>
         <TableCell> {describeEvent(event)} </TableCell>
-        <TableCell onClick={() => setOpen(!open)} style={{ minWidth: "140px" }}>
+        <TableCell onClick={() => {
+          setOpen(!open); open || console.log(event);
+        }} style={{ minWidth: "140px" }} >
           Details
           <IconButton aria-label="expand row" size="small" >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -104,7 +110,7 @@ export const EventRow: React.FC<EventRowProps> = ({
               </Typography>
               <SimpleTable data={
 
-                (event.type === EventTypes.Expense) ? {
+                event.type === EventTypes.Expense ? {
                   Account: event.account,
                   ...chunksToDisplay(event.outputs),
 

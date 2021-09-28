@@ -5,7 +5,7 @@ import {
   EventTypes,
   HydratedEvent,
 } from "@valuemachine/types";
-import { round, sumChunks } from "@valuemachine/utils";
+import { gt, round, sumChunks } from "@valuemachine/utils";
 
 const { Expense, Income, Trade, Debt, GuardChange, Error } = EventTypes;
 const toDate = timestamp => timestamp?.includes("T") ? timestamp.split("T")[0] : timestamp;
@@ -20,8 +20,9 @@ export const describeEvent = (event: Event | HydratedEvent): string => {
   const describeChunks = (chunks: Array<AssetChunk | ChunkIndex>): string =>
     typeof chunks[0] === "number"
       ? `${chunks.length} chunks`
-      : Object.entries(sumChunks(chunks as AssetChunk[]))
-        .map(([asset, amount]) => `${round(amount)} ${asset}`)
+      : Object.entries(sumChunks(
+        chunks.filter(c => gt((c as AssetChunk).amount, "0")) as AssetChunk[]
+      )).map(([asset, amount]) => `${round(amount)} ${asset}`)
         .join(" and ");
   const date = event.date.split("T")[0];
   if (event.type === Income) {

@@ -32,6 +32,14 @@ const datesAreClose = (
   new Date(ts2).getTime()
 ) < wiggleRoom;
 
+const sort = (txns: Transaction[]): Transaction[] => {
+  txns.sort(chrono);
+  return txns.map((tx, index) => {
+    tx.index = index;
+    return tx;
+  });
+};
+
 ////////////////////////////////////////
 // Exported Function
 // NOTE: This fn modifies the given list of transactions IN PLACE
@@ -53,8 +61,7 @@ export const mergeTransaction = (
   ) {
     log.info(`Inserting tx w multiple sources: [${newTx.sources}]`);
     transactions.push(newTx);
-    transactions.sort(chrono);
-    return transactions;
+    return sort(transactions);
 
   ////////////////////////////////////////
   // Handle new evm transactions
@@ -67,9 +74,8 @@ export const mergeTransaction = (
     const index = transactions.findIndex(tx => tx.uuid === newTx.uuid);
     if (index >= 0) { // If this is NOT the first time we've encountered this evm tx
       transactions[index] = newTx;
-      transactions.sort(chrono);
       log.debug(`Replaced duplicate evm tx: ${newTx.uuid}`);
-      return transactions;
+      return sort(transactions);
     }
 
     // Mergable evm txns can only contain one simple non-fee transfer
@@ -79,9 +85,8 @@ export const mergeTransaction = (
     );
     if (transfers.length !== 1) {
       transactions.push(newTx);
-      transactions.sort(chrono);
       log.debug(`Inserted new evm tx w ${transfers.length} mergable transfers: ${newTx.method}`);
-      return transactions;
+      return sort(transactions);
     }
     const evmTransfer = transfers[0];
     const wiggleRoom = div(evmTransfer.amount, "100");
@@ -108,9 +113,8 @@ export const mergeTransaction = (
 
     if (mergeCandidateIndex < 0) {
       transactions.push(newTx);
-      transactions.sort(chrono);
       log.debug(`Inserted new evm tx: ${newTx.method}`);
-      return transactions;
+      return sort(transactions);
     }
 
     const csvTx = transactions[mergeCandidateIndex];
@@ -134,7 +138,7 @@ export const mergeTransaction = (
       transactions[mergeCandidateIndex],
       `Merged transactions[${mergeCandidateIndex}] w new evm tx: ${newTx.method}`,
     );
-    return transactions;
+    return sort(transactions);
 
   ////////////////////////////////////////
   // Handle new csv transactions
@@ -158,7 +162,7 @@ export const mergeTransaction = (
       )
     )) {
       log.debug(`Skipping duplicate csv tx: ${newTx.method}`);
-      return transactions;
+      return sort(transactions);
     }
 
     // Mergable csv txns can only contain one transfer
@@ -166,9 +170,8 @@ export const mergeTransaction = (
     const wiggleRoom = div(extTransfer.amount, "100");
     if (newTx.transfers.length !== 1 || extTransfer.category !== Internal) {
       transactions.push(newTx);
-      transactions.sort(chrono);
       log.debug(`Inserted csv tx w ${newTx.transfers.length} transfers: ${newTx.method}`);
-      return transactions;
+      return sort(transactions);
     }
 
     // Does this transfer have the same asset & similar amount as the new csv tx
@@ -190,9 +193,8 @@ export const mergeTransaction = (
 
     if (mergeCandidateIndex < 0) {
       transactions.push(newTx);
-      transactions.sort(chrono);
       log.debug(`Inserted new csv tx: ${newTx.method} on ${newTx.date}`);
-      return transactions;
+      return sort(transactions);
     }
 
     const evmTx = transactions[mergeCandidateIndex];
@@ -204,27 +206,28 @@ export const mergeTransaction = (
       date: newTx.date,
       // merge sources
       sources: dedup([...evmTx.sources, ...newTx.sources]),
+      transfers: [
+        ...evmTx.transfers.filter(t => !isMergable(t)), // Simply insert non-mergable transfers
+        { // insert the mergable transfer w values properly merged
+          ...evmTransfer,
+          category: TransferCategories.Internal,
+          from: extTransfer.from.endsWith("unknown") ? evmTransfer.from : extTransfer.from,
+          to: extTransfer.to.endsWith("unknown") ? evmTransfer.to : extTransfer.to,
+        }
+      ].sort((t1, t2) => t1.index - t2.index), // make sure they're still sorted by index
     };
-    evmTransfer.category = extTransfer.category;
-    if (evmTransfer.category === Internal) {
-      evmTransfer.to = extTransfer.to;
-    } else {
-      evmTransfer.from = extTransfer.from;
-    }
 
-    transactions.sort(chrono);
     log.info(
       transactions[mergeCandidateIndex],
       `Merged transactions[${mergeCandidateIndex}] into new csv tx: ${newTx.method}`,
     );
-    return transactions;
+    return sort(transactions);
 
   ////////////////////////////////////////
   // Handle new transactions of unknown source-type
   } else {
     log.info(`Inserting tx w unknown sources: [${newTx.sources}]`);
     transactions.push(newTx);
-    transactions.sort(chrono);
-    return transactions;
+    return sort(transactions);
   }
 };

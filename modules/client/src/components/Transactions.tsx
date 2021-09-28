@@ -24,21 +24,16 @@ const logger = getLogger("debug");
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
-    margin: theme.spacing(3),
+    marginLeft: theme.spacing(3),
+    marginRight: theme.spacing(3),
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(1),
+    maxWidth: "95%",
   },
-  select: {
-    margin: theme.spacing(3),
-    minWidth: 160,
-  },
-  title: {
-    marginBottom: theme.spacing(0),
-  },
-  subtitle: {
-    margin: theme.spacing(2),
-  },
-  paper: {
-    minWidth: "850px",
-    padding: "4em",
+  syncMessage: {
+    margin: theme.spacing(1),
+    // maxWidth: "95%",
+    // minWidth: "10%",
   },
 }));
 
@@ -133,7 +128,13 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
         Sync Transactions
       </Button>
 
-      <Typography variant="overline" className={classes.subtitle}>
+      <br/>
+
+      <Typography
+        variant="body1"
+        className={classes.syncMessage}
+        align="center"
+      >
         {syncing}
       </Typography>
 

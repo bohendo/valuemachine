@@ -1,10 +1,18 @@
 import Tooltip from "@material-ui/core/Tooltip";
 import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
 import { makeStyles } from "@material-ui/core/styles";
+import ExploreIcon from "@material-ui/icons/Explore";
+import { EvmNames } from "@valuemachine/transactions";
 import React, { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
+const { Ethereum, Polygon } = EvmNames;
+
 const useStyles = makeStyles((theme) => ({
+  icon: {
+    marginTop: theme.spacing(-0.5),
+  },
   label: {
     // maxWidth: "12em",
     margin: theme.spacing(0),
@@ -21,19 +29,55 @@ export const HexString = ({
   const [copied, setCopied] = useState(false);
   const classes = useStyles();
 
+  const parts = value.split("/");
+  const hex = parts.pop() || "";
+  const prefix = parts.join("/");
+
+  const explorer = !prefix ? ""
+    : prefix.startsWith(Ethereum) ? "https://etherscan.io"
+    : prefix.startsWith(Polygon) ? "https://polygonscan.com"
+    : "";
+
+  const link = !explorer ? ""
+    : hex?.length === 42 ? `${explorer}/address/${hex}`
+    : hex?.length === 66 ? `${explorer}/tx/${hex}`
+    : "";
+
+  display = display || (hex.length < 10
+    ? `${prefix}/${hex}`
+    : `${prefix}/${hex.substring(0, 6)}..${hex.substring(hex.length - 4)}`
+  );
+
   return (
-    <CopyToClipboard
-      onCopy={() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
-      text={value}
-    >
-      <Tooltip arrow title={copied ? "Copied to clipboard" : value}>
-        <Typography noWrap className={classes.label}>
-          {display || `${value.substring(0, 6)}..${value.substring(value.length - 4)}`}
-        </Typography>
-      </Tooltip>
-    </CopyToClipboard>
+    <React.Fragment>
+      <CopyToClipboard
+        onCopy={() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        }}
+        text={value}
+      >
+        <Tooltip
+          arrow
+          placement="bottom-start"
+          title={copied ? "Copied to clipboard" : value}
+        >
+          <Typography noWrap className={classes.label}>
+            {display}
+            {link ?
+              <IconButton
+                className={classes.icon}
+                color="secondary"
+                href={link}
+                size="small"
+              >
+                <ExploreIcon/>
+              </IconButton>
+              : null
+            }
+          </Typography>
+        </Tooltip>
+      </CopyToClipboard>
+    </React.Fragment>
   );
 };

@@ -16,6 +16,7 @@ import {
 } from "@valuemachine/types";
 import {
   getEmptyValueMachine,
+  getValueMachineError,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
@@ -65,6 +66,12 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
     for (const transaction of newTransactions) {
       if (!transaction) continue;
       vm.execute(transaction);
+      const error = getValueMachineError(vm.json);
+      if (error) {
+        console.warn("chunks:", vm.json.chunks);
+        console.warn("events:", vm.json.events);
+        throw new Error(error);
+      }
       await new Promise(res => setTimeout(res, 1)); // Yield to other pending operations
       const chunk = 100;
       if (transaction.index && transaction.index % chunk === 0) {

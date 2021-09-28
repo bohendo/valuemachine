@@ -6,6 +6,7 @@ import { expect } from "./testUtils";
 
 const validTransaction = {
   apps: [],
+  index: 0,
   date: new Date(0).toISOString(),
   uuid: "UniversallyUniqueIdentifier",
   sources: [],
@@ -26,4 +27,9 @@ describe("Transactions", () => {
   it("should return an error if the json is invalid", async () => {
     expect(getTransactionsError([{ ...validTransaction, date: null }])).to.be.a("string");
   });
+
+  it("should return an error if an index property mismatches array index", async () => {
+    expect(getTransactionsError([{ ...validTransaction, index: 1 }])).to.be.a("string");
+  });
+
 });

@@ -30,22 +30,31 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   navButton: {
     marginLeft: theme.spacing(2),
   },
-  select: {
+  selectUnit: {
     "& > *": {
-      "& > svg": {
-        color: "inherit", // carrot icon
-      },
-      "&::before": {
-        borderColor: "inherit", // underline
-      },
+      "& > svg": { color: "inherit" }, // carrot icon
+      "&::before": { borderColor: "inherit" }, // underline
       color: "inherit", // label & selection text
     },
+    // alignItems: "center",
+    // display: "flex",
+    // justifyContent: "center",
+    marginLeft: theme.spacing(2),
+    merginRight: theme.spacing(2),
+    minWidth: theme.spacing(9),
+  },
+  lightswitch: {
+    // alignItems: "center",
+    // display: "flex",
+    // justifyContent: "center",
+    marginLeft: theme.spacing(1),
+    minWidth: theme.spacing(7),
   },
   title: {
-    flexGrow: 1,
+    flexGrow: theme.spacing(1),
   },
-  toggle: {
-    paddingLeft: theme.spacing(4),
+  toolbar: {
+    overflow: "auto",
   },
 }));
 
@@ -78,7 +87,7 @@ export const NavBar: React.FC<PropTypes> = ({
 
   return (
     <AppBar position="absolute">
-      <Toolbar>
+      <Toolbar className={classes.toolbar}>
         <IconButton
           color="inherit"
           component={Link}
@@ -147,10 +156,10 @@ export const NavBar: React.FC<PropTypes> = ({
           component="h1"
           noWrap
         >
-          Dashboard
+          Value Machine
         </Typography>
 
-        <FormControl focused={false} className={classes.select}>
+        <FormControl focused={false} className={classes.selectUnit}>
           <InputLabel id="select-unit-label">Units</InputLabel>
           <Select
             labelId="select-unit-label"
@@ -165,7 +174,7 @@ export const NavBar: React.FC<PropTypes> = ({
         </FormControl>
 
         <IconButton
-          className={classes.toggle}
+          className={classes.lightswitch}
           color="secondary"
           edge="start"
           onClick={toggleTheme}

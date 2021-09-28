@@ -16,7 +16,9 @@ import Typography from "@material-ui/core/Typography";
 import {
   Account,
   AddressBook,
+  ErrorEvent,
   Event,
+  EventErrorCodes,
   EventTypes,
   GuardChangeEvent,
   HydratedEvent,
@@ -29,16 +31,18 @@ import { EventRow } from "./EventRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
-    minWidth: "500px",
-    padding: theme.spacing(2),
+    padding: theme.spacing(1),
   },
   title: {
-    margin: theme.spacing(1),
+    padding: theme.spacing(2),
   },
-  select: {
-    marginBottom: theme.spacing(2),
-    marginLeft: theme.spacing(2),
-    minWidth: 160,
+  dropdown: {
+    margin: theme.spacing(3),
+    minWidth: theme.spacing(20),
+  },
+  table: {
+    minWidth: theme.spacing(115),
+    overflow: "auto",
   },
 }));
 
@@ -55,6 +59,7 @@ export const EventTable: React.FC<EventTableProps> = ({
   const [accounts, setAccounts] = useState([] as Account[]);
   const [filterAccount, setFilterAccount] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [filterCode, setFilterCode] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as HydratedEvent[]);
   const classes = useStyles();
 
@@ -66,6 +71,7 @@ export const EventTable: React.FC<EventTableProps> = ({
     setPage(0);
     setFilteredEvents(vm.json?.events?.filter(event =>
       (!filterType || event.type === filterType)
+      && (!filterCode || (event as ErrorEvent)?.code === filterCode)
       && (!filterAccount || (
         (event as GuardChangeEvent).to?.endsWith(filterAccount) ||
         (event as GuardChangeEvent).from?.endsWith(filterAccount) ||
@@ -76,7 +82,7 @@ export const EventTable: React.FC<EventTableProps> = ({
       : (e1.date < e2.date) ? 1
       : 0
     ).map((e: Event) => vm.getEvent(e.index)) || []);
-  }, [vm, filterAccount, filterType]);
+  }, [vm, filterAccount, filterType, filterCode]);
 
   const handleFilterAccountChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
@@ -86,6 +92,11 @@ export const EventTable: React.FC<EventTableProps> = ({
   const handleFilterTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     setFilterType(event.target.value);
+  };
+
+  const handleFilterCodeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
+    setFilterCode(filterType === EventTypes.Error ? event.target.value : "");
   };
 
   const handleChangePage = (event, newPage) => {
@@ -100,52 +111,69 @@ export const EventTable: React.FC<EventTableProps> = ({
   return (
     <Paper className={classes.paper}>
 
-      <TableContainer>
+      <Typography align="center" variant="h4" className={classes.title} component="div">
+        {filteredEvents.length === vm.json?.events?.length
+          ? `${filteredEvents.length} Events`
+          : `${filteredEvents.length} of ${vm.json?.events?.length || 0} Events`
+        }
+      </Typography>
 
-        <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredEvents.length === vm.json?.events?.length
-            ? `${filteredEvents.length} Events`
-            : `${filteredEvents.length} of ${vm.json?.events?.length || 0} Events`
+      <FormControl className={classes.dropdown}>
+        <InputLabel id="select-filter-account">Filter Account</InputLabel>
+        <Select
+          labelId="select-filter-account"
+          id="select-filter-account"
+          value={filterAccount || ""}
+          onChange={handleFilterAccountChange}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {accounts
+            .sort((a1, a2) => a1 < a2 ? 1 : -1)
+            .sort((a1, a2) => isAddress(a1) && !isAddress(a2) ? 1 : -1)
+            .map((account, i) => (
+              <MenuItem key={i} value={account}>
+                {addressBook?.getName(account, true)}
+              </MenuItem>
+            ))
           }
-        </Typography>
+        </Select>
+      </FormControl>
 
-        <FormControl className={classes.select}>
-          <InputLabel id="select-filter-account">Filter Account</InputLabel>
-          <Select
-            labelId="select-filter-account"
-            id="select-filter-account"
-            value={filterAccount || ""}
-            onChange={handleFilterAccountChange}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {accounts
-              .sort((a1, a2) => a1 < a2 ? 1 : -1)
-              .sort((a1, a2) => isAddress(a1) && !isAddress(a2) ? 1 : -1)
-              .map((account, i) => (
-                <MenuItem key={i} value={account}>
-                  {addressBook?.getName(account) || account}
-                </MenuItem>
-              ))
-            }
-          </Select>
-        </FormControl>
+      <FormControl className={classes.dropdown}>
+        <InputLabel id="select-filter-type">Filter Type</InputLabel>
+        <Select
+          labelId="select-filter-type"
+          id="select-filter-type"
+          value={filterType || ""}
+          onChange={handleFilterTypeChange}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {Object.keys(EventTypes).map((type, i) => (
+            <MenuItem key={i} value={type}>{type}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
-        <FormControl className={classes.select}>
-          <InputLabel id="select-filter-type">Filter Type</InputLabel>
+      {filterType === EventTypes.Error ?
+        <FormControl className={classes.dropdown}>
+          <InputLabel id="select-filter-type">Filter Error Code</InputLabel>
           <Select
             labelId="select-filter-type"
             id="select-filter-type"
-            value={filterType || ""}
-            onChange={handleFilterTypeChange}
+            value={filterCode || ""}
+            onChange={handleFilterCodeChange}
           >
             <MenuItem value={""}>-</MenuItem>
-            {Object.keys(EventTypes).map((type, i) => (
-              <MenuItem key={i} value={type}>{type}</MenuItem>
+            {Object.keys(EventErrorCodes).map((code, i) => (
+              <MenuItem key={i} value={code}>{code}</MenuItem>
             ))}
           </Select>
         </FormControl>
+        : null
+      }
 
-        <Table>
+      <TableContainer>
+        <Table size="small" className={classes.table}>
           <TableHead>
             <TableRow>
               <TableCell><strong> Date </strong></TableCell>
@@ -166,7 +194,6 @@ export const EventTable: React.FC<EventTableProps> = ({
               ))}
           </TableBody>
         </Table>
-
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"
@@ -176,7 +203,6 @@ export const EventTable: React.FC<EventTableProps> = ({
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-
       </TableContainer>
 
     </Paper>

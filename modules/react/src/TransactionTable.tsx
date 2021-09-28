@@ -29,18 +29,18 @@ import { DateInput } from "./DateInput";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
-    minWidth: "550px",
-    padding: theme.spacing(2),
+    padding: theme.spacing(1),
   },
   title: {
-    margin: theme.spacing(2),
+    padding: theme.spacing(2),
   },
-  select: {
+  dropdown: {
     margin: theme.spacing(3),
-    minWidth: 160,
+    minWidth: theme.spacing(20),
   },
   table: {
-    maxWidth: "98%",
+    minWidth: theme.spacing(115),
+    overflow: "auto",
   },
 }));
 
@@ -140,97 +140,99 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   return (
     <Paper className={classes.paper}>
 
+      <Typography align="center" variant="h4" className={classes.title} component="div">
+        {filteredTxns.length === transactions?.json.length
+          ? `${filteredTxns.length} Transaction${filteredTxns.length === 1 ? "" : "s"}`
+          : `${filteredTxns.length} of ${transactions?.json?.length} Transactions`
+        }
+      </Typography>
+
+      <FormControl className={classes.dropdown}>
+        <InputLabel id="select-filter-account">Filter Account</InputLabel>
+        <Select
+          labelId="select-filter-account"
+          id="select-filter-account"
+          value={filterAccount || ""}
+          onChange={changeFilterAccount}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {Object.values(addressBook?.json || [])
+            .filter(account => account.category === AddressCategories.Self)
+            .map(account => (
+              <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
+            ))
+          };
+        </Select>
+      </FormControl>
+
+      <FormControl className={classes.dropdown}>
+        <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
+        <Select
+          labelId="select-filter-asset"
+          id="select-filter-asset"
+          value={filterAsset || ""}
+          onChange={changeFilterAsset}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {ourAssets.map(asset => (
+            <MenuItem key={asset} value={asset}>{asset}</MenuItem>
+          )) };
+        </Select>
+      </FormControl>
+
+      <FormControl className={classes.dropdown}>
+        <InputLabel id="select-filter-source">Filter Source</InputLabel>
+        <Select
+          labelId="select-filter-source"
+          id="select-filter-source"
+          value={filterSource || ""}
+          onChange={changeFilterSource}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {Object.keys(TransactionSources)
+            .filter(source => !transactions?.json || transactions.json.some(hasSource(source)))
+            .map(source => (
+              <MenuItem key={source} value={source}>{source}</MenuItem>
+            ))
+          };
+        </Select>
+      </FormControl>
+
+      <FormControl className={classes.dropdown}>
+        <InputLabel id="select-filter-app">Filter App</InputLabel>
+        <Select
+          labelId="select-filter-app"
+          id="select-filter-app"
+          value={filterApp || ""}
+          onChange={changeFilterApp}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {Object.keys(EvmApps)
+            .filter(app => !transactions?.json || transactions.json.some(hasApp(app)))
+            .map(app => (
+              <MenuItem key={app} value={app}>{app}</MenuItem>
+            ))
+          };
+        </Select>
+      </FormControl>
+
+      <br/>
+
+      <DateInput
+        id="filter-end-date"
+        label="Filter End Date"
+        setDate={setFilterEndDate}
+      />
+
+      <DateInput
+        id="filter-start-date"
+        label="Filter Start Date"
+        setDate={setFilterStartDate}
+      />
+
+      <br/>
+
       <TableContainer>
-
-        <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredTxns.length === transactions?.json.length
-            ? `${filteredTxns.length} Transaction${filteredTxns.length === 1 ? "" : "s"}`
-            : `${filteredTxns.length} of ${transactions?.json?.length} Transactions`
-          }
-        </Typography>
-
-        <FormControl className={classes.select}>
-          <InputLabel id="select-filter-account">Filter Account</InputLabel>
-          <Select
-            labelId="select-filter-account"
-            id="select-filter-account"
-            value={filterAccount || ""}
-            onChange={changeFilterAccount}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {Object.values(addressBook?.json || [])
-              .filter(account => account.category === AddressCategories.Self)
-              .map(account => (
-                <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
-              ))
-            };
-          </Select>
-        </FormControl>
-
-        <FormControl className={classes.select}>
-          <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
-          <Select
-            labelId="select-filter-asset"
-            id="select-filter-asset"
-            value={filterAsset || ""}
-            onChange={changeFilterAsset}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {ourAssets.map(asset => (
-              <MenuItem key={asset} value={asset}>{asset}</MenuItem>
-            )) };
-          </Select>
-        </FormControl>
-
-        <FormControl className={classes.select}>
-          <InputLabel id="select-filter-source">Filter Source</InputLabel>
-          <Select
-            labelId="select-filter-source"
-            id="select-filter-source"
-            value={filterSource || ""}
-            onChange={changeFilterSource}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {Object.keys(TransactionSources)
-              .filter(source => !transactions?.json || transactions.json.some(hasSource(source)))
-              .map(source => (
-                <MenuItem key={source} value={source}>{source}</MenuItem>
-              ))
-            };
-          </Select>
-        </FormControl>
-
-        <FormControl className={classes.select}>
-          <InputLabel id="select-filter-app">Filter App</InputLabel>
-          <Select
-            labelId="select-filter-app"
-            id="select-filter-app"
-            value={filterApp || ""}
-            onChange={changeFilterApp}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {Object.keys(EvmApps)
-              .filter(app => !transactions?.json || transactions.json.some(hasApp(app)))
-              .map(app => (
-                <MenuItem key={app} value={app}>{app}</MenuItem>
-              ))
-            };
-          </Select>
-        </FormControl>
-
-        <DateInput
-          id="filter-end-date"
-          label="Filter End Date"
-          setDate={setFilterEndDate}
-        />
-
-        <DateInput
-          id="filter-start-date"
-          label="Filter Start Date"
-          setDate={setFilterStartDate}
-        />
-
-
         <Table size="small" className={classes.table}>
           <TableHead>
             <TableRow>
@@ -251,7 +253,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             }
           </TableBody>
         </Table>
-
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"
@@ -261,7 +262,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-
       </TableContainer>
 
     </Paper>

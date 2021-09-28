@@ -27,16 +27,18 @@ import { ChunkRow } from "./ChunkRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
-    minWidth: "500px",
-    padding: theme.spacing(2),
+    padding: theme.spacing(1),
   },
   title: {
-    margin: theme.spacing(1),
+    padding: theme.spacing(2),
   },
-  select: {
-    marginBottom: theme.spacing(2),
-    marginLeft: theme.spacing(2),
-    minWidth: 160,
+  dropdown: {
+    margin: theme.spacing(3),
+    minWidth: theme.spacing(20),
+  },
+  table: {
+    minWidth: theme.spacing(115),
+    overflow: "auto",
   },
 }));
 
@@ -97,54 +99,53 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   return (
     <Paper className={classes.paper}>
 
-      <TableContainer>
+      <Typography align="center" variant="h4" className={classes.title} component="div">
+        {filteredChunks.length === vm.json?.chunks?.length
+          ? `${filteredChunks.length} Chunks`
+          : `${filteredChunks.length} of ${vm.json?.chunks?.length || 0} Chunks`
+        }
+      </Typography>
 
-        <Typography align="center" variant="h4" className={classes.title} component="div">
-          {filteredChunks.length === vm.json?.chunks?.length
-            ? `${filteredChunks.length} Chunks`
-            : `${filteredChunks.length} of ${vm.json?.chunks?.length || 0} Chunks`
-          }
-        </Typography>
-
-        <FormControl className={classes.select}>
-          <InputLabel id="select-filter-account">Filter Account</InputLabel>
-          <Select
-            labelId="select-filter-account"
-            id="select-filter-account"
-            value={filterAccount || ""}
-            onChange={handleFilterAccountChange}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {accounts
-              .sort((a1, a2) => a1 < a2 ? 1 : -1)
-              .sort((a1, a2) => isAddress(a1) && !isAddress(a2) ? 1 : -1)
-              .map((account, i) => (
-                <MenuItem key={i} value={account}>
-                  {addressBook?.getName(account) || account}
-                </MenuItem>
-              ))
-            }
-          </Select>
-        </FormControl>
-
-        <FormControl className={classes.select}>
-          <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
-          <Select
-            labelId="select-filter-asset"
-            id="select-filter-asset"
-            value={filterAsset || ""}
-            onChange={handleFilterAssetChange}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {assets.sort().map((asset, i) => (
-              <MenuItem key={i} value={asset}>
-                {addressBook?.getName(asset) || asset}
+      <FormControl className={classes.dropdown}>
+        <InputLabel id="select-filter-account">Filter Account</InputLabel>
+        <Select
+          labelId="select-filter-account"
+          id="select-filter-account"
+          value={filterAccount || ""}
+          onChange={handleFilterAccountChange}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {accounts
+            .sort((a1, a2) => a1 < a2 ? 1 : -1)
+            .sort((a1, a2) => isAddress(a1) && !isAddress(a2) ? 1 : -1)
+            .map((account, i) => (
+              <MenuItem key={i} value={account}>
+                {addressBook?.getName(account, true)}
               </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            ))
+          }
+        </Select>
+      </FormControl>
 
-        <Table>
+      <FormControl className={classes.dropdown}>
+        <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
+        <Select
+          labelId="select-filter-asset"
+          id="select-filter-asset"
+          value={filterAsset || ""}
+          onChange={handleFilterAssetChange}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {assets.sort().map((asset, i) => (
+            <MenuItem key={i} value={asset}>
+              {asset}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <TableContainer>
+        <Table size="small" className={classes.table}>
           <TableHead>
             <TableRow>
               <TableCell><strong> Index </strong></TableCell>
@@ -165,7 +166,6 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
               ))}
           </TableBody>
         </Table>
-
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"
@@ -175,7 +175,6 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-
       </TableContainer>
 
     </Paper>

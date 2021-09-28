@@ -92,8 +92,15 @@ export const mergeWyreTransactions = (
     } else if (txType === "INCOMING" && destType !== sourceType) {
       transaction.transfers.push({
         asset: sourceType,
-        category: SwapOut,
+        category: Internal,
         from: `${getGuard(sourceType)}/unknown`,
+        amount: sourceAmount,
+        to: account,
+      });
+      transaction.transfers.push({
+        asset: sourceType,
+        category: SwapOut,
+        from: account,
         amount: sourceAmount,
         to: exchange,
       });
@@ -128,6 +135,13 @@ export const mergeWyreTransactions = (
         asset: destType,
         category: SwapIn,
         from: exchange,
+        amount: destAmount,
+        to: account,
+      });
+      transaction.transfers.push({
+        asset: destType,
+        category: Internal,
+        from: account,
         amount: destAmount,
         to: `${getGuard(destType)}/unknown`,
       });

@@ -10,10 +10,15 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
+import { categorizeTransfer } from "../../utils";
 import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
-import { addresses } from "./addresses";
+import {
+  zapBridgeAddress,
+  plasmaBridgeAddress,
+  flashWalletAddress,
+} from "./addresses";
 import { apps } from "./enums";
 
 export const appName = apps.Polygon;
@@ -22,9 +27,6 @@ const { ETH, WETH } = EvmAssets;
 
 ////////////////////////////////////////
 /// Addresses
-
-const ZapperPolygonBridge = "ZapperPolygonBridge";
-const PlasmaBridge = "PlasmaBridge";
 
 const plasmaBridgeAbi = [
   "event NewDepositBlock(address indexed owner, address indexed token, uint256 amountOrNFTId, uint256 depositBlockId)",
@@ -50,9 +52,9 @@ export const coreParser = (
 ): Transaction => {
   const log = logger.child({ module: appName });
   const { getName, isToken, getDecimals } = addressBook;
-  const addressZero = `${evmMeta.name}/${AddressZero}`; 
+  const addressZero = `${evmMeta.name}/${AddressZero}`;
 
-  if (getName(evmTx.to) === ZapperPolygonBridge) {
+  if (evmTx.to === zapBridgeAddress) {
     const account = evmTx.from;
     tx.apps.push(appName);
     tx.method = `Zap to Polygon`;
@@ -65,14 +67,18 @@ export const coreParser = (
         const address = txLog.address;
         const event = parseEvent(wethAbi, txLog, evmMeta);
         if (event.name === "Transfer") {
-          return {
+          return categorizeTransfer({
             asset: getName(address),
             category: TransferCategories.Unknown,
-            from: event.args.from === addressZero ? address : event.args.from,
+            from: event.args.from === addressZero ? address
+            : event.args.from === flashWalletAddress ? account
+            : event.args.from,
             index: txLog.index,
             amount: formatUnits(event.args.amount, getDecimals(address)),
-            to: event.args.to === addressZero ? address : event.args.to,
-          };
+            to: event.args.to === addressZero ? address
+            : event.args.to === flashWalletAddress ? account
+            : event.args.to,
+          }, addressBook);
         } else if (event.name === "Deposit") {
           const swapOut = tx.transfers.find(transfer =>
             transfer.amount === formatUnits(event.args.amount, 18)
@@ -97,78 +103,36 @@ export const coreParser = (
         }
       }).filter(t => !!t);
 
-    // Log transfers
+    // Log & add selfish transfers
     erc20Transfers.forEach(transfer => {
       log.info(`Found ${transfer.asset} transfer for ${
         transfer.amount
       } from ${getName(transfer.from)} to ${getName(transfer.to)}`);
-    });
-
-    // Parse Weth
-    erc20Transfers.forEach(transfer => {
-      if (getName(transfer.from) === WETH) {
+      if (addressBook.isSelf(transfer.from) || addressBook.isSelf(transfer.to)) {
         tx.transfers.push(transfer);
-        log.info(`ZAP Found weth swap in of ${
-          transfer.amount
-        } ${transfer.asset} from ${getName(transfer.from)}`);
       }
     });
 
-    // Parse Uniswap
-    erc20Transfers.forEach(transfer => {
-      const [to, from] = [getName(transfer.to), getName(transfer.from)];
-      if (to.startsWith("UniV2")) {
-        transfer.from = account;
-        transfer.category = TransferCategories.SwapOut;
-        tx.transfers.push(transfer);
-        log.info(`ZAP Found swap out of ${
-          transfer.amount
-        } ${transfer.asset} from ${getName(transfer.from)}`);
-      } else if (from.startsWith("UniV2")) {
-        transfer.to = account;
-        transfer.category = TransferCategories.SwapIn;
-        tx.transfers.push(transfer);
-        log.info(`ZAP Found swap in of ${
-          transfer.amount
-        } ${transfer.asset} to ${getName(transfer.to)}`);
-      }
-    });
-
-    // parse 0x
-    erc20Transfers.forEach(transfer => {
-      const [to, from] = [getName(transfer.to), getName(transfer.from)];
-      if (to.startsWith("ZeroEx")) {
-        transfer.from = account;
-        transfer.category = TransferCategories.SwapOut;
-        tx.transfers.push(transfer);
-        log.info(`ZAP Found swap out of ${
-          transfer.amount
-        } ${transfer.asset} from ${getName(transfer.from)}`);
-      } else if (from.startsWith("ZeroEx")) {
-        transfer.to = account;
-        transfer.category = TransferCategories.SwapIn;
-        tx.transfers.push(transfer);
-        log.info(`ZAP Found swap in of ${
-          transfer.amount
-        } ${transfer.asset} to ${getName(transfer.to)}`);
-      }
-    });
-
-    // parse bridge?
+    // parse bridge
     evmTx.logs
-      .filter(txLog => getName(txLog.address) === PlasmaBridge) 
+      .filter(txLog => txLog.address === plasmaBridgeAddress)
       .forEach(txLog => {
         const event = parseEvent(plasmaBridgeAbi, txLog, evmMeta);
         log.info(`Got plasma bridge event: ${event.name}`);
         if (event.name === "NewDepositBlock") {
-          tx.transfers.push({
-            asset: getName(event.args.token),
-            category: TransferCategories.Internal,
-            from: event.args.owner,
-            index: txLog.index,
-            amount: formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token)),
-            to: `Polygon/${event.args.owner.split("/").pop()}`,
-          });
+          const amount = formatUnits(event.args.amountOrNFTId, getDecimals(event.args.token));
+          const asset = getName(event.args.token);
+          const deposit = tx.transfers.find(transfer =>
+            transfer.from === event.args.owner
+            && transfer.amount === amount
+            && transfer.asset === asset
+          );
+          if (deposit) {
+            deposit.category = TransferCategories.Internal;
+            deposit.to = `Polygon/${event.args.owner.split("/").pop()}`;
+          } else {
+            log.warn(`Couldn't find a deposit of ${amount} ${asset}`);
+          }
         }
       });
 
@@ -176,7 +140,7 @@ export const coreParser = (
   } else {
     for (const txLog of evmTx.logs) {
       const address = txLog.address;
-      if (addresses.map(e => e.address).includes(address)) {
+      if (address === plasmaBridgeAddress) {
         tx.apps.push(appName);
         const name = getName(address);
         const event = parseEvent(plasmaBridgeAbi, txLog, evmMeta);
