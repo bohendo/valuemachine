@@ -11,11 +11,11 @@ import {
   testLogger,
 } from "./testUtils";
 
+const log = testLogger.child({ module: "TestMerge" }, { level: "warn" });
 const { ETH } = Assets;
-const { Expense, Internal } = TransferCategories;
+const { Fee, Expense, Internal } = TransferCategories;
 const { Coinbase, Ethereum } = TransactionSources;
 const csvSource = Coinbase;
-const log = testLogger.child({ module: "TestMerge" }, { level: "warn" });
 
 const ethAccount = "Ethereum/0x1111111111111111111111111111111111111111";
 const extAccount = "Ethereum/0x2222222222222222222222222222222222222222";
@@ -46,7 +46,7 @@ const getEthTx = (): Transaction => ({
   transfers: [
     {
       asset: ETH,
-      category: Expense,
+      category: Fee,
       from: ethAccount,
       index: -1,
       amount: "0.000000004294967296",
