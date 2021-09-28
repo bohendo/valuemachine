@@ -8,13 +8,17 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
+import { getTransferCategory } from "../../utils";
 import { parseEvent } from "../utils";
 
 import { assets, apps } from "./enums";
 import {
+  gatewayAddress,
   wethAddress,
   wmaticAddress,
 } from "./addresses";
+
+const { SwapIn, SwapOut, Noop } = TransferCategories;
 
 const wethAbi = [
   "event Approval(address indexed src, address indexed guy, uint256 wad)",
@@ -30,44 +34,57 @@ export const coreParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const { getDecimals, isSelf } = addressBook;
+  const { getDecimals } = addressBook;
   const log = logger.child({ module: `${apps.Weth}:${evmTx.hash.substring(0, 6)}` });
+  const isProxy = address => gatewayAddress === address;
+  const isSelf = address => addressBook.isSelf(address) || isProxy(address);
+
+  // If we sent this evmTx to a proxy, replace proxy addresses w tx origin
+  if (addressBook.isSelf(evmTx.from)) {
+    tx.transfers.forEach(transfer => {
+      if (isProxy(transfer.from)) {
+        transfer.from = evmTx.from;
+        transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
+      }
+      if (isProxy(transfer.to)) {
+        transfer.to = evmTx.from;
+        transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
+      }
+    });
+  }
+
+  const replaceProxy = addressBook.isSelf(evmTx.from)
+    ? address => address === gatewayAddress ? evmTx.from : address
+    : address => address;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    log.info(`checking address ${address} aka ${addressBook.getName(address)}`);
+    const index = txLog.index;
     if (address === wethAddress || address === wmaticAddress) {
       const appName = address === wethAddress ? apps.Weth : apps.WMatic;
       const asset = address === wethAddress ? assets.WETH : assets.WMATIC;
-      log.info(`Found ${appName} event`);
       const event = parseEvent(wethAbi, txLog, evmMeta);
       if (!event.name) continue;
       const amount = formatUnits(event.args.wad, getDecimals(address));
-      const index = txLog.index || 1;
 
       if (event.name === "Deposit") {
-        if (!isSelf(event.args.dst)) {
-          log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
-          continue;
-        } else {
-          log.info(`Parsing ${appName} ${event.name} of amount ${amount}`);
-        }
+        log.info(`Parsing ${appName} ${event.name} of amount ${amount}`);
         tx.apps.push(appName);
+        const to = replaceProxy(event.args.dst);
         tx.transfers.push({
           asset,
-          category: TransferCategories.SwapIn,
+          category: isSelf(to) ? SwapIn : Noop,
           from: address,
           index,
           amount: amount,
-          to: event.args.dst,
+          to,
         });
         const swapOut = tx.transfers.find(t =>
-          t.asset === evmMeta.feeAsset && t.amount === amount
-          && isSelf(t.from) && t.to === address
+          t.asset === evmMeta.feeAsset && t.amount === amount && t.to === address
         );
         if (swapOut) {
-          swapOut.category = TransferCategories.SwapOut;
-          swapOut.index = index - 0.1;
+          swapOut.category = isSelf(swapOut.from) ? SwapOut : Noop;
+          swapOut.index = "index" in swapOut ? swapOut.index : index - 1;
           if (evmTx.to === wethAddress || evmTx.to === wmaticAddress) {
             tx.method = "Trade";
           }
@@ -77,35 +94,30 @@ export const coreParser = (
             && t.to === swapOut.from
           );
           if (transfer) {
-            transfer.index = index - 0.2;
+            transfer.index = "index" in transfer ? transfer.index : index - 1;
           }
         } else {
-          log.warn(`Couldn't find an eth call associated w deposit of ${amount} ${asset}`);
+          log.warn(`Couldn't find a transfer associated w deposit of ${amount} ${asset}`);
         }
 
       } else if (event.name === "Withdrawal") {
-        if (!isSelf(event.args.src)) {
-          log.debug(`Skipping ${asset} ${event.name} that doesn't involve us`);
-          continue;
-        } else {
-          log.info(`Parsing ${appName} ${event.name} of amount ${amount}`);
-        }
+        log.info(`Parsing ${appName} ${event.name} of amount ${amount}`);
         tx.apps.push(appName);
+        const from = replaceProxy(event.args.src);
         tx.transfers.push({
           asset,
-          category: TransferCategories.SwapOut,
-          from: event.args.src,
+          category: isSelf(from) ? SwapOut : Noop,
+          from,
           index,
           amount: amount,
           to: address,
         });
         const swapIn = tx.transfers.find(t =>
-          t.asset === evmMeta.feeAsset && t.amount === amount
-          && isSelf(t.to) && t.from === address
+          t.asset === evmMeta.feeAsset && t.amount === amount && t.from === address
         );
         if (swapIn) {
-          swapIn.category = TransferCategories.SwapIn;
-          swapIn.index = index + 0.1;
+          swapIn.category = isSelf(swapIn.to) ? SwapIn : Noop;
+          swapIn.index = "index" in swapIn ? swapIn.index : index + 1;
           if (evmTx.to === wethAddress) {
             tx.method = "Trade";
           }
@@ -115,14 +127,14 @@ export const coreParser = (
             && t.from === swapIn.to
           );
           if (transfer) {
-            transfer.index = index + 0.2;
+            transfer.index = "index" in transfer ? transfer.index : index + 1;
           }
         } else {
           log.warn(`Couldn't find an eth call associated w withdrawal of ${amount} ${asset}`);
         }
 
       } else if (event.name === "Transfer" || event.name === "Approval") {
-        log.debug(`Skipping ${appName} ${event.name} that was already processed`);
+        continue; // already processed by erc20 parser
       } else {
         log.warn(`Unknown ${appName} event`);
       }

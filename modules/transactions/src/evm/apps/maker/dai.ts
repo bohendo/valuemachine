@@ -241,6 +241,14 @@ export const daiParser = (
         } else {
           log.warn(`Vat.${logNote.name}: Can't find a DAI transfer of about ${dart}`);
         }
+
+        /*
+      } else if (logNote.name === "move") {
+        const vault = `${appName}-Vault-${logNote.args[0].replace(/0+$/, "")}`;
+        const amt = formatUnits(toBN(logNote.args[2] || "0x00").fromTwos(256), 45);
+        log.info(`Found a vat.move call for ${vault} of ${amt} DAI`);
+        */
+
       }
 
     ////////////////////////////////////////

@@ -12,7 +12,6 @@ import {
 import {
   div,
   valuesAreClose,
-  assetsAreClose,
 } from "@valuemachine/utils";
 
 import { EvmNames } from "../../enums";
@@ -72,7 +71,7 @@ const aTokenAbi = [
 
 const associatedTransfer = (asset: string, amount: string) =>
   (transfer: Transfer): boolean =>
-    assetsAreClose(asset, transfer.asset) &&
+    asset === transfer.asset &&
     valuesAreClose(transfer.amount, amount, div(amount, "100"));
 
 export const coreParser = (
@@ -93,6 +92,7 @@ export const coreParser = (
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
+    const index = txLog.index;
     if (defiAddresses.some(e => e.address === address)) {
       tx.apps.push(appName);
       const event = parseEvent(lendingPoolAbi, txLog, evmMeta);
@@ -122,6 +122,7 @@ export const coreParser = (
           swapOut.to = address;
           swapIn.category = SwapIn;
           swapIn.from = address;
+          swapIn.index = index;
           tx.method = "Deposit";
         }
 
@@ -150,10 +151,11 @@ export const coreParser = (
           swapOut.to = address;
           swapIn.category = SwapIn;
           swapIn.from = address;
+          swapIn.index = index;
           tx.method = "Withdraw";
         }
 
-      } else if (event.name === "Borrow" && (event.args.user===event.args.onBehalfOf) ) {
+      } else if (event.name === "Borrow" && (event.args.user === event.args.onBehalfOf) ) {
         const asset = getName(event.args.reserve) as Asset ;
         const amount = formatUnits(
           event.args.amount,
@@ -169,7 +171,7 @@ export const coreParser = (
         }
         tx.method = "Borrow";
 
-      } else if (event.name === "Repay"&& (event.args.user===event.args.repayer) ) {
+      } else if (event.name === "Repay"&& (event.args.user === event.args.repayer) ) {
         const asset = getName(event.args.reserve) as Asset ;
         const amount = formatUnits(
           event.args.amount,
@@ -192,7 +194,7 @@ export const coreParser = (
     } else if (stkAAVEAddress === address) {
       tx.apps.push(appName);
       const event = parseEvent(aaveStakeAbi, txLog, evmMeta);
-      if (event.name === "Staked" && (event.args.from===event.args.onBehalfOf) ) {
+      if (event.name === "Staked" && (event.args.from === event.args.onBehalfOf) ) {
         const asset1 = assets.AAVE;
         const asset2 = assets.stkAAVE;
         const amount = formatUnits(
@@ -211,11 +213,12 @@ export const coreParser = (
           swapOut.to = address;
           swapIn.category = SwapIn;
           swapIn.from = address;
+          swapIn.index = index;
           tx.method = "Deposit";
           log.debug(`${event.name}: for ${amount} ${asset1} has been processed`);
         }
 
-      } else if (event.name === "Redeem" && (event.args.from===event.args.to)) {
+      } else if (event.name === "Redeem" && (event.args.from === event.args.to)) {
         const asset1 = assets.AAVE;
         const asset2 = assets.stkAAVE;
         const amount = formatUnits(
@@ -234,6 +237,7 @@ export const coreParser = (
           swapOut.to = address;
           swapIn.category = SwapIn;
           swapIn.from = address;
+          swapIn.index = index;
           tx.method = "Withdraw";
           log.debug(`${event.name}: for ${amount} ${asset1} has been processed`);
         }

@@ -127,8 +127,13 @@ export const coreParser = (
       const underlyingAsset = idleToToken(addressBook.getName(address));
 
       log.info(`Looking for associated ${underlyingAsset} transfer`);
-      const tokenTransfer = tx.transfers.find(transfer => transfer.asset === underlyingAsset);
-      if (isSelf(tokenTransfer?.to)) {
+      const tokenTransfer = tx.transfers.find(transfer =>
+        transfer.asset === underlyingAsset && (isSelf(transfer.from) || isSelf(transfer.to))
+      );
+      if (!tokenTransfer) {
+        log.warn(`Couldn't find any ${underlyingAsset} transfer`);
+
+      } else if (isSelf(tokenTransfer.to)) {
         const iTokenTransfer = tx.transfers.find(transfer =>
           transfer.asset === asset && isSelf(transfer.from)
         );
@@ -139,7 +144,8 @@ export const coreParser = (
         } else {
           log.warn(`Couldn't find an outgoing ${asset} transfer`);
         }
-      } else if (isSelf(tokenTransfer?.from)) {
+
+      } else if (isSelf(tokenTransfer.from)) {
         const iTokenTransfer = tx.transfers.find(transfer =>
           transfer.asset === asset && isSelf(transfer.to)
         );
@@ -150,9 +156,6 @@ export const coreParser = (
         } else {
           log.warn(`Couldn't find an outgoing ${asset} transfer`);
         }
-
-      } else {
-        log.warn(`Couldn't find a valid ${underlyingAsset} transfer`);
       }
     }
   }

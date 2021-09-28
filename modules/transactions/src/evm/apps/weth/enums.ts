@@ -8,6 +8,10 @@ export const assets = {
   WMATIC: "WMATIC",
 } as const;
 
+export const contracts = {
+  WethGateway: "WethGateway",
+} as const;
+
 export const enums = {
   apps,
   assets,

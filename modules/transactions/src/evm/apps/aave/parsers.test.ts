@@ -37,8 +37,8 @@ describe(appName, () => {
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
-    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapIn);
-    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle borrow from v2", async () => {
@@ -53,7 +53,7 @@ describe(appName, () => {
     expect(tx.transfers[1].category).to.equal(TransferCategories.Borrow);
   });
 
-  it.skip("should handle repay to v2", async () => {
+  it("should handle repay to v2", async () => {
     const tx = await parseEthTx({
       selfAddress: "0xcb9649e80d15f3aa2993a691a73c7ed29e47df63",
       hash: "0x2372a971883af89814f3ed1a6fe89c19b3e7d6945445552f74da11033a9af5ed",
@@ -74,8 +74,8 @@ describe(appName, () => {
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
-    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapIn);
-    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle unstaking aave", async () => {
@@ -87,8 +87,8 @@ describe(appName, () => {
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
-    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
   it("should handle a deposit on polygon", async () => {
@@ -102,6 +102,8 @@ describe(appName, () => {
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[3].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[4].category).to.equal(TransferCategories.SwapIn);
   });
 
 });

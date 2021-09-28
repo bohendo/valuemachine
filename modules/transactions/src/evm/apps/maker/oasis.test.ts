@@ -27,17 +27,6 @@ describe(appName, () => {
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });
 
-  it("should handle a v1 sell", async () => {
-    const tx = await parseEthTx({
-      hash: "0x5e15f70d656308e72be1d0772dae4c275e7efdff2ab778f7ae4eaefede616e38",
-      selfAddress: "0x0005abcbb9533cf6f9370505ffef25393e0d2852",
-      logger,
-    });
-    expect(tx.apps).to.include(appName);
-    expect(tx.transfers.length).to.equal(1);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.SwapIn);
-  });
-
   it("should handle a swap via proxy", async () => {
     const tx = await parseEthTx({
       hash: "0x7c1a36431b0fd001f20277850f16226a44ce1b83db89d0572a7e9289cbcc7c3b",
@@ -45,9 +34,18 @@ describe(appName, () => {
       logger,
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.transfers.length).to.equal(3);
+    expect(tx.transfers.length).to.equal(11);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[3].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[4].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[5].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[6].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[7].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[8].category).to.equal(TransferCategories.SwapIn);
+    expect(tx.transfers[9].category).to.equal(TransferCategories.SwapOut);
+    expect(tx.transfers[10].category).to.equal(TransferCategories.SwapIn);
   });
 
 });

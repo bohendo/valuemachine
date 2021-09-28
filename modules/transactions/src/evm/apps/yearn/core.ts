@@ -154,18 +154,16 @@ export const coreParser = (
       } else {
         if (isSelf(transfer.from) && isSelf(yTransfer.to)) { // deposit
           transfer.category = SwapOut;
-          transfer.index = transfer.index || txLog.index - 0.1;
+          transfer.index = "index" in transfer ? transfer.index : txLog.index - 1;
           transfer.to = address;
           yTransfer.category = SwapIn;
           yTransfer.from = address;
-          yTransfer.index = yTransfer.index || txLog.index + 0.1;
           tx.method = "Deposit";
         } else { // withdraw
-          transfer.category = isSelf(transfer.to) ? SwapIn : SwapOut;
+          transfer.category = SwapIn;
           transfer.from = address;
-          transfer.index = transfer.index || txLog.index + 0.1;
-          yTransfer.category = isSelf(yTransfer.to) ? SwapIn : SwapOut;
-          yTransfer.index = yTransfer.index || txLog.index - 0.1;
+          transfer.index = "index" in transfer ? transfer.index : txLog.index + 1;
+          yTransfer.category = SwapOut;
           yTransfer.to = address;
           tx.method = "Withdraw";
         }

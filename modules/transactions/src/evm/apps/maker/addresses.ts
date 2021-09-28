@@ -11,10 +11,6 @@ const govTokenAddresses = [
   { name: assets.MKR, address: "Ethereum/0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
-const proxyAddresses = [
-  { name: "OasisProxy", address: "Ethereum/0x793ebbe21607e4f04788f89c7a9b97320773ec59" },
-].map(setAddressCategory(AddressCategories.Proxy));
-
 const saiAddresses = [
   { name: contracts.SaiCage, address: "Ethereum/0x9fdc15106da755f9ffd5b0ba9854cfb89602e0fd" },
   { name: contracts.SaiGemPit, address: "Ethereum/0x69076e44a9c70a67d5b79d95795aba299083c275" },
@@ -32,6 +28,10 @@ const daiAddresses = [
   { name: contracts.DaiVat, address: "Ethereum/0x35d1b3f3d7966a1dfe207aa4514c12a259a0492b" },
   { name: "DaiManager", address: "Ethereum/0x5ef30b9986345249bc32d8928b7ee64de9435e39" },
 ].map(setAddressCategory(AddressCategories.Defi));
+
+export const proxyAddresses = [
+  { name: "OasisProxy", address: "Ethereum/0x793ebbe21607e4f04788f89c7a9b97320773ec59" },
+].map(setAddressCategory(AddressCategories.Proxy));
 
 export const exchangeAddresses = [
   { name: "OasisV1", address: "Ethereum/0x14fbca95be7e99c15cc2996c6c9d841e54b79425" },

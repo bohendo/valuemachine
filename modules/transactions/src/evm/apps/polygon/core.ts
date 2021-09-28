@@ -10,7 +10,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { categorizeTransfer } from "../../utils";
+import { getTransferCategory } from "../../utils";
 import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
@@ -67,18 +67,20 @@ export const coreParser = (
         const address = txLog.address;
         const event = parseEvent(wethAbi, txLog, evmMeta);
         if (event.name === "Transfer") {
-          return categorizeTransfer({
-            asset: getName(address),
-            category: TransferCategories.Unknown,
-            from: event.args.from === addressZero ? address
+          const from = event.args.from === addressZero ? address
             : event.args.from === flashWalletAddress ? account
-            : event.args.from,
+            : event.args.from;
+          const to = event.args.to === addressZero ? address
+            : event.args.to === flashWalletAddress ? account
+            : event.args.to;
+          return {
+            asset: getName(address),
+            category: getTransferCategory(from, to, addressBook),
+            from,
             index: txLog.index,
             amount: formatUnits(event.args.amount, getDecimals(address)),
-            to: event.args.to === addressZero ? address
-            : event.args.to === flashWalletAddress ? account
-            : event.args.to,
-          }, addressBook);
+            to,
+          };
         } else if (event.name === "Deposit") {
           const swapOut = tx.transfers.find(transfer =>
             transfer.amount === formatUnits(event.args.amount, 18)

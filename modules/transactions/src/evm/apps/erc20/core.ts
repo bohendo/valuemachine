@@ -7,10 +7,9 @@ import {
   EvmTransaction,
   Logger,
   Transaction,
-  TransferCategories,
 } from "@valuemachine/types";
 
-import { categorizeTransfer } from "../../utils";
+import { getTransferCategory } from "../../utils";
 import { parseEvent } from "../utils";
 
 import { apps } from "./enums";
@@ -36,10 +35,11 @@ export const coreParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
-  const { getDecimals, getName, isSelf, isToken } = addressBook;
+  const { getDecimals, getName, isToken } = addressBook;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
+    const index = txLog.index;
     // Only parse known, ERC20 compliant tokens
     if (isToken(address)) {
       const event = parseEvent(erc20Abi, txLog, evmMeta);
@@ -47,22 +47,24 @@ export const coreParser = (
       tx.apps.push(appName);
       const asset = getName(address) as Asset;
       // Skip transfers that don't concern self accounts
-      if (!isSelf(event.args.from) && !isSelf(event.args.to)) {
-        log.debug(`Skipping ${asset} ${event.name} that doesn't involve us (${event.args.to})`);
-        continue;
-      }
       const amount = formatUnits(event.args.amount, getDecimals(address));
 
       if (event.name === "Transfer") {
-        log.info(`Parsing ${appName} ${event.name} of ${amount} ${asset}`);
-        tx.transfers.push(categorizeTransfer({
+        const from = event.args.from.endsWith(AddressZero) ? address : event.args.from;
+        const to = event.args.to.endsWith(AddressZero) ? address : event.args.to;
+        log.info(`Parsing ${appName} ${event.name} #${index} of ${amount} ${asset} from ${
+          from.substring(0, from.length - 30)
+        }.. to ${
+          to.substring(0, to.length - 30)
+        }..`);
+        tx.transfers.push({
           amount: amount,
           asset,
-          category: TransferCategories.Unknown,
-          from: event.args.from.endsWith(AddressZero) ? address : event.args.from,
-          index: txLog.index,
-          to: event.args.to.endsWith(AddressZero) ? address : event.args.to,
-        }, addressBook));
+          category: getTransferCategory(from, to, addressBook),
+          from,
+          index,
+          to,
+        });
         if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
