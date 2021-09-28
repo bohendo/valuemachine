@@ -3,6 +3,7 @@ import { AddressCategories } from "@valuemachine/types";
 import { setAddressCategory } from "@valuemachine/utils";
 
 import { addresses as aave } from "./aave/addresses";
+import { addresses as airswap } from "./airswap/addresses";
 import { addresses as bjtj } from "./bjtj/addresses";
 import { addresses as compound } from "./compound/addresses";
 import { addresses as erc20 } from "./erc20/addresses";
@@ -17,6 +18,7 @@ import { addresses as yearn } from "./yearn/addresses";
 
 const appAddresses = [
   ...aave,
+  ...airswap,
   ...bjtj,
   ...compound,
   ...erc20,
@@ -101,7 +103,6 @@ const donationAddresses = [
 const exchangeAddresses = [
   { name: "0xV1", address: "Ethereum/0x12459c951127e0c374ff9105dda097662a027093" },
   { name: "0xV2", address: "Ethereum/0x4f833a24e1f95d70f028921e27040ca56e09ab0b" },
-  { name: "Airswap", address: "Ethereum/0x8fd3121013a07c57f0d69646e86e7a4880b467b7" },
   { name: "BalancerVault", address: "Ethereum/0xBA12222222228d8Ba445958a75a0704d566BF2C8" },
   { name: "Idex", address: "Ethereum/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208" },
   { name: "KyberOld", address: "Ethereum/0x9ae49c0d7f8f9ef4b864e004fe86ac8294e20950" },

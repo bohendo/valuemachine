@@ -1,4 +1,5 @@
 import { enums as aave } from "./aave/enums";
+import { enums as airswap } from "./airswap/enums";
 import { enums as bjtj } from "./bjtj/enums";
 import { enums as compound } from "./compound/enums";
 import { enums as erc20 } from "./erc20/enums";
@@ -12,6 +13,7 @@ import { enums as yearn } from "./yearn/enums";
 
 export const EvmApps = {
   ...aave.apps,
+  ...airswap.apps,
   ...bjtj.apps,
   ...compound.apps,
   ...erc20.apps,
@@ -26,6 +28,7 @@ export const EvmApps = {
 
 export const Tokens = {
   ...aave.assets,
+  ...airswap.assets,
   ...bjtj.assets,
   ...compound.assets,
   ...erc20.assets,
