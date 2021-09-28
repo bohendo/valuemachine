@@ -11,6 +11,7 @@ import { assets } from "./enums";
 const ethereumAddresses = [
   { name: assets._1INCH, address: "Ethereum/0x111111111117dc0aa78b770fa6a738034120c302" },
   { name: assets._3Crv, address: "Ethereum/0x6c3f90f043a72fa612cbac8115ee7e52bde6e490" },
+  { name: assets.ADT, address: "Ethereum/0xd0d6d6c5fe4a677d343cc433536bb717bae167dd", decimals: 9 },
   { name: assets.ankrCRV, address: "Ethereum/0xaa17a236f2badc98ddc0cf999abb47d47fc0a6cf" },
   { name: assets.BAT, address: "Ethereum/0x0d8775f648430679a709e98d2b0cb6250d2887ef" },
   { name: assets.CHERRY, address: "Ethereum/0x4ecb692b0fedecd7b486b4c99044392784877e8c", decimals: 4 },
