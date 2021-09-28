@@ -11,9 +11,9 @@ import {
 import { bjtjV1Address, bjtjV2Address } from "./addresses";
 import { apps } from "./enums";
 
-export const appName = apps.BJTJ;
+const appName = apps.BJTJ;
 
-export const coreParser = (
+const coreParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   evmMeta: EvmMetadata,
@@ -45,6 +45,4 @@ export const coreParser = (
   return tx;
 };
 
-export const insert = [];
-export const modify = [coreParser];
-export const parsers = { insert, modify };
+export const parsers = { insert: [], modify: [coreParser] };

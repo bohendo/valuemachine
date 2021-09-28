@@ -5,6 +5,8 @@ import {
   testLogger,
 } from "../testUtils";
 
+import { methods } from "./enums";
+
 const appName = EvmApps.Quickswap;
 const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 
@@ -17,7 +19,7 @@ describe(appName, () => {
     });
     expect(tx.sources).to.include(TransactionSources.Polygon);
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.match(/swap/i);
+    expect(tx.method).to.equal(methods.Trade);
   });
 });
 

@@ -8,12 +8,12 @@ import {
 } from "@valuemachine/types";
 
 import { addresses } from "./addresses";
-import { apps } from "./enums";
+import { apps, methods } from "./enums";
 
 const appName = apps.Quickswap;
 const { Expense, Income, SwapIn, SwapOut } = TransferCategories;
 
-export const coreParser = (
+const coreParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
   _evmMeta: EvmMetadata,
@@ -26,6 +26,7 @@ export const coreParser = (
   if (addressBook.isSelf(evmTx.from) && addresses.some(e => e.address === evmTx.to)) {
     log.info(`Found transaction from ${evmTx.from}`);
     tx.apps.push(appName);
+    tx.method = methods.Trade;
     tx.transfers.forEach(transfer => {
       transfer.category = transfer.category === Expense ? SwapOut
         : transfer.category === Income ? SwapIn
