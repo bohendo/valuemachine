@@ -19,7 +19,7 @@ export const describeTransaction = (addressBook: AddressBook, tx: Transaction): 
   const fees = tx.transfers.filter(t => t.category === Fee);
   const nonFee = tx.transfers.filter(t => t.category !== Fee);
   if (!nonFee.length) {
-    return `${tx.method || "Unknown method call"} by ${addressBook.getName(fees[0].from)}`;
+    return `${tx.method || "Unknown method call"} by ${addressBook.getName(fees[0].from, true)}`;
 
   } else if (nonFee.some(t => t.category === SwapIn) && nonFee.some(t => t.category === SwapOut)) {
     const [inputs, outputs] = diffBalances([sumTransfers(
@@ -28,33 +28,34 @@ export const describeTransaction = (addressBook: AddressBook, tx: Transaction): 
       nonFee.filter(t => t.category === SwapOut)
     )]);
     return `${addressBook.getName(
-      nonFee.find(t => t.category === SwapOut).from
+      nonFee.find(t => t.category === SwapOut).from,
+      true,
     )} traded ${describeBalance(outputs)} for ${describeBalance(inputs)}`;
 
   } else if (nonFee.some(t => t.category === Income)) {
     return `${
-      addressBook.getName(nonFee.find(t => t.category === Income).to)
+      addressBook.getName(nonFee.find(t => t.category === Income).to, true)
     }${nonFee.length > 1 ? ", etc" : ""} received ${
       describeBalance(sumTransfers(nonFee.filter(t => t.category === Income)))
     }`;
 
   } else if (nonFee.some(t => t.category === Expense)) {
     return `${
-      addressBook.getName(nonFee.find(t => t.category === Expense).from)
+      addressBook.getName(nonFee.find(t => t.category === Expense).from, true)
     }${nonFee.length > 1 ? ", etc" : ""} spent ${
       describeBalance(sumTransfers(nonFee.filter(t => t.category === Expense)))
     }`;
 
   } else if (nonFee.some(t => t.category === Borrow)) {
     return `${
-      addressBook.getName(nonFee.find(t => t.category === Borrow).to)
+      addressBook.getName(nonFee.find(t => t.category === Borrow).to, true)
     }${nonFee.length > 1 ? ", etc" : ""} borrowed ${
       describeBalance(sumTransfers(nonFee))
     }`;
 
   } else if (nonFee.some(t => t.category === Repay)) {
     return `${
-      addressBook.getName(nonFee.find(t => t.category === Repay).from)
+      addressBook.getName(nonFee.find(t => t.category === Repay).from, true)
     }${nonFee.length > 1 ? ", etc" : ""} repayed ${
       describeBalance(sumTransfers(nonFee))
     }`;
@@ -64,14 +65,15 @@ export const describeTransaction = (addressBook: AddressBook, tx: Transaction): 
     return `${tx.method || "Transfer"}${nonFee.length > 1 ? ", etc" : ""} of ${
       round(transfer.amount)} ${transfer.asset
     } from ${
-      addressBook.getName(transfer.from)
+      addressBook.getName(transfer.from, true)
     } to ${
-      addressBook.getName(transfer.to)
+      addressBook.getName(transfer.to, true)
     }`;
 
   }
   return `${tx.method || "Unknown method call"} by ${addressBook.getName(
-    addressBook.isSelf(tx.transfers[0].to) ? tx.transfers[0].to : tx.transfers[0].from
+    addressBook.isSelf(tx.transfers[0].to) ? tx.transfers[0].to : tx.transfers[0].from,
+    true,
   )}`;
 };
 
