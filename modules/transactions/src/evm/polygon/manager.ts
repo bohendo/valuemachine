@@ -1,6 +1,4 @@
 import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
-import { formatEther } from "@ethersproject/units";
-import { hexlify } from "@ethersproject/bytes";
 import {
   AddressBook,
   Bytes32,
@@ -21,7 +19,6 @@ import {
   getEvmDataError,
   getEvmTransactionError,
   getLogger,
-  toBN,
 } from "@valuemachine/utils";
 import getQueue from "queue";
 
@@ -70,31 +67,6 @@ export const getPolygonData = ({
 
   ////////////////////////////////////////
   // Internal Heleprs
-
-  const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
-
-  const formatCovalentTx = rawTx => ({
-    // block: rawTx.block_height,
-    // data: "0x", // not available?
-    // gasLimit: hexlify(rawTx.gas_offered),
-    // index: rawTx.tx_offset,
-    from: getAddress(rawTx.from_address),
-    gasPrice: toBN(rawTx.gas_price).toString(),
-    gasUsed: toBN(rawTx.gas_spent).toString(),
-    hash: hexlify(rawTx.tx_hash),
-    logs: rawTx.log_events.map(evt => ({
-      address: getAddress(evt.sender_address),
-      index: evt.log_offset,
-      topics: evt.raw_log_topics.map(hexlify),
-      data: hexlify(evt.raw_log_data || "0x"),
-    })),
-    nonce: 0, // TODO: We need this to calculate the addresses of newly created contracts
-    status: rawTx.successful ? 1 : 0,
-    timestamp: rawTx.block_signed_at,
-    transfers: [], // not available, get from etherscan
-    to: rawTx.to_address ? getAddress(rawTx.to_address) : null,
-    value: formatEther(rawTx.value),
-  });
 
   const syncAddress = async (rawAddress: EvmAddress): Promise<void> => {
     if (!fetcher) throw new Error(`Either a covalentKey or a polygonscanKey is required`);
@@ -166,7 +138,7 @@ export const getPolygonData = ({
     }
     if (!fetcher) throw new Error(`Either a covalentKey or a polygonscanKey is required`);
     log.info(`Fetching polygon data for tx ${txHash}`);
-    const polygonTx = formatCovalentTx(await fetcher.fetchTransaction(txHash));
+    const polygonTx = await fetcher.fetchTransaction(txHash);
     const error = getEvmTransactionError(polygonTx);
     if (error) throw new Error(error);
     // log.debug(polygonTx, `Parsed raw polygon tx to a valid evm tx`);

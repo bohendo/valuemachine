@@ -8,21 +8,13 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { EvmAssets } from "../../enums";
 import { parseEvent } from "../utils";
 
 import { assets, apps } from "./enums";
-import { addresses } from "./addresses";
-
-export const appName = apps.Weth;
-
-const { ETH } = EvmAssets;
-const { SwapIn, SwapOut } = TransferCategories;
-
-const wethAddress = addresses.find(e => e.name === assets.WETH).address;
-
-////////////////////////////////////////
-/// Abis
+import {
+  wethAddress,
+  wmaticAddress,
+} from "./addresses";
 
 const wethAbi = [
   "event Approval(address indexed src, address indexed guy, uint256 wad)",
@@ -31,9 +23,6 @@ const wethAbi = [
   "event Withdrawal(address indexed src, uint256 wad)",
 ];
 
-////////////////////////////////////////
-/// Parser
-
 export const coreParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
@@ -41,13 +30,16 @@ export const coreParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, isSelf } = addressBook;
+  const log = logger.child({ module: `${apps.Weth}:${evmTx.hash.substring(0, 6)}` });
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    if (address === wethAddress) {
-      const asset = assets.WETH;
+    log.info(`checking address ${address} aka ${addressBook.getName(address)}`);
+    if (address === wethAddress || address === wmaticAddress) {
+      const appName = address === wethAddress ? apps.Weth : apps.WMatic;
+      const asset = address === wethAddress ? assets.WETH : assets.WMATIC;
+      log.info(`Found ${appName} event`);
       const event = parseEvent(wethAbi, txLog, evmMeta);
       if (!event.name) continue;
       const amount = formatUnits(event.args.wad, getDecimals(address));
@@ -63,32 +55,32 @@ export const coreParser = (
         tx.apps.push(appName);
         tx.transfers.push({
           asset,
-          category: SwapIn,
+          category: TransferCategories.SwapIn,
           from: address,
           index,
           amount: amount,
           to: event.args.dst,
         });
         const swapOut = tx.transfers.find(t =>
-          t.asset === ETH && t.amount === amount
+          t.asset === evmMeta.feeAsset && t.amount === amount
           && isSelf(t.from) && t.to === address
         );
         if (swapOut) {
-          swapOut.category = SwapOut;
+          swapOut.category = TransferCategories.SwapOut;
           swapOut.index = index - 0.1;
-          if (evmTx.to === wethAddress) {
+          if (evmTx.to === wethAddress || evmTx.to === wmaticAddress) {
             tx.method = "Trade";
           }
           // If there's a same-value eth transfer to the swap recipient, index it before
           const transfer = tx.transfers.find(t =>
-            t.asset === ETH && t.amount === amount
+            t.asset === evmMeta.feeAsset && t.amount === amount
             && t.to === swapOut.from
           );
           if (transfer) {
             transfer.index = index - 0.2;
           }
         } else {
-          log.warn(`Couldn't find an eth call associated w deposit of ${amount} WETH`);
+          log.warn(`Couldn't find an eth call associated w deposit of ${amount} ${asset}`);
         }
 
       } else if (event.name === "Withdrawal") {
@@ -101,32 +93,32 @@ export const coreParser = (
         tx.apps.push(appName);
         tx.transfers.push({
           asset,
-          category: SwapOut,
+          category: TransferCategories.SwapOut,
           from: event.args.src,
           index,
           amount: amount,
           to: address,
         });
         const swapIn = tx.transfers.find(t =>
-          t.asset === ETH && t.amount === amount
+          t.asset === evmMeta.feeAsset && t.amount === amount
           && isSelf(t.to) && t.from === address
         );
         if (swapIn) {
-          swapIn.category = SwapIn;
+          swapIn.category = TransferCategories.SwapIn;
           swapIn.index = index + 0.1;
           if (evmTx.to === wethAddress) {
             tx.method = "Trade";
           }
           // If there's a same-value eth transfer from the swap recipient, index it after
           const transfer = tx.transfers.find(t =>
-            t.asset === ETH && t.amount === amount
+            t.asset === evmMeta.feeAsset && t.amount === amount
             && t.from === swapIn.to
           );
           if (transfer) {
             transfer.index = index + 0.2;
           }
         } else {
-          log.warn(`Couldn't find an eth call associated w withdrawal of ${amount} WETH`);
+          log.warn(`Couldn't find an eth call associated w withdrawal of ${amount} ${asset}`);
         }
 
       } else if (event.name === "Transfer" || event.name === "Approval") {
@@ -138,6 +130,5 @@ export const coreParser = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };

@@ -7,7 +7,12 @@ import {
   Transaction,
 } from "@valuemachine/types";
 
-import { aaveParsers, erc20Parsers, quickswapParsers } from "../apps";
+import {
+  aaveParsers,
+  wethParsers,
+  erc20Parsers,
+  quickswapParsers,
+} from "../apps";
 import { parseEvmTx } from "../parser";
 
 export const parsePolygonTx = (
@@ -22,10 +27,11 @@ export const parsePolygonTx = (
     polygonMetadata,
     addressBook,
     logger,
-    [ // Order matters! Complex parsers usually depend on simple ones so put ERC20 first
-      erc20Parsers,
-      quickswapParsers,
+    [
       aaveParsers,
+      erc20Parsers,
       extraParsers,
+      quickswapParsers,
+      wethParsers,
     ],
   );

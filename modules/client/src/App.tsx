@@ -45,7 +45,7 @@ import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
 
 const store = getLocalStore(localStorage);
-const logger = getLogger("debug");
+const logger = getLogger("warn");
 
 // localstorage keys
 const {
