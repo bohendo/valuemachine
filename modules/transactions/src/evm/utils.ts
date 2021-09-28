@@ -48,7 +48,7 @@ export const formatTraces = (traces: any[], meta: EvmMetadata): EvmTransfer[] =>
       : AddressZero
     ),
     value: formatEther(
-      trace.type === "call" ? trace.action.value
+      trace.type === "call" ? (trace.action.callType === "delegatecall" ? "0" : trace.action.value)
       : trace.type === "create" ? trace.action.value
       : trace.type === "suicide" ? trace.action.balance
       : "0"
