@@ -3,12 +3,17 @@ import { Static, Type } from "@sinclair/typebox";
 export const EvmAddress = Type.RegEx(/^0x[a-fA-F0-9]{40}$/);
 export type EvmAddress = Static<typeof EvmAddress>;
 
-// <guard>[/<venue>]/address
+// guard[/venue]/address
 // eg Ethereum/0xabc123.. for simple on-chain accounts
 // eg Ethereum/Maker-CDP-123/0xabc123.. for on-chain apps that support deposits/withdraws
 // eg USA/Coinbase/account for off-chain trad fi services
 export const Account = Type.RegEx(/^[-/a-zA-Z0-9]+$/); // TODO: tighten regex
 export type Account = Static<typeof Account>;
+
+// guard/hash
+// eg Ethereum/0xabc123 for a tx on eth mainnet
+export const TxId = Type.RegEx(/[a-zA-Z0-9]/);
+export type TxId = Static<typeof TxId>;
 
 export const Asset = Type.RegEx(/^[_a-zA-Z0-9]{1,32}$/);
 export type Asset = Static<typeof Asset>;

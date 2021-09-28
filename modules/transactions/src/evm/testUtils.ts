@@ -3,9 +3,9 @@ import path from "path";
 
 import {
   Account,
+  TxId,
   AddressBook,
   AddressCategories,
-  Bytes32,
   Logger,
   Transaction,
 } from "@valuemachine/types";
@@ -19,14 +19,12 @@ import { getEthereumData } from "./ethereum";
 
 export * from "../testUtils";
 
-export const testStore = getFileStore(path.join(__dirname, "../testData"), fs);
-
 export const getTestAddressBook = (...selfAddresses: Account[]): AddressBook => 
   getAddressBook({
     json: selfAddresses.reduce((addressBookJson, address, i) => {
       addressBookJson[address] = {
         address,
-        name: `test-self-${i}`,
+        name: `Self${i}`,
         category: AddressCategories.Self,
       };
       return addressBookJson;
@@ -34,47 +32,34 @@ export const getTestAddressBook = (...selfAddresses: Account[]): AddressBook =>
     logger: testLogger,
   });
 
-export const parseEthTx = async ({
-  hash,
-  selfAddress,
-  logger,
-  storePath,
-}: {
-  hash: Bytes32;
-  selfAddress: Account;
+export const getParseTx = (params?: {
+  addressBook?: AddressBook;
   logger?: Logger;
   storePath?: string;
-}): Promise<Transaction> => {
-  const addressBook = getTestAddressBook(selfAddress);
-  const store = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
-  const ethData = getEthereumData({
-    alchemyProvider: env.alchemyProvider,
-    logger,
-    store,
-  });
-  await ethData.syncTransaction(hash, env.etherscanKey);
-  return ethData.getTransaction(hash, addressBook);
-};
-
-export const parsePolygonTx = async ({
-  hash,
-  selfAddress,
-  logger,
-  storePath,
-}: {
-  hash: Bytes32;
-  selfAddress: Account;
-  logger?: Logger;
-  storePath?: string;
-}): Promise<Transaction> => {
-  const addressBook = getTestAddressBook(selfAddress);
-  const store = getFileStore(path.join(__dirname, storePath || "../testData"), fs);
-  const polygonData = getPolygonData({
-    polygonscanKey: env.polygonscanKey,
-    logger,
-    store,
-  });
-  await polygonData.syncTransaction(hash);
-  return polygonData.getTransaction(hash, addressBook);
+}) => {
+  const logger = params?.logger || testLogger;
+  const storePath = params?.storePath || path.join(__dirname, "../testData");
+  const store = getFileStore(storePath, fs);
+  const polyData = getPolygonData({ polygonscanKey: env.polygonscanKey, logger, store });
+  const ethData = getEthereumData({ etherscanKey: env.etherscanKey, logger, store });
+  return async ({
+    txid,
+    selfAddress,
+  }: {
+    txId: TxId;
+    selfAddress?: Account;
+  }): Promise<Transaction> => {
+    const addressBook = params?.addressBook || getTestAddressBook(selfAddress);
+    const [evm, hash] = txid.split("/");
+    if (evm === "Ethereum") {
+      await ethData.syncTransaction(hash);
+      return ethData.getTransaction(hash, addressBook);
+    } else if (evm === "Polygon") {
+      await polyData.syncTransaction(hash);
+      return polyData.getTransaction(hash, addressBook);
+    } else {
+      throw new Error(`Idk what to do w this tx: ${txid}`);
+    }
+  };
 };
 
