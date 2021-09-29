@@ -59,9 +59,9 @@ export const coreParser = (
     tx.method = `Zap to Polygon`;
     log.info(`Parsing ${tx.method}`);
 
-    // Get all erc20 transfers (even non-self ones)
+    // Get all token transfers (even non-self ones)
     // TODO: get from already-parsed transfers..
-    const erc20Transfers = evmTx.logs
+    const tokenTransfers = evmTx.logs
       .filter(txLog => isToken(txLog.address))
       .map((txLog): Transfer => {
         const address = txLog.address;
@@ -106,7 +106,7 @@ export const coreParser = (
       }).filter(t => !!t);
 
     // Log & add selfish transfers
-    erc20Transfers.forEach(transfer => {
+    tokenTransfers.forEach(transfer => {
       log.info(`Found ${transfer.asset} transfer for ${
         transfer.amount
       } from ${getName(transfer.from)} to ${getName(transfer.to)}`);

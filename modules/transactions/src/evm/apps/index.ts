@@ -7,7 +7,7 @@ export { parsers as bjtjParsers } from "./bjtj";
 export { parsers as argentParsers } from "./argent";
 export { parsers as compoundParsers } from "./compound";
 export { parsers as cryptokittiesParsers } from "./cryptokitties";
-export { parsers as erc20Parsers } from "./erc20";
+export { parsers as tokensParsers } from "./tokens";
 export { parsers as etherdeltaParsers } from "./etherdelta";
 export { parsers as idleParsers } from "./idle";
 export { parsers as makerParsers } from "./maker";

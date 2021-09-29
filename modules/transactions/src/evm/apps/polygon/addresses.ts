@@ -8,7 +8,7 @@ export const govAddresses = [
     address: `${Evms.Ethereum}/0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0`,
     name: Tokens.MATIC,
   },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 export const bridgeAddresses = [
   {

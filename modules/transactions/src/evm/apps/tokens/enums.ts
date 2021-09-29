@@ -1,5 +1,5 @@
 const Apps = {
-  ERC20: "ERC20",
+  Token: "Token",
 } as const;
 
 const Methods = {

@@ -83,14 +83,14 @@ export const cTokenAddresses = [
     decimals: 8,
     name: Tokens.cZRX,
   },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 const govTokenAddresses = [
   {
     name: Tokens.COMP,
     address: "Ethereum/0xc00e94cb662c3520282e6f5717214004a7f26888",
   },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 export const addresses = [
   ...cTokenAddresses,

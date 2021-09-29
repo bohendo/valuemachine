@@ -157,7 +157,7 @@ export const tokenParser = (
         }
 
       } else if (["Approval", "Transfer"].includes(event.name)) {
-        continue; // already handled by generic erc20 parser
+        continue; // already handled by generic token parser
       } else {
         log.warn(`Unknown ${event.name} event from ${asset}`);
       }

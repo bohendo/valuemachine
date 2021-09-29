@@ -76,7 +76,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
 
   const isSelf = isCategory(AddressCategories.Self);
 
-  const isToken = isCategory(AddressCategories.ERC20);
+  const isToken = isCategory(AddressCategories.Token);
 
   // If venue is present, return venue/name else return name
   const getName = (account: Account, prefix?: boolean): string => {

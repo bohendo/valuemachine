@@ -15,7 +15,7 @@ const factoryAddresses = [
 
 const govTokenAddresses = [
   { name: Tokens.UNI, address: "Ethereum/0x1f9840a85d5af5bf1d1762f925bdaddc4201f984" },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 export const routerAddresses = [
   { name: "UniswapRouterV2", address: "Ethereum/0x7a250d5630b4cf539739df2c5dacb4c659f2488d" },
@@ -116,7 +116,7 @@ export const v2MarketAddresses = [
   { name: Tokens.UniV2_WBTC_USDT, address: "Ethereum/0x0DE0Fa91b6DbaB8c8503aAA2D1DFa91a192cB149" },
   { name: Tokens.UniV2_WDOGE_ETH, address: "Ethereum/0xc3d7aa944105d3fafe07fc1822102449c916a8d0" },
   { name: Tokens.UniV2_YFI_ETH, address: "Ethereum/0x2fdbadf3c4d5a8666bc06645b8358ab803996e28" },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 export const v3MarketAddresses = [
   { name: "UniV3_005_DAI_ETH", address: "Ethereum/0x60594a405d53811d3BC4766596EFD80fd545A270" },

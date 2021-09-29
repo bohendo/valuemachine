@@ -107,7 +107,7 @@ const yVaultV1Addresses = [{
 }, {
   name: Tokens.yYFI,
   address: "Ethereum/0xba2e7fed597fd0e3e70f5130bcdbbfe06bb94fe1",
-}].map(setAddressCategory(AddressCategories.ERC20));
+}].map(setAddressCategory(AddressCategories.Token));
 
 const yVaultV2Addresses = [{
   name: Tokens.yv1INCH,
@@ -163,12 +163,12 @@ const yVaultV2Addresses = [{
 }, {
   name: Tokens.yvYFI,
   address: "Ethereum/0xe14d13d8b3b85af791b2aadd661cdbd5e6097db1",
-}].map(setAddressCategory(AddressCategories.ERC20));
+}].map(setAddressCategory(AddressCategories.Token));
 
 const govTokenAddresses = [{
   name: Tokens.YFI,
   address: "Ethereum/0x0bc529c00c6401aef6d220be8c6ea1667f6ad93e",
-}].map(setAddressCategory(AddressCategories.ERC20));
+}].map(setAddressCategory(AddressCategories.Token));
 
 export const addresses = [
   ...govTokenAddresses,

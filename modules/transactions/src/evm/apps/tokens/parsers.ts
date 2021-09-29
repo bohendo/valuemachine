@@ -12,12 +12,12 @@ import {
 import { Apps } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
 
-const appName = Apps.ERC20;
+const appName = Apps.Token;
 
 ////////////////////////////////////////
 /// ABIs
 
-const erc20Abi = [
+const tokenAbi = [
   "event Approval(address indexed from, address indexed to, uint amount)",
   "event Transfer(address indexed from, address indexed to, uint amount)",
 ];
@@ -40,7 +40,7 @@ const coreParser = (
     const index = txLog.index;
     // Only parse known, ERC20 compliant tokens
     if (isToken(address)) {
-      const event = parseEvent(erc20Abi, txLog, evmMeta);
+      const event = parseEvent(tokenAbi, txLog, evmMeta);
       if (!event.name) continue;
       tx.apps.push(appName);
       const asset = getName(address) as Asset;

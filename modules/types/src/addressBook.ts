@@ -7,7 +7,7 @@ import { Account, Guard } from "./strings";
 ////////////////////////////////////////
 // JSON Schema
 
-// Addresses that only concern a single user
+// Addresses that only concern a single user eg EOAs & multisigs
 export const PrivateCategories = {
   Employee: "Employee",
   Employer: "Employer",
@@ -20,15 +20,16 @@ export const PrivateCategories = {
 export const PrivateCategory = Type.String(); // Extensible
 export type PrivateCategory = Static<typeof PrivateCategory>;
 
-// Addresses that concern the entire ecosystem
+// Addresses that interact with the entire crypto ecosystem eg tokens
 export const PublicCategories = {
   Burn: "Burn",
   Defi: "Defi",
   Donation: "Donation",
-  ERC20: "ERC20",
   Exchange: "Exchange",
+  NFT: "NFT",
   Proxy: "Proxy",
   Public: "Public",
+  Token: "Token",
 } as const;
 export const PublicCategory = Type.String(); // Extensible
 export type PublicCategory = Static<typeof PublicCategory>;
@@ -43,7 +44,7 @@ export type AddressCategory = Static<typeof AddressCategory>;
 export const AddressEntry = Type.Object({
   address: Account,
   category: AddressCategory,
-  decimals: Type.Optional(Type.Number()), // for ERC20 token addresses
+  decimals: Type.Optional(Type.Number()), // for erc20 token addresses
   name: Type.String(),
   guard: Type.Optional(Guard), // EOAs should be secured by a physical guard too
 });

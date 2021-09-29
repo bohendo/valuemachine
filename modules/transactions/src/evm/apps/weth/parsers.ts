@@ -133,7 +133,7 @@ const coreParser = (
         }
 
       } else if (event.name === "Transfer" || event.name === "Approval") {
-        continue; // already processed by erc20 parser
+        continue; // already processed by token parser
       } else {
         log.warn(`Unknown ${appName} event`);
       }

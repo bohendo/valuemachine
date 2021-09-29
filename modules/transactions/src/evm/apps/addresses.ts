@@ -7,7 +7,7 @@ import { addresses as airswap } from "./airswap/addresses";
 import { addresses as bjtj } from "./bjtj/addresses";
 import { addresses as compound } from "./compound/addresses";
 import { addresses as cryptokitties } from "./cryptokitties/addresses";
-import { addresses as erc20 } from "./erc20/addresses";
+import { addresses as tokens } from "./tokens/addresses";
 import { addresses as idle } from "./idle/addresses";
 import { addresses as maker } from "./maker/addresses";
 import { addresses as polygon } from "./polygon/addresses";
@@ -23,7 +23,7 @@ const appAddresses = [
   ...bjtj,
   ...compound,
   ...cryptokitties,
-  ...erc20,
+  ...tokens,
   ...idle,
   ...maker,
   ...polygon,
@@ -64,7 +64,7 @@ const defiAddresses = [
   { name: "ENS-registrar", address: "Ethereum/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" },
   { name: "ENS-registrar", address: "Ethereum/0xb22c1c159d12461ea124b0deb4b5b93020e6ad16" },
   { name: "ENS-registrar-old", address: "Ethereum/0x6090a6e47849629b7245dfa1ca21d94cd15878ef" },
-  { name: "escrowed-erc20-bouncer", address: "Ethereum/0x2e225cf684a48f1de8eba5c56f1715c6f6c6b518" },
+  { name: "escrowed-token-bouncer", address: "Ethereum/0x2e225cf684a48f1de8eba5c56f1715c6f6c6b518" },
   { name: "eternal-storage-proxy", address: "Ethereum/0x4aa42145aa6ebf72e164c9bbc74fbd3788045016" },
   { name: "eth2-deposit", address: "Ethereum/0x00000000219ab540356cbb839cbe05303d7705fa" },
   { name: "genesis-alpha", address: "Ethereum/0x294f999356ed03347c7a23bcbcf8d33fa41dc830" },
