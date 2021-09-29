@@ -11,6 +11,7 @@ export { parsers as tokensParsers } from "./tokens";
 export { parsers as etherdeltaParsers } from "./etherdelta";
 export { parsers as idleParsers } from "./idle";
 export { parsers as makerParsers } from "./maker";
+export { parsers as nftsParsers } from "./nfts";
 export { parsers as polygonParsers } from "./polygon";
 export { parsers as quickswapParsers } from "./quickswap";
 export { parsers as tornadoParsers } from "./tornado";

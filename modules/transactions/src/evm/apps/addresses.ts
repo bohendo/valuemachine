@@ -10,6 +10,7 @@ import { addresses as cryptokitties } from "./cryptokitties/addresses";
 import { addresses as tokens } from "./tokens/addresses";
 import { addresses as idle } from "./idle/addresses";
 import { addresses as maker } from "./maker/addresses";
+import { addresses as nfts } from "./nfts/addresses";
 import { addresses as polygon } from "./polygon/addresses";
 import { addresses as quickswap } from "./quickswap/addresses";
 import { addresses as tornado } from "./tornado/addresses";
@@ -26,6 +27,7 @@ const appAddresses = [
   ...tokens,
   ...idle,
   ...maker,
+  ...nfts,
   ...polygon,
   ...quickswap,
   ...tornado,

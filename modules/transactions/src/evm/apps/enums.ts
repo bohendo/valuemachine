@@ -8,6 +8,7 @@ import { enums as tokens } from "./tokens/enums";
 import { enums as etherdelta } from "./etherdelta/enums";
 import { enums as idle } from "./idle/enums";
 import { enums as maker } from "./maker/enums";
+import { enums as nfts } from "./nfts/enums";
 import { enums as polygon } from "./polygon/enums";
 import { enums as quickswap } from "./quickswap/enums";
 import { enums as tornado } from "./tornado/enums";
@@ -26,6 +27,7 @@ export const Apps = {
   ...etherdelta.Apps,
   ...idle.Apps,
   ...maker.Apps,
+  ...nfts.Apps,
   ...polygon.Apps,
   ...quickswap.Apps,
   ...tornado.Apps,
@@ -45,6 +47,7 @@ export const Methods = {
   ...etherdelta.Methods,
   ...idle.Methods,
   ...maker.Methods,
+  ...nfts.Methods,
   ...polygon.Methods,
   ...quickswap.Methods,
   ...tornado.Methods,
@@ -64,6 +67,7 @@ export const Tokens = {
   ...etherdelta.Tokens,
   ...idle.Tokens,
   ...maker.Tokens,
+  ...nfts.Tokens,
   ...polygon.Tokens,
   ...quickswap.Tokens,
   ...tornado.Tokens,

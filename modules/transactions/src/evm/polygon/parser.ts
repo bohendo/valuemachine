@@ -10,7 +10,7 @@ import {
 import {
   aaveParsers,
   wethParsers,
-  tokenParsers,
+  tokensParsers,
   quickswapParsers,
 } from "../apps";
 import { parseEvmTx } from "../parser";
@@ -29,7 +29,7 @@ export const parsePolygonTx = (
     logger,
     [
       aaveParsers,
-      tokenParsers,
+      tokensParsers,
       extraParsers,
       quickswapParsers,
       wethParsers,
