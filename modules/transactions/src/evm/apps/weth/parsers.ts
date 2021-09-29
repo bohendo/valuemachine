@@ -141,7 +141,6 @@ const coreParser = (
     }
   }
 
-  log.debug(tx, `done parsing ${Apps.Weth}`);
   return tx;
 };
 

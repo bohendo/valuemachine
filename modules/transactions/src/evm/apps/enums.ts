@@ -3,6 +3,7 @@ import { enums as airswap } from "./airswap/enums";
 import { enums as argent } from "./argent/enums";
 import { enums as bjtj } from "./bjtj/enums";
 import { enums as compound } from "./compound/enums";
+import { enums as cryptokitties } from "./cryptokitties/enums";
 import { enums as erc20 } from "./erc20/enums";
 import { enums as etherdelta } from "./etherdelta/enums";
 import { enums as idle } from "./idle/enums";
@@ -20,6 +21,7 @@ export const Apps = {
   ...argent.Apps,
   ...bjtj.Apps,
   ...compound.Apps,
+  ...cryptokitties.Apps,
   ...erc20.Apps,
   ...etherdelta.Apps,
   ...idle.Apps,
@@ -38,6 +40,7 @@ export const Methods = {
   ...argent.Methods,
   ...bjtj.Methods,
   ...compound.Methods,
+  ...cryptokitties.Methods,
   ...erc20.Methods,
   ...etherdelta.Methods,
   ...idle.Methods,
@@ -56,6 +59,7 @@ export const Tokens = {
   ...argent.Tokens,
   ...bjtj.Tokens,
   ...compound.Tokens,
+  ...cryptokitties.Tokens,
   ...erc20.Tokens,
   ...etherdelta.Tokens,
   ...idle.Tokens,

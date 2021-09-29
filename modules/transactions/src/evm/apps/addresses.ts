@@ -6,6 +6,7 @@ import { addresses as aave } from "./aave/addresses";
 import { addresses as airswap } from "./airswap/addresses";
 import { addresses as bjtj } from "./bjtj/addresses";
 import { addresses as compound } from "./compound/addresses";
+import { addresses as cryptokitties } from "./cryptokitties/addresses";
 import { addresses as erc20 } from "./erc20/addresses";
 import { addresses as idle } from "./idle/addresses";
 import { addresses as maker } from "./maker/addresses";
@@ -21,6 +22,7 @@ const appAddresses = [
   ...airswap,
   ...bjtj,
   ...compound,
+  ...cryptokitties,
   ...erc20,
   ...idle,
   ...maker,
@@ -54,9 +56,6 @@ const defiAddresses = [
   { name: "contribution-reward", address: "Ethereum/0x08cc7bba91b849156e9c44ded51896b38400f55b" },
   { name: "contribution-reward", address: "Ethereum/0x6646d0a32d6b9c1d1a7389a6b8da7e5fd780f316" },
   { name: "contribution-reward", address: "Ethereum/0xc282f494a0619592a2410166dcc749155804f548" },
-  { name: "cryptokitty-auction", address: "Ethereum/0xb1690c08e213a35ed9bab7b318de14420fb57d8c" },
-  { name: "cryptokitty-clockauction", address: "Ethereum/0xc7af99fe5513eb6710e6d5f44f9989da40f27f26" },
-  { name: "cryptokitty-core", address: "Ethereum/0x06012c8cf97bead5deae237070f9587f8e7a266d" },
   { name: "daostack", address: "Ethereum/0x99bc239c208c7cf6c123c5fc1666383d17eace19" },
   { name: "dhack-eth-india", address: "Ethereum/0x0ed985925bb42c6719d10dcd1cc02d8cf596c15b" },
   { name: "dharma-lever", address: "Ethereum/0x9bd1428009681e1e3c8f58b50b724739807aa6c5" },
