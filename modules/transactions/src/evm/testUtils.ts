@@ -5,32 +5,17 @@ import {
   Account,
   TxId,
   AddressBook,
-  AddressCategories,
   Logger,
   Transaction,
 } from "@valuemachine/types";
 import { getFileStore } from "@valuemachine/utils";
 
-import { getAddressBook } from "../addressBook";
-import { env, testLogger } from "../testUtils";
+import { env, getTestAddressBook, testLogger } from "../testUtils";
 
 import { getPolygonData } from "./polygon";
 import { getEthereumData } from "./ethereum";
 
 export * from "../testUtils";
-
-export const getTestAddressBook = (...selfAddresses: Account[]): AddressBook => 
-  getAddressBook({
-    json: selfAddresses.reduce((addressBookJson, address, i) => {
-      addressBookJson[address] = {
-        address,
-        name: `Self${i}`,
-        category: AddressCategories.Self,
-      };
-      return addressBookJson;
-    }, {}),
-    logger: testLogger,
-  });
 
 export const getParseTx = (params?: {
   addressBook?: AddressBook;

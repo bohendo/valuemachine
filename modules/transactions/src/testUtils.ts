@@ -1,6 +1,13 @@
+import {
+  Account,
+  AddressBook,
+  AddressCategories,
+} from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import { use } from "chai";
 import promised from "chai-as-promised";
+
+import { getAddressBook } from "./addressBook";
 
 use(promised);
 
@@ -18,3 +25,16 @@ export const env = {
 export const testLogger = getLogger(env.logLevel).child({ module: "TestUtils" });
 
 testLogger.info(env, "starting tx tests in env");
+
+export const getTestAddressBook = (...selfAddresses: Account[]): AddressBook =>
+  getAddressBook({
+    json: selfAddresses.reduce((addressBookJson, address, i) => {
+      addressBookJson[address] = {
+        address,
+        name: `Self${i}`,
+        category: AddressCategories.Self,
+      };
+      return addressBookJson;
+    }, {}),
+    logger: testLogger,
+  });

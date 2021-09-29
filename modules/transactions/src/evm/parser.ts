@@ -12,6 +12,7 @@ import {
 } from "@valuemachine/types";
 import { dedup, gt, getNewContractAddress } from "@valuemachine/utils";
 
+import { Methods } from "./enums";
 import { getTransferCategory } from "./utils";
 
 export const parseEvmTx = (
@@ -30,6 +31,7 @@ export const parseEvmTx = (
     apps: [],
     date: (new Date(evmTx.timestamp)).toISOString(),
     uuid: `${evmMetadata.name}/${evmTx.hash}`,
+    method: Methods.Unknown,
     sources: [evmMetadata.name],
     transfers: [],
   } as Transaction;

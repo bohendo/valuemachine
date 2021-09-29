@@ -1,6 +1,7 @@
 import { CsvSources } from "./csv/enums";
 import {
   Apps as EvmApps,
+  Methods as EvmMethods,
   Assets as EvmAssets,
   Tokens as EvmTokens,
   Evms as EvmNames,
@@ -9,6 +10,7 @@ import {
 export { CsvSources } from "./csv/enums";
 export {
   Apps as EvmApps,
+  Methods as EvmMethods,
   Assets as EvmAssets,
   Tokens as EvmTokens,
   Evms as EvmNames,
@@ -34,6 +36,13 @@ export const UtxoAssets = {
 
 export const Apps = {
   ...EvmApps,
+} as const;
+
+////////////////////////////////////////
+// Methods
+
+export const Methods = {
+  ...EvmMethods,
 } as const;
 
 ////////////////////////////////////////
