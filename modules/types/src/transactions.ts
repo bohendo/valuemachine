@@ -45,7 +45,7 @@ export const Transfer = Type.Object({
   category: TransferCategory,
   from: Account,
   index: Type.Optional(Type.Number()),
-  amount: DecimalString,
+  amount: Type.Optional(DecimalString), // undefined if atomic eg nfts
   to: Account,
 });
 export type Transfer = Static<typeof Transfer>;

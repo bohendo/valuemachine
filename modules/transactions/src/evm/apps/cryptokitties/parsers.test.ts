@@ -10,10 +10,10 @@ import {
 } from "../../testUtils";
 
 const appName = Apps.CryptoKitties;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "debug" });
+const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 const parseTx = getParseTx({ logger });
 
-describe.only(appName, () => {
+describe(appName, () => {
 
   it("should handle a breed", async () => {
     const tx = await parseTx({
@@ -27,7 +27,7 @@ describe.only(appName, () => {
     expect(tx.transfers[1].category).to.equal(TransferCategories.Expense);
   });
 
-  it.only("should handle a transfer", async () => {
+  it("should handle a transfer", async () => {
     const tx = await parseTx({
       txid: "Ethereum/0x600fbd0e7da8a612a6b825f450c2cc71827dc864e88d91e8c506eb7e1f41fb8c",
       selfAddress: "Ethereum/0x213fE7E177160991829a4d0a598a848D2448F384",
