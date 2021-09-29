@@ -14,13 +14,12 @@ import {
   insertVenue,
 } from "@valuemachine/utils";
 
-import { EvmAssets } from "../../enums";
+import { Apps, Assets } from "../../enums";
 import { parseEvent } from "../../utils";
 
 import { etherdeltaAddress } from "./addresses";
-import { apps } from "./enums";
 
-export const appName = apps.EtherDelta;
+export const appName = Apps.EtherDelta;
 
 const { Income, Expense, Internal, SwapIn, SwapOut } = TransferCategories;
 
@@ -50,7 +49,7 @@ export const coreParser = (
   const { getDecimals, getName, isSelf } = addressBook;
 
   const getAsset = (address: Account): Asset =>
-    address.endsWith(AddressZero) ? EvmAssets.ETH : getName(address);
+    address.endsWith(AddressZero) ? Assets.ETH : getName(address);
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;

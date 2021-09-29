@@ -1,5 +1,11 @@
-export const apps = {
+const Apps = {
   Airswap: "Airswap",
 } as const;
-export const assets = {};
-export const enums = { apps, assets };
+
+const Methods = {
+} as const;
+
+const Tokens = {
+} as const;
+
+export const enums = { Apps, Methods, Tokens };

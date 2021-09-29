@@ -1,14 +1,13 @@
 import { TransferCategories } from "@valuemachine/types";
 
+import { Apps } from "../../enums";
 import {
   getParseTx,
   expect,
   testLogger,
 } from "../../testUtils";
 
-import { apps } from "./enums";
-
-const appName = apps.Idle;
+const appName = Apps.Idle;
 const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 const parseTx = getParseTx({ logger });
 

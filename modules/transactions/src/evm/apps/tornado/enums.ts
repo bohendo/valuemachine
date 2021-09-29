@@ -1,9 +1,11 @@
-export const apps = {
+const Apps = {
   Tornado: "Tornado",
 } as const;
 
-export const assets = {
+const Methods = {};
+
+const Tokens = {
   TORN: "TORN",
 } as const;
 
-export const enums = { assets, apps };
+export const enums = { Apps, Methods, Tokens };

@@ -8,9 +8,9 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
+import { Tokens, Apps } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
 
-import { assets, apps } from "./enums";
 import {
   gatewayAddress,
   wethAddress,
@@ -34,7 +34,7 @@ const coreParser = (
   logger: Logger,
 ): Transaction => {
   const { getDecimals } = addressBook;
-  const log = logger.child({ module: `${apps.Weth}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ module: `${Apps.Weth}:${evmTx.hash.substring(0, 6)}` });
   const isProxy = address => gatewayAddress === address;
   const isSelf = address => addressBook.isSelf(address) || isProxy(address);
 
@@ -60,8 +60,8 @@ const coreParser = (
     const address = txLog.address;
     const index = txLog.index;
     if (address === wethAddress || address === wmaticAddress) {
-      const appName = address === wethAddress ? apps.Weth : apps.WMatic;
-      const asset = address === wethAddress ? assets.WETH : assets.WMATIC;
+      const appName = address === wethAddress ? Apps.Weth : Apps.WMatic;
+      const asset = address === wethAddress ? Tokens.WETH : Tokens.WMATIC;
       const event = parseEvent(wethAbi, txLog, evmMeta);
       if (!event.name) continue;
       const amount = formatUnits(event.args.wad, getDecimals(address));
@@ -141,7 +141,7 @@ const coreParser = (
     }
   }
 
-  log.debug(tx, `done parsing ${apps.Weth}`);
+  log.debug(tx, `done parsing ${Apps.Weth}`);
   return tx;
 };
 

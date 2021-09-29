@@ -8,12 +8,12 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
+import { Apps } from "../../enums";
 import { parseEvent } from "../../utils";
 
 import { managerAddresses, relayerAddresses } from "./addresses";
-import { apps } from "./enums";
 
-const appName = apps.Argent;
+const appName = Apps.Argent;
 const { SwapIn, SwapOut } = TransferCategories;
 
 const makerManagerAddress = managerAddresses.find(e => e.name === "ArgentMakerManager")?.address;

@@ -18,11 +18,10 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
+import { Apps, Tokens } from "../../enums";
 import { parseEvent } from "../../utils";
 
-import { apps, assets } from "./enums";
 import {
-  addresses,
   compAddress,
   compoundV1Address,
   comptrollerAddress,
@@ -30,7 +29,7 @@ import {
   maximillionAddress,
 } from "./addresses";
 
-const appName = apps.Compound;
+const appName = Apps.Compound;
 
 const { Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
@@ -99,35 +98,29 @@ const coreParser = (
   // TODO: how could we not hardcode these again & also not introduce cyclic dependencies?
   const cTokenToTokenDecimals = (cToken: string): number => {
     switch (cToken) {
-    case assets.cBAT: return getDecimals("0x0d8775f648430679a709e98d2b0cb6250d2887ef");
-    case assets.cCOMP: return getDecimals(compAddress);
-    case assets.cDAI: return getDecimals("0x6b175474e89094c44da98b954eedeac495271d0f");
-    case assets.cETH: return getDecimals(AddressZero);
-    case assets.cREP: return getDecimals("0x1985365e9f78359a9b6ad760e32412f4a445e862");
-    case assets.cSAI: return getDecimals("0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359");
-    case assets.cUNI: return getDecimals("0x1f9840a85d5af5bf1d1762f925bdaddc4201f984");
-    case assets.cUSDC: return getDecimals("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
-    case assets.cUSDT: return getDecimals("0xdac17f958d2ee523a2206206994597c13d831ec7");
-    case assets.cWBTC: return getDecimals("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599");
-    case assets.cWBTCv2: return getDecimals("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599");
-    case assets.cZRX: return getDecimals("0xe41d2489571d322189246dafa5ebde1f4699f498");
+    case Tokens.cBAT: return getDecimals("0x0d8775f648430679a709e98d2b0cb6250d2887ef");
+    case Tokens.cCOMP: return getDecimals(compAddress);
+    case Tokens.cDAI: return getDecimals("0x6b175474e89094c44da98b954eedeac495271d0f");
+    case Tokens.cETH: return getDecimals(AddressZero);
+    case Tokens.cREP: return getDecimals("0x1985365e9f78359a9b6ad760e32412f4a445e862");
+    case Tokens.cSAI: return getDecimals("0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359");
+    case Tokens.cUNI: return getDecimals("0x1f9840a85d5af5bf1d1762f925bdaddc4201f984");
+    case Tokens.cUSDC: return getDecimals("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
+    case Tokens.cUSDT: return getDecimals("0xdac17f958d2ee523a2206206994597c13d831ec7");
+    case Tokens.cWBTC: return getDecimals("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599");
+    case Tokens.cWBTCv2: return getDecimals("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599");
+    case Tokens.cZRX: return getDecimals("0xe41d2489571d322189246dafa5ebde1f4699f498");
     default: return 18;
     }
   };
 
-  if (addresses.some(e => e.address === evmTx.to)) {
-    tx.apps.push(appName);
-  }
-
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    if (addresses.some(e => e.address === address)) {
-      tx.apps.push(appName);
-    }
 
     ////////////////////////////////////////
     // Compound V1
     if (address === compoundV1Address) {
+      tx.apps.push(appName);
       const subsrc = `${appName}-v1`;
       const event = parseEvent(compoundV1Abi, txLog, evmMeta);
       log.info(`Found ${subsrc} ${event.name} event`);
@@ -227,6 +220,7 @@ const coreParser = (
     } else if (comptrollerAddress === address) {
       const event = parseEvent(comptrollerAbi, txLog, evmMeta);
       if (event.name === "MarketEntered") {
+        tx.apps.push(appName);
         tx.method = `${getName(event.args.cToken)} market entry`;
           
       }
@@ -237,11 +231,12 @@ const coreParser = (
       const event = parseEvent(cTokenAbi, txLog, evmMeta);
       if (event.name === "Transfer") {
         if (isSelf(event.args.to) && event.args.from === comptrollerAddress) {
+          tx.apps.push(appName);
           const amount = formatUnits(
             event.args.amount,
             getDecimals(address),
           );
-          const income = tx.transfers.find(associatedTransfer(assets.COMP, amount));
+          const income = tx.transfers.find(associatedTransfer(Tokens.COMP, amount));
           if (income) {
             income.category = Income;
             income.from = comptrollerAddress;
@@ -256,6 +251,7 @@ const coreParser = (
     } else if (cTokenAddresses.some(a => address === a.address)) {
       const event = parseEvent(cTokenAbi, txLog, evmMeta);
       if (!event.name) continue;
+      tx.apps.push(appName);
       const cAsset = getName(address);
       const asset = cAsset.replace(/^c/, "");
       const decimals = cTokenToTokenDecimals(address);

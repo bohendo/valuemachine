@@ -9,16 +9,16 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
+import { Apps } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
 
 import {
   exchangeAddresses,
   proxyAddresses,
 } from "./addresses";
-import { apps } from "./enums";
 
+const appName = Apps.Oasis;
 const { Income, Expense, SwapIn, SwapOut } = TransferCategories;
-const appName = apps.Oasis;
 
 ////////////////////////////////////////
 /// Abis

@@ -1,8 +1,10 @@
-export const apps = {
+const Apps = {
   Idle: "Idle",
 } as const;
 
-export const assets = {
+const Methods = {};
+
+const Tokens = {
   IDLE: "IDLE",
   idleDAISafe: "idleDAISafe",
   idleDAIYield: "idleDAIYield",
@@ -17,4 +19,4 @@ export const assets = {
   idleWETHYield: "idleWETHYield",
 } as const;
 
-export const enums = { assets, apps };
+export const enums = { Apps, Methods, Tokens };

@@ -1,14 +1,14 @@
-export const apps = {
+const Apps = {
   Uniswap: "Uniswap",
   UniswapV1: "UniswapV1",
   UniswapV2: "UniswapV2",
   UniswapV3: "UniswapV3",
 } as const;
 
-export const assets = {
+const Methods = {};
 
+const Tokens = {
   UNI: "UNI",
-
   UniV2_1INCH_ETH: "UniV2_1INCH_ETH",
   UniV2_AAVE_ETH: "UniV2_AAVE_ETH",
   UniV2_COMP_ETH: "UniV2_COMP_ETH",
@@ -52,7 +52,6 @@ export const assets = {
   UniV2_WBTC_USDT: "UniV2_WBTC_USDT",
   UniV2_WDOGE_ETH: "UniV2_WDOGE_ETH",
   UniV2_YFI_ETH: "UniV2_YFI_ETH",
-
 } as const;
 
-export const enums = { assets, apps };
+export const enums = { Apps, Methods, Tokens };

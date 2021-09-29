@@ -6,8 +6,7 @@ import {
 import { hashCsv } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
-import { Assets } from "../assets";
-import { CsvSources } from "../enums";
+import { Assets, CsvSources } from "../enums";
 import { mergeTransaction } from "../merge";
 
 export const mergeDigitalOceanTransactions = (

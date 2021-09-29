@@ -11,9 +11,9 @@ import {
   insertVenue,
 } from "@valuemachine/utils";
 
+import { Apps } from "../../enums";
 import { parseEvent } from "../../utils";
 
-import { apps } from "./enums";
 import {
   addresses,
   airdropAddresses,
@@ -21,7 +21,7 @@ import {
   v2MarketAddresses,
 } from "./addresses";
 
-export const appName = apps.UniswapV2;
+export const appName = Apps.UniswapV2;
 
 const { Income, Expense, Internal } = TransferCategories;
 

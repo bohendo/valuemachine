@@ -8,13 +8,14 @@ import {
   Transfer,
 } from "@valuemachine/types";
 
+import { Apps } from "../../enums";
+
 import {
   v3MarketAddresses,
   routerAddresses,
 } from "./addresses";
-import { apps } from "./enums";
 
-export const appName = apps.UniswapV3;
+const appName = Apps.UniswapV3;
 
 ////////////////////////////////////////
 /// Parser

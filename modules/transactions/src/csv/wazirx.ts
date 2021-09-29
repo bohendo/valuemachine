@@ -6,8 +6,7 @@ import {
 import { hashCsv } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
-import { CsvSources, Guards } from "../enums";
-import { Assets } from "../assets";
+import { Assets, CsvSources, Guards } from "../enums";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
 

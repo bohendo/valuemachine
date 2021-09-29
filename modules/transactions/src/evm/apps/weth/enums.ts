@@ -1,18 +1,14 @@
-export const apps = {
+const Apps = {
   Weth: "Weth",
   WMatic: "WMatic",
+  WethGateway: "WethGateway",
 } as const;
 
-export const assets = {
+const Methods = {};
+
+const Tokens = {
   WETH: "WETH",
   WMATIC: "WMATIC",
 } as const;
 
-export const contracts = {
-  WethGateway: "WethGateway",
-} as const;
-
-export const enums = {
-  apps,
-  assets,
-};
+export const enums = { Apps, Methods, Tokens };

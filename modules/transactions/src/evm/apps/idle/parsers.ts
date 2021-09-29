@@ -12,20 +12,19 @@ import {
   insertVenue,
 } from "@valuemachine/utils";
 
-import { EvmAssets } from "../../enums";
+import { Apps, Tokens } from "../../enums";
 import { parseEvent } from "../../utils";
 
 import { coreAddresses, govAddresses, marketAddresses } from "./addresses";
-import { apps } from "./enums";
 
-export const appName = apps.Idle;
+const appName = Apps.Idle;
 
 const { Internal, SwapIn, SwapOut } = TransferCategories;
 const {
   IDLE, idleDAISafe, idleDAIYield, idleRAIYield, idleSUSDYield, idleTUSDYield,
   idleUSDCSafe, idleUSDCYield, idleUSDTSafe, idleUSDTYield, idleWBTCYield, idleWETHYield,
   DAI, RAI, sUSD, TUSD, USDC, USDT, WBTC, WETH,
-} = EvmAssets;
+} = Tokens;
 
 ////////////////////////////////////////
 /// Abis

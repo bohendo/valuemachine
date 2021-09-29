@@ -46,7 +46,7 @@ export const getParseTx = (params?: {
     txid,
     selfAddress,
   }: {
-    txId: TxId;
+    txid: TxId;
     selfAddress?: Account;
   }): Promise<Transaction> => {
     const addressBook = params?.addressBook || getTestAddressBook(selfAddress);

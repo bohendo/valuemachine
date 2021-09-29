@@ -11,6 +11,7 @@ import {
   insertVenue,
 } from "@valuemachine/utils";
 
+import { Apps } from "../../enums";
 import { parseEvent } from "../../utils";
 
 import {
@@ -20,9 +21,8 @@ import {
   stakingAddresses,
   v2MarketAddresses,
 } from "./addresses";
-import { apps } from "./enums";
 
-const appName = apps.UniswapV2;
+const appName = Apps.UniswapV2;
 
 ////////////////////////////////////////
 /// Abis

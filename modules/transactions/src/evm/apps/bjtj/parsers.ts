@@ -7,10 +7,11 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { bjtjV1Address, bjtjV2Address } from "./addresses";
-import { apps } from "./enums";
+import { Apps } from "../../enums";
 
-const appName = apps.BJTJ;
+import { bjtjV1Address, bjtjV2Address } from "./addresses";
+
+const appName = Apps.BJTJ;
 
 const coreParser = (
   tx: Transaction,

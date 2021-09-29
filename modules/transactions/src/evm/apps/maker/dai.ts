@@ -23,19 +23,17 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { EvmAssets } from "../../enums";
+import { Apps, Assets, Tokens } from "../../enums";
 
 import {
   dsrAddress,
   migrationAddress,
   vatAddress,
 } from "./addresses";
-import { apps, assets } from "./enums";
 
-const appName = apps.Dai;
-
-const { ETH, WETH } = EvmAssets;
-const { DAI, PETH, SAI } = assets;
+const appName = Apps.Dai;
+const { ETH } = Assets;
+const { DAI, WETH, PETH, SAI } = Tokens;
 const { Expense, Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 ////////////////////////////////////////

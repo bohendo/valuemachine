@@ -7,10 +7,11 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { addresses } from "./addresses";
-import { apps } from "./enums";
+import { Apps } from "../../enums";
 
-const appName = apps.Airswap;
+import { addresses } from "./addresses";
+
+const appName = Apps.Airswap;
 const { Expense, Income, SwapIn, SwapOut } = TransferCategories;
 
 export const coreParser = (

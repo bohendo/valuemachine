@@ -8,15 +8,15 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
+import { Apps } from "../../enums";
 import { parseEvent } from "../../utils";
 
-import { apps } from "./enums";
 import {
   addresses,
   v1MarketAddresses,
 } from "./addresses";
 
-export const appName = apps.UniswapV1;
+export const appName = Apps.UniswapV1;
 
 ////////////////////////////////////////
 /// Abis

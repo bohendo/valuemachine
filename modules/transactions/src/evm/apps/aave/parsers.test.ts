@@ -2,14 +2,14 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { EvmApps, TransactionSources } from "../../../enums";
+import { Apps, Evms } from "../../enums";
 import {
   getParseTx,
   expect,
   testLogger,
 } from "../../testUtils";
 
-const appName = EvmApps.Aave;
+const appName = Apps.Aave;
 const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 const parseTx = getParseTx({ logger });
 
@@ -91,7 +91,7 @@ describe(appName, () => {
       selfAddress: "Polygon/0xada083a3c06ee526F827b43695F2DcFf5C8C892B",
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.sources).to.include(TransactionSources.Polygon);
+    expect(tx.sources).to.include(Evms.Polygon);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);

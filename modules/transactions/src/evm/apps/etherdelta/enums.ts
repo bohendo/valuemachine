@@ -1,7 +1,9 @@
-export const apps = {
+const Apps = {
   EtherDelta: "EtherDelta",
 } as const;
 
-export const assets = {} as const;
+const Methods = {} as const;
 
-export const enums = { assets, apps };
+const Tokens = {} as const;
+
+export const enums = { Apps, Methods, Tokens };

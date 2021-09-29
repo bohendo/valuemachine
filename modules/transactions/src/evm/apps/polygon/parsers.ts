@@ -10,7 +10,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { EvmAssets } from "../../enums";
+import { Apps, Assets, Tokens } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
 
 import {
@@ -18,11 +18,11 @@ import {
   plasmaBridgeAddress,
   flashWalletAddress,
 } from "./addresses";
-import { apps } from "./enums";
 
-export const appName = apps.Polygon;
+export const appName = Apps.Polygon;
 
-const { ETH, WETH } = EvmAssets;
+const { ETH } = Assets;
+const { WETH } = Tokens;
 
 ////////////////////////////////////////
 /// Addresses
@@ -60,6 +60,7 @@ export const coreParser = (
     log.info(`Parsing ${tx.method}`);
 
     // Get all erc20 transfers (even non-self ones)
+    // TODO: get from already-parsed transfers..
     const erc20Transfers = evmTx.logs
       .filter(txLog => isToken(txLog.address))
       .map((txLog): Transfer => {

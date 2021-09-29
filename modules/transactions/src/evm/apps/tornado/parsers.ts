@@ -11,10 +11,11 @@ import {
   sub,
 } from "@valuemachine/utils";
 
-import { addresses, mixerAddresses } from "./addresses";
-import { apps } from "./enums";
+import { Apps } from "../../enums";
 
-const appName = apps.Tornado;
+import { addresses, mixerAddresses } from "./addresses";
+
+const appName = Apps.Tornado;
 
 const { Income, Expense, Fee, Internal } = TransferCategories;
 

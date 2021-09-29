@@ -20,7 +20,7 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { Assets, Guards } from "../../../enums";
+import { Apps, Assets, Tokens } from "../../enums";
 import { diffAsc, parseEvent } from "../../utils";
 
 import {
@@ -28,12 +28,10 @@ import {
   tubAddress,
   cageAddress,
 } from "./addresses";
-import { apps, assets } from "./enums";
 
-const appName = apps.Sai;
-
-const { ETH, WETH } = Assets;
-const { MKR, PETH, SAI } = assets;
+const appName = Apps.Sai;
+const { ETH } = Assets;
+const { MKR, WETH, PETH, SAI } = Tokens;
 const { Fee, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 ////////////////////////////////////////
@@ -169,8 +167,7 @@ export const saiParser = (
         const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
-          t.asset === PETH
-          && !Object.keys(Guards).includes(t.to)
+          t.category !== Fee && t.asset === PETH
           && isSelf(t.from)
           && !isSelf(t.to)
           && (tubAddress === t.to || isSelf(t.from))

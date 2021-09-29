@@ -14,13 +14,12 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { EvmNames } from "../../enums";
+import { Apps, Tokens, Evms } from "../../enums";
 import { parseEvent } from "../../utils";
 
 import { addresses, defiAddresses } from "./addresses";
-import { apps, assets } from "./enums";
 
-const appName = apps.Aave;
+const appName = Apps.Aave;
 
 const { SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
@@ -84,11 +83,11 @@ const coreParser = (
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getName, isSelf } = addressBook;
 
-  const prefix = evmMeta.name === EvmNames.Ethereum ? "a"
-    : evmMeta.name === EvmNames.Polygon ? "am"
+  const prefix = evmMeta.name === Evms.Ethereum ? "a"
+    : evmMeta.name === Evms.Polygon ? "am"
     : "";
 
-  const stkAAVEAddress = addresses.find(e => e.name === assets.stkAAVE)?.address;
+  const stkAAVEAddress = addresses.find(e => e.name === Tokens.stkAAVE)?.address;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
@@ -195,8 +194,8 @@ const coreParser = (
       tx.apps.push(appName);
       const event = parseEvent(aaveStakeAbi, txLog, evmMeta);
       if (event.name === "Staked" && (event.args.from === event.args.onBehalfOf) ) {
-        const asset1 = assets.AAVE;
-        const asset2 = assets.stkAAVE;
+        const asset1 = Tokens.AAVE;
+        const asset2 = Tokens.stkAAVE;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(address),
@@ -219,8 +218,8 @@ const coreParser = (
         }
 
       } else if (event.name === "Redeem" && (event.args.from === event.args.to)) {
-        const asset1 = assets.AAVE;
-        const asset2 = assets.stkAAVE;
+        const asset1 = Tokens.AAVE;
+        const asset2 = Tokens.stkAAVE;
         const amount = formatUnits(
           event.args.amount,
           addressBook.getDecimals(address),

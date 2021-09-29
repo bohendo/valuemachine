@@ -2,15 +2,14 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
+import { Apps, Methods } from "../../enums";
 import {
   getParseTx,
   expect,
   testLogger,
 } from "../../testUtils";
 
-import { apps, methods } from "./enums";
-
-const appName = apps.Quickswap;
+const appName = Apps.Quickswap;
 const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 const parseTx = getParseTx({ logger });
 
@@ -21,7 +20,7 @@ describe(appName, () => {
       txid: "Polygon/0xfbf4af6a377016d3b2ce8cd413f83487954723dafd9b7ad70079b0276209958a",
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.equal(methods.Trade);
+    expect(tx.method).to.equal(Methods.Trade);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
   });

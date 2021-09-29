@@ -1,6 +1,5 @@
 export { addresses } from "./addresses";
-
-export { EvmApps, Tokens } from "./enums";
+export { Apps, Methods, Tokens } from "./enums";
 
 export { parsers as aaveParsers } from "./aave";
 export { parsers as airswapParsers } from "./airswap";

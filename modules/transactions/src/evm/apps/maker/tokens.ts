@@ -10,6 +10,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
+import { Apps } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
 
 import {
@@ -18,9 +19,8 @@ import {
   factoryAddresses,
   tokenAddresses,
 } from "./addresses";
-import { apps } from "./enums";
 
-const appName = apps.Maker;
+const appName = Apps.Maker;
 
 const { SwapIn, SwapOut, Borrow, Repay, Noop } = TransferCategories;
 

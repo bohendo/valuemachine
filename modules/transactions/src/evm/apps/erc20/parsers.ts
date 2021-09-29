@@ -9,11 +9,10 @@ import {
   Transaction,
 } from "@valuemachine/types";
 
+import { Apps } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
 
-import { apps } from "./enums";
-
-const appName = apps.ERC20;
+const appName = Apps.ERC20;
 
 ////////////////////////////////////////
 /// ABIs
