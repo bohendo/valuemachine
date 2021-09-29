@@ -19,7 +19,7 @@ export const describeTransaction = (addressBook: AddressBook, tx: Transaction): 
   const fees = tx.transfers.filter(t => t.category === Fee);
   const nonFee = tx.transfers.filter(t => t.category !== Fee);
   if (!nonFee.length) {
-    return `${tx.method || "Unknown method call"} by ${addressBook.getName(fees[0].from)}`;
+    return `${tx.method || "Unknown method"} by ${addressBook.getName(fees[0].from, true)}`;
 
   } else if (nonFee.some(t => t.category === SwapIn) && nonFee.some(t => t.category === SwapOut)) {
     const [inputs, outputs] = diffBalances([sumTransfers(
@@ -28,51 +28,60 @@ export const describeTransaction = (addressBook: AddressBook, tx: Transaction): 
       nonFee.filter(t => t.category === SwapOut)
     )]);
     return `${addressBook.getName(
-      nonFee.find(t => t.category === SwapOut).from
+      nonFee.find(t => t.category === SwapOut).from,
+      true,
     )} traded ${describeBalance(outputs)} for ${describeBalance(inputs)}`;
-
-  } else if (nonFee.some(t => t.category === Income)) {
-    return `${
-      addressBook.getName(nonFee.find(t => t.category === Income).to)
-    }${nonFee.length > 1 ? ", etc" : ""} received ${
-      describeBalance(sumTransfers(nonFee.filter(t => t.category === Income)))
-    }`;
-
-  } else if (nonFee.some(t => t.category === Expense)) {
-    return `${
-      addressBook.getName(nonFee.find(t => t.category === Expense).from)
-    }${nonFee.length > 1 ? ", etc" : ""} spent ${
-      describeBalance(sumTransfers(nonFee.filter(t => t.category === Expense)))
-    }`;
 
   } else if (nonFee.some(t => t.category === Borrow)) {
     return `${
-      addressBook.getName(nonFee.find(t => t.category === Borrow).to)
-    }${nonFee.length > 1 ? ", etc" : ""} borrowed ${
+      addressBook.getName(nonFee.find(t => t.category === Borrow).to, true)
+    } borrowed ${
       describeBalance(sumTransfers(nonFee))
-    }`;
+    }${nonFee.length > 1 ? ", etc" : ""}`;
 
   } else if (nonFee.some(t => t.category === Repay)) {
     return `${
-      addressBook.getName(nonFee.find(t => t.category === Repay).from)
-    }${nonFee.length > 1 ? ", etc" : ""} repayed ${
+      addressBook.getName(nonFee.find(t => t.category === Repay).from, true)
+    } repayed ${
       describeBalance(sumTransfers(nonFee))
-    }`;
+    }${nonFee.length > 1 ? ", etc" : ""}`;
+
+  } else if (tx.method) {
+    return `${tx.method} by ${addressBook.getName(
+      addressBook.isSelf(tx.transfers[0].to) ? tx.transfers[0].to : tx.transfers[0].from,
+      true,
+    )}`;
+
+  } else if (nonFee.some(t => t.category === Income)) {
+    return `${
+      addressBook.getName(nonFee.find(t => t.category === Income).to, true)
+    } received ${
+      describeBalance(sumTransfers(nonFee.filter(t => t.category === Income)))
+    }${nonFee.length > 1 ? ", etc" : ""}`;
+
+  } else if (nonFee.some(t => t.category === Expense)) {
+    return `${
+      addressBook.getName(nonFee.find(t => t.category === Expense).from, true)
+    } spent ${
+      describeBalance(sumTransfers(nonFee.filter(t => t.category === Expense)))
+    }${nonFee.length > 1 ? ", etc" : ""}`;
 
   } else if (nonFee.some(t => t.category === Internal)) {
     const transfer = nonFee.find(t => t.category === Internal);
-    return `${tx.method || "Transfer"}${nonFee.length > 1 ? ", etc" : ""} of ${
+    return `${tx.method || "Transfer"} of ${
       round(transfer.amount)} ${transfer.asset
     } from ${
-      addressBook.getName(transfer.from)
+      addressBook.getName(transfer.from, true)
     } to ${
-      addressBook.getName(transfer.to)
-    }`;
+      addressBook.getName(transfer.to, true)
+    }${nonFee.length > 1 ? ", etc" : ""}`;
 
+  } else {
+    return `Unknown method by ${addressBook.getName(
+      addressBook.isSelf(tx.transfers[0].to) ? tx.transfers[0].to : tx.transfers[0].from,
+      true,
+    )}`;
   }
-  return `${tx.method || "Unknown method call"} by ${addressBook.getName(
-    addressBook.isSelf(tx.transfers[0].to) ? tx.transfers[0].to : tx.transfers[0].from
-  )}`;
 };
 
 // Used to guess the network when depositing to/withdrawing from an exchange

@@ -1,17 +1,15 @@
-export const apps = {
+const Apps = {
   Compound: "Compound",
-} as const;
-
-export const contracts = {
   Maximillion: "Maximillion",
   Comptroller: "Comptroller",
   CompoundV1: "CompoundV1",
 } as const;
 
-export const assets = {
+const Methods = {
+} as const;
 
+const Tokens = {
   COMP: "COMP",
-
   cBAT: "cBAT",
   cCOMP: "cCOMP",
   cDAI: "cDAI",
@@ -25,7 +23,6 @@ export const assets = {
   cWBTC: "cWBTC",
   cWBTCv2: "cWBTCv2",
   cZRX: "cZRX",
-
 } as const;
 
-export const enums = { assets, apps };
+export const enums = { Apps, Methods, Tokens };

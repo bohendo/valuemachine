@@ -1,17 +1,19 @@
-export const apps = {
+const Apps = {
   ERC20: "ERC20",
 } as const;
 
-export const assets = {
+const Methods = {
+} as const;
 
+const Tokens = {
   _1INCH: "_1INCH",
   _3Crv: "_3Crv",
+  ADT: "ADT",
   ankrCRV: "ankrCRV",
   aRAI: "aRAI",
   BAL: "BAL",
   BAT: "BAT",
   BUSD: "BUSD",
-  GTC: "GTC",
   CHERRY: "CHERRY",
   CRV: "CRV",
   crvPlain3andSUSD: "crvPlain3andSUSD",
@@ -22,6 +24,7 @@ export const assets = {
   GEN: "GEN",
   GNO: "GNO",
   GRT: "GRT",
+  GTC: "GTC",
   gusd3CRV: "gusd3CRV",
   GUSD: "GUSD",
   hCRV: "hCRV",
@@ -60,10 +63,9 @@ export const assets = {
   WETH: "WETH",
   WMATIC: "WMATIC",
   XSUSHI: "XSUSHI",
-  yDAI_yUSDC_yUSDT_yTUSD: "yDAI_yUSDC_yUSDT_yTUSD",
   yDAI_yUSDC_yUSDT_yBUSD: "yDAI_yUSDC_yUSDT_yBUSD",
+  yDAI_yUSDC_yUSDT_yTUSD: "yDAI_yUSDC_yUSDT_yTUSD",
   ZRX: "ZRX",
-
 } as const;
 
-export const enums = { assets, apps };
+export const enums = { Apps, Methods, Tokens };

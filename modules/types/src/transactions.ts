@@ -15,6 +15,7 @@ import { Store } from "./store";
 ////////////////////////////////////////
 // JSON Schema
 
+// Self to non-self transfers
 export const OutgoingTransfers = {
   Expense: "Expense",
   Fee: "Fee",
@@ -22,6 +23,7 @@ export const OutgoingTransfers = {
   SwapOut: "SwapOut",
 } as const;
 
+// Non-self to self transfers
 export const IncomingTransfers = {
   Income: "Income",
   Refund: "Refund",
@@ -32,8 +34,8 @@ export const IncomingTransfers = {
 export const TransferCategories = {
   ...OutgoingTransfers,
   ...IncomingTransfers,
-  Internal: "Internal",
-  Unknown: "Unknown", // TODO: rm?
+  Noop: "Noop", // zero-value or external->external or other useless transfers to filter out
+  Internal: "Internal", // self to self transfers
 } as const;
 export const TransferCategory = Type.Enum(TransferCategories); // NOT Extensible
 export type TransferCategory = Static<typeof TransferCategory>;

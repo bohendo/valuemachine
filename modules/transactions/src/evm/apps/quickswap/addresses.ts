@@ -3,10 +3,10 @@ import {
 } from "@valuemachine/types";
 import { setAddressCategory } from "@valuemachine/utils";
 
-import { assets } from "./enums";
+import { Tokens } from "../../enums";
 
 const govAddresses = [
-  { name: assets.QUICK, address: "Polygon/0x831753dd7087cac61ab5644b308642cc1c33dc13" },
+  { name: Tokens.QUICK, address: "Polygon/0x831753dd7087cac61ab5644b308642cc1c33dc13" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 const routerAddresses = [

@@ -1,4 +1,3 @@
-import { isAddress } from "@ethersproject/address";
 import { BigNumber } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
 import {
@@ -13,7 +12,7 @@ import {
 } from "@valuemachine/types";
 import { dedup, gt, getNewContractAddress } from "@valuemachine/utils";
 
-import { categorizeTransfer } from "./utils";
+import { getTransferCategory } from "./utils";
 
 export const parseEvmTx = (
   evmTx: EvmTransaction,
@@ -56,14 +55,14 @@ export const parseEvmTx = (
 
   // Transaction Value
   if (gt(evmTx.value, "0") && (isSelf(evmTx.to) || isSelf(evmTx.from))) {
-    tx.transfers.push(categorizeTransfer({
+    tx.transfers.push({
       amount: evmTx.value,
       asset: evmMetadata.feeAsset,
-      category: TransferCategories.Unknown,
+      category: getTransferCategory(evmTx.from, evmTx.to, addressBook),
       from: evmTx.from,
       index: 0,
       to: evmTx.to,
-    }, addressBook));
+    });
   }
 
   // Detect contract creations
@@ -77,20 +76,14 @@ export const parseEvmTx = (
 
   // Add internal evm transfers to the transfers array
   evmTx.transfers.forEach((evmTransfer: EvmTransfer) => {
-    if (
-      // Calls that don't interact with self addresses don't matter
-      (isSelf(evmTransfer.to) || isSelf(evmTransfer.from))
-      // Calls with zero value don't matter
-      && gt(evmTransfer.value, "0")
-    ) {
-      tx.transfers.push(categorizeTransfer({
-        amount: evmTransfer.value,
-        asset: evmMetadata.feeAsset,
-        category: TransferCategories.Unknown,
-        from: evmTransfer.from,
-        to: evmTransfer.to,
-      }, addressBook));
-    }
+    // Index is unknown for internal transfers, hopefully app parsers will be able to add one
+    tx.transfers.push({
+      amount: evmTransfer.value,
+      asset: evmMetadata.feeAsset,
+      category: getTransferCategory(evmTransfer.from, evmTransfer.to, addressBook),
+      from: evmTransfer.from,
+      to: evmTransfer.to,
+    });
   });
 
   // Activate pipeline of app-specific inserters
@@ -106,13 +99,11 @@ export const parseEvmTx = (
   tx.apps = dedup(tx.apps).sort();
 
   tx.transfers = tx.transfers
-    // Filter out no-op transfers
-    .filter(transfer => (
-      !isAddress(transfer.from) || isSelf(transfer.from) ||
-      !isAddress(transfer.to) || isSelf(transfer.to)
-    ) && (
+    // Filter out transfers that don't involve us
+    .filter(transfer =>
       gt(transfer.amount, "0")
-    ))
+      && transfer.category !== TransferCategories.Noop
+    )
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);
 

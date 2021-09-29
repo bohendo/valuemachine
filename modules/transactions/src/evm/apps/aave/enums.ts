@@ -1,13 +1,18 @@
-export const apps = {
+const Apps = {
   Aave: "Aave",
 } as const;
 
-export const assets = {
+const Methods = {
+  Deposit: "Deposit",
+  Withdraw: "Withdraw",
+  Stake: "Stake",
+  Unstake: "Unstake",
+} as const;
 
+const Tokens = {
   // Gov tokens
   AAVE: "AAVE",
   stkAAVE: "stkAAVE",
-
   // Ethereum markets
   aAAVE: "aAAVE",
   aBAL: "aBAL",
@@ -34,7 +39,6 @@ export const assets = {
   aXSUSHI: "aXSUSHI",
   aYFI: "aYFI",
   aZRX: "aZRX",
-
   // Polygon markets
   amAAVE: "amAAVE",
   amDAI: "amDAI",
@@ -43,7 +47,6 @@ export const assets = {
   amUSDT: "amUSDT",
   amWBTC: "amWBTC",
   amWETH: "amWETH",
-
 } as const;
 
-export const enums = { assets, apps };
+export const enums = { Apps, Methods, Tokens };

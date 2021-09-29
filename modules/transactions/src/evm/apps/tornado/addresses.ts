@@ -5,7 +5,7 @@ import {
   setAddressCategory,
 } from "@valuemachine/utils";
 
-import { assets } from "./enums";
+import { Tokens } from "../../enums";
 
 const relayer = "TornadoRelayer";
 
@@ -16,7 +16,7 @@ const miscAddresses = [
 ].map(setAddressCategory(AddressCategories.Defi));
 
 const govTokenAddresses = [
-  { name: assets.TORN, address: "Ethereum/0x77777feddddffc19ff86db637967013e6c6a116c" },
+  { name: Tokens.TORN, address: "Ethereum/0x77777feddddffc19ff86db637967013e6c6a116c" },
 ].map(setAddressCategory(AddressCategories.ERC20));
 
 export const mixerAddresses = [

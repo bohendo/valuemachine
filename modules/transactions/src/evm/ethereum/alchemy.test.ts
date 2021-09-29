@@ -21,6 +21,17 @@ describe.skip("Alchemy Fetcher", () => {
     expect(history).to.be.ok;
   });
 
+  it("should discard delegate calls", async () => {
+    const fetcher = getAlchemyFetcher({ providerUrl: env.alchemyProvider, logger });
+    const hash = "0x23c37ac453b1b3870633bba6f25922db908e763717285500a739dfd546744c94";
+    const tx = await fetcher.fetchTransaction(hash);
+    logger.info(tx);
+    expect(tx).to.be.ok;
+    expect(tx.transfers.find(transfer =>
+      transfer.to === "Ethereum/0x793EbBe21607e4F04788F89c7a9b97320773Ec59" // delegatecall target
+    )).to.be.undefined;
+  });
+
   it("should sync & parse an address w zero transactions", async () => {
     const fetcher = getAlchemyFetcher({ providerUrl: env.alchemyProvider, logger });
     const address = "0xBeD6B644203881AAE28072620433524a66A37B87";

@@ -4,6 +4,7 @@ import { isHexString } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
 import { formatEther } from "@ethersproject/units";
 import {
+  Account,
   AddressBook,
   AddressCategories,
   DecimalString,
@@ -12,8 +13,11 @@ import {
   EvmTransfer,
   Transfer,
   TransferCategories,
+  TransferCategory,
 } from "@valuemachine/types";
 import { diff, gt, toBN } from "@valuemachine/utils";
+
+import { Guards } from "../enums";
 
 export const toNumber = (val: number | string): number => toBN(val).toNumber();
 
@@ -48,7 +52,7 @@ export const formatTraces = (traces: any[], meta: EvmMetadata): EvmTransfer[] =>
       : AddressZero
     ),
     value: formatEther(
-      trace.type === "call" ? trace.action.value
+      trace.type === "call" ? (trace.action.callType === "delegatecall" ? "0" : trace.action.value)
       : trace.type === "create" ? trace.action.value
       : trace.type === "suicide" ? trace.action.balance
       : "0"
@@ -107,38 +111,36 @@ export const parseEvent = (
   return { name, args };
 };
 
-export const categorizeTransfer = (transfer: Transfer, addressBook: AddressBook): Transfer => {
+export const getTransferCategory = (
+  fromAccount: Account,
+  toAccount: Account,
+  addressBook: AddressBook,
+): TransferCategory => {
   const { Self, Exchange } = AddressCategories;
-  const { Expense, Income, Internal, SwapIn, SwapOut, Unknown } = TransferCategories;
-  const to = addressBook.getCategory(transfer.to);
-  const from = addressBook.getCategory(transfer.from);
+  const { Fee, Expense, Income, Internal, SwapIn, SwapOut, Noop } = TransferCategories;
+  const to = addressBook.getCategory(toAccount);
+  const from = addressBook.getCategory(fromAccount);
 
-  // Internal
-  if (to === Self && from === Self) {
-    transfer.category = Internal;
+  if (toAccount === fromAccount) {
+    return Noop;
 
-  // Swaps
+  } else if (to === Self && from === Self) {
+    return Internal;
+
+  } else if (from === Self && Object.keys(Guards).includes(toAccount)) {
+    return Fee;
+
   } else if (to === Self && from === Exchange) {
-    transfer.category = SwapIn;
+    return SwapIn;
   } else if (from === Self && to === Exchange) {
-    transfer.category = SwapOut;
+    return SwapOut;
 
-    /* Deposit/Withdrawals (should we update account names?)
-  } else if (to === Self && from === Defi) {
-    transfer.category = Internal;
-  } else if (from === Self && to === Defi) {
-    transfer.category = Internal;
-  */
-
-  // Income/Expense
   } else if (to === Self) {
-    transfer.category = Income;
+    return Income;
   } else if (from === Self) {
-    transfer.category = Expense;
+    return Expense;
 
   } else {
-    transfer.category = Unknown;
+    return Noop;
   }
-
-  return transfer;
 };

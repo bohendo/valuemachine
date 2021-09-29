@@ -23,7 +23,6 @@ import {
   ValueMachineParams,
 } from "@valuemachine/types";
 import {
-  abs,
   add,
   dedup,
   describeBalance,
@@ -34,6 +33,7 @@ import {
   getValueMachineError,
   gt,
   lt,
+  max,
   mul,
   sub,
   sumChunks,
@@ -246,8 +246,8 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       output.push(chunk); // if we got less than we need, move on to the next chunk
       togo = sub(togo, chunk.amount);
     }
-    if (gt(togo, "0")) {
-      log.warn(`${account} has no ${asset} chunks left, we still need ${togo}`);
+    if (compare(togo, "0")) {
+      log.debug(`${account} has no ${asset} chunks left, we still need ${togo}`);
       output.push(underflow(togo, asset, account));
     }
     return output;
@@ -308,36 +308,12 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     account: Account,
   ): AssetChunk[] => {
     log.info(`Disposing of ${amount} ${asset} from ${account}`);
-    const disposeChunk = chunk => {
+    return getChunks(amount, asset, account).map(chunk => {
       chunk.disposeDate = json.date;
       chunk.outputs = [];
       delete chunk.account;
-    };
-    const balance = getBalance(asset, account);
-    const available = json.chunks.filter(isHeld(account, asset));
-    if (eq(balance, amount)) {
-      available.forEach(disposeChunk);
-      log.debug(`Disposed full balance of ${
-        available.map(c => c.amount).join(" + ")
-      } ${asset} from ${account}`);
-      return available;
-    } else if (gt(balance, amount)) {
-      const toDispose = getChunks(amount, asset, account);
-      toDispose.forEach(disposeChunk);
-      log.debug(`Disposed of ${
-        toDispose.map(c => c.amount).join(" + ")
-      } ${asset} from ${account}`);
-      return toDispose;
-    } else if (lt(balance, amount)) {
-      available.forEach(disposeChunk);
-      const togo = sub(amount, balance);
-      const rest = underflow(togo, asset, account);
-      disposeChunk(rest);
-      log.debug(`Disposed of all ${asset} from ${account} and underflowed by ${rest.amount}`);
-      return [...available, rest];
-    }
-    log.warn(`Wtf how is ${balance} not > or < or = to ${amount}???`);
-    return [];
+      return chunk;
+    });
   };
 
   const tradeValue = (account: Account, swapsIn: Balances, swapsOut: Balances): void => {
@@ -407,9 +383,9 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
-    log.debug(`Borrowing ${amount} ${asset} via account ${account}`);
+    log.info(`Borrowing ${amount} ${asset} via account ${account}`);
     const loan = borrowChunks(amount, asset, account);
-    log.info(loan, `Borrowed chunks`);
+    log.debug(loan, `Borrowed chunks`);
     newEvents.push({
       date: json.date,
       index: json.events.length + newEvents.length,
@@ -428,22 +404,20 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     account: Account,
   ): AssetChunk[] => {
     log.info(`Repaying ${amount} ${asset} via account ${account}`);
-    log.info(getNetWorth(account), `Account balance for ${account}`);
-    const held = json.chunks.filter(isHeld(account, asset));
-    const positiveChunks = held.filter(chunk => gt(chunk.amount, "0"));
-    const negativeChunks = held.filter(chunk => lt(chunk.amount, "0"));
-    const positiveBalance = positiveChunks.reduce((acc, cur) => add(acc, cur.amount), "0");
-    const negativeBalance = negativeChunks.reduce((acc, cur) => add(acc, cur.amount), "0");
-    if (lt(positiveBalance, amount)) {
-      log.warn(`Account ${account} has insufficent funds for repayment of ${amount} ${asset}`);
+    const debt = json.chunks
+      .filter(isHeld(account, asset))
+      .filter(chunk => lt(chunk.amount, "0"))
+      .reduce((acc, cur) => add(acc, cur.amount), "0");
+    const remainder = add(amount, debt);
+    if (gt(remainder, "0")) {
+      log.warn(`${account} debt is only ${debt} ${asset}, assuming extra ${remainder} is a fee`);
     }
-    if (lt(abs(negativeBalance), amount)) {
-      log.warn(`Account ${account} has insufficent debt for repayment of ${amount} ${asset}`);
-    }
+    // Discard entire repayment along with any extra provided to cover fees
     const toRepayWith = getChunks(amount, asset, account);
-    const toAnnihilate = getChunks(mul(amount, "-1"), asset, account);
-    log.info(toRepayWith, `Using the following chunks to repay ${amount} ${asset}`);
-    log.info(toAnnihilate, `Disposing of the following debt chunks`);
+    // Don't annihilate any more debt than we have
+    const toAnnihilate = getChunks(max(debt, mul(amount, "-1")), asset, account);
+    log.debug(toRepayWith, `Using the following chunks to repay ${amount} ${asset}`);
+    log.debug(toAnnihilate, `Disposing of the following debt chunks`);
     const disposeChunk = chunk => {
       chunk.disposeDate = json.date;
       chunk.outputs = [];
@@ -640,7 +614,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
     // move leftover chunks from tmp to the master list
     tmpChunks.forEach(chunk => {
-      log.warn(chunk, `Moving chunk ${chunk.index} from tmp to master list`);
+      log.debug(chunk, `Moving chunk ${chunk.index} from tmp to master list`);
       json.chunks.push(chunk);
     });
     json.chunks.sort((c1, c2) => c1.index - c2.index);

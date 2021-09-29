@@ -1,9 +1,13 @@
-export const apps = {
+const Apps = {
   Quickswap: "Quickswap",
 } as const;
 
-export const assets = {
+const Methods = {
+  Trade: "Trade",
+} as const;
+
+const Tokens = {
   QUICK: "QUICK",
 } as const;
 
-export const enums = { assets, apps };
+export const enums = { Apps, Methods, Tokens };

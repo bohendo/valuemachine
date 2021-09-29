@@ -18,7 +18,7 @@ import {
   CsvSources,
 } from "./enums";
 
-const { Income, Expense, Internal } = TransferCategories;
+const { Fee, Income, Expense, Internal } = TransferCategories;
 
 ////////////////////////////////////////
 // Internal Helper Functions
@@ -79,10 +79,7 @@ export const mergeTransaction = (
     }
 
     // Mergable evm txns can only contain one simple non-fee transfer
-    const transfers = newTx.transfers.filter(transfer =>
-      ([Income, Expense] as string[]).includes(transfer.category)
-      && !Object.keys(EvmNames).some(evm => evm === transfer.to)
-    );
+    const transfers = newTx.transfers.filter(transfer => transfer.category !== Fee);
     if (transfers.length !== 1) {
       transactions.push(newTx);
       log.debug(`Inserted new evm tx w ${transfers.length} mergable transfers: ${newTx.method}`);
@@ -185,6 +182,8 @@ export const mergeTransaction = (
     const mergeCandidateIndex = transactions.findIndex(tx =>
       // the candidate has one non-csv source
       tx.sources.length === 1 && !Object.keys(CsvSources).includes(tx.sources[0])
+      // the candidate has one non-fee transfer
+      && tx.transfers.filter(transfer => transfer.category !== Fee).length === 1
       // evm tx & new csv tx have timestamps that are close each other
       && datesAreClose(tx.date, newTx.date)
       // the candidate has exactly 1 mergable transfer

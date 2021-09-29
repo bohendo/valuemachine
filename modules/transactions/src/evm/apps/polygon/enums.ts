@@ -1,15 +1,14 @@
-export const apps = {
+const Apps = {
   Zap: "Zap",
-  Polygon: "Polygon",
-} as const;
-
-export const contracts = {
   FlashWallet: "FlashWallet",
   PlasmaBridge: "PlasmaBridge",
   PolygonStateSyncer: "PolygonStateSyncer",
   ZapPolygonBridge: "ZapperPolygonBridge",
-};
+  Polygon: "Polygon",
+} as const;
 
-export const assets = {} as const;
+const Methods = {};
 
-export const enums = { assets, apps, contracts };
+const Tokens = {} as const;
+
+export const enums = { Apps, Methods, Tokens };

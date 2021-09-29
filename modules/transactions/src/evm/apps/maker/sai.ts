@@ -20,20 +20,18 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { Assets, Guards } from "../../../enums";
-import { diffAsc, parseEvent } from "../utils";
+import { Apps, Assets, Tokens } from "../../enums";
+import { diffAsc, parseEvent } from "../../utils";
 
 import {
   saiPitAddress,
   tubAddress,
   cageAddress,
 } from "./addresses";
-import { apps, assets } from "./enums";
 
-const appName = apps.Sai;
-
-const { ETH, WETH } = Assets;
-const { MKR, PETH, SAI } = assets;
+const appName = Apps.Sai;
+const { ETH } = Assets;
+const { MKR, WETH, PETH, SAI } = Tokens;
 const { Fee, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 ////////////////////////////////////////
@@ -169,8 +167,7 @@ export const saiParser = (
         const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
-          ethish.includes(t.asset)
-          && !Object.keys(Guards).includes(t.to)
+          t.category !== Fee && t.asset === PETH
           && isSelf(t.from)
           && !isSelf(t.to)
           && (tubAddress === t.to || isSelf(t.from))
@@ -240,11 +237,9 @@ export const saiParser = (
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
         }
-        // Handle MKR fee (or find the stable-coins spent to buy MKR)
-        // TODO: split repayment into two transfers if we repayed with one lump of DAI
-        const feeAsset = [MKR, SAI] as Asset[];
+        // Handle MKR fee
         const fee = tx.transfers.find(t =>
-          isSelf(t.from) && !isSelf(t.to) && feeAsset.includes(t.asset)
+          isSelf(t.from) && !isSelf(t.to) && t.asset === MKR
         );
         if (fee) {
           fee.category = Fee;
@@ -284,7 +279,7 @@ export const saiParser = (
         if (swapIn) {
           swapIn.category = SwapIn;
           swapIn.from = address;
-          swapIn.index = swapOut.index + 0.1;
+          swapIn.index = swapOut.index + 1;
         } else {
           log.warn(`Cage.${event.name}: Can't find an ETH transfer of ${wad}`);
         }

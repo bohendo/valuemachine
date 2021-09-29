@@ -1,11 +1,12 @@
-export const apps = {
+const Apps = {
   Yearn: "Yearn",
+  yGov: "yGov",
 } as const;
 
-export const assets = {
+const Methods = {};
 
+const Tokens = {
   YFI: "YFI",
-
   y3Crv: "y3Crv",
   yBUSDv3: "yBUSDv3",
   yDAI: "yDAI",
@@ -59,7 +60,6 @@ export const assets = {
   yvust3CRV: "yvust3CRV",
   yyDAI_yUSDC_yUSDT_yBUSD: "yyDAI_yUSDC_yUSDT_yBUSD",
   yyDAI_yUSDC_yUSDT_yTUSD: "yyDAI_yUSDC_yUSDT_yTUSD",
-
 } as const;
 
-export const enums = { assets, apps };
+export const enums = { Apps, Methods, Tokens };

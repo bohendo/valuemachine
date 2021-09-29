@@ -9,9 +9,11 @@ import {
 
 import {
   aaveParsers,
+  airswapParsers,
   bjtjParsers,
   argentParsers,
   compoundParsers,
+  cryptokittiesParsers,
   erc20Parsers,
   etherdeltaParsers,
   idleParsers,
@@ -39,9 +41,11 @@ export const parseEthereumTx = (
     logger,
     [
       aaveParsers,
+      airswapParsers,
       bjtjParsers,
       argentParsers,
       compoundParsers,
+      cryptokittiesParsers,
       erc20Parsers,
       etherdeltaParsers,
       idleParsers,

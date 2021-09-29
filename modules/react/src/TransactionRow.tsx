@@ -44,12 +44,14 @@ export const TransactionRow = ({
 }) => {
   const [open, setOpen] = useState(false);
   const classes = useStyles();
+  const date = (new Date(tx.date)).toISOString().replace(".000Z", "");
   return (
     <React.Fragment>
       <TableRow className={classes.tableRow}>
-        <TableCell> {
-          (new Date(tx.date)).toISOString().replace("T", " ").replace(".000Z", "")
-        } </TableCell>
+        <TableCell>
+          <Typography noWrap variant="body2">{date.split("T")[0]}</Typography>
+          <Typography noWrap variant="body2">{date.split("T")[1]}</Typography>
+        </TableCell>
         <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
         <TableCell> {tx.uuid ? <HexString value={tx.uuid}/> : "N/A"} </TableCell>
         <TableCell> {tx.apps.join(", ")} </TableCell>
