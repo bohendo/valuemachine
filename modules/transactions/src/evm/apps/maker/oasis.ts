@@ -91,7 +91,6 @@ export const oasisParser = (
 
       if (event.name === "LogTake") {
         log.debug(`Parsing ${appName} ${event.name} event`);
-
         let inAmt, inGem, outAmt, outGem;
         if (isSelf(event.args.maker)) {
           inGem = getName(event.args.buy_gem);
@@ -108,7 +107,6 @@ export const oasisParser = (
           continue;
         }
         log.info(`Found trade of ${outAmt} ${outGem} for ${inAmt} ${inGem}`);
-
         const swapIn = tx.transfers.find(transfer =>
           transfer.asset === inGem && transfer.amount === inAmt
           && isSelf(transfer.to) && !isSelf(transfer.from)
@@ -119,7 +117,6 @@ export const oasisParser = (
         } else {
           log.warn(`Couldn't find a swap in of ${inAmt} ${inGem}`);
         }
-
         const swapOut = tx.transfers.find(transfer =>
           transfer.asset === outGem && transfer.amount === outAmt
           && isSelf(transfer.from) && !isSelf(transfer.to)
@@ -130,15 +127,10 @@ export const oasisParser = (
         } else {
           log.warn(`Couldn't find a swap out of ${outAmt} ${outGem}`);
         }
-
-      } else {
-        log.debug(`Skipping ${appName} ${event.name || "Unknown"} event`);
       }
 
     }
   }
-
-  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };
 
