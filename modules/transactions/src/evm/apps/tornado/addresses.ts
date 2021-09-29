@@ -9,7 +9,7 @@ import { Tokens } from "../../enums";
 
 const relayer = "TornadoRelayer";
 
-// vTORN is non-transferrable so is not an ERC20
+// vTORN is non-transferrable so is not a token
 const miscAddresses = [
   { name: "vTORN-airdropper", address: "Ethereum/0x4e7b3769921c8dfbdb3d1b4c73558db079a180c7" },
   { name: "vTORN", address: "Ethereum/0x3efa30704d2b8bbac821307230376556cf8cc39e" },
@@ -17,7 +17,7 @@ const miscAddresses = [
 
 const govTokenAddresses = [
   { name: Tokens.TORN, address: "Ethereum/0x77777feddddffc19ff86db637967013e6c6a116c" },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 export const mixerAddresses = [
   { name: "tornado-proxy", address: "Ethereum/0x905b63fff465b9ffbf41dea908ceb12478ec7601" }, // old

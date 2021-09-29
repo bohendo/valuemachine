@@ -7,7 +7,7 @@ const { Polygon, Ethereum } = Evms;
 
 // https://docs.aave.com/developers/deployed-contracts/deployed-contracts
 
-const erc20Addresses = [{
+const tokenAddresses = [{
   address: `${Polygon}/0xD6DF932A45C0f255f85145f286eA0b292B21C90B`,
   name: Tokens.AAVE,
 }, {
@@ -156,7 +156,7 @@ const erc20Addresses = [{
 }, {
   name: Tokens.aRAI,
   address: `${Ethereum}/0xc9bc48c72154ef3e5425641a3c747242112a46af`,
-}].map(setAddressCategory(AddressCategories.ERC20));
+}].map(setAddressCategory(AddressCategories.Token));
 
 export const defiAddresses = [{
   name: "LendingPool",
@@ -167,6 +167,6 @@ export const defiAddresses = [{
 }].map(setAddressCategory(AddressCategories.Defi));
 
 export const addresses = [
-  ...erc20Addresses,
+  ...tokenAddresses,
   ...defiAddresses,
 ];

@@ -4,10 +4,11 @@ import { enums as argent } from "./argent/enums";
 import { enums as bjtj } from "./bjtj/enums";
 import { enums as compound } from "./compound/enums";
 import { enums as cryptokitties } from "./cryptokitties/enums";
-import { enums as erc20 } from "./erc20/enums";
+import { enums as tokens } from "./tokens/enums";
 import { enums as etherdelta } from "./etherdelta/enums";
 import { enums as idle } from "./idle/enums";
 import { enums as maker } from "./maker/enums";
+import { enums as nfts } from "./nfts/enums";
 import { enums as polygon } from "./polygon/enums";
 import { enums as quickswap } from "./quickswap/enums";
 import { enums as tornado } from "./tornado/enums";
@@ -22,10 +23,11 @@ export const Apps = {
   ...bjtj.Apps,
   ...compound.Apps,
   ...cryptokitties.Apps,
-  ...erc20.Apps,
+  ...tokens.Apps,
   ...etherdelta.Apps,
   ...idle.Apps,
   ...maker.Apps,
+  ...nfts.Apps,
   ...polygon.Apps,
   ...quickswap.Apps,
   ...tornado.Apps,
@@ -41,10 +43,11 @@ export const Methods = {
   ...bjtj.Methods,
   ...compound.Methods,
   ...cryptokitties.Methods,
-  ...erc20.Methods,
+  ...tokens.Methods,
   ...etherdelta.Methods,
   ...idle.Methods,
   ...maker.Methods,
+  ...nfts.Methods,
   ...polygon.Methods,
   ...quickswap.Methods,
   ...tornado.Methods,
@@ -60,10 +63,11 @@ export const Tokens = {
   ...bjtj.Tokens,
   ...compound.Tokens,
   ...cryptokitties.Tokens,
-  ...erc20.Tokens,
+  ...tokens.Tokens,
   ...etherdelta.Tokens,
   ...idle.Tokens,
   ...maker.Tokens,
+  ...nfts.Tokens,
   ...polygon.Tokens,
   ...quickswap.Tokens,
   ...tornado.Tokens,

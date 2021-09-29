@@ -7,9 +7,10 @@ import { addresses as airswap } from "./airswap/addresses";
 import { addresses as bjtj } from "./bjtj/addresses";
 import { addresses as compound } from "./compound/addresses";
 import { addresses as cryptokitties } from "./cryptokitties/addresses";
-import { addresses as erc20 } from "./erc20/addresses";
+import { addresses as tokens } from "./tokens/addresses";
 import { addresses as idle } from "./idle/addresses";
 import { addresses as maker } from "./maker/addresses";
+import { addresses as nfts } from "./nfts/addresses";
 import { addresses as polygon } from "./polygon/addresses";
 import { addresses as quickswap } from "./quickswap/addresses";
 import { addresses as tornado } from "./tornado/addresses";
@@ -23,9 +24,10 @@ const appAddresses = [
   ...bjtj,
   ...compound,
   ...cryptokitties,
-  ...erc20,
+  ...tokens,
   ...idle,
   ...maker,
+  ...nfts,
   ...polygon,
   ...quickswap,
   ...tornado,
@@ -59,12 +61,7 @@ const defiAddresses = [
   { name: "daostack", address: "Ethereum/0x99bc239c208c7cf6c123c5fc1666383d17eace19" },
   { name: "dhack-eth-india", address: "Ethereum/0x0ed985925bb42c6719d10dcd1cc02d8cf596c15b" },
   { name: "dharma-lever", address: "Ethereum/0x9bd1428009681e1e3c8f58b50b724739807aa6c5" },
-  { name: "ENS", address: "Ethereum/0x314159265dd8dbb310642f98f50c066173c1259b" },
-  { name: "ens-controller", address: "Ethereum/0x283af0b28c62c092c9727f1ee09c02ca627eb7f5" },
-  { name: "ENS-registrar", address: "Ethereum/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" },
-  { name: "ENS-registrar", address: "Ethereum/0xb22c1c159d12461ea124b0deb4b5b93020e6ad16" },
-  { name: "ENS-registrar-old", address: "Ethereum/0x6090a6e47849629b7245dfa1ca21d94cd15878ef" },
-  { name: "escrowed-erc20-bouncer", address: "Ethereum/0x2e225cf684a48f1de8eba5c56f1715c6f6c6b518" },
+  { name: "escrowed-token-bouncer", address: "Ethereum/0x2e225cf684a48f1de8eba5c56f1715c6f6c6b518" },
   { name: "eternal-storage-proxy", address: "Ethereum/0x4aa42145aa6ebf72e164c9bbc74fbd3788045016" },
   { name: "eth2-deposit", address: "Ethereum/0x00000000219ab540356cbb839cbe05303d7705fa" },
   { name: "genesis-alpha", address: "Ethereum/0x294f999356ed03347c7a23bcbcf8d33fa41dc830" },
@@ -86,7 +83,6 @@ const defiAddresses = [
   { name: "status-username-registrar", address: "Ethereum/0xdb5ac1a559b02e12f29fc0ec0e37be8e046def49" },
   { name: "thecyber", address: "Ethereum/0x0734d56da60852a03e2aafae8a36ffd8c12b32f1" },
   { name: "UnchainedIndex", address: "Ethereum/0xcFd7F3b24f3551741f922Fd8c4381AA4E00FC8FD" },
-  { name: "urbit-azimuth", address: "Ethereum/0x6ac07b7c4601b5ce11de8dfe6335b871c7c4dd4d" },
   { name: "zk-money", address: "Ethereum/0x737901bea3eeb88459df9ef1be8ff3ae1b42a2ba" },
 ].map(setAddressCategory(AddressCategories.Defi));
 
@@ -107,7 +103,6 @@ const exchangeAddresses = [
   { name: "KyberOld", address: "Ethereum/0x9ae49c0d7f8f9ef4b864e004fe86ac8294e20950" },
   { name: "KyberProxy", address: "Ethereum/0x818e6fecd516ecc3849daf6845e3ec868087b755" },
   { name: "KyberRouter", address: "Ethereum/0x91a502C678605fbCe581eae053319747482276b9" },
-  { name: "OpenSea", address: "Ethereum/0x7be8076f4ea4a4ad08075c2508e481d6c946d12b" },
 ].map(setAddressCategory(AddressCategories.Exchange));
 
 export const addresses = [

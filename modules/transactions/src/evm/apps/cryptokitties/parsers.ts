@@ -16,11 +16,11 @@ const appName = Apps.CryptoKitties;
 // const { Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 const cryptokittyAbi = [
-  "event Pregnant(address owner, uint256 matronId, uint256 sireId, uint256 cooldownEndBlock)",
-  "event Transfer(address from, address to, uint256 tokenId)",
   "event Approval(address owner, address approved, uint256 tokenId)",
   "event Birth(address owner, uint256 kittyId, uint256 matronId, uint256 sireId, uint256 genes)",
-  "event ContractUpgrade(address newContract)"
+  "event ContractUpgrade(address newContract)",
+  "event Pregnant(address owner, uint256 matronId, uint256 sireId, uint256 cooldownEndBlock)",
+  "event Transfer(address from, address to, uint256 tokenId)",
 ];
 
 const coreParser = (

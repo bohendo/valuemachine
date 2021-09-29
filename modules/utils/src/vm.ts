@@ -54,9 +54,7 @@ const sumValue = (values: Array<Value>): Balances => {
   const totals = {} as Balances;
   if (!values?.length) return totals;
   values.forEach(value => {
-    if (value?.amount && !eq(value.amount, "0")) {
-      totals[value.asset] = add(totals[value.asset], value.amount);
-    }
+    totals[value.asset] = add(totals[value.asset], value.amount || "1");
   });
   return totals;
 };

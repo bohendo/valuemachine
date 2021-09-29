@@ -13,7 +13,7 @@ export const coreAddresses = [
 
 export const govAddresses = [
   { name: Tokens.IDLE, address: "Ethereum/0x875773784Af8135eA0ef43b5a374AaD105c5D39e" },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 export const marketAddresses = [
   { name: Tokens.idleDAIYield, address: "Ethereum/0x3fe7940616e5bc47b0775a0dccf6237893353bb4" },
@@ -27,7 +27,7 @@ export const marketAddresses = [
   { name: Tokens.idleDAISafe, address: "Ethereum/0xa14ea0e11121e6e951e87c66afe460a00bcd6a16" },
   { name: Tokens.idleUSDCSafe, address: "Ethereum/0x3391bc034f2935eF0E1e41619445F998b2680D35" },
   { name: Tokens.idleUSDTSafe, address: "Ethereum/0x28fAc5334C9f7262b3A3Fe707e250E01053e07b5" },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 export const addresses = [
   ...coreAddresses,

@@ -1,5 +1,4 @@
 import { AddressZero } from "@ethersproject/constants";
-import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   Asset,
@@ -12,14 +11,14 @@ import {
 import { Apps } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
 
-const appName = Apps.ERC20;
+const appName = Apps.NFT;
 
 ////////////////////////////////////////
 /// ABIs
 
-const erc20Abi = [
-  "event Approval(address indexed from, address indexed to, uint amount)",
-  "event Transfer(address indexed from, address indexed to, uint amount)",
+const nftAbi = [
+  "event Approval(address owner, address approved, uint256 tokenId)",
+  "event Transfer(address from, address to, uint256 tokenId)",
 ];
 
 ////////////////////////////////////////
@@ -33,42 +32,37 @@ const coreParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
-  const { getDecimals, getName, isToken } = addressBook;
+  const { getName, isNFT } = addressBook;
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    const index = txLog.index;
     // Only parse known, ERC20 compliant tokens
-    if (isToken(address)) {
-      const event = parseEvent(erc20Abi, txLog, evmMeta);
+    if (isNFT(address)) {
+      const event = parseEvent(nftAbi, txLog, evmMeta);
+      log.info(`found nft: ${getName(address)}`);
+
       if (!event.name) continue;
       tx.apps.push(appName);
-      const asset = getName(address) as Asset;
+      const asset = `${getName(address)}_${event.args.tokenId}` as Asset;
+      log.debug(`Parsing ${appName} ${event.name} for asset ${asset}`);
       // Skip transfers that don't concern self accounts
-      const amount = formatUnits(event.args.amount, getDecimals(address));
 
       if (event.name === "Transfer") {
         const from = event.args.from.endsWith(AddressZero) ? address : event.args.from;
         const to = event.args.to.endsWith(AddressZero) ? address : event.args.to;
-        log.info(`Parsing ${appName} ${event.name} #${index} of ${amount} ${asset} from ${
-          from.substring(0, from.length - 30)
-        }.. to ${
-          to.substring(0, to.length - 30)
-        }..`);
         tx.transfers.push({
-          amount: amount,
           asset,
           category: getTransferCategory(from, to, addressBook),
           from,
-          index,
+          index: txLog.index,
           to,
         });
+        log.info(tx.transfers[tx.transfers.length - 1], "Added new transfer");
         if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
 
       } else if (event.name === "Approval") {
-        log.debug(`Parsing ${appName} ${event.name} event for ${asset}`);
         if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }

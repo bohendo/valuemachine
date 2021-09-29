@@ -47,7 +47,7 @@ const ethereumAddresses = [
   { name: Tokens.yDAI_yUSDC_yUSDT_yBUSD, address: "Ethereum/0x3b3ac5386837dc563660fb6a0937dfaa5924333b" },
   { name: Tokens.yDAI_yUSDC_yUSDT_yTUSD, address: "Ethereum/0xdf5e0e81dff6faf3a7e52ba697820c5e32d806a8" },
   { name: Tokens.ZRX, address: "Ethereum/0xe41d2489571d322189246dafa5ebde1f4699f498" },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 const polygonAddresses = [
   { name: Tokens.DAI, address: "Polygon/0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063" },
@@ -55,7 +55,7 @@ const polygonAddresses = [
   { name: Tokens.USDT, address: "Polygon/0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6 },
   { name: Tokens.WBTC, address: "Polygon/0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6", decimals: 8 },
   { name: Tokens.WETH, address: "Polygon/0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619" },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 export const addresses = [
   ...ethereumAddresses,

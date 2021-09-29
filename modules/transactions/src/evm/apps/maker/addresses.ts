@@ -9,7 +9,7 @@ import { Tokens, Apps } from "../../enums";
 
 const govTokenAddresses = [
   { name: Tokens.MKR, address: "Ethereum/0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2" },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 const saiAddresses = [
   { name: Apps.SaiCage, address: "Ethereum/0x9fdc15106da755f9ffd5b0ba9854cfb89602e0fd" },
@@ -44,7 +44,7 @@ export const tokenAddresses = [
   { name: Tokens.SAI, address: "Ethereum/0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359" },
   { name: Tokens.PETH, address: "Ethereum/0xf53ad2c6851052a81b42133467480961b2321c09" },
   { name: Tokens.DAI, address: "Ethereum/0x6b175474e89094c44da98b954eedeac495271d0f" },
-].map(setAddressCategory(AddressCategories.ERC20));
+].map(setAddressCategory(AddressCategories.Token));
 
 export const factoryAddresses = [
   { name: "MakerProxyRegistry", address: "Ethereum/0x4678f0a6958e4d2bc4f1baf7bc52e8f3564f3fe4" },

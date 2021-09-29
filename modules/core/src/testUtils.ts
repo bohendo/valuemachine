@@ -34,7 +34,7 @@ export const getTestAddressBook = (json: AddressBookJson = {}): AddressBook =>
       [AddressOne]: { name: "Self1", category: AddressCategories.Self, address: AddressOne },
       [AddressTwo]: { name: "Self2", category: AddressCategories.Self, address: AddressTwo },
       [AddressThree]: { name: "NotMe", category: AddressCategories.Private, address: AddressThree },
-      [testToken]: { name: "TestToken", category: AddressCategories.ERC20, address: testToken },
+      [testToken]: { name: "TestToken", category: AddressCategories.Token, address: testToken },
       ...json,
     },
     logger: testLogger,
