@@ -99,11 +99,8 @@ export const parseEvmTx = (
   tx.apps = dedup(tx.apps).sort();
 
   tx.transfers = tx.transfers
-    // Filter out transfers that don't involve us
-    .filter(transfer =>
-      gt(transfer.amount, "0")
-      && transfer.category !== TransferCategories.Noop
-    )
+    // Filter out transfers that we don't need to parse
+    .filter(transfer => transfer.category !== TransferCategories.Noop)
     // sort by index
     .sort((t1, t2) => t1.index - t2.index);
 

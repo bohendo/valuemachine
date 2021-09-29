@@ -76,6 +76,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
 
   const isSelf = isCategory(AddressCategories.Self);
 
+  const isNFT = isCategory(AddressCategories.NFT);
   const isToken = isCategory(AddressCategories.Token);
 
   // If venue is present, return venue/name else return name
@@ -112,6 +113,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     getName,
     isSelf,
     isToken,
+    isNFT,
     json,
   };
 };

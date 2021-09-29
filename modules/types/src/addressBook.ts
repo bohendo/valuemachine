@@ -71,5 +71,6 @@ export interface AddressBook {
   getName(address: Account, prefix?: boolean): string;
   isSelf(address: Account): boolean;
   isToken(address: Account): boolean;
+  isNFT(address: Account): boolean;
   json: AddressBookJson;
 }

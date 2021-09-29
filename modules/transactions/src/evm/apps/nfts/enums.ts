@@ -2,6 +2,7 @@ const Apps = {
   NFT: "NFT",
   ENS: "ENS",
   Urbit: "Urbit",
+  OpenSea: "OpenSea",
 } as const;
 
 const Methods = {
