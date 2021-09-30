@@ -8,6 +8,7 @@ import { addresses as bjtj } from "./bjtj/addresses";
 import { addresses as compound } from "./compound/addresses";
 import { addresses as cryptokitties } from "./cryptokitties/addresses";
 import { addresses as tokens } from "./tokens/addresses";
+import { addresses as idex } from "./idex/addresses";
 import { addresses as idle } from "./idle/addresses";
 import { addresses as maker } from "./maker/addresses";
 import { addresses as nfts } from "./nfts/addresses";
@@ -25,6 +26,7 @@ const appAddresses = [
   ...compound,
   ...cryptokitties,
   ...tokens,
+  ...idex,
   ...idle,
   ...maker,
   ...nfts,
@@ -99,7 +101,6 @@ const exchangeAddresses = [
   { name: "0xV1", address: "Ethereum/0x12459c951127e0c374ff9105dda097662a027093" },
   { name: "0xV2", address: "Ethereum/0x4f833a24e1f95d70f028921e27040ca56e09ab0b" },
   { name: "BalancerVault", address: "Ethereum/0xBA12222222228d8Ba445958a75a0704d566BF2C8" },
-  { name: "Idex", address: "Ethereum/0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208" },
   { name: "KyberOld", address: "Ethereum/0x9ae49c0d7f8f9ef4b864e004fe86ac8294e20950" },
   { name: "KyberProxy", address: "Ethereum/0x818e6fecd516ecc3849daf6845e3ec868087b755" },
   { name: "KyberRouter", address: "Ethereum/0x91a502C678605fbCe581eae053319747482276b9" },

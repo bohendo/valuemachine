@@ -1,6 +1,6 @@
 {
   "name": "valuemachine",
-  "version": "0.10.8",
+  "version": "0.10.9",
   "description": "Low level utilities for portfolio and tax analysis",
   "repository": {
     "type": "git",
@@ -20,7 +20,7 @@
     "ethers": "5.4.7",
     "eslint": "7.32.0",
     "eslint-plugin-import": "2.24.2",
-    "eslint-plugin-react": "7.26.0",
+    "eslint-plugin-react": "7.26.1",
     "eslint-plugin-unused-imports": "1.1.5",
     "tslib": "2.3.1"
   }
