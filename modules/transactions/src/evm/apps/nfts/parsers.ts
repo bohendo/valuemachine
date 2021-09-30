@@ -11,14 +11,16 @@ import {
 import { Apps } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
 
+import { marketParser } from "./markets";
+
 const appName = Apps.NFT;
 
 ////////////////////////////////////////
 /// ABIs
 
 const nftAbi = [
-  "event Approval(address owner, address approved, uint256 tokenId)",
-  "event Transfer(address from, address to, uint256 tokenId)",
+  "event Approval(address indexed owner, address indexed approved, uint256 tokenId)",
+  "event Transfer(address indexed from, address indexed to, uint256 tokenId)",
 ];
 
 ////////////////////////////////////////
@@ -39,14 +41,10 @@ const coreParser = (
     // Only parse known, ERC20 compliant tokens
     if (isNFT(address)) {
       const event = parseEvent(nftAbi, txLog, evmMeta);
-      log.info(`found nft: ${getName(address)}`);
-
       if (!event.name) continue;
-      tx.apps.push(appName);
       const asset = `${getName(address)}_${event.args.tokenId}` as Asset;
       log.debug(`Parsing ${appName} ${event.name} for asset ${asset}`);
-      // Skip transfers that don't concern self accounts
-
+      tx.apps.push(appName);
       if (event.name === "Transfer") {
         const from = event.args.from.endsWith(AddressZero) ? address : event.args.from;
         const to = event.args.to.endsWith(AddressZero) ? address : event.args.to;
@@ -57,7 +55,6 @@ const coreParser = (
           index: txLog.index,
           to,
         });
-        log.info(tx.transfers[tx.transfers.length - 1], "Added new transfer");
         if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
@@ -66,9 +63,6 @@ const coreParser = (
         if (evmTx.to === address) {
           tx.method = `${asset} ${event.name}`;
         }
-
-      } else {
-        log.warn(event, `Unknown ${asset} event`);
       }
 
     }
@@ -78,4 +72,4 @@ const coreParser = (
   return tx;
 };
 
-export const parsers = { insert: [coreParser], modify: [] };
+export const parsers = { insert: [coreParser], modify: [marketParser] };

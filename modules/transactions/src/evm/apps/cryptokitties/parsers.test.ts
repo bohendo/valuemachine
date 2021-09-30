@@ -13,7 +13,7 @@ const appName = Apps.CryptoKitties;
 const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 const parseTx = getParseTx({ logger });
 
-describe(appName, () => {
+describe.only(appName, () => {
 
   it("should handle a breed", async () => {
     const tx = await parseTx({

@@ -1,3 +1,4 @@
+import { AddressZero } from "@ethersproject/constants";
 import {
   AddressBook,
   EvmMetadata,
@@ -7,7 +8,7 @@ import {
 } from "@valuemachine/types";
 
 import { Apps, Methods } from "../../enums";
-import { parseEvent } from "../../utils";
+import { getTransferCategory, parseEvent } from "../../utils";
 
 import { addresses } from "./addresses";
 
@@ -41,6 +42,26 @@ const coreParser = (
       log.info(`Found ${appName} ${event.name}`);
       if (event.name === "Pregnant") {
         tx.method = Methods.Breed;
+      } else if (event.name === "Transfer") {
+        const asset = `${addressBook.getName(address)}_${event.args.tokenId}`;
+        const from = event.args.from.endsWith(AddressZero) ? address : event.args.from;
+        const to = event.args.to.endsWith(AddressZero) ? address : event.args.to;
+        tx.transfers.push({
+          asset,
+          category: getTransferCategory(from, to, addressBook),
+          from,
+          index: txLog.index,
+          to,
+        });
+        if (evmTx.to === address) {
+          tx.method = `${asset} ${event.name}`;
+        }
+
+      } else if (event.name === "Approval") {
+        const asset = `${addressBook.getName(address)}_${event.args.tokenId}`;
+        if (evmTx.to === address) {
+          tx.method = `${asset} ${event.name}`;
+        }
       }
     }
   }
