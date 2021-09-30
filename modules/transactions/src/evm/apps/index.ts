@@ -9,6 +9,7 @@ export { parsers as compoundParsers } from "./compound";
 export { parsers as cryptokittiesParsers } from "./cryptokitties";
 export { parsers as tokensParsers } from "./tokens";
 export { parsers as etherdeltaParsers } from "./etherdelta";
+export { parsers as idexParsers } from "./idex";
 export { parsers as idleParsers } from "./idle";
 export { parsers as makerParsers } from "./maker";
 export { parsers as nftsParsers } from "./nfts";
