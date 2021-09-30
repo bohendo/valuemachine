@@ -11,6 +11,7 @@ const { ENS, OpenSea, Urbit } = Apps;
 
 // Simple, standalone nfts only. App-specific nfts can be found in that apps parser.
 const nftAddresses = [
+  { name: `Loot`, address: "Ethereum/0xff9c1b15b16263c61d017ee9f65c50e4ae0113d7" },
   { name: `${Urbit}_Azimuth`, address: "Ethereum/0x6ac07b7c4601b5ce11de8dfe6335b871c7c4dd4d" },
   { name: ENS, address: `Ethereum/0x314159265dd8dbb310642f98f50c066173c1259b` },
 ].map(setAddressCategory(AddressCategories.NFT));

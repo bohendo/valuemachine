@@ -13,7 +13,7 @@ const appName = Apps.NFT;
 const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
 const parseTx = getParseTx({ logger });
 
-describe.only(appName, () => {
+describe(appName, () => {
 
   it("should parse giving an nft", async () => {
     const tx = await parseTx({

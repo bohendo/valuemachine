@@ -4,6 +4,7 @@ import {
   Asset,
   EvmMetadata,
   EvmTransaction,
+  EvmTransactionLog,
   Logger,
   Transaction,
 } from "@valuemachine/types";
@@ -19,12 +20,50 @@ const appName = Apps.NFT;
 /// ABIs
 
 const nftAbi = [
+  "event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)",
+  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+];
+
+const nonstandardNftAbi1 = [
   "event Approval(address indexed owner, address indexed approved, uint256 tokenId)",
   "event Transfer(address indexed from, address indexed to, uint256 tokenId)",
 ];
 
+const nonstandardNftAbi2 = [
+  "event Approval(address indexed owner, address approved, uint256 tokenId)",
+  "event Transfer(address indexed from, address to, uint256 tokenId)",
+];
+
+const nonstandardNftAbi3 = [
+  "event Approval(address owner, address approved, uint256 tokenId)",
+  "event Transfer(address from, address to, uint256 tokenId)",
+];
+
 ////////////////////////////////////////
 /// Parser
+
+const parseNftEvent = (
+  evmLog: EvmTransactionLog,
+  evmMeta: EvmMetadata,
+): { name: string; args: { [key: string]: string }; } => {
+  try {
+    return parseEvent(nftAbi, evmLog, evmMeta);
+  } catch (e) {
+    try {
+      return parseEvent(nonstandardNftAbi1, evmLog, evmMeta);
+    } catch (e) {
+      try {
+        return parseEvent(nonstandardNftAbi2, evmLog, evmMeta);
+      } catch (e) {
+        try {
+          return parseEvent(nonstandardNftAbi3, evmLog, evmMeta);
+        } catch (e) {
+          throw new Error(`Evm log doesn't appear to be from an NFT`);
+        }
+      }
+    }
+  }
+};
 
 const coreParser = (
   tx: Transaction,
@@ -40,7 +79,7 @@ const coreParser = (
     const address = txLog.address;
     // Only parse known, ERC20 compliant tokens
     if (isNFT(address)) {
-      const event = parseEvent(nftAbi, txLog, evmMeta);
+      const event = parseNftEvent(txLog, evmMeta);
       if (!event.name) continue;
       const asset = `${getName(address)}_${event.args.tokenId}` as Asset;
       log.debug(`Parsing ${appName} ${event.name} for asset ${asset}`);
@@ -68,7 +107,6 @@ const coreParser = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };
 

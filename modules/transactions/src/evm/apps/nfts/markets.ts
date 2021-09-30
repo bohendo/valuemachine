@@ -75,6 +75,5 @@ export const marketParser = (
     }
   }
 
-  log.info(tx, `Done parsing ${appName}`);
   return tx;
 };
