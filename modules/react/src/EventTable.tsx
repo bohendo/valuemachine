@@ -58,8 +58,8 @@ export const EventTable: React.FC<EventTableProps> = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [accounts, setAccounts] = useState([] as Account[]);
   const [filterAccount, setFilterAccount] = useState("");
-  const [filterType, setFilterType] = useState("");
   const [filterCode, setFilterCode] = useState("");
+  const [filterType, setFilterType] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as HydratedEvent[]);
   const classes = useStyles();
 
@@ -91,6 +91,7 @@ export const EventTable: React.FC<EventTableProps> = ({
 
   const handleFilterTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
+    if (filterType !== EventTypes.ErrorEvent) setFilterCode("");
     setFilterType(event.target.value);
   };
 
