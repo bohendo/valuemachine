@@ -91,7 +91,7 @@ export const EventTable: React.FC<EventTableProps> = ({
 
   const handleFilterTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
-    if (filterType !== EventTypes.ErrorEvent) setFilterCode("");
+    if (filterType !== EventTypes.Error) setFilterCode("");
     setFilterType(event.target.value);
   };
 
