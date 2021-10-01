@@ -3,8 +3,13 @@ const Apps = {
 } as const;
 
 const Methods = {
-  Breed: "Breed",
+  Auction: "Auction",
   Birth: "Birth",
+  Breed: "Breed",
+  Cancel: "Cancel",
+  Purchase: "Purchase",
+  Sale: "Sale",
+  Sire: "Sire",
 } as const;
 
 const Tokens = {
