@@ -4,7 +4,6 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableRow from "@material-ui/core/TableRow";
 import React from "react";
-import { gt } from "@valuemachine/utils";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   table: {
@@ -30,12 +29,12 @@ export const Balances = ({
   return (
     <Table size="small" className={classes.table}>
       <TableBody>
-        {Object.entries(balances).sort().map(([asset, bal]: string[], i: number) => gt(bal, "0") ? (
+        {Object.entries(balances).sort().map(([asset, bal]: string[], i: number) => (
           <TableRow  key={i} className={classes.row}>
             <TableCell className={classes.column}> {asset} </TableCell>
             <TableCell className={classes.column}> {bal} </TableCell>
           </TableRow>
-        ) : null)}
+        ))}
       </TableBody>
     </Table>
   );
