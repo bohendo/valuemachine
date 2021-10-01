@@ -22,7 +22,7 @@ export const mergeCoinbaseTransactions = (
 ): Transaction[] => {
   const source = CsvSources.Coinbase;
   const log = logger.child({ module: source }); 
-  log.info(`Processing ${csvData.split(`\n`).length - 2} rows of coinbase data`);
+  log.info(`Processing ${csvData.split(`\n`).length - 2} rows of ${source} data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
     const {
