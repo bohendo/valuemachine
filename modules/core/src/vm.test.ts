@@ -41,7 +41,7 @@ const {
 } = TransferCategories;
 const { Coinbase } = TransactionSources;
 const { Ethereum, USA } = Guards;
-const log = testLogger.child({ module: "TestVM" }, { level: "info" });
+const log = testLogger.child({ module: "TestVM" }, { level: "silent" });
 
 const ethAccount = `${Ethereum}/${AddressOne}`;
 const otherAccount = `${Ethereum}/${AddressTwo}`;
@@ -60,6 +60,22 @@ describe("VM", () => {
     expect(Object.keys(prices.json).length).to.equal(0);
     vm = getValueMachine({ addressBook, logger: log });
     expect(vm).to.be.ok;
+  });
+
+  it("should handle nft transfers", async () => {
+    const nft = `${EvmApps.CryptoKitties}_12345`;
+    [getTestTx([ // Income
+      { asset: nft, category: Income, from: notMe, to: ethAccount },
+    ]), getTestTx([ // Internal
+      { asset: nft, category: Internal, from: ethAccount, to: aaveAccount },
+    ]), getTestTx([ // Expense
+      { asset: nft, category: Expense, from: aaveAccount, to: notMe },
+    ])].forEach(vm.execute);
+    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(vm.getNetWorth()).to.deep.equal({});
+    expect(vm.json.events.length).to.equal(2);
+    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.Expense);
   });
 
   it("should emit events w in/outputs that add up to the transferred amounts", async () => {

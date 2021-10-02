@@ -103,7 +103,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       ) || (
         account && chunk.account === account
       ))
-    ) ? add(balance, chunk.amount) : balance,
+    ) ? add(balance, chunk.amount || "1") : balance,
     "0");
 
   const getChunk = (index: number): HydratedAssetChunk =>
@@ -127,7 +127,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const getNetWorth = (account?: Account): Balances =>
     json.chunks.reduce((netWorth, chunk) => {
       if (chunk.account && (!account || chunk.account === account)) {
-        netWorth[chunk.asset] = add(netWorth[chunk.asset], chunk.amount);
+        netWorth[chunk.asset] = add(netWorth[chunk.asset], chunk.amount || "1");
       }
       return netWorth;
     }, {});
@@ -459,6 +459,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     if (refunds.length) {
       refunds.forEach(refund => {
         const refunded = transfers.find(transfer =>
+          transfer.amount &&
           transfer.asset === refund.asset &&
           refund.from === transfer.to &&
           Object.keys(OutgoingTransfers).includes(transfer.category) &&
@@ -540,7 +541,8 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
     // Process all non-swap & non-refund transfers
     transfers.forEach(transfer => {
-      const { asset, category, from, amount, to } = transfer;
+      const { asset, category, from, to } = transfer;
+      const amount = transfer.amount || "1"; // treat NFTs as always having amount=1
       if (category === Borrow) {
         borrowValue(amount, asset, from);
         moveValue(amount, asset, from, to);
