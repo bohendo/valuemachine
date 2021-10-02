@@ -117,6 +117,7 @@ describe(appName, () => {
     expect(tx.transfers[1].from).to.include(appName);
     expect(tx.transfers[2].category).to.equal(TransferCategories.Internal);
     expect(tx.transfers[2].from).to.include(appName);
+    expect(tx.transfers[2].asset).to.equal(tx.transfers[0].asset);
   });
 
   it("should handle cancelling a sale auction", async () => {

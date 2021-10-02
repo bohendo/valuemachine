@@ -250,7 +250,8 @@ const coreParser = (
                 swapOut.from = account;
                 swapOut.index = "index" in swapOut ? swapOut.index : txLog.index;
                 tx.transfers.push({
-                  asset: swapOut.asset,
+                  amount: swapIn.amount,
+                  asset: swapIn.asset,
                   category: TransferCategories.Internal,
                   from: account,
                   index: txLog.index + 2,
