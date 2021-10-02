@@ -4,7 +4,8 @@ const Apps = {
 
 const Methods = {
   Auction: "Auction",
-  Birth: "Birth",
+  GiveBirth: "GiveBirth",
+  GetBirth: "GetBirth",
   Breed: "Breed",
   Cancel: "Cancel",
   Purchase: "Purchase",
