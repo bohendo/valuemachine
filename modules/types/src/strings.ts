@@ -7,7 +7,7 @@ export type EvmAddress = Static<typeof EvmAddress>;
 // eg Ethereum/0xabc123.. for simple on-chain accounts
 // eg Ethereum/Maker-CDP-123/0xabc123.. for on-chain apps that support deposits/withdraws
 // eg USA/Coinbase/account for off-chain trad fi services
-export const Account = Type.RegEx(/^[-/a-zA-Z0-9]+$/); // TODO: tighten regex
+export const Account = Type.RegEx(/^([a-zA-Z]{2,32}\/)?([-/a-zA-Z0-9_]+\/)?[0-9a-zA-Z]+$/);
 export type Account = Static<typeof Account>;
 
 // guard/hash
