@@ -12,6 +12,7 @@ import {
 } from "@valuemachine/types";
 import { dedup, gt, getNewContractAddress } from "@valuemachine/utils";
 
+import { Methods } from "./enums";
 import { getTransferCategory } from "./utils";
 
 export const parseEvmTx = (
@@ -48,7 +49,7 @@ export const parseEvmTx = (
 
   // Detect failed transactions
   if (evmTx.status !== 1) {
-    tx.method = "Failure";
+    tx.method = Methods.Failure;
     log.info(`Detected a failed tx`);
     return tx;
   }
@@ -70,7 +71,7 @@ export const parseEvmTx = (
     // derived from: https://evmereum.stackexchange.com/a/46960
     const newContract = getNewContractAddress(evmTx.from, evmTx.nonce);
     evmTx.to = newContract; // overwrite to make later steps simpler
-    tx.method = "Contract Creation";
+    tx.method = Methods.Creation;
     log.info(`Detected a newly created contract`);
   }
 

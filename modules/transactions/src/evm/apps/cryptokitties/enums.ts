@@ -3,8 +3,14 @@ const Apps = {
 } as const;
 
 const Methods = {
+  Auction: "Auction",
+  GiveBirth: "GiveBirth",
+  GetBirth: "GetBirth",
   Breed: "Breed",
-  Birth: "Birth",
+  Cancel: "Cancel",
+  Purchase: "Purchase",
+  Sale: "Sale",
+  Sire: "Sire",
 } as const;
 
 const Tokens = {

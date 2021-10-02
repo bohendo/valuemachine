@@ -83,10 +83,9 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
             onChange={handleFileTypeChange}
           >
             <MenuItem value={""}>-</MenuItem>
-            <MenuItem value={CsvSources.Coinbase}>{CsvSources.Coinbase}</MenuItem>
-            <MenuItem value={CsvSources.DigitalOcean}>{CsvSources.DigitalOcean}</MenuItem>
-            <MenuItem value={CsvSources.Wyre}>{CsvSources.Wyre}</MenuItem>
-            <MenuItem value={CsvSources.Wazirx}>{CsvSources.Wazirx}</MenuItem>
+            {Object.keys(CsvSources).map((source, key) => (
+              <MenuItem key={key} value={source}>{source}</MenuItem>
+            ))}
           </Select>
         </FormControl>
 

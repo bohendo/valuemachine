@@ -70,6 +70,9 @@ export const TransactionRow = ({
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box pb={2} px={4}>
               <Typography variant="h6" gutterBottom component="div">
+                Method: {tx.method || "Unknown"}
+              </Typography>
+              <Typography variant="h6" gutterBottom component="div">
                 Transfers
               </Typography>
               <Table size="small" className={classes.subTable}>

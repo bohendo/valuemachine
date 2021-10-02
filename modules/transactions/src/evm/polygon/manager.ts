@@ -51,7 +51,7 @@ export const getPolygonData = ({
   const error = getEvmDataError(json);
   if (error) throw new Error(error);
 
-  log.info(`Loaded polygon data containing ${
+  log.debug(`Loaded polygon data containing ${
     Object.keys(json.transactions).length
   } transactions from ${polygonDataJson ? "input" : store ? "store" : "default"}`);
 

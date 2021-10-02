@@ -14,6 +14,7 @@ import {
 import {
   mergeCoinbaseTransactions,
   mergeDigitalOceanTransactions,
+  mergeElementsTransactions,
   mergeWazirxTransactions,
   mergeWyreTransactions,
 } from "./csv";
@@ -63,11 +64,13 @@ export const getTransactions = (params?: TransactionsParams): Transactions => {
       mergeWazirxTransactions(json, csvData, log);
     } else if (parser === CsvSources.Wyre) {
       mergeWyreTransactions(json, csvData, log);
+    } else if (parser === CsvSources.Elements) {
+      mergeElementsTransactions(json, csvData, log);
     } else if (typeof parser === "function") {
       parser(json, csvData, log);
     } else {
-      log.warn(parser, `Unknown parser, expected one of [${
-        Object.keys(CsvSources).join(`", "`)
+      log.warn(`Unknown parser ${parser}, expected one of [${
+        Object.keys(CsvSources).join(`, `)
       }] or a custom function`);
     }
     sync();

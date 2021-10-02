@@ -88,7 +88,7 @@ export const round = (decStr: string, n?: number, stripTrailingZeros?: boolean):
       gt(decStr, "1") ? 2
       : gt(decStr, "0.01") ? 4
       : gt(decStr, "0.0001") ? 6
-      : 8
+      : 18
     );
     stripTrailingZeros = true;
   }

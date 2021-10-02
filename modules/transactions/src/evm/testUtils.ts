@@ -8,7 +8,7 @@ import {
   Logger,
   Transaction,
 } from "@valuemachine/types";
-import { getFileStore } from "@valuemachine/utils";
+import { getFileStore, getTransactionError } from "@valuemachine/utils";
 
 import { env, getTestAddressBook, testLogger } from "../testUtils";
 
@@ -36,15 +36,19 @@ export const getParseTx = (params?: {
   }): Promise<Transaction> => {
     const addressBook = params?.addressBook || getTestAddressBook(selfAddress);
     const [evm, hash] = txid.split("/");
+    let tx;
     if (evm === "Ethereum") {
       await ethData.syncTransaction(hash);
-      return ethData.getTransaction(hash, addressBook);
+      tx = ethData.getTransaction(hash, addressBook);
     } else if (evm === "Polygon") {
       await polyData.syncTransaction(hash);
-      return polyData.getTransaction(hash, addressBook);
+      tx = polyData.getTransaction(hash, addressBook);
     } else {
       throw new Error(`Idk what to do w this tx: ${txid}`);
     }
+    const error = getTransactionError(tx);
+    if (error) throw new Error(error);
+    return tx;
   };
 };
 

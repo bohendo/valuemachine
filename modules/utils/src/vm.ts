@@ -62,7 +62,9 @@ export const sumTransfers = (transfers: Transfer[]): Balances => sumValue(transf
 export const sumChunks = (chunks: AssetChunk[]): Balances => sumValue(chunks as Value[]);
 
 export const describeBalance = (balance: Balances): string =>
-  Object.keys(balance).map(asset => `${round(balance[asset])} ${asset}`).join(" and ");
+  Object.keys(balance).map(asset =>
+    eq(balance[asset], "1") && asset.includes("_") ? asset : `${round(balance[asset])} ${asset}`
+  ).join(" and ");
 
 // annihilate values that are present in both balances
 export const diffBalances = (balancesList: Balances[]): Balances[] => {

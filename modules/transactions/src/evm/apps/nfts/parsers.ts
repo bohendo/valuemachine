@@ -82,11 +82,11 @@ const coreParser = (
       const event = parseNftEvent(txLog, evmMeta);
       if (!event.name) continue;
       const asset = `${getName(address)}_${event.args.tokenId}` as Asset;
-      log.debug(`Parsing ${appName} ${event.name} for asset ${asset}`);
       tx.apps.push(appName);
       if (event.name === "Transfer") {
         const from = event.args.from.endsWith(AddressZero) ? address : event.args.from;
         const to = event.args.to.endsWith(AddressZero) ? address : event.args.to;
+        log.info(`Found ${asset} transfer from ${from} to ${to}`);
         tx.transfers.push({
           asset,
           category: getTransferCategory(from, to, addressBook),
@@ -95,7 +95,7 @@ const coreParser = (
           to,
         });
         if (evmTx.to === address) {
-          tx.method = `${asset} ${event.name}`;
+          tx.method = tx.method || `${asset} ${event.name}`;
         }
 
       } else if (event.name === "Approval") {

@@ -34,12 +34,10 @@ const coreParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
-  log.info(`Looking for ${appName} events`);
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (addresses.some(e => e.address === address)) {
-      log.info(`Found ${appName} event`);
       const event = parseEvent(idexAbi, txLog, evmMeta);
       if (!event?.name) continue;
       tx.apps.push(appName);
