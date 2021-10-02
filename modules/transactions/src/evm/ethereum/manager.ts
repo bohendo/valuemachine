@@ -51,7 +51,7 @@ export const getEthereumData = ({
   const inputError = getEvmDataError(json);
   if (inputError) throw new Error(inputError);
 
-  log.info(`Loaded eth data containing ${
+  log.debug(`Loaded eth data containing ${
     Object.keys(json.transactions).length
   } EthTxs from ${ethDataJson ? "input" : store ? "store" : "default"}`);
 

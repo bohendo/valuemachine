@@ -88,7 +88,8 @@ const coreParser = (
         }
         // If this pregnancy is the result of a siring auction, handle payment
         const directIncome = tx.transfers.find(transfer =>
-          transfer.asset === ETH && addressBook.isSelf(transfer.to)
+          transfer.asset === ETH &&
+          addressBook.isSelf(transfer.to) && !transfer.to.includes(appName)
         );
         if (directIncome) {
           tx.method = Methods.Sale;
@@ -102,6 +103,8 @@ const coreParser = (
           if (withdraw) {
             withdraw.category = TransferCategories.Internal;
             withdraw.from = account;
+          } else {
+            log.warn(`Found no ${asset} withdraw associated w sale for ${directIncome.amount} ETH`);
           }
         }
 
@@ -161,6 +164,10 @@ const coreParser = (
             log.info(`${account} gave birth to a kitty`);
             directIncome.category = TransferCategories.Income;
           }
+        } else {
+          if (addressBook.isSelf(evmTx.from)) {
+            tx.method = Methods.Failure;
+          }
         }
       }
 
@@ -168,29 +175,30 @@ const coreParser = (
       const event = parseEvent(auctionAbi, txLog, evmMeta);
       if (!event?.name) continue;
       tx.apps.push(appName);
-      const name = addressBook.getName(address);
-      log.info(`Found ${name} ${event.name}`);
+      log.info(`Found ${appName} ${event.name}`);
       const asset = `${appName}_${event.args.tokenId}`;
       if (event.name === "AuctionCreated") {
-        tx.method = Methods.Auction;
+        tx.method = `${Methods.Auction} ${asset}`;
         const deposit = tx.transfers.find(transfer =>
           transfer.asset === asset &&
           addressBook.isSelf(transfer.from) && transfer.to === address
         ); 
         if (deposit) {
           deposit.category = TransferCategories.Internal;
-          deposit.to = insertVenue(deposit.from, name);
+          deposit.to = insertVenue(deposit.from, appName);
         }
 
       } else if (event.name === "AuctionCancelled") {
-        tx.method = Methods.Cancel;
+        tx.method = `${Methods.Cancel} ${address === saleAuctionAddress
+          ? `${appName} Sale`
+          : `${appName} Sire`}`;
         const withdraw = tx.transfers.find(transfer =>
           transfer.asset === asset &&
           addressBook.isSelf(transfer.to) && transfer.from === address
         ); 
         if (withdraw) {
           withdraw.category = TransferCategories.Internal;
-          withdraw.from = insertVenue(withdraw.to, name);
+          withdraw.from = insertVenue(withdraw.to, appName);
         }
 
       } else if (event.name === "AuctionSuccessful") {

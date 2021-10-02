@@ -39,6 +39,8 @@ export const Apps = {
 } as const;
 
 export const Methods = {
+  Creation: "Creation",
+  Failure: "Failure",
   ...aave.Methods,
   ...airswap.Methods,
   ...argent.Methods,
