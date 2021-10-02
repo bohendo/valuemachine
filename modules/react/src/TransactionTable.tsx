@@ -12,16 +12,20 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import { Assets, EvmApps, TransactionSources } from "@valuemachine/transactions";
+import { EvmApps, TransactionSources } from "@valuemachine/transactions";
 import {
+  Account,
   AddressBook,
-  AddressCategories,
   Asset,
+  IncomingTransfers,
+  OutgoingTransfers,
   Transaction,
   Transactions,
+  TransferCategories,
   TransactionsJson,
   TransactionSource,
 } from "@valuemachine/types";
+import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { TransactionRow } from "./TransactionRow";
@@ -62,6 +66,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const [filterStartDate, setFilterStartDate] = useState("");
   const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
   const [ourAssets, setOurAssets] = useState([] as Asset[]);
+  const [ourAccounts, setOurAccounts] = useState([] as Account[]);
   const classes = useStyles();
 
   const hasAccount = (account: string) => (tx: Transaction): boolean =>
@@ -102,9 +107,20 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   useEffect(() => {
     if (!addressBook || !transactions) return;
     setOurAssets(
-      Object.keys(Assets)
-        // TODO: the following line crashes the page when txns are cleared
-        .filter(asset => transactions?.json?.some(hasAsset(asset)))
+      dedup(transactions?.json.map(tx => tx.transfers.map(transfer => transfer.asset)).flat())
+    );
+    setOurAccounts(
+      dedup(transactions?.json.map(tx => tx.transfers.map(transfer => {
+        if (transfer.category === TransferCategories.Internal) {
+          return [transfer.to, transfer.from];
+        } else if (Object.keys(OutgoingTransfers).includes(transfer.category)) {
+          return [transfer.from];
+        } else if (Object.keys(IncomingTransfers).includes(transfer.category)) {
+          return [transfer.to];
+        } else {
+          return [];
+        }
+      }).flat()).flat())
     );
   }, [addressBook, transactions]);
 
@@ -156,12 +172,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           onChange={changeFilterAccount}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.values(addressBook?.json || [])
-            .filter(account => account.category === AddressCategories.Self)
-            .map(account => (
-              <MenuItem key={account.address} value={account.address}>{account.name}</MenuItem>
-            ))
-          };
+          {ourAccounts.map(account => (
+            <MenuItem key={account} value={account}>{addressBook.getName(account, true)}</MenuItem>
+          ))};
         </Select>
       </FormControl>
 
