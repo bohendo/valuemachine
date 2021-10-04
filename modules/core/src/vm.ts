@@ -125,16 +125,9 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   };
 
   const getNetWorth = (account?: Account): Balances =>
-    json.chunks.reduce((netWorth, chunk) => {
-      if (chunk.account && (!account || chunk.account === account)) {
-        if (!chunk.amount) {
-          netWorth[chunk.asset] = "1"; // treat NFTs as always having an amount of 1
-        } else if (gt(chunk.amount, "0")) {
-          netWorth[chunk.asset] = add(netWorth[chunk.asset], chunk.amount);
-        }
-      }
-      return netWorth;
-    }, {});
+    sumChunks(json.chunks.filter(chunk =>
+      chunk.account && (!account || chunk.account === account)
+    ));
 
   ////////////////////////////////////////
   // Chunk Manipulators

@@ -1,10 +1,10 @@
 import {
-  ValueMachineJson,
+  Amount,
   Asset,
   AssetChunk,
   Balances,
-  DecimalString,
   Transfer,
+  ValueMachineJson,
 } from "@valuemachine/types";
 
 import { add, eq, gt, round, sub } from "./math";
@@ -48,16 +48,19 @@ export const getValueMachineError = (vmJson: ValueMachineJson): string | null =>
 
 type Value = {
   asset: Asset;
-  amount: DecimalString;
+  amount: Amount;
 };
-const sumValue = (values: Array<Value>): Balances => {
-  const totals = {} as Balances;
-  if (!values?.length) return totals;
-  values.forEach(value => {
-    totals[value.asset] = add(totals[value.asset], value.amount || "1");
-  });
-  return totals;
-};
+const sumValue = (values: Array<Value>): Balances =>
+  values.reduce((total, value) => {
+    if (!value.amount) {
+      return { ...total, [value.asset]: "1" }; // Treat NFTs as always having an amount of 1
+    } else if (value.amount !== "ALL" && !eq(value.amount, "0")) {
+      return { ...total, [value.asset]: add(total[value.asset], value.amount) };
+    } else {
+      return total;
+    }
+  }, {} as Balances);
+
 export const sumTransfers = (transfers: Transfer[]): Balances => sumValue(transfers as Value[]);
 export const sumChunks = (chunks: AssetChunk[]): Balances => sumValue(chunks as Value[]);
 
