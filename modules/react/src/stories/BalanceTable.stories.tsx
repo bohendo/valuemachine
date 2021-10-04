@@ -16,5 +16,3 @@ Example.args = {
   addressBook,
   vm,
 };
-
-

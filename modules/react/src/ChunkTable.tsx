@@ -1,10 +1,12 @@
 import { isAddress } from "@ethersproject/address";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import FormControl from "@material-ui/core/FormControl";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
 import Select from "@material-ui/core/Select";
+import Switch from "@material-ui/core/Switch";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -36,6 +38,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(3),
     minWidth: theme.spacing(20),
   },
+  toggleLabel: {
+    margin: theme.spacing(3),
+    minWidth: theme.spacing(20),
+  },
   table: {
     minWidth: theme.spacing(115),
     overflow: "auto",
@@ -56,6 +62,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   const [assets, setAssets] = useState([] as Asset[]);
   const [filterAccount, setFilterAccount] = useState("");
   const [filterAsset, setFilterAsset] = useState("");
+  const [filterHeld, setFilterHeld] = useState(true);
   const [filteredChunks, setFilteredChunks] = useState([] as AssetChunk[]);
   const classes = useStyles();
 
@@ -70,12 +77,13 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   useEffect(() => {
     setPage(0);
     setFilteredChunks(vm.json?.chunks?.filter(chunk =>
-      (!filterAccount || (
+      (!filterHeld || chunk.account)
+      && (!filterAccount || (
         chunk.history?.some(hist => hist.account.endsWith(filterAccount)) ||
         chunk.account?.endsWith(filterAccount)))
       && (!filterAsset || chunk.asset === filterAsset)
     ).sort((c1: AssetChunk, c2: AssetChunk) => c2.index - c1.index) || []);
-  }, [vm, filterAccount, filterAsset]);
+  }, [vm, filterAccount, filterAsset, filterHeld]);
 
   const handleFilterAccountChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
@@ -85,6 +93,11 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   const handleFilterAssetChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     setFilterAsset(event.target.value);
+  };
+
+  const handleFilterHeldChange = (event: React.ChangeEvent<{ checked: unknown }>) => {
+    if (typeof event.target.checked !== "boolean") return;
+    setFilterHeld(event.target.checked);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -128,9 +141,9 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
       </FormControl>
 
       <FormControl className={classes.dropdown}>
-        <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
+        <InputLabel id="select-filter-asset-label">Filter Asset</InputLabel>
         <Select
-          labelId="select-filter-asset"
+          labelId="select-filter-asset-label"
           id="select-filter-asset"
           value={filterAsset || ""}
           onChange={handleFilterAssetChange}
@@ -142,6 +155,20 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
             </MenuItem>
           ))}
         </Select>
+      </FormControl>
+
+      <FormControl>
+        <FormControlLabel
+          className={classes.toggleLabel}
+          label="Presently Held"
+          control={
+            <Switch
+              id="toggle-filter-held"
+              checked={filterHeld}
+              onChange={handleFilterHeldChange}
+            />
+          }
+        />
       </FormControl>
 
       <TableContainer>
