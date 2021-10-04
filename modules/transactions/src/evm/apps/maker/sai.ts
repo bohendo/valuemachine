@@ -15,7 +15,6 @@ import {
 import {
   div,
   gt,
-  insertVenue,
   toBN,
   valuesAreClose,
 } from "@valuemachine/utils";

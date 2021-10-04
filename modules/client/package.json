@@ -24,7 +24,7 @@
     "@valuemachine/transactions": "0.10.1",
     "@valuemachine/types": "0.10.1",
     "@valuemachine/utils": "0.10.1",
-    "axios": "0.22.0",
+    "axios": "0.21.4",
     "json2csv": "5.0.6",
     "react": "17.0.2",
     "react-dom": "17.0.2",
