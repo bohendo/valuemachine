@@ -62,7 +62,32 @@ describe("VM", () => {
     expect(vm).to.be.ok;
   });
 
-  it("should handle nft transfers", async () => {
+  it("should handle a transfer with amount=ALL", async () => {
+    const amt1 = "2.1314";
+    const amt2 = "1.0101";
+    const total = add(amt1, amt2);
+    [getTestTx([ // Income
+      { asset: ETH, amount: amt1, category: Income, from: notMe, to: ethAccount },
+    ]), getTestTx([ // Income
+      { asset: ETH, amount: amt2, category: Income, from: notMe, to: ethAccount },
+    ]), getTestTx([ // Internally transfer ALL
+      { asset: ETH, amount: "ALL", category: Internal, from: ethAccount, to: aaveAccount },
+    ])].forEach(vm.execute);
+    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(vm.getNetWorth(ethAccount)).to.deep.equal({});
+    expect(vm.getNetWorth(aaveAccount)).to.deep.equal({ [ETH]: total });
+    [getTestTx([
+      { asset: ETH, amount: "ALL", category: Expense, from: aaveAccount, to: notMe },
+    ])].forEach(vm.execute);
+    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(vm.getNetWorth()).to.deep.equal({});
+    expect(vm.json.events.length).to.equal(3);
+    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[2]?.type).to.equal(EventTypes.Expense);
+  });
+
+  it("should handle nft transfers w/out an amount field", async () => {
     const nft = `${EvmApps.CryptoKitties}_12345`;
     [getTestTx([ // Income
       { asset: nft, category: Income, from: notMe, to: ethAccount },

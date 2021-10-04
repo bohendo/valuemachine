@@ -479,6 +479,14 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       });
     }
 
+    // Replace all "All" amounts w that account's asset balance
+    const transfersOfAll = transfers.filter(transfer => transfer.amount === "ALL");
+    if (transfersOfAll.length) {
+      transfersOfAll.forEach(transfer => {
+        transfer.amount = getBalance(transfer.asset, transfer.from);
+      });
+    }
+
     // If we have mismatched swap transfers, treat them as income/expenses
     const swapsIn = transfers.filter(transfer => transfer.category === SwapIn);
     const swapsOut = transfers.filter(transfer => transfer.category === SwapOut);
@@ -512,6 +520,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         txId: tx.uuid,
         type: EventTypes.Error,
       });
+
     // If we have matching swap transfers, process the trade first
     } else if (swapsOut.length && swapsIn.length) {
       const account = swapsOut[0].from || swapsIn[0].to;
