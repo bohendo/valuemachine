@@ -54,6 +54,7 @@ export type EventErrorCode = Static<typeof EventErrorCode>;
 const BaseEvent = Type.Object({
   date: TimestampString,
   index: Type.Number(),
+  txId: Type.String(),
 });
 type BaseEvent = Static<typeof BaseEvent>;
 
@@ -74,7 +75,6 @@ export const ErrorEvent = Type.Intersect([
     message: Type.String(),
     account: Account,
     code: Type.String(),
-    txId: Type.String(),
     type: Type.Literal(EventTypes.Error),
   }),
 ]);

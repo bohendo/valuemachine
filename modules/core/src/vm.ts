@@ -64,6 +64,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   // similar to flash loans for intra-tx underflows arising from out of order transfers
   let tmpChunks = [] as AssetChunk[];
+  let txId;
 
   ////////////////////////////////////////
   // Simple Utils
@@ -206,11 +207,12 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         newIncomeEvent.inputs.push(newChunk.index);
       } else {
         newEvents.push({
+          account,
           date: json.date,
           index: json.events.length + newEvents.length,
-          type: EventTypes.Income,
           inputs: [newChunk.index],
-          account,
+          txId,
+          type: EventTypes.Income,
         });
       }
       return newChunk;
@@ -332,12 +334,13 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     chunksIn.forEach(chunk => { chunk.inputs = chunksOut.map(toIndex); });
     // emit trade event
     newEvents.push({
+      account,
       date: json.date,
       index: json.events.length + newEvents.length,
-      type: EventTypes.Trade,
       inputs: chunksIn.map(toIndex),
       outputs: chunksOut.map(toIndex),
-      account,
+      txId,
+      type: EventTypes.Trade,
     } as TradeEvent);
   };
 
@@ -363,12 +366,13 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     // Handle guard change
     if (to.split("/")[0] !== from.split("/")[0]) {
       newEvents.push({
-        date: json.date,
-        index: json.events.length + newEvents.length,
-        from: from,
-        to: to,
         chunks: toMove.map(toIndex),
+        date: json.date,
+        from: from,
+        index: json.events.length + newEvents.length,
         insecurePath: [],
+        to: to,
+        txId,
         type: EventTypes.GuardChange,
       });
     }
@@ -384,12 +388,13 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     const loan = borrowChunks(amount, asset, account);
     log.debug(loan, `Borrowed chunks`);
     newEvents.push({
+      account,
       date: json.date,
       index: json.events.length + newEvents.length,
-      type: EventTypes.Debt,
       inputs: loan.map(toIndex),
       outputs: [],
-      account,
+      txId,
+      type: EventTypes.Debt,
     } as DebtEvent);
     return loan;
   };
@@ -424,12 +429,13 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     toAnnihilate.forEach(disposeChunk);
     const outputs = [...toRepayWith, ...toAnnihilate];
     newEvents.push({
+      account,
       date: json.date,
       index: json.events.length + newEvents.length,
-      type: EventTypes.Debt,
       inputs: [],
       outputs: outputs.map(toIndex),
-      account,
+      txId,
+      type: EventTypes.Debt,
     } as DebtEvent);
     return outputs;
   };
@@ -443,10 +449,11 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         tx.date
       } to come after ${json.date}`);
     }
-    log.debug(`Processing transaction ${tx.index} from ${tx.date}`);
     json.date = tx.date;
+    txId = tx.uuid;
     newEvents = [];
     tmpChunks = [];
+    log.debug(`Processing transaction #${tx.index} from ${tx.date}: ${txId}`);
 
     // Create a new copy of transfers that we can modify in-place
     const transfers = JSON.parse(JSON.stringify(tx.transfers));
@@ -499,7 +506,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        txId: tx.uuid,
+        txId,
         type: EventTypes.Error,
       });
     } else if (swapsOut.length && !swapsIn.length) {
@@ -514,7 +521,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        txId: tx.uuid,
+        txId,
         type: EventTypes.Error,
       });
 
@@ -539,7 +546,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           message,
-          txId: tx.uuid,
+          txId,
           type: EventTypes.Error,
         });
       }
@@ -566,9 +573,10 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         // log.debug(disposed, `disposed of the following chunks`);
         newEvents.push({
           account: from,
-          index: json.events.length + newEvents.length,
           date: json.date,
+          index: json.events.length + newEvents.length,
           outputs: disposed.map(toIndex),
+          txId,
           type: EventTypes.Expense,
         });
       // Receive funds into one of our accounts
@@ -577,9 +585,10 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         // log.debug(received, `received the following chunks`);
         newEvents.push({
           account: to,
-          index: json.events.length + newEvents.length,
           date: json.date,
+          index: json.events.length + newEvents.length,
           inputs: received.map(toIndex),
+          txId,
           type: EventTypes.Income,
         });
       } else {
@@ -598,12 +607,13 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         if (gt(total, "0")) {
           const debt = mintChunk(mul(total, "-1"), asset, account);
           newEvents.push({
+            account,
             date: json.date,
             index: json.events.length + newEvents.length,
-            type: EventTypes.Debt,
             inputs: [...chunks.map(toIndex), debt.index],
             outputs: [],
-            account,
+            txId,
+            type: EventTypes.Debt,
           } as DebtEvent);
           const message = `${account} disposed of assets it didn't have: ${total} ${asset}`;
           log.error(message);
@@ -613,7 +623,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
             date: json.date,
             index: json.events.length + newEvents.length,
             message,
-            txId: tx.uuid,
+            txId,
             type: EventTypes.Error,
           });
         }
