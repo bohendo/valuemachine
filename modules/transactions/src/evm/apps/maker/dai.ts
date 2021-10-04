@@ -247,6 +247,8 @@ export const daiParser = (
         log.info(`Found a vat.move call for ${vault} of ${amt} DAI`);
         */
 
+      } else if (logNote.name === "flux") {
+        log.info(`Found flux!`);
       }
 
     ////////////////////////////////////////
