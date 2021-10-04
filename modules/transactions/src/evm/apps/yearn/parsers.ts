@@ -12,7 +12,7 @@ import {
   insertVenue,
 } from "@valuemachine/utils";
 
-import { Apps, Tokens } from "../../enums";
+import { Apps, Methods, Tokens } from "../../enums";
 import { parseEvent } from "../../utils";
 
 import { govAddress, yTokenAddresses } from "./addresses";
@@ -126,14 +126,14 @@ export const coreParser = (
           transfer.to = address;
           yTransfer.category = SwapIn;
           yTransfer.from = address;
-          tx.method = "Deposit";
+          tx.method = Methods.Deposit;
         } else { // withdraw
           transfer.category = SwapIn;
           transfer.from = address;
           transfer.index = "index" in transfer ? transfer.index : txLog.index + 1;
           yTransfer.category = SwapOut;
           yTransfer.to = address;
-          tx.method = "Withdraw";
+          tx.method = Methods.Withdraw;
         }
       }
 
@@ -141,25 +141,28 @@ export const coreParser = (
       tx.apps.push(appName);
       const event = parseEvent(yGovAbi, txLog, evmMeta);
       if (!event.name) continue;
-      log.info(`Parsing yGov ${event.name}`);
+      if (!addressBook.isSelf(event.args.user || event.args.voter)) continue;
+      log.info(`Parsing yGov ${event.name} for user ${event.args.user || event.args.voter}`);
       if (event.name === "Staked") {
         const account = insertVenue(event.args.user, `${appName}-Gov`);
         const deposit = tx.transfers.find(t => t.asset === Tokens.YFI && t.to === govAddress);
         if (deposit) {
           deposit.category = Internal;
           deposit.to = account;
-          tx.method = "Deposit";
+          tx.method = Methods.Deposit;
         } else {
           log.warn(`Can't find YFI deposit`);
         }
 
       } else if (event.name === "Withdrawn") {
         const account = insertVenue(event.args.user, `${appName}-Gov`);
-        const withdraw = tx.transfers.find(t => t.asset === Tokens.YFI && t.from === govAddress);
+        const withdraw = tx.transfers.find(t =>
+          t.asset === Tokens.YFI && t.from === govAddress && t.to === event.args.user
+        );
         if (withdraw) {
           withdraw.category = Internal;
           withdraw.from = account;
-          tx.method = "Withdraw";
+          tx.method = Methods.Withdraw;
         }
         const income = tx.transfers.find(t =>
           t.from === govAddress
@@ -171,7 +174,7 @@ export const coreParser = (
         }
 
       } else if (event.name === "RegisterVoter") {
-        tx.method = "Register to vote";
+        tx.method = `${Methods.Register} ${Tokens.YFI} Voting`;
       }
     }
   }

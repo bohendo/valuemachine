@@ -14,6 +14,7 @@
 **/tax-return.pdf
 **/transactions.json
 modules/client/src/data
+.TODO.md
 
 # Cache
 **/.cache

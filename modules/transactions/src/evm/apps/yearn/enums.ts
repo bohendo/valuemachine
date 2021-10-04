@@ -3,7 +3,11 @@ const Apps = {
   yGov: "yGov",
 } as const;
 
-const Methods = {};
+const Methods = {
+  Deposit: "Deposit",
+  Withdraw: "Withdraw",
+  Register: "Register",
+} as const;
 
 const Tokens = {
   YFI: "YFI",

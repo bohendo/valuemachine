@@ -2,7 +2,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { Apps } from "../../enums";
+import { Apps, Methods } from "../../enums";
 import {
   getParseTx,
   expect,
@@ -63,7 +63,7 @@ describe(appName, () => {
       selfAddress: "Ethereum/0x09ea768029069eeb979015a64f261e7789e5e450",
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.method.toLowerCase()).to.include("register");
+    expect(tx.method).to.include(Methods.Register);
   });
 
   it("should parse a yGov exit", async () => { // withdraw
