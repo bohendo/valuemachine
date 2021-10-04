@@ -2,8 +2,9 @@ import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
-import TableHead from "@material-ui/core/TableHead";
 import TableCell from "@material-ui/core/TableCell";
+import TableContainer from "@material-ui/core/TableContainer";
+import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import { AddressBook, ValueMachine } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
@@ -17,19 +18,13 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     padding: theme.spacing(2),
   },
   table: {
+    minWidth: theme.spacing(56),
+    overflow: "auto",
     padding: theme.spacing(1),
   },
   accountCell: {
-    maxWidth: "18em",
-    "& > *": {
-      marginRight: theme.spacing(0),
-    },
-  },
-  balanceCell: {
-    maxWidth: "18em",
-    "& > *": {
-      marginRight: theme.spacing(0),
-    },
+    marginRight: theme.spacing(2),
+    paddingRight: theme.spacing(2),
   },
 }));
 
@@ -59,30 +54,32 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
   return (
     <Paper className={classes.paper}>
 
-      <Table size="small" className={classes.table}>
-        <TableHead>
-          <TableRow>
-            <TableCell><strong> Account  </strong></TableCell>
-            <TableCell><strong> Balances </strong></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {Object.entries(allBalances)
-            .sort((e1, e2) => e1[0] > e2[0] ? 1 : -1)
-            .map(([account, balances]: any, i: number) =>
-              Object.values(balances).some(bal => gt(bal, "0")) ? (
-                <TableRow key={i}>
-                  <TableCell className={classes.accountCell}>
-                    <HexString value={account} display={addressBook.getName(account, true)}/>
-                  </TableCell>
-                  <TableCell className={classes.balanceCell}>
-                    <Balances balances={balances}/>
-                  </TableCell>
-                </TableRow>
-              ) : null)
-          }
-        </TableBody>
-      </Table>
+      <TableContainer>
+        <Table size="small" className={classes.table}>
+          <TableHead>
+            <TableRow>
+              <TableCell><strong> Account  </strong></TableCell>
+              <TableCell><strong> Balances </strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Object.entries(allBalances)
+              .sort((e1, e2) => e1[0] > e2[0] ? 1 : -1)
+              .map(([account, balances]: any, i: number) =>
+                Object.values(balances).some(bal => gt(bal, "0")) ? (
+                  <TableRow key={i}>
+                    <TableCell className={classes.accountCell}>
+                      <HexString value={account} display={addressBook.getName(account, true)}/>
+                    </TableCell>
+                    <TableCell>
+                      <Balances balances={balances}/>
+                    </TableCell>
+                  </TableRow>
+                ) : null)
+            }
+          </TableBody>
+        </Table>
+      </TableContainer>
 
     </Paper>
   );

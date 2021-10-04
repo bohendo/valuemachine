@@ -1,5 +1,6 @@
 import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
+import { insertVenue } from "@valuemachine/utils";
 
 import { HexString } from "../HexString";
 
@@ -35,6 +36,12 @@ Account.args = {
 export const NamedAccount = Template.bind({});
 NamedAccount.args = {
   display: addressBook.getName(account, true),
+  value: account,
+};
+
+export const VenueAccount = Template.bind({});
+VenueAccount.args = {
+  display: insertVenue(addressBook.getName(account, true), "StoryBookExample"),
   value: account,
 };
 

@@ -14,8 +14,13 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing(-0.5),
   },
   label: {
-    // maxWidth: "12em",
+    "& > *": {
+      overflowWrap: "anywhere",
+      wordBreak: "normal",
+    },
     margin: theme.spacing(0),
+    display: "flex",
+    flexWrap: "wrap",
   },
 }));
 
@@ -43,10 +48,11 @@ export const HexString = ({
     : hex?.length === 66 ? `${explorer}/tx/${hex}`
     : "";
 
-  display = display || (hex.length < 10
-    ? `${prefix}/${hex}`
-    : `${prefix}/${hex.substring(0, 6)}..${hex.substring(hex.length - 4)}`
-  );
+  const abrv = str => `${str.substring(0, 6)}..${str.substring(str.length - 4)}`;
+  const displayParts = (display || (hex.length < 10
+    ? (prefix ? `${prefix}/${hex}` : `${hex}`)
+    : (prefix ? `${prefix}/${abrv(hex)}` : `${abrv(hex)}`)
+  )).split("/");
 
   return (
     <React.Fragment>
@@ -62,8 +68,12 @@ export const HexString = ({
           placement="bottom-start"
           title={copied ? "Copied to clipboard" : value}
         >
-          <Typography noWrap className={classes.label}>
-            {display}
+          <span className={classes.label}>
+            {displayParts.map((part,i) => (
+              <Typography key={i} noWrap>
+                {`${part}${i < displayParts.length - 1 ? "/" : ""}`}
+              </Typography>
+            ))}
             {link ?
               <IconButton
                 className={classes.icon}
@@ -75,7 +85,7 @@ export const HexString = ({
               </IconButton>
               : null
             }
-          </Typography>
+          </span>
         </Tooltip>
       </CopyToClipboard>
     </React.Fragment>

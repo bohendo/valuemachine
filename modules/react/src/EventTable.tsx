@@ -43,6 +43,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   table: {
     minWidth: theme.spacing(115),
     overflow: "auto",
+    padding: theme.spacing(1),
   },
 }));
 
