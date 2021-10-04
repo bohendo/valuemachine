@@ -12,18 +12,20 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import { EvmApps, TransactionSources } from "@valuemachine/transactions";
+import { TransactionSources } from "@valuemachine/transactions";
 import {
   Account,
   AddressBook,
+  App,
   Asset,
   IncomingTransfers,
+  Method,
   OutgoingTransfers,
   Transaction,
   Transactions,
-  TransferCategories,
   TransactionsJson,
   TransactionSource,
+  TransferCategories,
 } from "@valuemachine/types";
 import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
@@ -59,14 +61,17 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [filterAccount, setFilterAccount] = useState("");
+  const [filterApp, setFilterApp] = useState("");
   const [filterAsset, setFilterAsset] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
+  const [filterMethod, setFilterMethod] = useState("");
   const [filterSource, setFilterSource] = useState("");
-  const [filterApp, setFilterApp] = useState("");
   const [filterStartDate, setFilterStartDate] = useState("");
   const [filteredTxns, setFilteredTxns] = useState([] as TransactionsJson);
-  const [ourAssets, setOurAssets] = useState([] as Asset[]);
   const [ourAccounts, setOurAccounts] = useState([] as Account[]);
+  const [ourApps, setOurApps] = useState([] as App[]);
+  const [ourAssets, setOurAssets] = useState([] as Asset[]);
+  const [ourMethods, setOurMethods] = useState([] as Method[]);
   const classes = useStyles();
 
   const hasAccount = (account: string) => (tx: Transaction): boolean =>
@@ -74,14 +79,17 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     || tx.transfers.some(t => t.from.endsWith(account))
     || tx.transfers.some(t => t.to.endsWith(account));
 
+  const hasApp = (app: string) => (tx: Transaction): boolean =>
+    !app || tx.apps.includes(app);
+
   const hasAsset = (asset: Asset) => (tx: Transaction): boolean =>
     !asset || tx.transfers.some(t => t.asset === asset);
 
   const hasSource = (source: TransactionSource) => (tx: Transaction): boolean =>
     !source || (tx?.sources || []).includes(source);
 
-  const hasApp = (app: string) => (tx: Transaction): boolean =>
-    !app || (tx?.apps || []).includes(app);
+  const hasMethod = (method: string) => (tx: Transaction): boolean =>
+    !method || tx?.method === method;
 
   useEffect(() => {
     setPage(0);
@@ -93,6 +101,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       .filter(hasAsset(filterAsset))
       .filter(hasAccount(filterAccount))
       .filter(hasSource(filterSource))
+      .filter(hasMethod(filterMethod))
       .filter(hasApp(filterApp))
       .sort((e1: Transaction, e2: Transaction) =>
         (e1.date > e2.date) ? -1 : (e1.date < e2.date) ? 1 : 0
@@ -101,13 +110,25 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     addressBook, transactions,
-    filterAccount, filterApp, filterAsset, filterSource, filterStartDate, filterEndDate,
+    filterAccount,
+    filterApp,
+    filterAsset,
+    filterEndDate,
+    filterMethod,
+    filterSource,
+    filterStartDate,
   ]);
 
   useEffect(() => {
     if (!addressBook || !transactions) return;
+    setOurApps(
+      dedup(transactions?.json.map(tx => tx.apps).flat())
+    );
     setOurAssets(
       dedup(transactions?.json.map(tx => tx.transfers.map(transfer => transfer.asset)).flat())
+    );
+    setOurMethods(
+      dedup(transactions?.json.map(tx => tx.method))
     );
     setOurAccounts(
       dedup(transactions?.json.map(tx => tx.transfers.map(transfer => {
@@ -123,6 +144,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       }).flat()).flat())
     );
   }, [addressBook, transactions]);
+
+  const changeFilterMethod = (event: React.ChangeEvent<{ value: unknown }>) => {
+    if (typeof event.target.value !== "string") return;
+    setFilterMethod(event.target.value);
+  };
 
   const changeFilterSource = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
@@ -194,6 +220,21 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       </FormControl>
 
       <FormControl className={classes.dropdown}>
+        <InputLabel id="select-filter-method">Filter Method</InputLabel>
+        <Select
+          labelId="select-filter-method"
+          id="select-filter-method"
+          value={filterMethod || ""}
+          onChange={changeFilterMethod}
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {ourMethods.map(method => (
+            <MenuItem key={method} value={method}>{method}</MenuItem>
+          ))};
+        </Select>
+      </FormControl>
+
+      <FormControl className={classes.dropdown}>
         <InputLabel id="select-filter-source">Filter Source</InputLabel>
         <Select
           labelId="select-filter-source"
@@ -220,12 +261,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           onChange={changeFilterApp}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(EvmApps)
-            .filter(app => !transactions?.json || transactions.json.some(hasApp(app)))
-            .map(app => (
-              <MenuItem key={app} value={app}>{app}</MenuItem>
-            ))
-          };
+          {ourApps.map(app => (
+            <MenuItem key={app} value={app}>{app}</MenuItem>
+          ))};
         </Select>
       </FormControl>
 

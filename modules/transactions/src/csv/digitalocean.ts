@@ -6,7 +6,7 @@ import {
 import { hashCsv } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
-import { Assets, CsvSources } from "../enums";
+import { Assets, CsvSources, Methods } from "../enums";
 import { mergeTransaction } from "../merge";
 
 export const mergeDigitalOceanTransactions = (
@@ -28,7 +28,7 @@ export const mergeDigitalOceanTransactions = (
     const transaction = {
       apps: [],
       date: (new Date(date)).toISOString(),
-      method: "Payment",
+      method: Methods.Payment,
       sources: [source],
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,

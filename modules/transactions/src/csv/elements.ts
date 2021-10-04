@@ -6,7 +6,7 @@ import {
 import csv from "csv-parse/lib/sync";
 import { hashCsv, mul, round } from "@valuemachine/utils";
 
-import { Assets, CsvSources, Guards } from "../enums";
+import { Assets, CsvSources, Guards, Methods } from "../enums";
 import { mergeTransaction } from "../merge";
 
 const guard = Guards.USA;
@@ -46,6 +46,7 @@ export const mergeElementsTransactions = (
     const transaction = {
       apps: [],
       date: (new Date(date)).toISOString(),
+      method: Methods.Unknown,
       sources: [source],
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,

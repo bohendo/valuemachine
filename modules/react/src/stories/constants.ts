@@ -97,11 +97,14 @@ export const transactions = getTransactions({
     // Deposit
     { category: Expense, asset: ETH, from: two, amount: "0.01", to: Ethereum },
     { category: Internal, asset: UNI, from: two, amount: "200", to: coinbase },
-  ]), getTestTx([
-    // Sale
-    { category: SwapOut, asset: UNI, from: coinbase, amount: "200", to: exchange },
-    { category: SwapIn, asset: USD, from: exchange, amount: "1200", to: coinbase },
-  ])],
+  ]), {
+    ...getTestTx([
+      // Sale
+      { category: SwapOut, asset: UNI, from: coinbase, amount: "200", to: exchange },
+      { category: SwapIn, asset: USD, from: exchange, amount: "1200", to: coinbase },
+    ]),
+    method: "Sale",
+  }],
 });
 
 export const vm = getValueMachine();

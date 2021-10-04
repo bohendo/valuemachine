@@ -39,15 +39,12 @@ export const Apps = {
 } as const;
 
 export const Methods = {
-  Creation: "Creation",
-  Failure: "Failure",
   ...aave.Methods,
   ...airswap.Methods,
   ...argent.Methods,
   ...bjtj.Methods,
   ...compound.Methods,
   ...cryptokitties.Methods,
-  ...tokens.Methods,
   ...etherdelta.Methods,
   ...idex.Methods,
   ...idle.Methods,
@@ -55,10 +52,14 @@ export const Methods = {
   ...nfts.Methods,
   ...polygon.Methods,
   ...quickswap.Methods,
+  ...tokens.Methods,
   ...tornado.Methods,
   ...uniswap.Methods,
   ...weth.Methods,
   ...yearn.Methods,
+  Creation: "Creation",
+  Failure: "Failure",
+  Unknown: "Unknown",
 } as const;
 
 export const Tokens = {

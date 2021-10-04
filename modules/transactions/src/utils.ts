@@ -9,7 +9,7 @@ import {
 } from "@valuemachine/types";
 import { describeBalance, diffBalances, round, sumTransfers } from "@valuemachine/utils";
 
-import { Assets, Guards } from "./enums";
+import { Assets, Guards, Methods } from "./enums";
 
 const {
   Fee, Income, Expense, SwapIn, SwapOut, Refund, Borrow, Repay, Internal,
@@ -104,6 +104,7 @@ export const getTestTx = (transfers: Transfer[]): Transaction => ({
   ).toISOString(),
   uuid: `Test/${hexZeroPad(hexlify(txIndex), 32)}`,
   index: txIndex++,
+  method: Methods.Unknown,
   sources: [],
   apps: [],
   transfers: transfers || [],

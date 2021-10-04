@@ -22,6 +22,9 @@ export type Asset = Static<typeof Asset>;
 export const Amount = Type.RegEx(/^(-?[0-9]*\.?[0-9]*)|(ALL)$/);
 export type Amount = Static<typeof Amount>;
 
+export const App = Type.RegEx(/^[_a-zA-Z0-9]{3,32}$/);
+export type App = Static<typeof App>;
+
 export const Bytes32 = Type.RegEx(/^0x[a-fA-F0-9]{64}$/);
 export type Bytes32 = Static<typeof Bytes32>;
 
@@ -36,6 +39,9 @@ export type DecimalString = Static<typeof DecimalString>;
 
 export const Guard = Type.RegEx(/^[a-zA-Z]{3,32}$/);
 export type Guard = Static<typeof Guard>;
+
+export const Method = Type.RegEx(/^[-_a-zA-Z0-9 ]+$/);
+export type Method = Static<typeof Method>;
 
 export const HexString = Type.RegEx(/^0x[a-fA-F0-9]*$/);
 export type HexString = Static<typeof HexString>;

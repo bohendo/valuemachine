@@ -8,6 +8,7 @@ const validTransaction = {
   apps: [],
   index: 0,
   date: new Date(0).toISOString(),
+  method: "Unknown",
   uuid: "UniversallyUniqueIdentifier",
   sources: [],
   transfers: [{

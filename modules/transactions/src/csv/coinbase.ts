@@ -6,7 +6,7 @@ import {
 import csv from "csv-parse/lib/sync";
 import { gt, hashCsv } from "@valuemachine/utils";
 
-import { Assets, CsvSources, Guards } from "../enums";
+import { Assets, CsvSources, Guards, Methods } from "../enums";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
 
@@ -47,6 +47,7 @@ export const mergeCoinbaseTransactions = (
     const transaction = {
       apps: [],
       date: (new Date(date)).toISOString(),
+      method: Methods.Unknown,
       sources: [source],
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
@@ -61,7 +62,7 @@ export const mergeCoinbaseTransactions = (
         index: index++,
         to: external,
       });
-      transaction.method = "Withdraw";
+      transaction.method = Methods.Withdraw;
 
     } else if (txType === "Receive") {
       transaction.transfers.push({
@@ -72,7 +73,7 @@ export const mergeCoinbaseTransactions = (
         index: index++,
         to: account,
       });
-      transaction.method = "Deposit";
+      transaction.method = Methods.Deposit;
 
     } else if (txType === "Sell") {
       transaction.transfers.push({
