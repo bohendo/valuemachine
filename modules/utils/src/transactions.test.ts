@@ -16,6 +16,12 @@ const validTransaction = {
     from: AddressZero,
     to: AddressZero,
     amount: "0",
+  }, {
+    asset: "DAI",
+    category: TransferCategories.Expense,
+    from: AddressZero,
+    to: AddressZero,
+    amount: "ALL",
   }],
 };
 

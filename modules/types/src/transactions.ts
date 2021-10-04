@@ -5,8 +5,8 @@ import { EvmMetadata, EvmTransaction } from "./evmData";
 import { Logger } from "./logger";
 import {
   Account,
+  Amount,
   Asset,
-  DecimalString,
   TimestampString,
   TransactionSource,
 } from "./strings";
@@ -41,11 +41,11 @@ export const TransferCategory = Type.Enum(TransferCategories); // NOT Extensible
 export type TransferCategory = Static<typeof TransferCategory>;
 
 export const Transfer = Type.Object({
+  amount: Type.Optional(Amount), // undefined if atomic eg nfts
   asset: Asset,
   category: TransferCategory,
   from: Account,
   index: Type.Optional(Type.Number()),
-  amount: Type.Optional(DecimalString), // undefined if atomic eg nfts
   to: Account,
 });
 export type Transfer = Static<typeof Transfer>;

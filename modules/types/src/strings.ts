@@ -18,6 +18,10 @@ export type TxId = Static<typeof TxId>;
 export const Asset = Type.RegEx(/^[_a-zA-Z0-9]{1,32}$/);
 export type Asset = Static<typeof Asset>;
 
+// Decimal string or special string "ALL"
+export const Amount = Type.RegEx(/^(-?[0-9]*\.?[0-9]*)|(ALL)$/);
+export type Amount = Static<typeof Amount>;
+
 export const Bytes32 = Type.RegEx(/^0x[a-fA-F0-9]{64}$/);
 export type Bytes32 = Static<typeof Bytes32>;
 
