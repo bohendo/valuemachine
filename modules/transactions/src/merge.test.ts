@@ -4,7 +4,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { Assets, Guards, TransactionSources } from "./enums";
+import { Assets, Guards, Sources } from "./enums";
 import { mergeTransaction } from "./merge";
 import {
   expect,
@@ -14,7 +14,7 @@ import {
 const log = testLogger.child({ module: "TestMerge" }, { level: "warn" });
 const { ETH } = Assets;
 const { Fee, Expense, Internal } = TransferCategories;
-const { Coinbase, Ethereum } = TransactionSources;
+const { Coinbase, Ethereum } = Sources;
 const csvSource = Coinbase;
 
 const ethAccount = "Ethereum/0x1111111111111111111111111111111111111111";

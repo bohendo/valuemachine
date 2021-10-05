@@ -75,7 +75,7 @@ export const Assets = {
 ////////////////////////////////////////
 // Sources
 
-export const TransactionSources = {
+export const Sources = {
   ...CsvSources,
   ...EvmNames,
   ...UtxoChains,

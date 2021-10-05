@@ -8,7 +8,7 @@ import {
   Amount,
   Asset,
   TimestampString,
-  TransactionSource,
+  Source,
 } from "./strings";
 import { Store } from "./store";
 
@@ -56,7 +56,7 @@ export const Transaction = Type.Object({
   uuid: Type.String(),
   index: Type.Optional(Type.Number()), // required after merging txns together
   method: Type.String(),
-  sources: Type.Array(TransactionSource),
+  sources: Type.Array(Source),
   transfers: Type.Array(Transfer),
 });
 export type Transaction = Static<typeof Transaction>;
@@ -94,6 +94,6 @@ export type TransactionsParams = {
 
 export type Transactions = {
   json: TransactionsJson;
-  mergeCsv: (csvData: string, parser: TransactionSource | CsvParser) => void;
+  mergeCsv: (csvData: string, parser: Source | CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
 };

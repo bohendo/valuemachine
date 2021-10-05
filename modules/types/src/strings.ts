@@ -49,5 +49,5 @@ export type HexString = Static<typeof HexString>;
 export const TimestampString = Type.String({ format: "date-time" });
 export type TimestampString = Static<typeof TimestampString>;
 
-export const TransactionSource = Type.RegEx(/^[a-zA-Z]{3,32}$/);
-export type TransactionSource = Static<typeof TransactionSource>;
+export const Source = Type.RegEx(/^[a-zA-Z]{3,32}$/);
+export type Source = Static<typeof Source>;

@@ -12,7 +12,6 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import { TransactionSources } from "@valuemachine/transactions";
 import {
   Account,
   AddressBook,
@@ -24,7 +23,7 @@ import {
   Transaction,
   Transactions,
   TransactionsJson,
-  TransactionSource,
+  Source,
   TransferCategories,
 } from "@valuemachine/types";
 import { dedup } from "@valuemachine/utils";

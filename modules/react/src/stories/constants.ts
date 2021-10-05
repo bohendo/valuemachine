@@ -6,7 +6,7 @@ import {
   getTestTx,
   getTransactions,
   Guards,
-  TransactionSources,
+  Sources,
 } from "@valuemachine/transactions";
 import {
   AddressCategories,
@@ -39,8 +39,8 @@ export const account = getAccount("1");
 const one = account;
 const two = getAccount("2");
 const three = getAccount("3");
-const coinbase = `${USA}/${TransactionSources.Coinbase}/account`;
-const exchange = `${USA}/${TransactionSources.Coinbase}`;
+const coinbase = `${USA}/${Sources.Coinbase}/account`;
+const exchange = `${USA}/${Sources.Coinbase}`;
 
 
 export const guard = USA;

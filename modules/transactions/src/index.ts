@@ -14,7 +14,7 @@ export {
   Guards,
   Methods,
   PhysicalGuards,
-  TransactionSources,
+  Sources,
   UtxoAssets,
   UtxoChains,
 } from "./enums";

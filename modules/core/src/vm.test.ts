@@ -3,7 +3,7 @@ import {
   EvmApps,
   getTestTx,
   Guards,
-  TransactionSources,
+  Sources,
 } from "@valuemachine/transactions";
 import {
   EventTypes,
@@ -39,7 +39,7 @@ const {
   SwapIn,
   SwapOut,
 } = TransferCategories;
-const { Coinbase } = TransactionSources;
+const { Coinbase } = Sources;
 const { Ethereum, USA } = Guards;
 const log = testLogger.child({ module: "TestVM" }, { level: "silent" });
 
