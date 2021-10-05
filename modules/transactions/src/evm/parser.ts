@@ -30,9 +30,10 @@ export const parseEvmTx = (
   let tx = {
     apps: [],
     date: (new Date(evmTx.timestamp)).toISOString(),
-    uuid: `${evmMetadata.name}/${evmTx.hash}`,
+    method: Methods.Unknown,
     sources: [evmMetadata.name],
     transfers: [],
+    uuid: `${evmMetadata.name}/${evmTx.hash}`,
   } as Transaction;
 
   // Transaction Fee

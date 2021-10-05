@@ -6,7 +6,7 @@ import {
 import { hashCsv } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
-import { Assets, CsvSources, Guards } from "../enums";
+import { Assets, CsvSources, Guards, Methods } from "../enums";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
 
@@ -30,10 +30,11 @@ export const mergeWazirxTransactions = (
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
 
+    // re date: trailing Z is important bc it designates GMT times insead of local time
     const transaction = {
       apps: [],
-      // trailing Z is important bc it designates GMT times insead of local time
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
+      method: Methods.Unknown,
       sources: [source],
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
@@ -61,7 +62,7 @@ export const mergeWazirxTransactions = (
           amount,
           to: account,
         });
-        transaction.method = "Deposit";
+        transaction.method = Methods.Deposit;
 
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
@@ -72,7 +73,7 @@ export const mergeWazirxTransactions = (
           amount,
           to: external,
         });
-        transaction.method = "Withdraw";
+        transaction.method = Methods.Withdraw;
       } else {
         log.warn(`Invalid ${source} tx type: ${txType}`);
         return null;

@@ -2,18 +2,17 @@ import {
   Logger,
   Transaction,
   TransferCategories,
-  TransferCategory,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
 import { gt, hashCsv } from "@valuemachine/utils";
 
-import { CsvSources, Guards } from "../enums";
+import { Assets, CsvSources, Guards, Methods } from "../enums";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
 
 const guard = Guards.USA;
 
-const { Fee, SwapIn, SwapOut, Internal, Noop } = TransferCategories;
+const { Fee, SwapIn, SwapOut, Internal } = TransferCategories;
 
 export const mergeCoinbaseTransactions = (
   oldTransactions: Transaction[],
@@ -26,67 +25,114 @@ export const mergeCoinbaseTransactions = (
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
     const {
-      ["Timestamp"]: date,
-      ["Transaction Type"]: txType,
       ["Asset"]: asset,
       ["Quantity Transacted"]: amount,
-      ["USD Total (inclusive of fees)"]: usdAmount,
-      ["USD Fees"]: fees,
+      ["Timestamp"]: date,
+      ["Transaction Type"]: txType,
+      ["USD Fees"]: fee,
+      ["USD Subtotal"]: usdAmount,
+      ["USD Total (inclusive of fees)"]: usdTotal,
     } = row;
 
     const account = `${guard}/${source}/account`;
     const exchange = `${guard}/${source}`;
     const external = `${getGuard(asset)}/unknown`;
 
+    // NOTE: Coinbase doesn't provide info re transfers to/from bank
+    // as a workaround, pretend like coinbase can't hold USD
+    // always transfer USD to/from the bank during every sell/buy
+    const bank = `${guard}/unknown`;
+
+    let index = 1;
     const transaction = {
       apps: [],
       date: (new Date(date)).toISOString(),
+      method: Methods.Unknown,
       sources: [source],
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
 
-    let [from, to, category] = ["", "", Noop as TransferCategory];
-
     if (txType === "Send") {
-      [from, to, category] = [account, external, Internal];
-      transaction.method = "Withdraw";
+      transaction.transfers.push({
+        amount,
+        asset,
+        category: Internal,
+        from: account,
+        index: index++,
+        to: external,
+      });
+      transaction.method = Methods.Withdraw;
 
     } else if (txType === "Receive") {
-      [from, to, category] = [external, account, Internal];
-      transaction.method = "Deposit";
+      transaction.transfers.push({
+        amount,
+        asset,
+        category: Internal,
+        from: external,
+        index: index++,
+        to: account,
+      });
+      transaction.method = Methods.Deposit;
 
     } else if (txType === "Sell") {
-      [from, to, category] = [account, exchange, SwapOut];
       transaction.transfers.push({
-        asset: "USD",
+        amount,
+        asset,
+        category: SwapOut,
+        from: account,
+        index: index++,
+        to: exchange,
+      }, {
+        amount: usdAmount,
+        asset: Assets.USD,
         category: SwapIn,
         from: exchange,
-        amount: usdAmount,
+        index: index++,
         to: account,
+      }, {
+        amount: usdTotal,
+        asset: Assets.USD,
+        category: Internal,
+        from: account,
+        index: index++,
+        to: bank,
       });
       transaction.method = txType;
 
     } else if (txType === "Buy") {
-      [from, to, category] = [exchange, account, SwapIn];
       transaction.transfers.push({
-        asset: "USD",
+        amount: usdTotal,
+        asset: Assets.USD,
+        category: Internal,
+        from: bank,
+        index: index++,
+        to: account,
+      }, {
+        amount: usdAmount,
+        asset: Assets.USD,
         category: SwapOut,
         from: account,
-        amount: usdAmount,
+        index: index++,
         to: exchange,
+      }, {
+        amount,
+        asset,
+        category: SwapIn,
+        from: exchange,
+        index: index++,
+        to: account,
       });
       transaction.method = txType;
     }
 
-    transaction.transfers.push({ asset, category, from, amount, to });
-
-    if (gt(fees, "0")) {
+    if (gt(fee, "0")) {
       transaction.transfers.push({
-        asset: "USD",
+        amount: fee,
+        asset: Assets.USD,
         category: Fee,
         from: account,
-        amount: fees,
+        index: index++,
         to: exchange,
       });
     }

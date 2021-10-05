@@ -111,6 +111,18 @@ export const parseEvent = (
   return { name, args };
 };
 
+export const describeAbi = (abi: any) => {
+  const iface = new Interface(abi);
+  return [
+    ...Object.values(iface.events).map(evt =>
+      `Event ${evt.name.padEnd(16, " ")} ${iface.getEventTopic(evt)}`
+    ),
+    ...Object.values(iface.functions).map(fn =>
+      `Function ${fn.name.padEnd(13, " ")} ${iface.getSighash(fn)}`
+    ),
+  ].join(`\n`);
+};
+
 export const getTransferCategory = (
   fromAccount: Account,
   toAccount: Account,

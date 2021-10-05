@@ -1,20 +1,20 @@
 import {
-  Asset,
   Logger,
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
-import { gt, hashCsv } from "@valuemachine/utils";
+import { gt, hashCsv, sub } from "@valuemachine/utils";
 
 import { Assets, CsvSources, Guards } from "../enums";
 import { mergeTransaction } from "../merge";
 import { getGuard } from "../utils";
 
-const guard = Guards.USA;
-
-const { DAI, ETH, SAI, USD } = Assets;
+const { USA } = Guards;
+const { BTC, DAI, ETH, SAI, USD } = Assets;
 const { Fee, SwapIn, SwapOut, Internal } = TransferCategories;
+
+const daiLaunch = new Date("2019-12-02T00:00:00Z").getTime();
 
 export const mergeWyreTransactions = (
   oldTransactions: Transaction[],
@@ -26,139 +26,140 @@ export const mergeWyreTransactions = (
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of wyre data`);
   csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
 
+    // Ignore any rows with an invalid timestamp
+    const date = new Date(row["Created At"]);
+    if (isNaN(date.getUTCFullYear())) return null;
+
+    const btcFee = parseFloat(row["Fees BTC"] || 0).toString();
+    const daiFee = parseFloat(row["Fees DAI"] || 0).toString();
+    const ethFee = parseFloat(row["Fees ETH"] || 0).toString();
+    const usdFee = parseFloat(row["Fees USD"] || 0).toString();
     const {
-      ["Created At"]: date,
       ["Dest Amount"]: destAmount,
       ["Dest Currency"]: rawDestType,
-      ["Fees DAI"]: daiFees,
-      ["Fees ETH"]: ethFees,
-      ["Fees USD"]: usdFees,
       ["Source Amount"]: sourceAmount,
       ["Source Currency"]: rawSourceType,
       ["Type"]: txType,
     } = row;
 
-    const account = `${guard}/${source}/account`;
-    const exchange = `${guard}/${source}`;
+    const account = `${USA}/${source}/account`;
+    const exchange = `${USA}/${source}`;
 
-    const fixAssetType = (asset: Asset): Asset =>
-      asset === DAI && new Date(date).getTime() < new Date("2019-12-02T00:00:00Z").getTime()
-        ? SAI
-        : asset;
+    const fixDai = asset => asset === DAI && date.getTime() < daiLaunch ? SAI : asset;
+    const destType = fixDai(rawDestType);
+    const sourceType = fixDai(rawSourceType);
 
-    const destType = fixAssetType(rawDestType);
-    const sourceType = fixAssetType(rawSourceType);
-
-    // Ignore any rows with an invalid timestamp
-    if (isNaN((new Date(date)).getUTCFullYear())) return null;
     const transaction = {
       apps: [],
-      date: (new Date(date)).toISOString(),
+      date: date.toISOString(),
       sources: [source],
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
 
-    // Push transfer depending on exchange/currency types
+    const fee = { category: Fee, from: account, to: exchange, index: 0 };
+    if (gt(btcFee, "0")) transaction.transfers.push({ ...fee, asset: BTC, amount: daiFee });
+    if (gt(daiFee, "0")) transaction.transfers.push({ ...fee, asset: fixDai(DAI), amount: daiFee });
+    if (gt(ethFee, "0")) transaction.transfers.push({ ...fee, asset: ETH, amount: ethFee });
+    if (gt(usdFee, "0")) transaction.transfers.push({ ...fee, asset: USD, amount: usdFee });
+
+    const minusFee = (amount, asset) => asset === BTC ? sub(amount, btcFee)
+      : (asset === DAI || asset === SAI) ? sub(amount, daiFee)
+      : asset === ETH ? sub(amount, ethFee)
+      : asset === USD ? sub(amount, usdFee)
+      : amount;
+
+    // Add transfers depending on exchange/currency types
 
     if (txType === "EXCHANGE") {
       transaction.transfers.push({
+        amount: minusFee(sourceAmount, sourceType),
         asset: sourceType,
         category: SwapOut,
         from: account,
-        amount: sourceAmount,
+        index: 1,
         to: exchange,
-      });
-      transaction.transfers.push({
+      }, {
+        amount: destAmount,
         asset: destType,
         category: SwapIn,
         from: exchange,
-        amount: destAmount,
+        index: 2,
         to: account,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
 
     } else if (txType === "INCOMING" && destType === sourceType) {
       transaction.transfers.push({
+        amount: destAmount,
         asset: destType,
         category: Internal,
         from: `${getGuard(destType)}/unknown`,
-        amount: destAmount,
+        index: 1,
         to: account,
       });
       transaction.method = "Deposit";
 
     } else if (txType === "INCOMING" && destType !== sourceType) {
       transaction.transfers.push({
+        amount: sourceAmount,
         asset: sourceType,
         category: Internal,
         from: `${getGuard(sourceType)}/unknown`,
-        amount: sourceAmount,
+        index: 1,
         to: account,
-      });
-      transaction.transfers.push({
+      }, {
+        amount: minusFee(sourceAmount, sourceType),
         asset: sourceType,
         category: SwapOut,
         from: account,
-        amount: sourceAmount,
+        index: 2,
         to: exchange,
-      });
-      transaction.transfers.push({
+      }, {
+        amount: destAmount,
         asset: destType,
         category: SwapIn,
         from: exchange,
-        amount: destAmount,
+        index: 3,
         to: account,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
 
     } else if (txType === "OUTGOING" && destType === sourceType) {
       transaction.transfers.push({
+        amount: destAmount,
         asset: destType,
         category: Internal,
         from: account,
-        amount: destAmount,
+        index: 1,
         to: `${getGuard(destType)}/unknown`,
       });
       transaction.method = "Withdraw";
 
     } else if (txType === "OUTGOING" && destType !== sourceType) {
       transaction.transfers.push({
+        amount: minusFee(sourceAmount, sourceType),
         asset: sourceType,
         category: SwapOut,
         from: account,
-        amount: sourceAmount,
+        index: 1,
         to: exchange,
-      });
-      transaction.transfers.push({
+      }, {
+        amount: destAmount,
         asset: destType,
         category: SwapIn,
         from: exchange,
-        amount: destAmount,
+        index: 2,
         to: account,
-      });
-      transaction.transfers.push({
+      }, {
+        amount: destAmount,
         asset: destType,
         category: Internal,
         from: account,
-        amount: destAmount,
+        index: 3,
         to: `${getGuard(destType)}/unknown`,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
-    }
-
-    // Add fees paid to exchange
-    const feeTransfer = {
-      category: Fee,
-      from: account,
-      to: exchange,
-    };
-    if (gt(usdFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: USD, amount: usdFees });
-    } else if (gt(ethFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: ETH, amount: ethFees });
-    } else if (gt(daiFees, "0")) {
-      transaction.transfers.push({ ...feeTransfer, asset: fixAssetType(DAI), amount: daiFees });
     }
 
     log.debug(transaction, "Parsed row into transaction:");

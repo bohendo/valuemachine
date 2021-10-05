@@ -5,10 +5,10 @@ import { EvmMetadata, EvmTransaction } from "./evmData";
 import { Logger } from "./logger";
 import {
   Account,
+  Amount,
   Asset,
-  DecimalString,
   TimestampString,
-  TransactionSource,
+  Source,
 } from "./strings";
 import { Store } from "./store";
 
@@ -41,11 +41,11 @@ export const TransferCategory = Type.Enum(TransferCategories); // NOT Extensible
 export type TransferCategory = Static<typeof TransferCategory>;
 
 export const Transfer = Type.Object({
+  amount: Type.Optional(Amount), // undefined if atomic eg nfts
   asset: Asset,
   category: TransferCategory,
   from: Account,
   index: Type.Optional(Type.Number()),
-  amount: Type.Optional(DecimalString), // undefined if atomic eg nfts
   to: Account,
 });
 export type Transfer = Static<typeof Transfer>;
@@ -55,8 +55,8 @@ export const Transaction = Type.Object({
   date: TimestampString,
   uuid: Type.String(),
   index: Type.Optional(Type.Number()), // required after merging txns together
-  method: Type.Optional(Type.String()),
-  sources: Type.Array(TransactionSource),
+  method: Type.String(),
+  sources: Type.Array(Source),
   transfers: Type.Array(Transfer),
 });
 export type Transaction = Static<typeof Transaction>;
@@ -94,6 +94,6 @@ export type TransactionsParams = {
 
 export type Transactions = {
   json: TransactionsJson;
-  mergeCsv: (csvData: string, parser: TransactionSource | CsvParser) => void;
+  mergeCsv: (csvData: string, parser: Source | CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
 };

@@ -112,31 +112,36 @@ export const EventRow: React.FC<EventRowProps> = ({
 
                 event.type === EventTypes.Expense ? {
                   Account: event.account,
+                  ["Tx Id"]: event.txId,
                   ...chunksToDisplay(event.outputs),
 
                 } : event.type === EventTypes.Income ? {
                   Account: event.account,
+                  ["Tx Id"]: event.txId,
                   ...chunksToDisplay(event.inputs),
 
                 } : event.type === EventTypes.Debt ? {
                   Account: event.account,
+                  ["Tx Id"]: event.txId,
                   ...chunksToDisplay(event.outputs, "Gave "),
                   ...chunksToDisplay(event.inputs, "Took "),
 
                 } : event.type === EventTypes.GuardChange ? {
+                  ["Tx Id"]: event.txId,
                   ["From"]: (event as GuardChangeEvent).from,
                   ["To"]: (event as GuardChangeEvent).to,
                   ...chunksToDisplay(event.chunks),
 
                 } : event.type === EventTypes.Trade ? {
                   Account: event.account,
+                  ["Tx Id"]: event.txId,
                   ...chunksToDisplay(event.outputs, "Gave "),
                   ...chunksToDisplay(event.inputs, "Took "),
 
                 } : event.type === EventTypes.Error ? {
                   Account: event.account,
-                  ["Error Code"]: event.code,
                   ["Tx Id"]: event.txId,
+                  ["Error Code"]: event.code,
 
                 } : {}
               }/>

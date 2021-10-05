@@ -95,7 +95,7 @@ const coreParser = (
           to,
         });
         if (evmTx.to === address) {
-          tx.method = tx.method || `${asset} ${event.name}`;
+          tx.method = `${asset} ${event.name}`;
         }
 
       } else if (event.name === "Approval") {

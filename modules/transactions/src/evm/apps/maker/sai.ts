@@ -15,7 +15,6 @@ import {
 import {
   div,
   gt,
-  insertVenue,
   toBN,
   valuesAreClose,
 } from "@valuemachine/utils";
@@ -164,7 +163,7 @@ export const saiParser = (
 
       // PETH -> CDP: Categorize PETH transfer as deposit
       } else if (logNote.name === "lock") {
-        const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${evmMeta.name}/${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           t.category !== Fee && t.asset === PETH
@@ -174,7 +173,7 @@ export const saiParser = (
         ).sort(diffAsc(wad))[0];
         if (transfer) {
           transfer.category = Internal;
-          transfer.to = insertVenue(transfer.from, cdp);
+          transfer.to = cdp;
           tx.method = "Deposit";
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a P/W/ETH transfer of about ${wad}`);
@@ -182,7 +181,7 @@ export const saiParser = (
 
       // PETH <- CDP: Categorize PETH transfer as withdraw
       } else if (logNote.name === "free") {
-        const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${evmMeta.name}/${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
@@ -202,7 +201,7 @@ export const saiParser = (
         const transfer = transfers[0];
         if (transfer) {
           transfer.category = Internal;
-          transfer.from = insertVenue(transfer.to, cdp);
+          transfer.from = cdp;
           tx.method = "Withdraw";
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a PETH transfer of about ${wad}`);
@@ -210,14 +209,14 @@ export const saiParser = (
 
       // SAI <- CDP
       } else if (logNote.name === "draw") {
-        const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${evmMeta.name}/${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const borrow = tx.transfers.filter(t =>
           t.asset === SAI && isSelf(t.to)
         ).sort(diffAsc(wad))[0];
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = insertVenue(borrow.to, cdp);
+          borrow.from = cdp;
           tx.method = "Borrow";
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);
@@ -225,14 +224,14 @@ export const saiParser = (
 
       // SAI -> CDP
       } else if (logNote.name === "wipe") {
-        const cdp = `${appName}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${evmMeta.name}/${appName}-CDP-${toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const repay = tx.transfers.filter(t =>
           t.asset === SAI && isSelf(t.from) && t.category !== Fee
         ).sort(diffAsc(wad))[0];
         if (repay) {
           repay.category = Repay;
-          repay.to = insertVenue(repay.from, cdp);
+          repay.to = cdp;
           tx.method = "Repayment";
         } else {
           log.warn(`Tub.${logNote.name}: Can't find a SAI transfer of ${wad}`);

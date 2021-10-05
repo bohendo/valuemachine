@@ -6,7 +6,7 @@ import {
   getTestTx,
   getTransactions,
   Guards,
-  TransactionSources,
+  Sources,
 } from "@valuemachine/transactions";
 import {
   AddressCategories,
@@ -39,8 +39,8 @@ export const account = getAccount("1");
 const one = account;
 const two = getAccount("2");
 const three = getAccount("3");
-const coinbase = `${USA}/${TransactionSources.Coinbase}/account`;
-const exchange = `${USA}/${TransactionSources.Coinbase}`;
+const coinbase = `${USA}/${Sources.Coinbase}/account`;
+const exchange = `${USA}/${Sources.Coinbase}`;
 
 
 export const guard = USA;
@@ -97,11 +97,15 @@ export const transactions = getTransactions({
     // Deposit
     { category: Expense, asset: ETH, from: two, amount: "0.01", to: Ethereum },
     { category: Internal, asset: UNI, from: two, amount: "200", to: coinbase },
-  ]), getTestTx([
-    // Sale
-    { category: SwapOut, asset: UNI, from: coinbase, amount: "200", to: exchange },
-    { category: SwapIn, asset: USD, from: exchange, amount: "1200", to: coinbase },
-  ])],
+  ]), {
+    ...getTestTx([
+      // Sale
+      { category: SwapOut, asset: UNI, from: coinbase, amount: "200", to: exchange },
+      { category: SwapIn, asset: USD, from: exchange, amount: "1200", to: coinbase },
+    ]),
+    method: "Sale",
+    sources: ["Coinbase"],
+  }],
 });
 
 export const vm = getValueMachine();

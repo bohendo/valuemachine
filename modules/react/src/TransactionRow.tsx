@@ -91,7 +91,9 @@ export const TransactionRow = ({
                     <TableRow key={i}>
                       <TableCell> {transfer.category} </TableCell>
                       <TableCell> {transfer.asset} </TableCell>
-                      <TableCell> {round(transfer.amount || "1")} </TableCell>
+                      <TableCell> {
+                        transfer.amount === "ALL" ? transfer.amount : round(transfer.amount || "1")
+                      } </TableCell>
                       <TableCell>
                         <HexString
                           display={addressBook?.getName(transfer.from, true)}

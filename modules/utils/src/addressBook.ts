@@ -43,7 +43,7 @@ export const fmtAddress = (address: string) => {
   }
 };
 
-export const insertVenue = (account: Account, venue: string): string => {
+export const insertVenue = (account?: Account, venue?: string): string => {
   if (!account) return "";
   if (!venue) return account;
   const parts = account.split("/");

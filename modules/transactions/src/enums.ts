@@ -1,4 +1,7 @@
-import { CsvSources } from "./csv/enums";
+import {
+  CsvSources,
+  CsvMethods,
+} from "./csv/enums";
 import {
   Apps as EvmApps,
   Methods as EvmMethods,
@@ -42,6 +45,7 @@ export const Apps = {
 // Methods
 
 export const Methods = {
+  ...CsvMethods,
   ...EvmMethods,
 } as const;
 
@@ -71,7 +75,7 @@ export const Assets = {
 ////////////////////////////////////////
 // Sources
 
-export const TransactionSources = {
+export const Sources = {
   ...CsvSources,
   ...EvmNames,
   ...UtxoChains,

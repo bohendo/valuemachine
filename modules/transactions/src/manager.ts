@@ -3,7 +3,7 @@ import {
   StoreKeys,
   Transactions,
   TransactionsJson,
-  TransactionSource,
+  Source,
   TransactionsParams,
 } from "@valuemachine/types";
 import {
@@ -55,7 +55,7 @@ export const getTransactions = (params?: TransactionsParams): Transactions => {
   ////////////////////////////////////////
   // Exported Methods
 
-  const mergeCsv = (csvData: string, parser: TransactionSource | CsvParser): void => {
+  const mergeCsv = (csvData: string, parser: Source | CsvParser): void => {
     if (parser === CsvSources.Coinbase) {
       mergeCoinbaseTransactions(json, csvData, log);
     } else if (parser === CsvSources.DigitalOcean) {

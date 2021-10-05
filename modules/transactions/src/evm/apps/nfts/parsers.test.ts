@@ -10,8 +10,8 @@ import {
 } from "../../testUtils";
 
 const appName = Apps.NFT;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
-const parseTx = getParseTx({ logger });
+const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
+const parseTx = getParseTx({ logger: log });
 
 describe(appName, () => {
 
@@ -20,6 +20,7 @@ describe(appName, () => {
       txid: "Ethereum/0x0844a70ddd05cec956532141cfdea9323c904de4bd63a6d8eecc8c03c651a251",
       selfAddress: "Ethereum/0x213fe7e177160991829a4d0a598a848d2448f384",
     });
+    log.info(tx);
     expect(tx.transfers.length).to.equal(2);
     expect(tx.method).to.include(Methods.Transfer);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);

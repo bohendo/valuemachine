@@ -9,8 +9,8 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import AccountIcon from "@material-ui/icons/RecentActors";
 import HomeIcon from "@material-ui/icons/Home";
-import PricesIcon from "@material-ui/icons/LocalOffer";
-import TaxesIcon from "@material-ui/icons/AccountBalance";
+// import PricesIcon from "@material-ui/icons/LocalOffer";
+// import TaxesIcon from "@material-ui/icons/AccountBalance";
 import ValueMachineIcon from "@material-ui/icons/PlayCircleFilled";
 import TransactionsIcon from "@material-ui/icons/Receipt";
 import LightIcon from "@material-ui/icons/BrightnessHigh";
@@ -97,6 +97,7 @@ export const NavBar: React.FC<PropTypes> = ({
           <HomeIcon />
         </IconButton>
 
+        {/*
         <IconButton
           component={Link}
           edge="start"
@@ -116,6 +117,7 @@ export const NavBar: React.FC<PropTypes> = ({
         >
           <PricesIcon />
         </IconButton>
+        */}
 
         <IconButton
           component={Link}

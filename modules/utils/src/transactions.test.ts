@@ -8,6 +8,7 @@ const validTransaction = {
   apps: [],
   index: 0,
   date: new Date(0).toISOString(),
+  method: "Unknown",
   uuid: "UniversallyUniqueIdentifier",
   sources: [],
   transfers: [{
@@ -16,6 +17,12 @@ const validTransaction = {
     from: AddressZero,
     to: AddressZero,
     amount: "0",
+  }, {
+    asset: "DAI",
+    category: TransferCategories.Expense,
+    from: AddressZero,
+    to: AddressZero,
+    amount: "ALL",
   }],
 };
 
