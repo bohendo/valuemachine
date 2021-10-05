@@ -1,5 +1,6 @@
 import { getLogger } from "@valuemachine/utils";
 import express from "express";
+import pretty from "pino-pretty";
 
 import { env } from "./env";
 import { pricesRouter } from "./prices";
@@ -10,6 +11,7 @@ import { getLogAndSend, STATUS_NOT_FOUND } from "./utils";
 const log = getLogger(env.logLevel).child({ module: "Entry" });
 
 log.info(`Starting server in env: ${JSON.stringify(env, null, 2)}`);
+log.info(`Got pretty? ${!!pretty}`);
 
 const app = express();
 
