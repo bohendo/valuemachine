@@ -7,7 +7,7 @@ const Apps = {
 
 const Methods = {
   Transfer: "Transfer",
-  Approve: "Approve",
+  Approval: "Approval",
 } as const;
 
 const Tokens = {

@@ -227,7 +227,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           onChange={changeFilterMethod}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(Methods).map(method => (
+          {Object.keys(Methods).sort().map(method => (
             <MenuItem key={method} value={method}>{method}</MenuItem>
           ))};
         </Select>
