@@ -58,10 +58,8 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const error = getValueMachineError(json);
   if (error) throw new Error(error);
 
+  let tmpChunks = [] as AssetChunk[]; // like flash loans for intra-tx underflows
   let newEvents = [] as Events; // index will be added when we add new events to total
-
-  // similar to flash loans for intra-tx underflows arising from out of order transfers
-  let tmpChunks = [] as AssetChunk[];
   let txId;
 
   ////////////////////////////////////////
