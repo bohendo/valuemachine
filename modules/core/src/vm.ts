@@ -514,7 +514,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       const message = `Swap out of ${describeBalance(sumChunks(swapsOut))} has no matching inputs`;
       log.error(message);
       newEvents.push({
-        accounts: swapsOut.map(swap => swap.history[swap.history - 2]).filter(s => !!s),
+        accounts: swapsOut.map(s => s.history[s.history.length - 2]?.account).filter(s => !!s),
         code: EventErrorCodes.MISSING_SWAP,
         date: json.date,
         index: json.events.length + newEvents.length,
@@ -543,7 +543,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       }
       // emit trade event
       newEvents.push({
-        account: swapsIn[0].account,
+        account: swapsIn[0].history[0].account,
         date: json.date,
         index: json.events.length + newEvents.length,
         inputs: swapsIn.map(toIndex),
@@ -568,7 +568,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         txId,
         type: EventTypes.Debt,
       });
-      const message = `${account} has an outstanding flash loan of ${amount} ${asset}`;
+      const message = `${account} had an underflow of ${amount} ${asset}`;
       log.error(message);
       newEvents.push({
         accounts: [account],

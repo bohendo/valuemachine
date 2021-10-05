@@ -41,7 +41,7 @@ const {
 } = TransferCategories;
 const { Coinbase } = Sources;
 const { Ethereum, USA } = Guards;
-const log = testLogger.child({ module: "TestVM" }, { level: "warn" });
+const log = testLogger.child({ module: "TestVM" }, { level: "silent" });
 
 const ethAccount = `${Ethereum}/${AddressOne}`;
 const otherAccount = `${Ethereum}/${AddressTwo}`;
@@ -50,7 +50,7 @@ const notMe = `${Ethereum}/${AddressThree}`;
 const coinbase = `${USA}/${Coinbase}/account`;
 const usdAccount = `${USA}/unknown`;
 
-describe.only("VM", () => {
+describe("VM", () => {
   let addressBook;
   let prices: Prices;
   let vm: any;
