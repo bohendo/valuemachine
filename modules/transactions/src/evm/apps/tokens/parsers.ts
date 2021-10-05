@@ -9,7 +9,7 @@ import {
   Transaction,
 } from "@valuemachine/types";
 
-import { Apps } from "../../enums";
+import { Apps, Methods } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
 
 const appName = Apps.Token;
@@ -64,13 +64,13 @@ const coreParser = (
           to,
         });
         if (evmTx.to === address) {
-          tx.method = `${asset} ${event.name}`;
+          tx.method = `${asset} ${Methods.Transfer}`;
         }
 
       } else if (event.name === "Approval") {
         log.debug(`Parsing ${appName} ${event.name} event for ${asset}`);
         if (evmTx.to === address) {
-          tx.method = `${asset} ${event.name}`;
+          tx.method = `${asset} ${Methods.Approval}`;
         }
 
       } else {

@@ -45,6 +45,11 @@ export const EventRow: React.FC<EventRowProps> = ({
     if (event && open) console.log(event);
   }, [event, open]);
 
+  const accountsToDisplay = accounts => accounts.reduce((display, account, index) => {
+    display[`Account ${index}`] = account;
+    return display;
+  }, {});
+
   const chunksToDisplay = (chunks, prefix?: string) => {
     const output = {};
     for (const chunk of chunks) {
@@ -72,7 +77,7 @@ export const EventRow: React.FC<EventRowProps> = ({
               <TableRow key={i}>
                 <TableCell className={classes.subtable}><strong> {key} </strong></TableCell>
                 <TableCell> {
-                  isHexString(value.split("/").pop())
+                  isHexString(value?.split("/").pop())
                     ? <HexString value={value} display={addressBook?.getName(value, true)}/>
                     : <Typography> {
                       typeof value === "string" ? value : JSON.stringify(value)
@@ -139,9 +144,9 @@ export const EventRow: React.FC<EventRowProps> = ({
                   ...chunksToDisplay(event.inputs, "Took "),
 
                 } : event.type === EventTypes.Error ? {
-                  Account: event.account,
                   ["Tx Id"]: event.txId,
                   ["Error Code"]: event.code,
+                  ...accountsToDisplay(event.accounts),
 
                 } : {}
               }/>

@@ -7,7 +7,6 @@ import {
 } from "@valuemachine/transactions";
 import {
   EventTypes,
-  Prices,
   TransferCategories,
 } from "@valuemachine/types";
 import {
@@ -16,7 +15,6 @@ import {
   sub,
 } from "@valuemachine/utils";
 
-import { getPrices } from "./prices";
 import { getValueMachine } from "./vm";
 import {
   AddressOne,
@@ -43,6 +41,7 @@ const { Coinbase } = Sources;
 const { Ethereum, USA } = Guards;
 const log = testLogger.child({ module: "TestVM" }, { level: "silent" });
 
+const addressBook = getTestAddressBook();
 const ethAccount = `${Ethereum}/${AddressOne}`;
 const otherAccount = `${Ethereum}/${AddressTwo}`;
 const aaveAccount = `${Ethereum}/${EvmApps.Aave}/${AddressOne}`;
@@ -51,16 +50,9 @@ const coinbase = `${USA}/${Coinbase}/account`;
 const usdAccount = `${USA}/unknown`;
 
 describe("VM", () => {
-  let addressBook;
-  let prices: Prices;
   let vm: any;
-
   beforeEach(() => {
-    addressBook = getTestAddressBook();
-    prices = getPrices({ logger: log });
-    expect(Object.keys(prices.json).length).to.equal(0);
     vm = getValueMachine({ addressBook, logger: log });
-    expect(vm).to.be.ok;
   });
 
   it("should handle a transfer with amount=ALL", async () => {
@@ -190,8 +182,8 @@ describe("VM", () => {
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "0.9", [UNI]: "50.0" });
     expect(vm.json.events.length).to.equal(3);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
-    expect(vm.json.events[1]?.type).to.equal(EventTypes.Trade);
-    expect(vm.json.events[2]?.type).to.equal(EventTypes.Error);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.Error);
+    expect(vm.json.events[2]?.type).to.equal(EventTypes.Trade);
   });
 
   it("should process borrowing & repaying a loan", async () => {
@@ -361,19 +353,35 @@ describe("VM", () => {
     expect(vm.json.events[5]?.type).to.equal(EventTypes.GuardChange);
   });
 
-  it.skip("should process newly purchased crypto gracefully", async () => {
+  it("should process newly purchased crypto gracefully", async () => {
     [getTestTx([ // Trade USD for ETH
       { amount: "107.93", asset: USD, category: Internal, from: usdAccount, to: coinbase },
       { amount: "105.94", asset: USD, category: SwapOut, from: coinbase, to: notMe },
       { amount: "1.0", asset: ETH, category: SwapIn, from: notMe, to: coinbase },
       { amount: "1.99", asset: USD, category: Fee, from: coinbase, to: notMe },
     ])].forEach(vm.execute);
+    // log.info(vm.json.chunks, "chunks");
     expect(getValueMachineError(vm.json)).to.be.null;
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "1.0", [USD]: "-107.93" });
     expect(vm.json.events.length).to.equal(3);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Trade);
     expect(vm.json.events[1]?.type).to.equal(EventTypes.Debt);
     expect(vm.json.events[2]?.type).to.equal(EventTypes.Error);
+  });
+
+  it("should process lone swaps like expenses/income", async () => {
+    [getTestTx([ // Income
+      { amount: "10.0", asset: ETH, category: Income, from: notMe, to: ethAccount },
+    ]), getTestTx([ // Partial swap
+      { amount: "0.1", asset: ETH, category: Fee, from: ethAccount, to: Ethereum },
+      { amount: "5.0", asset: ETH, category: SwapOut, from: ethAccount, to: notMe },
+    ])].forEach(vm.execute);
+    // log.info(vm.json.events, "events");
+    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "4.9" });
+    expect(vm.json.events.length).to.equal(2);
+    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.Error);
   });
 
   it("should emit an event when guards change", async () => {
@@ -392,19 +400,36 @@ describe("VM", () => {
     expect(vm.json.events[2]?.type).to.equal(EventTypes.GuardChange);
   });
 
-  it("should process a lone SwapIn as income", async () => {
-    [getTestTx([ // Income
-      { amount: "10.0", asset: ETH, category: Income, from: notMe, to: ethAccount },
-    ]), getTestTx([ // Partial swap
-      { amount: "0.1", asset: ETH, category: Fee, from: ethAccount, to: Ethereum },
-      { amount: "5.0", asset: ETH, category: SwapOut, from: ethAccount, to: notMe },
-    ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
-    expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "4.9" });
-    expect(vm.json.events.length).to.equal(3);
-    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
-    expect(vm.json.events[1]?.type).to.equal(EventTypes.Error);
-    expect(vm.json.events[2]?.type).to.equal(EventTypes.Expense);
+  it.skip("should process lots of txns with acceptable performance", async () => {
+    vm = getValueMachine({ addressBook, logger: log.child({}, { level: "error" }) });
+    const n = 1000;
+    const epoch = 500;
+    const begin = Date.now();
+    let start = begin;
+    const getRate = (index) => {
+      const rate = epoch * 1000 / (Date.now() - start);
+      log.info(`Processed txns ${index-epoch}-${index} at a rate of ${rate} tx/s`);
+      start = Date.now();
+      return rate;
+    };
+    Array(n).fill().forEach((e, i) => {
+      if (i > 0 && i !== n && i % epoch === 0) getRate(i);
+      vm.execute(getTestTx([ // test every transfer type
+        { amount: "0.01", asset: ETH, category: Fee, from: ethAccount, to: notMe },
+        { amount: "0.04", asset: ETH, category: Income, from: notMe, to: ethAccount },
+        { amount: "0.01", asset: ETH, category: Internal, from: ethAccount, to: aaveAccount },
+        { amount: "10", asset: DAI, category: Borrow, from: aaveAccount, to: ethAccount },
+        { amount: "0.02", asset: ETH, category: SwapOut, from: ethAccount, to: notMe },
+        { amount: "10", asset: DAI, category: SwapIn, from: notMe, to: ethAccount },
+        { amount: "0.01", asset: ETH, category: Refund, from: notMe, to: ethAccount },
+        { amount: "5", asset: DAI, category: Expense, from: ethAccount, to: notMe },
+        { amount: "15", asset: DAI, category: Repay, from: ethAccount, to: aaveAccount },
+      ]));
+    });
+    const lastRate = getRate(n);
+    const totalRate = n * 1000 / (Date.now() - begin);
+    log.info(`Average rate for all ${n} txns was ${totalRate} tx/s`);
+    expect(totalRate).to.be.above(100);
+    expect(lastRate).to.be.above(100);
   });
-
 });

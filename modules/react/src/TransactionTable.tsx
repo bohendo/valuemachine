@@ -12,13 +12,13 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import { Methods } from "@valuemachine/transactions";
 import {
   Account,
   AddressBook,
   App,
   Asset,
   IncomingTransfers,
-  Method,
   OutgoingTransfers,
   Transaction,
   Transactions,
@@ -70,7 +70,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const [ourAccounts, setOurAccounts] = useState([] as Account[]);
   const [ourApps, setOurApps] = useState([] as App[]);
   const [ourAssets, setOurAssets] = useState([] as Asset[]);
-  const [ourMethods, setOurMethods] = useState([] as Method[]);
   const [ourSources, setOurSources] = useState([] as Source[]);
   const classes = useStyles();
 
@@ -89,7 +88,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     !source || (tx?.sources || []).includes(source);
 
   const hasMethod = (method: string) => (tx: Transaction): boolean =>
-    !method || tx?.method === method;
+    !method || tx?.method.includes(method);
 
   useEffect(() => {
     setPage(0);
@@ -139,9 +138,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     );
     setOurAssets(
       dedup(transactions?.json.map(tx => tx.transfers.map(transfer => transfer.asset)).flat())
-    );
-    setOurMethods(
-      dedup(transactions?.json.map(tx => tx.method))
     );
     setOurSources(
       dedup(transactions?.json.map(tx => tx.sources).flat())
@@ -231,7 +227,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           onChange={changeFilterMethod}
         >
           <MenuItem value={""}>-</MenuItem>
-          {ourMethods.map(method => (
+          {Object.keys(Methods).sort().map(method => (
             <MenuItem key={method} value={method}>{method}</MenuItem>
           ))};
         </Select>

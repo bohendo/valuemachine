@@ -9,7 +9,7 @@ import {
   Transaction,
 } from "@valuemachine/types";
 
-import { Apps } from "../../enums";
+import { Apps, Methods } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
 
 import { marketParser } from "./markets";
@@ -95,12 +95,12 @@ const coreParser = (
           to,
         });
         if (evmTx.to === address) {
-          tx.method = `${asset} ${event.name}`;
+          tx.method = `${asset} ${Methods.Transfer}`;
         }
 
       } else if (event.name === "Approval") {
         if (evmTx.to === address) {
-          tx.method = `${asset} ${event.name}`;
+          tx.method = `${asset} ${Methods.Approval}`;
         }
       }
 
