@@ -104,6 +104,7 @@ export const transactions = getTransactions({
       { category: SwapIn, asset: USD, from: exchange, amount: "1200", to: coinbase },
     ]),
     method: "Sale",
+    sources: ["Coinbase"],
   }],
 });
 

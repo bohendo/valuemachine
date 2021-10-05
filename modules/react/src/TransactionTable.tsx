@@ -71,6 +71,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const [ourApps, setOurApps] = useState([] as App[]);
   const [ourAssets, setOurAssets] = useState([] as Asset[]);
   const [ourMethods, setOurMethods] = useState([] as Method[]);
+  const [ourSources, setOurSources] = useState([] as Source[]);
   const classes = useStyles();
 
   const hasAccount = (account: string) => (tx: Transaction): boolean =>
@@ -84,7 +85,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const hasAsset = (asset: Asset) => (tx: Transaction): boolean =>
     !asset || tx.transfers.some(t => t.asset === asset);
 
-  const hasSource = (source: TransactionSource) => (tx: Transaction): boolean =>
+  const hasSource = (source: Source) => (tx: Transaction): boolean =>
     !source || (tx?.sources || []).includes(source);
 
   const hasMethod = (method: string) => (tx: Transaction): boolean =>
@@ -120,15 +121,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
 
   useEffect(() => {
     if (!addressBook || !transactions) return;
-    setOurApps(
-      dedup(transactions?.json.map(tx => tx.apps).flat())
-    );
-    setOurAssets(
-      dedup(transactions?.json.map(tx => tx.transfers.map(transfer => transfer.asset)).flat())
-    );
-    setOurMethods(
-      dedup(transactions?.json.map(tx => tx.method))
-    );
     setOurAccounts(
       dedup(transactions?.json.map(tx => tx.transfers.map(transfer => {
         if (transfer.category === TransferCategories.Internal) {
@@ -141,6 +133,18 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           return [];
         }
       }).flat()).flat())
+    );
+    setOurApps(
+      dedup(transactions?.json.map(tx => tx.apps).flat())
+    );
+    setOurAssets(
+      dedup(transactions?.json.map(tx => tx.transfers.map(transfer => transfer.asset)).flat())
+    );
+    setOurMethods(
+      dedup(transactions?.json.map(tx => tx.method))
+    );
+    setOurSources(
+      dedup(transactions?.json.map(tx => tx.sources).flat())
     );
   }, [addressBook, transactions]);
 
@@ -242,12 +246,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           onChange={changeFilterSource}
         >
           <MenuItem value={""}>-</MenuItem>
-          {Object.keys(TransactionSources)
-            .filter(source => !transactions?.json || transactions.json.some(hasSource(source)))
-            .map(source => (
-              <MenuItem key={source} value={source}>{source}</MenuItem>
-            ))
-          };
+          {ourSources.map(source => (
+            <MenuItem key={source} value={source}>{source}</MenuItem>
+          ))};
         </Select>
       </FormControl>
 
