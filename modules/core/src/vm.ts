@@ -7,7 +7,6 @@ import {
   AssetChunk,
   Balances,
   ChunkIndex,
-  DebtEvent,
   DecimalString,
   EventErrorCodes,
   Events,
@@ -16,17 +15,17 @@ import {
   HydratedEvent,
   OutgoingTransfers,
   StoreKeys,
-  TradeEvent,
   Transaction,
   TransferCategories,
   ValueMachine,
   ValueMachineParams,
 } from "@valuemachine/types";
 import {
+  // diffBalances,
+  // sumTransfers,
+  // dedup,
   add,
-  dedup,
   describeBalance,
-  diffBalances,
   eq,
   getEmptyValueMachine,
   getLogger,
@@ -37,7 +36,6 @@ import {
   mul,
   sub,
   sumChunks,
-  sumTransfers,
 } from "@valuemachine/utils";
 
 const {
@@ -74,20 +72,13 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     if (json.chunks[chunkIndex]) {
       return json.chunks[chunkIndex];
     } else {
-      log.warn(`No valid chunk exists at index ${chunkIndex}: ${
-        JSON.stringify(json.chunks[chunkIndex], null, 2)
-      }`);
+      log.warn(`No vm chunk exists at index ${chunkIndex}`);
       return undefined;
     }
   };
 
   const isHeld = (account: Account, asset: Asset) => (chunk: AssetChunk): boolean =>
     chunk.account === account && chunk.asset === asset;
-
-  const wasHeld = (account: Account, asset: Asset) => (chunk: AssetChunk): boolean =>
-    chunk.asset === asset && chunk.history.some(hist => hist.account === account);
-
-  const getFirstOwner = (chunk: AssetChunk): Account => chunk.history[0].account;
 
   ////////////////////////////////////////
   // Getters
@@ -144,7 +135,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       amount,
       asset,
       account,
-      index: json.chunks.length + tmpChunks.length,
+      index: tmp ? tmpChunks.length : json.chunks.length,
       inputs: [],
       history: [{
         date: json.date,
@@ -153,18 +144,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     };
     tmp ? tmpChunks.push(newChunk) : json.chunks.push(newChunk);
     return newChunk;
-  };
-
-  const borrowChunks = (
-    amount: DecimalString,
-    asset: Asset,
-    account: Account,
-    tmp?: boolean,
-  ): AssetChunk[] => {
-    log.trace(`Borrowing a ${tmp ? "tmp " : ""}chunk of ${amount} ${asset} for ${account}`);
-    const loan = mintChunk(amount, asset, account, tmp);
-    const debt = mintChunk(mul(amount, "-1"), asset, account, tmp);
-    return [loan, debt];
   };
 
   const splitChunk = (
@@ -179,7 +158,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     const newChunk = JSON.parse(JSON.stringify({
       ...oldChunk,
       amount: amtNeeded,
-      index: json.chunks.length + tmpChunks.length,
+      index: tmp ? tmpChunks.length : json.chunks.length,
     }));
     tmp ? tmpChunks.push(newChunk) : json.chunks.push(newChunk);
     oldChunk.amount = leftover;
@@ -196,6 +175,17 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       });
     }
     return [newChunk, oldChunk];
+  };
+
+  const borrowChunks = (
+    amount: DecimalString,
+    asset: Asset,
+    account: Account,
+  ): AssetChunk[] => {
+    log.trace(`Borrowing a chunk of ${amount} ${asset} for ${account}`);
+    const loan = mintChunk(amount, asset, account);
+    const debt = mintChunk(mul(amount, "-1"), asset, account);
+    return [loan, debt];
   };
 
   const underflow = (amount: DecimalString, asset: Asset, account: Account): AssetChunk => {
@@ -218,8 +208,8 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       return newChunk;
     } else {
       log.warn(`Underflow of ${amount} ${asset} is being treated as a flashloan by ${account}`);
-      const loan = mintChunk(amount, asset, account, true);
-      return loan;
+      mintChunk(mul(amount, "-1"), asset, account, true); // flash debt
+      return mintChunk(amount, asset, account); // return borrowed chunk to cover this underflow
     }
   };
 
@@ -262,41 +252,38 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     account: Account,
   ): AssetChunk[] => {
     log.info(`Receiving ${amount} ${asset} in ${account}`);
-    const tmpAvailable = tmpChunks.filter(wasHeld(account, asset));
+    const flashloans = tmpChunks.filter(chunk =>
+      chunk.asset === asset && chunk.account === account
+    );
     let togo = amount;
-    const received = [];
-    // If account has any tmp chunks, use those first (& discard any associated debt)
-    if (tmpAvailable.length) {
-      log.debug(`Found ${tmpAvailable.length} chunks for ${account} out of the tmp set (${tmpChunks.length} remaining)`);
-      tmpAvailable.forEach(chunk => {
+    const repayFlashloan = (debtChunk: AssetChunk) => {
+      tmpChunks.splice(tmpChunks.findIndex(c => c.index === debtChunk.index), 1);
+    };
+    // If account has a flash loan, annihilate incoming value w that first
+    if (flashloans.length) {
+      log.debug(`Found ${flashloans.length} flash loan chunks for ${account}`);
+      flashloans.forEach(debtChunk => {
         if (eq(togo, "0")) return;
-        if (gt(chunk.amount, togo)) {
-          // This chunk is too big, split it up & only receive part of it
-          const [toReceive, leftover] = splitChunk(chunk, togo, true);
-          received.push(toReceive);
-          togo = sub(togo, toReceive.amount);
-          log.debug(`Received ${toReceive.amount} ${
-            toReceive.asset
-          } from a tmp chunk leaving ${leftover.amount} behind (${togo} to go)`);
+        const diff = add(togo, debtChunk.amount);
+        if (lt(diff, "0")) {
+          // This loan is bigger than what we received, split it up & only annihilate part of it
+          const [toAnnihilate, _leftover] = splitChunk(debtChunk, mul(togo, "-1"), true);
+          togo = "0";
+          repayFlashloan(toAnnihilate);
+          log.debug(`Received ${asset} annihilated a total of ${amount} in flashloans`);
         } else {
-          // This chunk is too small, receive all of it & move on
-          received.push(chunk);
-          togo = sub(togo, chunk.amount);
-          log.debug(`Received a tmp chunk of ${chunk.amount} (${togo} to go)`);
+          // This debt is smaller than what we received, annihilate all of it & move on
+          togo = add(togo, debtChunk.amount);
+          repayFlashloan(debtChunk);
+          log.debug(`Received ${asset} has annihilated flashloans of ${debtChunk.amount} so far`);
         }
       });
     }
-    // move received chunks from tmp to the master list
-    received.forEach(chunk => {
-      log.debug(`Moving tmp chunk of ${chunk.amount} ${chunk.asset} to the master list of chunks`);
-      json.chunks.push(chunk);
-      tmpChunks.splice(tmpChunks.findIndex(tmpChunk => tmpChunk.index === chunk.index), 1);
-    });
-    json.chunks.sort((c1, c2) => c1.index - c2.index);
     if (gt(togo, "0")) {
-      return [...received, mintChunk(togo, asset, account)];
+      log.debug(`Receiving ${togo} ${asset} in ${account}`);
+      return [mintChunk(togo, asset, account)];
     } else {
-      return received;
+      return []; // nothing to receive bc we've already used it up
     }
   };
 
@@ -315,53 +302,12 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     });
   };
 
-  const tradeValue = (account: Account, swapsIn: Balances, swapsOut: Balances): void => {
-    log.info(`Trading ${JSON.stringify(swapsOut)} for ${JSON.stringify(swapsIn)}`);
-    const chunksOut = [] as AssetChunk[];
-    for (const swapOut of Object.entries(swapsOut)) {
-      const asset = swapOut[0] as Asset;
-      const amount = swapOut[1] as DecimalString;
-      chunksOut.push(...disposeValue(amount, asset, account));
-    }
-    const chunksIn = [] as AssetChunk[];
-    for (const swapIn of Object.entries(swapsIn)) {
-      const asset = swapIn[0] as Asset;
-      const amount = swapIn[1] as DecimalString;
-      chunksIn.push(...receiveValue(amount, asset, account));
-    }
-    // Set indicies of trade input & output chunks
-    chunksOut.forEach(chunk => { chunk.outputs = chunksIn.map(toIndex); });
-    chunksIn.forEach(chunk => { chunk.inputs = chunksOut.map(toIndex); });
-    // emit trade event
-    newEvents.push({
-      account,
-      date: json.date,
-      index: json.events.length + newEvents.length,
-      inputs: chunksIn.map(toIndex),
-      outputs: chunksOut.map(toIndex),
-      txId,
-      type: EventTypes.Trade,
-    } as TradeEvent);
-  };
-
   const moveValue = (amount: DecimalString, asset: Asset, from: Account, to: Account): void => {
     log.info(`Moving ${amount} ${asset} from ${from} to ${to}`);
     const toMove = getChunks(amount, asset, from);
     toMove.forEach(chunk => {
       chunk.account = to;
-      const prev = chunk.history[chunk.history.length - 1];
-      if (prev.account === from && prev.account !== to) {
-        chunk.history.push({ date: json.date, account: to });
-      } else if (prev.account !== from && prev.account !== to) {
-        log.warn(`chunk ${chunk.index} is being moved from ${
-          from
-        } but the prev history entry is: ${JSON.stringify(prev)}`);
-        chunk.history.push({ date: json.date, account: to });
-      } else if (prev.account !== from && prev.account === to) {
-        log.warn(`chunk ${chunk.index} is being moved to ${
-          to
-        } but the prev history entry is already: ${JSON.stringify(prev)}`);
-      }
+      chunk.history.push({ date: json.date, account: to });
     });
     // Handle guard change
     if (to.split("/")[0] !== from.split("/")[0]) {
@@ -395,7 +341,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       outputs: [],
       txId,
       type: EventTypes.Debt,
-    } as DebtEvent);
+    });
     return loan;
   };
 
@@ -436,7 +382,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       outputs: outputs.map(toIndex),
       txId,
       type: EventTypes.Debt,
-    } as DebtEvent);
+    });
     return outputs;
   };
 
@@ -484,89 +430,41 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     }
 
     // Replace all "All" amounts w that account's asset balance
-    const transfersOfAll = transfers.filter(transfer => transfer.amount === "ALL");
-    if (transfersOfAll.length) {
-      transfersOfAll.forEach(transfer => {
-        transfer.amount = getBalance(transfer.asset, transfer.from);
-      });
-    }
-
-    // If we have mismatched swap transfers, treat them as income/expenses
-    const swapsIn = transfers.filter(transfer => transfer.category === SwapIn);
-    const swapsOut = transfers.filter(transfer => transfer.category === SwapOut);
-    if (swapsIn.length && !swapsOut.length) {
-      swapsIn.forEach(swap => { swap.category = Income; });
-      const message = `Swap in of ${
-        describeBalance(sumChunks(swapsIn))
-      } has no matching swaps out`;
-      log.error(message);
-      newEvents.push({
-        account: swapsIn[0].to,
-        code: EventErrorCodes.MISSING_SWAP,
-        date: json.date,
-        index: json.events.length + newEvents.length,
-        message,
-        txId,
-        type: EventTypes.Error,
-      });
-    } else if (swapsOut.length && !swapsIn.length) {
-      swapsOut.forEach(swap => { swap.category = Expense; });
-      const message = `Swap out of ${
-        describeBalance(sumChunks(swapsOut))
-      } has no matching swaps in`;
-      log.error(message);
-      newEvents.push({
-        account: swapsOut[0].from,
-        code: EventErrorCodes.MISSING_SWAP,
-        date: json.date,
-        index: json.events.length + newEvents.length,
-        message,
-        txId,
-        type: EventTypes.Error,
-      });
-
-    // If we have matching swap transfers, process the trade first
-    } else if (swapsOut.length && swapsIn.length) {
-      const account = swapsOut[0].from || swapsIn[0].to;
-      // Sum transfers & subtract duplicates to get total values traded
-      const [inputs, outputs] = diffBalances([sumTransfers(swapsIn), sumTransfers(swapsOut)]);
-      tradeValue(account, inputs, outputs);
-      if (
-        // All self accounts should be the same in all swap transfers
-        !swapsIn.every(swap => swap.to === account) ||
-        !swapsOut.every(swap => swap.from === account)
-      ) {
-        // TODO: how do we handle when to/from values aren't consistent among swap transfers?
-        // eg add a synthetic internal transfer to ensure the trade only involve one account?
-        const message = `Assets moved accounts mid-trade, assuming the account was ${account}`;
-        log.error(message);
-        newEvents.push({
-          account,
-          code: EventErrorCodes.MULTI_ACCOUNT_SWAP,
-          date: json.date,
-          index: json.events.length + newEvents.length,
-          message,
-          txId,
-          type: EventTypes.Error,
-        });
-      }
-    }
+    transfers.filter(transfer => transfer.amount === "ALL").forEach(transfer => {
+      transfer.amount = getBalance(transfer.asset, transfer.from);
+    });
 
     // Process all non-swap & non-refund transfers
+    const swapAccounts = new Set<Account>();
+    const swapsOut = [] as AssetChunk[];
+    const swapsIn = [] as AssetChunk[];
     transfers.forEach(transfer => {
       const { asset, category, from, to } = transfer;
       const amount = transfer.amount || "1"; // treat NFTs as always having amount=1
-      if (category === Borrow) {
+
+      if (category === Internal) {
+        moveValue(amount, asset, from, to);
+
+      // Fees should be handled w/out emitting an event
+      } else if (category === Fee) {
+        disposeValue(amount, asset, from);
+
+      // Debt
+      } else if (category === Borrow) {
         borrowValue(amount, asset, from);
         moveValue(amount, asset, from, to);
       } else if (category === Repay) {
         moveValue(amount, asset, from, to);
         repayValue(amount, asset, to);
-      } else if (category === Internal) {
-        moveValue(amount, asset, from, to);
-      } else if (category === Fee) {
-        // Fees should be handled w/out emitting an event
-        disposeValue(amount, asset, from);
+
+      // Trades
+      } else if (category === SwapOut) {
+        swapAccounts.add(from);
+        swapsOut.push(...disposeValue(amount, asset, from));
+      } else if (category === SwapIn) {
+        swapAccounts.add(to);
+        swapsIn.push(...receiveValue(amount, asset, to));
+
       // Send funds out of our accounts
       } else if (category === Expense) {
         const disposed = disposeValue(amount, asset, from);
@@ -579,6 +477,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           txId,
           type: EventTypes.Expense,
         });
+
       // Receive funds into one of our accounts
       } else if (category === Income) {
         const received = receiveValue(amount, asset, to);
@@ -591,55 +490,100 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           txId,
           type: EventTypes.Income,
         });
+
       } else {
         log.debug(`Skipping transfer of type ${category}`);
       }
     });
 
-    // Interpret any leftover tmp chunks as loans (& coalesce loans of the same asset type)
-    json.chunks.sort((c1, c2) => c1.index - c2.index);
-    for (const asset of dedup(tmpChunks.map(chunk => chunk.asset))) {
-      for (const account of dedup(tmpChunks.map(getFirstOwner))) {
-        const chunks = tmpChunks.filter(chunk =>
-          chunk.asset === asset && getFirstOwner(chunk) === account
-        );
-        const total = sumChunks(chunks)[asset] || "0";
-        if (gt(total, "0")) {
-          const debt = mintChunk(mul(total, "-1"), asset, account);
-          newEvents.push({
-            account,
-            date: json.date,
-            index: json.events.length + newEvents.length,
-            inputs: [...chunks.map(toIndex), debt.index],
-            outputs: [],
-            txId,
-            type: EventTypes.Debt,
-          } as DebtEvent);
-          const message = `${account} disposed of assets it didn't have: ${total} ${asset}`;
-          log.error(message);
-          newEvents.push({
-            account,
-            code: EventErrorCodes.UNDERFLOW,
-            date: json.date,
-            index: json.events.length + newEvents.length,
-            message,
-            txId,
-            type: EventTypes.Error,
-          });
-        }
+    // If we have mismatched swap transfers, emit errors
+    if (swapsIn.length && !swapsOut.length) {
+      const message = `Swap in of ${describeBalance(sumChunks(swapsIn))} has no matching outputs`;
+      log.error(message);
+      newEvents.push({
+        accounts: swapsIn.map(swap => swap.account).filter(s => !!s),
+        code: EventErrorCodes.MISSING_SWAP,
+        date: json.date,
+        index: json.events.length + newEvents.length,
+        message,
+        txId,
+        type: EventTypes.Error,
+      });
+
+    } else if (swapsOut.length && !swapsIn.length) {
+      const message = `Swap out of ${describeBalance(sumChunks(swapsOut))} has no matching inputs`;
+      log.error(message);
+      newEvents.push({
+        accounts: swapsOut.map(swap => swap.history[swap.history - 2]).filter(s => !!s),
+        code: EventErrorCodes.MISSING_SWAP,
+        date: json.date,
+        index: json.events.length + newEvents.length,
+        message,
+        txId,
+        type: EventTypes.Error,
+      });
+
+    } else if (swapsIn.length && swapsOut.length) {
+      // Set indicies of trade input & output chunks
+      swapsOut.forEach(chunk => { chunk.outputs = swapsIn.map(toIndex); });
+      swapsIn.forEach(chunk => { chunk.inputs = swapsOut.map(toIndex); });
+      // Emit error if the swap accounts don't all match
+      if (swapAccounts.size > 1) {
+        const message = `Trade involved ${swapAccounts.size} accounts`;
+        log.error(message);
+        newEvents.push({
+          accounts: Array.from(swapAccounts),
+          code: EventErrorCodes.MULTI_ACCOUNT_SWAP,
+          date: json.date,
+          index: json.events.length + newEvents.length,
+          message,
+          txId,
+          type: EventTypes.Error,
+        });
       }
+      // emit trade event
+      newEvents.push({
+        account: swapsIn[0].account,
+        date: json.date,
+        index: json.events.length + newEvents.length,
+        inputs: swapsIn.map(toIndex),
+        outputs: swapsOut.map(toIndex),
+        txId,
+        type: EventTypes.Trade,
+      });
     }
 
-    // move leftover chunks from tmp to the master list
-    tmpChunks.forEach(chunk => {
-      log.debug(chunk, `Moving chunk ${chunk.index} from tmp to master list`);
-      json.chunks.push(chunk);
-    });
-    json.chunks.sort((c1, c2) => c1.index - c2.index);
+    // Interpret any leftover tmp chunks as loans
+    while (tmpChunks.length) {
+      const flashloan = tmpChunks.shift();
+      flashloan.index = json.chunks.length;
+      json.chunks.push(flashloan);
+      const { account, amount, asset } = flashloan;
+      newEvents.push({
+        account,
+        date: json.date,
+        index: json.events.length + newEvents.length,
+        inputs: [flashloan.index], // TODO: where's it's pair?!
+        outputs: [],
+        txId,
+        type: EventTypes.Debt,
+      });
+      const message = `${account} has an outstanding flash loan of ${amount} ${asset}`;
+      log.error(message);
+      newEvents.push({
+        accounts: [account],
+        code: EventErrorCodes.UNDERFLOW,
+        date: json.date,
+        index: json.events.length + newEvents.length,
+        message,
+        txId,
+        type: EventTypes.Error,
+      });
+    }
 
     // Finalize new events
-    for (const newEvent of newEvents) {
-      json.events.push(newEvent);
+    while (newEvents.length) {
+      json.events.push(newEvents.shift());
     }
 
     return newEvents;

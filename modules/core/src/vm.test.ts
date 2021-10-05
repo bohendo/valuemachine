@@ -41,7 +41,7 @@ const {
 } = TransferCategories;
 const { Coinbase } = Sources;
 const { Ethereum, USA } = Guards;
-const log = testLogger.child({ module: "TestVM" }, { level: "silent" });
+const log = testLogger.child({ module: "TestVM" }, { level: "warn" });
 
 const ethAccount = `${Ethereum}/${AddressOne}`;
 const otherAccount = `${Ethereum}/${AddressTwo}`;
@@ -50,7 +50,7 @@ const notMe = `${Ethereum}/${AddressThree}`;
 const coinbase = `${USA}/${Coinbase}/account`;
 const usdAccount = `${USA}/unknown`;
 
-describe("VM", () => {
+describe.only("VM", () => {
   let addressBook;
   let prices: Prices;
   let vm: any;
@@ -190,8 +190,8 @@ describe("VM", () => {
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "0.9", [UNI]: "50.0" });
     expect(vm.json.events.length).to.equal(3);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
-    expect(vm.json.events[1]?.type).to.equal(EventTypes.Trade);
-    expect(vm.json.events[2]?.type).to.equal(EventTypes.Error);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.Error);
+    expect(vm.json.events[2]?.type).to.equal(EventTypes.Trade);
   });
 
   it("should process borrowing & repaying a loan", async () => {
@@ -361,19 +361,35 @@ describe("VM", () => {
     expect(vm.json.events[5]?.type).to.equal(EventTypes.GuardChange);
   });
 
-  it.skip("should process newly purchased crypto gracefully", async () => {
+  it("should process newly purchased crypto gracefully", async () => {
     [getTestTx([ // Trade USD for ETH
       { amount: "107.93", asset: USD, category: Internal, from: usdAccount, to: coinbase },
       { amount: "105.94", asset: USD, category: SwapOut, from: coinbase, to: notMe },
       { amount: "1.0", asset: ETH, category: SwapIn, from: notMe, to: coinbase },
       { amount: "1.99", asset: USD, category: Fee, from: coinbase, to: notMe },
     ])].forEach(vm.execute);
+    // log.info(vm.json.chunks, "chunks");
     expect(getValueMachineError(vm.json)).to.be.null;
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "1.0", [USD]: "-107.93" });
     expect(vm.json.events.length).to.equal(3);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Trade);
     expect(vm.json.events[1]?.type).to.equal(EventTypes.Debt);
     expect(vm.json.events[2]?.type).to.equal(EventTypes.Error);
+  });
+
+  it("should process lone swaps like expenses/income", async () => {
+    [getTestTx([ // Income
+      { amount: "10.0", asset: ETH, category: Income, from: notMe, to: ethAccount },
+    ]), getTestTx([ // Partial swap
+      { amount: "0.1", asset: ETH, category: Fee, from: ethAccount, to: Ethereum },
+      { amount: "5.0", asset: ETH, category: SwapOut, from: ethAccount, to: notMe },
+    ])].forEach(vm.execute);
+    // log.info(vm.json.events, "events");
+    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "4.9" });
+    expect(vm.json.events.length).to.equal(2);
+    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
+    expect(vm.json.events[1]?.type).to.equal(EventTypes.Error);
   });
 
   it("should emit an event when guards change", async () => {
@@ -390,21 +406,6 @@ describe("VM", () => {
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
     expect(vm.json.events[1]?.type).to.equal(EventTypes.GuardChange);
     expect(vm.json.events[2]?.type).to.equal(EventTypes.GuardChange);
-  });
-
-  it("should process a lone SwapIn as income", async () => {
-    [getTestTx([ // Income
-      { amount: "10.0", asset: ETH, category: Income, from: notMe, to: ethAccount },
-    ]), getTestTx([ // Partial swap
-      { amount: "0.1", asset: ETH, category: Fee, from: ethAccount, to: Ethereum },
-      { amount: "5.0", asset: ETH, category: SwapOut, from: ethAccount, to: notMe },
-    ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
-    expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "4.9" });
-    expect(vm.json.events.length).to.equal(3);
-    expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
-    expect(vm.json.events[1]?.type).to.equal(EventTypes.Error);
-    expect(vm.json.events[2]?.type).to.equal(EventTypes.Expense);
   });
 
 });
