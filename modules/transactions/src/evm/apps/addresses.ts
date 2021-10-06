@@ -7,16 +7,18 @@ import { addresses as airswap } from "./airswap/addresses";
 import { addresses as bjtj } from "./bjtj/addresses";
 import { addresses as compound } from "./compound/addresses";
 import { addresses as cryptokitties } from "./cryptokitties/addresses";
-import { addresses as tokens } from "./tokens/addresses";
+import { addresses as ens } from "./ens/addresses";
+import { addresses as etherdelta } from "./etherdelta/addresses";
 import { addresses as idex } from "./idex/addresses";
 import { addresses as idle } from "./idle/addresses";
 import { addresses as maker } from "./maker/addresses";
 import { addresses as nfts } from "./nfts/addresses";
 import { addresses as polygon } from "./polygon/addresses";
 import { addresses as quickswap } from "./quickswap/addresses";
+import { addresses as tokens } from "./tokens/addresses";
 import { addresses as tornado } from "./tornado/addresses";
 import { addresses as uniswap } from "./uniswap/addresses";
-import { addresses as wethEnums } from "./weth/addresses";
+import { addresses as weth } from "./weth/addresses";
 import { addresses as yearn } from "./yearn/addresses";
 
 const appAddresses = [
@@ -25,16 +27,18 @@ const appAddresses = [
   ...bjtj,
   ...compound,
   ...cryptokitties,
-  ...tokens,
+  ...ens,
+  ...etherdelta,
   ...idex,
   ...idle,
   ...maker,
   ...nfts,
   ...polygon,
   ...quickswap,
+  ...tokens,
   ...tornado,
   ...uniswap,
-  ...wethEnums,
+  ...weth,
   ...yearn,
 ];
 
@@ -52,7 +56,6 @@ const defiAddresses = [
   { name: "artifaqt", address: "Ethereum/0x34d565bddcff2dd74bc98e056ebd32dd5f5e1d34" },
   { name: "augur", address: "Ethereum/0x24e2b1d415e6e0d04042eaa45dc2a08fc33ca6cd" },
   { name: "augur", address: "Ethereum/0xd5524179cb7ae012f5b642c1d6d700bbaa76b96b" },
-  { name: "base-registrar", address: "Ethereum/0xfac7bea255a6990f749363002136af6556b31e04" },
   { name: "bounties-network", address: "Ethereum/0x2af47a65da8cd66729b4209c22017d6a5c2d2400" },
   { name: "bounties-network", address: "Ethereum/0xe7f69ea2a79521136ee0bf3c50f6b5f1ea0ab0cd" },
   { name: "connext-channel-manager", address: "Ethereum/0xdfa6edae2ec0cf1d4a60542422724a48195a5071" },
