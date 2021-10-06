@@ -1,9 +1,5 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
-import Select from "@material-ui/core/Select";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -31,6 +27,7 @@ import React, { useEffect, useState } from "react";
 
 import { TransactionRow } from "./TransactionRow";
 import { DateInput } from "./DateInput";
+import { SelectOne } from "./SelectOne";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
@@ -144,31 +141,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     );
   }, [addressBook, transactions]);
 
-  const changeFilterMethod = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterMethod(event.target.value);
-  };
-
-  const changeFilterSource = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterSource(event.target.value);
-  };
-
-  const changeFilterApp = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterApp(event.target.value);
-  };
-
-  const changeFilterAccount = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterAccount(event.target.value);
-  };
-
-  const changeFilterAsset = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterAsset(event.target.value);
-  };
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -188,80 +160,47 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         }
       </Typography>
 
-      <FormControl className={classes.dropdown}>
-        <InputLabel id="select-filter-account">Filter Account</InputLabel>
-        <Select
-          labelId="select-filter-account"
-          id="select-filter-account"
-          value={filterAccount || ""}
-          onChange={changeFilterAccount}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {ourAccounts.map(account => (
-            <MenuItem key={account} value={account}>{addressBook.getName(account, true)}</MenuItem>
-          ))};
-        </Select>
-      </FormControl>
+      <SelectOne
+        id="select-filter-account"
+        label="Filter Account"
+        options={ourAccounts}
+        selection={filterAccount}
+        setSelection={setFilterAccount}
+        toDisplay={val => addressBook.getName(val, true)}
+      />
 
-      <FormControl className={classes.dropdown}>
-        <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
-        <Select
-          labelId="select-filter-asset"
-          id="select-filter-asset"
-          value={filterAsset || ""}
-          onChange={changeFilterAsset}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {ourAssets.map(asset => (
-            <MenuItem key={asset} value={asset}>{asset}</MenuItem>
-          )) };
-        </Select>
-      </FormControl>
+      <SelectOne
+        id="select-filter-asset"
+        label="Filter Asset"
+        options={ourAssets}
+        selection={filterAsset}
+        setSelection={setFilterAsset}
+        toDisplay={val => addressBook.getName(val, true)}
+      />
 
-      <FormControl className={classes.dropdown}>
-        <InputLabel id="select-filter-method">Filter Method</InputLabel>
-        <Select
-          labelId="select-filter-method"
-          id="select-filter-method"
-          value={filterMethod || ""}
-          onChange={changeFilterMethod}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {Object.keys(Methods).sort().map(method => (
-            <MenuItem key={method} value={method}>{method}</MenuItem>
-          ))};
-        </Select>
-      </FormControl>
+      <SelectOne
+        id="select-filter-method"
+        label="Filter Method"
+        options={Object.keys(Methods)}
+        selection={filterMethod}
+        setSelection={setFilterMethod}
+      />
 
-      <FormControl className={classes.dropdown}>
-        <InputLabel id="select-filter-source">Filter Source</InputLabel>
-        <Select
-          labelId="select-filter-source"
-          id="select-filter-source"
-          value={filterSource || ""}
-          onChange={changeFilterSource}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {ourSources.map(source => (
-            <MenuItem key={source} value={source}>{source}</MenuItem>
-          ))};
-        </Select>
-      </FormControl>
+      <SelectOne
+        id="select-filter-source"
+        label="Filter Source"
+        options={ourSources}
+        selection={filterSource}
+        setSelection={setFilterSource}
+      />
 
-      <FormControl className={classes.dropdown}>
-        <InputLabel id="select-filter-app">Filter App</InputLabel>
-        <Select
-          labelId="select-filter-app"
-          id="select-filter-app"
-          value={filterApp || ""}
-          onChange={changeFilterApp}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {ourApps.map(app => (
-            <MenuItem key={app} value={app}>{app}</MenuItem>
-          ))};
-        </Select>
-      </FormControl>
+      <SelectOne
+        id="select-filter-app"
+        label="Filter App"
+        options={ourApps}
+        selection={filterApp}
+        setSelection={setFilterApp}
+      />
 
       <br/>
 
