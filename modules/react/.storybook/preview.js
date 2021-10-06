@@ -1,7 +1,5 @@
-import { muiTheme } from "storybook-addon-material-ui"
 
 export const decorators = [
-  muiTheme(),
   (Story) => (
     <div style={{ padding: "3em" }}>
       <Story />

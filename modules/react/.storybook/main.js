@@ -4,6 +4,5 @@ module.exports = {
     "@storybook/addon-actions",
     "@storybook/addon-essentials",
     "@storybook/addon-links",
-    "storybook-addon-material-ui",
   ]
 }
