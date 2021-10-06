@@ -4,7 +4,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { Assets, Guards, Sources } from "./enums";
+import { Assets, Guards, Methods, Sources } from "./enums";
 import { mergeTransaction } from "./merge";
 import {
   expect,
@@ -26,6 +26,7 @@ const getCsvTx = (): Transaction => ({
   // The csv date can be off slightly from the eth tx date
   date: timestamp, // new Date(new Date(timestamp).getTime() + (1000 * 60 * 15)).toISOString(),
   sources: [csvSource],
+  method: Methods.Deposit,
   uuid: `${csvSource}/${timestamp}`,
   transfers: [
     {
