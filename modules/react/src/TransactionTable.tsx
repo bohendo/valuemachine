@@ -131,16 +131,16 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         } else {
           return [];
         }
-      }).flat()).flat())
+      }).flat()).flat()).sort()
     );
     setOurApps(
-      dedup(transactions?.json.map(tx => tx.apps).flat())
+      dedup(transactions?.json.map(tx => tx.apps).flat()).sort()
     );
     setOurAssets(
-      dedup(transactions?.json.map(tx => tx.transfers.map(transfer => transfer.asset)).flat())
+      dedup(transactions?.json.map(tx => tx.transfers.map(t => t.asset)).flat()).sort()
     );
     setOurSources(
-      dedup(transactions?.json.map(tx => tx.sources).flat())
+      dedup(transactions?.json.map(tx => tx.sources).flat()).sort()
     );
   }, [addressBook, transactions]);
 

@@ -45,8 +45,9 @@ const {
 // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
 // Withdrawing more than we deposited is assumed to represent income rather than a loan
 const isIncomeSource = (account: Account): boolean =>
-  account.startsWith(`${EvmApps.Maker}-DSR`) ||
-  account.startsWith(`${EvmApps.Tornado}`);
+  account.includes(`/${EvmApps.Dai}-DSR`) ||
+  account.includes(`/${EvmApps.Tornado}`); // is tornado really an income source tho?
+  // TODO: add aave tokens?
 
 export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const { logger, store, json: vmJson } = params || {};
