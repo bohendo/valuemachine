@@ -4,13 +4,12 @@ const Apps = {
 
 const Methods = {
   Auction: "Auction",
-  Bid: "Bid",
   Commit: "Commit",
-  Release: "Release",
+  Configuration: "Configuration",
   Invalidation: "Invalidation",
   Migration: "Migration",
-  Deposit: "Deposit",
   Registration: "Registration",
+  Release: "Release",
   Renewal: "Renewal",
   Reveal: "Reveal",
 } as const;

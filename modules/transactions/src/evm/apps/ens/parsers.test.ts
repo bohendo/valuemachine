@@ -23,7 +23,7 @@ describe(appName, () => {
     log.info(tx);
     expect(tx).to.be.ok;
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.equal(Methods.Bid);
+    expect(tx.method).to.include(Methods.Commit);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
     expect(tx.transfers[1].to).to.include(appName);
@@ -37,7 +37,7 @@ describe(appName, () => {
     log.info(tx);
     expect(tx).to.be.ok;
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.equal(Methods.Reveal);
+    expect(tx.method).to.include(Methods.Reveal);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
     expect(tx.transfers[1].from).to.include(appName);
@@ -51,7 +51,7 @@ describe(appName, () => {
     log.info(tx);
     expect(tx).to.be.ok;
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.equal(Methods.Migration);
+    expect(tx.method).to.include(Methods.Registration);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
     expect(tx.transfers[1].from).to.include(appName);
@@ -66,7 +66,7 @@ describe(appName, () => {
     log.info(tx);
     expect(tx).to.be.ok;
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.equal(Methods.Registration);
+    expect(tx.method).to.include(Methods.Registration);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
@@ -81,7 +81,7 @@ describe(appName, () => {
     log.info(tx);
     expect(tx).to.be.ok;
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.equal(Methods.Registration);
+    expect(tx.method).to.include(Methods.Registration);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[2].category).to.equal(TransferCategories.Refund);

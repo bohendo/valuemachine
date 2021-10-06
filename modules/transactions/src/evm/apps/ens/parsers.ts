@@ -14,6 +14,8 @@ import { parseEvent } from "../../utils";
 
 import {
   addresses,
+  resolverAddress,
+  coreAddress,
   nftAddresses,
   registrarV1Address,
   registrarV2Address,
@@ -53,6 +55,22 @@ const registrarAbi = [
   "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)",
 ];
 
+const coreAbi = [
+  "event Transfer(bytes32 indexed node, address owner)",
+  "event NewOwner(bytes32 indexed node, bytes32 indexed label, address owner)",
+  "event NewResolver(bytes32 indexed node, address resolver)",
+  "event NewTTL(bytes32 indexed node, uint64 ttl)"
+];
+
+const resolverAbi = [
+  "event AddrChanged(bytes32 indexed node, address a)",
+  "event NameChanged(bytes32 indexed node, string name)",
+  "event ABIChanged(bytes32 indexed node, uint256 indexed contentType)",
+  "event PubkeyChanged(bytes32 indexed node, bytes32 x, bytes32 y)",
+  "event TextChanged(bytes32 indexed node, string indexedKey, string key)",
+  "event ContenthashChanged(bytes32 indexed node, bytes hash)"
+];
+
 const coreParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
@@ -65,6 +83,7 @@ const coreParser = (
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (addresses.some(e => e.address === address)) {
+      log.info(`Processing tx log from ${address}`);
       tx.apps.push(appName);
 
       // We've interacted with ENS, check other topics for a deed closure
@@ -80,16 +99,29 @@ const coreParser = (
         });
       }
 
-      if (nftAddresses.some(e => e.address === address)) {
+      if (address === coreAddress) {
+        const event = parseEvent(coreAbi, txLog, evmMeta);
+        if (!event.name) continue;
+        log.info(`Found ${appName} event ${event.name}`);
+        tx.method = tx.method || `${appName} ${Methods.Configuration}`;
+
+      } else if (address === resolverAddress) {
+        log.info(`Found resolver interaction ${txLog.topics[0]}`);
+        const event = parseEvent(resolverAbi, txLog, evmMeta);
+        if (!event.name) continue;
+        log.info(`Found ${appName} event ${event.name}`);
+        tx.method = tx.method || `${appName} ${Methods.Configuration}`;
+
+      } else if (nftAddresses.some(e => e.address === address)) {
         const event = parseEvent(nftAbi, txLog, evmMeta);
         if (!event.name) continue;
         log.info(`Found ${appName} event ${event.name}`);
         if (event.name === "NameMigrated") {
-          tx.method = Methods.Migration;
+          tx.method = `${appName} ${Methods.Migration}`;
         } else if (event.name === "NameRegistered") {
-          tx.method = tx.method === Methods.Unknown ? Methods.Registration : tx.method;
+          tx.method = `${appName} ${Methods.Registration}`;
         } else if (event.name === "NameRenewed") {
-          tx.method = Methods.Renewal;
+          tx.method = `${appName} ${Methods.Renewal}`;
         }
 
       } else if (address === registrarV2Address || address === registrarV3Address) {
@@ -98,7 +130,7 @@ const coreParser = (
         log.info(`Found ${appName} event ${event.name}`);
         if (event.name === "NameRegistered") {
           if (addressBook.isSelf(event.args.owner)) {
-            tx.method = tx.method === Methods.Unknown ? Methods.Registration : tx.method;
+            tx.method = `${appName} ${Methods.Registration}`;
             tx.transfers.filter(transfer =>
               transfer.asset === Assets.ETH
               && transfer.from === event.args.owner
@@ -124,7 +156,7 @@ const coreParser = (
             });
           }
         } else if (event.name === "NameRenewed") {
-          tx.method = Methods.Renewal;
+          tx.method = `${appName} ${Methods.Renewal}`;
         }
 
       } else if (address === registrarV1Address) {
@@ -133,10 +165,10 @@ const coreParser = (
         log.info(`Found ${appName} event ${event.name}`);
 
         if (event.name === "AuctionStarted") {
-          tx.method = Methods.Auction;
+          tx.method = `Start ${appName} ${Methods.Auction}`;
         } else if (event.name === "NewBid") {
           if (addressBook.isSelf(event.args.bidder)) {
-            tx.method = Methods.Bid;
+            tx.method = `${Methods.Commit} ${appName} Bid`;
             const deposit = tx.transfers.find(transfer =>
               transfer.asset === Assets.ETH
               && transfer.to === address
@@ -150,7 +182,7 @@ const coreParser = (
           }
         } else if (event.name === "BidRevealed") {
           if (evmTx.to === address && addressBook.isSelf(event.args.owner)) {
-            tx.method = Methods.Bid;
+            tx.method = `${Methods.Reveal} ${appName} Bid`;
             const withdraw = tx.transfers.find(transfer =>
               transfer.asset === Assets.ETH
               && transfer.to === event.args.owner
@@ -161,14 +193,12 @@ const coreParser = (
               withdraw.from = insertVenue(withdraw.to, appName);
             }
           }
-
-          tx.method = Methods.Reveal;
         } else if (event.name === "HashRegistered") {
-          tx.method = Methods.Registration;
+          tx.method = `${appName} ${Methods.Registration}`;
         } else if (event.name === "HashReleased") {
-          tx.method = Methods.Release;
+          tx.method = `${appName} ${Methods.Release}`;
         } else if (event.name === "HashInvalidated") {
-          tx.method = Methods.Invalidation;
+          tx.method = `${appName} ${Methods.Invalidation}`;
         }
 
       }
