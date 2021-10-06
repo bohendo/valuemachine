@@ -15,6 +15,7 @@ import {
   TransactionTable,
   CsvPorter,
   CsvTable,
+  TransactionEditor,
 } from "@valuemachine/react";
 import {
   getTransactions,
@@ -29,9 +30,6 @@ import {
 } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
-
-// TODO: move into react lib
-import { TransactionEditor } from "./CustomTx";
 
 const logger = getLogger("debug");
 
@@ -64,6 +62,13 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 const getEmptyTransaction = (): Partial<Transaction> => ({
+  apps: [],
+  date: "",
+  index: 0,
+  method: "",
+  sources: [],
+  transfers: [],
+  uuid: "",
 } as Transaction);
 
 const getEmptyAddress = (): AddressEntry => ({
@@ -90,7 +95,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
 }: PropTypes) => {
   const [newAddress, setNewAddress] = useState(getEmptyAddress());
   const [newTransaction, setNewTransaction] = useState(getEmptyTransaction());
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(2);
   const classes = useStyles();
 
   const addNewAddress = (editedAddress: AddressEntry) => {

@@ -7,9 +7,11 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import TextField from "@material-ui/core/TextField";
 import AddIcon from "@material-ui/icons/AddCircle";
-import { Methods } from "@valuemachine/transactions";
+import { Apps, Methods, Sources } from "@valuemachine/transactions";
 import { Transaction } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
+
+import { DateInput } from "./DateInput";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   grid: {
@@ -31,7 +33,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 
 type TransactionEditorProps = {
   tx: Partial<Transaction>;
-  setTx: (entry: Transaction) => void;
+  setTx: (tx: Transaction) => void;
 };
 export const TransactionEditor: React.FC<TransactionEditorProps> = ({
   tx,
@@ -83,8 +85,13 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
     if (!tx || !newTx) {
       setTxModified(false);
     } else if (
-      newTx.date !== tx.date ||
-      newTx.method !== tx.method
+      newTx?.apps?.length ||
+      newTx?.date !== tx.date ||
+      newTx?.index !== tx.index ||
+      newTx?.method !== tx.method ||
+      newTx?.sources?.length ||
+      newTx?.transfers?.length ||
+      newTx?.uuid !== tx.uuid
     ) {
       setTxModified(true);
     } else {
@@ -101,27 +108,55 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
       className={classes.grid}
     >
 
-      <Grid item md={4}>
-        <TextField
-          autoComplete="off"
-          value={newTx?.date || ""}
-          helperText="When did this tx happen"
-          id="name"
-          fullWidth
-          label="Transaction Date"
-          margin="normal"
-          name="name"
-          onChange={handleTxChange}
-          variant="outlined"
-        />
+      <DateInput
+        id="filter-end-date"
+        label="Transation Date"
+        setDate={handleTxChange}
+        helperText="When did this tx happen?"
+      />
+
+      <Grid item md={2}>
+        <FormControl className={classes.select}>
+          <InputLabel id={`select-${tx?.uuid || `new`}-apps`}>Apps</InputLabel>
+          <Select
+            labelId={`select-${tx?.uuid || "new"}-apps`}
+            id={`select-${tx?.uuid || "new"}-apps`}
+            name="apps"
+            value={newTx?.apps || ""}
+            onChange={handleTxChange}
+          >
+            <MenuItem value={""}>-</MenuItem>
+            {Object.keys(Apps).map((cat, i) => (
+              <MenuItem key={i} value={cat}>{cat}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Grid>
+
+      <Grid item md={2}>
+        <FormControl className={classes.select}>
+          <InputLabel id={`select-${tx?.uuid || `new`}-sources`}>Sources</InputLabel>
+          <Select
+            labelId={`select-${tx?.uuid || "new"}-sources`}
+            id={`select-${tx?.uuid || "new"}-sources`}
+            name="sources"
+            value={newTx?.sources || ""}
+            onChange={handleTxChange}
+          >
+            <MenuItem value={""}>-</MenuItem>
+            {Object.keys(Sources).map((cat, i) => (
+              <MenuItem key={i} value={cat}>{cat}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Grid>
 
       <Grid item md={4}>
         <FormControl className={classes.select}>
-          <InputLabel id="select-new-method">Method</InputLabel>
+          <InputLabel id={`select-${tx?.uuid || `new`}-method`}>Method</InputLabel>
           <Select
-            labelId={`select-${tx?.uuid}-method`}
-            id={`select-${tx?.uuid}-method`}
+            labelId={`select-${tx?.uuid || "new"}-method`}
+            id={`select-${tx?.uuid || "new"}-method`}
             name="method"
             value={newTx?.method || ""}
             onChange={handleTxChange}
@@ -134,7 +169,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
         </FormControl>
       </Grid>
 
-      <Grid item md={6}>
+      <Grid item md={12}>
         <TextField
           className={classes.textInput}
           autoComplete="off"
@@ -144,6 +179,23 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
           id="uuid"
           fullWidth
           label="Transaction ID"
+          margin="normal"
+          name="uuid"
+          onChange={handleTxChange}
+          variant="outlined"
+        />
+      </Grid>
+
+      <Grid item md={4}>
+        <TextField
+          className={classes.textInput}
+          autoComplete="off"
+          value={newTx?.uuid || ""}
+          error={!!newTxError}
+          helperText={newTxError || "transfer 1 amount"}
+          id="uuid"
+          fullWidth
+          label="Transfer 1 amount"
           margin="normal"
           name="uuid"
           onChange={handleTxChange}

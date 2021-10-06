@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     overflow: "auto",
   },
   innerBox: {
-    maxWidth: theme.spacing(50),
+    maxWidth: theme.spacing(160),
     overflow: "auto",
   },
   button: {

@@ -10,4 +10,5 @@ export { DateInput } from "./DateInput";
 export { EventTable } from "./EventTable";
 export { HexString } from "./HexString";
 export { TaxTable } from "./TaxTable";
+export { TransactionEditor } from "./TransactionEditor";
 export { TransactionTable } from "./TransactionTable";

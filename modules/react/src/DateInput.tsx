@@ -11,11 +11,13 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 type DateInputProps = {
   id: string;
   label: string;
+  helperText?: string;
   setDate: (val: string) => void;
 };
 export const DateInput: React.FC<DateInputProps> = ({
   id,
   label,
+  helperText,
   setDate,
 }: DateInputProps) => {
   const classes = useStyles();
@@ -54,7 +56,7 @@ export const DateInput: React.FC<DateInputProps> = ({
       autoComplete="off"
       className={classes.dateFilter}
       error={!!error}
-      helperText={error || "YYYY-MM-DD"}
+      helperText={error || helperText || "YYYY-MM-DD"}
       id={id || slugify(label)}
       label={label}
       margin="normal"

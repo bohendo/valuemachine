@@ -53,11 +53,11 @@ export type Transfer = Static<typeof Transfer>;
 export const Transaction = Type.Object({
   apps: Type.Array(Type.String()),
   date: TimestampString,
-  uuid: Type.String(),
   index: Type.Optional(Type.Number()), // required after merging txns together
   method: Type.String(),
   sources: Type.Array(Source),
   transfers: Type.Array(Transfer),
+  uuid: Type.String(),
 });
 export type Transaction = Static<typeof Transaction>;
 
