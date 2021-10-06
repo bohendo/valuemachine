@@ -161,45 +161,40 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       </Typography>
 
       <SelectOne
-        id="select-filter-account"
         label="Filter Account"
-        options={ourAccounts}
+        choices={ourAccounts}
         selection={filterAccount}
         setSelection={setFilterAccount}
         toDisplay={val => addressBook.getName(val, true)}
       />
 
       <SelectOne
-        id="select-filter-asset"
+        label="Filter App"
+        choices={ourApps}
+        selection={filterApp}
+        setSelection={setFilterApp}
+      />
+
+      <SelectOne
         label="Filter Asset"
-        options={ourAssets}
+        choices={ourAssets}
         selection={filterAsset}
         setSelection={setFilterAsset}
         toDisplay={val => addressBook.getName(val, true)}
       />
 
       <SelectOne
-        id="select-filter-method"
         label="Filter Method"
-        options={Object.keys(Methods)}
+        choices={Object.keys(Methods)}
         selection={filterMethod}
         setSelection={setFilterMethod}
       />
 
       <SelectOne
-        id="select-filter-source"
         label="Filter Source"
-        options={ourSources}
+        choices={ourSources}
         selection={filterSource}
         setSelection={setFilterSource}
-      />
-
-      <SelectOne
-        id="select-filter-app"
-        label="Filter App"
-        options={ourApps}
-        selection={filterApp}
-        setSelection={setFilterApp}
       />
 
       <br/>

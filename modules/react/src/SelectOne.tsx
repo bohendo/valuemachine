@@ -13,27 +13,33 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 }));
 
 type SelectOneProps = {
-  id: string,
-  label: string,
-  options: string,
-  selection: string,
-  setSelection: (val: string) => void,
+  choices?: string[],
+  id?: string,
+  label?: string,
+  selection?: string,
+  setSelection?: (val: string) => void,
   toDisplay?: (val: string) => string,
 };
 export const SelectOne: React.FC<SelectOneProps> = ({
-  id,
-  label,
-  options,
+  id: givenId,
+  label: givenLabel,
+  choices,
   selection,
   setSelection,
   toDisplay,
 }: SelectOneProps) => {
   const classes = useStyles();
 
+  const slugify = str =>
+    str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
+
   const handleFilterTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
-    setSelection(event.target.value);
+    setSelection?.(event.target.value);
   };
+
+  const label = givenLabel || "Select One";
+  const id = givenId || `select-one-${slugify(label)}`;
 
   return (
     <FormControl className={classes.dropdown}>
@@ -45,11 +51,10 @@ export const SelectOne: React.FC<SelectOneProps> = ({
         onChange={handleFilterTypeChange}
       >
         <MenuItem value={""}>-</MenuItem>
-        {options.map((option, i) => (
+        {(choices || []).map((option, i) => (
           <MenuItem key={i} value={option}>{toDisplay ? toDisplay(option) : option}</MenuItem>
         ))}
       </Select>
     </FormControl>
   );
-
 };

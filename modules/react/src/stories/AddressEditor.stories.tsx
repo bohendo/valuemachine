@@ -8,7 +8,11 @@ const Template: ComponentStory<typeof AddressEditor> = (args) => <AddressEditor 
 
 export const Example = Template.bind({});
 Example.args = {
-  entry: {},
+  entry: {
+    address: "",
+    category: "",
+    name: "",
+  },
   setEntry: console.log,
   addresses: [],
 };

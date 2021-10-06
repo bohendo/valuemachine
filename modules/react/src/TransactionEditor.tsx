@@ -1,16 +1,13 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
 import TextField from "@material-ui/core/TextField";
 import AddIcon from "@material-ui/icons/AddCircle";
 import { Apps, Methods, Sources } from "@valuemachine/transactions";
 import { Transaction } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
+import { SelectOne } from "./SelectOne";
 import { DateInput } from "./DateInput";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -19,10 +16,6 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
   textInput: {
     margin: theme.spacing(1),
-  },
-  select: {
-    margin: theme.spacing(3),
-    minWidth: theme.spacing(15),
   },
   button: {
     marginBottom: theme.spacing(1.5),
@@ -111,62 +104,35 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
       <DateInput
         id="filter-end-date"
         label="Transation Date"
-        setDate={handleTxChange}
+        setDate={date => setNewTx({ ...newTx, date })}
         helperText="When did this tx happen?"
       />
 
       <Grid item md={2}>
-        <FormControl className={classes.select}>
-          <InputLabel id={`select-${tx?.uuid || `new`}-apps`}>Apps</InputLabel>
-          <Select
-            labelId={`select-${tx?.uuid || "new"}-apps`}
-            id={`select-${tx?.uuid || "new"}-apps`}
-            name="apps"
-            value={newTx?.apps || ""}
-            onChange={handleTxChange}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {Object.keys(Apps).map((cat, i) => (
-              <MenuItem key={i} value={cat}>{cat}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <SelectOne
+          label="App"
+          choices={Object.keys(Apps)}
+          selection={newTx?.apps?.[0]}
+          setSelection={val => setNewTx({ ...newTx, apps: [val] })}
+        />
       </Grid>
 
       <Grid item md={2}>
-        <FormControl className={classes.select}>
-          <InputLabel id={`select-${tx?.uuid || `new`}-sources`}>Sources</InputLabel>
-          <Select
-            labelId={`select-${tx?.uuid || "new"}-sources`}
-            id={`select-${tx?.uuid || "new"}-sources`}
-            name="sources"
-            value={newTx?.sources || ""}
-            onChange={handleTxChange}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {Object.keys(Sources).map((cat, i) => (
-              <MenuItem key={i} value={cat}>{cat}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <SelectOne
+          label="Source"
+          choices={Object.keys(Sources)}
+          selection={newTx?.sources?.[0]}
+          setSelection={val => setNewTx({ ...newTx, sources: [val] })}
+        />
       </Grid>
 
       <Grid item md={4}>
-        <FormControl className={classes.select}>
-          <InputLabel id={`select-${tx?.uuid || `new`}-method`}>Method</InputLabel>
-          <Select
-            labelId={`select-${tx?.uuid || "new"}-method`}
-            id={`select-${tx?.uuid || "new"}-method`}
-            name="method"
-            value={newTx?.method || ""}
-            onChange={handleTxChange}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {Object.keys(Methods).map((cat, i) => (
-              <MenuItem key={i} value={cat}>{cat}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <SelectOne
+          label="Method"
+          choices={Object.keys(Methods)}
+          selection={newTx?.method}
+          setSelection={val => setNewTx({ ...newTx, method: val })}
+        />
       </Grid>
 
       <Grid item md={12}>
@@ -223,5 +189,3 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
     </Grid>
   );
 };
-
-

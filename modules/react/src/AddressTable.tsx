@@ -1,9 +1,5 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
-import Select from "@material-ui/core/Select";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -22,6 +18,7 @@ import {
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
+import { SelectOne } from "./SelectOne";
 import { AddressRow } from "./AddressRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -83,11 +80,6 @@ export const AddressTable: React.FC<AddressTableProps> = ({
     setAddressBookJson(newAddressBook);
   };
 
-  const handleFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterCategory(event.target.value);
-  };
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -109,20 +101,12 @@ export const AddressTable: React.FC<AddressTableProps> = ({
           }
         </Typography>
 
-        <FormControl className={classes.dropdown}>
-          <InputLabel id="select-filter-category">Filter Category</InputLabel>
-          <Select
-            labelId="select-filter-category"
-            id="select-filter-category"
-            value={filterCategory || ""}
-            onChange={handleFilterChange}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {Array.from(new Set(Object.values(addressBook.json).map(e => e.category))).map(cat => (
-              <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <SelectOne
+          label="Filter Category"
+          choices={Array.from(new Set(Object.values(addressBook.json).map(e => e.category)))}
+          selection={filterCategory}
+          setSelection={setFilterCategory}
+        />
 
         <Table size="small">
           <TableHead>

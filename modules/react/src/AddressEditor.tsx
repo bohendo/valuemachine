@@ -2,11 +2,7 @@ import { isAddress } from "@ethersproject/address";
 import { isHexString } from "@ethersproject/bytes";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
-import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
 import TextField from "@material-ui/core/TextField";
 import AddIcon from "@material-ui/icons/AddCircle";
 import {
@@ -14,6 +10,8 @@ import {
   AddressEntry,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
+
+import { SelectOne } from "./SelectOne";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   grid: {
@@ -71,9 +69,8 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
   const handleEntryChange = (event: React.ChangeEvent<{ name?: string; value: unknown; }>) => {
     const { name, value } = event.target;
     if (typeof name !== "string" || typeof value !== "string") return;
-    const newNewEntry = { ...newEntry, [name]: value };
-    setNewEntry(newNewEntry);
-    setNewEntryError(getErrors(newNewEntry));
+    console.log(`Setting ${name} in new entry to ${value}`);
+    setNewEntry({ ...newEntry, [name]: value });
   };
 
   const handleSave = () => {
@@ -98,10 +95,13 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
   }, [entryModified]);
 
   useEffect(() => {
-    if (!addresses?.length || !entryModified) return;
-    setNewEntryError(getErrors(newEntry) || "");
+    if (!entryModified) {
+      setNewEntryError("");
+    } else {
+      setNewEntryError(getErrors(newEntry) || "");
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addresses]);
+  }, [addresses, entryModified, newEntry]);
 
   useEffect(() => {
     if (!entry || !newEntry) {
@@ -142,21 +142,12 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
       </Grid>
 
       <Grid item md={4}>
-        <FormControl className={classes.select}>
-          <InputLabel id="select-new-category">Category</InputLabel>
-          <Select
-            labelId={`select-${entry?.address}-category`}
-            id={`select-${entry?.address}-category`}
-            name="category"
-            value={newEntry?.category || ""}
-            onChange={handleEntryChange}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {Object.keys(AddressCategories).map((cat, i) => (
-              <MenuItem key={i} value={cat}>{cat}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <SelectOne
+          label="Category"
+          choices={Object.keys(AddressCategories)}
+          selection={newEntry?.category}
+          setSelection={val => setNewEntry({ ...newEntry, category: val })}
+        />
       </Grid>
 
       <Grid item md={6}>
@@ -177,7 +168,7 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
       </Grid>
 
       <Grid item md={6}>
-        {entryModified ?
+        {entryModified && !newEntryError ?
           <Grid item>
             <Button
               className={classes.button}
