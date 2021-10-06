@@ -12,17 +12,28 @@ import {
   AddressEditor,
   AddressPorter,
   AddressTable,
+  TransactionTable,
   CsvPorter,
   CsvTable,
 } from "@valuemachine/react";
+import {
+  getTransactions,
+} from "@valuemachine/transactions";
 import {
   AddressCategories,
   AddressEntry,
   AddressBook,
   AddressBookJson,
   CsvFiles,
+  Transaction,
 } from "@valuemachine/types";
+import { getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
+
+// TODO: move into react lib
+import { TransactionEditor } from "./CustomTx";
+
+const logger = getLogger("debug");
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -52,7 +63,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-const getEmptyEntry = (): AddressEntry => ({
+const getEmptyTransaction = (): Partial<Transaction> => ({
+} as Transaction);
+
+const getEmptyAddress = (): AddressEntry => ({
   address: "",
   category: AddressCategories.Self,
   name: "",
@@ -63,36 +77,29 @@ type PropTypes = {
   setAddressBookJson: (val: AddressBookJson) => void,
   csvFiles: CsvFiles,
   setCsvFiles: (val: CsvFiles) => void,
+  customTxns: Transaction[],
+  setCustomTxns: (val: Transaction[]) => void,
 };
 export const AddressBookManager: React.FC<PropTypes> = ({
   addressBook,
   setAddressBookJson,
   csvFiles,
   setCsvFiles,
+  customTxns,
+  setCustomTxns,
 }: PropTypes) => {
-  const [newEntry, setNewEntry] = useState(getEmptyEntry);
+  const [newAddress, setNewAddress] = useState(getEmptyAddress());
+  const [newTransaction, setNewTransaction] = useState(getEmptyTransaction());
   const [tab, setTab] = useState(0);
   const classes = useStyles();
 
-  const editEntry = (address: string, editedEntry?: AddressEntry): void => {
-    const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders
-    if (editedEntry) {
-      if (editedEntry.address !== address) {
-        delete newAddressBook[address];
-      }
-      newAddressBook[editedEntry.address] = editedEntry;
-    } else {
-      delete newAddressBook[address];
-    }
-    setAddressBookJson(newAddressBook);
-    // Don't reset new entry fields when we modify an existing one
-    if (editedEntry) {
-      setNewEntry(getEmptyEntry);
-    }
-  };
-
-  const addNewAddress = (editedEntry: AddressEntry) => {
-    editEntry(editedEntry.address, editedEntry);
+  const addNewAddress = (editedAddress: AddressEntry) => {
+    // create new obj to ensure it re-renders
+    setAddressBookJson({
+      ...addressBook.json,
+      [editedAddress.address]: editedAddress,
+    });
+    setNewAddress(getEmptyAddress()); // Reset new address editor
   };
 
   const deleteAddresses = async () => {
@@ -101,6 +108,26 @@ export const AddressBookManager: React.FC<PropTypes> = ({
 
   const deleteCsvFiles = async () => {
     setCsvFiles([]);
+  };
+
+  const addNewTransaction = (newTx: Transaction) => {
+    const newCustomTxns = [...customTxns]; // create new array to ensure it re-renders
+    if (newTx) {
+      const prevIndex = newCustomTxns.findIndex(t => t.uuid === newTx.uuid);
+      if (prevIndex > 0) {
+        newCustomTxns.splice(prevIndex, 1); // remove old custom tx w the same uuid
+      }
+      customTxns.push(newTx);
+    }
+    setCustomTxns(customTxns);
+    // Don't reset tx editor when we modify an existing one
+    if (newTx) {
+      setNewTransaction(getEmptyTransaction());
+    }
+  };
+
+  const deleteCustomTxns = async () => {
+    setCustomTxns([]);
   };
 
   const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
@@ -135,7 +162,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
             <Card className={classes.card}>
               <CardHeader title={"Add new Address"} />
               <AddressEditor
-                entry={newEntry}
+                entry={newAddress}
                 setEntry={addNewAddress}
                 addresses={Object.values(addressBook.json).map(e => e.address)}
               />
@@ -198,6 +225,31 @@ export const AddressBookManager: React.FC<PropTypes> = ({
 
       </div>
       <div hidden={tab !== 2}>
+
+        <Card className={classes.card}>
+          <CardHeader title={"Add new Transaction"} />
+          <TransactionEditor
+            tx={newTransaction}
+            setTx={addNewTransaction}
+          />
+        </Card>
+
+        <Button
+          className={classes.button}
+          color="primary"
+          onClick={deleteCustomTxns}
+          size="medium"
+          disabled={!customTxns?.length}
+          startIcon={<RemoveIcon/>}
+          variant="contained"
+        >
+          Delete Custom Txns
+        </Button>
+
+        <TransactionTable
+          addressBook={addressBook}
+          transactions={getTransactions({ json: customTxns, logger })}
+        />
 
       </div>
 

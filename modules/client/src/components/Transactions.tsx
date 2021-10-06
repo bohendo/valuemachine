@@ -40,12 +40,14 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 type PropTypes = {
   addressBook: AddressBook;
   csvFiles: CsvFiles,
+  customTxns: TransactionsJson,
   transactions: Transactions;
   setTransactionsJson: (val: TransactionsJson) => void;
 };
 export const TransactionExplorer: React.FC<PropTypes> = ({
   addressBook,
   csvFiles,
+  customTxns,
   transactions,
   setTransactionsJson,
 }: PropTypes) => {
@@ -55,7 +57,7 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
   const syncTxns = async () => {
     if (syncing) return;
     // Sync Chain Data
-    const newTransactions = getTransactions({ logger });
+    const newTransactions = getTransactions({ logger, json: customTxns });
     const selfAddresses = Object.values(addressBook.json).filter(e =>
       e.category === AddressCategories.Self
     );
