@@ -4,7 +4,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
-import { gt, hashCsv } from "@valuemachine/utils";
+import { gt, hashCsv, sub } from "@valuemachine/utils";
 
 import { Assets, CsvSources, Guards, Methods } from "../enums";
 import { mergeTransaction } from "../merge";
@@ -29,11 +29,11 @@ export const mergeCoinbaseTransactions = (
       ["Quantity Transacted"]: amount,
       ["Timestamp"]: date,
       ["Transaction Type"]: txType,
-      ["USD Fees"]: fee,
       ["USD Subtotal"]: usdAmount,
       ["USD Total (inclusive of fees)"]: usdTotal,
     } = row;
 
+    const fee = sub(usdTotal, usdAmount);
     const account = `${guard}/${source}/account`;
     const exchange = `${guard}/${source}`;
     const external = `${getGuard(asset)}/unknown`;
