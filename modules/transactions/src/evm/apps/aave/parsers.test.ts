@@ -10,8 +10,8 @@ import {
 } from "../../testUtils";
 
 const appName = Apps.Aave;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
-const parseTx = getParseTx({ logger });
+const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
+const parseTx = getParseTx({ logger: log });
 
 describe(appName, () => {
 
@@ -97,6 +97,34 @@ describe(appName, () => {
     expect(tx.transfers[2].category).to.equal(TransferCategories.SwapIn);
     expect(tx.transfers[3].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[4].category).to.equal(TransferCategories.SwapIn);
+  });
+
+  it("should handle a borrow on polygon", async () => {
+    const tx = await parseTx({
+      txid: "Polygon/0x1a24e9ef986a1e29aca1624b0ca9bcf5c195eeaaf5627c89ee6e7232c5b1910e",
+      selfAddress: "Polygon/0xada083a3c06ee526F827b43695F2DcFf5C8C892B",
+    });
+    log.info(tx);
+    expect(tx.apps).to.include(appName);
+    expect(tx.sources).to.include(Evms.Polygon);
+    expect(tx.transfers.length).to.equal(2);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Borrow);
+    expect(tx.transfers[1].from).to.include(appName);
+  });
+
+  it("should handle a repay on polygon", async () => {
+    const tx = await parseTx({
+      txid: "Polygon/0x0d06c1ead37c9f647721038a9a89c91a4b70bc44a7bfbcdab6e035ad69a7617f",
+      selfAddress: "Polygon/0xada083a3c06ee526F827b43695F2DcFf5C8C892B",
+    });
+    log.info(tx);
+    expect(tx.apps).to.include(appName);
+    expect(tx.sources).to.include(Evms.Polygon);
+    expect(tx.transfers.length).to.equal(2);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
+    expect(tx.transfers[1].to).to.include(appName);
   });
 
 });

@@ -11,6 +11,7 @@ import {
 } from "@valuemachine/types";
 import {
   div,
+  insertVenue,
   valuesAreClose,
 } from "@valuemachine/utils";
 
@@ -164,7 +165,7 @@ const coreParser = (
         const borrow = tx.transfers.find(associatedTransfer(asset, amount));
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = address; // should this be a non-address account?
+          borrow.from = insertVenue(borrow.to, appName);
         } else {
           log.warn(`${event.name}: Can't find borrow of ${amount} ${asset}`);
         }
@@ -180,7 +181,7 @@ const coreParser = (
         const repay = tx.transfers.find(associatedTransfer(asset, amount));
         if (repay) {
           repay.category = Repay;
-          repay.from = address; // should this be a non-address account?
+          repay.to = insertVenue(repay.from, appName);
         } else {
           log.warn(`${event.name}: Can't find repayment of ${amount} ${asset}`);
         }
