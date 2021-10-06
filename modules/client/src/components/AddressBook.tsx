@@ -4,6 +4,8 @@ import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
+import Tab from "@material-ui/core/Tab";
+import Tabs from "@material-ui/core/Tabs";
 import Typography from "@material-ui/core/Typography";
 import RemoveIcon from "@material-ui/icons/Delete";
 import {
@@ -30,8 +32,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(1),
   },
   grid: {
-    margin: theme.spacing(1),
-    maxWidth: "98%",
+    marginBottom: theme.spacing(1),
+  },
+  divider: {
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(1),
   },
   title: {
     margin: theme.spacing(2),
@@ -41,6 +46,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
   paper: {
     padding: theme.spacing(2),
+  },
+  tabs: {
+    margin: theme.spacing(1),
   },
 }));
 
@@ -63,6 +71,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   setCsvFiles,
 }: PropTypes) => {
   const [newEntry, setNewEntry] = useState(getEmptyEntry);
+  const [tab, setTab] = useState(0);
   const classes = useStyles();
 
   const editEntry = (address: string, editedEntry?: AddressEntry): void => {
@@ -94,98 +103,103 @@ export const AddressBookManager: React.FC<PropTypes> = ({
     setCsvFiles([]);
   };
 
+  const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+    setTab(newValue);
+  };
+
   return (
     <div className={classes.root}>
 
       <Typography variant="h4" className={classes.title}>
-        Manage Address Book
+        Manage Input Data
       </Typography>
 
-      <Grid
-        alignContent="center"
-        alignItems="center"
-        justifyContent="center"
-        container
-        spacing={1}
-        className={classes.grid}
-      >
+      <Tabs value={tab} onChange={handleTabChange} className={classes.tabs} centered>
+        <Tab label="Evm Addresses"/>
+        <Tab label="Csv Files"/>
+        <Tab label="Custom Transactions"/>
+      </Tabs>
 
-        <Grid item md={8}>
-          <Card className={classes.card}>
-            <CardHeader title={"Add new Address"} />
-            <AddressEditor
-              entry={newEntry}
-              setEntry={addNewAddress}
-              addresses={Object.values(addressBook.json).map(e => e.address)}
+      <Divider className={classes.divider}/>
+
+      <div hidden={tab !== 0}>
+        <Grid
+          alignContent="center"
+          alignItems="center"
+          justifyContent="center"
+          container
+          spacing={1}
+          className={classes.grid}
+        >
+          <Grid item md={8}>
+            <Card className={classes.card}>
+              <CardHeader title={"Add new Address"} />
+              <AddressEditor
+                entry={newEntry}
+                setEntry={addNewAddress}
+                addresses={Object.values(addressBook.json).map(e => e.address)}
+              />
+            </Card>
+          </Grid>
+          <Grid item md={4}>
+            <AddressPorter
+              addressBook={addressBook}
+              setAddressBookJson={setAddressBookJson}
             />
-          </Card>
+            <Button
+              className={classes.button}
+              color="primary"
+              onClick={deleteAddresses}
+              size="medium"
+              disabled={!Object.keys(addressBook.json || {}).length}
+              startIcon={<RemoveIcon/>}
+              variant="contained"
+            >
+              Delete Address Book
+            </Button>
+          </Grid>
+        </Grid>
+        <AddressTable
+          addressBook={addressBook}
+          setAddressBookJson={setAddressBookJson}
+        />
+      </div>
+
+      <div hidden={tab !== 1}>
+
+        <Grid
+          alignContent="center"
+          justifyContent="center"
+          container
+          spacing={1}
+          className={classes.grid}
+        >
+          <Grid item md={6}>
+            <CsvPorter
+              csvFiles={csvFiles}
+              setCsvFiles={setCsvFiles}
+            />
+            <Button
+              className={classes.button}
+              color="primary"
+              onClick={deleteCsvFiles}
+              size="medium"
+              disabled={!csvFiles?.length}
+              startIcon={<RemoveIcon/>}
+              variant="contained"
+            >
+              Delete Csv Files
+            </Button>
+          </Grid>
+          <Grid item md={6}>
+            <CsvTable csvFiles={csvFiles}/>
+          </Grid>
         </Grid>
 
-        <Grid item md={4}>
+      </div>
+      <div hidden={tab !== 2}>
 
-          <AddressPorter
-            addressBook={addressBook}
-            setAddressBookJson={setAddressBookJson}
-          />
-
-          <Button
-            className={classes.button}
-            color="primary"
-            onClick={deleteAddresses}
-            size="medium"
-            disabled={!Object.keys(addressBook.json || {}).length}
-            startIcon={<RemoveIcon/>}
-            variant="contained"
-          >
-            Delete Address Book
-          </Button>
-        </Grid>
-
-      </Grid>
-
-      <Divider/>
-      <Typography variant="h4" className={classes.title}>
-        Manage CSV Files
-      </Typography>
-
-      <Grid
-        alignContent="center"
-        justifyContent="center"
-        container
-        spacing={1}
-        className={classes.grid}
-      >
-
-        <Grid item md={6}>
-          <CsvPorter
-            csvFiles={csvFiles}
-            setCsvFiles={setCsvFiles}
-          />
-          <Button
-            className={classes.button}
-            color="primary"
-            onClick={deleteCsvFiles}
-            size="medium"
-            disabled={!csvFiles?.length}
-            startIcon={<RemoveIcon/>}
-            variant="contained"
-          >
-            Delete Csv Files
-          </Button>
-        </Grid>
-
-        <Grid item md={6}>
-          <CsvTable csvFiles={csvFiles}/>
-        </Grid>
-
-      </Grid>
-
-      <Divider/>
-
-      <AddressTable
-        addressBook={addressBook}
-        setAddressBookJson={setAddressBookJson}
-      />
+      </div>
 
     </div>
   );
