@@ -8,7 +8,7 @@ const Template: ComponentStory<typeof DateInput> = (args) => <DateInput {...args
 
 export const Example = Template.bind({});
 Example.args = {
-  id: "date-input",
-  label: "Which day?",
+  label: "Which Date?",
+  helperText: "Custom helper text",
   setDate: console.log,
 };

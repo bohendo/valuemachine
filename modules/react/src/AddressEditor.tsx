@@ -3,7 +3,6 @@ import { isHexString } from "@ethersproject/bytes";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
-import TextField from "@material-ui/core/TextField";
 import AddIcon from "@material-ui/icons/AddCircle";
 import {
   AddressCategories,
@@ -12,6 +11,7 @@ import {
 import React, { useEffect, useState } from "react";
 
 import { SelectOne } from "./SelectOne";
+import { TextInput } from "./TextInput";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   grid: {
@@ -46,41 +46,49 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
   const [newEntryError, setNewEntryError] = useState("");
   const classes = useStyles();
 
-  const getErrors = (candidate: Partial<AddressEntry>): string => {
-    if (!candidate?.address) {
+  console.log(newEntry);
+
+  const getAddressError = (address?: string): string => {
+    if (!address) {
       return "Address is required";
-    } else if (!isHexString(candidate.address)) {
+    } else if (!isHexString(address)) {
       return "Invalid hex string";
-    } else if (candidate.address.length !== 42) {
+    } else if (address.length !== 42) {
       return "Invalid length";
-    } else if (!isAddress(candidate.address)) {
+    } else if (!isAddress(address)) {
       return "Invalid checksum";
-    } else if (addresses?.includes(candidate.address)) {
+    } else if (addresses?.includes(address)) {
       return `Address ${
-        candidate.address.substring(0,6)
+        address.substring(0,6)
       }..${
-        candidate.address.substring(candidate.address.length-4)
+        address.substring(address.length-4)
       } already exists`;
     } else {
       return "";
     }
   };
 
-  const handleEntryChange = (event: React.ChangeEvent<{ name?: string; value: unknown; }>) => {
-    const { name, value } = event.target;
-    if (typeof name !== "string" || typeof value !== "string") return;
-    console.log(`Setting ${name} in new entry to ${value}`);
-    setNewEntry({ ...newEntry, [name]: value });
+  const getNameError = (name?: string): string => {
+    if (!name) {
+      return "Name is required";
+    }
+    const illegal = name.match(/[^a-zA-Z0-9 -]/);
+    if (illegal) {
+      return `Name should not include "${illegal}"`;
+    } else {
+      return "";
+    }
+  };
+
+  const getErrors = (candidate: Partial<AddressEntry>): string => {
+    return getAddressError(candidate.address)
+      || getNameError(candidate.name)
+      || (!candidate.category ? "Category is required" : "");
   };
 
   const handleSave = () => {
-    if (!newEntry) return;
-    const errors = getErrors(newEntry);
-    if (!errors) {
-      setEntry(newEntry as AddressEntry);
-    } else {
-      setNewEntryError(errors);
-    }
+    if (!newEntry || newEntryError) return;
+    setEntry(newEntry as AddressEntry);
   };
 
   useEffect(() => {
@@ -91,14 +99,8 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
   useEffect(() => {
     if (!entryModified) {
       setNewEntryError("");
-    }
-  }, [entryModified]);
-
-  useEffect(() => {
-    if (!entryModified) {
-      setNewEntryError("");
     } else {
-      setNewEntryError(getErrors(newEntry) || "");
+      setNewEntryError(getErrors(newEntry));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addresses, entryModified, newEntry]);
@@ -127,17 +129,10 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
     >
 
       <Grid item md={4}>
-        <TextField
-          autoComplete="off"
-          value={newEntry?.name || ""}
-          helperText="Give your account a nickname"
-          id="name"
-          fullWidth
+        <TextInput
           label="Account Name"
-          margin="normal"
-          name="name"
-          onChange={handleEntryChange}
-          variant="outlined"
+          setText={name => setNewEntry({ ...newEntry, name })}
+          getError={getNameError}
         />
       </Grid>
 
@@ -146,45 +141,34 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
           label="Category"
           choices={Object.keys(AddressCategories)}
           selection={newEntry?.category}
-          setSelection={val => setNewEntry({ ...newEntry, category: val })}
+          setSelection={category => setNewEntry({ ...newEntry, category })}
         />
       </Grid>
 
       <Grid item md={6}>
-        <TextField
-          className={classes.textInput}
-          autoComplete="off"
-          value={newEntry?.address || ""}
-          error={!!newEntryError}
-          helperText={newEntryError || "Add your ethereum address to fetch info"}
-          id="address"
-          fullWidth
-          label="Eth Address"
-          margin="normal"
-          name="address"
-          onChange={handleEntryChange}
-          variant="outlined"
+        <TextInput
+          label="Evm Address"
+          setText={address => setNewEntry({ ...newEntry, address })}
+          getError={getAddressError}
+          fullWidth={true}
         />
       </Grid>
 
       <Grid item md={6}>
-        {entryModified && !newEntryError ?
-          <Grid item>
-            <Button
-              className={classes.button}
-              color="primary"
-              onClick={handleSave}
-              size="small"
-              startIcon={<AddIcon />}
-              variant="contained"
-            >
-              Save Address
-            </Button>
-          </Grid>
-          : undefined
-        }
+        <Grid item>
+          <Button
+            className={classes.button}
+            color="primary"
+            disabled={!entryModified || !!newEntryError}
+            onClick={handleSave}
+            size="small"
+            startIcon={<AddIcon />}
+            variant="contained"
+          >
+            {newEntryError || "Save Address"}
+          </Button>
+        </Grid>
       </Grid>
     </Grid>
   );
 };
-

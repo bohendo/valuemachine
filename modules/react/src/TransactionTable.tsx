@@ -200,13 +200,11 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       <br/>
 
       <DateInput
-        id="filter-end-date"
         label="Filter End Date"
         setDate={setFilterEndDate}
       />
 
       <DateInput
-        id="filter-start-date"
         label="Filter Start Date"
         setDate={setFilterStartDate}
       />

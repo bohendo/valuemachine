@@ -3,20 +3,20 @@ import TextField from "@material-ui/core/TextField";
 import React, { useState } from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  dateFilter: {
+  main: {
     margin: theme.spacing(2),
   },
 }));
 
 type DateInputProps = {
-  id: string;
-  label: string;
+  id?: string;
+  label?: string;
   helperText?: string;
-  setDate: (val: string) => void;
+  setDate?: (val: string) => void;
 };
 export const DateInput: React.FC<DateInputProps> = ({
-  id,
-  label,
+  id: givenId,
+  label: givenLabel,
   helperText,
   setDate,
 }: DateInputProps) => {
@@ -27,7 +27,7 @@ export const DateInput: React.FC<DateInputProps> = ({
   const slugify = str =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
 
-  const changeFilterDate = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const changeDate = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     const display = event.target.value;
     let error, value;
@@ -48,20 +48,23 @@ export const DateInput: React.FC<DateInputProps> = ({
     }
     setError(error);
     setDisplay(display);
-    setDate(value);
+    setDate?.(value);
   };
+
+  const label = givenLabel || "Input Date";
+  const id = givenId || `input-date-${slugify(label)}`;
 
   return (
     <TextField
       autoComplete="off"
-      className={classes.dateFilter}
+      className={classes.main}
       error={!!error}
       helperText={error || helperText || "YYYY-MM-DD"}
-      id={id || slugify(label)}
+      id={id}
       label={label}
       margin="normal"
       name={id}
-      onChange={changeFilterDate}
+      onChange={changeDate}
       value={display || ""}
       variant="outlined"
     />

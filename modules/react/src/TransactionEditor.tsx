@@ -102,7 +102,6 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
     >
 
       <DateInput
-        id="filter-end-date"
         label="Transation Date"
         setDate={date => setNewTx({ ...newTx, date })}
         helperText="When did this tx happen?"

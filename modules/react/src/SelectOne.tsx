@@ -8,7 +8,7 @@ import React from "react";
 const useStyles = makeStyles((theme: Theme) => createStyles({
   dropdown: {
     margin: theme.spacing(3),
-    minWidth: theme.spacing(20),
+    minWidth: theme.spacing(16),
   },
 }));
 
@@ -33,7 +33,7 @@ export const SelectOne: React.FC<SelectOneProps> = ({
   const slugify = str =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
 
-  const handleFilterTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     setSelection?.(event.target.value);
   };
@@ -48,7 +48,7 @@ export const SelectOne: React.FC<SelectOneProps> = ({
         labelId={`${id}-label`}
         id={id}
         value={selection || ""}
-        onChange={handleFilterTypeChange}
+        onChange={handleChange}
       >
         <MenuItem value={""}>-</MenuItem>
         {(choices || []).map((option, i) => (
