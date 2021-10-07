@@ -117,11 +117,13 @@ export const EventRow: React.FC<EventRowProps> = ({
 
                 event.type === EventTypes.Expense ? {
                   Account: event.account,
+                  To: event.to,
                   ["Tx Id"]: event.txId,
                   ...chunksToDisplay(event.outputs),
 
                 } : event.type === EventTypes.Income ? {
                   Account: event.account,
+                  From: event.from,
                   ["Tx Id"]: event.txId,
                   ...chunksToDisplay(event.inputs),
 

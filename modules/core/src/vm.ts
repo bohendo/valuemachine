@@ -42,13 +42,6 @@ const {
   Internal, Income, SwapIn, Borrow, Expense, Fee, SwapOut, Repay, Refund
 } = TransferCategories;
 
-// Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
-// Withdrawing more than we deposited is assumed to represent income rather than a loan
-const isIncomeSource = (account: Account): boolean =>
-  account.includes(`/${EvmApps.Dai}-DSR`) ||
-  account.includes(`/${EvmApps.Tornado}`); // is tornado really an income source tho?
-  // TODO: add aave tokens?
-
 export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const { logger, store, json: vmJson } = params || {};
 
@@ -188,8 +181,14 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   };
 
   const underflow = (amount: DecimalString, asset: Asset, account: Account): AssetChunk => {
-    if (isIncomeSource(account)) {
-      log.warn(`Underflow of ${amount} ${asset} is being treated as income`);
+
+    // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
+    // Withdrawing more than we deposited is assumed to represent income rather than a loan
+    const source = [`${EvmApps.Dai}-DSR`, EvmApps.Tornado].find(source =>
+      account.includes(`/${source}`)
+    );
+    if (source) {
+      log.warn(`Underflow of ${amount} ${asset} is being treated as ${source} income`);
       const newChunk = mintChunk(amount, asset, account);
       const newIncomeEvent = newEvents.find(e => e.type === EventTypes.Income);
       if (newIncomeEvent?.type === EventTypes.Income) {
@@ -197,6 +196,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       } else {
         newEvents.push({
           account,
+          from: source,
           date: json.date,
           index: json.events.length + newEvents.length,
           inputs: [newChunk.index],
@@ -472,6 +472,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         // log.debug(disposed, `disposed of the following chunks`);
         newEvents.push({
           account: from,
+          to,
           date: json.date,
           index: json.events.length + newEvents.length,
           outputs: disposed.map(toIndex),
@@ -485,6 +486,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         // log.debug(received, `received the following chunks`);
         newEvents.push({
           account: to,
+          from,
           date: json.date,
           index: json.events.length + newEvents.length,
           inputs: received.map(toIndex),
