@@ -17,7 +17,7 @@ export const getEmptyValueMachine = (): ValueMachineJson => ({
 });
 
 const validateValueMachine = ajv.compile(ValueMachineJson);
-export const getValueMachineError = (vmJson: ValueMachineJson): string | null => {
+export const getValueMachineError = (vmJson: ValueMachineJson): string => {
   if (!validateValueMachine(vmJson)) {
     return validateValueMachine.errors.length
       ? formatErrors(validateValueMachine.errors)
@@ -26,7 +26,7 @@ export const getValueMachineError = (vmJson: ValueMachineJson): string | null =>
   // Enforce that chunk & event index properties match their index in the array
 
   const eventIndexErrors = vmJson.events.map((event, index) =>
-    event.index !== index ? `Invalid event index, expected ${index} but got ${event.index}` : null
+    event.index !== index ? `Invalid event index, expected ${index} but got ${event.index}` : ""
   ).filter(e => !!e);
   if (eventIndexErrors.length) {
     return eventIndexErrors.length < 3
@@ -35,7 +35,7 @@ export const getValueMachineError = (vmJson: ValueMachineJson): string | null =>
   }
 
   const chunkIndexErrors = vmJson.chunks.map((chunk, index) =>
-    chunk.index !== index ? `Invalid chunk index, expected ${index} but got ${chunk.index}` : null
+    chunk.index !== index ? `Invalid chunk index, expected ${index} but got ${chunk.index}` : ""
   ).filter(e => !!e);
   if (chunkIndexErrors.length) {
     return chunkIndexErrors.length < 3
@@ -43,7 +43,7 @@ export const getValueMachineError = (vmJson: ValueMachineJson): string | null =>
       : `${chunkIndexErrors[0]} (plus ${chunkIndexErrors.length - 1} more index errors)`;
   }
 
-  return null;
+  return "";
 };
 
 type Value = {

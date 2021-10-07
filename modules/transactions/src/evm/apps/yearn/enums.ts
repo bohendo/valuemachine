@@ -6,7 +6,7 @@ const Apps = {
 const Methods = {
   Deposit: "Deposit",
   Withdraw: "Withdraw",
-  Register: "Register",
+  Registration: "Registration",
 } as const;
 
 const Tokens = {

@@ -12,7 +12,7 @@ const validPrices = {
 describe("Prices", () => {
 
   it("should return no errors if json is valid", async () => {
-    expect(getPricesError(validPrices)).to.be.null;
+    expect(getPricesError(validPrices)).to.equal("");
   });
 
   it("should return an error if the json is invalid", async () => {

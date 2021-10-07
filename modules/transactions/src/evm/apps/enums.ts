@@ -60,8 +60,10 @@ export const Methods = {
   ...uniswap.Methods,
   ...weth.Methods,
   ...yearn.Methods,
+  Receipt: "Receipt",
   Creation: "Creation",
   Failure: "Failure",
+  Redeem: "Redeem",
   Unknown: "Unknown",
 } as const;
 

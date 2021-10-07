@@ -36,7 +36,7 @@ export const getPropertyError = (
   target: any,
   key: string,
   expected: string | string[],
-): string | null => {
+): string => {
   if (typeof expected === "string") {
     if (!isSameType(target[key], expected)) {
       return `${key} is a ${typeof target[key]}, expected a ${expected}: ${
@@ -50,5 +50,5 @@ export const getPropertyError = (
       }`;
     }
   }
-  return null;
+  return "";
 };

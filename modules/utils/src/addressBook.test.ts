@@ -18,7 +18,7 @@ const validAddressBookEntry = {
 describe("AddressBook", () => {
 
   it("should return no errors if json is valid", async () => {
-    expect(getAddressBookError({ [address]: validAddressBookEntry })).to.be.null;
+    expect(getAddressBookError({ [address]: validAddressBookEntry })).to.equal("");
   });
 
   it("should return an error if category is invalid", async () => {

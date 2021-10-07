@@ -66,13 +66,13 @@ describe("VM", () => {
     ]), getTestTx([ // Internally transfer ALL
       { amount: "ALL", asset: ETH, category: Internal, from: ethAccount, to: aaveAccount },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth(ethAccount)).to.deep.equal({});
     expect(vm.getNetWorth(aaveAccount)).to.deep.equal({ [ETH]: total });
     [getTestTx([
       { amount: "ALL", asset: ETH, category: Expense, from: aaveAccount, to: notMe },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({});
     expect(vm.json.events.length).to.equal(3);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
@@ -89,7 +89,7 @@ describe("VM", () => {
     ]), getTestTx([ // Expense
       { asset: nft, category: Expense, from: aaveAccount, to: notMe },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({});
     expect(vm.json.events.length).to.equal(2);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
@@ -108,7 +108,7 @@ describe("VM", () => {
       { amount: income2, asset: ETH, category: Income, from: notMe, to: ethAccount },
       { amount: expense2, asset: ETH, category: Expense, from: ethAccount, to: notMe },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({
       [ETH]: sub(add(income1, income2), add(expense1, expense2)),
     });
@@ -141,7 +141,7 @@ describe("VM", () => {
       { amount: "0.75", asset: ETH, category: Income, from: notMe, to: otherAccount },
     ])].forEach(vm.execute);
     // log.info(vm.json.chunks, `Final chunks:`);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth(ethAccount)).to.deep.equal({ [ETH]: "0.9" });
     expect(vm.getNetWorth(otherAccount)).to.deep.equal({ [ETH]: "0.5" });
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "1.4" });
@@ -161,7 +161,7 @@ describe("VM", () => {
       { amount: "0.1", asset: ETH, category: Fee, from: ethAccount, to: Ethereum },
       { amount: "1.0", asset: ETH, category: Expense, from: ethAccount, to: notMe },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "-0.1" });
     expect(vm.json.events.length).to.equal(4);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
@@ -178,7 +178,7 @@ describe("VM", () => {
       { amount: "1.0", asset: ETH, category: SwapOut, from: ethAccount, to: notMe },
       { amount: "50.0", asset: UNI, category: SwapIn, from: notMe, to: otherAccount },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "0.9", [UNI]: "50.0" });
     expect(vm.json.events.length).to.equal(3);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
@@ -196,7 +196,7 @@ describe("VM", () => {
       { amount: "0.1", asset: ETH, category: Fee, from: ethAccount, to: Ethereum },
       { amount: "200", asset: DAI, category: Borrow, from: aaveAccount, to: ethAccount },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     // Check balances while loan is outstanding
     expect(vm.getNetWorth(aaveAccount)).to.deep.equal({ [ETH]: "2.0", [DAI]: "-200.0" });
     expect(vm.getNetWorth(ethAccount)).to.deep.equal({ [ETH]: "7.8", [DAI]: "200.0" });
@@ -207,7 +207,7 @@ describe("VM", () => {
       { amount: "200", asset: DAI, category: Repay, from: ethAccount, to: aaveAccount },
       { amount: "10", asset: DAI, category: Fee, from: aaveAccount, to: notMe },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth(aaveAccount)).to.deep.equal({ [ETH]: "2.0" });
     expect(vm.getNetWorth(ethAccount)).to.deep.equal({ [ETH]: "7.7" });
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "9.7" });
@@ -233,7 +233,7 @@ describe("VM", () => {
       { amount: "0.1", asset: ETH, category: Fee, from: ethAccount, to: Ethereum },
       { amount: "210", asset: DAI, category: Repay, from: ethAccount, to: aaveAccount },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth(aaveAccount)).to.deep.equal({ [ETH]: "2.0" });
     expect(vm.getNetWorth(ethAccount)).to.deep.equal({ [ETH]: "7.7" });
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "9.7" });
@@ -256,7 +256,7 @@ describe("VM", () => {
       { amount: "200.0", asset: UNI, category: SwapIn, from: notMe, to: ethAccount },
       { amount: refund, asset: asset, category: Refund, from: notMe, to: ethAccount },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "8.1", [UNI]: "200.0" });
     expect(vm.json.events.length).to.equal(2);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
@@ -283,7 +283,7 @@ describe("VM", () => {
       { amount: "0.1", asset: ETH, category: Fee, from: ethAccount, to: Ethereum },
       { amount: "3.0", asset: ETH, category: Internal, from: ethAccount, to: coinbase },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "4.7" });
     expect(vm.json.events.length).to.equal(5);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
@@ -308,7 +308,7 @@ describe("VM", () => {
       { amount: "0.1", asset: ETH, category: Fee, from: ethAccount, to: Ethereum },
       { amount: "3.0", asset: ETH, category: Internal, from: ethAccount, to: coinbase },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "10.2" });
     expect(vm.json.events.length).to.equal(4);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
@@ -342,7 +342,7 @@ describe("VM", () => {
       { amount: "0.1", asset: ETH, category: Fee, from: ethAccount, to: Ethereum },
       { amount: "3.0", asset: ETH, category: Internal, from: ethAccount, to: coinbase },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "9.5" });
     expect(vm.json.events.length).to.equal(6);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
@@ -361,7 +361,7 @@ describe("VM", () => {
       { amount: "1.99", asset: USD, category: Fee, from: coinbase, to: notMe },
     ])].forEach(vm.execute);
     // log.info(vm.json.chunks, "chunks");
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "1.0", [USD]: "-107.93" });
     expect(vm.json.events.length).to.equal(3);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Trade);
@@ -377,7 +377,7 @@ describe("VM", () => {
       { amount: "5.0", asset: ETH, category: SwapOut, from: ethAccount, to: notMe },
     ])].forEach(vm.execute);
     // log.info(vm.json.events, "events");
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "4.9" });
     expect(vm.json.events.length).to.equal(2);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);
@@ -392,7 +392,7 @@ describe("VM", () => {
     ]), getTestTx([
       { amount: "5.0", asset: ETH, category: Internal, from: coinbase, to: ethAccount },
     ])].forEach(vm.execute);
-    expect(getValueMachineError(vm.json)).to.be.null;
+    expect(getValueMachineError(vm.json)).to.equal("");
     expect(vm.getNetWorth()).to.deep.equal({ [ETH]: "10.0" });
     expect(vm.json.events.length).to.equal(3);
     expect(vm.json.events[0]?.type).to.equal(EventTypes.Income);

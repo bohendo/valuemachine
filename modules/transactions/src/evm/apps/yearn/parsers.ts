@@ -174,7 +174,7 @@ export const coreParser = (
         }
 
       } else if (event.name === "RegisterVoter") {
-        tx.method = `${Methods.Register} ${Tokens.YFI} Voting`;
+        tx.method = `${Tokens.YFI} Voting ${Methods.Registration}`;
       }
     }
   }

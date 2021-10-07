@@ -42,7 +42,7 @@ const validEvmData = {
 describe("EvmData", () => {
 
   it("should return no errors if json is valid", async () => {
-    expect(getEvmDataError(validEvmData)).to.be.null;
+    expect(getEvmDataError(validEvmData)).to.equal("");
   });
 
   it("should return an error if an eth tx is invalid", async () => {

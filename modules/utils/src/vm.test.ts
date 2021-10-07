@@ -11,7 +11,7 @@ const validVM = {
 
 describe("ValueMachine", () => {
   it("should return no errors if json is valid", async () => {
-    expect(getValueMachineError(validVM)).to.be.null;
+    expect(getValueMachineError(validVM)).to.equal("");
   });
 
   it("should return an error if the json is invalid", async () => {

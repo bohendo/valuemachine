@@ -36,7 +36,7 @@ describe("Coinbase", () => {
   it("should generate valid transactions", async () => {
     txns.mergeCsv(exampleCoinbaseCsv, CsvSources.Coinbase);
     const txError = getTransactionsError(txns.json);
-    expect(txError).to.be.null;
+    expect(txError).to.equal("");
   });
 
   it("should merge csv data multiple times without creaing duplicates", async () => {

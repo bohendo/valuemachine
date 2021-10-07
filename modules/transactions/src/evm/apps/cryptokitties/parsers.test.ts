@@ -47,7 +47,7 @@ describe(appName, () => {
       selfAddress: "Ethereum/0x213fE7E177160991829a4d0a598a848D2448F384",
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.include(Methods.GetBirth);
+    expect(tx.method).to.include(Methods.Birth);
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[0].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[0].from).to.include(appName);
@@ -63,7 +63,7 @@ describe(appName, () => {
       selfAddress: "Ethereum/0xD51b5990951622c15de735F8510C7dBD6d3d3804",
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.include(Methods.GiveBirth);
+    expect(tx.method).to.include(Methods.Birth);
     expect(tx.transfers.length).to.equal(5);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Income);
