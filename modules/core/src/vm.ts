@@ -188,7 +188,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       account.includes(`/${source}`)
     );
     if (source) {
-      log.warn(`Underflow of ${amount} ${asset} is being treated as income`);
+      log.warn(`Underflow of ${amount} ${asset} is being treated as ${source} income`);
       const newChunk = mintChunk(amount, asset, account);
       const newIncomeEvent = newEvents.find(e => e.type === EventTypes.Income);
       if (newIncomeEvent?.type === EventTypes.Income) {
