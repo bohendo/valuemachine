@@ -3,12 +3,24 @@ import {
   DecimalString,
   Transaction,
   TransactionsJson,
+  Transfer,
 } from "@valuemachine/types";
 
 import { diff, lt } from "./math";
 import { ajv, formatErrors } from "./validate";
 
 export const getEmptyTransactions = (): TransactionsJson => [];
+
+const validateTransfer = ajv.compile(Transfer);
+export const getTransferError = (tx: Transfer): string => {
+  if (!validateTransfer(tx)) {
+    return validateTransfer.errors.length
+      ? formatErrors(validateTransfer.errors)
+      : `Invalid Transfer`;
+  } else {
+    return "";
+  }
+};
 
 const validateTransaction = ajv.compile(Transaction);
 export const getTransactionError = (tx: Transaction): string => {

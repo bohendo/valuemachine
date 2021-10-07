@@ -1,14 +1,17 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
-import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/AddCircle";
 import { Apps, Methods, Sources } from "@valuemachine/transactions";
-import { Transaction } from "@valuemachine/types";
+import { Transaction, TransferCategories } from "@valuemachine/types";
+import { getTxIdError } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { SelectOne } from "./SelectOne";
-import { DateInput } from "./DateInput";
+import { TimestampInput } from "./TimestampInput";
+import { TextInput } from "./TextInput";
+import { TransferEditor } from "./TransferEditor";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   grid: {
@@ -24,20 +27,35 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
+const getEmptyTransaction = (): Transaction => ({
+  apps: [],
+  date: "",
+  method: Methods.Unknown,
+  sources: [],
+  transfers: [{
+    amount: "",
+    asset: "",
+    category: TransferCategories.Noop,
+    from: "",
+    to: "",
+  }],
+  uuid: "",
+} as Transaction);
+
 type TransactionEditorProps = {
-  tx: Partial<Transaction>;
-  setTx: (tx: Transaction) => void;
+  tx?: Transaction;
+  setTx?: (tx: Transaction) => void;
 };
 export const TransactionEditor: React.FC<TransactionEditorProps> = ({
   tx,
   setTx,
 }: TransactionEditorProps) => {
-  const [newTx, setNewTx] = useState({} as Partial<Transaction>);
+  const [newTx, setNewTx] = useState(getEmptyTransaction());
   const [txModified, setTxModified] = useState(false);
   const [newTxError, setNewTxError] = useState("");
   const classes = useStyles();
 
-  const getErrors = (candidate: Partial<Transaction>): string => {
+  const getErrors = (candidate: Transaction): string => {
     if (!candidate?.date) {
       return "Date is required";
     } else {
@@ -45,27 +63,18 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
     }
   };
 
-  const handleTxChange = (event: React.ChangeEvent<{ name?: string; value: unknown; }>) => {
-    const { name, value } = event.target;
-    if (typeof name !== "string" || typeof value !== "string") return;
-    const newNewTx = { ...newTx, [name]: value };
-    setNewTx(newNewTx);
-    setNewTxError(getErrors(newNewTx));
-  };
-
   const handleSave = () => {
-    if (!newTx) return;
-    const errors = getErrors(newTx);
-    if (!errors) {
-      setTx(newTx as Transaction);
-    } else {
-      setNewTxError(errors);
-    }
+    if (!newTx || !txModified || newTxError) return;
+    setTx?.(newTx);
   };
 
   useEffect(() => {
+    setNewTxError(getErrors(newTx));
+  }, [newTx]);
+
+  useEffect(() => {
     if (!tx) return;
-    setNewTx(JSON.parse(JSON.stringify(tx)));
+    setNewTx(JSON.parse(JSON.stringify(tx)) as Transaction);
   }, [tx]);
 
   useEffect(() => {
@@ -75,16 +84,16 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
   }, [txModified]);
 
   useEffect(() => {
-    if (!tx || !newTx) {
+    if (!newTx) {
       setTxModified(false);
     } else if (
       newTx?.apps?.length ||
-      newTx?.date !== tx.date ||
-      newTx?.index !== tx.index ||
-      newTx?.method !== tx.method ||
+      newTx?.date !== tx?.date ||
+      newTx?.index !== tx?.index ||
+      newTx?.method !== tx?.method ||
       newTx?.sources?.length ||
       newTx?.transfers?.length ||
-      newTx?.uuid !== tx.uuid
+      newTx?.uuid !== tx?.uuid
     ) {
       setTxModified(true);
     } else {
@@ -92,7 +101,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
     }
   }, [newTx, tx]);
 
-  return (
+  return (<>
     <Grid
       alignContent="center"
       alignItems="center"
@@ -101,9 +110,9 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
       className={classes.grid}
     >
 
-      <DateInput
-        label="Transation Date"
-        setDate={date => setNewTx({ ...newTx, date })}
+      <TimestampInput
+        label="Transation Timestamp"
+        setTimestamp={date => setNewTx({ ...newTx, date })}
         helperText="When did this tx happen?"
       />
 
@@ -135,36 +144,24 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
       </Grid>
 
       <Grid item md={12}>
-        <TextField
-          className={classes.textInput}
-          autoComplete="off"
-          value={newTx?.uuid || ""}
-          error={!!newTxError}
-          helperText={newTxError || "Give this tx a universally unique ID"}
-          id="uuid"
-          fullWidth
+        <TextInput 
           label="Transaction ID"
-          margin="normal"
-          name="uuid"
-          onChange={handleTxChange}
-          variant="outlined"
+          helperText={"Give this tx a universally unique ID"}
+          setText={uuid => setNewTx({ ...newTx, uuid })}
+          getError={getTxIdError}
         />
       </Grid>
 
-      <Grid item md={4}>
-        <TextField
-          className={classes.textInput}
-          autoComplete="off"
-          value={newTx?.uuid || ""}
-          error={!!newTxError}
-          helperText={newTxError || "transfer 1 amount"}
-          id="uuid"
-          fullWidth
-          label="Transfer 1 amount"
-          margin="normal"
-          name="uuid"
-          onChange={handleTxChange}
-          variant="outlined"
+      <Grid item md={12}>
+        <Typography align="center" variant="h4">
+          {`Transfer #1`}
+        </Typography>
+      </Grid>
+
+      <Grid item md={12}>
+        <TransferEditor
+          transfer={newTx?.transfers?.[0]}
+          setTransfer={transfer => setNewTx({ ...newTx, transfers: [transfer] })}
         />
       </Grid>
 
@@ -186,5 +183,5 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
         }
       </Grid>
     </Grid>
-  );
+  </>);
 };
