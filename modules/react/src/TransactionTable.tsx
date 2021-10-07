@@ -44,6 +44,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     minWidth: theme.spacing(115),
     overflow: "auto",
   },
+  firstCell: {
+    maxWidth: theme.spacing(16),
+    padding: theme.spacing(1),
+  },
 }));
 
 type TransactionTableProps = {
@@ -215,12 +219,12 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         <Table size="small" className={classes.table}>
           <TableHead>
             <TableRow>
+              <TableCell className={classes.firstCell}><strong> Transfers </strong></TableCell>
               <TableCell><strong> Date </strong></TableCell>
-              <TableCell><strong> Description </strong></TableCell>
               <TableCell><strong> Tx ID </strong></TableCell>
-              <TableCell><strong> Apps </strong></TableCell>
               <TableCell><strong> Sources </strong></TableCell>
-              <TableCell><strong> Transfers </strong></TableCell>
+              <TableCell><strong> Apps </strong></TableCell>
+              <TableCell><strong> Description </strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

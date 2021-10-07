@@ -28,6 +28,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   subtable: {
     maxWidth: theme.spacing(12),
   },
+  firstCell: {
+    maxWidth: theme.spacing(1),
+    padding: theme.spacing(1),
+  },
 }));
 
 type EventRowProps = {
@@ -94,17 +98,14 @@ export const EventRow: React.FC<EventRowProps> = ({
   return (
     <React.Fragment>
       <TableRow>
-        <TableCell> {event.date.replace("T", " ").replace(".000Z", "")} </TableCell>
-        <TableCell> {event.type} </TableCell>
-        <TableCell> {describeEvent(event)} </TableCell>
-        <TableCell onClick={() => {
-          setOpen(!open); open || console.log(event);
-        }} style={{ minWidth: "140px" }} >
-          Details
+        <TableCell onClick={() => setOpen(!open)} className={classes.firstCell}>
           <IconButton aria-label="expand row" size="small" >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
+        <TableCell> {event.date.replace("T", " ").replace(".000Z", "")} </TableCell>
+        <TableCell> {event.type} </TableCell>
+        <TableCell> {describeEvent(event)} </TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>

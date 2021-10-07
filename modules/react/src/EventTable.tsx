@@ -41,6 +41,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     overflow: "auto",
     padding: theme.spacing(1),
   },
+  firstCell: {
+    maxWidth: theme.spacing(1),
+    padding: theme.spacing(1),
+  },
 }));
 
 type EventTableProps = {
@@ -133,10 +137,10 @@ export const EventTable: React.FC<EventTableProps> = ({
         <Table size="small" className={classes.table}>
           <TableHead>
             <TableRow>
+              <TableCell className={classes.firstCell}/>
               <TableCell><strong> Date </strong></TableCell>
               <TableCell><strong> Type </strong></TableCell>
               <TableCell><strong> Description </strong></TableCell>
-              <TableCell><strong> Details </strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

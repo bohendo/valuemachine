@@ -32,7 +32,11 @@ const useStyles = makeStyles((theme) => ({
   subTable: {
     maxWidth: theme.spacing(111),
     overflow: "auto",
-  }
+  },
+  firstCell: {
+    maxWidth: theme.spacing(16),
+    padding: theme.spacing(1),
+  },
 }));
 
 export const TransactionRow = ({
@@ -48,22 +52,20 @@ export const TransactionRow = ({
   return (
     <React.Fragment>
       <TableRow className={classes.tableRow}>
+        <TableCell onClick={() => setOpen(!open)} className={classes.firstCell}>
+          <IconButton aria-label="expand row" size="small" >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+          {tx.transfers.length}
+        </TableCell>
         <TableCell>
           <Typography noWrap variant="body2">{date.split("T")[0]}</Typography>
           <Typography noWrap variant="body2">{date.split("T")[1]}</Typography>
         </TableCell>
-        <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
         <TableCell> {tx.uuid ? <HexString value={tx.uuid}/> : "N/A"} </TableCell>
-        <TableCell> {tx.apps.join(", ")} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
-        <TableCell onClick={() => {
-          setOpen(!open); open || console.log(tx);
-        }} style={{ minWidth: "140px" }} >
-          {`${tx.transfers.length} transfer${tx.transfers.length === 1 ? "" : "s"}`}
-          <IconButton aria-label="expand row" size="small" >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
+        <TableCell> {tx.apps.join(", ")} </TableCell>
+        <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
