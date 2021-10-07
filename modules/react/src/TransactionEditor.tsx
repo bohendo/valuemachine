@@ -5,7 +5,7 @@ import Typography from "@material-ui/core/Typography";
 import AddIcon from "@material-ui/icons/AddCircle";
 import { Apps, Methods, Sources } from "@valuemachine/transactions";
 import { Transaction, TransferCategories } from "@valuemachine/types";
-import { getTxIdError } from "@valuemachine/utils";
+import { getTxIdError, getTransactionError } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { SelectOne } from "./SelectOne";
@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-const getEmptyTransaction = (): Transaction => ({
+const getEmptyTransaction = (): Transaction => JSON.parse(JSON.stringify({
   apps: [],
   date: "",
   method: Methods.Unknown,
@@ -40,7 +40,7 @@ const getEmptyTransaction = (): Transaction => ({
     to: "",
   }],
   uuid: "",
-} as Transaction);
+}));
 
 type TransactionEditorProps = {
   tx?: Transaction;
@@ -51,41 +51,35 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
   setTx,
 }: TransactionEditorProps) => {
   const [newTx, setNewTx] = useState(getEmptyTransaction());
-  const [txModified, setTxModified] = useState(false);
-  const [newTxError, setNewTxError] = useState("");
+  const [modified, setModified] = useState(false);
+  const [error, setError] = useState("");
   const classes = useStyles();
 
-  const getErrors = (candidate: Transaction): string => {
-    if (!candidate?.date) {
-      return "Date is required";
-    } else {
-      return "";
-    }
-  };
+  // console.log(`modified=${modified} error=${error}`);
 
   const handleSave = () => {
-    if (!newTx || !txModified || newTxError) return;
+    if (!newTx || !modified || error) return;
     setTx?.(newTx);
   };
 
   useEffect(() => {
-    setNewTxError(getErrors(newTx));
-  }, [newTx]);
+    console.log(newTx, "New Transaction");
+    setError(modified ? getTransactionError(newTx) : "");
+  }, [modified, newTx]);
 
   useEffect(() => {
     if (!tx) return;
     setNewTx(JSON.parse(JSON.stringify(tx)) as Transaction);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tx]);
 
   useEffect(() => {
-    if (!txModified) {
-      setNewTxError("");
-    }
-  }, [txModified]);
+    if (!modified) setError("");
+  }, [modified]);
 
   useEffect(() => {
     if (!newTx) {
-      setTxModified(false);
+      setModified(false);
     } else if (
       newTx?.apps?.length ||
       newTx?.date !== tx?.date ||
@@ -95,9 +89,9 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
       newTx?.transfers?.length ||
       newTx?.uuid !== tx?.uuid
     ) {
-      setTxModified(true);
+      setModified(true);
     } else {
-      setTxModified(false);
+      setModified(false);
     }
   }, [newTx, tx]);
 
@@ -111,9 +105,10 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
     >
 
       <TimestampInput
+        helperText="When did this tx happen?"
         label="Transation Timestamp"
         setTimestamp={date => setNewTx({ ...newTx, date })}
-        helperText="When did this tx happen?"
+        timestamp={newTx?.date}
       />
 
       <Grid item md={2}>
@@ -148,6 +143,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
           label="Transaction ID"
           helperText={"Give this tx a universally unique ID"}
           setText={uuid => setNewTx({ ...newTx, uuid })}
+          text={newTx?.uuid}
           getError={getTxIdError}
         />
       </Grid>
@@ -160,28 +156,26 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
 
       <Grid item md={12}>
         <TransferEditor
-          transfer={newTx?.transfers?.[0]}
           setTransfer={transfer => setNewTx({ ...newTx, transfers: [transfer] })}
         />
       </Grid>
 
       <Grid item md={6}>
-        {txModified ?
-          <Grid item>
-            <Button
-              className={classes.button}
-              color="primary"
-              onClick={handleSave}
-              size="small"
-              startIcon={<AddIcon />}
-              variant="contained"
-            >
-              Save Transaction
-            </Button>
-          </Grid>
-          : undefined
-        }
+        <Grid item>
+          <Button
+            className={classes.button}
+            color="primary"
+            disabled={!modified || !!error}
+            onClick={handleSave}
+            size="small"
+            startIcon={<AddIcon />}
+            variant="contained"
+          >
+            {error || "Save Transaction"}
+          </Button>
+        </Grid>
       </Grid>
+
     </Grid>
   </>);
 };

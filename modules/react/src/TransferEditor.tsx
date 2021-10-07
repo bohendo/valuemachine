@@ -1,9 +1,15 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
+// import AddIcon from "@material-ui/icons/AddCircle";
+// import Button from "@material-ui/core/Button";
 import Grid from "@material-ui/core/Grid";
-import AddIcon from "@material-ui/icons/AddCircle";
+import Typography from "@material-ui/core/Typography";
 import { Transfer, TransferCategories } from "@valuemachine/types";
-import { getAmountError, getTransferError } from "@valuemachine/utils";
+import {
+  getAccountError,
+  getAmountError,
+  getAssetError,
+  getTransferError,
+} from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { SelectOne } from "./SelectOne";
@@ -23,13 +29,13 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-const getEmptyTransfer = (): Transfer => ({
+const getEmptyTransfer = (): Transfer => JSON.parse(JSON.stringify({
   amount: "",
   asset: "",
   category: TransferCategories.Noop,
   from: "",
   to: "",
-} as Transfer);
+}));
 
 type TransferEditorProps = {
   transfer?: Transfer;
@@ -41,30 +47,40 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
 }: TransferEditorProps) => {
   const [newTransfer, setNewTransfer] = useState(getEmptyTransfer());
   const [error, setError] = useState("");
-  const [txModified, setTxModified] = useState(false);
+  const [modified, setModified] = useState(false);
   const classes = useStyles();
 
+  /*
   const handleSave = () => {
-    if (!newTransfer || !txModified || error) return;
+    if (!newTransfer || !modified || error) return;
     setTransfer?.(newTransfer);
   };
+  */
 
   useEffect(() => {
-    if (!transfer) return;
-    setNewTransfer(JSON.parse(JSON.stringify(transfer)) as Transfer);
+    if (!newTransfer || !modified || error) return;
+    setTransfer?.(newTransfer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newTransfer, modified, error]);
+
+  useEffect(() => {
+    if (!transfer) setNewTransfer(getEmptyTransfer());
+    else setNewTransfer(JSON.parse(JSON.stringify(transfer)) as Transfer);
   }, [transfer]);
 
   useEffect(() => {
-    setError(getTransferError(newTransfer));
+    setError(newTransfer ? getTransferError(newTransfer) : "");
+    if (!error) setTransfer?.(newTransfer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newTransfer]);
 
   useEffect(() => {
-    if (!txModified) setError("");
-  }, [txModified]);
+    if (!modified) setError("");
+  }, [modified]);
 
   useEffect(() => {
-    if (!newTransfer) {
-      setTxModified(false);
+    if (!transfer || !newTransfer) {
+      setModified(false);
     } else if (
       newTransfer?.amount !== transfer?.amount ||
       newTransfer?.asset !== transfer?.asset ||
@@ -72,9 +88,9 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
       newTransfer?.from !== transfer?.from ||
       newTransfer?.to !== transfer?.to
     ) {
-      setTxModified(true);
+      setModified(true);
     } else {
-      setTxModified(false);
+      setModified(false);
     }
   }, [newTransfer, transfer]);
 
@@ -89,19 +105,21 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
 
       <Grid item md={4}>
         <TextInput 
-          label="Asset"
+          getError={getAssetError}
           helperText={"Which type of asset was transferred?"}
+          label="Asset"
           setText={asset => setNewTransfer({ ...newTransfer, asset })}
-          getError={() => ""}
+          text={newTransfer.asset}
         />
       </Grid>
 
       <Grid item md={4}>
         <TextInput 
-          label="Amount"
-          helperText={"How much is this tx transferring"}
-          setText={amount => setNewTransfer({ ...newTransfer, amount })}
           getError={getAmountError}
+          helperText={"How much is this tx transferring"}
+          label="Amount"
+          setText={amount => setNewTransfer({ ...newTransfer, amount })}
+          text={newTransfer.amount}
         />
       </Grid>
 
@@ -119,28 +137,36 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
 
       <Grid item md={4}>
         <TextInput 
-          label="To"
+          getError={getAccountError}
           helperText={"Who recieved the transfer"}
+          label="To"
           setText={to => setNewTransfer({ ...newTransfer, to })}
-          getError={() => ""}
+          text={newTransfer.to}
         />
       </Grid>
 
       <Grid item md={4}>
         <TextInput 
-          label="From"
+          getError={getAccountError}
           helperText={"Who sent the transfer"}
+          label="From"
           setText={from => setNewTransfer({ ...newTransfer, from })}
-          getError={() => ""}
+          text={newTransfer.from}
         />
       </Grid>
 
+
+
       <Grid item md={6}>
+        <Typography>
+          {!modified ? "Enter transfer info" : (error || "Transfer looks good")}
+        </Typography>
+        {/*
         <Grid item>
           <Button
             className={classes.button}
             color="primary"
-            disabled={!!error}
+            disabled={!modified || !!error}
             onClick={handleSave}
             size="small"
             startIcon={<AddIcon />}
@@ -149,7 +175,9 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
             {error || "Save Transfer"}
           </Button>
         </Grid>
+        */}
       </Grid>
+
     </Grid>
   </>);
 };

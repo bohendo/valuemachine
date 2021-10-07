@@ -1,6 +1,6 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   text: {
@@ -13,6 +13,7 @@ type TextInputProps = {
   label?: string;
   helperText?: string;
   setText?: (val: string) => void;
+  text?: string;
   getError?: (val: string) => string;
   fullWidth?: boolean;
 };
@@ -21,12 +22,18 @@ export const TextInput: React.FC<TextInputProps> = ({
   label: givenLabel,
   helperText,
   setText,
+  text,
   getError,
   fullWidth,
 }: TextInputProps) => {
   const classes = useStyles();
   const [display, setDisplay] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!text) return;
+    setDisplay(text);
+  }, [text]);
 
   const slugify = str =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");

@@ -192,7 +192,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!customTxns?.length) return;
     console.log(`Saving ${customTxns.length} custom transactions`);
-    store.save(CsvStore, customTxns);
+    store.save(CustomTxnsStore, customTxns);
   }, [customTxns]);
 
   useEffect(() => {

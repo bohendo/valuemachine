@@ -57,7 +57,10 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
   const syncTxns = async () => {
     if (syncing) return;
     // Sync Chain Data
-    const newTransactions = getTransactions({ logger, json: customTxns });
+    const newTransactions = getTransactions({
+      json: JSON.parse(JSON.stringify(customTxns)),
+      logger,
+    });
     const selfAddresses = Object.values(addressBook.json).filter(e =>
       e.category === AddressCategories.Self
     );

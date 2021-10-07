@@ -21,12 +21,13 @@ import {
   getTransactions,
 } from "@valuemachine/transactions";
 import {
-  AddressCategories,
-  AddressEntry,
   AddressBook,
   AddressBookJson,
+  AddressCategories,
+  AddressEntry,
   CsvFiles,
   Transaction,
+  TransferCategories,
 } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
@@ -61,21 +62,27 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-const getEmptyTransaction = (): Partial<Transaction> => ({
+const getEmptyTransaction = (): Transaction => JSON.parse(JSON.stringify({
   apps: [],
   date: "",
   index: 0,
   method: "",
   sources: [],
-  transfers: [],
+  transfers: [{
+    amount: "",
+    asset: "",
+    category: TransferCategories.Noop,
+    from: "",
+    to: "",
+  }],
   uuid: "",
-} as Transaction);
+}));
 
-const getEmptyAddress = (): AddressEntry => ({
+const getEmptyAddress = (): AddressEntry => JSON.parse(JSON.stringify({
   address: "",
   category: AddressCategories.Self,
   name: "",
-});
+}));
 
 type PropTypes = {
   addressBook: AddressBook,
@@ -116,19 +123,13 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   };
 
   const addNewTransaction = (newTx: Transaction) => {
+    console.log(newTx, "Adding new transaction");
     const newCustomTxns = [...customTxns]; // create new array to ensure it re-renders
-    if (newTx) {
-      const prevIndex = newCustomTxns.findIndex(t => t.uuid === newTx.uuid);
-      if (prevIndex > 0) {
-        newCustomTxns.splice(prevIndex, 1); // remove old custom tx w the same uuid
-      }
-      customTxns.push(newTx);
-    }
-    setCustomTxns(customTxns);
-    // Don't reset tx editor when we modify an existing one
-    if (newTx) {
-      setNewTransaction(getEmptyTransaction());
-    }
+    if (newTx) newCustomTxns.push(newTx);
+    newCustomTxns.sort((t1, t2) => new Date(t1.date).getTime() - new Date(t2.date).getTime());
+    newCustomTxns.forEach((tx, index) => { tx.index = index; });
+    setCustomTxns(newCustomTxns);
+    setNewTransaction(getEmptyTransaction()); // reset editor
   };
 
   const deleteCustomTxns = async () => {
@@ -253,7 +254,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
 
         <TransactionTable
           addressBook={addressBook}
-          transactions={getTransactions({ json: customTxns, logger })}
+          transactions={getTransactions({ json: customTxns || [], logger })}
         />
 
       </div>
