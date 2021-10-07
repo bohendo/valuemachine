@@ -7,16 +7,18 @@ import { addresses as airswap } from "./airswap/addresses";
 import { addresses as bjtj } from "./bjtj/addresses";
 import { addresses as compound } from "./compound/addresses";
 import { addresses as cryptokitties } from "./cryptokitties/addresses";
-import { addresses as tokens } from "./tokens/addresses";
+import { addresses as ens } from "./ens/addresses";
+import { addresses as etherdelta } from "./etherdelta/addresses";
 import { addresses as idex } from "./idex/addresses";
 import { addresses as idle } from "./idle/addresses";
 import { addresses as maker } from "./maker/addresses";
 import { addresses as nfts } from "./nfts/addresses";
 import { addresses as polygon } from "./polygon/addresses";
 import { addresses as quickswap } from "./quickswap/addresses";
+import { addresses as tokens } from "./tokens/addresses";
 import { addresses as tornado } from "./tornado/addresses";
 import { addresses as uniswap } from "./uniswap/addresses";
-import { addresses as wethEnums } from "./weth/addresses";
+import { addresses as weth } from "./weth/addresses";
 import { addresses as yearn } from "./yearn/addresses";
 
 const appAddresses = [
@@ -25,16 +27,18 @@ const appAddresses = [
   ...bjtj,
   ...compound,
   ...cryptokitties,
-  ...tokens,
+  ...ens,
+  ...etherdelta,
   ...idex,
   ...idle,
   ...maker,
   ...nfts,
   ...polygon,
   ...quickswap,
+  ...tokens,
   ...tornado,
   ...uniswap,
-  ...wethEnums,
+  ...weth,
   ...yearn,
 ];
 
@@ -52,7 +56,6 @@ const defiAddresses = [
   { name: "artifaqt", address: "Ethereum/0x34d565bddcff2dd74bc98e056ebd32dd5f5e1d34" },
   { name: "augur", address: "Ethereum/0x24e2b1d415e6e0d04042eaa45dc2a08fc33ca6cd" },
   { name: "augur", address: "Ethereum/0xd5524179cb7ae012f5b642c1d6d700bbaa76b96b" },
-  { name: "base-registrar", address: "Ethereum/0xfac7bea255a6990f749363002136af6556b31e04" },
   { name: "bounties-network", address: "Ethereum/0x2af47a65da8cd66729b4209c22017d6a5c2d2400" },
   { name: "bounties-network", address: "Ethereum/0xe7f69ea2a79521136ee0bf3c50f6b5f1ea0ab0cd" },
   { name: "connext-channel-manager", address: "Ethereum/0xdfa6edae2ec0cf1d4a60542422724a48195a5071" },
@@ -72,13 +75,11 @@ const defiAddresses = [
   { name: "genesis-protocol", address: "Ethereum/0x374026a48d777cb0ffdccdb9a919c0aa7ce8a0fc" },
   { name: "genesis-protocol", address: "Ethereum/0x8940442e7f54e875c8c1c80213a4aee7eee4781c" },
   { name: "kickback", address: "Ethereum/0x80bf9ba97bc7a54fe70ef42d9c941b0574319d1d" },
-  { name: "publicresolver", address: "Ethereum/0xd3ddccdd3b25a8a7423b5bee360a42146eb4baf3" },
   { name: "redeemer", address: "Ethereum/0x236e077f979f4ccb5f9a9e0163728fe2e743a56d" },
   { name: "redeemer", address: "Ethereum/0x67b13f159ca093325554aac6ee104fce36f3f9dd" },
   { name: "redeemer", address: "Ethereum/0x7f24e3bdc640dd1db413b9e1d68977653aeeda7e" },
   { name: "rep-from-token", address: "Ethereum/0x5c285b08b3c74c2b49d412e5be2230e286624e34" },
   { name: "rep-from-token", address: "Ethereum/0xfd908c16f6d1c731bfca05de3262e775d63d58d2" },
-  { name: "reverseRegister", address: "Ethereum/0x9062c0a6dbd6108336bcbe4593a3d1ce05512069" },
   { name: "snt-giveaway", address: "Ethereum/0x3f167627de4d2108d2f30407af5890f5154313a7" },
   { name: "spankbank", address: "Ethereum/0x1ecb60873e495ddfa2a13a8f4140e490dd574e6f" },
   { name: "spankchain", address: "Ethereum/0xb5e658dccc93ca08c88e8bb89dfb4cae854e2d57" },

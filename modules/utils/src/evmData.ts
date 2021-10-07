@@ -15,15 +15,15 @@ export const getNewContractAddress = (from: EvmAddress, nonce: number): EvmAddre
 }`;
 
 const validateEvmData = ajv.compile(EvmDataJson);
-export const getEvmDataError = (evmDataJson: EvmDataJson): string | null =>
+export const getEvmDataError = (evmDataJson: EvmDataJson): string =>
   validateEvmData(evmDataJson)
-    ? null
+    ? ""
     : validateEvmData.errors.length ? formatErrors(validateEvmData.errors)
     : `Invalid EvmData: ${JSON.stringify(evmDataJson)}`;
 
 const validateEvmTransaction = ajv.compile(EvmTransaction);
-export const getEvmTransactionError = (ethTx: EvmTransaction): string | null =>
+export const getEvmTransactionError = (ethTx: EvmTransaction): string =>
   validateEvmTransaction(ethTx)
-    ? null
+    ? ""
     : validateEvmTransaction.errors.length ? formatErrors(validateEvmTransaction.errors)
     : `Invalid EvmTransaction: ${JSON.stringify(ethTx)}`;

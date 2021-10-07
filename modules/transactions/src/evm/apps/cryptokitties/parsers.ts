@@ -111,7 +111,7 @@ const coreParser = (
       } else if (event.name === "Birth") {
         // If we are the matron owner
         if (addressBook.isSelf(event.args.owner)) {
-          tx.method = Methods.GetBirth;
+          tx.method = `Get ${Methods.Birth}`;
           const account = insertVenue(event.args.owner, appName);
           const asset = `${appName}_${event.args.kittyId}`;
           log.info(`${asset} was born to ${account}`);
@@ -146,7 +146,7 @@ const coreParser = (
           transfer.asset === ETH && addressBook.isSelf(transfer.to)
         );
         if (directIncome) {
-          tx.method = Methods.GiveBirth;
+          tx.method = `Give ${Methods.Birth}`;
           const account = insertVenue(directIncome.to, appName);
           const proxyIncome = tx.transfers.filter(transfer =>
             transfer.asset === ETH &&

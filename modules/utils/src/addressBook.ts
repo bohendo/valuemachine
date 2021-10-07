@@ -17,15 +17,15 @@ export const getEmptyAddressBook = (): AddressBookJson => ({});
 const validateAddressBook = ajv.compile(AddressBookJson);
 const validateAddressEntry = ajv.compile(AddressEntry);
 
-export const getAddressBookError = (addressBookJson: AddressBookJson): string | null =>
+export const getAddressBookError = (addressBookJson: AddressBookJson): string =>
   validateAddressBook(addressBookJson)
-    ? null
+    ? ""
     : validateAddressBook.errors.length ? formatErrors(validateAddressBook.errors)
     : `Invalid AddressBook: ${JSON.stringify(addressBookJson)}`;
 
-export const getAddressEntryError = (addressEntry: AddressEntry): string | null =>
+export const getAddressEntryError = (addressEntry: AddressEntry): string =>
   validateAddressEntry(addressEntry)
-    ? null
+    ? ""
     : validateAddressEntry.errors.length ? formatErrors(validateAddressEntry.errors)
     : `Invalid AddressBook Entry: ${JSON.stringify(addressEntry)}`;
 

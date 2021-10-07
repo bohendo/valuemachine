@@ -6,6 +6,7 @@ import { enums as compound } from "./compound/enums";
 import { enums as cryptokitties } from "./cryptokitties/enums";
 import { enums as tokens } from "./tokens/enums";
 import { enums as etherdelta } from "./etherdelta/enums";
+import { enums as ens } from "./ens/enums";
 import { enums as idex } from "./idex/enums";
 import { enums as idle } from "./idle/enums";
 import { enums as maker } from "./maker/enums";
@@ -26,6 +27,7 @@ export const Apps = {
   ...cryptokitties.Apps,
   ...tokens.Apps,
   ...etherdelta.Apps,
+  ...ens.Apps,
   ...idex.Apps,
   ...idle.Apps,
   ...maker.Apps,
@@ -46,6 +48,7 @@ export const Methods = {
   ...compound.Methods,
   ...cryptokitties.Methods,
   ...etherdelta.Methods,
+  ...ens.Methods,
   ...idex.Methods,
   ...idle.Methods,
   ...maker.Methods,
@@ -57,8 +60,10 @@ export const Methods = {
   ...uniswap.Methods,
   ...weth.Methods,
   ...yearn.Methods,
+  Receipt: "Receipt",
   Creation: "Creation",
   Failure: "Failure",
+  Redeem: "Redeem",
   Unknown: "Unknown",
 } as const;
 
@@ -71,6 +76,7 @@ export const Tokens = {
   ...cryptokitties.Tokens,
   ...tokens.Tokens,
   ...etherdelta.Tokens,
+  ...ens.Tokens,
   ...idex.Tokens,
   ...idle.Tokens,
   ...maker.Tokens,

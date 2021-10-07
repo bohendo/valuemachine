@@ -30,7 +30,7 @@ export const parseEvmTx = (
   let tx = {
     apps: [],
     date: (new Date(evmTx.timestamp)).toISOString(),
-    method: Methods.Unknown,
+    method: "",
     sources: [evmMetadata.name],
     transfers: [],
     uuid: `${evmMetadata.name}/${evmTx.hash}`,
@@ -99,6 +99,7 @@ export const parseEvmTx = (
     catch (e) { log.error(e); } // If one of them fails, log the error & move on
   }); });
   tx.apps = dedup(tx.apps).sort();
+  tx.method = tx.method || Methods.Unknown;
 
   tx.transfers = tx.transfers
     // Filter out transfers that we don't need to parse

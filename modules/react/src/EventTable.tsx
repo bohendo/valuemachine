@@ -1,10 +1,5 @@
-import { isAddress } from "@ethersproject/address";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
-import Select from "@material-ui/core/Select";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
@@ -27,6 +22,7 @@ import {
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
+import { SelectOne } from "./SelectOne";
 import { EventRow } from "./EventRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -85,21 +81,9 @@ export const EventTable: React.FC<EventTableProps> = ({
     ).map((e: Event) => vm.getEvent(e.index)) || []);
   }, [vm, filterAccount, filterType, filterCode]);
 
-  const handleFilterAccountChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterAccount(event.target.value);
-  };
-
-  const handleFilterTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
+  useEffect(() => {
     if (filterType !== EventTypes.Error) setFilterCode("");
-    setFilterType(event.target.value);
-  };
-
-  const handleFilterCodeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterCode(filterType === EventTypes.Error ? event.target.value : "");
-  };
+  }, [filterType]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -120,57 +104,28 @@ export const EventTable: React.FC<EventTableProps> = ({
         }
       </Typography>
 
-      <FormControl className={classes.dropdown}>
-        <InputLabel id="select-filter-account">Filter Account</InputLabel>
-        <Select
-          labelId="select-filter-account"
-          id="select-filter-account"
-          value={filterAccount || ""}
-          onChange={handleFilterAccountChange}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {accounts
-            .sort((a1, a2) => a1 < a2 ? 1 : -1)
-            .sort((a1, a2) => isAddress(a1) && !isAddress(a2) ? 1 : -1)
-            .map((account, i) => (
-              <MenuItem key={i} value={account}>
-                {addressBook?.getName(account, true)}
-              </MenuItem>
-            ))
-          }
-        </Select>
-      </FormControl>
+      <SelectOne
+        label="Filter Account"
+        choices={accounts.sort()}
+        selection={filterAccount}
+        setSelection={setFilterAccount}
+        toDisplay={val => addressBook.getName(val, true)}
+      />
 
-      <FormControl className={classes.dropdown}>
-        <InputLabel id="select-filter-type">Filter Type</InputLabel>
-        <Select
-          labelId="select-filter-type"
-          id="select-filter-type"
-          value={filterType || ""}
-          onChange={handleFilterTypeChange}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {Object.keys(EventTypes).map((type, i) => (
-            <MenuItem key={i} value={type}>{type}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <SelectOne
+        label="Filter Type"
+        choices={Object.keys(EventTypes)}
+        selection={filterType}
+        setSelection={setFilterType}
+      />
 
       {filterType === EventTypes.Error ?
-        <FormControl className={classes.dropdown}>
-          <InputLabel id="select-filter-type">Filter Error Code</InputLabel>
-          <Select
-            labelId="select-filter-type"
-            id="select-filter-type"
-            value={filterCode || ""}
-            onChange={handleFilterCodeChange}
-          >
-            <MenuItem value={""}>-</MenuItem>
-            {Object.keys(EventErrorCodes).map((code, i) => (
-              <MenuItem key={i} value={code}>{code}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <SelectOne
+          label="Filter Error Code"
+          choices={Object.keys(EventErrorCodes)}
+          selection={filterCode}
+          setSelection={setFilterCode}
+        />
         : null
       }
 

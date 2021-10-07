@@ -1,11 +1,7 @@
-import { isAddress } from "@ethersproject/address";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import FormControl from "@material-ui/core/FormControl";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
 import Paper from "@material-ui/core/Paper";
-import Select from "@material-ui/core/Select";
 import Switch from "@material-ui/core/Switch";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
@@ -25,6 +21,7 @@ import {
 import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
+import { SelectOne } from "./SelectOne";
 import { ChunkRow } from "./ChunkRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -33,10 +30,6 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
   title: {
     padding: theme.spacing(2),
-  },
-  dropdown: {
-    margin: theme.spacing(3),
-    minWidth: theme.spacing(20),
   },
   toggleLabel: {
     margin: theme.spacing(3),
@@ -85,16 +78,6 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
     ).sort((c1: AssetChunk, c2: AssetChunk) => c2.index - c1.index) || []);
   }, [vm, filterAccount, filterAsset, filterHeld]);
 
-  const handleFilterAccountChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterAccount(event.target.value);
-  };
-
-  const handleFilterAssetChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterAsset(event.target.value);
-  };
-
   const handleFilterHeldChange = (event: React.ChangeEvent<{ checked: unknown }>) => {
     if (typeof event.target.checked !== "boolean") return;
     setFilterHeld(event.target.checked);
@@ -119,43 +102,20 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
         }
       </Typography>
 
-      <FormControl className={classes.dropdown}>
-        <InputLabel id="select-filter-account">Filter Account</InputLabel>
-        <Select
-          labelId="select-filter-account"
-          id="select-filter-account"
-          value={filterAccount || ""}
-          onChange={handleFilterAccountChange}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {accounts
-            .sort((a1, a2) => a1 < a2 ? 1 : -1)
-            .sort((a1, a2) => isAddress(a1) && !isAddress(a2) ? 1 : -1)
-            .map((account, i) => (
-              <MenuItem key={i} value={account}>
-                {addressBook?.getName(account, true)}
-              </MenuItem>
-            ))
-          }
-        </Select>
-      </FormControl>
+      <SelectOne
+        label="Filter Account"
+        choices={accounts.sort()}
+        selection={filterAccount}
+        setSelection={setFilterAccount}
+        toDisplay={val => addressBook?.getName(val, true)}
+      />
 
-      <FormControl className={classes.dropdown}>
-        <InputLabel id="select-filter-asset-label">Filter Asset</InputLabel>
-        <Select
-          labelId="select-filter-asset-label"
-          id="select-filter-asset"
-          value={filterAsset || ""}
-          onChange={handleFilterAssetChange}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {assets.sort().map((asset, i) => (
-            <MenuItem key={i} value={asset}>
-              {asset}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <SelectOne
+        label="Filter Asset"
+        choices={assets.sort()}
+        selection={filterAsset}
+        setSelection={setFilterAsset}
+      />
 
       <FormControl>
         <FormControlLabel

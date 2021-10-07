@@ -4,7 +4,7 @@ import addFormats from "ajv-formats";
 export const ajv = addFormats(new Ajv()).addKeyword("kind").addKeyword("modifier");
 
 export const formatErrors = errors => errors.map(error =>
-  `${error.instancePath ? error.instancePath + ": " : ""}${error.message}`
+  `${error.instancePath ? error.instancePath.replace(/^[/]/, "") + ": " : ""}${error.message}`
 ).slice(0, 2).join(", ");
 
 const isSameType = (actual: any, expected: string): boolean => {
@@ -36,7 +36,7 @@ export const getPropertyError = (
   target: any,
   key: string,
   expected: string | string[],
-): string | null => {
+): string => {
   if (typeof expected === "string") {
     if (!isSameType(target[key], expected)) {
       return `${key} is a ${typeof target[key]}, expected a ${expected}: ${
@@ -50,5 +50,5 @@ export const getPropertyError = (
       }`;
     }
   }
-  return null;
+  return "";
 };

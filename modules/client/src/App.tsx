@@ -18,6 +18,7 @@ import {
 } from "@valuemachine/transactions";
 import {
   StoreKeys,
+  Transaction,
 } from "@valuemachine/types";
 import {
   fmtAddressBook,
@@ -57,6 +58,7 @@ const {
 } = StoreKeys;
 const UnitStore = "Unit" as any;
 const ThemeStore = "Theme" as any;
+const CustomTxnsStore = "CustomTransactions" as any;
 
 const lightRed = "#e699a6";
 const darkRed = "#801010";
@@ -106,6 +108,7 @@ const App: React.FC = () => {
   const [pricesJson, setPricesJson] = useState(store.load(PricesStore));
   // Extra UI-specific data from localstorage
   const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsvFiles());
+  const [customTxns, setCustomTxns] = useState(store.load(CustomTxnsStore) || [] as Transaction[]);
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
   const [theme, setTheme] = useState(store.load(ThemeStore) || "dark");
 
@@ -187,6 +190,12 @@ const App: React.FC = () => {
   }, [csvFiles]);
 
   useEffect(() => {
+    if (!customTxns?.length) return;
+    console.log(`Saving ${customTxns.length} custom transactions`);
+    store.save(CustomTxnsStore, customTxns);
+  }, [customTxns]);
+
+  useEffect(() => {
     if (!unit) return;
     console.log(`Saving unit`, unit);
     store.save(UnitStore, unit);
@@ -244,6 +253,7 @@ const App: React.FC = () => {
               <TransactionExplorer
                 addressBook={addressBook}
                 csvFiles={csvFiles}
+                customTxns={customTxns}
                 transactions={transactions}
                 setTransactionsJson={setTransactionsJson}
               />
@@ -255,6 +265,8 @@ const App: React.FC = () => {
                 setAddressBookJson={setAddressBookJson}
                 csvFiles={csvFiles}
                 setCsvFiles={setCsvFiles}
+                customTxns={customTxns}
+                setCustomTxns={setCustomTxns}
               />
             </Route>
 

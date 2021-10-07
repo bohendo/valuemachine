@@ -8,6 +8,7 @@ import {
   Logger,
   Transaction,
 } from "@valuemachine/types";
+import { toBN } from "@valuemachine/utils";
 
 import { Apps, Methods } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
@@ -77,11 +78,15 @@ const coreParser = (
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
-    // Only parse known, ERC20 compliant tokens
+    // Only parse known, ERC721 compliant non-fungible tokens
     if (isNFT(address)) {
       const event = parseNftEvent(txLog, evmMeta);
       if (!event.name) continue;
-      const asset = `${getName(address)}_${event.args.tokenId}` as Asset;
+      const tokenId = event.args.tokenId.toString();
+      const asset = `${getName(address)}_${
+        // If tokenId is huge then hexlify + abbreviate it
+        tokenId.length > 20 ? toBN(tokenId).toHexString().substring(0, 10) : tokenId
+      }` as Asset;
       tx.apps.push(appName);
       if (event.name === "Transfer") {
         const from = event.args.from.endsWith(AddressZero) ? address : event.args.from;

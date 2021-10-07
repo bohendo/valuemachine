@@ -4,23 +4,35 @@ import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
+import Tab from "@material-ui/core/Tab";
+import Tabs from "@material-ui/core/Tabs";
 import Typography from "@material-ui/core/Typography";
 import RemoveIcon from "@material-ui/icons/Delete";
 import {
   AddressEditor,
   AddressPorter,
   AddressTable,
+  TransactionTable,
   CsvPorter,
   CsvTable,
+  TransactionEditor,
 } from "@valuemachine/react";
 import {
-  AddressCategories,
-  AddressEntry,
+  getTransactions,
+} from "@valuemachine/transactions";
+import {
   AddressBook,
   AddressBookJson,
+  AddressCategories,
+  AddressEntry,
   CsvFiles,
+  Transaction,
+  TransferCategories,
 } from "@valuemachine/types";
+import { getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
+
+const logger = getLogger("debug");
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
@@ -30,8 +42,11 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     margin: theme.spacing(1),
   },
   grid: {
-    margin: theme.spacing(1),
-    maxWidth: "98%",
+    marginBottom: theme.spacing(1),
+  },
+  divider: {
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(1),
   },
   title: {
     margin: theme.spacing(2),
@@ -42,48 +57,61 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
     padding: theme.spacing(2),
   },
+  tabs: {
+    margin: theme.spacing(1),
+  },
 }));
 
-const getEmptyEntry = (): AddressEntry => ({
+const getEmptyTransaction = (): Transaction => JSON.parse(JSON.stringify({
+  apps: [],
+  date: "",
+  index: 0,
+  method: "",
+  sources: [],
+  transfers: [{
+    amount: "",
+    asset: "",
+    category: TransferCategories.Noop,
+    from: "",
+    to: "",
+  }],
+  uuid: "",
+}));
+
+const getEmptyAddress = (): AddressEntry => JSON.parse(JSON.stringify({
   address: "",
   category: AddressCategories.Self,
   name: "",
-});
+}));
 
 type PropTypes = {
   addressBook: AddressBook,
   setAddressBookJson: (val: AddressBookJson) => void,
   csvFiles: CsvFiles,
   setCsvFiles: (val: CsvFiles) => void,
+  customTxns: Transaction[],
+  setCustomTxns: (val: Transaction[]) => void,
 };
 export const AddressBookManager: React.FC<PropTypes> = ({
   addressBook,
   setAddressBookJson,
   csvFiles,
   setCsvFiles,
+  customTxns,
+  setCustomTxns,
 }: PropTypes) => {
-  const [newEntry, setNewEntry] = useState(getEmptyEntry);
+  const [newAddress, setNewAddress] = useState(getEmptyAddress());
+  const [newTransaction, setNewTransaction] = useState(getEmptyTransaction());
+  const [tab, setTab] = useState(2);
   const classes = useStyles();
 
-  const editEntry = (address: string, editedEntry?: AddressEntry): void => {
-    const newAddressBook = { ...addressBook.json }; // create new array to ensure it re-renders
-    if (editedEntry) {
-      if (editedEntry.address !== address) {
-        delete newAddressBook[address];
-      }
-      newAddressBook[editedEntry.address] = editedEntry;
-    } else {
-      delete newAddressBook[address];
-    }
-    setAddressBookJson(newAddressBook);
-    // Don't reset new entry fields when we modify an existing one
-    if (editedEntry) {
-      setNewEntry(getEmptyEntry);
-    }
-  };
-
-  const addNewAddress = (editedEntry: AddressEntry) => {
-    editEntry(editedEntry.address, editedEntry);
+  const addNewAddress = (editedAddress: AddressEntry) => {
+    // create new obj to ensure it re-renders
+    setAddressBookJson({
+      ...addressBook.json,
+      [editedAddress.address]: editedAddress,
+    });
+    setNewAddress(getEmptyAddress()); // Reset new address editor
   };
 
   const deleteAddresses = async () => {
@@ -94,98 +122,142 @@ export const AddressBookManager: React.FC<PropTypes> = ({
     setCsvFiles([]);
   };
 
+  const addNewTransaction = (newTx: Transaction) => {
+    console.log(newTx, "Adding new transaction");
+    const newCustomTxns = [...customTxns]; // create new array to ensure it re-renders
+    if (newTx) newCustomTxns.push(newTx);
+    newCustomTxns.sort((t1, t2) => new Date(t1.date).getTime() - new Date(t2.date).getTime());
+    newCustomTxns.forEach((tx, index) => { tx.index = index; });
+    setCustomTxns(newCustomTxns);
+    setNewTransaction(getEmptyTransaction()); // reset editor
+  };
+
+  const deleteCustomTxns = async () => {
+    setCustomTxns([]);
+  };
+
+  const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+    setTab(newValue);
+  };
+
   return (
     <div className={classes.root}>
 
       <Typography variant="h4" className={classes.title}>
-        Manage Address Book
+        Manage Input Data
       </Typography>
 
-      <Grid
-        alignContent="center"
-        alignItems="center"
-        justifyContent="center"
-        container
-        spacing={1}
-        className={classes.grid}
-      >
+      <Tabs value={tab} onChange={handleTabChange} className={classes.tabs} centered>
+        <Tab label="Evm Addresses"/>
+        <Tab label="Csv Files"/>
+        <Tab label="Custom Transactions"/>
+      </Tabs>
 
-        <Grid item md={8}>
-          <Card className={classes.card}>
-            <CardHeader title={"Add new Address"} />
-            <AddressEditor
-              entry={newEntry}
-              setEntry={addNewAddress}
-              addresses={Object.values(addressBook.json).map(e => e.address)}
+      <Divider className={classes.divider}/>
+
+      <div hidden={tab !== 0}>
+        <Grid
+          alignContent="center"
+          alignItems="center"
+          justifyContent="center"
+          container
+          spacing={1}
+          className={classes.grid}
+        >
+          <Grid item md={8}>
+            <Card className={classes.card}>
+              <CardHeader title={"Add new Address"} />
+              <AddressEditor
+                entry={newAddress}
+                setEntry={addNewAddress}
+                addresses={Object.values(addressBook.json).map(e => e.address)}
+              />
+            </Card>
+          </Grid>
+          <Grid item md={4}>
+            <AddressPorter
+              addressBook={addressBook}
+              setAddressBookJson={setAddressBookJson}
             />
-          </Card>
+            <Button
+              className={classes.button}
+              color="primary"
+              onClick={deleteAddresses}
+              size="medium"
+              disabled={!Object.keys(addressBook.json || {}).length}
+              startIcon={<RemoveIcon/>}
+              variant="contained"
+            >
+              Delete Address Book
+            </Button>
+          </Grid>
+        </Grid>
+        <AddressTable
+          addressBook={addressBook}
+          setAddressBookJson={setAddressBookJson}
+        />
+      </div>
+
+      <div hidden={tab !== 1}>
+
+        <Grid
+          alignContent="center"
+          justifyContent="center"
+          container
+          spacing={1}
+          className={classes.grid}
+        >
+          <Grid item md={6}>
+            <CsvPorter
+              csvFiles={csvFiles}
+              setCsvFiles={setCsvFiles}
+            />
+            <Button
+              className={classes.button}
+              color="primary"
+              onClick={deleteCsvFiles}
+              size="medium"
+              disabled={!csvFiles?.length}
+              startIcon={<RemoveIcon/>}
+              variant="contained"
+            >
+              Delete Csv Files
+            </Button>
+          </Grid>
+          <Grid item md={6}>
+            <CsvTable csvFiles={csvFiles}/>
+          </Grid>
         </Grid>
 
-        <Grid item md={4}>
+      </div>
+      <div hidden={tab !== 2}>
 
-          <AddressPorter
-            addressBook={addressBook}
-            setAddressBookJson={setAddressBookJson}
+        <Card className={classes.card}>
+          <CardHeader title={"Add new Transaction"} />
+          <TransactionEditor
+            tx={newTransaction}
+            setTx={addNewTransaction}
           />
+        </Card>
 
-          <Button
-            className={classes.button}
-            color="primary"
-            onClick={deleteAddresses}
-            size="medium"
-            disabled={!Object.keys(addressBook.json || {}).length}
-            startIcon={<RemoveIcon/>}
-            variant="contained"
-          >
-            Delete Address Book
-          </Button>
-        </Grid>
+        <Button
+          className={classes.button}
+          color="primary"
+          onClick={deleteCustomTxns}
+          size="medium"
+          disabled={!customTxns?.length}
+          startIcon={<RemoveIcon/>}
+          variant="contained"
+        >
+          Delete Custom Txns
+        </Button>
 
-      </Grid>
+        <TransactionTable
+          addressBook={addressBook}
+          transactions={getTransactions({ json: customTxns || [], logger })}
+        />
 
-      <Divider/>
-      <Typography variant="h4" className={classes.title}>
-        Manage CSV Files
-      </Typography>
-
-      <Grid
-        alignContent="center"
-        justifyContent="center"
-        container
-        spacing={1}
-        className={classes.grid}
-      >
-
-        <Grid item md={6}>
-          <CsvPorter
-            csvFiles={csvFiles}
-            setCsvFiles={setCsvFiles}
-          />
-          <Button
-            className={classes.button}
-            color="primary"
-            onClick={deleteCsvFiles}
-            size="medium"
-            disabled={!csvFiles?.length}
-            startIcon={<RemoveIcon/>}
-            variant="contained"
-          >
-            Delete Csv Files
-          </Button>
-        </Grid>
-
-        <Grid item md={6}>
-          <CsvTable csvFiles={csvFiles}/>
-        </Grid>
-
-      </Grid>
-
-      <Divider/>
-
-      <AddressTable
-        addressBook={addressBook}
-        setAddressBookJson={setAddressBookJson}
-      />
+      </div>
 
     </div>
   );

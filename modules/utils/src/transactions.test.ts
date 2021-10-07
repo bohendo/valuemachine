@@ -28,7 +28,7 @@ const validTransaction = {
 
 describe("Transactions", () => {
   it("should return no errors if json is valid", async () => {
-    expect(getTransactionsError([validTransaction])).to.be.null;
+    expect(getTransactionsError([validTransaction])).to.equal("");
   });
 
   it("should return an error if the json is invalid", async () => {

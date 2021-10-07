@@ -63,7 +63,7 @@ describe(appName, () => {
       selfAddress: "Ethereum/0x09ea768029069eeb979015a64f261e7789e5e450",
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.method).to.include(Methods.Register);
+    expect(tx.method).to.include(Methods.Registration);
   });
 
   it("should parse a yGov exit", async () => { // withdraw

@@ -1,11 +1,10 @@
-import { muiTheme } from "storybook-addon-material-ui"
+import Card from "@material-ui/core/Card";
 
 export const decorators = [
-  muiTheme(),
   (Story) => (
-    <div style={{ padding: "3em" }}>
+    <Card style={{ margin: "3em", padding: "1em" }}>
       <Story />
-    </div>
+    </Card>
   ),
 ];
 

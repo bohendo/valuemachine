@@ -3,6 +3,7 @@ import {
   DecimalString,
   Transaction,
   TransactionsJson,
+  Transfer,
 } from "@valuemachine/types";
 
 import { diff, lt } from "./math";
@@ -10,33 +11,44 @@ import { ajv, formatErrors } from "./validate";
 
 export const getEmptyTransactions = (): TransactionsJson => [];
 
+const validateTransfer = ajv.compile(Transfer);
+export const getTransferError = (tx: Transfer): string => {
+  if (!validateTransfer(tx)) {
+    return validateTransfer.errors.length
+      ? formatErrors(validateTransfer.errors)
+      : `Invalid Transfer`;
+  } else {
+    return "";
+  }
+};
+
 const validateTransaction = ajv.compile(Transaction);
-export const getTransactionError = (tx: Transaction): string | null => {
+export const getTransactionError = (tx: Transaction): string => {
   if (!validateTransaction(tx)) {
     return validateTransaction.errors.length
       ? formatErrors(validateTransaction.errors)
       : `Invalid Transaction`;
   } else {
-    return null;
+    return "";
   }
 };
 
 const validateTransactions = ajv.compile(TransactionsJson);
-export const getTransactionsError = (transactionsJson: TransactionsJson): string | null => {
+export const getTransactionsError = (transactionsJson: TransactionsJson): string => {
   if (!validateTransactions(transactionsJson)) {
     return validateTransactions.errors.length
       ? formatErrors(validateTransactions.errors)
       : `Invalid Transactions`;
   }
   const indexErrors = transactionsJson.map((tx, index) =>
-    tx.index !== index ? `Invalid tx index, expected ${index} but got ${tx.index}` : null
+    tx.index !== index ? `Invalid tx index, expected ${index} but got ${tx.index}` : ""
   ).filter(e => !!e);
   if (indexErrors.length) {
     return indexErrors.length < 3
       ? indexErrors.join(", ")
       : `${indexErrors[0]} (plus ${indexErrors.length - 1} more index errors)`;
   } else {
-    return null;
+    return "";
   }
 };
 

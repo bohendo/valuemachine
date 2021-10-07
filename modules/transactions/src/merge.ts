@@ -15,6 +15,7 @@ import {
 
 import {
   EvmNames,
+  Methods,
   CsvSources,
 } from "./enums";
 
@@ -80,28 +81,35 @@ export const mergeTransaction = (
 
     // Mergable evm txns can only contain one simple non-fee transfer
     const transfers = newTx.transfers.filter(transfer => transfer.category !== Fee);
-    if (transfers.length !== 1) {
+    const evmTransfer = transfers[0];
+    if (transfers.length !== 1 || (
+      evmTransfer.category !== Expense && evmTransfer.category !== Income
+    )) {
       transactions.push(newTx);
       log.debug(`Inserted new evm tx w ${transfers.length} mergable transfers: ${newTx.method}`);
       return sort(transactions);
     }
-    const evmTransfer = transfers[0];
     const wiggleRoom = div(evmTransfer.amount, "100");
 
     // Does this transfer have the same asset & similar amount as the new evm tx
     const isMergable = (transfer: Transfer): boolean => 
-      transfer.category === Internal &&
-      (evmTransfer.category === Expense || evmTransfer.category === Income) &&
-      transfer.asset === evmTransfer.asset &&
-      valuesAreClose(
+      transfer.category === Internal
+      && transfer.asset === evmTransfer.asset
+      && valuesAreClose(
         transfer.amount,
         evmTransfer.amount,
         wiggleRoom,
       );
 
+    const targetMethod = !evmTransfer.category ? ""
+      : evmTransfer.category === Expense ? Methods.Deposit
+      : evmTransfer.category === Income ? Methods.Withdraw
+      : "";
     const mergeCandidateIndex = transactions.findIndex(tx =>
       // the candidate only has csv sources
       tx.sources.every(src => Object.keys(CsvSources).includes(src))
+      // Deposits should only be merged with expenses & withdrawals w income
+      && tx.method === targetMethod
       // csv tx & new evm tx have timestamps that are close to each other
       && datesAreClose(tx.date, newTx.date)
       // the candidate has exactly 1 mergable transfer
@@ -172,8 +180,14 @@ export const mergeTransaction = (
     }
 
     // Does this transfer have the same asset & similar amount as the new csv tx
+    const targetCategory = !newTx.method ? ""
+      : newTx.method === Methods.Deposit ? TransferCategories.Expense
+      : newTx.method === Methods.Withdraw ? TransferCategories.Income
+      : "";
     const isMergable = (transfer: Transfer): boolean => 
-      transfer.asset === extTransfer.asset && valuesAreClose(
+      transfer.category === targetCategory
+      && transfer.asset === extTransfer.asset
+      && valuesAreClose(
         transfer.amount,
         extTransfer.amount,
         wiggleRoom,

@@ -45,8 +45,7 @@ export const coreParser = (
 ): Transaction => {
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { isSelf } = addressBook;
-
-  let isTornadoTx = false;
+  const account = `${evmMeta.name}/${appName}`;
 
   // NOTE: if we want to figure out which pool we're mixing in, we'll have to compare amounts
   // The tx itself appears to have no info re the target pool
@@ -56,11 +55,11 @@ export const coreParser = (
       && mixerAddresses.some(e => transfer.to === e.address)
       && ([Expense, Internal] as string[]).includes(transfer.category)
   ).forEach(deposit => {
-    isTornadoTx = true;
     deposit.category = Internal;
-    deposit.to = appName;
+    deposit.to = account;
     tx.method = "Deposit";
-    log.info(`Found ${appName} ${tx.method}`);
+    tx.apps.push(appName);
+    log.info(`Found ${account} ${tx.method}`);
   });
 
   tx.transfers.filter(transfer =>
@@ -68,9 +67,8 @@ export const coreParser = (
       && mixerAddresses.some(e => transfer.from === e.address)
       && ([Income, Internal] as string[]).includes(transfer.category)
   ).forEach(withdraw => {
-    isTornadoTx = true;
     withdraw.category = Internal;
-    withdraw.from = appName;
+    withdraw.from = account;
     withdraw.index = withdraw.index || 1;
     const total = closestTenPow(withdraw.amount);
     const asset = withdraw.asset;
@@ -78,19 +76,15 @@ export const coreParser = (
       asset,
       category: Fee,
       index: 0,
-      from: appName,
+      from: account,
       amount: sub(total, withdraw.amount),
       to: relayerAddress,
     });
     tx.method = "Withdraw";
-    log.info(`Found ${appName} ${tx.method}`);
+    tx.apps.push(appName);
+    log.info(`Found ${account} ${tx.method}`);
   });
 
-  if (isTornadoTx) {
-    tx.apps.push(appName);
-  }
-
-  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };
 
