@@ -39,6 +39,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     minWidth: theme.spacing(115),
     overflow: "auto",
   },
+  firstCell: {
+    maxWidth: theme.spacing(6),
+    padding: theme.spacing(1),
+  },
 }));
 
 type ChunkTableProps = {
@@ -55,7 +59,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   const [assets, setAssets] = useState([] as Asset[]);
   const [filterAccount, setFilterAccount] = useState("");
   const [filterAsset, setFilterAsset] = useState("");
-  const [filterHeld, setFilterHeld] = useState(true);
+  const [filterHeld, setFilterHeld] = useState(false);
   const [filteredChunks, setFilteredChunks] = useState([] as AssetChunk[]);
   const classes = useStyles();
 
@@ -135,14 +139,14 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
         <Table size="small" className={classes.table}>
           <TableHead>
             <TableRow>
-              <TableCell><strong> Index </strong></TableCell>
+              <TableCell className={classes.firstCell}><strong> Owners </strong></TableCell>
               <TableCell><strong> Asset </strong></TableCell>
               <TableCell><strong> Amount </strong></TableCell>
               <TableCell><strong> Receive Date </strong></TableCell>
               <TableCell><strong> Dispose Date </strong></TableCell>
               <TableCell><strong> Inputs </strong></TableCell>
               <TableCell><strong> Outputs </strong></TableCell>
-              <TableCell><strong> History </strong></TableCell>
+              <TableCell><strong> Index </strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

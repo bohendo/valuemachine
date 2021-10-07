@@ -21,7 +21,11 @@ import { HexString } from "./HexString";
 const useStyles = makeStyles((theme: Theme) => createStyles({
   putsRow: {
     maxWidth: theme.spacing(32),
-  }
+  },
+  firstCell: {
+    maxWidth: theme.spacing(6),
+    padding: theme.spacing(1),
+  },
 }));
 
 type ChunkRowProps = {
@@ -45,7 +49,13 @@ export const ChunkRow: React.FC<ChunkRowProps> = ({
   return (
     <React.Fragment>
       <TableRow>
-        <TableCell> {chunk.index} </TableCell>
+        <TableCell onClick={() => setOpen(!open)} className={classes.firstCell}>
+          <IconButton aria-label="expand row" size="small" >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+          {chunk.history.length}
+        </TableCell>
+
         <TableCell> {chunk.asset} </TableCell>
         <TableCell> {chunk.amount} </TableCell>
         <TableCell> {
@@ -56,14 +66,7 @@ export const ChunkRow: React.FC<ChunkRowProps> = ({
         } </TableCell>
         <TableCell className={classes.putsRow}> {chunk.inputs?.join(", ")} </TableCell>
         <TableCell className={classes.putsRow}> {chunk.outputs?.join(", ")} </TableCell>
-        <TableCell onClick={() => {
-          setOpen(!open); open || console.log(chunk);
-        }} style={{ minWidth: "140px" }} >
-          History
-          <IconButton aria-label="expand row" size="small" >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
+        <TableCell> {chunk.index} </TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
