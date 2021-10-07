@@ -84,6 +84,7 @@ export const ExpenseEvent = Type.Intersect([
   BaseEvent,
   Type.Object({
     account: Account,
+    to: Account,
     outputs: Type.Array(ChunkIndex),
     type: Type.Literal(EventTypes.Expense),
   }),
@@ -106,6 +107,7 @@ export const IncomeEvent = Type.Intersect([
   BaseEvent,
   Type.Object({
     account: Account,
+    from: Account,
     inputs: Type.Array(ChunkIndex),
     type: Type.Literal(EventTypes.Income),
   }),
