@@ -6,21 +6,19 @@ import {
 import csv from "csv-parse/lib/sync";
 import { hashCsv, mul, round } from "@valuemachine/utils";
 
-import { Assets, CsvSources, Guards, Methods } from "../enums";
-import { mergeTransaction } from "../merge";
+import { Assets, CsvSources, Guards, Methods } from "../../enums";
 
 const guard = Guards.USA;
 const source = CsvSources.Elements;
 const asset = Assets.USD;
 
-export const mergeElementsTransactions = (
-  oldTransactions: Transaction[],
+export const elementsParser = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of ${source} data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
+  return csv(csvData, { columns: true, skip_empty_lines: true }).map((row, rowIndex) => {
 
     const {
       ["Balance"]: balance,
@@ -36,8 +34,7 @@ export const mergeElementsTransactions = (
 
     if (status !== "Posted") {
       log.warn(`Ignoring ${status} tx from ${source}: ${description}`);
-      return;
-
+      return null;
     }
 
     const account = `${guard}/${source}/account`;
@@ -73,9 +70,7 @@ export const mergeElementsTransactions = (
     }
 
     log.debug(transaction, "Parsed row into transaction:");
-    mergeTransaction(oldTransactions, transaction, log);
-
-  });
-  return oldTransactions;
+    return transaction;
+  }).filter(tx => !!tx);
 };
 

@@ -1,13 +1,9 @@
 import { Transactions } from "@valuemachine/types";
 import { getTransactionsError } from "@valuemachine/utils";
 
-import { getAddressBook, getTransactions } from "../index";
-import {
-  expect,
-  testLogger,
-} from "../testUtils";
-
-import { CsvSources } from "./enums";
+import { CsvSources } from "../../enums";
+import { getAddressBook, getTransactions } from "../../index";
+import { expect, testLogger } from "../../testUtils";
 
 const source = CsvSources.Elements;
 const log = testLogger.child({ module: "TestTransactions" }, { level: "warn" });
@@ -29,15 +25,15 @@ describe(source, () => {
   });
 
   it("should generate valid transactions", async () => {
-    txns.mergeCsv(exampleElementsCsv, source);
+    txns.mergeCsv(exampleElementsCsv);
     const txError = getTransactionsError(txns.json);
     expect(txError).to.equal("");
   });
 
   it("should merge csv data multiple times without creaing duplicates", async () => {
-    txns.mergeCsv(exampleElementsCsv, source);
+    txns.mergeCsv(exampleElementsCsv);
     expect(txns.json.length).to.equal(3);
-    txns.mergeCsv(exampleElementsCsv, source);
+    txns.mergeCsv(exampleElementsCsv);
     expect(txns.json.length).to.equal(3);
   });
 

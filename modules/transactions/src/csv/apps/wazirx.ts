@@ -6,24 +6,22 @@ import {
 import { hashCsv } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
-import { Assets, CsvSources, Guards, Methods } from "../enums";
-import { mergeTransaction } from "../merge";
-import { getGuard } from "../utils";
+import { Assets, CsvSources, Guards, Methods } from "../../enums";
+import { getGuard } from "../../utils";
 
 const guard = Guards.IND;
 
 const { INR } = Assets;
 const { Internal, Fee, SwapIn, SwapOut } = TransferCategories;
 
-export const mergeWazirxTransactions = (
-  oldTransactions: Transaction[],
+export const wazirxParser = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
   const source = CsvSources.Wazirx;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
+  return csv(csvData, { columns: true, skip_empty_lines: true }).map((row, rowIndex) => {
 
     const date = row["Date"];
 
@@ -147,9 +145,7 @@ export const mergeWazirxTransactions = (
     }
 
     log.debug(transaction, "Parsed row into transaction:");
-    mergeTransaction(oldTransactions, transaction, log);
-
-  });
-  return oldTransactions;
+    return transaction;
+  }).filter(tx => !!tx);
 };
 

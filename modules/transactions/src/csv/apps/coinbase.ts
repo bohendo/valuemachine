@@ -6,24 +6,21 @@ import {
 import csv from "csv-parse/lib/sync";
 import { gt, hashCsv, sub } from "@valuemachine/utils";
 
-import { Assets, CsvSources, Guards, Methods } from "../enums";
-import { mergeTransaction } from "../merge";
-import { getGuard } from "../utils";
+import { Assets, CsvSources, Guards, Methods } from "../../enums";
+import { getGuard } from "../../utils";
 
 const guard = Guards.USA;
 
 const { Fee, SwapIn, SwapOut, Internal } = TransferCategories;
 
-export const mergeCoinbaseTransactions = (
-  oldTransactions: Transaction[],
+export const coinbaseParser = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
   const source = CsvSources.Coinbase;
   const log = logger.child({ module: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of ${source} data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
-
+  return csv(csvData, { columns: true, skip_empty_lines: true }).map((row, rowIndex) => {
     const {
       ["Asset"]: asset,
       ["Quantity Transacted"]: amount,
@@ -137,10 +134,7 @@ export const mergeCoinbaseTransactions = (
       });
     }
 
-    log.debug(transaction, "Parsed row into transaction:");
-    mergeTransaction(oldTransactions, transaction, log);
-
-  });
-  return oldTransactions;
+    return transaction;
+  }).filter(tx => !!tx);
 };
 

@@ -68,10 +68,9 @@ export type TransactionsJson = Static<typeof TransactionsJson>;
 // Function Interfaces
 
 export type CsvParser = (
-  txns: Transaction[],
   csvData: string,
   logger: Logger,
-) => Transaction;
+) => TransactionsJson;
 
 export type EvmParser = (
   tx: Transaction,

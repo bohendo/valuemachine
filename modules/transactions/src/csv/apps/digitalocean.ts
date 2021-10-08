@@ -6,18 +6,16 @@ import {
 import { hashCsv } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
-import { Assets, CsvSources, Methods } from "../enums";
-import { mergeTransaction } from "../merge";
+import { Assets, CsvSources, Methods } from "../../enums";
 
-export const mergeDigitalOceanTransactions = (
-  oldTransactions: Transaction[],
+export const digitaloceanParser = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
   const source = CsvSources.DigitalOcean;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of digital ocean data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
+  return csv(csvData, { columns: true, skip_empty_lines: true }).map((row, rowIndex) => {
 
     const {
       ["description"]: description,
@@ -42,9 +40,7 @@ export const mergeDigitalOceanTransactions = (
     });
 
     log.debug(transaction, "Parsed row into transaction:");
-    mergeTransaction(oldTransactions, transaction, log);
-
-  });
-  return oldTransactions;
+    return transaction;
+  }).filter(tx => !!tx);
 };
 
