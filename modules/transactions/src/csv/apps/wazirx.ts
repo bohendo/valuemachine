@@ -6,26 +6,50 @@ import {
 import { hashCsv } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
-import { Assets, CsvSources, Guards, Methods } from "../enums";
-import { mergeTransaction } from "../merge";
-import { getGuard } from "../utils";
+import { Assets, CsvSources, Guards, Methods } from "../../enums";
+import { getGuard } from "../../utils";
 
 const guard = Guards.IND;
 
 const { INR } = Assets;
 const { Internal, Fee, SwapIn, SwapOut } = TransferCategories;
+const dateKey = "Date";
 
-export const mergeWazirxTransactions = (
-  oldTransactions: Transaction[],
+const wazirxDepositHeaders = `
+${dateKey},
+Transaction,
+Currency,
+Volume
+`.replace(/\n/g, "");
+
+const wazirxTradeHeaders = `
+${dateKey},
+Market,
+Price,
+Volume,
+Total,
+Trade,
+"Fee Currency",
+Fee
+`.replace(/\n/g, "");
+
+export const wazirxHeaders = [
+  wazirxDepositHeaders,
+  wazirxTradeHeaders,
+];
+
+export const wazirxParser = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
   const source = CsvSources.Wazirx;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
+  return csv(csvData, { columns: true, skip_empty_lines: true }).sort((r1, r2) => {
+    return new Date(r1[dateKey]).getTime() - new Date(r2[dateKey]).getTime();
+  }).map((row, rowIndex) => {
 
-    const date = row["Date"];
+    const date = row[dateKey];
 
     // Ignore any rows with an invalid timestamp
     if (isNaN((new Date(date)).getUTCFullYear())) return null;
@@ -34,6 +58,7 @@ export const mergeWazirxTransactions = (
     const transaction = {
       apps: [],
       date: (new Date(date.replace(" ", "T") + "Z")).toISOString(),
+      index: rowIndex,
       method: Methods.Unknown,
       sources: [source],
       transfers: [],
@@ -42,8 +67,8 @@ export const mergeWazirxTransactions = (
 
     const account = `${guard}/${source}/account`;
     const exchange = `${guard}/${source}`;
-    let index = 0;
 
+    let transferIndex = 1;
     if (row["Transaction"]) {
       const {
         ["Transaction"]: txType,
@@ -55,22 +80,22 @@ export const mergeWazirxTransactions = (
 
       if (txType === "Deposit") {
         transaction.transfers.push({
+          amount,
           asset: currency,
           category: Internal,
           from: external,
-          index,
-          amount,
+          index: transferIndex++,
           to: account,
         });
         transaction.method = Methods.Deposit;
 
       } else if (txType === "Withdraw") {
         transaction.transfers.push({
+          amount,
           asset: currency,
           category: Internal,
           from: account,
-          index,
-          amount,
+          index: transferIndex++,
           to: external,
         });
         transaction.method = Methods.Withdraw;
@@ -97,7 +122,7 @@ export const mergeWazirxTransactions = (
           asset: INR,
           category: SwapOut,
           from: account,
-          index: index++,
+          index: transferIndex++,
           amount: inrAmount,
           to: exchange,
         });
@@ -105,7 +130,7 @@ export const mergeWazirxTransactions = (
           asset: currency,
           category: SwapIn,
           from: exchange,
-          index: index++,
+          index: transferIndex++,
           amount: amount,
           to: account,
         });
@@ -116,7 +141,7 @@ export const mergeWazirxTransactions = (
           asset: currency,
           category: SwapOut,
           from: account,
-          index: index++,
+          index: transferIndex++,
           amount: amount,
           to: exchange,
         });
@@ -124,7 +149,7 @@ export const mergeWazirxTransactions = (
           asset: INR,
           category: SwapIn,
           from: exchange,
-          index: index++,
+          index: transferIndex++,
           amount: inrAmount,
           to: account,
         });
@@ -139,7 +164,7 @@ export const mergeWazirxTransactions = (
         asset: feeAsset,
         category: Fee,
         from: account,
-        index: index++,
+        index: transferIndex++,
         amount: feeAmount,
         to: exchange,
       });
@@ -147,9 +172,7 @@ export const mergeWazirxTransactions = (
     }
 
     log.debug(transaction, "Parsed row into transaction:");
-    mergeTransaction(oldTransactions, transaction, log);
-
-  });
-  return oldTransactions;
+    return transaction;
+  }).filter(tx => !!tx);
 };
 

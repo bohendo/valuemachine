@@ -6,28 +6,64 @@ import {
 import csv from "csv-parse/lib/sync";
 import { gt, hashCsv, sub } from "@valuemachine/utils";
 
-import { Assets, CsvSources, Guards } from "../enums";
-import { mergeTransaction } from "../merge";
-import { getGuard } from "../utils";
+import { Assets, CsvSources, Guards } from "../../enums";
+import { getGuard } from "../../utils";
 
 const { USA } = Guards;
 const { BTC, DAI, ETH, SAI, USD } = Assets;
 const { Fee, SwapIn, SwapOut, Internal } = TransferCategories;
+const dateKey = `Created At`;
 
 const daiLaunch = new Date("2019-12-02T00:00:00Z").getTime();
 
-export const mergeWyreTransactions = (
-  oldTransactions: Transaction[],
+export const wyreHeaders = `
+"Closed At",
+"${dateKey}",
+"Id",
+"Source",
+"Dest",
+"Source Currency",
+"Dest Currency",
+"Source Amount",
+"Dest Amount",
+"Fees ETH",
+"Type",
+"Source Name",
+"Dest Name",
+"Status",
+"Message",
+"Exchange Rate",
+"ETH Debit",
+"ETH Fee Debit",
+"USD Fee Debit",
+"Blockchain Tx Id",
+"ETH Credit",
+"Fees DAI",
+"DAI Debit",
+"DAI Fee Debit",
+"DAI Credit",
+"Fees USD",
+"USD Debit",
+"USD Credit",
+"Fees BTC",
+"BTC Debit",
+"BTC Fee Debit",
+"BTC Credit"
+`.replace(/\n/g, "");
+
+export const wyreParser = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
   const source = CsvSources.Wyre;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of wyre data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
+  return csv(csvData, { columns: true, skip_empty_lines: true }).sort((r1, r2) => {
+    return new Date(r1[dateKey]).getTime() - new Date(r2[dateKey]).getTime();
+  }).map((row, rowIndex) => {
 
     // Ignore any rows with an invalid timestamp
-    const date = new Date(row["Created At"]);
+    const date = new Date(row[dateKey]);
     if (isNaN(date.getUTCFullYear())) return null;
 
     const btcFee = parseFloat(row["Fees BTC"] || 0).toString();
@@ -52,6 +88,7 @@ export const mergeWyreTransactions = (
     const transaction = {
       apps: [],
       date: date.toISOString(),
+      index: rowIndex,
       sources: [source],
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
@@ -71,20 +108,21 @@ export const mergeWyreTransactions = (
 
     // Add transfers depending on exchange/currency types
 
+    let transferIndex = 1;
     if (txType === "EXCHANGE") {
       transaction.transfers.push({
         amount: minusFee(sourceAmount, sourceType),
         asset: sourceType,
         category: SwapOut,
         from: account,
-        index: 1,
+        index: transferIndex++,
         to: exchange,
       }, {
         amount: destAmount,
         asset: destType,
         category: SwapIn,
         from: exchange,
-        index: 2,
+        index: transferIndex++,
         to: account,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
@@ -95,7 +133,7 @@ export const mergeWyreTransactions = (
         asset: destType,
         category: Internal,
         from: `${getGuard(destType)}/unknown`,
-        index: 1,
+        index: transferIndex++,
         to: account,
       });
       transaction.method = "Deposit";
@@ -106,21 +144,21 @@ export const mergeWyreTransactions = (
         asset: sourceType,
         category: Internal,
         from: `${getGuard(sourceType)}/unknown`,
-        index: 1,
+        index: transferIndex++,
         to: account,
       }, {
         amount: minusFee(sourceAmount, sourceType),
         asset: sourceType,
         category: SwapOut,
         from: account,
-        index: 2,
+        index: transferIndex++,
         to: exchange,
       }, {
         amount: destAmount,
         asset: destType,
         category: SwapIn,
         from: exchange,
-        index: 3,
+        index: transferIndex++,
         to: account,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
@@ -131,7 +169,7 @@ export const mergeWyreTransactions = (
         asset: destType,
         category: Internal,
         from: account,
-        index: 1,
+        index: transferIndex++,
         to: `${getGuard(destType)}/unknown`,
       });
       transaction.method = "Withdraw";
@@ -142,29 +180,27 @@ export const mergeWyreTransactions = (
         asset: sourceType,
         category: SwapOut,
         from: account,
-        index: 1,
+        index: transferIndex++,
         to: exchange,
       }, {
         amount: destAmount,
         asset: destType,
         category: SwapIn,
         from: exchange,
-        index: 2,
+        index: transferIndex++,
         to: account,
       }, {
         amount: destAmount,
         asset: destType,
         category: Internal,
         from: account,
-        index: 3,
+        index: transferIndex++,
         to: `${getGuard(destType)}/unknown`,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
     }
 
     log.debug(transaction, "Parsed row into transaction:");
-    mergeTransaction(oldTransactions, transaction, log);
-
-  });
-  return oldTransactions;
+    return transaction;
+  }).filter(tx => !!tx);
 };

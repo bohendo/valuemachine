@@ -7,10 +7,10 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
-import AccountIcon from "@material-ui/icons/RecentActors";
+import AccountIcon from "@mui/icons-material/ManageAccounts";
 import HomeIcon from "@material-ui/icons/Home";
-// import PricesIcon from "@material-ui/icons/LocalOffer";
-// import TaxesIcon from "@material-ui/icons/AccountBalance";
+import PricesIcon from "@material-ui/icons/LocalOffer";
+import TaxesIcon from "@material-ui/icons/AccountBalance";
 import ValueMachineIcon from "@material-ui/icons/PlayCircleFilled";
 import TransactionsIcon from "@material-ui/icons/Receipt";
 import LightIcon from "@material-ui/icons/BrightnessHigh";
@@ -97,7 +97,6 @@ export const NavBar: React.FC<PropTypes> = ({
           <HomeIcon />
         </IconButton>
 
-        {/*
         <IconButton
           component={Link}
           edge="start"
@@ -117,7 +116,6 @@ export const NavBar: React.FC<PropTypes> = ({
         >
           <PricesIcon />
         </IconButton>
-        */}
 
         <IconButton
           component={Link}
@@ -137,17 +135,6 @@ export const NavBar: React.FC<PropTypes> = ({
           color="inherit"
         >
           <TransactionsIcon />
-        </IconButton>
-
-        <IconButton
-          component={Link}
-          edge="start"
-          to={"/address-book"}
-          className={classes.navButton}
-          color="inherit"
-          aria-label="address-book"
-        >
-          <AccountIcon />
         </IconButton>
 
         <Typography
@@ -182,6 +169,17 @@ export const NavBar: React.FC<PropTypes> = ({
           onClick={toggleTheme}
         >
           {theme === "dark" ? <LightIcon /> : <DarkIcon />}
+        </IconButton>
+
+        <IconButton
+          component={Link}
+          edge="start"
+          to={"/address-book"}
+          className={classes.navButton}
+          color="inherit"
+          aria-label="address-book"
+        >
+          <AccountIcon fontSize="large" />
         </IconButton>
 
       </Toolbar>

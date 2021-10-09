@@ -12,7 +12,6 @@ import {
   AddressBook,
   AddressCategories,
   CsvFiles,
-  Source,
   Transactions,
   TransactionsJson,
 } from "@valuemachine/types";
@@ -107,7 +106,7 @@ export const TransactionExplorer: React.FC<PropTypes> = ({
           csvFile.data.split("\n").length
         } rows of ${csvFile.type} data from ${csvFile.name}`);
         await new Promise((res) => setTimeout(res, 200)); // let sync message re-render
-        newTransactions.mergeCsv(csvFile.data, csvFile.type as Source);
+        newTransactions.mergeCsv(csvFile.data);
       }
     }
     setTransactionsJson(newTransactions.json);

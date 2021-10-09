@@ -6,28 +6,40 @@ import {
 import csv from "csv-parse/lib/sync";
 import { hashCsv, mul, round } from "@valuemachine/utils";
 
-import { Assets, CsvSources, Guards, Methods } from "../enums";
-import { mergeTransaction } from "../merge";
+import { Assets, CsvSources, Guards, Methods } from "../../enums";
 
 const guard = Guards.USA;
 const source = CsvSources.Elements;
-const asset = Assets.USD;
+const dateKey = "Post Date";
 
-export const mergeElementsTransactions = (
-  oldTransactions: Transaction[],
+export const elementsHeaders = `
+Account Number,
+${dateKey},
+Check,
+Description,
+Debit,
+Credit,
+Status,
+Balance,
+Classification
+`.replace(/\n/g, "");
+
+export const elementsParser = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
   const log = logger.child({ module: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of ${source} data`);
-  csv(csvData, { columns: true, skip_empty_lines: true }).forEach((row, rowIndex) => {
+  return csv(csvData, { columns: true, skip_empty_lines: true }).sort((r1, r2) => {
+    return new Date(r1[dateKey]).getTime() - new Date(r2[dateKey]).getTime();
+  }).map((row, rowIndex) => {
 
     const {
       ["Balance"]: balance,
       ["Credit"]: credit,
       ["Debit"]: debit,
       ["Description"]: description,
-      ["Post Date"]: date,
+      [dateKey]: date,
       ["Status"]: status,
     } = row;
 
@@ -36,8 +48,7 @@ export const mergeElementsTransactions = (
 
     if (status !== "Posted") {
       log.warn(`Ignoring ${status} tx from ${source}: ${description}`);
-      return;
-
+      return null;
     }
 
     const account = `${guard}/${source}/account`;
@@ -46,18 +57,21 @@ export const mergeElementsTransactions = (
     const transaction = {
       apps: [],
       date: (new Date(date)).toISOString(),
+      index: rowIndex,
       method: Methods.Unknown,
       sources: [source],
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
 
+    let transferIndex = 1;
     if (debit) {
       transaction.transfers.push({
         amount: round(debit, 2),
-        asset,
+        asset: Assets.USD,
         category: TransferCategories.Expense,
         from: account,
+        index: transferIndex++,
         to: external,
       });
     }
@@ -65,17 +79,16 @@ export const mergeElementsTransactions = (
     if (credit) {
       transaction.transfers.push({
         amount: round(credit, 2),
-        asset,
+        asset: Assets.USD,
         category: TransferCategories.Income,
         from: description === "Interest Income" ? bank : external,
+        index: transferIndex++,
         to: account,
       });
     }
 
     log.debug(transaction, "Parsed row into transaction:");
-    mergeTransaction(oldTransactions, transaction, log);
-
-  });
-  return oldTransactions;
+    return transaction;
+  }).filter(tx => !!tx);
 };
 

@@ -102,7 +102,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
 }: PropTypes) => {
   const [newAddress, setNewAddress] = useState(getEmptyAddress());
   const [newTransaction, setNewTransaction] = useState(getEmptyTransaction());
-  const [tab, setTab] = useState(2);
+  const [tab, setTab] = useState(0);
   const classes = useStyles();
 
   const addNewAddress = (editedAddress: AddressEntry) => {
@@ -225,7 +225,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
             </Button>
           </Grid>
           <Grid item md={6}>
-            <CsvTable csvFiles={csvFiles}/>
+            <CsvTable csvFiles={csvFiles} setCsvFiles={setCsvFiles}/>
           </Grid>
         </Grid>
 

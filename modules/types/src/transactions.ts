@@ -68,10 +68,9 @@ export type TransactionsJson = Static<typeof TransactionsJson>;
 // Function Interfaces
 
 export type CsvParser = (
-  txns: Transaction[],
   csvData: string,
   logger: Logger,
-) => Transaction;
+) => TransactionsJson;
 
 export type EvmParser = (
   tx: Transaction,
@@ -94,6 +93,6 @@ export type TransactionsParams = {
 
 export type Transactions = {
   json: TransactionsJson;
-  mergeCsv: (csvData: string, parser: Source | CsvParser) => void;
+  mergeCsv: (csvData: string, parser?: CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
 };

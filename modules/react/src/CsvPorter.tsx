@@ -4,12 +4,7 @@ import CardHeader from "@material-ui/core/CardHeader";
 import {
   CsvFiles,
 } from "@valuemachine/types";
-import { 
-  CsvSources,
-} from "@valuemachine/transactions";
-import React, { useState } from "react";
-
-import { SelectOne } from "./SelectOne";
+import React from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   card: {
@@ -33,13 +28,12 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
   csvFiles,
   setCsvFiles,
 }: CsvPorterProps) => {
-  const [importFileType, setImportFileType] = useState("");
   const classes = useStyles();
 
   const handleCsvFileImport = (event: any) => {
     const file = event.target.files[0];
-    console.log(`Importing ${importFileType} file`, file);
-    if (!importFileType || !file) return;
+    console.log(`Importing csv file`, file);
+    if (!file) return;
     const reader = new FileReader();
     reader.readAsText(file);
     reader.onload = () => {
@@ -49,7 +43,6 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
         setCsvFiles([...csvFiles, {
           name: file.name,
           data: importedFile,
-          type: importFileType,
         }] as CsvFiles);
       } catch (e) {
         console.error(e);
@@ -62,16 +55,9 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
 
       <Card className={classes.card}>
         <CardHeader title={"Import CSV File"}/>
-        <SelectOne
-          label="File Type"
-          choices={Object.keys(CsvSources)}
-          selection={importFileType}
-          setSelection={setImportFileType}
-        />
         <input
           accept="text/csv"
           className={classes.fileInput}
-          disabled={!importFileType}
           id="file-importer"
           onChange={handleCsvFileImport}
           type="file"
