@@ -6,28 +6,43 @@ import { digitaloceanParser, digitaloceanHeaders } from "./apps/digitalocean";
 import { elementsParser, elementsHeaders } from "./apps/elements";
 import { wyreParser, wyreHeaders } from "./apps/wyre";
 import { wazirxParser, wazirxHeaders } from "./apps/wazirx";
-import { CsvSources, CsvSources } from "./enums";
 
 export const parseCsv = (csvData: string, logger: Logger): TransactionsJson => {
   const log = logger || getLogger();
 
-  // Discard any garbage present at the top of the file
   let txns;
-  if (csvData.includes(coinbaseHeaders)) {
-    txns = coinbaseParser(csvData, log);
-  } else if (csvData.includes(digitaloceanHeaders)) {
-    txns = digitaloceanParser(csvData, log);
-  } else if (csvData.includes(elementsHeaders)) {
-    txns = elementsParser(csvData, log);
-  } else if (wazirxHeaders.some(header => csvData.includes(header))) {
-    txns = wazirxParser(csvData, log);
-  } else if (csvData.includes(wyreHeaders)) {
-    txns = wyreParser(csvData, log);
-  } else {
-    log.warn(`Unknown csv file, expected one of [${Object.keys(CsvSources).join()}]`);
+  const csvRows = csvData.split(/\r?\n/);
+  while (csvRows.length) {
+    if (csvRows[0] === coinbaseHeaders) {
+      log.info(`Parsing csv as ${csvRows.length - 1} rows of coinbase data`);
+      txns = coinbaseParser(csvRows.join(`\n`), log);
+      break;
+    } else if (csvRows[0] === digitaloceanHeaders) {
+      log.info(`Parsing csv as ${csvRows.length - 1} rows of digital ocean data`);
+      txns = digitaloceanParser(csvRows.join(`\n`), log);
+      break;
+    } else if (csvRows[0] === elementsHeaders) {
+      log.info(`Parsing csv as ${csvRows.length - 1} rows of elements data`);
+      txns = elementsParser(csvRows.join(`\n`), log);
+      break;
+    } else if (wazirxHeaders.includes(csvRows[0])) {
+      log.info(`Parsing csv as ${csvRows.length - 1} rows of wazirx data`);
+      txns = wazirxParser(csvRows.join(`\n`), log);
+      break;
+    } else if (csvRows[0] === wyreHeaders) {
+      log.info(`Parsing csv as ${csvRows.length - 1} rows of wyre data`);
+      txns = wyreParser(csvRows.join(`\n`), log);
+      break;
+    }
+    csvRows.shift(); // First row doesn't match any of our target headers, discard it & try again
   }
 
-  const error = getTransactionsError(txns);
-  if (error) throw new Error(error);
-  return txns;
+  if (!txns) {
+    log.warn(`Unknown csv file format`);
+    return [];
+  } else {
+    const error = getTransactionsError(txns);
+    if (error) throw new Error(error);
+    return txns;
+  }
 };
