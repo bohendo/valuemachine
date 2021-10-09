@@ -7,7 +7,9 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import { parseCsv } from "@valuemachine/transactions";
 import {
+  CsvFile,
   CsvFiles,
 } from "@valuemachine/types";
 import {
@@ -47,17 +49,20 @@ export const CsvTable: React.FC<CsvTableProps> = ({
             <TableHead>
               <TableRow>
                 <TableCell><strong> File Name </strong></TableCell>
-                <TableCell><strong> File Type </strong></TableCell>
-                <TableCell><strong> Rows </strong></TableCell>
+                <TableCell><strong> Source </strong></TableCell>
+                <TableCell><strong> Transactions </strong></TableCell>
                 <TableCell><strong> Digest </strong></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {csvFiles.map((csvFile: { name: string; type: string; data: string }, i) => (
+              {csvFiles.map(csvFile => ({
+                ...csvFile,
+                txns: parseCsv(csvFile.data),
+              })).map((csvFile: CsvFile, i) => (
                 <TableRow key={i}>
                   <TableCell> {csvFile.name.toString()} </TableCell>
-                  <TableCell> {csvFile.type.toString()} </TableCell>
-                  <TableCell> {csvFile.data.split(/\r\n|\r|\n/).length} </TableCell>
+                  <TableCell> {csvFile.txns?.[0]?.sources?.[0] || "Unknown"} </TableCell>
+                  <TableCell> {csvFile.txns?.length || 0} </TableCell>
                   <TableCell> {hashCsv(csvFile.data)} </TableCell>
                 </TableRow>
               ))}

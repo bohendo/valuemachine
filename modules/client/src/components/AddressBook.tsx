@@ -102,7 +102,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
 }: PropTypes) => {
   const [newAddress, setNewAddress] = useState(getEmptyAddress());
   const [newTransaction, setNewTransaction] = useState(getEmptyTransaction());
-  const [tab, setTab] = useState(2);
+  const [tab, setTab] = useState(0);
   const classes = useStyles();
 
   const addNewAddress = (editedAddress: AddressEntry) => {

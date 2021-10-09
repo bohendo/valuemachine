@@ -7,7 +7,7 @@ import { elementsParser, elementsHeaders } from "./apps/elements";
 import { wyreParser, wyreHeaders } from "./apps/wyre";
 import { wazirxParser, wazirxHeaders } from "./apps/wazirx";
 
-export const parseCsv = (csvData: string, logger: Logger): TransactionsJson => {
+export const parseCsv = (csvData: string, logger?: Logger): TransactionsJson => {
   const log = logger || getLogger();
 
   let txns;
