@@ -7,6 +7,7 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import DeleteIcon from "@material-ui/icons/Backspace";
 import { parseCsv } from "@valuemachine/transactions";
 import {
   CsvFile,
@@ -25,18 +26,26 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     marginBottom: theme.spacing(2),
   },
   table: {
-    minWidth: "200px",
+    minWidth: theme.spacing(25),
     padding: theme.spacing(2),
   },
+  delCell: {
+    width: theme.spacing(5),
+  }
 }));
 
 type CsvTableProps = {
   csvFiles: CsvFiles,
+  setCsvFiles: (val: CsvFiles) => void,
 };
 export const CsvTable: React.FC<CsvTableProps> = ({
   csvFiles,
+  setCsvFiles,
 }: CsvTableProps) => {
   const classes = useStyles();
+
+  const handleDelete = index =>
+    setCsvFiles(csvFiles.slice(0, index).concat(csvFiles.slice(index + 1)));
 
   return (
     <Paper className={classes.paper}>
@@ -52,6 +61,7 @@ export const CsvTable: React.FC<CsvTableProps> = ({
                 <TableCell><strong> Source </strong></TableCell>
                 <TableCell><strong> Transactions </strong></TableCell>
                 <TableCell><strong> Digest </strong></TableCell>
+                <TableCell className={classes.delCell}></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -64,6 +74,12 @@ export const CsvTable: React.FC<CsvTableProps> = ({
                   <TableCell> {csvFile.txns?.[0]?.sources?.[0] || "Unknown"} </TableCell>
                   <TableCell> {csvFile.txns?.length || 0} </TableCell>
                   <TableCell> {hashCsv(csvFile.data)} </TableCell>
+                  <TableCell
+                    className={classes.delCell}
+                    onClick={() => handleDelete(i)}
+                  >
+                    <DeleteIcon/>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -225,7 +225,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
             </Button>
           </Grid>
           <Grid item md={6}>
-            <CsvTable csvFiles={csvFiles}/>
+            <CsvTable csvFiles={csvFiles} setCsvFiles={setCsvFiles}/>
           </Grid>
         </Grid>
 
