@@ -1,12 +1,7 @@
-import { Transactions } from "@valuemachine/types";
 import { getTransactionsError } from "@valuemachine/utils";
 
-import { CsvSources } from "../../enums";
-import { getAddressBook, getTransactions } from "../../index";
-import { expect, testLogger } from "../../testUtils";
-
-const source = CsvSources.Elements;
-const log = testLogger.child({ module: "TestTransactions" }, { level: "warn" });
+import { expect } from "../../testUtils";
+import { parseCsv } from "../parser";
 
 const exampleElementsCsv =
 `Account Number,Post Date,Check,Description,Debit,Credit,Status,Balance,Classification
@@ -14,27 +9,11 @@ const exampleElementsCsv =
 "123456789100",1/1/2021,,"Interest Income",,.12,Posted,12345.68,"Interest Income"
 "123456789100",1/2/2021,,"Foobar Purchase",0.99,,Posted,11085.68,""`;
 
-describe(source, () => {
-  let addressBook;
-  let txns: Transactions;
-
-  beforeEach(() => {
-    addressBook = getAddressBook();
-    txns = getTransactions({ addressBook, logger: log });
-    expect(txns.json.length).to.equal(0);
-  });
-
+describe("Elements", () => {
   it("should generate valid transactions", async () => {
-    txns.mergeCsv(exampleElementsCsv);
-    const txError = getTransactionsError(txns.json);
+    const txns = parseCsv(exampleElementsCsv);
+    const txError = getTransactionsError(txns);
     expect(txError).to.equal("");
-  });
-
-  it("should merge csv data multiple times without creaing duplicates", async () => {
-    txns.mergeCsv(exampleElementsCsv);
-    expect(txns.json.length).to.equal(3);
-    txns.mergeCsv(exampleElementsCsv);
-    expect(txns.json.length).to.equal(3);
   });
 
 });

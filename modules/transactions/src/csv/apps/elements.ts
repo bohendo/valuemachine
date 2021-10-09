@@ -10,7 +10,19 @@ import { Assets, CsvSources, Guards, Methods } from "../../enums";
 
 const guard = Guards.USA;
 const source = CsvSources.Elements;
-const asset = Assets.USD;
+const dateKey = "Post Date";
+
+export const elementsHeaders = `
+Account Number,
+${dateKey},
+Check,
+Description,
+Debit,
+Credit,
+Status,
+Balance,
+Classification
+`.replace(/\n/g, "");
 
 export const elementsParser = (
   csvData: string,
@@ -18,14 +30,16 @@ export const elementsParser = (
 ): Transaction[] => {
   const log = logger.child({ module: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of ${source} data`);
-  return csv(csvData, { columns: true, skip_empty_lines: true }).map((row, rowIndex) => {
+  return csv(csvData, { columns: true, skip_empty_lines: true }).sort((r1, r2) => {
+    return new Date(r1[dateKey]).getTime() - new Date(r2[dateKey]).getTime();
+  }).map((row, rowIndex) => {
 
     const {
       ["Balance"]: balance,
       ["Credit"]: credit,
       ["Debit"]: debit,
       ["Description"]: description,
-      ["Post Date"]: date,
+      [dateKey]: date,
       ["Status"]: status,
     } = row;
 
@@ -43,18 +57,21 @@ export const elementsParser = (
     const transaction = {
       apps: [],
       date: (new Date(date)).toISOString(),
+      index: rowIndex,
       method: Methods.Unknown,
       sources: [source],
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
 
+    let transferIndex = 1;
     if (debit) {
       transaction.transfers.push({
         amount: round(debit, 2),
-        asset,
+        asset: Assets.USD,
         category: TransferCategories.Expense,
         from: account,
+        index: transferIndex++,
         to: external,
       });
     }
@@ -62,9 +79,10 @@ export const elementsParser = (
     if (credit) {
       transaction.transfers.push({
         amount: round(credit, 2),
-        asset,
+        asset: Assets.USD,
         category: TransferCategories.Income,
         from: description === "Interest Income" ? bank : external,
+        index: transferIndex++,
         to: account,
       });
     }

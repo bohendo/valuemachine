@@ -10,21 +10,34 @@ import { Assets, CsvSources, Guards, Methods } from "../../enums";
 import { getGuard } from "../../utils";
 
 const guard = Guards.USA;
+const source = CsvSources.Coinbase;
+const dateKey = "Timestamp";
 
-const { Fee, SwapIn, SwapOut, Internal } = TransferCategories;
+export const coinbaseHeaders = `
+${dateKey},
+Transaction Type,
+Asset,
+Quantity Transacted,
+USD Spot Price at Transaction,
+USD Subtotal,
+USD Total (inclusive of fees),
+USD Fees,
+Notes
+`.replace(/\n/g, "");
 
 export const coinbaseParser = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const source = CsvSources.Coinbase;
   const log = logger.child({ module: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of ${source} data`);
-  return csv(csvData, { columns: true, skip_empty_lines: true }).map((row, rowIndex) => {
+  return csv(csvData, { columns: true, skip_empty_lines: true }).sort((r1, r2) => {
+    return new Date(r1[dateKey]).getTime() - new Date(r2[dateKey]).getTime();
+  }).map((row, rowIndex) => {
     const {
       ["Asset"]: asset,
       ["Quantity Transacted"]: amount,
-      ["Timestamp"]: date,
+      [dateKey]: date,
       ["Transaction Type"]: txType,
       ["USD Subtotal"]: usdAmount,
       ["USD Total (inclusive of fees)"]: usdTotal,
@@ -40,23 +53,24 @@ export const coinbaseParser = (
     // always transfer USD to/from the bank during every sell/buy
     const bank = `${guard}/unknown`;
 
-    let index = 1;
     const transaction = {
       apps: [],
       date: (new Date(date)).toISOString(),
+      index: rowIndex,
       method: Methods.Unknown,
       sources: [source],
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
 
+    let transferIndex = 1;
     if (txType === "Send") {
       transaction.transfers.push({
         amount,
         asset,
-        category: Internal,
+        category: TransferCategories.Internal,
         from: account,
-        index: index++,
+        index: transferIndex++,
         to: external,
       });
       transaction.method = Methods.Withdraw;
@@ -65,9 +79,9 @@ export const coinbaseParser = (
       transaction.transfers.push({
         amount,
         asset,
-        category: Internal,
+        category: TransferCategories.Internal,
         from: external,
-        index: index++,
+        index: transferIndex++,
         to: account,
       });
       transaction.method = Methods.Deposit;
@@ -76,23 +90,23 @@ export const coinbaseParser = (
       transaction.transfers.push({
         amount,
         asset,
-        category: SwapOut,
+        category: TransferCategories.SwapOut,
         from: account,
-        index: index++,
+        index: transferIndex++,
         to: exchange,
       }, {
         amount: usdAmount,
         asset: Assets.USD,
-        category: SwapIn,
+        category: TransferCategories.SwapIn,
         from: exchange,
-        index: index++,
+        index: transferIndex++,
         to: account,
       }, {
         amount: usdTotal,
         asset: Assets.USD,
-        category: Internal,
+        category: TransferCategories.Internal,
         from: account,
-        index: index++,
+        index: transferIndex++,
         to: bank,
       });
       transaction.method = txType;
@@ -101,23 +115,23 @@ export const coinbaseParser = (
       transaction.transfers.push({
         amount: usdTotal,
         asset: Assets.USD,
-        category: Internal,
+        category: TransferCategories.Internal,
         from: bank,
-        index: index++,
+        index: transferIndex++,
         to: account,
       }, {
         amount: usdAmount,
         asset: Assets.USD,
-        category: SwapOut,
+        category: TransferCategories.SwapOut,
         from: account,
-        index: index++,
+        index: transferIndex++,
         to: exchange,
       }, {
         amount,
         asset,
-        category: SwapIn,
+        category: TransferCategories.SwapIn,
         from: exchange,
-        index: index++,
+        index: transferIndex++,
         to: account,
       });
       transaction.method = txType;
@@ -127,9 +141,9 @@ export const coinbaseParser = (
       transaction.transfers.push({
         amount: fee,
         asset: Assets.USD,
-        category: Fee,
+        category: TransferCategories.Fee,
         from: account,
-        index: index++,
+        index: transferIndex++,
         to: exchange,
       });
     }
