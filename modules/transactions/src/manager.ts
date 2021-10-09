@@ -54,7 +54,7 @@ export const getTransactions = (params?: TransactionsParams): Transactions => {
     log.info(`Successful merge, now we have ${json.length} txs`);
   };
 
-  const mergeCsv = (csvData: string, parser: CsvParser): void => {
+  const mergeCsv = (csvData: string, parser?: CsvParser): void => {
     merge((parser || parseCsv)(csvData, log));
     sync();
   };
