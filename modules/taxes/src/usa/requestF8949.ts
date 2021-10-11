@@ -1,10 +1,10 @@
 import { getPrices } from "@valuemachine/core";
 import { Assets } from "@valuemachine/transactions";
-import { Guard, Prices, ValueMachine } from "@valuemachine/types";
+import { EventTypes, TradeEvent, Guard, Prices, ValueMachine } from "@valuemachine/types";
 import { getLogger, getLocalStore } from "@valuemachine/utils";
 import axios from "axios";
 
-const log = getLogger().child({ module: "Taxes" }, { level: "debug" });
+const log = getLogger("info").child({ module: "Taxes" });
 
 export const requestF8949 = async (
   vm: ValueMachine,
@@ -13,7 +13,10 @@ export const requestF8949 = async (
   taxYear: string,
   window: any,
 ) => {
-  if (!vm?.json?.chunks?.length || !prices.json) return;
+  if (!vm?.json?.chunks?.length || !prices.json || !guard || !taxYear) {
+    log.warn(`Missing args, not requesting f8949`);
+    return;
+  }
   const store = getLocalStore(window.localStorage);
   const usdPrices = getPrices({
     json: prices.json,
@@ -23,26 +26,33 @@ export const requestF8949 = async (
   });
   const getDate = (timestamp: string): string => timestamp.split("T")[0];
   const trades = [];
-  for (const chunk of vm.json.chunks) {
-    if (chunk.disposeDate?.startsWith(taxYear) && chunk.account?.startsWith(guard)) {
-      const purchaseDate = getDate(chunk.history[0].date);
-      const receivePrice = usdPrices.getNearest(purchaseDate, chunk.asset);
-      const assetPrice = usdPrices.getNearest(chunk.disposeDate, chunk.asset);
-      if (receivePrice !== assetPrice) {
-        trades.push({
-          date: getDate(chunk.disposeDate),
-          asset: chunk.asset,
-          receivePrice,
-          assetPrice,
-          purchaseDate: purchaseDate,
-          amount: chunk.amount,
-        });
+
+  // TODO: merge chunks w the same receiveDate + disposeDate
+  for (const event of vm.json.events) {
+    if (event.type !== EventTypes.Trade || event.account?.startsWith(`${guard}/`)) continue;
+    for (const chunkIndex of (event as TradeEvent).outputs) {
+      const chunk = vm.getChunk(chunkIndex);
+      if (chunk.disposeDate?.startsWith(taxYear)) {
+        const purchaseDate = getDate(chunk.history[0].date);
+        const receivePrice = usdPrices.getNearest(purchaseDate, chunk.asset);
+        const assetPrice = usdPrices.getNearest(chunk.disposeDate, chunk.asset);
+        if (receivePrice !== assetPrice) {
+          trades.push({
+            date: getDate(chunk.disposeDate),
+            asset: chunk.asset,
+            receivePrice,
+            assetPrice,
+            purchaseDate: purchaseDate,
+            amount: chunk.amount,
+          });
+        }
       }
     }
   }
+
   if (trades.length) {
     const url = "/api/taxes/f8949";
-    console.log(`Requesting f8949 from ${url}`);
+    console.log(`Requesting ${trades.length} rows of f8949 data from ${url}`);
     axios({
       url,
       method: "post",

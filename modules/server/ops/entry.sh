@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-dev_target="src/entry.ts"
+dev_target="src/index.ts"
 prod_target="dist/bundle.js"
 
 if [[ -d "modules/server" ]]

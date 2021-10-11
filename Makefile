@@ -192,7 +192,7 @@ client: package modules/client/.env $(shell find modules/client $(find_options))
 
 server: core $(shell find modules/server $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/server && npm run build && touch src/entry.ts"
+	$(docker_run) "cd modules/server && npm run build && touch src/index.ts"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################

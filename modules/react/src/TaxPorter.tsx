@@ -3,7 +3,8 @@ import Button from "@material-ui/core/Button";
 import Card from "@material-ui/core/Card";
 import CardHeader from "@material-ui/core/CardHeader";
 import DownloadIcon from "@material-ui/icons/GetApp";
-import { getTaxRows } from "@valuemachine/taxes";
+import { getTaxRows, requestF8949 } from "@valuemachine/taxes";
+import { Guards } from "@valuemachine/transactions";
 import {
   Guard,
   GuardChangeEvent,
@@ -47,6 +48,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   const [taxYears, setTaxYears] = React.useState([] as string[]);
 
   useEffect(() => {
+    setTaxYear(allTaxYears);
     setTaxYears(dedup(
       vm.json.events.filter(evt =>
         (evt as TradeEvent).account?.startsWith(guard) ||
@@ -55,7 +57,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     ));
   }, [guard, vm]);
 
-  const handleExport = () => {
+  const handleCsvExport = () => {
     const taxes = getTaxRows({ guard, prices, vm });
     const output = json2csv(
       taxes.filter(row =>
@@ -81,6 +83,15 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     a.click();
   };
 
+  const handleF8949Export = () => {
+    if (!vm?.json || !prices?.json || !guard || !taxYear) {
+      console.warn(`Missing info, not trying to export f8949`);
+      return;
+    }
+    console.log(`Requesting f8949 for ${taxYear}`);
+    requestF8949(vm, prices, guard, taxYear, window);
+  };
+
   return (<>
     <Card className={classes.card}>
       <CardHeader title={`Export ${guard} Tax Info`}/>
@@ -91,17 +102,33 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
         selection={taxYear}
         setSelection={setTaxYear}
       />
+
       <Button
         className={classes.button}
         color="primary"
         fullWidth={false}
-        onClick={handleExport}
+        onClick={handleCsvExport}
         size="small"
         startIcon={<DownloadIcon />}
         variant="contained"
       >
         Download CSV
       </Button>
+
+      {guard === Guards.USA && taxYear !== allTaxYears ?
+        <Button
+          className={classes.button}
+          color="primary"
+          fullWidth={false}
+          onClick={handleF8949Export}
+          size="small"
+          startIcon={<DownloadIcon />}
+          variant="contained"
+        >
+          Download F8949
+        </Button>
+        : null}
+
     </Card>
   </>);
 };

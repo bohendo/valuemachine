@@ -10,7 +10,7 @@ import pkg from "./package.json";
 // for more info see: https://github.com/rollup/rollup/issues/1507#issuecomment-340550539
 
 export default {
-  input: "./src/entry.ts",
+  input: "./src/index.ts",
   output: [{
     file: pkg.main,
     format: "cjs",
@@ -18,7 +18,7 @@ export default {
   }],
   onwarn: (warning, warn) => {
     // Ignore known warnings
-    const fromPkg = (pkgName) => warning.id?.startsWith(`/root/node_modules/${pkgName}`);
+    const fromPkg = (pkgName) => warning.id ? warning.id.startsWith(`/root/node_modules/${pkgName}`) : false;
     if (warning.code === "THIS_IS_UNDEFINED" && fromPkg("@ethersproject")) return;
     if (warning.code === "EVAL" && fromPkg("depd")) return;
     warn(warning);
@@ -44,7 +44,7 @@ export default {
       tsconfig: "./tsconfig.json",
     }),
     CommonJs({
-      include: ["./src/entry.ts", /node_modules/],
+      include: ["./src/index.ts", /node_modules/],
       transformMixedEsModules: true,
     }),
   ],
