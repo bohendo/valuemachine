@@ -16,6 +16,7 @@ type SelectOneProps = {
   choices?: string[],
   id?: string,
   label?: string,
+  defaultSelection?: string,
   selection?: string,
   setSelection?: (val: string) => void,
   toDisplay?: (val: string) => string,
@@ -24,6 +25,7 @@ export const SelectOne: React.FC<SelectOneProps> = ({
   id: givenId,
   label: givenLabel,
   choices,
+  defaultSelection,
   selection,
   setSelection,
   toDisplay,
@@ -50,7 +52,7 @@ export const SelectOne: React.FC<SelectOneProps> = ({
         value={selection || ""}
         onChange={handleChange}
       >
-        <MenuItem value={""}>-</MenuItem>
+        <MenuItem value={defaultSelection || ""}>{defaultSelection || "-"}</MenuItem>
         {(choices || []).map((option, i) => (
           <MenuItem key={i} value={option}>{toDisplay ? toDisplay(option) : option}</MenuItem>
         ))}

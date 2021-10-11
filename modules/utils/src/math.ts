@@ -112,7 +112,7 @@ export const sigfigs = (decStr: string, n = 3): string => {
 
 // Locale-dependent rounding & commification
 export const commify = (num: DecimalString, asset?: Asset): string => {
-  let rounded = round(num);
+  let rounded = round(num, asset === "INR" || asset === "USD" ? 2 : undefined);
   if (asset !== "INR") {
     return defaultCommify(rounded);
   }
