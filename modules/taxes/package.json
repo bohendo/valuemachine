@@ -1,7 +1,7 @@
 {
-  "name": "@valuemachine/types",
+  "name": "@valuemachine/taxes",
   "version": "0.10.1",
-  "description": "Types and interfaces for interacting with the valuemachine",
+  "description": "Jurisdiction-neutral tax utilities",
   "author": "Bo Henderson",
   "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/bohendo/valuemachine#readme",
@@ -12,16 +12,23 @@
   "types": "dist/bundle.d.ts",
   "files": ["dist/bundle.js", "dist/bundle.esm.js", "dist/bundle.d.ts"],
   "scripts": {
-    "build": "rollup --config rollup.config.js"
+    "build": "rollup --config rollup.config.js",
+    "test": "ts-mocha --check-leaks --color --exit --timeout 60000 'src/**/*.test.ts'"
   },
   "dependencies": {
-    "@sinclair/typebox": "0.20.5",
-    "pino": "6.13.3"
-  },
+    "@valuemachine/core": "0.10.1",
+    "@valuemachine/transactions": "0.10.1",
+    "@valuemachine/types": "0.10.1",
+    "@valuemachine/utils": "0.10.1"
+  }, 
   "devDependencies": {
     "@rollup/plugin-typescript": "8.2.5",
+    "chai": "4.3.4",
+    "chai-as-promised": "7.1.1",
+    "mocha": "9.1.1",
     "rollup": "2.58.0",
     "rollup-plugin-dts": "4.0.0",
+    "ts-mocha": "8.0.0",
     "typescript": "4.4.3"
   }
 }
