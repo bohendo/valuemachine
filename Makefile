@@ -170,7 +170,12 @@ core: transactions utils types $(shell find modules/core $(find_options))
 	$(docker_run) "cd modules/core && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-react: core transactions utils types $(shell find modules/react $(find_options))
+taxes: core transactions utils types $(shell find modules/taxes $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/taxes && npm run build"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+react: taxes core transactions utils types $(shell find modules/react $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/react && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
@@ -187,7 +192,7 @@ client: package modules/client/.env $(shell find modules/client $(find_options))
 
 server: core $(shell find modules/server $(find_options))
 	$(log_start)
-	$(docker_run) "cd modules/server && npm run build && touch src/entry.ts"
+	$(docker_run) "cd modules/server && npm run build && touch src/index.ts"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################

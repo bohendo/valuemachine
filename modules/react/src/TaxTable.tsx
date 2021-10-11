@@ -1,4 +1,3 @@
-import { commify } from "@ethersproject/units";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
 import Table from "@material-ui/core/Table";
@@ -9,97 +8,39 @@ import TableHead from "@material-ui/core/TableHead";
 import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import { getTaxRows, securityFeeMap } from "@valuemachine/taxes";
 import {
   Assets,
-  Guards,
 } from "@valuemachine/transactions";
 import {
-  AddressBook,
-  Asset,
-  DateString,
-  DecimalString,
-  EventTypes,
+  TaxRow,
   Guard,
-  GuardChangeEvent,
   Prices,
-  TradeEvent,
   ValueMachine,
 } from "@valuemachine/types";
 import {
-  add,
-  mul,
-  round as defaultRound,
-  sub,
+  commify,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 const { ETH } = Assets;
 
-// Every guard has exactly one special asset that it uses to accept security fees aka taxes
-const securityFeeAssetMap = {
-  [Guards.Bitcoin]: Assets.BTC,
-  [Guards.BitcoinCash]: Assets.BCH,
-  [Guards.Ethereum]: Assets.ETH,
-  [Guards.EthereumClassic]: Assets.ETC,
-  [Guards.Litecoin]: Assets.LTC,
-  [Guards.Polygon]: Assets.MATIC,
-  [Guards.CZE]: Assets.CZK,
-  [Guards.EST]: Assets.EUR,
-  [Guards.GBR]: Assets.GBP,
-  [Guards.IND]: Assets.INR,
-  [Guards.ROU]: Assets.EUR,
-  [Guards.USA]: Assets.USD,
-} as const;
-
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  root: {
-    margin: theme.spacing(1),
-  },
   paper: {
     minWidth: "500px",
     padding: theme.spacing(2),
   },
-  select: {
-    margin: theme.spacing(3),
-    minWidth: "160px",
-  },
   title: {
     paddingTop: theme.spacing(2),
   },
-  exportButton: {
-    marginBottom: theme.spacing(4),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(0),
-  },
-  exportCard: {
-    margin: theme.spacing(2),
-    minWidth: "255px",
-  },
 }));
 
-type TaxRow = {
-  date: DateString;
-  action: string;
-  amount: DecimalString;
-  asset: Asset;
-  price: DecimalString;
-  value: DecimalString;
-  receiveDate: DateString;
-  receivePrice: DecimalString;
-  capitalChange: DecimalString;
-  cumulativeChange: DecimalString;
-  cumulativeIncome: DecimalString;
-};
-
 type TaxTableProps = {
-  addressBook: AddressBook;
   guard: Guard;
   prices: Prices;
   vm: ValueMachine;
 };
 export const TaxTable: React.FC<TaxTableProps> = ({
-  addressBook,
   guard,
   prices,
   vm,
@@ -110,134 +51,14 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   const [taxes, setTaxes] = React.useState([] as TaxRow[]);
   const [unit, setUnit] = React.useState(ETH);
 
-  // Locale-dependent rounding & commification
-  const fmtNum = num => {
-    const round = defaultRound(num, guard === Guards.Ethereum ? 4 : 2);
-    const insert = (str: string, index: number, char: string = ",") =>
-      str.substring(0, index) + char + str.substring(index);
-    if (guard === Guards.IND) {
-      const neg = round.startsWith("-") ? "-" : "";
-      const [int, dec] = round.replace("-", "").split(".");
-      const len = int.length;
-      if (len <= 3) {
-        return round;
-      } else if (len <= 5) {
-        return `${neg}${insert(int, len - 3)}.${dec}`;
-      } else if (len <= 7) {
-        return `${neg}${insert(insert(int, len - 3), len - 5)}.${dec}`;
-      } else if (len <= 9) {
-        return `${neg}${
-          insert(insert(insert(int, len - 3), len - 5), len - 7)
-        }.${dec}`;
-      } else {
-        return `${neg}${
-          insert(insert(insert(insert(int, len - 3), len - 5), len - 7), len - 9)
-        }.${dec}`;
-      }
-    }
-    return commify(round);
-  };
-
   useEffect(() => {
-    setUnit(securityFeeAssetMap[guard]);
+    setUnit(securityFeeMap[guard]);
   }, [guard]);
 
   useEffect(() => {
-    if (!addressBook || !guard || !vm?.json?.events?.length) return;
-    let cumulativeIncome = "0";
-    let cumulativeChange = "0";
-    setTaxes(
-      vm?.json?.events.filter(evt => {
-        const toJur = (
-          (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
-        ).split("/")[0];
-        return toJur === guard && (
-          evt.type === EventTypes.Trade
-          || evt.type === EventTypes.GuardChange
-          || evt.type === EventTypes.Income
-        );
-      }).reduce((output, evt) => {
-        const date = evt.date || new Date().toISOString();
-
-        if (evt.type === EventTypes.Trade) {
-          if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return output; }
-          return output.concat(...evt.outputs.map(chunkIndex => {
-            const chunk = vm.getChunk(chunkIndex);
-            const price = prices.getNearest(date, chunk.asset, unit) || "0";
-            if (chunk.asset !== unit && price !== "0") {
-              const value = mul(chunk.amount, price);
-              const receivePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset, unit);
-              const capitalChange = mul(chunk.amount, sub(price, receivePrice || "0"));
-              cumulativeChange = add(cumulativeChange, capitalChange);
-              return {
-                date: date,
-                action: EventTypes.Trade,
-                amount: chunk.amount,
-                asset: chunk.asset,
-                price,
-                value,
-                receivePrice,
-                receiveDate: chunk.history[0].date,
-                capitalChange,
-                cumulativeChange,
-                cumulativeIncome,
-              } as TaxRow;
-            } else {
-              return null;
-            }
-          }).filter(row => !!row) as TaxRow[]);
-
-        } else if (evt.type === EventTypes.Income) {
-          if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); return output; }
-          return output.concat(...evt.inputs.map(chunkIndex => {
-            const chunk = vm.getChunk(chunkIndex);
-            const price = prices.getNearest(date, chunk.asset, unit) || "0";
-            const income = mul(chunk.amount, price);
-            cumulativeIncome = add(cumulativeIncome, income);
-            return {
-              date: date,
-              action: EventTypes.Income,
-              amount: chunk.amount,
-              asset: chunk.asset,
-              price,
-              value: income,
-              receivePrice: price,
-              receiveDate: date,
-              capitalChange: "0",
-              cumulativeChange,
-              cumulativeIncome,
-            } as TaxRow;
-          }));
-
-        } else if (evt.type === EventTypes.GuardChange && evt.to?.split("/").pop() === guard) {
-          if (!evt.chunks) { console.warn(`Missing ${evt.type} chunks`, evt); return output; }
-          return output.concat(...evt.chunks.map(chunkIndex => {
-            const chunk = vm.getChunk(chunkIndex);
-            const price = prices.getNearest(date, chunk.asset, unit) || "0";
-            console.warn(evt, `Temporarily pretending this guard change is income`);
-            const income = mul(chunk.amount, price);
-            cumulativeIncome = add(cumulativeIncome, income);
-            return {
-              date: date,
-              action: "Deposit",
-              amount: chunk.amount,
-              asset: chunk.asset,
-              price,
-              value: income,
-              receivePrice: price,
-              receiveDate: chunk.history[0].date,
-              capitalChange: "0",
-              cumulativeChange,
-              cumulativeIncome,
-            } as TaxRow;
-          }));
-
-        } else {
-          return output;
-        }
-      }, [] as TaxRow[])
-    );
-  }, [addressBook, guard, vm, prices, unit]);
+    if (!guard || !vm?.json?.events?.length) return;
+    setTaxes(getTaxRows({ guard, prices, vm })); 
+  }, [guard, prices, vm]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -252,7 +73,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
     <Paper className={classes.paper}>
 
       <Typography align="center" variant="h4" className={classes.title} component="div">
-        {`${taxes.length} Taxable ${guard} Events`}
+        {`${taxes.length} Taxable ${guard} Event${taxes.length > 1 ? "s" : ""}`}
       </Typography>
 
       <TableContainer>
@@ -278,14 +99,14 @@ export const TaxTable: React.FC<TaxTableProps> = ({
                 <TableRow key={i}>
                   <TableCell> {row.date.replace("T", " ").replace(".000Z", "")} </TableCell>
                   <TableCell> {row.action} </TableCell>
-                  <TableCell> {`${fmtNum(row.amount)} ${row.asset}`} </TableCell>
-                  <TableCell> {fmtNum(row.price)} </TableCell>
-                  <TableCell> {fmtNum(row.value)} </TableCell>
+                  <TableCell> {`${commify(row.amount)} ${row.asset}`} </TableCell>
+                  <TableCell> {commify(row.price)} </TableCell>
+                  <TableCell> {commify(row.value)} </TableCell>
                   <TableCell> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
-                  <TableCell> {fmtNum(row.receivePrice)} </TableCell>
-                  <TableCell> {fmtNum(row.capitalChange)} </TableCell>
-                  <TableCell> {fmtNum(row.cumulativeChange)} </TableCell>
-                  <TableCell> {fmtNum(row.cumulativeIncome)} </TableCell>
+                  <TableCell> {commify(row.receivePrice)} </TableCell>
+                  <TableCell> {commify(row.capitalChange)} </TableCell>
+                  <TableCell> {commify(row.cumulativeChange)} </TableCell>
+                  <TableCell> {commify(row.cumulativeIncome)} </TableCell>
                 </TableRow>
               ))}
           </TableBody>

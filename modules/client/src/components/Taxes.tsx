@@ -1,7 +1,4 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
@@ -9,23 +6,18 @@ import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import Typography from "@material-ui/core/Typography";
-import DownloadIcon from "@material-ui/icons/GetApp";
-import { DateInput, TaxTable } from "@valuemachine/react";
+import { TaxPorter, TaxTable } from "@valuemachine/react";
 import {
-  Guards,
+  PhysicalGuards,
 } from "@valuemachine/transactions";
 import {
   AddressBook,
-  Asset,
-  DateString,
-  DecimalString,
   EventTypes,
   Guard,
   Prices,
   TradeEvent,
   ValueMachine,
 } from "@valuemachine/types";
-import { parse as json2csv } from "json2csv";
 import React, { useEffect, useState } from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -55,77 +47,36 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-type TaxRow = {
-  date: DateString;
-  action: string;
-  amount: DecimalString;
-  asset: Asset;
-  price: DecimalString;
-  value: DecimalString;
-  receiveDate: DateString;
-  receivePrice: DecimalString;
-  capitalChange: DecimalString;
-  cumulativeChange: DecimalString;
-  cumulativeIncome: DecimalString;
-};
-
-type PropTypes = {
+type TaxesExplorerProps = {
   addressBook: AddressBook;
   vm: ValueMachine,
   prices: Prices,
 };
-export const TaxesExplorer: React.FC<PropTypes> = ({
+export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   addressBook,
   vm,
   prices,
-}: PropTypes) => {
+}: TaxesExplorerProps) => {
   const classes = useStyles();
   const [allGuards, setAllGuards] = useState([] as Guard[]);
-  const [guard, setGuard] = React.useState(Guards.Ethereum as Guard);
-  const [taxes, setTaxes] = React.useState([] as TaxRow[]);
-  const [fromDate, setFromDate] = React.useState("");
-  const [toDate, setToDate] = React.useState("");
+  const [guard, setGuard] = React.useState("");
 
   useEffect(() => {
     if (!addressBook || !vm?.json?.events?.length) return;
     const newGuards = Array.from(vm.json.events
       .filter(
         e => e.type === EventTypes.Trade || e.type === EventTypes.Income
-      ).reduce((all, evt) => {
-        const jur = (evt as TradeEvent).account.split("/")[0];
-        if (Object.keys(Guards).includes(jur)) {
-          all.add(jur);
+      ).reduce((setOfGuards, evt) => {
+        const guard = (evt as TradeEvent).account?.split("/")?.[0];
+        if (Object.keys(PhysicalGuards).includes(guard)) {
+          setOfGuards.add(guard);
         }
-        return all;
+        return setOfGuards;
       }, new Set())
     ).sort() as Guard[];
     setAllGuards(newGuards);
     setGuard(newGuards[0]);
   }, [addressBook, vm]);
-
-  useEffect(() => {
-    if (!addressBook || !guard || !vm?.json?.events?.length) return;
-    setTaxes([] as TaxRow[]); // TODO: put events->tax logic into the csv exporter component?
-  }, [addressBook, guard, vm, prices]);
-
-  const handleExport = () => {
-    if (!taxes?.length) { console.warn("Nothing to export"); return; }
-    const getDate = (timestamp: string): string =>
-      (new Date(timestamp)).toISOString().split("T")[0];
-    const output = json2csv(
-      taxes.filter(row =>
-        (!fromDate || getDate(row.date) >= getDate(fromDate)) &&
-        (!toDate || getDate(row.date) <= getDate(toDate))
-      ),
-      Object.keys(taxes[0]),
-    );
-    const name = `${guard}-taxes.csv`;
-    const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
-    const a = document.createElement("a");
-    a.href = "data:" + data;
-    a.download = name;
-    a.click();
-  };
 
   const handleGuardChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
@@ -140,7 +91,7 @@ export const TaxesExplorer: React.FC<PropTypes> = ({
       <Divider/>
 
       <Typography variant="body1" className={classes.root}>
-        Security provided by: {allGuards.join(", ")}
+        Physical Security provided by: {allGuards.join(", ")}
       </Typography>
 
       <Grid
@@ -167,27 +118,12 @@ export const TaxesExplorer: React.FC<PropTypes> = ({
         </Grid>
 
         <Grid item md={8}>
-          <Card className={classes.exportCard}>
-            <CardHeader title={"Export CSV"}/>
-            <DateInput id="from-date" label="From Date" setDate={setFromDate} />
-            <DateInput id="to-date" label="To Date" setDate={setToDate} />
-            <Button
-              className={classes.exportButton}
-              color="primary"
-              fullWidth={false}
-              onClick={handleExport}
-              size="small"
-              startIcon={<DownloadIcon />}
-              variant="contained"
-            >
-              Download
-            </Button>
-          </Card>
+          <TaxPorter guard={guard} prices={prices} vm={vm} />
         </Grid>
 
       </Grid>
 
-      <TaxTable addressBook={addressBook} prices={prices} vm={vm} guard={guard}/>
+      <TaxTable guard={guard} prices={prices} vm={vm} />
 
     </>
   );

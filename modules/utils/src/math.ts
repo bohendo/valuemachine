@@ -1,7 +1,7 @@
 import { BigNumber as BN } from "@ethersproject/bignumber";
 import { MaxUint256, Zero } from "@ethersproject/constants";
-import { formatUnits, parseUnits } from "@ethersproject/units";
-import { HexString } from "@valuemachine/types";
+import { commify as defaultCommify, formatUnits, parseUnits } from "@ethersproject/units";
+import { Asset, DecimalString, HexString } from "@valuemachine/types";
 
 ////////////////////////////////////////
 // Internal Helpers
@@ -108,4 +108,28 @@ export const sigfigs = (decStr: string, n = 3): string => {
   const dec = decStr.split(".")[1];
   const leadingZeros = dec.length - dec.replace(/^0+/, "").length;
   return round(decStr, leadingZeros + n);
+};
+
+// Locale-dependent rounding & commification
+export const commify = (num: DecimalString, asset?: Asset): string => {
+  let rounded = round(num, asset === "INR" || asset === "USD" ? 2 : undefined);
+  if (asset !== "INR") {
+    return defaultCommify(rounded);
+  }
+  // derived from https://github.com/roy2393/format-numerals/blob/master/src/index.ts#L20
+  let afterPoint = "";
+  if (rounded.indexOf(".") > 0) {
+    afterPoint = rounded.substring(rounded.indexOf("."), rounded.length);
+    rounded = rounded.substring(0, rounded.indexOf("."));
+  }
+  let lastThree = rounded.substring(rounded.length - 3);
+  const otherNumbers = rounded.substring(0, rounded.length - 3);
+  // 1st comma added after the 3rd digit from right
+  if (otherNumbers !== "") lastThree = `,${lastThree}`;
+  // regex to add , after every 2nd number
+  const result =
+    otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") +
+    lastThree +
+    afterPoint;
+  return result;
 };

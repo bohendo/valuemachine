@@ -9,6 +9,7 @@ export { CsvTable } from "./CsvTable";
 export { DateInput } from "./DateInput";
 export { EventTable } from "./EventTable";
 export { HexString } from "./HexString";
+export { TaxPorter } from "./TaxPorter";
 export { TaxTable } from "./TaxTable";
 export { TransactionEditor } from "./TransactionEditor";
 export { TransactionTable } from "./TransactionTable";
