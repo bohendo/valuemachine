@@ -12,7 +12,7 @@ import Typography from "@material-ui/core/Typography";
 import DownloadIcon from "@material-ui/icons/GetApp";
 import { DateInput, TaxTable } from "@valuemachine/react";
 import {
-  Guards,
+  PhysicalGuards,
 } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -81,7 +81,7 @@ export const TaxesExplorer: React.FC<PropTypes> = ({
 }: PropTypes) => {
   const classes = useStyles();
   const [allGuards, setAllGuards] = useState([] as Guard[]);
-  const [guard, setGuard] = React.useState(Guards.Ethereum as Guard);
+  const [guard, setGuard] = React.useState("");
   const [taxes, setTaxes] = React.useState([] as TaxRow[]);
   const [fromDate, setFromDate] = React.useState("");
   const [toDate, setToDate] = React.useState("");
@@ -91,12 +91,12 @@ export const TaxesExplorer: React.FC<PropTypes> = ({
     const newGuards = Array.from(vm.json.events
       .filter(
         e => e.type === EventTypes.Trade || e.type === EventTypes.Income
-      ).reduce((all, evt) => {
-        const jur = (evt as TradeEvent).account.split("/")[0];
-        if (Object.keys(Guards).includes(jur)) {
-          all.add(jur);
+      ).reduce((setOfGuards, evt) => {
+        const guard = (evt as TradeEvent).account?.split("/")?.[0];
+        if (Object.keys(PhysicalGuards).includes(guard)) {
+          setOfGuards.add(guard);
         }
-        return all;
+        return setOfGuards;
       }, new Set())
     ).sort() as Guard[];
     setAllGuards(newGuards);
@@ -140,7 +140,7 @@ export const TaxesExplorer: React.FC<PropTypes> = ({
       <Divider/>
 
       <Typography variant="body1" className={classes.root}>
-        Security provided by: {allGuards.join(", ")}
+        Physical Security provided by: {allGuards.join(", ")}
       </Typography>
 
       <Grid

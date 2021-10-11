@@ -1,5 +1,4 @@
 import {
-  Asset,
   EventTypes,
   Guard,
   GuardChangeEvent,
@@ -14,18 +13,19 @@ import {
   sub,
 } from "@valuemachine/utils";
 
+import { securityFeeMap } from "./constants";
+
 export const getTaxRows = ({
   guard,
   prices,
-  unit,
   vm,
 }: {
   guard: Guard;
   prices: Prices;
-  unit: Asset;
   vm: ValueMachine;
 }): TaxRow[] => {
-
+  const unit = securityFeeMap[guard] || "";
+  if (!unit) throw new Error(`Security asset is unknown for ${guard}`);
   let cumulativeIncome = "0";
   let cumulativeChange = "0";
 
