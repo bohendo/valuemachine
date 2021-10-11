@@ -1,3 +1,5 @@
+import Json from "@rollup/plugin-json";
+import NodeResolve from "@rollup/plugin-node-resolve";
 import Typescript from "@rollup/plugin-typescript";
 import TypeDeclarations from "rollup-plugin-dts";
 
@@ -20,6 +22,8 @@ export default [
     ],
     external: [/node_modules/, ...Object.keys(pkg.dependencies)],
     plugins: [
+      NodeResolve(),
+      Json({ compact: true }),
       Typescript({
         outputToFilesystem: true,
         tsconfig: "./tsconfig.json",
