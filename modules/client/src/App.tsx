@@ -38,7 +38,7 @@ import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
 import { AddressBookManager } from "./components/AddressBook";
-import { Dashboard } from "./components/Dashboard";
+import { NetWorthExplorer } from "./components/NetWorth";
 import { NavBar } from "./components/NavBar";
 import { PriceManager } from "./components/Prices";
 import { TaxesExplorer } from "./components/Taxes";
@@ -217,35 +217,13 @@ const App: React.FC = () => {
           <Switch>
 
             <Route exact path="/">
-              <Dashboard
+              <AddressBookManager
                 addressBook={addressBook}
-                vm={vm}
-              />
-            </Route>
-
-            <Route exact path="/taxes">
-              <TaxesExplorer
-                addressBook={addressBook}
-                vm={vm}
-                prices={prices}
-              />
-            </Route>
-
-            <Route exact path="/prices">
-              <PriceManager
-                prices={prices}
-                setPricesJson={setPricesJson}
-                vm={vm}
-                unit={unit}
-              />
-            </Route>
-
-            <Route exact path="/value-machine">
-              <ValueMachineExplorer
-                addressBook={addressBook}
-                vm={vm}
-                setVMJson={setVMJson}
-                transactions={transactions}
+                setAddressBookJson={setAddressBookJson}
+                csvFiles={csvFiles}
+                setCsvFiles={setCsvFiles}
+                customTxns={customTxns}
+                setCustomTxns={setCustomTxns}
               />
             </Route>
 
@@ -259,14 +237,38 @@ const App: React.FC = () => {
               />
             </Route>
 
-            <Route exact path="/address-book">
-              <AddressBookManager
+            <Route exact path="/value-machine">
+              <ValueMachineExplorer
                 addressBook={addressBook}
-                setAddressBookJson={setAddressBookJson}
-                csvFiles={csvFiles}
-                setCsvFiles={setCsvFiles}
-                customTxns={customTxns}
-                setCustomTxns={setCustomTxns}
+                vm={vm}
+                setVMJson={setVMJson}
+                transactions={transactions}
+              />
+            </Route>
+
+            <Route exact path="/prices">
+              <PriceManager
+                prices={prices}
+                setPricesJson={setPricesJson}
+                vm={vm}
+                unit={unit}
+              />
+            </Route>
+
+            <Route exact path="/net-worth">
+              <NetWorthExplorer
+                addressBook={addressBook}
+                prices={prices}
+                unit={unit}
+                vm={vm}
+              />
+            </Route>
+
+            <Route exact path="/taxes">
+              <TaxesExplorer
+                addressBook={addressBook}
+                vm={vm}
+                prices={prices}
               />
             </Route>
 

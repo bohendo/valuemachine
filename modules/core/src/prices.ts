@@ -128,7 +128,7 @@ export const getPrices = (params?: PricesParams): Prices => {
       !unvisited.has(start) || !unvisited.has(target) ||
       !countPrices(date, start) || !countPrices(date, target)
     ) {
-      log.debug(`${target} to ${start} exchange rate is unavailable on ${date}`);
+      log.trace(`${target} to ${start} exchange rate is unavailable on ${date}`);
       return [];
     }
     const distances = {} as { [to: string]: { distance: number; path: Asset[]; } };
@@ -417,13 +417,16 @@ export const getPrices = (params?: PricesParams): Prices => {
     log.debug(`Getting ${unit} price of ${asset} on date closest to ${date}..`);
     let price = getPrice(date, asset, givenUnit);
     if (price) return price;
-    const diff = (d1, d2) => new Date(d1).getTime() - new Date(d2).getTime();
+    const diff = (d1, d2) => Math.abs(new Date(d1).getTime() - new Date(d2).getTime());
     const availableDates = Object.keys(json).sort((d1, d2) => {
       return diff(d1, date) - diff(d2, date);
     });
     for (const candidate of availableDates) {
       price = getPrice(candidate, asset, givenUnit);
-      if (price) return price;
+      if (price) {
+        log.debug(`Found ${unit} price of ${asset} on ${candidate}: ${price}`);
+        return price;
+      }
     }
     return undefined;
   };

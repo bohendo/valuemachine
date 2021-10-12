@@ -28,4 +28,5 @@ export {
   Balances,
   ChunkTable,
   EventTable,
+  NetWorthTable,
 } from "./valuemachine";

@@ -4,6 +4,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableRow from "@material-ui/core/TableRow";
+import { Balances as BalancesType } from "@valuemachine/types";
 import React from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
@@ -33,11 +34,10 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 export const Balances = ({
   balances,
 }: {
-  balances: { [asset: string]: string },
+  balances: BalancesType,
 }) => {
   const classes = useStyles();
   return (<>
-
     <TableContainer>
       <Table size="small" className={classes.table}>
         <TableBody>
@@ -50,6 +50,5 @@ export const Balances = ({
         </TableBody>
       </Table>
     </TableContainer>
-
   </>);
 };
