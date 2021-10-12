@@ -229,6 +229,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
         <TransactionTable
           addressBook={addressBook}
           transactions={getTransactions({ json: customTxns || [], logger })}
+          setTransactions={setCustomTxns}
         />
 
       </div>

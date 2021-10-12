@@ -39,7 +39,7 @@ const getEmptyTransaction = (): Transaction => JSON.parse(JSON.stringify({
 }));
 
 type TransactionEditorProps = {
-  tx?: Transaction;
+  tx?: Partial<Transaction>;
   setTx?: (tx: Transaction) => void;
 };
 export const TransactionEditor: React.FC<TransactionEditorProps> = ({
@@ -149,6 +149,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
 
       <Grid item md={12}>
         <TransferEditor
+          transfer={tx?.transfers?.[0]}
           setTransfer={transfer => setNewTx({ ...newTx, transfers: [transfer] })}
         />
       </Grid>

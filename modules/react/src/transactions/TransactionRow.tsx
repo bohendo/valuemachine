@@ -1,5 +1,6 @@
 import { makeStyles } from "@material-ui/core/styles";
 import Box from "@material-ui/core/Box";
+import Button from "@material-ui/core/Button";
 import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
 import Table from "@material-ui/core/Table";
@@ -8,6 +9,8 @@ import TableCell from "@material-ui/core/TableCell";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
+import EditIcon from "@material-ui/icons/Edit";
+import DeleteIcon from "@material-ui/icons/Backspace";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import { describeTransaction } from "@valuemachine/transactions";
@@ -15,11 +18,14 @@ import {
   AddressBook,
   Transaction,
   Transfer,
+  TxId,
 } from "@valuemachine/types";
 import { round } from "@valuemachine/utils";
 import React, { useState } from "react";
 
 import { HexString } from "../utils";
+
+import { TransactionEditor } from "./TransactionEditor";
 
 const useStyles = makeStyles((theme) => ({
   tableRow: {
@@ -37,20 +43,52 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: theme.spacing(16),
     padding: theme.spacing(1),
   },
+  button: {
+    marginLeft: theme.spacing(3),
+    marginBottom: theme.spacing(2),
+  }
 }));
 
-export const TransactionRow = ({
-  addressBook,
-  tx,
-}: {
+type TransactionRowProps = {
   addressBook: AddressBook;
   tx: Transaction;
-}) => {
+  editTx?: (uuid: TxId, val?: Transaction) => void;
+};
+export const TransactionRow: React.FC<TransactionRowProps> = ({
+  addressBook,
+  tx,
+  editTx,
+}: TransactionRowProps) => {
   const [open, setOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [newTx, setNewTx] = useState({} as Partial<Transaction>);
   const classes = useStyles();
   const date = (new Date(tx.date)).toISOString().replace(".000Z", "");
+
+  const toggleEditMode = () => {
+    setEditMode(!editMode);
+    if (editMode) {
+      setNewTx({});
+    } else {
+      setNewTx(JSON.parse(JSON.stringify(tx)));
+    }
+  };
+
+  const saveTx = (newTx: Transaction) => {
+    if (!editTx || !newTx) return;
+    editTx(newTx.uuid, newTx);
+    setEditMode(false);
+  };
+
+  const deleteTx = () => {
+    if (!editTx) return;
+    editTx(tx.uuid);
+    setEditMode(false);
+  };
+
   return (
     <React.Fragment>
+
       <TableRow className={classes.tableRow}>
         <TableCell onClick={() => setOpen(!open)} className={classes.firstCell}>
           <IconButton aria-label="expand row" size="small" >
@@ -66,7 +104,15 @@ export const TransactionRow = ({
         <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell> {tx.apps.join(", ")} </TableCell>
         <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
+        {editTx ?
+          <TableCell>
+            <IconButton color="secondary" onClick={toggleEditMode}>
+              <EditIcon />
+            </IconButton>
+          </TableCell>
+          : null}
       </TableRow>
+
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
@@ -117,6 +163,32 @@ export const TransactionRow = ({
           </Collapse>
         </TableCell>
       </TableRow>
+
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={editMode} timeout="auto" unmountOnExit>
+            <Box pb={2} px={4}>
+              <TransactionEditor
+                tx={newTx}
+                setTx={saveTx}
+              />
+
+              <Button
+                className={classes.button}
+                color="primary"
+                onClick={deleteTx}
+                size="small"
+                startIcon={<DeleteIcon />}
+                variant="contained"
+              >
+                {"Delete Transaction"}
+              </Button>
+
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+
     </React.Fragment>
   );
 };

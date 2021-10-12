@@ -16,13 +16,14 @@ import {
   Asset,
   IncomingTransfers,
   OutgoingTransfers,
+  Source,
   Transaction,
   Transactions,
   TransactionsJson,
-  Source,
   TransferCategories,
+  TxId,
 } from "@valuemachine/types";
-import { dedup } from "@valuemachine/utils";
+import { chrono, dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { DateInput, SelectOne } from "../utils";
@@ -53,10 +54,12 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
 type TransactionTableProps = {
   addressBook: AddressBook;
   transactions: Transactions;
+  setTransactions?: (val: TransactionsJson) => void;
 };
 export const TransactionTable: React.FC<TransactionTableProps> = ({
   addressBook,
   transactions,
+  setTransactions,
 }: TransactionTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
@@ -154,6 +157,22 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     setPage(0);
   };
 
+  const editTx = (uuid: TxId, newTx?: Transaction) => {
+    if (!setTransactions || !transactions?.json) return;
+    const newTxns = [...transactions.json];
+    const oldTxIndex = newTxns.findIndex(tx => tx.uuid === uuid);
+    if (oldTxIndex >= 0) {
+      console.log(`Removing old tx at index ${oldTxIndex}`);
+      newTxns.splice(oldTxIndex, 1);
+    }
+    if (newTx) {
+      newTxns.push(newTx);
+    }
+    newTxns.sort(chrono);
+    newTxns.forEach((tx, i) => { tx.index = i; });
+    setTransactions(newTxns);
+  };
+
   return (<>
 
     <Paper className={classes.paper}>
@@ -225,14 +244,18 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
               <TableCell><strong> Sources </strong></TableCell>
               <TableCell><strong> Apps </strong></TableCell>
               <TableCell><strong> Description </strong></TableCell>
+              {setTransactions ? <TableCell><strong> Edit </strong></TableCell> : null}
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredTxns
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((tx: Transaction, i: number) => (
-                <TransactionRow addressBook={addressBook} key={i} tx={tx} />
-              ))
+              .map((tx: Transaction, i: number) => (<TransactionRow
+                key={i}
+                addressBook={addressBook}
+                editTx={setTransactions ? editTx : undefined}
+                tx={tx}
+              />))
             }
           </TableBody>
         </Table>
