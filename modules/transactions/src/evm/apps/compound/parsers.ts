@@ -18,7 +18,7 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { Apps, Tokens } from "../../enums";
+import { Apps, Methods, Tokens } from "../../enums";
 import { parseEvent } from "../../utils";
 
 import {
@@ -149,7 +149,7 @@ const coreParser = (
           }
           deposit.category = Internal;
           deposit.to = account;
-          tx.method = "Deposit";
+          tx.method = Methods.Deposit;
         } else {
           log.warn(tx.transfers, `Can't find an associated deposit transfer`);
         }
@@ -177,7 +177,7 @@ const coreParser = (
           }
           withdraw.category = Internal;
           withdraw.from = account;
-          tx.method = "Withdraw";
+          tx.method = Methods.Withdraw;
         } else {
           log.warn(tx.transfers, `Can't find an incoming transfer of ${amount} ${asset}`);
         }
@@ -187,7 +187,7 @@ const coreParser = (
         if (borrow) {
           borrow.category = Borrow;
           borrow.from = account;
-          tx.method = "Borrow";
+          tx.method = Methods.Borrow;
         } else {
           log.warn(tx.transfers, `Can't find an associated borrow transfer`);
         }
@@ -197,7 +197,7 @@ const coreParser = (
         if (repay) {
           repay.category = Repay;
           repay.to = account;
-          tx.method = "Repayment";
+          tx.method = Methods.Repayment;
           const refund = tx.transfers.find(transfer =>
             transfer.asset === repay.asset &&
             isSelf(transfer.to) &&
@@ -221,7 +221,7 @@ const coreParser = (
       const event = parseEvent(comptrollerAbi, txLog, evmMeta);
       if (event.name === "MarketEntered") {
         tx.apps.push(appName);
-        tx.method = `${getName(event.args.cToken)} market entry`;
+        tx.method = `${getName(event.args.cToken)} ${Methods.Registration}`;
           
       }
 
@@ -273,7 +273,7 @@ const coreParser = (
           swapOut.to = address;
           swapIn.category = SwapIn;
           swapIn.from = address;
-          tx.method = "Deposit";
+          tx.method = Methods.Deposit;
         }
 
       // Withdraw
@@ -292,7 +292,7 @@ const coreParser = (
           swapOut.to = address;
           swapIn.category = SwapIn;
           swapIn.from = address;
-          tx.method = "Withdraw";
+          tx.method = Methods.Withdraw;
         }
 
       // Borrow
@@ -302,11 +302,12 @@ const coreParser = (
         const borrow = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (borrow) {
           borrow.category = Borrow;
-          borrow.from = address; // should this be a non-address account?
+          borrow.from = insertVenue(borrow.to, cAsset);
+          borrow.index = "index" in borrow ? borrow.index : txLog.index;
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
         }
-        tx.method = "Borrow";
+        tx.method = Methods.Borrow;
 
       // Repay
       } else if (event.name === "RepayBorrow") {
@@ -314,17 +315,19 @@ const coreParser = (
         const tokenAmt = formatUnits(event.args.repayAmount, decimals);
         const repay = tx.transfers.find(associatedTransfer(asset, tokenAmt));
         if (repay) {
+          tx.method = Methods.Repayment;
           repay.category = Repay;
-          repay.to = address; // should this be a non-address account?
-          tx.method = "Repayment";
+          repay.to = insertVenue(repay.from, cAsset);
+          repay.index = repay.index || txLog.index;
           const refund = tx.transfers.find(transfer =>
             transfer.asset === repay.asset &&
             isSelf(transfer.to) &&
             transfer.from === maximillionAddress
           );
           if (refund) {
+            refund.from = insertVenue(refund.to, cAsset);
             refund.category = TransferCategories.Refund;
-            refund.index = "index" in refund ? refund.index : txLog.index;
+            refund.index = "index" in refund ? refund.index : txLog.index + 1;
           }
         } else {
           log.warn(`${event.name}: Can't find repayment of ${tokenAmt} ${asset}`);
@@ -338,7 +341,6 @@ const coreParser = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };
 

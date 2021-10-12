@@ -6,6 +6,11 @@ const Apps = {
 } as const;
 
 const Methods = {
+  Borrow: "Borrow",
+  Deposit: "Deposit",
+  Repayment: "Repayment",
+  Withdraw: "Withdraw",
+  Registration: "Registration",
 } as const;
 
 const Tokens = {

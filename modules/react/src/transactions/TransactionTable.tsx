@@ -208,7 +208,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
 
       <SelectOne
         label="Filter Method"
-        choices={Object.keys(Methods)}
+        choices={Object.keys(Methods).sort()}
         selection={filterMethod}
         setSelection={setFilterMethod}
       />

@@ -36,14 +36,14 @@ export const describeTransaction = (addressBook: AddressBook, tx: Transaction): 
     return `${
       addressBook.getName(nonFee.find(t => t.category === Borrow).to, true)
     } borrowed ${
-      describeBalance(sumTransfers(nonFee))
+      describeBalance(sumTransfers(nonFee.filter(t => t.category === Borrow)))
     }${nonFee.length > 1 ? ", etc" : ""}`;
 
   } else if (nonFee.some(t => t.category === Repay)) {
     return `${
       addressBook.getName(nonFee.find(t => t.category === Repay).from, true)
     } repayed ${
-      describeBalance(sumTransfers(nonFee))
+      describeBalance(sumTransfers(nonFee.filter(t => t.category === Repay)))
     }${nonFee.length > 1 ? ", etc" : ""}`;
 
   } else if (tx.method) {
