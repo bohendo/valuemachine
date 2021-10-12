@@ -123,9 +123,10 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
 
       <Grid item md={4}>
         <TextInput
+          getError={getNameError}
           label="Account Name"
           setText={name => setNewEntry({ ...newEntry, name })}
-          getError={getNameError}
+          text={newEntry.name}
         />
       </Grid>
 
@@ -140,10 +141,11 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
 
       <Grid item md={6}>
         <TextInput
+          fullWidth={true}
+          getError={getAddressError}
           label="Evm Address"
           setText={address => setNewEntry({ ...newEntry, address })}
-          getError={getAddressError}
-          fullWidth={true}
+          text={newEntry.address}
         />
       </Grid>
 
