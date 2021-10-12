@@ -46,12 +46,12 @@ export const coinbaseParser = (
     const fee = sub(usdTotal, usdAmount);
     const account = `${guard}/${source}/account`;
     const exchange = `${guard}/${source}`;
-    const external = `${getGuard(asset)}/unknown`;
+    const external = `${getGuard(asset)}/default`;
 
     // NOTE: Coinbase doesn't provide info re transfers to/from bank
     // as a workaround, pretend like coinbase can't hold USD
     // always transfer USD to/from the bank during every sell/buy
-    const bank = `${guard}/unknown`;
+    const bank = `${guard}/default`;
 
     const transaction = {
       apps: [],

@@ -32,7 +32,7 @@ const getCsvTx = (): Transaction => ({
     {
       asset: ETH,
       category: Internal,
-      from: "Ethereum/unknown",
+      from: "Ethereum/default",
       amount: value.substring(0, 10),
       to: `USA/${csvSource}/account`
     }

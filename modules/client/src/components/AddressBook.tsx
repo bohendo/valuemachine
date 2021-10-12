@@ -23,13 +23,11 @@ import {
 import {
   AddressBook,
   AddressBookJson,
-  AddressCategories,
   AddressEntry,
   CsvFiles,
   Transaction,
-  TransferCategories,
 } from "@valuemachine/types";
-import { getLogger } from "@valuemachine/utils";
+import { getBlankAddressEntry, getBlankTransaction, getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
 
 const logger = getLogger("debug");
@@ -54,34 +52,9 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   button: {
     margin: theme.spacing(2),
   },
-  paper: {
-    padding: theme.spacing(2),
-  },
   tabs: {
     margin: theme.spacing(1),
   },
-}));
-
-const getEmptyTransaction = (): Transaction => JSON.parse(JSON.stringify({
-  apps: [],
-  date: "",
-  index: 0,
-  method: "",
-  sources: [],
-  transfers: [{
-    amount: "",
-    asset: "",
-    category: TransferCategories.Noop,
-    from: "",
-    to: "",
-  }],
-  uuid: "",
-}));
-
-const getEmptyAddress = (): AddressEntry => JSON.parse(JSON.stringify({
-  address: "",
-  category: AddressCategories.Self,
-  name: "",
 }));
 
 type PropTypes = {
@@ -100,18 +73,20 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   customTxns,
   setCustomTxns,
 }: PropTypes) => {
-  const [newAddress, setNewAddress] = useState(getEmptyAddress());
-  const [newTransaction, setNewTransaction] = useState(getEmptyTransaction());
+  const [newEntry, setNewEntry] = useState(getBlankAddressEntry());
+  const [newTransaction, setNewTransaction] = useState(getBlankTransaction());
   const [tab, setTab] = useState(0);
   const classes = useStyles();
 
-  const addNewAddress = (editedAddress: AddressEntry) => {
+
+  const addNewEntry = (editedAddress: AddressEntry) => {
     // create new obj to ensure it re-renders
     setAddressBookJson({
       ...addressBook.json,
       [editedAddress.address]: editedAddress,
     });
-    setNewAddress(getEmptyAddress()); // Reset new address editor
+    const blankEntry = getBlankAddressEntry();
+    setNewEntry(blankEntry); // Reset new address editor
   };
 
   const deleteAddresses = async () => {
@@ -123,13 +98,12 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   };
 
   const addNewTransaction = (newTx: Transaction) => {
-    console.log(newTx, "Adding new transaction");
     const newCustomTxns = [...customTxns]; // create new array to ensure it re-renders
     if (newTx) newCustomTxns.push(newTx);
     newCustomTxns.sort((t1, t2) => new Date(t1.date).getTime() - new Date(t2.date).getTime());
     newCustomTxns.forEach((tx, index) => { tx.index = index; });
     setCustomTxns(newCustomTxns);
-    setNewTransaction(getEmptyTransaction()); // reset editor
+    setNewTransaction(getBlankTransaction()); // reset editor
   };
 
   const deleteCustomTxns = async () => {
@@ -168,8 +142,8 @@ export const AddressBookManager: React.FC<PropTypes> = ({
             <Card className={classes.card}>
               <CardHeader title={"Add new Address"} />
               <AddressEditor
-                entry={newAddress}
-                setEntry={addNewAddress}
+                entry={newEntry}
+                setEntry={addNewEntry}
                 addresses={Object.values(addressBook.json).map(e => e.address)}
               />
             </Card>
@@ -255,6 +229,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
         <TransactionTable
           addressBook={addressBook}
           transactions={getTransactions({ json: customTxns || [], logger })}
+          setTransactions={setCustomTxns}
         />
 
       </div>

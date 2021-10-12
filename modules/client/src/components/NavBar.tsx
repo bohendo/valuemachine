@@ -27,8 +27,14 @@ import { Link } from "react-router-dom";
 
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
+  toolbar: {
+    overflow: "auto",
+  },
   navButton: {
     marginLeft: theme.spacing(2),
+  },
+  title: {
+    flexGrow: theme.spacing(1),
   },
   selectUnit: {
     "& > *": {
@@ -36,25 +42,13 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
       "&::before": { borderColor: "inherit" }, // underline
       color: "inherit", // label & selection text
     },
-    // alignItems: "center",
-    // display: "flex",
-    // justifyContent: "center",
     marginLeft: theme.spacing(2),
     merginRight: theme.spacing(2),
     minWidth: theme.spacing(9),
   },
   lightswitch: {
-    // alignItems: "center",
-    // display: "flex",
-    // justifyContent: "center",
     marginLeft: theme.spacing(1),
     minWidth: theme.spacing(7),
-  },
-  title: {
-    flexGrow: theme.spacing(1),
-  },
-  toolbar: {
-    overflow: "auto",
   },
 }));
 

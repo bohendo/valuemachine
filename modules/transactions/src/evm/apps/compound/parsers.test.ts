@@ -10,8 +10,8 @@ import {
 } from "../../testUtils";
 
 const appName = Apps.Compound;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
-const parseTx = getParseTx({ logger });
+const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
+const parseTx = getParseTx({ logger: log });
 
 describe(appName, () => {
   it("should handle deposits to compound v1", async () => {
@@ -72,7 +72,9 @@ describe(appName, () => {
     });
     expect(tx.apps).to.include(appName);
     expect(tx.transfers.length).to.equal(2);
+    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Borrow);
+    expect(tx.transfers[1].from).to.include("cETH");
   });
 
   it("should handle repayments to compound v2", async () => {
@@ -84,7 +86,9 @@ describe(appName, () => {
     expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
+    expect(tx.transfers[1].to).to.include("cETH");
     expect(tx.transfers[2].category).to.equal(TransferCategories.Refund);
+    expect(tx.transfers[2].from).to.include("cETH");
   });
 
 });

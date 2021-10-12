@@ -1,12 +1,8 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Divider from "@material-ui/core/Divider";
-import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
 import Typography from "@material-ui/core/Typography";
-import { TaxPorter, TaxTable } from "@valuemachine/react";
+import { SelectOne, TaxPorter, TaxTable } from "@valuemachine/react";
 import {
   PhysicalGuards,
 } from "@valuemachine/transactions";
@@ -23,10 +19,6 @@ import React, { useEffect, useState } from "react";
 const useStyles = makeStyles((theme: Theme) => createStyles({
   root: {
     margin: theme.spacing(1),
-  },
-  paper: {
-    minWidth: "500px",
-    padding: theme.spacing(2),
   },
   select: {
     margin: theme.spacing(3),
@@ -78,11 +70,6 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     setGuard(newGuards[0]);
   }, [addressBook, vm]);
 
-  const handleGuardChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setGuard(event.target.value);
-  };
-
   return (
     <>
       <Typography variant="h3">
@@ -103,18 +90,12 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
       >
 
         <Grid item md={4}>
-          <FormControl className={classes.select}>
-            <InputLabel id="select-guard">Guard</InputLabel>
-            <Select
-              labelId="select-guard"
-              id="select-guard"
-              value={guard || ""}
-              onChange={handleGuardChange}
-            >
-              <MenuItem value={""}>-</MenuItem>
-              {allGuards?.map((g, i) => <MenuItem key={i} value={g}>{g}</MenuItem>)}
-            </Select>
-          </FormControl>
+          <SelectOne
+            label="Guard"
+            choices={allGuards}
+            selection={guard}
+            setSelection={newGuard => setGuard(newGuard)}
+          />
         </Grid>
 
         <Grid item md={8}>

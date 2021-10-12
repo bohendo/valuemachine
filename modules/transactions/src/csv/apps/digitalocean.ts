@@ -52,7 +52,7 @@ export const digitaloceanParser = (
       amount: amount.replace("$", ""),
       asset: Assets.USD,
       category: TransferCategories.Expense,
-      from: `${guard}/unknown`,
+      from: `${guard}/default`,
       index: 1,
       to: `${guard}/${source}`,
     });

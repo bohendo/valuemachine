@@ -76,7 +76,7 @@ export const wazirxParser = (
         ["Volume"]: amount,
       } = row;
 
-      const external = `${getGuard(currency)}/unknown`;
+      const external = `${getGuard(currency)}/default`;
 
       if (txType === "Deposit") {
         transaction.transfers.push({
