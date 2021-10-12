@@ -58,12 +58,10 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   }, [guard, vm]);
 
   const handleCsvExport = () => {
-    const taxes = getTaxRows({ guard, prices, vm });
+    console.log(`Exporting csv for ${taxYear} taxes`);
+    const taxes = getTaxRows({ guard, prices, vm, taxYear });
     const output = json2csv(
-      taxes.filter(row =>
-        taxYear === allTaxYears
-        || row.date.startsWith(taxYear)
-      ).map(row => ({
+      taxes.map(row => ({
         ...row,
         amount: round(row.amount, 6),
         value: round(row.value, 2),

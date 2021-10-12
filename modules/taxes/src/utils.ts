@@ -19,10 +19,12 @@ export const getTaxRows = ({
   guard,
   prices,
   vm,
+  taxYear,
 }: {
   guard: Guard;
   prices: Prices;
   vm: ValueMachine;
+  taxYear?: string;
 }): TaxRow[] => {
   const unit = securityFeeMap[guard] || "";
   if (!unit) throw new Error(`Security asset is unknown for ${guard}`);
@@ -30,10 +32,11 @@ export const getTaxRows = ({
   let cumulativeChange = "0";
 
   return vm?.json?.events.filter(evt => {
-    const toJur = (
+    if (taxYear && taxYear !== "all" && !evt.date.startsWith(taxYear)) return false;
+    const toGuard = (
       (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
     ).split("/")[0];
-    return toJur === guard && (
+    return toGuard === guard && (
       evt.type === EventTypes.Trade
       || evt.type === EventTypes.GuardChange
       || evt.type === EventTypes.Income
