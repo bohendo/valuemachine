@@ -38,8 +38,6 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
   const [newEntryError, setNewEntryError] = useState("");
   const classes = useStyles();
 
-  console.log(newEntry);
-
   const getAddressError = (address?: string): string => {
     if (!address) {
       return "Address is required";
@@ -85,7 +83,6 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
 
   useEffect(() => {
     if (!entry) return;
-    console.log("Setting new entry to:", entry);
     setNewEntry(JSON.parse(JSON.stringify(entry)));
   }, [entry]);
 

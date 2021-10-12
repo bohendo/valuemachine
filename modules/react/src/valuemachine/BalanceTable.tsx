@@ -38,7 +38,6 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
   vm,
 }: BalanceTableProps) => {
   const [allBalances, setAllBalances] = useState({});
-  console.log(`We have ${addressBook?.addresses?.length} addresses`);
   const classes = useStyles();
 
   useEffect(() => {
@@ -49,8 +48,6 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
       return balances;
     }, {}));
   }, [addressBook, vm]);
-
-  console.log(`Rendering balances`, allBalances);
 
   return (<>
 

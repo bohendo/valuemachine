@@ -51,15 +51,12 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
   const [error, setError] = useState("");
   const classes = useStyles();
 
-  // console.log(`modified=${modified} error=${error}`);
-
   const handleSave = () => {
     if (!newTx || !modified || error) return;
     setTx?.(newTx);
   };
 
   useEffect(() => {
-    console.log(newTx, "New Transaction");
     setError(modified ? getTransactionError(newTx) : "");
   }, [modified, newTx]);
 

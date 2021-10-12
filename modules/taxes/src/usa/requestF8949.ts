@@ -51,10 +51,8 @@ export const requestF8949 = async (
   }
 
   if (trades.length) {
-    const url = "/api/taxes/f8949";
-    console.log(`Requesting ${trades.length} rows of f8949 data from ${url}`);
     axios({
-      url,
+      url: "/api/taxes/f8949",
       method: "post",
       responseType: "blob",
       data: { trades },

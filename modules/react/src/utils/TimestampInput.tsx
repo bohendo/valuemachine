@@ -64,7 +64,6 @@ export const TimestampInput: React.FC<TimestampInputProps> = ({
     }
     setError(error);
     if (timestamp && !error) {
-      console.log(timestamp);
       setTimestamp?.(timestamp);
     }
   };

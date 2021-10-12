@@ -30,14 +30,12 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
 
   const handleCsvFileImport = (event: any) => {
     const file = event.target.files[0];
-    console.log(`Importing csv file`, file);
     if (!file) return;
     const reader = new FileReader();
     reader.readAsText(file);
     reader.onload = () => {
       try {
         const importedFile = reader.result as string;
-        console.log(`Imported ${file.name}`);
         setCsvFiles([...csvFiles, {
           name: file.name,
           data: importedFile,

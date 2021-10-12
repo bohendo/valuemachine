@@ -1,6 +1,6 @@
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   main: {
@@ -27,13 +27,7 @@ export const TextInput: React.FC<TextInputProps> = ({
   fullWidth,
 }: TextInputProps) => {
   const classes = useStyles();
-  const [display, setDisplay] = useState("");
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!text) return;
-    setDisplay(text);
-  }, [text]);
 
   const slugify = str =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
@@ -41,10 +35,9 @@ export const TextInput: React.FC<TextInputProps> = ({
   const changeText = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     const value = event.target.value || "";
-    setDisplay(value);
+    setText?.(value);
     const error = !value ? "" : getError?.(value) || "";
     setError(error);
-    setText?.(error ? "" : value);
   };
 
   const label = givenLabel || "Input Text";
@@ -62,7 +55,7 @@ export const TextInput: React.FC<TextInputProps> = ({
       margin="normal"
       name={id}
       onChange={changeText}
-      value={display || ""}
+      value={text || ""}
       variant="outlined"
     />
   );

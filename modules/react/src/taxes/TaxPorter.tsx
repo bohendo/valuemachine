@@ -85,10 +85,8 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
   const handleF8949Export = () => {
     if (!vm?.json || !prices?.json || !guard || !taxYear) {
-      console.warn(`Missing info, not trying to export f8949`);
       return;
     }
-    console.log(`Requesting f8949 for ${taxYear}`);
     requestF8949(vm, prices, guard, taxYear, window);
   };
 

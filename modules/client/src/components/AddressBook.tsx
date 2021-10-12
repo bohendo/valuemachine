@@ -73,18 +73,20 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   customTxns,
   setCustomTxns,
 }: PropTypes) => {
-  const [newAddress, setNewAddress] = useState(getBlankAddressEntry());
+  const [newEntry, setNewEntry] = useState(getBlankAddressEntry());
   const [newTransaction, setNewTransaction] = useState(getBlankTransaction());
   const [tab, setTab] = useState(0);
   const classes = useStyles();
 
-  const addNewAddress = (editedAddress: AddressEntry) => {
+
+  const addNewEntry = (editedAddress: AddressEntry) => {
     // create new obj to ensure it re-renders
     setAddressBookJson({
       ...addressBook.json,
       [editedAddress.address]: editedAddress,
     });
-    setNewAddress(getBlankAddressEntry()); // Reset new address editor
+    const blankEntry = getBlankAddressEntry();
+    setNewEntry(blankEntry); // Reset new address editor
   };
 
   const deleteAddresses = async () => {
@@ -96,7 +98,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   };
 
   const addNewTransaction = (newTx: Transaction) => {
-    console.log(newTx, "Adding new transaction");
     const newCustomTxns = [...customTxns]; // create new array to ensure it re-renders
     if (newTx) newCustomTxns.push(newTx);
     newCustomTxns.sort((t1, t2) => new Date(t1.date).getTime() - new Date(t2.date).getTime());
@@ -141,8 +142,8 @@ export const AddressBookManager: React.FC<PropTypes> = ({
             <Card className={classes.card}>
               <CardHeader title={"Add new Address"} />
               <AddressEditor
-                entry={newAddress}
-                setEntry={addNewAddress}
+                entry={newEntry}
+                setEntry={addNewEntry}
                 addresses={Object.values(addressBook.json).map(e => e.address)}
               />
             </Card>
