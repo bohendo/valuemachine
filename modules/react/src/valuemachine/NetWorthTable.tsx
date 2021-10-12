@@ -89,7 +89,7 @@ export const NetWorthTable: React.FC<NetWorthTableProps> = ({
               <TableCell><strong> Amount </strong></TableCell>
               <TableCell><strong> {`Price (${unit}/asset)`} </strong></TableCell>
               <TableCell><strong> {`${unit} Value`} </strong></TableCell>
-              <TableCell><strong> Share </strong></TableCell>
+              <TableCell><strong> {"Share of Total"} </strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
