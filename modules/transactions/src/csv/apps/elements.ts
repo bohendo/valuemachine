@@ -53,7 +53,7 @@ export const elementsParser = (
 
     const account = `${guard}/${source}/account`;
     const bank = `${guard}/${source}`;
-    const external = `${guard}/unknown`;
+    const external = `${guard}/default`;
     const transaction = {
       apps: [],
       date: (new Date(date)).toISOString(),

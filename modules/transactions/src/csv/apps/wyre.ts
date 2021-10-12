@@ -132,7 +132,7 @@ export const wyreParser = (
         amount: destAmount,
         asset: destType,
         category: Internal,
-        from: `${getGuard(destType)}/unknown`,
+        from: `${getGuard(destType)}/default`,
         index: transferIndex++,
         to: account,
       });
@@ -143,7 +143,7 @@ export const wyreParser = (
         amount: sourceAmount,
         asset: sourceType,
         category: Internal,
-        from: `${getGuard(sourceType)}/unknown`,
+        from: `${getGuard(sourceType)}/default`,
         index: transferIndex++,
         to: account,
       }, {
@@ -170,7 +170,7 @@ export const wyreParser = (
         category: Internal,
         from: account,
         index: transferIndex++,
-        to: `${getGuard(destType)}/unknown`,
+        to: `${getGuard(destType)}/default`,
       });
       transaction.method = "Withdraw";
 
@@ -195,7 +195,7 @@ export const wyreParser = (
         category: Internal,
         from: account,
         index: transferIndex++,
-        to: `${getGuard(destType)}/unknown`,
+        to: `${getGuard(destType)}/default`,
       });
       transaction.method = sourceType === USD ? "Buy" : "Sell";
     }

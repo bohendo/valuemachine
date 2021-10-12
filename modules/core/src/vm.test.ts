@@ -47,7 +47,7 @@ const otherAccount = `${Ethereum}/${AddressTwo}`;
 const aaveAccount = `${Ethereum}/${EvmApps.Aave}/${AddressOne}`;
 const notMe = `${Ethereum}/${AddressThree}`;
 const coinbase = `${USA}/${Coinbase}/account`;
-const usdAccount = `${USA}/unknown`;
+const usdAccount = `${USA}/default`;
 
 describe("VM", () => {
   let vm: any;
