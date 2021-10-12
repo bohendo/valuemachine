@@ -85,6 +85,7 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
 
   useEffect(() => {
     if (!entry) return;
+    console.log("Setting new entry to:", entry);
     setNewEntry(JSON.parse(JSON.stringify(entry)));
   }, [entry]);
 
