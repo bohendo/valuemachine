@@ -21,13 +21,13 @@ import {
 import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
-import { ChunkRow } from "./ChunkRow";
-
 import { SelectOne } from "../utils";
+
+import { ChunkRow } from "./ChunkRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
-    padding: theme.spacing(1),
+    padding: theme.spacing(2),
   },
   title: {
     padding: theme.spacing(2),
@@ -97,9 +97,9 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
     setPage(0);
   };
 
-  return (
-    <Paper className={classes.paper}>
+  return (<>
 
+    <Paper className={classes.paper}>
       <Typography align="center" variant="h4" className={classes.title} component="div">
         {filteredChunks.length === vm.json?.chunks?.length
           ? `${filteredChunks.length} Chunks`
@@ -168,7 +168,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </TableContainer>
-
     </Paper>
-  );
+
+  </>);
 };

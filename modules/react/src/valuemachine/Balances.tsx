@@ -10,7 +10,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   table: {
     minWidth: theme.spacing(48),
     overflow: "auto",
-    padding: theme.spacing(1),
+    padding: theme.spacing(2),
   },
   row: {
     margin: theme.spacing(0),
@@ -36,7 +36,8 @@ export const Balances = ({
   balances: { [asset: string]: string },
 }) => {
   const classes = useStyles();
-  return (
+  return (<>
+
     <TableContainer>
       <Table size="small" className={classes.table}>
         <TableBody>
@@ -49,5 +50,6 @@ export const Balances = ({
         </TableBody>
       </Table>
     </TableContainer>
-  );
+
+  </>);
 };

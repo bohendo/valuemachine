@@ -69,9 +69,9 @@ export const TaxTable: React.FC<TaxTableProps> = ({
     setPage(0);
   };
 
-  return (
-    <Paper className={classes.paper}>
+  return (<>
 
+    <Paper className={classes.paper}>
       <Typography align="center" variant="h4" className={classes.title} component="div">
         {`${taxes.length} Taxable ${guard} Event${taxes.length > 1 ? "s" : ""}`}
       </Typography>
@@ -122,5 +122,6 @@ export const TaxTable: React.FC<TaxTableProps> = ({
         />
       </TableContainer>
     </Paper>
-  );
+
+  </>);
 };

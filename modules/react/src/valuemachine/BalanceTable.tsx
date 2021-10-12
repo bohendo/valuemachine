@@ -52,9 +52,9 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
 
   console.log(`Rendering balances`, allBalances);
 
-  return (
-    <Paper className={classes.paper}>
+  return (<>
 
+    <Paper className={classes.paper}>
       <TableContainer>
         <Table size="small" className={classes.table}>
           <TableHead>
@@ -81,8 +81,7 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
           </TableBody>
         </Table>
       </TableContainer>
-
     </Paper>
-  );
 
+  </>);
 };

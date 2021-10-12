@@ -11,6 +11,12 @@ import { ajv, formatErrors } from "./validate";
 
 export const getEmptyAddressBook = (): AddressBookJson => ({});
 
+export const getBlankAddressEntry = (): AddressEntry => JSON.parse(JSON.stringify({
+  address: "",
+  category: AddressCategories.Self,
+  name: "",
+}));
+
 ////////////////////
 // Validators
 

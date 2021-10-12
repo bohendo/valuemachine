@@ -28,7 +28,7 @@ import { EventRow } from "./EventRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
-    padding: theme.spacing(1),
+    padding: theme.spacing(2),
   },
   title: {
     padding: theme.spacing(2),

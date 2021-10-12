@@ -4,12 +4,30 @@ import {
   Transaction,
   TransactionsJson,
   Transfer,
+  TransferCategories,
 } from "@valuemachine/types";
 
 import { diff, lt } from "./math";
 import { ajv, formatErrors } from "./validate";
 
 export const getEmptyTransactions = (): TransactionsJson => [];
+
+export const getBlankTransaction = (): Transaction => JSON.parse(JSON.stringify({
+  apps: [],
+  date: "",
+  index: 0,
+  method: "",
+  sources: [],
+  transfers: [{
+    amount: "",
+    asset: "",
+    category: TransferCategories.Noop,
+    from: "",
+    to: "",
+  }],
+  uuid: "",
+}));
+
 
 const validateTransfer = ajv.compile(Transfer);
 export const getTransferError = (tx: Transfer): string => {

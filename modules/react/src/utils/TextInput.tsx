@@ -3,7 +3,7 @@ import TextField from "@material-ui/core/TextField";
 import React, { useEffect, useState } from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  text: {
+  main: {
     margin: theme.spacing(2),
   },
 }));
@@ -53,7 +53,7 @@ export const TextInput: React.FC<TextInputProps> = ({
   return (
     <TextField
       autoComplete="off"
-      className={classes.text}
+      className={classes.main}
       error={!!error}
       fullWidth={!!fullWidth}
       helperText={error || helperText || ""}

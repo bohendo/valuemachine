@@ -8,9 +8,7 @@ import React from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   card: {
-    margin: theme.spacing(1),
     padding: theme.spacing(2),
-    maxWidth: "98%",
   },
   fileInput: {
     marginBottom: theme.spacing(1),
@@ -50,22 +48,20 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
     };
   };
 
-  return (
-    <React.Fragment>
+  return (<>
 
-      <Card className={classes.card}>
-        <CardHeader title={"Import CSV File"}/>
-        <input
-          accept="text/csv"
-          className={classes.fileInput}
-          id="file-importer"
-          onChange={handleCsvFileImport}
-          type="file"
-        />
-      </Card>
+    <Card className={classes.card}>
+      <CardHeader title={"Import CSV File"}/>
+      <input
+        accept="text/csv"
+        className={classes.fileInput}
+        id="file-importer"
+        onChange={handleCsvFileImport}
+        type="file"
+      />
+    </Card>
 
-    </React.Fragment>
-  );
+  </>);
 };
 
 

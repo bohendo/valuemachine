@@ -22,9 +22,6 @@ import React, { useEffect, useState } from "react";
 import { HexString } from "../utils";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  subtitle: {
-    margin: theme.spacing(2),
-  },
   subtable: {
     maxWidth: theme.spacing(12),
   },

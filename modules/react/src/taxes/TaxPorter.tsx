@@ -19,15 +19,15 @@ import React, { useEffect } from "react";
 import { SelectOne } from "../utils";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
+  card: {
+    padding: theme.spacing(2),
+    minWidth: "255px",
+  },
   button: {
     marginBottom: theme.spacing(4),
     marginLeft: theme.spacing(4),
     marginRight: theme.spacing(4),
     marginTop: theme.spacing(3),
-  },
-  card: {
-    margin: theme.spacing(2),
-    minWidth: "255px",
   },
 }));
 
@@ -93,6 +93,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   };
 
   return (<>
+
     <Card className={classes.card}>
       <CardHeader title={`Export ${guard} Tax Info`}/>
       <SelectOne
@@ -128,7 +129,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           Download F8949
         </Button>
         : null}
-
     </Card>
+
   </>);
 };

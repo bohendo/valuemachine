@@ -19,12 +19,12 @@ import React, { useEffect, useState } from "react";
 import { HexString } from "../utils";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  putsRow: {
-    maxWidth: theme.spacing(32),
-  },
   firstCell: {
     maxWidth: theme.spacing(6),
     padding: theme.spacing(1),
+  },
+  putsRow: {
+    maxWidth: theme.spacing(32),
   },
 }));
 

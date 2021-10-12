@@ -14,14 +14,7 @@ import { SelectOne, TextInput } from "../utils";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   grid: {
-    margin: theme.spacing(1),
-  },
-  textInput: {
-    margin: theme.spacing(1),
-  },
-  select: {
-    margin: theme.spacing(3),
-    minWidth: theme.spacing(15),
+    padding: theme.spacing(2),
   },
   button: {
     marginBottom: theme.spacing(1.5),
@@ -122,9 +115,9 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
     <Grid
       alignContent="center"
       alignItems="center"
+      className={classes.grid}
       container
       spacing={1}
-      className={classes.grid}
     >
 
       <Grid item md={4}>

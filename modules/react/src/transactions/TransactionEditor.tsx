@@ -14,10 +14,7 @@ import { TransferEditor } from "./TransferEditor";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   grid: {
-    margin: theme.spacing(1),
-  },
-  textInput: {
-    margin: theme.spacing(1),
+    padding: theme.spacing(1),
   },
   button: {
     marginBottom: theme.spacing(1.5),
@@ -98,9 +95,9 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
     <Grid
       alignContent="center"
       alignItems="center"
+      className={classes.grid}
       container
       spacing={1}
-      className={classes.grid}
     >
 
       <TimestampInput

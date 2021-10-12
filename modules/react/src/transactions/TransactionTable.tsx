@@ -154,9 +154,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
     setPage(0);
   };
 
-  return (
-    <Paper className={classes.paper}>
+  return (<>
 
+    <Paper className={classes.paper}>
       <Typography align="center" variant="h4" className={classes.title} component="div">
         {filteredTxns.length === transactions?.json.length
           ? `${filteredTxns.length} Transaction${filteredTxns.length === 1 ? "" : "s"}`
@@ -236,6 +236,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             }
           </TableBody>
         </Table>
+
         <TablePagination
           rowsPerPageOptions={[25, 50, 100, 250]}
           component="div"
@@ -246,7 +247,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </TableContainer>
-
     </Paper>
-  );
+
+  </>);
 };

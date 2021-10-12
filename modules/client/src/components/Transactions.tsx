@@ -31,25 +31,23 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
   syncMessage: {
     margin: theme.spacing(1),
-    // maxWidth: "95%",
-    // minWidth: "10%",
   },
 }));
 
-type PropTypes = {
+type TransactionExplorerProps = {
   addressBook: AddressBook;
   csvFiles: CsvFiles,
   customTxns: TransactionsJson,
   transactions: Transactions;
   setTransactionsJson: (val: TransactionsJson) => void;
 };
-export const TransactionExplorer: React.FC<PropTypes> = ({
+export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
   addressBook,
   csvFiles,
   customTxns,
   transactions,
   setTransactionsJson,
-}: PropTypes) => {
+}: TransactionExplorerProps) => {
   const [syncing, setSyncing] = useState("");
   const classes = useStyles();
 

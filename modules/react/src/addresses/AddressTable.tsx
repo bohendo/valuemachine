@@ -24,18 +24,10 @@ import { AddressRow } from "./AddressRow";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
   paper: {
-    padding: theme.spacing(1),
+    padding: theme.spacing(2),
   },
   title: {
     padding: theme.spacing(2),
-  },
-  dropdown: {
-    margin: theme.spacing(3),
-    minWidth: theme.spacing(20),
-  },
-  table: {
-    minWidth: theme.spacing(80),
-    overflow: "auto",
   },
 }));
 
@@ -90,11 +82,10 @@ export const AddressTable: React.FC<AddressTableProps> = ({
     setPage(0);
   };
 
-  return (
+  return (<>
+
     <Paper className={classes.paper}>
-
       <TableContainer>
-
         <Typography align="center" variant="h4" className={classes.title} component="div">
           {filteredEntries.length === Object.keys(addressBook.json).length
             ? `${filteredEntries.length} Addresses`
@@ -130,7 +121,6 @@ export const AddressTable: React.FC<AddressTableProps> = ({
                   editEntry={editEntry}
                   entry={entry}
                 />
-
               ))}
           </TableBody>
         </Table>
@@ -147,5 +137,5 @@ export const AddressTable: React.FC<AddressTableProps> = ({
       </TableContainer>
     </Paper>
 
-  );
+  </>);
 };

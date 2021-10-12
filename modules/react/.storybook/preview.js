@@ -2,7 +2,7 @@ import Card from "@material-ui/core/Card";
 
 export const decorators = [
   (Story) => (
-    <Card style={{ margin: "3em", padding: "1em" }}>
+    <Card style={{ margin: "3em", padding: "0px" }}>
       <Story />
     </Card>
   ),

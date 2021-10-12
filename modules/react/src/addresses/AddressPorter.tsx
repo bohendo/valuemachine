@@ -15,9 +15,8 @@ import {
 import React from "react";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  root: {
-    margin: theme.spacing(1),
-    maxWidth: "98%",
+  card: {
+    padding: theme.spacing(2),
   },
   exporter: {
     marginBottom: theme.spacing(4),
@@ -88,32 +87,30 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
     a.click();
   };
 
-  return (
-    <React.Fragment>
+  return (<>
 
-      <Card className={classes.root}>
-        <CardHeader title={"Import Address Book"}/>
-        <input
-          className={classes.importer}
-          id="profile-importer"
-          accept="application/json"
-          type="file"
-          onChange={handleAddressBookImport}
-        />
-        <CardHeader title={"Export Address Book"}/>
-        <Button
-          className={classes.exporter}
-          color="primary"
-          onClick={handleExport}
-          size="small"
-          startIcon={<DownloadIcon />}
-          variant="contained"
-        >
-          Download
-        </Button>
-      </Card>
+    <Card className={classes.card}>
+      <CardHeader title={"Import Address Book"}/>
+      <input
+        className={classes.importer}
+        id="profile-importer"
+        accept="application/json"
+        type="file"
+        onChange={handleAddressBookImport}
+      />
+      <CardHeader title={"Export Address Book"}/>
+      <Button
+        className={classes.exporter}
+        color="primary"
+        onClick={handleExport}
+        size="small"
+        startIcon={<DownloadIcon />}
+        variant="contained"
+      >
+        Download
+      </Button>
+    </Card>
 
-    </React.Fragment>
-  );
+  </>);
 };
 
