@@ -13,7 +13,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-const { ETH, UNI, USD } = Assets;
+const { BCH, BTC, DAI, ETH, UNI, INR, USD } = Assets;
 const { Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Ethereum, USA } = Guards;
 
@@ -41,7 +41,6 @@ const two = getAccount("2");
 const three = getAccount("3");
 const coinbase = `${USA}/${Sources.Coinbase}/account`;
 const exchange = `${USA}/${Sources.Coinbase}`;
-
 
 export const guard = USA;
 export const unit = USD;
@@ -113,8 +112,16 @@ export const vm = getValueMachine();
 transactions.json.forEach(tx => vm.execute(tx));
 
 console.log(`Setting price on date ${transactions.json[4].date}`);
+const today = new Date().toISOString().split("T")[0];
 export const prices = getPrices({
   json: {
+    [today]: { [USD]: {
+      [BCH]: "580",
+      [BTC]: "55000",
+      [DAI]: "1.01",
+      [ETH]: "3500",
+      [INR]: "0.0133",
+    } },
     // At the time of depositing UNI onto coinbase
     [transactions.json[4].date.split("T")[0]]: { [USD]: { [UNI]: "4" } },
     // At the time of selling UNI on coinbase

@@ -8,7 +8,7 @@ import Select from "@material-ui/core/Select";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import AccountIcon from "@mui/icons-material/ManageAccounts";
-import HomeIcon from "@material-ui/icons/Home";
+import NetWorthIcon from "@material-ui/icons/PieChart";
 import PricesIcon from "@material-ui/icons/LocalOffer";
 import TaxesIcon from "@material-ui/icons/AccountBalance";
 import ValueMachineIcon from "@material-ui/icons/PlayCircleFilled";
@@ -82,13 +82,55 @@ export const NavBar: React.FC<PropTypes> = ({
   return (
     <AppBar position="absolute">
       <Toolbar className={classes.toolbar}>
+
         <IconButton
+          aria-label="address-book"
           color="inherit"
           component={Link}
           edge="start"
-          to={"/"}
+          to={""}
         >
-          <HomeIcon />
+          <AccountIcon fontSize="large" />
+        </IconButton>
+
+        <IconButton
+          className={classes.navButton}
+          color="inherit"
+          component={Link}
+          edge="start"
+          to={"/transactions"}
+        >
+          <TransactionsIcon />
+        </IconButton>
+
+        <IconButton
+          className={classes.navButton}
+          color="inherit"
+          component={Link}
+          edge="start"
+          to={"/value-machine"}
+        >
+          <ValueMachineIcon />
+        </IconButton>
+
+        <IconButton
+          className={classes.navButton}
+          color="inherit"
+          component={Link}
+          edge="start"
+          to={"/prices"}
+        >
+          <PricesIcon />
+        </IconButton>
+
+        <IconButton
+          className={classes.navButton}
+          color="inherit"
+          component={Link}
+          edge="start"
+          to={"/net-worth"}
+        >
+          <NetWorthIcon />
         </IconButton>
 
         <IconButton
@@ -99,36 +141,6 @@ export const NavBar: React.FC<PropTypes> = ({
           color="inherit"
         >
           <TaxesIcon />
-        </IconButton>
-
-        <IconButton
-          component={Link}
-          edge="start"
-          to={"/prices"}
-          className={classes.navButton}
-          color="inherit"
-        >
-          <PricesIcon />
-        </IconButton>
-
-        <IconButton
-          component={Link}
-          edge="start"
-          to={"/value-machine"}
-          className={classes.navButton}
-          color="inherit"
-        >
-          <ValueMachineIcon />
-        </IconButton>
-
-        <IconButton
-          component={Link}
-          edge="start"
-          to={"/transactions"}
-          className={classes.navButton}
-          color="inherit"
-        >
-          <TransactionsIcon />
         </IconButton>
 
         <Typography
@@ -163,17 +175,6 @@ export const NavBar: React.FC<PropTypes> = ({
           onClick={toggleTheme}
         >
           {theme === "dark" ? <LightIcon /> : <DarkIcon />}
-        </IconButton>
-
-        <IconButton
-          component={Link}
-          edge="start"
-          to={"/address-book"}
-          className={classes.navButton}
-          color="inherit"
-          aria-label="address-book"
-        >
-          <AccountIcon fontSize="large" />
         </IconButton>
 
       </Toolbar>
