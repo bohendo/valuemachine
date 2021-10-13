@@ -94,7 +94,7 @@ export const getTaxRows = ({
         } as TaxRow;
       }));
 
-    } else if (evt.type === EventTypes.GuardChange && evt.to?.split("/").pop() === guard) {
+    } else if (evt.type === EventTypes.GuardChange) {
       if (!evt.chunks) { console.warn(`Missing ${evt.type} chunks`, evt); return output; }
       return output.concat(...evt.chunks.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
