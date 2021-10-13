@@ -85,9 +85,9 @@ export const round = (decStr: string, n?: number, stripTrailingZeros?: boolean):
   if (n <= 0) { return roundInt(decStr); }
   if (n === undefined) {
     n = n || ( // If n is not provided, set it based on the magnitude of the input
-      gt(decStr, "1") ? 2
-      : gt(decStr, "0.01") ? 4
-      : gt(decStr, "0.0001") ? 6
+      gt(abs(decStr), "1") ? 2
+      : gt(abs(decStr), "0.01") ? 4
+      : gt(abs(decStr), "0.0001") ? 6
       : 18
     );
     stripTrailingZeros = true;
@@ -116,6 +116,10 @@ export const commify = (num: DecimalString, asset?: Asset): string => {
   if (asset !== "INR") {
     return defaultCommify(rounded);
   }
+  const isNegative = rounded.startsWith("-");
+  if (isNegative) {
+    rounded = rounded.substring(1);
+  }
   // derived from https://github.com/roy2393/format-numerals/blob/master/src/index.ts#L20
   let afterPoint = "";
   if (rounded.indexOf(".") > 0) {
@@ -128,6 +132,7 @@ export const commify = (num: DecimalString, asset?: Asset): string => {
   if (otherNumbers !== "") lastThree = `,${lastThree}`;
   // regex to add , after every 2nd number
   const result =
+    (isNegative ? "-" : "") +
     otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") +
     lastThree +
     afterPoint;
