@@ -50,7 +50,7 @@ const coreParser = (
       if (event.name === "Transfer") {
         const from = event.args.from.endsWith(AddressZero) ? address : event.args.from;
         const to = event.args.to.endsWith(AddressZero) ? address : event.args.to;
-        log.info(`Parsing ${appName} ${event.name} #${index} of ${amount} ${asset} from ${
+        log.debug(`Parsing ${appName} ${event.name} #${index} of ${amount} ${asset} from ${
           from.substring(0, from.length - 30)
         }.. to ${
           to.substring(0, to.length - 30)

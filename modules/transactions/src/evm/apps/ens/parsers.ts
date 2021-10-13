@@ -7,7 +7,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { eq, insertVenue } from "@valuemachine/utils";
+import { insertVenue } from "@valuemachine/utils";
 
 import { Apps, Assets, Methods } from "../../enums";
 import { parseEvent } from "../../utils";
@@ -91,7 +91,7 @@ const coreParser = (
       if (deedClosedLog) {
         // All funds send from the deed should be condiered withdrawals
         tx.transfers.filter(transfer =>
-          transfer.from === deedClosedLog.address && !eq(transfer.amount, "0")
+          transfer.from === deedClosedLog.address && addressBook.isSelf(transfer.to)
         ).forEach(withdraw => {
           withdraw.category = TransferCategories.Internal;
           withdraw.from = insertVenue(withdraw.to, appName);

@@ -32,6 +32,7 @@ const ethereumAddresses = [
   { name: Tokens.REP, address: "Ethereum/0xe94327d07fc17907b4db788e5adf2ed424addff6" }, // version 0
   { name: Tokens.REP, address: "Ethereum/0x1985365e9f78359a9b6ad760e32412f4a445e862" }, // version 1
   { name: Tokens.REPv2, address: "Ethereum/0x221657776846890989a759ba2973e427dff5c9bb" }, // version 2
+  { name: Tokens.REQ, address: "Ethereum/0x8f8221aFbB33998d8584A2B05749bA73c37a938a" },
   { name: Tokens.SNT, address: "Ethereum/0x744d70fdbe2ba4cf95131626614a1763df805b9e" },
   { name: Tokens.SNX, address: "Ethereum/0xc011a72400e58ecd99ee497cf89e3775d4bd732f" }, // v1
   { name: Tokens.SNX, address: "Ethereum/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f" },
