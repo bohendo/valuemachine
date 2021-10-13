@@ -21,7 +21,7 @@ const coreParser = (
   _logger: Logger,
 ): Transaction => {
   // const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
-  const appAccount = `${evmMeta.name}/${appName}`;
+  const account = `${evmMeta.name}/${appName}`;
 
   // set transfer categories based on to/from balues
   tx.transfers.forEach(transfer => {
@@ -31,14 +31,14 @@ const coreParser = (
       tx.apps.push(appName);
       tx.method = "Withdraw";
       transfer.category = TransferCategories.Internal;
-      transfer.from = appAccount;
+      transfer.from = account;
     } else if (
       [bjtjV1Address, bjtjV2Address].includes(transfer.to) && addressBook.isSelf(transfer.from)
     ) {
       tx.apps.push(appName);
       tx.method = "Deposit";
       transfer.category = TransferCategories.Internal;
-      transfer.to = appAccount;
+      transfer.to = account;
     }
   });
 

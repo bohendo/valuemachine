@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     overflow: "auto",
   },
   firstCell: {
-    maxWidth: theme.spacing(6),
+    maxWidth: theme.spacing(8),
     padding: theme.spacing(1),
   },
 }));
@@ -75,7 +75,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   useEffect(() => {
     setPage(0);
     setFilteredChunks(vm.json?.chunks?.filter(chunk =>
-      (!filterHeld || chunk.account)
+      (!filterHeld || (filterAccount ? filterAccount === chunk.account : !!chunk.account))
       && (!filterAccount || (
         chunk.history?.some(hist => hist.account.endsWith(filterAccount)) ||
         chunk.account?.endsWith(filterAccount)))
