@@ -66,27 +66,28 @@ export const oasisParser = (
   const isProxy = address => proxies.includes(address);
   const isSelf = address => addressBook.isSelf(address) || isProxy(address);
 
-  // If we sent this evmTx to a proxy, replace proxy addresses w tx origin
-  if (addressBook.isSelf(evmTx.from) && isProxy(evmTx.to)) {
-    tx.method = "Trade";
-    tx.transfers.forEach(transfer => {
-      if (isProxy(transfer.from)) {
-        transfer.from = evmTx.from;
-        transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
-        if (transfer.category === Expense) transfer.category = SwapOut;
-      }
-      if (isProxy(transfer.to)) {
-        transfer.to = evmTx.from;
-        transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
-        if (transfer.category === Income) transfer.category = SwapIn;
-      }
-    });
-  }
-
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (exchangeAddresses.some(e => e.address === address)) {
       tx.apps.push(appName);
+
+      // If we sent this evmTx to a proxy, replace proxy addresses w tx origin
+      if (addressBook.isSelf(evmTx.from) && isProxy(evmTx.to)) {
+        tx.transfers.forEach(transfer => {
+          tx.method = "Trade";
+          if (isProxy(transfer.from)) {
+            transfer.from = evmTx.from;
+            transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
+            if (transfer.category === Expense) transfer.category = SwapOut;
+          }
+          if (isProxy(transfer.to)) {
+            transfer.to = evmTx.from;
+            transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
+            if (transfer.category === Income) transfer.category = SwapIn;
+          }
+        });
+      }
+
       const event = parseEvent(oasisAbi, txLog, evmMeta);
 
       if (event.name === "LogTake") {

@@ -24,9 +24,11 @@ import {
 } from "@valuemachine/utils";
 
 import { Apps, Assets, Tokens } from "../../enums";
+import { getTransferCategory } from "../../utils";
 
 import {
   dsrAddress,
+  proxyAddresses,
   migrationAddress,
   vatAddress,
 } from "./addresses";
@@ -127,9 +129,18 @@ export const daiParser = (
 ): Transaction => {
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName } = addressBook;
-  // log.debug(tx, `Parsing in-progress tx`);
 
   const ethish = [WETH, ETH, PETH] as Asset[];
+
+  // Save a list of relevant proxies to treat as self (TODO: dedup w ./tokens & ./oasis & ./sai)
+  const proxies = proxyAddresses.map(e => e.address);
+  for (const txLog of evmTx.logs) {
+    if (txLog.topics[0].startsWith("0x1cff79cd")) { // TODO: hash sig instead of hardcoding?
+      proxies.push(txLog.address);
+    }
+  }
+
+  const isProxy = address => proxies.includes(address);
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
@@ -160,6 +171,23 @@ export const daiParser = (
     ////////////////////////////////////////
     // MCD Vat aka Vault manager
     if (address === vatAddress) {
+
+      // If we sent this evmTx to a proxy, replace proxy addresses w tx origin
+      if (addressBook.isSelf(evmTx.from) && isProxy(evmTx.to)) {
+        tx.transfers.forEach(transfer => {
+          if (isProxy(transfer.from)) {
+            transfer.from = evmTx.from;
+            transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
+            if (transfer.category === TransferCategories.Expense) transfer.category = SwapOut;
+          }
+          if (isProxy(transfer.to)) {
+            transfer.to = evmTx.from;
+            transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
+            if (transfer.category === TransferCategories.Income) transfer.category = SwapIn;
+          }
+        });
+      }
+
       const logNote = parseLogNote(vatAbi, txLog);
       if (!logNote.name) continue;
       tx.apps.push(appName);
@@ -295,6 +323,5 @@ export const daiParser = (
     }
   }
 
-  // log.debug(tx, `Done parsing ${appName}`);
   return tx;
 };
