@@ -79,7 +79,9 @@ export const HexString = ({
                 className={classes.icon}
                 color="secondary"
                 href={link}
+                rel="noreferrer"
                 size="small"
+                target="_blank"
               >
                 <ExploreIcon/>
               </IconButton>
