@@ -100,12 +100,12 @@ export const coreParser = (
           from: account,
           index,
           amount: formatUnits(event.args.amountGet, getDecimals(event.args.tokenGet)),
-          to: appName,
+          to: address,
         };
         const swapIn = {
           asset: getAsset(event.args.tokenGive),
           category: SwapIn,
-          from:  appName,
+          from:  address,
           index,
           amount: formatUnits(event.args.amountGive, getDecimals(event.args.tokenGiv)),
           to: account,

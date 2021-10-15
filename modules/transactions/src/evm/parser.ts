@@ -10,7 +10,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { dedup, gt, getNewContractAddress } from "@valuemachine/utils";
+import { dedup, eq, gt, getNewContractAddress } from "@valuemachine/utils";
 
 import { Methods } from "./enums";
 import { getTransferCategory } from "./utils";
@@ -78,6 +78,8 @@ export const parseEvmTx = (
 
   // Add internal evm transfers to the transfers array
   evmTx.transfers.forEach((evmTransfer: EvmTransfer) => {
+    // Skip zero-value transfers
+    if (evmTransfer.value && eq(evmTransfer.value, "0")) return;
     // Index is unknown for internal transfers, hopefully app parsers will be able to add one
     tx.transfers.push({
       amount: evmTransfer.value,

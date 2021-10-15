@@ -21,9 +21,6 @@ import {
   ValueMachineParams,
 } from "@valuemachine/types";
 import {
-  // diffBalances,
-  // sumTransfers,
-  // dedup,
   add,
   describeBalance,
   eq,
@@ -87,7 +84,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       ) || (
         account && chunk.account === account
       ))
-    ) ? add(balance, chunk.amount || "1") : balance,
+    ) ? (chunk.amount ? add(balance, chunk.amount) : "1") : balance,
     "0");
 
   const getChunk = (index: number): HydratedAssetChunk =>

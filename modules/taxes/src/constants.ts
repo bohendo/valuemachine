@@ -18,3 +18,8 @@ export const securityFeeMap = {
   [Guards.ROU]: Assets.EUR,
   [Guards.USA]: Assets.USD,
 } as const;
+
+export const taxYearBoundaryMap = {
+  [Guards.USA]: "0000-01-01T00:00:00Z",
+  [Guards.IND]: "0000-04-01T00:00:00Z",
+};

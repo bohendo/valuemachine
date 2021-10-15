@@ -46,6 +46,7 @@ const Tokens = {
   RENFIL: "RENFIL",
   REP: "REP",
   REPv2: "REPv2",
+  REQ: "REQ",
   SAI: "SAI",
   SNT: "SNT",
   SNX: "SNX",

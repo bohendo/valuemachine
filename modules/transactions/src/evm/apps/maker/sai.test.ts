@@ -90,17 +90,4 @@ describe(appName, () => {
     expect(tx.transfers[5].category).to.equal(TransferCategories.Internal);
   });
 
-  it("should parse a CDP repay + withdraw via proxy", async () => {
-    const tx = await parseTx({
-      txid: "Ethereum/0x30e97ec8235ae69d24873e5596fb708d0622ea817a468ab7111f926a6f9c3387",
-      selfAddress: "Ethereum/0x452e1928aa6c88e690f26ea08ec119bf816c8568",
-    });
-    expect(tx.transfers.length).to.equal(5);
-    expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
-    expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
-    expect(tx.transfers[2].category).to.equal(TransferCategories.Internal);
-    expect(tx.transfers[3].category).to.equal(TransferCategories.SwapOut);
-    expect(tx.transfers[4].category).to.equal(TransferCategories.SwapIn);
-  });
-
 });
