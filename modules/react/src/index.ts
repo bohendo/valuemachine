@@ -13,6 +13,7 @@ export {
 } from "./taxes";
 export {
   TransactionEditor,
+  TransactionPorter,
   TransactionTable,
 } from "./transactions";
 export {

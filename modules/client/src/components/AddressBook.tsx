@@ -12,6 +12,7 @@ import {
   AddressEditor,
   AddressPorter,
   AddressTable,
+  TransactionPorter,
   TransactionTable,
   CsvPorter,
   CsvTable,
@@ -70,6 +71,10 @@ export const AddressBookManager: React.FC<PropTypes> = ({
     setCsvFiles([]);
   };
 
+  const deleteCustomTxns = async () => {
+    setCustomTxns([]);
+  };
+
   const addNewTransaction = (newTx: Transaction) => {
     const newCustomTxns = [...customTxns]; // create new array to ensure it re-renders
     if (newTx) newCustomTxns.push(newTx);
@@ -77,10 +82,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
     newCustomTxns.forEach((tx, index) => { tx.index = index; });
     setCustomTxns(newCustomTxns);
     setNewTransaction(getBlankTransaction()); // reset editor
-  };
-
-  const deleteCustomTxns = async () => {
-    setCustomTxns([]);
   };
 
   const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
@@ -94,7 +95,14 @@ export const AddressBookManager: React.FC<PropTypes> = ({
         Manage Input Data
       </Typography>
 
-      <Tabs value={tab} onChange={handleTabChange} sx={{ m: 1 }} centered>
+      <Tabs
+        centered
+        indicatorColor="secondary"
+        onChange={handleTabChange}
+        sx={{ m: 1 }}
+        textColor="secondary"
+        value={tab}
+      >
         <Tab label="Evm Addresses"/>
         <Tab label="Csv Files"/>
         <Tab label="Custom Transactions"/>
@@ -108,11 +116,11 @@ export const AddressBookManager: React.FC<PropTypes> = ({
           alignItems="center"
           justifyContent="center"
           container
-          spacing={1}
+          spacing={2}
           sx={{ mb: 1 }}
         >
           <Grid item md={8}>
-            <Card sx={{ m: 1 }}>
+            <Card sx={{ m: 0 }}>
               <CardHeader title={"Add new Address"} />
               <AddressEditor
                 entry={newEntry}
@@ -146,7 +154,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
       </div>
 
       <div hidden={tab !== 1}>
-
         <Grid
           alignContent="center"
           justifyContent="center"
@@ -175,36 +182,49 @@ export const AddressBookManager: React.FC<PropTypes> = ({
             <CsvTable csvFiles={csvFiles} setCsvFiles={setCsvFiles}/>
           </Grid>
         </Grid>
-
       </div>
+
       <div hidden={tab !== 2}>
-
-        <Card sx={{ m: 1 }}>
-          <CardHeader title={"Add new Transaction"} />
-          <TransactionEditor
-            tx={newTransaction}
-            setTx={addNewTransaction}
-          />
-        </Card>
-
-        <Button
-          sx={{ m: 1 }}
-          color="primary"
-          onClick={deleteCustomTxns}
-          size="medium"
-          disabled={!customTxns?.length}
-          startIcon={<RemoveIcon/>}
-          variant="contained"
+        <Grid
+          alignContent="center"
+          alignItems="center"
+          justifyContent="center"
+          container
+          spacing={2}
+          sx={{ mb: 1 }}
         >
-          Delete Custom Txns
-        </Button>
-
+          <Grid item md={8}>
+            <Card sx={{ m: 0 }}>
+              <CardHeader title={"Add new Transactions"} />
+              <TransactionEditor
+                tx={newTransaction}
+                setTx={addNewTransaction}
+              />
+            </Card>
+          </Grid>
+          <Grid item md={4}>
+            <TransactionPorter
+              transactions={customTxns}
+              setTransactions={setCustomTxns}
+            />
+            <Button
+              sx={{ m: 1 }}
+              color="primary"
+              onClick={deleteCustomTxns}
+              size="medium"
+              disabled={!Object.keys(addressBook.json || {}).length}
+              startIcon={<RemoveIcon/>}
+              variant="contained"
+            >
+              Delete Custom Transactions
+            </Button>
+          </Grid>
+        </Grid>
         <TransactionTable
           addressBook={addressBook}
           transactions={getTransactions({ json: customTxns || [], logger })}
           setTransactions={setCustomTxns}
         />
-
       </div>
 
     </Box>
