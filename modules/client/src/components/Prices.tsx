@@ -146,7 +146,7 @@ export const PriceManager: React.FC<PropTypes> = ({
 
       <Divider/>
 
-      <Paper sx={{ p: 2, minWidth: "80em" }}>
+      <Paper sx={{ p: 2, minWidth: "70em" }}>
 
         <Grid container>
           <Grid item xs={12}>

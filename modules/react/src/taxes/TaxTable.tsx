@@ -59,7 +59,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
 
   return (<>
 
-    <Paper sx={{ p: 2, minWidth: "200em" }}>
+    <Paper sx={{ p: 2, minWidth: "80em" }}>
       <Typography align="center" variant="h4" sx={{ pt: 2 }} component="div">
         {`${taxes.length} Taxable ${guard} Event${taxes.length > 1 ? "s" : ""}`}
       </Typography>

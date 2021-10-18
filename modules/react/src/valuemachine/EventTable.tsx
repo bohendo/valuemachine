@@ -121,7 +121,7 @@ export const EventTable: React.FC<EventTableProps> = ({
       </Grid>
 
       <TableContainer>
-        <Table size="small" sx={{ p: 1, overflow: "auto", minWidth: "80em" }}>
+        <Table size="small" sx={{ p: 1, overflow: "auto", minWidth: "70em" }}>
           <TableHead>
             <TableRow>
               <TableCell sx={{ p: 1, maxWidth: "2em" }}/>

@@ -43,8 +43,8 @@ export const NavBar: React.FC<PropTypes> = ({
   };
 
   return (
-    <AppBar position="absolute">
-      <Toolbar sx={{ overflow: "auto" }}>
+    <AppBar position="static" elevation={0} enableColorOnDark>
+      <Toolbar variant="dense" sx={{ overflow: "auto" }}>
 
         <IconButton
           aria-label="address-book"
@@ -122,11 +122,11 @@ export const NavBar: React.FC<PropTypes> = ({
           choices={[Cryptocurrencies.ETH, Cryptocurrencies.BTC, ...Object.keys(FiatCurrencies)]}
           selection={unit}
           setSelection={setUnit}
-
+          sx={{ p: 1 }}
         />
 
         <IconButton
-          sx={{ ml: 1, minWidth: "4em" }}
+          sx={{ ml: 1, minWidth: "2em" }}
           color="secondary"
           edge="start"
           onClick={toggleTheme}

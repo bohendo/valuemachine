@@ -126,7 +126,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
       </Grid>
 
       <TableContainer>
-        <Table size="small" sx={{ overflow: "auto", minWidth: "80em" }}>
+        <Table size="small" sx={{ overflow: "auto", minWidth: "70em" }}>
           <TableHead>
             <TableRow>
               <TableCell sx={{ p: 1, maxWidth: "4em" }}><strong> Owners </strong></TableCell>

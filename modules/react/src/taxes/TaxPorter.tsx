@@ -80,14 +80,14 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
   return (<>
 
-    <Card sx={{ p: 2, minWidth: "16em", maxWidth: "36em" }}>
+    <Card sx={{ p: 2, minWidth: "15em", maxWidth: "30em" }}>
       <Grid container alignItems="center">
 
         <Grid item xs={12}>
           <CardHeader title={`Export ${guard} Tax Info`}/>
         </Grid>
 
-        <Grid item xs={12} sm={5} sx={{ m: 0, mr: -2, p: 1, maxWidth: "16em" }}>
+        <Grid item xs={12} sm={4} sx={{ m: 0, ml: 2, mr: -2, p: 2, maxWidth: "16em" }}>
           <SelectOne
             choices={taxYears}
             defaultSelection={"all"}
@@ -98,10 +98,10 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           />
         </Grid>
 
-        <Grid item xs={12} sm={7} sx={{ ml: 2, mr: -4 }}>
+        <Grid item xs={12} sm={8} sx={{ ml: 2, mr: -4 }}>
           <Typography noWrap variant="body1">
             {taxYear === allTaxYears
-              ? `Entire financial history`
+              ? "Entire financial history"
               : `From ${fmtDate(taxYearBoundaries[0])} to ${fmtDate(taxYearBoundaries[1])}`
             }
           </Typography>
@@ -109,7 +109,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
         <br/>
 
-        <Grid item xs={12} sm={4} sx={{ maxWidth: "24em" }}>
+        <Grid item xs={12} sm={6} sx={{ maxWidth: "24em" }}>
           <Button
             sx={{ m: 2, maxWidth: "24em" }}
             color="primary"
@@ -124,7 +124,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
         </Grid>
 
         {guard === Guards.USA && taxYear !== allTaxYears ?
-          <Grid item xs={12} sm={8}>
+          <Grid item xs={12} sm={6}>
             <Button
               sx={{ m: 2, maxWidth: "24em" }}
               color="primary"

@@ -36,8 +36,6 @@ const lightTheme = createTheme({
   },
 });
 
-console.log("darkTheme", darkTheme);
-
 export const Theme: React.FC = () => {
   const [theme, setTheme] = useState(store.load(ThemeStore) || "dark");
 

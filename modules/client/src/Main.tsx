@@ -1,5 +1,4 @@
 import Container from "@mui/material/Container";
-import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import {
   getPrices,
@@ -52,8 +51,6 @@ const {
 } = StoreKeys;
 const UnitStore = "Unit" as any;
 const CustomTxnsStore = "CustomTransactions" as any;
-
-const Offset = styled("div")(({ theme }) => (theme as any)?.mixins?.toolbar);
 
 export type MainProps = {
   theme: string;
@@ -164,7 +161,6 @@ export const Main: React.FC<MainProps> = ({
   return (
     <Box>
       <NavBar unit={unit} setUnit={setUnit} theme={theme} setTheme={setTheme} />
-      <Offset/>
       <Box sx={{ overflow: "auto", flexGrow: 1 }}>
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Switch>

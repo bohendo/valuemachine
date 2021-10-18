@@ -39,8 +39,8 @@ export const SelectOne: React.FC<SelectOneProps> = ({
   const id = givenId || `select-one-${slugify(label)}`;
 
   return (
-    <Box sx={{ ...sx }}>
-      <FormControl sx={{ m: 2, minWidth: "12em", ["&>*"]: {
+    <Box sx={{ p: 2, ...sx }}>
+      <FormControl sx={{ minWidth: "8em", ["&>*"]: {
         "& > svg": { color: "inherit" }, // carrot icon
         "&::before": { borderColor: "inherit" }, // underline
         color: "inherit", // label & selection text
