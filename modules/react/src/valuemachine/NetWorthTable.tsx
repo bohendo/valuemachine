@@ -1,41 +1,14 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import { Asset, Balances, Prices } from "@valuemachine/types";
 import { add, div, gt, lt, mul, round } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  paper: {
-    padding: theme.spacing(2),
-  },
-  title: {
-    margin: theme.spacing(2),
-  },
-  table: {
-    minWidth: theme.spacing(56),
-    overflow: "auto",
-    padding: theme.spacing(1),
-  },
-  row: {
-    margin: theme.spacing(0),
-    "&:last-child th, &:last-child td": {
-      borderBottom: 0,
-    },
-  },
-  assetColumn: {
-    maxWidth: theme.spacing(24),
-    minWidth: theme.spacing(24),
-    width: theme.spacing(24),
-    overflow: "hidden",
-  },
-}));
 
 type NetWorthTableProps = {
   balances: Balances;
@@ -47,7 +20,6 @@ export const NetWorthTable: React.FC<NetWorthTableProps> = ({
   prices,
   unit,
 }: NetWorthTableProps) => {
-  const classes = useStyles();
   const [netWorth, setNetWorth] = useState("0");
   const [todayPrices, setTodayPrices] = useState({} as Balances);
   const [values, setValues] = useState({} as Balances);
@@ -77,12 +49,12 @@ export const NetWorthTable: React.FC<NetWorthTableProps> = ({
   }, [balances, todayPrices]);
 
   return (<>
-    <Paper className={classes.paper}>
-      <Typography variant="h4" className={classes.title}>
+    <Paper sx={{ p: 2 }}>
+      <Typography variant="h4" sx={{ p: 2 }}>
         {`Net Worth: ${round(netWorth, 4)} ${unit}`}
       </Typography>
       <TableContainer>
-        <Table size="small" className={classes.table}>
+        <Table size="small" sx={{ p: 1, overflow: "auto", minWidth: "36em" }}>
           <TableHead>
             <TableRow>
               <TableCell><strong> Asset </strong></TableCell>
@@ -96,12 +68,14 @@ export const NetWorthTable: React.FC<NetWorthTableProps> = ({
             {Object.entries(values).sort(
               (v1, v2) => lt(v1[1], v2[1]) ? 1 : -1
             ).map(([asset, value]: string[], i: number) => (
-              <TableRow  key={i} className={classes.row}>
-                <TableCell className={classes.assetColumn}> {asset} </TableCell>
+              <TableRow  key={i} sx={{ m: 2, ["&>td"]: { borderBottom: 0 } }}>
+                <TableCell sx={{ width: "16em", overflow: "hidden" }}> {asset} </TableCell>
                 <TableCell> {round(balances[asset])} </TableCell>
                 <TableCell> {round(todayPrices[asset], 2)} </TableCell>
                 <TableCell> {round(value)} </TableCell>
-                <TableCell> {gt(netWorth, "0") ? round(mul(div(value, netWorth), "100"), 4) : "0.0000"} </TableCell>
+                <TableCell> {
+                  gt(netWorth, "0") ? round(mul(div(value, netWorth), "100"), 4) : "0.0000"
+                } </TableCell>
               </TableRow>
             ))}
           </TableBody>

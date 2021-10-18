@@ -1,16 +1,9 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
+import Box from "@mui/material/Box";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
 import React from "react";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  dropdown: {
-    margin: theme.spacing(3),
-    minWidth: theme.spacing(20),
-  },
-}));
 
 type SelectManyProps = {
   choices?: string[],
@@ -18,6 +11,7 @@ type SelectManyProps = {
   label?: string,
   selection?: string,
   setSelection?: (val: string) => void,
+  sx?: any;
   toDisplay?: (val: string) => string,
 };
 export const SelectMany: React.FC<SelectManyProps> = ({
@@ -26,14 +20,14 @@ export const SelectMany: React.FC<SelectManyProps> = ({
   choices,
   selection,
   setSelection,
+  sx,
   toDisplay,
 }: SelectManyProps) => {
-  const classes = useStyles();
 
   const slugify = str =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
 
-  const handleFilterTypeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleChange = (event: SelectChangeEvent<string>) => {
     if (typeof event.target.value !== "string") return;
     setSelection?.(event.target.value);
   };
@@ -42,21 +36,22 @@ export const SelectMany: React.FC<SelectManyProps> = ({
   const id = givenId || `select-many-${slugify(label)}`;
 
   return (
-    <FormControl className={classes.dropdown}>
-      <InputLabel id={`${id}-label`}>{label}</InputLabel>
-      <Select
-        labelId={`${id}-label`}
-        id={id}
-        value={selection || ""}
-        onChange={handleFilterTypeChange}
-      >
-        <MenuItem value={""}>-</MenuItem>
-        {(choices || []).map((option, i) => (
-          <MenuItem key={i} value={option}>{toDisplay ? toDisplay(option) : option}</MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+    <Box sx={{ ...sx }}>
+      <FormControl sx={{ p: 1, minWidth: "12em" }}>
+        <InputLabel id={`${id}-label`} variant="standard">{label}</InputLabel>
+        <Select
+          id={id}
+          labelId={`${id}-label`}
+          onChange={handleChange}
+          value={selection || ""}
+          variant="standard"
+        >
+          <MenuItem value={""}>-</MenuItem>
+          {(choices || []).map((option, i) => (
+            <MenuItem key={i} value={option}>{toDisplay ? toDisplay(option) : option}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </Box>
   );
-
 };
-

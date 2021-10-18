@@ -1,22 +1,8 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
-import {
-  CsvFiles,
-} from "@valuemachine/types";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardHeader from "@mui/material/CardHeader";
+import { CsvFiles } from "@valuemachine/types";
 import React from "react";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  card: {
-    padding: theme.spacing(2),
-  },
-  fileInput: {
-    marginBottom: theme.spacing(1),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(4),
-  },
-}));
 
 type CsvPorterProps = {
   csvFiles: CsvFiles,
@@ -26,7 +12,6 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
   csvFiles,
   setCsvFiles,
 }: CsvPorterProps) => {
-  const classes = useStyles();
 
   const handleCsvFileImport = (event: any) => {
     const file = event.target.files[0];
@@ -48,15 +33,16 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
 
   return (<>
 
-    <Card className={classes.card}>
+    <Card sx={{ p: 2 }}>
       <CardHeader title={"Import CSV File"}/>
-      <input
-        accept="text/csv"
-        className={classes.fileInput}
-        id="file-importer"
-        onChange={handleCsvFileImport}
-        type="file"
-      />
+      <Box sx={{ mb: 4, mt: 1, mx: 4 }}>
+        <input
+          accept="text/csv"
+          id="file-importer"
+          onChange={handleCsvFileImport}
+          type="file"
+        />
+      </Box>
     </Card>
 
   </>);

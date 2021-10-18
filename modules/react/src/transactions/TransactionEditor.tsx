@@ -1,8 +1,7 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
-import AddIcon from "@material-ui/icons/AddCircle";
+import AddIcon from "@mui/icons-material/AddCircle";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 import { Apps, Methods, Sources } from "@valuemachine/transactions";
 import { Transaction, TransferCategories } from "@valuemachine/types";
 import { getTxIdError, getTransactionError } from "@valuemachine/utils";
@@ -11,17 +10,6 @@ import React, { useEffect, useState } from "react";
 import { SelectOne, TextInput, TimestampInput } from "../utils";
 
 import { TransferEditor } from "./TransferEditor";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  grid: {
-    padding: theme.spacing(1),
-  },
-  button: {
-    marginBottom: theme.spacing(1.5),
-    marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
-  },
-}));
 
 const getEmptyTransaction = (): Transaction => JSON.parse(JSON.stringify({
   apps: [],
@@ -49,7 +37,6 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
   const [newTx, setNewTx] = useState(getEmptyTransaction());
   const [modified, setModified] = useState(false);
   const [error, setError] = useState("");
-  const classes = useStyles();
 
   const handleSave = () => {
     if (!newTx || !modified || error) return;
@@ -92,9 +79,9 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
     <Grid
       alignContent="center"
       alignItems="center"
-      className={classes.grid}
       container
       spacing={1}
+      sx={{ p: 1 }}
     >
 
       <TimestampInput
@@ -157,7 +144,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
       <Grid item md={6}>
         <Grid item>
           <Button
-            className={classes.button}
+            sx={{ mb: 1.5, mx: 2 }}
             color="primary"
             disabled={!modified || !!error}
             onClick={handleSave}

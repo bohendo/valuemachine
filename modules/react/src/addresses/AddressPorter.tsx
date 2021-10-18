@@ -1,8 +1,8 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
-import DownloadIcon from "@material-ui/icons/GetApp";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardHeader from "@mui/material/CardHeader";
+import DownloadIcon from "@mui/icons-material/GetApp";
 import {
   AddressBook,
   AddressBookJson,
@@ -14,24 +14,6 @@ import {
 } from "@valuemachine/utils";
 import React from "react";
 
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  card: {
-    padding: theme.spacing(2),
-  },
-  exporter: {
-    marginBottom: theme.spacing(4),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(0),
-  },
-  importer: {
-    marginBottom: theme.spacing(1),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(0),
-  },
-}));
-
 type AddressPorterProps = {
   addressBook: AddressBook,
   setAddressBookJson: (val: AddressBookJson) => void,
@@ -40,7 +22,6 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
   addressBook,
   setAddressBookJson,
 }: AddressPorterProps) => {
-  const classes = useStyles();
 
   const handleAddressBookImport = (event) => {
     const file = event.target.files[0];
@@ -88,19 +69,19 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
   };
 
   return (<>
-
-    <Card className={classes.card}>
+    <Card sx={{ p: 2 }}>
       <CardHeader title={"Import Address Book"}/>
-      <input
-        className={classes.importer}
-        id="profile-importer"
-        accept="application/json"
-        type="file"
-        onChange={handleAddressBookImport}
-      />
+      <Box sx={{ mb: 1, mx: 4, mt: 0 }}>
+        <input
+          accept="application/json"
+          id="profile-importer"
+          onChange={handleAddressBookImport}
+          type="file"
+        />
+      </Box>
       <CardHeader title={"Export Address Book"}/>
       <Button
-        className={classes.exporter}
+        sx={{ mb: 4, mx: 4, mt: 0 }}
         color="primary"
         onClick={handleExport}
         size="small"
@@ -110,7 +91,5 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
         Download
       </Button>
     </Card>
-
   </>);
 };
-

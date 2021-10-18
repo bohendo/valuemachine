@@ -1,13 +1,12 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import {
   AddressEntry,
   AddressBook,
@@ -22,15 +21,6 @@ import { SelectOne } from "../utils";
 
 import { AddressRow } from "./AddressRow";
 
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  paper: {
-    padding: theme.spacing(2),
-  },
-  title: {
-    padding: theme.spacing(2),
-  },
-}));
-
 type AddressTableProps = {
   addressBook: AddressBook,
   setAddressBookJson: (val: AddressBookJson) => void,
@@ -43,7 +33,6 @@ export const AddressTable: React.FC<AddressTableProps> = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [filteredEntries, setFilteredEntries] = useState([] as AddressEntry[]);
   const [filterCategory, setFilterCategory] = useState("");
-  const classes = useStyles();
 
   useEffect(() => {
     setPage(0);
@@ -84,9 +73,9 @@ export const AddressTable: React.FC<AddressTableProps> = ({
 
   return (<>
 
-    <Paper className={classes.paper}>
+    <Paper sx={{ p: 2 }}>
       <TableContainer>
-        <Typography align="center" variant="h4" className={classes.title} component="div">
+        <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
           {filteredEntries.length === Object.keys(addressBook.json).length
             ? `${filteredEntries.length} Addresses`
             : `${filteredEntries.length} of ${Object.keys(addressBook.json).length} Addresses`

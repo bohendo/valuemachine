@@ -1,15 +1,14 @@
 import { isHexString } from "@ethersproject/bytes";
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Box from "@material-ui/core/Box";
-import Collapse from "@material-ui/core/Collapse";
-import IconButton from "@material-ui/core/IconButton";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import Box from "@mui/material/Box";
+import Collapse from "@mui/material/Collapse";
+import IconButton from "@mui/material/IconButton";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import {
   AddressBook,
   EventTypes,
@@ -21,16 +20,6 @@ import React, { useEffect, useState } from "react";
 
 import { HexString } from "../utils";
 
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  subtable: {
-    maxWidth: theme.spacing(12),
-  },
-  firstCell: {
-    maxWidth: theme.spacing(1),
-    padding: theme.spacing(1),
-  },
-}));
-
 type EventRowProps = {
   addressBook: AddressBook;
   event: HydratedEvent;
@@ -40,7 +29,6 @@ export const EventRow: React.FC<EventRowProps> = ({
   event,
 }: EventRowProps) => {
   const [open, setOpen] = useState(false);
-  const classes = useStyles();
 
   useEffect(() => {
     if (event && open) console.log(event);
@@ -76,7 +64,7 @@ export const EventRow: React.FC<EventRowProps> = ({
             const value = e[1] as string;
             return (
               <TableRow key={i}>
-                <TableCell className={classes.subtable}><strong> {key} </strong></TableCell>
+                <TableCell sx={{ maxWidth: "8em" }}><strong> {key} </strong></TableCell>
                 <TableCell> {
                   isHexString(value?.split("/").pop())
                     ? <HexString value={value} display={addressBook?.getName(value, true)}/>
@@ -95,7 +83,7 @@ export const EventRow: React.FC<EventRowProps> = ({
   return (
     <React.Fragment>
       <TableRow>
-        <TableCell onClick={() => setOpen(!open)} className={classes.firstCell}>
+        <TableCell onClick={() => setOpen(!open)} sx={{ p: 1, maxWidth: "4em" }}>
           <IconButton aria-label="expand row" size="small" >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>

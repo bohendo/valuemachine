@@ -1,12 +1,5 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
+import TextField from "@mui/material/TextField";
 import React, { useState } from "react";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  main: {
-    margin: theme.spacing(2),
-  },
-}));
 
 type TextInputProps = {
   id?: string;
@@ -26,7 +19,6 @@ export const TextInput: React.FC<TextInputProps> = ({
   getError,
   fullWidth,
 }: TextInputProps) => {
-  const classes = useStyles();
   const [error, setError] = useState("");
 
   const slugify = str =>
@@ -46,7 +38,7 @@ export const TextInput: React.FC<TextInputProps> = ({
   return (
     <TextField
       autoComplete="off"
-      className={classes.main}
+      sx={{ m: 2 }}
       error={!!error}
       fullWidth={!!fullWidth}
       helperText={error || helperText || ""}

@@ -1,18 +1,17 @@
-import { makeStyles } from "@material-ui/core/styles";
-import Box from "@material-ui/core/Box";
-import Button from "@material-ui/core/Button";
-import Collapse from "@material-ui/core/Collapse";
-import IconButton from "@material-ui/core/IconButton";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
-import EditIcon from "@material-ui/icons/Edit";
-import DeleteIcon from "@material-ui/icons/Backspace";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Backspace";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Collapse from "@mui/material/Collapse";
+import IconButton from "@mui/material/IconButton";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import { describeTransaction } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -27,28 +26,6 @@ import { HexString } from "../utils";
 
 import { TransactionEditor } from "./TransactionEditor";
 
-const useStyles = makeStyles((theme) => ({
-  tableRow: {
-    "& > *": {
-      borderBottom: "unset",
-      margin: theme.spacing(0),
-    },
-    overflow: "auto",
-  },
-  subTable: {
-    maxWidth: theme.spacing(111),
-    overflow: "auto",
-  },
-  firstCell: {
-    maxWidth: theme.spacing(16),
-    padding: theme.spacing(1),
-  },
-  button: {
-    marginLeft: theme.spacing(3),
-    marginBottom: theme.spacing(2),
-  }
-}));
-
 type TransactionRowProps = {
   addressBook: AddressBook;
   tx: Transaction;
@@ -62,7 +39,6 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [newTx, setNewTx] = useState({} as Partial<Transaction>);
-  const classes = useStyles();
   const date = (new Date(tx.date)).toISOString().replace(".000Z", "");
 
   const toggleEditMode = () => {
@@ -89,8 +65,8 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
   return (
     <React.Fragment>
 
-      <TableRow className={classes.tableRow}>
-        <TableCell onClick={() => setOpen(!open)} className={classes.firstCell}>
+      <TableRow sx={{ overflow: "auto", ["&>td"]: { borderBottom: 0 } }}>
+        <TableCell onClick={() => setOpen(!open)} sx={{ p: 1, maxWidth: "4em" }}>
           <IconButton aria-label="expand row" size="small" >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
@@ -113,8 +89,8 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
           : null}
       </TableRow>
 
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+      <TableRow sx={{ overflow: "auto", ["&>td"]: { borderBottom: 0 } }}>
+        <TableCell sx={{ py: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box pb={2} px={4}>
               <Typography variant="h6" gutterBottom component="div">
@@ -123,7 +99,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
               <Typography variant="h6" gutterBottom component="div">
                 Transfers
               </Typography>
-              <Table size="small" className={classes.subTable}>
+              <Table size="small" sx={{ maxWidth: "80em", overflow: "auto" }}>
                 <TableHead>
                   <TableRow>
                     <TableCell><strong> Category </strong></TableCell>
@@ -165,7 +141,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
       </TableRow>
 
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+        <TableCell sx={{ py: 0 }} colSpan={6}>
           <Collapse in={editMode} timeout="auto" unmountOnExit>
             <Box pb={2} px={4}>
               <TransactionEditor
@@ -174,7 +150,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
               />
 
               <Button
-                className={classes.button}
+                sx={{ ml: 3, mb: 2 }}
                 color="primary"
                 onClick={deleteTx}
                 size="small"

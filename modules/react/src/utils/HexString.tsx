@@ -1,28 +1,13 @@
-import Tooltip from "@material-ui/core/Tooltip";
-import Typography from "@material-ui/core/Typography";
-import IconButton from "@material-ui/core/IconButton";
-import { makeStyles } from "@material-ui/core/styles";
-import ExploreIcon from "@material-ui/icons/Explore";
+import Tooltip from "@mui/material/Tooltip";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import ExploreIcon from "@mui/icons-material/Explore";
 import { EvmNames } from "@valuemachine/transactions";
 import React, { useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 const { Ethereum, Polygon } = EvmNames;
-
-const useStyles = makeStyles((theme) => ({
-  icon: {
-    marginTop: theme.spacing(-0.5),
-  },
-  label: {
-    "& > *": {
-      overflowWrap: "anywhere",
-      wordBreak: "normal",
-    },
-    margin: theme.spacing(0),
-    display: "flex",
-    flexWrap: "wrap",
-  },
-}));
 
 export const HexString = ({
   value,
@@ -32,7 +17,6 @@ export const HexString = ({
   display?: string,
 }) => {
   const [copied, setCopied] = useState(false);
-  const classes = useStyles();
 
   const parts = value.split("/");
   const hex = parts.pop() || "";
@@ -68,7 +52,7 @@ export const HexString = ({
           placement="bottom-start"
           title={copied ? "Copied to clipboard" : value}
         >
-          <span className={classes.label}>
+          <Box sx={{ m: 0, display: "flex", flexWrap: "wrap", overflowWrap: "anywhere", wordBreak: "normal" }}>
             {displayParts.map((part,i) => (
               <Typography key={i} noWrap>
                 {`${part}${i < displayParts.length - 1 ? "/" : ""}`}
@@ -76,7 +60,7 @@ export const HexString = ({
             ))}
             {link ?
               <IconButton
-                className={classes.icon}
+                sx={{ mt: -0.5 }}
                 color="secondary"
                 href={link}
                 rel="noreferrer"
@@ -87,7 +71,7 @@ export const HexString = ({
               </IconButton>
               : null
             }
-          </span>
+          </Box>
         </Tooltip>
       </CopyToClipboard>
     </React.Fragment>

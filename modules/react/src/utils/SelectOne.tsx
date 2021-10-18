@@ -2,7 +2,7 @@ import Box from "@mui/material/Box";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
 import React from "react";
 
 type SelectOneProps = {
@@ -29,8 +29,9 @@ export const SelectOne: React.FC<SelectOneProps> = ({
   const slugify = str =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
 
-  const handleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleChange = (event: SelectChangeEvent<string>) => {
     if (typeof event.target.value !== "string") return;
+    console.log(`event.target.value=${event.target.value}`);
     setSelection?.(event.target.value);
   };
 
@@ -39,13 +40,14 @@ export const SelectOne: React.FC<SelectOneProps> = ({
 
   return (
     <Box sx={{ ...sx }}>
-      <FormControl sx={{ p: 1, minWidth: "12em" }}>
-        <InputLabel id={`${id}-label`}>{label}</InputLabel>
+      <FormControl sx={{ m: 2, minWidth: "12em" }}>
+        <InputLabel id={`${id}-label`} variant="standard">{label}</InputLabel>
         <Select
-          labelId={`${id}-label`}
           id={id}
-          value={selection || ""}
+          labelId={`${id}-label`}
           onChange={handleChange}
+          value={selection || ""}
+          variant="standard"
         >
           <MenuItem value={defaultSelection || ""}>{defaultSelection || "-"}</MenuItem>
           {(choices || []).map((option, i) => (

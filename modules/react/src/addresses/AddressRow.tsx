@@ -1,39 +1,19 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Box from "@material-ui/core/Box";
-import Button from "@material-ui/core/Button";
-import Collapse from "@material-ui/core/Collapse";
-import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
-import TableCell from "@material-ui/core/TableCell";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
-import RemoveIcon from "@material-ui/icons/Delete";
-import EditIcon from "@material-ui/icons/Edit";
+import RemoveIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Collapse from "@mui/material/Collapse";
+import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import {
   AddressEntry,
 } from "@valuemachine/types";
 import React, { useState } from "react";
 
 import { AddressEditor } from "./AddressEditor";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  tableRow: {
-    "& > *": {
-      borderBottom: "unset",
-      margin: theme.spacing(0),
-    },
-    overflow: "auto",
-  },
-  innerBox: {
-    maxWidth: theme.spacing(160),
-    overflow: "auto",
-  },
-  button: {
-    marginBottom: theme.spacing(1.5),
-    marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
-  },
-}));
 
 type AddressRowProps = {
   editEntry: (s: string, e?: AddressEntry) => void;
@@ -47,7 +27,6 @@ export const AddressRow: React.FC<AddressRowProps> = ({
 }: AddressRowProps) => {
   const [editMode, setEditMode] = useState(false);
   const [newEntry, setNewEntry] = useState({} as Partial<AddressEntry>);
-  const classes = useStyles();
 
   const toggleEditMode = () => {
     setEditMode(!editMode);
@@ -70,7 +49,7 @@ export const AddressRow: React.FC<AddressRowProps> = ({
 
   return (
     <React.Fragment>
-      <TableRow className={classes.tableRow}>
+      <TableRow sx={{ m: 0, overflow: "auto", ["&>td"]: { borderBottom: 0 } }}>
         <TableCell> {entry.name} </TableCell>
         <TableCell> {entry.category} </TableCell>
         <TableCell><pre> {entry.address} </pre></TableCell>
@@ -83,7 +62,7 @@ export const AddressRow: React.FC<AddressRowProps> = ({
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={editMode} timeout="auto" unmountOnExit>
-            <Box py={2} px={4} className={classes.innerBox}>
+            <Box sx={{ py: 2, px: 4, maxWidth: "120em", overflow: "auto" }}>
               <Typography variant="h6" gutterBottom component="div">
                 Edit Address
               </Typography>
@@ -96,11 +75,11 @@ export const AddressRow: React.FC<AddressRowProps> = ({
 
               <Grid item>
                 <Button
-                  className={classes.button}
                   color="primary"
                   onClick={handleDelete}
                   size="small"
                   startIcon={<RemoveIcon />}
+                  sx={{ mb: 1.5, mx: 2 }}
                   variant="contained"
                 >
                   Delete Address
