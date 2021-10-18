@@ -10,10 +10,24 @@ import {
 import {
   add,
   mul,
+  round,
   sub,
 } from "@valuemachine/utils";
 
-import { securityFeeMap } from "./constants";
+import { allTaxYears, securityFeeMap, taxYearMap } from "./constants";
+
+export const getTaxYearBoundaries = (guard: Guard, taxYear: string): [number, number] => {
+  if (!taxYear.match(/^[0-9]{4}$/)) return [0, 5000000000000]; // from 1970 until after 2100
+  const prevYear = round(sub(taxYear, "1"), 0).padStart(4, "0");
+  console.log(`taxYear=${taxYear} | prevYear=${prevYear}`);
+  return taxYearMap[guard] ? [
+    new Date(taxYearMap[guard].replace(/^0000/, prevYear)).getTime(),
+    new Date(taxYearMap[guard].replace(/^0000/, taxYear)).getTime(),
+  ] : [
+    new Date(taxYearMap.default.replace(/^0000/, prevYear)).getTime(),
+    new Date(taxYearMap.default.replace(/^0000/, taxYear)).getTime(),
+  ];
+};
 
 export const getTaxRows = ({
   guard,
@@ -27,12 +41,16 @@ export const getTaxRows = ({
   taxYear?: string;
 }): TaxRow[] => {
   const unit = securityFeeMap[guard] || "";
+  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
   if (!unit) throw new Error(`Security asset is unknown for ${guard}`);
   let cumulativeIncome = "0";
   let cumulativeChange = "0";
 
   return vm?.json?.events.filter(evt => {
-    if (taxYear && taxYear !== "all" && !evt.date.startsWith(taxYear)) return false;
+    const time = new Date(evt.date).getTime();
+    if (taxYear && taxYear !== allTaxYears && (
+      time < taxYearBoundaries[0] || time > taxYearBoundaries[1]
+    )) return false;
     const toGuard = (
       (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
     ).split("/")[0];
