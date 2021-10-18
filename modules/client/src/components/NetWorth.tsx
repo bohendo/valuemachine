@@ -1,4 +1,4 @@
-import Typography from "@material-ui/core/Typography";
+import Typography from "@mui/material/Typography";
 import { BalanceTable, NetWorthTable } from "@valuemachine/react";
 import { AddressBook, Asset, Prices, ValueMachine } from "@valuemachine/types";
 import React from "react";

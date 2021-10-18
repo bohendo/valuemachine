@@ -40,7 +40,11 @@ export const SelectOne: React.FC<SelectOneProps> = ({
 
   return (
     <Box sx={{ ...sx }}>
-      <FormControl sx={{ m: 2, minWidth: "12em" }}>
+      <FormControl sx={{ m: 2, minWidth: "12em", ["&>*"]: {
+        "& > svg": { color: "inherit" }, // carrot icon
+        "&::before": { borderColor: "inherit" }, // underline
+        color: "inherit", // label & selection text
+      } }}>
         <InputLabel id={`${id}-label`} variant="standard">{label}</InputLabel>
         <Select
           id={id}

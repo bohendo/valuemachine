@@ -1,9 +1,8 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Divider from "@material-ui/core/Divider";
-import Typography from "@material-ui/core/Typography";
-import SyncIcon from "@material-ui/icons/Sync";
+import SyncIcon from "@mui/icons-material/Sync";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Divider from "@mui/material/Divider";
+import Typography from "@mui/material/Typography";
 import { TransactionTable } from "@valuemachine/react";
 import {
   getTransactions,
@@ -21,19 +20,6 @@ import axios from "axios";
 
 const logger = getLogger("debug");
 
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  button: {
-    marginLeft: theme.spacing(3),
-    marginRight: theme.spacing(3),
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-    maxWidth: "95%",
-  },
-  syncMessage: {
-    margin: theme.spacing(1),
-  },
-}));
-
 type TransactionExplorerProps = {
   addressBook: AddressBook;
   csvFiles: CsvFiles,
@@ -49,7 +35,6 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
   setTransactionsJson,
 }: TransactionExplorerProps) => {
   const [syncing, setSyncing] = useState("");
-  const classes = useStyles();
 
   const syncTxns = async () => {
     if (syncing) return;
@@ -121,7 +106,7 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
       <Divider/>
 
       <Button
-        className={classes.button}
+        sx={{ mx: 2, mt: 2, mb: 1, maxWidth: 0.95  }}
         disabled={!!syncing}
         onClick={syncTxns}
         startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
@@ -134,7 +119,7 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
 
       <Typography
         variant="body1"
-        className={classes.syncMessage}
+        sx={{ m: 1 }}
         align="center"
       >
         {syncing}

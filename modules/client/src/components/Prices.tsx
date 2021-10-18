@@ -1,24 +1,19 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Divider from "@material-ui/core/Divider";
-import FormControl from "@material-ui/core/FormControl";
-import Grid from "@material-ui/core/Grid";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Paper from "@material-ui/core/Paper";
-import Select from "@material-ui/core/Select";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
-import SyncIcon from "@material-ui/icons/Sync";
-import ClearIcon from "@material-ui/icons/Delete";
-import { DateInput } from "@valuemachine/react";
+import SyncIcon from "@mui/icons-material/Sync";
+import ClearIcon from "@mui/icons-material/Delete";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Divider from "@mui/material/Divider";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
+import { DateInput, SelectOne } from "@valuemachine/react";
 import {
   Cryptocurrencies,
   FiatCurrencies,
@@ -32,47 +27,6 @@ import {
 import { sigfigs } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  root: {
-    margin: theme.spacing(1),
-  },
-  button: {
-    margin: theme.spacing(3),
-  },
-  header: {
-    marginTop: theme.spacing(2),
-  },
-  paper: {
-    minWidth: "550px",
-    padding: theme.spacing(2),
-  },
-  select: {
-    margin: theme.spacing(3),
-    minWidth: 160,
-  },
-  title: {
-    margin: theme.spacing(2),
-  },
-  subtitle: {
-    margin: theme.spacing(2),
-  },
-  dateFilter: {
-    margin: theme.spacing(2),
-  },
-  table: {
-    maxWidth: "98%",
-  },
-  subtable: {
-    maxWidth: "98%",
-    // overflow: "scroll",
-  },
-  subtableCell: {
-    maxWidth: "100px",
-    // overflow: "scroll",
-  },
-}));
 
 type PropTypes = {
   prices: Prices;
@@ -92,7 +46,6 @@ export const PriceManager: React.FC<PropTypes> = ({
   const [filterAsset, setFilterAsset] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [filteredPrices, setFilteredPrices] = useState({} as PricesJson);
-  const classes = useStyles();
 
   useEffect(() => {
     if (!prices) return;
@@ -112,11 +65,6 @@ export const PriceManager: React.FC<PropTypes> = ({
     });
     setFilteredPrices(newFilteredPrices);
   }, [unit, prices, filterAsset, filterDate]);
-
-  const handleFilterChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setFilterAsset(event.target.value);
-  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -167,15 +115,15 @@ export const PriceManager: React.FC<PropTypes> = ({
       </Typography>
 
       <Divider/>
-      <Typography variant="h4" className={classes.subtitle}>
+      <Typography variant="h4" sx={{ m: 2 }}>
         Management
       </Typography>
 
-      <Grid alignContent="center" alignItems="center" container spacing={1} className={classes.root}>
+      <Grid alignContent="center" alignItems="center" container spacing={1} sx={{ m: 1 }}>
 
         <Grid item>
           <Button
-            className={classes.button}
+            sx={{ m: 3 }}
             disabled={syncing}
             onClick={syncPrices}
             startIcon={syncing ? <CircularProgress size={20} /> : <SyncIcon/>}
@@ -184,7 +132,7 @@ export const PriceManager: React.FC<PropTypes> = ({
             {`Sync ${unit} Prices For ${vm.json.chunks.length} Chunks`}
           </Button>
           <Button
-            className={classes.button}
+            sx={{ m: 3 }}
             disabled={!Object.keys(prices.json).length}
             onClick={clearPrices}
             startIcon={<ClearIcon/>}
@@ -197,38 +145,33 @@ export const PriceManager: React.FC<PropTypes> = ({
       </Grid>
 
       <Divider/>
-      <Typography variant="h4" className={classes.subtitle}>
-        Filters
-      </Typography>
 
-      <FormControl className={classes.select}>
-        <InputLabel id="select-filter-asset">Filter Asset</InputLabel>
-        <Select
-          labelId="select-filter-asset"
-          id="select-filter-asset"
-          value={filterAsset || ""}
-          onChange={handleFilterChange}
-        >
-          <MenuItem value={""}>-</MenuItem>
-          {Object.keys({ ...FiatCurrencies, ...Cryptocurrencies }).map(asset => (
-            <MenuItem key={asset} value={asset}>{asset}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <Paper sx={{ p: 2, minWidth: "80em" }}>
 
-      <DateInput
-        id="prices-filter-date"
-        label="Filter Date"
-        setDate={setFilterDate}
-      />
+        <Grid container>
+          <Grid item xs={12}>
+            <Typography align="center" variant="h4" sx={{ m: 2 }} component="div">
+              {`${unit} Prices on ${Object.keys(filteredPrices).length} days`}
+            </Typography>
+          </Grid>
 
-      <Divider/>
+          <Grid item>
+            <SelectOne
+              label="Filter Asset"
+              choices={Object.keys({ ...FiatCurrencies, ...Cryptocurrencies })}
+              selection={filterAsset}
+              setSelection={setFilterAsset}
+            />
+          </Grid>
 
-      <Paper className={classes.paper}>
-
-        <Typography align="center" variant="h4" className={classes.title} component="div">
-          {`${unit} Prices on ${Object.keys(filteredPrices).length} days`}
-        </Typography>
+          <Grid item>
+            <DateInput
+              id="prices-filter-date"
+              label="Filter Date"
+              setDate={setFilterDate}
+            />
+          </Grid>
+        </Grid>
 
         <TableContainer>
           <TablePagination
@@ -240,7 +183,7 @@ export const PriceManager: React.FC<PropTypes> = ({
             onPageChange={handleChangePage}
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
-          <Table className={classes.table}>
+          <Table sx={{ maxWidth: 0.98 }}>
             <TableHead>
               <TableRow>
                 <TableCell> Date </TableCell>
@@ -257,7 +200,7 @@ export const PriceManager: React.FC<PropTypes> = ({
                       {date.replace("T", " ").replace("Z", "")}
                     </strong></TableCell>
                     <TableCell>
-                      <Table className={classes.subtable}>
+                      <Table sx={{ maxWidth: 0.98 }}>
                         <TableHead>
                           <TableRow>
                             {Object.entries(list[unit] || {})

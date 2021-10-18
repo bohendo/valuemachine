@@ -1,13 +1,13 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
-import Divider from "@material-ui/core/Divider";
-import Grid from "@material-ui/core/Grid";
-import Tab from "@material-ui/core/Tab";
-import Tabs from "@material-ui/core/Tabs";
-import Typography from "@material-ui/core/Typography";
-import RemoveIcon from "@material-ui/icons/Delete";
+import RemoveIcon from "@mui/icons-material/Delete";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardHeader from "@mui/material/CardHeader";
+import Divider from "@mui/material/Divider";
+import Grid from "@mui/material/Grid";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
+import Typography from "@mui/material/Typography";
 import {
   AddressEditor,
   AddressPorter,
@@ -32,31 +32,6 @@ import React, { useState } from "react";
 
 const logger = getLogger("debug");
 
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  root: {
-    margin: theme.spacing(1),
-  },
-  card: {
-    margin: theme.spacing(1),
-  },
-  grid: {
-    marginBottom: theme.spacing(1),
-  },
-  divider: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-  },
-  title: {
-    margin: theme.spacing(2),
-  },
-  button: {
-    margin: theme.spacing(2),
-  },
-  tabs: {
-    margin: theme.spacing(1),
-  },
-}));
-
 type PropTypes = {
   addressBook: AddressBook,
   setAddressBookJson: (val: AddressBookJson) => void,
@@ -76,8 +51,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   const [newEntry, setNewEntry] = useState(getBlankAddressEntry());
   const [newTransaction, setNewTransaction] = useState(getBlankTransaction());
   const [tab, setTab] = useState(0);
-  const classes = useStyles();
-
 
   const addNewEntry = (editedAddress: AddressEntry) => {
     // create new obj to ensure it re-renders
@@ -115,19 +88,19 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   };
 
   return (
-    <div className={classes.root}>
+    <Box sx={{ m: 1 }}>
 
-      <Typography variant="h4" className={classes.title}>
+      <Typography variant="h4" sx={{ m: 2 }}>
         Manage Input Data
       </Typography>
 
-      <Tabs value={tab} onChange={handleTabChange} className={classes.tabs} centered>
+      <Tabs value={tab} onChange={handleTabChange} sx={{ m: 1 }} centered>
         <Tab label="Evm Addresses"/>
         <Tab label="Csv Files"/>
         <Tab label="Custom Transactions"/>
       </Tabs>
 
-      <Divider className={classes.divider}/>
+      <Divider sx={{ mt: 2, mb: 1 }}/>
 
       <div hidden={tab !== 0}>
         <Grid
@@ -136,10 +109,10 @@ export const AddressBookManager: React.FC<PropTypes> = ({
           justifyContent="center"
           container
           spacing={1}
-          className={classes.grid}
+          sx={{ mb: 1 }}
         >
           <Grid item md={8}>
-            <Card className={classes.card}>
+            <Card sx={{ m: 1 }}>
               <CardHeader title={"Add new Address"} />
               <AddressEditor
                 entry={newEntry}
@@ -154,7 +127,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
               setAddressBookJson={setAddressBookJson}
             />
             <Button
-              className={classes.button}
+              sx={{ m: 1 }}
               color="primary"
               onClick={deleteAddresses}
               size="medium"
@@ -179,7 +152,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
           justifyContent="center"
           container
           spacing={1}
-          className={classes.grid}
+          sx={{ mb: 1 }}
         >
           <Grid item md={6}>
             <CsvPorter
@@ -187,7 +160,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
               setCsvFiles={setCsvFiles}
             />
             <Button
-              className={classes.button}
+              sx={{ m: 1 }}
               color="primary"
               onClick={deleteCsvFiles}
               size="medium"
@@ -206,7 +179,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
       </div>
       <div hidden={tab !== 2}>
 
-        <Card className={classes.card}>
+        <Card sx={{ m: 1 }}>
           <CardHeader title={"Add new Transaction"} />
           <TransactionEditor
             tx={newTransaction}
@@ -215,7 +188,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
         </Card>
 
         <Button
-          className={classes.button}
+          sx={{ m: 1 }}
           color="primary"
           onClick={deleteCustomTxns}
           size="medium"
@@ -234,6 +207,6 @@ export const AddressBookManager: React.FC<PropTypes> = ({
 
       </div>
 
-    </div>
+    </Box>
   );
 };

@@ -17,8 +17,8 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
-    "@material-ui/core": "4.12.3",
-    "@material-ui/icons": "4.11.2",
+    "@mui/icons-material": "5.0.4",
+    "@mui/material": "5.0.4",
     "@valuemachine/core": "0.10.1",
     "@valuemachine/react": "0.10.1",
     "@valuemachine/transactions": "0.10.1",
