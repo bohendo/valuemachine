@@ -7,27 +7,7 @@ import {
   Transaction,
 } from "@valuemachine/types";
 
-import {
-  aaveParsers,
-  airswapParsers,
-  bjtjParsers,
-  argentParsers,
-  compoundParsers,
-  cryptokittiesParsers,
-  tokensParsers,
-  etherdeltaParsers,
-  ensParsers,
-  idexParsers,
-  idleParsers,
-  makerParsers,
-  nftsParsers,
-  polygonParsers,
-  quickswapParsers,
-  tornadoParsers,
-  uniswapParsers,
-  wethParsers,
-  yearnParsers,
-} from "../apps";
+import { ethereumParsers } from "../apps";
 import { parseEvmTx } from "../parser";
 
 export const parseEthereumTx = (
@@ -42,26 +22,5 @@ export const parseEthereumTx = (
     ethMetadata,
     addressBook,
     logger,
-    [
-      aaveParsers,
-      airswapParsers,
-      bjtjParsers,
-      argentParsers,
-      compoundParsers,
-      cryptokittiesParsers,
-      tokensParsers,
-      etherdeltaParsers,
-      ensParsers,
-      idexParsers,
-      idleParsers,
-      makerParsers,
-      nftsParsers,
-      polygonParsers,
-      quickswapParsers,
-      tornadoParsers,
-      uniswapParsers,
-      wethParsers,
-      yearnParsers,
-      extraParsers,
-    ],
+    ethereumParsers.concat(extraParsers),
   );

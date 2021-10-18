@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
+import { cleanCsv } from "@valuemachine/transactions";
 import { CsvFiles } from "@valuemachine/types";
 import React from "react";
 
@@ -20,11 +21,8 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
     reader.readAsText(file);
     reader.onload = () => {
       try {
-        const importedFile = reader.result as string;
-        setCsvFiles([...csvFiles, {
-          name: file.name,
-          data: importedFile,
-        }] as CsvFiles);
+        const csv = cleanCsv(typeof reader.result === "string" ? reader.result : "", file.name);
+        setCsvFiles({ ...csvFiles, [csv.digest]: csv });
       } catch (e) {
         console.error(e);
       }

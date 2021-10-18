@@ -68,7 +68,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   };
 
   const deleteCsvFiles = async () => {
-    setCsvFiles([]);
+    setCsvFiles({});
   };
 
   const deleteCustomTxns = async () => {
@@ -179,21 +179,14 @@ export const AddressBookManager: React.FC<PropTypes> = ({
             </Button>
           </Grid>
           <Grid item md={6}>
-            <CsvTable csvFiles={csvFiles} setCsvFiles={setCsvFiles}/>
+            <CsvTable csvFiles={csvFiles} setCsvFiles={setCsvFiles} />
           </Grid>
         </Grid>
       </div>
 
       <div hidden={tab !== 2}>
-        <Grid
-          alignContent="center"
-          alignItems="center"
-          justifyContent="center"
-          container
-          spacing={2}
-          sx={{ mb: 1 }}
-        >
-          <Grid item md={8}>
+        <Grid container spacing={2} sx={{ mb: 1 }}>
+          <Grid item md={9}>
             <Card sx={{ m: 0 }}>
               <CardHeader title={"Add new Transactions"} />
               <TransactionEditor
@@ -202,7 +195,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
               />
             </Card>
           </Grid>
-          <Grid item md={4}>
+          <Grid item md={3}>
             <TransactionPorter
               transactions={customTxns}
               setTransactions={setCustomTxns}

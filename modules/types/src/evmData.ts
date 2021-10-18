@@ -3,7 +3,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { Logger } from "./logger";
 import { Store } from "./store";
 import { AddressBook } from "./addressBook";
-import { EvmParsers, Transaction, TransactionsJson } from "./transactions";
+import { Transaction, TransactionsJson } from "./transactions";
 import {
   Account,
   Bytes32,
@@ -65,6 +65,19 @@ export type EvmDataJson = Static<typeof EvmDataJson>;
 
 ////////////////////////////////////////
 // Function Interfaces
+
+export type EvmParser = (
+  tx: Transaction,
+  evmTx: EvmTransaction,
+  evmMeta: EvmMetadata,
+  addressBook: AddressBook,
+  logger: Logger,
+) => Transaction;
+
+export type EvmParsers = {
+  insert: EvmParser[];
+  modify: EvmParser[];
+};
 
 export type EvmDataParams = {
   apiKey?: string;

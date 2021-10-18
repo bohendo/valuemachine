@@ -11,7 +11,7 @@ const Template: ComponentStory<typeof CsvTable> = (args) => <CsvTable {...args} 
 export const Example = Template.bind({});
 Example.args = {
   csvFiles,
-  // setCsvFiles: console.log,
+  setCsvFiles: console.log,
 };
 
 

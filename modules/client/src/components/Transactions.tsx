@@ -83,14 +83,12 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
         }
       }
     }
-    if (csvFiles?.length) {
-      for (const csvFile of csvFiles) {
-        setSyncing(`Parsing ${
-          csvFile.data.split("\n").length
-        } rows of ${csvFile.type} data from ${csvFile.name}`);
-        await new Promise((res) => setTimeout(res, 200)); // let sync message re-render
-        newTransactions.mergeCsv(csvFile.data);
-      }
+    for (const csv of Object.values(csvFiles)) {
+      setSyncing(`Parsing ${
+        csv.data.split("\n").length - 1
+      } rows of ${csv.source} data from ${csv.name}`);
+      await new Promise((res) => setTimeout(res, 200)); // let sync message re-render
+      newTransactions.mergeCsv(csv.data);
     }
     setTransactionsJson(newTransactions.json);
     setSyncing("");

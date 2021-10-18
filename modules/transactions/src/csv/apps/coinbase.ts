@@ -13,7 +13,7 @@ const guard = Guards.USA;
 const source = CsvSources.Coinbase;
 const dateKey = "Timestamp";
 
-export const coinbaseHeaders = `
+export const coinbaseHeaders = [`
 ${dateKey},
 Transaction Type,
 Asset,
@@ -23,7 +23,7 @@ USD Subtotal,
 USD Total (inclusive of fees),
 USD Fees,
 Notes
-`.replace(/\n/g, "");
+`.replace(/\n/g, "")];
 
 export const coinbaseParser = (
   csvData: string,

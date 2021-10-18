@@ -12,7 +12,7 @@ const guard = Guards.USA;
 const source = CsvSources.Elements;
 const dateKey = "Post Date";
 
-export const elementsHeaders = `
+export const elementsHeaders = [`
 Account Number,
 ${dateKey},
 Check,
@@ -22,7 +22,7 @@ Credit,
 Status,
 Balance,
 Classification
-`.replace(/\n/g, "");
+`.replace(/\n/g, "")];
 
 export const elementsParser = (
   csvData: string,

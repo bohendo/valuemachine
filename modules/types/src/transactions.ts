@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { AddressBook } from "./addressBook";
-import { EvmMetadata, EvmTransaction } from "./evmData";
+import { CsvParser } from "./csv";
 import { Logger } from "./logger";
 import {
   Account,
@@ -66,24 +65,6 @@ export type TransactionsJson = Static<typeof TransactionsJson>;
 
 ////////////////////////////////////////
 // Function Interfaces
-
-export type CsvParser = (
-  csvData: string,
-  logger: Logger,
-) => TransactionsJson;
-
-export type EvmParser = (
-  tx: Transaction,
-  evmTx: EvmTransaction,
-  evmMeta: EvmMetadata,
-  addressBook: AddressBook,
-  logger: Logger,
-) => Transaction;
-
-export type EvmParsers = {
-  insert: EvmParser[];
-  modify: EvmParser[];
-};
 
 export type TransactionsParams = {
   json?: TransactionsJson;

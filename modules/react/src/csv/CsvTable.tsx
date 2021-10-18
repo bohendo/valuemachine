@@ -9,12 +9,8 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import { parseCsv } from "@valuemachine/transactions";
 import {
-  CsvFile,
   CsvFiles,
 } from "@valuemachine/types";
-import {
-  hashCsv,
-} from "@valuemachine/utils";
 import React from "react";
 
 type CsvTableProps = {
@@ -26,15 +22,20 @@ export const CsvTable: React.FC<CsvTableProps> = ({
   setCsvFiles,
 }: CsvTableProps) => {
 
-  const handleDelete = index =>
-    setCsvFiles(csvFiles.slice(0, index).concat(csvFiles.slice(index + 1)));
+  const handleDelete = key => {
+    const newCsvFiles = { ...csvFiles }; // new object to ensure a re-render
+    delete newCsvFiles[key];
+    setCsvFiles(newCsvFiles);
+  };
+
+  const digests = Object.keys(csvFiles);
 
   return (
     <Paper sx={{ p: 2 }}>
       <Typography align="center" variant="h4" sx={{ mb: 2 }} component="div">
-        {`${csvFiles.length} CSV File${csvFiles.length === 1 ? "" : "s"}`}
+        {`${digests.length} CSV File${digests.length === 1 ? "" : "s"}`}
       </Typography>
-      {csvFiles.length ? (
+      {digests.length ? (
         <TableContainer>
           <Table size="small" sx={{ p: 2, minWidth: "20em" }}>
             <TableHead>
@@ -47,18 +48,15 @@ export const CsvTable: React.FC<CsvTableProps> = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {csvFiles.map(csvFile => ({
-                ...csvFile,
-                txns: parseCsv(csvFile.data),
-              })).map((csvFile: CsvFile, i) => (
-                <TableRow key={i}>
-                  <TableCell> {csvFile.name.toString()} </TableCell>
-                  <TableCell> {csvFile.txns?.[0]?.sources?.[0] || "Unknown"} </TableCell>
-                  <TableCell> {csvFile.txns?.length || 0} </TableCell>
-                  <TableCell> {hashCsv(csvFile.data)} </TableCell>
+              {digests.map(digest => (
+                <TableRow key={digest}>
+                  <TableCell> {csvFiles[digest].name} </TableCell>
+                  <TableCell> {csvFiles[digest].source || "Unknown"} </TableCell>
+                  <TableCell> {parseCsv(csvFiles[digest].data)?.length || 0} </TableCell>
+                  <TableCell> {digest} </TableCell>
                   <TableCell
                     sx={{ width: "3em" }}
-                    onClick={() => handleDelete(i)}
+                    onClick={() => handleDelete(digest)}
                   >
                     <DeleteIcon/>
                   </TableCell>

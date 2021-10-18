@@ -4,7 +4,7 @@ import { getLocalStore } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import "./Theme.css";
-import { Main } from "./Main";
+import { App } from "./App";
 
 const store = getLocalStore(localStorage);
 
@@ -48,7 +48,7 @@ export const Theme: React.FC = () => {
   return (
     <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
       <CssBaseline/>
-      <Main
+      <App
         theme={theme}
         setTheme={setTheme}
       />

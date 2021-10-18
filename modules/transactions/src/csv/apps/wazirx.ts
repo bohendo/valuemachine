@@ -10,19 +10,17 @@ import { Assets, CsvSources, Guards, Methods } from "../../enums";
 import { getGuard } from "../../utils";
 
 const guard = Guards.IND;
+const dateKey = "Date";
 
 const { INR } = Assets;
 const { Internal, Fee, SwapIn, SwapOut } = TransferCategories;
-const dateKey = "Date";
 
-const wazirxDepositHeaders = `
+export const wazirxHeaders = [`
 ${dateKey},
 Transaction,
 Currency,
 Volume
-`.replace(/\n/g, "");
-
-const wazirxTradeHeaders = `
+`.replace(/\n/g, ""), `
 ${dateKey},
 Market,
 Price,
@@ -31,12 +29,7 @@ Total,
 Trade,
 "Fee Currency",
 Fee
-`.replace(/\n/g, "");
-
-export const wazirxHeaders = [
-  wazirxDepositHeaders,
-  wazirxTradeHeaders,
-];
+`.replace(/\n/g, "")];
 
 export const wazirxParser = (
   csvData: string,
@@ -45,9 +38,9 @@ export const wazirxParser = (
   const source = CsvSources.Wazirx;
   const log = logger.child({ module: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
-  return csv(csvData, { columns: true, skip_empty_lines: true }).sort((r1, r2) => {
-    return new Date(r1[dateKey]).getTime() - new Date(r2[dateKey]).getTime();
-  }).map((row, rowIndex) => {
+  return csv(csvData, { columns: true, skip_empty_lines: true }).sort((r1, r2) =>
+    new Date(r1[dateKey]).getTime() - new Date(r2[dateKey]).getTime()
+  ).map((row, rowIndex) => {
 
     const date = row[dateKey];
 

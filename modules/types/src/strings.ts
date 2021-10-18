@@ -11,14 +11,17 @@ export type Account = Static<typeof Account>;
 export const Amount = Type.RegEx(/^(-?[0-9]*\.?[0-9]*)|(ALL)$/);
 export type Amount = Static<typeof Amount>;
 
-export const App = Type.RegEx(/^[_a-zA-Z0-9]{3,32}$/);
+export const App = Type.RegEx(/^[0-9a-zA-Z_]{3,32}$/);
 export type App = Static<typeof App>;
 
-export const Asset = Type.RegEx(/^[_a-zA-Z0-9]{1,32}$/);
+export const Asset = Type.RegEx(/^[0-9a-zA-Z_]{1,32}$/);
 export type Asset = Static<typeof Asset>;
 
-export const Bytes32 = Type.RegEx(/^0x[a-fA-F0-9]{64}$/);
+export const Bytes32 = Type.RegEx(/^0x[0-9a-fA-F]{64}$/);
 export type Bytes32 = Static<typeof Bytes32>;
+
+export const CsvDigest = Type.RegEx(/^[0-9a-f]{8}$/);
+export type CsvDigest = Static<typeof CsvDigest>;
 
 export const DateString = Type.String({ format: "date" });
 export type DateString = Static<typeof DateString>;

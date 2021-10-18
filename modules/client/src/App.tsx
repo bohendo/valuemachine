@@ -16,16 +16,17 @@ import {
 import {
   fmtAddressBook,
   getAddressBookError,
-  getTransactionsError,
-  getValueMachineError,
-  getPricesError,
-  getEmptyCsvFiles,
+  getCsvFilesError,
   getEmptyAddressBook,
+  getEmptyCsvFiles,
+  getEmptyPrices,
   getEmptyTransactions,
   getEmptyValueMachine,
-  getEmptyPrices,
   getLocalStore,
   getLogger,
+  getPricesError,
+  getTransactionsError,
+  getValueMachineError,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
@@ -52,14 +53,14 @@ const {
 const UnitStore = "Unit" as any;
 const CustomTxnsStore = "CustomTransactions" as any;
 
-export type MainProps = {
+export type AppProps = {
   theme: string;
   setTheme: (val: string) => void;
 };
-export const Main: React.FC<MainProps> = ({
+export const App: React.FC<AppProps> = ({
   theme,
   setTheme,
-}: MainProps) => {
+}: AppProps) => {
 
   // Core JSON data from localstorage
   const [addressBookJson, setAddressBookJson] = useState(store.load(AddressBookStore));
@@ -142,8 +143,15 @@ export const Main: React.FC<MainProps> = ({
 
   useEffect(() => {
     if (!csvFiles?.length) return;
-    console.log(`Saving ${csvFiles.length} csv files`);
-    store.save(CsvStore, csvFiles);
+    if (getCsvFilesError(csvFiles)) {
+      console.log(`Removing invalid csv files`);
+      const newCsvFiles = getEmptyCsvFiles();
+      store.save(CsvStore, newCsvFiles);
+      setCsvFiles(newCsvFiles);
+    } else {
+      console.log(`Saving ${csvFiles.length} csv files`);
+      store.save(CsvStore, csvFiles);
+    }
   }, [csvFiles]);
 
   useEffect(() => {

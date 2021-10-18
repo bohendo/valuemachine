@@ -1,5 +1,6 @@
 import { addresses } from "./apps";
 
+export { ethereumParsers, polygonParsers } from "./apps";
 export {
   Apps as EvmApps,
   Assets as EvmAssets,

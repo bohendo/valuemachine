@@ -1,5 +1,5 @@
 export { getAddressBook } from "./addressBook";
-export { parseCsv } from "./csv";
+export { cleanCsv, parseCsv } from "./csv";
 export {
   Apps,
   Assets,

@@ -12,7 +12,7 @@ const guard = Guards.USA;
 const source = CsvSources.DigitalOcean;
 const dateKey = "start";
 
-export const digitaloceanHeaders = `
+export const digitaloceanHeaders = [`
 product,
 group_description,
 description,
@@ -21,7 +21,7 @@ ${dateKey},
 end,
 USD,
 project_name
-`.replace(/\n/g, "");
+`.replace(/\n/g, "")];
 
 export const digitaloceanParser = (
   csvData: string,
