@@ -17,7 +17,7 @@ import {
 import { allTaxYears, securityFeeMap, taxYearMap } from "./constants";
 
 export const getTaxYearBoundaries = (guard: Guard, taxYear: string): [number, number] => {
-  if (!taxYear.match(/^[0-9]{4}$/)) return [0, 5000000000000]; // from 1970 until after 2100
+  if (!taxYear?.match(/^[0-9]{4}$/)) return [0, 5000000000000]; // from 1970 until after 2100
   const prevYear = round(sub(taxYear, "1"), 0).padStart(4, "0");
   console.log(`taxYear=${taxYear} | prevYear=${prevYear}`);
   return taxYearMap[guard] ? [
