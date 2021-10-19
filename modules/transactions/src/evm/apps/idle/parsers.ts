@@ -20,11 +20,7 @@ import { coreAddresses, govAddresses, marketAddresses } from "./addresses";
 const appName = Apps.Idle;
 
 const { Internal, SwapIn, SwapOut } = TransferCategories;
-const {
-  IDLE, idleDAISafe, idleDAIYield, idleRAIYield, idleSUSDYield, idleTUSDYield,
-  idleUSDCSafe, idleUSDCYield, idleUSDTSafe, idleUSDTYield, idleWBTCYield, idleWETHYield,
-  DAI, RAI, sUSD, TUSD, USDC, USDT, WBTC, WETH,
-} = Tokens;
+const { IDLE } = Tokens;
 
 ////////////////////////////////////////
 /// Abis
@@ -42,17 +38,18 @@ const stkIDLEAbi = [
 
 const idleToToken = (idleAsset: string): Asset | undefined => {
   switch (idleAsset) {
-  case idleDAIYield: return DAI;
-  case idleRAIYield: return RAI;
-  case idleSUSDYield: return sUSD;
-  case idleTUSDYield: return TUSD;
-  case idleUSDCYield: return USDC;
-  case idleUSDTYield: return USDT;
-  case idleWBTCYield: return WBTC;
-  case idleWETHYield: return WETH;
-  case idleDAISafe: return DAI;
-  case idleUSDCSafe: return USDC;
-  case idleUSDTSafe: return USDT;
+  case Tokens.idleDAIv1: return Tokens.DAI;
+  case Tokens.idleDAIYield: return Tokens.DAI;
+  case Tokens.idleRAIYield: return Tokens.RAI;
+  case Tokens.idleSUSDYield: return Tokens.sUSD;
+  case Tokens.idleTUSDYield: return Tokens.TUSD;
+  case Tokens.idleUSDCYield: return Tokens.USDC;
+  case Tokens.idleUSDTYield: return Tokens.USDT;
+  case Tokens.idleWBTCYield: return Tokens.WBTC;
+  case Tokens.idleWETHYield: return Tokens.WETH;
+  case Tokens.idleDAISafe: return Tokens.DAI;
+  case Tokens.idleUSDCSafe: return Tokens.USDC;
+  case Tokens.idleUSDTSafe: return Tokens.USDT;
   default: return undefined;
   }
 };

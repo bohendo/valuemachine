@@ -6,6 +6,7 @@ const Methods = {};
 
 const Tokens = {
   IDLE: "IDLE",
+  idleDAIv1: "idleDAIv1",
   idleDAISafe: "idleDAISafe",
   idleDAIYield: "idleDAIYield",
   idleRAIYield: "idleRAIYield",
