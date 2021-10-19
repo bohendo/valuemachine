@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardHeader from "@mui/material/CardHeader";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 import DownloadIcon from "@mui/icons-material/GetApp";
 import {
   AddressBook,
@@ -69,9 +69,11 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
   };
 
   return (<>
-    <Card sx={{ p: 2 }}>
-      <CardHeader title={"Import Address Book"}/>
-      <Box sx={{ mb: 1, mx: 4, mt: 0 }}>
+    <Paper sx={{ p: 3, maxWidth: "24em" }}>
+      <Typography variant="h6">
+        {"Import Address Book"}
+      </Typography>
+      <Box sx={{ my: 2 }}>
         <input
           accept="application/json"
           id="profile-importer"
@@ -79,9 +81,11 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
           type="file"
         />
       </Box>
-      <CardHeader title={"Export Address Book"}/>
+      <Typography variant="h6">
+        {"Export Address Book"}
+      </Typography>
       <Button
-        sx={{ mb: 4, mx: 4, mt: 0 }}
+        sx={{ my: 2 }}
         color="primary"
         onClick={handleExport}
         size="small"
@@ -90,6 +94,6 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
       >
         Download
       </Button>
-    </Card>
+    </Paper>
   </>);
 };

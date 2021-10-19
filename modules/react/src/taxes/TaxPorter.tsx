@@ -1,8 +1,7 @@
 import DownloadIcon from "@mui/icons-material/GetApp";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
-import Card from "@mui/material/Card";
-import CardHeader from "@mui/material/CardHeader";
+import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { allTaxYears, getTaxYearBoundaries, getTaxRows, requestF8949 } from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
@@ -35,10 +34,10 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   useEffect(() => {
     setTaxYear(allTaxYears);
     setTaxYears(dedup(
-      vm.json.events.filter(evt =>
+      vm?.json?.events?.filter(evt =>
         (evt as TradeEvent).account?.startsWith(guard) ||
         (evt as GuardChangeEvent).to?.startsWith(guard)
-      ).map(evt => evt.date.split("-")[0])
+      ).map(evt => evt.date.split("-")[0]) || []
     ));
   }, [guard, vm]);
 
@@ -80,14 +79,16 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
   return (<>
 
-    <Card sx={{ p: 2, minWidth: "15em", maxWidth: "30em" }}>
+    <Paper sx={{ p: 3, minWidth: "15em", maxWidth: "30em" }}>
       <Grid container alignItems="center">
 
         <Grid item xs={12}>
-          <CardHeader title={`Export ${guard} Tax Info`}/>
+          <Typography variant="h6">
+            {`Export ${guard} Tax Info`}
+          </Typography>
         </Grid>
 
-        <Grid item xs={12} sm={4} sx={{ m: 0, ml: 2, mr: -2, p: 2, maxWidth: "16em" }}>
+        <Grid item xs={12} sm={4} sx={{ px: 1, py: 2, maxWidth: "16em" }}>
           <SelectOne
             choices={taxYears}
             defaultSelection={"all"}
@@ -98,7 +99,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           />
         </Grid>
 
-        <Grid item xs={12} sm={8} sx={{ ml: 2, mr: -4 }}>
+        <Grid item xs={12} sm={8} sx={{ ml: 1, mr: -4 }}>
           <Typography noWrap variant="body1">
             {taxYear === allTaxYears
               ? "Entire financial history"
@@ -109,9 +110,9 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
         <br/>
 
-        <Grid item xs={12} sm={6} sx={{ maxWidth: "24em" }}>
+        <Grid item xs={12} sm={6}>
           <Button
-            sx={{ m: 2, maxWidth: "24em" }}
+            sx={{ ml: 1, my: 2, maxWidth: "24em" }}
             color="primary"
             fullWidth={false}
             onClick={handleCsvExport}
@@ -126,7 +127,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
         {guard === Guards.USA && taxYear !== allTaxYears ?
           <Grid item xs={12} sm={6}>
             <Button
-              sx={{ m: 2, maxWidth: "24em" }}
+              sx={{ ml: 1, my: 2, maxWidth: "24em" }}
               color="primary"
               fullWidth={false}
               onClick={handleF8949Export}
@@ -140,7 +141,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           : null
         }
       </Grid>
-    </Card>
+    </Paper>
 
   </>);
 };

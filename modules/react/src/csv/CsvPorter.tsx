@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardHeader from "@mui/material/CardHeader";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 import { cleanCsv } from "@valuemachine/transactions";
 import { CsvFiles } from "@valuemachine/types";
 import React from "react";
@@ -30,10 +30,11 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
   };
 
   return (<>
-
-    <Card sx={{ p: 2 }}>
-      <CardHeader title={"Import CSV File"}/>
-      <Box sx={{ mb: 4, mt: 1, mx: 4 }}>
+    <Paper sx={{ p: 3, maxWidth: "24em" }}>
+      <Typography variant="h6">
+        {"Import CSV File"}
+      </Typography>
+      <Box sx={{ mb: 1, mt: 1 }}>
         <input
           accept="text/csv"
           id="file-importer"
@@ -41,8 +42,7 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
           type="file"
         />
       </Box>
-    </Card>
-
+    </Paper>
   </>);
 };
 

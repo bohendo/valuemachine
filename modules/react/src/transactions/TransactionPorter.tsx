@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardHeader from "@mui/material/CardHeader";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 import DownloadIcon from "@mui/icons-material/GetApp";
 import { TransactionsJson } from "@valuemachine/types";
 import { getTransactionsError } from "@valuemachine/utils";
@@ -52,9 +52,11 @@ export const TransactionPorter: React.FC<TransactionPorterProps> = ({
   };
 
   return (<>
-    <Card sx={{ p: 2 }}>
-      <CardHeader title={"Import Transactions"}/>
-      <Box sx={{ mb: 1, mx: 4, mt: 0 }}>
+    <Paper sx={{ p: 3, maxWidth: "24em" }}>
+      <Typography variant="h6">
+        {"Import Transactions"}
+      </Typography>
+      <Box sx={{ my: 2 }}>
         <input
           accept="application/json"
           id="profile-importer"
@@ -62,9 +64,11 @@ export const TransactionPorter: React.FC<TransactionPorterProps> = ({
           type="file"
         />
       </Box>
-      <CardHeader title={"Export Transactions"}/>
+      <Typography variant="h6">
+        {"Export Transactions"}
+      </Typography>
       <Button
-        sx={{ mb: 4, mx: 4, mt: 0 }}
+        sx={{ my: 2 }}
         color="primary"
         onClick={handleExport}
         size="small"
@@ -73,6 +77,6 @@ export const TransactionPorter: React.FC<TransactionPorterProps> = ({
       >
         Download
       </Button>
-    </Card>
+    </Paper>
   </>);
 };
