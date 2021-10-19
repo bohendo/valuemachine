@@ -1,7 +1,4 @@
 import {
-  EvmApps,
-} from "@valuemachine/transactions";
-import {
   Account,
   Asset,
   AssetChunk,
@@ -178,14 +175,12 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   };
 
   const underflow = (amount: DecimalString, asset: Asset, account: Account): AssetChunk => {
-
     // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
-    // Withdrawing more than we deposited is assumed to represent income rather than a loan
-    const source = [`${EvmApps.Dai}-DSR`, EvmApps.Tornado].find(source =>
-      account.includes(`/${source}`)
-    );
-    if (source) {
-      log.warn(`Underflow of ${amount} ${asset} is being treated as ${source} income`);
+    // Disposing of more than we recieved is assumed to represent income rather than a flashloan
+    const [_guard, maybeVenu, maybeAddress] = account.split("/");
+    const venue = maybeAddress ? maybeVenu : !maybeAddress.startsWith("0x") ? maybeAddress : "";
+    if (venue) {
+      log.warn(`Underflow of ${amount} ${asset} is being treated as ${venue} income`);
       const newChunk = mintChunk(amount, asset, account);
       const newIncomeEvent = newEvents.find(e => e.type === EventTypes.Income);
       if (newIncomeEvent?.type === EventTypes.Income) {
@@ -193,7 +188,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       } else {
         newEvents.push({
           account,
-          from: source,
+          from: venue,
           date: json.date,
           index: json.events.length + newEvents.length,
           inputs: [newChunk.index],
