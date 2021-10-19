@@ -142,7 +142,7 @@ export const App: React.FC<AppProps> = ({
   }, [pricesJson, unit]);
 
   useEffect(() => {
-    if (!csvFiles?.length) return;
+    if (!Object.keys(csvFiles || {}).length) return;
     if (getCsvFilesError(csvFiles)) {
       console.log(`Removing invalid csv files`);
       const newCsvFiles = getEmptyCsvFiles();
