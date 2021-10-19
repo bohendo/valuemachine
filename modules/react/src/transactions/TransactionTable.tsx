@@ -232,7 +232,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       <br/>
 
       <TableContainer>
-        <Table size="small" sx={{ minWidth: "70em", overflow: "auto" }}>
+        <Table size="small" sx={{ minWidth: "68em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
               <TableCell sx={{ p: 1, maxWidth: "5em" }}><strong> Transfers </strong></TableCell>

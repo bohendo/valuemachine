@@ -1,4 +1,7 @@
-import DeleteIcon from "@mui/icons-material/Backspace";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Alert from "@mui/material/Alert";
+import IconButton from "@mui/material/IconButton";
+import Snackbar from "@mui/material/Snackbar";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -11,7 +14,7 @@ import { parseCsv } from "@valuemachine/transactions";
 import {
   CsvFiles,
 } from "@valuemachine/types";
-import React from "react";
+import React, { useState } from "react";
 
 type CsvTableProps = {
   csvFiles: CsvFiles,
@@ -21,16 +24,32 @@ export const CsvTable: React.FC<CsvTableProps> = ({
   csvFiles,
   setCsvFiles,
 }: CsvTableProps) => {
+  const [pendingRm, setPendingRm] = useState("");
+  const [confirmMsg, setConfirmMsg] = useState("");
 
-  const handleDelete = key => {
+  const handleClose = () => {
+    setPendingRm("");
+    setConfirmMsg("");
+  };
+
+  const requestDelete = (key) => {
+    console.log(`requesting ${key} deletion`);
+    setPendingRm(key);
+    setConfirmMsg(`Are you sure you want to delete ${csvFiles[key].name}?`);
+  };
+
+  const handleDelete = () => {
+    if (!pendingRm) return;
     const newCsvFiles = { ...csvFiles }; // new object to ensure a re-render
-    delete newCsvFiles[key];
+    delete newCsvFiles[pendingRm];
     setCsvFiles(newCsvFiles);
+    setPendingRm("");
+    setConfirmMsg("");
   };
 
   const digests = Object.keys(csvFiles);
 
-  return (
+  return (<>
     <Paper sx={{ p: 2 }}>
       <Typography align="center" variant="h4" sx={{ mb: 2 }} component="div">
         {`${digests.length} CSV File${digests.length === 1 ? "" : "s"}`}
@@ -56,7 +75,7 @@ export const CsvTable: React.FC<CsvTableProps> = ({
                   <TableCell> {digest} </TableCell>
                   <TableCell
                     sx={{ width: "3em" }}
-                    onClick={() => handleDelete(digest)}
+                    onClick={() => requestDelete(digest)}
                   >
                     <DeleteIcon/>
                   </TableCell>
@@ -67,5 +86,15 @@ export const CsvTable: React.FC<CsvTableProps> = ({
         </TableContainer>
       ) : null}
     </Paper>
-  );
+
+    <Snackbar open={!!confirmMsg} autoHideDuration={10000} onClose={handleClose}>
+      <Alert onClose={handleClose} severity="warning">
+        {confirmMsg}
+        <IconButton size="small" onClick={handleDelete} sx={{ ml: 2, my: -1 }}>
+          <DeleteIcon />
+        </IconButton>
+      </Alert>
+    </Snackbar>
+
+  </>);
 };
