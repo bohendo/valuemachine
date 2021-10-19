@@ -1,4 +1,3 @@
-// import { Interface } from "@ethersproject/abi";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
@@ -9,16 +8,14 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { Apps } from "../../enums";
-import { getTransferCategory, parseEvent } from "../../utils";
+import { Apps, Methods } from "../../enums";
+import { parseEvent } from "../../utils";
 
-import {
-  exchangeAddresses,
-  proxyAddresses,
-} from "./addresses";
+import { exchangeAddresses } from "./addresses";
+import { findDSProxies } from "./proxy";
 
 const appName = Apps.Oasis;
-const { Income, Expense, SwapIn, SwapOut } = TransferCategories;
+const { SwapIn, SwapOut } = TransferCategories;
 
 ////////////////////////////////////////
 /// Abis
@@ -55,56 +52,32 @@ export const oasisParser = (
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName } = addressBook;
 
-  // Save a list of relevant proxies to treat as self (TODO: dedup w ./tokens)
-  const proxies = proxyAddresses.map(e => e.address);
-  for (const txLog of evmTx.logs) {
-    if (txLog.topics[0].startsWith("0x1cff79cd")) { // TODO: hash sig instead of hardcoding?
-      proxies.push(txLog.address);
-    }
-  }
-
-  const isProxy = address => proxies.includes(address);
-  const isSelf = address => addressBook.isSelf(address) || isProxy(address);
-
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
     if (exchangeAddresses.some(e => e.address === address)) {
       tx.apps.push(appName);
 
-      // If we sent this evmTx to a proxy, replace proxy addresses w tx origin
-      if (addressBook.isSelf(evmTx.from) && isProxy(evmTx.to)) {
-        tx.transfers.forEach(transfer => {
-          tx.method = "Trade";
-          if (isProxy(transfer.from)) {
-            transfer.from = evmTx.from;
-            transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
-            if (transfer.category === Expense) transfer.category = SwapOut;
-          }
-          if (isProxy(transfer.to)) {
-            transfer.to = evmTx.from;
-            transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
-            if (transfer.category === Income) transfer.category = SwapIn;
-          }
-        });
-      }
-
       const event = parseEvent(oasisAbi, txLog, evmMeta);
 
       if (event.name === "LogTake") {
-        log.debug(`Parsing ${appName} ${event.name} event`);
+        const { maker, taker } = event.args;
+        log.info(`Parsing ${appName} ${event.name} event w maker=${maker} & taker=${taker}`);
+        const dsProxies = findDSProxies(evmTx);
+        const isSelf = a => addressBook.isSelf(a) ||
+          (addressBook.isSelf(evmTx.from) && dsProxies.includes(a));
         let inAmt, inGem, outAmt, outGem;
-        if (isSelf(event.args.maker)) {
+        if (isSelf(maker)) {
           inGem = getName(event.args.buy_gem);
           inAmt = formatUnits(event.args.buy_amt, getDecimals(address));
           outGem = getName(event.args.pay_gem);
           outAmt = formatUnits(event.args.pay_amt, getDecimals(address));
-        } else if (isSelf(event.args.taker)) {
+        } else if (isSelf(taker)) {
           inGem = getName(event.args.pay_gem);
           outGem = getName(event.args.buy_gem);
           inAmt = formatUnits(event.args.pay_amt, getDecimals(address));
           outAmt = formatUnits(event.args.buy_amt, getDecimals(address));
         } else {
-          log.debug(`Skipping trade w maker=${event.args.maker} & taker=${event.args.taker}`);
+          log.debug(`Skipping trade w maker=${maker} & taker=${taker}`);
           continue;
         }
         log.info(`Found trade of ${outAmt} ${outGem} for ${inAmt} ${inGem}`);
@@ -113,6 +86,7 @@ export const oasisParser = (
           && isSelf(transfer.to) && !isSelf(transfer.from)
         );
         if (swapIn) {
+          tx.method = Methods.Trade;
           swapIn.category = SwapIn;
           swapIn.from = address;
         } else {
@@ -123,6 +97,7 @@ export const oasisParser = (
           && isSelf(transfer.from) && !isSelf(transfer.to)
         );
         if (swapOut) {
+          tx.method = Methods.Trade;
           swapOut.category = SwapOut;
           swapOut.to = address;
         } else {
@@ -132,6 +107,7 @@ export const oasisParser = (
 
     }
   }
+
   return tx;
 };
 

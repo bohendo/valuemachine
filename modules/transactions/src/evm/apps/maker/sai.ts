@@ -1,13 +1,10 @@
-import { Interface } from "@ethersproject/abi";
 import { hexlify, stripZeros } from "@ethersproject/bytes";
-import { HashZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   Asset,
   EvmMetadata,
   EvmTransaction,
-  EvmTransactionLog,
   Logger,
   Transaction,
   TransferCategories,
@@ -20,14 +17,14 @@ import {
 } from "@valuemachine/utils";
 
 import { Apps, Assets, Tokens } from "../../enums";
-import { diffAsc, getTransferCategory, parseEvent } from "../../utils";
+import { diffAsc, parseEvent } from "../../utils";
 
 import {
   saiPitAddress,
   tubAddress,
   cageAddress,
-  proxyAddresses,
 } from "./addresses";
+import { parseLogNote } from "./utils";
 
 const appName = Apps.Sai;
 const { ETH } = Assets;
@@ -63,29 +60,6 @@ const cageAbi = [
 ////////////////////////////////////////
 /// Parser
 
-const parseLogNote = (
-  abi: string[],
-  ethLog: EvmTransactionLog,
-): { name: string; args: string[]; } => {
-  const iface = new Interface(abi);
-  return {
-    name: Object.values(iface.functions).find(e =>
-      ethLog.topics[0].startsWith(iface.getSighash(e))
-    )?.name,
-    args: ethLog.data
-      .substring(2 + 64 + 64 + 8)
-      .match(/.{1,64}/g)
-      .filter(e => e !== "0".repeat(64 - 8))
-      .map(s => `0x${s}`)
-      .map(str => [HashZero, "0x"].includes(str)
-        ? "0x00"
-        : str.startsWith("0x000000000000000000000000")
-          ? `0x${str.substring(26)}`
-          : str
-      ),
-  };
-};
-
 export const saiParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
@@ -94,19 +68,8 @@ export const saiParser = (
   logger: Logger,
 ): Transaction => {
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
-
+  const { isSelf } = addressBook;
   const ethish = [WETH, ETH, PETH] as Asset[];
-
-  // Save a list of relevant proxies to treat as self (TODO: dedup w ./tokens & ./oasis & ./dai)
-  const proxies = proxyAddresses.map(e => e.address);
-  for (const txLog of evmTx.logs) {
-    if (txLog.topics[0].startsWith("0x1cff79cd")) { // TODO: hash sig instead of hardcoding?
-      proxies.push(txLog.address);
-    }
-  }
-
-  const isProxy = address => proxies.includes(address);
-  const isSelf = address => addressBook.isSelf(address) || isProxy(address);
 
   for (const txLog of evmTx.logs) {
     const address = txLog.address;
@@ -114,22 +77,6 @@ export const saiParser = (
     ////////////////////////////////////////
     // SCD Tub
     if (address === tubAddress) {
-
-      // If we sent this evmTx to a proxy, replace proxy addresses w tx origin
-      if (addressBook.isSelf(evmTx.from) && isProxy(evmTx.to)) {
-        tx.transfers.forEach(transfer => {
-          if (isProxy(transfer.from)) {
-            transfer.from = evmTx.from;
-            transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
-            if (transfer.category === TransferCategories.Expense) transfer.category = SwapOut;
-          }
-          if (isProxy(transfer.to)) {
-            transfer.to = evmTx.from;
-            transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
-            if (transfer.category === TransferCategories.Income) transfer.category = SwapIn;
-          }
-        });
-      }
 
       const event = parseEvent(tubAbi, txLog, evmMeta);
       if (event?.name === "LogNewCup") {

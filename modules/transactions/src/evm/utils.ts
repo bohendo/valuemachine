@@ -1,4 +1,4 @@
-import { /*defaultAbiCoder, AbiCoder,*/ Interface } from "@ethersproject/abi";
+import { Interface } from "@ethersproject/abi";
 import { getAddress as getEvmAddress } from "@ethersproject/address";
 import { isHexString } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
@@ -18,6 +18,18 @@ import {
 import { diff, gt, toBN } from "@valuemachine/utils";
 
 import { Guards } from "../enums";
+
+export const describeAbi = (abi: any) => {
+  const iface = new Interface(abi);
+  return [
+    ...Object.values(iface.events).map(evt =>
+      `Event ${evt.name.padEnd(16, " ")} ${iface.getEventTopic(evt)}`
+    ),
+    ...Object.values(iface.functions).map(fn =>
+      `Function ${fn.name.padEnd(13, " ")} ${iface.getSighash(fn)}`
+    ),
+  ].join(`\n`);
+};
 
 export const toNumber = (val: number | string): number => toBN(val).toNumber();
 
@@ -83,13 +95,13 @@ export const diffAsc = (compareTo: DecimalString) => (t1: Transfer, t2: Transfer
 export const parseEvent = (
   abi: any,
   evmLog: EvmTransactionLog,
-  evmMeta: EvmMetadata,
+  evmMeta?: EvmMetadata,
 ): { name: string; args: { [key: string]: string }; } => {
   const iface = abi.length ? new Interface(abi) : abi as Interface;
   const name = Object.values(iface.events).find(e =>
     iface.getEventTopic(e) === evmLog.topics[0]
   )?.name;
-  const formatAddress = (address: string): string => `${evmMeta.name}/${address}`;
+  const formatAddress = (address: string) => evmMeta ? `${evmMeta.name}/${address}` : address;
   const rawArgs = name ? iface.parseLog({
     data: evmLog.data,
     topics: evmLog.topics,
@@ -109,18 +121,6 @@ export const parseEvent = (
     args[key] = rawArgs[key].length === 42 ? formatAddress(rawArgs[key]) : rawArgs[key];
   });
   return { name, args };
-};
-
-export const describeAbi = (abi: any) => {
-  const iface = new Interface(abi);
-  return [
-    ...Object.values(iface.events).map(evt =>
-      `Event ${evt.name.padEnd(16, " ")} ${iface.getEventTopic(evt)}`
-    ),
-    ...Object.values(iface.functions).map(fn =>
-      `Function ${fn.name.padEnd(13, " ")} ${iface.getSighash(fn)}`
-    ),
-  ].join(`\n`);
 };
 
 export const getTransferCategory = (

@@ -10,8 +10,8 @@ import {
 } from "../../testUtils";
 
 const appName = Apps.Dai;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
-const parseTx = getParseTx({ logger });
+const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
+const parseTx = getParseTx({ logger: log });
 
 describe(appName, () => {
 
@@ -39,10 +39,13 @@ describe(appName, () => {
       txid: "Ethereum/0x30e97ec8235ae69d24873e5596fb708d0622ea817a468ab7111f926a6f9c3387",
       selfAddress: "Ethereum/0x452e1928aa6c88e690f26ea08ec119bf816c8568",
     });
+    log.info(tx);
     expect(tx.transfers.length).to.equal(5);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Repay);
+    expect(tx.transfers[1].to).to.include(appName);
     expect(tx.transfers[2].category).to.equal(TransferCategories.Internal);
+    expect(tx.transfers[2].from).to.include(appName);
     expect(tx.transfers[3].category).to.equal(TransferCategories.SwapOut);
     expect(tx.transfers[4].category).to.equal(TransferCategories.SwapIn);
   });
