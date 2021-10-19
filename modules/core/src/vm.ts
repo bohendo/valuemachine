@@ -178,9 +178,9 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
     // Disposing of more than we recieved is assumed to represent income rather than a flashloan
     const [_guard, maybeVenu, maybeAddress] = account.split("/");
-    const venue = maybeAddress ? maybeVenu : !maybeAddress.startsWith("0x") ? maybeAddress : "";
+    const venue = maybeAddress ? maybeVenu : !maybeAddress?.startsWith("0x") ? maybeAddress : "";
     if (venue) {
-      log.warn(`Underflow of ${amount} ${asset} is being treated as ${venue} income`);
+      log.warn(`Underflow of ${amount} ${asset}, treating it as ${venue} income on ${json.date}`);
       const newChunk = mintChunk(amount, asset, account);
       const newIncomeEvent = newEvents.find(e => e.type === EventTypes.Income);
       if (newIncomeEvent?.type === EventTypes.Income) {
@@ -198,7 +198,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       }
       return newChunk;
     } else {
-      log.warn(`Underflow of ${amount} ${asset} is being treated as a flashloan by ${account}`);
+      log.warn(`Underflow of ${amount} ${asset}, taking flashloan for ${account} on ${json.date}`);
       mintChunk(mul(amount, "-1"), asset, account, true); // flash debt
       return mintChunk(amount, asset, account); // return borrowed chunk to cover this underflow
     }
@@ -349,7 +349,9 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       .reduce((acc, cur) => add(acc, cur.amount), "0");
     const remainder = add(amount, debt);
     if (gt(remainder, "0")) {
-      log.warn(`${account} debt is only ${debt} ${asset}, assuming extra ${remainder} is a fee`);
+      log.warn(`Overpaid loan of ${debt} ${asset} on ${json.date}, assuming extra ${
+        remainder
+      } paid by ${account} is a fee.`);
     }
     // Discard entire repayment along with any extra provided to cover fees
     const toRepayWith = getChunks(amount, asset, account);
@@ -420,18 +422,17 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       });
     }
 
-    // Replace all "All" amounts w that account's asset balance
-    transfers.filter(transfer => transfer.amount === "ALL").forEach(transfer => {
-      transfer.amount = getBalance(transfer.asset, transfer.from);
-    });
-
     // Process all non-swap & non-refund transfers
     const swapAccounts = new Set<Account>();
     const swapsOut = [] as AssetChunk[];
     const swapsIn = [] as AssetChunk[];
     transfers.forEach(transfer => {
       const { asset, category, from, to } = transfer;
-      const amount = transfer.amount || "1"; // treat NFTs as always having amount=1
+      const amount = !transfer.amount ? "1" // treat NFTs as always having amount=1
+        : transfer.amount === "ALL" ? getBalance(asset, from)
+        : transfer.amount;
+
+      if (eq(amount, "0")) return;
 
       if (category === Internal) {
         moveValue(amount, asset, from, to);
