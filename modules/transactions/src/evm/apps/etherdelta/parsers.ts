@@ -11,10 +11,11 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
+  eq,
   insertVenue,
 } from "@valuemachine/utils";
 
-import { Apps, Assets } from "../../enums";
+import { Apps, Assets, Methods } from "../../enums";
 import { parseEvent } from "../../utils";
 
 import { etherdeltaAddress } from "./addresses";
@@ -82,11 +83,21 @@ export const coreParser = (
           if (event.name === "Deposit") {
             transfer.category = Internal;
             transfer.to = account;
-            tx.method = event.name;
+            tx.method = Methods.Deposit;
           } else {
             transfer.category = Internal;
             transfer.from = account;
-            tx.method = event.name;
+            tx.method = Methods.Withdraw;
+            if (eq(event.args.balance, "0")) {
+              tx.transfers.push({
+                asset: transfer.asset,
+                amount: "ALL",
+                category: TransferCategories.Fee,
+                index: txLog.index + 1,
+                from: account,
+                to: address,
+              });
+            }
           }
         } else {
           log.warn(`Unable to find a ${appName} transfer of ${amount} ${asset}`);
@@ -94,24 +105,21 @@ export const coreParser = (
 
       } else if (event.name === "Trade") {
         log.info(`Parsing ${appName} ${event.name}`);
-        const swapOut = {
+        tx.transfers.push({
           asset: getAsset(event.args.tokenGet),
           category: SwapOut,
           from: account,
           index,
           amount: formatUnits(event.args.amountGet, getDecimals(event.args.tokenGet)),
           to: address,
-        };
-        const swapIn = {
+        }, {
           asset: getAsset(event.args.tokenGive),
           category: SwapIn,
           from:  address,
           index,
-          amount: formatUnits(event.args.amountGive, getDecimals(event.args.tokenGiv)),
+          amount: formatUnits(event.args.amountGive, getDecimals(event.args.tokenGive)),
           to: account,
-        };
-        tx.transfers.push(swapOut);
-        tx.transfers.push(swapIn);
+        });
         tx.method = "Trade";
 
       } else {

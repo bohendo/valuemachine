@@ -10,8 +10,8 @@ import {
 } from "../../testUtils";
 
 const appName = Apps.EtherDelta;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
-const parseTx = getParseTx({ logger });
+const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
+const parseTx = getParseTx({ logger: log });
 
 describe(appName, () => {
   it("should handle a deposit", async () => {
@@ -42,9 +42,11 @@ describe(appName, () => {
       txid: "Ethereum/0xec9b74458504b5058290983ef09093c58187bfcf888374187a9469cad793425f",
       selfAddress: "Ethereum/0x213fe7e177160991829a4d0a598a848d2448f384",
     });
+    log.info(tx);
     expect(tx.apps).to.include(appName);
-    expect(tx.transfers.length).to.equal(2);
+    expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
+    expect(tx.transfers[2].category).to.equal(TransferCategories.Fee);
   });
 });
