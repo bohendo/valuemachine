@@ -1,3 +1,4 @@
+import { isHexString } from "@ethersproject/bytes";
 import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
   Account,
@@ -87,6 +88,8 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     let name = getEntry(account)?.name || getEntry(address)?.name;
     if (isEthAddress(address)) {
       address = fmtAddress(address);
+    }
+    if (isHexString(address)) {
       name = name || `${address.substring(0, 6)}..${address.substring(address.length - 4)}`;
     } else {
       name = name || address;

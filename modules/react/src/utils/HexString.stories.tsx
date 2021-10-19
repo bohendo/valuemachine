@@ -50,3 +50,9 @@ TxUuid.args = {
   display: "",
   value: uuid,
 };
+
+export const Eth2Validator = Template.bind({});
+Eth2Validator.args = {
+  display: "",
+  value: "Ethereum/ETH2/0xb9479574ce5e50a08d9cc6e85e81617177239ced93c61ca3410ea38f26b290b4d3c1e9cd005a6a15ba54d758adaad638",
+};

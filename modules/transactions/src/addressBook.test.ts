@@ -28,5 +28,14 @@ describe("AddressBook", () => {
     expect(name).to.include("..");
   });
 
+  it("should return an abbreviated default name for eth2 pubkeys", async () => {
+    const addressBook = getAddressBook({ logger: log });
+    const address = "Ethereum/ETH2/0x8311d8885c246725e3c1ae348e67513fcd8b6ad40fd449481ffa5234ba3f995a84a82851d0a58b7d7caa60cdb9354707";
+    const name = addressBook.getName(address, true);
+    log.info(`${address} is also known as ${name}`);
+    expect(name).to.be.a("string");
+    expect(name).to.include("..");
+  });
+
 });
 
