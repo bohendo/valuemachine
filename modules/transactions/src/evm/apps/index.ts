@@ -6,6 +6,7 @@ import { parsers as compoundParsers } from "./compound";
 import { parsers as cryptokittiesParsers } from "./cryptokitties";
 import { parsers as tokensParsers } from "./tokens";
 import { parsers as etherdeltaParsers } from "./etherdelta";
+import { parsers as eth2Parsers } from "./eth2";
 import { parsers as ensParsers } from "./ens";
 import { parsers as idexParsers } from "./idex";
 import { parsers as idleParsers } from "./idle";
@@ -30,6 +31,7 @@ export const ethereumParsers = [
   cryptokittiesParsers,
   tokensParsers,
   etherdeltaParsers,
+  eth2Parsers,
   ensParsers,
   idexParsers,
   idleParsers,
