@@ -1,49 +1,23 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableRow from "@material-ui/core/TableRow";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableRow from "@mui/material/TableRow";
 import { Balances as BalancesType } from "@valuemachine/types";
 import React from "react";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  table: {
-    minWidth: theme.spacing(48),
-    overflow: "auto",
-    padding: theme.spacing(2),
-  },
-  row: {
-    margin: theme.spacing(0),
-    "&:last-child th, &:last-child td": {
-      borderBottom: 0,
-    },
-  },
-  assetColumn: {
-    maxWidth: theme.spacing(24),
-    minWidth: theme.spacing(24),
-    width: theme.spacing(24),
-    overflow: "hidden",
-  },
-  balanceColumn: {
-    minWidth: theme.spacing(24),
-    overflow: "hidden",
-  },
-}));
 
 export const Balances = ({
   balances,
 }: {
   balances: BalancesType,
 }) => {
-  const classes = useStyles();
   return (<>
     <TableContainer>
-      <Table size="small" className={classes.table}>
+      <Table size="small" sx={{ minWidth: "20em", overflow: "auto", p: 2 }}>
         <TableBody>
           {Object.entries(balances).sort().map(([asset, bal]: string[], i: number) => (
-            <TableRow  key={i} className={classes.row}>
-              <TableCell className={classes.assetColumn}> {asset} </TableCell>
+            <TableRow  key={i} sx={{ m: 0, ["&>td"]: { borderBottom: 0 } }}>
+              <TableCell sx={{ width: "12em", overflow: "hidden" }}> {asset} </TableCell>
               <TableCell> {bal} </TableCell>
             </TableRow>
           ))}

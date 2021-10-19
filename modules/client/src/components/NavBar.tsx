@@ -1,20 +1,16 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import AppBar from "@material-ui/core/AppBar";
-import FormControl from "@material-ui/core/FormControl";
-import IconButton from "@material-ui/core/IconButton";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
 import AccountIcon from "@mui/icons-material/ManageAccounts";
-import NetWorthIcon from "@material-ui/icons/PieChart";
-import PricesIcon from "@material-ui/icons/LocalOffer";
-import TaxesIcon from "@material-ui/icons/AccountBalance";
-import ValueMachineIcon from "@material-ui/icons/PlayCircleFilled";
-import TransactionsIcon from "@material-ui/icons/Receipt";
-import LightIcon from "@material-ui/icons/BrightnessHigh";
-import DarkIcon from "@material-ui/icons/Brightness4";
+import DarkIcon from "@mui/icons-material/Brightness4";
+import LightIcon from "@mui/icons-material/BrightnessHigh";
+import NetWorthIcon from "@mui/icons-material/PieChart";
+import PricesIcon from "@mui/icons-material/LocalOffer";
+import TaxesIcon from "@mui/icons-material/AccountBalance";
+import TransactionsIcon from "@mui/icons-material/Receipt";
+import ValueMachineIcon from "@mui/icons-material/PlayCircleFilled";
+import AppBar from "@mui/material/AppBar";
+import IconButton from "@mui/material/IconButton";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import { SelectOne } from "@valuemachine/react";
 import {
   Cryptocurrencies,
   FiatCurrencies,
@@ -24,33 +20,6 @@ import {
 } from "@valuemachine/types";
 import React from "react";
 import { Link } from "react-router-dom";
-
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  toolbar: {
-    overflow: "auto",
-  },
-  navButton: {
-    marginLeft: theme.spacing(2),
-  },
-  title: {
-    flexGrow: theme.spacing(1),
-  },
-  selectUnit: {
-    "& > *": {
-      "& > svg": { color: "inherit" }, // carrot icon
-      "&::before": { borderColor: "inherit" }, // underline
-      color: "inherit", // label & selection text
-    },
-    marginLeft: theme.spacing(2),
-    merginRight: theme.spacing(2),
-    minWidth: theme.spacing(9),
-  },
-  lightswitch: {
-    marginLeft: theme.spacing(1),
-    minWidth: theme.spacing(7),
-  },
-}));
 
 type PropTypes = {
   unit: Asset;
@@ -64,12 +33,6 @@ export const NavBar: React.FC<PropTypes> = ({
   theme,
   setTheme,
 }: PropTypes) => {
-  const classes = useStyles();
-
-  const handleUnitChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    if (typeof event.target.value !== "string") return;
-    setUnit(event.target.value);
-  };
 
   const toggleTheme = () => {
     if (theme === "light") {
@@ -80,8 +43,8 @@ export const NavBar: React.FC<PropTypes> = ({
   };
 
   return (
-    <AppBar position="absolute">
-      <Toolbar className={classes.toolbar}>
+    <AppBar position="static" elevation={0} enableColorOnDark>
+      <Toolbar variant="dense" sx={{ overflow: "auto" }}>
 
         <IconButton
           aria-label="address-book"
@@ -94,7 +57,7 @@ export const NavBar: React.FC<PropTypes> = ({
         </IconButton>
 
         <IconButton
-          className={classes.navButton}
+          sx={{ ml: 2 }}
           color="inherit"
           component={Link}
           edge="start"
@@ -104,7 +67,7 @@ export const NavBar: React.FC<PropTypes> = ({
         </IconButton>
 
         <IconButton
-          className={classes.navButton}
+          sx={{ ml: 2 }}
           color="inherit"
           component={Link}
           edge="start"
@@ -114,7 +77,7 @@ export const NavBar: React.FC<PropTypes> = ({
         </IconButton>
 
         <IconButton
-          className={classes.navButton}
+          sx={{ ml: 2 }}
           color="inherit"
           component={Link}
           edge="start"
@@ -124,7 +87,7 @@ export const NavBar: React.FC<PropTypes> = ({
         </IconButton>
 
         <IconButton
-          className={classes.navButton}
+          sx={{ ml: 2 }}
           color="inherit"
           component={Link}
           edge="start"
@@ -137,14 +100,14 @@ export const NavBar: React.FC<PropTypes> = ({
           component={Link}
           edge="start"
           to={"/taxes"}
-          className={classes.navButton}
+          sx={{ ml: 2 }}
           color="inherit"
         >
           <TaxesIcon />
         </IconButton>
 
         <Typography
-          className={classes.title}
+          sx={{ flexGrow: 1 }}
           variant="h6"
           color="inherit"
           align={"center"}
@@ -154,22 +117,16 @@ export const NavBar: React.FC<PropTypes> = ({
           Value Machine
         </Typography>
 
-        <FormControl focused={false} className={classes.selectUnit}>
-          <InputLabel id="select-unit-label">Units</InputLabel>
-          <Select
-            labelId="select-unit-label"
-            id="select-unit"
-            value={unit || ""}
-            onChange={handleUnitChange}
-          >
-            {[Cryptocurrencies.ETH, Cryptocurrencies.BTC, ...Object.keys({ ...FiatCurrencies })]
-              .map(asset => <MenuItem key={asset} value={asset}>{asset}</MenuItem>)
-            }
-          </Select>
-        </FormControl>
+        <SelectOne
+          label="Units"
+          choices={[Cryptocurrencies.ETH, Cryptocurrencies.BTC, ...Object.keys(FiatCurrencies)]}
+          selection={unit}
+          setSelection={setUnit}
+          sx={{ p: 1 }}
+        />
 
         <IconButton
-          className={classes.lightswitch}
+          sx={{ ml: 1, minWidth: "2em" }}
           color="secondary"
           edge="start"
           onClick={toggleTheme}

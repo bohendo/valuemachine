@@ -1,11 +1,10 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
 import { AddressBook, ValueMachine } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 import { gt } from "@valuemachine/utils";
@@ -13,21 +12,6 @@ import { gt } from "@valuemachine/utils";
 import { HexString } from "../utils";
 
 import { Balances } from "./Balances";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  paper: {
-    padding: theme.spacing(2),
-  },
-  table: {
-    minWidth: theme.spacing(56),
-    overflow: "auto",
-    padding: theme.spacing(1),
-  },
-  accountCell: {
-    marginRight: theme.spacing(2),
-    paddingRight: theme.spacing(2),
-  },
-}));
 
 type BalanceTableProps = {
   addressBook: AddressBook;
@@ -38,7 +22,6 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
   vm,
 }: BalanceTableProps) => {
   const [allBalances, setAllBalances] = useState({});
-  const classes = useStyles();
 
   useEffect(() => {
     if (!addressBook || !vm) return;
@@ -51,9 +34,9 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
 
   return (<>
 
-    <Paper className={classes.paper}>
+    <Paper sx={{ p: 2 }}>
       <TableContainer>
-        <Table size="small" className={classes.table}>
+        <Table size="small" sx={{ p: 1, overflow: "auto", minWidth: "32em" }}>
           <TableHead>
             <TableRow>
               <TableCell><strong> Account  </strong></TableCell>
@@ -66,7 +49,7 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
               .map(([account, balances]: any, i: number) =>
                 Object.values(balances).some(bal => gt(bal, "0")) ? (
                   <TableRow key={i}>
-                    <TableCell className={classes.accountCell}>
+                    <TableCell sx={{ mr: 2, pr: 2 }}>
                       <HexString value={account} display={addressBook.getName(account, true)}/>
                     </TableCell>
                     <TableCell>

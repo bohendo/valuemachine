@@ -1,12 +1,5 @@
-import {
-  Container,
-  CssBaseline,
-  Theme,
-  ThemeProvider,
-  createTheme,
-  createStyles,
-  makeStyles,
-} from "@material-ui/core";
+import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
 import {
   getPrices,
   getValueMachine,
@@ -23,16 +16,17 @@ import {
 import {
   fmtAddressBook,
   getAddressBookError,
-  getTransactionsError,
-  getValueMachineError,
-  getPricesError,
-  getEmptyCsvFiles,
+  getCsvFilesError,
   getEmptyAddressBook,
+  getEmptyCsvFiles,
+  getEmptyPrices,
   getEmptyTransactions,
   getEmptyValueMachine,
-  getEmptyPrices,
   getLocalStore,
   getLogger,
+  getPricesError,
+  getTransactionsError,
+  getValueMachineError,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
@@ -57,49 +51,16 @@ const {
   ValueMachine: ValueMachineStore,
 } = StoreKeys;
 const UnitStore = "Unit" as any;
-const ThemeStore = "Theme" as any;
 const CustomTxnsStore = "CustomTransactions" as any;
 
-const lightRed = "#e699a6";
-const darkRed = "#801010";
-
-const darkTheme = createTheme({
-  palette: {
-    primary: {
-      main: darkRed,
-    },
-    secondary: {
-      main: lightRed,
-    },
-    type: "dark",
-  },
-});
-
-const lightTheme = createTheme({
-  palette: {
-    primary: {
-      main: lightRed,
-    },
-    secondary: {
-      main: darkRed,
-    },
-    type: "light",
-  },
-});
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  appBarSpacer: theme.mixins.toolbar,
-  container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
-  },
-  main: {
-    flexGrow: 1,
-    overflow: "auto",
-  },
-}));
-
-const App: React.FC = () => {
+export type AppProps = {
+  theme: string;
+  setTheme: (val: string) => void;
+};
+export const App: React.FC<AppProps> = ({
+  theme,
+  setTheme,
+}: AppProps) => {
 
   // Core JSON data from localstorage
   const [addressBookJson, setAddressBookJson] = useState(store.load(AddressBookStore));
@@ -110,15 +71,12 @@ const App: React.FC = () => {
   const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsvFiles());
   const [customTxns, setCustomTxns] = useState(store.load(CustomTxnsStore) || [] as Transaction[]);
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
-  const [theme, setTheme] = useState(store.load(ThemeStore) || "dark");
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook());
   const [transactions, setTransactions] = useState(getTransactions());
   const [vm, setVM] = useState(getValueMachine());
   const [prices, setPrices] = useState(getPrices());
-
-  const classes = useStyles();
 
   useEffect(() => {
     if (!addressBookJson) return;
@@ -185,8 +143,15 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!csvFiles?.length) return;
-    console.log(`Saving ${csvFiles.length} csv files`);
-    store.save(CsvStore, csvFiles);
+    if (getCsvFilesError(csvFiles)) {
+      console.log(`Removing invalid csv files`);
+      const newCsvFiles = getEmptyCsvFiles();
+      store.save(CsvStore, newCsvFiles);
+      setCsvFiles(newCsvFiles);
+    } else {
+      console.log(`Saving ${csvFiles.length} csv files`);
+      store.save(CsvStore, csvFiles);
+    }
   }, [csvFiles]);
 
   useEffect(() => {
@@ -201,19 +166,11 @@ const App: React.FC = () => {
     store.save(UnitStore, unit);
   }, [unit]);
 
-  useEffect(() => {
-    if (!theme) return;
-    console.log(`Saving theme`, theme);
-    store.save(ThemeStore, theme);
-  }, [theme]);
-
   return (
-    <ThemeProvider theme={theme === "light" ? lightTheme : darkTheme}>
-      <CssBaseline />
+    <Box>
       <NavBar unit={unit} setUnit={setUnit} theme={theme} setTheme={setTheme} />
-      <main className={classes.main}>
-        <div className={classes.appBarSpacer} />
-        <Container maxWidth="lg" className={classes.container}>
+      <Box sx={{ overflow: "auto", flexGrow: 1 }}>
+        <Container maxWidth="lg" sx={{ py: 4 }}>
           <Switch>
 
             <Route exact path="/">
@@ -274,9 +231,7 @@ const App: React.FC = () => {
 
           </Switch>
         </Container>
-      </main>
-    </ThemeProvider>
+      </Box>
+    </Box>
   );
 };
-
-export default App;

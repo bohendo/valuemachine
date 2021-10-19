@@ -7,12 +7,7 @@ import {
   Transaction,
 } from "@valuemachine/types";
 
-import {
-  aaveParsers,
-  wethParsers,
-  tokensParsers,
-  quickswapParsers,
-} from "../apps";
+import { polygonParsers } from "../apps";
 import { parseEvmTx } from "../parser";
 
 export const parsePolygonTx = (
@@ -27,11 +22,5 @@ export const parsePolygonTx = (
     polygonMetadata,
     addressBook,
     logger,
-    [
-      aaveParsers,
-      tokensParsers,
-      extraParsers,
-      quickswapParsers,
-      wethParsers,
-    ],
+    polygonParsers.concat(extraParsers),
   );

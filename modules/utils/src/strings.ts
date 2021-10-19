@@ -10,6 +10,9 @@ import {
 
 import { ajv, formatErrors } from "./validate";
 
+export const slugify = str =>
+  str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
+
 const validateAccount = ajv.compile(Account);
 export const getAccountError = (val: Account): string => validateAccount(val) ? ""
   : validateAccount.errors.length ? formatErrors(validateAccount.errors)

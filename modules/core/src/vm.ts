@@ -400,8 +400,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     // Create a new copy of transfers that we can modify in-place
     const transfers = JSON.parse(JSON.stringify(tx.transfers));
 
-    // TODO: convert all transfer amounts to BNs for faster math while processing
-
     // Subtract refunds from associated outgoing transfers
     const refunds = transfers.filter(transfer => transfer.category === Refund);
     if (refunds.length) {

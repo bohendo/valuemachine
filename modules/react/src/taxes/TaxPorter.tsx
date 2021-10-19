@@ -1,9 +1,9 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
-import DownloadIcon from "@material-ui/icons/GetApp";
-import { getTaxRows, requestF8949 } from "@valuemachine/taxes";
+import DownloadIcon from "@mui/icons-material/GetApp";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import { allTaxYears, getTaxYearBoundaries, getTaxRows, requestF8949 } from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
 import {
   Guard,
@@ -18,21 +18,6 @@ import React, { useEffect } from "react";
 
 import { SelectOne } from "../utils";
 
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  card: {
-    padding: theme.spacing(2),
-    minWidth: "255px",
-  },
-  button: {
-    marginBottom: theme.spacing(4),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(3),
-  },
-}));
-
-const allTaxYears = "all";
-
 type TaxPorterProps = {
   guard: Guard;
   prices: Prices,
@@ -43,17 +28,16 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   prices,
   vm,
 }: TaxPorterProps) => {
-  const classes = useStyles();
   const [taxYear, setTaxYear] = React.useState(allTaxYears);
   const [taxYears, setTaxYears] = React.useState([] as string[]);
 
   useEffect(() => {
     setTaxYear(allTaxYears);
     setTaxYears(dedup(
-      vm.json.events.filter(evt =>
+      vm?.json?.events?.filter(evt =>
         (evt as TradeEvent).account?.startsWith(guard) ||
         (evt as GuardChangeEvent).to?.startsWith(guard)
-      ).map(evt => evt.date.split("-")[0])
+      ).map(evt => evt.date.split("-")[0]) || []
     ));
   }, [guard, vm]);
 
@@ -88,44 +72,76 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     requestF8949(vm, prices, guard, taxYear, window);
   };
 
+  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
+  // add 10ms in case the boundary is immediately before midnight
+  const fmtDate = (time: number) =>
+    typeof time === "number" ? new Date(time + 10).toISOString().split("T")[0] : "???";
+
   return (<>
 
-    <Card className={classes.card}>
-      <CardHeader title={`Export ${guard} Tax Info`}/>
-      <SelectOne
-        label="Tax Year"
-        defaultSelection={"all"}
-        choices={taxYears}
-        selection={taxYear}
-        setSelection={setTaxYear}
-      />
+    <Paper sx={{ p: 3, minWidth: "15em", maxWidth: "30em" }}>
+      <Grid container alignItems="center">
 
-      <Button
-        className={classes.button}
-        color="primary"
-        fullWidth={false}
-        onClick={handleCsvExport}
-        size="small"
-        startIcon={<DownloadIcon />}
-        variant="contained"
-      >
-        Download CSV
-      </Button>
+        <Grid item xs={12}>
+          <Typography variant="h6">
+            {`Export ${guard} Tax Info`}
+          </Typography>
+        </Grid>
 
-      {guard === Guards.USA && taxYear !== allTaxYears ?
-        <Button
-          className={classes.button}
-          color="primary"
-          fullWidth={false}
-          onClick={handleF8949Export}
-          size="small"
-          startIcon={<DownloadIcon />}
-          variant="contained"
-        >
-          Download F8949
-        </Button>
-        : null}
-    </Card>
+        <Grid item xs={12} sm={4} sx={{ px: 1, py: 2, maxWidth: "16em" }}>
+          <SelectOne
+            choices={taxYears}
+            defaultSelection={"all"}
+            label="Tax Year"
+            selection={taxYear}
+            setSelection={setTaxYear}
+            sx={{ m: 0, p: 0 }}
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={8} sx={{ ml: 1, mr: -4 }}>
+          <Typography noWrap variant="body1">
+            {taxYear === allTaxYears
+              ? "Entire financial history"
+              : `From ${fmtDate(taxYearBoundaries[0])} to ${fmtDate(taxYearBoundaries[1])}`
+            }
+          </Typography>
+        </Grid>
+
+        <br/>
+
+        <Grid item xs={12} sm={6}>
+          <Button
+            sx={{ ml: 1, my: 2, maxWidth: "24em" }}
+            color="primary"
+            fullWidth={false}
+            onClick={handleCsvExport}
+            size="small"
+            startIcon={<DownloadIcon />}
+            variant="contained"
+          >
+            Download CSV
+          </Button>
+        </Grid>
+
+        {guard === Guards.USA && taxYear !== allTaxYears ?
+          <Grid item xs={12} sm={6}>
+            <Button
+              sx={{ ml: 1, my: 2, maxWidth: "24em" }}
+              color="primary"
+              fullWidth={false}
+              onClick={handleF8949Export}
+              size="small"
+              startIcon={<DownloadIcon />}
+              variant="contained"
+            >
+              Download F8949
+            </Button>
+          </Grid>
+          : null
+        }
+      </Grid>
+    </Paper>
 
   </>);
 };

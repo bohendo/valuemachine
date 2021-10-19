@@ -1,12 +1,11 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Divider from "@material-ui/core/Divider";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import Typography from "@material-ui/core/Typography";
-import ClearIcon from "@material-ui/icons/Delete";
-import SyncIcon from "@material-ui/icons/Sync";
+import ClearIcon from "@mui/icons-material/Delete";
+import SyncIcon from "@mui/icons-material/Sync";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Divider from "@mui/material/Divider";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
+import Typography from "@mui/material/Typography";
 import { ChunkTable, EventTable } from "@valuemachine/react";
 import {
   AddressBook,
@@ -19,18 +18,6 @@ import {
   getValueMachineError,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  title: {
-    margin: theme.spacing(2),
-  },
-  button: {
-    margin: theme.spacing(3),
-  },
-  tabs: {
-    margin: theme.spacing(1),
-  },
-}));
 
 type ValueMachineExplorerProps = {
   addressBook: AddressBook;
@@ -47,7 +34,6 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
   const [tab, setTab] = useState(0);
   const [syncing, setSyncing] = useState({ transactions: false, state: false, prices: false });
   const [newTransactions, setNewTransactions] = useState([] as TransactionsJson);
-  const classes = useStyles();
 
   useEffect(() => {
     setNewTransactions(transactions?.json?.filter(transaction =>
@@ -103,25 +89,25 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
       </Typography>
 
       <Divider/>
-      <Typography variant="h4" className={classes.title}>
+      <Typography variant="h4" sx={{ m: 2 }}>
         Management
       </Typography>
 
       <Button
-        className={classes.button}
         disabled={syncing.state || !newTransactions?.length}
         onClick={processTxns}
         startIcon={syncing.state ? <CircularProgress size={20} /> : <SyncIcon/>}
+        sx={{ m: 3 }}
         variant="outlined"
       >
         {`Process ${newTransactions?.length} New Transactions`}
       </Button>
 
       <Button
-        className={classes.button}
         disabled={!vm?.json?.events?.length}
         onClick={handleReset}
         startIcon={<ClearIcon/>}
+        sx={{ m: 3 }}
         variant="outlined"
       >
         Clear VM Data
@@ -129,7 +115,7 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
 
       <Divider/>
 
-      <Tabs value={tab} onChange={handleTabChange} className={classes.tabs} centered>
+      <Tabs value={tab} onChange={handleTabChange} sx={{ m: 1 }} centered>
         <Tab label="Events"/>
         <Tab label="Chunks"/>
       </Tabs>

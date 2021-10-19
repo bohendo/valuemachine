@@ -1,42 +1,32 @@
-import { Logger, TransactionsJson } from "@valuemachine/types";
-import { getLogger, getTransactionsError } from "@valuemachine/utils";
+import { CsvFile, Logger, TransactionsJson } from "@valuemachine/types";
+import { getLogger, getTransactionsError, hashCsv, slugify } from "@valuemachine/utils";
 
-import { coinbaseParser, coinbaseHeaders } from "./apps/coinbase";
-import { digitaloceanParser, digitaloceanHeaders } from "./apps/digitalocean";
-import { elementsParser, elementsHeaders } from "./apps/elements";
-import { wyreParser, wyreHeaders } from "./apps/wyre";
-import { wazirxParser, wazirxHeaders } from "./apps/wazirx";
+import { headersToSource, getCsvParser } from "./apps";
+
+export const cleanCsv = (csvData: string, csvName?: string): CsvFile => {
+  const csvRows = csvData.split(/\r?\n/);
+  let source: string;
+  while (csvRows.length) {
+    source = headersToSource(csvRows[0]);
+    if (source) break;
+    csvRows.shift(); // First row doesn't match any of our target headers, discard it & try again
+  }
+  const cleanCsvData = csvRows.join("\n");
+  if (!source) {
+    throw new Error("Unknown csv file format");
+  }
+  return {
+    data: cleanCsvData,
+    digest: hashCsv(cleanCsvData),
+    name: csvName || `${slugify(source)}.csv`,
+    source,
+  };
+};
 
 export const parseCsv = (csvData: string, logger?: Logger): TransactionsJson => {
   const log = logger || getLogger();
-
-  let txns;
-  const csvRows = csvData.split(/\r?\n/);
-  while (csvRows.length) {
-    if (csvRows[0] === coinbaseHeaders) {
-      log.info(`Parsing csv as ${csvRows.length - 1} rows of coinbase data`);
-      txns = coinbaseParser(csvRows.join(`\n`), log);
-      break;
-    } else if (csvRows[0] === digitaloceanHeaders) {
-      log.info(`Parsing csv as ${csvRows.length - 1} rows of digital ocean data`);
-      txns = digitaloceanParser(csvRows.join(`\n`), log);
-      break;
-    } else if (csvRows[0] === elementsHeaders) {
-      log.info(`Parsing csv as ${csvRows.length - 1} rows of elements data`);
-      txns = elementsParser(csvRows.join(`\n`), log);
-      break;
-    } else if (wazirxHeaders.includes(csvRows[0])) {
-      log.info(`Parsing csv as ${csvRows.length - 1} rows of wazirx data`);
-      txns = wazirxParser(csvRows.join(`\n`), log);
-      break;
-    } else if (csvRows[0] === wyreHeaders) {
-      log.info(`Parsing csv as ${csvRows.length - 1} rows of wyre data`);
-      txns = wyreParser(csvRows.join(`\n`), log);
-      break;
-    }
-    csvRows.shift(); // First row doesn't match any of our target headers, discard it & try again
-  }
-
+  const csv = cleanCsv(csvData);
+  const txns = getCsvParser(csv.source)(csv.data, log);
   if (!txns) {
     log.warn(`Unknown csv file format`);
     return [];

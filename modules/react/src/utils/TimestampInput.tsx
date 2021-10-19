@@ -1,12 +1,5 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
+import TextField from "@mui/material/TextField";
 import React, { useEffect, useState } from "react";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  main: {
-    margin: theme.spacing(2),
-  },
-}));
 
 type TimestampInputProps = {
   id?: string;
@@ -22,7 +15,6 @@ export const TimestampInput: React.FC<TimestampInputProps> = ({
   timestamp,
   setTimestamp,
 }: TimestampInputProps) => {
-  const classes = useStyles();
   const [display, setDisplay] = useState("");
   const [error, setError] = useState("");
 
@@ -74,7 +66,7 @@ export const TimestampInput: React.FC<TimestampInputProps> = ({
   return (
     <TextField
       autoComplete="off"
-      className={classes.main}
+      sx={{ m: 2 }}
       error={!!error}
       helperText={error || helperText || "YYYY-MM-DD"}
       id={id}

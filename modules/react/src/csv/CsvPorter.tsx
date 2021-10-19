@@ -1,22 +1,9 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
-import {
-  CsvFiles,
-} from "@valuemachine/types";
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import { cleanCsv } from "@valuemachine/transactions";
+import { CsvFiles } from "@valuemachine/types";
 import React from "react";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  card: {
-    padding: theme.spacing(2),
-  },
-  fileInput: {
-    marginBottom: theme.spacing(1),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(4),
-  },
-}));
 
 type CsvPorterProps = {
   csvFiles: CsvFiles,
@@ -26,7 +13,6 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
   csvFiles,
   setCsvFiles,
 }: CsvPorterProps) => {
-  const classes = useStyles();
 
   const handleCsvFileImport = (event: any) => {
     const file = event.target.files[0];
@@ -35,11 +21,8 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
     reader.readAsText(file);
     reader.onload = () => {
       try {
-        const importedFile = reader.result as string;
-        setCsvFiles([...csvFiles, {
-          name: file.name,
-          data: importedFile,
-        }] as CsvFiles);
+        const csv = cleanCsv(typeof reader.result === "string" ? reader.result : "", file.name);
+        setCsvFiles({ ...csvFiles, [csv.digest]: csv });
       } catch (e) {
         console.error(e);
       }
@@ -47,18 +30,19 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
   };
 
   return (<>
-
-    <Card className={classes.card}>
-      <CardHeader title={"Import CSV File"}/>
-      <input
-        accept="text/csv"
-        className={classes.fileInput}
-        id="file-importer"
-        onChange={handleCsvFileImport}
-        type="file"
-      />
-    </Card>
-
+    <Paper sx={{ p: 3, maxWidth: "24em" }}>
+      <Typography variant="h6">
+        {"Import CSV File"}
+      </Typography>
+      <Box sx={{ mb: 1, mt: 1 }}>
+        <input
+          accept="text/csv"
+          id="file-importer"
+          onChange={handleCsvFileImport}
+          type="file"
+        />
+      </Box>
+    </Paper>
   </>);
 };
 

@@ -1,13 +1,13 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
+import Paper from "@mui/material/Paper";
+import Grid from "@mui/material/Grid";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import { Methods } from "@valuemachine/transactions";
 import {
   Account,
@@ -29,27 +29,6 @@ import React, { useEffect, useState } from "react";
 import { DateInput, SelectOne } from "../utils";
 
 import { TransactionRow } from "./TransactionRow";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  paper: {
-    padding: theme.spacing(1),
-  },
-  title: {
-    padding: theme.spacing(2),
-  },
-  dropdown: {
-    margin: theme.spacing(3),
-    minWidth: theme.spacing(20),
-  },
-  table: {
-    minWidth: theme.spacing(115),
-    overflow: "auto",
-  },
-  firstCell: {
-    maxWidth: theme.spacing(16),
-    padding: theme.spacing(1),
-  },
-}));
 
 type TransactionTableProps = {
   addressBook: AddressBook;
@@ -75,7 +54,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   const [ourApps, setOurApps] = useState([] as App[]);
   const [ourAssets, setOurAssets] = useState([] as Asset[]);
   const [ourSources, setOurSources] = useState([] as Source[]);
-  const classes = useStyles();
 
   const hasAccount = (account: string) => (tx: Transaction): boolean =>
     !account
@@ -175,70 +153,89 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
 
   return (<>
 
-    <Paper className={classes.paper}>
-      <Typography align="center" variant="h4" className={classes.title} component="div">
-        {filteredTxns.length === transactions?.json.length
-          ? `${filteredTxns.length} Transaction${filteredTxns.length === 1 ? "" : "s"}`
-          : `${filteredTxns.length} of ${transactions?.json?.length} Transactions`
-        }
-      </Typography>
+    <Paper sx={{ p: 2 }}>
 
-      <SelectOne
-        label="Filter Account"
-        choices={ourAccounts}
-        selection={filterAccount}
-        setSelection={setFilterAccount}
-        toDisplay={val => addressBook.getName(val, true)}
-      />
+      <Grid container>
+        <Grid item xs={12}>
+          <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
+            {filteredTxns.length === transactions?.json.length
+              ? `${filteredTxns.length} Transaction${filteredTxns.length === 1 ? "" : "s"}`
+              : `${filteredTxns.length} of ${transactions?.json?.length} Transactions`
+            }
+          </Typography>
+        </Grid>
 
-      <SelectOne
-        label="Filter App"
-        choices={ourApps}
-        selection={filterApp}
-        setSelection={setFilterApp}
-      />
+        <Grid item>
+          <SelectOne
+            label="Filter Account"
+            choices={ourAccounts}
+            selection={filterAccount}
+            setSelection={setFilterAccount}
+            toDisplay={val => addressBook.getName(val, true)}
+          />
+        </Grid>
 
-      <SelectOne
-        label="Filter Asset"
-        choices={ourAssets}
-        selection={filterAsset}
-        setSelection={setFilterAsset}
-        toDisplay={val => addressBook.getName(val, true)}
-      />
+        <Grid item>
+          <SelectOne
+            label="Filter App"
+            choices={ourApps}
+            selection={filterApp}
+            setSelection={setFilterApp}
+          />
+        </Grid>
 
-      <SelectOne
-        label="Filter Method"
-        choices={Object.keys(Methods).sort()}
-        selection={filterMethod}
-        setSelection={setFilterMethod}
-      />
+        <Grid item>
+          <SelectOne
+            label="Filter Asset"
+            choices={ourAssets}
+            selection={filterAsset}
+            setSelection={setFilterAsset}
+            toDisplay={val => addressBook.getName(val, true)}
+          />
+        </Grid>
 
-      <SelectOne
-        label="Filter Source"
-        choices={ourSources}
-        selection={filterSource}
-        setSelection={setFilterSource}
-      />
+        <Grid item>
+          <SelectOne
+            label="Filter Method"
+            choices={Object.keys(Methods).sort()}
+            selection={filterMethod}
+            setSelection={setFilterMethod}
+          />
+        </Grid>
 
-      <br/>
+        <Grid item>
+          <SelectOne
+            label="Filter Source"
+            choices={ourSources}
+            selection={filterSource}
+            setSelection={setFilterSource}
+          />
+        </Grid>
+      </Grid>
 
-      <DateInput
-        label="Filter End Date"
-        setDate={setFilterEndDate}
-      />
+      <Grid container>
+        <Grid item>
+          <DateInput
+            label="Filter End Date"
+            setDate={setFilterEndDate}
+          />
+        </Grid>
 
-      <DateInput
-        label="Filter Start Date"
-        setDate={setFilterStartDate}
-      />
+        <Grid item>
+          <DateInput
+            label="Filter Start Date"
+            setDate={setFilterStartDate}
+          />
+        </Grid>
+      </Grid>
 
       <br/>
 
       <TableContainer>
-        <Table size="small" className={classes.table}>
+        <Table size="small" sx={{ minWidth: "68em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
-              <TableCell className={classes.firstCell}><strong> Transfers </strong></TableCell>
+              <TableCell sx={{ p: 1, maxWidth: "5em" }}><strong> Transfers </strong></TableCell>
               <TableCell><strong> Date </strong></TableCell>
               <TableCell><strong> Tx ID </strong></TableCell>
               <TableCell><strong> Sources </strong></TableCell>

@@ -1,16 +1,16 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Paper from "@material-ui/core/Paper";
-import Switch from "@material-ui/core/Switch";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
+import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Switch from "@mui/material/Switch";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import {
   Account,
   AddressBook,
@@ -24,27 +24,6 @@ import React, { useEffect, useState } from "react";
 import { SelectOne } from "../utils";
 
 import { ChunkRow } from "./ChunkRow";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  paper: {
-    padding: theme.spacing(2),
-  },
-  title: {
-    padding: theme.spacing(2),
-  },
-  toggleLabel: {
-    margin: theme.spacing(3),
-    minWidth: theme.spacing(20),
-  },
-  table: {
-    minWidth: theme.spacing(115),
-    overflow: "auto",
-  },
-  firstCell: {
-    maxWidth: theme.spacing(8),
-    padding: theme.spacing(1),
-  },
-}));
 
 type ChunkTableProps = {
   addressBook: AddressBook;
@@ -62,7 +41,6 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   const [filterAsset, setFilterAsset] = useState("");
   const [filterHeld, setFilterHeld] = useState(false);
   const [filteredChunks, setFilteredChunks] = useState([] as AssetChunk[]);
-  const classes = useStyles();
 
   useEffect(() => {
     setAccounts(vm.getAccounts());
@@ -99,48 +77,59 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
 
   return (<>
 
-    <Paper className={classes.paper}>
-      <Typography align="center" variant="h4" className={classes.title} component="div">
-        {filteredChunks.length === vm.json?.chunks?.length
-          ? `${filteredChunks.length} Chunks`
-          : `${filteredChunks.length} of ${vm.json?.chunks?.length || 0} Chunks`
-        }
-      </Typography>
+    <Paper sx={{ p: 2 }}>
 
-      <SelectOne
-        label="Filter Account"
-        choices={accounts.sort()}
-        selection={filterAccount}
-        setSelection={setFilterAccount}
-        toDisplay={val => addressBook?.getName(val, true)}
-      />
+      <Grid container>
+        <Grid item xs={12}>
+          <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
+            {filteredChunks.length === vm.json?.chunks?.length
+              ? `${filteredChunks.length} Chunks`
+              : `${filteredChunks.length} of ${vm.json?.chunks?.length || 0} Chunks`
+            }
+          </Typography>
+        </Grid>
 
-      <SelectOne
-        label="Filter Asset"
-        choices={assets.sort()}
-        selection={filterAsset}
-        setSelection={setFilterAsset}
-      />
+        <Grid item>
+          <SelectOne
+            label="Filter Account"
+            choices={accounts.sort()}
+            selection={filterAccount}
+            setSelection={setFilterAccount}
+            toDisplay={val => addressBook?.getName(val, true)}
+          />
+        </Grid>
 
-      <FormControl>
-        <FormControlLabel
-          className={classes.toggleLabel}
-          label="Presently Held"
-          control={
-            <Switch
-              id="toggle-filter-held"
-              checked={filterHeld}
-              onChange={handleFilterHeldChange}
+        <Grid item>
+          <SelectOne
+            label="Filter Asset"
+            choices={assets.sort()}
+            selection={filterAsset}
+            setSelection={setFilterAsset}
+          />
+        </Grid>
+
+        <Grid item>
+          <FormControl>
+            <FormControlLabel
+              sx={{ m: 3, minWidth: "12em" }}
+              label="Presently Held"
+              control={
+                <Switch
+                  id="toggle-filter-held"
+                  checked={filterHeld}
+                  onChange={handleFilterHeldChange}
+                />
+              }
             />
-          }
-        />
-      </FormControl>
+          </FormControl>
+        </Grid>
+      </Grid>
 
       <TableContainer>
-        <Table size="small" className={classes.table}>
+        <Table size="small" sx={{ overflow: "auto", minWidth: "70em" }}>
           <TableHead>
             <TableRow>
-              <TableCell className={classes.firstCell}><strong> Owners </strong></TableCell>
+              <TableCell sx={{ p: 1, maxWidth: "4em" }}><strong> Owners </strong></TableCell>
               <TableCell><strong> Asset </strong></TableCell>
               <TableCell><strong> Amount </strong></TableCell>
               <TableCell><strong> Receive Date </strong></TableCell>

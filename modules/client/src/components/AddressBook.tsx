@@ -1,17 +1,19 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Card from "@material-ui/core/Card";
-import CardHeader from "@material-ui/core/CardHeader";
-import Divider from "@material-ui/core/Divider";
-import Grid from "@material-ui/core/Grid";
-import Tab from "@material-ui/core/Tab";
-import Tabs from "@material-ui/core/Tabs";
-import Typography from "@material-ui/core/Typography";
-import RemoveIcon from "@material-ui/icons/Delete";
+import RemoveIcon from "@mui/icons-material/Delete";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardHeader from "@mui/material/CardHeader";
+import Divider from "@mui/material/Divider";
+import Grid from "@mui/material/Grid";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
+import Typography from "@mui/material/Typography";
 import {
   AddressEditor,
   AddressPorter,
   AddressTable,
+  Confirm,
+  TransactionPorter,
   TransactionTable,
   CsvPorter,
   CsvTable,
@@ -32,31 +34,6 @@ import React, { useState } from "react";
 
 const logger = getLogger("debug");
 
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  root: {
-    margin: theme.spacing(1),
-  },
-  card: {
-    margin: theme.spacing(1),
-  },
-  grid: {
-    marginBottom: theme.spacing(1),
-  },
-  divider: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-  },
-  title: {
-    margin: theme.spacing(2),
-  },
-  button: {
-    margin: theme.spacing(2),
-  },
-  tabs: {
-    margin: theme.spacing(1),
-  },
-}));
-
 type PropTypes = {
   addressBook: AddressBook,
   setAddressBookJson: (val: AddressBookJson) => void,
@@ -73,11 +50,11 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   customTxns,
   setCustomTxns,
 }: PropTypes) => {
+  const [confirmMsg, setConfirmMsg] = useState("");
+  const [pendingDel, setPendingDel] = useState("");
   const [newEntry, setNewEntry] = useState(getBlankAddressEntry());
   const [newTransaction, setNewTransaction] = useState(getBlankTransaction());
   const [tab, setTab] = useState(0);
-  const classes = useStyles();
-
 
   const addNewEntry = (editedAddress: AddressEntry) => {
     // create new obj to ensure it re-renders
@@ -89,12 +66,26 @@ export const AddressBookManager: React.FC<PropTypes> = ({
     setNewEntry(blankEntry); // Reset new address editor
   };
 
-  const deleteAddresses = async () => {
-    setAddressBookJson({});
+  const deleteAddresses = () => {
+    setPendingDel("addresses");
+    setConfirmMsg("Are you sure you want to delete ALL address book entries?");
   };
 
-  const deleteCsvFiles = async () => {
-    setCsvFiles([]);
+  const deleteCsvFiles = () => {
+    setPendingDel("csv");
+    setConfirmMsg("Are you sure you want to delete ALL csv files?");
+  };
+
+  const deleteCustomTxns = () => {
+    setPendingDel("txns");
+    setConfirmMsg("Are you sure you want to delete ALL custom transactions?");
+  };
+
+  const handleDelete = () => {
+    if (!pendingDel) return;
+    else if (pendingDel === "csv") setCsvFiles({});
+    else if (pendingDel === "addresses") setAddressBookJson({});
+    else if (pendingDel === "txns") setCustomTxns([]);
   };
 
   const addNewTransaction = (newTx: Transaction) => {
@@ -106,61 +97,58 @@ export const AddressBookManager: React.FC<PropTypes> = ({
     setNewTransaction(getBlankTransaction()); // reset editor
   };
 
-  const deleteCustomTxns = async () => {
-    setCustomTxns([]);
-  };
-
   const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setTab(newValue);
   };
 
-  return (
-    <div className={classes.root}>
+  return (<>
+    <Box sx={{ m: 1 }}>
 
-      <Typography variant="h4" className={classes.title}>
+      <Typography variant="h4" sx={{ m: 2 }}>
         Manage Input Data
       </Typography>
 
-      <Tabs value={tab} onChange={handleTabChange} className={classes.tabs} centered>
+      <Tabs
+        centered
+        indicatorColor="secondary"
+        onChange={handleTabChange}
+        sx={{ m: 1 }}
+        textColor="secondary"
+        value={tab}
+      >
         <Tab label="Evm Addresses"/>
         <Tab label="Csv Files"/>
         <Tab label="Custom Transactions"/>
       </Tabs>
 
-      <Divider className={classes.divider}/>
+      <Divider sx={{ mt: 2, mb: 1 }}/>
 
       <div hidden={tab !== 0}>
-        <Grid
-          alignContent="center"
-          alignItems="center"
-          justifyContent="center"
-          container
-          spacing={1}
-          className={classes.grid}
-        >
-          <Grid item md={8}>
-            <Card className={classes.card}>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item md={9}>
+            <Card>
               <CardHeader title={"Add new Address"} />
               <AddressEditor
+                addresses={Object.values(addressBook.json).map(e => e.address)}
                 entry={newEntry}
                 setEntry={addNewEntry}
-                addresses={Object.values(addressBook.json).map(e => e.address)}
               />
             </Card>
           </Grid>
-          <Grid item md={4}>
+          <Grid item md={3}>
             <AddressPorter
               addressBook={addressBook}
               setAddressBookJson={setAddressBookJson}
             />
             <Button
-              className={classes.button}
               color="primary"
+              disabled={!Object.keys(addressBook.json || {}).length}
+              fullWidth
               onClick={deleteAddresses}
               size="medium"
-              disabled={!Object.keys(addressBook.json || {}).length}
               startIcon={<RemoveIcon/>}
-              variant="contained"
+              sx={{ mt: 1 }}
+              variant="outlined"
             >
               Delete Address Book
             </Button>
@@ -173,67 +161,70 @@ export const AddressBookManager: React.FC<PropTypes> = ({
       </div>
 
       <div hidden={tab !== 1}>
-
-        <Grid
-          alignContent="center"
-          justifyContent="center"
-          container
-          spacing={1}
-          className={classes.grid}
-        >
-          <Grid item md={6}>
+        <Grid container spacing={2}sx={{ mb: 2 }}>
+          <Grid item md={9}>
+            <CsvTable csvFiles={csvFiles} setCsvFiles={setCsvFiles} />
+          </Grid>
+          <Grid item md={3}>
             <CsvPorter
               csvFiles={csvFiles}
               setCsvFiles={setCsvFiles}
             />
             <Button
-              className={classes.button}
               color="primary"
+              disabled={!Object.keys(csvFiles || {}).length}
+              fullWidth
               onClick={deleteCsvFiles}
               size="medium"
-              disabled={!csvFiles?.length}
               startIcon={<RemoveIcon/>}
-              variant="contained"
+              sx={{ mt: 1 }}
+              variant="outlined"
             >
               Delete Csv Files
             </Button>
           </Grid>
-          <Grid item md={6}>
-            <CsvTable csvFiles={csvFiles} setCsvFiles={setCsvFiles}/>
+        </Grid>
+      </div>
+
+      <div hidden={tab !== 2}>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item md={9}>
+            <Card sx={{ m: 0 }}>
+              <CardHeader title={"Add new Transactions"} />
+              <TransactionEditor
+                setTx={addNewTransaction}
+                tx={newTransaction}
+              />
+            </Card>
+          </Grid>
+          <Grid item md={3}>
+            <TransactionPorter
+              setTransactions={setCustomTxns}
+              transactions={customTxns}
+            />
+            <Button
+              color="primary"
+              disabled={!Object.keys(addressBook.json || {}).length}
+              fullWidth
+              onClick={deleteCustomTxns}
+              size="medium"
+              startIcon={<RemoveIcon/>}
+              sx={{ mt: 1 }}
+              variant="outlined"
+            >
+              Delete Custom Transactions
+            </Button>
           </Grid>
         </Grid>
-
-      </div>
-      <div hidden={tab !== 2}>
-
-        <Card className={classes.card}>
-          <CardHeader title={"Add new Transaction"} />
-          <TransactionEditor
-            tx={newTransaction}
-            setTx={addNewTransaction}
-          />
-        </Card>
-
-        <Button
-          className={classes.button}
-          color="primary"
-          onClick={deleteCustomTxns}
-          size="medium"
-          disabled={!customTxns?.length}
-          startIcon={<RemoveIcon/>}
-          variant="contained"
-        >
-          Delete Custom Txns
-        </Button>
-
         <TransactionTable
           addressBook={addressBook}
-          transactions={getTransactions({ json: customTxns || [], logger })}
           setTransactions={setCustomTxns}
+          transactions={getTransactions({ json: customTxns || [], logger })}
         />
-
       </div>
 
-    </div>
-  );
+    </Box>
+
+    <Confirm message={confirmMsg} setMessage={setConfirmMsg} action={handleDelete} />
+  </>);
 };

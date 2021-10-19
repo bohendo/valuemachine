@@ -1,13 +1,13 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TablePagination from "@material-ui/core/TablePagination";
-import TableRow from "@material-ui/core/TableRow";
-import Typography from "@material-ui/core/Typography";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 import {
   Account,
   AddressBook,
@@ -26,28 +26,6 @@ import { SelectOne } from "../utils";
 
 import { EventRow } from "./EventRow";
 
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  paper: {
-    padding: theme.spacing(2),
-  },
-  title: {
-    padding: theme.spacing(2),
-  },
-  dropdown: {
-    margin: theme.spacing(3),
-    minWidth: theme.spacing(20),
-  },
-  table: {
-    minWidth: theme.spacing(115),
-    overflow: "auto",
-    padding: theme.spacing(1),
-  },
-  firstCell: {
-    maxWidth: theme.spacing(1),
-    padding: theme.spacing(1),
-  },
-}));
-
 type EventTableProps = {
   addressBook: AddressBook;
   vm: ValueMachine;
@@ -63,7 +41,6 @@ export const EventTable: React.FC<EventTableProps> = ({
   const [filterCode, setFilterCode] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as HydratedEvent[]);
-  const classes = useStyles();
 
   useEffect(() => {
     setAccounts(vm.getAccounts());
@@ -100,45 +77,54 @@ export const EventTable: React.FC<EventTableProps> = ({
   };
 
   return (
-    <Paper className={classes.paper}>
+    <Paper sx={{ p: 2 }}>
+      <Grid container>
+        <Grid item xs={12}>
+          <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
+            {filteredEvents.length === vm.json?.events?.length
+              ? `${filteredEvents.length} Events`
+              : `${filteredEvents.length} of ${vm.json?.events?.length || 0} Events`
+            }
+          </Typography>
+        </Grid>
 
-      <Typography align="center" variant="h4" className={classes.title} component="div">
-        {filteredEvents.length === vm.json?.events?.length
-          ? `${filteredEvents.length} Events`
-          : `${filteredEvents.length} of ${vm.json?.events?.length || 0} Events`
+        <Grid item>
+          <SelectOne
+            label="Filter Account"
+            choices={accounts.sort()}
+            selection={filterAccount}
+            setSelection={setFilterAccount}
+            toDisplay={val => addressBook.getName(val, true)}
+          />
+        </Grid>
+
+        <Grid item>
+          <SelectOne
+            label="Filter Type"
+            choices={Object.keys(EventTypes)}
+            selection={filterType}
+            setSelection={setFilterType}
+          />
+        </Grid>
+
+        {filterType === EventTypes.Error ?
+          <Grid item>
+            <SelectOne
+              label="Filter Error Code"
+              choices={Object.keys(EventErrorCodes)}
+              selection={filterCode}
+              setSelection={setFilterCode}
+            />
+          </Grid>
+          : null
         }
-      </Typography>
-
-      <SelectOne
-        label="Filter Account"
-        choices={accounts.sort()}
-        selection={filterAccount}
-        setSelection={setFilterAccount}
-        toDisplay={val => addressBook.getName(val, true)}
-      />
-
-      <SelectOne
-        label="Filter Type"
-        choices={Object.keys(EventTypes)}
-        selection={filterType}
-        setSelection={setFilterType}
-      />
-
-      {filterType === EventTypes.Error ?
-        <SelectOne
-          label="Filter Error Code"
-          choices={Object.keys(EventErrorCodes)}
-          selection={filterCode}
-          setSelection={setFilterCode}
-        />
-        : null
-      }
+      </Grid>
 
       <TableContainer>
-        <Table size="small" className={classes.table}>
+        <Table size="small" sx={{ p: 1, overflow: "auto", minWidth: "70em" }}>
           <TableHead>
             <TableRow>
-              <TableCell className={classes.firstCell}/>
+              <TableCell sx={{ p: 1, maxWidth: "2em" }}/>
               <TableCell><strong> Date </strong></TableCell>
               <TableCell><strong> Type </strong></TableCell>
               <TableCell><strong> Description </strong></TableCell>

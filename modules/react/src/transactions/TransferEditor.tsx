@@ -1,8 +1,5 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-// import AddIcon from "@material-ui/icons/AddCircle";
-// import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 import { Transfer, TransferCategories } from "@valuemachine/types";
 import {
   getAccountError,
@@ -13,20 +10,6 @@ import {
 import React, { useEffect, useState } from "react";
 
 import { SelectOne, TextInput } from "../utils";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  grid: {
-    margin: theme.spacing(1),
-  },
-  textInput: {
-    margin: theme.spacing(1),
-  },
-  button: {
-    marginBottom: theme.spacing(1.5),
-    marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
-  },
-}));
 
 const getEmptyTransfer = (): Transfer => JSON.parse(JSON.stringify({
   amount: "",
@@ -47,14 +30,6 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
   const [newTransfer, setNewTransfer] = useState(getEmptyTransfer());
   const [error, setError] = useState("");
   const [modified, setModified] = useState(false);
-  const classes = useStyles();
-
-  /*
-  const handleSave = () => {
-    if (!newTransfer || !modified || error) return;
-    setTransfer?.(newTransfer);
-  };
-  */
 
   useEffect(() => {
     if (!newTransfer || !modified || error) return;
@@ -99,7 +74,7 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
       alignItems="center"
       container
       spacing={1}
-      className={classes.grid}
+      sx={{ m: 1 }}
     >
 
       <Grid item md={4}>
@@ -160,21 +135,6 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
         <Typography>
           {!modified ? "Enter transfer info" : (error || "Transfer looks good")}
         </Typography>
-        {/*
-        <Grid item>
-          <Button
-            className={classes.button}
-            color="primary"
-            disabled={!modified || !!error}
-            onClick={handleSave}
-            size="small"
-            startIcon={<AddIcon />}
-            variant="contained"
-          >
-            {error || "Save Transfer"}
-          </Button>
-        </Grid>
-        */}
       </Grid>
 
     </Grid>

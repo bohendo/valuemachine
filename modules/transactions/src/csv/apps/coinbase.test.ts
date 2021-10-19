@@ -5,7 +5,6 @@ import { parseCsv } from "../parser";
 
 import { coinbaseHeaders } from "./coinbase";
 
-// TODO add garbage to top
 const exampleCoinbaseCsv =
 `
 extra info, garbage, and other invalid stuff

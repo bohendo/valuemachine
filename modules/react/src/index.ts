@@ -13,9 +13,11 @@ export {
 } from "./taxes";
 export {
   TransactionEditor,
+  TransactionPorter,
   TransactionTable,
 } from "./transactions";
 export {
+  Confirm,
   DateInput,
   HexString,
   SelectMany,

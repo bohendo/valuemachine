@@ -16,7 +16,7 @@ const dateKey = `Created At`;
 
 const daiLaunch = new Date("2019-12-02T00:00:00Z").getTime();
 
-export const wyreHeaders = `
+export const wyreHeaders = [`
 "Closed At",
 "${dateKey}",
 "Id",
@@ -49,7 +49,7 @@ export const wyreHeaders = `
 "BTC Debit",
 "BTC Fee Debit",
 "BTC Credit"
-`.replace(/\n/g, "");
+`.replace(/\n/g, "")];
 
 export const wyreParser = (
   csvData: string,

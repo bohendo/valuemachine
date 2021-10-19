@@ -1,9 +1,8 @@
 import { isAddress } from "@ethersproject/address";
 import { isHexString } from "@ethersproject/bytes";
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import AddIcon from "@material-ui/icons/AddCircle";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+import AddIcon from "@mui/icons-material/AddCircle";
 import {
   AddressCategories,
   AddressEntry,
@@ -11,17 +10,6 @@ import {
 import React, { useEffect, useState } from "react";
 
 import { SelectOne, TextInput } from "../utils";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  grid: {
-    padding: theme.spacing(2),
-  },
-  button: {
-    marginBottom: theme.spacing(1.5),
-    marginLeft: theme.spacing(2),
-    marginRight: theme.spacing(2),
-  },
-}));
 
 type AddressEditorProps = {
   entry: Partial<AddressEntry>;
@@ -36,7 +24,6 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
   const [newEntry, setNewEntry] = useState({} as Partial<AddressEntry>);
   const [entryModified, setEntryModified] = useState(false);
   const [newEntryError, setNewEntryError] = useState("");
-  const classes = useStyles();
 
   const getAddressError = (address?: string): string => {
     if (!address) {
@@ -113,9 +100,9 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
     <Grid
       alignContent="center"
       alignItems="center"
-      className={classes.grid}
       container
       spacing={1}
+      sx={{ p: 2 }}
     >
 
       <Grid item md={4}>
@@ -149,7 +136,7 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
       <Grid item md={6}>
         <Grid item>
           <Button
-            className={classes.button}
+            sx={{ mb: 1.5, mx: 2 }}
             color="primary"
             disabled={!entryModified || !!newEntryError}
             onClick={handleSave}

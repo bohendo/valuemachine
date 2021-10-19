@@ -1,7 +1,6 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Divider from "@material-ui/core/Divider";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
+import Divider from "@mui/material/Divider";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 import { SelectOne, TaxPorter, TaxTable } from "@valuemachine/react";
 import {
   PhysicalGuards,
@@ -16,29 +15,6 @@ import {
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  root: {
-    margin: theme.spacing(1),
-  },
-  select: {
-    margin: theme.spacing(3),
-    minWidth: "160px",
-  },
-  title: {
-    paddingTop: theme.spacing(2),
-  },
-  exportButton: {
-    marginBottom: theme.spacing(4),
-    marginLeft: theme.spacing(4),
-    marginRight: theme.spacing(4),
-    marginTop: theme.spacing(0),
-  },
-  exportCard: {
-    margin: theme.spacing(2),
-    minWidth: "255px",
-  },
-}));
-
 type TaxesExplorerProps = {
   addressBook: AddressBook;
   vm: ValueMachine,
@@ -49,7 +25,6 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   vm,
   prices,
 }: TaxesExplorerProps) => {
-  const classes = useStyles();
   const [allGuards, setAllGuards] = useState([] as Guard[]);
   const [guard, setGuard] = React.useState("");
 
@@ -77,7 +52,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
       </Typography>
       <Divider/>
 
-      <Typography variant="body1" className={classes.root}>
+      <Typography variant="body1" sx={{ m: 1 }}>
         Physical Security provided by: {allGuards.join(", ")}
       </Typography>
 
@@ -86,7 +61,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
         alignItems="center"
         container
         spacing={1}
-        className={classes.root}
+        sx={{ m: 1 }}
       >
 
         <Grid item md={4}>

@@ -1,12 +1,5 @@
-import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
+import TextField from "@mui/material/TextField";
 import React, { useState } from "react";
-
-const useStyles = makeStyles((theme: Theme) => createStyles({
-  main: {
-    margin: theme.spacing(2),
-  },
-}));
 
 type DateInputProps = {
   id?: string;
@@ -20,7 +13,6 @@ export const DateInput: React.FC<DateInputProps> = ({
   helperText,
   setDate,
 }: DateInputProps) => {
-  const classes = useStyles();
   const [display, setDisplay] = useState("");
   const [error, setError] = useState("");
 
@@ -57,7 +49,6 @@ export const DateInput: React.FC<DateInputProps> = ({
   return (
     <TextField
       autoComplete="off"
-      className={classes.main}
       error={!!error}
       helperText={error || helperText || "YYYY-MM-DD"}
       id={id}
@@ -65,6 +56,7 @@ export const DateInput: React.FC<DateInputProps> = ({
       margin="normal"
       name={id}
       onChange={changeDate}
+      sx={{ m: 2 }}
       value={display || ""}
       variant="outlined"
     />
