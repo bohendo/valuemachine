@@ -4,7 +4,7 @@ import { setAddressCategory } from "@valuemachine/utils";
 
 import { addresses as aave } from "./aave/addresses";
 import { addresses as airswap } from "./airswap/addresses";
-import { addresses as bjtj } from "./bjtj/addresses";
+import { addresses as blackjack } from "./blackjack/addresses";
 import { addresses as compound } from "./compound/addresses";
 import { addresses as cryptokitties } from "./cryptokitties/addresses";
 import { addresses as ens } from "./ens/addresses";
@@ -25,7 +25,7 @@ import { addresses as yearn } from "./yearn/addresses";
 const appAddresses = [
   ...aave,
   ...airswap,
-  ...bjtj,
+  ...blackjack,
   ...compound,
   ...cryptokitties,
   ...eth2,

@@ -1,6 +1,6 @@
 import { parsers as aaveParsers } from "./aave";
 import { parsers as airswapParsers } from "./airswap";
-import { parsers as bjtjParsers } from "./bjtj";
+import { parsers as blackjackParsers } from "./blackjack";
 import { parsers as argentParsers } from "./argent";
 import { parsers as compoundParsers } from "./compound";
 import { parsers as cryptokittiesParsers } from "./cryptokitties";
@@ -25,7 +25,7 @@ export { Apps, Methods, Tokens } from "./enums";
 export const ethereumParsers = [
   aaveParsers,
   airswapParsers,
-  bjtjParsers,
+  blackjackParsers,
   argentParsers,
   compoundParsers,
   cryptokittiesParsers,

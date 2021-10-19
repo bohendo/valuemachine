@@ -1,7 +1,7 @@
 import { enums as aave } from "./aave/enums";
 import { enums as airswap } from "./airswap/enums";
 import { enums as argent } from "./argent/enums";
-import { enums as bjtj } from "./bjtj/enums";
+import { enums as blackjack } from "./blackjack/enums";
 import { enums as compound } from "./compound/enums";
 import { enums as cryptokitties } from "./cryptokitties/enums";
 import { enums as tokens } from "./tokens/enums";
@@ -23,7 +23,7 @@ export const Apps = {
   ...aave.Apps,
   ...airswap.Apps,
   ...argent.Apps,
-  ...bjtj.Apps,
+  ...blackjack.Apps,
   ...compound.Apps,
   ...cryptokitties.Apps,
   ...tokens.Apps,
@@ -46,7 +46,7 @@ export const Methods = {
   ...aave.Methods,
   ...airswap.Methods,
   ...argent.Methods,
-  ...bjtj.Methods,
+  ...blackjack.Methods,
   ...compound.Methods,
   ...cryptokitties.Methods,
   ...etherdelta.Methods,
@@ -74,7 +74,7 @@ export const Tokens = {
   ...aave.Tokens,
   ...airswap.Tokens,
   ...argent.Tokens,
-  ...bjtj.Tokens,
+  ...blackjack.Tokens,
   ...compound.Tokens,
   ...cryptokitties.Tokens,
   ...tokens.Tokens,

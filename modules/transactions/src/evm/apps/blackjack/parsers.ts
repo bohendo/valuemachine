@@ -6,14 +6,17 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { insertVenue } from "@valuemachine/utils";
+// import { insertVenue } from "@valuemachine/utils";
 
 import { Apps, Methods } from "../../enums";
 import { parseEvent } from "../../utils";
 
-import { bjtjV1Address, bjtjV2Address } from "./addresses";
+import {
+  blackjackAddress,
+  tipjarAddress,
+} from "./addresses";
 
-const appName = Apps.BJTJ;
+const appName = Apps.Blackjack;
 
 const v2Abi = [
   "event Deposit(address indexed dealer, address indexed user, uint256 value)",
@@ -30,22 +33,20 @@ const coreParser = (
 ): Transaction => {
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
 
-  const handleDeposit = (from: string, to: string, index?: number) => {
+  const handleDeposit = (from: string, to: string, instance: string, index?: number) => {
     tx.transfers.filter(t => t.from === from && t.to === to).forEach(deposit => {
-      const account = insertVenue(from, appName);
       deposit.category = TransferCategories.Internal;
-      deposit.to = account;
+      deposit.to = `${evmMeta.name}/${instance}`;
       if (index) deposit.index = index;
       tx.apps.push(appName);
       tx.method = Methods.Deposit;
-      log.info(`Processed ${appName} ${tx.method} of ${deposit.amount} ${deposit.asset}`);
+      log.info(`Processed ${instance} ${tx.method} of ${deposit.amount} ${deposit.asset}`);
     });
   };
 
-  const handleWithdraw = (from: string, to: string, index?: number) => {
+  const handleWithdraw = (from: string, to: string, instance: string, index?: number) => {
     tx.transfers.filter(t => t.from === from && t.to === to).forEach(withdraw => {
-      const account = insertVenue(to, appName);
-      withdraw.from = account;
+      withdraw.from = `${evmMeta.name}/${instance}`;
       withdraw.category = TransferCategories.Internal;
       if (index) withdraw.index = index;
       tx.apps.push(appName);
@@ -55,31 +56,31 @@ const coreParser = (
         amount: "ALL",
         category: TransferCategories.Fee,
         index: (index || 0) + 1,
-        from: account,
+        from: `${evmMeta.name}/${instance}`,
         to: from,
       });
-      log.info(`Processed ${appName} ${tx.method} of ${withdraw.amount} ${withdraw.asset}`);
+      log.info(`Processed ${instance} ${tx.method} of ${withdraw.amount} ${withdraw.asset}`);
     });
   };
 
-  if (evmTx.to === bjtjV1Address) {
+  if (evmTx.to === blackjackAddress) {
     if (addressBook.isSelf(evmTx.from)) {
-      handleDeposit(evmTx.from, evmTx.to, 0);
-      handleWithdraw(evmTx.to, evmTx.from, 1);
+      handleDeposit(evmTx.from, evmTx.to, Apps.Blackjack, 0);
+      handleWithdraw(evmTx.to, evmTx.from, Apps.Blackjack, 1);
     } else {
       const income = tx.transfers.find(t => t.category === TransferCategories.Income);
       if (income) {
-        handleWithdraw(evmTx.to, income.to, 1);
+        handleWithdraw(evmTx.to, income.to, Apps.Blackjack, 1);
       }
     }
   }
 
   for (const txLog of evmTx.logs) {
-    if (txLog.address === bjtjV2Address) {
+    if (txLog.address === tipjarAddress) {
       const event = parseEvent(v2Abi, txLog, evmMeta);
       if (event?.name && event.args?.user && addressBook.isSelf(event.args.user)) {
-        handleDeposit(event.args.user, txLog.address, txLog.index);
-        handleWithdraw(txLog.address, event.args.user, txLog.index);
+        handleDeposit(event.args.user, txLog.address, Apps.TipJar, txLog.index);
+        handleWithdraw(txLog.address, event.args.user, Apps.TipJar, txLog.index);
       }
     }
   }

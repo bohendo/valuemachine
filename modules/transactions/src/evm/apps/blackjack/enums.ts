@@ -1,5 +1,6 @@
 const Apps = {
-  BJTJ: "BJTJ",
+  Blackjack: "Blackjack",
+  TipJar: "TipJar",
 } as const;
 
 const Methods = {

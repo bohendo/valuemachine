@@ -9,8 +9,8 @@ import {
   testLogger,
 } from "../../testUtils";
 
-const appName = Apps.BJTJ;
-const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
+const appName = Apps.Blackjack;
+const log = testLogger.child({ module: `Test${appName}` }, { level: "info" });
 const parseTx = getParseTx({ logger: log });
 
 describe(appName, () => {
