@@ -33,7 +33,7 @@ import {
 import { getBlankAddressEntry, getBlankTransaction, getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
 
-const logger = getLogger("info");
+const logger = getLogger("warn");
 
 type PropTypes = {
   addressBook: AddressBook,

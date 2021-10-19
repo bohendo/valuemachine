@@ -3,6 +3,8 @@ const Apps = {
 } as const;
 
 const Methods = {
+  Deposit: "Deposit",
+  Withdraw: "Withdraw",
 } as const;
 
 const Tokens = {
