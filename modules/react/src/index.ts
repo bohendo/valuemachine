@@ -8,6 +8,14 @@ export {
   CsvTable,
 } from "./csv";
 export {
+  InputPorter,
+} from "./input";
+export {
+  BalanceTable,
+  Balances,
+  NetWorthTable,
+} from "./output";
+export {
   TaxPorter,
   TaxTable,
 } from "./taxes";
@@ -26,9 +34,6 @@ export {
   TimestampInput,
 } from "./utils";
 export {
-  BalanceTable,
-  Balances,
   ChunkTable,
   EventTable,
-  NetWorthTable,
 } from "./valuemachine";
