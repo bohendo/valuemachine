@@ -1,8 +1,9 @@
+import DownloadIcon from "@mui/icons-material/GetApp";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import DownloadIcon from "@mui/icons-material/GetApp";
 import {
   AddressBook,
   AddressBookJson,
@@ -69,31 +70,40 @@ export const AddressPorter: React.FC<AddressPorterProps> = ({
   };
 
   return (<>
-    <Paper sx={{ p: 3, maxWidth: "24em" }}>
-      <Typography variant="h6">
-        {"Import Address Book"}
-      </Typography>
-      <Box sx={{ my: 2 }}>
-        <input
-          accept="application/json"
-          id="profile-importer"
-          onChange={handleAddressBookImport}
-          type="file"
-        />
-      </Box>
-      <Typography variant="h6">
-        {"Export Address Book"}
-      </Typography>
-      <Button
-        sx={{ my: 2 }}
-        color="primary"
-        onClick={handleExport}
-        size="small"
-        startIcon={<DownloadIcon />}
-        variant="contained"
-      >
-        Download
-      </Button>
+    <Paper sx={{ p: 3, maxWidth: "64em" }}>
+      <Grid container spacing={2} justifyContent="flex-start">
+
+        <Grid item>
+          <Typography variant="h6">
+            {"Import Address Book"}
+          </Typography>
+          <Box sx={{ my: 2 }}>
+            <input
+              accept="application/json"
+              id="profile-importer"
+              onChange={handleAddressBookImport}
+              type="file"
+            />
+          </Box>
+        </Grid>
+
+        <Grid item>
+          <Typography variant="h6">
+            {"Export Address Book"}
+          </Typography>
+          <Button
+            sx={{ my: 2 }}
+            color="primary"
+            onClick={handleExport}
+            size="small"
+            startIcon={<DownloadIcon />}
+            variant="contained"
+          >
+            Download
+          </Button>
+        </Grid>
+
+      </Grid>
     </Paper>
   </>);
 };

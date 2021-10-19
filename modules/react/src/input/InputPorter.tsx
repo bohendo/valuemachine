@@ -1,6 +1,7 @@
 import DownloadIcon from "@mui/icons-material/GetApp";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { AddressBookJson, CsvFiles, InputData, TransactionsJson } from "@valuemachine/types";
@@ -68,31 +69,40 @@ export const InputPorter: React.FC<InputPorterProps> = ({
   };
 
   return (<>
-    <Paper sx={{ p: 3, maxWidth: "24em" }}>
-      <Typography variant="h6">
-        {"Import ValueMachine Data"}
-      </Typography>
-      <Box sx={{ my: 2 }}>
-        <input
-          accept="text/csv"
-          id="file-importer"
-          onChange={handleImport}
-          type="file"
-        />
-      </Box>
-      <Typography variant="h6">
-        {"Export ValueMachine Data"}
-      </Typography>
-      <Button
-        sx={{ my: 2 }}
-        color="primary"
-        onClick={handleExport}
-        size="small"
-        startIcon={<DownloadIcon />}
-        variant="contained"
-      >
-        Download
-      </Button>
+    <Paper sx={{ p: 3, maxWidth: "64em" }}>
+      <Grid container spacing={2} justifyContent="center">
+
+        <Grid item>
+          <Typography variant="h6">
+            {"Import ValueMachine Data"}
+          </Typography>
+          <Box sx={{ my: 2 }}>
+            <input
+              accept="text/csv"
+              id="file-importer"
+              onChange={handleImport}
+              type="file"
+            />
+          </Box>
+        </Grid>
+
+        <Grid item>
+          <Typography variant="h6">
+            {"Export ValueMachine Data"}
+          </Typography>
+          <Button
+            sx={{ my: 2 }}
+            color="primary"
+            onClick={handleExport}
+            size="small"
+            startIcon={<DownloadIcon />}
+            variant="contained"
+          >
+            Download
+          </Button>
+        </Grid>
+
+      </Grid>
     </Paper>
   </>);
 };

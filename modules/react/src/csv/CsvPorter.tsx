@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { cleanCsv } from "@valuemachine/transactions";
@@ -30,18 +31,22 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
   };
 
   return (<>
-    <Paper sx={{ p: 3, maxWidth: "24em" }}>
-      <Typography variant="h6">
-        {"Import CSV File"}
-      </Typography>
-      <Box sx={{ mb: 1, mt: 1 }}>
-        <input
-          accept="text/csv"
-          id="file-importer"
-          onChange={handleCsvFileImport}
-          type="file"
-        />
-      </Box>
+    <Paper sx={{ p: 3, maxWidth: "48em" }}>
+      <Grid container spacing={2} justifyContent="flex-start">
+        <Grid item>
+          <Typography variant="h6">
+            {"Import CSV File"}
+          </Typography>
+          <Box sx={{ mb: 1, mt: 1 }}>
+            <input
+              accept="text/csv"
+              id="file-importer"
+              onChange={handleCsvFileImport}
+              type="file"
+            />
+          </Box>
+        </Grid>
+      </Grid>
     </Paper>
   </>);
 };
