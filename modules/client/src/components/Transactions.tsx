@@ -18,7 +18,7 @@ import { getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
 import axios from "axios";
 
-const logger = getLogger("debug");
+const logger = getLogger("info");
 
 type TransactionExplorerProps = {
   addressBook: AddressBook;

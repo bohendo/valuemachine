@@ -16,7 +16,7 @@ import { exchangeAddresses } from "./addresses";
 import { findDSProxies } from "./proxy";
 
 const appName = Apps.Oasis;
-const { SwapIn, SwapOut } = TransferCategories;
+const { Repay, SwapIn, SwapOut } = TransferCategories;
 
 ////////////////////////////////////////
 /// Abis
@@ -110,18 +110,19 @@ export const oasisParser = (
 
   // Detect leftover dust & add it to our swaps out
   if (tx.apps.includes(appName)) {
-    // Sum up all transfers in & out of our account
+    // Subtract all swaps/payments in & out of our account
     const [totalOut, totalIn] = diffBalances([
-      sumTransfers(tx.transfers.filter(t => t.category === SwapOut)),
+      // Repay if we're paying CDP fees via SAI/DAI swap for MKR
+      sumTransfers(tx.transfers.filter(t => t.category === SwapOut || t.category === Repay)),
       sumTransfers(tx.transfers.filter(t => t.category === SwapIn)),
     ]);
-    log.debug(totalOut, `Total swaps out`);
+    log.debug(totalOut, `Total disposed`);
     // Subtract swaps in from transfers between us & our proxy
     const [noopOut] = diffBalances([
       sumTransfers(tx.transfers.filter(t => t.to === t.from)),
       totalIn,
     ]);
-    log.debug(noopOut, `Total noops out`);
+    log.debug(noopOut, `Total internal transfers to/from proxies`);
     // Subtract swaps out from transfers to the proxy to detect leftover dust
     const [dust] = diffBalances([noopOut, totalOut]);
     Object.entries(dust).forEach(entry => {
