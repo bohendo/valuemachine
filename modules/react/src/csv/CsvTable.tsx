@@ -1,7 +1,4 @@
 import DeleteIcon from "@mui/icons-material/Delete";
-import Alert from "@mui/material/Alert";
-import IconButton from "@mui/material/IconButton";
-import Snackbar from "@mui/material/Snackbar";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -16,6 +13,8 @@ import {
 } from "@valuemachine/types";
 import React, { useState } from "react";
 
+import { Confirm } from "../utils";
+
 type CsvTableProps = {
   csvFiles: CsvFiles,
   setCsvFiles: (val: CsvFiles) => void,
@@ -26,11 +25,6 @@ export const CsvTable: React.FC<CsvTableProps> = ({
 }: CsvTableProps) => {
   const [pendingRm, setPendingRm] = useState("");
   const [confirmMsg, setConfirmMsg] = useState("");
-
-  const handleClose = () => {
-    setPendingRm("");
-    setConfirmMsg("");
-  };
 
   const requestDelete = (key) => {
     console.log(`requesting ${key} deletion`);
@@ -87,14 +81,7 @@ export const CsvTable: React.FC<CsvTableProps> = ({
       ) : null}
     </Paper>
 
-    <Snackbar open={!!confirmMsg} autoHideDuration={10000} onClose={handleClose}>
-      <Alert onClose={handleClose} severity="warning">
-        {confirmMsg}
-        <IconButton size="small" onClick={handleDelete} sx={{ ml: 2, my: -1 }}>
-          <DeleteIcon />
-        </IconButton>
-      </Alert>
-    </Snackbar>
+    <Confirm message={confirmMsg} setMessage={setConfirmMsg} action={handleDelete} />
 
   </>);
 };

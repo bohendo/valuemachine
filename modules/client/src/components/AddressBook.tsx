@@ -12,6 +12,7 @@ import {
   AddressEditor,
   AddressPorter,
   AddressTable,
+  Confirm,
   TransactionPorter,
   TransactionTable,
   CsvPorter,
@@ -49,6 +50,8 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   customTxns,
   setCustomTxns,
 }: PropTypes) => {
+  const [confirmMsg, setConfirmMsg] = useState("");
+  const [pendingDel, setPendingDel] = useState("");
   const [newEntry, setNewEntry] = useState(getBlankAddressEntry());
   const [newTransaction, setNewTransaction] = useState(getBlankTransaction());
   const [tab, setTab] = useState(0);
@@ -63,16 +66,26 @@ export const AddressBookManager: React.FC<PropTypes> = ({
     setNewEntry(blankEntry); // Reset new address editor
   };
 
-  const deleteAddresses = async () => {
-    setAddressBookJson({});
+  const deleteAddresses = () => {
+    setPendingDel("addresses");
+    setConfirmMsg("Are you sure you want to delete ALL address book entries?");
   };
 
-  const deleteCsvFiles = async () => {
-    setCsvFiles({});
+  const deleteCsvFiles = () => {
+    setPendingDel("csv");
+    setConfirmMsg("Are you sure you want to delete ALL csv files?");
   };
 
-  const deleteCustomTxns = async () => {
-    setCustomTxns([]);
+  const deleteCustomTxns = () => {
+    setPendingDel("txns");
+    setConfirmMsg("Are you sure you want to delete ALL custom transactions?");
+  };
+
+  const handleDelete = () => {
+    if (!pendingDel) return;
+    else if (pendingDel === "csv") setCsvFiles({});
+    else if (pendingDel === "addresses") setAddressBookJson({});
+    else if (pendingDel === "txns") setCustomTxns([]);
   };
 
   const addNewTransaction = (newTx: Transaction) => {
@@ -88,7 +101,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
     setTab(newValue);
   };
 
-  return (
+  return (<>
     <Box sx={{ m: 1 }}>
 
       <Typography variant="h4" sx={{ m: 2 }}>
@@ -211,5 +224,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
       </div>
 
     </Box>
-  );
+
+    <Confirm message={confirmMsg} setMessage={setConfirmMsg} action={handleDelete} />
+  </>);
 };

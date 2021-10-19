@@ -17,6 +17,7 @@ export {
   TransactionTable,
 } from "./transactions";
 export {
+  Confirm,
   DateInput,
   HexString,
   SelectMany,

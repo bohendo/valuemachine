@@ -1,3 +1,4 @@
+export { Confirm } from "./Confirm";
 export { DateInput } from "./DateInput";
 export { HexString } from "./HexString";
 export { SelectMany } from "./SelectMany";
