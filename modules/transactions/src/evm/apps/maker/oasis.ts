@@ -7,6 +7,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
+import { add, diffBalances, sumTransfers } from "@valuemachine/utils";
 
 import { Apps, Methods } from "../../enums";
 import { parseEvent } from "../../utils";
@@ -104,8 +105,33 @@ export const oasisParser = (
           log.warn(`Couldn't find a swap out of ${outAmt} ${outGem}`);
         }
       }
-
     }
+  }
+
+  // Detect leftover dust & add it to our swaps out
+  if (tx.apps.includes(appName)) {
+    // Sum up all transfers in & out of our account
+    const [totalOut, totalIn] = diffBalances([
+      sumTransfers(tx.transfers.filter(t => t.category === SwapOut)),
+      sumTransfers(tx.transfers.filter(t => t.category === SwapIn)),
+    ]);
+    log.debug(totalOut, `Total swaps out`);
+    // Subtract swaps in from transfers between us & our proxy
+    const [noopOut] = diffBalances([
+      sumTransfers(tx.transfers.filter(t => t.to === t.from)),
+      totalIn,
+    ]);
+    log.debug(noopOut, `Total noops out`);
+    // Subtract swaps out from transfers to the proxy to detect leftover dust
+    const [dust] = diffBalances([noopOut, totalOut]);
+    Object.entries(dust).forEach(entry => {
+      const [asset, amount] = entry;
+      log.warn(`DSProxy left behind ${amount} ${asset}, adding this to our first swap out`);
+      const swapOut = tx.transfers.find(t => t.category === SwapOut && t.asset === asset);
+      if (swapOut) {
+        swapOut.amount = add(swapOut.amount, amount);
+      }
+    });
   }
 
   return tx;

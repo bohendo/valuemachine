@@ -99,3 +99,9 @@ export const diffBalances = (balancesList: Balances[]): Balances[] => {
   }
   return output;
 };
+
+export const mergeBalances = (balancesList: Balances[]): Balances =>
+  balancesList.reduce((total, bal) => {
+    Object.entries(bal).forEach(entry => { total[entry[0]] = entry[1]; });
+    return total;
+  }, {} as Balances);

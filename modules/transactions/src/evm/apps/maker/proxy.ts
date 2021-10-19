@@ -7,7 +7,6 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { insertVenue } from "@valuemachine/utils";
 
 import { addresses as allAddresses } from "../addresses";
 import { Apps, Methods, Tokens } from "../../enums";
@@ -80,7 +79,6 @@ export const proxyParser = (
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
 
   // Set method for proxy creations
-  const dsProxies = findDSProxies(evmTx);
   for (const txLog of evmTx.logs) {
     if (factoryAddresses.some(e => txLog.address === e.address)) {
       const event = parseEvent(proxyAbi, txLog, evmMeta);
@@ -94,11 +92,13 @@ export const proxyParser = (
     }
   }
 
+  const dsProxies = findDSProxies(evmTx);
+
   // If we sent this evmTx, replace proxy addresses w tx origin
   if (addressBook.isSelf(evmTx.from)) {
     tx.transfers.forEach(transfer => {
       if (dsProxies.includes(transfer.from)) {
-        transfer.from = insertVenue(evmTx.from, appName);
+        transfer.from = evmTx.from;
         transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
         if ( // Tag WETH/PETH swaps
           wethAddresses.includes(transfer.to) ||
@@ -108,15 +108,14 @@ export const proxyParser = (
         }
       }
       if (dsProxies.includes(transfer.to)) {
-        transfer.to = insertVenue(evmTx.from, appName);
-        transfer.category = getTransferCategory(transfer.to, evmTx.from, addressBook);
+        transfer.to = evmTx.from;
+        transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
         if ( // Tag WETH/PETH swaps
           wethAddresses.includes(transfer.from) ||
           (transfer.asset === Tokens.PETH && transfer.from === tubAddress)
         ) {
           transfer.category = SwapIn;
         }
-
       }
     });
   }
