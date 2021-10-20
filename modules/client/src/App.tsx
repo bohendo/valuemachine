@@ -32,7 +32,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
-import { AddressBookManager } from "./components/AddressBook";
+import { InputDataManager } from "./components/InputData";
 import { NetWorthExplorer } from "./components/NetWorth";
 import { NavBar } from "./components/NavBar";
 import { PriceManager } from "./components/Prices";
@@ -183,13 +183,15 @@ export const App: React.FC<AppProps> = ({
           <Switch>
 
             <Route exact path="/">
-              <AddressBookManager
+              <InputDataManager
                 addressBook={addressBook}
                 setAddressBookJson={setAddressBookJson}
                 csvFiles={csvFiles}
                 setCsvFiles={setCsvFiles}
                 customTxns={customTxns}
                 setCustomTxns={setCustomTxns}
+                taxForms={forms}
+                setTaxForms={setForms}
               />
             </Route>
 

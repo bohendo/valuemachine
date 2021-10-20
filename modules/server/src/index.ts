@@ -14,6 +14,14 @@ log.info(`Starting server in env: ${JSON.stringify(env, null, 2)}`);
 
 const app = express();
 
+app.use((req, res, next) => {
+  const query = req.query && Object.keys(req.query).length > 0
+    ? `?${Object.entries(req.query).map(([key, val]) => `${key}=${val}`).join("&")}`
+    : "";
+  log.info(`=> ${req.method} ${req.path}${query}`);
+  next();
+});
+
 app.use(express.json({ limit: "10mb" }));
 
 app.use("/prices", pricesRouter);

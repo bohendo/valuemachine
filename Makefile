@@ -190,7 +190,7 @@ client: package modules/client/.env $(shell find modules/client $(find_options))
 	$(docker_run) "cd modules/client && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-server: core $(shell find modules/server $(find_options))
+server: taxes $(shell find modules/server $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/server && npm run build && touch src/index.ts"
 	$(log_finish) && mv -f $(totalTime) .flags/$@

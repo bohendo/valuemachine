@@ -2,7 +2,7 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { Forms } from "@valuemachine/taxes";
+import { requestF1040, Forms } from "@valuemachine/taxes";
 import React, { useEffect, useState } from "react";
 
 import { SelectOne, TextInput } from "../utils";
@@ -18,12 +18,6 @@ export const F1040: React.FC<F1040Props> = ({
   const [newFormData, setNewFormData] = useState({} as any);
   const [error, setError] = useState("");
   const [modified, setModified] = useState(false);
-
-  useEffect(() => {
-    if (!newFormData || !modified || error) return;
-    setFormData?.(newFormData);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [newFormData, modified, error]);
 
   useEffect(() => {
     if (!formData) setNewFormData({} as any);
@@ -55,6 +49,11 @@ export const F1040: React.FC<F1040Props> = ({
   const handleSave = () => {
     console.log("Saving new f1040 form data", newFormData);
     setFormData?.(newFormData);
+  };
+
+  const handleDownload = async () => {
+    console.log("Downloading new f1040 form w data:", newFormData);
+    await requestF1040(newFormData, window);
   };
 
   return (<>
@@ -113,14 +112,26 @@ export const F1040: React.FC<F1040Props> = ({
             {!modified ? "Enter formData info" : (error || "Form Data looks good")}
           </Typography>
         </Grid>
+      </Grid>
 
-        <Grid item xs={12}>
+      <Grid container spacing={2} sx={{ mt: 1, justifyContent: "center" }}>
+        <Grid item>
           <Button
             disabled={!modified || !!error}
             onClick={handleSave}
             variant="contained"
           >
             {"Save"}
+          </Button>
+        </Grid>
+
+        <Grid item>
+          <Button
+            disabled={!!error}
+            onClick={handleDownload}
+            variant="contained"
+          >
+            {"Download"}
           </Button>
         </Grid>
 

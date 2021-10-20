@@ -4,8 +4,7 @@ import { getFileStore, getLogger } from "@valuemachine/utils";
 
 import { env } from "./env";
 
-const log = getLogger(env.logLevel).child({ module: "Utils" });
-log.info(`Logger loaded!`);
+export const log = getLogger(env.logLevel).child({ module: "Utils" });
 
 export const STATUS_SUCCESS = 200;
 export const STATUS_NOT_FOUND = 404;

@@ -8,21 +8,33 @@ if [[ -z "$target" ]]
 then echo "Provide the target form name as the first & only arg" && exit 1
 fi
 
-fields="$root/fields/$target.fields"
-form="$root/forms/$target.pdf"
+fields="$root/docs/fields/$target.fields"
+form="$root/docs/forms/$target.pdf"
 output="/tmp/$target.pdf"
+
+echo "Filing form $form"
 
 cd /tmp
 
-for input in $(find "/tmp" -type f -name "$target-*.json" | sort -t '/' -k 4 -n | tr '\n\r' ' ')
-do
-
-  page=$(basename "${input#*-}" .json)
-  fdf="/tmp/$target-$page.fdf"
-  out="/tmp/$target-$page.pdf"
+for input in $(
+  find "/tmp" -type f -name "$target.json" -or -name "$target-*.json" |\
+    sort -t '/' -k 4 -n |\
+    tr '\n\r' ' '
+); do
 
   if [[ ! -f "$input" ]]
   then echo "No input file detected at $input" && continue;
+  else echo "Found a page of ${target} at ${input}"
+  fi
+
+  page=$(basename "${input#*-}" .json)
+  if [[ -n "$page" ]]
+  then
+    fdf="/tmp/$target-$page.fdf"
+    out="/tmp/$target-$page.pdf"
+  else
+    fdf="/tmp/$target.fdf"
+    out="/tmp/$target.pdf"
   fi
 
   rm -rf "$fdf" "$out"

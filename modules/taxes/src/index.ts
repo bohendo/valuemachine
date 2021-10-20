@@ -1,3 +1,10 @@
 export * from "./constants";
 export * from "./utils";
-export { buildF8949, mappings, Forms, requestF8949 } from "./usa";
+export {
+  Forms,
+  mappings,
+  buildF8949,
+  requestF8949,
+  buildF1040,
+  requestF1040,
+} from "./usa";

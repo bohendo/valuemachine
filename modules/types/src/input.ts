@@ -10,5 +10,7 @@ export const InputData = Type.Object({
   customTxns: TransactionsJson,
   addressBook: AddressBookJson,
   csvFiles: CsvFiles,
+  // usa tax forms, types are defined by mappings in taxes module
+  forms: Type.Optional(Type.Any()),
 });
 export type InputData = Static<typeof InputData>;
