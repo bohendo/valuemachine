@@ -22,10 +22,8 @@ taxesRouter.post("/f1040", async (req, res) => {
   if (!formData) {
     return logAndSend("No formData was provided", STATUS_YOUR_BAD);
   }
-  log.info(formData, `Got f1040 data`);
   try {
     const f1040Path = await buildF1040(formData, fs, execSync);
-    log.info(`Built f1040 form is at path: ${f1040Path}`);
     return res.download(f1040Path, "f1040.pdf");
   } catch (e) {
     return logAndSend(e.message, STATUS_MY_BAD);

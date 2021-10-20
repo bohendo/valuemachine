@@ -15,7 +15,7 @@ export const F1040: React.FC<F1040Props> = ({
   formData,
   setFormData,
 }: F1040Props) => {
-  const [newFormData, setNewFormData] = useState({} as any);
+  const [newFormData, setNewFormData] = useState({} as any /* initialize form w empty strings */);
   const [error, setError] = useState("");
   const [modified, setModified] = useState(false);
 
@@ -32,13 +32,31 @@ export const F1040: React.FC<F1040Props> = ({
     if (!formData || !newFormData) {
       setModified(false);
     } else if (
-      newFormData?.FirstNameMI !== formData?.FirstNameMI ||
-      newFormData?.LastName !== formData?.LastName ||
       newFormData?.Single !== formData?.Single ||
       newFormData?.MarriedFilingJointly !== formData?.MarriedFilingJointly ||
       newFormData?.MarriedFilingSeparately !== formData?.MarriedFilingSeparately ||
       newFormData?.HeadOfHousehold !== formData?.HeadOfHousehold ||
-      newFormData?.QualifiedWidow !== formData?.QualifiedWidow
+      newFormData?.QualifiedWidow !== formData?.QualifiedWidow ||
+
+      newFormData?.FirstNameMI !== formData?.FirstNameMI ||
+      newFormData?.LastName !== formData?.LastName ||
+      newFormData?.SocialSecurityNumber !== formData?.SocialSecurityNumber ||
+
+      newFormData?.SpouseFirstNameMI !== formData?.SpouseFirstNameMI ||
+      newFormData?.SpouseLastName !== formData?.SpouseLastName ||
+      newFormData?.SpouseSocialSecurityNumber !== formData?.SpouseSocialSecurityNumber ||
+
+      newFormData?.StreetAddress !== formData?.StreetAddress ||
+      newFormData?.Apt !== formData?.Apt ||
+      newFormData?.City !== formData?.City ||
+      newFormData?.State !== formData?.State ||
+      newFormData?.Zip !== formData?.Zip ||
+
+      newFormData?.ForeignCountry !== formData?.ForeignCountry ||
+      newFormData?.ForeignState !== formData?.ForeignState ||
+      newFormData?.ForeignZip !== formData?.ForeignZip ||
+
+      newFormData?.L1 !== formData?.L1
     ) {
       setModified(true);
     } else {
@@ -61,7 +79,7 @@ export const F1040: React.FC<F1040Props> = ({
       <Grid container spacing={1}>
 
         <Grid item xs={12}>
-          <Typography variant="h5">
+          <Typography variant="h4">
             {"Form 1040"}
           </Typography>
         </Grid>
@@ -89,8 +107,14 @@ export const F1040: React.FC<F1040Props> = ({
           />
         </Grid>
 
+        <Grid item xs={12}>
+          <Typography variant="h5">
+            {"Personal Info"}
+          </Typography>
+        </Grid>
+
         <Grid item>
-          <TextInput 
+          <TextInput
             helperText={"First Name and Middle Initial"}
             label="First Name"
             setText={FirstNameMI => setNewFormData({ ...newFormData, FirstNameMI })}
@@ -99,11 +123,158 @@ export const F1040: React.FC<F1040Props> = ({
         </Grid>
 
         <Grid item>
-          <TextInput 
+          <TextInput
             helperText={"Last Name"}
             label="Last Name"
             setText={LastName => setNewFormData({ ...newFormData, LastName })}
             text={newFormData.LastName}
+          />
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Social Security Number"}
+            label="Social Security Number"
+            setText={SocialSecurityNumber => setNewFormData({
+              ...newFormData,
+              SocialSecurityNumber
+            })}
+            text={newFormData.SocialSecurityNumber}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <Typography variant="h5">
+            {"Spouse Info"}
+          </Typography>
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Spouse's First Name and Middle Initial"}
+            label="Spouse First Name"
+            setText={SpouseFirstNameMI => setNewFormData({ ...newFormData, SpouseFirstNameMI })}
+            text={newFormData.SpouseFirstNameMI}
+          />
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Spouse's Last Name"}
+            label="Spouse Last Name"
+            setText={SpouseLastName => setNewFormData({ ...newFormData, SpouseLastName })}
+            text={newFormData.SpouseLastName}
+          />
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Spouse's Social Security Number"}
+            label="Spouse Social Security Number"
+            setText={SpouseSocialSecurityNumber => setNewFormData({
+              ...newFormData,
+              SpouseSocialSecurityNumber,
+            })}
+            text={newFormData.SpouseSocialSecurityNumber}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <Typography variant="h5">
+            {"Domestic Address"}
+          </Typography>
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Street Address"}
+            label="Street Address"
+            setText={StreetAddress => setNewFormData({ ...newFormData, StreetAddress })}
+            text={newFormData.StreetAddress}
+          />
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Apartment Number"}
+            label="Apt"
+            setText={Apt => setNewFormData({ ...newFormData, Apt })}
+            text={newFormData.Apt}
+          />
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"City"}
+            label="City"
+            setText={City => setNewFormData({ ...newFormData, City })}
+            text={newFormData.City}
+          />
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"State"}
+            label="State"
+            setText={State => setNewFormData({ ...newFormData, State })}
+            text={newFormData.State}
+          />
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Zip"}
+            label="Zip"
+            setText={Zip => setNewFormData({ ...newFormData, Zip })}
+            text={newFormData.Zip}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <Typography variant="h5">
+            {"Foreign Address"}
+          </Typography>
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Foreign Country Name"}
+            label="Foreign Country Name"
+            setText={ForeignCountry => setNewFormData({ ...newFormData, ForeignCountry })}
+            text={newFormData.ForeignCountry}
+          />
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Foreign Province/State/County"}
+            label="Foreign Province/State/County"
+            setText={ForeignState => setNewFormData({ ...newFormData, ForeignState })}
+            text={newFormData.ForeignState}
+          />
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Foreign Postal Code"}
+            label="Foreign Postal Code"
+            setText={ForeignZip => setNewFormData({ ...newFormData, ForeignZip })}
+            text={newFormData.ForeignZip}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <Typography variant="h5">
+            {"Financial Info"}
+          </Typography>
+        </Grid>
+
+        <Grid item>
+          <TextInput
+            helperText={"Total Income"}
+            label="Total Income"
+            setText={L1 => setNewFormData({ ...newFormData, L1 })}
+            text={newFormData.L1}
           />
         </Grid>
 
