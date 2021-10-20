@@ -30,7 +30,7 @@ FieldStateOption: Off
 ---
 FieldType: Button
 FieldName: topmostSubform[0].Page1[0].c1_2[0]
-FieldNameAlt: 3. Check the box below that applies to you. See the instructions for the definition of &quot;related person.&quot; a. I sold (including through foreclosure) the home to a person who isn't related to me and had a gain on the sale (as figured in Part I I I below). Go to Part I I below.
+FieldNameAlt: 3. Check the box below that applies to you. See the instructions for the definition of &quot;related person.&quot; a. I sold (including through foreclosure) the home to a person who isn&apos;t related to me and had a gain on the sale (as figured in Part I I I below). Go to Part I I below.
 FieldFlags: 0
 FieldValue: Off
 FieldJustification: Left
@@ -39,7 +39,7 @@ FieldStateOption: Off
 ---
 FieldType: Button
 FieldName: topmostSubform[0].Page1[0].c1_2[1]
-FieldNameAlt: 3b. I sold (including through foreclosure) the home to a person who isn't related to me and didn't have a gain on the sale (as figured in Part I I I below). No repayment of the credit is required. Stop here.
+FieldNameAlt: 3b. I sold (including through foreclosure) the home to a person who isn&apos;t related to me and didn&apos;t have a gain on the sale (as figured in Part I I I below). No repayment of the credit is required. Stop here.
 FieldFlags: 0
 FieldValue: Off
 FieldJustification: Left
@@ -90,7 +90,7 @@ FieldStateOption: Off
 ---
 FieldType: Button
 FieldName: topmostSubform[0].Page1[0].c1_2[6]
-FieldNameAlt: 3g. My home was destroyed, condemned, or sold under threat of condemnation and I didn't have a gain (see instructions).
+FieldNameAlt: 3g. My home was destroyed, condemned, or sold under threat of condemnation and I didn&apos;t have a gain (see instructions).
 FieldFlags: 0
 FieldValue: Off
 FieldJustification: Left
@@ -138,7 +138,7 @@ FieldJustification: Right
 ---
 FieldType: Text
 FieldName: topmostSubform[0].Page1[0].f1_10[0]
-FieldNameAlt: Part I I I. Form 5405 Gain or (Loss) Worksheet. Note: Complete this part only if your home was destroyed or you sold your home to someone who isn't related to you (including a sale through condemnation or under threat of condemnation). See Pub. 523, Selling Your Home, for information on what to enter on lines 9, 10, and 12. But if you sold your home through condemnation, see chapter 1 in Pub. 544, Sales and Other Dispositions of Assets, for information on what to enter on lines 9 and 10. 9. Selling price of home, insurance proceeds, or gross condemnation award.
+FieldNameAlt: Part I I I. Form 5405 Gain or (Loss) Worksheet. Note: Complete this part only if your home was destroyed or you sold your home to someone who isn&apos;t related to you (including a sale through condemnation or under threat of condemnation). See Pub. 523, Selling Your Home, for information on what to enter on lines 9, 10, and 12. But if you sold your home through condemnation, see chapter 1 in Pub. 544, Sales and Other Dispositions of Assets, for information on what to enter on lines 9 and 10. 9. Selling price of home, insurance proceeds, or gross condemnation award.
 FieldFlags: 8388608
 FieldJustification: Right
 ---
@@ -177,8 +177,3 @@ FieldName: topmostSubform[0].Page1[0].f1_16[0]
 FieldNameAlt: 15. Subtract line 14 from line 11. If line 15 is more than 0, you have a gain. Check the box on line 3a and complete Part I I. However, check the box on line 3f (instead of the box on line 3a) if your home was destroyed or you sold the home through condemnation or under threat of condemnation. Then complete Part I I if the event occurred in 2017. If line 15 is 0 or less, check the box on line 3b. However, if your home was destroyed or you sold the home through condemnation or under threat of condemnation, check the box on line 3g instead. You don&#8217;t have to repay the credit.
 FieldFlags: 8388608
 FieldJustification: Right
----
-FieldType:
-FieldName: topmostSubform[0]
-FieldFlags: 0
-FieldJustification: Left

@@ -128,8 +128,8 @@ FieldName: form1[0].Page1[0].c2_01[0]
 FieldFlags: 0
 FieldValue: Off
 FieldJustification: Left
-FieldStateOption: Off
 FieldStateOption: Yes
+FieldStateOption: Off
 ---
 FieldType: Button
 FieldName: form1[0].Page1[0].c2_01[1]
@@ -144,8 +144,8 @@ FieldName: form1[0].Page1[0].c2_02[0]
 FieldFlags: 0
 FieldValue: Off
 FieldJustification: Left
-FieldStateOption: Off
 FieldStateOption: Yes
+FieldStateOption: Off
 ---
 FieldType: Button
 FieldName: form1[0].Page1[0].c2_02[1]
@@ -160,8 +160,8 @@ FieldName: form1[0].Page1[0].c2_03[0]
 FieldFlags: 0
 FieldValue: Off
 FieldJustification: Left
-FieldStateOption: Off
 FieldStateOption: Yes
+FieldStateOption: Off
 ---
 FieldType: Button
 FieldName: form1[0].Page1[0].c2_03[1]
@@ -176,8 +176,8 @@ FieldName: form1[0].Page1[0].c2_04[0]
 FieldFlags: 0
 FieldValue: Off
 FieldJustification: Left
-FieldStateOption: Off
 FieldStateOption: Yes
+FieldStateOption: Off
 ---
 FieldType: Button
 FieldName: form1[0].Page1[0].c2_04[1]
@@ -192,8 +192,8 @@ FieldName: form1[0].Page1[0].c2_05[0]
 FieldFlags: 0
 FieldValue: Off
 FieldJustification: Left
-FieldStateOption: Off
 FieldStateOption: Yes
+FieldStateOption: Off
 ---
 FieldType: Button
 FieldName: form1[0].Page1[0].c2_05[1]
@@ -202,8 +202,3 @@ FieldValue: Off
 FieldJustification: Left
 FieldStateOption: No
 FieldStateOption: Off
----
-FieldType:
-FieldName: form1[0]
-FieldFlags: 0
-FieldJustification: Left

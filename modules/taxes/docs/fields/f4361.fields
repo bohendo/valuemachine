@@ -102,8 +102,3 @@ FieldType: Text
 FieldName: topmostSubform[0].Page1[0].p1-t19[0]
 FieldFlags: 8388608
 FieldJustification: Left
----
-FieldType:
-FieldName: topmostSubform[0]
-FieldFlags: 0
-FieldJustification: Left
