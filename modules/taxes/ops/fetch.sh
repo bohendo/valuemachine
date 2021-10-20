@@ -7,6 +7,9 @@ fields="$root/docs/fields"
 mkdir -p "$forms" "$fields"
 
 name="$1"
+if [[ -z "$name" ]]
+then echo "Provide the form name to fetch as the first & only arg" && exit 1
+fi
 
 function cleanup {
   if [[ -f "$forms/$name.pdf" && ! -s "$forms/$name.pdf" ]]
@@ -18,18 +21,5 @@ function cleanup {
 }
 trap cleanup EXIT SIGINT
 
-if [[ -n "$name" ]]
-then
-  wget "https://www.irs.gov/pub/irs-pdf/$name.pdf" --output-document="$forms/$name.pdf"
-  pdftk "$forms/$name.pdf" dump_data_fields > "$fields/$name.fields"
-else
-  names="$(jq '.forms' personal.json | tr -d ' ,"[]' | tr '\n\r' ' ')"
-  for name in $names
-  do
-    url="https://www.irs.gov/pub/irs-pdf/$name.pdf"
-    echo "curl -s $url > $forms/$name.pdf"
-    curl -s "$url" > "$forms/$name.pdf"
-    echo "pdftk $forms/$name.pdf dump_data_fields > $fields/$name.fields"
-    pdftk "$forms/$name.pdf" dump_data_fields > "$fields/$name.fields"
-  done
-fi
+wget "https://www.irs.gov/pub/irs-pdf/$name.pdf" --output-document="$forms/$name.pdf"
+pdftk "$forms/$name.pdf" dump_data_fields > "$fields/$name.fields"

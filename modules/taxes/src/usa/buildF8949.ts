@@ -1,6 +1,6 @@
 import { getLogger, add, gt, mul, round, sub } from "@valuemachine/utils";
 
-import * as f8949Mappings from "./f8949-mappings.json";
+import { mappings } from "./mappings";
 
 const log = getLogger().child({ module: "Taxes" }, { level: "debug" });
 
@@ -101,12 +101,12 @@ export const buildF8949 = (trades: Trade[], fs: any, execSync: any): string => {
       return page;
     });
 
-    const translate = (form, mappings): any => {
+    const translate = (form, mapping): any => {
       const newForm = {};
       for (const [key, value] of Object.entries(form)) {
         if (key === "default") { continue; }
-        if (!mappings[key]) {
-          log.warn(`Key ${key} exists in output data but not in mappings`);
+        if (!mapping[key]) {
+          log.warn(`Key ${key} exists in output data but not in ${form} mapping`);
         }
         if (
           !["_dec", "_int"].some(suffix => key.endsWith(suffix)) &&
@@ -114,12 +114,12 @@ export const buildF8949 = (trades: Trade[], fs: any, execSync: any): string => {
           typeof value === "string" &&
           value.match(/^-?[0-9.]+$/)
         ) {
-          newForm[mappings[key]] = round(value);
-          if (newForm[mappings[key]].startsWith("-")) {
-            newForm[mappings[key]] = `(${newForm[mappings[key]].substring(1)})`;
+          newForm[mapping[key]] = round(value);
+          if (newForm[mapping[key]].startsWith("-")) {
+            newForm[mapping[key]] = `(${newForm[mapping[key]].substring(1)})`;
           }
         } else {
-          newForm[mappings[key]] = value;
+          newForm[mapping[key]] = value;
         }
       }
       return newForm;
@@ -128,7 +128,7 @@ export const buildF8949 = (trades: Trade[], fs: any, execSync: any): string => {
     for (const page in f8949) {
       const filename = `/tmp/f8949-${page}.json`;
       log.info(`Saving page ${page} to disk as ${filename}`);
-      fs.writeFileSync(filename, JSON.stringify(translate(f8949[page], f8949Mappings)));
+      fs.writeFileSync(filename, JSON.stringify(translate(f8949[page], mappings.f8949)));
     }
 
     const cmd = "bash node_modules/@valuemachine/taxes/ops/f8949.sh";

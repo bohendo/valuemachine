@@ -10,7 +10,7 @@
   "main": "dist/bundle.js",
   "module": "dist/bundle.esm.js",
   "types": "dist/bundle.d.ts",
-  "files": ["dist/bundle.js", "dist/bundle.esm.js", "dist/bundle.d.ts", "ops"],
+  "files": ["dist/bundle.js", "dist/bundle.esm.js", "dist/bundle.d.ts", "docs", "ops"],
   "scripts": {
     "build": "rollup --config rollup.config.js",
     "test": "ts-mocha --check-leaks --color --exit --timeout 60000 'src/**/*.test.ts'"
