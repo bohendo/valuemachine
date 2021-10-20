@@ -46,7 +46,7 @@ export const getPollerHandler = (
           try {
             const start = Date.now();
             const transactionsJson = getData(addressBook);
-            res.json(transactionsJson.sort(chrono)); // TODO: make sure getData returns sorted txns
+            res.json(transactionsJson);
             log.info(`Returned ${transactionsJson.length} ${dataType} transactions at a rate of ${
               Math.round((100000 * transactionsJson.length)/(Date.now() - start)) / 100
             } tx/sec`);

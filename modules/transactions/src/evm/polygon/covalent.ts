@@ -58,7 +58,7 @@ export const getCovalentFetcher = ({
       topics: evt.raw_log_topics.map(hexlify),
       data: hexlify(evt.raw_log_data || "0x"),
     })),
-    nonce: 0, // TODO: We need this to calculate the addresses of newly created contracts
+    nonce: 0, // We need this to calculate the addresses of newly created contracts
     status: rawTx.successful ? 1 : 0,
     timestamp: rawTx.block_signed_at,
     transfers: [], // not available, get from etherscan

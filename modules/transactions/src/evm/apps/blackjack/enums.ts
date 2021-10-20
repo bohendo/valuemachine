@@ -1,8 +1,11 @@
 const Apps = {
-  BJTJ: "BJTJ",
+  Blackjack: "Blackjack",
+  TipJar: "TipJar",
 } as const;
 
 const Methods = {
+  Deposit: "Deposit",
+  Withdraw: "Withdraw",
 } as const;
 
 const Tokens = {

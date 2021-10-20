@@ -1,11 +1,12 @@
 import { parsers as aaveParsers } from "./aave";
 import { parsers as airswapParsers } from "./airswap";
-import { parsers as bjtjParsers } from "./bjtj";
+import { parsers as blackjackParsers } from "./blackjack";
 import { parsers as argentParsers } from "./argent";
 import { parsers as compoundParsers } from "./compound";
 import { parsers as cryptokittiesParsers } from "./cryptokitties";
 import { parsers as tokensParsers } from "./tokens";
 import { parsers as etherdeltaParsers } from "./etherdelta";
+import { parsers as eth2Parsers } from "./eth2";
 import { parsers as ensParsers } from "./ens";
 import { parsers as idexParsers } from "./idex";
 import { parsers as idleParsers } from "./idle";
@@ -24,12 +25,13 @@ export { Apps, Methods, Tokens } from "./enums";
 export const ethereumParsers = [
   aaveParsers,
   airswapParsers,
-  bjtjParsers,
+  blackjackParsers,
   argentParsers,
   compoundParsers,
   cryptokittiesParsers,
   tokensParsers,
   etherdeltaParsers,
+  eth2Parsers,
   ensParsers,
   idexParsers,
   idleParsers,

@@ -95,7 +95,6 @@ const coreParser = (
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf } = addressBook;
 
-  // TODO: how could we not hardcode these again & also not introduce cyclic dependencies?
   const cTokenToTokenDecimals = (cToken: string): number => {
     switch (cToken) {
     case Tokens.cBAT: return getDecimals("0x0d8775f648430679a709e98d2b0cb6250d2887ef");

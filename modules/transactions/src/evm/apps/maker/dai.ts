@@ -1,13 +1,10 @@
-import { Interface } from "@ethersproject/abi";
 import { hexlify, stripZeros } from "@ethersproject/bytes";
-import { HashZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import {
   AddressBook,
   Asset,
   EvmMetadata,
   EvmTransaction,
-  EvmTransactionLog,
   Logger,
   Transaction,
   TransferCategories,
@@ -23,19 +20,17 @@ import {
   valuesAreClose,
 } from "@valuemachine/utils";
 
-import { Apps, Assets, Tokens } from "../../enums";
-import { getTransferCategory } from "../../utils";
+import { Apps, Tokens } from "../../enums";
 
 import {
   dsrAddress,
-  proxyAddresses,
   migrationAddress,
   vatAddress,
 } from "./addresses";
+import { parseLogNote } from "./utils";
 
 const appName = Apps.Dai;
-const { ETH } = Assets;
-const { DAI, WETH, PETH, SAI } = Tokens;
+const { DAI, SAI } = Tokens;
 const { Expense, Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 
 ////////////////////////////////////////
@@ -97,29 +92,6 @@ const potAbi = [
 ////////////////////////////////////////
 /// Parser
 
-const parseLogNote = (
-  abi: string[],
-  ethLog: EvmTransactionLog,
-): { name: string; args: string[]; } => {
-  const iface = new Interface(abi);
-  return {
-    name: Object.values(iface.functions).find(e =>
-      ethLog.topics[0].startsWith(iface.getSighash(e))
-    )?.name,
-    args: ethLog.data
-      .substring(2 + 64 + 64 + 8)
-      .match(/.{1,64}/g)
-      .filter(e => e !== "0".repeat(64 - 8))
-      .map(s => `0x${s}`)
-      .map(str => [HashZero, "0x"].includes(str)
-        ? "0x00"
-        : str.startsWith("0x000000000000000000000000")
-          ? `0x${str.substring(26)}`
-          : str
-      ),
-  };
-};
-
 export const daiParser = (
   tx: Transaction,
   evmTx: EvmTransaction,
@@ -129,18 +101,6 @@ export const daiParser = (
 ): Transaction => {
   const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName } = addressBook;
-
-  const ethish = [WETH, ETH, PETH] as Asset[];
-
-  // Save a list of relevant proxies to treat as self (TODO: dedup w ./tokens & ./oasis & ./sai)
-  const proxies = proxyAddresses.map(e => e.address);
-  for (const txLog of evmTx.logs) {
-    if (txLog.topics[0].startsWith("0x1cff79cd")) { // TODO: hash sig instead of hardcoding?
-      proxies.push(txLog.address);
-    }
-  }
-
-  const isProxy = address => proxies.includes(address);
 
   ////////////////////////////////////////
   // SCD -> MCD Migration
@@ -172,22 +132,6 @@ export const daiParser = (
     // MCD Vat aka Vault manager
     if (address === vatAddress) {
 
-      // If we sent this evmTx to a proxy, replace proxy addresses w tx origin
-      if (addressBook.isSelf(evmTx.from) && isProxy(evmTx.to)) {
-        tx.transfers.forEach(transfer => {
-          if (isProxy(transfer.from)) {
-            transfer.from = evmTx.from;
-            transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
-            if (transfer.category === TransferCategories.Expense) transfer.category = SwapOut;
-          }
-          if (isProxy(transfer.to)) {
-            transfer.to = evmTx.from;
-            transfer.category = getTransferCategory(transfer.from, transfer.to, addressBook);
-            if (transfer.category === TransferCategories.Income) transfer.category = SwapIn;
-          }
-        });
-      }
-
       const logNote = parseLogNote(vatAbi, txLog);
       if (!logNote.name) continue;
       tx.apps.push(appName);
@@ -216,9 +160,7 @@ export const daiParser = (
             transfer.category === TransferCategories.Expense ||
             transfer.category === TransferCategories.Income
           ) && (
-            transfer.asset === asset || (
-              ethish.includes(asset) && ethish.includes(transfer.asset)
-            )
+            transfer.asset === asset
           ) && valuesAreClose(transfer.amount, abs(wad), div(abs(wad), "10"))
         );
         if (transfer) {
@@ -259,7 +201,6 @@ export const daiParser = (
             transfer.from = insertVenue(transfer.to, vault);
             tx.method = "Borrow";
           } else {
-            // TODO: tag fee transfer..?
             transfer.category = Repay;
             transfer.to = insertVenue(transfer.from, vault);
             tx.method = "Repayment";
@@ -267,13 +208,6 @@ export const daiParser = (
         } else {
           log.warn(`Vat.${logNote.name}: Can't find a DAI transfer of about ${dart}`);
         }
-
-        /*
-      } else if (logNote.name === "move") {
-        const vault = `${appName}-Vault-${logNote.args[0].replace(/0+$/, "")}`;
-        const amt = formatUnits(toBN(logNote.args[2] || "0x00").fromTwos(256), 45);
-        log.info(`Found a vat.move call for ${vault} of ${amt} DAI`);
-        */
 
       } else if (logNote.name === "flux") {
         log.info(`Found flux!`);

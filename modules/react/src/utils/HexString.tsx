@@ -23,6 +23,7 @@ export const HexString = ({
   const prefix = parts.join("/");
 
   const explorer = !prefix ? ""
+    : prefix.startsWith(`${Ethereum}/ETH2`) ? "https://beaconscan.com"
     : prefix.startsWith(Ethereum) ? "https://etherscan.io"
     : prefix.startsWith(Polygon) ? "https://polygonscan.com"
     : "";
@@ -30,6 +31,7 @@ export const HexString = ({
   const link = !explorer ? ""
     : hex?.length === 42 ? `${explorer}/address/${hex}`
     : hex?.length === 66 ? `${explorer}/tx/${hex}`
+    : hex?.length === 98 ? `${explorer}/validator/${hex}`
     : "";
 
   const abrv = str => `${str.substring(0, 6)}..${str.substring(str.length - 4)}`;
@@ -52,7 +54,13 @@ export const HexString = ({
           placement="bottom-start"
           title={copied ? "Copied to clipboard" : value}
         >
-          <Box sx={{ m: 0, display: "flex", flexWrap: "wrap", overflowWrap: "anywhere", wordBreak: "normal" }}>
+          <Box sx={{
+            m: 0,
+            display: "flex",
+            flexWrap: "wrap",
+            overflowWrap: "anywhere",
+            wordBreak: "normal",
+          }}>
             {displayParts.map((part,i) => (
               <Typography key={i} noWrap>
                 {`${part}${i < displayParts.length - 1 ? "/" : ""}`}

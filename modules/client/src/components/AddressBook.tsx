@@ -13,6 +13,7 @@ import {
   AddressPorter,
   AddressTable,
   Confirm,
+  InputPorter,
   TransactionPorter,
   TransactionTable,
   CsvPorter,
@@ -32,7 +33,7 @@ import {
 import { getBlankAddressEntry, getBlankTransaction, getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
 
-const logger = getLogger("debug");
+const logger = getLogger("warn");
 
 type PropTypes = {
   addressBook: AddressBook,
@@ -82,10 +83,13 @@ export const AddressBookManager: React.FC<PropTypes> = ({
   };
 
   const handleDelete = () => {
+    console.log(`Deleting ${pendingDel} for real this time`);
     if (!pendingDel) return;
     else if (pendingDel === "csv") setCsvFiles({});
     else if (pendingDel === "addresses") setAddressBookJson({});
     else if (pendingDel === "txns") setCustomTxns([]);
+    setPendingDel("");
+    setConfirmMsg("");
   };
 
   const addNewTransaction = (newTx: Transaction) => {
@@ -107,6 +111,19 @@ export const AddressBookManager: React.FC<PropTypes> = ({
       <Typography variant="h4" sx={{ m: 2 }}>
         Manage Input Data
       </Typography>
+
+      <Grid container justifyContent="center">
+        <Grid item sm={8}>
+          <InputPorter
+            addressBook={addressBook.json}
+            setAddressBook={setAddressBookJson}
+            csvFiles={csvFiles}
+            setCsvFiles={setCsvFiles}
+            customTxns={customTxns}
+            setCustomTxns={setCustomTxns}
+          />
+        </Grid>
+      </Grid>
 
       <Tabs
         centered
@@ -204,7 +221,7 @@ export const AddressBookManager: React.FC<PropTypes> = ({
             />
             <Button
               color="primary"
-              disabled={!Object.keys(addressBook.json || {}).length}
+              disabled={!customTxns?.length}
               fullWidth
               onClick={deleteCustomTxns}
               size="medium"

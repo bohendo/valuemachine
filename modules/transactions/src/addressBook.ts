@@ -1,3 +1,4 @@
+import { isHexString } from "@ethersproject/bytes";
 import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
   Account,
@@ -31,7 +32,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   ////////////////////////////////////////
   // Init Code
 
-  const addressBook = {};
+  const addressBook = {} as AddressBookJson;
 
   // Merge hardcoded public addresses with those supplied by the user
   [
@@ -60,12 +61,12 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   ////////////////////////////////////////
   // Helpers
 
-  const getEntry = (address: Account): AddressEntry | undefined => {
-    if (!address) return undefined;
-    return addressBook[address] || (address.includes("/")
-      ? addressBook[address.split("/").pop()]
-      : Object.values(addressBook).find((entry: AddressEntry) => entry?.address?.endsWith(address))
-    );
+  const getEntry = (account: Account): AddressEntry | undefined => {
+    if (!account) return undefined;
+    const address = account.split("/").pop();
+    return addressBook[account]
+      || addressBook[address]
+      || Object.values(addressBook).find(entry => entry.address?.endsWith(address));
   };
 
   const isCategory = (category: AddressCategory) => (address: Account): boolean =>
@@ -75,7 +76,6 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   // Exports
 
   const isSelf = isCategory(AddressCategories.Self);
-
   const isNFT = isCategory(AddressCategories.NFT);
   const isToken = isCategory(AddressCategories.Token);
 
@@ -87,6 +87,8 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
     let name = getEntry(account)?.name || getEntry(address)?.name;
     if (isEthAddress(address)) {
       address = fmtAddress(address);
+    }
+    if (isHexString(address)) {
       name = name || `${address.substring(0, 6)}..${address.substring(address.length - 4)}`;
     } else {
       name = name || address;

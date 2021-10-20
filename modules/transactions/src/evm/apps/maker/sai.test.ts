@@ -10,8 +10,8 @@ import {
 } from "../../testUtils";
 
 const appName = Apps.Sai;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
-const parseTx = getParseTx({ logger });
+const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
+const parseTx = getParseTx({ logger: log });
 
 describe(appName, () => {
   it("should handle a WETH to PETH swap", async () => {
@@ -68,6 +68,7 @@ describe(appName, () => {
       txid: "Ethereum/0x5919e3da5827d30bc63c8b3023ccefa8d7691fe2d442cab1a18c121fc791200a",
       selfAddress: "Ethereum/0xfdbbfb0fe2986672af97eca0e797d76a0bbf35c9",
     });
+    log.info(tx);
     expect(tx.transfers.length).to.equal(5);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
@@ -81,6 +82,7 @@ describe(appName, () => {
       txid: "Ethereum/0x26e7fb1c36992b85d764e8b8ffba44356013e2713b421e190277e05a785716d0",
       selfAddress: "Ethereum/0xa1700938bd2943abfb923d67054287d07bd0cd30",
     });
+    log.info(tx);
     expect(tx.transfers.length).to.equal(6);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);

@@ -2,16 +2,16 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 
-import { Apps } from "../../enums";
+import { Apps, Methods } from "../../enums";
 import {
   getParseTx,
   expect,
   testLogger,
 } from "../../testUtils";
 
-const appName = Apps.BJTJ;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
-const parseTx = getParseTx({ logger });
+const appName = Apps.Blackjack;
+const log = testLogger.child({ module: `Test${appName}` }, { level: "info" });
+const parseTx = getParseTx({ logger: log });
 
 describe(appName, () => {
 
@@ -21,10 +21,10 @@ describe(appName, () => {
       selfAddress: "Ethereum/0x213fe7e177160991829a4d0a598a848d2448f384",
     });
     expect(tx.apps).to.include(appName);
+    expect(tx.method).to.equal(Methods.Deposit);
     expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
-    expect(tx.method).to.equal("Deposit");
   });
 
   it("should handle a v1 withdraw", async () => {
@@ -33,9 +33,10 @@ describe(appName, () => {
       selfAddress: "Ethereum/0x213fe7e177160991829a4d0a598a848d2448f384",
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.transfers.length).to.equal(1);
+    expect(tx.method).to.equal(Methods.Withdraw);
+    expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Internal);
-    expect(tx.method).to.equal("Withdraw");
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Fee);
   });
 
   it("should handle a v1 self destruct", async () => {
@@ -44,10 +45,11 @@ describe(appName, () => {
       selfAddress: "Ethereum/0xeb56b369ddaa70034f94ba195f4377e895b919cf",
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.transfers.length).to.equal(2);
+    expect(tx.method).to.equal(Methods.Withdraw);
+    expect(tx.transfers.length).to.equal(3);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
-    expect(tx.method).to.equal("Withdraw");
+    expect(tx.transfers[2].category).to.equal(TransferCategories.Fee);
   });
 
   it("should handle a v2 deposit", async () => {
@@ -56,10 +58,10 @@ describe(appName, () => {
       selfAddress: "Ethereum/0x1057Bea69c9ADD11c6e3dE296866AFf98366CFE3",
     });
     expect(tx.apps).to.include(appName);
+    expect(tx.method).to.equal(Methods.Deposit);
     expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.Internal);
-    expect(tx.method).to.equal("Deposit");
   });
 
   it("should handle a v2 withdraw", async () => {
@@ -68,9 +70,10 @@ describe(appName, () => {
       selfAddress: "Ethereum/0x1057Bea69c9ADD11c6e3dE296866AFf98366CFE3",
     });
     expect(tx.apps).to.include(appName);
-    expect(tx.transfers.length).to.equal(1);
+    expect(tx.method).to.equal(Methods.Withdraw);
+    expect(tx.transfers.length).to.equal(2);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Internal);
-    expect(tx.method).to.equal("Withdraw");
+    expect(tx.transfers[1].category).to.equal(TransferCategories.Fee);
   });
 
 });

@@ -1,11 +1,12 @@
 import { enums as aave } from "./aave/enums";
 import { enums as airswap } from "./airswap/enums";
 import { enums as argent } from "./argent/enums";
-import { enums as bjtj } from "./bjtj/enums";
+import { enums as blackjack } from "./blackjack/enums";
 import { enums as compound } from "./compound/enums";
 import { enums as cryptokitties } from "./cryptokitties/enums";
 import { enums as tokens } from "./tokens/enums";
 import { enums as etherdelta } from "./etherdelta/enums";
+import { enums as eth2 } from "./eth2/enums";
 import { enums as ens } from "./ens/enums";
 import { enums as idex } from "./idex/enums";
 import { enums as idle } from "./idle/enums";
@@ -22,11 +23,12 @@ export const Apps = {
   ...aave.Apps,
   ...airswap.Apps,
   ...argent.Apps,
-  ...bjtj.Apps,
+  ...blackjack.Apps,
   ...compound.Apps,
   ...cryptokitties.Apps,
   ...tokens.Apps,
   ...etherdelta.Apps,
+  ...eth2.Apps,
   ...ens.Apps,
   ...idex.Apps,
   ...idle.Apps,
@@ -44,10 +46,11 @@ export const Methods = {
   ...aave.Methods,
   ...airswap.Methods,
   ...argent.Methods,
-  ...bjtj.Methods,
+  ...blackjack.Methods,
   ...compound.Methods,
   ...cryptokitties.Methods,
   ...etherdelta.Methods,
+  ...eth2.Methods,
   ...ens.Methods,
   ...idex.Methods,
   ...idle.Methods,
@@ -71,11 +74,12 @@ export const Tokens = {
   ...aave.Tokens,
   ...airswap.Tokens,
   ...argent.Tokens,
-  ...bjtj.Tokens,
+  ...blackjack.Tokens,
   ...compound.Tokens,
   ...cryptokitties.Tokens,
   ...tokens.Tokens,
   ...etherdelta.Tokens,
+  ...eth2.Tokens,
   ...ens.Tokens,
   ...idex.Tokens,
   ...idle.Tokens,

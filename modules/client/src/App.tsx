@@ -142,7 +142,7 @@ export const App: React.FC<AppProps> = ({
   }, [pricesJson, unit]);
 
   useEffect(() => {
-    if (!csvFiles?.length) return;
+    if (!csvFiles) return;
     if (getCsvFilesError(csvFiles)) {
       console.log(`Removing invalid csv files`);
       const newCsvFiles = getEmptyCsvFiles();
@@ -155,7 +155,7 @@ export const App: React.FC<AppProps> = ({
   }, [csvFiles]);
 
   useEffect(() => {
-    if (!customTxns?.length) return;
+    if (!customTxns) return;
     console.log(`Saving ${customTxns.length} custom transactions`);
     store.save(CustomTxnsStore, customTxns);
   }, [customTxns]);

@@ -37,7 +37,6 @@ describe(appName, () => {
     expect(tx.transfers.length).to.equal(4);
     expect(tx.transfers[0].category).to.equal(TransferCategories.Fee);
     expect(tx.transfers[1].category).to.equal(TransferCategories.SwapOut);
-    // TODO: why did transfer order change when data was sourced from alchemy instead of etherscan?
     expect(tx.transfers[3].category).to.equal(TransferCategories.SwapIn);
     expect(tx.transfers[2].category).to.equal(TransferCategories.Refund);
   });

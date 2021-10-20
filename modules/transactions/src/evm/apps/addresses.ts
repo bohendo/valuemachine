@@ -4,10 +4,11 @@ import { setAddressCategory } from "@valuemachine/utils";
 
 import { addresses as aave } from "./aave/addresses";
 import { addresses as airswap } from "./airswap/addresses";
-import { addresses as bjtj } from "./bjtj/addresses";
+import { addresses as blackjack } from "./blackjack/addresses";
 import { addresses as compound } from "./compound/addresses";
 import { addresses as cryptokitties } from "./cryptokitties/addresses";
 import { addresses as ens } from "./ens/addresses";
+import { addresses as eth2 } from "./eth2/addresses";
 import { addresses as etherdelta } from "./etherdelta/addresses";
 import { addresses as idex } from "./idex/addresses";
 import { addresses as idle } from "./idle/addresses";
@@ -24,9 +25,10 @@ import { addresses as yearn } from "./yearn/addresses";
 const appAddresses = [
   ...aave,
   ...airswap,
-  ...bjtj,
+  ...blackjack,
   ...compound,
   ...cryptokitties,
+  ...eth2,
   ...ens,
   ...etherdelta,
   ...idex,
@@ -68,7 +70,6 @@ const defiAddresses = [
   { name: "dharma-lever", address: "Ethereum/0x9bd1428009681e1e3c8f58b50b724739807aa6c5" },
   { name: "escrowed-token-bouncer", address: "Ethereum/0x2e225cf684a48f1de8eba5c56f1715c6f6c6b518" },
   { name: "eternal-storage-proxy", address: "Ethereum/0x4aa42145aa6ebf72e164c9bbc74fbd3788045016" },
-  { name: "eth2-deposit", address: "Ethereum/0x00000000219ab540356cbb839cbe05303d7705fa" },
   { name: "genesis-alpha", address: "Ethereum/0x294f999356ed03347c7a23bcbcf8d33fa41dc830" },
   { name: "genesis-alpha", address: "Ethereum/0xa3f5411cfc9eee0dd108bf0d07433b6dd99037f1" },
   { name: "genesis-protocol", address: "Ethereum/0x332b8c9734b4097de50f302f7d9f273ffdb45b84" },
