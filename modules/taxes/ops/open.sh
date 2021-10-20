@@ -1,10 +1,13 @@
 #!/bin/bash
 
-ops="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-target="$ops/forms/$1.pdf"
+root="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null 2>&1 && pwd )"
+
+name="$1"
+
+target="$root/docs/forms/$name.pdf"
 
 if [[ ! -f "$target" ]]
-then bash $ops/fetch.sh $1
+then bash "$root/ops/fetch.sh" "$name"
 fi
 
-xdg-open $target
+xdg-open "$target"

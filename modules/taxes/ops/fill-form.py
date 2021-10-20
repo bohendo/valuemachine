@@ -1,4 +1,4 @@
- #!/usr/bin/env python
+#!/usr/bin/env python
 from fdfgen import forge_fdf
 import sys
 import json

@@ -1,0 +1,109 @@
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t1[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t2[0]
+FieldFlags: 0
+FieldJustification: Center
+FieldMaxLength: 11
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t5[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t6[0]
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 12
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t8[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].p1-cb1[0]
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: 1
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].p1-cb1[1]
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].p1-cb1[2]
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: 3
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].p1-cb1[3]
+FieldFlags: 0
+FieldJustification: Left
+FieldStateOption: 4
+FieldStateOption: Off
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t12[0]
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 10
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t9[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t10[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t15[0]
+FieldFlags: 0
+FieldJustification: Center
+FieldMaxLength: 10
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t11[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t16[0]
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t17[0]
+FieldFlags: 8388608
+FieldJustification: Center
+FieldMaxLength: 4
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t18[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].p1-t19[0]
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType:
+FieldName: topmostSubform[0]
+FieldFlags: 0
+FieldJustification: Left

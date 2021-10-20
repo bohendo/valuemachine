@@ -1,4 +1,5 @@
 const fs = require("fs");
+
 const test = require("../test.json");
 
 const mappingsFile = (form) => `./src/mappings/${form}.json`;
@@ -69,7 +70,7 @@ for (const form of Object.keys(test.forms)) {
   }
 
   for (const [key, value] of Object.entries(test.forms[form])) {
-    if (!Object.keys(mappings).includes(key) && typeof test.forms[form][key] !== "undefined") {
+    if (!Object.keys(mappings).includes(key) && typeof value !== "undefined") {
       console.log(`Deleting key ${key} from test for ${form}`);
       delete test.forms[form][key];
     }
