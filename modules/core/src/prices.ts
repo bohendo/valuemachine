@@ -257,7 +257,7 @@ export const getPrices = (params?: PricesParams): Prices => {
           price
         }
       }`
-    } })).data.data;
+    } }) as any)?.data?.data;
     let price;
     try {
       const response = await retry(attempt);
@@ -303,7 +303,7 @@ export const getPrices = (params?: PricesParams): Prices => {
           price
         }
       }`
-    } })).data.data;
+    } }) as any)?.data?.data;
     let price;
     try {
       const response = await retry(attempt);
