@@ -27,7 +27,7 @@
     "@valuemachine/types": "0.10.1",
     "ajv": "8.6.3",
     "ajv-formats": "2.1.1",
-    "pino": "7.0.3",
+    "pino": "6.13.3",
     "pino-pretty": "7.1.0"
   }, 
   "devDependencies": {

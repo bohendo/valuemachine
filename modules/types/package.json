@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@sinclair/typebox": "0.20.5",
-    "pino": "7.0.3"
+    "pino": "6.13.3"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "8.3.0",

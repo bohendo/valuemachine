@@ -23,4 +23,3 @@ taxesRouter.post("/f8949", async (req, res) => {
     return logAndSend(e.message, STATUS_MY_BAD);
   }
 });
-
