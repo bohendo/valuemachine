@@ -54,7 +54,7 @@ export const F1040: React.FC<F1040Props> = ({
 
   const handleSave = () => {
     console.log("Saving new f1040 form data", newFormData);
-    setFormData(newFormData);
+    setFormData?.(newFormData);
   };
 
   return (<>
