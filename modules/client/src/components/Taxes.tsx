@@ -3,6 +3,7 @@ import Grid from "@mui/material/Grid";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
+import { Forms } from "@valuemachine/taxes";
 import { TaxPorter, TaxTable, F1040 } from "@valuemachine/react";
 import {
   PhysicalGuards,
@@ -21,17 +22,20 @@ type TaxesExplorerProps = {
   addressBook: AddressBook;
   vm: ValueMachine,
   prices: Prices,
+  forms: Forms,
+  setForms: (val: Forms) => void,
 };
 export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   addressBook,
   vm,
   prices,
+  forms,
+  setForms,
 }: TaxesExplorerProps) => {
   const [tab, setTab] = useState(0);
   const [innerTab, setInnerTab] = useState(0);
   const [allGuards, setAllGuards] = useState([] as Guard[]);
   const [guard, setGuard] = React.useState("");
-  const [formData, setFormData] = React.useState({} as any);
 
   useEffect(() => {
     setGuard(allGuards[tab]);
@@ -105,11 +109,11 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
       </Tabs>
 
       <div hidden={innerTab !== 0}>
-        <TaxTable guard={guard} prices={prices} vm={vm} />
+        {innerTab === 0 ? <TaxTable guard={guard} prices={prices} vm={vm} /> : null}
       </div>
 
       <div hidden={innerTab !== 1 || guard !== PhysicalGuards.USA}>
-        <F1040 formData={formData} setFormData={setFormData} />
+        <F1040 formData={forms?.f1040 || {}} setFormData={f1040 => setForms({ ...forms, f1040 })} />
       </div>
 
     </>
