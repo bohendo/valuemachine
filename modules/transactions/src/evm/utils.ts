@@ -91,7 +91,7 @@ export const diffAsc = (compareTo: DecimalString) => (t1: Transfer, t2: Transfer
     diff(t2.amount, compareTo),
   ) ? 1 : -1;
 
-// TODO: clean up if/when I get feedback on https://github.com/ethers-io/ethers.js/issues/1831
+// Clean up if/when I get feedback on https://github.com/ethers-io/ethers.js/issues/1831
 export const parseEvent = (
   abi: any,
   evmLog: EvmTransactionLog,

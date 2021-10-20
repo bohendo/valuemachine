@@ -11,7 +11,8 @@ const logger = testLogger.child({ module: "Alchemy Fetcher" }, { level: "trace" 
 // Skip tests that require network calls unless we're actively debugging
 describe.skip("Alchemy Fetcher", () => {
 
-  // TODO: We still need a way to find zero-value transactions so we can account for tx fees
+  // We still need a way to find zero-value transactions so we can account for tx fees
+  // Alchemy history is currently incomplete
   it.skip("should fetch history for an address including zero-value txns", async () => {
     const fetcher = getAlchemyFetcher({ providerUrl: env.alchemyProvider, logger });
     const address = "0x1057Bea69c9ADD11c6e3dE296866AFf98366CFE3";

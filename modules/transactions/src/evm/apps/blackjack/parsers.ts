@@ -18,7 +18,7 @@ import {
 
 const appName = Apps.Blackjack;
 
-const v2Abi = [
+const bjtjAbi = [
   "event Deposit(address indexed dealer, address indexed user, uint256 value)",
   "event Cashout(address indexed dealer, address indexed user, uint256 value)",
   "event Overflow(address indexed dealer, uint256 value)"
@@ -77,7 +77,7 @@ const coreParser = (
 
   for (const txLog of evmTx.logs) {
     if (txLog.address === tipjarAddress) {
-      const event = parseEvent(v2Abi, txLog, evmMeta);
+      const event = parseEvent(bjtjAbi, txLog, evmMeta);
       if (event?.name && event.args?.user && addressBook.isSelf(event.args.user)) {
         handleDeposit(event.args.user, txLog.address, Apps.TipJar, txLog.index);
         handleWithdraw(txLog.address, event.args.user, Apps.TipJar, txLog.index);

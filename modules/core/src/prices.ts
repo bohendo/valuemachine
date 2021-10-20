@@ -232,7 +232,6 @@ export const getPrices = (params?: PricesParams): Prices => {
     date: DateString,
     asset: Asset,
   ): Promise<string | undefined> => {
-    // TODO: support non-ETH units by getting asset-ETH + unit-ETH prices?
     if (asset === ETH) return "1";
     const assetId = publicAddresses.find(market =>
       market.name.startsWith("UniV1-") && market.name.endsWith(asset)
@@ -349,7 +348,7 @@ export const getPrices = (params?: PricesParams): Prices => {
       }
     }
     // All uniswap versions are available
-    // TODO: use the one with best liquidity?
+    // Use the one with best liquidity?
     // Or should we average all available prices?
     // Or use a liquidity-weighted average?! Fancy
     if (unit === ETH) {

@@ -6,7 +6,6 @@ import { ajv, formatErrors } from "./validate";
 
 export const getEmptyCsvFiles = (): CsvFiles => ({});
 
-// TODO: verify hash of data matches the file digests
 const validateCsvFiles = ajv.compile(CsvFiles);
 export const getCsvFilesError = (csvFiles: CsvFiles): string =>
   validateCsvFiles(csvFiles)

@@ -27,7 +27,7 @@ export const requestF8949 = async (
   const getDate = (timestamp: string): string => timestamp.split("T")[0];
   const trades = [];
 
-  // TODO: merge chunks w the same receiveDate + disposeDate
+  // we should merge chunks w the same receiveDate + disposeDate
   for (const event of vm.json.events) {
     if (event.type !== EventTypes.Trade || event.account?.startsWith(`${guard}/`)) continue;
     for (const chunkIndex of (event as TradeEvent).outputs) {

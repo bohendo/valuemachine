@@ -83,7 +83,8 @@ export const getAlchemyFetcher = ({
     return result;
   };
 
-  // TODO: We still need a way to find zero-value transactions so we can account for tx fees
+  // NOTE: We still need a way to find zero-value transactions so we can account for tx fees
+  // Alchemy history is currently incomplete
   const fetchHistory = async (address: EvmAddress): Promise<Bytes32[]> => {
     const fetchAllTransfers = async (baseParams: any) => {
       const transfers = [];

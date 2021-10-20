@@ -60,7 +60,6 @@ export const coreParser = (
     log.info(`Parsing ${tx.method}`);
 
     // Get all token transfers (even non-self ones)
-    // TODO: get from already-parsed transfers..
     const tokenTransfers = evmTx.logs
       .filter(txLog => isToken(txLog.address))
       .map((txLog): Transfer => {

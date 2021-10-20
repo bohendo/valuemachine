@@ -557,7 +557,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         account,
         date: json.date,
         index: json.events.length + newEvents.length,
-        inputs: [flashloan.index], // TODO: where's it's pair?!
+        inputs: [flashloan.index], // where's it's sibling?!
         outputs: [],
         txId,
         type: EventTypes.Debt,
