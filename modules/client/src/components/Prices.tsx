@@ -91,7 +91,7 @@ export const PriceManager: React.FC<PropTypes> = ({
       const newPrices = (await axios.post(
         `/api/prices/chunks/${unit}`,
         { chunks: vm.json.chunks },
-      )).data;
+      ) as any).data;
       console.info(`Synced new prices`, newPrices);
       prices.merge(newPrices);
       setPricesJson({ ...prices.json });

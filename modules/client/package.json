@@ -21,19 +21,20 @@
     "@mui/material": "5.0.4",
     "@valuemachine/core": "0.10.1",
     "@valuemachine/react": "0.10.1",
+    "@valuemachine/taxes": "0.10.1",
     "@valuemachine/transactions": "0.10.1",
     "@valuemachine/types": "0.10.1",
     "@valuemachine/utils": "0.10.1",
-    "axios": "0.21.4",
+    "axios": "0.23.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-router-dom": "5.3.0"
   },
   "devDependencies": {
-    "@types/react": "17.0.27",
-    "@types/react-dom": "17.0.9",
+    "@types/react": "17.0.30",
+    "@types/react-dom": "17.0.10",
     "react-scripts": "4.0.3",
-    "typescript": "4.4.3"
+    "typescript": "4.4.4"
   },
   "eslintConfig": {
     "extends": "../../.eslintrc.js"

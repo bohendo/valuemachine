@@ -594,11 +594,6 @@ FieldName: topmostSubform[0].Page1[0].Table_Line1[0].Row14[0].f1_114[0]
 FieldFlags: 8388608
 FieldJustification: Right
 ---
-FieldType: 
-FieldName: topmostSubform[0].Page1[0].Table_Line1[0]
-FieldFlags: 0
-FieldJustification: Left
----
 FieldType: Text
 FieldName: topmostSubform[0].Page1[0].f1_115[0]
 FieldFlags: 8388608
@@ -1219,11 +1214,6 @@ FieldName: topmostSubform[0].Page2[0].Table_Line1[0].Row14[0].f2_114[0]
 FieldFlags: 8388608
 FieldJustification: Right
 ---
-FieldType: 
-FieldName: topmostSubform[0].Page2[0].Table_Line1[0]
-FieldFlags: 0
-FieldJustification: Left
----
 FieldType: Text
 FieldName: topmostSubform[0].Page2[0].f2_115[0]
 FieldFlags: 8388608
@@ -1248,8 +1238,3 @@ FieldType: Text
 FieldName: topmostSubform[0].Page2[0].f2_119[0]
 FieldFlags: 8388608
 FieldJustification: Right
----
-FieldType: 
-FieldName: topmostSubform[0]
-FieldFlags: 0
-FieldJustification: Left

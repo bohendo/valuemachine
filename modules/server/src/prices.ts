@@ -28,7 +28,7 @@ const fetchPrice = async (rawDate: string, unit: string, asset: string): Promise
   }&key=${env.covalentKey}`;
   log.info(`GET ${url}`);
   try {
-    const response = await axios.get(url, { timeout: 5000 });
+    const response = await axios.get(url, { timeout: 5000 }) as any;
     if (response.status !== 200) {
       log.warn(`Bad Status: ${response.status}`);
       return "";

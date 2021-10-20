@@ -79,7 +79,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
   return (<>
 
-    <Paper sx={{ p: 3, minWidth: "15em", maxWidth: "30em" }}>
+    <Paper sx={{ p: 3, minWidth: "15em", maxWidth: "64em" }}>
       <Grid container alignItems="center">
 
         <Grid item xs={12}>

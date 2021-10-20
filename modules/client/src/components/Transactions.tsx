@@ -54,7 +54,9 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
         try {
           if (!isEthSynced) {
             setSyncing(`Syncing Ethereum data for ${selfAddresses.length} addresses`);
-            const resEth = await axios.post("/api/ethereum", { addressBook: addressBook.json });
+            const resEth = await axios.post("/api/ethereum", {
+              addressBook: addressBook.json
+            }) as any;
             console.log(`Got ${resEth.data.length} Eth transactions`, resEth.data);
             if (resEth.status === 200 && typeof(resEth.data) === "object") {
               newTransactions.merge(resEth.data);
@@ -66,7 +68,9 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
           }
           if (!isPolygonSynced) {
             setSyncing(`Syncing Polygon data for ${selfAddresses.length} addresses`);
-            const resPolygon = await axios.post("/api/polygon", { addressBook: addressBook.json });
+            const resPolygon = await axios.post("/api/polygon", {
+              addressBook: addressBook.json
+            }) as any;
             console.log(`Got ${resPolygon.data.length} Polygon transactions`);
             if (resPolygon.status === 200 && typeof(resPolygon.data) === "object") {
               newTransactions.merge(resPolygon.data);

@@ -20,6 +20,7 @@ import {
   CsvTable,
   TransactionEditor,
 } from "@valuemachine/react";
+import { Forms } from "@valuemachine/taxes";
 import {
   getTransactions,
 } from "@valuemachine/transactions";
@@ -35,22 +36,26 @@ import React, { useState } from "react";
 
 const logger = getLogger("warn");
 
-type PropTypes = {
-  addressBook: AddressBook,
-  setAddressBookJson: (val: AddressBookJson) => void,
-  csvFiles: CsvFiles,
-  setCsvFiles: (val: CsvFiles) => void,
-  customTxns: Transaction[],
-  setCustomTxns: (val: Transaction[]) => void,
+type InputDataManagerProps = {
+  addressBook: AddressBook;
+  setAddressBookJson: (val: AddressBookJson) => void;
+  csvFiles: CsvFiles;
+  setCsvFiles: (val: CsvFiles) => void;
+  customTxns: Transaction[];
+  setCustomTxns: (val: Transaction[]) => void;
+  taxForms: Forms;
+  setTaxForms: (val: Forms) => void;
 };
-export const AddressBookManager: React.FC<PropTypes> = ({
+export const InputDataManager: React.FC<InputDataManagerProps> = ({
   addressBook,
   setAddressBookJson,
   csvFiles,
   setCsvFiles,
   customTxns,
   setCustomTxns,
-}: PropTypes) => {
+  taxForms,
+  setTaxForms,
+}: InputDataManagerProps) => {
   const [confirmMsg, setConfirmMsg] = useState("");
   const [pendingDel, setPendingDel] = useState("");
   const [newEntry, setNewEntry] = useState(getBlankAddressEntry());
@@ -121,6 +126,8 @@ export const AddressBookManager: React.FC<PropTypes> = ({
             setCsvFiles={setCsvFiles}
             customTxns={customTxns}
             setCustomTxns={setCustomTxns}
+            taxForms={taxForms}
+            setTaxForms={setTaxForms}
           />
         </Grid>
       </Grid>

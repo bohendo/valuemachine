@@ -4,6 +4,7 @@ import {
   getPrices,
   getValueMachine,
 } from "@valuemachine/core";
+import { Forms } from "@valuemachine/taxes";
 import {
   Assets,
   getAddressBook,
@@ -31,7 +32,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { Route, Switch } from "react-router-dom";
 
-import { AddressBookManager } from "./components/AddressBook";
+import { InputDataManager } from "./components/InputData";
 import { NetWorthExplorer } from "./components/NetWorth";
 import { NavBar } from "./components/NavBar";
 import { PriceManager } from "./components/Prices";
@@ -52,6 +53,7 @@ const {
 } = StoreKeys;
 const UnitStore = "Unit" as any;
 const CustomTxnsStore = "CustomTransactions" as any;
+const TaxFormStore = "TaxForms" as any;
 
 export type AppProps = {
   theme: string;
@@ -71,6 +73,7 @@ export const App: React.FC<AppProps> = ({
   const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsvFiles());
   const [customTxns, setCustomTxns] = useState(store.load(CustomTxnsStore) || [] as Transaction[]);
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
+  const [forms, setForms] = useState(store.load(TaxFormStore) || {} as Forms);
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook());
@@ -166,6 +169,12 @@ export const App: React.FC<AppProps> = ({
     store.save(UnitStore, unit);
   }, [unit]);
 
+  useEffect(() => {
+    if (!forms) return;
+    console.log(`Saving tax forms`, forms);
+    store.save(TaxFormStore, forms);
+  }, [forms]);
+
   return (
     <Box>
       <NavBar unit={unit} setUnit={setUnit} theme={theme} setTheme={setTheme} />
@@ -174,13 +183,15 @@ export const App: React.FC<AppProps> = ({
           <Switch>
 
             <Route exact path="/">
-              <AddressBookManager
+              <InputDataManager
                 addressBook={addressBook}
                 setAddressBookJson={setAddressBookJson}
                 csvFiles={csvFiles}
                 setCsvFiles={setCsvFiles}
                 customTxns={customTxns}
                 setCustomTxns={setCustomTxns}
+                taxForms={forms}
+                setTaxForms={setForms}
               />
             </Route>
 
@@ -226,6 +237,8 @@ export const App: React.FC<AppProps> = ({
                 addressBook={addressBook}
                 vm={vm}
                 prices={prices}
+                forms={forms}
+                setForms={setForms}
               />
             </Route>
 

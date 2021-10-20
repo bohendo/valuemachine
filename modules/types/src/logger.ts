@@ -1,1 +1,3 @@
-export { Logger } from "pino";
+import pino from "pino";
+
+export type Logger = pino.Logger;

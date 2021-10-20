@@ -16,6 +16,7 @@ export {
   NetWorthTable,
 } from "./output";
 export {
+  F1040,
   TaxPorter,
   TaxTable,
 } from "./taxes";

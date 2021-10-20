@@ -1,0 +1,179 @@
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_01[0]
+FieldNameAlt: Page 1. Name shown on return.
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_02[0]
+FieldNameAlt: Your social security number.
+FieldFlags: 0
+FieldJustification: Center
+FieldMaxLength: 11
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_03[0]
+FieldNameAlt: Part I. Disposition or Change in Use of Main Home for Which the Credit Was Claimed. 1. Enter the date you disposed of, or ceased using as your main home, the home for which you claimed the credit (M M/D D/Y Y Y Y) (see instructions).
+FieldFlags: 0
+FieldJustification: Center
+FieldMaxLength: 10
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_1[0]
+FieldNameAlt: 2. If you meet the following conditions, check here. I (or my spouse if married) am, or was, a member of the uniformed services or Foreign Service, or an employee of the intelligence community. I sold the home, or it ceased to be my main home, in connection with Government orders for qualified official extended duty service. No repayment of the credit is required (see instructions). Stop here.
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 1
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_2[0]
+FieldNameAlt: 3. Check the box below that applies to you. See the instructions for the definition of &quot;related person.&quot; a. I sold (including through foreclosure) the home to a person who isn&apos;t related to me and had a gain on the sale (as figured in Part I I I below). Go to Part I I below.
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 1
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_2[1]
+FieldNameAlt: 3b. I sold (including through foreclosure) the home to a person who isn&apos;t related to me and didn&apos;t have a gain on the sale (as figured in Part I I I below). No repayment of the credit is required. Stop here.
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 2
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_2[2]
+FieldNameAlt: 3c. I sold the home to a related person OR I gave the home to someone other than my spouse (or ex-spouse as part of my divorce settlement). Go to Part I I below.
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 3
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_2[3]
+FieldNameAlt: 3d. I converted the entire home to a rental or business use OR I still own the home but no longer use it as my main home. Go to Part I I below.
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 4
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_2[4]
+FieldNameAlt: 3e. I transferred the home to my spouse (or ex-spouse as part of my divorce settlement).
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 5
+FieldStateOption: Off
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_04[0]
+FieldNameAlt: 3e. The full name of my ex-spouse is. Name.
+FieldFlags: 8388608
+FieldJustification: Left
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_2[5]
+FieldNameAlt: 3f. My home was destroyed, condemned, or sold under threat of condemnation and I had a gain (see instructions).
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 6
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_2[6]
+FieldNameAlt: 3g. My home was destroyed, condemned, or sold under threat of condemnation and I didn&apos;t have a gain (see instructions).
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 7
+FieldStateOption: Off
+---
+FieldType: Button
+FieldName: topmostSubform[0].Page1[0].c1_2[7]
+FieldNameAlt: 3h. The taxpayer who claimed the credit died in 2019. No repayment of the credit is required of the deceased taxpayer. If you are filing a joint return for 2019 with the deceased taxpayer, see instructions. Otherwise, stop here.
+FieldFlags: 0
+FieldValue: Off
+FieldJustification: Left
+FieldStateOption: 8
+FieldStateOption: Off
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_05[0]
+FieldNameAlt: Part I I. Repayment of the Credit. 4. Enter the amount of the credit you claimed on Form 5405 for 2008. See instructions if you filed a joint return for 2008 or you checked the box on line 3f or 3g.
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_06[0]
+FieldNameAlt: 5. Enter the amount of the credit you repaid with your tax returns for the years 2010 through 2018.
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_07[0]
+FieldNameAlt: 6. Subtract line 5 from line 4. If you checked the box on line 3f or 3g, see instructions. If you checked the box on line 3a, go to line 7. Otherwise, skip line 7 and go to line 8.
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_08[0]
+FieldNameAlt: 7. Enter the gain on the disposition of your main home (from line 15 below).
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_09[0]
+FieldNameAlt: 8. Amount of the credit to be repaid. See instructions. Next: Enter the amount from line 8 on your 2019 Schedule 2 (Form 1040 or 1040-S R), line 7b; or Form 1040-N R, line 59b.
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_10[0]
+FieldNameAlt: Part I I I. Form 5405 Gain or (Loss) Worksheet. Note: Complete this part only if your home was destroyed or you sold your home to someone who isn&apos;t related to you (including a sale through condemnation or under threat of condemnation). See Pub. 523, Selling Your Home, for information on what to enter on lines 9, 10, and 12. But if you sold your home through condemnation, see chapter 1 in Pub. 544, Sales and Other Dispositions of Assets, for information on what to enter on lines 9 and 10. 9. Selling price of home, insurance proceeds, or gross condemnation award.
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_11[0]
+FieldNameAlt: 10. Selling expenses (including commissions, advertising and legal fees, and seller-paid loan charges) or expenses in getting the condemnation award.
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_12[0]
+FieldNameAlt: 11. Subtract line 10 from line 9. This is the amount realized on the sale of the home.
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_13[0]
+FieldNameAlt: 12. Adjusted basis of home sold (see instructions).
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_14[0]
+FieldNameAlt: 13. Enter the first-time homebuyer credit claimed on Form 5405 minus the amount of the credit you repaid with your tax returns for the years 2010 through 2018.
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_15[0]
+FieldNameAlt: 14. Subtract line 13 from line 12. This is the adjusted basis for purposes of repaying the credit.
+FieldFlags: 8388608
+FieldJustification: Right
+---
+FieldType: Text
+FieldName: topmostSubform[0].Page1[0].f1_16[0]
+FieldNameAlt: 15. Subtract line 14 from line 11. If line 15 is more than 0, you have a gain. Check the box on line 3a and complete Part I I. However, check the box on line 3f (instead of the box on line 3a) if your home was destroyed or you sold the home through condemnation or under threat of condemnation. Then complete Part I I if the event occurred in 2017. If line 15 is 0 or less, check the box on line 3b. However, if your home was destroyed or you sold the home through condemnation or under threat of condemnation, check the box on line 3g instead. You don&#8217;t have to repay the credit.
+FieldFlags: 8388608
+FieldJustification: Right
