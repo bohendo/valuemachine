@@ -131,7 +131,7 @@ export const buildF8949 = (trades: Trade[], fs: any, execSync: any): string => {
       fs.writeFileSync(filename, JSON.stringify(translate(f8949[page], mappings.f8949)));
     }
 
-    const cmd = "bash node_modules/@valuemachine/taxes/ops/f8949.sh";
+    const cmd = "bash node_modules/@valuemachine/taxes/ops/fill-form.sh f8949";
     const stdout = execSync(cmd);
     log.info(`Got output from ${cmd}: ${stdout}`);
     return "/tmp/f8949.pdf";
