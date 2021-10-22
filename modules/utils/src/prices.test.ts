@@ -1,5 +1,6 @@
+import { expect } from "chai";
+
 import { getPricesError } from "./prices";
-import { expect } from "./testUtils";
 
 const validPrices = {
   foo: {

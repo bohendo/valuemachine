@@ -1,5 +1,6 @@
+import { expect } from "chai";
+
 import { commify } from "./math";
-import { expect } from "./testUtils";
 
 describe("Math", () => {
 

@@ -1,8 +1,8 @@
+import { expect } from "chai";
 import { AddressZero } from "@ethersproject/constants";
 import { TransferCategories } from "@valuemachine/types";
 
 import { getTransactionsError } from "./transactions";
-import { expect } from "./testUtils";
 
 const validTransaction = {
   apps: [],

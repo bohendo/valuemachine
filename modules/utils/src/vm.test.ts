@@ -1,6 +1,6 @@
+import { expect } from "chai";
 import { AssetChunk } from "@valuemachine/types";
 
-import { expect } from "./testUtils";
 import { getValueMachineError, sumChunks, sumTransfers, diffBalances } from "./vm";
 
 const validVM = {
