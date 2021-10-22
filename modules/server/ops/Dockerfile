@@ -11,5 +11,7 @@ RUN pip install --upgrade pip fdfgen
 RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/ed77b63706ea721766a62ff22d3a251d8b4a6a30/wait-for-it.sh > /bin/wait-for && chmod +x /bin/wait-for
 COPY ops ops
 COPY dist dist
+COPY dist/docs node_modules/@valuemachine/taxes/docs
+COPY dist/ops node_modules/@valuemachine/taxes/ops
 
 ENTRYPOINT ["bash", "ops/entry.sh"]
