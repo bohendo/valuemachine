@@ -27,7 +27,7 @@ export default {
     if (warning.code === "CIRCULAR_DEPENDENCY" && fromPkg("axios")) return;
     warn(warning);
   },
-  external: ["readable-stream", "readable-stream/transform"],
+  external: ["readable-stream", "readable-stream/transform", "pdffiller"],
   plugins: [
     NodeResolve({
       exportConditions: ["node"],
@@ -39,7 +39,8 @@ export default {
       values: {
         "require('readable-stream/transform')": "require('stream').Transform",
         'require("readable-stream/transform")': 'require("stream").Transform',
-        "readable-stream": "stream"
+        "readable-stream": "stream",
+        "require('../../../node_modules/iconv/build": "require('./build"
       }
     }),
     Json({ compact: true }),
@@ -55,6 +56,8 @@ export default {
       targets: [
         { src: "node_modules/@valuemachine/taxes/docs", dest: "dist" },
         { src: "node_modules/@valuemachine/taxes/ops", dest: "dist" },
+        { src: "node_modules/iconv/build/Release/iconv.node", dest: "dist/build/Debug" },
+        { src: "node_modules/iconv/build/Release/iconv.node", dest: "dist/build/Release" },
       ],
     }),
   ],

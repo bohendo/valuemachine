@@ -16,24 +16,25 @@ modules/client/src/data
 **/TODO*
 
 # Cache
+**/*.docker-compose.yml
+**/*.fdf
 **/.cache
-**/.rollup.cache
 **/.config
 **/.git
 **/.node-gyp
 **/.npm
+**/.rollup.cache
 **/.rpt2_cache
+**/docker-compose.yml
 modules/taxes/ops/fields/i*.fields
 modules/taxes/ops/forms/i*.pdf
-**/*.docker-compose.yml
-**/docker-compose.yml
 
 # Compiled output
+**/.flags
 **/build/**
 **/dist/**
-**/node_modules/**
-**/.flags
 **/f[0-9]*.pdf
+**/node_modules/**
 
 # Backups
 **/*.lerna_backup

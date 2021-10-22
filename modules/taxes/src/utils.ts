@@ -85,32 +85,6 @@ export const mergeForms = (form, values): any => {
   return newForm;
 };
 
-export const translate = (form, mappings): any => {
-  const newForm = {};
-  for (const [key, value] of Object.entries(form)) {
-    if (key === "default") { continue; }
-    if (!mappings[key]) {
-      logger.child({ module: "TranslateForms" }).warn(
-        `Key ${key} exists in output data but not in mappings`
-      );
-    }
-    if (
-      !["_dec", "_int"].some(suffix => key.endsWith(suffix)) &&
-      key.match(/L[0-9]/) &&
-      typeof value === "string" &&
-      value.match(/^-?[0-9.]+$/)
-    ) {
-      newForm[mappings[key]] = round(value);
-      if (newForm[mappings[key]].startsWith("-")) {
-        newForm[mappings[key]] = `(${newForm[mappings[key]].substring(1)})`;
-      }
-    } else {
-      newForm[mappings[key]] = value;
-    }
-  }
-  return newForm;
-};
-
 export const getTaxYearBoundaries = (guard: Guard, taxYear: string): [number, number] => {
   if (!taxYear?.match(/^[0-9]{4}$/)) return [0, 5000000000000]; // from 1970 until after 2100
   const prevYear = round(sub(taxYear, "1"), 0).padStart(4, "0");

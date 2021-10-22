@@ -13,6 +13,9 @@
     "url": "https://github.com/bohendo/valuemachine/issues"
   },
   "homepage": "https://github.com/bohendo/valuemachine#readme",
+  "scripts": {
+    "post-install": "mkdir -p node_modules/iconv/build/Debug && cp node_modules/iconv/build/Release/iconv.node node_modules/iconv/build/Debug/iconv.node"
+  },
   "devDependencies": {
     "david": "12.0.0",
     "@typescript-eslint/eslint-plugin": "4.33.0",

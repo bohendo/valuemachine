@@ -150,6 +150,7 @@ builder: $(shell find ops/builder $(find_options))
 node-modules: builder package.json $(shell find modules/*/package.json $(find_options))
 	$(log_start)
 	$(docker_run) "lerna bootstrap --hoist"
+	$(docker_run) "npm run post-install"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
 ########################################

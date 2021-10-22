@@ -1,4 +1,5 @@
 import { getLogger } from "@valuemachine/utils";
+import * as pdf from "pdffiller";
 import { expect } from "chai";
 
 import testData from "../test.json";
@@ -15,7 +16,7 @@ describe("Tax Form Mappings", () => {
     // const dest = await fetchForm(
     // const fdfData = await mapForm(form);
     // log.info(fdfData, `${form} fdf data`);
-    const res = await fillForm(form, testData[form]);
+    const res = await fillForm(form, testData[form], pdf);
     expect(res).to.be.ok;
   });
 
