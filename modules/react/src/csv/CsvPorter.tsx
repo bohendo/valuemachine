@@ -2,7 +2,7 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { cleanCsv } from "@valuemachine/transactions";
+import { CsvSources, cleanCsv } from "@valuemachine/transactions";
 import { CsvFiles } from "@valuemachine/types";
 import React from "react";
 
@@ -36,6 +36,9 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
         <Grid item>
           <Typography variant="h6">
             {"Import CSV File"}
+          </Typography>
+          <Typography variant="body2">
+            {`Supported file types: [${Object.keys(CsvSources).join(", ")}]`}
           </Typography>
           <Box sx={{ mb: 1, mt: 1 }}>
             <input
