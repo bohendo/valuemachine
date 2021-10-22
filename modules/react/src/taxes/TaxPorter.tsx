@@ -3,7 +3,13 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { allTaxYears, getTaxYearBoundaries, getTaxRows, requestF8949 } from "@valuemachine/taxes";
+import {
+  allTaxYears,
+  Forms,
+  getTaxRows,
+  getTaxYearBoundaries,
+  requestTaxReturn,
+} from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
 import {
   Guard,
@@ -19,11 +25,13 @@ import React, { useEffect } from "react";
 import { SelectOne } from "../utils";
 
 type TaxPorterProps = {
+  formData?: Forms;
   guard: Guard;
   prices: Prices,
   vm: ValueMachine,
 };
 export const TaxPorter: React.FC<TaxPorterProps> = ({
+  formData,
   guard,
   prices,
   vm,
@@ -65,11 +73,9 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     a.click();
   };
 
-  const handleF8949Export = () => {
-    if (!vm?.json || !prices?.json || !guard || !taxYear) {
-      return;
-    }
-    requestF8949(vm, prices, guard, taxYear, window);
+  const handleExport = () => {
+    if (!vm?.json || !prices?.json || !guard || !formData || !taxYear) return;
+    requestTaxReturn(guard, taxYear, vm, prices, formData, window);
   };
 
   const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
@@ -130,7 +136,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
               sx={{ ml: 1, my: 2, maxWidth: "24em" }}
               color="primary"
               fullWidth={false}
-              onClick={handleF8949Export}
+              onClick={handleExport}
               size="small"
               startIcon={<DownloadIcon />}
               variant="contained"

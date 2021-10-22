@@ -1,4 +1,4 @@
-import { fillForm } from "@valuemachine/taxes";
+import { fillForm, fillReturn } from "@valuemachine/taxes";
 import * as pdf from "pdffiller";
 import express from "express";
 
@@ -13,17 +13,32 @@ const log = logger.child({ module: "Taxes" });
 
 export const taxesRouter = express.Router();
 
-taxesRouter.post("/:form", async (req, res) => {
-  const { form } = req.params;
-  log.info(`Building ${form}`);
+taxesRouter.post("/", async (req, res) => {
   const logAndSend = getLogAndSend(res);
-  const formData = req.body?.formData;
-  if (!formData) {
-    return logAndSend("No formData was provided", STATUS_YOUR_BAD);
+  const forms = req.body?.forms;
+  log.info(`Building ${Object.keys(forms || {}).length} forms`);
+  if (!forms) {
+    return logAndSend("No forms was provided", STATUS_YOUR_BAD);
   }
   try {
-    const f1040Path = await fillForm(form, formData, pdf);
-    return res.download(f1040Path, "f1040.pdf");
+    const path = await fillReturn(forms, pdf);
+    return res.download(path, "tax-return.pdf");
+  } catch (e) {
+    return logAndSend(e.message, STATUS_MY_BAD);
+  }
+});
+
+taxesRouter.post("/:form", async (req, res) => {
+  const logAndSend = getLogAndSend(res);
+  const { form } = req.params;
+  const { data } = req.body;
+  log.info(`Building ${form}`);
+  if (!data) {
+    return logAndSend(`No ${form} data was provided`, STATUS_YOUR_BAD);
+  }
+  try {
+    const path = await fillForm(form, data, pdf);
+    return res.download(path, `${form}.pdf`);
   } catch (e) {
     return logAndSend(e.message, STATUS_MY_BAD);
   }

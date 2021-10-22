@@ -1,11 +1,10 @@
-import { TaxRow } from "@valuemachine/types";
 import { add, sub, subToZero, round } from "@valuemachine/utils";
 
 import { getIncomeTax, logger } from "../utils";
 
 import { Forms } from "./mappings";
 
-export const f1040 = (taxableEvents: TaxRow[], oldForms: Forms): Forms => {
+export const f1040 = (oldForms: Forms): Forms => {
   const log = logger.child({ module: "f1040" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040s2, f1040s3, f2555 } = forms;

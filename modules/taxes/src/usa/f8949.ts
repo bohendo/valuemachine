@@ -1,8 +1,11 @@
+import { Assets, Guards } from "@valuemachine/transactions";
+import { EventTypes, TradeEvent, Prices, ValueMachine } from "@valuemachine/types";
 import { getLogger, add, gt, mul, round, sub } from "@valuemachine/utils";
 
-import { mappings } from "./mappings";
-
 const log = getLogger().child({ module: "Taxes" }, { level: "debug" });
+
+const guard = Guards.USA;
+const unit = Assets.USD;
 
 type Trade = {
   date: string;
@@ -13,11 +16,45 @@ type Trade = {
   amount: string;
 };
 
-export const buildF8949 = (trades: Trade[], fs: any, execSync: any): string => {
-  log.info(`Getting tax forms for ${trades.length} trades`);
+// returns an array of form data
+export const f8949 = (
+  vm: ValueMachine,
+  prices: Prices,
+  taxYear: string,
+): any[] => {
+  if (!vm?.json?.chunks?.length || !prices.json || !taxYear) {
+    log.warn(`Missing args, not requesting f8949`);
+    return [];
+  }
+
+  const getDate = (timestamp: string): string => timestamp.split("T")[0];
+  const trades = [];
+  // we should merge chunks w the same receiveDate + disposeDate
+  for (const event of vm.json.events) {
+    if (event.type !== EventTypes.Trade || event.account?.startsWith(`${guard}/`)) continue;
+    for (const chunkIndex of (event as TradeEvent).outputs) {
+      const chunk = vm.getChunk(chunkIndex);
+      if (chunk.disposeDate?.startsWith(taxYear)) {
+        const purchaseDate = getDate(chunk.history[0].date);
+        const receivePrice = prices.getNearest(purchaseDate, chunk.asset, unit);
+        const assetPrice = prices.getNearest(chunk.disposeDate, chunk.asset, unit);
+        if (receivePrice !== assetPrice) {
+          trades.push({
+            date: getDate(chunk.disposeDate),
+            asset: chunk.asset,
+            receivePrice,
+            assetPrice,
+            purchaseDate: purchaseDate,
+            amount: chunk.amount,
+          });
+        }
+      }
+    }
+  }
+
   if (trades.length) {
 
-    let f8949 = [];
+    const f8949 = [];
 
     const toFormDate = (date: string): string => {
       const pieces = date.split("T")[0].split("-");
@@ -72,7 +109,7 @@ export const buildF8949 = (trades: Trade[], fs: any, execSync: any): string => {
     }
 
     // Calculate totals from f8949 rows
-    f8949 = f8949.map((page, p): any => {
+    return f8949.map((page, p): any => {
       const shortTotal = {};
       const longTotal = {};
       for (const column of columns) {
@@ -100,41 +137,6 @@ export const buildF8949 = (trades: Trade[], fs: any, execSync: any): string => {
       }
       return page;
     });
-
-    const translate = (form, mapping): any => {
-      const newForm = {};
-      for (const [key, value] of Object.entries(form)) {
-        if (key === "default") { continue; }
-        if (!mapping[key]) {
-          log.warn(`Key ${key} exists in output data but not in ${form} mapping`);
-        }
-        if (
-          !["_dec", "_int"].some(suffix => key.endsWith(suffix)) &&
-          key.match(/L[0-9]/) &&
-          typeof value === "string" &&
-          value.match(/^-?[0-9.]+$/)
-        ) {
-          newForm[mapping[key]] = round(value);
-          if (newForm[mapping[key]].startsWith("-")) {
-            newForm[mapping[key]] = `(${newForm[mapping[key]].substring(1)})`;
-          }
-        } else {
-          newForm[mapping[key]] = value;
-        }
-      }
-      return newForm;
-    };
-
-    for (const page in f8949) {
-      const filename = `/tmp/f8949-${page}.json`;
-      log.info(`Saving page ${page} to disk as ${filename}`);
-      fs.writeFileSync(filename, JSON.stringify(translate(f8949[page], mappings.f8949)));
-    }
-
-    const cmd = "bash node_modules/@valuemachine/taxes/ops/fill-form.sh f8949";
-    const stdout = execSync(cmd);
-    log.info(`Got output from ${cmd}: ${stdout}`);
-    return "/tmp/f8949.pdf";
   }
-  return "taxes/f8949.pdf";
+  return [];
 };

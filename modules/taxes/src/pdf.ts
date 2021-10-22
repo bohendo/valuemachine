@@ -1,8 +1,9 @@
+import { Guards } from "@valuemachine/transactions";
+import { ValueMachine, Prices } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
-//import * as pdf from "pdffiller";
-//import axios from "axios";
+import axios from "axios";
 
-import { mappings } from "./usa/mappings";
+import { mappings, Forms, getTaxReturn } from "./usa";
 
 const log = getLogger("warn", "PDF Translator");
 
@@ -41,6 +42,71 @@ export const fillForm = async (form: string, data: any, pdf: any): Promise<strin
       res(destinationPath);
     });
   });
+};
+
+export const fillReturn = async (forms: any, pdf: any): Promise<string> => {
+  for (const [name, data] of Object.entries(forms)) {
+    log.info(`Filing ${name} with ${Object.keys(data)} rows of ${pdf ? "pdf " : ""}data`);
+    fillForm(name, data, pdf);
+    // TODO: pdftk them all together
+  }
+  return `${process.cwd()}/tax-return.pdf`;
+};
+
+export const requestFilledForm = async (form: string, data: any, window: any): Promise<void> => {
+  if (!data) {
+    log.warn(`Missing data, not requesting ${form}`);
+    return;
+  } else {
+    return new Promise((res, rej) => {
+      axios({
+        url: `/api/taxes/${form}`,
+        method: "post",
+        responseType: "blob",
+        data: { data },
+      }).then((response) => {
+        const url = window.URL.createObjectURL(new window.Blob([response.data]));
+        const link = window.document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `${form}.pdf`);
+        window.document.body.appendChild(link);
+        link.click();
+        res();
+      }).catch(rej);
+    });
+  }
+};
+
+export const requestTaxReturn = async (
+  guard: string,
+  taxYear: string,
+  vm: ValueMachine,
+  prices: Prices,
+  formData: Forms,
+  window: any,
+): Promise<void> => {
+  if (!formData) {
+    log.warn(`Missing form data, not requesting tax return`);
+    return;
+  } else {
+    const data = guard === Guards.USA ? await getTaxReturn(taxYear, vm, prices, formData) : {};
+    return new Promise((res, rej) => {
+      axios({
+        url: `/api/taxes`,
+        method: "post",
+        responseType: "blob",
+        data: { data },
+      }).then((response) => {
+        const url = window.URL.createObjectURL(new window.Blob([response.data]));
+        const link = window.document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `tax-return.pdf`);
+        window.document.body.appendChild(link);
+        link.click();
+        res();
+      }).catch(rej);
+    });
+  }
 };
 
 export const mapForm = async (form: string, pdf: any): Promise<any> => {
