@@ -1,7 +1,8 @@
 import pino from "pino";
 
-export const getLogger = (level = "warn"): pino.Logger => pino({
+export const getLogger = (level = "warn", module?: string): pino.Logger => pino({
   level,
+  module,
   prettyPrint: {
     colorize: true,
     ignore: "pid,hostname,module",

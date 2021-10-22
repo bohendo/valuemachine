@@ -115,6 +115,11 @@ test-core: core
 watch-core: transactions
 	bash ops/test-unit.sh core watch
 
+test-taxes: taxes
+	bash ops/test-unit.sh taxes test
+watch-taxes: core
+	bash ops/test-unit.sh taxes watch
+
 run-example: package
 	bash ops/test-unit.sh package test
 

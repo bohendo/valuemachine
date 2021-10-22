@@ -1,4 +1,4 @@
-FROM node:12.16.1-alpine3.11
+FROM node:12.22.7-alpine3.11
 WORKDIR /root
 ENV HOME /root
 ENV PATH $PATH:./node_modules/.bin:/root/node_modules/.bin
@@ -8,6 +8,7 @@ RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/ed77b63706ea721
 RUN pip install --upgrade pip fdfgen
 RUN npm config set unsafe-perm true && npm install -g npm@8.0.0
 RUN npm install -g lerna@4.0.0
+RUN apk add --update --no-cache python3
 
 COPY test.sh /test.sh
 COPY entry.sh /entry.sh

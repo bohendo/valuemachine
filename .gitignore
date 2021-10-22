@@ -33,6 +33,7 @@ modules/taxes/ops/forms/i*.pdf
 **/dist/**
 **/node_modules/**
 **/.flags
+**/f[0-9]*.pdf
 
 # Backups
 **/*.lerna_backup

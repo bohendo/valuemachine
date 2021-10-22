@@ -8,48 +8,69 @@ if [[ -z "$target" ]]
 then echo "Provide the target form name as the first & only arg" && exit 1
 fi
 
-fields="$root/docs/fields/$target.fields"
-form="$root/docs/forms/$target.pdf"
-output="/tmp/$target.pdf"
+dir="$(cd "$(dirname "$target")" && pwd)"
+form="$(basename "$target" .json)"
+output="$dir/$form.pdf"
 
-echo "Filing form $form"
+ops="$root/ops";
+fields="$root/docs/fields/$form.fields"
+empty_form="$root/docs/forms/$form.pdf"
 
-cd /tmp
+tmp="/tmp/valuemachine"
+mkdir -p "$tmp"
+
+cd "$dir" || exit
+
+echo "Filing $target forms w root=$root & cwd=$(pwd)"
 
 for input in $(
-  find "/tmp" -type f -name "$target.json" -or -name "$target-*.json" |\
+  find . -maxdepth 1 -type f -name "$form.json" -or -name "$form-*.json" |\
     sort -t '/' -k 4 -n |\
     tr '\n\r' ' '
 ); do
 
-  if [[ ! -f "$input" ]]
-  then echo "No input file detected at $input" && continue;
-  else echo "Found a page of ${target} at ${input}"
+  if [[ "$(basename "$input")" == *-* ]]
+  then page="$(basename "${input#*-}" .json)"
+  else page=""
   fi
 
-  page=$(basename "${input#*-}" .json)
+  if [[ ! -f "$input" ]]
+  then echo "No input file detected at $input" && continue;
+  elif [[ -n "$page" ]]
+  then echo "Found page $page of $form data at $input"
+  else echo "Found 1 page of $form data at $input"
+  fi
+
   if [[ -n "$page" ]]
   then
-    fdf="/tmp/$target-$page.fdf"
-    out="/tmp/$target-$page.pdf"
+    fdf="$form-$page.fdf"
+    out="$tmp/$form-$page.pdf"
   else
-    fdf="/tmp/$target.fdf"
-    out="/tmp/$target.pdf"
+    fdf="$form.fdf"
+    out="$tmp/$form.pdf"
   fi
 
   rm -rf "$fdf" "$out"
 
-  echo "python ops/fill-form.py $input $fields $fdf"
+  echo "python $ops/fill-form.py $input $fields $fdf"
 
-  python "$root/ops/fill-form.py" "$input" "$fields" "$fdf"
+  python "$ops/fill-form.py" "$input" "$fields" "$fdf"
 
   echo "pdftk $form fill_form $fdf output $out flatten"
 
-  pdftk "$form" fill_form "$fdf" output "$out" flatten
+  pdftk "$empty_form" fill_form "$fdf" output "$out" flatten
 
 done
 
-all_pages="$(find "/tmp" -type f -name "$target-*.pdf" | sort -t '/' -k 4 -n | tr '\n\r' ' ')"
-echo "Compiling pages: $all_pages"
-# shellcheck disable=SC2086
-pdftk $all_pages cat output "$output"
+all_pages="$(
+  find "$tmp" -maxdepth 1 -type f -name "$form-*.pdf" -or -name "$form.pdf" |\
+    sort -t '/' -k 4 -n |\
+    tr '\n\r' ' '
+)"
+if [[ -z "$all_pages" ]]
+then echo "No $form pages were generated"
+else
+  echo "Compiling pages: $all_pages"
+  # shellcheck disable=SC2086
+  pdftk $all_pages cat output "$output"
+fi
