@@ -54,10 +54,7 @@ export default {
     }),
     Copy({
       targets: [
-        { src: "node_modules/@valuemachine/taxes/docs", dest: "dist" },
-        { src: "node_modules/@valuemachine/taxes/ops", dest: "dist" },
-        { src: "node_modules/iconv/build/Release/iconv.node", dest: "dist/build/Debug" },
-        { src: "node_modules/iconv/build/Release/iconv.node", dest: "dist/build/Release" },
+        { src: "node_modules/@valuemachine/taxes/forms", dest: "dist" },
       ],
     }),
   ],

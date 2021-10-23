@@ -11,7 +11,6 @@ RUN curl https://raw.githubusercontent.com/vishnubob/wait-for-it/ed77b63706ea721
 
 COPY ops ops
 COPY dist dist
-COPY dist/docs node_modules/@valuemachine/taxes/docs
-COPY dist/ops node_modules/@valuemachine/taxes/ops
+COPY dist/forms node_modules/@valuemachine/taxes/forms
 
 ENTRYPOINT ["bash", "ops/entry.sh"]
