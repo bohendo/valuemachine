@@ -17,7 +17,6 @@ export const fillForm = async (
   const translate = (form, mapping): any => {
     const newForm = {};
     for (const [key, value] of Object.entries(form)) {
-      if (key === "default") { continue; }
       if (!mapping[key]) {
         log.warn(`Key ${key} exists in output data but not in mapping`);
       }

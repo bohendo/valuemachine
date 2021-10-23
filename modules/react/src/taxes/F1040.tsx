@@ -31,33 +31,7 @@ export const F1040: React.FC<F1040Props> = ({
   useEffect(() => {
     if (!formData || !newFormData) {
       setModified(false);
-    } else if (
-      newFormData?.Single !== formData?.Single ||
-      newFormData?.MarriedFilingJointly !== formData?.MarriedFilingJointly ||
-      newFormData?.MarriedFilingSeparately !== formData?.MarriedFilingSeparately ||
-      newFormData?.HeadOfHousehold !== formData?.HeadOfHousehold ||
-      newFormData?.QualifiedWidow !== formData?.QualifiedWidow ||
-
-      newFormData?.FirstNameMI !== formData?.FirstNameMI ||
-      newFormData?.LastName !== formData?.LastName ||
-      newFormData?.SocialSecurityNumber !== formData?.SocialSecurityNumber ||
-
-      newFormData?.SpouseFirstNameMI !== formData?.SpouseFirstNameMI ||
-      newFormData?.SpouseLastName !== formData?.SpouseLastName ||
-      newFormData?.SpouseSocialSecurityNumber !== formData?.SpouseSocialSecurityNumber ||
-
-      newFormData?.StreetAddress !== formData?.StreetAddress ||
-      newFormData?.Apt !== formData?.Apt ||
-      newFormData?.City !== formData?.City ||
-      newFormData?.State !== formData?.State ||
-      newFormData?.Zip !== formData?.Zip ||
-
-      newFormData?.ForeignCountry !== formData?.ForeignCountry ||
-      newFormData?.ForeignState !== formData?.ForeignState ||
-      newFormData?.ForeignZip !== formData?.ForeignZip ||
-
-      newFormData?.L1 !== formData?.L1
-    ) {
+    } else if (Object.keys(formData).some(field => newFormData[field] !== formData[field])) {
       setModified(true);
     } else {
       setModified(false);

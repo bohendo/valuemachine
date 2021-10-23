@@ -24,20 +24,18 @@ describe("Tax Form Mappings", () => {
   });
 
   it("should fill out all fields", async () => {
-    expect(await fillReturn(
-      Object.keys(FormMappings).reduce((forms, form) => ({
-        ...forms,
-        [form]: Object.keys(FormMappings[form]).reduce((data, field) => ({
-          ...data,
-          [field]: field,
-        }), {}),
+    const formData = Object.keys(FormMappings).reduce((forms, form) => ({
+      ...forms,
+      [form]: Object.keys(FormMappings[form]).reduce((data, field) => ({
+        ...data,
+        [field]: field.startsWith("c") ? "1" : field,
       }), {}),
-      pdf,
-      execSync,
-      "/tmp",
-    )).to.be.a("string");
+    }), {});
+    log.info(formData, "formData");
+    expect(await fillReturn(formData, pdf, execSync, "/tmp")).to.be.a("string");
   });
 
+  // TODO: re-fetch all mappings w field names that don't discard any
   // Change formName then unskip to add a new form mapping
   // then add the new mapping to the index & create a new form filer
   it.skip("should fetch & save new mappings", async () => {

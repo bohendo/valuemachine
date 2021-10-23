@@ -1,14 +1,14 @@
-import * as f1040 from "./f1040.json";
-import * as f1040s1 from "./f1040s1.json";
-import * as f1040s2 from "./f1040s2.json";
-import * as f1040s3 from "./f1040s3.json";
-import * as f1040sa from "./f1040sa.json";
-import * as f1040sb from "./f1040sb.json";
-import * as f1040sc from "./f1040sc.json";
-import * as f1040sd from "./f1040sd.json";
-import * as f1040sse from "./f1040sse.json";
-import * as f2555 from "./f2555.json";
-import * as f8949 from "./f8949.json";
+import f1040 from "./f1040.json";
+import f1040s1 from "./f1040s1.json";
+import f1040s2 from "./f1040s2.json";
+import f1040s3 from "./f1040s3.json";
+import f1040sa from "./f1040sa.json";
+import f1040sb from "./f1040sb.json";
+import f1040sc from "./f1040sc.json";
+import f1040sd from "./f1040sd.json";
+import f1040sse from "./f1040sse.json";
+import f2555 from "./f2555.json";
+import f8949 from "./f8949.json";
 
 export const FormMappings = {
   f1040,
