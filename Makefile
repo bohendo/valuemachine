@@ -130,6 +130,8 @@ test-all: package
 	@sleep 1
 	bash ops/test-unit.sh core test
 	@sleep 1
+	bash ops/test-unit.sh taxes test
+	@sleep 1
 	bash ops/test-unit.sh package test
 
 publish: package
