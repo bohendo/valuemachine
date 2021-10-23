@@ -13,7 +13,7 @@
   "files": ["dist/bundle.js", "dist/bundle.esm.js", "dist/bundle.d.ts", "docs", "ops"],
   "scripts": {
     "build": "rollup --config rollup.config.js",
-    "test": "ts-mocha --check-leaks --globals fields --color --exit 'src/**/*.test.ts'"
+    "test": "ts-mocha --check-leaks --globals fields --color --exit --timeout 60000 'src/**/*.test.ts'"
   },
   "dependencies": {
     "@valuemachine/core": "0.10.1",

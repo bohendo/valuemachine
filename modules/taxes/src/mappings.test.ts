@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 
@@ -6,35 +7,54 @@ import * as pdf from "pdffiller";
 import { expect } from "chai";
 
 import { mappings } from "./mappings";
-import { fillForm, mapForm } from "./pdf";
+import { fillForm, fillReturn, mapForm } from "./pdf";
 
 const log = getLogger("info", "Mappings");
 
-const mappingsDir = path.join(__dirname, "mappings");
-
 describe("Tax Form Mappings", () => {
 
-  it.skip("should fill out all f1040 fields", async () => {
+  it("should fill out one form", async () => {
     const form = "f1040";
     expect(await fillForm(
       form,
       Object.keys(mappings[form] || {}).reduce((test, field) => ({ ...test, [field]: field }), {}),
-      pdf
+      pdf,
+      "/tmp",
     )).to.be.a("string");
   });
 
+  it("should fill out all fields", async () => {
+    expect(await fillReturn(
+      Object.keys(mappings).reduce((forms, form) => ({
+        ...forms,
+        [form]: Object.keys(mappings[form] || {}).reduce((test, field) => ({
+          ...test,
+          [field]: field,
+        }), {}),
+      }), {}),
+      pdf,
+      execSync,
+      "/tmp",
+    )).to.be.a("string");
+  });
+
+  // Change formName then unskip to add a new form mapping
+  // then add the new mapping to the index & create a new form filer
   it.skip("should fetch & save new mappings", async () => {
-    const form = "f1040s1";
-    const target = `${mappingsDir}/${form}.json`;
+    const formName = "f1040";
+    const target = `${path.join(__dirname, "mappings")}/${formName}.json`;
     if (fs.existsSync(target)) {
       log.warn(`Aborting, mappings already exist at ${target}`);
     } else {
       log.info(`Writing new mappings to ${target}`);
-      const fdfData = await mapForm(form, pdf);
-      log.info(fdfData, `${form} fdf data`);
-      // fs.writeFileSync(target, JSON.stringify(fdfData));
-      expect(fdfData).to.be.ok;
-
+      fs.writeFileSync(target, JSON.stringify(
+        Object.keys(await mapForm(formName, pdf)).reduce((res, field) => ({
+          ...res,
+          [field.split(".").pop().split("[")[0]]: field,
+        }), {}),
+        null,
+        2,
+      ));
     }
   });
 

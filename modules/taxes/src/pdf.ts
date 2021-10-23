@@ -8,36 +8,40 @@ import { getEmptyForms, getTaxReturn } from "./usa";
 
 const log = getLogger("info", "PDF Translator");
 
-export const translate = (form, mapping): any => {
-  const newForm = {};
-  for (const [key, value] of Object.entries(form)) {
-    if (key === "default") { continue; }
-    if (!mapping[key]) {
-      log.warn(`Key ${key} exists in output data but not in mapping`);
-    }
-    if (
-      !["_dec", "_int"].some(suffix => key.endsWith(suffix)) &&
-      key.match(/L[0-9]/) &&
-      typeof value === "string" &&
-      value.match(/^-?[0-9.]+$/)
-    ) {
-      newForm[mapping[key]] = round(value, 2);
-      if (newForm[mapping[key]].startsWith("-")) {
-        newForm[mapping[key]] = `(${newForm[mapping[key]].substring(1)})`;
+export const fillForm = async (
+  form: string,
+  data: any,
+  pdf: any,
+  dir?: string,
+): Promise<string> => {
+  const translate = (form, mapping): any => {
+    const newForm = {};
+    for (const [key, value] of Object.entries(form)) {
+      if (key === "default") { continue; }
+      if (!mapping[key]) {
+        log.warn(`Key ${key} exists in output data but not in mapping`);
       }
-    } else {
-      newForm[mapping[key]] = value;
+      if (
+        !["_dec", "_int"].some(suffix => key.endsWith(suffix)) &&
+        key.match(/L[0-9]/) &&
+        typeof value === "string" &&
+        value.match(/^-?[0-9.]+$/)
+      ) {
+        newForm[mapping[key]] = round(value, 2);
+        if (newForm[mapping[key]].startsWith("-")) {
+          newForm[mapping[key]] = `(${newForm[mapping[key]].substring(1)})`;
+        }
+      } else {
+        newForm[mapping[key]] = value;
+      }
     }
-  }
-  return newForm;
-};
-
-export const fillForm = async (form: string, data: any, pdf: any): Promise<string> => {
+    return newForm;
+  };
   // We should manage pdf files better w hash suffix
   const cwd = process.cwd();
-  const sourcePath = cwd.endsWith("taxes") ? `${cwd}/docs/forms/${form}.pdf`
-    : `${process.cwd()}/node_modules/@valuemachine/taxes/docs/forms/${form}.pdf`;
-  const destinationPath = `${process.cwd()}/${form}.pdf`;
+  const sourcePath = cwd.endsWith("taxes") ? `${cwd}/forms/${form}.pdf`
+    : `${process.cwd()}/node_modules/@valuemachine/taxes/forms/${form}.pdf`;
+  const destinationPath = `${dir || process.cwd()}/${form}.pdf`;
   return new Promise((res, rej) => {
     log.info(`Translating ${form} data`);
     pdf.fillFormWithFlatten(
@@ -50,7 +54,12 @@ export const fillForm = async (form: string, data: any, pdf: any): Promise<strin
   });
 };
 
-export const fillReturn = async (forms: any, pdf: any, execSync: any): Promise<string> => {
+export const fillReturn = async (
+  forms: any,
+  pdf: any,
+  execSync: any,
+  dir?: string,
+): Promise<string> => {
   const pages = [] as string[];
   for (const entry of Object.entries(forms)) {
     const name = entry[0] as string;
@@ -58,14 +67,14 @@ export const fillReturn = async (forms: any, pdf: any, execSync: any): Promise<s
     if (data?.length) {
       for (const page of data) {
         log.info(`Filing page of ${name} with ${Object.keys(data).length} fields`);
-        pages.push(await fillForm(name, page, pdf));
+        pages.push(await fillForm(name, page, pdf, dir));
       }
     } else {
       log.info(`Filing ${name} with ${Object.keys(data).length} fields`);
-      pages.push(await fillForm(name, data, pdf));
+      pages.push(await fillForm(name, data, pdf, dir));
     }
   }
-  const output = `${process.cwd()}/tax-return.pdf`;
+  const output = `${dir || process.cwd()}/tax-return.pdf`;
   // TODO: sort pages based on attachment index
   const cmd = `pdftk ${pages.join(" ")} cat output ${output}`;
   log.info(`Running command: "${cmd}" from current dir ${process.cwd()}`);
@@ -135,7 +144,7 @@ export const requestTaxReturn = async (
 export const mapForm = async (form: string, pdf: any): Promise<any> => {
   // 2nd arg sets the field name regex. Default: /FieldName: ([^\n]*)/
   return new Promise((res, rej) => {
-    pdf.generateFDFTemplate(`${process.cwd()}/docs/forms/${form}.pdf`, null, (err, fdfData) => {
+    pdf.generateFDFTemplate(`${process.cwd()}/forms/${form}.pdf`, null, (err, fdfData) => {
       if (err) rej(err);
       res(fdfData);
     });
@@ -143,7 +152,7 @@ export const mapForm = async (form: string, pdf: any): Promise<any> => {
 };
 
 /*
-path = "__filename/../docs"
+path = "__filename/.."
 export const fetchForm = async (form: string): Promise<boolean> => {
   return new Promise((res, rej) => {
     axios({
