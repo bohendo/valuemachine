@@ -14,7 +14,7 @@ const mappingsDir = path.join(__dirname, "mappings");
 
 describe("Tax Form Mappings", () => {
 
-  it.only("should fill out all f1040 fields", async () => {
+  it.skip("should fill out all f1040 fields", async () => {
     const form = "f1040";
     expect(await fillForm(
       form,
@@ -27,7 +27,7 @@ describe("Tax Form Mappings", () => {
     const form = "f1040s1";
     const target = `${mappingsDir}/${form}.json`;
     if (fs.existsSync(target)) {
-      log.warn(`Mappings already exist at ${target}`);
+      log.warn(`Aborting, mappings already exist at ${target}`);
     } else {
       log.info(`Writing new mappings to ${target}`);
       const fdfData = await mapForm(form, pdf);
