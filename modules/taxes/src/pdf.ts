@@ -37,7 +37,7 @@ export const fillForm = async (form: string, data: any, pdf: any): Promise<strin
   const destinationPath = `${process.cwd()}/${form}.pdf`;
   return new Promise((res, rej) => {
     log.info(`Translating ${form} data`);
-    pdf.fillForm(sourcePath, destinationPath, translate(data, mappings[form]), (err) => {
+    pdf.fillForm(sourcePath, destinationPath, translate(data, mappings[form]), false, (err) => {
       if (err) rej(err);
       res(destinationPath);
     });
