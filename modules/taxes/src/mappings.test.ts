@@ -6,7 +6,7 @@ import { getLogger } from "@valuemachine/utils";
 import * as pdf from "pdffiller";
 import { expect } from "chai";
 
-import { mappings } from "./mappings";
+import { FormMappings } from "./mappings";
 import { fillForm, fillReturn, mapForm } from "./pdf";
 
 const log = getLogger("info", "Mappings");
@@ -17,7 +17,7 @@ describe("Tax Form Mappings", () => {
     const form = "f1040";
     expect(await fillForm(
       form,
-      Object.keys(mappings[form] || {}).reduce((test, field) => ({ ...test, [field]: field }), {}),
+      Object.keys(FormMappings[form]).reduce((data, field) => ({ ...data, [field]: field }), {}),
       pdf,
       "/tmp",
     )).to.be.a("string");
@@ -25,10 +25,10 @@ describe("Tax Form Mappings", () => {
 
   it("should fill out all fields", async () => {
     expect(await fillReturn(
-      Object.keys(mappings).reduce((forms, form) => ({
+      Object.keys(FormMappings).reduce((forms, form) => ({
         ...forms,
-        [form]: Object.keys(mappings[form] || {}).reduce((test, field) => ({
-          ...test,
+        [form]: Object.keys(FormMappings[form]).reduce((data, field) => ({
+          ...data,
           [field]: field,
         }), {}),
       }), {}),
