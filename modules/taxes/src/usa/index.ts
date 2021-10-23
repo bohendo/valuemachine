@@ -3,11 +3,10 @@ import {
   ValueMachine,
 } from "@valuemachine/types";
 
-import { Forms } from "./mappings";
+import { Forms } from "../mappings";
+
 import { f1040 } from "./f1040";
 import { f8949 } from "./f8949";
-
-export { mappings, Forms } from "./mappings";
 
 export const getEmptyForms = (): Forms => ({
   f1040: {},

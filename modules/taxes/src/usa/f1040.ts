@@ -1,8 +1,7 @@
 import { add, sub, subToZero, round } from "@valuemachine/utils";
 
+import { Forms } from "../mappings";
 import { getIncomeTax, logger } from "../utils";
-
-import { Forms } from "./mappings";
 
 export const f1040 = (oldForms: Forms): Forms => {
   const log = logger.child({ module: "f1040" });

@@ -3,7 +3,8 @@ import { ValueMachine, Prices } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
-import { mappings, Forms, getEmptyForms, getTaxReturn } from "./usa";
+import { Forms, mappings } from "./mappings";
+import { getEmptyForms, getTaxReturn } from "./usa";
 
 const log = getLogger("info", "PDF Translator");
 
@@ -33,14 +34,19 @@ export const translate = (form, mapping): any => {
 
 export const fillForm = async (form: string, data: any, pdf: any): Promise<string> => {
   // We should manage pdf files better w hash suffix
-  const sourcePath = `${process.cwd()}/node_modules/@valuemachine/taxes/docs/forms/${form}.pdf`;
+  const cwd = process.cwd();
+  const sourcePath = cwd.endsWith("taxes") ? `${cwd}/docs/forms/${form}.pdf`
+    : `${process.cwd()}/node_modules/@valuemachine/taxes/docs/forms/${form}.pdf`;
   const destinationPath = `${process.cwd()}/${form}.pdf`;
   return new Promise((res, rej) => {
     log.info(`Translating ${form} data`);
-    pdf.fillForm(sourcePath, destinationPath, translate(data, mappings[form]), false, (err) => {
-      if (err) rej(err);
-      res(destinationPath);
-    });
+    pdf.fillFormWithFlatten(
+      sourcePath,
+      destinationPath,
+      translate(data, mappings[form]),
+      false,
+      err => err ? rej(err) : res(destinationPath),
+    );
   });
 };
 
@@ -50,16 +56,17 @@ export const fillReturn = async (forms: any, pdf: any, execSync: any): Promise<s
     const name = entry[0] as string;
     const data = entry[1] as any;
     if (data?.length) {
-      log.info(`Filing ${name} with ${data.length} pages`);
       for (const page of data) {
+        log.info(`Filing page of ${name} with ${Object.keys(data).length} fields`);
         pages.push(await fillForm(name, page, pdf));
       }
     } else {
-      log.info(`Filing ${name} with ${Object.keys(data)} fields`);
+      log.info(`Filing ${name} with ${Object.keys(data).length} fields`);
       pages.push(await fillForm(name, data, pdf));
     }
   }
   const output = `${process.cwd()}/tax-return.pdf`;
+  // TODO: sort pages based on attachment index
   const cmd = `pdftk ${pages.join(" ")} cat output ${output}`;
   log.info(`Running command: "${cmd}" from current dir ${process.cwd()}`);
   const stdout = execSync(cmd);
