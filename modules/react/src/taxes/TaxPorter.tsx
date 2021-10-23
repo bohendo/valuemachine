@@ -63,7 +63,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
         cumulativeChange: round(row.cumulativeChange, 2),
         cumulativeIncome: round(row.cumulativeIncome, 2),
       })),
-      Object.keys(taxes[0]),
+      Object.keys(taxes?.[0] || {}), // TODO: why is taxes[0] undefined?
     );
     const name = `${guard}-taxes.csv`;
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
@@ -74,7 +74,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   };
 
   const handleExport = () => {
-    if (!vm?.json || !prices?.json || !guard || !formData || !taxYear) return;
+    if (!guard || !taxYear || !vm?.json || !prices?.json || !formData) return;
     requestTaxReturn(guard, taxYear, vm, prices, formData, window);
   };
 
@@ -141,7 +141,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
               startIcon={<DownloadIcon />}
               variant="contained"
             >
-              Download F8949
+              Download Tax Return
             </Button>
           </Grid>
           : null

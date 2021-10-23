@@ -92,7 +92,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
 
       <Grid container sx={{ justifyContent: "center" }}>
         <Grid item sm={6}>
-          <TaxPorter guard={guard} prices={prices} vm={vm} />
+          <TaxPorter guard={guard} prices={prices} vm={vm} formData={forms} />
         </Grid>
       </Grid>
 

@@ -3,9 +3,9 @@ import { ValueMachine, Prices } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
-import { mappings, Forms, getTaxReturn } from "./usa";
+import { mappings, Forms, getEmptyForms, getTaxReturn } from "./usa";
 
-const log = getLogger("warn", "PDF Translator");
+const log = getLogger("info", "PDF Translator");
 
 export const translate = (form, mapping): any => {
   const newForm = {};
@@ -32,7 +32,7 @@ export const translate = (form, mapping): any => {
 };
 
 export const fillForm = async (form: string, data: any, pdf: any): Promise<string> => {
-  // TODO: manage pdf files better w hash suffix
+  // We should manage pdf files better w hash suffix
   const sourcePath = `${process.cwd()}/node_modules/@valuemachine/taxes/docs/forms/${form}.pdf`;
   const destinationPath = `${process.cwd()}/${form}.pdf`;
   return new Promise((res, rej) => {
@@ -44,13 +44,27 @@ export const fillForm = async (form: string, data: any, pdf: any): Promise<strin
   });
 };
 
-export const fillReturn = async (forms: any, pdf: any): Promise<string> => {
-  for (const [name, data] of Object.entries(forms)) {
-    log.info(`Filing ${name} with ${Object.keys(data)} rows of ${pdf ? "pdf " : ""}data`);
-    fillForm(name, data, pdf);
-    // TODO: pdftk them all together
+export const fillReturn = async (forms: any, pdf: any, execSync: any): Promise<string> => {
+  const pages = [] as string[];
+  for (const entry of Object.entries(forms)) {
+    const name = entry[0] as string;
+    const data = entry[1] as any;
+    if (data?.length) {
+      log.info(`Filing ${name} with ${data.length} pages`);
+      for (const page of data) {
+        pages.push(await fillForm(name, page, pdf));
+      }
+    } else {
+      log.info(`Filing ${name} with ${Object.keys(data)} fields`);
+      pages.push(await fillForm(name, data, pdf));
+    }
   }
-  return `${process.cwd()}/tax-return.pdf`;
+  const output = `${process.cwd()}/tax-return.pdf`;
+  const cmd = `pdftk ${pages.join(" ")} cat output ${output}`;
+  log.info(`Running command: "${cmd}" from current dir ${process.cwd()}`);
+  const stdout = execSync(cmd);
+  log.info(`Got output from ${cmd}: ${stdout}`);
+  return output;
 };
 
 export const requestFilledForm = async (form: string, data: any, window: any): Promise<void> => {
@@ -89,13 +103,15 @@ export const requestTaxReturn = async (
     log.warn(`Missing form data, not requesting tax return`);
     return;
   } else {
-    const data = guard === Guards.USA ? await getTaxReturn(taxYear, vm, prices, formData) : {};
+    log.info(`Fetching ${guard} tax return for ${taxYear} w ${Object.keys(formData).length} forms`);
+    const forms = guard === Guards.USA ? await getTaxReturn(taxYear, vm, prices, formData)
+      : getEmptyForms();
     return new Promise((res, rej) => {
       axios({
         url: `/api/taxes`,
         method: "post",
         responseType: "blob",
-        data: { data },
+        data: { forms },
       }).then((response) => {
         const url = window.URL.createObjectURL(new window.Blob([response.data]));
         const link = window.document.createElement("a");

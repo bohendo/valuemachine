@@ -1,3 +1,5 @@
+import { execSync } from "child_process";
+
 import { fillForm, fillReturn } from "@valuemachine/taxes";
 import * as pdf from "pdffiller";
 import express from "express";
@@ -21,7 +23,7 @@ taxesRouter.post("/", async (req, res) => {
     return logAndSend("No forms was provided", STATUS_YOUR_BAD);
   }
   try {
-    const path = await fillReturn(forms, pdf);
+    const path = await fillReturn(forms, pdf, execSync);
     return res.download(path, "tax-return.pdf");
   } catch (e) {
     return logAndSend(e.message, STATUS_MY_BAD);
