@@ -19,7 +19,6 @@ describe("Tax Form Mappings", () => {
       form,
       Object.keys(FormMappings[form]).reduce((data, field) => ({ ...data, [field]: field }), {}),
       pdf,
-      "/tmp",
     )).to.be.a("string");
   });
 
@@ -32,7 +31,7 @@ describe("Tax Form Mappings", () => {
       }), {}),
     }), {});
     log.info(formData, "formData");
-    expect(await fillReturn(formData, pdf, execSync, "/tmp")).to.be.a("string");
+    expect(await fillReturn(formData, pdf, execSync, process.cwd())).to.be.a("string");
   });
 
   // TODO: re-fetch all mappings w field names that don't discard any

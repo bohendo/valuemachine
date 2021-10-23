@@ -40,7 +40,7 @@ export const fillForm = async (
   const cwd = process.cwd();
   const sourcePath = cwd.endsWith("taxes") ? `${cwd}/forms/${form}.pdf`
     : `${process.cwd()}/node_modules/@valuemachine/taxes/forms/${form}.pdf`;
-  const destinationPath = `${dir || process.cwd()}/${form}.pdf`;
+  const destinationPath = `${dir || "/tmp"}/${form}.pdf`;
   return new Promise((res, rej) => {
     log.info(`Translating ${form} data`);
     pdf.fillFormWithFlatten(
@@ -73,7 +73,7 @@ export const fillReturn = async (
       pages.push(await fillForm(name, data, pdf, dir));
     }
   }
-  const output = `${dir || process.cwd()}/tax-return.pdf`;
+  const output = `${dir || "/tmp"}/tax-return.pdf`;
   // TODO: sort pages based on attachment index
   const cmd = `pdftk ${pages.join(" ")} cat output ${output}`;
   log.info(`Running command: "${cmd}" from current dir ${process.cwd()}`);

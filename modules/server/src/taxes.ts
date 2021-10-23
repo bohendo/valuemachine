@@ -23,7 +23,7 @@ taxesRouter.post("/", async (req, res) => {
     return logAndSend("No forms was provided", STATUS_YOUR_BAD);
   }
   try {
-    const path = await fillReturn(forms, pdf, execSync);
+    const path = await fillReturn(forms, pdf, execSync, process.cwd());
     return res.download(path, "tax-return.pdf");
   } catch (e) {
     return logAndSend(e.message, STATUS_MY_BAD);
@@ -39,7 +39,7 @@ taxesRouter.post("/:form", async (req, res) => {
     return logAndSend(`No ${form} data was provided`, STATUS_YOUR_BAD);
   }
   try {
-    const path = await fillForm(form, data, pdf);
+    const path = await fillForm(form, data, pdf, process.cwd());
     return res.download(path, `${form}.pdf`);
   } catch (e) {
     return logAndSend(e.message, STATUS_MY_BAD);
