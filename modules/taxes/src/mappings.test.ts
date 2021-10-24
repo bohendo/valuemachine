@@ -35,6 +35,8 @@ describe("Tax Form Mappings", () => {
   });
 
   // TODO: re-fetch all mappings w field names that don't discard any
+  // TODO: insert any new fields that don't exist in the file yet?
+
   // Change formName then unskip to add a new form mapping
   // then add the new mapping to the index & create a new form filer
   it.skip("should fetch & save new mappings", async () => {

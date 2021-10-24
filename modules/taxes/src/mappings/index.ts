@@ -24,6 +24,7 @@ export const FormMappings = {
   f8949,
 } as const;
 
+
 // No array: only one page is allowed, else multiple pages are expected
 export type Forms = {
   f1040?: { [key in keyof typeof FormMappings.f1040]?: any; };
