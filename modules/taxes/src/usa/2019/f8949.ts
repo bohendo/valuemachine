@@ -1,8 +1,8 @@
-import { TradeEvent, Events, EventTypes } from "@finances/types";
-import { math } from "@finances/utils";
+import { EventTypes, TaxRow } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
-import { Forms } from "../types";
-import { logger, toFormDate } from "../utils";
+import { Forms } from "./types";
+import { logger, toFormDate } from "./utils";
 
 const { add, gt, mul, round, sub } = math;
 
@@ -15,10 +15,10 @@ type Trade = {
   asset: string;
   assetPrice: string;
   receivePrice: string;
-  quantity: string;
+  amount: string;
 };
 
-export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
+export const f8949 = (taxRows: TaxRow[], oldForms: Forms): Forms  => {
   const log = logger.child({ module: "f8949" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const f1040 = forms.f1040;
@@ -31,22 +31,16 @@ export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
 
   // Merge trades w the same received & sold dates
   const trades = [] as Trade[];
-  vmEvents
-    .filter(vmEvent => vmEvent.type === EventTypes.Trade)
-    .forEach((vmEvent: TradeEvent): void => {
-      if (vmEvent.spentChunks.length) {
-        for (const chunk of vmEvent.spentChunks) {
-          trades.push({
-            date: getDate(vmEvent.date),
-            asset: chunk.asset,
-            receivePrice: chunk.receivePrice,
-            assetPrice: vmEvent.prices[chunk.asset],
-            purchaseDate: chunk.receiveDate,
-            quantity: chunk.quantity,
-          });
-        }
-      }
+  taxRows.filter(tax => tax.action === EventTypes.Trade).forEach((tax: TaxRow): void => {
+    trades.push({
+      date: getDate(tax.date),
+      asset: tax.asset,
+      receivePrice: tax.receivePrice,
+      assetPrice: tax.price,
+      purchaseDate: tax.receiveDate,
+      amount: tax.amount,
     });
+  });
 
   // Sort trades into chunks of 14 long-term/short-term trades
 
@@ -68,7 +62,7 @@ export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
   const getLongCell = (row: number, column: string): string => `P2L1R${row}${column}`;
   const getShortCell = (row: number, column: string): string => `P1L1R${row}${column}`;
 
-  // Convert chunk of vmEvents into f8949 rows
+  // Convert chunk of taxes into f8949 rows
   for (let page = 0; page < nPages; page++) {
     const shortTerm = shortChunks[page] || [];
     const longTerm = longChunks[page] || [];
@@ -77,13 +71,13 @@ export const f8949 = (vmEvents: Events, oldForms: Forms): Forms  => {
     subF8949.P2C0_F = longTerm.length > 0;
     const parseTrade = getCell => (trade: Trade, index: number): void => {
       const i = index + 1;
-      const description = `${round(trade.quantity, 4)} ${trade.asset}`;
-      const proceeds = round(mul(trade.quantity, trade.assetPrice));
-      const cost = round(mul(trade.quantity, trade.receivePrice));
+      const description = `${round(trade.amount, 4)} ${trade.asset}`;
+      const proceeds = round(mul(trade.amount, trade.assetPrice));
+      const cost = round(mul(trade.amount, trade.receivePrice));
       const gainOrLoss = sub(proceeds, cost);
       const pad = (str: string, n = 9): string => str.padStart(n, " ");
       log.info(
-        `${trade.date.split("T")[0]} Sold ${pad(math.round(trade.quantity, 3))} ` +
+        `${trade.date.split("T")[0]} Sold ${pad(math.round(trade.amount, 3))} ` +
         `${pad(trade.asset, 4)} for ${pad(proceeds)} - ` + 
         `${pad(cost)} = ${pad(gainOrLoss)} profit`,
       );

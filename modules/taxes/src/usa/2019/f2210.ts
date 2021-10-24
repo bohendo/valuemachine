@@ -1,10 +1,10 @@
-import { Event, IncomeEvent, ExpenseEvent, TimestampString } from "@finances/types";
-import { math } from "@finances/utils";
+import { TaxRow, TimestampString } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
-import { Forms } from "../types";
-import { getIncomeTax, logger, processExpenses, processIncome } from "../utils";
+import { Forms } from "./types";
+import { getIncomeTax, logger, processExpenses, processIncome } from "./utils";
 
-export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
+export const f2210 = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const log = logger.child({ module: "f2210" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s2, f1040s3, f1040sse, f2210 } = forms;
@@ -84,7 +84,7 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
   }
 
   ////////////////////////////////////////
-  // Get required info from events
+  // Get required info from tax rows
 
   const columns = ["a", "b", "c", "d"];
 
@@ -106,33 +106,33 @@ export const f2210 = (vmEvents: Event[], oldForms: Forms): Forms => {
     const time = new Date(date).getTime();
     return columns[
       time < getTime("01", "01") ? -1
-        : time < getTime("01", "04") ? 0
-          : time < getTime("01", "06") ? 1
-            : time < getTime("01", "09") ? 2
-              : time < getTime("01", "01", +1) ? 3
-                : -1
+      : time < getTime("01", "04") ? 0
+      : time < getTime("01", "06") ? 1
+      : time < getTime("01", "09") ? 2
+      : time < getTime("01", "01", +1) ? 3
+      : -1
     ];
   };
 
-  // Get income events
-  processIncome(vmEvents, (event: IncomeEvent, value: string): void => {
-    income[getCol(event.date)] = math.add(
-      income[getCol(event.date)],
+  // Get income rows
+  processIncome(taxRows, (row: TaxRow, value: string): void => {
+    income[getCol(row.date)] = math.add(
+      income[getCol(row.date)],
       math.round(value),
     );
   });
 
   // Get business expenses & tax payments
-  processExpenses(vmEvents, (event: ExpenseEvent, value: string): void => {
-    if (event.tags.some(tag => tag.startsWith("f1040sc"))) {
-      expenses[getCol(event.date)] = math.add(
-        expenses[getCol(event.date)],
+  processExpenses(taxRows, (row: TaxRow, value: string): void => {
+    if (row.tags.some(tag => tag.startsWith("f1040sc"))) {
+      expenses[getCol(row.date)] = math.add(
+        expenses[getCol(row.date)],
         math.round(value),
       );
-    } else if (event.tags.includes("f1040s3.L8")) {
-      allPayments.push({ date: new Date(event.date).getTime(), value });
-      payments[getCol(event.date)] = math.add(
-        payments[getCol(event.date)],
+    } else if (row.tags.includes("f1040s3.L8")) {
+      allPayments.push({ date: new Date(row.date).getTime(), value });
+      payments[getCol(row.date)] = math.add(
+        payments[getCol(row.date)],
         value,
       );
     }

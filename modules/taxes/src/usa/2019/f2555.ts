@@ -1,10 +1,10 @@
-import { Event, ExpenseEvent, IncomeEvent } from "@finances/types";
-import { math } from "@finances/utils";
+import { TaxRow } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
-import { Forms } from "../types";
-import { logger, processExpenses, processIncome } from "../utils";
+import { Forms } from "./types";
+import { logger, processExpenses, processIncome } from "./utils";
 
-export const f2555 = (vmEvents: Event[], oldForms: Forms): Forms => {
+export const f2555 = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const log = logger.child({ module: "f2555" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f2555, f1040, f1040s1 } = forms;
@@ -17,7 +17,9 @@ export const f2555 = (vmEvents: Event[], oldForms: Forms): Forms => {
 
   if (f2555.C5c) {
     f2555.L3 = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
-    f2555.L4a = `${forms.f1040.StreetAddress} ${forms.f1040.CityStateZip}`;
+    f2555.L4a = `${
+      forms.f1040.StreetAddress
+    } ${forms.f1040.City} ${forms.f1040.State} ${forms.f1040.Zip}`;
     f2555.L4b = f2555.L1;
   }
 
@@ -28,10 +30,10 @@ export const f2555 = (vmEvents: Event[], oldForms: Forms): Forms => {
 
   let totalIncome = "0";
   let totalExpenses = "0";
-  processIncome(vmEvents, (income: IncomeEvent, value: string): void => {
+  processIncome(taxRows, (income: TaxRow, value: string): void => {
     totalIncome = math.add(totalIncome, value);
   });
-  processExpenses(vmEvents, (expense: ExpenseEvent, value: string): void => {
+  processExpenses(taxRows, (expense: TaxRow, value: string): void => {
     if (expense.tags.some(tag => tag.startsWith("f1040sc"))) {
       totalExpenses = math.add(totalExpenses, value);
     }

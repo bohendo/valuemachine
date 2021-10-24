@@ -1,12 +1,12 @@
-import { Event } from "@finances/types";
-import { math } from "@finances/utils";
+import { TaxRow } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
-import { Forms } from "../types";
-import { logger } from "../utils";
+import { Forms } from "./types";
+import { logger } from "./utils";
 
 const { add, eq, gt, lt, round } = math;
 
-export const f1040sd = (vmEvents: Event[], oldForms: Forms): Forms => {
+export const f1040sd = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const log = logger.child({ module: "f1040sd" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040sd } = forms;
@@ -27,10 +27,10 @@ export const f1040sd = (vmEvents: Event[], oldForms: Forms): Forms => {
   for (const f8949 of forms.f8949) {
 
     const shortType =
-        f8949.P1C0_A ? "A"
-          : f8949.P1C0_B ? "B"
-            : f8949.P1C0_C ? "C"
-              : "?";
+      f8949.P1C0_A ? "A"
+      : f8949.P1C0_B ? "B"
+      : f8949.P1C0_C ? "C"
+      : "?";
 
     log.debug(`Short-term f8949 row: proceeds=${f8949.P1L2d} cost=${f8949.P1L2e} gain|loss=${f8949.P1L2h}`);
     totals[shortType].proceeds = add(totals[shortType].proceeds, f8949.P1L2d);
@@ -39,10 +39,10 @@ export const f1040sd = (vmEvents: Event[], oldForms: Forms): Forms => {
     totals[shortType].gainOrLoss = add(totals[shortType].gainOrLoss, f8949.P1L2h);
 
     const longType =
-        f8949.P2C0_D ? "D"
-          : f8949.P2C0_E ? "E"
-            : f8949.P2C0_F ? "F"
-              : "?";
+      f8949.P2C0_D ? "D"
+      : f8949.P2C0_E ? "E"
+      : f8949.P2C0_F ? "F"
+      : "?";
 
     log.debug(`Long-term f8949 row: proceeds=${f8949.P2L2d} cost=${f8949.P2L2e} gain|loss=${f8949.P2L2h}`);
     totals[longType].proceeds = add(totals[longType].proceeds, f8949.P2L2d);

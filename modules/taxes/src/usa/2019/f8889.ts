@@ -1,12 +1,12 @@
-import { Event } from "@finances/types";
-import { math } from "@finances/utils";
+import { TaxRow } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
-import { Forms } from "../types";
-import { logger } from "../utils";
+import { Forms } from "./types";
+import { logger } from "./utils";
 
 const { add, gt, mul, round, sub, subToZero } = math;
 
-export const f8889 = (vmEvents: Event[], oldForms: Forms): Forms => {
+export const f8889 = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const log = logger.child({ module: "f8889" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040s1, f1040s2, f8889 } = forms;

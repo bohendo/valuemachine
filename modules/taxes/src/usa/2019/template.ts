@@ -1,6 +1,6 @@
-import { Event } from "@finances/types";
+import { Event } from "@valuemachine/types";
 
-import { Forms } from "../types";
+import { Forms } from "./types";
 
 export const f1040 = (vmEvents: Event[], oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;

@@ -6,7 +6,7 @@ import { getLogger } from "@valuemachine/utils";
 import * as pdf from "pdffiller";
 import { expect } from "chai";
 
-import { FormMappings } from "./mappings";
+import { Mappings, HistoricalMappings } from "./mappings";
 import { fillForm, fillReturn, mapForm } from "./pdf";
 
 const log = getLogger("info", "Mappings");
@@ -17,15 +17,27 @@ describe("Tax Form Mappings", () => {
     const form = "f1040";
     expect(await fillForm(
       form,
-      Object.keys(FormMappings[form]).reduce((data, field) => ({ ...data, [field]: field }), {}),
+      Object.keys(Mappings[form]).reduce((data, field) => ({ ...data, [field]: field }), {}),
       pdf,
     )).to.be.a("string");
   });
 
   it("should fill out all fields", async () => {
-    const formData = Object.keys(FormMappings).reduce((forms, form) => ({
+    const formData = Object.keys(Mappings).reduce((forms, form) => ({
       ...forms,
-      [form]: Object.keys(FormMappings[form]).reduce((data, field) => ({
+      [form]: Object.keys(Mappings[form]).reduce((data, field) => ({
+        ...data,
+        [field]: field.startsWith("c") ? "1" : field,
+      }), {}),
+    }), {});
+    log.info(formData, "formData");
+    expect(await fillReturn(formData, pdf, execSync, process.cwd())).to.be.a("string");
+  });
+
+  it.only("should fill out all fields for 2019 form", async () => {
+    const formData = Object.keys(HistoricalMappings["2019"] || {}).reduce((forms, form) => ({
+      ...forms,
+      [form]: Object.keys(HistoricalMappings["2019"][form]).reduce((data, field) => ({
         ...data,
         [field]: field.startsWith("c") ? "1" : field,
       }), {}),

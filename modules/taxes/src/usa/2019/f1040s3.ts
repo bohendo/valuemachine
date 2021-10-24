@@ -1,10 +1,10 @@
-import { Event, EventTypes, ExpenseEvent } from "@finances/types";
-import { math } from "@finances/utils";
+import { EventTypes, TaxRow } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
-import { Forms } from "../types";
-import { logger } from "../utils";
+import { Forms } from "./types";
+import { logger } from "./utils";
 
-export const f1040s3 = (vmEvents: Event[], oldForms: Forms): Forms => {
+export const f1040s3 = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const log = logger.child({ module: "f1040s3" });
   const { f1040, f1040s3 } = forms;
@@ -17,12 +17,12 @@ export const f1040s3 = (vmEvents: Event[], oldForms: Forms): Forms => {
     f1040s3.L4, f1040s3.L5, f1040s3.L6,
   ); 
 
-  vmEvents
-    .filter(event => event.type === EventTypes.Expense)
-    .filter((event: ExpenseEvent) => event.tags.includes("f1040s3.L8"))
-    .forEach((event: ExpenseEvent) => {
-      log.info(`Including tax payment of ${event.quantity} on ${event.date}`);
-      f1040s3.L8 = math.add(f1040s3.L8, event.quantity);
+  taxRows
+    .filter(tax => tax.action === EventTypes.Trade)
+    .filter((tax: TaxRow) => tax.tags.includes("f1040s3.L8"))
+    .forEach((tax: TaxRow) => {
+      log.info(`Including tax payment of ${tax.amount} on ${tax.date}`);
+      f1040s3.L8 = math.add(f1040s3.L8, tax.amount);
     });
 
   f1040s3.L14 = math.add(

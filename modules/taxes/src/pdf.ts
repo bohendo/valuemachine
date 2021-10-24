@@ -3,7 +3,7 @@ import { ValueMachine, Prices } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
-import { Forms, FormMappings } from "./mappings";
+import { Forms, Mappings } from "./mappings";
 import { getEmptyForms, getTaxReturn } from "./usa";
 
 const log = getLogger("info", "PDF Translator");
@@ -46,7 +46,7 @@ export const fillForm = async (
     pdf.fillFormWithFlatten(
       sourcePath,
       destinationPath,
-      translate(data, FormMappings[form]),
+      translate(data, Mappings[form]),
       false,
       err => err ? rej(err) : res(destinationPath),
     );

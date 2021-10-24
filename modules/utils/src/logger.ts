@@ -2,7 +2,9 @@ import pino from "pino";
 
 export const getLogger = (level = "warn", module?: string): pino.Logger => pino({
   level,
-  module,
+  options: {
+    module,
+  },
   prettyPrint: {
     colorize: true,
     ignore: "pid,hostname,module",

@@ -1,12 +1,12 @@
-import { Events, ExpenseEvent, IncomeEvent } from "@finances/types";
-import { math } from "@finances/utils";
+import { TaxRow } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
-import { Forms } from "../types";
-import { logger, processExpenses, processIncome } from "../utils";
+import { Forms } from "./types";
+import { logger, processExpenses, processIncome } from "./utils";
 
 const { add, gt, lt, round, sub } = math;
 
-export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
+export const f1040sc = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const log = logger.child({ module: "f1040sc" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
@@ -17,14 +17,14 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
   f1040sc.SSN = f1040.SocialSecurityNumber;
 
   let totalIncome = "0";
-  processIncome(vmEvents, (income: IncomeEvent, value: string): void => {
+  processIncome(taxRows, (income: TaxRow, value: string): void => {
     if (income.tags.includes("prize")) {
       log.debug(`Prize money goes on f1040s1.L8`);
     } else {
       totalIncome = math.add(totalIncome, value);
       log.info(
-        `${income.date.split("T")[0]} Income of ${pad(math.round(income.quantity))} ` +
-        `${pad(income.asset, 4)} worth ${pad(math.round(value))} from ${income.from}`,
+        `${income.date.split("T")[0]} Income of ${pad(math.round(income.amount))} ` +
+        `${pad(income.asset, 4)} worth ${pad(math.round(value))}`,
       );
     }
   });
@@ -41,11 +41,10 @@ export const f1040sc = (vmEvents: Events, oldForms: Forms): Forms => {
 
   let otherExpenseIndex = 1;
   let exchangeFees = "0";
-  processExpenses(vmEvents, (expense: ExpenseEvent, value: string): void => {
+  processExpenses(taxRows, (expense: TaxRow, value: string): void => {
     const tags = expense.tags;
     const message = `${expense.date.split("T")[0]} ` +
-      `Expense of ${pad(math.round(expense.quantity), 8)} ${pad(expense.asset, 4)} ` +
-      `to ${expense.to}`;
+      `Expense of ${pad(math.round(expense.amount), 8)} ${pad(expense.asset, 4)} `
     const otherExpenseKey = "f1040sc-L48:";
     if (tags.some(tag => tag.startsWith(otherExpenseKey))) {
       const description = tags

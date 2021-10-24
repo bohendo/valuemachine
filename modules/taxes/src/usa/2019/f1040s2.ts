@@ -1,11 +1,11 @@
-import { Event } from "@finances/types";
-import { math } from "@finances/utils";
+import { TaxRow } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
-import { Forms } from "../types";
+import { Forms } from "./types";
 
 const { add, round } = math;
 
-export const f1040s2 = (vmEvents: Event[], oldForms: Forms): Forms => {
+export const f1040s2 = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s2 } = forms;
 

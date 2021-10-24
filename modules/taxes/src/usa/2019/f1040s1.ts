@@ -1,10 +1,10 @@
-import { Event, IncomeEvent } from "@finances/types";
-import { math } from "@finances/utils";
+import { TaxRow } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
-import { Forms } from "../types";
-import { logger, processIncome } from "../utils";
+import { Forms } from "./types";
+import { logger, processIncome } from "./utils";
 
-export const f1040s1 = (vmEvents: Event[], oldForms: Forms): Forms => {
+export const f1040s1 = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const log = logger.child({ module: "f1040s1" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1 } = forms;
@@ -13,10 +13,10 @@ export const f1040s1 = (vmEvents: Event[], oldForms: Forms): Forms => {
   f1040s1.SSN = f1040.SocialSecurityNumber;
 
   let prizeMoney = "0";
-  processIncome(vmEvents, (income: IncomeEvent, value: string): void => {
+  processIncome(taxRows, (income: TaxRow, value: string): void => {
     if (income.tags.includes("prize")) {
       prizeMoney = math.add(prizeMoney, value);
-      log.info(`Adding income of ${value} from ${income.description}`);
+      log.info(`Adding income of ${value}`);
     }
   });
   prizeMoney = math.round(prizeMoney);
