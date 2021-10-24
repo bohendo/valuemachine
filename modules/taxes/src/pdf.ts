@@ -3,7 +3,7 @@ import { ValueMachine, Prices } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
-import { Forms, Mappings } from "./mappings";
+import { Forms, Mappings, HistoricalMappings } from "./mappings";
 import { getEmptyForms, getTaxReturn } from "./usa";
 
 const log = getLogger("info", "PDF Translator");
@@ -12,6 +12,7 @@ export const fillForm = async (
   form: string,
   data: any,
   pdf: any,
+  year?: string,
   dir?: string,
 ): Promise<string> => {
   const translate = (form, mapping): any => {
@@ -38,15 +39,15 @@ export const fillForm = async (
   };
   // We should manage pdf files better w hash suffix
   const cwd = process.cwd();
-  const sourcePath = cwd.endsWith("taxes") ? `${cwd}/forms/${form}.pdf`
-    : `${process.cwd()}/node_modules/@valuemachine/taxes/forms/${form}.pdf`;
-  const destinationPath = `${dir || "/tmp"}/${form}.pdf`;
+  const sourcePath = cwd.endsWith("taxes") ? `${cwd}/forms/${year ? `${year}/` : ""}${form}.pdf`
+    : `${cwd}/node_modules/@valuemachine/taxes/forms/${form}.pdf`;
+  const destinationPath = `${dir || "/tmp"}/${form}${year ? `-${year}` : ""}.pdf`;
   return new Promise((res, rej) => {
     log.info(`Translating ${form} data`);
     pdf.fillFormWithFlatten(
       sourcePath,
       destinationPath,
-      translate(data, Mappings[form]),
+      translate(data, year ? HistoricalMappings[year][form] : Mappings[form]),
       false,
       err => err ? rej(err) : res(destinationPath),
     );
@@ -57,6 +58,7 @@ export const fillReturn = async (
   forms: any,
   pdf: any,
   execSync: any,
+  year?: string,
   dir?: string,
 ): Promise<string> => {
   const pages = [] as string[];
@@ -66,14 +68,14 @@ export const fillReturn = async (
     if (data?.length) {
       for (const page of data) {
         log.info(`Filing page of ${name} with ${Object.keys(data).length} fields`);
-        pages.push(await fillForm(name, page, pdf, dir));
+        pages.push(await fillForm(name, page, pdf, year, dir));
       }
     } else {
       log.info(`Filing ${name} with ${Object.keys(data).length} fields`);
-      pages.push(await fillForm(name, data, pdf, dir));
+      pages.push(await fillForm(name, data, pdf, year, dir));
     }
   }
-  const output = `${dir || "/tmp"}/tax-return.pdf`;
+  const output = `${dir || "/tmp"}/tax-return${year ? `-${year}` : ""}.pdf`;
   // TODO: sort pages based on attachment index
   const cmd = `pdftk ${pages.join(" ")} cat output ${output}`;
   log.info(`Running command: "${cmd}" from current dir ${process.cwd()}`);

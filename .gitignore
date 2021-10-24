@@ -10,7 +10,7 @@
 **/private.test.ts
 **/separate.json
 **/state.json
-**/tax-return.pdf
+**/tax-return*.pdf
 **/transactions.json
 modules/client/src/data
 **/TODO*
