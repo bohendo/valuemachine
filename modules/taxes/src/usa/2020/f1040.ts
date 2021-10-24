@@ -1,7 +1,7 @@
 import { math } from "@valuemachine/utils";
 
-import { Forms } from "../mappings";
-import { logger } from "../utils";
+import { Forms } from "../../mappings";
+import { logger } from "../../utils";
 
 export const f1040 = (oldForms: Forms): Forms => {
   const log = logger.child({ module: "f1040" });

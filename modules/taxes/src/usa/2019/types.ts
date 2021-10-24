@@ -4,10 +4,10 @@ import {
   ExpenseEvent,
 } from "@valuemachine/types";
 
-import { HistoricalMappings, HistoricalForms } from "../../mappings";
+import { FormArchive } from "../../mappings";
 
-export const Mappings = HistoricalMappings["2019"];
-export type Forms = HistoricalForms["2019"];
+export const Mappings = FormArchive["2019"];
+export type Forms = FormArchive["2019"];
 
 export const Modes = {
   example: "example",

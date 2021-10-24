@@ -3,17 +3,17 @@ import { ValueMachine, Prices } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
-import { Forms, Mappings, HistoricalMappings } from "./mappings";
+import { Forms, FormArchive } from "./mappings";
 import { getEmptyForms, getTaxReturn } from "./usa";
 
 const log = getLogger("info", "PDF Translator");
 
 export const fillForm = async (
+  year: string,
   form: string,
   data: any,
+  dir: string,
   pdf: any,
-  year?: string,
-  dir?: string,
 ): Promise<string> => {
   const translate = (form, mapping): any => {
     const newForm = {};
@@ -47,7 +47,7 @@ export const fillForm = async (
     pdf.fillFormWithFlatten(
       sourcePath,
       destinationPath,
-      translate(data, year ? HistoricalMappings[year][form] : Mappings[form]),
+      translate(data, FormArchive[year][form]),
       false,
       err => err ? rej(err) : res(destinationPath),
     );
@@ -55,11 +55,11 @@ export const fillForm = async (
 };
 
 export const fillReturn = async (
+  year: string,
   forms: any,
+  dir: string,
   pdf: any,
   execSync: any,
-  year?: string,
-  dir?: string,
 ): Promise<string> => {
   const pages = [] as string[];
   for (const entry of Object.entries(forms)) {
@@ -68,11 +68,23 @@ export const fillReturn = async (
     if (data?.length) {
       for (const page of data) {
         log.info(`Filing page of ${name} with ${Object.keys(data).length} fields`);
-        pages.push(await fillForm(name, page, pdf, year, dir));
+        pages.push(await fillForm(
+          year,
+          name,
+          page,
+          dir,
+          pdf,
+        ));
       }
     } else {
       log.info(`Filing ${name} with ${Object.keys(data).length} fields`);
-      pages.push(await fillForm(name, data, pdf, year, dir));
+      pages.push(await fillForm(
+        year,
+        name,
+        data,
+        dir,
+        pdf,
+      ));
     }
   }
   const output = `${dir || "/tmp"}/tax-return${year ? `-${year}` : ""}.pdf`;
@@ -109,8 +121,8 @@ export const requestFilledForm = async (form: string, data: any, window: any): P
 };
 
 export const requestTaxReturn = async (
+  year: string,
   guard: string,
-  taxYear: string,
   vm: ValueMachine,
   prices: Prices,
   formData: Forms,
@@ -120,15 +132,15 @@ export const requestTaxReturn = async (
     log.warn(`Missing form data, not requesting tax return`);
     return;
   } else {
-    log.info(`Fetching ${guard} tax return for ${taxYear} w ${Object.keys(formData).length} forms`);
-    const forms = guard === Guards.USA ? await getTaxReturn(taxYear, vm, prices, formData)
-      : getEmptyForms();
+    log.info(`Fetching ${guard} tax return for ${year} w ${Object.keys(formData).length} forms`);
+    const forms = guard === Guards.USA ? await getTaxReturn(year, vm, prices, formData)
+      : getEmptyForms(year);
     return new Promise((res, rej) => {
       axios({
         url: `/api/taxes`,
         method: "post",
         responseType: "blob",
-        data: { forms },
+        data: { forms, year },
       }).then((response) => {
         const url = window.URL.createObjectURL(new window.Blob([response.data]));
         const link = window.document.createElement("a");

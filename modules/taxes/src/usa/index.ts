@@ -3,28 +3,29 @@ import {
   ValueMachine,
 } from "@valuemachine/types";
 
-import { Forms } from "../mappings";
+import { FormArchive, Forms } from "../mappings";
 
-import { f1040 } from "./f1040";
-import { f8949 } from "./f8949";
+import { f1040 } from "./2020/f1040";
+import { f8949 } from "./2020/f8949";
 
-export const getEmptyForms = (): Forms => ({
-  f1040: {},
-  f1040s1: {},
-  f1040s2: {},
-  f1040s3: {},
-  f2555: {},
-  f8949: [],
-});
+export const getEmptyForms = (year: string): Forms =>
+  Object.keys(FormArchive[year]).reduce((forms, form) => ({
+    ...forms,
+    [form]: Object.keys(FormArchive[year][form]).reduce((fields, field) => ({
+      ...fields,
+      [field]: "",
+    }), {}),
+  }), {});
 
+// TODO: keep side effects between form filers
 export const getTaxReturn = (
-  taxYear: string,
+  year: string,
   vm: ValueMachine,
   prices: Prices,
   formData: Forms,
 ): Forms => ({
-  ...getEmptyForms(),
+  ...getEmptyForms(year),
   ...formData,
-  f8949: f8949(vm, prices, taxYear),
-  f1040: f1040({ ...getEmptyForms(), ...formData }).f1040, // TODO: keep side effects
+  f8949: f8949(vm, prices, year),
+  f1040: f1040({ ...getEmptyForms(year), ...formData }).f1040,
 });

@@ -75,7 +75,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
   const handleExport = () => {
     if (!guard || !taxYear || !vm?.json || !prices?.json || !formData) return;
-    requestTaxReturn(guard, taxYear, vm, prices, formData, window);
+    requestTaxReturn(taxYear, guard, vm, prices, formData, window);
   };
 
   const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
