@@ -33,6 +33,7 @@ modules/taxes/ops/forms/i*.pdf
 **/.flags
 **/build/**
 **/dist/**
+**/modules/taxes/f[0-9]*.pdf
 **/node_modules/**
 
 # Backups

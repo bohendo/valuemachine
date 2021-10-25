@@ -1,6 +1,6 @@
 {
-  "f1_1_0": "topmostSubform[0].Page1[0].f1_1[0]",
-  "f1_2_0": "topmostSubform[0].Page1[0].f1_2[0]",
+  "Name": "topmostSubform[0].Page1[0].f1_1[0]",
+  "SSN": "topmostSubform[0].Page1[0].f1_2[0]",
   "f1_3_0": "topmostSubform[0].Page1[0].f1_3[0]",
   "f1_4_0": "topmostSubform[0].Page1[0].f1_4[0]",
   "f1_5_0": "topmostSubform[0].Page1[0].f1_5[0]",
