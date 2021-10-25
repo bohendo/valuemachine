@@ -73,7 +73,9 @@ export const App: React.FC<AppProps> = ({
   const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsvFiles());
   const [customTxns, setCustomTxns] = useState(store.load(CustomTxnsStore) || [] as Transaction[]);
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
-  const [forms, setForms] = useState(store.load(TaxFormStore) || getEmptyForms());
+  const [forms, setForms] = useState(
+    store.load(TaxFormStore) || getEmptyForms((new Date().getFullYear()-1).toString())
+  );
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook());
