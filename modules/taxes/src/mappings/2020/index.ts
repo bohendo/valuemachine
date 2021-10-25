@@ -7,6 +7,7 @@ import f1040sb from "./f1040sb.json";
 import f1040sc from "./f1040sc.json";
 import f1040sd from "./f1040sd.json";
 import f1040sse from "./f1040sse.json";
+import f2210 from "./f2210.json";
 import f2555 from "./f2555.json";
 import f8949 from "./f8949.json";
 
@@ -20,7 +21,7 @@ export const Mappings = {
   f1040sc,
   f1040sd,
   f1040sse,
-  f2210: {},
+  f2210,
   f2555,
   f8949,
 } as const;

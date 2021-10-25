@@ -2,6 +2,10 @@ import { toFdf } from "./fdf";
 
 type FdfJson = { [key: string]: string; };
 
+export const getFieldNickname = (field) =>
+  field.split(".").pop().replace(/]/g, "_").replace(/\[/g, "_")
+    .replace(/_+/, "_").replace(/^_/, "").replace(/_$/, "");
+
 export const getPdfUtils = (libs: { fs: any, execFile: any, Iconv: any }) => {
   const { fs, execFile, Iconv } = libs;
   if (!fs) throw new Error(`Node fs module must be injected`);
@@ -9,7 +13,6 @@ export const getPdfUtils = (libs: { fs: any, execFile: any, Iconv: any }) => {
   if (!Iconv) throw new Error(`Iconv binary module must be injected`);
 
   const generateMapping = (sourceFile: string): Promise<FdfJson> => {
-    const getNickname = (field) => field.split(".").pop().replace(/]/g, "").replace(/\[/g, "_");
     return new Promise((res, rej) => {
       execFile("pdftk", [sourceFile, "dump_data_fields_utf8"], (error, stdout, stderr) => {
         if (stderr) console.error(stderr);
@@ -19,7 +22,7 @@ export const getPdfUtils = (libs: { fs: any, execFile: any, Iconv: any }) => {
           const name = field.match(/FieldName: ([^\n]*)/)[1].trim() || "";
           if (fieldType !== "Text" && fieldType !== "Button") return mapping;
           if (!name) return mapping;
-          return ({ ...mapping, [getNickname(name)]: name });
+          return ({ ...mapping, [getFieldNickname(name)]: name });
         }, {} as FdfJson));
       });
     });
