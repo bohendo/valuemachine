@@ -20,6 +20,7 @@ export const Mappings = {
   f1040sc,
   f1040sd,
   f1040sse,
+  f2210: {},
   f2555,
   f8949,
 } as const;
@@ -36,6 +37,7 @@ export type Forms = {
   f1040sc?: { [key in keyof typeof Mappings.f1040sc]?: any; };
   f1040sd?: { [key in keyof typeof Mappings.f1040sd]?: any; };
   f1040sse?: { [key in keyof typeof Mappings.f1040sse]?: any; };
+  f2210?: { [key in keyof typeof Mappings.f2210]?: any; };
   f2555?: { [key in keyof typeof Mappings.f2555]?: any; };
   f8949?: Array<{ [key in keyof typeof Mappings.f8949]?: any; }>;
 };

@@ -65,7 +65,7 @@ describe("Tax Form Mappings", () => {
           log.info(`Wrote ${Object.keys(currentMappings).length} updated mappings to ${target}`);
         } else {
           const data = fields.reduce((res, field) => ({ ...res, [getNickname(field)]: field }), {});
-          log.info(data, `Wrote new mappings to ${target}`);
+          log.warn(`Wrote ${Object.keys(data).length} new mappings to ${target}`);
           fs.writeFileSync(target, JSON.stringify(data, null, 2));
         }
       }
