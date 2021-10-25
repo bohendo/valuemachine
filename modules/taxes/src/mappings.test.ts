@@ -7,23 +7,43 @@ import { Iconv } from "iconv";
 import { expect } from "chai";
 
 import { FormArchive } from "./mappings";
-import { fillReturn, mapForm } from "./pdf";
+import { fetchUsaForm, fillReturn, getMapping } from "./pdf";
 import { getPdfUtils } from "./pdffiller";
 
 const log = getLogger("info", "Mappings");
 const pdf = getPdfUtils({ fs, execFile, Iconv });
+const root = path.join(__dirname, "..");
 
 describe("Tax Form Mappings", () => {
 
-  it.skip(`should build & fix form mappings`, async () => {
+  it.skip(`should build & fix mappings for one form`, async () => {
+    const [year, form] = ["2020", "f2210"];
+    const emptyPdf = `${root}/forms/${year}/${form}.pdf`;
+    if (fs.existsSync(emptyPdf)) {
+      const mapping = await getMapping(year, form, pdf);
+      expect(mapping).to.be.ok;
+      log.info(mapping, `Got mapping for ${year} ${form}`);
+    } else {
+      log.info(`Empty pdf doesn't exist at ${emptyPdf}`);
+      await fetchUsaForm(year, form, fs);
+    }
+  });
+
+  it.only(`should build & fix all form mappings`, async () => {
     for (const year of ["2019", "2020"]) {
-      if (!FormArchive[year]) continue;
+      if (!FormArchive[year]) continue; // Skip if we don't support forms for this year
       for (const form of Object.keys(FormArchive[year]).concat([])) {
-        const fields = Object.keys(await mapForm(year, form, pdf) || {});
+        let fields;
+        try {
+          fields = Object.values(await getMapping(year, form, pdf) || {});
+        } catch (e) {
+          await fetchUsaForm(year, form, fs);
+          fields = Object.values(await getMapping(year, form, pdf) || {});
+        }
         expect(fields.length).to.be.ok; // the empty form should exist & have >0 forms
         log.info(`Got ${fields.length} entries of fdf data from empty ${year} ${form}.pdf file`);
         const getNickname = (field) => field.split(".").pop().replace(/]/g, "").replace(/\[/g, "_");
-        const target = `${path.join(__dirname, "mappings")}/${year}/${form}.json`;
+        const target = `${root}/src/mappings/${year}/${form}.json`;
         if (fs.existsSync(target)) {
           expect(FormArchive[year][form]).to.be.ok;
           const currentMappings = JSON.parse(fs.readFileSync(target));
@@ -62,13 +82,7 @@ describe("Tax Form Mappings", () => {
       }), {}),
     }), {});
     log.debug(formData, "formData");
-    expect(await fillReturn(
-      year,
-      formData,
-      process.cwd(),
-      pdf,
-      execSync,
-    )).to.be.a("string");
+    expect(await fillReturn(year, formData, root, pdf, execSync)).to.be.a("string");
   });
 
   it("should fill out all fields for 2019 forms", async () => {
@@ -81,13 +95,7 @@ describe("Tax Form Mappings", () => {
       }), {}),
     }), {});
     log.debug(formData, "formData");
-    expect(await fillReturn(
-      "2019",
-      formData,
-      process.cwd(),
-      pdf,
-      execSync,
-    )).to.be.a("string");
+    expect(await fillReturn("2019", formData, root, pdf, execSync)).to.be.a("string");
   });
 
 });

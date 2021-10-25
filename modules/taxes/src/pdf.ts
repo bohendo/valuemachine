@@ -41,16 +41,13 @@ export const fillForm = async (
   const sourcePath = cwd.endsWith("taxes") ? `${cwd}/forms/${year ? `${year}/` : ""}${form}.pdf`
     : `${cwd}/node_modules/@valuemachine/taxes/forms/${form}.pdf`;
   const destinationPath = `${dir || "/tmp"}/${form}${year ? `-${year}` : ""}.pdf`;
-  return new Promise((res, rej) => {
-    log.info(`Translating ${form} data`);
-    pdf.fillForm(
-      sourcePath,
-      destinationPath,
-      translate(data, FormArchive[year][form]),
-      false,
-      err => err ? rej(err) : res(destinationPath),
-    );
-  });
+  const res = await pdf.fillForm(
+    sourcePath,
+    destinationPath,
+    translate(data, FormArchive[year][form]),
+  );
+  if (res) log.info(`Successfully filled in pdf & saved it to ${res}`);
+  return res || "";
 };
 
 export const fillReturn = async (
@@ -153,28 +150,28 @@ export const requestTaxReturn = async (
   }
 };
 
-export const mapForm = async (year: string, form: string, pdf: any): Promise<any> => {
-  const pdfPath = `${process.cwd()}/forms/${year}/${form}.pdf`;
-  log.debug(`Mapping pdf at ${pdfPath}`);
-  return new Promise((res, rej) => {
-    pdf.generateFDFTemplate(
-      `${process.cwd()}/forms/${year}/${form}.pdf`,
-      null, // Field name regex, default: /FieldName: ([^\n]*)/
-      (err, fdf) => err ? rej(err) : res(fdf),
-    );
-  });
+export const getMapping = async (year: string, form: string, pdf: any): Promise<any> => {
+  const emptyPdf = `${process.cwd()}/forms/${year}/${form}.pdf`;
+  const mapping = await pdf.generateMapping(emptyPdf);
+  log.info(`Got mapping w ${Object.keys(mapping).length} entries from empty pdf at ${emptyPdf}`);
+  return mapping;
 };
 
-/*
-path = "__filename/.."
-export const fetchForm = async (form: string): Promise<boolean> => {
+export const fetchUsaForm = async (year: string, form: string, fs: any): Promise<boolean> => {
+  const url = year === new Date().getFullYear().toString()
+    ? `https://www.irs.gov/pub/irs-pdf/${form}.pdf`
+    : `https://www.irs.gov/pub/irs-prior/${form}--${year}.pdf`;
+  log.info(`Fetching ${year} ${form} from ${url}`);
+  const emptyPdf = `${process.cwd()}/forms/${year}/${form}.pdf`;
+  const writer = fs.createWriteStream(emptyPdf);
   return new Promise((res, rej) => {
-    axios({
-      url: `https://www.irs.gov/pub/irs-pdf/${name}.pdf`,
-      method: "get",
-      responseType: "blob",
-    }).then((response) => {
+    axios({ url, method: "get", responseType: "stream" }).then((response) => {
+      response.data.pipe(writer);
+      writer.on("finish", () => {
+        log.info(`Finished writing pdf file to ${emptyPdf}`);
+        res();
+      });
+      writer.on("error", rej);
     }).catch(e => rej(e));
   });
 };
-*/
