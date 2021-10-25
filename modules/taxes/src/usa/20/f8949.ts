@@ -1,11 +1,7 @@
-import { Assets, Guards } from "@valuemachine/transactions";
-import { EventTypes, TradeEvent, Prices, ValueMachine } from "@valuemachine/types";
+import { EventTypes, TaxRow } from "@valuemachine/types";
 import { getLogger, add, gt, mul, round, sub } from "@valuemachine/utils";
 
-const log = getLogger().child({ module: "Taxes" }, { level: "debug" });
-
-const guard = Guards.USA;
-const unit = Assets.USD;
+import { Forms } from "../../mappings";
 
 type Trade = {
   date: string;
@@ -17,40 +13,23 @@ type Trade = {
 };
 
 // returns an array of form data
-export const f8949 = (
-  vm: ValueMachine,
-  prices: Prices,
-  taxYear: string,
-): any[] => {
-  if (!vm?.json?.chunks?.length || !prices.json || !taxYear) {
-    log.warn(`Missing args, not requesting f8949`);
-    return [];
-  }
+export const f8949 = (taxRows: TaxRow[], oldForms: Forms): Forms  => {
+  const log = getLogger("info").child({ module: "f8949" });
+  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
 
+  // Merge trades w the same received & sold dates
   const getDate = (timestamp: string): string => timestamp.split("T")[0];
-  const trades = [];
-  // we should merge chunks w the same receiveDate + disposeDate
-  for (const event of vm.json.events) {
-    if (event.type !== EventTypes.Trade || event.account?.startsWith(`${guard}/`)) continue;
-    for (const chunkIndex of (event as TradeEvent).outputs) {
-      const chunk = vm.getChunk(chunkIndex);
-      if (chunk.disposeDate?.startsWith(taxYear)) {
-        const purchaseDate = getDate(chunk.history[0].date);
-        const receivePrice = prices.getNearest(purchaseDate, chunk.asset, unit);
-        const assetPrice = prices.getNearest(chunk.disposeDate, chunk.asset, unit);
-        if (receivePrice !== assetPrice) {
-          trades.push({
-            date: getDate(chunk.disposeDate),
-            asset: chunk.asset,
-            receivePrice,
-            assetPrice,
-            purchaseDate: purchaseDate,
-            amount: chunk.amount,
-          });
-        }
-      }
-    }
-  }
+  const trades = [] as Trade[];
+  taxRows.filter(tax => tax.action === EventTypes.Trade).forEach((tax: TaxRow): void => {
+    trades.push({
+      date: getDate(tax.date),
+      asset: tax.asset,
+      receivePrice: tax.receivePrice,
+      assetPrice: tax.price,
+      purchaseDate: tax.receiveDate,
+      amount: tax.amount,
+    });
+  });
 
   if (trades.length) {
 
@@ -109,7 +88,7 @@ export const f8949 = (
     }
 
     // Calculate totals from f8949 rows
-    return f8949.map((page, p): any => {
+    const sumF8949 = (page, index): any => {
       const shortTotal = {};
       const longTotal = {};
       for (const column of columns) {
@@ -131,12 +110,14 @@ export const f8949 = (
         }
       }
       for (const column of columns) {
-        log.debug(`Subtotal ${p} ${column}: short=${shortTotal[column]} long=${longTotal[column]}`);
+        log.debug(`Subtotal ${index} ${column}: short=${shortTotal[column]} long=${longTotal[column]}`);
         page[`P1L2${column}`] = round(shortTotal[column]);
         page[`P2L2${column}`] = round(longTotal[column]);
       }
       return page;
-    });
+    };
+    return { ...forms, f8949: f8949.length ? f8949.map(sumF8949) : sumF8949(f8949, 1) };
   }
-  return [];
+
+  return forms;
 };

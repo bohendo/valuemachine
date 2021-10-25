@@ -24,32 +24,30 @@ export const f1040sd = (taxRows: TaxRow[], oldForms: Forms): Forms => {
     ["?"]: { proceeds: "0", cost: "0", adjustments: "0", gainOrLoss: "0" },
   };
 
-  for (const f8949 of forms.f8949) {
-
+  const totalF8949 = f8949 => {
     const shortType =
       f8949.P1C0_A ? "A"
       : f8949.P1C0_B ? "B"
       : f8949.P1C0_C ? "C"
       : "?";
-
     log.debug(`Short-term f8949 row: proceeds=${f8949.P1L2d} cost=${f8949.P1L2e} gain|loss=${f8949.P1L2h}`);
     totals[shortType].proceeds = add(totals[shortType].proceeds, f8949.P1L2d);
     totals[shortType].cost = add(totals[shortType].cost, f8949.P1L2e);
     totals[shortType].adjustments = add(totals[shortType].adjustments, f8949.P1L2g);
     totals[shortType].gainOrLoss = add(totals[shortType].gainOrLoss, f8949.P1L2h);
-
     const longType =
       f8949.P2C0_D ? "D"
       : f8949.P2C0_E ? "E"
       : f8949.P2C0_F ? "F"
       : "?";
-
     log.debug(`Long-term f8949 row: proceeds=${f8949.P2L2d} cost=${f8949.P2L2e} gain|loss=${f8949.P2L2h}`);
     totals[longType].proceeds = add(totals[longType].proceeds, f8949.P2L2d);
     totals[longType].cost = add(totals[longType].cost, f8949.P2L2e);
     totals[longType].adjustments = add(totals[longType].adjustments, f8949.P2L2g);
     totals[longType].gainOrLoss = add(totals[longType].gainOrLoss, f8949.P2L2h);
-  }
+  };
+
+  forms.f8949.length ? forms.f8949.forEach(totalF8949) : totalF8949(forms.f8949);
 
   f1040sd.L1b_d = round(totals.A.proceeds);
   f1040sd.L1b_e = round(totals.A.cost);

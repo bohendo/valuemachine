@@ -42,5 +42,5 @@ export type Forms = {
   f2210?: { [key in keyof typeof Mappings.f2210]?: any; };
   f2555?: { [key in keyof typeof Mappings.f2555]?: any; };
   f8889?: { [key in keyof typeof Mappings.f8889]?: any; };
-  f8949?: Array<{ [key in keyof typeof Mappings.f8949]?: any; }>;
+  f8949?: { [key in keyof typeof f8949]?: any; } | Array<{ [key in keyof typeof f8949]?: any; }>;
 };

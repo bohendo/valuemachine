@@ -2,7 +2,7 @@ import { MaxUint256 } from "@ethersproject/constants";
 import { TaxRow, EventTypes, TimestampString } from "@valuemachine/types";
 import { getLogger, math } from "@valuemachine/utils";
 
-export const logger = getLogger("info", "TaxUtils2019");
+export const logger = getLogger("info", "TaxUtils19");
 
 export const processIncome = (
   taxes: TaxRow[],

@@ -94,7 +94,7 @@ export const f8949 = (taxRows: TaxRow[], oldForms: Forms): Forms  => {
   }
 
   // Calculate totals from f8949 rows
-  f8949 = f8949.map((page, p): any => {
+  const sumF8949 = (page, index): any => {
     page.P1_Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
     page.P1_SSN = f1040.SSN;
     page.P2_Name = page.P1_Name;
@@ -120,12 +120,13 @@ export const f8949 = (taxRows: TaxRow[], oldForms: Forms): Forms  => {
       }
     }
     for (const column of columns) {
-      log.debug(`Subtotal ${p} ${column}: short=${shortTotal[column]} long=${longTotal[column]}`);
+      log.debug(`Subtotal ${index} ${column}: short=${shortTotal[column]} long=${longTotal[column]}`);
       page[`P1L2${column}`] = round(shortTotal[column]);
       page[`P2L2${column}`] = round(longTotal[column]);
     }
     return page;
-  });
+  };
 
+  f8949 = f8949.length ? f8949.map(sumF8949) : sumF8949(f8949, 1);
   return { ...forms, f8949 };
 };

@@ -1,18 +1,40 @@
-import { Mappings as Mappings2019, Forms as Forms2019 } from "./2019";
-import { Mappings as Mappings2020, Forms as Forms2020 } from "./2020";
+import { Static, Type } from "@sinclair/typebox";
 
+import { Mappings as MappingsUSA19 } from "./USA19";
+import { Mappings as MappingsUSA20 } from "./USA20";
+
+// Can't just be 2019 bc enums can't start with a number
 export const TaxYears = {
-  ["2019"]: "2019",
-  ["2020"]: "2020",
+  USA19: "USA19",
+  USA20: "USA20",
 } as const;
+export const TaxYear = Type.Enum(TaxYears); // NOT Extensible
+export type TaxYear = Static<typeof TaxYear>;
 
 export const FormArchive = {
-  ["2019"]: Mappings2019,
-  ["2020"]: Mappings2020,
+  [TaxYears.USA19]: MappingsUSA19,
+  [TaxYears.USA20]: MappingsUSA20,
 };
-export type FormArchive = {
-  ["2019"]: Forms2019;
-  ["2020"]: Forms2020;
+/* TODO export this type
+export type namespace FormArchive {
+  export type USA19 = FormsUSA19;
+  export type USA20 = FormsUSA20;
+}
+*/
+
+export const getEmptyForms = (year: string): Forms =>
+  Object.keys(FormArchive[year]).reduce((forms, form) => ({
+    ...forms,
+    [form]: Object.keys(FormArchive[year][form]).reduce((fields, field) => ({
+      ...fields,
+      [field]: "",
+    }), {}),
+  }), {});
+
+export type Form = {
+  [field: string]: any; // TODO: type as string | boolean according to mapping
 };
 
-export type Forms = any; // TODO: make it match any form from any year
+export type Forms = {
+  [form: string]: any; // TODO: type as Array<Form> | Form;
+};

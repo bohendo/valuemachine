@@ -6,8 +6,8 @@ import {
 
 import { FormArchive } from "../../mappings";
 
-export const Mappings = FormArchive["2019"];
-export type Forms = FormArchive["2019"];
+export const Mappings = FormArchive.USA19;
+export type Forms = any;
 
 export const Modes = {
   example: "example",

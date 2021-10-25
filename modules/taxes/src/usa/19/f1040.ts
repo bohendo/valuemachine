@@ -7,6 +7,7 @@ export const f1040 = (oldForms: Forms): Forms => {
   const log = logger.child({ module: "f1040" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040s2, f1040s3, f2555 } = forms;
+  if (f1040.length) return forms; // abort if >1 page
 
   let filingStatus;
   if (f1040.Single || f1040.MarriedFilingSeparately) {

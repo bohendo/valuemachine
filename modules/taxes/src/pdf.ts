@@ -4,13 +4,14 @@ import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
 import { getPdfUtils } from "./pdfUtils";
-import { Forms, FormArchive } from "./mappings";
-import { getEmptyForms, getTaxReturn } from "./usa";
+import { getEmptyForms, Forms, FormArchive, TaxYear } from "./mappings";
+import { getTaxReturn } from "./return";
+import { getTaxRows } from "./utils";
 
 const log = getLogger("info", "PDF Translator");
 
 export const fillForm = async (
-  year: string,
+  taxYear: TaxYear,
   form: string,
   data: any,
   dir: string,
@@ -39,20 +40,20 @@ export const fillForm = async (
     return newForm;
   };
   const cwd = process.cwd();
-  const srcPath = cwd.endsWith("taxes") ? `${cwd}/forms/${year ? `${year}/` : ""}${form}.pdf`
-    : `${cwd}/node_modules/@valuemachine/taxes/forms/${year ? `${year}/` : ""}${form}.pdf`;
-  const destPath = `${dir || "/tmp"}/${form}${year ? `-${year}` : ""}.pdf`;
+  const srcPath = cwd.endsWith("taxes") ? `${cwd}/forms/${taxYear}/${form}.pdf`
+    : `${cwd}/node_modules/@valuemachine/taxes/forms/${taxYear}/${form}.pdf`;
+  const destPath = `${dir || "/tmp"}/${form}-${taxYear}.pdf`;
   const res = await getPdfUtils(libs).fillForm(
     srcPath,
     destPath,
-    translate(data, FormArchive[year][form]),
+    translate(data, FormArchive[taxYear][form]),
   );
   if (res) log.info(`Successfully filled in pdf & saved it to ${res}`);
   return res || "";
 };
 
 export const fillReturn = async (
-  year: string,
+  taxYear: TaxYear,
   forms: any,
   dir: string,
   libs: { fs: any; execFile: any; },
@@ -66,7 +67,7 @@ export const fillReturn = async (
       for (const page of data) {
         log.info(`Filing page of ${name} with ${Object.keys(data).length} fields`);
         pages.push(await fillForm(
-          year,
+          taxYear,
           name,
           page,
           "/tmp",
@@ -76,7 +77,7 @@ export const fillReturn = async (
     } else {
       log.info(`Filing ${name} with ${Object.keys(data).length} fields`);
       pages.push(await fillForm(
-        year,
+        taxYear,
         name,
         data,
         "/tmp",
@@ -84,8 +85,8 @@ export const fillReturn = async (
       ));
     }
   }
-  const output = `${dir || "/tmp"}/tax-return${year ? `-${year}` : ""}.pdf`;
-  // TODO: sort pages based on attachment index
+  const output = `${dir || "/tmp"}/tax-return-${taxYear}.pdf`;
+  // TODO: sort pages based on attachment index?
   const cmd = `pdftk ${pages.join(" ")} cat output ${output}`;
   log.info(`Running command: "${cmd}" from current dir ${process.cwd()}`);
   return new Promise((res, rej) => {
@@ -97,7 +98,12 @@ export const fillReturn = async (
   });
 };
 
-export const requestFilledForm = async (form: string, data: any, window: any): Promise<void> => {
+export const requestFilledForm = async (
+  taxYear: TaxYear,
+  form: string,
+  data: any,
+  window: any,
+): Promise<void> => {
   if (!data) {
     log.warn(`Missing data, not requesting ${form}`);
     return;
@@ -107,7 +113,7 @@ export const requestFilledForm = async (form: string, data: any, window: any): P
         url: `/api/taxes/${form}`,
         method: "post",
         responseType: "blob",
-        data: { data },
+        data: { data, taxYear },
       }).then((response: any) => {
         const url = window.URL.createObjectURL(new window.Blob([response.data]));
         const link = window.document.createElement("a");
@@ -122,7 +128,7 @@ export const requestFilledForm = async (form: string, data: any, window: any): P
 };
 
 export const requestTaxReturn = async (
-  year: string,
+  taxYear: TaxYear,
   guard: string,
   vm: ValueMachine,
   prices: Prices,
@@ -133,20 +139,21 @@ export const requestTaxReturn = async (
     log.warn(`Missing form data, not requesting tax return`);
     return;
   } else {
-    log.info(`Fetching ${guard} tax return for ${year} w ${Object.keys(formData).length} forms`);
-    const forms = guard === Guards.USA ? await getTaxReturn(year, vm, prices, formData)
-      : getEmptyForms(year);
+    const taxRows = getTaxRows({ guard, prices, vm, taxYear });
+    log.info(`Fetching ${guard} tax return for ${taxYear} w ${Object.keys(formData).length} forms`);
+    const forms = guard === Guards.USA ? await getTaxReturn(taxYear, taxRows, formData)
+      : getEmptyForms(taxYear);
     return new Promise((res, rej) => {
       axios({
         url: `/api/taxes`,
         method: "post",
         responseType: "blob",
-        data: { forms, year },
+        data: { forms, taxYear },
       }).then((response) => {
         const url = window.URL.createObjectURL(new window.Blob([response.data]));
         const link = window.document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `tax-return-${year}.pdf`);
+        link.setAttribute("download", `tax-return-${taxYear}.pdf`);
         window.document.body.appendChild(link);
         link.click();
         res();
@@ -156,22 +163,26 @@ export const requestTaxReturn = async (
 };
 
 export const getMapping = async (
-  year: string,
+  taxYear: TaxYear,
   form: string,
   libs: { fs: any; execFile: any; },
 ): Promise<any> => {
-  const emptyPdf = `${process.cwd()}/forms/${year}/${form}.pdf`;
+  const emptyPdf = `${process.cwd()}/forms/${taxYear}/${form}.pdf`;
   const mapping = await getPdfUtils(libs).generateMapping(emptyPdf);
   log.info(`Got mapping w ${Object.keys(mapping).length} entries from empty pdf at ${emptyPdf}`);
   return mapping;
 };
 
-export const fetchUsaForm = async (year: string, form: string, fs: any): Promise<boolean> => {
-  const url = year === new Date().getFullYear().toString()
+export const fetchUsaForm = async (
+  taxYear: TaxYear,
+  form: string,
+  fs: any,
+): Promise<boolean> => {
+  const url = taxYear.endsWith((new Date().getFullYear() - 1).toString().substring(2))
     ? `https://www.irs.gov/pub/irs-pdf/${form}.pdf`
-    : `https://www.irs.gov/pub/irs-prior/${form}--${year}.pdf`;
-  log.info(`Fetching ${year} ${form} from ${url}`);
-  const emptyPdf = `${process.cwd()}/forms/${year}/${form}.pdf`;
+    : `https://www.irs.gov/pub/irs-prior/${form}--${taxYear}.pdf`;
+  log.info(`Fetching ${taxYear} ${form} from ${url}`);
+  const emptyPdf = `${process.cwd()}/forms/${taxYear}/${form}.pdf`;
   const writer = fs.createWriteStream(emptyPdf);
   return new Promise((res, rej) => {
     axios({ url, method: "get", responseType: "stream" }).then((response: any) => {
