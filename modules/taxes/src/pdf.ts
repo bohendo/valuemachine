@@ -154,13 +154,16 @@ export const requestTaxReturn = async (
   }
 };
 
-export const mapForm = async (form: string, pdf: any): Promise<any> => {
+export const mapForm = async (year: string, form: string, pdf: any): Promise<any> => {
   // 2nd arg sets the field name regex. Default: /FieldName: ([^\n]*)/
+  const pdfPath = `${process.cwd()}/forms/${year}/${form}.pdf`;
+  log.debug(`Mapping pdf at ${pdfPath}`);
   return new Promise((res, rej) => {
-    pdf.generateFDFTemplate(`${process.cwd()}/forms/${form}.pdf`, null, (err, fdfData) => {
-      if (err) rej(err);
-      res(fdfData);
-    });
+    pdf.generateFDFTemplate(
+      `${process.cwd()}/forms/${year}/${form}.pdf`,
+      null,
+      (err, fdf) => err ? rej(err) : res(fdf),
+    );
   });
 };
 

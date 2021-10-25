@@ -12,7 +12,7 @@ export const f1040sd = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const { f1040, f1040sd } = forms;
 
   f1040sd.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
-  f1040sd.SSN = f1040.SocialSecurityNumber;
+  f1040sd.SSN = f1040.SSN;
 
   const totals = {
     A: { proceeds: "0", cost: "0", adjustments: "0", gainOrLoss: "0" },

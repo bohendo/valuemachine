@@ -10,7 +10,7 @@ export const f1040s3 = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const { f1040, f1040s3 } = forms;
 
   f1040s3.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
-  f1040s3.SSN = f1040.SocialSecurityNumber;
+  f1040s3.SSN = f1040.SSN;
 
   f1040s3.L7 = math.add(
     f1040s3.L1, f1040s3.L2, f1040s3.L3,

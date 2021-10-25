@@ -11,11 +11,9 @@
   "L5c": "topmostSubform[0].Page1[0].f1_9[0]",
   "L5d": "topmostSubform[0].Page1[0].f1_10[0]",
   "L5e": "topmostSubform[0].Page1[0].f1_11[0]",
-  "L6_Other": "topmostSubform[0].Page1[0].f1_12[0]",
   "L6_Other": "topmostSubform[0].Page1[0].f1_13[0]",
   "L6": "topmostSubform[0].Page1[0].f1_14[0]",
   "L7": "topmostSubform[0].Page1[0].f1_15[0]",
-  "C8a": "topmostSubform[0].Page1[0].Line8_ReadOrder[0].c1_2[0]",
   "L8a": "topmostSubform[0].Page1[0].f1_16[0]",
   "L8b_Other1": "topmostSubform[0].Page1[0].f1_17[0]",
   "L8b_Other2": "topmostSubform[0].Page1[0].f1_18[0]",
@@ -35,5 +33,8 @@
   "L16_Other3": "topmostSubform[0].Page1[0].f1_32[0]",
   "L16": "topmostSubform[0].Page1[0].f1_33[0]",
   "L17": "topmostSubform[0].Page1[0].f1_34[0]",
-  "C18": "topmostSubform[0].Page1[0].Line18_ReadOrder[0].c1_3[0]"
+  "f1_12_0": "topmostSubform[0].Page1[0].f1_12[0]",
+  "c1_2_0": "topmostSubform[0].Page1[0].c1_2[0]",
+  "c1_3_0": "topmostSubform[0].Page1[0].c1_3[0]",
+  "topmostSubform_0": "topmostSubform[0]"
 }

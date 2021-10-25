@@ -10,7 +10,7 @@ export const f1040sse = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const { f1040s1, f1040s2, f1040sse } = forms;
 
   f1040sse.P1_FullName = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
-  f1040sse.P1_SSN = forms.f1040.SocialSecurityNumber;
+  f1040sse.P1_SSN = forms.f1040.SSN;
   f1040sse.P2_FullName = f1040sse.P1_FullName;
   f1040sse.P2_SSN = f1040sse.P1_SSN;
 

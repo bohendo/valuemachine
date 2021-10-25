@@ -13,26 +13,42 @@ const log = getLogger("info", "Mappings");
 
 describe("Tax Form Mappings", () => {
 
-  // TODO: re-fetch all mappings w field names that don't discard any
-  // TODO: insert any new fields that don't exist in the file yet?
-  // Change formName then unskip to add a new form mapping
+  // Change form then unskip to add a new form mapping
   // then add the new mapping to the index & create a new form filer
-  it.skip("should fetch & save new mappings", async () => {
-    // const year = "2020";
-    const formName = "f1040";
-    const target = `${path.join(__dirname, "mappings")}/${formName}.json`;
-    if (fs.existsSync(target)) {
-      log.warn(`Aborting, mappings already exist at ${target}`);
-    } else {
-      log.info(`Writing new mappings to ${target}`);
-      fs.writeFileSync(target, JSON.stringify(
-        Object.keys(await mapForm(formName, pdf)).reduce((res, field) => ({
-          ...res,
-          [field.split(".").pop().split("[")[0]]: field,
-        }), {}),
-        null,
-        2,
-      ));
+  it(`should build & valuedate form mappings`, async () => {
+    for (const year of ["2019", "2020"]) {
+      if (!FormArchive[year]) continue;
+      for (const form of Object.keys(FormArchive[year]).concat([])) {
+        const fields = Object.keys(await mapForm(year, form, pdf) || {});
+        expect(fields.length).to.be.ok; // the empty form should exist & have >0 forms
+        log.info(`Got ${fields.length} entries of fdf data from empty ${year} ${form}.pdf file`);
+        const getNickname = (field) => field.split(".").pop().replace(/]/g, "").replace(/\[/g, "_");
+        const target = `${path.join(__dirname, "mappings")}/${year}/${form}.json`;
+        if (fs.existsSync(target)) {
+          expect(FormArchive[year][form]).to.be.ok;
+          const currentMappings = JSON.parse(fs.readFileSync(target));
+          log.info(`Mappings w ${Object.keys(currentMappings).length} entries exist at ${target}`);
+          for (const field of fields) {
+            const mappedName = Object.entries(currentMappings).find(e => e[1] === field)?.[0];
+            if (!mappedName) {
+              log.warn(`Field ~${getNickname(field)} is not in ${form} mappings: ${field}`);
+              currentMappings[getNickname(field)] = field;
+            }
+          }
+          for (const entry of Object.entries(FormArchive[year][form])) {
+            if (!fields.includes(entry[1])) {
+              log.warn(`Field ${entry[0]} exists in mappings but not the empty pdf: ${entry[1]}`);
+              delete currentMappings[entry[0]];
+            }
+          }
+          fs.writeFileSync(target, JSON.stringify(currentMappings, null, 2));
+          log.info(`Wrote ${Object.keys(currentMappings).length} updated mappings to ${target}`);
+        } else {
+          const data = fields.reduce((res, field) => ({ ...res, [getNickname(field)]: field }), {});
+          log.info(data, `Wrote new mappings to ${target}`);
+          fs.writeFileSync(target, JSON.stringify(data, null, 2));
+        }
+      }
     }
   });
 
@@ -55,7 +71,7 @@ describe("Tax Form Mappings", () => {
     )).to.be.a("string");
   });
 
-  it.only("should fill out all fields for 2019 forms", async () => {
+  it("should fill out all fields for 2019 forms", async () => {
     const year = "2019";
     const formData = Object.keys(FormArchive[year] || {}).reduce((forms, form) => ({
       ...forms,

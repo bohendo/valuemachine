@@ -96,7 +96,7 @@ export const f8949 = (taxRows: TaxRow[], oldForms: Forms): Forms  => {
   // Calculate totals from f8949 rows
   f8949 = f8949.map((page, p): any => {
     page.P1_FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
-    page.P1_SSN = f1040.SocialSecurityNumber;
+    page.P1_SSN = f1040.SSN;
     page.P2_FullName = page.P1_FullName;
     page.P2_SSN = page.P1_SSN;
     const shortTotal = {};
