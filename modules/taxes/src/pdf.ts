@@ -103,7 +103,7 @@ export const requestFilledForm = async (form: string, data: any, window: any): P
         method: "post",
         responseType: "blob",
         data: { data },
-      }).then((response) => {
+      }).then((response: any) => {
         const url = window.URL.createObjectURL(new window.Blob([response.data]));
         const link = window.document.createElement("a");
         link.href = url;
@@ -165,11 +165,11 @@ export const fetchUsaForm = async (year: string, form: string, fs: any): Promise
   const emptyPdf = `${process.cwd()}/forms/${year}/${form}.pdf`;
   const writer = fs.createWriteStream(emptyPdf);
   return new Promise((res, rej) => {
-    axios({ url, method: "get", responseType: "stream" }).then((response) => {
+    axios({ url, method: "get", responseType: "stream" }).then((response: any) => {
       response.data.pipe(writer);
       writer.on("finish", () => {
         log.info(`Finished writing pdf file to ${emptyPdf}`);
-        res();
+        res(true);
       });
       writer.on("error", rej);
     }).catch(e => rej(e));
