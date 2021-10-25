@@ -8,7 +8,7 @@ import { expect } from "chai";
 
 import { FormArchive } from "./mappings";
 import { fetchUsaForm, fillForm, fillReturn, getMapping } from "./pdf";
-import { getPdfUtils, getFieldNickname } from "./pdffiller";
+import { getPdfUtils, getFieldNickname } from "./pdfUtils";
 
 const log = getLogger("info", "Mappings");
 const pdf = getPdfUtils({ fs, execFile, Iconv });

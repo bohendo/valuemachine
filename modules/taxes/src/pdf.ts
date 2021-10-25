@@ -3,6 +3,7 @@ import { ValueMachine, Prices } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
+import { getPdfUtils } from "./pdfUtils";
 import { Forms, FormArchive } from "./mappings";
 import { getEmptyForms, getTaxReturn } from "./usa";
 
@@ -13,7 +14,7 @@ export const fillForm = async (
   form: string,
   data: any,
   dir: string,
-  pdf: any,
+  libs: { fs: any; execFile: any; },
 ): Promise<string> => {
   const translate = (form, mapping): any => {
     const newForm = {};
@@ -38,12 +39,12 @@ export const fillForm = async (
     return newForm;
   };
   const cwd = process.cwd();
-  const sourcePath = cwd.endsWith("taxes") ? `${cwd}/forms/${year ? `${year}/` : ""}${form}.pdf`
-    : `${cwd}/node_modules/@valuemachine/taxes/forms/${form}.pdf`;
-  const destinationPath = `${dir || "/tmp"}/${form}${year ? `-${year}` : ""}.pdf`;
-  const res = await pdf.fillForm(
-    sourcePath,
-    destinationPath,
+  const srcPath = cwd.endsWith("taxes") ? `${cwd}/forms/${year ? `${year}/` : ""}${form}.pdf`
+    : `${cwd}/node_modules/@valuemachine/taxes/forms/${year ? `${year}/` : ""}${form}.pdf`;
+  const destPath = `${dir || "/tmp"}/${form}${year ? `-${year}` : ""}.pdf`;
+  const res = await getPdfUtils(libs).fillForm(
+    srcPath,
+    destPath,
     translate(data, FormArchive[year][form]),
   );
   if (res) log.info(`Successfully filled in pdf & saved it to ${res}`);
@@ -54,9 +55,9 @@ export const fillReturn = async (
   year: string,
   forms: any,
   dir: string,
-  pdf: any,
-  execSync: any,
+  libs: { fs: any; execFile: any; },
 ): Promise<string> => {
+  const { execFile } = libs;
   const pages = [] as string[];
   for (const entry of Object.entries(forms)) {
     const name = entry[0] as string;
@@ -69,7 +70,7 @@ export const fillReturn = async (
           name,
           page,
           "/tmp",
-          pdf,
+          libs,
         ));
       }
     } else {
@@ -79,7 +80,7 @@ export const fillReturn = async (
         name,
         data,
         "/tmp",
-        pdf,
+        libs,
       ));
     }
   }
@@ -87,9 +88,13 @@ export const fillReturn = async (
   // TODO: sort pages based on attachment index
   const cmd = `pdftk ${pages.join(" ")} cat output ${output}`;
   log.info(`Running command: "${cmd}" from current dir ${process.cwd()}`);
-  const stdout = execSync(cmd);
-  log.info(`Got output from ${cmd}: ${stdout}`);
-  return output;
+  return new Promise((res, rej) => {
+    const stdout = execFile("pdftk", [...pages, "cat", "output", output], (err) => {
+      if (err) rej(err);
+      log.info(`Got output from ${cmd}: ${stdout}`);
+      res(output);
+    });
+  });
 };
 
 export const requestFilledForm = async (form: string, data: any, window: any): Promise<void> => {
@@ -141,7 +146,7 @@ export const requestTaxReturn = async (
         const url = window.URL.createObjectURL(new window.Blob([response.data]));
         const link = window.document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `tax-return.pdf`);
+        link.setAttribute("download", `tax-return-${year}.pdf`);
         window.document.body.appendChild(link);
         link.click();
         res();
@@ -150,9 +155,13 @@ export const requestTaxReturn = async (
   }
 };
 
-export const getMapping = async (year: string, form: string, pdf: any): Promise<any> => {
+export const getMapping = async (
+  year: string,
+  form: string,
+  libs: { fs: any; execFile: any; },
+): Promise<any> => {
   const emptyPdf = `${process.cwd()}/forms/${year}/${form}.pdf`;
-  const mapping = await pdf.generateMapping(emptyPdf);
+  const mapping = await getPdfUtils(libs).generateMapping(emptyPdf);
   log.info(`Got mapping w ${Object.keys(mapping).length} entries from empty pdf at ${emptyPdf}`);
   return mapping;
 };

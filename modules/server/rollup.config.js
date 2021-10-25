@@ -27,7 +27,7 @@ export default {
     if (warning.code === "CIRCULAR_DEPENDENCY" && fromPkg("axios")) return;
     warn(warning);
   },
-  external: ["readable-stream", "readable-stream/transform", "pdffiller"],
+  external: ["readable-stream", "readable-stream/transform"],
   plugins: [
     NodeResolve({
       exportConditions: ["node"],
@@ -40,7 +40,6 @@ export default {
         "require('readable-stream/transform')": "require('stream').Transform",
         'require("readable-stream/transform")': 'require("stream").Transform',
         "readable-stream": "stream",
-        "require('../../../node_modules/iconv/build": "require('./build"
       }
     }),
     Json({ compact: true }),

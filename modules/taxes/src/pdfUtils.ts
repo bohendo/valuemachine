@@ -10,11 +10,10 @@ export const getFieldNickname = (field) =>
   field.split(".").pop().replace(/]/g, "_").replace(/\[/g, "_")
     .replace(/_+/, "_").replace(/^_/, "").replace(/_$/, "");
 
-export const getPdfUtils = (libs: { fs: any, execFile: any, Iconv: any }) => {
-  const { fs, execFile, Iconv } = libs;
+export const getPdfUtils = (libs: { fs: any, execFile: any }) => {
+  const { fs, execFile } = libs;
   if (!fs) throw new Error(`Node fs module must be injected`);
   if (!execFile) throw new Error(`Node execFile module must be injected`);
-  if (!Iconv) throw new Error(`Iconv binary module must be injected`);
 
   const generateMapping = (sourceFile: string): Promise<FdfJson> => {
     return new Promise((res, rej) => {
