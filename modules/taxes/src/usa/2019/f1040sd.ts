@@ -11,7 +11,7 @@ export const f1040sd = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040sd } = forms;
 
-  f1040sd.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
+  f1040sd.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
   f1040sd.SSN = f1040.SSN;
 
   const totals = {

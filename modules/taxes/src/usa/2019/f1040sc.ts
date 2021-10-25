@@ -13,7 +13,7 @@ export const f1040sc = (taxRows: TaxRow[], oldForms: Forms): Forms => {
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
 
-  f1040sc.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
+  f1040sc.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
   f1040sc.SSN = f1040.SSN;
 
   let totalIncome = "0";

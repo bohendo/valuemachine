@@ -9,8 +9,8 @@
   "L5": "form1[0].Page1[0].f1_08[0]",
   "L6": "form1[0].Page1[0].f1_09[0]",
   "L7": "form1[0].Page1[0].f1_10[0]",
-  "L8_Other1": "form1[0].Page1[0].Line8[0].f1_11[0]",
-  "L8_Other2": "form1[0].Page1[0].Line8[0].f1_12[0]",
+  "L8_Etc1": "form1[0].Page1[0].Line8[0].f1_11[0]",
+  "L8_Etc2": "form1[0].Page1[0].Line8[0].f1_12[0]",
   "L8": "form1[0].Page1[0].f1_13[0]",
   "L9": "form1[0].Page1[0].f1_14[0]",
   "L10": "form1[0].Page1[0].f1_15[0]",
@@ -28,5 +28,5 @@
   "L20": "form1[0].Page1[0].f1_27[0]",
   "L21": "form1[0].Page1[0].f1_28[0]",
   "L22": "form1[0].Page1[0].f1_29[0]",
-  "form1_0": "form1[0]"
+  "Noop1": "form1[0]"
 }

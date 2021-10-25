@@ -72,7 +72,7 @@ export const fillReturn = async (
           year,
           name,
           page,
-          dir,
+          "/tmp",
           pdf,
         ));
       }
@@ -82,7 +82,7 @@ export const fillReturn = async (
         year,
         name,
         data,
-        dir,
+        "/tmp",
         pdf,
       ));
     }

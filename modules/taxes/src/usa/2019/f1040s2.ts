@@ -9,7 +9,7 @@ export const f1040s2 = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s2 } = forms;
 
-  f1040s2.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
+  f1040s2.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
   f1040s2.SSN = f1040.SSN;
 
   f1040s2.L3 = round(add(f1040s2.L1, f1040s2.L2));

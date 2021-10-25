@@ -19,10 +19,10 @@
   "L12a": "form1[0].Page1[0].Line12_ReadOrder[0].f1_15[0]",
   "L12b": "form1[0].Page1[0].f1_16[0]",
   "L12c": "form1[0].Page1[0].f1_17[0]",
-  "L12d_Other": "form1[0].Page1[0].f1_18[0]",
+  "L12d_Etc": "form1[0].Page1[0].f1_18[0]",
   "L12d": "form1[0].Page1[0].f1_19[0]",
   "L12e": "form1[0].Page1[0].f1_20[0]",
   "L12f": "form1[0].Page1[0].f1_21[0]",
   "L13": "form1[0].Page1[0].f1_22[0]",
-  "form1_0": "form1[0]"
+  "Noop1": "form1[0]"
 }

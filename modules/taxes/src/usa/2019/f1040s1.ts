@@ -9,7 +9,7 @@ export const f1040s1 = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1 } = forms;
 
-  f1040s1.FullName = `${f1040.FirstNameMI} ${f1040.LastName}`;
+  f1040s1.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
   f1040s1.SSN = f1040.SSN;
 
   let prizeMoney = "0";

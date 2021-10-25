@@ -15,7 +15,7 @@ describe("Tax Form Mappings", () => {
 
   // Change form then unskip to add a new form mapping
   // then add the new mapping to the index & create a new form filer
-  it(`should build & valuedate form mappings`, async () => {
+  it(`should build & fix form mappings`, async () => {
     for (const year of ["2019", "2020"]) {
       if (!FormArchive[year]) continue;
       for (const form of Object.keys(FormArchive[year]).concat([])) {
@@ -61,7 +61,7 @@ describe("Tax Form Mappings", () => {
         [field]: field.startsWith("C") ? "1" : field,
       }), {}),
     }), {});
-    log.info(formData, "formData");
+    log.debug(formData, "formData");
     expect(await fillReturn(
       year,
       formData,
@@ -75,12 +75,12 @@ describe("Tax Form Mappings", () => {
     const year = "2019";
     const formData = Object.keys(FormArchive[year] || {}).reduce((forms, form) => ({
       ...forms,
-      [form]: Object.keys(FormArchive[year][form]).reduce((data, field) => ({
+      [form]: Object.entries(FormArchive[year][form]).reduce((data, entry) => ({
         ...data,
-        [field]: field.startsWith("C") ? "1" : field,
+        [entry[0]]: entry[1].includes("].c") ? true : entry[0],
       }), {}),
     }), {});
-    log.info(formData, "formData");
+    log.debug(formData, "formData");
     expect(await fillReturn(
       "2019",
       formData,
