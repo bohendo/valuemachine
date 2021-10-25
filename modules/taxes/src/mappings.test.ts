@@ -1,15 +1,17 @@
-import { execSync } from "child_process";
+import { execSync, execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 
 import { getLogger } from "@valuemachine/utils";
-import * as pdf from "pdffiller";
+import { Iconv } from "iconv";
 import { expect } from "chai";
 
 import { FormArchive } from "./mappings";
 import { fillReturn, mapForm } from "./pdf";
+import { getPdfUtils } from "./pdffiller";
 
 const log = getLogger("info", "Mappings");
+const pdf = getPdfUtils({ fs, execFile, Iconv });
 
 describe("Tax Form Mappings", () => {
 

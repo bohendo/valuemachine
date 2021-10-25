@@ -2,13 +2,13 @@ import * as _ from "lodash";
 
 import { generateFdf } from "./fdf-generator";
 
-export const pdf = (libs: { fs: any, execFile: any, Iconv: any }) => {
+export const getPdfUtils = (libs: { fs: any, execFile: any, Iconv: any }) => {
   const { fs, execFile, Iconv } = libs;
   if (!fs) throw new Error(`Node fs module must be injected`);
   if (!execFile) throw new Error(`Node execFile module must be injected`);
   if (!Iconv) throw new Error(`Iconv binary module must be injected`);
 
-  const pdffiller = {
+  return ({
 
     mapForm2PDF: function( formFields, convMap ){
       let tmpFDFData = this.convFieldJson2FDF(formFields);
@@ -141,6 +141,5 @@ export const pdf = (libs: { fs: any, execFile: any, Iconv: any }) => {
       );
     }
 
-  };
-  return pdffiller;
+  });
 };

@@ -2,7 +2,7 @@
 export const generateFdf = (data: any, filename: string, libs: { fs: any, Iconv: any }) => {
   const iconv = new libs.Iconv("UTF-8", "UTF-16");
 
-  let header = Buffer([]);
+  let header = Buffer.from([]);
   header = Buffer.concat([ header, new Buffer("%FDF-1.2\n") ]);
   header = Buffer.concat([ header, new Buffer((String.fromCharCode(226)) + (String.fromCharCode(227)) + (String.fromCharCode(207)) + (String.fromCharCode(211)) + "\n") ]);
   header = Buffer.concat([ header, new Buffer("1 0 obj \n") ]);
@@ -11,7 +11,7 @@ export const generateFdf = (data: any, filename: string, libs: { fs: any, Iconv:
   header = Buffer.concat([ header, new Buffer("<<\n") ]);
   header = Buffer.concat([ header, new Buffer("/Fields [\n") ]);
 
-  let footer = Buffer([]);
+  let footer = Buffer.from([]);
   footer = Buffer.concat([ footer, new Buffer("]\n") ]);
   footer = Buffer.concat([ footer, new Buffer(">>\n") ]);
   footer = Buffer.concat([ footer, new Buffer(">>\n") ]);

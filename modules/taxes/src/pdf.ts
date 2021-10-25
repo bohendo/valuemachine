@@ -37,7 +37,6 @@ export const fillForm = async (
     }
     return newForm;
   };
-  // We should manage pdf files better w hash suffix
   const cwd = process.cwd();
   const sourcePath = cwd.endsWith("taxes") ? `${cwd}/forms/${year ? `${year}/` : ""}${form}.pdf`
     : `${cwd}/node_modules/@valuemachine/taxes/forms/${form}.pdf`;
