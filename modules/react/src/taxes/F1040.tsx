@@ -2,7 +2,7 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { requestFilledForm, Forms } from "@valuemachine/taxes";
+import { requestFilledForm, Forms, TaxYears } from "@valuemachine/taxes";
 import React, { useEffect, useState } from "react";
 
 import { SelectOne, TextInput } from "../utils";
@@ -45,7 +45,7 @@ export const F1040: React.FC<F1040Props> = ({
 
   const handleDownload = async () => {
     console.log("Downloading new f1040 form w data:", newFormData);
-    await requestFilledForm("f1040", newFormData, window);
+    await requestFilledForm(TaxYears.USA20, "f1040", newFormData, window);
   };
 
   return (<>

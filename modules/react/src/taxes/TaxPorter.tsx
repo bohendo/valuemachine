@@ -9,6 +9,7 @@ import {
   getTaxRows,
   getTaxYearBoundaries,
   requestTaxReturn,
+  TaxYears,
 } from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
 import {
@@ -75,7 +76,8 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
   const handleExport = () => {
     if (!guard || !taxYear || !vm?.json || !prices?.json || !formData) return;
-    requestTaxReturn(taxYear, guard, vm, prices, formData, window);
+    const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
+    if (year) requestTaxReturn(year, guard, vm, prices, formData, window);
   };
 
   const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
@@ -130,7 +132,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           </Button>
         </Grid>
 
-        {guard === Guards.USA && taxYear !== allTaxYears ?
+        {guard === Guards.USA && (taxYear === "2019" || taxYear === "2020") ?
           <Grid item xs={12} sm={6}>
             <Button
               sx={{ ml: 1, my: 2, maxWidth: "24em" }}

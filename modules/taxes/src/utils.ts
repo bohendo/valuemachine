@@ -153,6 +153,7 @@ export const getTaxRows = ({
             capitalChange,
             cumulativeChange,
             cumulativeIncome,
+            tags: evt.tags,
           };
         } else {
           return null;
@@ -178,6 +179,7 @@ export const getTaxRows = ({
           capitalChange: "0",
           cumulativeChange,
           cumulativeIncome,
+          tags: evt.tags,
         } as TaxRow;
       }));
 
@@ -201,6 +203,7 @@ export const getTaxRows = ({
           capitalChange: "0",
           cumulativeChange,
           cumulativeIncome,
+          tags: evt.tags,
         } as TaxRow;
       }));
 

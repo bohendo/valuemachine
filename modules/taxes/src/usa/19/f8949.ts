@@ -22,7 +22,7 @@ export const f8949 = (taxRows: TaxRow[], oldForms: Forms): Forms  => {
   const log = logger.child({ module: "f8949" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const f1040 = forms.f1040;
-  let f8949 = forms.f8949;
+  let f8949 = forms.f8949.length ? forms.f8949 : [];
 
   ////////////////////////////////////////
   // Format results into forms
