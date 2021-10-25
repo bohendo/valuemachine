@@ -53,8 +53,5 @@
   "C0_Noop1": "topmostSubform[0].Page2[0].c2_1[0]",
   "C0_Noop2": "topmostSubform[0].Page2[0].c2_2[0]",
   "C0_Noop3": "topmostSubform[0].Page2[0].c2_3[0]",
-  "C0_Noop4": "topmostSubform[0].Page1[0].c1_1[0]",
-  "Noop1": "topmostSubform[0]",
-  "Noop2": "topmostSubform[0].Page1[0].Table_PartII[0]",
-  "Table_PartI_0": "topmostSubform[0].Page1[0].Table_PartI[0]"
+  "C0_Noop4": "topmostSubform[0].Page1[0].c1_1[0]"
 }

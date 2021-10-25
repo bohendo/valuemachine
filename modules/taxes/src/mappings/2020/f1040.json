@@ -126,7 +126,5 @@
   "PreparerFirm": "topmostSubform[0].Page2[0].f2_44[0]",
   "PreparerPhone": "topmostSubform[0].Page2[0].f2_45[0]",
   "PreparerAddress": "topmostSubform[0].Page2[0].f2_46[0]",
-  "PreparerEIN": "topmostSubform[0].Page2[0].f2_47[0]",
-  "Noop1": "topmostSubform[0]",
-  "Noop2": "topmostSubform[0].Page1[0].Table_Dependents[0]"
+  "PreparerEIN": "topmostSubform[0].Page2[0].f2_47[0]"
 }

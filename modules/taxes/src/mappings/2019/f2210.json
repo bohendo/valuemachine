@@ -180,7 +180,6 @@
   "R7_0": "topmostSubform[0].Page3[0].SectionATable[0].Line24[0].R7[0]",
   "R8_0": "topmostSubform[0].Page3[0].SectionATable[0].Line24[0].R8[0]",
   "R9_0": "topmostSubform[0].Page3[0].SectionATable[0].Line26[0].R9[0]",
-  "SectionATable_0": "topmostSubform[0].Page3[0].SectionATable[0]",
   "Line2a_0": "topmostSubform[0].Page4[0].Part1Table[0].Line2[0].Line2a[0]",
   "Line2b_0": "topmostSubform[0].Page4[0].Part1Table[0].Line2[0].Line2b[0]",
   "Line2c_0": "topmostSubform[0].Page4[0].Part1Table[0].Line2[0].Line2c[0]",
@@ -194,7 +193,6 @@
   "Line18c_0": "topmostSubform[0].Page4[0].Part1Table[0].Line20[0].Line18c[0]",
   "Line18d_0": "topmostSubform[0].Page4[0].Part1Table[0].Line20[0].Line18d[0]",
   "shade_0": "topmostSubform[0].Page4[0].Part1Table[0].Line25[0].shade[0]",
-  "Part1Table_0": "topmostSubform[0].Page4[0].Part1Table[0]",
   "Line27a_0": "topmostSubform[0].Page4[0].Part2Table[0].Line29[0].Line27a[0]",
   "Line27b_0": "topmostSubform[0].Page4[0].Part2Table[0].Line29[0].Line27b[0]",
   "Line27c_0": "topmostSubform[0].Page4[0].Part2Table[0].Line29[0].Line27c[0]",
@@ -206,9 +204,5 @@
   "Line32a_0": "topmostSubform[0].Page4[0].Part2Table[0].Line34[0].Line32a[0]",
   "Line32b_0": "topmostSubform[0].Page4[0].Part2Table[0].Line34[0].Line32b[0]",
   "Line32c_0": "topmostSubform[0].Page4[0].Part2Table[0].Line34[0].Line32c[0]",
-  "Line32d_0": "topmostSubform[0].Page4[0].Part2Table[0].Line34[0].Line32d[0]",
-  "Noop1": "topmostSubform[0]",
-  "Noop2": "topmostSubform[0].Page4[0]",
-  "Noop3": "topmostSubform[0].Page4[0].Part2Table[0]",
-  "Noop4": "topmostSubform[0].Page4[0].Part1Table[0].Line22[0].shade[0]"
+  "Line32d_0": "topmostSubform[0].Page4[0].Part2Table[0].Line34[0].Line32d[0]"
 }

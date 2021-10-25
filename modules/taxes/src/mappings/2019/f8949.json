@@ -242,8 +242,5 @@
   "P2L2e": "topmostSubform[0].Page2[0].f2_116[0]",
   "P2L2f": "topmostSubform[0].Page2[0].f2_117[0]",
   "P2L2g": "topmostSubform[0].Page2[0].f2_118[0]",
-  "P2L2h": "topmostSubform[0].Page2[0].f2_119[0]",
-  "Noop1": "topmostSubform[0]",
-  "Noop2": "topmostSubform[0].Page1[0].Table_Line1[0]",
-  "Noop3": "topmostSubform[0].Page2[0].Table_Line1[0]"
+  "P2L2h": "topmostSubform[0].Page2[0].f2_119[0]"
 }

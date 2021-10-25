@@ -103,7 +103,5 @@
   "L48R8_amt": "topmostSubform[0].Page2[0].PartVTable[0].Item8[0].f2_30[0]",
   "L48R9_desc": "topmostSubform[0].Page2[0].PartVTable[0].Item9[0].f2_31[0]",
   "L48R9_amt": "topmostSubform[0].Page2[0].PartVTable[0].Item9[0].f2_32[0]",
-  "L48": "topmostSubform[0].Page2[0].f2_33[0]",
-  "Noop1": "topmostSubform[0]",
-  "Noop2": "topmostSubform[0].Page2[0].PartVTable[0]"
+  "L48": "topmostSubform[0].Page2[0].f2_33[0]"
 }

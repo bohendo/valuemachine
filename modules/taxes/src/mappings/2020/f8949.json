@@ -244,8 +244,5 @@
   "P2L2g": "topmostSubform[0].Page2[0].f2_118[0]",
   "P2L2h": "topmostSubform[0].Page2[0].f2_119[0]",
   "C0_Noop1": "topmostSubform[0].Page2[0].c2_1[0]",
-  "C0_Noop2": "topmostSubform[0].Page2[0].c2_1[1]",
-  "Noop1": "topmostSubform[0]",
-  "Noop2": "topmostSubform[0].Page1[0].Table_Line1[0]",
-  "Noop3": "topmostSubform[0].Page2[0].Table_Line1[0]"
+  "C0_Noop2": "topmostSubform[0].Page2[0].c2_1[1]"
 }

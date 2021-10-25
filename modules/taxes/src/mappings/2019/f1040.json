@@ -114,10 +114,5 @@
   "PreparerFirm": "topmostSubform[0].Page2[0].PaidPreparer[0].Preparer[0].f2_34[0]",
   "PreparerPhone": "topmostSubform[0].Page2[0].PaidPreparer[0].Preparer[0].f2_35[0]",
   "PreparerAddress": "topmostSubform[0].Page2[0].PaidPreparer[0].Preparer[0].f2_36[0]",
-  "PreparerFirmEIN": "topmostSubform[0].Page2[0].PaidPreparer[0].Preparer[0].f2_37[0]",
-  "Noop1": "topmostSubform[0]",
-  "Noop2": "topmostSubform[0].Page1[0].Dependents[0]",
-  "Noop3": "topmostSubform[0].Page1[0].Dependents[0].Table_Dependents[0]",
-  "Noop4": "topmostSubform[0].Page1[0].ReadOrderControl[1]",
-  "Noop5": "topmostSubform[0].Page2[0].PaidPreparer[0]"
+  "PreparerFirmEIN": "topmostSubform[0].Page2[0].PaidPreparer[0].Preparer[0].f2_37[0]"
 }
