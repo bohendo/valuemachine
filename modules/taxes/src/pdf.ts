@@ -43,7 +43,7 @@ export const fillForm = async (
   const destinationPath = `${dir || "/tmp"}/${form}${year ? `-${year}` : ""}.pdf`;
   return new Promise((res, rej) => {
     log.info(`Translating ${form} data`);
-    pdf.fillFormWithFlatten(
+    pdf.fillForm(
       sourcePath,
       destinationPath,
       translate(data, FormArchive[year][form]),
@@ -154,13 +154,12 @@ export const requestTaxReturn = async (
 };
 
 export const mapForm = async (year: string, form: string, pdf: any): Promise<any> => {
-  // 2nd arg sets the field name regex. Default: /FieldName: ([^\n]*)/
   const pdfPath = `${process.cwd()}/forms/${year}/${form}.pdf`;
   log.debug(`Mapping pdf at ${pdfPath}`);
   return new Promise((res, rej) => {
     pdf.generateFDFTemplate(
       `${process.cwd()}/forms/${year}/${form}.pdf`,
-      null,
+      null, // Field name regex, default: /FieldName: ([^\n]*)/
       (err, fdf) => err ? rej(err) : res(fdf),
     );
   });

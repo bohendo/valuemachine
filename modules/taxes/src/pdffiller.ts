@@ -1,13 +1,12 @@
 import * as _ from "lodash";
 
-import { generateFdf } from "./fdf-generator";
+import { toFdf } from "./fdf";
 
 export const getPdfUtils = (libs: { fs: any, execFile: any, Iconv: any }) => {
   const { fs, execFile, Iconv } = libs;
   if (!fs) throw new Error(`Node fs module must be injected`);
   if (!execFile) throw new Error(`Node execFile module must be injected`);
   if (!Iconv) throw new Error(`Iconv binary module must be injected`);
-
   return ({
 
     mapForm2PDF: function( formFields, convMap ){
@@ -23,7 +22,7 @@ export const getPdfUtils = (libs: { fs: any, execFile: any, Iconv: any }) => {
       let _values = _.map(fieldJson, "fieldValue");
       _values = _.map(_values, function(val){
         if(val === true){
-          return "Yes"; // TODO: fetch required value instead of assuming "Yes"
+          return "Yes"; // TODO: retrieve required value from fdf data
         } else if(val === false) {
           return "Off";
         }
@@ -75,21 +74,17 @@ export const getPdfUtils = (libs: { fs: any, execFile: any, Iconv: any }) => {
       }.bind(this));
     },
 
-    fillFormWithOptions: function(
+    fillForm: function(
       sourceFile,
       destinationFile,
       fieldValues,
       shouldFlatten,
-      tempFDFPath,
       callback,
     ) {
       //Generate the data from the field values.
-      const randomSequence = Math.random().toString(36).substring(7);
-      const currentTime = new Date().getTime();
-      const tempFDFFile =  "temp_data" + currentTime + randomSequence + ".fdf";
-      const tempFDF = (typeof tempFDFPath !== "undefined"? tempFDFPath + "/" + tempFDFFile: tempFDFFile);
-      generateFdf(fieldValues, tempFDF, { fs, Iconv });
-      const args = [sourceFile, "fill_form", tempFDF, "output", destinationFile];
+      const tempFdfFile = `/tmp/tmp_${Math.random().toString(36).substring(8)}.fdf`;
+      fs.writeFileSync(tempFdfFile, toFdf(fieldValues));
+      const args = [sourceFile, "fill_form", tempFdfFile, "output", destinationFile];
       if (shouldFlatten) {
         args.push("flatten");
       }
@@ -99,7 +94,7 @@ export const getPdfUtils = (libs: { fs: any, execFile: any, Iconv: any }) => {
           return callback(error);
         }
         //Delete the temporary fdf file.
-        fs.unlink( tempFDF, function( err ) {
+        fs.unlink(tempFdfFile, function( err ) {
           if ( err ) {
             return callback(err);
           }
@@ -108,38 +103,6 @@ export const getPdfUtils = (libs: { fs: any, execFile: any, Iconv: any }) => {
         });
       } );
     },
-
-    fillFormWithFlatten: function(
-      sourceFile,
-      destinationFile,
-      fieldValues,
-      shouldFlatten,
-      callback,
-    ) {
-      this.fillFormWithOptions(
-        sourceFile,
-        destinationFile,
-        fieldValues,
-        shouldFlatten,
-        undefined,
-        callback,
-      );
-    },
-
-    fillForm: function(
-      sourceFile,
-      destinationFile,
-      fieldValues,
-      callback,
-    ) {
-      this.fillFormWithFlatten(
-        sourceFile,
-        destinationFile,
-        fieldValues,
-        true,
-        callback,
-      );
-    }
 
   });
 };

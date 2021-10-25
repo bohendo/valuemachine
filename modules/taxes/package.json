@@ -20,7 +20,8 @@
     "@valuemachine/core": "0.10.1",
     "@valuemachine/transactions": "0.10.1",
     "@valuemachine/types": "0.10.1",
-    "@valuemachine/utils": "0.10.1"
+    "@valuemachine/utils": "0.10.1",
+    "iconv-lite": "0.6.3"
   }, 
   "devDependencies": {
     "@rollup/plugin-json": "4.1.0",

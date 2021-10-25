@@ -15,9 +15,7 @@ const pdf = getPdfUtils({ fs, execFile, Iconv });
 
 describe("Tax Form Mappings", () => {
 
-  // Change form then unskip to add a new form mapping
-  // then add the new mapping to the index & create a new form filer
-  it(`should build & fix form mappings`, async () => {
+  it.skip(`should build & fix form mappings`, async () => {
     for (const year of ["2019", "2020"]) {
       if (!FormArchive[year]) continue;
       for (const form of Object.keys(FormArchive[year]).concat([])) {
