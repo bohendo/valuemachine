@@ -15,10 +15,11 @@ export const FormArchive = {
   [TaxYears.USA19]: MappingsUSA19,
   [TaxYears.USA20]: MappingsUSA20,
 };
-/* TODO export this type
-export type namespace FormArchive {
-  export type USA19 = FormsUSA19;
-  export type USA20 = FormsUSA20;
+
+/*
+export namespace FormArchiveTypes {
+  export type USA19 = typeof MappingsUSA19;
+  export type USA20 = typeof MappingsUSA20;
 }
 */
 
@@ -32,9 +33,9 @@ export const getEmptyForms = (year: string): Forms =>
   }), {});
 
 export type Form = {
-  [field: string]: any; // TODO: type as string | boolean according to mapping
+  [field: string]: any; // TODO: string | boolean
 };
 
 export type Forms = {
-  [form: string]: any; // TODO: type as Array<Form> | Form;
+  [form: string]: any; // TODO: Array<Form> | Form
 };
