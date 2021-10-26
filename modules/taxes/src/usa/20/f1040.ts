@@ -1,11 +1,9 @@
-import { math } from "@valuemachine/utils";
+import { getLogger, math } from "@valuemachine/utils";
 
-import { Forms } from "../../mappings";
-import { logger } from "../../utils";
+const log = getLogger("info", "f1040s1");
 
-export const f1040 = (oldForms: Forms): Forms => {
-  const log = logger.child({ module: "f1040" });
-  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
+export const f1040 = (oldForms: any): any => {
+  const forms = JSON.parse(JSON.stringify(oldForms)) as any;
   const { f1040, f1040s1, f1040sd } = forms;
 
   f1040.L7 = f1040sd.L16;

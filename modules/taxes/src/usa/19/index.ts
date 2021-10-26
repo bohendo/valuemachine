@@ -16,7 +16,6 @@ import { f8949 } from "./f8949";
 
 const year = TaxYears.USA19;
 
-// TODO: keep side effects between form filers
 export const getTaxReturn = (
   taxRows: TaxRow[],
   formData: Forms,

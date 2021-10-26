@@ -1,11 +1,11 @@
-import { math } from "@valuemachine/utils";
+import { getLogger, math } from "@valuemachine/utils";
 
-import { Forms } from "./types";
-import { getIncomeTax, logger } from "./utils";
+import { getIncomeTax } from "./utils";
 
-export const f1040 = (oldForms: Forms): Forms => {
-  const log = logger.child({ module: "f1040" });
-  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
+const log = getLogger("info", "f1040");
+
+export const f1040 = (oldForms: any): any => {
+  const forms = JSON.parse(JSON.stringify(oldForms)) as any;
   const { f1040, f1040s1, f1040s2, f1040s3, f2555 } = forms;
   if (f1040.length) return forms; // abort if >1 page
 

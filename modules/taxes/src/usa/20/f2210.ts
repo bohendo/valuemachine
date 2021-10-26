@@ -5,7 +5,7 @@ import { processExpenses, processIncome } from "../utils";
 
 import { getIncomeTax } from "./utils";
 
-const log = getLogger("info", "f1040sd");
+const log = getLogger("info", "f2210");
 
 export const f2210 = (taxRows: TaxRow[], oldForms: any): any => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as any;

@@ -1,12 +1,11 @@
 import { EventTypes, TaxRow } from "@valuemachine/types";
 import { getLogger, add, gt, mul, round, sub } from "@valuemachine/utils";
 
-import { Forms } from "../../mappings";
+const log = getLogger("info", "f8949");
 
 // returns an array of form data
-export const f8949 = (taxRows: TaxRow[], oldForms: Forms): Forms  => {
-  const log = getLogger("info").child({ module: "f8949" });
-  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
+export const f8949 = (taxRows: TaxRow[], oldForms: any): any  => {
+  const forms = JSON.parse(JSON.stringify(oldForms)) as any;
   const { f1040 } = forms;
   const f8949 = !forms.f8949 ? [] : forms.f8949.length ? forms.f8949 : [forms.f8949];
 

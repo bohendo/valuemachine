@@ -1,11 +1,10 @@
 import { EventTypes, TaxRow } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
-import { Forms } from "./types";
-import { logger, toFormDate } from "./utils";
+import { logger, toFormDate } from "../utils";
 
+const log = logger.child({ module: "f8949" });
 const { add, gt, mul, round, sub } = math;
-
 const msPerDay = 1000 * 60 * 60 * 24;
 const msPerYear = msPerDay * 365;
 
@@ -18,9 +17,8 @@ type Trade = {
   amount: string;
 };
 
-export const f8949 = (taxRows: TaxRow[], oldForms: Forms): Forms  => {
-  const log = logger.child({ module: "f8949" });
-  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
+export const f8949 = (taxRows: TaxRow[], oldForms: any): any  => {
+  const forms = JSON.parse(JSON.stringify(oldForms)) as any;
   const f1040 = forms.f1040;
   let f8949 = forms.f8949.length ? forms.f8949 : [];
 

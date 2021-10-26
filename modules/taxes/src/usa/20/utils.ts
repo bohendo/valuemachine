@@ -1,7 +1,7 @@
 import { MaxUint256 } from "@ethersproject/constants";
 import { getLogger, math } from "@valuemachine/utils";
 
-export const logger = getLogger("info", "USA19");
+export const logger = getLogger("info", "USAUtils20");
 
 export const getIncomeTax = (taxableIncome: string, filingStatus: string): string => {
   const inf = MaxUint256.toString();

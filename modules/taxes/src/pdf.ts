@@ -8,7 +8,7 @@ import { getEmptyForms, Forms, FormArchive, TaxYear } from "./mappings";
 import { getTaxReturn } from "./return";
 import { getTaxRows } from "./utils";
 
-const log = getLogger("info", "PDF Translator");
+const log = getLogger("info", "PDF");
 
 export const fillForm = async (
   taxYear: TaxYear,
