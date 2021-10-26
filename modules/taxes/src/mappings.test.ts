@@ -28,7 +28,7 @@ const getDefaultReturn = mappings =>
 
 describe("Tax Form Mappings", () => {
 
-  it.only("should fill all fields and check all boxes on all forms", async () => {
+  it("should fill all fields and check all boxes on all forms", async () => {
     for (const year of Object.keys(TaxYears)) {
       const formData = getDefaultReturn(FormArchive[year]);
       log.debug(formData, "formData");
