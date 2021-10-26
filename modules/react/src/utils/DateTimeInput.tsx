@@ -1,20 +1,20 @@
 import TextField from "@mui/material/TextField";
 import React, { useEffect, useState } from "react";
 
-type TimestampInputProps = {
+type DateTimeInputProps = {
   id?: string;
   label?: string;
   helperText?: string;
   timestamp?: string;
-  setTimestamp?: (val: string) => void;
+  setDateTime?: (val: string) => void;
 };
-export const TimestampInput: React.FC<TimestampInputProps> = ({
+export const DateTimeInput: React.FC<DateTimeInputProps> = ({
   id: givenId,
   label: givenLabel,
   helperText,
   timestamp,
-  setTimestamp,
-}: TimestampInputProps) => {
+  setDateTime,
+}: DateTimeInputProps) => {
   const [display, setDisplay] = useState("");
   const [error, setError] = useState("");
 
@@ -26,7 +26,7 @@ export const TimestampInput: React.FC<TimestampInputProps> = ({
   const slugify = str =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
 
-  const changeTimestamp = (event: React.ChangeEvent<{ value: unknown }>) => {
+  const changeDateTime = (event: React.ChangeEvent<{ value: unknown }>) => {
     if (typeof event.target.value !== "string") return;
     const display = event.target.value;
     setDisplay(display);
@@ -37,7 +37,7 @@ export const TimestampInput: React.FC<TimestampInputProps> = ({
     } else if (display.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$/)) {
       if (isNaN(new Date(display).getTime())) {
         timestamp = "";
-        error = "Timestamp is invalid";
+        error = "DateTime is invalid";
       } else {
         timestamp = new Date(display + "Z").toISOString();
         error = "";
@@ -45,7 +45,7 @@ export const TimestampInput: React.FC<TimestampInputProps> = ({
     } else if (display.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
       if (isNaN(new Date(display).getTime())) {
         timestamp = "";
-        error = "Timestamp is invalid";
+        error = "DateTime is invalid";
       } else {
         timestamp = new Date(display + "T00:00:00Z").toISOString();
         error = "";
@@ -56,11 +56,11 @@ export const TimestampInput: React.FC<TimestampInputProps> = ({
     }
     setError(error);
     if (timestamp && !error) {
-      setTimestamp?.(timestamp);
+      setDateTime?.(timestamp);
     }
   };
 
-  const label = givenLabel || "Input Timestamp";
+  const label = givenLabel || "Input DateTime";
   const id = givenId || `input-timestamp-${slugify(label)}`;
 
   return (
@@ -73,7 +73,7 @@ export const TimestampInput: React.FC<TimestampInputProps> = ({
       label={label}
       margin="normal"
       name={id}
-      onChange={changeTimestamp}
+      onChange={changeDateTime}
       value={display || ""}
       variant="outlined"
     />

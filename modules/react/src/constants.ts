@@ -18,7 +18,7 @@ const { Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Ethereum, USA } = Guards;
 
 const coinbaseData =
-`Timestamp,Transaction Type,Asset,Quantity Transacted,USD Spot Price at Transaction,USD Subtotal,USD Total (inclusive of fees),USD Fees,Notes
+`DateTime,Transaction Type,Asset,Quantity Transacted,USD Spot Price at Transaction,USD Subtotal,USD Total (inclusive of fees),USD Fees,Notes
 2018-01-01T01:00:00Z,Buy,BTC,0.1,1500.00,150.00,165.00,15.00,Bought 0.0300 BTC for $165.00 USD`;
 
 const digest = "afa4c4f3";

@@ -1,11 +1,12 @@
 import { MaxUint256 } from "@ethersproject/constants";
 import {
+  DateString,
+  DateTimeString,
   EventTypes,
   Guard,
   GuardChangeEvent,
   Prices,
   TaxRow,
-  TimestampString,
   TradeEvent,
   ValueMachine,
 } from "@valuemachine/types";
@@ -61,7 +62,7 @@ export const getIncomeTax = (taxableIncome: string, filingStatus: string): strin
   return incomeTax;
 };
 
-export const toFormDate = (date: TimestampString): string => {
+export const toFormDate = (date: DateTimeString): string => {
   const pieces = date.split("T")[0].split("-");
   return `${pieces[1]}, ${pieces[2]}, ${pieces[0]}`;
 };
@@ -129,7 +130,9 @@ export const getTaxRows = ({
       || evt.type === EventTypes.Income
     );
   }).reduce((output, evt) => {
-    const date = evt.date || new Date().toISOString();
+    const getDate = (datetime: DateTimeString): DateString =>
+      new Date(datetime).toISOString().split("T")[0];
+    const date = getDate(evt.date);
 
     if (evt.type === EventTypes.Trade) {
       if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return output; }
@@ -149,7 +152,7 @@ export const getTaxRows = ({
             price,
             value,
             receivePrice,
-            receiveDate: chunk.history[0].date,
+            receiveDate: getDate(chunk.history[0].date),
             capitalChange,
             cumulativeChange,
             cumulativeIncome,
@@ -176,30 +179,6 @@ export const getTaxRows = ({
           value: income,
           receivePrice: price,
           receiveDate: date,
-          capitalChange: "0",
-          cumulativeChange,
-          cumulativeIncome,
-          tags: evt.tags,
-        } as TaxRow;
-      }));
-
-    } else if (evt.type === EventTypes.GuardChange) {
-      if (!evt.chunks) { console.warn(`Missing ${evt.type} chunks`, evt); return output; }
-      return output.concat(...evt.chunks.map(chunkIndex => {
-        const chunk = vm.getChunk(chunkIndex);
-        const price = prices.getNearest(date, chunk.asset, unit) || "0";
-        console.warn(evt, `Temporarily pretending this guard change is income`);
-        const income = mul(chunk.amount, price);
-        cumulativeIncome = add(cumulativeIncome, income);
-        return {
-          date: date,
-          action: "Deposit",
-          amount: chunk.amount,
-          asset: chunk.asset,
-          price,
-          value: income,
-          receivePrice: price,
-          receiveDate: chunk.history[0].date,
           capitalChange: "0",
           cumulativeChange,
           cumulativeIncome,

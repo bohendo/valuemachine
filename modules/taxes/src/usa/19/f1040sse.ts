@@ -1,5 +1,7 @@
-import { TaxRow } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
+import {
+  math,
+  TaxRow,
+} from "./utils";
 
 const { add, gt, lt, mul, round } = math;
 

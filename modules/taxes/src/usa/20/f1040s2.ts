@@ -1,7 +1,7 @@
-import { TaxRow } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
-
-const { add, round } = math;
+import {
+  math,
+  TaxRow,
+} from "./utils";
 
 export const f1040s2 = (taxRows: TaxRow[], oldForms: any): any => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as any;
@@ -10,8 +10,8 @@ export const f1040s2 = (taxRows: TaxRow[], oldForms: any): any => {
   f1040s2.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
   f1040s2.SSN = f1040.SSN;
 
-  f1040s2.L3 = round(add(f1040s2.L1, f1040s2.L2));
-  f1040s2.L10 = round(add(
+  f1040s2.L3 = math.round(math.add(f1040s2.L1, f1040s2.L2));
+  f1040s2.L10 = math.round(math.add(
     f1040s2.L4, f1040s2.L5, f1040s2.L6, f1040s2.L7a, f1040s2.L7b, f1040s2.L8,
   ));
 

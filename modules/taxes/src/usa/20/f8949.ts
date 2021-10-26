@@ -1,7 +1,13 @@
-import { EventTypes, TaxRow } from "@valuemachine/types";
-import { getLogger, add, gt, mul, round, sub } from "@valuemachine/utils";
+import {
+  EventTypes,
+  logger,
+  math,
+  TaxRow,
+  toFormDate,
+} from "./utils";
 
-const log = getLogger("info", "f8949");
+const log = logger.child({ module: "f8949" });
+const { add, gt, mul, round, sub } = math;
 
 // returns an array of form data
 export const f8949 = (taxRows: TaxRow[], oldForms: any): any  => {
@@ -13,11 +19,6 @@ export const f8949 = (taxRows: TaxRow[], oldForms: any): any  => {
   const trades = taxRows.filter(tax => tax.action === EventTypes.Trade);
 
   if (trades.length) {
-
-    const toFormDate = (date: string): string => {
-      const pieces = date.split("T")[0].split("-");
-      return `${pieces[1]}, ${pieces[2]}, ${pieces[0]}`;
-    };
 
     const msPerDay = 1000 * 60 * 60 * 24;
     const msPerYear = msPerDay * 365;

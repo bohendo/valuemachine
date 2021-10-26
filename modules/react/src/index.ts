@@ -32,7 +32,7 @@ export {
   SelectMany,
   SelectOne,
   TextInput,
-  TimestampInput,
+  DateTimeInput,
 } from "./utils";
 export {
   ChunkTable,

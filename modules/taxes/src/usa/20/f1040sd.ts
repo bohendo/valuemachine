@@ -1,7 +1,10 @@
-import { TaxRow } from "@valuemachine/types";
-import { getLogger, math } from "@valuemachine/utils";
+import {
+  logger,
+  math,
+  TaxRow,
+} from "./utils";
 
-const log = getLogger("info").child({ module: "f1040sd" });
+const log = logger.child({ module: "f1040sd" });
 const { add, eq, gt, lt, round } = math;
 
 export const f1040sd = (taxRows: TaxRow[], oldForms: any): any => {

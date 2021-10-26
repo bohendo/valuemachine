@@ -6,7 +6,7 @@ import {
   Account,
   Amount,
   Asset,
-  TimestampString,
+  DateTimeString,
   Source,
 } from "./strings";
 import { Store } from "./store";
@@ -51,7 +51,7 @@ export type Transfer = Static<typeof Transfer>;
 
 export const Transaction = Type.Object({
   apps: Type.Array(Type.String()),
-  date: TimestampString,
+  date: DateTimeString,
   index: Type.Optional(Type.Number()), // required after merging txns together
   method: Type.String(),
   sources: Type.Array(Source),

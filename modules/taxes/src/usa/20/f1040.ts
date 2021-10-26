@@ -1,10 +1,24 @@
-import { getLogger, math } from "@valuemachine/utils";
+import {
+  FilingStatuses,
+  getIncomeTax,
+  logger,
+  math,
+} from "./utils";
 
-const log = getLogger("info", "f1040s1");
+const log = logger.child({ module: "f1040" });
 
 export const f1040 = (oldForms: any): any => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as any;
-  const { f1040, f1040s1, f1040sd } = forms;
+  const { f1040, f1040s1, f1040sd, f2555 } = forms;
+
+  let filingStatus;
+  if (f1040.Single || f1040.MarriedFilingSeparately) {
+    filingStatus = FilingStatuses.Single;
+  } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
+    filingStatus = FilingStatuses.Joint;
+  } else if (f1040.HeadOfHousehold) {
+    filingStatus = FilingStatuses.Head;
+  }
 
   f1040.L7 = f1040sd.L16;
   f1040.L8 = f1040s1.L9;
@@ -16,16 +30,27 @@ export const f1040 = (oldForms: any): any => {
   f1040.L10a = f1040s1.L22;
   f1040.L11 = math.sub(f1040.L9, f1040.L10c);
 
-  if (f1040.Single || f1040.MarriedSeparate) {
+  if (filingStatus === FilingStatuses.Single) {
     f1040.L12 = "12200";
-  } else if (f1040.MarriedJoint || f1040.Widow) {
+  } else if (filingStatus === FilingStatuses.Joint) {
     f1040.L12 = "24400";
-  } else if (f1040.HeadOfHousehold) {
+  } else if (filingStatus === FilingStatuses.Head) {
     f1040.L12 = "18350";
   }
 
   f1040.L14 = math.add(f1040.L12, f1040.L13);
   f1040.L15 = math.subToZero(f1040.L11, f1040.L14);
+
+  if (!forms.f2555) {
+    f1040.L16 = getIncomeTax(f1040.L11b, filingStatus);
+  } else {
+    log.warn(`idk what 2b from Foreign Earned Income Tax Worksheet should be, using 0`);
+    const L2c = math.add(f2555.L45, f2555.L50);
+    const L3 = math.add(f1040.L11b, math.add());
+    const L4 = getIncomeTax(L3, filingStatus);
+    const L5 = getIncomeTax(L2c, filingStatus);
+    f1040.L16 = math.subToZero(L4, L5);
+  }
 
   log.warn(`f1040 is a work in progress`);
 

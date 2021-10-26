@@ -1,6 +1,6 @@
 import {
   Logger,
-  TimestampString,
+  DateTimeString,
   Transaction,
   Transfer,
   TransferCategories,
@@ -25,8 +25,8 @@ const { Fee, Income, Expense, Internal } = TransferCategories;
 // Internal Helper Functions
 
 const datesAreClose = (
-  ts1: TimestampString,
-  ts2: TimestampString,
+  ts1: DateTimeString,
+  ts2: DateTimeString,
   wiggleRoom = 1000 * 60 * 30, // 30 minutes
 ) => Math.abs(
   new Date(ts1).getTime() -

@@ -37,7 +37,7 @@ export const getPolygonscanFetcher = ({
     feeAsset: Assets.MATIC,
   } as EvmMetadata;
 
-  // Mapping of blockNumber (IntegerString): timestamp (TimestampString)
+  // Mapping of blockNumber (IntString): timestamp (DateTimeString)
   // Bc Polygonscan doesn't reliably return timestamps while fetching txns by hash
   const timestampCache = {} as { [blockNumber: string]: string };
 

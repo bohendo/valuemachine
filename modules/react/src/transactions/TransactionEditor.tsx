@@ -7,7 +7,7 @@ import { Transaction, TransferCategories } from "@valuemachine/types";
 import { getTxIdError, getTransactionError } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
-import { SelectOne, TextInput, TimestampInput } from "../utils";
+import { SelectOne, TextInput, DateTimeInput } from "../utils";
 
 import { TransferEditor } from "./TransferEditor";
 
@@ -84,10 +84,10 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
       sx={{ p: 1 }}
     >
 
-      <TimestampInput
+      <DateTimeInput
         helperText="When did this tx happen?"
-        label="Transation Timestamp"
-        setTimestamp={date => setNewTx({ ...newTx, date })}
+        label="Transation DateTime"
+        setDateTime={date => setNewTx({ ...newTx, date })}
         timestamp={newTx?.date}
       />
 

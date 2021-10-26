@@ -1,7 +1,10 @@
-import { TaxRow } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
-
-import { logger, processExpenses, processIncome } from "../utils";
+import {
+  logger,
+  math,
+  processIncome,
+  processExpenses,
+  TaxRow,
+} from "./utils";
 
 const log = logger.child({ module: "f2555" });
 

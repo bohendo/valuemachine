@@ -1,11 +1,15 @@
-import { TaxRow, TimestampString } from "@valuemachine/types";
-import { getLogger, math } from "@valuemachine/utils";
+import {
+  DateString,
+  FilingStatuses,
+  getIncomeTax,
+  logger,
+  math,
+  processExpenses,
+  processIncome,
+  TaxRow,
+} from "./utils";
 
-import { processExpenses, processIncome } from "../utils";
-
-import { getIncomeTax } from "./utils";
-
-const log = getLogger("info", "f2210");
+const log = logger.child({ module: "f2210" });
 
 export const f2210 = (taxRows: TaxRow[], oldForms: any): any => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as any;
@@ -104,7 +108,7 @@ export const f2210 = (taxRows: TaxRow[], oldForms: any): any => {
   const getTime = (day: string, month: string, yearDiff = 0): number =>
     new Date(`${new Date().getFullYear() - 1 + yearDiff}-${month}-${day}T00:00:00.000Z`).getTime();
 
-  const getCol = (date: TimestampString): string => {
+  const getCol = (date: DateString): string => {
     const time = new Date(date).getTime();
     return columns[
       time < getTime("01", "01") ? -1
@@ -234,11 +238,11 @@ export const f2210 = (taxRows: TaxRow[], oldForms: any): any => {
     f2210[getKey(13)] = math.subToZero(getVal(11), getVal(12));
 
     if (f1040.Single || f1040.MarriedFilingSeparately) {
-      f2210[getKey(14)] = getIncomeTax(getVal(13), "single");
+      f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Single);
     } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
-      f2210[getKey(14)] = getIncomeTax(getVal(13), "joint");
+      f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Joint);
     } else if (f1040.HeadOfHousehold) {
-      f2210[getKey(14)] = getIncomeTax(getVal(13), "head");
+      f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Head);
     }
 
     f2210[getKey(15)] = getVal(36);

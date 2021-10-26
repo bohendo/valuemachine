@@ -1,8 +1,11 @@
-import { getLogger, math } from "@valuemachine/utils";
+import {
+  FilingStatuses,
+  getIncomeTax,
+  logger,
+  math,
+} from "./utils";
 
-import { getIncomeTax } from "./utils";
-
-const log = getLogger("info", "f1040");
+const log = logger.child({ module: "f1040" });
 
 export const f1040 = (oldForms: any): any => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as any;
@@ -11,11 +14,11 @@ export const f1040 = (oldForms: any): any => {
 
   let filingStatus;
   if (f1040.Single || f1040.MarriedFilingSeparately) {
-    filingStatus = "single";
+    filingStatus = FilingStatuses.Single;
   } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
-    filingStatus = "joint";
+    filingStatus = FilingStatuses.Joint;
   } else if (f1040.HeadOfHousehold) {
-    filingStatus = "head";
+    filingStatus = FilingStatuses.Head;
   }
 
   f1040.L7a = f1040s1.L9;

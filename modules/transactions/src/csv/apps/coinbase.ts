@@ -11,7 +11,7 @@ import { getGuard } from "../../utils";
 
 const guard = Guards.USA;
 const source = CsvSources.Coinbase;
-const dateKey = "Timestamp";
+const dateKey = "DateTime";
 
 export const coinbaseHeaders = [`
 ${dateKey},

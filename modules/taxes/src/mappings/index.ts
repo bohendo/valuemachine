@@ -26,10 +26,7 @@ export namespace FormArchiveTypes {
 export const getEmptyForms = (year: string): Forms =>
   Object.keys(FormArchive[year]).reduce((forms, form) => ({
     ...forms,
-    [form]: Object.keys(FormArchive[year][form]).reduce((fields, field) => ({
-      ...fields,
-      [field]: "",
-    }), {}),
+    [form]: {}
   }), {});
 
 export type Form = {

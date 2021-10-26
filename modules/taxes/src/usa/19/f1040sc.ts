@@ -1,7 +1,10 @@
-import { TaxRow } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
-
-import { logger, processExpenses, processIncome } from "../utils";
+import {
+  logger,
+  math,
+  processExpenses,
+  processIncome,
+  TaxRow,
+} from "./utils";
 
 const log = logger.child({ module: "f1040sc" });
 const { add, gt, lt, round, sub } = math;

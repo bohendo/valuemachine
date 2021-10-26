@@ -1,16 +1,17 @@
-import { Asset, DateString, DecimalString } from "./strings";
+import { Asset, DateString, DecString } from "./strings";
+import { EventType } from "./vm";
 
 export type TaxRow = {
   date: DateString;
-  action: string;
-  amount: DecimalString;
+  action: EventType; // subset: Trade or Income
+  amount: DecString;
   asset: Asset;
-  price: DecimalString;
+  price: DecString;
   tags: string[];
-  value: DecimalString;
+  value: DecString;
   receiveDate: DateString;
-  receivePrice: DecimalString;
-  capitalChange: DecimalString;
-  cumulativeChange: DecimalString;
-  cumulativeIncome: DecimalString;
+  receivePrice: DecString;
+  capitalChange: DecString;
+  cumulativeChange: DecString;
+  cumulativeIncome: DecString;
 };

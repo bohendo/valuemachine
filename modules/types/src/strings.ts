@@ -26,8 +26,8 @@ export type CsvDigest = Static<typeof CsvDigest>;
 export const DateString = Type.String({ format: "date" });
 export type DateString = Static<typeof DateString>;
 
-export const DecimalString = Type.RegEx(/^-?[0-9]*\.?[0-9]*$/);
-export type DecimalString = Static<typeof DecimalString>;
+export const DecString = Type.RegEx(/^-?[0-9]*\.?[0-9]*$/);
+export type DecString = Static<typeof DecString>;
 
 export const EvmAddress = Type.RegEx(/^0x[a-fA-F0-9]{40}$/);
 export type EvmAddress = Static<typeof EvmAddress>;
@@ -38,8 +38,8 @@ export type Guard = Static<typeof Guard>;
 export const HexString = Type.RegEx(/^0x[a-fA-F0-9]*$/);
 export type HexString = Static<typeof HexString>;
 
-export const IntegerString = Type.RegEx(/^-?[0-9]*$/);
-export type IntegerString = Static<typeof IntegerString>;
+export const IntString = Type.RegEx(/^-?[0-9]*$/);
+export type IntString = Static<typeof IntString>;
 
 export const Method = Type.RegEx(/^[-_a-zA-Z0-9 ]+$/);
 export type Method = Static<typeof Method>;
@@ -47,8 +47,8 @@ export type Method = Static<typeof Method>;
 export const Source = Type.RegEx(/^[a-zA-Z]{3,32}$/);
 export type Source = Static<typeof Source>;
 
-export const TimestampString = Type.String({ format: "date-time" });
-export type TimestampString = Static<typeof TimestampString>;
+export const DateTimeString = Type.String({ format: "date-time" });
+export type DateTimeString = Static<typeof DateTimeString>;
 
 // guard/hash
 // eg Ethereum/0xabc123 for a tx on eth mainnet

@@ -1,5 +1,9 @@
-import { TaxRow } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
+import {
+  math,
+  TaxRow,
+} from "./utils";
+
+const { add, round } = math;
 
 export const f1040s2 = (taxRows: TaxRow[], oldForms: any): any => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as any;
