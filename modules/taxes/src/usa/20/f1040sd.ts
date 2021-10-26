@@ -94,12 +94,12 @@ export const f1040sd = (taxRows: TaxRow[], oldForms: any): any => {
   let next: string;
 
   if (gt(f1040sd.L16, "0")) {
-    f1040.L6 = f1040sd.L16;
+    f1040.L16 = f1040sd.L16;
     next = "L17";
   } else if (lt(f1040sd.L16, "0")) {
     next = "L21";
   } else if (eq(f1040sd.L16, "0")) {
-    f1040.L6 = "0";
+    f1040.L16 = "0";
     next = "L22";
   }
 
@@ -130,7 +130,7 @@ export const f1040sd = (taxRows: TaxRow[], oldForms: any): any => {
     } else {
       f1040sd.L21 = lt(f1040sd.L16, "-3000") ? "-3000" : f1040sd.L16;
     }
-    f1040.L6 = f1040sd.L21;
+    f1040.L7 = f1040sd.L21;
   }
 
   if (next === "L22") {

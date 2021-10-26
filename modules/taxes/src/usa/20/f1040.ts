@@ -9,7 +9,7 @@ const log = logger.child({ module: "f1040" });
 
 export const f1040 = (oldForms: any): any => {
   const forms = JSON.parse(JSON.stringify(oldForms)) as any;
-  const { f1040, f1040s1, f1040sd, f2555 } = forms;
+  const { f1040, f2555 } = forms;
 
   let filingStatus;
   if (f1040.Single || f1040.MarriedFilingSeparately) {
@@ -20,14 +20,12 @@ export const f1040 = (oldForms: any): any => {
     filingStatus = FilingStatuses.Head;
   }
 
-  f1040.L7 = f1040sd.L16;
-  f1040.L8 = f1040s1.L9;
   f1040.L9 = math.add(
     f1040.L1, f1040.L2b, f1040.L3b, f1040.L4b,
     f1040.L5b, f1040.L6b, f1040.L7, f1040.L8,
   );
 
-  f1040.L10a = f1040s1.L22;
+  f1040.L10c = math.add(f1040.L10a, f1040.L10b);
   f1040.L11 = math.sub(f1040.L9, f1040.L10c);
 
   if (filingStatus === FilingStatuses.Single) {
@@ -52,7 +50,15 @@ export const f1040 = (oldForms: any): any => {
     f1040.L16 = math.subToZero(L4, L5);
   }
 
-  log.warn(`f1040 is a work in progress`);
+  f1040.L18 = math.add(f1040.L16, f1040.L17);
+  f1040.L21 = math.add(f1040.L19, f1040.L20);
+  f1040.L22 = math.subToZero(f1040.L18, f1040.L21);
+  f1040.L24 = math.add(f1040.L22, f1040.L23);
+  f1040.L25d = math.add(f1040.L25a, f1040.L25b, f1040.L25c);
+  f1040.L32 = math.add(f1040.L27, f1040.L28, f1040.L29, f1040.L30, f1040.L31);
+  f1040.L33 = math.add(f1040.L25d, f1040.L26, f1040.L32);
+  f1040.L34 = math.gt(f1040.L33, f1040.L24) ? math.sub(f1040.L33, f1040.L24) : "";
+  f1040.L36 = math.lt(f1040.L33, f1040.L24) ? math.sub(f1040.L24, f1040.L33) : "";
 
   return { ...forms, f1040 };
 };

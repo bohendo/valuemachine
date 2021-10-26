@@ -70,7 +70,7 @@ export const getPdfUtils = (libs: { fs: any, execFile: any }) => {
               return { ...fdf, [field[0]]: "Off" };
             }
           } else {
-            return { ...fdf, [field[0]]: field[1] };
+            return { ...fdf, [field[0]]: field[1] || "" };
           }
         }, {});
 

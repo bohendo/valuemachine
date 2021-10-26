@@ -17,11 +17,11 @@ export const fillForm = async (
   dir: string,
   libs: { fs: any; execFile: any; },
 ): Promise<string> => {
-  const translate = (form, mapping): any => {
+  const translate = (formData, mapping): any => {
     const newForm = {};
-    for (const [key, value] of Object.entries(form)) {
+    for (const [key, value] of Object.entries(formData)) {
       if (!mapping[key]) {
-        log.warn(`Key ${key} exists in output data but not in mapping`);
+        log.warn(`Key ${key} exists in output data but not in ${form} mapping`);
       }
       if (
         !["_dec", "_int"].some(suffix => key.endsWith(suffix)) &&

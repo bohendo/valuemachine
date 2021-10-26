@@ -39,7 +39,7 @@ export const f2555 = (taxRows: TaxRow[], oldForms: any): any => {
       totalExpenses = math.add(totalExpenses, value);
     }
   });
-  f2555.L23 = math.round(math.sub(totalIncome, totalExpenses));
+  f2555.L23 = math.sub(totalIncome, totalExpenses);
 
   f2555.L24 = math.add(
     f2555.L19, f2555.L20a, f2555.L20b,
@@ -65,7 +65,7 @@ export const f2555 = (taxRows: TaxRow[], oldForms: any): any => {
   f2555.L33 = math.subToZero(f2555.L30, f2555.L32);
 
   if (math.gt(f2555.L33, "0")) {
-    const L35 = math.round(math.min(math.div(f2555.L34, f2555.L27), "1"), 3);
+    const L35 = math.min(math.div(f2555.L34, f2555.L27), "1");
     f2555.L35_int = L35.split(".")[0];
     f2555.L35_dec = L35.split(".")[1];
 
@@ -79,7 +79,7 @@ export const f2555 = (taxRows: TaxRow[], oldForms: any): any => {
   f2555.L37 = "105900";
 
   // TODO: deal w leap years
-  const L39 = math.round(math.div(f2555.L38, "365"), 3);
+  const L39 = math.div(f2555.L38, "365");
   f2555.L39_int = L39.split(".")[0];
   f2555.L39_dec = L39.split(".")[1];
 
@@ -104,12 +104,12 @@ export const f2555 = (taxRows: TaxRow[], oldForms: any): any => {
   f2555.L45 = math.sub(f2555.L43, f2555.L44);
 
   // TODO: concat strings better
-  f1040s1.L8R2 += `Form 2555 (${f2555.L45})`;
+  f1040s1.L8_Etc2 += `Form 2555 (${f2555.L45})`;
   f1040s1.L8 = math.sub(f1040s1.L8, f2555.L45);
-  f1040s1.L9 = math.round(math.add(
+  f1040s1.L9 = math.add(
     f1040s1.L1, f1040s1.L2a, f1040s1.L3, f1040s1.L4,
     f1040s1.L5, f1040s1.L6, f1040s1.L7, f1040s1.L8,
-  ));
+  );
 
   ////////////////////////////////////////
   // Part IX
