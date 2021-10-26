@@ -1,4 +1,5 @@
 import CommonJs from "@rollup/plugin-commonjs";
+import Copy from "rollup-plugin-copy";
 import Replace from "@rollup/plugin-replace";
 import Json from "@rollup/plugin-json";
 import NodeResolve from "@rollup/plugin-node-resolve";
@@ -18,9 +19,12 @@ export default {
   }],
   onwarn: (warning, warn) => {
     // Ignore known warnings
-    const fromPkg = (pkgName) => warning.id ? warning.id.startsWith(`/root/node_modules/${pkgName}`) : false;
+    const fromPkg = (pkgName) => warning.id ? warning.id.startsWith(`/root/node_modules/${pkgName}`)
+      : warning.importer ? warning.importer.includes(`/node_modules/${pkgName}/`)
+      : false;
     if (warning.code === "THIS_IS_UNDEFINED" && fromPkg("@ethersproject")) return;
     if (warning.code === "EVAL" && fromPkg("depd")) return;
+    if (warning.code === "CIRCULAR_DEPENDENCY" && fromPkg("axios")) return;
     warn(warning);
   },
   external: ["readable-stream", "readable-stream/transform"],
@@ -35,7 +39,7 @@ export default {
       values: {
         "require('readable-stream/transform')": "require('stream').Transform",
         'require("readable-stream/transform")': 'require("stream").Transform',
-        "readable-stream": "stream"
+        "readable-stream": "stream",
       }
     }),
     Json({ compact: true }),
@@ -46,6 +50,11 @@ export default {
     CommonJs({
       include: ["./src/index.ts", /node_modules/],
       transformMixedEsModules: true,
+    }),
+    Copy({
+      targets: [
+        { src: "node_modules/@valuemachine/taxes/forms", dest: "dist" },
+      ],
     }),
   ],
 };

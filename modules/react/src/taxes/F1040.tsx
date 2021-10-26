@@ -2,7 +2,7 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { requestF1040, Forms } from "@valuemachine/taxes";
+import { requestFilledForm, Forms, TaxYears } from "@valuemachine/taxes";
 import React, { useEffect, useState } from "react";
 
 import { SelectOne, TextInput } from "../utils";
@@ -31,33 +31,7 @@ export const F1040: React.FC<F1040Props> = ({
   useEffect(() => {
     if (!formData || !newFormData) {
       setModified(false);
-    } else if (
-      newFormData?.Single !== formData?.Single ||
-      newFormData?.MarriedFilingJointly !== formData?.MarriedFilingJointly ||
-      newFormData?.MarriedFilingSeparately !== formData?.MarriedFilingSeparately ||
-      newFormData?.HeadOfHousehold !== formData?.HeadOfHousehold ||
-      newFormData?.QualifiedWidow !== formData?.QualifiedWidow ||
-
-      newFormData?.FirstNameMI !== formData?.FirstNameMI ||
-      newFormData?.LastName !== formData?.LastName ||
-      newFormData?.SocialSecurityNumber !== formData?.SocialSecurityNumber ||
-
-      newFormData?.SpouseFirstNameMI !== formData?.SpouseFirstNameMI ||
-      newFormData?.SpouseLastName !== formData?.SpouseLastName ||
-      newFormData?.SpouseSocialSecurityNumber !== formData?.SpouseSocialSecurityNumber ||
-
-      newFormData?.StreetAddress !== formData?.StreetAddress ||
-      newFormData?.Apt !== formData?.Apt ||
-      newFormData?.City !== formData?.City ||
-      newFormData?.State !== formData?.State ||
-      newFormData?.Zip !== formData?.Zip ||
-
-      newFormData?.ForeignCountry !== formData?.ForeignCountry ||
-      newFormData?.ForeignState !== formData?.ForeignState ||
-      newFormData?.ForeignZip !== formData?.ForeignZip ||
-
-      newFormData?.L1 !== formData?.L1
-    ) {
+    } else if (Object.keys(formData).some(field => newFormData[field] !== formData[field])) {
       setModified(true);
     } else {
       setModified(false);
@@ -71,7 +45,7 @@ export const F1040: React.FC<F1040Props> = ({
 
   const handleDownload = async () => {
     console.log("Downloading new f1040 form w data:", newFormData);
-    await requestF1040(newFormData, window);
+    await requestFilledForm(TaxYears.USA20, "f1040", newFormData, window);
   };
 
   return (<>

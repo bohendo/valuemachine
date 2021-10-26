@@ -6,6 +6,7 @@ export type TaxRow = {
   amount: DecimalString;
   asset: Asset;
   price: DecimalString;
+  tags: string[];
   value: DecimalString;
   receiveDate: DateString;
   receivePrice: DecimalString;

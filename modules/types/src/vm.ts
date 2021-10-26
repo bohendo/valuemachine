@@ -54,6 +54,7 @@ export type EventErrorCode = Static<typeof EventErrorCode>;
 const BaseEvent = Type.Object({
   date: TimestampString,
   index: Type.Number(),
+  tags: Type.Array(Type.String()),
   txId: Type.String(),
 });
 type BaseEvent = Static<typeof BaseEvent>;

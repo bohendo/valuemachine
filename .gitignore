@@ -10,29 +10,31 @@
 **/private.test.ts
 **/separate.json
 **/state.json
-**/tax-return.pdf
+**/tax-return*.pdf
 **/transactions.json
 modules/client/src/data
 **/TODO*
 
 # Cache
+**/*.docker-compose.yml
+**/*.fdf
 **/.cache
-**/.rollup.cache
 **/.config
 **/.git
 **/.node-gyp
 **/.npm
+**/.rollup.cache
 **/.rpt2_cache
+**/docker-compose.yml
 modules/taxes/ops/fields/i*.fields
 modules/taxes/ops/forms/i*.pdf
-**/*.docker-compose.yml
-**/docker-compose.yml
 
 # Compiled output
+**/.flags
 **/build/**
 **/dist/**
+**/modules/taxes/f[0-9]*.pdf
 **/node_modules/**
-**/.flags
 
 # Backups
 **/*.lerna_backup

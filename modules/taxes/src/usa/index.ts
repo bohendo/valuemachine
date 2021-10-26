@@ -1,5 +1,2 @@
-export { mappings, Forms } from "./mappings";
-export { buildF1040 } from "./buildF1040";
-export { buildF8949 } from "./buildF8949";
-export { requestF1040 } from "./requestF1040";
-export { requestF8949 } from "./requestF8949";
+export { getTaxReturn as getUSA20Return } from "./20";
+export { getTaxReturn as getUSA19Return } from "./19";

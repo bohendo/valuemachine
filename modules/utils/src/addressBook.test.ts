@@ -1,10 +1,10 @@
+import { expect } from "chai";
 import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import { AddressCategories } from "@valuemachine/types";
 
 import { getAddressBookError, fmtAddressBook } from "./addressBook";
 import { getLogger } from "./logger";
-import { expect } from "./testUtils";
 
 const log = getLogger("warn").child({ module: "TestAddressBookUtils" });
 const address = AddressZero;

@@ -3,7 +3,14 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { allTaxYears, getTaxYearBoundaries, getTaxRows, requestF8949 } from "@valuemachine/taxes";
+import {
+  allTaxYears,
+  Forms,
+  getTaxRows,
+  getTaxYearBoundaries,
+  requestTaxReturn,
+  TaxYears,
+} from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
 import {
   Guard,
@@ -19,11 +26,13 @@ import React, { useEffect } from "react";
 import { SelectOne } from "../utils";
 
 type TaxPorterProps = {
+  formData?: Forms;
   guard: Guard;
   prices: Prices,
   vm: ValueMachine,
 };
 export const TaxPorter: React.FC<TaxPorterProps> = ({
+  formData,
   guard,
   prices,
   vm,
@@ -55,7 +64,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
         cumulativeChange: round(row.cumulativeChange, 2),
         cumulativeIncome: round(row.cumulativeIncome, 2),
       })),
-      Object.keys(taxes[0]),
+      Object.keys(taxes?.[0] || {}), // TODO: why is taxes[0] undefined?
     );
     const name = `${guard}-taxes.csv`;
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
@@ -65,11 +74,10 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     a.click();
   };
 
-  const handleF8949Export = () => {
-    if (!vm?.json || !prices?.json || !guard || !taxYear) {
-      return;
-    }
-    requestF8949(vm, prices, guard, taxYear, window);
+  const handleExport = () => {
+    if (!guard || !taxYear || !vm?.json || !prices?.json || !formData) return;
+    const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
+    if (year) requestTaxReturn(year, guard, vm, prices, formData, window);
   };
 
   const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
@@ -124,18 +132,18 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           </Button>
         </Grid>
 
-        {guard === Guards.USA && taxYear !== allTaxYears ?
+        {guard === Guards.USA && (taxYear === "2019" || taxYear === "2020") ?
           <Grid item xs={12} sm={6}>
             <Button
               sx={{ ml: 1, my: 2, maxWidth: "24em" }}
               color="primary"
               fullWidth={false}
-              onClick={handleF8949Export}
+              onClick={handleExport}
               size="small"
               startIcon={<DownloadIcon />}
               variant="contained"
             >
-              Download F8949
+              Download Tax Return
             </Button>
           </Grid>
           : null
