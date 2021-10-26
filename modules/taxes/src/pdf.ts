@@ -180,7 +180,7 @@ export const fetchUsaForm = async (
 ): Promise<boolean> => {
   const url = taxYear.endsWith((new Date().getFullYear() - 1).toString().substring(2))
     ? `https://www.irs.gov/pub/irs-pdf/${form}.pdf`
-    : `https://www.irs.gov/pub/irs-prior/${form}--${taxYear}.pdf`;
+    : `https://www.irs.gov/pub/irs-prior/${form}--20${taxYear.substring(3)}.pdf`;
   log.info(`Fetching ${taxYear} ${form} from ${url}`);
   const emptyPdf = `${process.cwd()}/forms/${taxYear}/${form}.pdf`;
   const writer = fs.createWriteStream(emptyPdf);

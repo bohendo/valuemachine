@@ -39,14 +39,15 @@ describe("Tax Form Mappings", () => {
   it(`should build & fix all form mappings`, async () => {
     for (const year of Object.keys(TaxYears)) {
       if (!FormArchive[year]) continue; // Skip if we don't support forms for this year
-      for (const form of Object.keys(FormArchive[year]).concat([])) {
+      for (const form of Object.keys(FormArchive[year])) {
         let fields;
         try {
-          fields = Object.values(await getMapping(year, form, pdf) || {});
+          fields = Object.values(await getMapping(year, form, libs) || {});
         } catch (e) {
+          log.warn(e.message);
           // Might have failed bc empty forms aren't available, fetch them and try again
           await fetchUsaForm(year, form, fs);
-          fields = Object.values(await getMapping(year, form, pdf) || {});
+          fields = Object.values(await getMapping(year, form, libs) || {});
         }
         expect(fields.length).to.be.ok; // the empty form should exist & have >0 forms
         log.info(`Got ${fields.length} entries of fdf data from empty ${year} ${form}.pdf file`);
