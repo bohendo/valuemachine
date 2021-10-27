@@ -20,6 +20,9 @@ export const f1040 = (oldForms: any): any => {
     filingStatus = FilingStatuses.Head;
   }
 
+  // f1040.StatusInfo = true; // this should throw a type error
+  // f1040.HasCrypto_Yes = "Yea"; // this should throw a type error
+
   f1040.L9 = math.add(
     f1040.L1, f1040.L2b, f1040.L3b, f1040.L4b,
     f1040.L5b, f1040.L6b, f1040.L7, f1040.L8,

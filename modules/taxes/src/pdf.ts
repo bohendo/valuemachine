@@ -3,7 +3,7 @@ import { ValueMachine, Prices } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
-import { getPdfUtils } from "./pdfUtils";
+import { getPdftk } from "./pdftk";
 import { getEmptyForms, Forms, FormArchive, TaxYear } from "./mappings";
 import { getTaxReturn } from "./return";
 import { getTaxRows } from "./utils";
@@ -43,7 +43,7 @@ export const fillForm = async (
   const srcPath = cwd.endsWith("taxes") ? `${cwd}/forms/${taxYear}/${form}.pdf`
     : `${cwd}/node_modules/@valuemachine/taxes/forms/${taxYear}/${form}.pdf`;
   const destPath = `${dir || "/tmp"}/${form}-${taxYear}.pdf`;
-  const res = await getPdfUtils(libs).fillForm(
+  const res = await getPdftk(libs).fill(
     srcPath,
     destPath,
     translate(data, FormArchive[taxYear][form]),
@@ -58,7 +58,6 @@ export const fillReturn = async (
   dir: string,
   libs: { fs: any; execFile: any; },
 ): Promise<string> => {
-  const { execFile } = libs;
   const pages = [] as string[];
   for (const entry of Object.entries(forms)) {
     const name = entry[0] as string;
@@ -85,17 +84,10 @@ export const fillReturn = async (
       ));
     }
   }
-  const output = `${dir || "/tmp"}/tax-return-${taxYear}.pdf`;
-  // TODO: sort pages based on attachment index?
-  const cmd = `pdftk ${pages.join(" ")} cat output ${output}`;
-  log.info(`Running command: "${cmd}" from current dir ${process.cwd()}`);
-  return new Promise((res, rej) => {
-    const stdout = execFile("pdftk", [...pages, "cat", "output", output], (err) => {
-      if (err) rej(err);
-      log.info(`Got output from ${cmd}: ${stdout}`);
-      res(output);
-    });
-  });
+  return getPdftk(libs).cat(
+    pages,
+    `${dir || "/tmp"}/tax-return-${taxYear}.pdf`,
+  );
 };
 
 export const requestFilledForm = async (
@@ -168,7 +160,7 @@ export const getMapping = async (
   libs: { fs: any; execFile: any; },
 ): Promise<any> => {
   const emptyPdf = `${process.cwd()}/forms/${taxYear}/${form}.pdf`;
-  const mapping = await getPdfUtils(libs).generateMapping(emptyPdf);
+  const mapping = await getPdftk(libs).dumpFields(emptyPdf);
   log.info(`Got mapping w ${Object.keys(mapping).length} entries from empty pdf at ${emptyPdf}`);
   return mapping;
 };

@@ -6,12 +6,12 @@ import { getLogger } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { FormArchive, TaxYears } from "./mappings";
-import { fetchUsaForm, fillForm, fillReturn, getMapping } from "./pdf";
-import { getPdfUtils, getFieldNickname } from "./pdfUtils";
+import { fetchUsaForm, fillForm, fillReturn } from "./pdf";
+import { getPdftk, getFieldNickname } from "./pdftk";
 
 const log = getLogger("info", "Mappings");
 const libs = { fs, execFile };
-const pdf = getPdfUtils(libs);
+const pdftk = getPdftk(libs);
 const root = path.join(__dirname, "..");
 
 const getDefaultForm = mapping =>
@@ -36,48 +36,53 @@ describe("Tax Form Mappings", () => {
     }
   });
 
-  it(`should build & fix all form mappings`, async () => {
+  it.only(`should build & fix all form mappings`, async () => {
     for (const year of Object.keys(TaxYears)) {
       if (!FormArchive[year]) continue; // Skip if we don't support forms for this year
       for (const form of Object.keys(FormArchive[year])) {
-        let fields;
+        let mapping;
         try {
-          fields = Object.values(await getMapping(year, form, libs) || {});
+          mapping = await pdftk.dumpFields(`${root}/forms/${year}/${form}.pdf`);
         } catch (e) {
-          log.warn(e.message);
           // Might have failed bc empty forms aren't available, fetch them and try again
           await fetchUsaForm(year, form, fs);
-          fields = Object.values(await getMapping(year, form, libs) || {});
+          mapping = await pdftk.dumpFields(`${root}/forms/${year}/${form}.pdf`);
         }
-        expect(fields.length).to.be.ok; // the empty form should exist & have >0 forms
-        log.info(`Got ${fields.length} entries of fdf data from empty ${year} ${form}.pdf file`);
+        expect(mapping.length).to.be.ok; // the empty form should exist & have >0 forms
+        log.info(`Got ${mapping.length} entries of fdf data from empty ${year} ${form}.pdf file`);
+        log.debug(mapping);
+        log.warn("Returning early");
+        return;
         const target = `${root}/src/mappings/${year}/${form}.json`;
         if (fs.existsSync(target)) {
           expect(FormArchive[year][form]).to.be.ok;
-          const currentMappings = JSON.parse(fs.readFileSync(target));
-          log.info(`Mappings w ${Object.keys(currentMappings).length} entries exist at ${target}`);
-          for (const field of fields) {
-            const mappedName = Object.entries(currentMappings).find(e => e[1] === field)?.[0];
-            if (!mappedName) {
-              log.warn(`Field ~${getFieldNickname(field)} is not in ${form} mappings: ${field}`);
-              currentMappings[getFieldNickname(field)] = field;
+          const currentMappings = JSON.parse(fs.readFileSync(target)) as any;
+          if (currentMappings?.length) {
+            log.info(`Current mappings are an array of length ${currentMappings.length}`);
+          } else {
+
+            log.info(`Mappings w ${Object.keys(currentMappings).length} entries exist at ${target}`);
+            for (const field of mapping.map(m => m.fieldName)) {
+              const mappedName = Object.entries(currentMappings).find(e => e[1] === field)?.[0];
+              if (!mappedName) {
+                log.warn(`Field ~${getFieldNickname(field)} is not in ${form} mappings: ${field}`);
+                currentMappings[getFieldNickname(field)] = field;
+              }
             }
-          }
-          for (const entry of Object.entries(FormArchive[year][form])) {
-            if (!fields.includes(entry[1])) {
-              log.warn(`Field ${entry[0]} exists in mappings but not the empty pdf: ${entry[1]}`);
-              delete currentMappings[entry[0]];
+            for (const entry of Object.entries(FormArchive[year][form])) {
+              if (!mapping.some(entry => entry.fieldName === entry[1])) {
+                log.warn(`Field ${entry[0]} exists in mappings but not the empty pdf: ${entry[1]}`);
+                delete currentMappings[entry[0]];
+              }
             }
+            fs.writeFileSync(target, JSON.stringify(currentMappings, null, 2));
+            log.info(`Wrote ${Object.keys(currentMappings).length} updated mappings to ${target}`);
+
           }
-          fs.writeFileSync(target, JSON.stringify(currentMappings, null, 2));
-          log.info(`Wrote ${Object.keys(currentMappings).length} updated mappings to ${target}`);
+          // log.warn(`Returning early`); return; // TODO: rm
         } else {
-          const data = fields.reduce((res, field) => ({
-            ...res,
-            [getFieldNickname(field)]: field,
-          }), {});
-          log.warn(`Wrote ${Object.keys(data).length} new mappings to ${target}`);
-          fs.writeFileSync(target, JSON.stringify(data, null, 2));
+          fs.writeFileSync(target, JSON.stringify(mapping, null, 2));
+          log.warn(`Wrote new mapping w ${mapping.length} fields to ${target}`);
         }
       }
     }
@@ -86,36 +91,36 @@ describe("Tax Form Mappings", () => {
   // This test can be used to fetch a new empty form & init mappings: set a new year + form then run
   it.skip(`should build & fix a mapping for one form`, async () => {
     const [year, form] = [TaxYears.USA19, "f1040"];
-    // Get fields from empty form (and fetch empty form if not present)
+    // Get mapping from empty form (and fetch empty form if not present)
     const emptyPdf = `${root}/forms/${year}/${form}.pdf`;
-    let fields;
+    let mapping;
     if (fs.existsSync(emptyPdf)) {
-      fields = Object.values(await getMapping(year, form, pdf));
+      mapping = await pdftk.dumpFields(`${root}/forms/${year}/${form}.pdf`);
     } else {
       log.info(`Empty pdf doesn't exist at ${emptyPdf}`);
       await fetchUsaForm(year, form, fs);
-      fields = Object.values(await getMapping(year, form, pdf));
-    }
-    expect(fields).to.be.ok;
-    log.info(`Found ${fields.length} fields in empty ${year} ${form}`);
-    // Get mapping values (generate from empty form if not available)
-    let mapping = FormArchive?.[year]?.[form];
-    if (!mapping) {
-      const target = `${root}/src/mappings/${year}/${form}.json`;
-      log.warn(`No mapping exist for ${year} ${form} yet`);
-      mapping = fields.reduce((res, field) => ({
-        ...res,
-        [getFieldNickname(field)]: field,
-      }), {});
-      fs.writeFileSync(target, JSON.stringify(mapping, null, 2));
-      log.warn(`Wrote ${Object.keys(mapping).length} new mapping to ${target}`);
+      mapping = await pdftk.dumpFields(`${root}/forms/${year}/${form}.pdf`);
     }
     expect(mapping).to.be.ok;
+    log.info(`Found ${mapping.length} fields in empty ${year} ${form}`);
+    // Get mapping values (generate from empty form if not available)
+    let currentMapping = FormArchive?.[year]?.[form];
+    if (!currentMapping) {
+      const target = `${root}/src/mappings/${year}/${form}.json`;
+      log.warn(`No mapping exist for ${year} ${form} yet`);
+      currentMapping = mapping.reduce((res, entry) => ({
+        ...res,
+        [entry.nickname]: entry.fieldName,
+      }), {});
+      fs.writeFileSync(target, JSON.stringify(currentMapping, null, 2));
+      log.warn(`Wrote new mapping w ${Object.keys(currentMapping).length} fields to ${target}`);
+    }
+    expect(currentMapping).to.be.ok;
     // Fill form with default values
     expect(await fillForm(
       year,
       form,
-      getDefaultForm(mapping),
+      getDefaultForm(currentMapping),
       process.cwd(),
       libs,
     )).to.be.a("string");
