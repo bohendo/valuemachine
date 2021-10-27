@@ -10,7 +10,7 @@ export const FieldTypes = {
 export const FieldType = Type.Enum(FieldTypes);
 export type FieldType = Static<typeof FieldType>;
 
-export const Mapping = Type.Array(Type.Intersect([
+export const Mapping = Type.Array(Type.Union([
   Type.Object({
     nickname: Type.String(),
     fieldType: Type.Literal(FieldTypes.String),
@@ -19,7 +19,7 @@ export const Mapping = Type.Array(Type.Intersect([
   Type.Object({
     nickname: Type.String(),
     fieldType: Type.Literal(FieldTypes.Boolean),
-    fielName: Type.String(),
+    fieldName: Type.String(),
     checkmark: Type.String(), // value needed to check the checkbox
   }),
 ]));
