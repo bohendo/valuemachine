@@ -2,7 +2,6 @@ import { execFile, execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 
-import { Mapping } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import { expect } from "chai";
 
@@ -55,47 +54,41 @@ describe("Tax Form Mappings", () => {
         if (fs.existsSync(target)) {
           // expect(FormArchive[year][form]).to.be.ok;
           const currentMapping = JSON.parse(fs.readFileSync(target)) as any;
-          if (currentMapping?.length) {
-            log.info(`Current mappings are an array of length ${currentMapping.length}`);
-            /*
-            for (const field of mapping.map(m => m.fieldName)) {
-              const mappedName = Object.entries(currentMapping).find(e => e[1] === field)?.[0];
-              if (!mappedName) {
-                log.warn(`Field ~${getFieldNickname(field)} is not in ${form} mappings: ${field}`);
-                currentMapping[getFieldNickname(field)] = field;
-              }
-            }
-            for (const entry of Object.entries(FormArchive[year][form])) {
-              if (!mapping.some(entry => entry.fieldName === entry[1])) {
-                log.warn(`Field ${entry[0]} exists in mappings but not the empty pdf: ${entry[1]}`);
-                delete currentMapping[entry[0]];
-              }
-            }
-            fs.writeFileSync(target, JSON.stringify(currentMapping, null, 2));
-            log.info(`Wrote ${Object.keys(currentMapping).length} updated mappings to ${target}`);
-            */
-
-          } else {
-            log.info(`Mappings w ${Object.keys(currentMapping).length} entries exist at ${target}`);
-
-            const newMapping = Object.entries(currentMapping).reduce((newMap, entry) => {
-              const newEntry = mapping.find(e => e.fieldName === entry[1]);
-              if (!newEntry) {
-                log.warn(`Couldn't find new mapping for field ${entry[1]} eg ${mapping[0].fieldName}`);
-                return newMap;
-              }
-              newMap.push({
-                nickname: entry[0],
-                fieldName: newEntry.fieldName,
-                fieldType: newEntry.fieldType,
-                checkmark: newEntry.checkmark,
-              });
-              return newMap;
-            }, [] as Mapping);
-
-            fs.writeFileSync(target, JSON.stringify(newMapping, null, 2));
-
+          if (!currentMapping?.length) {
+            log.warn(`Invalid mappings format, expected an array`);
+            return;
           }
+          log.info(`Current mappings contain ${currentMapping.length} fields`);
+
+          for (const entry of mapping) {
+            const currentEntry = currentMapping.find(e => e.fieldName === entry.fieldName);
+            // Make sure all fields except nickname equal the values from the empty pdf
+            if (!currentEntry) {
+              log.warn(`Adding new entry for ${entry.fieldName} to ${form} mappings`);
+              currentMapping.push(entry);
+            } else if (currentEntry.fieldType !== entry.fieldType) {
+              log.warn(`Replacing ${form}.${currentEntry.nickname}.fieldType with ${entry.fieldType}`);
+              currentEntry.fieldType = entry.fieldType;
+            } else if (currentEntry.checkmark && !entry.checkmark) {
+              log.warn(`Removing ${form}.${currentEntry.nickname} checkmark`);
+              delete currentEntry.checkmark;
+            } else if (currentEntry.checkmark !== entry.checkmark) {
+              log.warn(`Replacing ${form}.${currentEntry.nickname} checkmark with ${entry.checkmark}`);
+              currentEntry.checkmark = entry.checkmark;
+            }
+          }
+
+          for (const i in currentMapping) {
+            const currentEntry = currentMapping[i];
+            if (!mapping.find(entry => entry.fieldName === currentEntry.fieldName)) {
+              log.warn(`Removing ${currentEntry.nickname} from ${form} mappings`);
+              currentMapping.splice(i, 1);
+            }
+          }
+
+          fs.writeFileSync(target, JSON.stringify(currentMapping, null, 2));
+          log.info(`Wrote ${Object.keys(currentMapping).length} updated mappings to ${target}`);
+
         } else {
           fs.writeFileSync(target, JSON.stringify(mapping, null, 2));
           log.warn(`Wrote new mapping w ${mapping.length} fields to ${target}`);

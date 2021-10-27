@@ -972,7 +972,12 @@
     "fieldType": "String"
   },
   {
-    "nickname": "shade_0",
+    "nickname": "shade_22",
+    "fieldName": "topmostSubform[0].Page4[0].Part1Table[0].Line22[0].shade[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "shade_25",
     "fieldName": "topmostSubform[0].Page4[0].Part1Table[0].Line25[0].shade[0]",
     "fieldType": "String"
   },
