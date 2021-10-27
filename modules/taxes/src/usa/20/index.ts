@@ -25,10 +25,10 @@ export const getTaxReturn = (
   // `Na` should always come before `N` eg 12a before 12
 
   /*seq no 34*/ forms = f2555(taxRows, forms);
-  /*seq no 17*/ forms = f1040sse(taxRows, forms);
   /*seq no 12a*/forms = f8949(taxRows, forms);
   /*seq no 12*/ forms = f1040sd(taxRows, forms);
   /*seq no 9*/  forms = f1040sc(taxRows, forms);
+  /*seq no 17*/ forms = f1040sse(taxRows, forms); // NOTE: sse depends on sc despite the seq nos..
   /*seq no 6*/  forms = f2210(taxRows, forms);
   /*seq no 3*/  forms = f1040s3(taxRows, forms);
   /*seq no 2*/  forms = f1040s2(taxRows, forms);

@@ -48,7 +48,7 @@ export const f2555 = (taxRows: TaxRow[], oldForms: any): any => {
   );
 
   f2555.L26 = math.sub(f2555.L24, f2555.L25);
-  log.info(`2019 foreign earned income: ${f2555.L26}`);
+  log.info(`Foreign earned income: ${f2555.L26}`);
 
   ////////////////////////////////////////
   // Part V

@@ -3,6 +3,7 @@ import { execFile } from "child_process";
 
 import { Assets } from "@valuemachine/transactions";
 import { EventTypes } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { getEmptyForms, TaxYears } from "./mappings";
@@ -12,7 +13,7 @@ import { fillReturn } from "./pdf";
 const year = TaxYears.USA20;
 
 describe(`Tax Return`, () => {
-  it.only(`should apply math instructions & ${TaxYears.USA19} tax laws properly`, async () => {
+  it(`should apply math instructions & ${TaxYears.USA19} tax laws properly`, async () => {
     const taxRows = [{
       date: "2020-01-01T00:00:00",
       action: EventTypes.Income,
@@ -103,6 +104,7 @@ describe(`Tax Return`, () => {
     };
     const taxReturn = getTaxReturn(year, taxRows, forms);
     expect(taxReturn).to.be.ok;
+    expect(taxReturn.f1040.L14).to.equal(math.add(taxReturn.f1040.L12, taxReturn.f1040.L13));
     const path = await fillReturn(year, taxReturn, process.cwd(), { fs, execFile });
     expect(path).to.be.a("string");
   });
