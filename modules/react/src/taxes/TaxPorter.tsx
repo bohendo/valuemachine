@@ -43,16 +43,22 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   useEffect(() => {
     setTaxYear(allTaxYears);
     setTaxYears(dedup(
-      vm?.json?.events?.filter(evt =>
+      (vm?.json?.events?.filter(evt =>
         (evt as TradeEvent).account?.startsWith(guard) ||
         (evt as GuardChangeEvent).to?.startsWith(guard)
-      ).map(evt => evt.date.split("-")[0]) || []
-    ));
+      ).map(evt => evt.date.split("-")[0]) || []).concat([
+        (new Date().getFullYear() - 1).toString() // always provide the option for last year
+      ])
+    ).sort());
   }, [guard, vm]);
 
   const handleCsvExport = () => {
     console.log(`Exporting csv for ${taxYear} taxes`);
     const taxes = getTaxRows({ guard, prices, vm, taxYear });
+    if (!taxes?.length) {
+      console.warn(`There were no known taxable events in ${taxYear}`);
+      return;
+    }
     const output = json2csv(
       taxes.map(row => ({
         ...row,
@@ -64,7 +70,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
         cumulativeChange: round(row.cumulativeChange, 2),
         cumulativeIncome: round(row.cumulativeIncome, 2),
       })),
-      Object.keys(taxes?.[0] || {}), // TODO: why is taxes[0] undefined?
+      Object.keys(taxes?.[0] || {}),
     );
     const name = `${guard}-taxes.csv`;
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
