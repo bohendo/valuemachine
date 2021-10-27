@@ -83,7 +83,7 @@ describe("Tax Form Mappings", () => {
     }
   });
 
-  // This test can be used to init a new empty form & mapping, just set the year + name & unskip
+  // This test can be used to fetch a new empty form & init mappings: set a new year + form then run
   it.skip(`should build & fix a mapping for one form`, async () => {
     const [year, form] = [TaxYears.USA19, "f1040"];
     // Get fields from empty form (and fetch empty form if not present)
@@ -97,7 +97,7 @@ describe("Tax Form Mappings", () => {
       fields = Object.values(await getMapping(year, form, pdf));
     }
     expect(fields).to.be.ok;
-    log.info(`Got ${fields.length} fields for ${year} ${form}`);
+    log.info(`Found ${fields.length} fields in empty ${year} ${form}`);
     // Get mapping values (generate from empty form if not available)
     let mapping = FormArchive?.[year]?.[form];
     if (!mapping) {

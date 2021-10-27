@@ -16,19 +16,6 @@ export const FormArchive = {
   [TaxYears.USA20]: MappingsUSA20,
 };
 
-/*
-export namespace FormArchiveTypes {
-  export type USA19 = typeof MappingsUSA19;
-  export type USA20 = typeof MappingsUSA20;
-}
-*/
-
-export const getEmptyForms = (year: string): Forms =>
-  Object.keys(FormArchive[year]).reduce((forms, form) => ({
-    ...forms,
-    [form]: {}
-  }), {});
-
 export type Form = {
   [field: string]: any; // TODO: string | boolean
 };
@@ -36,3 +23,16 @@ export type Form = {
 export type Forms = {
   [form: string]: any; // TODO: Array<Form> | Form
 };
+
+/*
+export type FormArchive = {
+  [TaxYears.USA19]: MappingsUSA19;
+  [TaxYears.USA20]: MappingsUSA20;
+};
+*/
+
+export const getEmptyForms = (year: string): Forms =>
+  Object.keys(FormArchive[year]).reduce((forms, form) => ({
+    ...forms,
+    [form]: {}
+  }), {});
