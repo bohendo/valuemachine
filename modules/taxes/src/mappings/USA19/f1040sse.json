@@ -1,38 +1,183 @@
-{
-  "P1_Name": "topmostSubform[0].Page1[0].f1_1[0]",
-  "P1_SSN": "topmostSubform[0].Page1[0].f1_2[0]",
-  "P1L1a": "topmostSubform[0].Page1[0].f1_3[0]",
-  "P1L1b": "topmostSubform[0].Page1[0].f1_4[0]",
-  "P1L2": "topmostSubform[0].Page1[0].f1_5[0]",
-  "P1L3": "topmostSubform[0].Page1[0].f1_6[0]",
-  "P1L4": "topmostSubform[0].Page1[0].f1_7[0]",
-  "P1L5": "topmostSubform[0].Page1[0].TagCorrectingSubform1[0].f1_8[0]",
-  "P1L6": "topmostSubform[0].Page1[0].TagCorrectingSubform2[0].f1_9[0]",
-  "P2_Name": "topmostSubform[0].Page2[0].f2_1[0]",
-  "P2_SSN": "topmostSubform[0].Page2[0].f2_2[0]",
-  "P2C1_A": "topmostSubform[0].Page2[0].c2_1[0]",
-  "P2L1a": "topmostSubform[0].Page2[0].f2_3[0]",
-  "P2L1b": "topmostSubform[0].Page2[0].f2_4[0]",
-  "P2L2": "topmostSubform[0].Page2[0].f2_5[0]",
-  "P2L3": "topmostSubform[0].Page2[0].f2_6[0]",
-  "P2L4a": "topmostSubform[0].Page2[0].f2_7[0]",
-  "P2L4b": "topmostSubform[0].Page2[0].f2_8[0]",
-  "P2L4c": "topmostSubform[0].Page2[0].f2_9[0]",
-  "P2L5a": "topmostSubform[0].Page2[0].f2_10[0]",
-  "P2L5b": "topmostSubform[0].Page2[0].f2_11[0]",
-  "P2L6": "topmostSubform[0].Page2[0].f2_12[0]",
-  "P2L7": "topmostSubform[0].Page2[0].f2_13[0]",
-  "P2L8a": "topmostSubform[0].Page2[0].f2_14[0]",
-  "P2L8b": "topmostSubform[0].Page2[0].f2_15[0]",
-  "P2L8c": "topmostSubform[0].Page2[0].f2_16[0]",
-  "P2L8d": "topmostSubform[0].Page2[0].f2_17[0]",
-  "P2L9": "topmostSubform[0].Page2[0].f2_18[0]",
-  "P2L10": "topmostSubform[0].Page2[0].f2_19[0]",
-  "P2L11": "topmostSubform[0].Page2[0].f2_20[0]",
-  "P2L12": "topmostSubform[0].Page2[0].f2_21[0]",
-  "P2L13": "topmostSubform[0].Page2[0].f2_22[0]",
-  "P2L14": "topmostSubform[0].Page2[0].f2_23[0]",
-  "P2L15": "topmostSubform[0].Page2[0].f2_24[0]",
-  "P2L16": "topmostSubform[0].Page2[0].f2_25[0]",
-  "P2L17": "topmostSubform[0].Page2[0].f2_26[0]"
-}
+[
+  {
+    "nickname": "P1_Name",
+    "fieldName": "topmostSubform[0].Page1[0].f1_1[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P1_SSN",
+    "fieldName": "topmostSubform[0].Page1[0].f1_2[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P1L1a",
+    "fieldName": "topmostSubform[0].Page1[0].f1_3[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P1L1b",
+    "fieldName": "topmostSubform[0].Page1[0].f1_4[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P1L2",
+    "fieldName": "topmostSubform[0].Page1[0].f1_5[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P1L3",
+    "fieldName": "topmostSubform[0].Page1[0].f1_6[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P1L4",
+    "fieldName": "topmostSubform[0].Page1[0].f1_7[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P1L5",
+    "fieldName": "topmostSubform[0].Page1[0].TagCorrectingSubform1[0].f1_8[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P1L6",
+    "fieldName": "topmostSubform[0].Page1[0].TagCorrectingSubform2[0].f1_9[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2_Name",
+    "fieldName": "topmostSubform[0].Page2[0].f2_1[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2_SSN",
+    "fieldName": "topmostSubform[0].Page2[0].f2_2[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2C1_A",
+    "fieldName": "topmostSubform[0].Page2[0].c2_1[0]",
+    "fieldType": "Boolean",
+    "checkmark": "1"
+  },
+  {
+    "nickname": "P2L1a",
+    "fieldName": "topmostSubform[0].Page2[0].f2_3[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L1b",
+    "fieldName": "topmostSubform[0].Page2[0].f2_4[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L2",
+    "fieldName": "topmostSubform[0].Page2[0].f2_5[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L3",
+    "fieldName": "topmostSubform[0].Page2[0].f2_6[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L4a",
+    "fieldName": "topmostSubform[0].Page2[0].f2_7[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L4b",
+    "fieldName": "topmostSubform[0].Page2[0].f2_8[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L4c",
+    "fieldName": "topmostSubform[0].Page2[0].f2_9[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L5a",
+    "fieldName": "topmostSubform[0].Page2[0].f2_10[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L5b",
+    "fieldName": "topmostSubform[0].Page2[0].f2_11[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L6",
+    "fieldName": "topmostSubform[0].Page2[0].f2_12[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L7",
+    "fieldName": "topmostSubform[0].Page2[0].f2_13[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L8a",
+    "fieldName": "topmostSubform[0].Page2[0].f2_14[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L8b",
+    "fieldName": "topmostSubform[0].Page2[0].f2_15[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L8c",
+    "fieldName": "topmostSubform[0].Page2[0].f2_16[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L8d",
+    "fieldName": "topmostSubform[0].Page2[0].f2_17[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L9",
+    "fieldName": "topmostSubform[0].Page2[0].f2_18[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L10",
+    "fieldName": "topmostSubform[0].Page2[0].f2_19[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L11",
+    "fieldName": "topmostSubform[0].Page2[0].f2_20[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L12",
+    "fieldName": "topmostSubform[0].Page2[0].f2_21[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L13",
+    "fieldName": "topmostSubform[0].Page2[0].f2_22[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L14",
+    "fieldName": "topmostSubform[0].Page2[0].f2_23[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L15",
+    "fieldName": "topmostSubform[0].Page2[0].f2_24[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L16",
+    "fieldName": "topmostSubform[0].Page2[0].f2_25[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "P2L17",
+    "fieldName": "topmostSubform[0].Page2[0].f2_26[0]",
+    "fieldType": "String"
+  }
+]

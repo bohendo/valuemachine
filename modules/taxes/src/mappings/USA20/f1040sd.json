@@ -1,57 +1,285 @@
-{
-  "Name": "topmostSubform[0].Page1[0].f1_01[0]",
-  "SSN": "topmostSubform[0].Page1[0].f1_02[0]",
-  "C0_No": "topmostSubform[0].Page1[0].c1_1[1]",
-  "L1a_d": "topmostSubform[0].Page1[0].Table_PartI[0].Row1a[0].f1_03[0]",
-  "L1a_e": "topmostSubform[0].Page1[0].Table_PartI[0].Row1a[0].f1_04[0]",
-  "RO_L1a_f": "topmostSubform[0].Page1[0].Table_PartI[0].Row1a[0].f1_05_RO[0]",
-  "L1a_h": "topmostSubform[0].Page1[0].Table_PartI[0].Row1a[0].f1_06[0]",
-  "L1b_d": "topmostSubform[0].Page1[0].Table_PartI[0].Row1b[0].f1_07[0]",
-  "L1b_e": "topmostSubform[0].Page1[0].Table_PartI[0].Row1b[0].f1_08[0]",
-  "L1b_g": "topmostSubform[0].Page1[0].Table_PartI[0].Row1b[0].f1_09[0]",
-  "L1b_h": "topmostSubform[0].Page1[0].Table_PartI[0].Row1b[0].f1_10[0]",
-  "L2_d": "topmostSubform[0].Page1[0].Table_PartI[0].Row2[0].f1_11[0]",
-  "L2_e": "topmostSubform[0].Page1[0].Table_PartI[0].Row2[0].f1_12[0]",
-  "L2_g": "topmostSubform[0].Page1[0].Table_PartI[0].Row2[0].f1_13[0]",
-  "L2_h": "topmostSubform[0].Page1[0].Table_PartI[0].Row2[0].f1_14[0]",
-  "L3_d": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_15[0]",
-  "L3_e": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_16[0]",
-  "L3_g": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_17[0]",
-  "L3_h": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_18[0]",
-  "L4": "topmostSubform[0].Page1[0].f1_19[0]",
-  "L5": "topmostSubform[0].Page1[0].f1_20[0]",
-  "L6": "topmostSubform[0].Page1[0].f1_21[0]",
-  "L7": "topmostSubform[0].Page1[0].f1_22[0]",
-  "L8a_d": "topmostSubform[0].Page1[0].Table_PartII[0].Row8a[0].f1_23[0]",
-  "L8a_e": "topmostSubform[0].Page1[0].Table_PartII[0].Row8a[0].f1_24[0]",
-  "RO_L8a_f": "topmostSubform[0].Page1[0].Table_PartII[0].Row8a[0].f1_25_RO[0]",
-  "L8a_h": "topmostSubform[0].Page1[0].Table_PartII[0].Row8a[0].f1_26[0]",
-  "L8b_d": "topmostSubform[0].Page1[0].Table_PartII[0].Row8b[0].f1_27[0]",
-  "L8b_e": "topmostSubform[0].Page1[0].Table_PartII[0].Row8b[0].f1_28[0]",
-  "L8b_g": "topmostSubform[0].Page1[0].Table_PartII[0].Row8b[0].f1_29[0]",
-  "L8b_h": "topmostSubform[0].Page1[0].Table_PartII[0].Row8b[0].f1_30[0]",
-  "L9_d": "topmostSubform[0].Page1[0].Table_PartII[0].Row9[0].f1_31[0]",
-  "L9_e": "topmostSubform[0].Page1[0].Table_PartII[0].Row9[0].f1_32[0]",
-  "L9_g": "topmostSubform[0].Page1[0].Table_PartII[0].Row9[0].f1_33[0]",
-  "L9_h": "topmostSubform[0].Page1[0].Table_PartII[0].Row9[0].f1_34[0]",
-  "L10_d": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_35[0]",
-  "L10_e": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_36[0]",
-  "L10_g": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_37[0]",
-  "L10_h": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_38[0]",
-  "L11": "topmostSubform[0].Page1[0].f1_39[0]",
-  "L12": "topmostSubform[0].Page1[0].f1_40[0]",
-  "L13": "topmostSubform[0].Page1[0].f1_41[0]",
-  "L14": "topmostSubform[0].Page1[0].f1_42[0]",
-  "L15": "topmostSubform[0].Page1[0].f1_43[0]",
-  "L16": "topmostSubform[0].Page2[0].f2_01[0]",
-  "C17_Yes": "topmostSubform[0].Page2[0].c2_1[0]",
-  "C17_No": "topmostSubform[0].Page2[0].c2_1[1]",
-  "L18": "topmostSubform[0].Page2[0].f2_02[0]",
-  "L19": "topmostSubform[0].Page2[0].f2_03[0]",
-  "C20_No": "topmostSubform[0].Page2[0].c2_2[1]",
-  "L21": "topmostSubform[0].Page2[0].f2_04[0]",
-  "C22_Yes": "topmostSubform[0].Page2[0].c2_3[0]",
-  "C22_No": "topmostSubform[0].Page2[0].c2_3[1]",
-  "C0_Noop2": "topmostSubform[0].Page2[0].c2_2[0]",
-  "C0_Noop4": "topmostSubform[0].Page1[0].c1_1[0]"
-}
+[
+  {
+    "nickname": "Name",
+    "fieldName": "topmostSubform[0].Page1[0].f1_01[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "SSN",
+    "fieldName": "topmostSubform[0].Page1[0].f1_02[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "C0_No",
+    "fieldName": "topmostSubform[0].Page1[0].c1_1[1]",
+    "fieldType": "Boolean",
+    "checkmark": "2"
+  },
+  {
+    "nickname": "L1a_d",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row1a[0].f1_03[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L1a_e",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row1a[0].f1_04[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "RO_L1a_f",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row1a[0].f1_05_RO[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L1a_h",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row1a[0].f1_06[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L1b_d",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row1b[0].f1_07[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L1b_e",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row1b[0].f1_08[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L1b_g",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row1b[0].f1_09[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L1b_h",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row1b[0].f1_10[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L2_d",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row2[0].f1_11[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L2_e",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row2[0].f1_12[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L2_g",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row2[0].f1_13[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L2_h",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row2[0].f1_14[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L3_d",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_15[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L3_e",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_16[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L3_g",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_17[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L3_h",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartI[0].Row3[0].f1_18[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L4",
+    "fieldName": "topmostSubform[0].Page1[0].f1_19[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L5",
+    "fieldName": "topmostSubform[0].Page1[0].f1_20[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L6",
+    "fieldName": "topmostSubform[0].Page1[0].f1_21[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L7",
+    "fieldName": "topmostSubform[0].Page1[0].f1_22[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L8a_d",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row8a[0].f1_23[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L8a_e",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row8a[0].f1_24[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "RO_L8a_f",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row8a[0].f1_25_RO[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L8a_h",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row8a[0].f1_26[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L8b_d",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row8b[0].f1_27[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L8b_e",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row8b[0].f1_28[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L8b_g",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row8b[0].f1_29[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L8b_h",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row8b[0].f1_30[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L9_d",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row9[0].f1_31[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L9_e",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row9[0].f1_32[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L9_g",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row9[0].f1_33[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L9_h",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row9[0].f1_34[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L10_d",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_35[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L10_e",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_36[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L10_g",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_37[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L10_h",
+    "fieldName": "topmostSubform[0].Page1[0].Table_PartII[0].Row10[0].f1_38[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L11",
+    "fieldName": "topmostSubform[0].Page1[0].f1_39[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L12",
+    "fieldName": "topmostSubform[0].Page1[0].f1_40[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L13",
+    "fieldName": "topmostSubform[0].Page1[0].f1_41[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L14",
+    "fieldName": "topmostSubform[0].Page1[0].f1_42[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L15",
+    "fieldName": "topmostSubform[0].Page1[0].f1_43[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L16",
+    "fieldName": "topmostSubform[0].Page2[0].f2_01[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "C17_Yes",
+    "fieldName": "topmostSubform[0].Page2[0].c2_1[0]",
+    "fieldType": "Boolean",
+    "checkmark": "1"
+  },
+  {
+    "nickname": "C17_No",
+    "fieldName": "topmostSubform[0].Page2[0].c2_1[1]",
+    "fieldType": "Boolean",
+    "checkmark": "2"
+  },
+  {
+    "nickname": "L18",
+    "fieldName": "topmostSubform[0].Page2[0].f2_02[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L19",
+    "fieldName": "topmostSubform[0].Page2[0].f2_03[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "C20_No",
+    "fieldName": "topmostSubform[0].Page2[0].c2_2[1]",
+    "fieldType": "Boolean",
+    "checkmark": "2"
+  },
+  {
+    "nickname": "L21",
+    "fieldName": "topmostSubform[0].Page2[0].f2_04[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "C22_Yes",
+    "fieldName": "topmostSubform[0].Page2[0].c2_3[0]",
+    "fieldType": "Boolean",
+    "checkmark": "1"
+  },
+  {
+    "nickname": "C22_No",
+    "fieldName": "topmostSubform[0].Page2[0].c2_3[1]",
+    "fieldType": "Boolean",
+    "checkmark": "2"
+  },
+  {
+    "nickname": "C0_Noop2",
+    "fieldName": "topmostSubform[0].Page2[0].c2_2[0]",
+    "fieldType": "Boolean",
+    "checkmark": "1"
+  },
+  {
+    "nickname": "C0_Noop4",
+    "fieldName": "topmostSubform[0].Page1[0].c1_1[0]",
+    "fieldType": "Boolean",
+    "checkmark": "1"
+  }
+]

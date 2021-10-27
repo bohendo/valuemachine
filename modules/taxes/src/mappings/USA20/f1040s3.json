@@ -1,27 +1,130 @@
-{
-  "Name": "form1[0].Page1[0].f1_01[0]",
-  "SSN": "form1[0].Page1[0].f1_02[0]",
-  "L1": "form1[0].Page1[0].f1_03[0]",
-  "L2": "form1[0].Page1[0].f1_04[0]",
-  "L3": "form1[0].Page1[0].f1_05[0]",
-  "L4": "form1[0].Page1[0].f1_06[0]",
-  "L5": "form1[0].Page1[0].f1_07[0]",
-  "C6a": "form1[0].Page1[0].c1_1[0]",
-  "C6b": "form1[0].Page1[0].c1_2[0]",
-  "C6c": "form1[0].Page1[0].c1_3[0]",
-  "L6c": "form1[0].Page1[0].f1_08[0]",
-  "L6": "form1[0].Page1[0].f1_09[0]",
-  "L7": "form1[0].Page1[0].f1_10[0]",
-  "L8": "form1[0].Page1[0].f1_11[0]",
-  "L9": "form1[0].Page1[0].f1_12[0]",
-  "L10": "form1[0].Page1[0].f1_13[0]",
-  "L11": "form1[0].Page1[0].f1_14[0]",
-  "L12a": "form1[0].Page1[0].Line12_ReadOrder[0].f1_15[0]",
-  "L12b": "form1[0].Page1[0].f1_16[0]",
-  "L12c": "form1[0].Page1[0].f1_17[0]",
-  "L12d_Etc": "form1[0].Page1[0].f1_18[0]",
-  "L12d": "form1[0].Page1[0].f1_19[0]",
-  "L12e": "form1[0].Page1[0].f1_20[0]",
-  "L12f": "form1[0].Page1[0].f1_21[0]",
-  "L13": "form1[0].Page1[0].f1_22[0]"
-}
+[
+  {
+    "nickname": "Name",
+    "fieldName": "form1[0].Page1[0].f1_01[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "SSN",
+    "fieldName": "form1[0].Page1[0].f1_02[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L1",
+    "fieldName": "form1[0].Page1[0].f1_03[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L2",
+    "fieldName": "form1[0].Page1[0].f1_04[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L3",
+    "fieldName": "form1[0].Page1[0].f1_05[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L4",
+    "fieldName": "form1[0].Page1[0].f1_06[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L5",
+    "fieldName": "form1[0].Page1[0].f1_07[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "C6a",
+    "fieldName": "form1[0].Page1[0].c1_1[0]",
+    "fieldType": "Boolean",
+    "checkmark": "1"
+  },
+  {
+    "nickname": "C6b",
+    "fieldName": "form1[0].Page1[0].c1_2[0]",
+    "fieldType": "Boolean",
+    "checkmark": "1"
+  },
+  {
+    "nickname": "C6c",
+    "fieldName": "form1[0].Page1[0].c1_3[0]",
+    "fieldType": "Boolean",
+    "checkmark": "1"
+  },
+  {
+    "nickname": "L6c",
+    "fieldName": "form1[0].Page1[0].f1_08[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L6",
+    "fieldName": "form1[0].Page1[0].f1_09[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L7",
+    "fieldName": "form1[0].Page1[0].f1_10[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L8",
+    "fieldName": "form1[0].Page1[0].f1_11[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L9",
+    "fieldName": "form1[0].Page1[0].f1_12[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L10",
+    "fieldName": "form1[0].Page1[0].f1_13[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L11",
+    "fieldName": "form1[0].Page1[0].f1_14[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L12a",
+    "fieldName": "form1[0].Page1[0].Line12_ReadOrder[0].f1_15[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L12b",
+    "fieldName": "form1[0].Page1[0].f1_16[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L12c",
+    "fieldName": "form1[0].Page1[0].f1_17[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L12d_Etc",
+    "fieldName": "form1[0].Page1[0].f1_18[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L12d",
+    "fieldName": "form1[0].Page1[0].f1_19[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L12e",
+    "fieldName": "form1[0].Page1[0].f1_20[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L12f",
+    "fieldName": "form1[0].Page1[0].f1_21[0]",
+    "fieldType": "String"
+  },
+  {
+    "nickname": "L13",
+    "fieldName": "form1[0].Page1[0].f1_22[0]",
+    "fieldType": "String"
+  }
+]
