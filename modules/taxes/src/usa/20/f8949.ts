@@ -1,5 +1,6 @@
 import {
   EventTypes,
+  Forms,
   logger,
   math,
   TaxRow,
@@ -9,9 +10,7 @@ import {
 const log = logger.child({ module: "f8949" });
 const { add, gt, mul, round, sub } = math;
 
-// returns an array of form data
-export const f8949 = (taxRows: TaxRow[], oldForms: any): any  => {
-  const forms = JSON.parse(JSON.stringify(oldForms)) as any;
+export const f8949 = (forms: Forms, taxRows: TaxRow[]): Forms  => {
   const { f1040 } = forms;
   const f8949 = !forms.f8949 ? [] : forms.f8949.length ? forms.f8949 : [forms.f8949];
 

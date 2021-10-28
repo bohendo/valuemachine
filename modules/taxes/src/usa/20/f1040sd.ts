@@ -1,4 +1,5 @@
 import {
+  Forms,
   logger,
   math,
   TaxRow,
@@ -7,8 +8,7 @@ import {
 const log = logger.child({ module: "f1040sd" });
 const { add, eq, gt, lt, round } = math;
 
-export const f1040sd = (taxRows: TaxRow[], oldForms: any): any => {
-  const forms = JSON.parse(JSON.stringify(oldForms)) as any;
+export const f1040sd = (forms: Forms, _taxRows: TaxRow[]): Forms => {
   const { f1040, f1040sd } = forms;
 
   f1040sd.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;

@@ -1,6 +1,7 @@
 import {
   DateString,
   FilingStatuses,
+  Forms,
   getIncomeTax,
   logger,
   math,
@@ -11,8 +12,7 @@ import {
 
 const log = logger.child({ module: "f2210" });
 
-export const f2210 = (taxRows: TaxRow[], oldForms: any): any => {
-  const forms = JSON.parse(JSON.stringify(oldForms)) as any;
+export const f2210 = (forms: Forms, taxRows: TaxRow[]): Forms => {
   const { f1040, f1040s2, f1040s3, f1040sse, f2210 } = forms;
 
   f2210.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;

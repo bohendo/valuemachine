@@ -1,5 +1,6 @@
 import {
   EventTypes,
+  Forms,
   logger,
   math,
   TaxRow,
@@ -20,8 +21,7 @@ type Trade = {
   amount: string;
 };
 
-export const f8949 = (taxRows: TaxRow[], oldForms: any): any  => {
-  const forms = JSON.parse(JSON.stringify(oldForms)) as any;
+export const f8949 = (forms: Forms, taxRows: TaxRow[]): Forms  => {
   const f1040 = forms.f1040;
   let f8949 = forms.f8949.length ? forms.f8949 : [];
 

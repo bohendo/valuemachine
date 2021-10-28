@@ -1,4 +1,5 @@
 import {
+  Forms,
   logger,
   math,
   processExpenses,
@@ -9,8 +10,7 @@ import {
 const log = logger.child({ module: "f1040sc" });
 const { add, gt, lt, round, sub } = math;
 
-export const f1040sc = (taxRows: TaxRow[], oldForms: any): any => {
-  const forms = JSON.parse(JSON.stringify(oldForms)) as any;
+export const f1040sc = (forms: Forms, taxRows: TaxRow[]): Forms => {
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");

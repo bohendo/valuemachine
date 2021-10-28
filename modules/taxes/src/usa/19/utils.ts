@@ -1,15 +1,16 @@
 import { getLogger } from "@valuemachine/utils";
 
-import { TaxYears } from "../../mappings";
+import { FormsArchive, TaxYears } from "../../mappings";
 import { maxint, getGetIncomeTax } from "../utils";
 
 export * from "../utils";
 
-export const taxYear = TaxYears.USA19;
+export type Forms = FormsArchive["USA19"];
 
+export const taxYear = TaxYears.USA19;
 export const logger = getLogger("info", taxYear);
 
-// brackets should match ???
+// brackets should match some source of truth idk what
 export const getIncomeTax = getGetIncomeTax([
   { rate: "0.10", single: "9700",   joint: "19400",  head: "13850" },
   { rate: "0.12", single: "39475",  joint: "78950",  head: "52850" },

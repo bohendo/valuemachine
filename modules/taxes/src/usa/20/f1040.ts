@@ -1,6 +1,6 @@
 import {
-  Forms,
   FilingStatuses,
+  Forms,
   getIncomeTax,
   logger,
   math,
@@ -8,8 +8,7 @@ import {
 
 const log = logger.child({ module: "f1040" });
 
-export const f1040 = (oldForms: Forms): Forms => {
-  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
+export const f1040 = (forms: Forms): Forms => {
   const { f1040, f2555 } = forms;
 
   let filingStatus;
