@@ -1,10 +1,10 @@
 import { Guards } from "@valuemachine/transactions";
-import { ValueMachine, Prices } from "@valuemachine/types";
+import { FieldTypes, Mapping, Prices, ValueMachine } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
 import { getPdftk } from "./pdftk";
-import { getEmptyForms, Forms, FormArchive, TaxYear } from "./mappings";
+import { getEmptyForms, Forms, MappingArchive, TaxYear } from "./mappings";
 import { getTaxReturn } from "./return";
 import { getTaxRows } from "./utils";
 
@@ -17,24 +17,27 @@ export const fillForm = async (
   dir: string,
   libs: { fs: any; execFile: any; },
 ): Promise<string> => {
-  const translate = (formData, mapping): any => {
+  const translate = (formData: Forms, mapping: Mapping): any => {
     const newForm = {};
     for (const [key, value] of Object.entries(formData)) {
-      if (!mapping[key]) {
+      const entry = mapping.find(entry => entry.nickname === key);
+      if (!entry) {
         log.warn(`Key ${key} exists in output data but not in ${form} mapping`);
-      }
-      if (
-        !["_dec", "_int"].some(suffix => key.endsWith(suffix)) &&
-        key.match(/L[0-9]/) &&
-        typeof value === "string" &&
-        value.match(/^-?[0-9.]+$/)
-      ) {
-        newForm[mapping[key]] = round(value, 2);
-        if (newForm[mapping[key]].startsWith("-")) {
-          newForm[mapping[key]] = `(${newForm[mapping[key]].substring(1)})`;
+      } else if (typeof value === "boolean" && entry.fieldType === FieldTypes.Boolean) {
+        newForm[entry.fieldName] = value ? entry.checkmark : undefined;
+      } else if (typeof value === "string" && entry.fieldType === FieldTypes.String) {
+        // Round decimal strings
+        if (value.match(/^-?[0-9]+\.[0-9]+$/)) {
+          newForm[entry.fieldName] = round(value, 2);
+        } else {
+          newForm[entry.fieldName] = value;
+        }
+        // Use accounting notation for negative values
+        if (newForm[entry.fieldName].startsWith("-")) {
+          newForm[entry.fieldName] = `(${newForm[entry.fieldName].substring(1)})`;
         }
       } else {
-        newForm[mapping[key]] = value;
+        log.warn(`Skipping field of type ${typeof value} bc it doesn't match ${entry.fieldType}`);
       }
     }
     return newForm;
@@ -46,7 +49,7 @@ export const fillForm = async (
   const res = await getPdftk(libs).fill(
     srcPath,
     destPath,
-    translate(data, FormArchive[taxYear][form]),
+    translate(data, MappingArchive[taxYear][form]),
   );
   if (res) log.info(`Successfully filled in pdf & saved it to ${res}`);
   return res || "";

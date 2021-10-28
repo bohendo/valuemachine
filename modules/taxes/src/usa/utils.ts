@@ -20,7 +20,7 @@ export {
 } from "@valuemachine/types";
 export { math } from "@valuemachine/utils";
 
-export { TaxYears, Forms, Form } from "../mappings";
+export { TaxYears } from "../mappings";
 
 export const guard = Guards.USA;
 

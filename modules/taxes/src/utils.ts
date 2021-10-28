@@ -1,30 +1,21 @@
 import {
-  DateString,
-  DateTimeString,
-  EventTypes,
+  FieldTypes,
   Guard,
-  GuardChangeEvent,
-  Prices,
-  TaxRow,
-  TradeEvent,
-  ValueMachine,
+  Mapping,
 } from "@valuemachine/types";
 import {
-  add,
   getLogger,
-  mul,
   round,
   sub,
 } from "@valuemachine/utils";
 
-import { allTaxYears, securityFeeMap, taxYearMap } from "./constants";
+import { taxYearMap } from "./constants";
 
-export const logger = getLogger("info");
+export const log = getLogger("info");
 
 export const getTaxYearBoundaries = (guard: Guard, taxYear: string): [number, number] => {
   if (!taxYear?.match(/^[0-9]{4}$/)) return [0, 5000000000000]; // from 1970 until after 2100
   const prevYear = round(sub(taxYear, "1"), 0).padStart(4, "0");
-  console.log(`taxYear=${taxYear} | prevYear=${prevYear}`);
   return taxYearMap[guard] ? [
     new Date(taxYearMap[guard].replace(/^0000/, prevYear)).getTime(),
     new Date(taxYearMap[guard].replace(/^0000/, taxYear)).getTime(),
@@ -34,96 +25,48 @@ export const getTaxYearBoundaries = (guard: Guard, taxYear: string): [number, nu
   ];
 };
 
-export const getTaxRows = ({
-  guard,
-  prices,
-  vm,
-  taxYear,
-}: {
-  guard: Guard;
-  prices: Prices;
-  vm: ValueMachine;
-  taxYear?: string;
-}): TaxRow[] => {
-  const unit = securityFeeMap[guard] || "";
-  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
-  if (!unit) throw new Error(`Security asset is unknown for ${guard}`);
-  let cumulativeIncome = "0";
-  let cumulativeChange = "0";
 
-  return vm?.json?.events.filter(evt => {
-    const time = new Date(evt.date).getTime();
-    if (taxYear && taxYear !== allTaxYears && (
-      time < taxYearBoundaries[0] || time > taxYearBoundaries[1]
-    )) return false;
-    const toGuard = (
-      (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
-    ).split("/")[0];
-    return toGuard === guard && (
-      evt.type === EventTypes.Trade
-      || evt.type === EventTypes.GuardChange
-      || evt.type === EventTypes.Income
-    );
-  }).reduce((output, evt) => {
-    const getDate = (datetime: DateTimeString): DateString =>
-      new Date(datetime).toISOString().split("T")[0];
-    const date = getDate(evt.date);
-
-    if (evt.type === EventTypes.Trade) {
-      if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return output; }
-      return output.concat(...evt.outputs.map(chunkIndex => {
-        const chunk = vm.getChunk(chunkIndex);
-        const price = prices.getNearest(date, chunk.asset, unit) || "0";
-        if (chunk.asset !== unit && price !== "0") {
-          const value = mul(chunk.amount, price);
-          const receivePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset, unit);
-          const capitalChange = mul(chunk.amount, sub(price, receivePrice || "0"));
-          cumulativeChange = add(cumulativeChange, capitalChange);
-          return {
-            date: date,
-            action: EventTypes.Trade,
-            amount: chunk.amount,
-            asset: chunk.asset,
-            price,
-            value,
-            receivePrice,
-            receiveDate: getDate(chunk.history[0].date),
-            capitalChange,
-            cumulativeChange,
-            cumulativeIncome,
-            tags: evt.tags,
-          };
-        } else {
-          return null;
-        }
-      }).filter(row => !!row) as TaxRow[]);
-
-    } else if (evt.type === EventTypes.Income) {
-      if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); return output; }
-      return output.concat(...evt.inputs.map(chunkIndex => {
-        const chunk = vm.getChunk(chunkIndex);
-        const price = prices.getNearest(date, chunk.asset, unit) || "0";
-        const income = mul(chunk.amount, price);
-        cumulativeIncome = add(cumulativeIncome, income);
-        return {
-          date: date,
-          action: EventTypes.Income,
-          amount: chunk.amount,
-          asset: chunk.asset,
-          price,
-          value: income,
-          receivePrice: price,
-          receiveDate: date,
-          capitalChange: "0",
-          cumulativeChange,
-          cumulativeIncome,
-          tags: evt.tags,
-        } as TaxRow;
-      }));
-
-    } else {
-      return output;
+export const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapping => {
+  for (const mEntry of master) {
+    const sEntry = slave.find(e => e.fieldName === mEntry.fieldName);
+    // Make sure all fields except nickname equal the values from the empty pdf
+    if (!sEntry) {
+      log.warn(`Adding new entry for ${mEntry.fieldName} to ${form} mappings`);
+      slave.push({
+        nickname: mEntry.nickname,
+        fieldName: mEntry.fieldName,
+        fieldType: mEntry.fieldType,
+        checkmark: mEntry.checkmark,
+      });
+    } else if (sEntry.fieldType !== mEntry.fieldType) {
+      log.warn(`Replacing ${form}.${sEntry.nickname}.fieldType with ${mEntry.fieldType}`);
+      sEntry.fieldType = mEntry.fieldType;
+    } else if (sEntry.checkmark && !mEntry.checkmark) {
+      log.warn(`Removing ${form}.${sEntry.nickname} checkmark`);
+      delete sEntry.checkmark;
+    } else if (sEntry.checkmark !== mEntry.checkmark) {
+      log.warn(`Replacing ${form}.${sEntry.nickname} checkmark with ${mEntry.checkmark}`);
+      sEntry.checkmark = mEntry.checkmark;
     }
-  }, [] as TaxRow[]);
-
+  }
+  for (const i in slave) {
+    const sEntry = slave[i];
+    if (!master.find(mEntry => mEntry.fieldName === sEntry.fieldName)) {
+      log.warn(`Removing ${sEntry.nickname} from ${form} mappings`);
+      slave.splice(i, 1);
+    }
+  }
+  return slave;
 };
+
+export const getTestForm = mapping =>
+  mapping.reduce((form, entry) => ({
+    ...form,
+    [entry.nickname]: entry.fieldType === FieldTypes.Boolean ? true : entry.nickname,
+  }), {});
+
+export const getTestReturn = mappings =>
+  Object.keys(mappings).reduce((forms, form) => ({
+    ...forms,
+    [form]: getTestForm(mappings[form]),
+  }), {});

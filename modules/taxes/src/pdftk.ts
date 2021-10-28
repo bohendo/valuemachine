@@ -1,9 +1,10 @@
 import { Mapping, FieldTypes } from "@valuemachine/types";
 import { getLogger, getMappingError } from "@valuemachine/utils";
+import { compile } from "json-schema-to-typescript";
 
 import { toFdf } from "./fdf";
 
-const log = getLogger("info", "Mappings");
+const log = getLogger("info", "pdftk");
 
 type FdfJson = { [key: string]: string; };
 
@@ -16,10 +17,10 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
   if (!fs) throw new Error(`Node fs module must be injected`);
   if (!execFile) throw new Error(`Node execFile module must be injected`);
 
-  const dumpFields = (sourceFile: string): Promise<Mapping> => {
-    return new Promise((res, rej) => {
-      if (!fs.existsSync(sourceFile)) return rej(new Error(`No file exists at ${sourceFile}`));
-      execFile("pdftk", [sourceFile, "dump_data_fields_utf8"], (error, stdout, stderr) => {
+  const getMapping = (srcFilepath: string): Promise<Mapping> =>
+    new Promise((res, rej) => {
+      if (!fs.existsSync(srcFilepath)) return rej(new Error(`No file exists at ${srcFilepath}`));
+      execFile("pdftk", [srcFilepath, "dump_data_fields_utf8"], (error, stdout, stderr) => {
         if (stderr) log.error(stderr);
         if (error) return rej(new Error(error));
         const mapping = stdout.toString().split("---").reduce((mapping, field) => {
@@ -46,7 +47,30 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
           }
         }, [] as Mapping);
         const mappingError = getMappingError(mapping);
+        log.info(`Got mapping with ${mapping?.length} fields from ${srcFilepath}`);
         return mappingError ? rej(new Error(mappingError)) : res(mapping);
+      });
+    });
+
+  const getInterface = async (srcFilepath: string, title: string): Promise<any> => {
+    const mapping = await getMapping(srcFilepath);
+    if (!mapping?.length) throw new Error(`Couldn't get mapping from ${srcFilepath}`);
+    return new Promise(res => {
+      const schema = mapping.reduce((schema, entry) => ({
+        ...schema,
+        properties: {
+          ...schema.properties,
+          [entry.nickname]: {
+            type: entry.fieldType.toLowerCase()
+          },
+        },
+      }), {
+        additionalProperties: false,
+        title,
+      });
+      compile(schema, title).then(ts => {
+        log.info(`Successfully got types (type=${typeof ts}) from ${srcFilepath}`);
+        res(ts);
       });
     });
   };
@@ -117,5 +141,5 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
     });
   };
 
-  return ({ dumpFields, fill, cat });
+  return ({ getMapping, getInterface, fill, cat });
 };

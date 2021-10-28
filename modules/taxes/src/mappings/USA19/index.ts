@@ -12,35 +12,23 @@ import f2555 from "./f2555.json";
 import f8889 from "./f8889.json";
 import f8949 from "./f8949.json";
 
+// The order here is the default order in which pages will be merged
+// Sort them according to the Sequence Attachment No in the top right corner of each form
 export const Mappings = {
-  f1040,
-  f1040s1,
-  f1040s2,
-  f1040s3,
-  f1040sa,
-  f1040sb,
-  f1040sc,
-  f1040sd,
-  f1040sse,
-  f2210,
-  f2555,
-  f8889,
-  f8949,
+  /*seq no 0  */ f1040,
+  /*seq no 1  */ f1040s1,
+  /*seq no 2  */ f1040s2,
+  /*seq no 3  */ f1040s3,
+  /*seq no 6  */ f2210,
+  /*seq no 7  */ f1040sa,
+  /*seq no 8  */ f1040sb,
+  /*seq no 9  */ f1040sc,
+  /*seq no 12 */ f1040sd,
+  /*seq no 12a*/ f8949,
+  /*seq no 17 */ f1040sse,
+  /*seq no 34 */ f2555,
+  /*seq no 52 */ f8889,
 } as const;
 
-// No array: only one page is allowed, else multiple pages are expected
-export type Forms = {
-  f1040?: { [key in keyof typeof Mappings.f1040]?: any; };
-  f1040s1?: { [key in keyof typeof Mappings.f1040s1]?: any; };
-  f1040s2?: { [key in keyof typeof Mappings.f1040s2]?: any; };
-  f1040s3?: { [key in keyof typeof Mappings.f1040s3]?: any; };
-  f1040sa?: { [key in keyof typeof Mappings.f1040sa]?: any; };
-  f1040sb?: { [key in keyof typeof Mappings.f1040sb]?: any; };
-  f1040sc?: { [key in keyof typeof Mappings.f1040sc]?: any; };
-  f1040sd?: { [key in keyof typeof Mappings.f1040sd]?: any; };
-  f1040sse?: { [key in keyof typeof Mappings.f1040sse]?: any; };
-  f2210?: { [key in keyof typeof Mappings.f2210]?: any; };
-  f2555?: { [key in keyof typeof Mappings.f2555]?: any; };
-  f8889?: { [key in keyof typeof Mappings.f8889]?: any; };
-  f8949?: Array<{ [key in keyof typeof f8949]?: any; }>;
-};
+// Multiple pages are expected for these forms
+// const multiPageForms = ["f8949"];
