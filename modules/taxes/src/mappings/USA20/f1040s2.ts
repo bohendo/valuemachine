@@ -6,25 +6,25 @@
  */
 
 export interface F1040S2 {
-  f1_01_0?: string;
-  f1_02_0?: string;
-  f1_03_0?: string;
-  f1_04_0?: string;
-  f1_05_0?: string;
-  f1_06_0?: string;
-  c1_1_0?: boolean;
-  c1_2_0?: boolean;
-  f1_07_0?: string;
-  f1_08_0?: string;
-  f1_09_0?: string;
-  f1_10_0?: string;
-  c1_3_0?: boolean;
-  c1_4_0?: boolean;
-  c1_5_0?: boolean;
-  f1_11_0?: string;
-  f1_12_0?: string;
-  f1_13_0?: string;
-  f1_14_0?: string;
+  Name?: string;
+  SSN?: string;
+  L1?: string;
+  L2?: string;
+  L3?: string;
+  L4?: string;
+  C5a?: boolean;
+  C5b?: boolean;
+  L5?: string;
+  L6?: string;
+  L7a?: string;
+  L7b?: string;
+  C8a?: boolean;
+  C8b?: boolean;
+  C8c?: boolean;
+  L8c?: string;
+  L8?: string;
+  L9?: string;
+  L10?: string;
 }
 
 

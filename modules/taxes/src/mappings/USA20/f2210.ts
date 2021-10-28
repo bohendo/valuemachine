@@ -6,8 +6,8 @@
  */
 
 export interface F2210 {
-  f1_1_0?: string;
-  f1_2_0?: string;
+  Name?: string;
+  SSN?: string;
   f1_3_0?: string;
   f1_4_0?: string;
   f1_5_0?: string;

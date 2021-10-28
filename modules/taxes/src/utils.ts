@@ -27,32 +27,23 @@ export const getTaxYearBoundaries = (guard: Guard, taxYear: string): [number, nu
 
 
 export const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapping => {
-  for (const mEntry of master) {
-    const sEntry = slave.find(e => e.fieldName === mEntry.fieldName);
+  for (const m of master) {
+    const s = slave.find(e => e.fieldName === m.fieldName);
     // Make sure all fields except nickname equal the values from the empty pdf
-    if (!sEntry) {
-      log.warn(`Adding new entry for ${mEntry.fieldName} to ${form} mappings`);
+    if (!s) {
+      log.warn(`Adding new entry for ${m.fieldName} to ${form} mappings`);
       slave.push({
-        nickname: mEntry.nickname,
-        fieldName: mEntry.fieldName,
-        fieldType: mEntry.fieldType,
-        checkmark: mEntry.checkmark,
+        nickname: m.nickname,
+        fieldName: m.fieldName,
+        fieldType: m.fieldType,
+        checkmark: m.fieldType === FieldTypes.Boolean ? m.checkmark : undefined,
       });
-    } else if (sEntry.fieldType !== mEntry.fieldType) {
-      log.warn(`Replacing ${form}.${sEntry.nickname}.fieldType with ${mEntry.fieldType}`);
-      sEntry.fieldType = mEntry.fieldType;
-    } else if (sEntry.checkmark && !mEntry.checkmark) {
-      log.warn(`Removing ${form}.${sEntry.nickname} checkmark`);
-      delete sEntry.checkmark;
-    } else if (sEntry.checkmark !== mEntry.checkmark) {
-      log.warn(`Replacing ${form}.${sEntry.nickname} checkmark with ${mEntry.checkmark}`);
-      sEntry.checkmark = mEntry.checkmark;
     }
   }
-  for (const i in slave) {
-    const sEntry = slave[i];
-    if (!master.find(mEntry => mEntry.fieldName === sEntry.fieldName)) {
-      log.warn(`Removing ${sEntry.nickname} from ${form} mappings`);
+  for (const i of slave.map((_, i) => i)) {
+    const s = slave[i];
+    if (!master.find(m => m.fieldName === s.fieldName)) {
+      log.warn(`Removing ${s.nickname} from ${form} mappings`);
       slave.splice(i, 1);
     }
   }

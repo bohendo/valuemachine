@@ -6,33 +6,33 @@
  */
 
 export interface F8889 {
-  f1_1_0?: string;
-  f1_2_0?: string;
-  c1_1_0?: boolean;
-  c1_1_1?: boolean;
-  f1_3_0?: string;
-  f1_4_0?: string;
-  f1_5_0?: string;
-  f1_6_0?: string;
-  f1_7_0?: string;
-  f1_8_0?: string;
-  f1_9_0?: string;
-  f1_10_0?: string;
-  f1_11_0?: string;
-  f1_12_0?: string;
-  f1_13_0?: string;
-  f1_14_0?: string;
-  f1_15_0?: string;
-  f1_16_0?: string;
-  f1_17_0?: string;
-  f1_18_0?: string;
-  f1_19_0?: string;
-  c1_2_0?: boolean;
-  f1_20_0?: string;
-  f2_1_0?: string;
-  f2_2_0?: string;
-  f2_3_0?: string;
-  f2_4_0?: string;
+  Name?: string;
+  SSN?: string;
+  C1_Self?: boolean;
+  C1_Family?: boolean;
+  L2?: string;
+  L3?: string;
+  L4?: string;
+  L5?: string;
+  L6?: string;
+  L7?: string;
+  L8?: string;
+  L9?: string;
+  L10?: string;
+  L11?: string;
+  L12?: string;
+  L13?: string;
+  L14a?: string;
+  L14b?: string;
+  L14c?: string;
+  L15?: string;
+  L16?: string;
+  C17a?: boolean;
+  L17b?: string;
+  L18?: string;
+  L19?: string;
+  L20?: string;
+  L21?: string;
 }
 
 

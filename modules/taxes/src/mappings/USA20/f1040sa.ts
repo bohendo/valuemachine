@@ -5,44 +5,44 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-export interface F1040Sa {
-  f1_1_0?: string;
-  f1_2_0?: string;
-  f1_3_0?: string;
-  f1_4_0?: string;
-  f1_5_0?: string;
-  f1_6_0?: string;
-  c1_1_0?: boolean;
-  f1_7_0?: string;
-  f1_8_0?: string;
-  f1_9_0?: string;
-  f1_10_0?: string;
-  f1_11_0?: string;
-  f1_12_0?: string;
-  f1_13_0?: string;
-  f1_14_0?: string;
-  f1_15_0?: string;
-  c1_2_0?: boolean;
-  f1_16_0?: string;
-  f1_17_0?: string;
-  f1_18_0?: string;
-  f1_19_0?: string;
-  f1_20_0?: string;
-  f1_21_0?: string;
-  f1_22_0?: string;
-  f1_23_0?: string;
-  f1_24_0?: string;
-  f1_25_0?: string;
-  f1_26_0?: string;
-  f1_27_0?: string;
-  f1_28_0?: string;
-  f1_29_0?: string;
-  f1_30_0?: string;
-  f1_31_0?: string;
-  f1_32_0?: string;
-  f1_33_0?: string;
-  f1_34_0?: string;
-  c1_3_0?: boolean;
+export interface F1040SA {
+  Name?: string;
+  SSN?: string;
+  L1?: string;
+  L2?: string;
+  L3?: string;
+  L4?: string;
+  C5a?: boolean;
+  L5a?: string;
+  L5b?: string;
+  L5c?: string;
+  L5d?: string;
+  L5e?: string;
+  L6_Etc1?: string;
+  L6_Etc2?: string;
+  L6?: string;
+  L7?: string;
+  C8a?: boolean;
+  L8a?: string;
+  L8b_Etc1?: string;
+  L8b_Etc2?: string;
+  L8b?: string;
+  L8c?: string;
+  L8d?: string;
+  L8e?: string;
+  L9?: string;
+  L10?: string;
+  L11?: string;
+  L12?: string;
+  L13?: string;
+  L14?: string;
+  L15?: string;
+  L16_Etc1?: string;
+  L16_Etc2?: string;
+  L16_Etc3?: string;
+  L16?: string;
+  L17?: string;
+  C18?: boolean;
 }
 
 

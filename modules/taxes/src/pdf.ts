@@ -6,7 +6,7 @@ import axios from "axios";
 import { getPdftk } from "./pdftk";
 import { getEmptyForms, Forms, MappingArchive, TaxYear } from "./mappings";
 import { getTaxReturn } from "./return";
-import { getTaxRows } from "./utils";
+import { getTaxRows } from "./rows";
 
 const log = getLogger("info", "PDF");
 
@@ -163,7 +163,7 @@ export const getMapping = async (
   libs: { fs: any; execFile: any; },
 ): Promise<any> => {
   const emptyPdf = `${process.cwd()}/forms/${taxYear}/${form}.pdf`;
-  const mapping = await getPdftk(libs).dumpFields(emptyPdf);
+  const mapping = await getPdftk(libs).getMapping(emptyPdf);
   log.info(`Got mapping w ${Object.keys(mapping).length} entries from empty pdf at ${emptyPdf}`);
   return mapping;
 };

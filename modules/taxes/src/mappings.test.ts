@@ -49,12 +49,12 @@ describe("Tax Form Mappings", () => {
     for (const year of Object.keys(TaxYears)) {
       for (const form of Object.keys(MappingArchive[year])) {
         const emptyPdf = getEmptyPdfPath(year, form);
-        const mapping = await getMapping(year, form);
-        // const typePath = `${root}/src/mappings/${year}/${form}.d.ts`;
-        const ts = await pdftk.getInterface(emptyPdf, form);
+        // const mapping = await getMapping(year, form);
+        const currentMapping = JSON.parse(fs.readFileSync(getMappingPath(year, form))) as any;
+        const ts = await pdftk.getInterface(emptyPdf, form.toUpperCase(), currentMapping);
         const mappingFileContent = ts
           + `\n\nexport const ${form} = `
-          + JSON.stringify(mapping, null, 2)
+          + JSON.stringify(currentMapping, null, 2)
           + ";\n";
         const mappingPath = `${root}/src/mappings/${year}/${form}.ts`;
         log.info(`Writing file to ${mappingPath}:`);

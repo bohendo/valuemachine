@@ -5,43 +5,43 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-export interface F1040Sse {
-  f1_01_0?: string;
-  f1_02_0?: string;
-  c1_1_0?: boolean;
-  f1_03_0?: string;
-  f1_04_0?: string;
-  f1_05_0?: string;
-  f1_06_0?: string;
-  f1_07_0?: string;
-  f1_08_0?: string;
-  f1_09_0?: string;
-  f1_10_0?: string;
-  f1_11_0?: string;
-  f1_12_0?: string;
-  f1_13_0?: string;
-  f1_14_0?: string;
-  f1_15_0?: string;
-  f1_16_0?: string;
-  f1_17_0?: string;
-  f1_18_0?: string;
-  f1_19_0?: string;
-  f1_20_0?: string;
-  f1_21_0?: string;
-  f1_22_0?: string;
-  f1_23_0?: string;
-  f1_24_0?: string;
-  f1_25_0?: string;
-  f1_26_0?: string;
-  f2_01_0?: string;
-  f2_02_0?: string;
-  f2_03_0?: string;
-  f2_04_0?: string;
-  f2_05_0?: string;
-  f2_06_0?: string;
-  f2_07_0?: string;
-  f2_08_0?: string;
-  f2_09_0?: string;
+export interface F1040SSE {
+  Name?: string;
+  SSN?: string;
+  C0_A?: boolean;
+  L1a?: string;
+  L1b?: string;
+  L2?: string;
+  L3?: string;
+  L4a?: string;
+  L4b?: string;
+  L4c?: string;
+  L5a?: string;
+  L5b?: string;
+  L6?: string;
+  Noop2?: string;
+  L8a?: string;
+  L8b?: string;
+  L8c?: string;
+  L8d?: string;
+  L9?: string;
+  L10?: string;
+  L11?: string;
+  L12?: string;
+  L13?: string;
+  Noop3?: string;
+  L15?: string;
+  L16?: string;
+  L17?: string;
+  L18?: string;
+  L19?: string;
+  L20?: string;
+  L21?: string;
+  L22?: string;
+  L23?: string;
+  L24?: string;
+  L25?: string;
+  L26?: string;
 }
 
 

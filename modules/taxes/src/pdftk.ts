@@ -52,7 +52,11 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
       });
     });
 
-  const getInterface = async (srcFilepath: string, title: string): Promise<any> => {
+  const getInterface = async (
+    srcFilepath: string,
+    title: string,
+    currentMapping?: Mapping,
+  ): Promise<any> => {
     const mapping = await getMapping(srcFilepath);
     if (!mapping?.length) throw new Error(`Couldn't get mapping from ${srcFilepath}`);
     return new Promise(res => {
@@ -60,13 +64,14 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
         ...schema,
         properties: {
           ...schema.properties,
-          [entry.nickname]: {
+          [currentMapping.find(e => e.fieldName === entry.fieldName)?.nickname || entry.nickname]: {
             type: entry.fieldType.toLowerCase()
           },
         },
       }), {
         additionalProperties: false,
         title,
+        properties: {},
       });
       compile(schema, title).then(ts => {
         log.info(`Successfully got types (type=${typeof ts}) from ${srcFilepath}`);

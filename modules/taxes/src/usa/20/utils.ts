@@ -1,6 +1,6 @@
 import { getLogger } from "@valuemachine/utils";
 
-import { FormsUSA20, TaxYears } from "../../mappings";
+import { FormsArchive, TaxYears } from "../../mappings";
 import { maxint, getGetIncomeTax } from "../utils";
 
 export * from "../utils";
@@ -9,7 +9,7 @@ export const taxYear = TaxYears.USA20;
 
 export const logger = getLogger("info", taxYear);
 
-export type Forms = FormsUSA20;
+export type Forms = FormsArchive["USA20"];
 
 // brackets should match https://files.taxfoundation.org/20191114132604/2020-Tax-Brackets-PDF.pdf
 export const getIncomeTax = getGetIncomeTax([

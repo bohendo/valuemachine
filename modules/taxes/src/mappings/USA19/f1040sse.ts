@@ -5,43 +5,43 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-export interface F1040Sse {
-  f1_1_0?: string;
-  f1_2_0?: string;
-  f1_3_0?: string;
-  f1_4_0?: string;
-  f1_5_0?: string;
-  f1_6_0?: string;
-  f1_7_0?: string;
-  f1_8_0?: string;
-  f1_9_0?: string;
-  f2_1_0?: string;
-  f2_2_0?: string;
-  c2_1_0?: boolean;
-  f2_3_0?: string;
-  f2_4_0?: string;
-  f2_5_0?: string;
-  f2_6_0?: string;
-  f2_7_0?: string;
-  f2_8_0?: string;
-  f2_9_0?: string;
-  f2_10_0?: string;
-  f2_11_0?: string;
-  f2_12_0?: string;
-  f2_13_0?: string;
-  f2_14_0?: string;
-  f2_15_0?: string;
-  f2_16_0?: string;
-  f2_17_0?: string;
-  f2_18_0?: string;
-  f2_19_0?: string;
-  f2_20_0?: string;
-  f2_21_0?: string;
-  f2_22_0?: string;
-  f2_23_0?: string;
-  f2_24_0?: string;
-  f2_25_0?: string;
-  f2_26_0?: string;
+export interface F1040SSE {
+  P1_Name?: string;
+  P1_SSN?: string;
+  P1L1a?: string;
+  P1L1b?: string;
+  P1L2?: string;
+  P1L3?: string;
+  P1L4?: string;
+  P1L5?: string;
+  P1L6?: string;
+  P2_Name?: string;
+  P2_SSN?: string;
+  P2C1_A?: boolean;
+  P2L1a?: string;
+  P2L1b?: string;
+  P2L2?: string;
+  P2L3?: string;
+  P2L4a?: string;
+  P2L4b?: string;
+  P2L4c?: string;
+  P2L5a?: string;
+  P2L5b?: string;
+  P2L6?: string;
+  P2L7?: string;
+  P2L8a?: string;
+  P2L8b?: string;
+  P2L8c?: string;
+  P2L8d?: string;
+  P2L9?: string;
+  P2L10?: string;
+  P2L11?: string;
+  P2L12?: string;
+  P2L13?: string;
+  P2L14?: string;
+  P2L15?: string;
+  P2L16?: string;
+  P2L17?: string;
 }
 
 

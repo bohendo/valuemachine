@@ -1,12 +1,12 @@
 import { f1040, F1040 } from "./f1040";
-import { f1040s1, F1040s1 } from "./f1040s1";
-import { f1040s2, F1040s2 } from "./f1040s2";
-import { f1040s3, F1040s3 } from "./f1040s3";
-import { f1040sa, F1040sa } from "./f1040sa";
-import { f1040sb, F1040sb } from "./f1040sb";
-import { f1040sc, F1040sc } from "./f1040sc";
-import { f1040sd, F1040sd } from "./f1040sd";
-import { f1040sse, F1040sse } from "./f1040sse";
+import { f1040s1, F1040S1 } from "./f1040s1";
+import { f1040s2, F1040S2 } from "./f1040s2";
+import { f1040s3, F1040S3 } from "./f1040s3";
+import { f1040sa, F1040SA } from "./f1040sa";
+import { f1040sb, F1040SB } from "./f1040sb";
+import { f1040sc, F1040SC } from "./f1040sc";
+import { f1040sd, F1040SD } from "./f1040sd";
+import { f1040sse, F1040SSE } from "./f1040sse";
 import { f2210, F2210 } from "./f2210";
 import { f2555, F2555 } from "./f2555";
 import { f8889, F8889 } from "./f8889";
@@ -33,16 +33,16 @@ export const Mappings = {
 // Multiple pages are expected for forms with array type
 export type Forms = {
   f1040?: F1040,
-  f1040s1: F1040s1,
-  f1040s2: F1040s2,
-  f1040s3: F1040s3,
-  f2210: F2210,
-  f1040sa: F1040sa,
-  f1040sb: F1040sb,
-  f1040sc: F1040sc,
-  f1040sd: F1040sd,
-  f8949: F8949[],
-  f1040sse: F1040sse,
-  f2555: F2555,
-  f8889: F8889,
+  f1040s1?: F1040S1,
+  f1040s2?: F1040S2,
+  f1040s3?: F1040S3,
+  f2210?: F2210,
+  f1040sa?: F1040SA,
+  f1040sb?: F1040SB,
+  f1040sc?: F1040SC,
+  f1040sd?: F1040SD,
+  f8949?: F8949[],
+  f1040sse?: F1040SSE,
+  f2555?: F2555,
+  f8889?: F8889,
 };

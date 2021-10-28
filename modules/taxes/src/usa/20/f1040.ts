@@ -1,4 +1,5 @@
 import {
+  Forms,
   FilingStatuses,
   getIncomeTax,
   logger,
@@ -7,22 +8,22 @@ import {
 
 const log = logger.child({ module: "f1040" });
 
-export const f1040 = (oldForms: any): any => {
-  const forms = JSON.parse(JSON.stringify(oldForms)) as any;
+export const f1040 = (oldForms: Forms): Forms => {
+  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f2555 } = forms;
 
   let filingStatus;
-  if (f1040.Single || f1040.MarriedFilingSeparately) {
+  if (f1040.Single || f1040.MarriedSeparate) {
     filingStatus = FilingStatuses.Single;
-  } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
+  } else if (f1040.MarriedJoint || f1040.Widow) {
     filingStatus = FilingStatuses.Joint;
   } else if (f1040.HeadOfHousehold) {
     filingStatus = FilingStatuses.Head;
   }
 
   // These two lines should throw type errors at build time
-  f1040.StatusInfo = true;
-  f1040.HasCrypto_Yes = "Yea";
+  //f1040.StatusInfo = true;
+  //f1040.HasCrypto_Yes = "Yea";
 
   f1040.L9 = math.add(
     f1040.L1, f1040.L2b, f1040.L3b, f1040.L4b,
@@ -44,11 +45,11 @@ export const f1040 = (oldForms: any): any => {
   f1040.L15 = math.subToZero(f1040.L11, f1040.L14);
 
   if (!forms.f2555) {
-    f1040.L16 = getIncomeTax(f1040.L11b, filingStatus);
+    f1040.L16 = getIncomeTax(f1040.L11, filingStatus);
   } else {
     log.warn(`idk what 2b from Foreign Earned Income Tax Worksheet should be, using 0`);
     const L2c = math.add(f2555.L45, f2555.L50);
-    const L3 = math.add(f1040.L11b, math.add());
+    const L3 = math.add(f1040.L11, math.add());
     const L4 = getIncomeTax(L3, filingStatus);
     const L5 = getIncomeTax(L2c, filingStatus);
     f1040.L16 = math.subToZero(L4, L5);
