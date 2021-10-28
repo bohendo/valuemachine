@@ -35,5 +35,12 @@ export const TaxInput = Type.Object({
   SpouseMiddleInitial: Type.Optional(Type.String()),
   SpouseLastName: Type.Optional(Type.String()),
   SpouseSSN: Type.Optional(Type.String()),
+  forms: Type.Optional(Type.Record(
+    Type.String(),
+    Type.Record(
+      Type.String(),
+      Type.Union([Type.String(), Type.Boolean()]),
+    ),
+  )),
 });
 export type TaxInput = Static<typeof TaxInput>;
