@@ -1,16 +1,16 @@
 import {
   EventTypes,
   Forms,
-  logger,
+  Logger,
   math,
   TaxRow,
   toFormDate,
 } from "./utils";
 
-const log = logger.child({ module: "f8949" });
 const { add, gt, mul, round, sub } = math;
 
-export const f8949 = (forms: Forms, taxRows: TaxRow[]): Forms  => {
+export const f8949 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms  => {
+  const log = logger.child({ module: "f8949" });
   const { f1040, f8949 } = forms;
 
   // Merge trades w the same received & sold dates
@@ -32,7 +32,6 @@ export const f8949 = (forms: Forms, taxRows: TaxRow[]): Forms  => {
     const longChunks = chunkify(trades.filter(isLongTerm));
     const getLongCell = (row: number, column: string): string => `P2L1${column}R${row}`;
     const getShortCell = (row: number, column: string): string => `P1L1${column}R${row}`;
-
 
     // Convert chunk of vmEvents into f8949 rows
     const nPages = longChunks.length > shortChunks.length ? longChunks.length : shortChunks.length;

@@ -1,14 +1,14 @@
 import {
   Forms,
-  logger,
+  Logger,
   math,
   TaxRow,
 } from "./utils";
 
-const log = logger.child({ module: "f1040sd" });
 const { add, eq, gt, lt, round } = math;
 
-export const f1040sd = (forms: Forms, _taxRows: TaxRow[]): Forms => {
+export const f1040sd = (forms: Forms, _taxRows: TaxRow[], logger: Logger): Forms => {
+  const log = logger.child({ module: "f1040sd" });
   const { f1040, f1040sd } = forms;
 
   f1040sd.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
@@ -125,7 +125,7 @@ export const f1040sd = (forms: Forms, _taxRows: TaxRow[]): Forms => {
   }
 
   if (next === "L21") {
-    if (f1040.MarriedFilingSeparately) {
+    if (f1040.MarriedSeparate) {
       f1040sd.L21 = lt(f1040sd.L16, "-1500") ? "-1500" : f1040sd.L16;
     } else {
       f1040sd.L21 = lt(f1040sd.L16, "-3000") ? "-3000" : f1040sd.L16;

@@ -1,13 +1,12 @@
 import {
   EventTypes,
   Forms,
-  logger,
+  Logger,
   math,
   TaxRow,
   toFormDate,
 } from "./utils";
 
-const log = logger.child({ module: "f8949" });
 const { add, gt, mul, round, sub } = math;
 const msPerDay = 1000 * 60 * 60 * 24;
 const msPerYear = msPerDay * 365;
@@ -21,7 +20,8 @@ type Trade = {
   amount: string;
 };
 
-export const f8949 = (forms: Forms, taxRows: TaxRow[]): Forms  => {
+export const f8949 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms  => {
+  const log = logger.child({ module: "f8949" });
   const f1040 = forms.f1040;
   let f8949 = forms.f8949.length ? forms.f8949 : [];
 

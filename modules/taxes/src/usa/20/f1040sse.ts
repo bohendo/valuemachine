@@ -1,14 +1,14 @@
 import {
   Forms,
-  logger,
+  Logger,
   math,
   TaxRow,
 } from "./utils";
 
-const log = logger.child({ module: "f1040sse" });
 const { add, eq, gt, lt, min, mul, sub } = math;
 
-export const f1040sse = (forms: Forms, _taxRows: TaxRow[]): Forms => {
+export const f1040sse = (forms: Forms, _taxRows: TaxRow[], logger: Logger): Forms => {
+  const log = logger.child({ module: "f1040sse" });
   const { f1040s1, f1040s2, f1040s3, f1040sse } = forms;
 
   f1040sse.Name = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
@@ -30,8 +30,9 @@ export const f1040sse = (forms: Forms, _taxRows: TaxRow[]): Forms => {
   }
 
   f1040sse.L6 = add(f1040sse.L4c, f1040sse.L5b);
+  const L7 = "137700";
   f1040sse.L8d = add(f1040sse.L8a, f1040sse.L8b, f1040sse.L8c);
-  f1040sse.L9 = sub(f1040sse.L7, f1040sse.L8d);
+  f1040sse.L9 = sub(L7, f1040sse.L8d);
   f1040sse.L10 = mul(math.min(f1040sse.L6, f1040sse.L9), "0.124");
   f1040sse.L11 = mul(f1040sse.L6, "0.029");
   f1040sse.L12 = add(f1040sse.L10, f1040sse.L11);
@@ -63,8 +64,8 @@ export const f1040sse = (forms: Forms, _taxRows: TaxRow[]): Forms => {
   f1040sse.L26 = mul(f1040sse.L25, "0.062");
 
   if (!eq(f1040sse.L26, "0")) {
-    log.warn(`See instructions re: f1040sse L26 & f1040s3 L12e`);
-    f1040s3.L26 = f1040s3.L12e;
+    log.warn(`See instructions re: f1040s3 L12e & f1040sse L26`);
+    f1040s3.L12e = f1040sse.L26;
   }
 
   return { ...forms, f1040s1, f1040s2, f1040sse };

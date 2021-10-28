@@ -2,13 +2,12 @@ import {
   FilingStatuses,
   Forms,
   getIncomeTax,
-  logger,
+  Logger,
   math,
 } from "./utils";
 
-const log = logger.child({ module: "f1040" });
-
-export const f1040 = (forms: Forms): Forms => {
+export const f1040 = (forms: Forms, logger: Logger): Forms => {
+  const log = logger.child({ module: "f1040" });
   const { f1040, f2555 } = forms;
 
   let filingStatus;

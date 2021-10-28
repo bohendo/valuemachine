@@ -1,15 +1,17 @@
 import { Assets } from "@valuemachine/transactions";
 import { EventTypes } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
+import { getLogger, math } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { getEmptyForms, TaxYears } from "../../mappings";
 
 import { getTaxReturn } from ".";
 
-describe(`Tax Filers`, () => {
-  it(`should apply math instructions & ${TaxYears.USA20} tax laws properly`, async () => {
-    const year = TaxYears.USA20;
+const taxYear = TaxYears.USA19;
+const logger = getLogger("warn", `Test${taxYear}Filers`);
+
+describe.only(`Tax Filers`, () => {
+  it.only(`should apply math instructions & ${taxYear} tax laws properly`, async () => {
     const taxRows = [{
       date: "2020-01-01T00:00:00",
       action: EventTypes.Income,
@@ -50,7 +52,7 @@ describe(`Tax Filers`, () => {
       cumulativeIncome: "1000",
       tags: [],
     }];
-    const forms = { ...getEmptyForms(year),
+    const forms = { ...getEmptyForms(taxYear),
       f1040: {
         FirstNameMI: "Bo",
         MarriedSeparate: true,
@@ -98,7 +100,7 @@ describe(`Tax Filers`, () => {
         L12d: "12",
       },
     };
-    const taxReturn = getTaxReturn(forms, taxRows);
+    const taxReturn = getTaxReturn(forms, taxRows, logger);
     expect(taxReturn).to.be.ok;
     expect(taxReturn.f1040.L14).to.equal(math.add(taxReturn.f1040.L12, taxReturn.f1040.L13));
   });

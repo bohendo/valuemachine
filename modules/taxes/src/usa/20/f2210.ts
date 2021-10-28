@@ -3,16 +3,15 @@ import {
   FilingStatuses,
   Forms,
   getIncomeTax,
-  logger,
+  Logger,
   math,
   processExpenses,
   processIncome,
   TaxRow,
 } from "./utils";
 
-const log = logger.child({ module: "f2210" });
-
-export const f2210 = (forms: Forms, taxRows: TaxRow[]): Forms => {
+export const f2210 = (forms: any, taxRows: TaxRow[], logger: Logger): Forms => {
+  const log = logger.child({ module: "f2210" });
   const { f1040, f1040s2, f1040s3, f1040sse, f2210 } = forms;
 
   f2210.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;

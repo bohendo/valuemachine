@@ -11,12 +11,13 @@ import {
 import { math } from "@valuemachine/utils";
 
 export {
-  TaxRow,
   Asset,
   DateString,
   DecString,
-  IntString,
   EventTypes,
+  IntString,
+  Logger,
+  TaxRow,
 } from "@valuemachine/types";
 export { math } from "@valuemachine/utils";
 

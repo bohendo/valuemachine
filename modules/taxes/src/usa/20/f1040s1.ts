@@ -1,14 +1,13 @@
 import {
   Forms,
-  logger,
+  Logger,
   math,
   processIncome,
   TaxRow,
 } from "./utils";
 
-const log = logger.child({ module: "f1040s1" });
-
-export const f1040s1 = (forms: Forms, taxRows: TaxRow[]): Forms => {
+export const f1040s1 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+  const log = logger.child({ module: "f1040s1" });
   const { f1040, f1040s1 } = forms;
 
   f1040s1.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;

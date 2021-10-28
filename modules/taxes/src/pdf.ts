@@ -136,7 +136,7 @@ export const requestTaxReturn = async (
   } else {
     const taxRows = getTaxRows({ guard, prices, vm, taxYear });
     log.info(`Fetching ${guard} tax return for ${taxYear} w ${Object.keys(formData).length} forms`);
-    const forms = guard === Guards.USA ? await getTaxReturn(taxYear, taxRows, formData)
+    const forms = guard === Guards.USA ? await getTaxReturn(taxYear, formData, taxRows)
       : getEmptyForms(taxYear);
     return new Promise((res, rej) => {
       axios({

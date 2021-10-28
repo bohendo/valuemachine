@@ -1,16 +1,16 @@
 import {
   Forms,
-  logger,
+  Logger,
   math,
   processExpenses,
   processIncome,
   TaxRow,
 } from "./utils";
 
-const log = logger.child({ module: "f1040sc" });
 const { add, gt, lt, round, sub } = math;
 
-export const f1040sc = (forms: Forms, taxRows: TaxRow[]): Forms => {
+export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+  const log = logger.child({ module: "f1040sc" });
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
@@ -89,7 +89,7 @@ export const f1040sc = (forms: Forms, taxRows: TaxRow[]): Forms => {
     f1040sc.L13, f1040sc.L14, f1040sc.L15, f1040sc.L16a, f1040sc.L16b,
     f1040sc.L17, f1040sc.L18, f1040sc.L19, f1040sc.L20a, f1040sc.L20b,
     f1040sc.L21, f1040sc.L22, f1040sc.L23, f1040sc.L24a, f1040sc.L24b,
-    f1040sc.L25, f1040sc.L26, f1040sc.L27a, f1040sc.L27b,
+    f1040sc.L25, f1040sc.L26, f1040sc.L27a,
   );
 
   f1040sc.L29 = round(sub(f1040sc.L7, f1040sc.L28));

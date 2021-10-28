@@ -1,16 +1,16 @@
 import {
   Forms,
-  logger,
+  Logger,
   math,
   processExpenses,
   processIncome,
   TaxRow,
 } from "./utils";
 
-const log = logger.child({ module: "f1040sc" });
 const { add, gt, lt, round, sub } = math;
 
-export const f1040sc = (forms: Forms, taxRows: TaxRow[]): Forms => {
+export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+  const log = logger.child({ module: "f1040sc" });
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
