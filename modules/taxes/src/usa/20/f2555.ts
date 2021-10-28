@@ -131,7 +131,7 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[]): Forms => {
     if (math.gt(f2555.L50, "0")) {
       log.warn(`You're supposed to write "f2555 ${f2555.L50}" to the left of f1040s1.L22 lol`);
     }
-    f1040.L8a = math.add(f1040.L8a, f2555.L50);
+    f1040s1.L22 = math.add(f1040s1.L22, f2555.L50);
     log.info(`Foreign housing deduction: ${f2555.L50}`);
 
   }

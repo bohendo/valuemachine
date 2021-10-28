@@ -16,8 +16,8 @@ import { Forms, TaxRow } from "./utils";
 const year = TaxYears.USA19;
 
 export const getTaxReturn = (
-  taxRows: TaxRow[],
   formData: Forms,
+  taxRows: TaxRow[],
 ): Forms => {
   let forms = {
     ...getEmptyForms(year),

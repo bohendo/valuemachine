@@ -11,8 +11,7 @@ const log = logger.child({ module: "f8949" });
 const { add, gt, mul, round, sub } = math;
 
 export const f8949 = (forms: Forms, taxRows: TaxRow[]): Forms  => {
-  const { f1040 } = forms;
-  const f8949 = !forms.f8949 ? [] : forms.f8949.length ? forms.f8949 : [forms.f8949];
+  const { f1040, f8949 } = forms;
 
   // Merge trades w the same received & sold dates
   const trades = taxRows.filter(tax => tax.action === EventTypes.Trade);

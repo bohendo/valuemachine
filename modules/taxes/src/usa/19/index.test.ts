@@ -1,54 +1,52 @@
-import fs from "fs";
-import { execFile } from "child_process";
-
 import { Assets } from "@valuemachine/transactions";
 import { EventTypes } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 import { expect } from "chai";
 
-import { getEmptyForms, TaxYears } from "./mappings";
-import { getTaxReturn } from "./return";
-import { fillReturn } from "./pdf";
+import { getEmptyForms, TaxYears } from "../../mappings";
 
-const year = TaxYears.USA20;
+import { getTaxReturn } from ".";
 
-describe(`Tax Return`, () => {
-  it(`should apply math instructions & ${TaxYears.USA19} tax laws properly`, async () => {
+const year = TaxYears.USA19;
+
+describe(`Tax Filers`, () => {
+  // these are using values from the 2020 filer tests
+  it.skip(`should apply math instructions & ${TaxYears.USA19} tax laws properly`, async () => {
     const taxRows = [{
-      date: "2020-01-01T00:00:00",
+      date: "2019-01-01T00:00:00",
       action: EventTypes.Income,
       amount: "10",
       asset: Assets.ETH,
       price: "100",
       value: "1000",
       receivePrice: "100",
-      receiveDate: "2020-01-01T00:00:00",
+      receiveDate: "2019-01-01T00:00:00",
       capitalChange: "0",
       cumulativeChange: "0",
       cumulativeIncome: "1000",
       tags: [],
     }, {
-      date: "2020-12-01T00:00:00",
+      date: "2019-12-01T00:00:00",
       action: EventTypes.Trade,
       amount: "10",
       asset: Assets.ETH,
       price: "600",
       value: "6000",
       receivePrice: "100",
-      receiveDate: "2020-01-01T00:00:00",
+      receiveDate: "2019-01-01T00:00:00",
       capitalChange: "5000",
       cumulativeChange: "5000",
       cumulativeIncome: "1000",
       tags: [],
     }, {
-      date: "2020-12-02T00:00:00",
+      date: "2019-12-02T00:00:00",
       action: EventTypes.Trade,
       amount: "100",
       asset: "GME",
       price: "15",
       value: "1500",
       receivePrice: "5",
-      receiveDate: "2019-01-01T00:00:00",
+      receiveDate: "2018-01-01T00:00:00",
       capitalChange: "1000",
       cumulativeChange: "6000",
       cumulativeIncome: "1000",
@@ -102,11 +100,9 @@ describe(`Tax Return`, () => {
         L12d: "12",
       },
     };
-    const taxReturn = getTaxReturn(year, taxRows, forms);
+    const taxReturn = getTaxReturn(forms, taxRows);
     expect(taxReturn).to.be.ok;
     expect(taxReturn.f1040.L14).to.equal(math.add(taxReturn.f1040.L12, taxReturn.f1040.L13));
-    const path = await fillReturn(year, taxReturn, process.cwd(), { fs, execFile });
-    expect(path).to.be.a("string");
   });
 });
 

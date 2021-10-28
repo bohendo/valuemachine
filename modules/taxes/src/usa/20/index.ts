@@ -16,8 +16,8 @@ import { f2555 } from "./f2555";
 const year = TaxYears.USA20;
 
 export const getTaxReturn = (
-  taxRows: TaxRow[],
   formData: Forms,
+  taxRows: TaxRow[],
 ): Forms => {
   let forms = { ...getEmptyForms(year), ...formData };
   // We should run filers in reverse-filing order so f1040 should come last
