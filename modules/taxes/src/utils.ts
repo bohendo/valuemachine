@@ -52,7 +52,7 @@ export const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapp
 export const getTestForm = mapping =>
   mapping.reduce((form, entry) => ({
     ...form,
-    [entry.nickname]: entry.checkmark || entry.nickname,
+    [entry.nickname]: entry.checkmark ? true : entry.nickname,
   }), {});
 
 export const getTestReturn = mappings =>

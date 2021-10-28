@@ -1,5 +1,6 @@
 // NOTE: this file is for dev-use only & shouldn't be included in the prod dist bundle
 // These tools can be used to build new form mappings or verify that current ones are valid
+import { Logger } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import { compile } from "json-schema-to-typescript";
 
@@ -7,9 +8,13 @@ import { syncMapping } from "../utils";
 
 import { MappingArchive } from ".";
 
-const log = getLogger("info", "Builder");
-
-export const buildMappingFile = async (year, form, defaultMapping): Promise<string> => {
+export const buildMappingFile = async (
+  year,
+  form,
+  defaultMapping,
+  logger?: Logger,
+): Promise<string> => {
+  const log = (logger || getLogger()).child({ module: "Build" });
   const mapping = MappingArchive[year]?.[form] || {};
   syncMapping(form, defaultMapping, mapping);
   const title = form.toUpperCase();

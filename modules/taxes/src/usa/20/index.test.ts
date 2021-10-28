@@ -7,11 +7,11 @@ import { getEmptyForms, TaxYears } from "../../mappings";
 
 import { getTaxReturn } from ".";
 
-const taxYear = TaxYears.USA19;
+const taxYear = TaxYears.USA20;
 const logger = getLogger("warn", `Test${taxYear}Filers`);
 
-describe(`Tax Filers`, () => {
-  it(`should apply math instructions & ${taxYear} tax laws properly`, async () => {
+describe(`${taxYear} Filers`, () => {
+  it(`should fill ${taxYear} forms correctly`, async () => {
     const taxRows = [{
       date: "2020-01-01T00:00:00",
       action: EventTypes.Income,

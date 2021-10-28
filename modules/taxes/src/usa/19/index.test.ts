@@ -10,8 +10,8 @@ import { getTaxReturn } from ".";
 const taxYear = TaxYears.USA19;
 const logger = getLogger("warn", `Test${taxYear}`);
 
-describe(`Tax Filers`, () => {
-  it(`should apply ${taxYear} math instructions correctly`, async () => {
+describe(`${taxYear} Filers`, () => {
+  it(`should fill ${taxYear} forms correctly`, async () => {
     const taxRows = [{
       date: "2019-01-01T00:00:00",
       action: EventTypes.Income,

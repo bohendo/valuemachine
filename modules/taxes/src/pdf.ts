@@ -1,5 +1,5 @@
 import { Guards } from "@valuemachine/transactions";
-import { Mapping, Prices, ValueMachine } from "@valuemachine/types";
+import { Logger, Prices, ValueMachine } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
@@ -8,42 +8,40 @@ import { getEmptyForms, Forms, MappingArchive, TaxYear } from "./mappings";
 import { getTaxReturn } from "./return";
 import { getTaxRows } from "./rows";
 
-const log = getLogger("info", "PDF");
-
 export const fillForm = async (
   taxYear: TaxYear,
   form: string,
   data: any,
   dir: string,
   libs: { fs: any; execFile: any; },
+  logger?: Logger,
 ): Promise<string> => {
-  const translate = (formData: Forms, mapping: Mapping): any => {
-    const newForm = {};
-    for (const [key, value] of Object.entries(formData)) {
-      const entry = mapping.find(entry => entry.nickname === key);
-      if (!entry) {
-        log.warn(`Key ${key} exists in output data but not in ${form} mapping`);
-      } else if (typeof value === "boolean" && entry.checkmark) {
-        newForm[entry.fieldName] = value ? entry.checkmark : undefined;
-      } else if (typeof value === "string" && !entry.checkmark) {
-        // Round decimal strings
-        if (value.match(/^-?[0-9]+\.[0-9]+$/)) {
-          newForm[entry.fieldName] = round(value, 2);
-        } else {
-          newForm[entry.fieldName] = value;
-        }
-        // Use accounting notation for negative values
-        if (newForm[entry.fieldName].startsWith("-")) {
-          newForm[entry.fieldName] = `(${newForm[entry.fieldName].substring(1)})`;
-        }
+  const log = (logger || getLogger()).child({ module: "FillForm" });
+  const mapping = MappingArchive[taxYear][form];
+  const mappedData = {};
+  for (const [key, value] of Object.entries(data)) {
+    const entry = mapping.find(entry => entry.nickname === key);
+    if (!entry) {
+      log.warn(`Key ${key} exists in output data but not in ${form} mapping`);
+    } else if (typeof value === "boolean" && entry.checkmark) {
+      mappedData[entry.fieldName] = value ? entry.checkmark : undefined;
+    } else if (typeof value === "string" && !entry.checkmark) {
+      // Round decimal strings
+      if (value.match(/^-?[0-9]+\.[0-9]+$/)) {
+        mappedData[entry.fieldName] = round(value, 2);
       } else {
-        log.warn(`Skipping field of type ${typeof value} bc it ${
-          entry.checkmark ? "doesn't have a checkmark" : `has checkmark=${entry.checkmark}`
-        }`);
+        mappedData[entry.fieldName] = value;
       }
+      // Use accounting notation for negative values
+      if (mappedData[entry.fieldName].startsWith("-")) {
+        mappedData[entry.fieldName] = `(${mappedData[entry.fieldName].substring(1)})`;
+      }
+    } else {
+      log.warn(`Skipping field of type ${typeof value} bc it ${
+        !entry.checkmark ? "doesn't have a checkmark" : `has checkmark=${entry.checkmark}`
+      }: ${form}.${key} = ${typeof value === "string" ? `"${value}"` : value}`);
     }
-    return newForm;
-  };
+  }
   const cwd = process.cwd();
   const srcPath = cwd.endsWith("taxes") ? `${cwd}/forms/${taxYear}/${form}.pdf`
     : `${cwd}/node_modules/@valuemachine/taxes/forms/${taxYear}/${form}.pdf`;
@@ -51,7 +49,7 @@ export const fillForm = async (
   const res = await getPdftk(libs).fill(
     srcPath,
     destPath,
-    translate(data, MappingArchive[taxYear][form]),
+    mappedData,
   );
   if (res) log.info(`Successfully filled in pdf & saved it to ${res}`);
   return res || "";
@@ -62,7 +60,9 @@ export const fillReturn = async (
   forms: any,
   dir: string,
   libs: { fs: any; execFile: any; },
+  logger: Logger,
 ): Promise<string> => {
+  const log = (logger || getLogger()).child({ module: "FillReturn" });
   const pages = [] as string[];
   for (const entry of Object.entries(forms)) {
     const name = entry[0] as string;
@@ -100,7 +100,9 @@ export const requestFilledForm = async (
   form: string,
   data: any,
   window: any,
+  logger: Logger,
 ): Promise<void> => {
+  const log = (logger || getLogger()).child({ module: "RequestForm" });
   if (!data) {
     log.warn(`Missing data, not requesting ${form}`);
     return;
@@ -131,7 +133,9 @@ export const requestTaxReturn = async (
   prices: Prices,
   formData: Forms,
   window: any,
+  logger: Logger,
 ): Promise<void> => {
+  const log = (logger || getLogger()).child({ module: "RequestReturn" });
   if (!formData) {
     log.warn(`Missing form data, not requesting tax return`);
     return;
@@ -163,7 +167,9 @@ export const getMapping = async (
   taxYear: TaxYear,
   form: string,
   libs: { fs: any; execFile: any; },
+  logger: Logger,
 ): Promise<any> => {
+  const log = (logger || getLogger()).child({ module: "GetMapping" });
   const emptyPdf = `${process.cwd()}/forms/${taxYear}/${form}.pdf`;
   const mapping = await getPdftk(libs).getMapping(emptyPdf);
   log.info(`Got mapping w ${Object.keys(mapping).length} entries from empty pdf at ${emptyPdf}`);
@@ -174,7 +180,9 @@ export const fetchUsaForm = async (
   taxYear: TaxYear,
   form: string,
   fs: any,
+  logger: Logger,
 ): Promise<boolean> => {
+  const log = (logger || getLogger()).child({ module: "FetchUsaForm" });
   const url = taxYear.endsWith((new Date().getFullYear() - 1).toString().substring(2))
     ? `https://www.irs.gov/pub/irs-pdf/${form}.pdf`
     : `https://www.irs.gov/pub/irs-prior/${form}--20${taxYear.substring(3)}.pdf`;

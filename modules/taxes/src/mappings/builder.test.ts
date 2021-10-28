@@ -2,7 +2,6 @@ import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 
-import { Mapping } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import { expect } from "chai";
 
@@ -13,28 +12,23 @@ import { buildMappingFile } from "./builder";
 
 import { MappingArchive, TaxYears } from ".";
 
-const log = getLogger("info", "Builder");
+const log = getLogger("warn", "TestBuilder");
 const libs = { fs, execFile };
 const pdftk = getPdftk(libs);
 const root = path.join(__dirname, "../..");
 
-const getDefaultMapping = async (year, form): Mapping => {
+const buildMapping = async (year, form) => {
   const emptyPdf = `${root}/forms/${year}/${form}.pdf`;
-  let mapping;
+  let defaultMapping;
   try {
-    mapping = await pdftk.getMapping(emptyPdf);
+    defaultMapping = await pdftk.getMapping(emptyPdf);
   } catch (e) {
     // Might have failed bc empty forms aren't available, fetch them and try again
     await fetchUsaForm(year, form, fs);
-    mapping = await pdftk.getMapping(emptyPdf);
+    defaultMapping = await pdftk.getMapping(emptyPdf);
   }
-  log.info(`Got a mapping w ${mapping.length} fields from ${emptyPdf}`);
-  return mapping;
-};
-
-const buildMapping = async (year, form) => {
-  const defaultMapping = await getDefaultMapping(year, form);
-  const mappingFileContent = await buildMappingFile(year, form, defaultMapping);
+  log.info(`Got a mapping w ${defaultMapping.length} fields from ${emptyPdf}`);
+  const mappingFileContent = await buildMappingFile(year, form, defaultMapping, log);
   const mappingFilePath = `${root}/src/mappings/${year}/${form}.ts`;
   expect(mappingFileContent).to.be.a("string");
   expect(mappingFilePath).to.be.a("string");
@@ -58,7 +52,7 @@ describe("Mappings Builder", () => {
     await buildMapping(year, form);
   });
 
-  it.only(`should build & fix all form mappings`, async () => {
+  it(`should build & fix all form mappings`, async () => {
     for (const year of Object.keys(TaxYears)) {
       for (const form of Object.keys(MappingArchive[year])) {
         await buildMapping(year, form);

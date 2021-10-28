@@ -19,12 +19,12 @@ export const f2210 = [
   {"nickname":"CC","fieldName":"topmostSubform[0].Page1[0].c1_4[0]","checkmark":"1"},
   {"nickname":"CD","fieldName":"topmostSubform[0].Page1[0].c1_5[0]","checkmark":"1"},
   {"nickname":"CE","fieldName":"topmostSubform[0].Page1[0].c1_6[0]","checkmark":"1"},
-  {"nickname":"f2_1_0","fieldName":"topmostSubform[0].Page2[0].f2_1[0]"},
-  {"nickname":"f2_2_0","fieldName":"topmostSubform[0].Page2[0].f2_2[0]"},
-  {"nickname":"f2_3_0","fieldName":"topmostSubform[0].Page2[0].f2_3[0]"},
-  {"nickname":"f2_4_0","fieldName":"topmostSubform[0].Page2[0].f2_4[0]"},
-  {"nickname":"f2_5_0","fieldName":"topmostSubform[0].Page2[0].f2_5[0]"},
-  {"nickname":"f2_6_0","fieldName":"topmostSubform[0].Page2[0].f2_6[0]"},
+  {"nickname":"L10","fieldName":"topmostSubform[0].Page2[0].f2_1[0]"},
+  {"nickname":"L11","fieldName":"topmostSubform[0].Page2[0].f2_2[0]"},
+  {"nickname":"L12","fieldName":"topmostSubform[0].Page2[0].f2_3[0]"},
+  {"nickname":"L13","fieldName":"topmostSubform[0].Page2[0].f2_4[0]"},
+  {"nickname":"L14","fieldName":"topmostSubform[0].Page2[0].f2_5[0]"},
+  {"nickname":"L15","fieldName":"topmostSubform[0].Page2[0].f2_6[0]"},
   {"nickname":"f2_7_0","fieldName":"topmostSubform[0].Page2[0].f2_7[0]"},
   {"nickname":"f2_8_0","fieldName":"topmostSubform[0].Page2[0].f2_8[0]"},
   {"nickname":"f3_1_0","fieldName":"topmostSubform[0].Page3[0].SectionATable[0].Line18[0].f3_1[0]"},
@@ -231,12 +231,12 @@ export interface F2210 {
   CC?: boolean;
   CD?: boolean;
   CE?: boolean;
-  f2_1_0?: string;
-  f2_2_0?: string;
-  f2_3_0?: string;
-  f2_4_0?: string;
-  f2_5_0?: string;
-  f2_6_0?: string;
+  L10?: string;
+  L11?: string;
+  L12?: string;
+  L13?: string;
+  L14?: string;
+  L15?: string;
   f2_7_0?: string;
   f2_8_0?: string;
   f3_1_0?: string;
