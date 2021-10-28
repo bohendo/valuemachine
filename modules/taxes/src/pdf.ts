@@ -60,7 +60,7 @@ export const fillReturn = async (
   forms: any,
   dir: string,
   libs: { fs: any; execFile: any; },
-  logger: Logger,
+  logger?: Logger,
 ): Promise<string> => {
   const log = (logger || getLogger()).child({ module: "FillReturn" });
   const pages = [] as string[];
@@ -100,7 +100,7 @@ export const requestFilledForm = async (
   form: string,
   data: any,
   window: any,
-  logger: Logger,
+  logger?: Logger,
 ): Promise<void> => {
   const log = (logger || getLogger()).child({ module: "RequestForm" });
   if (!data) {
@@ -133,7 +133,7 @@ export const requestTaxReturn = async (
   prices: Prices,
   formData: Forms,
   window: any,
-  logger: Logger,
+  logger?: Logger,
 ): Promise<void> => {
   const log = (logger || getLogger()).child({ module: "RequestReturn" });
   if (!formData) {
@@ -167,7 +167,7 @@ export const getMapping = async (
   taxYear: TaxYear,
   form: string,
   libs: { fs: any; execFile: any; },
-  logger: Logger,
+  logger?: Logger,
 ): Promise<any> => {
   const log = (logger || getLogger()).child({ module: "GetMapping" });
   const emptyPdf = `${process.cwd()}/forms/${taxYear}/${form}.pdf`;
@@ -180,7 +180,7 @@ export const fetchUsaForm = async (
   taxYear: TaxYear,
   form: string,
   fs: any,
-  logger: Logger,
+  logger?: Logger,
 ): Promise<boolean> => {
   const log = (logger || getLogger()).child({ module: "FetchUsaForm" });
   const url = taxYear.endsWith((new Date().getFullYear() - 1).toString().substring(2))

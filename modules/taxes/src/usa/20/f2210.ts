@@ -11,7 +11,7 @@ import {
 } from "./utils";
 
 // TODO: fix type
-export const f2210 = (forms: any, taxRows: TaxRow[], logger: Logger): Forms => {
+export const f2210 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
   const log = logger.child({ module: "f2210" });
   const { f1040, f1040s2, f1040s3, f1040sse, f2210 } = forms;
 
@@ -29,7 +29,7 @@ export const f2210 = (forms: any, taxRows: TaxRow[], logger: Logger): Forms => {
     log.warn(`Read instructions & verify value on f2210.L2`);
   }
 
-  f2210.L3 = math.add(f1040s3.L9, f1040s3.L12);
+  f2210.L3 = math.add(f1040s3.L9, f1040s3.L12f);
 
   f2210.L4 = math.sub(math.add(f2210.L1,f2210.L2), f2210.L3);
 
@@ -61,10 +61,10 @@ export const f2210 = (forms: any, taxRows: TaxRow[], logger: Logger): Forms => {
   // Part II
 
   if (math.gt(f2210.L8, f2210.L5)) {
-    f2210.C0_E = false;
+    f2210.CE = false;
   }
 
-  if (!f2210.C0_A && !f2210.C0_B && !f2210.C0_C && !f2210.C0_D && !f2210.C0_E) {
+  if (!f2210.CA && !f2210.CB && !f2210.CC && !f2210.CD && !f2210.CE) {
     log.info(`No penalty required, not filing form 2210`);
     delete forms.f2210;
     return forms;
@@ -72,18 +72,18 @@ export const f2210 = (forms: any, taxRows: TaxRow[], logger: Logger): Forms => {
 
   if (math.gt(f2210.L9, f2210.L6)) {
     f2210.C9_Yes = true;
-    if ((f2210.C0_A || f2210.C0_E) && !f2210.C0_B && !f2210.C0_C && !f2210.C0_D) {
+    if ((f2210.CA || f2210.CE) && !f2210.CB && !f2210.CC && !f2210.CD) {
       log.info(`No figuring penalty, filing only page 1 of form 2210`);
       return forms;
     }
   } else {
     f2210.C9_No = true;
-    if (!f2210.C0_E) {
+    if (!f2210.CE) {
       log.info(`No penalty required, not filing form 2210`);
       delete forms.f2210;
       return forms;
     }
-    if (!f2210.C0_B && !f2210.C0_C && !f2210.C0_D) {
+    if (!f2210.CB && !f2210.CC && !f2210.CD) {
       log.info(`No figuring penalty, filing only page 1 of form 2210`);
       return forms;
     }
@@ -162,13 +162,13 @@ export const f2210 = (forms: any, taxRows: TaxRow[], logger: Logger): Forms => {
 
   columns.forEach(column => {
     const getKey = (row: number): string =>
-      `P4L${row}${column}`;
+      `aiL${row}${column}`;
 
     const getVal = (row: number): string =>
       preFilled[`L${row}`] ? preFilled[`L${row}`][column] : f2210[getKey(row)];
 
     const getPrevVal = (row: number): string =>
-      f2210[`P4L${row}${columns[columns.indexOf(column) - 1]}`];
+      f2210[`aiL${row}${columns[columns.indexOf(column) - 1]}`];
 
     const leftSum = (quarterly: any): string => {
       let total = "0";
@@ -187,9 +187,9 @@ export const f2210 = (forms: any, taxRows: TaxRow[], logger: Logger): Forms => {
       "0.9235",
     );
 
-    f2210[getKey(30)] = f1040sse.P2L8d === ""
+    f2210[getKey(30)] = f1040sse.L8d === ""
       ? "0"
-      : math.mul(f1040sse.P2L8d, getVal(2));
+      : math.mul(f1040sse.L8d, getVal(2));
 
     if (((forms as any).f4137 || (forms as any).f8919)) {
       log.warn(`See instructions & verify value on line ${getKey(30)}`);
@@ -237,9 +237,9 @@ export const f2210 = (forms: any, taxRows: TaxRow[], logger: Logger): Forms => {
 
     f2210[getKey(13)] = math.subToZero(getVal(11), getVal(12));
 
-    if (f1040.Single || f1040.MarriedFilingSeparately) {
+    if (f1040.Single || f1040.MarriedSeparate) {
       f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Single);
-    } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
+    } else if (f1040.MarriedJoint || f1040.Widow) {
       f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Joint);
     } else if (f1040.HeadOfHousehold) {
       f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Head);
@@ -258,11 +258,11 @@ export const f2210 = (forms: any, taxRows: TaxRow[], logger: Logger): Forms => {
     f2210[getKey(21)] = math.mul(getVal(20), getVal(19));
 
     if (column === "b") {
-      f2210[getKey(22)] = f2210.P4L27a;
+      f2210[getKey(22)] = f2210.aiL27a;
     } else if (column === "c") {
-      f2210[getKey(22)] = math.add(f2210.P4L27a, f2210.P4L27b);
+      f2210[getKey(22)] = math.add(f2210.aiL27a, f2210.aiL27b);
     } else if (column === "d") {
-      f2210[getKey(22)] = math.add(f2210.P4L27a, f2210.P4L27b, f2210.P4L27c);
+      f2210[getKey(22)] = math.add(f2210.aiL27a, f2210.aiL27b, f2210.aiL27c);
     }
 
     if (column === "a") {
