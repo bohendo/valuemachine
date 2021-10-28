@@ -15,7 +15,7 @@ export default {
   output: [{
     file: pkg.main,
     format: "cjs",
-    sourcemap: true,
+    sourcemap: false,
   }],
   onwarn: (warning, warn) => {
     // Ignore known warnings

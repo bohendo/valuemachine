@@ -74,7 +74,7 @@ export const App: React.FC<AppProps> = ({
   const [customTxns, setCustomTxns] = useState(store.load(CustomTxnsStore) || [] as Transaction[]);
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
   const [forms, setForms] = useState(
-    store.load(TaxFormStore) || getEmptyForms((new Date().getFullYear()-1).toString())
+    store.load(TaxFormStore) || getEmptyForms("USA20")
   );
 
   // Utilities derived from localstorage data
