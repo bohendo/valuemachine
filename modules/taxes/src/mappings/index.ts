@@ -1,7 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { Mappings as MappingsUSA19, Forms as FormsUSA19 } from "./USA19";
-import { Mappings as MappingsUSA20, Forms as FormsUSA20 } from "./USA20";
+import { Mappings_USA19, Forms_USA19 } from "./USA19";
+import { Mappings_USA20, Forms_USA20 } from "./USA20";
+
+export * from "./USA19";
+export * from "./USA20";
 
 // Can't just be 2019 bc enums can't start with a number
 export const TaxYears = {
@@ -12,13 +15,13 @@ export const TaxYear = Type.Enum(TaxYears); // NOT Extensible
 export type TaxYear = Static<typeof TaxYear>;
 
 export const MappingArchive = {
-  [TaxYears.USA19]: MappingsUSA19,
-  [TaxYears.USA20]: MappingsUSA20,
+  [TaxYears.USA19]: Mappings_USA19,
+  [TaxYears.USA20]: Mappings_USA20,
 };
 
-export type FormsArchive = {
-  [TaxYears.USA19]: FormsUSA19,
-  [TaxYears.USA20]: FormsUSA20,
+export type FormArchive = {
+  [TaxYears.USA19]: Forms_USA19,
+  [TaxYears.USA20]: Forms_USA20,
 };
 
 export type Form = {

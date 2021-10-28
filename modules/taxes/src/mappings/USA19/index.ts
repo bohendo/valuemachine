@@ -14,7 +14,7 @@ import { f8949, F8949 } from "./f8949";
 
 // The order here is the default order in which pages will be merged
 // Sort them according to the Sequence Attachment No in the top right corner of each form
-export const Mappings = {
+export const Mappings_USA19 = {
   /*seq no 0  */ f1040,
   /*seq no 1  */ f1040s1,
   /*seq no 2  */ f1040s2,
@@ -30,19 +30,33 @@ export const Mappings = {
   /*seq no 52 */ f8889,
 } as const;
 
+export type F1040_USA19 = F1040;
+export type F1040S1_USA19 = F1040S1;
+export type F1040S2_USA19 = F1040S2;
+export type F1040S3_USA19 = F1040S3;
+export type F1040SA_USA19 = F1040SA;
+export type F1040SB_USA19 = F1040SB;
+export type F1040SC_USA19 = F1040SC;
+export type F1040SD_USA19 = F1040SD;
+export type F1040SSE_USA19 = F1040SSE;
+export type F2210_USA19 = F2210;
+export type F2555_USA19 = F2555;
+export type F8889_USA19 = F8889;
+export type F8949_USA19 = F8949;
+
 // Multiple pages are expected for forms with array type
-export type Forms = {
-  f1040?: F1040,
-  f1040s1?: F1040S1,
-  f1040s2?: F1040S2,
-  f1040s3?: F1040S3,
-  f2210?: F2210,
-  f1040sa?: F1040SA,
-  f1040sb?: F1040SB,
-  f1040sc?: F1040SC,
-  f1040sd?: F1040SD,
-  f8949?: F8949[],
-  f1040sse?: F1040SSE,
-  f2555?: F2555,
-  f8889?: F8889,
+export type Forms_USA19 = {
+  f1040?: F1040_USA19,
+  f1040s1?: F1040S1_USA19,
+  f1040s2?: F1040S2_USA19,
+  f1040s3?: F1040S3_USA19,
+  f2210?: F2210_USA19,
+  f1040sa?: F1040SA_USA19,
+  f1040sb?: F1040SB_USA19,
+  f1040sc?: F1040SC_USA19,
+  f1040sd?: F1040SD_USA19,
+  f8949?: F8949_USA19[],
+  f1040sse?: F1040SSE_USA19,
+  f2555?: F2555_USA19,
+  f8889?: F8889_USA19,
 };

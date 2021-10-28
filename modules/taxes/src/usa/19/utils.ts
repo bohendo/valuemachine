@@ -1,11 +1,11 @@
 import { getLogger } from "@valuemachine/utils";
 
-import { FormsArchive, TaxYears } from "../../mappings";
+import { FormArchive, TaxYears } from "../../mappings";
 import { maxint, getGetIncomeTax } from "../utils";
 
 export * from "../utils";
 
-export type Forms = FormsArchive["USA19"];
+export type Forms = FormArchive["USA19"];
 
 export const taxYear = TaxYears.USA19;
 export const logger = getLogger("info", taxYear);
