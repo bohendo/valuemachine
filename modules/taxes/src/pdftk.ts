@@ -1,6 +1,5 @@
 import { Mapping, FieldTypes } from "@valuemachine/types";
 import { getLogger, getMappingError } from "@valuemachine/utils";
-import { compile } from "json-schema-to-typescript";
 
 import { toFdf } from "./fdf";
 
@@ -47,38 +46,9 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
           }
         }, [] as Mapping);
         const mappingError = getMappingError(mapping);
-        log.info(`Got mapping with ${mapping?.length} fields from ${srcFilepath}`);
         return mappingError ? rej(new Error(mappingError)) : res(mapping);
       });
     });
-
-  const getInterface = async (
-    srcFilepath: string,
-    title: string,
-    currentMapping?: Mapping,
-  ): Promise<any> => {
-    const mapping = await getMapping(srcFilepath);
-    if (!mapping?.length) throw new Error(`Couldn't get mapping from ${srcFilepath}`);
-    return new Promise(res => {
-      const schema = mapping.reduce((schema, entry) => ({
-        ...schema,
-        properties: {
-          ...schema.properties,
-          [currentMapping.find(e => e.fieldName === entry.fieldName)?.nickname || entry.nickname]: {
-            type: entry.fieldType.toLowerCase()
-          },
-        },
-      }), {
-        additionalProperties: false,
-        title,
-        properties: {},
-      });
-      compile(schema, title).then(ts => {
-        log.info(`Successfully got types (type=${typeof ts}) from ${srcFilepath}`);
-        res(ts);
-      });
-    });
-  };
 
   const fill = (
     srcPath: string,
@@ -136,15 +106,13 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
     outputPath: string,
   ): Promise<string> => {
     const args = [...pagePaths, "cat", "output", outputPath];
-    log.info(`Running command: pdftk ${args.join(" ")}`);
     return new Promise((res, rej) => {
-      const stdout = execFile("pdftk", args, (err) => {
+      execFile("pdftk", args, (err) => {
         if (err) rej(new Error(err));
-        log.info(`Got pdftk output: ${stdout}`);
         res(outputPath);
       });
     });
   };
 
-  return ({ getMapping, getInterface, fill, cat });
+  return ({ getMapping, fill, cat });
 };
