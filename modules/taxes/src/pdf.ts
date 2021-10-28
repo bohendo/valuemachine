@@ -1,5 +1,5 @@
 import { Guards } from "@valuemachine/transactions";
-import { FieldTypes, Mapping, Prices, ValueMachine } from "@valuemachine/types";
+import { Mapping, Prices, ValueMachine } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
@@ -23,9 +23,9 @@ export const fillForm = async (
       const entry = mapping.find(entry => entry.nickname === key);
       if (!entry) {
         log.warn(`Key ${key} exists in output data but not in ${form} mapping`);
-      } else if (typeof value === "boolean" && entry.fieldType === FieldTypes.Boolean) {
+      } else if (typeof value === "boolean" && entry.checkmark) {
         newForm[entry.fieldName] = value ? entry.checkmark : undefined;
-      } else if (typeof value === "string" && entry.fieldType === FieldTypes.String) {
+      } else if (typeof value === "string" && !entry.checkmark) {
         // Round decimal strings
         if (value.match(/^-?[0-9]+\.[0-9]+$/)) {
           newForm[entry.fieldName] = round(value, 2);
@@ -37,7 +37,9 @@ export const fillForm = async (
           newForm[entry.fieldName] = `(${newForm[entry.fieldName].substring(1)})`;
         }
       } else {
-        log.warn(`Skipping field of type ${typeof value} bc it doesn't match ${entry.fieldType}`);
+        log.warn(`Skipping field of type ${typeof value} bc it ${
+          entry.checkmark ? "doesn't have a checkmark" : `has checkmark=${entry.checkmark}`
+        }`);
       }
     }
     return newForm;

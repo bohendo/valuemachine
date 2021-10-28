@@ -19,7 +19,7 @@ export const buildMappingFile = async (year, form, defaultMapping): Promise<stri
       properties: {
         ...schema.properties,
         [mapping.find(e => e.fieldName === entry.fieldName)?.nickname || entry.nickname]: {
-          type: entry.fieldType.toLowerCase()
+          type: entry.checkmark ? "boolean" : "string",
         },
       },
     }), {
@@ -34,14 +34,9 @@ export const buildMappingFile = async (year, form, defaultMapping): Promise<stri
       res(ts);
     });
   });
-  const mappingFileContent = ""
+  const mappingFileContent = "/* eslint-disable */\n\n"
     + `export const ${form} = [\n  `
-    + mapping.map(e => JSON.stringify(e)
-      .replace(/{/g, "{ ")
-      .replace(/}/g, " }")
-      .replace(/,/g, ", ")
-      .replace(/:/g, ": ")
-    ).join(`,\n  `)
+    + mapping.map(e => JSON.stringify(e)).join(`,\n  `)
     + "\n];\n\n"
     + (await ts);
   return mappingFileContent;

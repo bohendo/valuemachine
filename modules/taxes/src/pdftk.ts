@@ -1,4 +1,4 @@
-import { Mapping, FieldTypes } from "@valuemachine/types";
+import { Mapping } from "@valuemachine/types";
 import { getLogger, getMappingError } from "@valuemachine/utils";
 
 import { toFdf } from "./fdf";
@@ -30,14 +30,13 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
           if (fieldType === "Text") {
             return [...mapping, {
               fieldName,
-              fieldType: FieldTypes.String,
               nickname,
             }];
           } else if (fieldType === "Button") {
+            // The first state option is the one that checks the box (so far)
             const checkmark = field.match(/FieldStateOption: ([^\n]*)/)?.[1]?.trim() || "Yes";
             return [...mapping, {
               fieldName,
-              fieldType: FieldTypes.Boolean,
               nickname,
               checkmark,
             }];
@@ -59,33 +58,10 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
     return new Promise((res, rej) => {
       execFile("pdftk", [srcPath, "dump_data_fields_utf8"], (err, stdout, stderr) => {
         if (err) { log.error(stderr); return rej(new Error(err)); }
-        const boolMap = stdout.toString().split("---").reduce((boolMap, field) => {
-          const fieldType = field.match(/FieldType: ([^\n]*)/)?.[1]?.trim() || "";
-          const fieldName = field.match(/FieldName: ([^\n]*)/)?.[1]?.trim() || "";
-          const fieldFlag = field.match(/FieldStateOption: ([^\n]*)/)?.[1]?.trim();
-          if (fieldType === "Button"){
-            if (fieldFlag !== undefined) {
-              return ({ ...boolMap, [fieldName]: fieldFlag });
-            } else {
-              log.warn(field, `No checkbox option for ${fieldName}`);
-              return boolMap;
-            }
-          } else {
-            return boolMap;
-          }
-        });
         const fdfValues = Object.entries(fieldValues).reduce((fdf, field) => {
           if (typeof field[1] === "boolean") {
-            if (field[1] === true) {
-              if (boolMap[field[0]] === undefined) {
-                log.warn(`No bool map for ${field[0]}`);
-                return { ...fdf, [field[0]]: "Yes" };
-              } else {
-                return { ...fdf, [field[0]]: boolMap[field[0]] };
-              }
-            } else {
-              return { ...fdf, [field[0]]: "Off" };
-            }
+            log.warn(`Boolean value should have been translated to a checkmark by now..`);
+            return fdf;
           } else {
             return { ...fdf, [field[0]]: field[1] || "" };
           }

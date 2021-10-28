@@ -1,5 +1,4 @@
 import {
-  FieldTypes,
   Guard,
   Mapping,
 } from "@valuemachine/types";
@@ -35,13 +34,13 @@ export const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapp
       slave.push({
         nickname: m.nickname,
         fieldName: m.fieldName,
-        fieldType: m.fieldType,
-        checkmark: m.fieldType === FieldTypes.Boolean ? m.checkmark : undefined,
+        checkmark: m.checkmark,
       });
     }
   }
   for (const i of slave.map((_, i) => i)) {
     const s = slave[i];
+    if ((s as any).fieldType) delete (s as any).fieldType;
     if (!master.find(m => m.fieldName === s.fieldName)) {
       log.warn(`Removing ${s.nickname} from ${form} mappings`);
       slave.splice(i, 1);
@@ -53,7 +52,7 @@ export const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapp
 export const getTestForm = mapping =>
   mapping.reduce((form, entry) => ({
     ...form,
-    [entry.nickname]: entry.fieldType === FieldTypes.Boolean ? true : entry.nickname,
+    [entry.nickname]: entry.checkmark || entry.nickname,
   }), {});
 
 export const getTestReturn = mappings =>

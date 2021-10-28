@@ -53,19 +53,17 @@ const buildMapping = async (year, form) => {
 };
 
 describe("Mappings Builder", () => {
-
   it(`should build & fix one form mapping`, async () => {
     const [year, form] = [TaxYears.USA20, "f2210"];
     await buildMapping(year, form);
   });
 
-  it(`should build & fix all form mappings`, async () => {
+  it.only(`should build & fix all form mappings`, async () => {
     for (const year of Object.keys(TaxYears)) {
       for (const form of Object.keys(MappingArchive[year])) {
         await buildMapping(year, form);
       }
     }
   });
-
 });
 
