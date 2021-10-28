@@ -18,9 +18,9 @@ import {
   TransactionTable,
   CsvPorter,
   CsvTable,
+  TaxInputEditor,
   TransactionEditor,
 } from "@valuemachine/react";
-import { Forms } from "@valuemachine/taxes";
 import {
   getTransactions,
 } from "@valuemachine/transactions";
@@ -30,6 +30,7 @@ import {
   AddressEntry,
   CsvFiles,
   Transaction,
+  TaxInput,
 } from "@valuemachine/types";
 import { getBlankAddressEntry, getBlankTransaction, getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
@@ -43,8 +44,8 @@ type InputDataManagerProps = {
   setCsvFiles: (val: CsvFiles) => void;
   customTxns: Transaction[];
   setCustomTxns: (val: Transaction[]) => void;
-  taxForms: Forms;
-  setTaxForms: (val: Forms) => void;
+  taxInput: TaxInput;
+  setTaxInput: (val: TaxInput) => void;
 };
 export const InputDataManager: React.FC<InputDataManagerProps> = ({
   addressBook,
@@ -53,8 +54,8 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
   setCsvFiles,
   customTxns,
   setCustomTxns,
-  taxForms,
-  setTaxForms,
+  taxInput,
+  setTaxInput,
 }: InputDataManagerProps) => {
   const [confirmMsg, setConfirmMsg] = useState("");
   const [pendingDel, setPendingDel] = useState("");
@@ -126,8 +127,8 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
             setCsvFiles={setCsvFiles}
             customTxns={customTxns}
             setCustomTxns={setCustomTxns}
-            taxForms={taxForms}
-            setTaxForms={setTaxForms}
+            taxInput={taxInput}
+            setTaxInput={setTaxInput}
           />
         </Grid>
       </Grid>
@@ -143,6 +144,7 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
         <Tab label="Evm Addresses"/>
         <Tab label="Csv Files"/>
         <Tab label="Custom Transactions"/>
+        <Tab label="Tax Info"/>
       </Tabs>
 
       <Divider sx={{ mt: 2, mb: 1 }}/>
@@ -245,6 +247,10 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
           setTransactions={setCustomTxns}
           transactions={getTransactions({ json: customTxns || [], logger })}
         />
+      </div>
+
+      <div hidden={tab !== 3}>
+        <TaxInputEditor taxInput={taxInput} setTaxInput={setTaxInput} />
       </div>
 
     </Box>

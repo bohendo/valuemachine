@@ -5,7 +5,6 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import {
   allTaxYears,
-  Forms,
   getTaxRows,
   getTaxYearBoundaries,
   requestTaxReturn,
@@ -16,6 +15,7 @@ import {
   Guard,
   GuardChangeEvent,
   Prices,
+  TaxInput,
   TradeEvent,
   ValueMachine,
 } from "@valuemachine/types";
@@ -26,13 +26,13 @@ import React, { useEffect } from "react";
 import { SelectOne } from "../utils";
 
 type TaxPorterProps = {
-  formData?: Forms;
+  taxInput?: TaxInput;
   guard: Guard;
   prices: Prices,
   vm: ValueMachine,
 };
 export const TaxPorter: React.FC<TaxPorterProps> = ({
-  formData,
+  taxInput,
   guard,
   prices,
   vm,
@@ -81,9 +81,9 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   };
 
   const handleExport = () => {
-    if (!guard || !taxYear || !vm?.json || !prices?.json || !formData) return;
+    if (!guard || !taxYear || !vm?.json || !prices?.json || !taxInput) return;
     const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
-    if (year) requestTaxReturn(year, guard, vm, prices, formData, window);
+    if (year) requestTaxReturn(year, guard, vm, prices, taxInput, window);
   };
 
   const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);

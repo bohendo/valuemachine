@@ -53,7 +53,7 @@ const {
 } = StoreKeys;
 const UnitStore = "Unit" as any;
 const CustomTxnsStore = "CustomTransactions" as any;
-const TaxFormStore = "TaxForms" as any;
+const TaxInputStore = "TaxInput" as any;
 
 export type AppProps = {
   theme: string;
@@ -73,8 +73,8 @@ export const App: React.FC<AppProps> = ({
   const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsvFiles());
   const [customTxns, setCustomTxns] = useState(store.load(CustomTxnsStore) || [] as Transaction[]);
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
-  const [forms, setForms] = useState(
-    store.load(TaxFormStore) || getEmptyForms("USA20")
+  const [taxInput, setTaxInput] = useState(
+    store.load(TaxInputStore) || getEmptyForms("USA20")
   );
 
   // Utilities derived from localstorage data
@@ -172,10 +172,10 @@ export const App: React.FC<AppProps> = ({
   }, [unit]);
 
   useEffect(() => {
-    if (!forms) return;
-    console.log(`Saving tax forms`, forms);
-    store.save(TaxFormStore, forms);
-  }, [forms]);
+    if (!taxInput) return;
+    console.log(`Saving tax input`, taxInput);
+    store.save(TaxInputStore, taxInput);
+  }, [taxInput]);
 
   return (
     <Box>
@@ -192,8 +192,8 @@ export const App: React.FC<AppProps> = ({
                 setCsvFiles={setCsvFiles}
                 customTxns={customTxns}
                 setCustomTxns={setCustomTxns}
-                taxForms={forms}
-                setTaxForms={setForms}
+                taxInput={taxInput}
+                setTaxInput={setTaxInput}
               />
             </Route>
 
@@ -239,8 +239,7 @@ export const App: React.FC<AppProps> = ({
                 addressBook={addressBook}
                 vm={vm}
                 prices={prices}
-                forms={forms}
-                setForms={setForms}
+                taxInput={taxInput}
               />
             </Route>
 

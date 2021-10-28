@@ -40,3 +40,15 @@ export const TaxRow = Type.Object({
   cumulativeIncome: DecString,
 });
 export type TaxRow = Static<typeof TaxRow>;
+
+export const TaxInput = Type.Object({
+  FirstName: Type.Optional(Type.String()),
+  MiddleInitial: Type.Optional(Type.String()),
+  LastName: Type.Optional(Type.String()),
+  SSN: Type.Optional(Type.String()),
+  SpouseFirstName: Type.Optional(Type.String()),
+  SpouseMiddleInitial: Type.Optional(Type.String()),
+  SpouseLastName: Type.Optional(Type.String()),
+  SpouseSSN: Type.Optional(Type.String()),
+});
+export type TaxInput = Static<typeof TaxInput>;

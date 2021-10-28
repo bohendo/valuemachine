@@ -2,45 +2,46 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { requestFilledForm, Forms, TaxYears } from "@valuemachine/taxes";
+import { requestFilledForm, TaxYears } from "@valuemachine/taxes";
+import { TaxInput } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
 import { SelectOne, TextInput } from "../utils";
 
-type F1040Props = {
-  formData?: Partial<Forms["f1040"]>;
-  setFormData?: (val: Partial<Forms["f1040"]>) => void;
+type TaxInputEditorProps = {
+  taxInput?: TaxInput;
+  setTaxInput?: (val: TaxInput) => void;
 };
-export const F1040: React.FC<F1040Props> = ({
-  formData,
-  setFormData,
-}: F1040Props) => {
+export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
+  taxInput,
+  setTaxInput,
+}: TaxInputEditorProps) => {
   const [newFormData, setNewFormData] = useState({} as any /* initialize form w empty strings */);
   const [error, setError] = useState("");
   const [modified, setModified] = useState(false);
 
   useEffect(() => {
-    if (!formData) setNewFormData({} as any);
-    else setNewFormData(JSON.parse(JSON.stringify(formData)) as any);
-  }, [formData]);
+    if (!taxInput) setNewFormData({} as any);
+    else setNewFormData(JSON.parse(JSON.stringify(taxInput)) as any);
+  }, [taxInput]);
 
   useEffect(() => {
     if (!modified) setError("");
   }, [modified]);
 
   useEffect(() => {
-    if (!formData || !newFormData) {
+    if (!taxInput || !newFormData) {
       setModified(false);
-    } else if (Object.keys(formData).some(field => newFormData[field] !== formData[field])) {
+    } else if (Object.keys(taxInput).some(field => newFormData[field] !== taxInput[field])) {
       setModified(true);
     } else {
       setModified(false);
     }
-  }, [newFormData, formData]);
+  }, [newFormData, taxInput]);
 
   const handleSave = () => {
     console.log("Saving new f1040 form data", newFormData);
-    setFormData?.(newFormData);
+    setTaxInput?.(newFormData);
   };
 
   const handleDownload = async () => {
@@ -254,7 +255,7 @@ export const F1040: React.FC<F1040Props> = ({
 
         <Grid item xs={12}>
           <Typography>
-            {!modified ? "Enter formData info" : (error || "Form Data looks good")}
+            {!modified ? "Enter taxInput info" : (error || "Form Data looks good")}
           </Typography>
         </Grid>
       </Grid>

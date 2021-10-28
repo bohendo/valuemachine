@@ -29,8 +29,10 @@ export type Forms = {
   [form: string]: any; // TODO: Array<Form> | Form
 };
 
+const multipageForms = ["f8949"];
+
 export const getEmptyForms = (year: TaxYear): Forms =>
   Object.keys(MappingArchive[year]).reduce((forms, form) => ({
     ...forms,
-    [form]: {}
+    [form]: multipageForms.includes(form) ? [] : {}
   }), {});

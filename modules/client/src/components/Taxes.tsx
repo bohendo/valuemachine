@@ -3,8 +3,7 @@ import Grid from "@mui/material/Grid";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import { Forms } from "@valuemachine/taxes";
-import { TaxPorter, TaxTable, F1040 } from "@valuemachine/react";
+import { TaxPorter, TaxTable } from "@valuemachine/react";
 import {
   PhysicalGuards,
 } from "@valuemachine/transactions";
@@ -13,6 +12,7 @@ import {
   EventTypes,
   Guard,
   Prices,
+  TaxInput,
   TradeEvent,
   ValueMachine,
 } from "@valuemachine/types";
@@ -22,18 +22,15 @@ type TaxesExplorerProps = {
   addressBook: AddressBook;
   vm: ValueMachine,
   prices: Prices,
-  forms: Forms,
-  setForms: (val: Forms) => void,
+  taxInput: TaxInput,
 };
 export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   addressBook,
   vm,
   prices,
-  forms,
-  setForms,
+  taxInput,
 }: TaxesExplorerProps) => {
   const [tab, setTab] = useState(0);
-  const [innerTab, setInnerTab] = useState(0);
   const [allGuards, setAllGuards] = useState([] as Guard[]);
   const [guard, setGuard] = React.useState("");
 
@@ -62,10 +59,6 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     setTab(newValue);
   };
 
-  const handleInnerTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    setInnerTab(newValue);
-  };
-
   return (
     <>
       <Typography variant="h3">
@@ -90,31 +83,13 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
         ))}
       </Tabs>
 
-      <Grid container sx={{ justifyContent: "center" }}>
+      <Grid container sx={{ justifyContent: "center", mb: 2 }}>
         <Grid item sm={6}>
-          <TaxPorter guard={guard} prices={prices} vm={vm} formData={forms} />
+          <TaxPorter guard={guard} prices={prices} vm={vm} taxInput={taxInput} />
         </Grid>
       </Grid>
 
-      <Tabs
-        centered
-        indicatorColor="secondary"
-        onChange={handleInnerTabChange}
-        sx={{ m: 1 }}
-        textColor="secondary"
-        value={innerTab}
-      >
-        <Tab label="Taxable Events Table"/>
-        {guard === PhysicalGuards.USA ? <Tab label="f1040"/> : null}
-      </Tabs>
-
-      <div hidden={innerTab !== 0}>
-        {innerTab === 0 ? <TaxTable guard={guard} prices={prices} vm={vm} /> : null}
-      </div>
-
-      <div hidden={innerTab !== 1 || guard !== PhysicalGuards.USA}>
-        <F1040 formData={forms?.f1040 || {}} setFormData={f1040 => setForms({ ...forms, f1040 })} />
-      </div>
+      <TaxTable guard={guard} prices={prices} vm={vm} />
 
     </>
   );

@@ -4,8 +4,7 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { Forms } from "@valuemachine/taxes";
-import { AddressBookJson, CsvFiles, InputData, TransactionsJson } from "@valuemachine/types";
+import { AddressBookJson, CsvFiles, InputData, TaxInput, TransactionsJson } from "@valuemachine/types";
 import { getAddressBookError, getCsvFilesError, getTransactionsError } from "@valuemachine/utils";
 import React from "react";
 
@@ -16,8 +15,8 @@ type InputPorterProps = {
   setAddressBook: (val: AddressBookJson) => void;
   customTxns: TransactionsJson;
   setCustomTxns: (val: TransactionsJson) => void;
-  taxForms?: Forms;
-  setTaxForms?: (val: Forms) => void;
+  taxInput?: TaxInput;
+  setTaxInput?: (val: TaxInput) => void;
 };
 export const InputPorter: React.FC<InputPorterProps> = ({
   csvFiles,
@@ -26,8 +25,8 @@ export const InputPorter: React.FC<InputPorterProps> = ({
   setAddressBook,
   customTxns,
   setCustomTxns,
-  taxForms,
-  setTaxForms,
+  taxInput,
+  setTaxInput,
 }: InputPorterProps) => {
 
   const handleImport = (event: any) => {
@@ -54,8 +53,8 @@ export const InputPorter: React.FC<InputPorterProps> = ({
         } else {
           console.warn(getTransactionsError(result.customTxns), result.customTxns);
         }
-        if (result.forms) {
-          setTaxForms?.(result.forms);
+        if (result.taxInput) {
+          setTaxInput?.(result.taxInput);
         }
       } catch (e) {
         console.error(e);
@@ -68,7 +67,7 @@ export const InputPorter: React.FC<InputPorterProps> = ({
       addressBook,
       csvFiles,
       customTxns,
-      forms: taxForms,
+      taxInput,
     }, null, 2);
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
