@@ -13,7 +13,7 @@ import Typography from "@mui/material/Typography";
 import { FormArchive, MappingArchive, TaxYears } from "@valuemachine/taxes";
 import React, { useEffect, useState } from "react";
 
-import { SelectOne, TextInput } from "../utils";
+import { Confirm, SelectOne, TextInput } from "../utils";
 
 const taxYear = TaxYears.USA20;
 const mappings = MappingArchive[taxYear];
@@ -28,8 +28,10 @@ export const FormsEditor: React.FC<FormsEditorProps> = ({
   forms,
   setForms,
 }: FormsEditorProps) => {
-  const [newForm, setNewForm] = useState({} as NewForm);
+  const [confirmMsg, setConfirmMsg] = useState("");
   const [modified, setModified] = useState(false);
+  const [newForm, setNewForm] = useState({} as NewForm);
+  const [pendingDel, setPendingDel] = useState({ form: "", field: "" });
 
   useEffect(() => {
     if (!forms || !newForm) {
@@ -54,14 +56,24 @@ export const FormsEditor: React.FC<FormsEditorProps> = ({
     setNewForm({} as NewForm);
   };
 
-  const handleDelete = (form, field) => {
-    if (!forms || !forms[form] || !forms[form][field]) return;
+  const handleDelete = (form: string, field: string) => {
+    setPendingDel({ form, field });
+    setConfirmMsg(`Are you sure you want to delete ${form}.${field}`);
+  };
+
+  const doDelete = () => {
+    if (!pendingDel || !pendingDel.form || !pendingDel.field) return;
+    const { form, field } = pendingDel;
+    if (!forms || !forms[form] || !(field in forms[form])) return;
+    console.log(`Deleting ${form}.${field}`);
     const targetForm = forms?.[form] || {};
     delete targetForm[field];
     setForms?.({
       ...(forms || {}),
       [form]: targetForm,
     });
+    setPendingDel({ form: "", field: "" });
+    setConfirmMsg("");
   };
 
   return (<>
@@ -175,5 +187,6 @@ export const FormsEditor: React.FC<FormsEditorProps> = ({
       </Table>
     </TableContainer>
 
+    <Confirm message={confirmMsg} setMessage={setConfirmMsg} action={doDelete} />
   </>);
 };

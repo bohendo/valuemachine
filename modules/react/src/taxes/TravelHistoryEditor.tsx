@@ -12,7 +12,7 @@ import Typography from "@mui/material/Typography";
 import { DateString, DecString, TaxInput } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
-import { DateInput, TextInput } from "../utils";
+import { Confirm, DateInput, TextInput } from "../utils";
 
 type Trip = {
   enterDate?: DateString;
@@ -28,8 +28,10 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
   taxInput,
   setTaxInput,
 }: TravelHistoryEditorProps) => {
-  const [newTrip, setNewTrip] = useState({} as Trip);
+  const [confirmMsg, setConfirmMsg] = useState("");
   const [insertable, setInsertable] = useState(false);
+  const [newTrip, setNewTrip] = useState({} as Trip);
+  const [pendingDel, setPendingDel] = useState(-1);
 
   useEffect(() => {
     if (!newTrip) {
@@ -61,13 +63,21 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
   };
 
   const handleDelete = (index: number) => {
-    if (!taxInput?.travel) return;
+    setPendingDel(index);
+    setConfirmMsg(`Are you sure you want to delete trip to ${taxInput?.travel?.[index]?.country}`);
+  };
+
+  const doDelete = () => {
+    if (!taxInput?.travel || pendingDel === -1) return;
+    console.log(`Deleting entry #${pendingDel}`);
     const newTravel = [...taxInput.travel];
-    newTravel.splice(index, 1);
+    newTravel.splice(pendingDel, 1);
     setTaxInput?.({
       ...taxInput,
       travel: newTravel,
     });
+    setPendingDel(-1);
+    setConfirmMsg("");
   };
 
   const getSetter = (prop: string) => (newVal) => {
@@ -163,5 +173,6 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
       </Table>
     </TableContainer>
 
+    <Confirm message={confirmMsg} setMessage={setConfirmMsg} action={doDelete} />
   </>);
 };
