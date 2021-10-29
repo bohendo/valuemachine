@@ -1,7 +1,7 @@
 import fs from "fs";
 import { execFile } from "child_process";
 
-import { fillForm, fillReturn } from "@valuemachine/taxes";
+import { fillReturn } from "@valuemachine/taxes";
 import express from "express";
 
 import {
@@ -15,32 +15,18 @@ const log = logger.child({ module: "Taxes" });
 
 export const taxesRouter = express.Router();
 
-taxesRouter.post("/", async (req, res) => {
+taxesRouter.post("/:taxYear", async (req, res) => {
   const logAndSend = getLogAndSend(res);
-  const { forms, taxYear } = req.body;
+  const { taxYear } = req.params;
+  const { forms } = req.body;
   log.info(`Building ${Object.keys(forms || {}).length} forms for ${taxYear} return`);
+  log.info(forms);
   if (!forms) {
-    return logAndSend("No forms was provided", STATUS_YOUR_BAD);
+    return logAndSend("No forms were provided", STATUS_YOUR_BAD);
   }
   try {
-    const path = await fillReturn(taxYear, forms, process.cwd(), { fs, execFile });
+    const path = await fillReturn(taxYear, forms, process.cwd(), { fs, execFile }, log);
     return res.download(path, "tax-return.pdf");
-  } catch (e) {
-    return logAndSend(e.message, STATUS_MY_BAD);
-  }
-});
-
-taxesRouter.post("/:form", async (req, res) => {
-  const logAndSend = getLogAndSend(res);
-  const { form } = req.params;
-  const { data, taxYear } = req.body;
-  log.info(`Building ${form}`);
-  if (!data) {
-    return logAndSend(`No ${form} data was provided`, STATUS_YOUR_BAD);
-  }
-  try {
-    const path = await fillForm(taxYear, form, data, process.cwd(), { fs, execFile });
-    return res.download(path, `${form}.pdf`);
   } catch (e) {
     return logAndSend(e.message, STATUS_MY_BAD);
   }

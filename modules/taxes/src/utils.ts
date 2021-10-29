@@ -12,6 +12,22 @@ import { taxYearMap } from "./constants";
 
 export const log = getLogger("info");
 
+/*
+import { ajv, formatErrors } from "@valuemachine/utils";
+const validateUSA20Forms = ajv.compile(Forms_USA20);
+export const getUSA20Error = (forms: Forms_USA20): string =>
+  validateUSA20Forms(forms)
+    ? ""
+    : validateUSA20Forms.errors.length ? formatErrors(validateUSA20Forms.errors)
+    : `Invalid USA20 forms: ${JSON.stringify(forms)}`;
+const validateUSA19Forms = ajv.compile(Forms_USA19);
+export const getUSA19Error = (forms: Forms_USA19): string =>
+  validateUSA19Forms(forms)
+    ? ""
+    : validateUSA19Forms.errors.length ? formatErrors(validateUSA19Forms.errors)
+    : `Invalid USA19 forms: ${JSON.stringify(forms)}`;
+*/
+
 export const getTaxYearBoundaries = (guard: Guard, taxYear: string): [number, number] => {
   if (!taxYear?.match(/^[0-9]{4}$/)) return [0, 5000000000000]; // from 1970 until after 2100
   const prevYear = round(sub(taxYear, "1"), 0).padStart(4, "0");
@@ -23,7 +39,6 @@ export const getTaxYearBoundaries = (guard: Guard, taxYear: string): [number, nu
     new Date(taxYearMap.default.replace(/^0000/, taxYear)).getTime(),
   ];
 };
-
 
 export const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapping => {
   for (const m of master) {

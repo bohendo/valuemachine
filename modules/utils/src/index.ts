@@ -9,4 +9,5 @@ export * from "./store";
 export * from "./strings";
 export * from "./taxes";
 export * from "./transactions";
+export * from "./validate";
 export * from "./vm";

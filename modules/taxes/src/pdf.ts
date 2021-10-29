@@ -1,14 +1,11 @@
-import { Guards } from "@valuemachine/transactions";
-import { Logger, Prices, ValueMachine } from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
 import { getPdftk } from "./pdftk";
-import { getEmptyForms, Forms, MappingArchive, TaxYear } from "./mappings";
-import { getTaxReturn } from "./return";
-import { getTaxRows } from "./rows";
+import { MappingArchive, TaxYear } from "./mappings";
 
-export const fillForm = async (
+const fillForm = async (
   taxYear: TaxYear,
   form: string,
   data: any,
@@ -57,35 +54,37 @@ export const fillForm = async (
 
 export const fillReturn = async (
   taxYear: TaxYear,
-  forms: any,
+  forms: any, // TODO: fix type
   dir: string,
   libs: { fs: any; execFile: any; },
   logger?: Logger,
 ): Promise<string> => {
   const log = (logger || getLogger()).child({ module: "FillReturn" });
   const pages = [] as string[];
-  for (const entry of Object.entries(forms)) {
-    const name = entry[0] as string;
-    const data = entry[1] as any;
-    if (data?.length) {
-      for (const page of data) {
-        log.info(`Filing page of ${name} with ${Object.keys(data).length} fields`);
+  for (const form of Object.keys(forms)) {
+    const fields = forms[form];
+    if ("length" in fields) {
+      let p = 1;
+      for (const page of fields) {
+        log.info(`Filing ${taxYear} page ${p++} of ${form} with ${Object.keys(page).length} fields`);
         pages.push(await fillForm(
           taxYear,
-          name,
+          form,
           page,
           "/tmp",
           libs,
+          log,
         ));
       }
     } else {
-      log.info(`Filing ${name} with ${Object.keys(data).length} fields`);
+      log.info(`Filing ${taxYear} ${form} with ${Object.keys(fields).length} fields`);
       pages.push(await fillForm(
         taxYear,
-        name,
-        data,
+        form,
+        fields,
         "/tmp",
         libs,
+        log,
       ));
     }
   }
@@ -93,87 +92,6 @@ export const fillReturn = async (
     pages,
     `${dir || "/tmp"}/tax-return-${taxYear}.pdf`,
   );
-};
-
-export const requestFilledForm = async (
-  taxYear: TaxYear,
-  form: string,
-  data: any,
-  window: any,
-  logger?: Logger,
-): Promise<void> => {
-  const log = (logger || getLogger()).child({ module: "RequestForm" });
-  if (!data) {
-    log.warn(`Missing data, not requesting ${form}`);
-    return;
-  } else {
-    return new Promise((res, rej) => {
-      axios({
-        url: `/api/taxes/${form}`,
-        method: "post",
-        responseType: "blob",
-        data: { data, taxYear },
-      }).then((response: any) => {
-        const url = window.URL.createObjectURL(new window.Blob([response.data]));
-        const link = window.document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `${form}.pdf`);
-        window.document.body.appendChild(link);
-        link.click();
-        res();
-      }).catch(rej);
-    });
-  }
-};
-
-export const requestTaxReturn = async (
-  taxYear: TaxYear,
-  guard: string,
-  vm: ValueMachine,
-  prices: Prices,
-  formData: Forms,
-  window: any,
-  logger?: Logger,
-): Promise<void> => {
-  const log = (logger || getLogger()).child({ module: "RequestReturn" });
-  if (!formData) {
-    log.warn(`Missing form data, not requesting tax return`);
-    return;
-  } else {
-    const taxRows = getTaxRows({ guard, prices, vm, taxYear });
-    log.info(`Fetching ${guard} tax return for ${taxYear} w ${Object.keys(formData).length} forms`);
-    const forms = guard === Guards.USA ? await getTaxReturn(taxYear, formData, taxRows)
-      : getEmptyForms(taxYear);
-    return new Promise((res, rej) => {
-      axios({
-        url: `/api/taxes`,
-        method: "post",
-        responseType: "blob",
-        data: { forms, taxYear },
-      }).then((response) => {
-        const url = window.URL.createObjectURL(new window.Blob([response.data]));
-        const link = window.document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `tax-return-${taxYear}.pdf`);
-        window.document.body.appendChild(link);
-        link.click();
-        res();
-      }).catch(rej);
-    });
-  }
-};
-
-export const getMapping = async (
-  taxYear: TaxYear,
-  form: string,
-  libs: { fs: any; execFile: any; },
-  logger?: Logger,
-): Promise<any> => {
-  const log = (logger || getLogger()).child({ module: "GetMapping" });
-  const emptyPdf = `${process.cwd()}/forms/${taxYear}/${form}.pdf`;
-  const mapping = await getPdftk(libs).getMapping(emptyPdf);
-  log.info(`Got mapping w ${Object.keys(mapping).length} entries from empty pdf at ${emptyPdf}`);
-  return mapping;
 };
 
 export const fetchUsaForm = async (

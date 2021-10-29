@@ -5,9 +5,9 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import {
   allTaxYears,
+  getTaxReturn,
   getTaxRows,
   getTaxYearBoundaries,
-  requestTaxReturn,
   TaxYears,
 } from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
@@ -20,6 +20,7 @@ import {
   ValueMachine,
 } from "@valuemachine/types";
 import { dedup, round } from "@valuemachine/utils";
+import axios from "axios";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect } from "react";
 
@@ -80,10 +81,30 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     a.click();
   };
 
-  const handleExport = () => {
+  const handleExport = async (): Promise<void> => {
     if (!guard || !taxYear || !vm?.json || !prices?.json || !taxInput) return;
+    if (guard !== Guards.USA) return;
     const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
-    if (year) requestTaxReturn(year, guard, vm, prices, taxInput, window);
+    if (!year) return;
+    const taxRows = getTaxRows({ guard, prices, vm, taxYear });
+    console.log(`Fetching tax return for ${year} w ${Object.keys(taxInput).length} forms`);
+    const forms = getTaxReturn(year, taxInput, taxRows);
+    return new Promise((res, rej) => {
+      axios({
+        url: `/api/taxes/${year}`,
+        method: "post",
+        responseType: "blob",
+        data: { forms },
+      }).then((response: any) => {
+        const url = window.URL.createObjectURL(new window.Blob([response.data]));
+        const link = window.document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `tax-return-${year}.pdf`);
+        window.document.body.appendChild(link);
+        link.click();
+        res();
+      }).catch(rej);
+    });
   };
 
   const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);

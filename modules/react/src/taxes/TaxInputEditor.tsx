@@ -52,10 +52,21 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
 
         <Grid item xs={12}>
           <Typography variant="h4">
+            {`${TaxYears.USA20} Forms`}
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <FormsEditor
+            forms={newTaxInput?.forms || {}}
+            setForms={forms => setNewTaxInput({ ...(newTaxInput || {}), forms })}
+          />
+        </Grid>
+
+        <Grid item xs={12} sx={{ mt: 4 }}>
+          <Typography variant="h4">
             {"Tax & Legal Info"}
           </Typography>
         </Grid>
-
         <Grid item>
           <SelectOne
             label="Filing Status"
@@ -84,7 +95,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             {"Personal Info"}
           </Typography>
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"First Name"}
@@ -93,7 +103,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.FirstName}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Middle Initial"}
@@ -102,7 +111,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.MiddleInitial}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Last Name"}
@@ -111,7 +119,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.LastName}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Social Security Number"}
@@ -129,7 +136,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             {"Spouse Info"}
           </Typography>
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Spouse's First Name"}
@@ -138,7 +144,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.SpouseFirstName}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Spouse's Middle Initial"}
@@ -147,7 +152,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.SpouseMiddleInitial}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Spouse's Last Name"}
@@ -156,7 +160,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.SpouseLastName}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Spouse's Social Security Number"}
@@ -174,7 +177,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             {"Domestic Address"}
           </Typography>
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Street Address"}
@@ -183,7 +185,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.StreetAddress}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Apartment Number"}
@@ -192,7 +193,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.Apt}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"City"}
@@ -201,7 +201,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.City}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"State"}
@@ -210,7 +209,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.State}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Zip"}
@@ -225,7 +223,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             {"Foreign Address"}
           </Typography>
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Foreign Country Name"}
@@ -234,7 +231,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.ForeignCountry}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Foreign State or Province or County"}
@@ -243,7 +239,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.ForeignState}
           />
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Foreign Postal Code"}
@@ -258,7 +253,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             {"Financial Info"}
           </Typography>
         </Grid>
-
         <Grid item>
           <TextInput
             helperText={"Total Income"}
@@ -267,20 +261,6 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
             text={newTaxInput.L1}
           />
         </Grid>
-
-        <Grid item xs={12}>
-          <Typography variant="h5">
-            {`Tax Forms ${TaxYears.USA20}`}
-          </Typography>
-        </Grid>
-
-        <Grid item xs={12}>
-          <FormsEditor
-            forms={newTaxInput?.forms || {}}
-            setForms={forms => setNewTaxInput({ ...(newTaxInput || {}), forms })}
-          />
-        </Grid>
-
 
         <Grid item xs={12}>
           <Typography>
