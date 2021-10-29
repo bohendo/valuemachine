@@ -4,7 +4,6 @@ import {
   getPrices,
   getValueMachine,
 } from "@valuemachine/core";
-import { getEmptyForms } from "@valuemachine/taxes";
 import {
   Assets,
   getAddressBook,
@@ -12,6 +11,7 @@ import {
 } from "@valuemachine/transactions";
 import {
   StoreKeys,
+  TaxInput,
   Transaction,
 } from "@valuemachine/types";
 import {
@@ -73,9 +73,7 @@ export const App: React.FC<AppProps> = ({
   const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsvFiles());
   const [customTxns, setCustomTxns] = useState(store.load(CustomTxnsStore) || [] as Transaction[]);
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
-  const [taxInput, setTaxInput] = useState(
-    store.load(TaxInputStore) || getEmptyForms("USA20")
-  );
+  const [taxInput, setTaxInput] = useState(store.load(TaxInputStore) || {} as TaxInput);
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook());

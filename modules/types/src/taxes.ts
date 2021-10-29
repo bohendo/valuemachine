@@ -7,7 +7,7 @@ export const Mapping = Type.Array(Type.Object({
   nickname: Type.String(),
   fieldName: Type.String(),
   checkmark: Type.Optional(Type.String()), // value needed to check the checkbox
-}));
+}, { additionalProperties: false }));
 export type Mapping = Static<typeof Mapping>;
 
 export const TaxRow = Type.Object({
@@ -23,7 +23,7 @@ export const TaxRow = Type.Object({
   capitalChange: DecString,
   cumulativeChange: DecString,
   cumulativeIncome: DecString,
-});
+}, { additionalProperties: false });
 export type TaxRow = Static<typeof TaxRow>;
 
 export const TaxInput = Type.Object({
@@ -39,14 +39,14 @@ export const TaxInput = Type.Object({
     spouseSSN: Type.Optional(Type.String()),
     occupation: Type.Optional(Type.String()),
     spouseOccupation: Type.Optional(Type.String()),
-  })),
+  }, { additionalProperties: false })),
   // If >300 days of tax year was outside the US, insert f2555
   travel: Type.Optional(Type.Array(Type.Object({
     enterDate: DateString,
     leaveDate: DateString,
     country: Type.String(), // 3-letter code a la ISO 3166-1 alpha-3
     usaIncomeEarned: DecString,
-  }))),
+  }, { additionalProperties: false }))),
   // If business info provided, insert f1040sc & f1040sse else treat all income as wages
   business: Type.Optional(Type.Object({
     name: Type.String(),
@@ -58,7 +58,7 @@ export const TaxInput = Type.Object({
     code: Type.String(),
     eid: Type.String(),
     accountingMethod: Type.String(),
-  })),
+  }, { additionalProperties: false })),
   forms: Type.Optional(Type.Record(
     Type.String(),
     Type.Record(
@@ -66,5 +66,5 @@ export const TaxInput = Type.Object({
       Type.Any(), // either string or bool but we can't know which until we parse mappings
     ),
   )),
-});
+}, { additionalProperties: false });
 export type TaxInput = Static<typeof TaxInput>;
