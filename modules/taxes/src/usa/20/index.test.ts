@@ -8,7 +8,7 @@ import { getEmptyForms, TaxYears } from "../../mappings";
 import { getTaxReturn } from ".";
 
 const taxYear = TaxYears.USA20;
-const log = getLogger("info", `Test${taxYear}Filers`);
+const log = getLogger("warn", `Test${taxYear}Filers`);
 
 describe(`${taxYear} Filers`, () => {
   it(`should include f1040 + schedules 1-3 by default `, async () => {

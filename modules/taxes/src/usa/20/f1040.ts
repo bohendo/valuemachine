@@ -31,7 +31,7 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   f1040.SSN = personal.SSN;
   f1040.SpouseFirstNameMI = `${personal.spouseFirstName || ""} ${personal.spouseMiddleInitial || ""}`;
   f1040.SpouseLastName = personal.spouseLastName;
-  f1040.SSN = personal.spouseSSN;
+  f1040.SpouseSSN = personal.spouseSSN;
   f1040.StreetAddress = personal.streetAddress;
   f1040.Apt = personal.apt;
   f1040.City = personal.city;

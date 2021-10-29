@@ -28,7 +28,6 @@ export const f1040s1 = (
       log.info(`Adding income of ${value}`);
     }
   });
-  prizeMoney = math.round(prizeMoney);
   if (math.gt(prizeMoney, "0")) {
     log.info(`Earned ${prizeMoney} in prizes`);
     f1040s1.L8_Etc2 = (f1040s1.L8_Etc2 || "").split(", ").concat(`prizes ${prizeMoney}`).join(", ");

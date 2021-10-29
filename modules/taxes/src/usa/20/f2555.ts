@@ -177,8 +177,12 @@ export const f2555 = (
 
   f2555.L45 = math.sub(f2555.L43, f2555.L44);
 
-  // TODO: concat strings better
-  f1040s1.L8_Etc2 += `Form 2555 (${f2555.L45})`;
+  if (!math.eq(f2555.L45, "0")) {
+    const L8_Etc = `Form 2555 (${math.round(f2555.L45)})`;
+    f1040s1.L8_Etc2 = f1040s1.L8_Etc2
+      ? f1040s1.L8_Etc2.split(", ").concat(L8_Etc).join(", ")
+      : L8_Etc;
+  }
   f1040s1.L8 = math.sub(f1040s1.L8, f2555.L45);
   f1040s1.L9 = math.add(
     f1040s1.L1, f1040s1.L2a, f1040s1.L3, f1040s1.L4,
