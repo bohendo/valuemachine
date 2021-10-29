@@ -27,7 +27,7 @@ export const f2555 = (
   // If no travel info, then omit this form
   if (!travel) { delete forms.f2555; return forms; }
 
-  f2555.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f2555.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
   f2555.SSN = personal?.SSN;
 
   // TODO: check travel history in input to see if we need this form

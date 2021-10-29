@@ -18,7 +18,7 @@ export const f1040sd = (
   const { f1040, f1040sd } = forms;
   const { personal } = input;
 
-  f1040sd.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f1040sd.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
   f1040sd.SSN = personal?.SSN;
 
   const totals = {

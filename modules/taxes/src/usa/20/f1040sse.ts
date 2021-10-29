@@ -24,7 +24,7 @@ export const f1040sse = (
     return forms;
   }
 
-  f1040sse.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f1040sse.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
   f1040sse.SSN = personal?.SSN;
 
 

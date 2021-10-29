@@ -15,7 +15,7 @@ export const f1040s2 = (
   const { f1040, f1040s2 } = forms;
   const { personal } = input;
 
-  f1040s2.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f1040s2.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
   f1040s2.SSN = personal?.SSN;
 
   f1040s2.L3 = math.add(f1040s2.L1, f1040s2.L2);

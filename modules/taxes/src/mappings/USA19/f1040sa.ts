@@ -7,7 +7,7 @@ export const f1040sa = [
   {"nickname":"L2","fieldName":"topmostSubform[0].Page1[0].f1_4[0]"},
   {"nickname":"L3","fieldName":"topmostSubform[0].Page1[0].f1_5[0]"},
   {"nickname":"L4","fieldName":"topmostSubform[0].Page1[0].f1_6[0]"},
-  {"nickname":"C5a","fieldName":"topmostSubform[0].Page1[0].c1_1[0]","checkmark":"Off"},
+  {"nickname":"C5a","fieldName":"topmostSubform[0].Page1[0].c1_1[0]","checkmark":"X"},
   {"nickname":"L5a","fieldName":"topmostSubform[0].Page1[0].f1_7[0]"},
   {"nickname":"L5b","fieldName":"topmostSubform[0].Page1[0].f1_8[0]"},
   {"nickname":"L5c","fieldName":"topmostSubform[0].Page1[0].f1_9[0]"},
@@ -36,8 +36,8 @@ export const f1040sa = [
   {"nickname":"L16_Etc3","fieldName":"topmostSubform[0].Page1[0].f1_32[0]"},
   {"nickname":"L16","fieldName":"topmostSubform[0].Page1[0].f1_33[0]"},
   {"nickname":"L17","fieldName":"topmostSubform[0].Page1[0].f1_34[0]"},
-  {"nickname":"C0_Noop1","fieldName":"topmostSubform[0].Page1[0].c1_2[0]","checkmark":"Off"},
-  {"nickname":"C0_Noop2","fieldName":"topmostSubform[0].Page1[0].c1_3[0]","checkmark":"Off"}
+  {"nickname":"C0_Noop1","fieldName":"topmostSubform[0].Page1[0].c1_2[0]","checkmark":"X"},
+  {"nickname":"C0_Noop2","fieldName":"topmostSubform[0].Page1[0].c1_3[0]","checkmark":"X"}
 ];
 
 // This interface was automatically generated from the above schema

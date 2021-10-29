@@ -29,8 +29,11 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
               nickname,
             }];
           } else if (fieldType === "Button") {
-            // The first state option is the one that checks the box (so far)
-            const checkmark = field.match(/FieldStateOption: ([^\n]*)/)?.[1]?.trim() || "Yes";
+            const checkmark = field
+              .match(/FieldStateOption: [^\n]*/g)
+              .filter(s => !s.endsWith(" Off"))[0]
+              ?.split(":").pop()
+              ?.trim() || "Yes";
             return [...mapping, {
               fieldName,
               nickname,

@@ -21,7 +21,7 @@ export const f2210 = (
   const { f1040, f1040s2, f1040s3, f1040sse, f2210 } = forms;
   const { personal } = input;
 
-  f2210.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f2210.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
   f2210.SSN = personal?.SSN;
 
   ////////////////////////////////////////

@@ -15,9 +15,9 @@ export const f1040s1 = (
 ): Forms => {
   const log = logger.child({ module: "f1040s1" });
   const { f1040, f1040s1 } = forms;
-
   const { personal } = input;
-  f1040s1.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+
+  f1040s1.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
   f1040s1.SSN = personal?.SSN;
 
   // Prize money won from hackathons, etc can go here I guess

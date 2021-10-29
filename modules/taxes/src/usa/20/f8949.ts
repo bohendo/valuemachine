@@ -20,7 +20,7 @@ export const f8949 = (
   const { f8949 } = forms;
   const { personal } = input;
 
-  const name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  const name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
   const ssn = personal?.SSN;
 
   // Merge trades w the same received & sold dates

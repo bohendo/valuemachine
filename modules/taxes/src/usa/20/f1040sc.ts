@@ -26,8 +26,26 @@ export const f1040sc = (
     return forms;
   }
 
-  f1040sc.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f1040sc.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
   f1040sc.SSN = personal?.SSN;
+
+  f1040sc.LA = business.industry;
+  f1040sc.LB = business.code;
+  f1040sc.LC = business.name;
+  f1040sc.LD = business.eid;
+  f1040sc.LE_Address = business.street;
+  f1040sc.LE_CityZip = `${
+    business.city ? `${business.city}, ` : ""
+  }${
+    business.state ? `${business.state} ` : ""
+  }${business.zip || ""}`;
+
+  if (business.accountingMethod === "Cash") f1040sc.C_F_Cash = true;
+  else if (business.accountingMethod === "Accrual") f1040sc.C_F_Accrual = true;
+  else if (business.accountingMethod) {
+    f1040sc.LF_Other = business.accountingMethod;
+    f1040sc.C_F_Other = true;
+  }
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
 
