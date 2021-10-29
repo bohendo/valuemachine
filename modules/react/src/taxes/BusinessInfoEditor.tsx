@@ -59,7 +59,7 @@ export const BusinessInfoEditor: React.FC<BusinessInfoEditorProps> = ({
     <Grid container spacing={1} sx={{ p: 2 }}>
 
       <Grid item xs={12}>
-        <Typography variant="h5">
+        <Typography variant="h4">
           {"Business Info"}
         </Typography>
       </Grid>

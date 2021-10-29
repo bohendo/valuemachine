@@ -45,12 +45,15 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
 
   const handleInsert = () => {
     if (!taxInput?.travel || !newTrip) return;
+    if (!newTrip.enterDate || !newTrip.leaveDate || !newTrip.country) return;
     setTaxInput?.({
       ...taxInput,
       travel: [
         ...taxInput.travel,
         {
-          ...newTrip,
+          enterDate: newTrip.enterDate || "",
+          leaveDate: newTrip.leaveDate || "",
+          country: newTrip.country || "",
           usaIncomeEarned: newTrip.usaIncomeEarned || "0",
         },
       ],

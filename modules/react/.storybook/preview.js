@@ -1,10 +1,10 @@
-import Box from "@mui/system/Box";
+import Card from "@mui/material/Card";
 
 export const decorators = [
   (Story) => (
-    <Box sx={{ m: 4, p: 0 }}>
+    <Card sx={{ m: 4, p: 0 }}>
       <Story />
-    </Box>
+    </Card>
   ),
 ];
 

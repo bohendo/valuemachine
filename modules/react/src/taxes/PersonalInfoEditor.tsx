@@ -66,23 +66,9 @@ export const PersonalInfoEditor: React.FC<PersonalInfoEditorProps> = ({
       <Grid item xs={12}>
         <SelectOne
           label="Filing Status"
-          choices={["Single", "Married Joint", "Married Separate", "Head of Household", "Widow"]}
-          selection={
-            newTaxInput.Single ? "Single"
-            : newTaxInput.MarriedJoint ? "Married Joint"
-            : newTaxInput.MarriedSeparate ? "Married Separate"
-            : newTaxInput.HeadOfHousehold ? "Head of Household"
-            : newTaxInput.Widow ? "Widow"
-            : ""
-          }
-          setSelection={selection => setNewTaxInput({
-            ...newTaxInput,
-            Single: selection === "Single",
-            MarriedJoint: selection === "Married Joint",
-            MarriedSeparate: selection === "Married Separate",
-            HeadOfHousehold: selection === "Head of Household",
-            Widow: selection === "Widow",
-          })}
+          choices={["Single", "MarriedJoint", "MarriedSeparate", "HeadOfHousehold", "Widow"]}
+          selection={newTaxInput.personal?.filingStatus || ""}
+          setSelection={getSetter("filingStatus")}
         />
       </Grid>
       <Grid item>

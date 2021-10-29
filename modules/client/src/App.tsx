@@ -20,6 +20,7 @@ import {
   getCsvFilesError,
   getEmptyAddressBook,
   getEmptyCsvFiles,
+  getTaxInputError,
   getEmptyPrices,
   getEmptyTransactions,
   getEmptyValueMachine,
@@ -171,8 +172,15 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!taxInput) return;
-    console.log(`Saving tax input`, taxInput);
-    store.save(TaxInputStore, taxInput);
+    if (getTaxInputError(taxInput)) {
+      console.log(`Removing invalid tax input`);
+      const newTaxInput = {} as TaxInput;
+      store.save(TaxInputStore, newTaxInput);
+      setTaxInput(newTaxInput);
+    } else {
+      console.log(`Saving valid tax input`);
+      store.save(TaxInputStore, taxInput);
+    }
   }, [taxInput]);
 
   return (
