@@ -74,7 +74,7 @@ export const f2555 = (
   }, "0");
 
   if (math.lt(daysOutOfUSA, "330")) {
-    log.warn(`Physical presence test failed: ${daysOutOfUSA} < 330 days out of the USA`);
+    log.info(`Physical presence test failed: ${daysOutOfUSA} < 330 days out of the USA`);
     delete forms.f2555;
     return forms;
   } else {

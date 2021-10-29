@@ -11,7 +11,7 @@ describe("Tax Validators", () => {
     }])).to.equal("");
   });
 
-  it("should return an errors if mapping is invalid", async () => {
+  it("should return an error if mapping is invalid", async () => {
     expect(getMappingError([{
       nicname: "L1", // misspelled keyname
       fieldName: "topmostSubform[0].Page1[0].f1_01[0]",
