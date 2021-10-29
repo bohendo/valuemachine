@@ -3,6 +3,7 @@
 export const f1040sd = [
   {"nickname":"Name","fieldName":"topmostSubform[0].Page1[0].f1_01[0]"},
   {"nickname":"SSN","fieldName":"topmostSubform[0].Page1[0].f1_02[0]"},
+  {"nickname":"C0_Yes","fieldName":"topmostSubform[0].Page1[0].c1_1[0]","checkmark":"1"},
   {"nickname":"C0_No","fieldName":"topmostSubform[0].Page1[0].c1_1[1]","checkmark":"2"},
   {"nickname":"L1a_d","fieldName":"topmostSubform[0].Page1[0].Table_PartI[0].Row1a[0].f1_03[0]"},
   {"nickname":"L1a_e","fieldName":"topmostSubform[0].Page1[0].Table_PartI[0].Row1a[0].f1_04[0]"},
@@ -50,12 +51,11 @@ export const f1040sd = [
   {"nickname":"C17_No","fieldName":"topmostSubform[0].Page2[0].c2_1[1]","checkmark":"2"},
   {"nickname":"L18","fieldName":"topmostSubform[0].Page2[0].f2_02[0]"},
   {"nickname":"L19","fieldName":"topmostSubform[0].Page2[0].f2_03[0]"},
+  {"nickname":"C20_Yes","fieldName":"topmostSubform[0].Page2[0].c2_2[0]","checkmark":"1"},
   {"nickname":"C20_No","fieldName":"topmostSubform[0].Page2[0].c2_2[1]","checkmark":"2"},
   {"nickname":"L21","fieldName":"topmostSubform[0].Page2[0].f2_04[0]"},
   {"nickname":"C22_Yes","fieldName":"topmostSubform[0].Page2[0].c2_3[0]","checkmark":"1"},
-  {"nickname":"C22_No","fieldName":"topmostSubform[0].Page2[0].c2_3[1]","checkmark":"2"},
-  {"nickname":"C0_Noop2","fieldName":"topmostSubform[0].Page2[0].c2_2[0]","checkmark":"1"},
-  {"nickname":"C0_Noop4","fieldName":"topmostSubform[0].Page1[0].c1_1[0]","checkmark":"1"}
+  {"nickname":"C22_No","fieldName":"topmostSubform[0].Page2[0].c2_3[1]","checkmark":"2"}
 ];
 
 // This interface was automatically generated from the above schema
@@ -63,7 +63,7 @@ export const f1040sd = [
 export interface F1040SD {
   Name?: string;
   SSN?: string;
-  C0_Noop4?: boolean;
+  C0_Yes?: boolean;
   C0_No?: boolean;
   L1a_d?: string;
   L1a_e?: string;
@@ -111,7 +111,7 @@ export interface F1040SD {
   C17_No?: boolean;
   L18?: string;
   L19?: string;
-  C0_Noop2?: boolean;
+  C20_Yes?: boolean;
   C20_No?: boolean;
   L21?: string;
   C22_Yes?: boolean;

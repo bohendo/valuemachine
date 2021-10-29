@@ -67,13 +67,13 @@ export const f1040sb = [
   {"nickname":"L5_Name16","fieldName":"topmostSubform[0].Page1[0].f1_64[0]"},
   {"nickname":"L5_Amount16","fieldName":"topmostSubform[0].Page1[0].f1_65[0]"},
   {"nickname":"L6","fieldName":"topmostSubform[0].Page1[0].f1_66[0]"},
-  {"nickname":"C7a","fieldName":"topmostSubform[0].Page1[0].c1_1[1]","checkmark":"2"},
-  {"nickname":"C7b","fieldName":"topmostSubform[0].Page1[0].c1_2[1]","checkmark":"2"},
+  {"nickname":"C7a_Yes","fieldName":"topmostSubform[0].Page1[0].c1_1[0]","checkmark":"1"},
+  {"nickname":"C7a_No","fieldName":"topmostSubform[0].Page1[0].c1_1[1]","checkmark":"2"},
+  {"nickname":"C7b_Yes","fieldName":"topmostSubform[0].Page1[0].c1_2[0]","checkmark":"1"},
+  {"nickname":"C7b_No","fieldName":"topmostSubform[0].Page1[0].c1_2[1]","checkmark":"2"},
   {"nickname":"L7b","fieldName":"topmostSubform[0].Page1[0].f1_67[0]"},
-  {"nickname":"C8","fieldName":"topmostSubform[0].Page1[0].c1_3[1]","checkmark":"2"},
-  {"nickname":"C0_Noop1","fieldName":"topmostSubform[0].Page1[0].c1_1[0]","checkmark":"1"},
-  {"nickname":"C0_Noop2","fieldName":"topmostSubform[0].Page1[0].c1_2[0]","checkmark":"1"},
-  {"nickname":"C0_Noop3","fieldName":"topmostSubform[0].Page1[0].c1_3[0]","checkmark":"1"}
+  {"nickname":"C8_Yes","fieldName":"topmostSubform[0].Page1[0].c1_3[0]","checkmark":"1"},
+  {"nickname":"C8_No","fieldName":"topmostSubform[0].Page1[0].c1_3[1]","checkmark":"2"}
 ];
 
 // This interface was automatically generated from the above schema
@@ -145,11 +145,11 @@ export interface F1040SB {
   L5_Name16?: string;
   L5_Amount16?: string;
   L6?: string;
-  C0_Noop1?: boolean;
-  C7a?: boolean;
-  C0_Noop2?: boolean;
-  C7b?: boolean;
+  C7a_Yes?: boolean;
+  C7a_No?: boolean;
+  C7b_Yes?: boolean;
+  C7b_No?: boolean;
   L7b?: string;
-  C0_Noop3?: boolean;
-  C8?: boolean;
+  C8_Yes?: boolean;
+  C8_No?: boolean;
 }
