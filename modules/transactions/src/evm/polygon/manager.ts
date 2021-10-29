@@ -76,7 +76,10 @@ export const getPolygonData = ({
     log.info(`Fetching transaction history of ${address}`);
     let history: string[];
     try {
-      history = await fetcher.fetchHistory(address);
+      history = [
+        ...json.addresses[address].history, // Don't discard old history entries
+        ...(await fetcher.fetchHistory(address)),
+      ];
     } catch (e) {
       log.error(e);
       return;

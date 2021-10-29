@@ -44,6 +44,18 @@ export const getPolygonscanFetcher = ({
   ////////////////////////////////////////
   // Internal Helper Functions
 
+  const tmpTxlistinternalErrorHandler = (target: string) => (error: any): any[] => {
+    // Temporary error handler while polygonscan is broken
+    if (
+      error.message === "Error! Missing Or invalid Action name" ||
+      error.message.startsWith("Failed to get a valid result")
+    ) {
+      log.warn(`Treating ${target} txlistinternal error as an empty result: ${error.message}`);
+      return [];
+    }
+    throw error;
+  };
+
   const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;
 
   const query = async (
@@ -98,7 +110,7 @@ export const getPolygonscanFetcher = ({
   const fetchHistory = async (address: EvmAddress): Promise<Bytes32[]> => {
     const [simple, internal, token, nft] = await Promise.all([
       query("account", "txlist", address),
-      query("account", "txlistinternal", address),
+      query("account", "txlistinternal", address).catch(tmpTxlistinternalErrorHandler("address")),
       query("account", "tokentx", address),
       query("account", "tokennfttx", address),
     ]);
@@ -124,7 +136,7 @@ export const getPolygonscanFetcher = ({
     const [tx, receipt, transfers] = await Promise.all([
       query("proxy", "eth_getTransactionByHash", txHash),
       query("proxy", "eth_getTransactionReceipt", txHash),
-      query("account", "txlistinternal", txHash),
+      query("account", "txlistinternal", txHash).catch(tmpTxlistinternalErrorHandler("txHash")),
     ]);
     const timestamp = timestampCache[toBN(tx.blockNumber).toString()] || toISOString(
       (await query("proxy", "eth_getBlockByNumber", receipt.blockNumber)).timestamp
