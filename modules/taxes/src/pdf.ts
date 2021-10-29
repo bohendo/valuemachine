@@ -1,52 +1,52 @@
-import { Guards } from "@valuemachine/transactions";
-import { ValueMachine, Prices } from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
-import { getPdfUtils } from "./pdfUtils";
-import { getEmptyForms, Forms, FormArchive, TaxYear } from "./mappings";
-import { getTaxReturn } from "./return";
-import { getTaxRows } from "./utils";
+import { getPdftk } from "./pdftk";
+import { MappingArchive, TaxYear } from "./mappings";
 
-const log = getLogger("info", "PDF Translator");
-
-export const fillForm = async (
+const fillForm = async (
   taxYear: TaxYear,
   form: string,
   data: any,
   dir: string,
   libs: { fs: any; execFile: any; },
+  logger?: Logger,
 ): Promise<string> => {
-  const translate = (form, mapping): any => {
-    const newForm = {};
-    for (const [key, value] of Object.entries(form)) {
-      if (!mapping[key]) {
-        log.warn(`Key ${key} exists in output data but not in mapping`);
-      }
-      if (
-        !["_dec", "_int"].some(suffix => key.endsWith(suffix)) &&
-        key.match(/L[0-9]/) &&
-        typeof value === "string" &&
-        value.match(/^-?[0-9.]+$/)
-      ) {
-        newForm[mapping[key]] = round(value, 2);
-        if (newForm[mapping[key]].startsWith("-")) {
-          newForm[mapping[key]] = `(${newForm[mapping[key]].substring(1)})`;
-        }
+  const log = (logger || getLogger()).child({ module: "FillForm" });
+  const mapping = MappingArchive[taxYear][form];
+  const mappedData = {};
+  for (const [key, value] of Object.entries(data)) {
+    const entry = mapping.find(entry => entry.nickname === key);
+    if (!entry) {
+      log.warn(`Key ${key} exists in output data but not in ${form} mapping`);
+    } else if (typeof value === "boolean" && entry.checkmark) {
+      mappedData[entry.fieldName] = value ? entry.checkmark : undefined;
+    } else if (typeof value === "string" && !entry.checkmark) {
+      // Round decimal strings
+      if (value.match(/^-?[0-9]+\.[0-9]+$/)) {
+        mappedData[entry.fieldName] = round(value, 2);
       } else {
-        newForm[mapping[key]] = value;
+        mappedData[entry.fieldName] = value;
       }
+      // Use accounting notation for negative values
+      if (mappedData[entry.fieldName].startsWith("-")) {
+        mappedData[entry.fieldName] = `(${mappedData[entry.fieldName].substring(1)})`;
+      }
+    } else {
+      log.warn(`Skipping field of type ${typeof value} bc it ${
+        !entry.checkmark ? "doesn't have a checkmark" : `has checkmark=${entry.checkmark}`
+      }: ${form}.${key} = ${typeof value === "string" ? `"${value}"` : value}`);
     }
-    return newForm;
-  };
+  }
   const cwd = process.cwd();
   const srcPath = cwd.endsWith("taxes") ? `${cwd}/forms/${taxYear}/${form}.pdf`
     : `${cwd}/node_modules/@valuemachine/taxes/forms/${taxYear}/${form}.pdf`;
   const destPath = `${dir || "/tmp"}/${form}-${taxYear}.pdf`;
-  const res = await getPdfUtils(libs).fillForm(
+  const res = await getPdftk(libs).fill(
     srcPath,
     destPath,
-    translate(data, FormArchive[taxYear][form]),
+    mappedData,
   );
   if (res) log.info(`Successfully filled in pdf & saved it to ${res}`);
   return res || "";
@@ -54,130 +54,53 @@ export const fillForm = async (
 
 export const fillReturn = async (
   taxYear: TaxYear,
-  forms: any,
+  forms: any, // TODO: fix type
   dir: string,
   libs: { fs: any; execFile: any; },
+  logger?: Logger,
 ): Promise<string> => {
-  const { execFile } = libs;
+  const log = (logger || getLogger()).child({ module: "FillReturn" });
   const pages = [] as string[];
-  for (const entry of Object.entries(forms)) {
-    const name = entry[0] as string;
-    const data = entry[1] as any;
-    if (data?.length) {
-      for (const page of data) {
-        log.info(`Filing page of ${name} with ${Object.keys(data).length} fields`);
+  for (const form of Object.keys(forms)) {
+    const fields = forms[form];
+    if ("length" in fields) {
+      let p = 1;
+      for (const page of fields) {
+        log.info(`Filing ${taxYear} page ${p++} of ${form} with ${Object.keys(page).length} fields`);
         pages.push(await fillForm(
           taxYear,
-          name,
+          form,
           page,
           "/tmp",
           libs,
+          log,
         ));
       }
     } else {
-      log.info(`Filing ${name} with ${Object.keys(data).length} fields`);
+      log.info(`Filing ${taxYear} ${form} with ${Object.keys(fields).length} fields`);
       pages.push(await fillForm(
         taxYear,
-        name,
-        data,
+        form,
+        fields,
         "/tmp",
         libs,
+        log,
       ));
     }
   }
-  const output = `${dir || "/tmp"}/tax-return-${taxYear}.pdf`;
-  // TODO: sort pages based on attachment index?
-  const cmd = `pdftk ${pages.join(" ")} cat output ${output}`;
-  log.info(`Running command: "${cmd}" from current dir ${process.cwd()}`);
-  return new Promise((res, rej) => {
-    const stdout = execFile("pdftk", [...pages, "cat", "output", output], (err) => {
-      if (err) rej(err);
-      log.info(`Got output from ${cmd}: ${stdout}`);
-      res(output);
-    });
-  });
-};
-
-export const requestFilledForm = async (
-  taxYear: TaxYear,
-  form: string,
-  data: any,
-  window: any,
-): Promise<void> => {
-  if (!data) {
-    log.warn(`Missing data, not requesting ${form}`);
-    return;
-  } else {
-    return new Promise((res, rej) => {
-      axios({
-        url: `/api/taxes/${form}`,
-        method: "post",
-        responseType: "blob",
-        data: { data, taxYear },
-      }).then((response: any) => {
-        const url = window.URL.createObjectURL(new window.Blob([response.data]));
-        const link = window.document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `${form}.pdf`);
-        window.document.body.appendChild(link);
-        link.click();
-        res();
-      }).catch(rej);
-    });
-  }
-};
-
-export const requestTaxReturn = async (
-  taxYear: TaxYear,
-  guard: string,
-  vm: ValueMachine,
-  prices: Prices,
-  formData: Forms,
-  window: any,
-): Promise<void> => {
-  if (!formData) {
-    log.warn(`Missing form data, not requesting tax return`);
-    return;
-  } else {
-    const taxRows = getTaxRows({ guard, prices, vm, taxYear });
-    log.info(`Fetching ${guard} tax return for ${taxYear} w ${Object.keys(formData).length} forms`);
-    const forms = guard === Guards.USA ? await getTaxReturn(taxYear, taxRows, formData)
-      : getEmptyForms(taxYear);
-    return new Promise((res, rej) => {
-      axios({
-        url: `/api/taxes`,
-        method: "post",
-        responseType: "blob",
-        data: { forms, taxYear },
-      }).then((response) => {
-        const url = window.URL.createObjectURL(new window.Blob([response.data]));
-        const link = window.document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `tax-return-${taxYear}.pdf`);
-        window.document.body.appendChild(link);
-        link.click();
-        res();
-      }).catch(rej);
-    });
-  }
-};
-
-export const getMapping = async (
-  taxYear: TaxYear,
-  form: string,
-  libs: { fs: any; execFile: any; },
-): Promise<any> => {
-  const emptyPdf = `${process.cwd()}/forms/${taxYear}/${form}.pdf`;
-  const mapping = await getPdfUtils(libs).generateMapping(emptyPdf);
-  log.info(`Got mapping w ${Object.keys(mapping).length} entries from empty pdf at ${emptyPdf}`);
-  return mapping;
+  return getPdftk(libs).cat(
+    pages,
+    `${dir || "/tmp"}/tax-return-${taxYear}.pdf`,
+  );
 };
 
 export const fetchUsaForm = async (
   taxYear: TaxYear,
   form: string,
   fs: any,
+  logger?: Logger,
 ): Promise<boolean> => {
+  const log = (logger || getLogger()).child({ module: "FetchUsaForm" });
   const url = taxYear.endsWith((new Date().getFullYear() - 1).toString().substring(2))
     ? `https://www.irs.gov/pub/irs-pdf/${form}.pdf`
     : `https://www.irs.gov/pub/irs-prior/${form}--20${taxYear.substring(3)}.pdf`;

@@ -1,14 +1,12 @@
 import pino from "pino";
 
-export const getLogger = (level = "warn", module?: string): pino.Logger => pino({
-  level,
-  options: {
-    module,
-  },
-  prettyPrint: {
-    colorize: true,
-    ignore: "pid,hostname,module",
-    messageFormat: `[{module}] {msg}`,
-    translateTime: true,
-  },
-});
+const prettyPrint = {
+  colorize: true,
+  ignore: "pid,hostname,module",
+  messageFormat: `[{module}] {msg}`,
+  translateTime: true,
+};
+
+export const getLogger = (level = "warn", module?: string): pino.Logger => module
+  ? pino({ level, prettyPrint }).child({ module })
+  : pino({ level, prettyPrint });

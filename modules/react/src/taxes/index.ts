@@ -1,3 +1,3 @@
-export { F1040 } from "./F1040";
+export { TaxInputEditor } from "./TaxInputEditor";
 export { TaxPorter } from "./TaxPorter";
 export { TaxTable } from "./TaxTable";

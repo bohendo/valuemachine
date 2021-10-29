@@ -16,7 +16,7 @@ export {
   NetWorthTable,
 } from "./output";
 export {
-  F1040,
+  TaxInputEditor,
   TaxPorter,
   TaxTable,
 } from "./taxes";
@@ -32,7 +32,7 @@ export {
   SelectMany,
   SelectOne,
   TextInput,
-  TimestampInput,
+  DateTimeInput,
 } from "./utils";
 export {
   ChunkTable,

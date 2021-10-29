@@ -4,7 +4,7 @@ import {
   Asset,
   Bytes32,
   DateString,
-  TimestampString,
+  DateTimeString,
   TxId,
 } from "@valuemachine/types";
 
@@ -28,10 +28,10 @@ export const getAssetError = (val: Asset): string => validateAsset(val) ? ""
   : validateAsset.errors.length ? formatErrors(validateAsset.errors)
   : `Invalid Asset: ${JSON.stringify(val)}`;
 
-const validateTimestamp = ajv.compile(TimestampString);
-export const getTimestampError = (val: TimestampString): string => validateTimestamp(val) ? ""
-  : validateTimestamp.errors.length ? formatErrors(validateTimestamp.errors)
-  : `Invalid Timestamp: ${JSON.stringify(val)}`;
+const validateDateTime = ajv.compile(DateTimeString);
+export const getDateTimeError = (val: DateTimeString): string => validateDateTime(val) ? ""
+  : validateDateTime.errors.length ? formatErrors(validateDateTime.errors)
+  : `Invalid DateTime: ${JSON.stringify(val)}`;
 
 const validateDate = ajv.compile(DateString);
 export const getDateError = (val: DateString): string => validateDate(val) ? ""

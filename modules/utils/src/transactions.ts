@@ -1,6 +1,6 @@
 import {
   Asset,
-  DecimalString,
+  DecString,
   Transaction,
   TransactionsJson,
   Transfer,
@@ -81,7 +81,7 @@ export const assetsAreClose = (asset1: Asset, asset2: Asset): boolean =>
     asset2.startsWith("W") && asset2.substring(1) === asset1
   );
 
-export const valuesAreClose = (q1: DecimalString, q2: DecimalString, wiggleRoom = "0.000001") =>
+export const valuesAreClose = (q1: DecString, q2: DecString, wiggleRoom = "0.000001") =>
   lt(diff(q1, q2), wiggleRoom);
 
 export const chrono = (e1: Transaction, e2: Transaction): number =>

@@ -8,12 +8,12 @@ import {
   Asset,
   AssetChunk,
   DateString,
-  DecimalString,
+  DecString,
   Prices,
   PricesJson,
   PricesParams,
   StoreKeys,
-  TimestampString,
+  DateTimeString,
 } from "@valuemachine/types";
 import {
   add,
@@ -53,13 +53,13 @@ export const getPrices = (params?: PricesParams): Prices => {
   // Internal helper functions
 
   // Limit value from having any more than 18 decimals of precision (but ensure it has at least 1)
-  const formatPrice = (price: DecimalString): DecimalString => {
+  const formatPrice = (price: DecString): DecString => {
     const truncated = round(price, 18).replace(/0+$/, "");
     if (truncated.endsWith(".")) return truncated + "0";
     return truncated;
   };
 
-  const formatDate = (date: DateString | TimestampString): DateString => {
+  const formatDate = (date: DateString | DateTimeString): DateString => {
     if (isNaN((new Date(date)).getTime())) {
       throw new Error(`Invalid Date: "${date}"`);
     } else if ((new Date(date)).getTime() > Date.now()) {
@@ -362,7 +362,7 @@ export const getPrices = (params?: PricesParams): Prices => {
   };
 
   const setPrice = (
-    price: DecimalString,
+    price: DecString,
     rawDate: DateString,
     asset: Asset,
     givenUnit?: Asset,
@@ -442,7 +442,7 @@ export const getPrices = (params?: PricesParams): Prices => {
           ) {
             log.debug(`Merging ${unit} price for ${asset} on ${date}: ${price}`);
             setPrice(
-              price as DecimalString,
+              price as DecString,
               date as DateString,
               asset as Asset,
               unit as Asset,

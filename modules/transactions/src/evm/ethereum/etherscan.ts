@@ -36,7 +36,7 @@ export const getEtherscanFetcher = ({
     feeAsset: Assets.ETH,
   };
 
-  // Mapping of blockNumber (IntegerString): timestamp (TimestampString)
+  // Mapping of blockNumber (IntString): timestamp (DateTimeString)
   // Bc Etherscan doesn't reliably return timestamps while fetching txns by hash
   const timestampCache = {} as { [blockNumber: string]: string };
 

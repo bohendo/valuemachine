@@ -1,14 +1,16 @@
-import { TaxRow } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
-
-import { Forms } from "./types";
-import { logger, processExpenses, processIncome } from "./utils";
+import {
+  Forms,
+  Logger,
+  math,
+  processExpenses,
+  processIncome,
+  TaxRow,
+} from "./utils";
 
 const { add, gt, lt, round, sub } = math;
 
-export const f1040sc = (taxRows: TaxRow[], oldForms: Forms): Forms => {
+export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
   const log = logger.child({ module: "f1040sc" });
-  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
@@ -44,7 +46,7 @@ export const f1040sc = (taxRows: TaxRow[], oldForms: Forms): Forms => {
   processExpenses(taxRows, (expense: TaxRow, value: string): void => {
     const tags = expense.tags;
     const message = `${expense.date.split("T")[0]} ` +
-      `Expense of ${pad(math.round(expense.amount), 8)} ${pad(expense.asset, 4)} `
+      `Expense of ${pad(math.round(expense.amount), 8)} ${pad(expense.asset, 4)} `;
     const otherExpenseKey = "f1040sc-L48:";
     if (tags.some(tag => tag.startsWith(otherExpenseKey))) {
       const description = tags

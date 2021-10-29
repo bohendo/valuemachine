@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 
 import { Logger } from "./logger";
 import { Store } from "./store";
-import { Account, Asset, DecimalString, TimestampString } from "./strings";
+import { Account, Asset, DecString, DateTimeString } from "./strings";
 import { Transaction } from "./transactions";
 
 ////////////////////////////////////////
@@ -13,12 +13,12 @@ export type ChunkIndex = Static<typeof ChunkIndex>;
 
 export const AssetChunk = Type.Object({
   asset: Asset,
-  amount: DecimalString,
+  amount: DecString,
   history: Type.Array(Type.Object({ // length should always be >= 1
-    date: TimestampString, // receiveDate = history[0].date
+    date: DateTimeString, // receiveDate = history[0].date
     account: Account,
   })),
-  disposeDate: Type.Optional(TimestampString), // undefined if we still own this chunk
+  disposeDate: Type.Optional(DateTimeString), // undefined if we still own this chunk
   account: Type.Optional(Account), // undefined if we no longer own this chunk
   index: ChunkIndex, // used as a unique identifier, should never change
   inputs: Type.Array(ChunkIndex), // chunks given away in exchange for this one
@@ -29,7 +29,7 @@ export type AssetChunk = Static<typeof AssetChunk>;
 export const AssetChunks = Type.Array(AssetChunk);
 export type AssetChunks = Static<typeof AssetChunks>;
 
-export const Balances = Type.Record(Type.String(), DecimalString);
+export const Balances = Type.Record(Type.String(), DecString);
 export type Balances = Static<typeof Balances>;
 
 export const EventTypes = {
@@ -52,7 +52,7 @@ export const EventErrorCode = Type.Enum(EventErrorCodes);
 export type EventErrorCode = Static<typeof EventErrorCode>;
 
 const BaseEvent = Type.Object({
-  date: TimestampString,
+  date: DateTimeString,
   index: Type.Number(),
   tags: Type.Array(Type.String()),
   txId: Type.String(),
@@ -218,7 +218,7 @@ export type HydratedEvent = Static<typeof HydratedEvent>;
 
 export const ValueMachineJson = Type.Object({
   chunks: AssetChunks,
-  date: TimestampString,
+  date: DateTimeString,
   events: Events,
 });
 export type ValueMachineJson = Static<typeof ValueMachineJson>;
@@ -235,7 +235,7 @@ export type ValueMachineParams = {
 export interface ValueMachine {
   execute: (transaction: Transaction) => Events;
   getAccounts: () => Account[];
-  getBalance: (account: Account, asset: Asset) => DecimalString;
+  getBalance: (account: Account, asset: Asset) => DecString;
   getChunk: (index: ChunkIndex) => HydratedAssetChunk;
   getEvent: (index: number) => HydratedEvent;
   getNetWorth: (account?: string) => Balances;

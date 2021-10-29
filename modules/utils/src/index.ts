@@ -7,5 +7,7 @@ export * as math from "./math";
 export * from "./prices";
 export * from "./store";
 export * from "./strings";
+export * from "./taxes";
 export * from "./transactions";
+export * from "./validate";
 export * from "./vm";

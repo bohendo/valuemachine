@@ -65,7 +65,7 @@ export const getEthereumData = ({
     : alchemyProvider ? getAlchemyFetcher({ providerUrl: alchemyProvider, logger })
     : null;
 
-  // Mapping of blockNumber (IntegerString): timestamp (TimestampString)
+  // Mapping of blockNumber (IntString): timestamp (DateTimeString)
   // Bc Alchemy doesn't reliably return timestamps while fetching txns by hash
   // const timestampCache = {} as { [blockNumber: string]: string };
 

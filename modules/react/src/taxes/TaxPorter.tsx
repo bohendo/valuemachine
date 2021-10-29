@@ -5,10 +5,9 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import {
   allTaxYears,
-  Forms,
+  getTaxReturn,
   getTaxRows,
   getTaxYearBoundaries,
-  requestTaxReturn,
   TaxYears,
 } from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
@@ -16,23 +15,25 @@ import {
   Guard,
   GuardChangeEvent,
   Prices,
+  TaxInput,
   TradeEvent,
   ValueMachine,
 } from "@valuemachine/types";
 import { dedup, round } from "@valuemachine/utils";
+import axios from "axios";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect } from "react";
 
 import { SelectOne } from "../utils";
 
 type TaxPorterProps = {
-  formData?: Forms;
+  taxInput?: TaxInput;
   guard: Guard;
   prices: Prices,
   vm: ValueMachine,
 };
 export const TaxPorter: React.FC<TaxPorterProps> = ({
-  formData,
+  taxInput,
   guard,
   prices,
   vm,
@@ -43,16 +44,22 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   useEffect(() => {
     setTaxYear(allTaxYears);
     setTaxYears(dedup(
-      vm?.json?.events?.filter(evt =>
+      (vm?.json?.events?.filter(evt =>
         (evt as TradeEvent).account?.startsWith(guard) ||
         (evt as GuardChangeEvent).to?.startsWith(guard)
-      ).map(evt => evt.date.split("-")[0]) || []
-    ));
+      ).map(evt => evt.date.split("-")[0]) || []).concat([
+        (new Date().getFullYear() - 1).toString() // always provide the option for last year
+      ])
+    ).sort());
   }, [guard, vm]);
 
   const handleCsvExport = () => {
     console.log(`Exporting csv for ${taxYear} taxes`);
     const taxes = getTaxRows({ guard, prices, vm, taxYear });
+    if (!taxes?.length) {
+      console.warn(`There were no known taxable events in ${taxYear}`);
+      return;
+    }
     const output = json2csv(
       taxes.map(row => ({
         ...row,
@@ -64,7 +71,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
         cumulativeChange: round(row.cumulativeChange, 2),
         cumulativeIncome: round(row.cumulativeIncome, 2),
       })),
-      Object.keys(taxes?.[0] || {}), // TODO: why is taxes[0] undefined?
+      Object.keys(taxes?.[0] || {}),
     );
     const name = `${guard}-taxes.csv`;
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
@@ -74,10 +81,30 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     a.click();
   };
 
-  const handleExport = () => {
-    if (!guard || !taxYear || !vm?.json || !prices?.json || !formData) return;
+  const handleExport = async (): Promise<void> => {
+    if (!guard || !taxYear || !vm?.json || !prices?.json || !taxInput) return;
+    if (guard !== Guards.USA) return;
     const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
-    if (year) requestTaxReturn(year, guard, vm, prices, formData, window);
+    if (!year) return;
+    const taxRows = getTaxRows({ guard, prices, vm, taxYear });
+    console.log(`Fetching tax return for ${year} w ${Object.keys(taxInput).length} forms`);
+    const forms = getTaxReturn(year, taxInput, taxRows);
+    return new Promise((res, rej) => {
+      axios({
+        url: `/api/taxes/${year}`,
+        method: "post",
+        responseType: "blob",
+        data: { forms },
+      }).then((response: any) => {
+        const url = window.URL.createObjectURL(new window.Blob([response.data]));
+        const link = window.document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `tax-return-${year}.pdf`);
+        window.document.body.appendChild(link);
+        link.click();
+        res();
+      }).catch(rej);
+    });
   };
 
   const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);

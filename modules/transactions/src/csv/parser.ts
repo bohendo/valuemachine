@@ -13,7 +13,7 @@ export const cleanCsv = (csvData: string, csvName?: string): CsvFile => {
   }
   const cleanCsvData = csvRows.join("\n");
   if (!source) {
-    throw new Error("Unknown csv file format");
+    throw new Error(`Unknown csv file format${csvName ? `for ${csvName}` : ""}`);
   }
   return {
     data: cleanCsvData,
@@ -26,9 +26,9 @@ export const cleanCsv = (csvData: string, csvName?: string): CsvFile => {
 export const parseCsv = (csvData: string, logger?: Logger): TransactionsJson => {
   const log = logger || getLogger();
   const csv = cleanCsv(csvData);
-  const txns = getCsvParser(csv.source)(csv.data, log);
-  if (!txns) {
-    log.warn(`Unknown csv file format`);
+  const txns = getCsvParser(csv.source)?.(csv.data, log);
+  if (!txns?.length) {
+    log.warn(`Unknown csv format or empty file provided for ${csv.name}`);
     return [];
   } else {
     const error = getTransactionsError(txns);

@@ -19,6 +19,7 @@ modules/client/src/data
 **/*.docker-compose.yml
 **/*.fdf
 **/.cache
+**/.ts.cache
 **/.config
 **/.git
 **/.node-gyp

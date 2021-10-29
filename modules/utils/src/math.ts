@@ -1,7 +1,7 @@
 import { BigNumber as BN } from "@ethersproject/bignumber";
 import { MaxUint256, Zero } from "@ethersproject/constants";
 import { commify as defaultCommify, formatUnits, parseUnits } from "@ethersproject/units";
-import { Asset, DecimalString, HexString } from "@valuemachine/types";
+import { Asset, DecString, HexString } from "@valuemachine/types";
 
 ////////////////////////////////////////
 // Internal Helpers
@@ -111,7 +111,7 @@ export const sigfigs = (decStr: string, n = 3): string => {
 };
 
 // Locale-dependent rounding & commification
-export const commify = (num: DecimalString, asset?: Asset): string => {
+export const commify = (num: DecString, asset?: Asset): string => {
   let rounded = round(num, asset === "INR" || asset === "USD" ? 2 : undefined);
   if (asset !== "INR") {
     return defaultCommify(rounded);

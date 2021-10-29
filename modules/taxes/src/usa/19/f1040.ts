@@ -1,21 +1,24 @@
-import { math } from "@valuemachine/utils";
+import {
+  FilingStatuses,
+  Forms,
+  getIncomeTax,
+  Logger,
+  math,
+} from "./utils";
 
-import { Forms } from "./types";
-import { getIncomeTax, logger } from "./utils";
 
-export const f1040 = (oldForms: Forms): Forms => {
+export const f1040 = (oldForms: Forms, logger: Logger): Forms => {
   const log = logger.child({ module: "f1040" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040s2, f1040s3, f2555 } = forms;
-  if (f1040.length) return forms; // abort if >1 page
 
   let filingStatus;
   if (f1040.Single || f1040.MarriedFilingSeparately) {
-    filingStatus = "single";
+    filingStatus = FilingStatuses.Single;
   } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
-    filingStatus = "joint";
+    filingStatus = FilingStatuses.Joint;
   } else if (f1040.HeadOfHousehold) {
-    filingStatus = "head";
+    filingStatus = FilingStatuses.Head;
   }
 
   f1040.L7a = f1040s1.L9;

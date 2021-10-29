@@ -4,7 +4,7 @@ import {
   AssetChunk,
   Balances,
   ChunkIndex,
-  DecimalString,
+  DecString,
   EventErrorCodes,
   Events,
   EventTypes,
@@ -74,7 +74,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     return accounts;
   }, new Set<string>())).sort();
 
-  const getBalance = (asset: Asset, account?: Account): DecimalString =>
+  const getBalance = (asset: Asset, account?: Account): DecString =>
     json.chunks.reduce((balance, chunk) => (
       (asset && chunk.asset === asset) && ((
         !account && chunk.account
@@ -111,7 +111,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   // Chunk Manipulators
 
   const mintChunk = (
-    amount: DecimalString,
+    amount: DecString,
     asset: Asset,
     account: Account,
     tmp?: boolean,
@@ -134,7 +134,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   const splitChunk = (
     oldChunk: AssetChunk,
-    amtNeeded: DecimalString,
+    amtNeeded: DecString,
     tmp?: boolean,
   ): AssetChunk[] => {
     const { asset, amount: total } = oldChunk;
@@ -164,7 +164,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   };
 
   const borrowChunks = (
-    amount: DecimalString,
+    amount: DecString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
@@ -174,7 +174,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     return [loan, debt];
   };
 
-  const underflow = (amount: DecimalString, asset: Asset, account: Account): AssetChunk => {
+  const underflow = (amount: DecString, asset: Asset, account: Account): AssetChunk => {
     // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
     // Disposing of more than we recieved is assumed to represent income rather than a flashloan
     const [_guard, maybeVenu, maybeAddress] = account.split("/");
@@ -206,7 +206,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   };
 
   const getChunks = (
-    amount: DecimalString,
+    amount: DecString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
@@ -239,7 +239,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   // Returns the newly received chunks
   const receiveValue = (
-    amount: DecimalString,
+    amount: DecString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
@@ -281,7 +281,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   // Returns the chunks we disposed of
   const disposeValue = (
-    amount: DecimalString,
+    amount: DecString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
@@ -294,7 +294,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     });
   };
 
-  const moveValue = (amount: DecimalString, asset: Asset, from: Account, to: Account): void => {
+  const moveValue = (amount: DecString, asset: Asset, from: Account, to: Account): void => {
     log.info(`Moving ${amount} ${asset} from ${from} to ${to}`);
     const toMove = getChunks(amount, asset, from);
     toMove.forEach(chunk => {
@@ -319,7 +319,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   // returns the new borrowed + debt chunks
   const borrowValue = (
-    amount: DecimalString,
+    amount: DecString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {
@@ -341,7 +341,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   // returns the annihilated debt + repayment chunks
   const repayValue = (
-    amount: DecimalString,
+    amount: DecString,
     asset: Asset,
     account: Account,
   ): AssetChunk[] => {

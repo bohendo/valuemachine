@@ -7,11 +7,11 @@ import { Transaction, TransactionsJson } from "./transactions";
 import {
   Account,
   Bytes32,
-  DecimalString,
-  IntegerString,
+  DecString,
+  IntString,
   Guard,
   HexString,
-  TimestampString,
+  DateTimeString,
 } from "./strings";
 
 ////////////////////////////////////////
@@ -27,7 +27,7 @@ export type EvmMetadata = Static<typeof EvmMetadata>;
 export const EvmTransfer = Type.Object({
   from: Account,
   to: Type.Union([Account, Type.Null()]),
-  value: DecimalString,
+  value: DecString,
 });
 export type EvmTransfer = Static<typeof EvmTransfer>;
 
@@ -41,23 +41,23 @@ export type EvmTransactionLog = Static<typeof EvmTransactionLog>;
 
 export const EvmTransaction = Type.Object({
   from: Account,
-  gasPrice: IntegerString,
-  gasUsed: IntegerString,
+  gasPrice: IntString,
+  gasUsed: IntString,
   hash: Bytes32,
   logs: Type.Array(EvmTransactionLog),
   nonce: Type.Number(),
   status: Type.Optional(Type.Number()),
-  timestamp: TimestampString,
+  timestamp: DateTimeString,
   transfers: Type.Array(EvmTransfer),
   to: Type.Union([Account, Type.Null()]),
-  value: DecimalString,
+  value: DecString,
 });
 export type EvmTransaction = Static<typeof EvmTransaction>;
 
 export const EvmDataJson = Type.Object({
   addresses: Type.Record(Type.String(), Type.Object({
     history: Type.Array(Bytes32), /* List of tx hashes that interact with this address */
-    lastUpdated: TimestampString,
+    lastUpdated: DateTimeString,
   })),
   transactions: Type.Record(Type.String(), EvmTransaction),
 });

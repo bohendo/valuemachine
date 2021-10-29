@@ -6,8 +6,7 @@
   "license": "GPL-3.0-or-later",
   "main": "dist/bundle.js",
   "scripts": {
-    "build": "rollup --config rollup.config.js",
-    "start": "nodemon --exec ts-node"
+    "build": "rollup --config rollup.config.js"
   },
   "dependencies": {
     "@ethersproject/address": "5.5.0",

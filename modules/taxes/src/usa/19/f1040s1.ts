@@ -1,12 +1,13 @@
-import { TaxRow } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
+import {
+  Forms,
+  Logger,
+  math,
+  processIncome,
+  TaxRow,
+} from "./utils";
 
-import { Forms } from "./types";
-import { logger, processIncome } from "./utils";
-
-export const f1040s1 = (taxRows: TaxRow[], oldForms: Forms): Forms => {
+export const f1040s1 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
   const log = logger.child({ module: "f1040s1" });
-  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1 } = forms;
 
   f1040s1.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;

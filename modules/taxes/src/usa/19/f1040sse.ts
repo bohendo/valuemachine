@@ -1,12 +1,13 @@
-import { TaxRow } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
-
-import { Forms } from "./types";
+import {
+  Forms,
+  Logger,
+  math,
+  TaxRow,
+} from "./utils";
 
 const { add, gt, lt, mul, round } = math;
 
-export const f1040sse = (taxRows: TaxRow[], oldForms: Forms): Forms => {
-  const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
+export const f1040sse = (forms: Forms, _taxRows: TaxRow[], _logger: Logger): Forms => {
   const { f1040s1, f1040s2, f1040sse } = forms;
 
   f1040sse.P1_Name = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
