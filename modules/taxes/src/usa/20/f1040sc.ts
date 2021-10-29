@@ -4,19 +4,32 @@ import {
   math,
   processExpenses,
   processIncome,
+  TaxInput,
   TaxRow,
 } from "./utils";
 
 const { add, gt, lt, round, sub } = math;
 
-export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+export const f1040sc = (
+  forms: Forms,
+  input: TaxInput,
+  taxRows: TaxRow[],
+  logger: Logger,
+): Forms => {
   const log = logger.child({ module: "f1040sc" });
-  const { f1040, f1040s1, f1040sc, f1040sse } = forms;
+  const { f1040s1, f1040sc, f1040sse } = forms;
+  const { business, personal } = input;
+
+  // If no business info, then omit this form
+  if (!business) {
+    delete forms.f1040sc;
+    return forms;
+  }
+
+  f1040sc.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f1040sc.SSN = personal?.SSN;
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
-
-  f1040sc.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
-  f1040sc.SSN = f1040.SSN;
 
   let totalIncome = "0";
   processIncome(taxRows, (income: TaxRow, value: string): void => {

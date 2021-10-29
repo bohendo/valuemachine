@@ -2,14 +2,21 @@ import {
   Forms,
   Logger,
   math,
+  TaxInput,
   TaxRow,
 } from "./utils";
 
-export const f1040s2 = (forms: Forms, _taxRows: TaxRow[], _logger: Logger): Forms => {
+export const f1040s2 = (
+  forms: Forms,
+  input: TaxInput,
+  _taxRows: TaxRow[],
+  _logger: Logger,
+): Forms => {
   const { f1040, f1040s2 } = forms;
+  const { personal } = input;
 
-  f1040s2.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
-  f1040s2.SSN = f1040.SSN;
+  f1040s2.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f1040s2.SSN = personal?.SSN;
 
   f1040s2.L3 = math.add(f1040s2.L1, f1040s2.L2);
   f1040.L17 = f1040s2.L3;

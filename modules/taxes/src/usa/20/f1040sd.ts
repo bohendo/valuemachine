@@ -2,17 +2,24 @@ import {
   Forms,
   Logger,
   math,
+  TaxInput,
   TaxRow,
 } from "./utils";
 
 const { add, eq, gt, lt, round } = math;
 
-export const f1040sd = (forms: Forms, _taxRows: TaxRow[], logger: Logger): Forms => {
+export const f1040sd = (
+  forms: Forms,
+  input: TaxInput,
+  taxRows: TaxRow[],
+  logger: Logger,
+): Forms => {
   const log = logger.child({ module: "f1040sd" });
   const { f1040, f1040sd } = forms;
+  const { personal } = input;
 
-  f1040sd.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
-  f1040sd.SSN = f1040.SSN;
+  f1040sd.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f1040sd.SSN = personal?.SSN;
 
   const totals = {
     A: { proceeds: "0", cost: "0", adjustments: "0", gainOrLoss: "0" },
@@ -46,6 +53,12 @@ export const f1040sd = (forms: Forms, _taxRows: TaxRow[], logger: Logger): Forms
     totals[longType].adjustments = add(totals[longType].adjustments, f8949.P2L2g);
     totals[longType].gainOrLoss = add(totals[longType].gainOrLoss, f8949.P2L2h);
   };
+
+  // Omit this form if we don't have any f8949 pages
+  if (!forms.f8949 || !forms.f8949.length) {
+    delete forms.f1040sd;
+    return forms;
+  }
 
   forms.f8949.length ? forms.f8949.forEach(totalF8949) : totalF8949(forms.f8949);
 

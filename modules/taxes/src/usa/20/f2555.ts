@@ -1,21 +1,39 @@
 import {
+  DateString,
   Forms,
+  IntString,
   Logger,
   math,
   processExpenses,
   processIncome,
+  TaxInput,
   TaxRow,
+  toFormDate,
+  guard,
 } from "./utils";
 
-export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+const USA = guard;
+
+export const f2555 = (
+  forms: Forms,
+  input: TaxInput,
+  taxRows: TaxRow[],
+  logger: Logger,
+): Forms => {
   const log = logger.child({ module: "f2555" });
   const { f2555, f1040, f1040s1 } = forms;
+  const { personal, travel } = input;
 
-  f2555.Name = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
-  f2555.SSN = forms.f1040.SSN;
+  // If no travel info, then omit this form
+  if (!travel) { delete forms.f2555; return forms; }
+
+  f2555.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f2555.SSN = personal?.SSN;
+
+  // TODO: check travel history in input to see if we need this form
 
   ////////////////////////////////////////
-  // Part I
+  // Part I: Generatl Info
 
   if (f2555.C5c) {
     f2555.L3 = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
@@ -24,7 +42,55 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
   }
 
   ////////////////////////////////////////
-  // Part IV
+  // Part II: Bona Fide Residence Test
+
+  // Remove this form if we are explicitly disqualified from being a bona fide resident
+  if (f2555.C13a_Yes && f2555.C13b_No) {
+    delete forms.f2555;
+    return forms;
+  }
+
+  ////////////////////////////////////////
+  // Part III: Physical Presence Test
+
+  f2555.L16_From = toFormDate("2020-01-01");
+  f2555.L16_To = toFormDate("2020-12-31");
+
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const diffDays = (d1: DateString, d2: DateString): IntString =>
+    Math.trunc(Math.abs(
+      new Date(`${d1}T00:00:00Z`).getTime() - new Date(`${d2}T00:00:00Z`).getTime()
+    ) / msPerDay).toString();
+
+  const daysInEachCountry = travel.reduce((days, trip) => ({
+    ...days,
+    [trip.country]: math.add(days[trip.country] || "0", diffDays(trip.enterDate, trip.leaveDate))
+  }), {});
+
+  log.info(`Days present by country: ${JSON.stringify(daysInEachCountry)}`);
+
+  const daysOutOfUSA = Object.keys(daysInEachCountry).reduce((tot, country) => {
+    return country !== USA ? math.add(tot, daysInEachCountry[country]) : tot;
+  }, "0");
+
+  if (math.lt(daysOutOfUSA, "330")) {
+    log.warn(`Physical presence test failed: ${daysOutOfUSA} < 330 days out of the USA`);
+    delete forms.f2555;
+    return forms;
+  } else {
+    log.info(`Physical presence test passed: ${daysOutOfUSA} >= 330 days out of the USA`);
+  }
+
+  f2555.L17 = Object.keys(daysInEachCountry).reduce((max, country) => {
+    if (country === USA) return max;
+    if (!max) return country;
+    return math.gt(daysInEachCountry[country], daysInEachCountry[max]) ? country : max;
+  }, "");
+
+  // TODO: fill in L18 table
+
+  ////////////////////////////////////////
+  // Part IV: All Tax Payers
 
   f2555.L19 = f1040.L1;
 
@@ -50,12 +116,12 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
   log.info(`Foreign earned income: ${f2555.L26}`);
 
   ////////////////////////////////////////
-  // Part V
+  // Part V: All Tax Payers
 
   f2555.L27 = f2555.L26;
 
   ////////////////////////////////////////
-  // Part VI
+  // Part VI: Housing Exclusion
 
   f2555.L30 = math.lt(f2555.L28, f2555.L29b) ? f2555.L28 : f2555.L29b;
 
@@ -73,7 +139,7 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
   }
 
   ////////////////////////////////////////
-  // Part VII
+  // Part VII: Income Exclusion
 
   f2555.L37 = "105900";
 
@@ -92,7 +158,7 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
   log.info(`Foreign earned income exclusion: ${f2555.L42}`);
 
   ////////////////////////////////////////
-  // Part VIII
+  // Part VIII: Sum Exclusions
 
   f2555.L43 = math.add(f2555.L36, f2555.L42);
 
@@ -111,7 +177,7 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
   );
 
   ////////////////////////////////////////
-  // Part IX
+  // Part IX: Housing Deduction
 
   if (math.gt(f2555.L33, f2555.L36) && math.gt(f2555.L27, f2555.L43)) {
 

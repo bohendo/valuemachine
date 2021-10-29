@@ -4,9 +4,10 @@ import {
   getIncomeTax,
   Logger,
   math,
+  TaxInput,
 } from "./utils";
 
-export const f1040 = (forms: Forms, logger: Logger): Forms => {
+export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   const log = logger.child({ module: "f1040" });
   const { f1040, f2555 } = forms;
 

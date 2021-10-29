@@ -1,3 +1,4 @@
+import { TaxInput } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 
 import { getEmptyForms, TaxYears } from "../../mappings";
@@ -19,14 +20,12 @@ const taxYear = TaxYears.USA19;
 const logger = getLogger("info", taxYear);
 
 export const getTaxReturn = (
-  formData: Forms,
+  taxInput: TaxInput,
   taxRows: TaxRow[],
   log = logger,
 ): Forms => {
-  let forms = {
-    ...getEmptyForms(taxYear),
-    ...JSON.parse(JSON.stringify(formData)) as Forms,
-  };
+  const input = JSON.parse(JSON.stringify(taxInput)) as TaxInput;
+  let forms = { ...getEmptyForms(taxYear), ...input.forms as Forms };
 
   // We should run filers in reverse-sequence-number order so f1040 should come last
   // `Na` should always come before `N` eg 12a before 12

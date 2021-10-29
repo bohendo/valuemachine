@@ -3,15 +3,22 @@ import {
   Logger,
   math,
   processIncome,
+  TaxInput,
   TaxRow,
 } from "./utils";
 
-export const f1040s1 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+export const f1040s1 = (
+  forms: Forms,
+  input: TaxInput,
+  taxRows: TaxRow[],
+  logger: Logger,
+): Forms => {
   const log = logger.child({ module: "f1040s1" });
   const { f1040, f1040s1 } = forms;
 
-  f1040s1.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
-  f1040s1.SSN = f1040.SSN;
+  const { personal } = input;
+  f1040s1.Name = `${personal?.firstName} ${personal?.middleInitial} ${personal?.lastName}`;
+  f1040s1.SSN = personal?.SSN;
 
   // Prize money won from hackathons, etc can go here I guess
   let prizeMoney = "0";

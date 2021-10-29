@@ -27,19 +27,43 @@ export const TaxRow = Type.Object({
 export type TaxRow = Static<typeof TaxRow>;
 
 export const TaxInput = Type.Object({
-  FirstName: Type.Optional(Type.String()),
-  MiddleInitial: Type.Optional(Type.String()),
-  LastName: Type.Optional(Type.String()),
-  SSN: Type.Optional(Type.String()),
-  SpouseFirstName: Type.Optional(Type.String()),
-  SpouseMiddleInitial: Type.Optional(Type.String()),
-  SpouseLastName: Type.Optional(Type.String()),
-  SpouseSSN: Type.Optional(Type.String()),
+  personal: Type.Optional(Type.Object({
+    filingStatus: Type.Optional(Type.String()), // use enum instead of string?
+    firstName: Type.Optional(Type.String()),
+    middleInitial: Type.Optional(Type.String()),
+    lastName: Type.Optional(Type.String()),
+    SSN: Type.Optional(Type.String()),
+    spouseFirstName: Type.Optional(Type.String()),
+    spouseMiddleInitial: Type.Optional(Type.String()),
+    spouseLastName: Type.Optional(Type.String()),
+    spouseSSN: Type.Optional(Type.String()),
+    occupation: Type.Optional(Type.String()),
+    spouseOccupation: Type.Optional(Type.String()),
+  })),
+  // If >300 days of tax year was outside the US, insert f2555
+  travel: Type.Optional(Type.Array(Type.Object({
+    enterDate: DateString,
+    leaveDate: DateString,
+    country: Type.String(), // 3-letter code a la ISO 3166-1 alpha-3
+    usaIncomeEarned: DecString,
+  }))),
+  // If business info provided, insert f1040sc & f1040sse else treat all income as wages
+  business: Type.Optional(Type.Object({
+    name: Type.String(),
+    industry: Type.String(),
+    street: Type.String(),
+    city: Type.String(),
+    state: Type.String(),
+    zip: Type.String(),
+    code: Type.String(),
+    eid: Type.String(),
+    accountingMethod: Type.String(),
+  })),
   forms: Type.Optional(Type.Record(
     Type.String(),
     Type.Record(
       Type.String(),
-      Type.Union([Type.String(), Type.Boolean()]),
+      Type.Any(), // either string or bool but we can't know which until we parse mappings
     ),
   )),
 });
