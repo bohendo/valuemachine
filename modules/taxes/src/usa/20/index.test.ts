@@ -8,7 +8,7 @@ import { getEmptyForms, TaxYears } from "../../mappings";
 import { getTaxReturn } from ".";
 
 const taxYear = TaxYears.USA20;
-const log = getLogger("warn", `Test${taxYear}Filers`);
+const log = getLogger("info", `Test${taxYear}Filers`);
 
 describe(`${taxYear} Filers`, () => {
   it(`should include f1040 + schedules 1-3 by default `, async () => {
@@ -33,6 +33,7 @@ describe(`${taxYear} Filers`, () => {
     const f2555Return = getTaxReturn({ travel }, [], log);
     log.info(`Tax return includes forms: ${Object.keys(f2555Return)}`);
     expect("f2555" in f2555Return).to.be.true;
+    expect(f2555Return.f2555.L18b_R1).to.be.a("string");
   });
 
   it(`should include f1040sc & f1040sse iff business info is provided`, async () => {

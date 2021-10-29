@@ -87,7 +87,16 @@ export const f2555 = (
     return math.gt(daysInEachCountry[country], daysInEachCountry[max]) ? country : max;
   }, "");
 
-  // TODO: fill in L18 table
+  for (const i of [0, 1, 2, 3]) {
+    if (!travel[i]) continue;
+    const trip = travel[i];
+    f2555[`L18a_R${i+1}`] = trip.country;
+    f2555[`L18b_R${i+1}`] = toFormDate(trip.enterDate);
+    f2555[`L18c_R${i+1}`] = toFormDate(trip.leaveDate);
+    f2555[`L18d_R${i+1}`] = trip.country !== USA ? diffDays(trip.enterDate, trip.leaveDate) : "0";
+    f2555[`L18e_R${i+1}`] = trip.country === USA ? diffDays(trip.enterDate, trip.leaveDate) : "0";
+    f2555[`L18f_R${i+1}`] = trip.usaIncomeEarned;
+  }
 
   ////////////////////////////////////////
   // Part IV: All Tax Payers
