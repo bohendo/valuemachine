@@ -29,14 +29,7 @@ export const FormsEditor: React.FC<FormsEditorProps> = ({
   setForms,
 }: FormsEditorProps) => {
   const [newForm, setNewForm] = useState({} as NewForm);
-  const [error, setError] = useState("");
   const [modified, setModified] = useState(false);
-
-  console.log(`Rendering new form: ${JSON.stringify(newForm)}`);
-
-  useEffect(() => {
-    if (!modified) setError("");
-  }, [modified]);
 
   useEffect(() => {
     if (!forms || !newForm) {
@@ -82,7 +75,7 @@ export const FormsEditor: React.FC<FormsEditorProps> = ({
 
       <Grid item sx={{ mt: 3 }}>
         <Button
-          disabled={!modified || !!error}
+          disabled={!modified}
           onClick={handleInsert}
           variant="contained"
         >

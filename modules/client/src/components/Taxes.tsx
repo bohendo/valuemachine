@@ -55,10 +55,6 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     setGuard(newGuards[0]);
   }, [addressBook, vm]);
 
-  const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    setTab(newValue);
-  };
-
   return (
     <>
       <Typography variant="h3">
@@ -73,7 +69,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
       <Tabs
         centered
         indicatorColor="secondary"
-        onChange={handleTabChange}
+        onChange={(evt, newVal) => setTab(newVal)}
         sx={{ m: 1 }}
         textColor="secondary"
         value={tab}

@@ -18,8 +18,14 @@ export const BusinessInfoEditor: React.FC<BusinessInfoEditorProps> = ({
   const [modified, setModified] = useState(false);
 
   useEffect(() => {
-    if (!taxInput) setNewTaxInput({} as any);
-    else setNewTaxInput(JSON.parse(JSON.stringify(taxInput)) as any);
+    if (!taxInput) {
+      setNewTaxInput({ business: {} } as TaxInput);
+    } else{
+      setNewTaxInput(JSON.parse(JSON.stringify({
+        ...taxInput,
+        business: { ...(taxInput.business || {}) },
+      })) as TaxInput);
+    }
   }, [taxInput]);
 
   useEffect(() => {

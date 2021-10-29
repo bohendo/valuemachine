@@ -14,12 +14,18 @@ export const PersonalInfoEditor: React.FC<PersonalInfoEditorProps> = ({
   taxInput,
   setTaxInput,
 }: PersonalInfoEditorProps) => {
-  const [newTaxInput, setNewTaxInput] = useState({} as TaxInput);
+  const [newTaxInput, setNewTaxInput] = useState({ personal: {} } as TaxInput);
   const [modified, setModified] = useState(false);
 
   useEffect(() => {
-    if (!taxInput) setNewTaxInput({} as TaxInput);
-    else setNewTaxInput(JSON.parse(JSON.stringify(taxInput)) as TaxInput);
+    if (!taxInput) {
+      setNewTaxInput({ personal: {} } as TaxInput);
+    } else{
+      setNewTaxInput(JSON.parse(JSON.stringify({
+        ...taxInput,
+        personal: { ...(taxInput.personal || {}) },
+      })) as TaxInput);
+    }
   }, [taxInput]);
 
   useEffect(() => {

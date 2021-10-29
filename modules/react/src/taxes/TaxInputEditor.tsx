@@ -3,7 +3,7 @@ import Paper from "@mui/material/Paper";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import { TaxInput } from "@valuemachine/types";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { FormsEditor } from "./FormsEditor";
 import { PersonalInfoEditor } from "./PersonalInfoEditor";
@@ -18,17 +18,7 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
   taxInput,
   setTaxInput,
 }: TaxInputEditorProps) => {
-  const [newTaxInput, setNewTaxInput] = useState({} as any /* initialize form w empty strings */);
   const [tab, setTab] = useState(0);
-
-  useEffect(() => {
-    if (!taxInput) setNewTaxInput({} as any);
-    else setNewTaxInput(JSON.parse(JSON.stringify(taxInput)) as any);
-  }, [taxInput]);
-
-  const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    setTab(newValue);
-  };
 
   return (<>
     <Paper sx={{ p: 3 }}>
@@ -36,7 +26,7 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
       <Tabs
         centered
         indicatorColor="secondary"
-        onChange={handleTabChange}
+        onChange={(evt, newVal) => setTab(newVal)}
         sx={{ m: 1 }}
         textColor="secondary"
         value={tab}
@@ -72,8 +62,8 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
 
       <div hidden={tab !== 3}>
         <FormsEditor
-          forms={newTaxInput?.forms || {}}
-          setForms={forms => setNewTaxInput({ ...(newTaxInput || {}), forms })}
+          forms={taxInput?.forms || {}}
+          setForms={forms => setTaxInput?.({ ...(taxInput || {}), forms })}
         />
       </div>
 

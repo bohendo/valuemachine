@@ -32,7 +32,7 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
   const [insertable, setInsertable] = useState(false);
 
   useEffect(() => {
-    if (!taxInput || !newTrip) {
+    if (!newTrip) {
       setInsertable(false);
     } else if (
       newTrip.enterDate && newTrip.leaveDate && newTrip.country
@@ -44,12 +44,11 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
   }, [newTrip, taxInput]);
 
   const handleInsert = () => {
-    if (!taxInput?.travel || !newTrip) return;
-    if (!newTrip.enterDate || !newTrip.leaveDate || !newTrip.country) return;
+    if (!newTrip || !newTrip.enterDate || !newTrip.leaveDate || !newTrip.country) return;
     setTaxInput?.({
-      ...taxInput,
+      ...(taxInput || {}),
       travel: [
-        ...taxInput.travel,
+        ...(taxInput?.travel || []),
         {
           enterDate: newTrip.enterDate || "",
           leaveDate: newTrip.leaveDate || "",
@@ -72,11 +71,8 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
   };
 
   const getSetter = (prop: string) => (newVal) => {
-    if (!taxInput?.travel || !newTrip) return;
-    setNewTrip({
-      ...newTrip,
-      [prop]: newVal,
-    });
+    if (!prop) return;
+    setNewTrip({ ...(newTrip || {}), [prop]: newVal });
   };
 
   return (<>
@@ -109,7 +105,7 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
       <Grid item>
         <DateInput
           label="Enter Date"
-          setDate={enterDate => setNewTrip({ ...newTrip, enterDate })}
+          setDate={getSetter("enterDate")}
           date={newTrip?.enterDate || ""}
         />
       </Grid>
@@ -117,7 +113,7 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
       <Grid item>
         <DateInput
           label="Leave Date"
-          setDate={leaveDate => setNewTrip({ ...newTrip, leaveDate })}
+          setDate={getSetter("leaveDate")}
           date={newTrip?.leaveDate || ""}
         />
       </Grid>
