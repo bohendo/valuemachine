@@ -109,6 +109,14 @@ export const PersonalInfoEditor: React.FC<PersonalInfoEditorProps> = ({
           text={newTaxInput.personal?.SSN || ""}
         />
       </Grid>
+      <Grid item>
+        <TextInput
+          helperText={"Occupation"}
+          label="Occupation"
+          setText={getSetter("occupation")}
+          text={newTaxInput.personal?.occupation || ""}
+        />
+      </Grid>
 
       <Grid item xs={12}>
         <Typography variant="h5">
@@ -145,6 +153,14 @@ export const PersonalInfoEditor: React.FC<PersonalInfoEditorProps> = ({
           label="Spouse Social Security Number"
           setText={getSetter("spouseSSN")}
           text={newTaxInput.personal?.spouseSSN || ""}
+        />
+      </Grid>
+      <Grid item>
+        <TextInput
+          helperText={"Spouse's Occupation"}
+          label="Spouse Occupation"
+          setText={getSetter("spouseOccupation")}
+          text={newTaxInput.personal?.spouseOccupation || ""}
         />
       </Grid>
 

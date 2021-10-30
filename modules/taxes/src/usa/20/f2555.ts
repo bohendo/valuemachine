@@ -150,7 +150,7 @@ export const f2555 = (
   ////////////////////////////////////////
   // Part VII: Income Exclusion
 
-  f2555.L37 = "105900";
+  f2555.L37 = "107600";
 
   // TODO: deal w leap years
   const L39 = math.div(f2555.L38, "365");

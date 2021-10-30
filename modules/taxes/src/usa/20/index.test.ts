@@ -36,11 +36,10 @@ describe(`${taxYear} Filers`, () => {
     expect(f2555Return.f2555.L18b_R1).to.be.a("string");
   });
 
-  it(`should include f1040sc & f1040sse iff business info is provided`, async () => {
+  it(`should include f1040sc iff business info is provided`, async () => {
     const taxReturn = getTaxReturn({ business: { name: "Bo & Co" } }, [], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f1040sc" in taxReturn).to.be.true;
-    expect("f1040sse" in taxReturn).to.be.true;
   });
 
   it(`should include f8949 & f1040d iff there are >0 trades`, async () => {

@@ -113,6 +113,17 @@ export const f1040sc = (
     f1040sc.L48 = add(f1040sc.L48, exchangeFees);
   }
 
+  f1040sc.L48 = add(
+    f1040sc.L48_Amount1,
+    f1040sc.L48_Amount2,
+    f1040sc.L48_Amount3,
+    f1040sc.L48_Amount4,
+    f1040sc.L48_Amount5,
+    f1040sc.L48_Amount6,
+    f1040sc.L48_Amount7,
+    f1040sc.L48_Amount8,
+    f1040sc.L48_Amount9,
+  );
   f1040sc.L27a = f1040sc.L48;
 
   f1040sc.L28 = add(
