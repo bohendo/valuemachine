@@ -51,6 +51,8 @@ export const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapp
         fieldName: m.fieldName,
         checkmark: m.checkmark,
       });
+    } else if (m.checkmark) {
+      s.checkmark = m.checkmark;
     }
   }
   for (const i of slave.map((_, i) => i)) {

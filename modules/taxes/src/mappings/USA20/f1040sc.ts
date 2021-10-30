@@ -3,18 +3,23 @@
 export const f1040sc = [
   {"nickname":"Name","fieldName":"topmostSubform[0].Page1[0].f1_1[0]"},
   {"nickname":"SSN","fieldName":"topmostSubform[0].Page1[0].f1_2[0]"},
-  {"nickname":"L0_A","fieldName":"topmostSubform[0].Page1[0].f1_3[0]"},
-  {"nickname":"L0_B","fieldName":"topmostSubform[0].Page1[0].BComb[0].f1_4[0]"},
-  {"nickname":"L0_C","fieldName":"topmostSubform[0].Page1[0].f1_5[0]"},
-  {"nickname":"L0_D","fieldName":"topmostSubform[0].Page1[0].DComb[0].f1_6[0]"},
-  {"nickname":"L0_E_Address","fieldName":"topmostSubform[0].Page1[0].f1_7[0]"},
-  {"nickname":"L0_E_CityZip","fieldName":"topmostSubform[0].Page1[0].f1_8[0]"},
-  {"nickname":"C_F","fieldName":"topmostSubform[0].Page1[0].c1_1[2]","checkmark":"3"},
-  {"nickname":"L0_F","fieldName":"topmostSubform[0].Page1[0].f1_9[0]"},
-  {"nickname":"L0_F_Accrual","fieldName":"topmostSubform[0].Page1[0].c1_2[1]","checkmark":"No"},
-  {"nickname":"C0_G","fieldName":"topmostSubform[0].Page1[0].c1_3[0]","checkmark":"1"},
-  {"nickname":"C0_H","fieldName":"topmostSubform[0].Page1[0].c1_4[1]","checkmark":"No"},
-  {"nickname":"C0_I","fieldName":"topmostSubform[0].Page1[0].c1_5[1]","checkmark":"No"},
+  {"nickname":"LA","fieldName":"topmostSubform[0].Page1[0].f1_3[0]"},
+  {"nickname":"LB","fieldName":"topmostSubform[0].Page1[0].BComb[0].f1_4[0]"},
+  {"nickname":"LC","fieldName":"topmostSubform[0].Page1[0].f1_5[0]"},
+  {"nickname":"LD","fieldName":"topmostSubform[0].Page1[0].DComb[0].f1_6[0]"},
+  {"nickname":"LE_Address","fieldName":"topmostSubform[0].Page1[0].f1_7[0]"},
+  {"nickname":"LE_CityZip","fieldName":"topmostSubform[0].Page1[0].f1_8[0]"},
+  {"nickname":"C_F_Cash","fieldName":"topmostSubform[0].Page1[0].c1_1[0]","checkmark":"1"},
+  {"nickname":"C_F_Accrual","fieldName":"topmostSubform[0].Page1[0].c1_1[1]","checkmark":"2"},
+  {"nickname":"C_F_Other","fieldName":"topmostSubform[0].Page1[0].c1_1[2]","checkmark":"3"},
+  {"nickname":"LF_Other","fieldName":"topmostSubform[0].Page1[0].f1_9[0]"},
+  {"nickname":"CG_Yes","fieldName":"topmostSubform[0].Page1[0].c1_2[0]","checkmark":"Yes"},
+  {"nickname":"CG_No","fieldName":"topmostSubform[0].Page1[0].c1_2[1]","checkmark":"No"},
+  {"nickname":"CG","fieldName":"topmostSubform[0].Page1[0].c1_3[0]","checkmark":"1"},
+  {"nickname":"C0_H_Yes","fieldName":"topmostSubform[0].Page1[0].c1_4[0]","checkmark":"Yes"},
+  {"nickname":"C0_H_No","fieldName":"topmostSubform[0].Page1[0].c1_4[1]","checkmark":"No"},
+  {"nickname":"C0_I_Yes","fieldName":"topmostSubform[0].Page1[0].c1_5[0]","checkmark":"Yes"},
+  {"nickname":"C0_I_No","fieldName":"topmostSubform[0].Page1[0].c1_5[1]","checkmark":"No"},
   {"nickname":"C0_J","fieldName":"topmostSubform[0].Page1[0].c1_6[0]","checkmark":"1"},
   {"nickname":"L1","fieldName":"topmostSubform[0].Page1[0].f1_10[0]"},
   {"nickname":"L2","fieldName":"topmostSubform[0].Page1[0].f1_11[0]"},
@@ -53,11 +58,13 @@ export const f1040sc = [
   {"nickname":"L30_WorkSize","fieldName":"topmostSubform[0].Page1[0].f1_44[0]"},
   {"nickname":"L30","fieldName":"topmostSubform[0].Page1[0].f1_45[0]"},
   {"nickname":"L31","fieldName":"topmostSubform[0].Page1[0].f1_46[0]"},
-  {"nickname":"C32a","fieldName":"topmostSubform[0].Page1[0].c1_7[1]","checkmark":"2"},
-  {"nickname":"C32b","fieldName":"topmostSubform[0].Page2[0].c2_1[0]","checkmark":"1"},
-  {"nickname":"C33a","fieldName":"topmostSubform[0].Page2[0].c2_2[0]","checkmark":"1"},
-  {"nickname":"C34b","fieldName":"topmostSubform[0].Page2[0].c2_3[0]","checkmark":"1"},
-  {"nickname":"C34c","fieldName":"topmostSubform[0].Page2[0].c2_4[1]","checkmark":"No"},
+  {"nickname":"C32a","fieldName":"topmostSubform[0].Page1[0].c1_7[0]","checkmark":"1"},
+  {"nickname":"C32b","fieldName":"topmostSubform[0].Page1[0].c1_7[1]","checkmark":"2"},
+  {"nickname":"C33a","fieldName":"topmostSubform[0].Page2[0].c2_1[0]","checkmark":"1"},
+  {"nickname":"C33c","fieldName":"topmostSubform[0].Page2[0].c2_2[0]","checkmark":"1"},
+  {"nickname":"C34","fieldName":"topmostSubform[0].Page2[0].c2_3[0]","checkmark":"1"},
+  {"nickname":"C34_Yes","fieldName":"topmostSubform[0].Page2[0].c2_4[0]","checkmark":"Yes"},
+  {"nickname":"C34_No","fieldName":"topmostSubform[0].Page2[0].c2_4[1]","checkmark":"No"},
   {"nickname":"L35","fieldName":"topmostSubform[0].Page2[0].f2_1[0]"},
   {"nickname":"L36","fieldName":"topmostSubform[0].Page2[0].f2_2[0]"},
   {"nickname":"L37","fieldName":"topmostSubform[0].Page2[0].f2_3[0]"},
@@ -72,9 +79,13 @@ export const f1040sc = [
   {"nickname":"L44a","fieldName":"topmostSubform[0].Page2[0].f2_12[0]"},
   {"nickname":"L44b","fieldName":"topmostSubform[0].Page2[0].f2_13[0]"},
   {"nickname":"L44c","fieldName":"topmostSubform[0].Page2[0].f2_14[0]"},
+  {"nickname":"L45_Yes","fieldName":"topmostSubform[0].Page2[0].c2_5[0]","checkmark":"Yes"},
   {"nickname":"L45_NO","fieldName":"topmostSubform[0].Page2[0].c2_5[1]","checkmark":"No"},
+  {"nickname":"L46_Yes","fieldName":"topmostSubform[0].Page2[0].c2_6[0]","checkmark":"Yes"},
   {"nickname":"L46_NO","fieldName":"topmostSubform[0].Page2[0].c2_6[1]","checkmark":"No"},
+  {"nickname":"L47a_Yes","fieldName":"topmostSubform[0].Page2[0].c2_7[0]","checkmark":"Yes"},
   {"nickname":"L47a_NO","fieldName":"topmostSubform[0].Page2[0].c2_7[1]","checkmark":"No"},
+  {"nickname":"L47b_Yes","fieldName":"topmostSubform[0].Page2[0].c2_8[0]","checkmark":"Yes"},
   {"nickname":"L47b_NO","fieldName":"topmostSubform[0].Page2[0].c2_8[1]","checkmark":"No"},
   {"nickname":"L48_Expense1","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item1[0].f2_15[0]"},
   {"nickname":"L48_Amount1","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item1[0].f2_16[0]"},
@@ -94,18 +105,7 @@ export const f1040sc = [
   {"nickname":"L48_Amount8","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item8[0].f2_30[0]"},
   {"nickname":"L48_Expense9","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item9[0].f2_31[0]"},
   {"nickname":"L48_Amount9","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item9[0].f2_32[0]"},
-  {"nickname":"L48","fieldName":"topmostSubform[0].Page2[0].f2_33[0]"},
-  {"nickname":"c1_1_0","fieldName":"topmostSubform[0].Page1[0].c1_1[0]","checkmark":"1"},
-  {"nickname":"c1_1_1","fieldName":"topmostSubform[0].Page1[0].c1_1[1]","checkmark":"2"},
-  {"nickname":"c1_2_0","fieldName":"topmostSubform[0].Page1[0].c1_2[0]","checkmark":"Off"},
-  {"nickname":"c1_4_0","fieldName":"topmostSubform[0].Page1[0].c1_4[0]","checkmark":"Off"},
-  {"nickname":"c1_5_0","fieldName":"topmostSubform[0].Page1[0].c1_5[0]","checkmark":"Off"},
-  {"nickname":"c1_7_0","fieldName":"topmostSubform[0].Page1[0].c1_7[0]","checkmark":"1"},
-  {"nickname":"c2_4_0","fieldName":"topmostSubform[0].Page2[0].c2_4[0]","checkmark":"Off"},
-  {"nickname":"c2_5_0","fieldName":"topmostSubform[0].Page2[0].c2_5[0]","checkmark":"Off"},
-  {"nickname":"c2_6_0","fieldName":"topmostSubform[0].Page2[0].c2_6[0]","checkmark":"Off"},
-  {"nickname":"c2_7_0","fieldName":"topmostSubform[0].Page2[0].c2_7[0]","checkmark":"Off"},
-  {"nickname":"c2_8_0","fieldName":"topmostSubform[0].Page2[0].c2_8[0]","checkmark":"Off"}
+  {"nickname":"L48","fieldName":"topmostSubform[0].Page2[0].f2_33[0]"}
 ];
 
 // This interface was automatically generated from the above schema
@@ -113,23 +113,23 @@ export const f1040sc = [
 export interface F1040SC {
   Name?: string;
   SSN?: string;
-  L0_A?: string;
-  L0_B?: string;
-  L0_C?: string;
-  L0_D?: string;
-  L0_E_Address?: string;
-  L0_E_CityZip?: string;
-  c1_1_0?: boolean;
-  c1_1_1?: boolean;
-  C_F?: boolean;
-  L0_F?: string;
-  c1_2_0?: boolean;
-  L0_F_Accrual?: boolean;
-  C0_G?: boolean;
-  c1_4_0?: boolean;
-  C0_H?: boolean;
-  c1_5_0?: boolean;
-  C0_I?: boolean;
+  LA?: string;
+  LB?: string;
+  LC?: string;
+  LD?: string;
+  LE_Address?: string;
+  LE_CityZip?: string;
+  C_F_Cash?: boolean;
+  C_F_Accrual?: boolean;
+  C_F_Other?: boolean;
+  LF_Other?: string;
+  CG_Yes?: boolean;
+  CG_No?: boolean;
+  CG?: boolean;
+  C0_H_Yes?: boolean;
+  C0_H_No?: boolean;
+  C0_I_Yes?: boolean;
+  C0_I_No?: boolean;
   C0_J?: boolean;
   L1?: string;
   L2?: string;
@@ -168,13 +168,13 @@ export interface F1040SC {
   L30_WorkSize?: string;
   L30?: string;
   L31?: string;
-  c1_7_0?: boolean;
   C32a?: boolean;
   C32b?: boolean;
   C33a?: boolean;
-  C34b?: boolean;
-  c2_4_0?: boolean;
-  C34c?: boolean;
+  C33c?: boolean;
+  C34?: boolean;
+  C34_Yes?: boolean;
+  C34_No?: boolean;
   L35?: string;
   L36?: string;
   L37?: string;
@@ -189,13 +189,13 @@ export interface F1040SC {
   L44a?: string;
   L44b?: string;
   L44c?: string;
-  c2_5_0?: boolean;
+  L45_Yes?: boolean;
   L45_NO?: boolean;
-  c2_6_0?: boolean;
+  L46_Yes?: boolean;
   L46_NO?: boolean;
-  c2_7_0?: boolean;
+  L47a_Yes?: boolean;
   L47a_NO?: boolean;
-  c2_8_0?: boolean;
+  L47b_Yes?: boolean;
   L47b_NO?: boolean;
   L48_Expense1?: string;
   L48_Amount1?: string;

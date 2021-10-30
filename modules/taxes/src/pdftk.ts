@@ -7,10 +7,6 @@ const log = getLogger("info", "pdftk");
 
 type FdfJson = { [key: string]: string; };
 
-export const getFieldNickname = (field) =>
-  field.split(".").pop().replace(/]/g, "_").replace(/\[/g, "_")
-    .replace(/_+/, "_").replace(/^_/, "").replace(/_$/, "");
-
 export const getPdftk = (libs: { fs: any, execFile: any }) => {
   const { fs, execFile } = libs;
   if (!fs) throw new Error(`Node fs module must be injected`);
@@ -22,19 +18,22 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
       execFile("pdftk", [srcFilepath, "dump_data_fields_utf8"], (error, stdout, stderr) => {
         if (stderr) log.error(stderr);
         if (error) return rej(new Error(error));
-        const mapping = stdout.toString().split("---").reduce((mapping, field) => {
+        const mapping = stdout.toString().split("---").reduce((mapping, field, index) => {
           const fieldType = field.match(/FieldType: ([^\n]*)/)?.[1]?.trim() || "";
           const fieldName = field.match(/FieldName: ([^\n]*)/)?.[1]?.trim() || "";
           if (!fieldName || !fieldType) return mapping;
-          const nickname = getFieldNickname(fieldName);
+          const nickname = `${index}_${fieldName.split(".").pop().split("[").shift()}`;
           if (fieldType === "Text") {
             return [...mapping, {
               fieldName,
               nickname,
             }];
           } else if (fieldType === "Button") {
-            // The first state option is the one that checks the box (so far)
-            const checkmark = field.match(/FieldStateOption: ([^\n]*)/)?.[1]?.trim() || "Yes";
+            const checkmark = field
+              .match(/FieldStateOption: [^\n]*/g)
+              .filter(s => !s.endsWith(" Off"))[0]
+              ?.split(":").pop()
+              ?.trim() || "Yes";
             return [...mapping, {
               fieldName,
               nickname,
@@ -45,7 +44,9 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
           }
         }, [] as Mapping);
         const mappingError = getMappingError(mapping);
-        return mappingError ? rej(new Error(mappingError)) : res(mapping);
+        return mappingError
+          ? rej(new Error(`${srcFilepath} default mapping: ${mappingError}`))
+          : res(mapping);
       });
     });
 

@@ -86,7 +86,7 @@ export const InputPorter: React.FC<InputPorterProps> = ({
           </Typography>
           <Box sx={{ my: 2 }}>
             <input
-              accept="text/csv"
+              accept="application/json"
               id="file-importer"
               onChange={handleImport}
               type="file"

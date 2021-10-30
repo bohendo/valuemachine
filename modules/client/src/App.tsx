@@ -4,7 +4,6 @@ import {
   getPrices,
   getValueMachine,
 } from "@valuemachine/core";
-import { getEmptyForms } from "@valuemachine/taxes";
 import {
   Assets,
   getAddressBook,
@@ -12,6 +11,7 @@ import {
 } from "@valuemachine/transactions";
 import {
   StoreKeys,
+  TaxInput,
   Transaction,
 } from "@valuemachine/types";
 import {
@@ -20,6 +20,7 @@ import {
   getCsvFilesError,
   getEmptyAddressBook,
   getEmptyCsvFiles,
+  getTaxInputError,
   getEmptyPrices,
   getEmptyTransactions,
   getEmptyValueMachine,
@@ -73,9 +74,7 @@ export const App: React.FC<AppProps> = ({
   const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsvFiles());
   const [customTxns, setCustomTxns] = useState(store.load(CustomTxnsStore) || [] as Transaction[]);
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
-  const [taxInput, setTaxInput] = useState(
-    store.load(TaxInputStore) || getEmptyForms("USA20")
-  );
+  const [taxInput, setTaxInput] = useState(store.load(TaxInputStore) || {} as TaxInput);
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook());
@@ -173,8 +172,15 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!taxInput) return;
-    console.log(`Saving tax input`, taxInput);
-    store.save(TaxInputStore, taxInput);
+    if (getTaxInputError(taxInput)) {
+      console.log(`Removing invalid tax input`);
+      const newTaxInput = {} as TaxInput;
+      store.save(TaxInputStore, newTaxInput);
+      setTaxInput(newTaxInput);
+    } else {
+      console.log(`Saving valid tax input`);
+      store.save(TaxInputStore, taxInput);
+    }
   }, [taxInput]);
 
   return (

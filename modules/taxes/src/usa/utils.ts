@@ -17,6 +17,7 @@ export {
   EventTypes,
   IntString,
   Logger,
+  TaxInput,
   TaxRow,
 } from "@valuemachine/types";
 export { math } from "@valuemachine/utils";

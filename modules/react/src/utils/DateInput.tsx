@@ -1,20 +1,27 @@
 import TextField from "@mui/material/TextField";
-import React, { useState } from "react";
+import { DateString } from "@valuemachine/types";
+import React, { useEffect, useState } from "react";
 
 type DateInputProps = {
   id?: string;
   label?: string;
   helperText?: string;
-  setDate?: (val: string) => void;
+  date?: DateString;
+  setDate?: (val: DateString) => void;
 };
 export const DateInput: React.FC<DateInputProps> = ({
   id: givenId,
   label: givenLabel,
   helperText,
+  date,
   setDate,
 }: DateInputProps) => {
   const [display, setDisplay] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setDisplay(date || "");
+  }, [date]);
 
   const slugify = str =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
@@ -25,22 +32,21 @@ export const DateInput: React.FC<DateInputProps> = ({
     let error, value;
     if (display.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
       if (isNaN(new Date(display).getTime())) {
-        value = "";
         error = "Date is invalid";
       } else {
-        value = display + "T01:00:00.000Z";
+        value = display;
         error = "";
+        setDate?.(value);
       }
     } else if (display === "") {
       value = "";
       error = "";
+      setDate?.(value);
     } else {
-      value = "";
       error = "Format date as YYYY-MM-DD";
     }
     setError(error);
     setDisplay(display);
-    setDate?.(value);
   };
 
   const label = givenLabel || "Input Date";

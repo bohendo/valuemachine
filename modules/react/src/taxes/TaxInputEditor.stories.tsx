@@ -12,6 +12,21 @@ const Template: ComponentStory<typeof TaxInputEditor> = (args) => <TaxInputEdito
 export const Example = Template.bind({});
 Example.args = {
   taxInput: {
+    personal: {
+      firstName: "Batman",
+      spouseFirstName: "Louis",
+      city: "Metrocity",
+    },
+    business: {
+      name: "Wayne & Co",
+      city: "Gotham",
+    },
+    travel: [{
+      enterDate: "2020-01-01",
+      leaveDate: "2020-03-31",
+      country: "USA",
+      usaIncomeEarned: "1000000",
+    }],
     forms: {
       f1040: {
         Single: false,

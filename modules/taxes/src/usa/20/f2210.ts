@@ -7,16 +7,22 @@ import {
   math,
   processExpenses,
   processIncome,
+  TaxInput,
   TaxRow,
 } from "./utils";
 
-// TODO: fix type
-export const f2210 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+export const f2210 = (
+  forms: Forms,
+  input: TaxInput,
+  taxRows: TaxRow[],
+  logger: Logger,
+): Forms => {
   const log = logger.child({ module: "f2210" });
   const { f1040, f1040s2, f1040s3, f1040sse, f2210 } = forms;
+  const { personal } = input;
 
-  f2210.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
-  f2210.SSN = f1040.SSN;
+  f2210.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
+  f2210.SSN = personal?.SSN;
 
   ////////////////////////////////////////
   // Part I

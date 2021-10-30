@@ -4,19 +4,50 @@ import {
   math,
   processExpenses,
   processIncome,
+  TaxInput,
   TaxRow,
 } from "./utils";
 
 const { add, gt, lt, round, sub } = math;
 
-export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+export const f1040sc = (
+  forms: Forms,
+  input: TaxInput,
+  taxRows: TaxRow[],
+  logger: Logger,
+): Forms => {
   const log = logger.child({ module: "f1040sc" });
-  const { f1040, f1040s1, f1040sc, f1040sse } = forms;
+  const { f1040s1, f1040sc, f1040sse } = forms;
+  const { business, personal } = input;
+
+  // If no business info, then omit this form
+  if (!business) {
+    delete forms.f1040sc;
+    return forms;
+  }
+
+  f1040sc.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
+  f1040sc.SSN = personal?.SSN;
+
+  f1040sc.LA = business.industry;
+  f1040sc.LB = business.code;
+  f1040sc.LC = business.name;
+  f1040sc.LD = business.eid;
+  f1040sc.LE_Address = business.street;
+  f1040sc.LE_CityZip = `${
+    business.city ? `${business.city}, ` : ""
+  }${
+    business.state ? `${business.state} ` : ""
+  }${business.zip || ""}`;
+
+  if (business.accountingMethod === "Cash") f1040sc.C_F_Cash = true;
+  else if (business.accountingMethod === "Accrual") f1040sc.C_F_Accrual = true;
+  else if (business.accountingMethod) {
+    f1040sc.LF_Other = business.accountingMethod;
+    f1040sc.C_F_Other = true;
+  }
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
-
-  f1040sc.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;
-  f1040sc.SSN = f1040.SSN;
 
   let totalIncome = "0";
   processIncome(taxRows, (income: TaxRow, value: string): void => {
@@ -82,6 +113,17 @@ export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
     f1040sc.L48 = add(f1040sc.L48, exchangeFees);
   }
 
+  f1040sc.L48 = add(
+    f1040sc.L48_Amount1,
+    f1040sc.L48_Amount2,
+    f1040sc.L48_Amount3,
+    f1040sc.L48_Amount4,
+    f1040sc.L48_Amount5,
+    f1040sc.L48_Amount6,
+    f1040sc.L48_Amount7,
+    f1040sc.L48_Amount8,
+    f1040sc.L48_Amount9,
+  );
   f1040sc.L27a = f1040sc.L48;
 
   f1040sc.L28 = add(

@@ -107,12 +107,8 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
     setNewTransaction(getBlankTransaction()); // reset editor
   };
 
-  const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    setTab(newValue);
-  };
-
   return (<>
-    <Box sx={{ m: 1 }}>
+    <Box sx={{ m: 1, mb: 48 }}>
 
       <Typography variant="h4" sx={{ m: 2 }}>
         Manage Input Data
@@ -136,7 +132,7 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
       <Tabs
         centered
         indicatorColor="secondary"
-        onChange={handleTabChange}
+        onChange={(evt, newVal) => setTab(newVal)}
         sx={{ m: 1 }}
         textColor="secondary"
         value={tab}

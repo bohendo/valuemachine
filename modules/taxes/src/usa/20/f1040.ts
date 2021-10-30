@@ -4,12 +4,19 @@ import {
   getIncomeTax,
   Logger,
   math,
+  TaxInput,
 } from "./utils";
 
-export const f1040 = (forms: Forms, logger: Logger): Forms => {
+export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   const log = logger.child({ module: "f1040" });
   const { f1040, f2555 } = forms;
+  const personal = input.personal || {};
 
+  if (personal.filingStatus === "Single") f1040.Single = true;
+  if (personal.filingStatus === "MarriedSeparate") f1040.MarriedSeparate = true;
+  if (personal.filingStatus === "MarriedJoint") f1040.MarriedJoint = true;
+  if (personal.filingStatus === "Widow") f1040.Widow = true;
+  if (personal.filingStatus === "HeadOfHousehold") f1040.HeadOfHousehold = true;
   let filingStatus;
   if (f1040.Single || f1040.MarriedSeparate) {
     filingStatus = FilingStatuses.Single;
@@ -19,9 +26,23 @@ export const f1040 = (forms: Forms, logger: Logger): Forms => {
     filingStatus = FilingStatuses.Head;
   }
 
-  // These two lines should throw type errors at build time
-  //f1040.StatusInfo = true;
-  //f1040.HasCrypto_Yes = "Yea";
+  f1040.FirstNameMI = `${personal.firstName || ""} ${personal.middleInitial || ""}`;
+  f1040.LastName = personal.lastName;
+  f1040.SSN = personal.SSN;
+  f1040.SpouseFirstNameMI = `${personal.spouseFirstName || ""} ${personal.spouseMiddleInitial || ""}`;
+  f1040.SpouseLastName = personal.spouseLastName;
+  f1040.SpouseSSN = personal.spouseSSN;
+  f1040.StreetAddress = personal.streetAddress;
+  f1040.Apt = personal.apt;
+  f1040.City = personal.city;
+  f1040.State = personal.state;
+  f1040.Zip = personal.zip;
+  f1040.ForeignCountry = personal.foreignCountry;
+  f1040.ForeignState = personal.foreignState;
+  f1040.ForeignZip = personal.foreignZip;
+
+  f1040.Occupation = personal.occupation;
+  f1040.SpouseOccupation = personal.spouseOccupation;
 
   f1040.L9 = math.add(
     f1040.L1, f1040.L2b, f1040.L3b, f1040.L4b,

@@ -9,11 +9,11 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-// import Typography from "@mui/material/Typography";
+import Typography from "@mui/material/Typography";
 import { FormArchive, MappingArchive, TaxYears } from "@valuemachine/taxes";
 import React, { useEffect, useState } from "react";
 
-import { SelectOne, TextInput } from "../utils";
+import { Confirm, SelectOne, TextInput } from "../utils";
 
 const taxYear = TaxYears.USA20;
 const mappings = MappingArchive[taxYear];
@@ -28,15 +28,10 @@ export const FormsEditor: React.FC<FormsEditorProps> = ({
   forms,
   setForms,
 }: FormsEditorProps) => {
-  const [newForm, setNewForm] = useState({} as NewForm);
-  const [error, setError] = useState("");
+  const [confirmMsg, setConfirmMsg] = useState("");
   const [modified, setModified] = useState(false);
-
-  console.log(`Rendering new form: ${JSON.stringify(newForm)}`);
-
-  useEffect(() => {
-    if (!modified) setError("");
-  }, [modified]);
+  const [newForm, setNewForm] = useState({} as NewForm);
+  const [pendingDel, setPendingDel] = useState({ form: "", field: "" });
 
   useEffect(() => {
     if (!forms || !newForm) {
@@ -61,22 +56,38 @@ export const FormsEditor: React.FC<FormsEditorProps> = ({
     setNewForm({} as NewForm);
   };
 
-  const handleDelete = (form, field) => {
-    if (!forms || !forms[form] || !forms[form][field]) return;
+  const handleDelete = (form: string, field: string) => {
+    setPendingDel({ form, field });
+    setConfirmMsg(`Are you sure you want to delete ${form}.${field}`);
+  };
+
+  const doDelete = () => {
+    if (!pendingDel || !pendingDel.form || !pendingDel.field) return;
+    const { form, field } = pendingDel;
+    if (!forms || !forms[form] || !(field in forms[form])) return;
+    console.log(`Deleting ${form}.${field}`);
     const targetForm = forms?.[form] || {};
     delete targetForm[field];
     setForms?.({
       ...(forms || {}),
       [form]: targetForm,
     });
+    setPendingDel({ form: "", field: "" });
+    setConfirmMsg("");
   };
 
   return (<>
     <Grid container spacing={1} sx={{ mb: 2, pl: 1 }}>
 
+      <Grid item xs={12}>
+        <Typography variant="h4">
+          {`${taxYear} Tax Forms`}
+        </Typography>
+      </Grid>
+
       <Grid item sx={{ mt: 3 }}>
         <Button
-          disabled={!modified || !!error}
+          disabled={!modified}
           onClick={handleInsert}
           variant="contained"
         >
@@ -176,5 +187,6 @@ export const FormsEditor: React.FC<FormsEditorProps> = ({
       </Table>
     </TableContainer>
 
+    <Confirm message={confirmMsg} setMessage={setConfirmMsg} action={doDelete} />
   </>);
 };

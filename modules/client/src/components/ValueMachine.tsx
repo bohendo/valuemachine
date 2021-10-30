@@ -78,10 +78,6 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
     setVMJson(getEmptyValueMachine());
   };
 
-  const handleTabChange = (event: React.ChangeEvent<{}>, newValue: number) => {
-    setTab(newValue);
-  };
-
   return (
     <>
       <Typography variant="h3">
@@ -115,7 +111,12 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
 
       <Divider/>
 
-      <Tabs value={tab} onChange={handleTabChange} sx={{ m: 1 }} centered>
+      <Tabs
+        value={tab}
+        onChange={(evt, newVal) => setTab(newVal)}
+        sx={{ m: 1 }}
+        centered
+      >
         <Tab label="Events"/>
         <Tab label="Chunks"/>
       </Tabs>

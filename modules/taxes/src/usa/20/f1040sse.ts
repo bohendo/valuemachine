@@ -2,17 +2,30 @@ import {
   Forms,
   Logger,
   math,
+  TaxInput,
   TaxRow,
 } from "./utils";
 
 const { add, eq, gt, lt, min, mul, sub } = math;
 
-export const f1040sse = (forms: Forms, _taxRows: TaxRow[], logger: Logger): Forms => {
+export const f1040sse = (
+  forms: Forms,
+  input: TaxInput,
+  taxRows: TaxRow[],
+  logger: Logger,
+): Forms => {
   const log = logger.child({ module: "f1040sse" });
   const { f1040s1, f1040s2, f1040s3, f1040sse } = forms;
+  const { personal, business } = input;
 
-  f1040sse.Name = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
-  f1040sse.SSN = forms.f1040.SSN;
+  // If no business info, then omit this form
+  if (!business) {
+    delete forms.f1040sse;
+    return forms;
+  }
+
+  f1040sse.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
+  f1040sse.SSN = personal?.SSN;
 
   f1040sse.L3 = add(f1040sse.L1a, f1040sse.L1b, f1040sse.L2);
 
@@ -20,9 +33,10 @@ export const f1040sse = (forms: Forms, _taxRows: TaxRow[], logger: Logger): Form
   f1040sse.L4c = add(f1040sse.L4a, f1040sse.L4b);
 
   if (lt(f1040sse.L4c, "400")) {
-    return { ...forms, f1040sse: {} }; // We don't need to file this form
+    log.warn(`Not filing form f1040sse bc L4c < 400`);
+    delete forms.f1040sse;
+    return forms;
   }
-
 
   f1040sse.L5b = mul(f1040sse.L5a, "0.9235");
   if (math.lt(f1040sse.L5b, "100")) {

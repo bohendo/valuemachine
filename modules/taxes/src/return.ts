@@ -13,6 +13,6 @@ export const getTaxReturn = (
   log = logger,
 ): Forms =>
   !year ? {}
-  : year === TaxYears.USA19 ? getUSA19Return(taxInput.forms, taxRows, log)
-  : year === TaxYears.USA20 ? getUSA20Return(taxInput.forms, taxRows, log)
+  : year === TaxYears.USA19 ? getUSA19Return(taxInput, taxRows, log)
+  : year === TaxYears.USA20 ? getUSA20Return(taxInput, taxRows, log)
   : {};
