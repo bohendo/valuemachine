@@ -44,6 +44,6 @@ export const getBytes32Error = (address: Bytes32): string => validateBytes32(add
   : `Invalid Bytes32: ${JSON.stringify(address)}`;
 
 const validateTxId = ajv.compile(TxId);
-export const getTxIdError = (txid: TxId): string => validateTxId(txid) ? ""
+export const getTxIdError = (txId: TxId): string => validateTxId(txId) ? ""
   : validateTxId.errors.length ? formatErrors(validateTxId.errors)
-  : `Invalid TxId: ${JSON.stringify(txid)}`;
+  : `Invalid TxId: ${JSON.stringify(txId)}`;

@@ -5,12 +5,15 @@ import {
   TransactionsJson,
   Transfer,
   TransferCategories,
+  TxTags,
 } from "@valuemachine/types";
 
 import { diff, lt } from "./math";
 import { ajv, formatErrors } from "./validate";
 
 export const getEmptyTransactions = (): TransactionsJson => [];
+
+export const getEmptyTxTags = (): TxTags => ({});
 
 export const getBlankTransaction = (): Transaction => JSON.parse(JSON.stringify({
   apps: [],
@@ -69,6 +72,11 @@ export const getTransactionsError = (transactionsJson: TransactionsJson): string
     return "";
   }
 };
+
+const validateTxTags = ajv.compile(TxTags);
+export const getTxTagsError = (txTags: TxTags): string => validateTxTags(txTags) ? ""
+  : validateTxTags.errors.length ? formatErrors(validateTxTags.errors)
+  : `Invalid TxTags: ${JSON.stringify(txTags)}`;
 
 export const dedup = <T>(array: T[]): T[] =>
   Array.from(new Set([...array]));

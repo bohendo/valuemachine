@@ -7,6 +7,7 @@ import {
   Prices,
   TaxRow,
   TradeEvent,
+  TxTags,
   ValueMachine,
 } from "@valuemachine/types";
 import {
@@ -23,11 +24,13 @@ export const getTaxRows = ({
   prices,
   vm,
   taxYear,
+  txTags,
 }: {
   guard: Guard;
   prices: Prices;
   vm: ValueMachine;
   taxYear?: string;
+  txTags?: TxTags,
 }): TaxRow[] => {
   const unit = securityFeeMap[guard] || "";
   const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
@@ -75,7 +78,7 @@ export const getTaxRows = ({
             capitalChange,
             cumulativeChange,
             cumulativeIncome,
-            tags: evt.tags,
+            tags: txTags?.[evt.txId] || [],
           };
         } else {
           return null;
@@ -101,7 +104,7 @@ export const getTaxRows = ({
           capitalChange: "0",
           cumulativeChange,
           cumulativeIncome,
-          tags: evt.tags,
+          tags: txTags?.[evt.txId] || [],
         } as TaxRow;
       }));
 

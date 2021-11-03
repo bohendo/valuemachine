@@ -2,7 +2,10 @@ import { expect } from "chai";
 import { AddressZero } from "@ethersproject/constants";
 import { TransferCategories } from "@valuemachine/types";
 
-import { getTransactionsError } from "./transactions";
+import {
+  getTransactionsError,
+  getTxTagsError,
+} from "./transactions";
 
 const validTransaction = {
   apps: [],
@@ -26,6 +29,9 @@ const validTransaction = {
   }],
 };
 
+const validTxTags = {
+};
+
 describe("Transactions", () => {
   it("should return no errors if json is valid", async () => {
     expect(getTransactionsError([validTransaction])).to.equal("");
@@ -39,4 +45,7 @@ describe("Transactions", () => {
     expect(getTransactionsError([{ ...validTransaction, index: 1 }])).to.be.a("string");
   });
 
+  it("should return no errors if tags is valid", async () => {
+    expect(getTransactionsError([validTransaction])).to.equal("");
+  });
 });

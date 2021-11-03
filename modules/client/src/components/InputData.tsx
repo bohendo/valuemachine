@@ -31,6 +31,7 @@ import {
   CsvFiles,
   Transaction,
   TaxInput,
+  TxTags,
 } from "@valuemachine/types";
 import { getBlankAddressEntry, getBlankTransaction, getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
@@ -46,6 +47,8 @@ type InputDataManagerProps = {
   setCustomTxns: (val: Transaction[]) => void;
   taxInput: TaxInput;
   setTaxInput: (val: TaxInput) => void;
+  txTags: TxTags;
+  setTxTags: (val: TxTags) => void;
 };
 export const InputDataManager: React.FC<InputDataManagerProps> = ({
   addressBook,
@@ -56,6 +59,8 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
   setCustomTxns,
   taxInput,
   setTaxInput,
+  txTags,
+  setTxTags,
 }: InputDataManagerProps) => {
   const [confirmMsg, setConfirmMsg] = useState("");
   const [pendingDel, setPendingDel] = useState("");
@@ -125,6 +130,8 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
             setCustomTxns={setCustomTxns}
             taxInput={taxInput}
             setTaxInput={setTaxInput}
+            txTags={txTags}
+            setTxTags={setTxTags}
           />
         </Grid>
       </Grid>

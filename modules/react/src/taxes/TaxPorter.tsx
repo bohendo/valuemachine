@@ -17,6 +17,7 @@ import {
   Prices,
   TaxInput,
   TradeEvent,
+  TxTags,
   ValueMachine,
 } from "@valuemachine/types";
 import { dedup, round } from "@valuemachine/utils";
@@ -27,15 +28,17 @@ import React, { useEffect } from "react";
 import { SelectOne } from "../utils";
 
 type TaxPorterProps = {
-  taxInput?: TaxInput;
   guard: Guard;
   prices: Prices,
+  taxInput?: TaxInput;
+  txTags?: TxTags;
   vm: ValueMachine,
 };
 export const TaxPorter: React.FC<TaxPorterProps> = ({
-  taxInput,
   guard,
   prices,
+  taxInput,
+  txTags,
   vm,
 }: TaxPorterProps) => {
   const [taxYear, setTaxYear] = React.useState(allTaxYears);
@@ -55,7 +58,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
   const handleCsvExport = () => {
     console.log(`Exporting csv for ${taxYear} taxes`);
-    const taxes = getTaxRows({ guard, prices, vm, taxYear });
+    const taxes = getTaxRows({ guard, prices, vm, taxYear, txTags });
     if (!taxes?.length) {
       console.warn(`There were no known taxable events in ${taxYear}`);
       return;
@@ -86,7 +89,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     if (guard !== Guards.USA) return;
     const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
     if (!year) return;
-    const taxRows = getTaxRows({ guard, prices, vm, taxYear });
+    const taxRows = getTaxRows({ guard, prices, vm, taxYear, txTags });
     console.log(`Fetching tax return for ${year} w ${Object.keys(taxInput).length} forms`);
     const forms = getTaxReturn(year, taxInput, taxRows);
     return new Promise((res, rej) => {
