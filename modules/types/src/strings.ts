@@ -50,7 +50,14 @@ export type Source = Static<typeof Source>;
 export const DateTimeString = Type.String({ format: "date-time" });
 export type DateTimeString = Static<typeof DateTimeString>;
 
+// TODO: tighten regexes
+
 // guard/hash
 // eg Ethereum/0xabc123 for a tx on eth mainnet
 export const TxId = Type.RegEx(/[a-zA-Z0-9]/);
 export type TxId = Static<typeof TxId>;
+
+// guard/hash/index
+// eg Ethereum/0xabc123.../123 for a transfer at index 123
+export const TransferId = Type.RegEx(/[a-zA-Z0-9]/);
+export type TransferId = Static<typeof TransferId>;

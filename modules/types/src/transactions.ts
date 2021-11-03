@@ -4,6 +4,8 @@ import { CsvParser } from "./csv";
 import { Logger } from "./logger";
 import {
   Account,
+  TxId,
+  TransferId,
   Amount,
   Asset,
   DateTimeString,
@@ -44,7 +46,7 @@ export const Transfer = Type.Object({
   asset: Asset,
   category: TransferCategory,
   from: Account,
-  index: Type.Optional(Type.Number()),
+  index: Type.Optional(Type.Number()), // TODO: require an index on all transfers
   to: Account,
 });
 export type Transfer = Static<typeof Transfer>;
@@ -56,12 +58,18 @@ export const Transaction = Type.Object({
   method: Type.String(),
   sources: Type.Array(Source),
   transfers: Type.Array(Transfer),
-  uuid: Type.String(),
+  uuid: TxId,
 });
 export type Transaction = Static<typeof Transaction>;
 
 export const TransactionsJson = Type.Array(Transaction);
 export type TransactionsJson = Static<typeof TransactionsJson>;
+
+export const TxTags = Type.Record(
+  Type.String(), // TODO: set to TxId | TransferId
+  Type.Array(Type.String()),
+);
+export type TxTags = Static<typeof TxTags>;
 
 ////////////////////////////////////////
 // Function Interfaces
