@@ -4,12 +4,13 @@ import { CsvParser } from "./csv";
 import { Logger } from "./logger";
 import {
   Account,
-  TxId,
-  TransferId,
   Amount,
+  Guard,
   Asset,
   DateTimeString,
+  DecString,
   Source,
+  TxId,
 } from "./strings";
 import { Store } from "./store";
 
@@ -66,8 +67,13 @@ export const TransactionsJson = Type.Array(Transaction);
 export type TransactionsJson = Static<typeof TransactionsJson>;
 
 export const TxTags = Type.Record(
-  Type.String(), // TODO: set to TxId | TransferId
-  Type.Array(Type.String()),
+  TxId,
+  Type.Object({
+    description: Type.Optional(Type.String()),
+    incomeType: Type.Optional(Type.String()),
+    multiplier: Type.Optional(DecString),
+    physicalGuard: Type.Optional(Guard),
+  }),
 );
 export type TxTags = Static<typeof TxTags>;
 

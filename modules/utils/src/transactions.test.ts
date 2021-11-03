@@ -9,7 +9,7 @@ const validTransaction = {
   index: 0,
   date: new Date(0).toISOString(),
   method: "Unknown",
-  uuid: "UniversallyUniqueIdentifier",
+  uuid: "Ethereum/0xabc123",
   sources: [],
   transfers: [{
     asset: "ETH",
