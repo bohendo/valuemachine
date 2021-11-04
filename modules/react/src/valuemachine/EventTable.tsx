@@ -31,11 +31,13 @@ type EventTableProps = {
   addressBook?: AddressBook;
   vm?: ValueMachine;
   txTags?: TxTags;
+  setTxTags?: (val: TxTags) => void;
 };
 export const EventTable: React.FC<EventTableProps> = ({
   addressBook,
   vm,
   txTags,
+  setTxTags,
 }: EventTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
@@ -142,6 +144,7 @@ export const EventTable: React.FC<EventTableProps> = ({
                   addressBook={addressBook}
                   event={event}
                   txTags={txTags}
+                  setTxTags={setTxTags}
                 />
               ))}
           </TableBody>

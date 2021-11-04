@@ -9,7 +9,8 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import { IncomeTypes, TxTags, TxTagTypes } from "@valuemachine/types";
+//import Typography from "@mui/material/Typography";
+import { IncomeTypes, TxId, TxTags, TxTagTypes } from "@valuemachine/types";
 import { getDecStringError, getTxIdError } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
@@ -23,17 +24,30 @@ type NewTxTag = {
 type TxTagsEditorProps = {
   txTags?: TxTags;
   setTxTags?: (val: TxTags) => void;
+  txId?: TxId;
 };
 export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
   txTags,
   setTxTags,
+  txId,
 }: TxTagsEditorProps) => {
   const [confirmMsg, setConfirmMsg] = useState("");
   const [modified, setModified] = useState(false);
   const [newTxTag, setNewTxTag] = useState({} as NewTxTag);
+  const [txTagDisplay, setTxTagDisplay] = useState({} as NewTxTag);
   const [pendingDel, setPendingDel] = useState({ txId: "", tagType: "" });
 
   console.log(`newTxTag=${JSON.stringify(newTxTag)}`);
+
+  useEffect(() => {
+    setTxTagDisplay(!txId ? txTags : Object.keys(txTags || {}).reduce((tags, id) => {
+      return id === txId ? { ...tags, [txId]: txTags?.[txId] } : tags;
+    }, {} as TxTags));
+    if (!txId) return;
+    setNewTxTag({ ...newTxTag, txId });
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [txId]);
 
   useEffect(() => {
     if (!txTags || !newTxTag) {
@@ -79,7 +93,7 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
   };
 
   return (<>
-    <Grid container spacing={1} sx={{ mb: 2, p: 2 }}>
+    <Grid container spacing={1} sx={{ p: 2 }}>
 
       <Grid item sx={{ mt: 3 }}>
         <Button
@@ -91,21 +105,25 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
         </Button>
       </Grid>
 
-      <Grid item>
-        <TextInput
-          getError={getTxIdError}
-          helperText={"Transaction ID"}
-          label="TxId"
-          setText={txId => setNewTxTag({ ...newTxTag, txId })}
-          text={
-            newTxTag.txId?.toString()
-            || txTags?.[newTxTag?.txId || ""]?.[newTxTag?.tagType || ""]
-            || ""
-          }
-        />
+      <Grid item sx={{ alignItems: "center" }}>
+        {txId ? (
+          <HexString value={txId} sx={{ mt: 4, ml: 2 }} />
+        ) : (
+          <TextInput
+            getError={getTxIdError}
+            helperText={"Transaction ID"}
+            label="TxId"
+            setText={txId => setNewTxTag({ ...newTxTag, txId })}
+            text={
+              newTxTag.txId?.toString()
+              || txTags?.[newTxTag?.txId || ""]?.[newTxTag?.tagType || ""]
+              || ""
+            }
+          />
+        )}
       </Grid>
 
-      {newTxTag.txId ? (
+      {(newTxTag.txId || txId) ? (
         <Grid item>
           <SelectOne
             label="Tag Type"
@@ -151,26 +169,26 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {!txTags ? null : Object.keys(txTags).reduce((rows: any[], txId: string) => {
-            Object.keys(txTags[txId]).forEach(tagType => {
+          {!txTagDisplay ? null : Object.keys(txTagDisplay).reduce((rows: any[], txId: string) => {
+            Object.keys(txTagDisplay[txId]).forEach(tagType => {
               rows.push(
                 <TableRow key={`${txId}_${tagType}`}>
                   <TableCell> <HexString value={txId} /> </TableCell>
                   <TableCell> {tagType} </TableCell>
-                  <TableCell> {typeof txTags[txId][tagType] === "boolean" ? (
+                  <TableCell> {typeof txTagDisplay[txId][tagType] === "boolean" ? (
                     <Checkbox
                       onChange={() => setTxTags?.({
-                        ...(txTags || {}),
+                        ...(txTagDisplay || {}),
                         [txId]: {
-                          ...txTags[txId],
-                          [tagType]: !txTags[txId][tagType],
+                          ...txTagDisplay[txId],
+                          [tagType]: !txTagDisplay[txId][tagType],
                         },
                       })}
-                      checked={txTags[txId][tagType]}
-                      indeterminate={typeof txTags[txId][tagType] !== "boolean"}
+                      checked={txTagDisplay[txId][tagType]}
+                      indeterminate={typeof txTagDisplay[txId][tagType] !== "boolean"}
                     />
                   ) : (
-                    txTags[txId][tagType]
+                    txTagDisplay[txId][tagType]
                   )
                   } </TableCell>
                   <TableCell

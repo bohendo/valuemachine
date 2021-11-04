@@ -19,17 +19,20 @@ import {
 import { describeChunk, describeEvent } from "@valuemachine/core";
 import React, { useEffect, useState } from "react";
 
+import { TxTagsEditor } from "../txTags";
 import { HexString } from "../utils";
 
 type EventRowProps = {
   addressBook?: AddressBook;
   event: HydratedEvent;
   txTags?: TxTags;
+  setTxTags?: (val: TxTags) => void;
 };
 export const EventRow: React.FC<EventRowProps> = ({
   addressBook,
   event,
   txTags,
+  setTxTags,
 }: EventRowProps) => {
   const [open, setOpen] = useState(false);
 
@@ -69,7 +72,7 @@ export const EventRow: React.FC<EventRowProps> = ({
               <TableRow key={i}>
                 <TableCell sx={{ maxWidth: "8em" }}><strong> {key} </strong></TableCell>
                 <TableCell> {
-                  isHexString(value?.split("/")?.pop())
+                  value?.split("/").some(part => isHexString(part))
                     ? <HexString value={value} display={addressBook?.getName(value, true)}/>
                     : <Typography> {
                       typeof value === "string" ? value : JSON.stringify(value)
@@ -148,6 +151,11 @@ export const EventRow: React.FC<EventRowProps> = ({
                 } : {}
               }/>
             </Box>
+            <TxTagsEditor
+              txTags={txTags}
+              setTxTags={setTxTags}
+              txId={event.txId}
+            />
           </Collapse>
         </TableCell>
       </TableRow>

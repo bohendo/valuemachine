@@ -12,9 +12,11 @@ const { Ethereum, Polygon } = EvmNames;
 export const HexString = ({
   value,
   display,
+  sx,
 }: {
   value: string,
   display?: string,
+  sx?: any,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -58,6 +60,7 @@ export const HexString = ({
             flexWrap: "wrap",
             overflowWrap: "anywhere",
             wordBreak: "normal",
+            ...sx,
           }}>
             {displayParts.map((part,i) => (
               <Typography key={i} noWrap>
