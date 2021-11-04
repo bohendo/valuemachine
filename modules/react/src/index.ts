@@ -24,6 +24,7 @@ export {
   TransactionEditor,
   TransactionPorter,
   TransactionTable,
+  TxTagsEditor,
 } from "./transactions";
 export {
   Confirm,
