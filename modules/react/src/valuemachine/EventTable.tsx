@@ -18,6 +18,7 @@ import {
   GuardChangeEvent,
   HydratedEvent,
   TradeEvent,
+  TxTags,
   ValueMachine,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
@@ -27,12 +28,14 @@ import { SelectOne } from "../utils";
 import { EventRow } from "./EventRow";
 
 type EventTableProps = {
-  addressBook: AddressBook;
-  vm: ValueMachine;
+  addressBook?: AddressBook;
+  vm?: ValueMachine;
+  txTags?: TxTags;
 };
 export const EventTable: React.FC<EventTableProps> = ({
   addressBook,
   vm,
+  txTags,
 }: EventTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
@@ -43,12 +46,12 @@ export const EventTable: React.FC<EventTableProps> = ({
   const [filteredEvents, setFilteredEvents] = useState([] as HydratedEvent[]);
 
   useEffect(() => {
-    setAccounts(vm.getAccounts());
+    setAccounts(vm?.getAccounts() || []);
   }, [addressBook, vm]);
 
   useEffect(() => {
     setPage(0);
-    setFilteredEvents(vm.json?.events?.filter(event =>
+    setFilteredEvents(vm?.json?.events?.filter(event =>
       (!filterType || event.type === filterType)
       && (!filterCode || (event as ErrorEvent)?.code === filterCode)
       && (!filterAccount || (
@@ -60,7 +63,7 @@ export const EventTable: React.FC<EventTableProps> = ({
       (e1.date > e2.date) ? -1
       : (e1.date < e2.date) ? 1
       : 0
-    ).map((e: Event) => vm.getEvent(e.index)) || []);
+    ).map((e: Event) => vm?.getEvent(e.index)) || []);
   }, [vm, filterAccount, filterType, filterCode]);
 
   useEffect(() => {
@@ -81,9 +84,9 @@ export const EventTable: React.FC<EventTableProps> = ({
       <Grid container>
         <Grid item xs={12}>
           <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
-            {filteredEvents.length === vm.json?.events?.length
+            {filteredEvents.length === vm?.json?.events?.length
               ? `${filteredEvents.length} Events`
-              : `${filteredEvents.length} of ${vm.json?.events?.length || 0} Events`
+              : `${filteredEvents.length} of ${vm?.json?.events?.length || 0} Events`
             }
           </Typography>
         </Grid>
@@ -94,7 +97,7 @@ export const EventTable: React.FC<EventTableProps> = ({
             choices={accounts.sort()}
             selection={filterAccount}
             setSelection={setFilterAccount}
-            toDisplay={val => addressBook.getName(val, true)}
+            toDisplay={val => addressBook?.getName(val, true) || val}
           />
         </Grid>
 
@@ -138,6 +141,7 @@ export const EventTable: React.FC<EventTableProps> = ({
                   key={i}
                   addressBook={addressBook}
                   event={event}
+                  txTags={txTags}
                 />
               ))}
           </TableBody>

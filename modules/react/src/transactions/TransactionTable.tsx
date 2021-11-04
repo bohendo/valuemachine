@@ -89,7 +89,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       .filter(hasApp(filterApp))
       .sort((e1: Transaction, e2: Transaction) =>
         (e1.date > e2.date) ? -1 : (e1.date < e2.date) ? 1 : 0
-      )
+      ) || []
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -155,7 +155,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   };
 
   return (<>
-
     <Paper sx={{ p: 2 }}>
 
       <Grid container>
@@ -174,7 +173,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             choices={ourAccounts}
             selection={filterAccount}
             setSelection={setFilterAccount}
-            toDisplay={val => addressBook.getName(val, true)}
+            toDisplay={val => addressBook?.getName(val, true) || val}
           />
         </Grid>
 
@@ -193,7 +192,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             choices={ourAssets}
             selection={filterAsset}
             setSelection={setFilterAsset}
-            toDisplay={val => addressBook.getName(val, true)}
+            toDisplay={val => addressBook?.getName(val, true) || val}
           />
         </Grid>
 
@@ -260,17 +259,17 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             }
           </TableBody>
         </Table>
-
-        <TablePagination
-          rowsPerPageOptions={[25, 50, 100, 250]}
-          component="div"
-          count={filteredTxns?.length || 0}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
       </TableContainer>
+      <TablePagination
+        rowsPerPageOptions={[25, 50, 100, 250]}
+        component="div"
+        count={filteredTxns?.length || 0}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+
     </Paper>
 
   </>);

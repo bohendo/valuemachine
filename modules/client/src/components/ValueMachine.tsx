@@ -11,6 +11,7 @@ import {
   AddressBook,
   Transactions,
   TransactionsJson,
+  TxTags,
   ValueMachine,
 } from "@valuemachine/types";
 import {
@@ -21,15 +22,17 @@ import React, { useEffect, useState } from "react";
 
 type ValueMachineExplorerProps = {
   addressBook: AddressBook;
-  vm: ValueMachine;
   setVMJson: (vmJson: any) => void;
   transactions: Transactions;
+  txTags?: TxTags;
+  vm: ValueMachine;
 };
 export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
   addressBook,
-  vm,
   setVMJson,
   transactions,
+  txTags,
+  vm,
 }: ValueMachineExplorerProps) => {
   const [tab, setTab] = useState(0);
   const [syncing, setSyncing] = useState({ transactions: false, state: false, prices: false });
@@ -121,10 +124,10 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
         <Tab label="Chunks"/>
       </Tabs>
       <div hidden={tab !== 0}>
-        <EventTable addressBook={addressBook} vm={vm}/>
+        <EventTable addressBook={addressBook} txTags={txTags} vm={vm} />
       </div>
       <div hidden={tab !== 1}>
-        <ChunkTable addressBook={addressBook} vm={vm}/>
+        <ChunkTable addressBook={addressBook} vm={vm} />
       </div>
 
     </>

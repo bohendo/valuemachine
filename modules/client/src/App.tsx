@@ -239,6 +239,7 @@ export const App: React.FC<AppProps> = ({
                 vm={vm}
                 setVMJson={setVMJson}
                 transactions={transactions}
+                txTags={txTags}
               />
             </Route>
 

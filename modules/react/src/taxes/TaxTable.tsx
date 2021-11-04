@@ -58,14 +58,14 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   };
 
   return (<>
+    <Paper sx={{ p: 2 }}>
 
-    <Paper sx={{ p: 2, minWidth: "80em" }}>
       <Typography align="center" variant="h4" sx={{ pt: 2 }} component="div">
         {`${taxes.length} Taxable ${guard} Event${taxes.length > 1 ? "s" : ""}`}
       </Typography>
 
       <TableContainer>
-        <Table>
+        <Table size="small" sx={{ minWidth: "68em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
               <TableCell><strong> Date </strong></TableCell>
@@ -99,17 +99,18 @@ export const TaxTable: React.FC<TaxTableProps> = ({
               ))}
           </TableBody>
         </Table>
-        <TablePagination
-          rowsPerPageOptions={[25, 50, 100, 250]}
-          component="div"
-          count={taxes.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
       </TableContainer>
-    </Paper>
 
+      <TablePagination
+        rowsPerPageOptions={[25, 50, 100, 250]}
+        component="div"
+        count={taxes.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+
+    </Paper>
   </>);
 };

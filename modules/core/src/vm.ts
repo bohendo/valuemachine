@@ -427,12 +427,14 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     const swapsOut = [] as AssetChunk[];
     const swapsIn = [] as AssetChunk[];
     transfers.forEach(transfer => {
-      const { asset, category, from, to } = transfer;
+      const { asset, category, from, index, to } = transfer;
       const amount = !transfer.amount ? "1" // treat NFTs as always having amount=1
         : transfer.amount === "ALL" ? getBalance(asset, from)
         : transfer.amount;
 
       if (eq(amount, "0")) return;
+
+      txId = index ? `${tx.uuid}/${index}` : tx.uuid;
 
       if (category === Internal) {
         moveValue(amount, asset, from, to);
@@ -489,6 +491,8 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         log.debug(`Skipping transfer of type ${category}`);
       }
     });
+
+    txId = tx.uuid;
 
     // If we have mismatched swap transfers, emit errors
     if (swapsIn.length && !swapsOut.length) {

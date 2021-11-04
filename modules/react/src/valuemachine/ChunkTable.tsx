@@ -26,8 +26,8 @@ import { SelectOne } from "../utils";
 import { ChunkRow } from "./ChunkRow";
 
 type ChunkTableProps = {
-  addressBook: AddressBook;
-  vm: ValueMachine;
+  addressBook?: AddressBook;
+  vm?: ValueMachine;
 };
 export const ChunkTable: React.FC<ChunkTableProps> = ({
   addressBook,
@@ -43,16 +43,16 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
   const [filteredChunks, setFilteredChunks] = useState([] as AssetChunk[]);
 
   useEffect(() => {
-    setAccounts(vm.getAccounts());
+    setAccounts(vm?.getAccounts() || []);
   }, [addressBook, vm]);
 
   useEffect(() => {
-    setAssets(dedup(vm.json.chunks.map(chunk => chunk.asset)));
+    setAssets(dedup(vm?.json.chunks.map(chunk => chunk.asset) || []));
   }, [addressBook, vm]);
 
   useEffect(() => {
     setPage(0);
-    setFilteredChunks(vm.json?.chunks?.filter(chunk =>
+    setFilteredChunks(vm?.json?.chunks?.filter(chunk =>
       (!filterHeld || (filterAccount ? filterAccount === chunk.account : !!chunk.account))
       && (!filterAccount || (
         chunk.history?.some(hist => hist.account.endsWith(filterAccount)) ||
@@ -82,9 +82,9 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
       <Grid container>
         <Grid item xs={12}>
           <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
-            {filteredChunks.length === vm.json?.chunks?.length
+            {filteredChunks.length === vm?.json?.chunks?.length
               ? `${filteredChunks.length} Chunks`
-              : `${filteredChunks.length} of ${vm.json?.chunks?.length || 0} Chunks`
+              : `${filteredChunks.length} of ${vm?.json?.chunks?.length || 0} Chunks`
             }
           </Typography>
         </Grid>
@@ -95,7 +95,7 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
             choices={accounts.sort()}
             selection={filterAccount}
             setSelection={setFilterAccount}
-            toDisplay={val => addressBook?.getName(val, true)}
+            toDisplay={val => addressBook?.getName(val, true) || val}
           />
         </Grid>
 
