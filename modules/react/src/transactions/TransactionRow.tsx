@@ -18,6 +18,7 @@ import {
   Transaction,
   Transfer,
   TxId,
+  TxTags,
 } from "@valuemachine/types";
 import { round } from "@valuemachine/utils";
 import React, { useState } from "react";
@@ -30,13 +31,13 @@ type TransactionRowProps = {
   addressBook: AddressBook;
   tx: Transaction;
   editTx?: (uuid: TxId, val?: Transaction) => void;
-  description?: string;
+  txTags?: TxTags;
 };
 export const TransactionRow: React.FC<TransactionRowProps> = ({
   addressBook,
   tx,
   editTx,
-  description,
+  txTags,
 }: TransactionRowProps) => {
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -81,7 +82,9 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
         <TableCell> {tx.uuid ? <HexString value={tx.uuid}/> : "N/A"} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell> {tx.apps.join(", ")} </TableCell>
-        <TableCell> {description || describeTransaction(addressBook, tx)} </TableCell>
+        <TableCell> {
+          txTags?.[tx.uuid]?.description || describeTransaction(addressBook, tx)
+        } </TableCell>
         {editTx ?
           <TableCell>
             <IconButton color="secondary" onClick={toggleEditMode}>
@@ -119,7 +122,9 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                       <TableCell> {transfer.asset} </TableCell>
                       <TableCell> {
                         transfer.amount === "ALL" ? transfer.amount : round(transfer.amount || "1")
-                      } </TableCell>
+                      }{
+                        txTags?.[`${tx.uuid}/${transfer.index}`]?.multiplier ? ` (x${txTags?.[`${tx.uuid}/${transfer.index}`]?.multiplier})` : null
+                      }</TableCell>
                       <TableCell>
                         <HexString
                           display={addressBook?.getName(transfer.from, true)}

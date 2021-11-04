@@ -4,18 +4,18 @@ import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import DownloadIcon from "@mui/icons-material/GetApp";
-import { TransactionsJson } from "@valuemachine/types";
+import { TxTags } from "@valuemachine/types";
 import { getTransactionsError } from "@valuemachine/utils";
 import React from "react";
 
-type TransactionPorterProps = {
-  transactions: TransactionsJson,
-  setTransactions: (val: TransactionsJson) => void,
+type TxTagsPorterProps = {
+  txTags: TxTags,
+  setTxTags: (val: TxTags) => void,
 };
-export const TransactionPorter: React.FC<TransactionPorterProps> = ({
-  transactions,
-  setTransactions,
-}: TransactionPorterProps) => {
+export const TxTagsPorter: React.FC<TxTagsPorterProps> = ({
+  txTags,
+  setTxTags,
+}: TxTagsPorterProps) => {
 
   const handleImport = (event) => {
     const file = event.target.files[0];
@@ -26,15 +26,15 @@ export const TransactionPorter: React.FC<TransactionPorterProps> = ({
       try {
         if (!reader.result) return;
         const importedData = JSON.parse(reader.result as string) as any;
-        const importedTransactions = importedData.transactions || importedData;
-        const newTransactions = [ ...transactions ]; // new obj to ensure it re-renders;
-        if (!getTransactionsError(importedTransactions)) {
-          console.log(`Transactions have been imported:`, importedTransactions);
-          setTransactions(newTransactions);
+        const importedTags = importedData.txTags || importedData;
+        const newTags = { ...txTags }; // new obj to ensure it re-renders;
+        if (!getTransactionsError(importedTags)) {
+          console.log(`Tags have been imported:`, importedTags);
+          setTxTags(newTags);
         } else {
-          console.error(`Imported transactions are invalid:`, importedTransactions);
-          throw new Error(`Imported file does not contain valid transactions: ${
-            getTransactionsError(importedTransactions)
+          console.error(`Imported txTags are invalid:`, importedTags);
+          throw new Error(`Imported file does not contain valid txTags: ${
+            getTransactionsError(importedTags)
           }`);
         }
       } catch (e) {
@@ -44,11 +44,11 @@ export const TransactionPorter: React.FC<TransactionPorterProps> = ({
   };
 
   const handleExport = () => {
-    const output = JSON.stringify(transactions, null, 2);
+    const output = JSON.stringify(txTags, null, 2);
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
     a.href = "data:" + data;
-    a.download = "transactions.json";
+    a.download = "txTags.json";
     a.click();
   };
 
@@ -58,7 +58,7 @@ export const TransactionPorter: React.FC<TransactionPorterProps> = ({
 
         <Grid item>
           <Typography variant="h6">
-            {"Import Transactions"}
+            {"Import Tags"}
           </Typography>
           <Box sx={{ my: 2 }}>
             <input
@@ -72,7 +72,7 @@ export const TransactionPorter: React.FC<TransactionPorterProps> = ({
 
         <Grid item>
           <Typography variant="h6">
-            {"Export Transactions"}
+            {"Export Tags"}
           </Typography>
           <Button
             sx={{ my: 2 }}

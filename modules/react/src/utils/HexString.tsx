@@ -18,14 +18,12 @@ export const HexString = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
-  const parts = value.split("/");
-  const hex = parts.pop() || "";
-  const prefix = parts.join("/");
+  const hex = value.split("/").find(part => part.startsWith("0x"));
 
-  const explorer = !prefix ? ""
-    : prefix.startsWith(`${Ethereum}/ETH2`) ? "https://beaconscan.com"
-    : prefix.startsWith(Ethereum) ? "https://etherscan.io"
-    : prefix.startsWith(Polygon) ? "https://polygonscan.com"
+  const explorer = !value ? ""
+    : value.startsWith(`${Ethereum}/ETH2`) ? "https://beaconscan.com"
+    : value.startsWith(`${Ethereum}/`) ? "https://etherscan.io"
+    : value.startsWith(`${Polygon}/`) ? "https://polygonscan.com"
     : "";
 
   const link = !explorer ? ""
@@ -34,11 +32,11 @@ export const HexString = ({
     : hex?.length === 98 ? `${explorer}/validator/${hex}`
     : "";
 
-  const abrv = str => `${str.substring(0, 6)}..${str.substring(str.length - 4)}`;
-  const displayParts = (display || (hex.length < 10
-    ? (prefix ? `${prefix}/${hex}` : `${hex}`)
-    : (prefix ? `${prefix}/${abrv(hex)}` : `${abrv(hex)}`)
-  )).split("/");
+  const abrv = str => str.length > 20
+    ? `${str.substring(0, 6)}..${str.substring(str.length - 4)}`
+    : str;
+
+  const displayParts = (display || value).split("/").map(abrv);
 
   return (
     <React.Fragment>

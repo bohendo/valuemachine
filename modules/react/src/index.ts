@@ -24,8 +24,11 @@ export {
   TransactionEditor,
   TransactionPorter,
   TransactionTable,
-  TxTagsEditor,
 } from "./transactions";
+export {
+  TxTagsEditor,
+  TxTagsPorter,
+} from "./txTags";
 export {
   Confirm,
   DateInput,

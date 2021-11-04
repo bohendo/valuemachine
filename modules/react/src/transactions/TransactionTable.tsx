@@ -255,7 +255,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                 addressBook={addressBook}
                 editTx={setTransactions ? editTx : undefined}
                 tx={tx}
-                description={txTags?.[tx.uuid]?.description || ""}
+                txTags={txTags}
               />))
             }
           </TableBody>

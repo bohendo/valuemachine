@@ -71,6 +71,7 @@ export const IncomeTypes = {
   SelfEmployed: "SelfEmployed",
   Interest: "Interest",
   Dividend: "Dividend",
+  Prize: "Prize",
 } as const;
 export const IncomeType = Type.Enum(IncomeTypes); // NOT Extensible at run-time
 export type IncomeType = Static<typeof IncomeType>;

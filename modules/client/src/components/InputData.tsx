@@ -13,14 +13,15 @@ import {
   AddressPorter,
   AddressTable,
   Confirm,
-  InputPorter,
-  TransactionPorter,
-  TxTagsEditor,
-  TransactionTable,
   CsvPorter,
   CsvTable,
+  InputPorter,
   TaxInputEditor,
   TransactionEditor,
+  TransactionPorter,
+  TransactionTable,
+  TxTagsEditor,
+  TxTagsPorter,
 } from "@valuemachine/react";
 import {
   getTransactions,
@@ -92,6 +93,11 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
   const deleteCustomTxns = () => {
     setPendingDel("txns");
     setConfirmMsg("Are you sure you want to delete ALL custom transactions?");
+  };
+
+  const deleteTxTags = () => {
+    setPendingDel("txTags");
+    setConfirmMsg("Are you sure you want to delete ALL transaction tags?");
   };
 
   const handleDelete = () => {
@@ -257,13 +263,31 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
       <div hidden={tab !== 3}>
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item md={9}>
-            <Card sx={{ m: 0 }}>
+            <Card sx={{ m: 0, p: 2 }}>
               <CardHeader title={"Transaction Tags"} />
               <TxTagsEditor
                 txTags={txTags}
                 setTxTags={setTxTags}
               />
             </Card>
+          </Grid>
+          <Grid item md={3}>
+            <TxTagsPorter
+              txTags={txTags}
+              setTxTags={setTxTags}
+            />
+            <Button
+              color="primary"
+              disabled={!Object.keys(txTags || {}).length}
+              fullWidth
+              onClick={deleteTxTags}
+              size="medium"
+              startIcon={<RemoveIcon/>}
+              sx={{ mt: 1 }}
+              variant="outlined"
+            >
+              Delete Transaction Tags
+            </Button>
           </Grid>
         </Grid>
       </div>
