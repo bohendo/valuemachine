@@ -30,11 +30,13 @@ type TransactionRowProps = {
   addressBook: AddressBook;
   tx: Transaction;
   editTx?: (uuid: TxId, val?: Transaction) => void;
+  description?: string;
 };
 export const TransactionRow: React.FC<TransactionRowProps> = ({
   addressBook,
   tx,
   editTx,
+  description,
 }: TransactionRowProps) => {
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -79,7 +81,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
         <TableCell> {tx.uuid ? <HexString value={tx.uuid}/> : "N/A"} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell> {tx.apps.join(", ")} </TableCell>
-        <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
+        <TableCell> {description || describeTransaction(addressBook, tx)} </TableCell>
         {editTx ?
           <TableCell>
             <IconButton color="secondary" onClick={toggleEditMode}>

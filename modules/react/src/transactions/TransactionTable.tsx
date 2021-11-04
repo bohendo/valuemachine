@@ -22,6 +22,7 @@ import {
   TransactionsJson,
   TransferCategories,
   TxId,
+  TxTags,
 } from "@valuemachine/types";
 import { chrono, dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
@@ -32,13 +33,15 @@ import { TransactionRow } from "./TransactionRow";
 
 type TransactionTableProps = {
   addressBook: AddressBook;
-  transactions: Transactions;
   setTransactions?: (val: TransactionsJson) => void;
+  transactions: Transactions;
+  txTags?: TxTags;
 };
 export const TransactionTable: React.FC<TransactionTableProps> = ({
   addressBook,
-  transactions,
   setTransactions,
+  transactions,
+  txTags,
 }: TransactionTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
@@ -252,6 +255,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                 addressBook={addressBook}
                 editTx={setTransactions ? editTx : undefined}
                 tx={tx}
+                description={txTags?.[tx.uuid]?.description || ""}
               />))
             }
           </TableBody>

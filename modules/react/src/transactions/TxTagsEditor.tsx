@@ -9,11 +9,11 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import Typography from "@mui/material/Typography";
 import { IncomeTypes, TxTags, TxTagTypes } from "@valuemachine/types";
+import { getDecStringError, getTxIdError } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
-import { Confirm, SelectOne, TextInput } from "../utils";
+import { Confirm, HexString, SelectOne, TextInput } from "../utils";
 
 type NewTxTag = {
   txId?: string;
@@ -30,7 +30,7 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
 }: TxTagsEditorProps) => {
   const [confirmMsg, setConfirmMsg] = useState("");
   const [modified, setModified] = useState(false);
-  const [newTxTag, setNewTxTags] = useState({} as NewTxTag);
+  const [newTxTag, setNewTxTag] = useState({} as NewTxTag);
   const [pendingDel, setPendingDel] = useState({ txId: "", tagType: "" });
 
   console.log(`newTxTag=${JSON.stringify(newTxTag)}`);
@@ -55,7 +55,7 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
         [newTxTag.tagType]: newTxTag.value,
       }
     });
-    setNewTxTags({} as NewTxTag);
+    setNewTxTag({} as NewTxTag);
   };
 
   const handleDelete = (txId: string, tagType: string) => {
@@ -79,13 +79,7 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
   };
 
   return (<>
-    <Grid container spacing={1} sx={{ mb: 2, pl: 1 }}>
-
-      <Grid item xs={12}>
-        <Typography variant="h4">
-          {`Transaction Tags`}
-        </Typography>
-      </Grid>
+    <Grid container spacing={1} sx={{ mb: 2, p: 2 }}>
 
       <Grid item sx={{ mt: 3 }}>
         <Button
@@ -99,9 +93,10 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
 
       <Grid item>
         <TextInput
+          getError={getTxIdError}
           helperText={"Transaction ID"}
           label="TxId"
-          setText={txId => setNewTxTags({ ...newTxTag, txId })}
+          setText={txId => setNewTxTag({ ...newTxTag, txId })}
           text={
             newTxTag.txId?.toString()
             || txTags?.[newTxTag?.txId || ""]?.[newTxTag?.tagType || ""]
@@ -116,7 +111,7 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
             label="Tag Type"
             choices={Object.keys(TxTagTypes)}
             selection={newTxTag.tagType}
-            setSelection={tagType => setNewTxTags({ txId: newTxTag.txId, tagType })}
+            setSelection={tagType => setNewTxTag({ txId: newTxTag.txId, tagType })}
           />
         </Grid>
       ) : null}
@@ -128,15 +123,16 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
               label="Income Type"
               choices={Object.keys(IncomeTypes)}
               selection={newTxTag.tagType}
-              setSelection={tagType => setNewTxTags({ tagType })}
+              setSelection={incomeType => setNewTxTag({ ...newTxTag, value: incomeType })}
             />
           </Grid>
         ) : (
           <Grid item>
             <TextInput
+              getError={newTxTag.tagType === TxTagTypes.multiplier ? getDecStringError : undefined}
               helperText={"Tag Value"}
               label="Tag Value"
-              setText={value => setNewTxTags({ ...newTxTag, value })}
+              setText={value => setNewTxTag({ ...newTxTag, value })}
               text={newTxTag.value?.toString() || txTags?.[newTxTag.txId]?.[newTxTag.tagType] || ""}
             />
           </Grid>
@@ -148,9 +144,9 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
       <Table size="small" sx={{ minWidth: "26em", overflow: "auto" }}>
         <TableHead>
           <TableRow>
-            <TableCell sx={{ width: "8em" }}><strong> Form </strong></TableCell>
-            <TableCell><strong> Field </strong></TableCell>
-            <TableCell><strong> Value </strong></TableCell>
+            <TableCell><strong> TxId </strong></TableCell>
+            <TableCell><strong> Tag Type </strong></TableCell>
+            <TableCell><strong> Tag Value </strong></TableCell>
             <TableCell sx={{ width: "4em" }}><strong> Delete </strong></TableCell>
           </TableRow>
         </TableHead>
@@ -159,7 +155,7 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
             Object.keys(txTags[txId]).forEach(tagType => {
               rows.push(
                 <TableRow key={`${txId}_${tagType}`}>
-                  <TableCell sx={{ width: "8em" }}> {txId} </TableCell>
+                  <TableCell> <HexString value={txId} /> </TableCell>
                   <TableCell> {tagType} </TableCell>
                   <TableCell> {typeof txTags[txId][tagType] === "boolean" ? (
                     <Checkbox

@@ -5,6 +5,7 @@ import {
   Bytes32,
   DateString,
   DateTimeString,
+  DecString,
   TxId,
 } from "@valuemachine/types";
 
@@ -37,6 +38,11 @@ const validateDate = ajv.compile(DateString);
 export const getDateError = (val: DateString): string => validateDate(val) ? ""
   : validateDate.errors.length ? formatErrors(validateDate.errors)
   : `Invalid Date: ${JSON.stringify(val)}`;
+
+const validateDecString = ajv.compile(DecString);
+export const getDecStringError = (val: DecString): string => validateDecString(val) ? ""
+  : validateDecString.errors.length ? formatErrors(validateDecString.errors)
+  : `Invalid DecString: ${JSON.stringify(val)}`;
 
 const validateBytes32 = ajv.compile(Bytes32);
 export const getBytes32Error = (address: Bytes32): string => validateBytes32(address) ? ""

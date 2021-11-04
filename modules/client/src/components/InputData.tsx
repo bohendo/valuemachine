@@ -15,6 +15,7 @@ import {
   Confirm,
   InputPorter,
   TransactionPorter,
+  TxTagsEditor,
   TransactionTable,
   CsvPorter,
   CsvTable,
@@ -144,9 +145,10 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
         textColor="secondary"
         value={tab}
       >
-        <Tab label="Evm Addresses"/>
+        <Tab label="Address Book"/>
         <Tab label="Csv Files"/>
         <Tab label="Custom Transactions"/>
+        <Tab label="Transaction Tags"/>
         <Tab label="Tax Info"/>
       </Tabs>
 
@@ -219,7 +221,7 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item md={9}>
             <Card sx={{ m: 0 }}>
-              <CardHeader title={"Add new Transactions"} />
+              <CardHeader title={"Custom Transactions"} />
               <TransactionEditor
                 setTx={addNewTransaction}
                 tx={newTransaction}
@@ -253,6 +255,20 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
       </div>
 
       <div hidden={tab !== 3}>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item md={9}>
+            <Card sx={{ m: 0 }}>
+              <CardHeader title={"Transaction Tags"} />
+              <TxTagsEditor
+                txTags={txTags}
+                setTxTags={setTxTags}
+              />
+            </Card>
+          </Grid>
+        </Grid>
+      </div>
+
+      <div hidden={tab !== 4}>
         <TaxInputEditor taxInput={taxInput} setTaxInput={setTaxInput} />
       </div>
 
