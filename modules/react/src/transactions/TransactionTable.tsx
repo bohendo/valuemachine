@@ -248,15 +248,15 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
               />))
             }
           </TableBody>
-          <Paginate
-            count={filteredTxns?.length || 0}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            setPage={setPage}
-            setRowsPerPage={setRowsPerPage}
-          />
         </Table>
       </TableContainer>
+      <Paginate
+        count={filteredTxns?.length || 0}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        setPage={setPage}
+        setRowsPerPage={setRowsPerPage}
+      />
 
     </Paper>
 

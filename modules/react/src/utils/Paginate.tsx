@@ -4,9 +4,10 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
-import TableFooter from "@mui/material/TableFooter";
-import TableRow from "@mui/material/TableRow";
 import TablePagination from "@mui/material/TablePagination";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableRow from "@mui/material/TableRow";
 import React from "react";
 
 const TablePaginationActions = ({ count, page, rowsPerPage, onPageChange }: any) => {
@@ -86,20 +87,22 @@ export const Paginate: React.FC<PaginateProps> = ({
   };
 
   return (
-    <TableFooter>
-      <TableRow>
-        <TablePagination
-          ActionsComponent={TablePaginationActions}
-          colSpan={5}
-          count={count}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[25, 50, 100, 250]}
-          sx={{ display: "table" }}
-        />
-      </TableRow>
-    </TableFooter>
+    <Table>
+      <TableBody>
+        <TableRow>
+          <TablePagination
+            ActionsComponent={TablePaginationActions}
+            colSpan={5}
+            count={count}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[25, 50, 100, 250]}
+            sx={{ display: "table", border: 0 }}
+          />
+        </TableRow>
+      </TableBody>
+    </Table>
   );
 };

@@ -61,7 +61,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
       </Typography>
 
       <TableContainer>
-        <Table size="small" sx={{ minWidth: "68em", overflow: "auto" }}>
+        <Table size="small" sx={{ minWidth: "64em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
               <TableCell sx={{ minWidth: "8em" }}><strong> Date </strong></TableCell>
@@ -103,15 +103,15 @@ export const TaxTable: React.FC<TaxTableProps> = ({
                 </TableRow>
               ))}
           </TableBody>
-          <Paginate
-            count={taxes.length}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            setPage={setPage}
-            setRowsPerPage={setRowsPerPage}
-          />
         </Table>
       </TableContainer>
+      <Paginate
+        count={taxes.length}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        setPage={setPage}
+        setRowsPerPage={setRowsPerPage}
+      />
     </Paper>
   </>);
 };

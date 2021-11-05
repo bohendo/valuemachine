@@ -137,14 +137,14 @@ export const ChunkTable: React.FC<ChunkTableProps> = ({
               ))}
           </TableBody>
         </Table>
-        <Paginate
-          count={filteredChunks.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          setPage={setPage}
-          setRowsPerPage={setRowsPerPage}
-        />
       </TableContainer>
+      <Paginate
+        count={filteredChunks.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        setPage={setPage}
+        setRowsPerPage={setRowsPerPage}
+      />
     </Paper>
 
   </>);

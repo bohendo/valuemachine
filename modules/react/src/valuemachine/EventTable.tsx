@@ -139,14 +139,14 @@ export const EventTable: React.FC<EventTableProps> = ({
               ))}
           </TableBody>
         </Table>
-        <Paginate
-          count={filteredEvents.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          setPage={setPage}
-          setRowsPerPage={setRowsPerPage}
-        />
       </TableContainer>
+      <Paginate
+        count={filteredEvents.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        setPage={setPage}
+        setRowsPerPage={setRowsPerPage}
+      />
 
     </Paper>
   );

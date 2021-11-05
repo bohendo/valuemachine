@@ -110,15 +110,15 @@ export const AddressTable: React.FC<AddressTableProps> = ({
                 />
               ))}
           </TableBody>
-          <Paginate
-            count={filteredEntries.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            setPage={setPage}
-            setRowsPerPage={setRowsPerPage}
-          />
         </Table>
       </TableContainer>
+      <Paginate
+        count={filteredEntries.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        setPage={setPage}
+        setRowsPerPage={setRowsPerPage}
+      />
 
     </Paper>
   </>);
