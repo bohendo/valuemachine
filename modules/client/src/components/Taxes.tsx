@@ -95,7 +95,13 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
         </Grid>
       </Grid>
 
-      <TaxTable addressBook={addressBook} guard={guard} prices={prices} vm={vm} />
+      <TaxTable
+        addressBook={addressBook}
+        guard={guard}
+        prices={prices}
+        txTags={txTags}
+        vm={vm}
+      />
 
     </>
   );

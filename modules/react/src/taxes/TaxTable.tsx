@@ -16,6 +16,7 @@ import {
   Guard,
   Prices,
   TaxRow,
+  TxTags,
   ValueMachine,
 } from "@valuemachine/types";
 import {
@@ -23,24 +24,24 @@ import {
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
-const { ETH } = Assets;
-
 type TaxTableProps = {
   addressBook: AddressBook;
   guard: Guard;
   prices: Prices;
+  txTags: TxTags;
   vm: ValueMachine;
 };
 export const TaxTable: React.FC<TaxTableProps> = ({
   addressBook,
   guard,
   prices,
+  txTags,
   vm,
 }: TaxTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [taxes, setTaxes] = React.useState([] as TaxRow[]);
-  const [unit, setUnit] = React.useState(ETH);
+  const [unit, setUnit] = React.useState(Assets.ETH);
 
   useEffect(() => {
     setUnit(securityFeeMap[guard]);
@@ -48,8 +49,8 @@ export const TaxTable: React.FC<TaxTableProps> = ({
 
   useEffect(() => {
     if (!guard || !vm?.json?.events?.length) return;
-    setTaxes(getTaxRows({ addressBook, guard, prices, vm })); 
-  }, [addressBook, guard, prices, vm]);
+    setTaxes(getTaxRows({ addressBook, guard, prices, txTags, vm })); 
+  }, [addressBook, guard, prices, txTags, vm]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);

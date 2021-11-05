@@ -145,7 +145,7 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
 
       <Tabs
         indicatorColor="secondary"
-        onChange={(evt, newVal) => setTab(newVal)}
+        onChange={(evt, newVal) => setTab(parseInt(newVal))}
         sx={{ mt: 1 }}
         textColor="secondary"
         value={tab}
