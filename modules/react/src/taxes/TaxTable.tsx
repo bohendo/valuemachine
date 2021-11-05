@@ -7,7 +7,11 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { getTaxRows, securityFeeMap } from "@valuemachine/taxes";
+import {
+  getTaxRows,
+  securityFeeMap,
+  getTaxYearBoundaries,
+} from "@valuemachine/taxes";
 import {
   Assets,
 } from "@valuemachine/transactions";
@@ -54,9 +58,12 @@ export const TaxTable: React.FC<TaxTableProps> = ({
     setFilteredRows(taxRows.filter(row => (
       !filterAction || row.action === filterAction
     ) && (
-      !filterTaxYear || row.date.startsWith(filterTaxYear)
+      !filterTaxYear || (
+        new Date(row.date).getTime() >= getTaxYearBoundaries(guard, filterTaxYear)[0] &&
+        new Date(row.date).getTime() <= getTaxYearBoundaries(guard, filterTaxYear)[1]
+      )
     )));
-  }, [taxRows, filterAction, filterTaxYear]);
+  }, [guard, filterAction, filterTaxYear, taxRows]);
 
   useEffect(() => {
     setUnit(securityFeeMap[guard]);
