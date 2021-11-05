@@ -68,7 +68,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
         <Table size="small" sx={{ minWidth: "68em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
-              <TableCell><strong> Date </strong></TableCell>
+              <TableCell sx={{ minWidth: "8em" }}><strong> Date </strong></TableCell>
               <TableCell><strong> Action </strong></TableCell>
               <TableCell><strong> Asset </strong></TableCell>
               <TableCell><strong> {`Price (${unit}/Asset)`} </strong></TableCell>
@@ -82,10 +82,19 @@ export const TaxTable: React.FC<TaxTableProps> = ({
           </TableHead>
           <TableBody>
             {taxes
+              .sort((r1, r2) =>
+                new Date(r1.date).getTime() > new Date(r2.date).getTime()
+                  ? -1
+                  : new Date(r1.date).getTime() < new Date(r2.date).getTime()
+                    ? 1
+                    : 0
+              )
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row: TaxRow, i: number) => (
                 <TableRow key={i}>
-                  <TableCell> {row.date.replace("T", " ").replace(".000Z", "")} </TableCell>
+                  <TableCell sx={{ minWidth: "8em" }}> {
+                    row.date.replace("T", " ").replace(".000Z", "")
+                  } </TableCell>
                   <TableCell> {row.action} </TableCell>
                   <TableCell> {`${commify(row.amount)} ${row.asset}`} </TableCell>
                   <TableCell> {commify(row.price)} </TableCell>

@@ -40,17 +40,18 @@ export const getTaxRows = ({
 
   return vm?.json?.events.filter(evt => {
     const time = new Date(evt.date).getTime();
+    const tags = txTags?.[evt.txId] || {};
     if (taxYear && taxYear !== allTaxYears && (
       time < taxYearBoundaries[0] || time > taxYearBoundaries[1]
     )) return false;
     const toGuard = (
       (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
     ).split("/")[0];
-    return toGuard === guard && (
+    return tags.physicalGuard === guard || (toGuard === guard && (
       evt.type === EventTypes.Trade
       || evt.type === EventTypes.GuardChange
       || evt.type === EventTypes.Income
-    );
+    ));
   }).reduce((output, evt) => {
     const getDate = (datetime: DateTimeString): DateString =>
       new Date(datetime).toISOString().split("T")[0];
