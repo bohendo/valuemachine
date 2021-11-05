@@ -25,6 +25,7 @@ type ValueMachineExplorerProps = {
   setVMJson: (vmJson: any) => void;
   transactions: Transactions;
   txTags?: TxTags;
+  setTxTags?: (val: TxTags) => void;
   vm: ValueMachine;
 };
 export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
@@ -32,6 +33,7 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
   setVMJson,
   transactions,
   txTags,
+  setTxTags,
   vm,
 }: ValueMachineExplorerProps) => {
   const [tab, setTab] = useState(0);
@@ -124,7 +126,7 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
         <Tab label="Chunks"/>
       </Tabs>
       <div hidden={tab !== 0}>
-        <EventTable addressBook={addressBook} txTags={txTags} vm={vm} />
+        <EventTable addressBook={addressBook} setTxTags={setTxTags} txTags={txTags} vm={vm} />
       </div>
       <div hidden={tab !== 1}>
         <ChunkTable addressBook={addressBook} vm={vm} />

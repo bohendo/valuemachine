@@ -1,7 +1,6 @@
 import DeleteIcon from "@mui/icons-material/Delete";
 import InsertIcon from "@mui/icons-material/AddCircle";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
 import Grid from "@mui/material/Grid";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -9,7 +8,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-//import Typography from "@mui/material/Typography";
+import { PhysicalGuards } from "@valuemachine/transactions";
 import { IncomeTypes, TxId, TxTags, TxTagTypes } from "@valuemachine/types";
 import { getDecStringError, getTxIdError } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
@@ -34,20 +33,24 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
   const [confirmMsg, setConfirmMsg] = useState("");
   const [modified, setModified] = useState(false);
   const [newTxTag, setNewTxTag] = useState({} as NewTxTag);
-  const [txTagDisplay, setTxTagDisplay] = useState({} as NewTxTag);
+  const [txTagDisplay, setTxTagDisplay] = useState({} as TxTags);
   const [pendingDel, setPendingDel] = useState({ txId: "", tagType: "" });
 
-  console.log(`newTxTag=${JSON.stringify(newTxTag)}`);
-
   useEffect(() => {
-    setTxTagDisplay(!txId ? txTags : Object.keys(txTags || {}).reduce((tags, id) => {
-      return id === txId ? { ...tags, [txId]: txTags?.[txId] } : tags;
-    }, {} as TxTags));
+    setTxTagDisplay(!txId ? (
+      txTags || {}
+    ) : (
+      Object.keys(txTags || {}).reduce(
+        (tags: TxTags, id: string): TxTags => id === txId
+          ? ({ ...tags, [txId]: (txTags?.[txId] || {}) })
+          : tags,
+        {} as TxTags,
+      )
+    ));
     if (!txId) return;
     setNewTxTag({ ...newTxTag, txId });
-
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [txId]);
+  }, [txId, txTags]);
 
   useEffect(() => {
     if (!txTags || !newTxTag) {
@@ -61,15 +64,16 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
 
   const handleInsert = () => {
     if (!newTxTag.txId || !newTxTag.tagType || !("value" in newTxTag)) return;
-    console.log("Saving new tx tag", newTxTag);
-    setTxTags?.({
+    const newTxTags = {
       ...(txTags || {}),
       [newTxTag.txId]: {
         ...(txTags?.[newTxTag.txId] || {}),
         [newTxTag.tagType]: newTxTag.value,
       }
-    });
-    setNewTxTag({} as NewTxTag);
+    };
+    console.log(`Saving new ${newTxTag.txId}.${newTxTag.tagType}=${newTxTag.value}`, newTxTags);
+    setTxTags?.(newTxTags);
+    setNewTxTag({ txId } as NewTxTag);
   };
 
   const handleDelete = (txId: string, tagType: string) => {
@@ -79,15 +83,17 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
 
   const doDelete = () => {
     if (!pendingDel || !pendingDel.txId || !pendingDel.tagType) return;
-    const { txId, tagType } = pendingDel;
-    if (!txTags || !txTags[txId] || !(tagType in txTags[txId])) return;
-    console.log(`Deleting ${txId}.${tagType}`);
-    const targetTag = txTags?.[txId] || {};
+    const { txId: id, tagType } = pendingDel;
+    if (!txTags || !txTags[id] || !(tagType in txTags[id])) return;
+
+    const targetTag = txTags?.[id] || {};
     delete targetTag[tagType];
-    setTxTags?.({
+    const newTxTags = {
       ...(txTags || {}),
-      [txId]: targetTag,
-    });
+      [id]: targetTag,
+    };
+    console.log(`Saving deleted ${id}.${tagType}`, newTxTags);
+    setTxTags?.(newTxTags);
     setPendingDel({ txId: "", tagType: "" });
     setConfirmMsg("");
   };
@@ -113,7 +119,7 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
             getError={getTxIdError}
             helperText={"Transaction ID"}
             label="TxId"
-            setText={txId => setNewTxTag({ ...newTxTag, txId })}
+            setText={newTxId => setNewTxTag({ ...newTxTag, txId: newTxId })}
             text={
               newTxTag.txId?.toString()
               || txTags?.[newTxTag?.txId || ""]?.[newTxTag?.tagType || ""]
@@ -123,7 +129,7 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
         )}
       </Grid>
 
-      {(newTxTag.txId || txId) ? (
+      {newTxTag.txId ? (
         <Grid item>
           <SelectOne
             label="Tag Type"
@@ -140,8 +146,17 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
             <SelectOne
               label="Income Type"
               choices={Object.keys(IncomeTypes)}
-              selection={newTxTag.tagType}
+              selection={newTxTag.value?.toString() || txTags?.[newTxTag.txId]?.[newTxTag.tagType] || ""}
               setSelection={incomeType => setNewTxTag({ ...newTxTag, value: incomeType })}
+            />
+          </Grid>
+        ) : newTxTag.tagType === TxTagTypes.physicalGuard ? (
+          <Grid item>
+            <SelectOne
+              label="Physical Guard"
+              choices={Object.keys(PhysicalGuards)}
+              selection={newTxTag.value?.toString() || txTags?.[newTxTag.txId]?.[newTxTag.tagType] || ""}
+              setSelection={physicalGuard => setNewTxTag({ ...newTxTag, value: physicalGuard })}
             />
           </Grid>
         ) : (
@@ -159,41 +174,30 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
     </Grid>
 
     <TableContainer>
-      <Table size="small" sx={{ minWidth: "26em", overflow: "auto" }}>
+      <Table size="small" sx={{ minWidth: "16em", overflow: "auto" }}>
         <TableHead>
           <TableRow>
-            <TableCell><strong> TxId </strong></TableCell>
+            {!txId ? (
+              <TableCell><strong> TxId </strong></TableCell>
+            ) : null}
             <TableCell><strong> Tag Type </strong></TableCell>
             <TableCell><strong> Tag Value </strong></TableCell>
             <TableCell sx={{ width: "4em" }}><strong> Delete </strong></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {!txTagDisplay ? null : Object.keys(txTagDisplay).reduce((rows: any[], txId: string) => {
-            Object.keys(txTagDisplay[txId]).forEach(tagType => {
+          {!txTagDisplay ? null : Object.keys(txTagDisplay).reduce((rows: any[], id: string) => {
+            Object.keys(txTagDisplay[id]).forEach(tagType => {
               rows.push(
-                <TableRow key={`${txId}_${tagType}`}>
-                  <TableCell> <HexString value={txId} /> </TableCell>
+                <TableRow key={`${id}_${tagType}`}>
+                  {!txId ? (
+                    <TableCell> <HexString value={id} /> </TableCell>
+                  ) : null}
                   <TableCell> {tagType} </TableCell>
-                  <TableCell> {typeof txTagDisplay[txId][tagType] === "boolean" ? (
-                    <Checkbox
-                      onChange={() => setTxTags?.({
-                        ...(txTagDisplay || {}),
-                        [txId]: {
-                          ...txTagDisplay[txId],
-                          [tagType]: !txTagDisplay[txId][tagType],
-                        },
-                      })}
-                      checked={txTagDisplay[txId][tagType]}
-                      indeterminate={typeof txTagDisplay[txId][tagType] !== "boolean"}
-                    />
-                  ) : (
-                    txTagDisplay[txId][tagType]
-                  )
-                  } </TableCell>
+                  <TableCell> {txTagDisplay[id][tagType]} </TableCell>
                   <TableCell
                     sx={{ width: "4em" }}
-                    onClick={() => handleDelete(txId, tagType)}
+                    onClick={() => handleDelete(id, tagType)}
                   >
                     <DeleteIcon sx={{ ml: 1 }} />
                   </TableCell>

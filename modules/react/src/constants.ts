@@ -108,7 +108,10 @@ export const transactions = getTransactions({
     ]),
     method: "Sale",
     sources: ["Coinbase"],
-  }],
+  }, getTestTx([
+    // Income
+    { category: Income, asset: ETH, from: three, amount: "0.137", to: one, index: 1 },
+  ])],
 });
 
 export const vm = getValueMachine();
@@ -139,5 +142,12 @@ export const txTags = {
     description: "I won a prize",
     incomeType: "Prize",
     multiplier: "0.5",
+    physicalGuard: "USA",
+  },
+  ["Test/0x0000000000000000000000000000000000000000000000000000000000000006/1"]: {
+    description: "I won another prize",
+    incomeType: "Prize",
+    multiplier: "0.33",
+    physicalGuard: "IND",
   },
 };

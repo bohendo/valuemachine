@@ -150,12 +150,14 @@ export const EventRow: React.FC<EventRowProps> = ({
 
                 } : {}
               }/>
+              <Box width="85%">
+                <TxTagsEditor
+                  txTags={txTags}
+                  setTxTags={setTxTags}
+                  txId={event.txId}
+                />
+              </Box>
             </Box>
-            <TxTagsEditor
-              txTags={txTags}
-              setTxTags={setTxTags}
-              txId={event.txId}
-            />
           </Collapse>
         </TableCell>
       </TableRow>
