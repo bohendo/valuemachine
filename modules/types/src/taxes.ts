@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { Asset, DateString, DecString } from "./strings";
-import { EventType } from "./vm";
 
 export const Mapping = Type.Array(Type.Object({
   nickname: Type.String(),
@@ -10,9 +9,17 @@ export const Mapping = Type.Array(Type.Object({
 }, { additionalProperties: false }));
 export type Mapping = Static<typeof Mapping>;
 
+export const TaxActions = {
+  Income: "Income",
+  Trade: "Trade",
+  Expense: "Expense",
+} as const;
+export const TaxAction = Type.Enum(TaxActions); // NOT Extensible
+export type TaxAction = Static<typeof TaxAction>;
+
 export const TaxRow = Type.Object({
   date: DateString,
-  action: EventType, // subset: Trade or Income
+  action: TaxAction, // subset: Trade or Income
   amount: DecString, // rounded to 10^-6
   asset: Asset,
   price: DecString, // rounded to 10^-2

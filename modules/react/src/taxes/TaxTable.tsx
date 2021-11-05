@@ -1,4 +1,5 @@
 import Paper from "@mui/material/Paper";
+import Grid from "@mui/material/Grid";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -14,16 +15,18 @@ import {
   AddressBook,
   Guard,
   Prices,
+  TaxActions,
   TaxRow,
   TxTags,
   ValueMachine,
 } from "@valuemachine/types";
 import {
   commify,
+  dedup,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
-import { Paginate } from "../utils";
+import { Paginate, SelectOne } from "../utils";
 
 type TaxTableProps = {
   addressBook: AddressBook;
@@ -41,8 +44,19 @@ export const TaxTable: React.FC<TaxTableProps> = ({
 }: TaxTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
-  const [taxes, setTaxes] = React.useState([] as TaxRow[]);
+  const [taxRows, setTaxRows] = React.useState([] as TaxRow[]);
   const [unit, setUnit] = React.useState(Assets.ETH);
+  const [filterAction, setFilterAction] = useState("");
+  const [filterTaxYear, setFilterTaxYear] = useState("");
+  const [filteredRows, setFilteredRows] = useState([] as TaxRow[]);
+
+  useEffect(() => {
+    setFilteredRows(taxRows.filter(row => (
+      !filterAction || row.action === filterAction
+    ) && (
+      !filterTaxYear || row.date.startsWith(filterTaxYear)
+    )));
+  }, [taxRows, filterAction, filterTaxYear]);
 
   useEffect(() => {
     setUnit(securityFeeMap[guard]);
@@ -50,15 +64,44 @@ export const TaxTable: React.FC<TaxTableProps> = ({
 
   useEffect(() => {
     if (!guard || !vm?.json?.events?.length) return;
-    setTaxes(getTaxRows({ addressBook, guard, prices, txTags, vm }));
+    setTaxRows(getTaxRows({ addressBook, guard, prices, txTags, vm }));
   }, [addressBook, guard, prices, txTags, vm]);
 
   return (<>
     <Paper sx={{ p: 2 }}>
 
-      <Typography align="center" variant="h4" sx={{ pt: 2 }} component="div">
-        {`${taxes.length} Taxable ${guard} Event${taxes.length > 1 ? "s" : ""}`}
-      </Typography>
+      <Grid container>
+        <Grid item xs={12}>
+          <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
+            {filteredRows.length === taxRows?.length
+              ? `${filteredRows.length} Taxable Event${filteredRows.length === 1 ? "" : "s"}`
+              : `${filteredRows.length} of ${taxRows?.length} Taxable Events`
+            }
+
+          </Typography>
+        </Grid>
+
+        <Grid item>
+          <SelectOne
+            label="Filter Action"
+            choices={Object.keys(TaxActions)}
+            selection={filterAction}
+            setSelection={setFilterAction}
+          />
+        </Grid>
+
+        <Grid item>
+          <SelectOne
+            label="Filter Tax Year"
+            choices={dedup(taxRows.reduce(
+              (years, row) => ([...years, row.date.substring(0, 4)]),
+              [] as string[],
+            ))}
+            selection={filterTaxYear}
+            setSelection={setFilterTaxYear}
+          />
+        </Grid>
+      </Grid>
 
       <TableContainer>
         <Table size="small" sx={{ minWidth: "64em", overflow: "auto" }}>
@@ -75,7 +118,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {taxes
+            {filteredRows
               .sort((r1, r2) =>
                 new Date(r1.date).getTime() > new Date(r2.date).getTime()
                   ? -1
@@ -102,7 +145,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
         </Table>
       </TableContainer>
       <Paginate
-        count={taxes.length}
+        count={filteredRows.length}
         page={page}
         rowsPerPage={rowsPerPage}
         setPage={setPage}
