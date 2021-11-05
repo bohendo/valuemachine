@@ -5,10 +5,8 @@ import { Logger } from "./logger";
 import {
   Account,
   Amount,
-  Guard,
   Asset,
   DateTimeString,
-  DecString,
   Source,
   TxId,
 } from "./strings";
@@ -65,36 +63,6 @@ export type Transaction = Static<typeof Transaction>;
 
 export const TransactionsJson = Type.Array(Transaction);
 export type TransactionsJson = Static<typeof TransactionsJson>;
-
-export const IncomeTypes = {
-  Wage: "Wage",
-  SelfEmployed: "SelfEmployed",
-  Interest: "Interest",
-  Dividend: "Dividend",
-  Prize: "Prize",
-} as const;
-export const IncomeType = Type.Enum(IncomeTypes); // NOT Extensible at run-time
-export type IncomeType = Static<typeof IncomeType>;
-
-export const TxTagTypes = {
-  description: "description",
-  incomeType: "incomeType",
-  multiplier: "multiplier",
-  physicalGuard: "physicalGuard",
-} as const;
-export const TxTagType = Type.Enum(TxTagTypes); // NOT Extensible at run-time
-export type TxTagType = Static<typeof TxTagType>;
-
-export const TxTags = Type.Record(
-  TxId,
-  Type.Object({
-    description: Type.Optional(Type.String()),
-    incomeType: Type.Optional(Type.String()),
-    multiplier: Type.Optional(DecString),
-    physicalGuard: Type.Optional(Guard),
-  }),
-);
-export type TxTags = Static<typeof TxTags>;
 
 ////////////////////////////////////////
 // Function Interfaces
