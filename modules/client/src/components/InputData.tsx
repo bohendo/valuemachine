@@ -144,18 +144,18 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
       </Grid>
 
       <Tabs
-        centered
         indicatorColor="secondary"
         onChange={(evt, newVal) => setTab(newVal)}
-        sx={{ m: 1 }}
+        sx={{ mt: 1 }}
         textColor="secondary"
         value={tab}
+        variant="scrollable"
       >
-        <Tab label="Address Book"/>
-        <Tab label="Csv Files"/>
-        <Tab label="Custom Transactions"/>
-        <Tab label="Transaction Tags"/>
-        <Tab label="Tax Info"/>
+        <Tab sx={{ flexGrow: 1 }} label="Address Book"/>
+        <Tab sx={{ flexGrow: 1 }} label="Csv Files"/>
+        <Tab sx={{ flexGrow: 1 }} label="Custom Transactions"/>
+        <Tab sx={{ flexGrow: 1 }} label="Transaction Tags"/>
+        <Tab sx={{ flexGrow: 1 }} label="Tax Info"/>
       </Tabs>
 
       <Divider sx={{ mt: 2, mb: 1 }}/>
@@ -174,11 +174,11 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
           </Grid>
           <Grid item md={3}>
             <AddressPorter
-              addressBook={addressBook}
+              addressBook={addressBook.json}
               setAddressBookJson={setAddressBookJson}
             />
             <Button
-              color="primary"
+              color="secondary"
               disabled={!Object.keys(addressBook.json || {}).length}
               fullWidth
               onClick={deleteAddresses}
@@ -198,8 +198,8 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
       </div>
 
       <div hidden={tab !== 1}>
-        <Grid container spacing={2}sx={{ mb: 2 }}>
-          <Grid item md={9}>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item md={9} overflow="auto">
             <CsvTable csvFiles={csvFiles} setCsvFiles={setCsvFiles} />
           </Grid>
           <Grid item md={3}>
@@ -208,7 +208,7 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
               setCsvFiles={setCsvFiles}
             />
             <Button
-              color="primary"
+              color="secondary"
               disabled={!Object.keys(csvFiles || {}).length}
               fullWidth
               onClick={deleteCsvFiles}
@@ -240,7 +240,7 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
               transactions={customTxns}
             />
             <Button
-              color="primary"
+              color="secondary"
               disabled={!customTxns?.length}
               fullWidth
               onClick={deleteCustomTxns}
@@ -262,7 +262,7 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
 
       <div hidden={tab !== 3}>
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          <Grid item md={9}>
+          <Grid item md={9} overflow="auto">
             <Card sx={{ m: 0, p: 2 }}>
               <CardHeader title={"Transaction Tags"} />
               <TxTagsEditor
@@ -277,7 +277,7 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
               setTxTags={setTxTags}
             />
             <Button
-              color="primary"
+              color="secondary"
               disabled={!Object.keys(txTags || {}).length}
               fullWidth
               onClick={deleteTxTags}

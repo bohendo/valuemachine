@@ -50,7 +50,7 @@ export const CsvTable: React.FC<CsvTableProps> = ({
       </Typography>
       {digests.length ? (
         <TableContainer>
-          <Table size="small" sx={{ p: 2, minWidth: "20em" }}>
+          <Table size="small" sx={{ minWidth: "20em", overflow: "auto" }}>
             <TableHead>
               <TableRow>
                 <TableCell><strong> File Name </strong></TableCell>

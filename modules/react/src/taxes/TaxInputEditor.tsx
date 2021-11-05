@@ -21,20 +21,20 @@ export const TaxInputEditor: React.FC<TaxInputEditorProps> = ({
   const [tab, setTab] = useState(0);
 
   return (<>
-    <Paper sx={{ p: 3 }}>
+    <Paper sx={{ p: 2 }}>
 
       <Tabs
-        centered
         indicatorColor="secondary"
         onChange={(evt, newVal) => setTab(newVal)}
         sx={{ m: 1 }}
         textColor="secondary"
         value={tab}
+        variant="scrollable"
       >
-        <Tab label="Personal Info"/>
-        <Tab label="Business Info"/>
-        <Tab label="Travel History"/>
-        <Tab label="Form Fields"/>
+        <Tab sx={{ flexGrow: 1 }} label="Personal Info"/>
+        <Tab sx={{ flexGrow: 1 }} label="Business Info"/>
+        <Tab sx={{ flexGrow: 1 }} label="Travel History"/>
+        <Tab sx={{ flexGrow: 1 }} label="Form Fields"/>
       </Tabs>
 
       <Divider sx={{ mt: 2, mb: 1 }}/>

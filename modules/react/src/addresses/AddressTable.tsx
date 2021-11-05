@@ -1,3 +1,4 @@
+import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -72,24 +73,30 @@ export const AddressTable: React.FC<AddressTableProps> = ({
   };
 
   return (<>
-
     <Paper sx={{ p: 2 }}>
+
+      <Grid container>
+        <Grid item xs={12}>
+          <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
+            {filteredEntries.length === Object.keys(addressBook.json).length
+              ? `${filteredEntries.length} Addresses`
+              : `${filteredEntries.length} of ${Object.keys(addressBook.json).length} Addresses`
+            }
+          </Typography>
+        </Grid>
+
+        <Grid item xs={12}>
+          <SelectOne
+            label="Filter Category"
+            choices={Array.from(new Set(Object.values(addressBook.json).map(e => e.category)))}
+            selection={filterCategory}
+            setSelection={setFilterCategory}
+          />
+        </Grid>
+      </Grid>
+
       <TableContainer>
-        <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
-          {filteredEntries.length === Object.keys(addressBook.json).length
-            ? `${filteredEntries.length} Addresses`
-            : `${filteredEntries.length} of ${Object.keys(addressBook.json).length} Addresses`
-          }
-        </Typography>
-
-        <SelectOne
-          label="Filter Category"
-          choices={Array.from(new Set(Object.values(addressBook.json).map(e => e.category)))}
-          selection={filterCategory}
-          setSelection={setFilterCategory}
-        />
-
-        <Table size="small">
+        <Table size="small" sx={{ minWidth: "48em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
               <TableCell><strong> Account name </strong></TableCell>
@@ -113,18 +120,18 @@ export const AddressTable: React.FC<AddressTableProps> = ({
               ))}
           </TableBody>
         </Table>
-
-        <TablePagination
-          rowsPerPageOptions={[25, 50, 100, 250]}
-          component="div"
-          count={filteredEntries.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
       </TableContainer>
-    </Paper>
 
+      <TablePagination
+        rowsPerPageOptions={[25, 50, 100, 250]}
+        component="div"
+        count={filteredEntries.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+
+    </Paper>
   </>);
 };
