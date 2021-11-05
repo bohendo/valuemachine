@@ -1,7 +1,7 @@
 import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
-import { guard, prices, vm } from "../constants";
+import { addressBook, guard, prices, vm } from "../constants";
 
 import { TaxTable } from "./TaxTable";
 
@@ -13,6 +13,7 @@ const Template: ComponentStory<typeof TaxTable> = (args) => <TaxTable {...args} 
 
 export const Example = Template.bind({});
 Example.args = {
+  addressBook,
   guard,
   prices,
   vm,

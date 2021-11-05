@@ -3,12 +3,6 @@
 const iframe = "#storybook-preview-iframe";
 
 describe("@valuemachine/react", () => {
-  beforeEach(() => {
-    const url = `${Cypress.env("baseUrl")}/`;
-    cy.visit(url);
-    cy.frameLoaded(iframe);
-  });
-
   it(`should display the address editor`, () => {
     const url = `${Cypress.env("baseUrl")}/?path=/story/addresseditor--insert`;
     cy.visit(url);
@@ -23,7 +17,38 @@ describe("@valuemachine/react", () => {
       "addresseditor--modify",
       "addressporter--example",
       "addresstable--example",
-      "addresstable--example",
+      "csvporter--example",
+      "csvtable--example",
+      "inputporter--example",
+      "balances--example",
+      "balancetable--example",
+      "networthtable--example",
+      "taxinputeditor--example",
+      "taxporter--example",
+      "taxtable--example",
+      "transactioneditor--example",
+      "transactionporter--example",
+      "transactiontable--editable",
+      "transactiontable--readonly",
+      "txtagseditor--new-tag",
+      "txtagseditor--edit-tag",
+      "txtagsporter--example",
+      "dateinput--example",
+      "datetimeinput--example",
+      "hexstring--bytes-32",
+      "hexstring--address",
+      "hexstring--named-address",
+      "hexstring--account",
+      "hexstring--named-account",
+      "hexstring--venue-account",
+      "hexstring--tx-uuid",
+      "hexstring--transfer-uuid",
+      "hexstring--eth-2-validator",
+      "selectmany--example",
+      "selectone--example",
+      "textinput--example",
+      "chunktable--example",
+      "eventtable--example",
     ]) {
       const url = `${Cypress.env("baseUrl")}/?path=/story/${component}`;
       cy.visit(url);
