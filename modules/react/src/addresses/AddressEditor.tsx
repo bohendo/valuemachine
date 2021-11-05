@@ -50,7 +50,7 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
     if (!name) {
       return "Name is required";
     }
-    const illegal = name.match(/[^a-zA-Z0-9 -]/);
+    const illegal = name.match(/[^a-zA-Z0-9 ._-]/);
     if (illegal) {
       return `Name should not include "${illegal}"`;
     } else {
@@ -129,8 +129,15 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
         <SelectOne
           label="Guard"
           choices={Object.keys(PhysicalGuards)}
-          selection={newEntry?.guard}
-          setSelection={guard => setNewEntry({ ...newEntry, guard })}
+          selection={newEntry?.guard || ""}
+          setSelection={guard => {
+            if (guard) {
+              setNewEntry({ ...newEntry, guard });
+            } else {
+              delete newEntry.guard;
+              setNewEntry({ ...newEntry });
+            }
+          }}
         />
       </Grid>
 

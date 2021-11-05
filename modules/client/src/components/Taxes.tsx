@@ -42,7 +42,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   }, [allGuards, tab]);
 
   useEffect(() => {
-    if (!addressBook || !vm?.json?.events?.length) return;
+    if (!vm?.json?.events?.length) return;
     const newGuards = Array.from(vm.json.events
       .filter(
         e => e.type === EventTypes.Trade || e.type === EventTypes.Income
@@ -56,7 +56,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     ).sort() as Guard[];
     setAllGuards(newGuards);
     setGuard(newGuards[0]);
-  }, [addressBook, vm]);
+  }, [vm]);
 
   return (
     <>
@@ -84,11 +84,18 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
 
       <Grid container sx={{ justifyContent: "center", mb: 2 }}>
         <Grid item sm={6}>
-          <TaxPorter guard={guard} prices={prices} vm={vm} taxInput={taxInput} txTags={txTags} />
+          <TaxPorter
+            addressBook={addressBook}
+            guard={guard}
+            prices={prices}
+            vm={vm}
+            taxInput={taxInput}
+            txTags={txTags}
+          />
         </Grid>
       </Grid>
 
-      <TaxTable guard={guard} prices={prices} vm={vm} />
+      <TaxTable addressBook={addressBook} guard={guard} prices={prices} vm={vm} />
 
     </>
   );

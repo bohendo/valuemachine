@@ -88,8 +88,9 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!addressBookJson) return;
-    if (getAddressBookError(addressBookJson)) {
-      console.log(`Removing invalid address book`);
+    const error = getAddressBookError(addressBookJson);
+    if (error) {
+      console.log(`Removing invalid address book: ${error}`);
       const newAddressBookJson = getEmptyAddressBook();
       store.save(AddressBookStore, newAddressBookJson);
       setAddressBookJson(newAddressBookJson);
@@ -106,8 +107,9 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!addressBook || !transactionsJson) return;
-    if (getTransactionsError(transactionsJson)) {
-      console.log(`Removing ${transactionsJson?.length || "0"} invalid transactions`);
+    const error = getTransactionsError(transactionsJson);
+    if (error) {
+      console.log(`Removing ${transactionsJson?.length || "0"} invalid transactions: ${error}`);
       const newTransactionsJson = getEmptyTransactions();
       store.save(TransactionsStore, newTransactionsJson);
       setTransactionsJson(newTransactionsJson);
@@ -120,8 +122,9 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!addressBook || !vmJson) return;
-    if (getValueMachineError(vmJson)) {
-      console.log(`Removing invalid vm`);
+    const error = getValueMachineError(vmJson);
+    if (error) {
+      console.log(`Removing invalid vm: ${error}`);
       const newVMJson = getEmptyValueMachine();
       store.save(ValueMachineStore, newVMJson);
       setVMJson(newVMJson);
@@ -137,8 +140,9 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!pricesJson || !unit) return;
-    if (getPricesError(pricesJson)) {
-      console.log(`Removing ${pricesJson?.length || "0"} invalid prices`);
+    const error = getPricesError(pricesJson);
+    if (error) {
+      console.log(`Removing ${pricesJson?.length || "0"} invalid prices: ${error}`);
       const newPricesJson = getEmptyPrices();
       store.save(PricesStore, newPricesJson);
       setPricesJson(newPricesJson);
@@ -151,8 +155,9 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!csvFiles) return;
-    if (getCsvFilesError(csvFiles)) {
-      console.log(`Removing invalid csv files`);
+    const error = getCsvFilesError(csvFiles);
+    if (error) {
+      console.log(`Removing invalid csv files: ${error}`);
       const newCsvFiles = getEmptyCsvFiles();
       store.save(CsvStore, newCsvFiles);
       setCsvFiles(newCsvFiles);
@@ -176,8 +181,9 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!taxInput) return;
-    if (getTaxInputError(taxInput)) {
-      console.log(`Removing invalid tax input`);
+    const error = getTaxInputError(taxInput);
+    if (error) {
+      console.log(`Removing invalid tax input: ${error}`);
       const newTaxInput = getEmptyTaxInput();
       store.save(TaxInputStore, newTaxInput);
       setTaxInput(newTaxInput);
@@ -189,13 +195,14 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!txTags) return;
-    if (getTxTagsError(txTags)) {
-      console.log(`Removing invalid tax input`);
+    const error = getTxTagsError(txTags);
+    if (error) {
+      console.log(`Removing invalid tx tags: ${error}`);
       const newTxTags = getEmptyTxTags();
       store.save(TxTagsStore, newTxTags);
       setTxTags(newTxTags);
     } else {
-      console.log(`Saving valid tax input`);
+      console.log(`Saving valid tx tags`);
       store.save(TxTagsStore, txTags);
     }
   }, [txTags]);

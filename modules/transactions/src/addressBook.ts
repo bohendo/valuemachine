@@ -3,6 +3,7 @@ import { isAddress as isEthAddress } from "@ethersproject/address";
 import {
   Account,
   AddressBook,
+  Guard,
   AddressBookJson,
   AddressBookParams,
   AddressCategories,
@@ -18,6 +19,7 @@ import {
   getLogger,
 } from "@valuemachine/utils";
 
+import { Guards } from "./enums";
 import { publicAddresses } from "./evm";
 
 export const getAddressBook = (params?: AddressBookParams): AddressBook => {
@@ -107,10 +109,14 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const getCategory = (address: Account): AddressCategory =>
     getEntry(address)?.category || AddressCategories.Private;
 
+  const getGuard = (address: Account): Guard =>
+    getEntry(address)?.guard || Guards.None;
+
   return {
     addresses: Object.keys(addressBook),
     selfAddresses: Object.keys(addressBook).filter(isSelf),
     getCategory,
+    getGuard,
     getDecimals,
     getName,
     isSelf,

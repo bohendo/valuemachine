@@ -12,9 +12,10 @@ import {
   Assets,
 } from "@valuemachine/transactions";
 import {
-  TaxRow,
+  AddressBook,
   Guard,
   Prices,
+  TaxRow,
   ValueMachine,
 } from "@valuemachine/types";
 import {
@@ -25,11 +26,13 @@ import React, { useEffect, useState } from "react";
 const { ETH } = Assets;
 
 type TaxTableProps = {
+  addressBook: AddressBook;
   guard: Guard;
   prices: Prices;
   vm: ValueMachine;
 };
 export const TaxTable: React.FC<TaxTableProps> = ({
+  addressBook,
   guard,
   prices,
   vm,
@@ -45,8 +48,8 @@ export const TaxTable: React.FC<TaxTableProps> = ({
 
   useEffect(() => {
     if (!guard || !vm?.json?.events?.length) return;
-    setTaxes(getTaxRows({ guard, prices, vm })); 
-  }, [guard, prices, vm]);
+    setTaxes(getTaxRows({ addressBook, guard, prices, vm })); 
+  }, [addressBook, guard, prices, vm]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -73,7 +76,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
               <TableCell><strong> Asset </strong></TableCell>
               <TableCell><strong> {`Price (${unit}/Asset)`} </strong></TableCell>
               <TableCell><strong> {`Value (${unit})`} </strong></TableCell>
-              <TableCell><strong> Receive Date </strong></TableCell>
+              <TableCell sx={{ minWidth: "8em" }}><strong> Receive Date </strong></TableCell>
               <TableCell><strong> {`Receive Price (${unit}/Asset)`} </strong></TableCell>
               <TableCell><strong> {`Capital Change (${unit})`} </strong></TableCell>
               <TableCell><strong> {`Cumulative Change (${unit})`} </strong></TableCell>
@@ -99,7 +102,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
                   <TableCell> {`${commify(row.amount)} ${row.asset}`} </TableCell>
                   <TableCell> {commify(row.price)} </TableCell>
                   <TableCell> {commify(row.value)} </TableCell>
-                  <TableCell> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
+                  <TableCell sx={{ minWidth: "8em" }}> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
                   <TableCell> {commify(row.receivePrice)} </TableCell>
                   <TableCell> {commify(row.capitalChange)} </TableCell>
                   <TableCell> {commify(row.cumulativeChange)} </TableCell>

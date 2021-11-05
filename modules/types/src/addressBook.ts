@@ -67,6 +67,7 @@ export interface AddressBook {
   addresses: Account[];
   selfAddresses: Account[];
   getCategory(address: Account): AddressCategory;
+  getGuard(address: Account): Guard;
   getDecimals(address: Account): number;
   getName(address: Account, prefix?: boolean): string;
   isSelf(address: Account): boolean;

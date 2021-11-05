@@ -101,6 +101,7 @@ export const AddressTable: React.FC<AddressTableProps> = ({
             <TableRow>
               <TableCell><strong> Account name </strong></TableCell>
               <TableCell><strong> Category </strong></TableCell>
+              <TableCell><strong> Guard </strong></TableCell>
               <TableCell><strong> Address </strong></TableCell>
               <TableCell><strong> Edit </strong></TableCell>
             </TableRow>

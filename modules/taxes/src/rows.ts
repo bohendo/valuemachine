@@ -1,4 +1,5 @@
 import {
+  AddressBook,
   DateString,
   DateTimeString,
   EventTypes,
@@ -13,19 +14,24 @@ import {
 import {
   add,
   mul,
+  round as defaultRound,
   sub,
 } from "@valuemachine/utils";
 
 import { allTaxYears, securityFeeMap } from "./constants";
 import { getTaxYearBoundaries } from "./utils";
 
+const round = n => defaultRound(n, 2, false);
+
 export const getTaxRows = ({
+  addressBook,
   guard,
   prices,
   vm,
   taxYear,
   txTags,
 }: {
+  addressBook: AddressBook;
   guard: Guard;
   prices: Prices;
   vm: ValueMachine;
@@ -47,10 +53,14 @@ export const getTaxRows = ({
     const toGuard = (
       (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
     ).split("/")[0];
-    return tags.physicalGuard === guard || (toGuard === guard && (
-      evt.type === EventTypes.Trade
-      || evt.type === EventTypes.GuardChange
-      || evt.type === EventTypes.Income
+    return (
+      evt.type === EventTypes.Trade || evt.type === EventTypes.Income
+    ) && ((
+      toGuard === guard
+    ) || (
+      tags.physicalGuard === guard
+    ) || (
+      evt.account && addressBook.getGuard(evt.account) === guard
     ));
   }).reduce((output, evt) => {
     const getDate = (datetime: DateTimeString): DateString =>
@@ -70,15 +80,15 @@ export const getTaxRows = ({
           return {
             date: date,
             action: EventTypes.Trade,
-            amount: chunk.amount,
+            amount: round(chunk.amount),
             asset: chunk.asset,
-            price,
-            value,
-            receivePrice,
+            price: round(price),
+            value: round(value),
+            receivePrice: round(receivePrice),
             receiveDate: getDate(chunk.history[0].date),
-            capitalChange,
-            cumulativeChange,
-            cumulativeIncome,
+            capitalChange: round(capitalChange),
+            cumulativeChange: round(cumulativeChange),
+            cumulativeIncome: round(cumulativeIncome),
             tags: txTags?.[evt.txId] || [],
           };
         } else {
@@ -96,15 +106,15 @@ export const getTaxRows = ({
         return {
           date: date,
           action: EventTypes.Income,
-          amount: chunk.amount,
+          amount: round(chunk.amount),
           asset: chunk.asset,
-          price,
-          value: income,
-          receivePrice: price,
+          price: round(price),
+          value: round(income),
+          receivePrice: round(price),
           receiveDate: date,
-          capitalChange: "0",
-          cumulativeChange,
-          cumulativeIncome,
+          capitalChange: "0.00",
+          cumulativeChange: round(cumulativeChange),
+          cumulativeIncome: round(cumulativeIncome),
           tags: txTags?.[evt.txId] || [],
         } as TaxRow;
       }));

@@ -52,6 +52,7 @@ export const AddressRow: React.FC<AddressRowProps> = ({
       <TableRow sx={{ m: 0, overflow: "auto", ["&>td"]: { borderBottom: 0 } }}>
         <TableCell> {entry.name} </TableCell>
         <TableCell> {entry.category} </TableCell>
+        <TableCell> {entry.guard || ""} </TableCell>
         <TableCell><pre> {entry.address} </pre></TableCell>
         <TableCell>
           <IconButton color="secondary" onClick={toggleEditMode}>
