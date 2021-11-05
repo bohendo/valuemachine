@@ -50,7 +50,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
 
   useEffect(() => {
     if (!guard || !vm?.json?.events?.length) return;
-    setTaxes(getTaxRows({ addressBook, guard, prices, txTags, vm })); 
+    setTaxes(getTaxRows({ addressBook, guard, prices, txTags, vm }));
   }, [addressBook, guard, prices, txTags, vm]);
 
   return (<>

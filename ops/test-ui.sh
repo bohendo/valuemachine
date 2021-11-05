@@ -16,7 +16,7 @@ dir="$root/modules/$ui"
 export ELECTRON_ENABLE_LOGGING=true
 export BLOG_HOST_CONTENT_DIR="$root/.test-content.git"
 export BLOG_MIRROR_URL=""
-make start
+make start-storybook
 
 if [[ -d "$dir" ]]
 then cd "$dir" || exit 1;

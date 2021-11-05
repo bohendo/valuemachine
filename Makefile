@@ -189,7 +189,7 @@ taxes: core transactions utils types $(shell find modules/taxes $(find_options))
 	$(docker_run) "cd modules/taxes && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-react: taxes core transactions utils types $(shell find modules/react $(find_options))
+react: taxes core transactions utils types $(shell find modules/react/src $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/react && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@

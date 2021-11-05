@@ -3,6 +3,14 @@ set -e
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)
 project=$(grep -m 1 '"name":' "$root/package.json" | cut -d '"' -f 4)
+name="storybook"
+
+if grep -qs "$name" <<<"$(docker container ls | tail -n +2)"
+then echo "$name is already running" && exit
+fi
+
+####################
+# External Env Vars
 
 # make sure a network for this project has been created
 docker swarm init 2> /dev/null || true
@@ -18,7 +26,7 @@ docker run \
   "${interactive[@]}" \
   --detach \
   --entrypoint="npm" \
-  --name="${project}_storybook" \
+  --name="${project}_${name}" \
   --network "$project" \
   --publish="6006:6006" \
   --rm \
