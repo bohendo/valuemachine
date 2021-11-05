@@ -1,5 +1,5 @@
-import DownloadIcon from "@mui/icons-material/GetApp";
-import Box from "@mui/material/Box";
+import DownloadIcon from "@mui/icons-material/FileDownload";
+import UploadIcon from "@mui/icons-material/FileUpload";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
@@ -65,14 +65,23 @@ export const Porter: React.FC<PorterProps> = ({
           <Typography variant="h6">
             {`Import ${title}`}
           </Typography>
-          <Box sx={{ my: 2 }}>
+          <Button
+            sx={{ my: 2 }}
+            color="primary"
+            size="small"
+            component="label"
+            startIcon={<UploadIcon />}
+            variant="contained"
+          >
+            Import
             <input
               accept="application/json"
               id="profile-importer"
               onChange={handleImport}
               type="file"
+              hidden
             />
-          </Box>
+          </Button>
         </Grid>
 
         <Grid item>
@@ -87,7 +96,7 @@ export const Porter: React.FC<PorterProps> = ({
             startIcon={<DownloadIcon />}
             variant="contained"
           >
-            Download
+            Export
           </Button>
         </Grid>
 

@@ -1,4 +1,5 @@
-import Box from "@mui/material/Box";
+import UploadIcon from "@mui/icons-material/FileUpload";
+import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
@@ -15,7 +16,7 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
   setCsvFiles,
 }: CsvPorterProps) => {
 
-  const handleCsvFileImport = (event: any) => {
+  const handleImport = (event: any) => {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -40,14 +41,23 @@ export const CsvPorter: React.FC<CsvPorterProps> = ({
           <Typography variant="body2">
             {`Supported file types: [${Object.keys(CsvSources).join(", ")}]`}
           </Typography>
-          <Box sx={{ mb: 1, mt: 1 }}>
+          <Button
+            sx={{ my: 2 }}
+            color="primary"
+            size="small"
+            component="label"
+            startIcon={<UploadIcon />}
+            variant="contained"
+          >
+            Import
             <input
               accept="text/csv"
-              id="file-importer"
-              onChange={handleCsvFileImport}
+              id="csv-importer"
+              onChange={handleImport}
               type="file"
+              hidden
             />
-          </Box>
+          </Button>
         </Grid>
       </Grid>
     </Paper>

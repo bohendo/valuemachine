@@ -10,6 +10,6 @@ const Template: ComponentStory<typeof AddressPorter> = (args) => <AddressPorter 
 
 export const Example = Template.bind({});
 Example.args = {
-  addressBook,
+  addressBook: addressBook.json,
   setAddressBookJson: console.log,
 };
