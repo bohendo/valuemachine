@@ -13,6 +13,7 @@ import {
 } from "@valuemachine/types";
 import {
   add,
+  chrono,
   mul,
   round as defaultRound,
   sub,
@@ -44,7 +45,7 @@ export const getTaxRows = ({
   let cumulativeIncome = "0";
   let cumulativeChange = "0";
 
-  return vm?.json?.events.filter(evt => {
+  return vm?.json?.events.sort(chrono).filter(evt => {
     const time = new Date(evt.date).getTime();
     const tags = txTags?.[evt.txId] || {};
     if (taxYear && taxYear !== allTaxYears && (
@@ -62,14 +63,14 @@ export const getTaxRows = ({
     ) || (
       evt.account && addressBook.getGuard(evt.account) === guard
     ));
-  }).reduce((output, evt) => {
+  }).reduce((rows, evt) => {
     const getDate = (datetime: DateTimeString): DateString =>
       new Date(datetime).toISOString().split("T")[0];
     const date = getDate(evt.date);
 
     if (evt.type === EventTypes.Trade) {
-      if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return output; }
-      return output.concat(...evt.outputs.map(chunkIndex => {
+      if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return rows; }
+      return rows.concat(...evt.outputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
         if (chunk.asset !== unit && price !== "0") {
@@ -97,8 +98,8 @@ export const getTaxRows = ({
       }).filter(row => !!row) as TaxRow[]);
 
     } else if (evt.type === EventTypes.Income) {
-      if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); return output; }
-      return output.concat(...evt.inputs.map(chunkIndex => {
+      if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); return rows; }
+      return rows.concat(...evt.inputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
         const income = mul(chunk.amount, price);
@@ -120,8 +121,23 @@ export const getTaxRows = ({
       }));
 
     } else {
-      return output;
+      return rows;
     }
+  }, [] as TaxRow[]).reduce((rows, row) => {
+
+    const dupRow = rows.find(r =>
+      r.asset === row.asset &&
+      r.date === row.date &&
+      r.receiveDate === row.receiveDate
+    );
+    if (dupRow) {
+      dupRow.amount = add(dupRow.amount, row.amount);
+      dupRow.value = add(dupRow.value, row.value);
+    } else {
+      rows.push(row);
+    }
+    return rows;
+
   }, [] as TaxRow[]);
 
 };

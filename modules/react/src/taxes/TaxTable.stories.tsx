@@ -1,7 +1,7 @@
 import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
-import { vm, guard, prices } from "../constants";
+import { guard, prices, vm } from "../constants";
 
 import { TaxTable } from "./TaxTable";
 
