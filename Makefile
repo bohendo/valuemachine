@@ -120,6 +120,11 @@ test-taxes: taxes
 watch-taxes: core
 	bash ops/test-unit.sh taxes watch
 
+test-react: react
+	bash ops/test-ui.sh react test
+watch-react: taxes
+	bash ops/test-ui.sh react watch
+
 run-example: package
 	bash ops/test-unit.sh package test
 

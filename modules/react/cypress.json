@@ -1,0 +1,12 @@
+{
+  "defaultCommandTimeout": 20000,
+  "env": {
+    "baseUrl": "http://localhost:3000"
+  },
+  "ignoreTestFiles": "**/examples/**",
+  "integrationFolder": "cypress/tests",
+  "video": false,
+  "viewportWidth": 600,
+  "viewportHeight": 800
+}
+
