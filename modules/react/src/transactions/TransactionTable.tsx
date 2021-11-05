@@ -5,7 +5,6 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import { Methods } from "@valuemachine/transactions";
@@ -27,7 +26,7 @@ import {
 import { chrono, dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
-import { DateInput, SelectOne } from "../utils";
+import { DateInput, Paginate, SelectOne } from "../utils";
 
 import { TransactionRow } from "./TransactionRow";
 
@@ -128,15 +127,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       dedup(transactions?.json.map(tx => tx.sources).flat()).sort()
     );
   }, [addressBook, transactions]);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
 
   const editTx = (uuid: TxId, newTx?: Transaction) => {
     if (!setTransactions || !transactions?.json) return;
@@ -258,17 +248,15 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
               />))
             }
           </TableBody>
+          <Paginate
+            count={filteredTxns?.length || 0}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            setPage={setPage}
+            setRowsPerPage={setRowsPerPage}
+          />
         </Table>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[25, 50, 100, 250]}
-        component="div"
-        count={filteredTxns?.length || 0}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
 
     </Paper>
 

@@ -5,7 +5,6 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
@@ -23,7 +22,7 @@ import {
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
-import { SelectOne } from "../utils";
+import { Paginate, SelectOne } from "../utils";
 
 import { EventRow } from "./EventRow";
 
@@ -71,15 +70,6 @@ export const EventTable: React.FC<EventTableProps> = ({
   useEffect(() => {
     if (filterType !== EventTypes.Error) setFilterCode("");
   }, [filterType]);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
 
   return (
     <Paper sx={{ p: 2 }}>
@@ -149,14 +139,12 @@ export const EventTable: React.FC<EventTableProps> = ({
               ))}
           </TableBody>
         </Table>
-        <TablePagination
-          rowsPerPageOptions={[25, 50, 100, 250]}
-          component="div"
+        <Paginate
           count={filteredEvents.length}
           rowsPerPage={rowsPerPage}
           page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
+          setPage={setPage}
+          setRowsPerPage={setRowsPerPage}
         />
       </TableContainer>
 

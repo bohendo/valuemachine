@@ -4,7 +4,6 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import { getTaxRows, securityFeeMap } from "@valuemachine/taxes";
@@ -23,6 +22,8 @@ import {
   commify,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
+
+import { Paginate } from "../utils";
 
 type TaxTableProps = {
   addressBook: AddressBook;
@@ -51,15 +52,6 @@ export const TaxTable: React.FC<TaxTableProps> = ({
     if (!guard || !vm?.json?.events?.length) return;
     setTaxes(getTaxRows({ addressBook, guard, prices, txTags, vm })); 
   }, [addressBook, guard, prices, txTags, vm]);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
 
   return (<>
     <Paper sx={{ p: 2 }}>
@@ -111,19 +103,15 @@ export const TaxTable: React.FC<TaxTableProps> = ({
                 </TableRow>
               ))}
           </TableBody>
+          <Paginate
+            count={taxes.length}
+            page={page}
+            rowsPerPage={rowsPerPage}
+            setPage={setPage}
+            setRowsPerPage={setRowsPerPage}
+          />
         </Table>
       </TableContainer>
-
-      <TablePagination
-        rowsPerPageOptions={[25, 50, 100, 250]}
-        component="div"
-        count={taxes.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-
     </Paper>
   </>);
 };
