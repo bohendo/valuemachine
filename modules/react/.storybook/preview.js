@@ -2,7 +2,7 @@ import Card from "@mui/material/Card";
 
 export const decorators = [
   (Story) => (
-    <Card sx={{ m: 4, p: 0 }}>
+    <Card sx={{ m: 2, p: 2 }} id="storybook-root">
       <Story />
     </Card>
   ),

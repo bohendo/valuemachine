@@ -1,7 +1,8 @@
 {
+  "chromeWebSecurity": false,
   "defaultCommandTimeout": 20000,
   "env": {
-    "baseUrl": "http://localhost:3000"
+    "baseUrl": "http://localhost:6006"
   },
   "ignoreTestFiles": "**/examples/**",
   "integrationFolder": "cypress/tests",

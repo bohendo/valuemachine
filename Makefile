@@ -138,6 +138,8 @@ test-all: package
 	bash ops/test-unit.sh taxes test
 	@sleep 1
 	bash ops/test-unit.sh package test
+	@sleep 1
+	bash ops/test-ui.sh react test
 
 publish: package
 	bash ops/npm-publish.sh

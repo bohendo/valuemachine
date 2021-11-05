@@ -13,7 +13,8 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-// Import commands.js using ES2015 syntax:
-import './commands'
+import "cypress-iframe";
 
-require('cypress-terminal-report/src/installLogsCollector')();
+import "./commands";
+
+require("cypress-terminal-report/src/installLogsCollector")();
