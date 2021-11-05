@@ -72,8 +72,6 @@ export const TaxTable: React.FC<TaxTableProps> = ({
               <TableCell sx={{ minWidth: "8em" }}><strong> Receive Date </strong></TableCell>
               <TableCell><strong> {`Receive Price (${unit}/Asset)`} </strong></TableCell>
               <TableCell><strong> {`Capital Change (${unit})`} </strong></TableCell>
-              <TableCell><strong> {`Cumulative Change (${unit})`} </strong></TableCell>
-              <TableCell><strong> {`Cumulative Income (${unit})`} </strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -98,8 +96,6 @@ export const TaxTable: React.FC<TaxTableProps> = ({
                   <TableCell sx={{ minWidth: "8em" }}> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
                   <TableCell> {commify(row.receivePrice)} </TableCell>
                   <TableCell> {commify(row.capitalChange)} </TableCell>
-                  <TableCell> {commify(row.cumulativeChange)} </TableCell>
-                  <TableCell> {commify(row.cumulativeIncome)} </TableCell>
                 </TableRow>
               ))}
           </TableBody>

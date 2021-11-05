@@ -42,8 +42,6 @@ export const getTaxRows = ({
   const unit = securityFeeMap[guard] || "";
   const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
   if (!unit) throw new Error(`Security asset is unknown for ${guard}`);
-  let cumulativeIncome = "0";
-  let cumulativeChange = "0";
 
   return vm?.json?.events.sort(chrono).filter(evt => {
     const time = new Date(evt.date).getTime();
@@ -77,19 +75,16 @@ export const getTaxRows = ({
           const value = mul(chunk.amount, price);
           const receivePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset, unit);
           const capitalChange = mul(chunk.amount, sub(price, receivePrice || "0"));
-          cumulativeChange = add(cumulativeChange, capitalChange);
           return {
             date: date,
             action: EventTypes.Trade,
-            amount: round(chunk.amount),
+            amount: defaultRound(chunk.amount, 6),
             asset: chunk.asset,
             price: round(price),
             value: round(value),
             receivePrice: round(receivePrice),
             receiveDate: getDate(chunk.history[0].date),
             capitalChange: round(capitalChange),
-            cumulativeChange: round(cumulativeChange),
-            cumulativeIncome: round(cumulativeIncome),
             tags: txTags?.[evt.txId] || [],
           };
         } else {
@@ -103,19 +98,16 @@ export const getTaxRows = ({
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
         const income = mul(chunk.amount, price);
-        cumulativeIncome = add(cumulativeIncome, income);
         return {
           date: date,
           action: EventTypes.Income,
-          amount: round(chunk.amount),
+          amount: defaultRound(chunk.amount, 6),
           asset: chunk.asset,
           price: round(price),
           value: round(income),
           receivePrice: round(price),
           receiveDate: date,
           capitalChange: "0.00",
-          cumulativeChange: round(cumulativeChange),
-          cumulativeIncome: round(cumulativeIncome),
           tags: txTags?.[evt.txId] || [],
         } as TaxRow;
       }));

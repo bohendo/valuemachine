@@ -53,8 +53,6 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "100",
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "5000",
-      cumulativeChange: "5000",
-      cumulativeIncome: "1000",
       tags: [],
     }], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
@@ -73,8 +71,6 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "100",
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "0",
-      cumulativeChange: "0",
-      cumulativeIncome: "1000",
       tags: [],
     }, {
       date: "2020-12-01T00:00:00",
@@ -86,8 +82,6 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "100",
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "5000",
-      cumulativeChange: "5000",
-      cumulativeIncome: "1000",
       tags: [],
     }, {
       date: "2020-12-02T00:00:00",
@@ -99,8 +93,6 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "5",
       receiveDate: "2019-01-01T00:00:00",
       capitalChange: "1000",
-      cumulativeChange: "6000",
-      cumulativeIncome: "1000",
       tags: [],
     }];
     const input = {

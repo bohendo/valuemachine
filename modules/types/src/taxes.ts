@@ -13,16 +13,14 @@ export type Mapping = Static<typeof Mapping>;
 export const TaxRow = Type.Object({
   date: DateString,
   action: EventType, // subset: Trade or Income
-  amount: DecString,
+  amount: DecString, // rounded to 10^-6
   asset: Asset,
-  price: DecString,
+  price: DecString, // rounded to 10^-2
   tags: Type.Array(Type.String()),
-  value: DecString,
+  value: DecString, // rounded to 10^-2
   receiveDate: DateString,
-  receivePrice: DecString,
-  capitalChange: DecString,
-  cumulativeChange: DecString,
-  cumulativeIncome: DecString,
+  receivePrice: DecString, // rounded to 10^-2
+  capitalChange: DecString, // rounded to 10^-2
 }, { additionalProperties: false });
 export type TaxRow = Static<typeof TaxRow>;
 
