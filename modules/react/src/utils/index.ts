@@ -1,3 +1,4 @@
+export { Confirm } from "./Confirm";
 export { DateInput } from "./DateInput";
 export { DateTimeInput } from "./DateTimeInput";
 export { HexString } from "./HexString";
