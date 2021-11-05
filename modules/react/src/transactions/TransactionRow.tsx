@@ -18,6 +18,7 @@ import {
   Transaction,
   Transfer,
   TxId,
+  TxTags,
 } from "@valuemachine/types";
 import { round } from "@valuemachine/utils";
 import React, { useState } from "react";
@@ -30,11 +31,13 @@ type TransactionRowProps = {
   addressBook: AddressBook;
   tx: Transaction;
   editTx?: (uuid: TxId, val?: Transaction) => void;
+  txTags?: TxTags;
 };
 export const TransactionRow: React.FC<TransactionRowProps> = ({
   addressBook,
   tx,
   editTx,
+  txTags,
 }: TransactionRowProps) => {
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -79,14 +82,16 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
         <TableCell> {tx.uuid ? <HexString value={tx.uuid}/> : "N/A"} </TableCell>
         <TableCell> {tx.sources.join(", ")} </TableCell>
         <TableCell> {tx.apps.join(", ")} </TableCell>
-        <TableCell> {describeTransaction(addressBook, tx)} </TableCell>
-        {editTx ?
+        <TableCell> {
+          txTags?.[tx.uuid]?.description || describeTransaction(addressBook, tx)
+        } </TableCell>
+        {editTx ? (
           <TableCell>
             <IconButton color="secondary" onClick={toggleEditMode}>
               <EditIcon />
             </IconButton>
           </TableCell>
-          : null}
+        ) : null}
       </TableRow>
 
       <TableRow sx={{ overflow: "auto", ["&>td"]: { borderBottom: 0 } }}>
@@ -111,28 +116,39 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {tx.transfers.map((transfer: Transfer, i: number) => (
-                    <TableRow key={i}>
-                      <TableCell> {transfer.category} </TableCell>
-                      <TableCell> {transfer.asset} </TableCell>
-                      <TableCell> {
-                        transfer.amount === "ALL" ? transfer.amount : round(transfer.amount || "1")
-                      } </TableCell>
-                      <TableCell>
-                        <HexString
-                          display={addressBook?.getName(transfer.from, true)}
-                          value={transfer.from}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <HexString
-                          display={addressBook?.getName(transfer.to, true)}
-                          value={transfer.to}
-                        />
-                      </TableCell>
-                      <TableCell> {transfer.index} </TableCell>
-                    </TableRow>
-                  ))}
+                  {tx.transfers.map((transfer: Transfer, i: number) => {
+                    const tags = txTags?.[`${tx.uuid}/${transfer.index}`];
+                    return (
+                      <TableRow key={i}>
+                        <TableCell> {
+                          transfer.category
+                        }{
+                          tags?.incomeType ? ` (${tags.incomeType})` : null
+                        } </TableCell>
+                        <TableCell> {transfer.asset} </TableCell>
+                        <TableCell> {
+                          transfer.amount === "ALL" ? transfer.amount : round(transfer.amount || "1")
+                        }{ // transfer multiplier
+                          tags?.multiplier ? ` (x${tags?.multiplier})` : null
+                        }{ // tx multiplier
+                          txTags?.[tx.uuid]?.multiplier ? ` (x${txTags?.[tx.uuid]?.multiplier})` : null
+                        }</TableCell>
+                        <TableCell>
+                          <HexString
+                            display={addressBook?.getName(transfer.from, true)}
+                            value={transfer.from}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <HexString
+                            display={addressBook?.getName(transfer.to, true)}
+                            value={transfer.to}
+                          />
+                        </TableCell>
+                        <TableCell> {transfer.index} </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </Box>

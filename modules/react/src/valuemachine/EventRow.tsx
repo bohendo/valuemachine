@@ -14,19 +14,25 @@ import {
   EventTypes,
   GuardChangeEvent,
   HydratedEvent,
+  TxTags,
 } from "@valuemachine/types";
 import { describeChunk, describeEvent } from "@valuemachine/core";
 import React, { useEffect, useState } from "react";
 
+import { TxTagsEditor } from "../txTags";
 import { HexString } from "../utils";
 
 type EventRowProps = {
-  addressBook: AddressBook;
+  addressBook?: AddressBook;
   event: HydratedEvent;
+  txTags?: TxTags;
+  setTxTags?: (val: TxTags) => void;
 };
 export const EventRow: React.FC<EventRowProps> = ({
   addressBook,
   event,
+  txTags,
+  setTxTags,
 }: EventRowProps) => {
   const [open, setOpen] = useState(false);
 
@@ -66,7 +72,7 @@ export const EventRow: React.FC<EventRowProps> = ({
               <TableRow key={i}>
                 <TableCell sx={{ maxWidth: "8em" }}><strong> {key} </strong></TableCell>
                 <TableCell> {
-                  isHexString(value?.split("/").pop())
+                  value?.split("/").some(part => isHexString(part))
                     ? <HexString value={value} display={addressBook?.getName(value, true)}/>
                     : <Typography> {
                       typeof value === "string" ? value : JSON.stringify(value)
@@ -105,39 +111,52 @@ export const EventRow: React.FC<EventRowProps> = ({
                   Account: event.account,
                   To: event.to,
                   ["Tx Id"]: event.txId,
+                  Tags: JSON.stringify(txTags?.[event.txId]),
                   ...chunksToDisplay(event.outputs),
 
                 } : event.type === EventTypes.Income ? {
                   Account: event.account,
                   From: event.from,
                   ["Tx Id"]: event.txId,
+                  Tags: JSON.stringify(txTags?.[event.txId]),
                   ...chunksToDisplay(event.inputs),
 
                 } : event.type === EventTypes.Debt ? {
                   Account: event.account,
                   ["Tx Id"]: event.txId,
+                  Tags: JSON.stringify(txTags?.[event.txId]),
                   ...chunksToDisplay(event.outputs, "Gave "),
                   ...chunksToDisplay(event.inputs, "Took "),
 
                 } : event.type === EventTypes.GuardChange ? {
-                  ["Tx Id"]: event.txId,
                   ["From"]: (event as GuardChangeEvent).from,
                   ["To"]: (event as GuardChangeEvent).to,
+                  ["Tx Id"]: event.txId,
+                  Tags: JSON.stringify(txTags?.[event.txId]),
                   ...chunksToDisplay(event.chunks),
 
                 } : event.type === EventTypes.Trade ? {
                   Account: event.account,
                   ["Tx Id"]: event.txId,
+                  Tags: JSON.stringify(txTags?.[event.txId]),
                   ...chunksToDisplay(event.outputs, "Gave "),
                   ...chunksToDisplay(event.inputs, "Took "),
 
                 } : event.type === EventTypes.Error ? {
                   ["Tx Id"]: event.txId,
+                  Tags: JSON.stringify(txTags?.[event.txId]),
                   ["Error Code"]: event.code,
                   ...accountsToDisplay(event.accounts),
 
                 } : {}
               }/>
+              <Box width="85%">
+                <TxTagsEditor
+                  txTags={txTags}
+                  setTxTags={setTxTags}
+                  txId={event.txId}
+                />
+              </Box>
             </Box>
           </Collapse>
         </TableCell>

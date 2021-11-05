@@ -14,21 +14,24 @@ import {
   Prices,
   TaxInput,
   TradeEvent,
+  TxTags,
   ValueMachine,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
 type TaxesExplorerProps = {
   addressBook: AddressBook;
-  vm: ValueMachine,
-  prices: Prices,
-  taxInput: TaxInput,
+  prices: Prices;
+  taxInput: TaxInput;
+  txTags: TxTags;
+  vm: ValueMachine;
 };
 export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   addressBook,
-  vm,
   prices,
   taxInput,
+  txTags,
+  vm,
 }: TaxesExplorerProps) => {
   const [tab, setTab] = useState(0);
   const [allGuards, setAllGuards] = useState([] as Guard[]);
@@ -81,7 +84,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
 
       <Grid container sx={{ justifyContent: "center", mb: 2 }}>
         <Grid item sm={6}>
-          <TaxPorter guard={guard} prices={prices} vm={vm} taxInput={taxInput} />
+          <TaxPorter guard={guard} prices={prices} vm={vm} taxInput={taxInput} txTags={txTags} />
         </Grid>
       </Grid>
 

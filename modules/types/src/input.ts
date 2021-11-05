@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { TransactionsJson } from "./transactions";
+import { TransactionsJson, TxTags } from "./transactions";
 import { AddressBookJson } from "./addressBook";
 import { CsvFiles } from "./csv";
 import { TaxInput } from "./taxes";
@@ -12,5 +12,6 @@ export const InputData = Type.Object({
   csvFiles: CsvFiles,
   customTxns: TransactionsJson,
   taxInput: TaxInput,
+  txTags: TxTags,
 });
 export type InputData = Static<typeof InputData>;

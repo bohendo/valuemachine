@@ -18,7 +18,7 @@ import React, { useEffect, useState } from "react";
 import { HexString } from "../utils";
 
 type ChunkRowProps = {
-  addressBook: AddressBook;
+  addressBook?: AddressBook;
   chunk: AssetChunk;
 };
 export const ChunkRow: React.FC<ChunkRowProps> = ({

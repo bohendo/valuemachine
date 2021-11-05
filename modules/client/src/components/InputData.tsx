@@ -13,13 +13,15 @@ import {
   AddressPorter,
   AddressTable,
   Confirm,
-  InputPorter,
-  TransactionPorter,
-  TransactionTable,
   CsvPorter,
   CsvTable,
+  InputPorter,
   TaxInputEditor,
   TransactionEditor,
+  TransactionPorter,
+  TransactionTable,
+  TxTagsEditor,
+  TxTagsPorter,
 } from "@valuemachine/react";
 import {
   getTransactions,
@@ -31,6 +33,7 @@ import {
   CsvFiles,
   Transaction,
   TaxInput,
+  TxTags,
 } from "@valuemachine/types";
 import { getBlankAddressEntry, getBlankTransaction, getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
@@ -46,6 +49,8 @@ type InputDataManagerProps = {
   setCustomTxns: (val: Transaction[]) => void;
   taxInput: TaxInput;
   setTaxInput: (val: TaxInput) => void;
+  txTags: TxTags;
+  setTxTags: (val: TxTags) => void;
 };
 export const InputDataManager: React.FC<InputDataManagerProps> = ({
   addressBook,
@@ -56,6 +61,8 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
   setCustomTxns,
   taxInput,
   setTaxInput,
+  txTags,
+  setTxTags,
 }: InputDataManagerProps) => {
   const [confirmMsg, setConfirmMsg] = useState("");
   const [pendingDel, setPendingDel] = useState("");
@@ -86,6 +93,11 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
   const deleteCustomTxns = () => {
     setPendingDel("txns");
     setConfirmMsg("Are you sure you want to delete ALL custom transactions?");
+  };
+
+  const deleteTxTags = () => {
+    setPendingDel("txTags");
+    setConfirmMsg("Are you sure you want to delete ALL transaction tags?");
   };
 
   const handleDelete = () => {
@@ -125,6 +137,8 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
             setCustomTxns={setCustomTxns}
             taxInput={taxInput}
             setTaxInput={setTaxInput}
+            txTags={txTags}
+            setTxTags={setTxTags}
           />
         </Grid>
       </Grid>
@@ -137,9 +151,10 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
         textColor="secondary"
         value={tab}
       >
-        <Tab label="Evm Addresses"/>
+        <Tab label="Address Book"/>
         <Tab label="Csv Files"/>
         <Tab label="Custom Transactions"/>
+        <Tab label="Transaction Tags"/>
         <Tab label="Tax Info"/>
       </Tabs>
 
@@ -212,7 +227,7 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item md={9}>
             <Card sx={{ m: 0 }}>
-              <CardHeader title={"Add new Transactions"} />
+              <CardHeader title={"Custom Transactions"} />
               <TransactionEditor
                 setTx={addNewTransaction}
                 tx={newTransaction}
@@ -246,6 +261,38 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
       </div>
 
       <div hidden={tab !== 3}>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item md={9}>
+            <Card sx={{ m: 0, p: 2 }}>
+              <CardHeader title={"Transaction Tags"} />
+              <TxTagsEditor
+                txTags={txTags}
+                setTxTags={setTxTags}
+              />
+            </Card>
+          </Grid>
+          <Grid item md={3}>
+            <TxTagsPorter
+              txTags={txTags}
+              setTxTags={setTxTags}
+            />
+            <Button
+              color="primary"
+              disabled={!Object.keys(txTags || {}).length}
+              fullWidth
+              onClick={deleteTxTags}
+              size="medium"
+              startIcon={<RemoveIcon/>}
+              sx={{ mt: 1 }}
+              variant="outlined"
+            >
+              Delete Transaction Tags
+            </Button>
+          </Grid>
+        </Grid>
+      </div>
+
+      <div hidden={tab !== 4}>
         <TaxInputEditor taxInput={taxInput} setTaxInput={setTaxInput} />
       </div>
 

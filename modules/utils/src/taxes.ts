@@ -2,6 +2,8 @@ import { Mapping, TaxInput } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
 
+export const getEmptyTaxInput = (): TaxInput => ({});
+
 const getDupProps = (list: any[], prop: string) => {
   const occurred = [];
   return list.reduce((dup, entry) => {

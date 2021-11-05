@@ -26,6 +26,10 @@ export {
   TransactionTable,
 } from "./transactions";
 export {
+  TxTagsEditor,
+  TxTagsPorter,
+} from "./txTags";
+export {
   Confirm,
   DateInput,
   HexString,

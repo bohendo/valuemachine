@@ -11,7 +11,6 @@ import {
 } from "@valuemachine/transactions";
 import {
   StoreKeys,
-  TaxInput,
   Transaction,
 } from "@valuemachine/types";
 import {
@@ -20,14 +19,17 @@ import {
   getCsvFilesError,
   getEmptyAddressBook,
   getEmptyCsvFiles,
-  getTaxInputError,
   getEmptyPrices,
+  getEmptyTaxInput,
   getEmptyTransactions,
+  getEmptyTxTags,
   getEmptyValueMachine,
   getLocalStore,
   getLogger,
   getPricesError,
+  getTaxInputError,
   getTransactionsError,
+  getTxTagsError,
   getValueMachineError,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
@@ -55,6 +57,7 @@ const {
 const UnitStore = "Unit" as any;
 const CustomTxnsStore = "CustomTransactions" as any;
 const TaxInputStore = "TaxInput" as any;
+const TxTagsStore = "TxTags" as any;
 
 export type AppProps = {
   theme: string;
@@ -74,7 +77,8 @@ export const App: React.FC<AppProps> = ({
   const [csvFiles, setCsvFiles] = useState(store.load(CsvStore) || getEmptyCsvFiles());
   const [customTxns, setCustomTxns] = useState(store.load(CustomTxnsStore) || [] as Transaction[]);
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
-  const [taxInput, setTaxInput] = useState(store.load(TaxInputStore) || {} as TaxInput);
+  const [taxInput, setTaxInput] = useState(store.load(TaxInputStore) || getEmptyTaxInput());
+  const [txTags, setTxTags] = useState(store.load(TxTagsStore) || getEmptyTxTags());
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook());
@@ -174,7 +178,7 @@ export const App: React.FC<AppProps> = ({
     if (!taxInput) return;
     if (getTaxInputError(taxInput)) {
       console.log(`Removing invalid tax input`);
-      const newTaxInput = {} as TaxInput;
+      const newTaxInput = getEmptyTaxInput();
       store.save(TaxInputStore, newTaxInput);
       setTaxInput(newTaxInput);
     } else {
@@ -182,6 +186,19 @@ export const App: React.FC<AppProps> = ({
       store.save(TaxInputStore, taxInput);
     }
   }, [taxInput]);
+
+  useEffect(() => {
+    if (!txTags) return;
+    if (getTxTagsError(txTags)) {
+      console.log(`Removing invalid tax input`);
+      const newTxTags = getEmptyTxTags();
+      store.save(TxTagsStore, newTxTags);
+      setTxTags(newTxTags);
+    } else {
+      console.log(`Saving valid tax input`);
+      store.save(TxTagsStore, txTags);
+    }
+  }, [txTags]);
 
   return (
     <Box>
@@ -200,6 +217,8 @@ export const App: React.FC<AppProps> = ({
                 setCustomTxns={setCustomTxns}
                 taxInput={taxInput}
                 setTaxInput={setTaxInput}
+                txTags={txTags}
+                setTxTags={setTxTags}
               />
             </Route>
 
@@ -210,6 +229,7 @@ export const App: React.FC<AppProps> = ({
                 customTxns={customTxns}
                 transactions={transactions}
                 setTransactionsJson={setTransactionsJson}
+                txTags={txTags}
               />
             </Route>
 
@@ -219,6 +239,8 @@ export const App: React.FC<AppProps> = ({
                 vm={vm}
                 setVMJson={setVMJson}
                 transactions={transactions}
+                txTags={txTags}
+                setTxTags={setTxTags}
               />
             </Route>
 
@@ -246,6 +268,7 @@ export const App: React.FC<AppProps> = ({
                 vm={vm}
                 prices={prices}
                 taxInput={taxInput}
+                txTags={txTags}
               />
             </Route>
 

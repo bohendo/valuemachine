@@ -13,6 +13,7 @@ import {
   CsvFiles,
   Transactions,
   TransactionsJson,
+  TxTags,
 } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import React, { useState } from "react";
@@ -24,15 +25,17 @@ type TransactionExplorerProps = {
   addressBook: AddressBook;
   csvFiles: CsvFiles,
   customTxns: TransactionsJson,
-  transactions: Transactions;
   setTransactionsJson: (val: TransactionsJson) => void;
+  transactions: Transactions;
+  txTags?: TxTags;
 };
 export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
   addressBook,
   csvFiles,
   customTxns,
-  transactions,
   setTransactionsJson,
+  transactions,
+  txTags,
 }: TransactionExplorerProps) => {
   const [syncing, setSyncing] = useState("");
 
@@ -129,7 +132,7 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
 
       <Divider/>
 
-      <TransactionTable addressBook={addressBook} transactions={transactions} />
+      <TransactionTable addressBook={addressBook} transactions={transactions} txTags={txTags} />
 
     </React.Fragment>
   );

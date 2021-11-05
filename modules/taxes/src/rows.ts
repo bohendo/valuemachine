@@ -7,6 +7,7 @@ import {
   Prices,
   TaxRow,
   TradeEvent,
+  TxTags,
   ValueMachine,
 } from "@valuemachine/types";
 import {
@@ -23,11 +24,13 @@ export const getTaxRows = ({
   prices,
   vm,
   taxYear,
+  txTags,
 }: {
   guard: Guard;
   prices: Prices;
   vm: ValueMachine;
   taxYear?: string;
+  txTags?: TxTags,
 }): TaxRow[] => {
   const unit = securityFeeMap[guard] || "";
   const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
@@ -37,17 +40,18 @@ export const getTaxRows = ({
 
   return vm?.json?.events.filter(evt => {
     const time = new Date(evt.date).getTime();
+    const tags = txTags?.[evt.txId] || {};
     if (taxYear && taxYear !== allTaxYears && (
       time < taxYearBoundaries[0] || time > taxYearBoundaries[1]
     )) return false;
     const toGuard = (
       (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
     ).split("/")[0];
-    return toGuard === guard && (
+    return tags.physicalGuard === guard || (toGuard === guard && (
       evt.type === EventTypes.Trade
       || evt.type === EventTypes.GuardChange
       || evt.type === EventTypes.Income
-    );
+    ));
   }).reduce((output, evt) => {
     const getDate = (datetime: DateTimeString): DateString =>
       new Date(datetime).toISOString().split("T")[0];
@@ -75,7 +79,7 @@ export const getTaxRows = ({
             capitalChange,
             cumulativeChange,
             cumulativeIncome,
-            tags: evt.tags,
+            tags: txTags?.[evt.txId] || [],
           };
         } else {
           return null;
@@ -101,7 +105,7 @@ export const getTaxRows = ({
           capitalChange: "0",
           cumulativeChange,
           cumulativeIncome,
-          tags: evt.tags,
+          tags: txTags?.[evt.txId] || [],
         } as TaxRow;
       }));
 

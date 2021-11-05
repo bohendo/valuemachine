@@ -18,7 +18,7 @@ const { Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;
 const { Ethereum, USA } = Guards;
 
 const coinbaseData =
-`DateTime,Transaction Type,Asset,Quantity Transacted,USD Spot Price at Transaction,USD Subtotal,USD Total (inclusive of fees),USD Fees,Notes
+`Timestamp,Transaction Type,Asset,Quantity Transacted,USD Spot Price at Transaction,USD Subtotal,USD Total (inclusive of fees),USD Fees,Notes
 2018-01-01T01:00:00Z,Buy,BTC,0.1,1500.00,150.00,165.00,15.00,Bought 0.0300 BTC for $165.00 USD`;
 
 const digest = "afa4c4f3";
@@ -82,7 +82,7 @@ export const addressBook = getAddressBook({
 export const transactions = getTransactions({
   json: [getTestTx([
     // Income
-    { category: Income, asset: ETH, from: three, amount: "1.04", to: one },
+    { category: Income, asset: ETH, from: three, amount: "1.04", to: one, index: 1 },
   ]), getTestTx([
     // Internal transfer
     { category: Expense, asset: ETH, from: one, amount: "0.01", to: Ethereum },
@@ -108,7 +108,10 @@ export const transactions = getTransactions({
     ]),
     method: "Sale",
     sources: ["Coinbase"],
-  }],
+  }, getTestTx([
+    // Income
+    { category: Income, asset: ETH, from: three, amount: "0.137", to: one, index: 1 },
+  ])],
 });
 
 export const vm = getValueMachine();
@@ -133,3 +136,18 @@ export const prices = getPrices({
   },
 });
 prices.syncChunks(vm.json.chunks);
+
+export const txTags = {
+  ["Test/0x0000000000000000000000000000000000000000000000000000000000000000/1"]: {
+    description: "I won a prize",
+    incomeType: "Prize",
+    multiplier: "0.5",
+    physicalGuard: "USA",
+  },
+  ["Test/0x0000000000000000000000000000000000000000000000000000000000000006/1"]: {
+    description: "I won another prize",
+    incomeType: "Prize",
+    multiplier: "0.33",
+    physicalGuard: "IND",
+  },
+};

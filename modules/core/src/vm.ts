@@ -192,7 +192,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           inputs: [newChunk.index],
-          tags: [],
           txId,
           type: EventTypes.Income,
         });
@@ -309,7 +308,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         from: from,
         index: json.events.length + newEvents.length,
         insecurePath: [],
-        tags: [],
         to: to,
         txId,
         type: EventTypes.GuardChange,
@@ -332,7 +330,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       index: json.events.length + newEvents.length,
       inputs: loan.map(toIndex),
       outputs: [],
-      tags: [],
       txId,
       type: EventTypes.Debt,
     });
@@ -376,7 +373,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       index: json.events.length + newEvents.length,
       inputs: [],
       outputs: outputs.map(toIndex),
-      tags: [],
       txId,
       type: EventTypes.Debt,
     });
@@ -431,12 +427,14 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     const swapsOut = [] as AssetChunk[];
     const swapsIn = [] as AssetChunk[];
     transfers.forEach(transfer => {
-      const { asset, category, from, to } = transfer;
+      const { asset, category, from, index, to } = transfer;
       const amount = !transfer.amount ? "1" // treat NFTs as always having amount=1
         : transfer.amount === "ALL" ? getBalance(asset, from)
         : transfer.amount;
 
       if (eq(amount, "0")) return;
+
+      txId = index ? `${tx.uuid}/${index}` : tx.uuid;
 
       if (category === Internal) {
         moveValue(amount, asset, from, to);
@@ -471,7 +469,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           outputs: disposed.map(toIndex),
-          tags: [],
           txId,
           type: EventTypes.Expense,
         });
@@ -486,7 +483,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           inputs: received.map(toIndex),
-          tags: [],
           txId,
           type: EventTypes.Income,
         });
@@ -495,6 +491,8 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         log.debug(`Skipping transfer of type ${category}`);
       }
     });
+
+    txId = tx.uuid;
 
     // If we have mismatched swap transfers, emit errors
     if (swapsIn.length && !swapsOut.length) {
@@ -506,7 +504,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        tags: [],
         txId,
         type: EventTypes.Error,
       });
@@ -520,7 +517,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        tags: [],
         txId,
         type: EventTypes.Error,
       });
@@ -539,7 +535,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           message,
-          tags: [],
           txId,
           type: EventTypes.Error,
         });
@@ -551,7 +546,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         index: json.events.length + newEvents.length,
         inputs: swapsIn.map(toIndex),
         outputs: swapsOut.map(toIndex),
-        tags: [],
         txId,
         type: EventTypes.Trade,
       });
@@ -569,7 +563,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         index: json.events.length + newEvents.length,
         inputs: [flashloan.index], // where's it's sibling?!
         outputs: [],
-        tags: [],
         txId,
         type: EventTypes.Debt,
       });
@@ -581,7 +574,6 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        tags: [],
         txId,
         type: EventTypes.Error,
       });

@@ -58,17 +58,17 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   };
 
   return (<>
+    <Paper sx={{ p: 2 }}>
 
-    <Paper sx={{ p: 2, minWidth: "80em" }}>
       <Typography align="center" variant="h4" sx={{ pt: 2 }} component="div">
         {`${taxes.length} Taxable ${guard} Event${taxes.length > 1 ? "s" : ""}`}
       </Typography>
 
       <TableContainer>
-        <Table>
+        <Table size="small" sx={{ minWidth: "68em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
-              <TableCell><strong> Date </strong></TableCell>
+              <TableCell sx={{ minWidth: "8em" }}><strong> Date </strong></TableCell>
               <TableCell><strong> Action </strong></TableCell>
               <TableCell><strong> Asset </strong></TableCell>
               <TableCell><strong> {`Price (${unit}/Asset)`} </strong></TableCell>
@@ -82,10 +82,19 @@ export const TaxTable: React.FC<TaxTableProps> = ({
           </TableHead>
           <TableBody>
             {taxes
+              .sort((r1, r2) =>
+                new Date(r1.date).getTime() > new Date(r2.date).getTime()
+                  ? -1
+                  : new Date(r1.date).getTime() < new Date(r2.date).getTime()
+                    ? 1
+                    : 0
+              )
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row: TaxRow, i: number) => (
                 <TableRow key={i}>
-                  <TableCell> {row.date.replace("T", " ").replace(".000Z", "")} </TableCell>
+                  <TableCell sx={{ minWidth: "8em" }}> {
+                    row.date.replace("T", " ").replace(".000Z", "")
+                  } </TableCell>
                   <TableCell> {row.action} </TableCell>
                   <TableCell> {`${commify(row.amount)} ${row.asset}`} </TableCell>
                   <TableCell> {commify(row.price)} </TableCell>
@@ -99,17 +108,18 @@ export const TaxTable: React.FC<TaxTableProps> = ({
               ))}
           </TableBody>
         </Table>
-        <TablePagination
-          rowsPerPageOptions={[25, 50, 100, 250]}
-          component="div"
-          count={taxes.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
       </TableContainer>
-    </Paper>
 
+      <TablePagination
+        rowsPerPageOptions={[25, 50, 100, 250]}
+        component="div"
+        count={taxes.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+
+    </Paper>
   </>);
 };

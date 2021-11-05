@@ -51,6 +51,12 @@ TxUuid.args = {
   value: uuid,
 };
 
+export const TransferUuid = Template.bind({});
+TransferUuid.args = {
+  display: "",
+  value: uuid + "/123",
+};
+
 export const Eth2Validator = Template.bind({});
 Eth2Validator.args = {
   display: "",

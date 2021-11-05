@@ -1,7 +1,7 @@
 import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
-import { addressBook, vm } from "../constants";
+import { addressBook, txTags, vm } from "../constants";
 
 import { EventTable } from "./EventTable";
 
@@ -14,6 +14,8 @@ const Template: ComponentStory<typeof EventTable> = (args) => <EventTable {...ar
 export const Example = Template.bind({});
 Example.args = {
   addressBook,
+  txTags,
+  setTxTags: console.log,
   vm,
 };
 
