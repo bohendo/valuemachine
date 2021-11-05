@@ -31,7 +31,6 @@ jobs:
       - run: make test-transactions
       - run: make test-core
       - run: make test-taxes
-      - run: make test-react
       - run: make run-example
       - run: make lint
       - run: make pull-commit
