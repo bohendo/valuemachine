@@ -1,3 +1,4 @@
+import { Guards, PhysicalGuards } from "@valuemachine/transactions";
 import {
   AddressBook,
   Asset,
@@ -53,17 +54,16 @@ export const getTaxRows = ({
     if (taxYear && taxYear !== allTaxYears && (
       time < taxYearBoundaries[0] || time > taxYearBoundaries[1]
     )) return false;
-    const toGuard = (
-      (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
-    ).split("/")[0];
+    const account = (evt as GuardChangeEvent).to || (evt as TradeEvent).account || "";
+    const evtGuard = tags.physicalGuard || (
+      account ? addressBook.getGuard(account) : ""
+    ) || account.split("/")[0];
     return (
       evt.type === EventTypes.Trade || evt.type === EventTypes.Income
     ) && ((
-      toGuard === guard
+      evtGuard === guard
     ) || (
-      tags.physicalGuard === guard
-    ) || (
-      evt.account && addressBook.getGuard(evt.account) === guard
+      guard === Guards.None && !Object.keys(PhysicalGuards).includes(evtGuard)
     ));
   }).reduce((rows, evt) => {
     const getDate = (datetime: DateTimeString): DateString =>
