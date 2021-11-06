@@ -4,7 +4,6 @@ import { TransferCategories } from "@valuemachine/types";
 
 import {
   getTransactionsError,
-  getTxTagsError,
 } from "./transactions";
 
 const validTransaction = {
@@ -27,9 +26,6 @@ const validTransaction = {
     to: AddressZero,
     amount: "ALL",
   }],
-};
-
-const validTxTags = {
 };
 
 describe("Transactions", () => {

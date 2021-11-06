@@ -1,4 +1,7 @@
+import { Guards, PhysicalGuards } from "@valuemachine/transactions";
 import {
+  AddressBook,
+  Asset,
   DateString,
   DateTimeString,
   EventTypes,
@@ -12,73 +15,80 @@ import {
 } from "@valuemachine/types";
 import {
   add,
+  chrono,
   mul,
+  round as defaultRound,
   sub,
 } from "@valuemachine/utils";
 
 import { allTaxYears, securityFeeMap } from "./constants";
 import { getTaxYearBoundaries } from "./utils";
 
+const round = n => defaultRound(n, 2, false);
+
 export const getTaxRows = ({
+  addressBook,
   guard,
   prices,
-  vm,
   taxYear,
   txTags,
+  userUnit,
+  vm,
 }: {
+  addressBook: AddressBook;
   guard: Guard;
   prices: Prices;
-  vm: ValueMachine;
   taxYear?: string;
   txTags?: TxTags,
+  userUnit?: Asset;
+  vm: ValueMachine;
 }): TaxRow[] => {
-  const unit = securityFeeMap[guard] || "";
-  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
+  const unit = securityFeeMap[guard] || userUnit;
   if (!unit) throw new Error(`Security asset is unknown for ${guard}`);
-  let cumulativeIncome = "0";
-  let cumulativeChange = "0";
 
-  return vm?.json?.events.filter(evt => {
+  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
+
+  return vm?.json?.events.sort(chrono).filter(evt => {
     const time = new Date(evt.date).getTime();
     const tags = txTags?.[evt.txId] || {};
     if (taxYear && taxYear !== allTaxYears && (
       time < taxYearBoundaries[0] || time > taxYearBoundaries[1]
     )) return false;
-    const toGuard = (
-      (evt as GuardChangeEvent).to || (evt as TradeEvent).account || ""
-    ).split("/")[0];
-    return tags.physicalGuard === guard || (toGuard === guard && (
-      evt.type === EventTypes.Trade
-      || evt.type === EventTypes.GuardChange
-      || evt.type === EventTypes.Income
+    const account = (evt as GuardChangeEvent).to || (evt as TradeEvent).account || "";
+    const evtGuard = tags.physicalGuard || (
+      account ? addressBook.getGuard(account) : ""
+    ) || account.split("/")[0];
+    return (
+      evt.type === EventTypes.Trade || evt.type === EventTypes.Income
+    ) && ((
+      evtGuard === guard
+    ) || (
+      guard === Guards.None && !Object.keys(PhysicalGuards).includes(evtGuard)
     ));
-  }).reduce((output, evt) => {
+  }).reduce((rows, evt) => {
     const getDate = (datetime: DateTimeString): DateString =>
       new Date(datetime).toISOString().split("T")[0];
     const date = getDate(evt.date);
 
     if (evt.type === EventTypes.Trade) {
-      if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return output; }
-      return output.concat(...evt.outputs.map(chunkIndex => {
+      if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return rows; }
+      return rows.concat(...evt.outputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
         if (chunk.asset !== unit && price !== "0") {
           const value = mul(chunk.amount, price);
           const receivePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset, unit);
           const capitalChange = mul(chunk.amount, sub(price, receivePrice || "0"));
-          cumulativeChange = add(cumulativeChange, capitalChange);
           return {
             date: date,
             action: EventTypes.Trade,
-            amount: chunk.amount,
+            amount: defaultRound(chunk.amount, 6),
             asset: chunk.asset,
-            price,
-            value,
-            receivePrice,
+            price: round(price),
+            value: round(value),
+            receivePrice: round(receivePrice),
             receiveDate: getDate(chunk.history[0].date),
-            capitalChange,
-            cumulativeChange,
-            cumulativeIncome,
+            capitalChange: round(capitalChange),
             tags: txTags?.[evt.txId] || [],
           };
         } else {
@@ -87,31 +97,43 @@ export const getTaxRows = ({
       }).filter(row => !!row) as TaxRow[]);
 
     } else if (evt.type === EventTypes.Income) {
-      if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); return output; }
-      return output.concat(...evt.inputs.map(chunkIndex => {
+      if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); return rows; }
+      return rows.concat(...evt.inputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
         const income = mul(chunk.amount, price);
-        cumulativeIncome = add(cumulativeIncome, income);
         return {
           date: date,
           action: EventTypes.Income,
-          amount: chunk.amount,
+          amount: defaultRound(chunk.amount, 6),
           asset: chunk.asset,
-          price,
-          value: income,
-          receivePrice: price,
+          price: round(price),
+          value: round(income),
+          receivePrice: round(price),
           receiveDate: date,
-          capitalChange: "0",
-          cumulativeChange,
-          cumulativeIncome,
+          capitalChange: "0.00",
           tags: txTags?.[evt.txId] || [],
         } as TaxRow;
       }));
 
     } else {
-      return output;
+      return rows;
     }
+  }, [] as TaxRow[]).reduce((rows, row) => {
+
+    const dupRow = rows.find(r =>
+      r.asset === row.asset &&
+      r.date === row.date &&
+      r.receiveDate === row.receiveDate
+    );
+    if (dupRow) {
+      dupRow.amount = add(dupRow.amount, row.amount);
+      dupRow.value = add(dupRow.value, row.value);
+    } else {
+      rows.push(row);
+    }
+    return rows;
+
   }, [] as TaxRow[]);
 
 };

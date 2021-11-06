@@ -3,6 +3,7 @@ import { isHexString } from "@ethersproject/bytes";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import AddIcon from "@mui/icons-material/AddCircle";
+import { PhysicalGuards } from "@valuemachine/transactions";
 import {
   AddressCategories,
   AddressEntry,
@@ -49,7 +50,7 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
     if (!name) {
       return "Name is required";
     }
-    const illegal = name.match(/[^a-zA-Z0-9 -]/);
+    const illegal = name.match(/[^a-zA-Z0-9 ._-]/);
     if (illegal) {
       return `Name should not include "${illegal}"`;
     } else {
@@ -88,6 +89,7 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
     } else if (
       newEntry.address !== entry.address ||
       newEntry.category !== entry.category ||
+      newEntry.guard !== entry.guard ||
       newEntry.name !== entry.name
     ) {
       setEntryModified(true);
@@ -123,9 +125,24 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
         />
       </Grid>
 
-      <Grid item md={6}>
+      <Grid item md={4}>
+        <SelectOne
+          label="Guard"
+          choices={Object.keys(PhysicalGuards)}
+          selection={newEntry?.guard || ""}
+          setSelection={guard => {
+            if (guard) {
+              setNewEntry({ ...newEntry, guard });
+            } else {
+              delete newEntry.guard;
+              setNewEntry({ ...newEntry });
+            }
+          }}
+        />
+      </Grid>
+
+      <Grid item md={8}>
         <TextInput
-          fullWidth={true}
           getError={getAddressError}
           label="Evm Address"
           setText={address => setNewEntry({ ...newEntry, address })}
@@ -133,10 +150,10 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
         />
       </Grid>
 
-      <Grid item md={6}>
+      <Grid item md={4}>
         <Grid item>
           <Button
-            sx={{ mb: 1.5, mx: 2 }}
+            sx={{ mt: 0.5, ml: 4 }}
             color="primary"
             disabled={!entryModified || !!newEntryError}
             onClick={handleSave}

@@ -10,7 +10,8 @@
   "files": ["dist/bundle.js", "dist/bundle.esm.js", "dist/bundle.d.ts"],
   "scripts": {
     "build": "rollup --config rollup.config.js",
-    "start": "start-storybook -p 6006"
+    "start": "start-storybook -p 6006",
+    "test": "start-storybook -p 6006"
   },
   "dependencies": {
     "@emotion/styled": "11.3.0",
@@ -36,6 +37,9 @@
     "@storybook/addon-essentials": "6.3.12",
     "@storybook/addon-links": "6.3.12",
     "@storybook/react": "6.3.12",
+    "cypress": "7.2.0",
+    "cypress-terminal-report": "3.1.0",
+    "cypress-iframe": "1.0.1",
     "rollup": "2.59.0",
     "rollup-plugin-dts": "4.0.0",
     "tslib": "2.3.1",

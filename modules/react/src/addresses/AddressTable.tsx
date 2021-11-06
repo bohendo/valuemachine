@@ -1,10 +1,10 @@
+import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
@@ -17,7 +17,7 @@ import {
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
-import { SelectOne } from "../utils";
+import { Paginate, SelectOne } from "../utils";
 
 import { AddressRow } from "./AddressRow";
 
@@ -62,38 +62,36 @@ export const AddressTable: React.FC<AddressTableProps> = ({
     setAddressBookJson(newAddressBook);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
-
   return (<>
-
     <Paper sx={{ p: 2 }}>
+
+      <Grid container>
+        <Grid item xs={12}>
+          <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
+            {filteredEntries.length === Object.keys(addressBook.json).length
+              ? `${filteredEntries.length} Addresses`
+              : `${filteredEntries.length} of ${Object.keys(addressBook.json).length} Addresses`
+            }
+          </Typography>
+        </Grid>
+
+        <Grid item xs={12}>
+          <SelectOne
+            label="Filter Category"
+            choices={Array.from(new Set(Object.values(addressBook.json).map(e => e.category)))}
+            selection={filterCategory}
+            setSelection={setFilterCategory}
+          />
+        </Grid>
+      </Grid>
+
       <TableContainer>
-        <Typography align="center" variant="h4" sx={{ p: 2 }} component="div">
-          {filteredEntries.length === Object.keys(addressBook.json).length
-            ? `${filteredEntries.length} Addresses`
-            : `${filteredEntries.length} of ${Object.keys(addressBook.json).length} Addresses`
-          }
-        </Typography>
-
-        <SelectOne
-          label="Filter Category"
-          choices={Array.from(new Set(Object.values(addressBook.json).map(e => e.category)))}
-          selection={filterCategory}
-          setSelection={setFilterCategory}
-        />
-
-        <Table size="small">
+        <Table size="small" sx={{ minWidth: "48em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
               <TableCell><strong> Account name </strong></TableCell>
               <TableCell><strong> Category </strong></TableCell>
+              <TableCell><strong> Guard </strong></TableCell>
               <TableCell><strong> Address </strong></TableCell>
               <TableCell><strong> Edit </strong></TableCell>
             </TableRow>
@@ -113,18 +111,15 @@ export const AddressTable: React.FC<AddressTableProps> = ({
               ))}
           </TableBody>
         </Table>
-
-        <TablePagination
-          rowsPerPageOptions={[25, 50, 100, 250]}
-          component="div"
-          count={filteredEntries.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
       </TableContainer>
-    </Paper>
+      <Paginate
+        count={filteredEntries.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        setPage={setPage}
+        setRowsPerPage={setRowsPerPage}
+      />
 
+    </Paper>
   </>);
 };

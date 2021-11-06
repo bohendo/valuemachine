@@ -12,6 +12,7 @@ import {
 } from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
 import {
+  AddressBook,
   Guard,
   GuardChangeEvent,
   Prices,
@@ -20,7 +21,7 @@ import {
   TxTags,
   ValueMachine,
 } from "@valuemachine/types";
-import { dedup, round } from "@valuemachine/utils";
+import { dedup } from "@valuemachine/utils";
 import axios from "axios";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect } from "react";
@@ -28,6 +29,7 @@ import React, { useEffect } from "react";
 import { SelectOne } from "../utils";
 
 type TaxPorterProps = {
+  addressBook: AddressBook;
   guard: Guard;
   prices: Prices,
   taxInput?: TaxInput;
@@ -35,6 +37,7 @@ type TaxPorterProps = {
   vm: ValueMachine,
 };
 export const TaxPorter: React.FC<TaxPorterProps> = ({
+  addressBook,
   guard,
   prices,
   taxInput,
@@ -58,7 +61,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
   const handleCsvExport = () => {
     console.log(`Exporting csv for ${taxYear} taxes`);
-    const taxes = getTaxRows({ guard, prices, vm, taxYear, txTags });
+    const taxes = getTaxRows({ addressBook, guard, prices, vm, taxYear, txTags });
     if (!taxes?.length) {
       console.warn(`There were no known taxable events in ${taxYear}`);
       return;
@@ -66,13 +69,11 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     const output = json2csv(
       taxes.map(row => ({
         ...row,
-        amount: round(row.amount, 6),
-        value: round(row.value, 2),
-        price: round(row.price, 2),
-        receivePrice: round(row.receivePrice, 2),
-        capitalChange: round(row.capitalChange, 2),
-        cumulativeChange: round(row.cumulativeChange, 2),
-        cumulativeIncome: round(row.cumulativeIncome, 2),
+        amount: row.amount,
+        value: row.value,
+        price: row.price,
+        receivePrice: row.receivePrice,
+        capitalChange: row.capitalChange,
       })),
       Object.keys(taxes?.[0] || {}),
     );
@@ -89,7 +90,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     if (guard !== Guards.USA) return;
     const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
     if (!year) return;
-    const taxRows = getTaxRows({ guard, prices, vm, taxYear, txTags });
+    const taxRows = getTaxRows({ addressBook, guard, prices, vm, taxYear, txTags });
     console.log(`Fetching tax return for ${year} w ${Object.keys(taxInput).length} forms`);
     const forms = getTaxReturn(year, taxInput, taxRows);
     return new Promise((res, rej) => {

@@ -34,7 +34,7 @@ jobs:
       - run: make run-example
       - run: make lint
       - run: make pull-commit
-      - run: make start-prod
+      - run: make restart-prod
       - run: make dls
       - run: bash ops/health-check.sh server
       - run: bash ops/health-check.sh webserver

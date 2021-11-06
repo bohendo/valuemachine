@@ -47,8 +47,8 @@ modules/taxes/ops/forms/i*.pdf
 # Tests
 .nyc_output
 coverage
-cypress/screenshots
-cypress/videos
+**/cypress/screenshots
+**/cypress/videos
 
 # IDEs and editors
 *.launch

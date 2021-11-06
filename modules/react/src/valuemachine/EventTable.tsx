@@ -5,7 +5,6 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
@@ -23,7 +22,7 @@ import {
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
-import { SelectOne } from "../utils";
+import { DateInput, Paginate, SelectOne } from "../utils";
 
 import { EventRow } from "./EventRow";
 
@@ -43,6 +42,7 @@ export const EventTable: React.FC<EventTableProps> = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [accounts, setAccounts] = useState([] as Account[]);
   const [filterAccount, setFilterAccount] = useState("");
+  const [filterDate, setFilterDate] = useState("");
   const [filterCode, setFilterCode] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filteredEvents, setFilteredEvents] = useState([] as HydratedEvent[]);
@@ -53,33 +53,29 @@ export const EventTable: React.FC<EventTableProps> = ({
 
   useEffect(() => {
     setPage(0);
-    setFilteredEvents(vm?.json?.events?.filter(event =>
-      (!filterType || event.type === filterType)
-      && (!filterCode || (event as ErrorEvent)?.code === filterCode)
-      && (!filterAccount || (
+    setFilteredEvents(vm?.json?.events?.filter(event => (
+      !filterAccount || (
         (event as GuardChangeEvent).to?.endsWith(filterAccount) ||
         (event as GuardChangeEvent).from?.endsWith(filterAccount) ||
-        (event as TradeEvent).account?.endsWith(filterAccount)))
-    ).sort((e1: Event, e2: Event) =>
+        (event as TradeEvent).account?.endsWith(filterAccount)
+      )
+    ) && (
+      !filterCode || (event as ErrorEvent)?.code === filterCode
+    ) && (
+      !filterDate || event.date.startsWith(filterDate)
+    ) && (
+      !filterType || event.type === filterType
+    )).sort((e1: Event, e2: Event) =>
       // Sort by date, newest first
       (e1.date > e2.date) ? -1
       : (e1.date < e2.date) ? 1
       : 0
     ).map((e: Event) => vm?.getEvent(e.index)) || []);
-  }, [vm, filterAccount, filterType, filterCode]);
+  }, [vm, filterAccount, filterCode, filterDate, filterType]);
 
   useEffect(() => {
     if (filterType !== EventTypes.Error) setFilterCode("");
   }, [filterType]);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
 
   return (
     <Paper sx={{ p: 2 }}>
@@ -91,6 +87,14 @@ export const EventTable: React.FC<EventTableProps> = ({
               : `${filteredEvents.length} of ${vm?.json?.events?.length || 0} Events`
             }
           </Typography>
+        </Grid>
+
+        <Grid item>
+          <DateInput
+            label="Filter Date"
+            date={filterDate}
+            setDate={setFilterDate}
+          />
         </Grid>
 
         <Grid item>
@@ -149,16 +153,14 @@ export const EventTable: React.FC<EventTableProps> = ({
               ))}
           </TableBody>
         </Table>
-        <TablePagination
-          rowsPerPageOptions={[25, 50, 100, 250]}
-          component="div"
-          count={filteredEvents.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
       </TableContainer>
+      <Paginate
+        count={filteredEvents.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        setPage={setPage}
+        setRowsPerPage={setRowsPerPage}
+      />
 
     </Paper>
   );

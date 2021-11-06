@@ -120,6 +120,11 @@ test-taxes: taxes
 watch-taxes: core
 	bash ops/test-unit.sh taxes watch
 
+test-react: react
+	bash ops/test-ui.sh react test
+watch-react: taxes
+	bash ops/test-ui.sh react watch
+
 run-example: package
 	bash ops/test-unit.sh package test
 
@@ -182,7 +187,7 @@ taxes: core transactions utils types $(shell find modules/taxes $(find_options))
 	$(docker_run) "cd modules/taxes && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-react: taxes core transactions utils types $(shell find modules/react $(find_options))
+react: taxes core transactions utils types $(shell find modules/react/src $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/react && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@

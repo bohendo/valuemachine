@@ -62,14 +62,9 @@ export const HexString = ({
             wordBreak: "normal",
             ...sx,
           }}>
-            {displayParts.map((part,i) => (
-              <Typography key={i} noWrap>
-                {`${part}${i < displayParts.length - 1 ? "/" : ""}`}
-              </Typography>
-            ))}
-            {link ?
+            {link ? (
               <IconButton
-                sx={{ mt: -0.5 }}
+                sx={{ mt: -0.75 }}
                 color="secondary"
                 href={link}
                 rel="noreferrer"
@@ -78,8 +73,12 @@ export const HexString = ({
               >
                 <ExploreIcon/>
               </IconButton>
-              : null
-            }
+            ) : null }
+            {displayParts.map((part,i) => (
+              <Typography key={i} noWrap>
+                {`${part}${i < displayParts.length - 1 ? "/" : ""}`}
+              </Typography>
+            ))}
           </Box>
         </Tooltip>
       </CopyToClipboard>

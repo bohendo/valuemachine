@@ -11,8 +11,8 @@ export {
   InputPorter,
 } from "./input";
 export {
-  BalanceTable,
   Balances,
+  BalanceTable,
   NetWorthTable,
 } from "./output";
 export {
@@ -32,11 +32,11 @@ export {
 export {
   Confirm,
   DateInput,
+  DateTimeInput,
   HexString,
   SelectMany,
   SelectOne,
   TextInput,
-  DateTimeInput,
 } from "./utils";
 export {
   ChunkTable,
