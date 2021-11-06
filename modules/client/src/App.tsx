@@ -272,10 +272,11 @@ export const App: React.FC<AppProps> = ({
             <Route exact path="/taxes">
               <TaxesExplorer
                 addressBook={addressBook}
-                vm={vm}
                 prices={prices}
                 taxInput={taxInput}
                 txTags={txTags}
+                unit={unit}
+                vm={vm}
               />
             </Route>
 

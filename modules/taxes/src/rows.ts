@@ -1,5 +1,6 @@
 import {
   AddressBook,
+  Asset,
   DateString,
   DateTimeString,
   EventTypes,
@@ -28,20 +29,23 @@ export const getTaxRows = ({
   addressBook,
   guard,
   prices,
-  vm,
   taxYear,
   txTags,
+  userUnit,
+  vm,
 }: {
   addressBook: AddressBook;
   guard: Guard;
   prices: Prices;
-  vm: ValueMachine;
   taxYear?: string;
   txTags?: TxTags,
+  userUnit?: Asset;
+  vm: ValueMachine;
 }): TaxRow[] => {
-  const unit = securityFeeMap[guard] || "";
-  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
+  const unit = securityFeeMap[guard] || userUnit;
   if (!unit) throw new Error(`Security asset is unknown for ${guard}`);
+
+  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
 
   return vm?.json?.events.sort(chrono).filter(evt => {
     const time = new Date(evt.date).getTime();

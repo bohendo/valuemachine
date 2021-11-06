@@ -17,6 +17,7 @@ import {
 } from "@valuemachine/transactions";
 import {
   AddressBook,
+  Asset,
   Guard,
   Prices,
   TaxActions,
@@ -37,6 +38,7 @@ type TaxTableProps = {
   guard: Guard;
   prices: Prices;
   txTags: TxTags;
+  unit?: Asset;
   vm: ValueMachine;
 };
 export const TaxTable: React.FC<TaxTableProps> = ({
@@ -44,6 +46,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   guard,
   prices,
   txTags,
+  unit: userUnit,
   vm,
 }: TaxTableProps) => {
   const [page, setPage] = useState(0);
@@ -66,13 +69,13 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   }, [guard, filterAction, filterTaxYear, taxRows]);
 
   useEffect(() => {
-    setUnit(securityFeeMap[guard]);
-  }, [guard]);
+    setUnit(securityFeeMap[guard] || userUnit);
+  }, [guard, userUnit]);
 
   useEffect(() => {
     if (!guard || !vm?.json?.events?.length) return;
-    setTaxRows(getTaxRows({ addressBook, guard, prices, txTags, vm }));
-  }, [addressBook, guard, prices, txTags, vm]);
+    setTaxRows(getTaxRows({ addressBook, guard, prices, txTags, userUnit, vm }));
+  }, [addressBook, guard, prices, txTags, userUnit, vm]);
 
   return (<>
     <Paper sx={{ p: 2 }}>

@@ -5,10 +5,12 @@ import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import { TaxPorter, TaxTable } from "@valuemachine/react";
 import {
+  Guards,
   PhysicalGuards,
 } from "@valuemachine/transactions";
 import {
   AddressBook,
+  Asset,
   EventTypes,
   Guard,
   Prices,
@@ -24,6 +26,7 @@ type TaxesExplorerProps = {
   prices: Prices;
   taxInput: TaxInput;
   txTags: TxTags;
+  unit?: Asset;
   vm: ValueMachine;
 };
 export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
@@ -31,6 +34,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   prices,
   taxInput,
   txTags,
+  unit,
   vm,
 }: TaxesExplorerProps) => {
   const [tab, setTab] = useState(0);
@@ -43,17 +47,20 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
 
   useEffect(() => {
     if (!vm?.json?.events?.length) return;
-    const newGuards = Array.from(vm.json.events
-      .filter(
-        e => e.type === EventTypes.Trade || e.type === EventTypes.Income
-      ).reduce((setOfGuards, evt) => {
-        const guard = (evt as TradeEvent).account?.split("/")?.[0];
-        if (Object.keys(PhysicalGuards).includes(guard)) {
-          setOfGuards.add(guard);
-        }
-        return setOfGuards;
-      }, new Set())
-    ).sort() as Guard[];
+    const newGuards = [
+      Guards.None,
+      ...Array.from(vm.json.events
+        .filter(
+          e => e.type === EventTypes.Trade || e.type === EventTypes.Income
+        ).reduce((setOfGuards, evt) => {
+          const guard = (evt as TradeEvent).account?.split("/")?.[0];
+          if (Object.keys(PhysicalGuards).includes(guard)) {
+            setOfGuards.add(guard);
+          }
+          return setOfGuards;
+        }, new Set())
+      ).sort() as Guard[]
+    ];
     setAllGuards(newGuards);
     setGuard(newGuards[0]);
   }, [vm]);
@@ -64,10 +71,6 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
         Taxes Explorer
       </Typography>
       <Divider/>
-
-      <Typography variant="body1" sx={{ m: 1 }}>
-        Physical Security provided by: {allGuards.join(", ")}
-      </Typography>
 
       <Tabs
         centered
@@ -82,24 +85,27 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
         ))}
       </Tabs>
 
-      <Grid container sx={{ justifyContent: "center", mb: 2 }}>
-        <Grid item sm={6}>
-          <TaxPorter
-            addressBook={addressBook}
-            guard={guard}
-            prices={prices}
-            vm={vm}
-            taxInput={taxInput}
-            txTags={txTags}
-          />
+      {guard !== Guards.None ? (
+        <Grid container sx={{ justifyContent: "center", mb: 2 }}>
+          <Grid item sm={6}>
+            <TaxPorter
+              addressBook={addressBook}
+              guard={guard}
+              prices={prices}
+              vm={vm}
+              taxInput={taxInput}
+              txTags={txTags}
+            />
+          </Grid>
         </Grid>
-      </Grid>
+      ) : null}
 
       <TaxTable
         addressBook={addressBook}
         guard={guard}
         prices={prices}
         txTags={txTags}
+        unit={unit}
         vm={vm}
       />
 
