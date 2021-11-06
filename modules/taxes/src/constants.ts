@@ -22,7 +22,7 @@ export const securityFeeMap = {
 } as const;
 
 export const taxYearMap = {
-  default: "0000-01-01T00:00:00Z",
+  default: "0000-12-31T23:59:59.999Z",
   [Guards.USA]: "0000-12-31T23:59:59.999Z",
   [Guards.IND]: "0000-03-31T23:59:59.999Z",
 };
