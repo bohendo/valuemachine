@@ -9,7 +9,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { PhysicalGuards } from "@valuemachine/transactions";
-import { IncomeTypes, TxId, TxTags, TxTagTypes } from "@valuemachine/types";
+import { ExpenseTypes, IncomeTypes, TxId, TxTags, TxTagTypes } from "@valuemachine/types";
 import { getDecStringError, getTxIdError } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
@@ -148,6 +148,15 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
               choices={Object.keys(IncomeTypes)}
               selection={newTxTag.value?.toString() || txTags?.[newTxTag.txId]?.[newTxTag.tagType] || ""}
               setSelection={incomeType => setNewTxTag({ ...newTxTag, value: incomeType })}
+            />
+          </Grid>
+        ) : newTxTag.tagType === TxTagTypes.expenseType ? (
+          <Grid item>
+            <SelectOne
+              label="Expense Type"
+              choices={Object.keys(ExpenseTypes)}
+              selection={newTxTag.value?.toString() || txTags?.[newTxTag.txId]?.[newTxTag.tagType] || ""}
+              setSelection={expenseType => setNewTxTag({ ...newTxTag, value: expenseType })}
             />
           </Grid>
         ) : newTxTag.tagType === TxTagTypes.physicalGuard ? (

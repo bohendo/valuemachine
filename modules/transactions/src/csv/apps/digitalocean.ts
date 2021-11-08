@@ -39,7 +39,7 @@ export const digitaloceanParser = (
       ["USD"]: amount,
       [dateKey]: date,
     } = row;
-    log.info(`Paid digital ocean for ${description}`);
+    log.info(`Paid digital ocean on ${date} for ${description}`);
     const transaction = {
       apps: [],
       date: (new Date(date)).toISOString(),
