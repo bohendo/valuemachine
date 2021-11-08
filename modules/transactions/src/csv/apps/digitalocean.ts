@@ -20,7 +20,8 @@ hours,
 ${dateKey},
 end,
 USD,
-project_name
+project_name,
+category
 `.replace(/\n/g, "")];
 
 export const digitaloceanParser = (

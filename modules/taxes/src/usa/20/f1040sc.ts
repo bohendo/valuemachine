@@ -45,13 +45,28 @@ export const f1040sc = (
   }
 
   ////////////////////////////////////////
+  // Part III - Cost of Goods Sold (TODO: add this info to tax input)
+
+  f1040sc.L40 = math.add(
+    f1040sc.L35, // inventory at start of year
+    f1040sc.L36, // purchases
+    f1040sc.L37, // cost of labor
+    f1040sc.L38, // materials
+    f1040sc.L39, // other
+  );
+  f1040sc.L42 = math.sub(
+    f1040sc.L40, // costs
+    f1040sc.L41, // inventory at end of year
+  );
+
+  ////////////////////////////////////////
   // Part I - Income
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
 
   let totalIncome = "0";
   processIncome(taxRows, (income: TaxRow, value: string): void => {
-    if (income.tags.incomeType !== IncomeTypes.SelfEmployed) {
+    if (income.tags.incomeType === IncomeTypes.SelfEmployed) {
       totalIncome = math.add(totalIncome, value);
       log.info(
         `${income.date.split("T")[0]} Income of ${pad(math.round(income.amount))} ` +
@@ -61,20 +76,27 @@ export const f1040sc = (
   });
 
   f1040sc.L1 = math.round(totalIncome);
-  log.info(`Total income: ${f1040sc.L1}`);
   f1040sc.L3 = math.round(math.sub(f1040sc.L1, f1040sc.L2));
-
-  // Part III will go here someday
-
   f1040sc.L4 = f1040sc.L42;
   f1040sc.L5 = math.round(math.sub(f1040sc.L3, f1040sc.L4));
+  log.info(`Gross Profit: f1040sc.L5=${f1040sc.L5}`);
+
   f1040sc.L7 = math.round(math.add(f1040sc.L5, f1040sc.L6));
+  log.info(`Gross Income: f1040sc.L7=${f1040sc.L7}`);
 
   ////////////////////////////////////////
   // Part II - Expenses
 
   // TODO: accumulate & add exchange fees as a "Currency Conversion" expense to L48
-  // let exchangeFees = "0";
+  /*
+  let exchangeFees = "0";
+  // Process expenses
+  if (math.gt(exchangeFees, "0")) {
+    f1040sc[`L48R${otherExpenseIndex}_desc`] = "Currency conversion";
+    f1040sc[`L48R${otherExpenseIndex}_amt`] = exchangeFees;
+    f1040sc.L48 = math.add(f1040sc.L48, exchangeFees);
+  }
+  */
 
   const otherRows = [1, 2, 3, 4, 5, 6, 7 ,8, 9];
   let otherExpenseIndex = otherRows.reduce((res, i) => {
@@ -84,6 +106,7 @@ export const f1040sc = (
     const message = `${expense.date.split("T")[0]} Expense of ${
       pad(math.round(expense.amount), 8)
     } ${pad(expense.asset, 4)} `;
+
     if (!expense.tags.expenseType && expense.tags.description) {
       log.info(`${message}: L48 ${expense.tags.description}`);
       f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tags.description;
@@ -166,14 +189,6 @@ export const f1040sc = (
   ////////////////////////////////////////
   // Part V - Other Expenses
 
-  /*
-  if (math.gt(exchangeFees, "0")) {
-    f1040sc[`L48R${otherExpenseIndex}_desc`] = "Currency conversion";
-    f1040sc[`L48R${otherExpenseIndex}_amt`] = exchangeFees;
-    f1040sc.L48 = math.add(f1040sc.L48, exchangeFees);
-  }
-  */
-
   f1040sc.L48 = math.add(
     f1040sc.L48_Amount1,
     f1040sc.L48_Amount2,
@@ -209,9 +224,29 @@ export const f1040sc = (
   }
 
   ////////////////////////////////////////
-  // Part III - Cost of Goods Sold - TBD
-  // Part IV - Vehicle Info - TBD
-  // Part V - Extra Expenses - Included in Part II
+  // Part IV - Vehicle Info
+
+  // Warn if user info is required but not provided
+  if (f1040sc.L9 && !("f4562" in forms)) {
+    if (!f1040sc.L43_MM || !f1040sc.L43_DD || !f1040sc.L43_YY) {
+      log.warn(`L43: Date is required but missing`);
+    }
+    if (!f1040sc.L44a && !f1040sc.L44b && !f1040sc.L44c) {
+      log.warn(`L44: Miles are required but missing`);
+    }
+    if (!f1040sc.C45_Yes && !f1040sc.C45_No) {
+      log.warn(`C45: response required`);
+    }
+    if (!f1040sc.C46_Yes && !f1040sc.C46_No) {
+      log.warn(`C46: response required`);
+    }
+    if (!f1040sc.C47a_Yes && !f1040sc.C47a_No) {
+      log.warn(`C47a: response required`);
+    }
+    if (f1040sc.C47a_Yes && (!f1040sc.C47b_Yes && !f1040sc.C47b_No)) {
+      log.warn(`C47b: response required`);
+    }
+  }
 
   return { ...forms, f1040s1, f1040sc, f1040sse };
 };
