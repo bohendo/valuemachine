@@ -143,7 +143,7 @@ export const coinbaseParser = (
       transaction.transfers.push({
         amount: fee,
         asset: Assets.USD,
-        category: TransferCategories.Fee,
+        category: TransferCategories.Expense,
         from: account,
         index: transferIndex++,
         to: exchange,

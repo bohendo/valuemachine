@@ -11,7 +11,7 @@ import { getGuard } from "../../utils";
 
 const { USA } = Guards;
 const { BTC, DAI, ETH, SAI, USD } = Assets;
-const { Fee, SwapIn, SwapOut, Internal } = TransferCategories;
+const { Expense, SwapIn, SwapOut, Internal } = TransferCategories;
 const dateKey = `Created At`;
 
 const daiLaunch = new Date("2019-12-02T00:00:00Z").getTime();
@@ -94,7 +94,7 @@ export const wyreParser = (
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;
 
-    const fee = { category: Fee, from: account, to: exchange, index: 0 };
+    const fee = { category: Expense, from: account, to: exchange, index: 0 };
     if (gt(btcFee, "0")) transaction.transfers.push({ ...fee, asset: BTC, amount: daiFee });
     if (gt(daiFee, "0")) transaction.transfers.push({ ...fee, asset: fixDai(DAI), amount: daiFee });
     if (gt(ethFee, "0")) transaction.transfers.push({ ...fee, asset: ETH, amount: ethFee });
