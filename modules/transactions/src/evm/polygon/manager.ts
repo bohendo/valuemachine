@@ -77,7 +77,7 @@ export const getPolygonData = ({
     let history: string[];
     try {
       history = [
-        ...json.addresses[address].history, // Don't discard old history entries
+        ...(json.addresses?.[address]?.history || []), // Don't discard old history entries
         ...(await fetcher.fetchHistory(address)),
       ];
     } catch (e) {

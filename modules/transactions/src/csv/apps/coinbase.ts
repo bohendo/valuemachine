@@ -4,7 +4,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import csv from "csv-parse/lib/sync";
-import { gt, hashCsv, sub } from "@valuemachine/utils";
+import { hashCsv, math } from "@valuemachine/utils";
 
 import { Assets, CsvSources, Guards, Methods } from "../../enums";
 import { getGuard } from "../../utils";
@@ -39,11 +39,13 @@ export const coinbaseParser = (
       ["Quantity Transacted"]: amount,
       [dateKey]: date,
       ["Transaction Type"]: txType,
-      ["USD Subtotal"]: usdAmount,
+      ["USD Subtotal"]: usdSubtotal,
       ["USD Total (inclusive of fees)"]: usdTotal,
     } = row;
 
-    const fee = sub(usdTotal, usdAmount);
+    // Note: for Sell, the usdTotal already has the fee taken out so usdTotal < usdSubtotal
+    // For Buy, the usdTotal includes the fee so usdTotal > usdSubtotal
+    const fee = math.diff(usdTotal, usdSubtotal);
     const account = `${guard}/${source}/account`;
     const exchange = `${guard}/${source}`;
     const external = `${getGuard(asset)}/default`;
@@ -95,7 +97,7 @@ export const coinbaseParser = (
         index: transferIndex++,
         to: exchange,
       }, {
-        amount: usdAmount,
+        amount: usdSubtotal,
         asset: Assets.USD,
         category: TransferCategories.SwapIn,
         from: exchange,
@@ -120,7 +122,7 @@ export const coinbaseParser = (
         index: transferIndex++,
         to: account,
       }, {
-        amount: usdAmount,
+        amount: usdSubtotal,
         asset: Assets.USD,
         category: TransferCategories.SwapOut,
         from: account,
@@ -137,7 +139,7 @@ export const coinbaseParser = (
       transaction.method = txType;
     }
 
-    if (gt(fee, "0")) {
+    if (math.gt(fee, "0")) {
       transaction.transfers.push({
         amount: fee,
         asset: Assets.USD,
