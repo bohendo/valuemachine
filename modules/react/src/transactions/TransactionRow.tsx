@@ -117,19 +117,19 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                 </TableHead>
                 <TableBody>
                   {tx.transfers.map((transfer: Transfer, i: number) => {
-                    const tags = txTags?.[`${tx.uuid}/${transfer.index}`];
+                    const tag = txTags?.[`${tx.uuid}/${transfer.index}`];
                     return (
                       <TableRow key={i}>
                         <TableCell> {
                           transfer.category
                         }{
-                          tags?.incomeType ? ` (${tags.incomeType})` : null
+                          tag?.incomeType ? ` (${tag.incomeType})` : null
                         } </TableCell>
                         <TableCell> {transfer.asset} </TableCell>
                         <TableCell> {
                           transfer.amount === "ALL" ? transfer.amount : round(transfer.amount || "1")
                         }{ // transfer multiplier
-                          tags?.multiplier ? ` (x${tags?.multiplier})` : null
+                          tag?.multiplier ? ` (x${tag?.multiplier})` : null
                         }{ // tx multiplier
                           txTags?.[tx.uuid]?.multiplier ? ` (x${txTags?.[tx.uuid]?.multiplier})` : null
                         }</TableCell>

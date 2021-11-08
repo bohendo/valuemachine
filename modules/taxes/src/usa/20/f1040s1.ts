@@ -27,7 +27,7 @@ export const f1040s1 = (
   // Prize money won from hackathons, airdrops, etc can go here I guess
   let prizeMoney = "0";
   processIncome(taxRows, (income: TaxRow, value: string): void => {
-    if (income.tags.incomeType === IncomeTypes.Prize) {
+    if (income.tag.incomeType === IncomeTypes.Prize) {
       prizeMoney = math.add(prizeMoney, value);
       log.info(`Adding income of ${value}`);
     }

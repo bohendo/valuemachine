@@ -137,7 +137,7 @@ export const f2210 = (
 
   // Get business expenses & tax payments
   processExpenses(taxRows, (row: TaxRow, value: string): void => {
-    if (row.tags.expenseType === ExpenseTypes.Tax) {
+    if (row.tag.expenseType === ExpenseTypes.Tax) {
       allPayments.push({ date: new Date(row.date).getTime(), value });
       payments[getCol(row.date)] = math.add(
         payments[getCol(row.date)],

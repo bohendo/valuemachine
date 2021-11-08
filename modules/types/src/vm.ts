@@ -4,6 +4,7 @@ import { Logger } from "./logger";
 import { Store } from "./store";
 import { Account, Asset, DecString, DateTimeString } from "./strings";
 import { Transaction } from "./transactions";
+import { Tag } from "./txTags";
 
 ////////////////////////////////////////
 // JSON Schema
@@ -54,6 +55,7 @@ export type EventErrorCode = Static<typeof EventErrorCode>;
 const BaseEvent = Type.Object({
   date: DateTimeString,
   index: Type.Number(),
+  tag: Tag,
   txId: Type.String(),
 });
 type BaseEvent = Static<typeof BaseEvent>;

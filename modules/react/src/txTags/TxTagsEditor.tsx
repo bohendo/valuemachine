@@ -41,9 +41,9 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
       txTags || {}
     ) : (
       Object.keys(txTags || {}).reduce(
-        (tags: TxTags, id: string): TxTags => id === txId
-          ? ({ ...tags, [txId]: (txTags?.[txId] || {}) })
-          : tags,
+        (tag: TxTags, id: string): TxTags => id === txId
+          ? ({ ...tag, [txId]: (txTags?.[txId] || {}) })
+          : tag,
         {} as TxTags,
       )
     ));

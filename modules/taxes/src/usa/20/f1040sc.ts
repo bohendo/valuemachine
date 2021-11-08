@@ -66,7 +66,7 @@ export const f1040sc = (
 
   let totalIncome = "0";
   processIncome(taxRows, (income: TaxRow, value: string): void => {
-    if (income.tags.incomeType === IncomeTypes.SelfEmployed) {
+    if (income.tag.incomeType === IncomeTypes.SelfEmployed) {
       totalIncome = math.add(totalIncome, value);
       log.info(
         `${income.date.split("T")[0]} Income of ${pad(math.round(income.amount))} ` +
@@ -107,82 +107,82 @@ export const f1040sc = (
       pad(math.round(expense.amount), 8)
     } ${pad(expense.asset, 4)} `;
 
-    if (!expense.tags.expenseType && expense.tags.description) {
-      log.info(`${message}: L48 ${expense.tags.description}`);
-      f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tags.description;
+    if (!expense.tag.expenseType && expense.tag.description) {
+      log.info(`${message}: L48 ${expense.tag.description}`);
+      f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tag.description;
       f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
       f1040sc.L48 = math.add(f1040sc.L48, value);
       otherExpenseIndex += 1;
 
-    } else if (expense.tags.expenseType === ExpenseTypes.Advertising) {
+    } else if (expense.tag.expenseType === ExpenseTypes.Advertising) {
       f1040sc.L8 = math.add(f1040sc.L8, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Vehicle) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Vehicle) {
       f1040sc.L9 = math.add(f1040sc.L9, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Commission) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Commission) {
       f1040sc.L10 = math.add(f1040sc.L10, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Labor) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Labor) {
       f1040sc.L11 = math.add(f1040sc.L11, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Depletion) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Depletion) {
       f1040sc.L12 = math.add(f1040sc.L12, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Depreciation) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Depreciation) {
       f1040sc.L13 = math.add(f1040sc.L13, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.EmployeeBenefits) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.EmployeeBenefits) {
       f1040sc.L14 = math.add(f1040sc.L14, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Insurance) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Insurance) {
       f1040sc.L15 = math.add(f1040sc.L15, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Mortgage) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Mortgage) {
       f1040sc.L16a = math.add(f1040sc.L16a, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Interest) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Interest) {
       f1040sc.L16b = math.add(f1040sc.L16b, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Legal) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Legal) {
       f1040sc.L17 = math.add(f1040sc.L17, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Office) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Office) {
       f1040sc.L18 = math.add(f1040sc.L18, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Pension) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Pension) {
       f1040sc.L19 = math.add(f1040sc.L19, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.EquipmentRental) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.EquipmentRental) {
       f1040sc.L20a = math.add(f1040sc.L20a, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.PropertyRental) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.PropertyRental) {
       f1040sc.L20b = math.add(f1040sc.L20b, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Repairs) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Repairs) {
       f1040sc.L21 = math.add(f1040sc.L21, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Supplies) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Supplies) {
       f1040sc.L22 = math.add(f1040sc.L22, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Licenses) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Licenses) {
       f1040sc.L23 = math.add(f1040sc.L23, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Travel) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Travel) {
       f1040sc.L24a = math.add(f1040sc.L24a, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Meals) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Meals) {
       f1040sc.L24b = math.add(f1040sc.L24b, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Utilities) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Utilities) {
       f1040sc.L25 = math.add(f1040sc.L25, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Wages) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Wages) {
       f1040sc.L26 = math.add(f1040sc.L26, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
-    } else if (expense.tags.expenseType === ExpenseTypes.Other) {
+      log.info(`${message}: ${expense.tag.expenseType}`);
+    } else if (expense.tag.expenseType === ExpenseTypes.Other) {
       f1040sc.L27a = math.add(f1040sc.L27a, value);
-      log.info(`${message}: ${expense.tags.expenseType}`);
+      log.info(`${message}: ${expense.tag.expenseType}`);
     }
   });
 

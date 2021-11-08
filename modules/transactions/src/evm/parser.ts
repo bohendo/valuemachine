@@ -32,6 +32,7 @@ export const parseEvmTx = (
     date: (new Date(evmTx.timestamp)).toISOString(),
     method: "",
     sources: [evmMetadata.name],
+    tag: {},
     transfers: [],
     uuid: `${evmMetadata.name}/${evmTx.hash}`,
   } as Transaction;

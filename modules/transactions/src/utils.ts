@@ -107,5 +107,6 @@ export const getTestTx = (transfers: Transfer[]): Transaction => ({
   method: Methods.Unknown,
   sources: [],
   apps: [],
+  tag: {},
   transfers: transfers || [],
 });

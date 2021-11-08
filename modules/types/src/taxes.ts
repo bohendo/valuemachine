@@ -24,7 +24,7 @@ export const TaxRow = Type.Object({
   amount: DecString, // rounded to 10^-6
   asset: Asset,
   price: DecString, // rounded to 10^-2
-  tags: Tag,
+  tag: Tag,
   value: DecString, // rounded to 10^-2
   receiveDate: DateString,
   receivePrice: DecString, // rounded to 10^-2

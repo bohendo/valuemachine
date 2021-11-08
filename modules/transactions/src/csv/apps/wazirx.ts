@@ -54,6 +54,7 @@ export const wazirxParser = (
       index: rowIndex,
       method: Methods.Unknown,
       sources: [source],
+      tag: { physicalGuard: guard },
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;

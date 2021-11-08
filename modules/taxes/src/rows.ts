@@ -48,12 +48,12 @@ export const getTaxRows = ({
 
   return vm?.json?.events.sort(chrono).filter(evt => {
     const time = new Date(evt.date).getTime();
-    const tags = txTags?.[evt.txId] || {};
+    const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
     if (taxYear && taxYear !== allTaxYears && (
       time < taxYearBoundaries[0] || time > taxYearBoundaries[1]
     )) return false;
     const account = (evt as TradeEvent).account || (evt as GuardChangeEvent).to || "";
-    const evtGuard = tags.physicalGuard || (
+    const evtGuard = tag.physicalGuard || (
       account ? addressBook.getGuard(account) : ""
     ) || account.split("/")[0];
     return (
@@ -69,6 +69,7 @@ export const getTaxRows = ({
     const getDate = (datetime: DateTimeString): DateString =>
       new Date(datetime).toISOString().split("T")[0];
     const date = getDate(evt.date);
+    const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
 
     if (evt.type === TaxActions.Trade) {
       if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return rows; }
@@ -89,7 +90,7 @@ export const getTaxRows = ({
             receivePrice: round(receivePrice),
             receiveDate: getDate(chunk.history[0].date),
             capitalChange: round(capitalChange),
-            tags: txTags?.[evt.txId] || [],
+            tag,
           };
         } else {
           return null;
@@ -112,7 +113,7 @@ export const getTaxRows = ({
           receivePrice: round(price),
           receiveDate: date,
           capitalChange: "0.00",
-          tags: txTags?.[evt.txId] || [],
+          tag,
         } as TaxRow;
       }));
 
@@ -131,7 +132,7 @@ export const getTaxRows = ({
           receivePrice = price;
           capitalChange = "0";
         }
-        // TODO: add tags based on the recipient of this expense
+        // TODO: add tag based on the recipient of this expense
         // eg if it's an expense to coinbase, then tag it as an exchange fee
         return {
           date: date,
@@ -143,7 +144,7 @@ export const getTaxRows = ({
           receivePrice: round(receivePrice),
           receiveDate,
           capitalChange,
-          tags: txTags?.[evt.txId] || [],
+          tag,
         } as TaxRow;
       }));
 

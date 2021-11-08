@@ -86,7 +86,7 @@ export const processIncome = (
   taxes
     .filter(row => row.action === TaxActions.Income && math.gt(row.value, "0"))
     .forEach((income: TaxRow): void => {
-      callback(income, math.mul(income.value, income.tags?.multiplier || "1"));
+      callback(income, math.mul(income.value, income.tag?.multiplier || "1"));
     });
 };
 
@@ -97,6 +97,6 @@ export const processExpenses = (
   taxes
     .filter(row => row.action === TaxActions.Expense && math.gt(row.value, "0"))
     .forEach((expense: TaxRow): void => {
-      callback(expense, math.mul(expense.value, expense.tags?.multiplier || "1"));
+      callback(expense, math.mul(expense.value, expense.tag?.multiplier || "1"));
     });
 };

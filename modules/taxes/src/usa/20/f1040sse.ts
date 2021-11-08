@@ -26,7 +26,7 @@ export const f1040sse = (
 
   let totalIncome = "0";
   processIncome(taxRows, (income: TaxRow, value: string): void => {
-    if (income.tags.incomeType === IncomeTypes.SelfEmployed) {
+    if (income.tag.incomeType === IncomeTypes.SelfEmployed) {
       totalIncome = math.add(totalIncome, value);
     }
   });

@@ -9,7 +9,7 @@ import { gt, hashCsv, sub } from "@valuemachine/utils";
 import { Assets, CsvSources, Guards } from "../../enums";
 import { getGuard } from "../../utils";
 
-const { USA } = Guards;
+const guard = Guards.USA;
 const { BTC, DAI, ETH, SAI, USD } = Assets;
 const { Expense, SwapIn, SwapOut, Internal } = TransferCategories;
 const dateKey = `Created At`;
@@ -78,8 +78,8 @@ export const wyreParser = (
       ["Type"]: txType,
     } = row;
 
-    const account = `${USA}/${source}/account`;
-    const exchange = `${USA}/${source}`;
+    const account = `${guard}/${source}/account`;
+    const exchange = `${guard}/${source}`;
 
     const fixDai = asset => asset === DAI && date.getTime() < daiLaunch ? SAI : asset;
     const destType = fixDai(rawDestType);
@@ -90,6 +90,7 @@ export const wyreParser = (
       date: date.toISOString(),
       index: rowIndex,
       sources: [source],
+      tag: { physicalGuard: guard },
       transfers: [],
       uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
     } as Transaction;

@@ -22,7 +22,7 @@ export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
 
   let totalIncome = "0";
   processIncome(taxRows, (income: TaxRow, value: string): void => {
-    if (income.tags.incomeType === IncomeTypes.Prize) {
+    if (income.tag.incomeType === IncomeTypes.Prize) {
       log.debug(`Prize money goes on f1040s1.L8`);
     } else {
       totalIncome = math.add(totalIncome, value);
@@ -48,13 +48,13 @@ export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
   processExpenses(taxRows, (expense: TaxRow, value: string): void => {
     const message = `${expense.date.split("T")[0]} ` +
       `Expense of ${pad(math.round(expense.amount), 8)} ${pad(expense.asset, 4)} `;
-    if (!expense.tags.expenseType) { // TODO: filter out non-deductible?
-      log.info(`${message}: L48 ${expense.tags.description}`);
-      f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tags.description;
+    if (!expense.tag.expenseType) { // TODO: filter out non-deductible?
+      log.info(`${message}: L48 ${expense.tag.description}`);
+      f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tag.description;
       f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
       f1040sc.L48 = add(f1040sc.L48, value);
       otherExpenseIndex += 1;
-    } else if (expense.tags.expenseType === ExpenseTypes.Fee) {
+    } else if (expense.tag.expenseType === ExpenseTypes.Fee) {
       log.info(`${message}: L48 += Currency conversion`);
       exchangeFees = add(exchangeFees, value);
     } else {
@@ -65,7 +65,7 @@ export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
         "L21", "L22", "L23", "L24a", "L24b",
         "L25", "L26", "L27a", "L27b",
       ]) {
-        if (expense.tags.expenseType.includes(row)) {
+        if (expense.tag.expenseType.includes(row)) {
           log.info(`${message}: ${row}`);
           f1040sc[row] = add(f1040sc[row], value);
         }
