@@ -1,6 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { Asset, DateString, DecString } from "./strings";
+import { Tag } from "./txTags";
 
 export const Mapping = Type.Array(Type.Object({
   nickname: Type.String(),
@@ -23,7 +24,7 @@ export const TaxRow = Type.Object({
   amount: DecString, // rounded to 10^-6
   asset: Asset,
   price: DecString, // rounded to 10^-2
-  tags: Type.Array(Type.String()),
+  tags: Tag,
   value: DecString, // rounded to 10^-2
   receiveDate: DateString,
   receivePrice: DecString, // rounded to 10^-2
@@ -42,8 +43,6 @@ export const TaxInput = Type.Object({
     spouseMiddleInitial: Type.Optional(Type.String()),
     spouseLastName: Type.Optional(Type.String()),
     spouseSSN: Type.Optional(Type.String()),
-    occupation: Type.Optional(Type.String()),
-    spouseOccupation: Type.Optional(Type.String()),
     streetAddress: Type.Optional(Type.String()),
     apt: Type.Optional(Type.String()),
     city: Type.Optional(Type.String()),
@@ -52,6 +51,26 @@ export const TaxInput = Type.Object({
     foreignCountry: Type.Optional(Type.String()),
     foreignState: Type.Optional(Type.String()),
     foreignZip: Type.Optional(Type.String()),
+    occupation: Type.Optional(Type.String()),
+    pin: Type.Optional(Type.String()),
+    spouseOccupation: Type.Optional(Type.String()),
+    spousePin: Type.Optional(Type.String()),
+    phone: Type.Optional(Type.String()),
+    email: Type.Optional(Type.String()),
+    thirdParty: Type.Optional(Type.Object({
+      name: Type.Optional(Type.String()),
+      phone: Type.Optional(Type.String()),
+      pin: Type.Optional(Type.String()),
+    })),
+    preparer: Type.Optional(Type.Object({
+      name: Type.Optional(Type.String()),
+      ptin: Type.Optional(Type.String()),
+      isSelfEmployed: Type.Optional(Type.Boolean()),
+      firmName: Type.Optional(Type.String()),
+      firmAddress: Type.Optional(Type.String()),
+      firmEIN: Type.Optional(Type.String()),
+      phone: Type.Optional(Type.String()),
+    })),
   }, { additionalProperties: false })),
   // If >300 days of tax year was outside the US, insert f2555
   travel: Type.Optional(Type.Array(Type.Object({

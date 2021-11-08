@@ -1,5 +1,6 @@
 import {
   DateString,
+  ExpenseTypes,
   FilingStatuses,
   Forms,
   getIncomeTax,
@@ -136,16 +137,17 @@ export const f2210 = (
 
   // Get business expenses & tax payments
   processExpenses(taxRows, (row: TaxRow, value: string): void => {
-    if (row.tags.some(tag => tag.startsWith("f1040sc"))) {
-      expenses[getCol(row.date)] = math.add(
-        expenses[getCol(row.date)],
-        math.round(value),
-      );
-    } else if (row.tags.includes("f1040s3.L8")) {
+    if (row.tags.expenseType === ExpenseTypes.Tax) {
       allPayments.push({ date: new Date(row.date).getTime(), value });
       payments[getCol(row.date)] = math.add(
         payments[getCol(row.date)],
         value,
+      );
+    } else {
+      // TODO: filter out non-deductible expenses?
+      expenses[getCol(row.date)] = math.add(
+        expenses[getCol(row.date)],
+        math.round(value),
       );
     }
   });

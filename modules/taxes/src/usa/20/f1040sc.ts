@@ -1,5 +1,8 @@
 import {
+  DecString,
+  ExpenseTypes,
   Forms,
+  IncomeTypes,
   Logger,
   math,
   processExpenses,
@@ -50,8 +53,8 @@ export const f1040sc = (
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
 
   let totalIncome = "0";
-  processIncome(taxRows, (income: TaxRow, value: string): void => {
-    if (income.tags.includes("prize")) {
+  processIncome(taxRows, (income: TaxRow, value: DecString): void => {
+    if (income.tags.incomeType === IncomeTypes.Prize) {
       log.debug(`Prize money goes on f1040s1.L8`);
     } else {
       totalIncome = math.add(totalIncome, value);
@@ -74,24 +77,20 @@ export const f1040sc = (
 
   let otherExpenseIndex = 1;
   let exchangeFees = "0";
-  processExpenses(taxRows, (expense: TaxRow, value: string): void => {
-    const tags = expense.tags;
+  processExpenses(taxRows, (expense: TaxRow, value: DecString): void => {
     const message = `${expense.date.split("T")[0]} ` +
       `Expense of ${pad(math.round(expense.amount), 8)} ${pad(expense.asset, 4)} `;
-    const otherExpenseKey = "f1040sc-L48:";
-    if (tags.some(tag => tag.startsWith(otherExpenseKey))) {
-      const description = tags
-        .find(tag => tag.startsWith(otherExpenseKey))
-        .replace(otherExpenseKey, "");
-      log.info(`${message}: L48 ${description}`);
-      f1040sc[`L48R${otherExpenseIndex}_desc`] = description;
+    if (!expense.tags.expenseType) { // TODO: filter out non-deductible?
+      log.info(`${message}: L48 ${expense.tags.description}`);
+      f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tags.description;
       f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
       f1040sc.L48 = add(f1040sc.L48, value);
       otherExpenseIndex += 1;
-    } else if (expense.tags.includes(`exchange-fee`)) {
+    } else if (expense.tags.expenseType === ExpenseTypes.Fee) {
+      // TODO: only include fees paid to exchanges
       log.info(`${message}: L48 += Currency conversion`);
       exchangeFees = add(exchangeFees, value);
-    } else if (expense.tags.some(tag => tag.startsWith("f1040sc"))) {
+    } else {
       for (const row of [
         "L8", "L9", "L10", "L11", "L12",
         "L13", "L14", "L15", "L16a", "L16b",
@@ -99,7 +98,7 @@ export const f1040sc = (
         "L21", "L22", "L23", "L24a", "L24b",
         "L25", "L26", "L27a", "L27b",
       ]) {
-        if (tags.some(tag => tag.startsWith(`f1040sc-${row}`))) {
+        if (expense.tags.expenseType.includes(row)) {
           log.info(`${message}: ${row}`);
           f1040sc[row] = add(f1040sc[row], value);
         }

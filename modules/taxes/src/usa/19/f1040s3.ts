@@ -20,7 +20,6 @@ export const f1040s3 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
 
   taxRows
     .filter(tax => tax.action === EventTypes.Trade)
-    .filter((tax: TaxRow) => tax.tags.includes("f1040s3.L8"))
     .forEach((tax: TaxRow) => {
       log.info(`Including tax payment of ${tax.amount} on ${tax.date}`);
       f1040s3.L8 = math.add(f1040s3.L8, tax.amount);

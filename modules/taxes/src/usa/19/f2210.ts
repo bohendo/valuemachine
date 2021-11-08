@@ -129,12 +129,12 @@ export const f2210 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
 
   // Get business expenses & tax payments
   processExpenses(taxRows, (row: TaxRow, value: string): void => {
-    if (row.tags.some(tag => tag.startsWith("f1040sc"))) {
+    if (row.tags.expenseType) { // TODO: filter out non deductible expenses
       expenses[getCol(row.date)] = math.add(
         expenses[getCol(row.date)],
         math.round(value),
       );
-    } else if (row.tags.includes("f1040s3.L8")) {
+    } else {
       allPayments.push({ date: new Date(row.date).getTime(), value });
       payments[getCol(row.date)] = math.add(
         payments[getCol(row.date)],
