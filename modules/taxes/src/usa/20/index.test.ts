@@ -37,7 +37,7 @@ describe(`${taxYear} Filers`, () => {
   });
 
   it(`should include f1040sc iff business info is provided`, async () => {
-    const taxReturn = getTaxReturn({ business: { name: "Bo & Co" } }, [], log);
+    const taxReturn = getTaxReturn({ business: { name: "Bo & Co", industry: "misc" } }, [], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f1040sc" in taxReturn).to.be.true;
   });
