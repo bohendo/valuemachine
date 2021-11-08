@@ -66,6 +66,7 @@ export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const getEntry = (account: Account): AddressEntry | undefined => {
     if (!account) return undefined;
     const address = account.split("/").pop();
+    if (!address.startsWith("0x")) return undefined; // no entry if given a TxId or non-evm address
     return addressBook[account]
       || addressBook[address]
       || Object.values(addressBook).find(entry => entry.address?.endsWith(address));
