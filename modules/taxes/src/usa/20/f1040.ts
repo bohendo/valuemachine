@@ -12,6 +12,9 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   const { f1040, f2555 } = forms;
   const personal = input.personal || {};
 
+  ////////////////////////////////////////
+  // Personal Info
+
   if (personal.filingStatus === "Single") f1040.Single = true;
   if (personal.filingStatus === "MarriedSeparate") f1040.MarriedSeparate = true;
   if (personal.filingStatus === "MarriedJoint") f1040.MarriedJoint = true;
@@ -44,24 +47,56 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   f1040.Occupation = personal.occupation;
   f1040.SpouseOccupation = personal.spouseOccupation;
 
-  f1040.L9 = math.add(
-    f1040.L1, f1040.L2b, f1040.L3b, f1040.L4b,
-    f1040.L5b, f1040.L6b, f1040.L7, f1040.L8,
-  );
+  ////////////////////////////////////////
+  // Taxable Income
 
-  f1040.L10c = math.add(f1040.L10a, f1040.L10b);
-  f1040.L11 = math.sub(f1040.L9, f1040.L10c);
-
-  if (filingStatus === FilingStatuses.Single) {
-    f1040.L12 = "12200";
-  } else if (filingStatus === FilingStatuses.Joint) {
-    f1040.L12 = "24400";
-  } else if (filingStatus === FilingStatuses.Head) {
-    f1040.L12 = "18350";
+  if ("f1040sd" in forms) {
+    f1040.C7 = true;
   }
 
-  f1040.L14 = math.add(f1040.L12, f1040.L13);
-  f1040.L15 = math.subToZero(f1040.L11, f1040.L14);
+  f1040.L9 = math.add(
+    f1040.L1,  // wages
+    f1040.L2b, // taxable interest (f1040sb?)
+    f1040.L3b, // taxable dividends (f1040sb?)
+    f1040.L4b, // IRA distributions
+    f1040.L5b, // pensions & annuities
+    f1040.L6b, // taxable social security benefits
+    f1040.L7,  // capital gain/loss (f1040sd)
+    f1040.L8,  // other income (f1040s1)
+  );
+  log.info(`Total income: f1040.L9=${f1040.L9}`);
+
+  f1040.L10c = math.add(
+    f1040.L10a, // income adjustments from f1040s1
+    f1040.L10b, // charitable deductions
+  );
+  log.info(`Total income adjustments: f1040.L10c=${f1040.L10c}`);
+
+  f1040.L11 = math.sub(
+    f1040.L9,   // total income
+    f1040.L10c, // total adjustments
+  );
+  log.info(`Total gross income: f1040.L11=${f1040.L11}`);
+
+  f1040.L12 = !filingStatus ? ""
+    : filingStatus === FilingStatuses.Single ? "12200"
+    : filingStatus === FilingStatuses.Joint ? "24400"
+    : filingStatus === FilingStatuses.Head ? "18350"
+    : "";
+
+  f1040.L14 = math.add(
+    f1040.L12, // standard deduction
+    f1040.L13, // qualified business income deduction
+  );
+
+  f1040.L15 = math.subToZero(
+    f1040.L11, // adjusted gross income
+    f1040.L14, // total deductions
+  );
+  log.info(`Total Taxable Income: f1040.L15=${f1040.L15}`);
+
+  ////////////////////////////////////////
+  // Taxes due & payments
 
   if (!forms.f2555) {
     f1040.L16 = getIncomeTax(f1040.L11, filingStatus);
@@ -74,15 +109,81 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
     f1040.L16 = math.subToZero(L4, L5);
   }
 
-  f1040.L18 = math.add(f1040.L16, f1040.L17);
-  f1040.L21 = math.add(f1040.L19, f1040.L20);
-  f1040.L22 = math.subToZero(f1040.L18, f1040.L21);
-  f1040.L24 = math.add(f1040.L22, f1040.L23);
-  f1040.L25d = math.add(f1040.L25a, f1040.L25b, f1040.L25c);
-  f1040.L32 = math.add(f1040.L27, f1040.L28, f1040.L29, f1040.L30, f1040.L31);
-  f1040.L33 = math.add(f1040.L25d, f1040.L26, f1040.L32);
-  f1040.L34 = math.gt(f1040.L33, f1040.L24) ? math.sub(f1040.L33, f1040.L24) : "";
-  f1040.L36 = math.lt(f1040.L33, f1040.L24) ? math.sub(f1040.L24, f1040.L33) : "";
+  f1040.L18 = math.add(
+    f1040.L16, // Income tax
+    f1040.L17, // additional tax from f1040s2
+  );
+  f1040.L21 = math.add(
+    f1040.L19, // dependent tax credit
+    f1040.L20, // additional tax credits from f1040s3
+  );
+  f1040.L22 = math.subToZero(
+    f1040.L18, // total tax credits
+    f1040.L21, // tax liabilities
+  );
+  f1040.L24 = math.add(
+    f1040.L22, // total tax liabilities
+    f1040.L23, // other taxes from f1040s2
+  );
+  log.info(`Total taxes: f1040.L24=${f1040.L24}`);
+
+  f1040.L25d = math.add(
+    f1040.L25a, // taxes withheld from wages (W-2)
+    f1040.L25b, // taxes withheld from self employment (f1099)
+    f1040.L25c, // other taxes withheld
+  );
+  f1040.L32 = math.add(
+    f1040.L27, // earned income credit
+    f1040.L28, // extra child tax credit (f8812)
+    f1040.L29, // american opportunity credit (f8863)
+    f1040.L30, // recovery rebate credit
+    f1040.L31, // payments from f1040se
+  );
+  log.info(`Total payments & credits: f1040.L32=${f1040.L32}`);
+
+  f1040.L33 = math.add(
+    f1040.L25d, // total tax withholdings
+    f1040.L26,  // estimated payments & amount applied from 2019 return
+    f1040.L32,  // total payments & credits
+  );
+  log.info(`Total tax payments: f1040.L33=${f1040.L33}`);
+
+  if (math.gt(f1040.L33, f1040.L24)) {
+    f1040.L34 = math.sub(f1040.L33, f1040.L24);
+    log.info(`Total tax refund: f1040.L34=${f1040.L34}`);
+  } else if (math.lt(f1040.L33, f1040.L24)) {
+    f1040.L36 = math.sub(f1040.L24, f1040.L33);
+    log.info(`Total tax owed: f1040.L36=${f1040.L36}`);
+  }
+
+  ////////////////////////////////////////
+  // More Personal Info
+
+  if (personal.thirdParty?.name) {
+    f1040.DesignateThirdParty_Yes = true;
+    f1040.ThirdPartyName = personal.thirdParty.name;
+    f1040.ThirdPartyPhone = personal.thirdParty.phone;
+    f1040.ThirdPartyPin = personal.thirdParty.pin;
+  } else {
+    f1040.DesignateThirdParty_No = true;
+  }
+
+  f1040.Occupation = personal.occupation;
+  f1040.PIN = personal.pin;
+  f1040.SpouseOccupation = personal.spouseOccupation;
+  f1040.SpousePIN = personal.spousePin;
+  f1040.Phone = personal.phone;
+  f1040.Email = personal.email;
+
+  if (personal.preparer?.name) {
+    f1040.PreparerName = personal.preparer.name;
+    f1040.PreparerPTIN = personal.preparer.ptin;
+    f1040.PreparerSelfEmployed = personal.preparer.isSelfEmployed;
+    f1040.PreparerFirm = personal.preparer.firmName;
+    f1040.PreparerPhone = personal.preparer.phone;
+    f1040.PreparerAddress = personal.preparer.firmAddress;
+    f1040.PreparerEIN = personal.preparer.firmEIN;
+  }
 
   return { ...forms, f1040 };
 };
