@@ -25,9 +25,6 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   f1040.FirstNameMI = `${personal.firstName || ""} ${personal.middleInitial || ""}`;
   f1040.LastName = personal.lastName;
   f1040.SSN = personal.SSN;
-  f1040.SpouseFirstNameMI = `${personal.spouseFirstName || ""} ${personal.spouseMiddleInitial || ""}`;
-  f1040.SpouseLastName = personal.spouseLastName;
-  f1040.SpouseSSN = personal.spouseSSN;
   f1040.StreetAddress = personal.streetAddress;
   f1040.Apt = personal.apt;
   f1040.City = personal.city;
@@ -37,8 +34,11 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   f1040.ForeignState = personal.foreignState;
   f1040.ForeignZip = personal.foreignZip;
 
-  f1040.Occupation = personal.occupation;
-  f1040.SpouseOccupation = personal.spouseOccupation;
+  if (filingStatus === FilingStatuses.Joint) {
+    f1040.SpouseFirstNameMI = `${personal.spouseFirstName || ""} ${personal.spouseMiddleInitial || ""}`;
+    f1040.SpouseLastName = personal.spouseLastName;
+    f1040.SpouseSSN = personal.spouseSSN;
+  }
 
   ////////////////////////////////////////
   // Taxable Income
@@ -163,10 +163,13 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
 
   f1040.Occupation = personal.occupation;
   f1040.PIN = personal.pin;
-  f1040.SpouseOccupation = personal.spouseOccupation;
-  f1040.SpousePIN = personal.spousePin;
   f1040.Phone = personal.phone;
   f1040.Email = personal.email;
+
+  if (filingStatus === FilingStatuses.Joint) {
+    f1040.SpouseOccupation = personal.spouseOccupation;
+    f1040.SpousePIN = personal.spousePin;
+  }
 
   if (personal.preparer?.name) {
     f1040.PreparerName = personal.preparer.name;
