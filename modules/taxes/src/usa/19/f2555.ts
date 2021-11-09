@@ -34,9 +34,7 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
     totalIncome = math.add(totalIncome, value);
   });
   processExpenses(taxRows, (expense: TaxRow, value: string): void => {
-    if (expense.tags.some(tag => tag.startsWith("f1040sc"))) {
-      totalExpenses = math.add(totalExpenses, value);
-    }
+    totalExpenses = math.add(totalExpenses, value);
   });
   f2555.L23 = math.round(math.sub(totalIncome, totalExpenses));
 

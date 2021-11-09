@@ -8,23 +8,21 @@ import {
   Guard,
   GuardChangeEvent,
   Prices,
+  TaxActions,
   TaxRow,
   TradeEvent,
   TxTags,
   ValueMachine,
 } from "@valuemachine/types";
 import {
-  add,
   chrono,
-  mul,
-  round as defaultRound,
-  sub,
+  math,
 } from "@valuemachine/utils";
 
 import { allTaxYears, securityFeeMap } from "./constants";
 import { getTaxYearBoundaries } from "./utils";
 
-const round = n => defaultRound(n, 2, false);
+const round = n => math.round(n, 2, false);
 
 export const getTaxRows = ({
   addressBook,
@@ -50,16 +48,18 @@ export const getTaxRows = ({
 
   return vm?.json?.events.sort(chrono).filter(evt => {
     const time = new Date(evt.date).getTime();
-    const tags = txTags?.[evt.txId] || {};
+    const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
     if (taxYear && taxYear !== allTaxYears && (
       time < taxYearBoundaries[0] || time > taxYearBoundaries[1]
     )) return false;
-    const account = (evt as GuardChangeEvent).to || (evt as TradeEvent).account || "";
-    const evtGuard = tags.physicalGuard || (
+    const account = (evt as TradeEvent).account || (evt as GuardChangeEvent).to || "";
+    const evtGuard = tag.physicalGuard || (
       account ? addressBook.getGuard(account) : ""
     ) || account.split("/")[0];
     return (
-      evt.type === EventTypes.Trade || evt.type === EventTypes.Income
+      evt.type === EventTypes.Trade ||
+      evt.type === EventTypes.Income ||
+      evt.type === EventTypes.Expense
     ) && ((
       evtGuard === guard
     ) || (
@@ -69,50 +69,83 @@ export const getTaxRows = ({
     const getDate = (datetime: DateTimeString): DateString =>
       new Date(datetime).toISOString().split("T")[0];
     const date = getDate(evt.date);
+    const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
+    const txId = evt.txId;
 
-    if (evt.type === EventTypes.Trade) {
+    if (evt.type === TaxActions.Trade) {
       if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return rows; }
       return rows.concat(...evt.outputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
         if (chunk.asset !== unit && price !== "0") {
-          const value = mul(chunk.amount, price);
+          const value = math.mul(chunk.amount, price);
           const receivePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset, unit);
-          const capitalChange = mul(chunk.amount, sub(price, receivePrice || "0"));
+          const capitalChange = math.mul(chunk.amount, math.sub(price, receivePrice || "0"));
           return {
             date: date,
-            action: EventTypes.Trade,
-            amount: defaultRound(chunk.amount, 6),
+            action: TaxActions.Trade,
+            amount: math.round(chunk.amount, 6),
             asset: chunk.asset,
             price: round(price),
             value: round(value),
             receivePrice: round(receivePrice),
             receiveDate: getDate(chunk.history[0].date),
             capitalChange: round(capitalChange),
-            tags: txTags?.[evt.txId] || [],
+            tag, txId,
           };
         } else {
           return null;
         }
       }).filter(row => !!row) as TaxRow[]);
 
-    } else if (evt.type === EventTypes.Income) {
+    } else if (evt.type === TaxActions.Income) {
       if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); return rows; }
       return rows.concat(...evt.inputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
-        const income = mul(chunk.amount, price);
+        const income = math.mul(chunk.amount, price);
         return {
           date: date,
-          action: EventTypes.Income,
-          amount: defaultRound(chunk.amount, 6),
+          action: TaxActions.Income,
+          amount: math.round(chunk.amount, 6),
           asset: chunk.asset,
           price: round(price),
           value: round(income),
           receivePrice: round(price),
           receiveDate: date,
           capitalChange: "0.00",
-          tags: txTags?.[evt.txId] || [],
+          tag, txId,
+        } as TaxRow;
+      }));
+
+    } else if (evt.type === TaxActions.Expense) {
+      if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return rows; }
+      return rows.concat(...evt.outputs.map(chunkIndex => {
+        const chunk = vm.getChunk(chunkIndex);
+        const price = prices.getNearest(date, chunk.asset, unit) || "0";
+        const value = math.mul(chunk.amount, price);
+        const receiveDate = chunk.history[0]?.date.split("T")[0];
+        let receivePrice, capitalChange;
+        if (chunk.asset !== unit && price !== "0") {
+          receivePrice = prices.getNearest(receiveDate, chunk.asset, unit);
+          capitalChange = math.mul(chunk.amount, math.sub(price, receivePrice || "0"));
+        } else {
+          receivePrice = price;
+          capitalChange = "0";
+        }
+        // TODO: add tag based on the recipient of this expense
+        // eg if it's an expense to coinbase, then tag it as an exchange fee
+        return {
+          date: date,
+          action: TaxActions.Expense,
+          amount: math.round(chunk.amount, 6),
+          asset: chunk.asset,
+          price: round(price),
+          value: round(value),
+          receivePrice: round(receivePrice),
+          receiveDate,
+          capitalChange,
+          tag, txId,
         } as TaxRow;
       }));
 
@@ -127,13 +160,13 @@ export const getTaxRows = ({
       r.receiveDate === row.receiveDate
     );
     if (dupRow) {
-      dupRow.amount = add(dupRow.amount, row.amount);
-      dupRow.value = add(dupRow.value, row.value);
+      dupRow.amount = math.add(dupRow.amount, row.amount);
+      dupRow.value = math.add(dupRow.value, row.value);
     } else {
       rows.push(row);
     }
     return rows;
 
-  }, [] as TaxRow[]);
+  }, [] as TaxRow[]).filter(row => math.gt(row.value, "0.01"));
 
 };

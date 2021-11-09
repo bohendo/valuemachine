@@ -37,7 +37,7 @@ describe(`${taxYear} Filers`, () => {
   });
 
   it(`should include f1040sc iff business info is provided`, async () => {
-    const taxReturn = getTaxReturn({ business: { name: "Bo & Co" } }, [], log);
+    const taxReturn = getTaxReturn({ business: { name: "Bo & Co", industry: "misc" } }, [], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f1040sc" in taxReturn).to.be.true;
   });
@@ -53,7 +53,7 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "100",
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "5000",
-      tags: [],
+      tag: {},
     }], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f8949" in taxReturn).to.be.true;
@@ -71,7 +71,7 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "100",
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "0",
-      tags: [],
+      tag: {},
     }, {
       date: "2020-12-01T00:00:00",
       action: EventTypes.Trade,
@@ -82,7 +82,7 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "100",
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "5000",
-      tags: [],
+      tag: {},
     }, {
       date: "2020-12-02T00:00:00",
       action: EventTypes.Trade,
@@ -93,7 +93,7 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "5",
       receiveDate: "2019-01-01T00:00:00",
       capitalChange: "1000",
-      tags: [],
+      tag: {},
     }];
     const input = {
       forms: {

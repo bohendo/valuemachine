@@ -109,9 +109,7 @@ export const f2555 = (
     totalIncome = math.add(totalIncome, value);
   });
   processExpenses(taxRows, (expense: TaxRow, value: string): void => {
-    if (expense.tags.some(tag => tag.startsWith("f1040sc"))) {
-      totalExpenses = math.add(totalExpenses, value);
-    }
+    totalExpenses = math.add(totalExpenses, value); // TODO: filter out non-deductible expenses
   });
   f2555.L23 = math.sub(totalIncome, totalExpenses);
 

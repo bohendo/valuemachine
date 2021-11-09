@@ -1,9 +1,10 @@
 import {
-  Transaction,
+  ExpenseTypes,
   Logger,
+  Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { hashCsv } from "@valuemachine/utils";
+import { hashCsv, math } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
 import { Assets, CsvSources, Guards, Methods } from "../../enums";
@@ -20,7 +21,8 @@ hours,
 ${dateKey},
 end,
 USD,
-project_name
+project_name,
+category
 `.replace(/\n/g, "")];
 
 export const digitaloceanParser = (
@@ -35,21 +37,26 @@ export const digitaloceanParser = (
 
     const {
       ["description"]: description,
-      ["USD"]: amount,
+      ["USD"]: rawAmount,
       [dateKey]: date,
     } = row;
-    log.info(`Paid digital ocean for ${description}`);
+    const amount = rawAmount.replace("$", "");
+    if (math.eq(amount, "0") || new Date(date).toString() === "Invalid Date") {
+      return null;
+    }
+    log.info(`Paid digital ocean on ${date} for ${description}`);
     const transaction = {
       apps: [],
       date: (new Date(date)).toISOString(),
       index: rowIndex,
       method: Methods.Payment,
       sources: [source],
+      tag: { physicalGuard: guard, expenseType: ExpenseTypes.EquipmentRental },
       transfers: [],
-      uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
+      uuid: `${source}/${hashCsv(csvData)}-${rowIndex}`,
     } as Transaction;
     transaction.transfers.push({
-      amount: amount.replace("$", ""),
+      amount,
       asset: Assets.USD,
       category: TransferCategories.Expense,
       from: `${guard}/default`,
@@ -61,4 +68,3 @@ export const digitaloceanParser = (
     return transaction;
   }).filter(tx => !!tx);
 };
-

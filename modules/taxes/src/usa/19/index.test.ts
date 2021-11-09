@@ -22,7 +22,7 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "100",
       receiveDate: "2019-01-01T00:00:00",
       capitalChange: "0",
-      tags: [],
+      tag: {},
     }, {
       date: "2019-12-01T00:00:00",
       action: EventTypes.Trade,
@@ -33,7 +33,7 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "100",
       receiveDate: "2019-01-01T00:00:00",
       capitalChange: "5000",
-      tags: [],
+      tag: {},
     }, {
       date: "2019-12-02T00:00:00",
       action: EventTypes.Trade,
@@ -44,7 +44,7 @@ describe(`${taxYear} Filers`, () => {
       receivePrice: "5",
       receiveDate: "2018-01-01T00:00:00",
       capitalChange: "1000",
-      tags: [],
+      tag: {},
     }];
     const forms = { ...getEmptyForms(taxYear),
       f1040: {

@@ -33,12 +33,14 @@ import { TransactionRow } from "./TransactionRow";
 type TransactionTableProps = {
   addressBook: AddressBook;
   setTransactions?: (val: TransactionsJson) => void;
+  setTxTags?: (val: TxTags) => void;
   transactions: Transactions;
   txTags?: TxTags;
 };
 export const TransactionTable: React.FC<TransactionTableProps> = ({
   addressBook,
   setTransactions,
+  setTxTags,
   transactions,
   txTags,
 }: TransactionTableProps) => {
@@ -240,9 +242,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             {filteredTxns
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((tx: Transaction, i: number) => (<TransactionRow
-                key={i}
                 addressBook={addressBook}
                 editTx={setTransactions ? editTx : undefined}
+                key={i}
+                setTxTags={setTxTags}
                 tx={tx}
                 txTags={txTags}
               />))

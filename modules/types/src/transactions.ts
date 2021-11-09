@@ -11,6 +11,7 @@ import {
   TxId,
 } from "./strings";
 import { Store } from "./store";
+import { Tag } from "./txTags";
 
 ////////////////////////////////////////
 // JSON Schema
@@ -56,6 +57,7 @@ export const Transaction = Type.Object({
   index: Type.Optional(Type.Number()), // required after merging txns together
   method: Type.String(),
   sources: Type.Array(Source),
+  tag: Tag,
   transfers: Type.Array(Transfer),
   uuid: TxId,
 });

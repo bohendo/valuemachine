@@ -5,7 +5,7 @@ import {
   DecString,
   IntString,
   TaxRow,
-  EventTypes,
+  TaxActions,
   DateString,
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
@@ -15,8 +15,11 @@ export {
   DateString,
   DecString,
   EventTypes,
+  ExpenseTypes,
+  IncomeTypes,
   IntString,
   Logger,
+  TaxActions,
   TaxInput,
   TaxRow,
 } from "@valuemachine/types";
@@ -78,39 +81,22 @@ export const getGetIncomeTax = (
 
 export const processIncome = (
   taxes: TaxRow[],
-  callback: (tax: TaxRow, value: string) => void,
+  callback: (row: TaxRow, value: DecString) => void,
 ): void => {
-  taxes.filter(tax =>
-    tax.action === EventTypes.Income &&
-    math.gt(tax.amount, "0")
-  ).forEach((income: TaxRow): void => {
-    let value = math.mul(income.amount, income.price);
-    if (income.tags.includes("ignore")) {
-      return;
-    } else if (income.tags.some(tag => tag.startsWith("multiply-"))) {
-      const tag = income.tags.find(tag => tag.startsWith("multiply-"));
-      const multiplier = tag.split("-")[1];
-      value = math.mul(value, multiplier);
-    }
-    callback(income, value);
-  });
+  taxes
+    .filter(row => row.action === TaxActions.Income && math.gt(row.value, "0"))
+    .forEach((income: TaxRow): void => {
+      callback(income, math.mul(income.value, income.tag?.multiplier || "1"));
+    });
 };
 
 export const processExpenses = (
   taxes: TaxRow[],
-  callback: (tax: TaxRow, value: string) => void,
+  callback: (row: TaxRow, value: DecString) => void,
 ): void => {
-  taxes.filter(tax =>
-    tax.action === EventTypes.Expense &&
-    math.gt(tax.amount, "0") &&
-    !tax.tags.includes("ignore"),
-  ).forEach((tax: TaxRow): void => {
-    let value = math.round(math.mul(tax.amount, tax.price));
-    if (tax.tags.some(tag => tag.startsWith("multiply-"))) {
-      const tag = tax.tags.find(tag => tag.startsWith("multiply-"));
-      const multiplier = tag.split("-")[1];
-      value = math.mul(value, multiplier);
-    }
-    callback(tax, value);
-  });
+  taxes
+    .filter(row => row.action === TaxActions.Expense && math.gt(row.value, "0"))
+    .forEach((expense: TaxRow): void => {
+      callback(expense, math.mul(expense.value, expense.tag?.multiplier || "1"));
+    });
 };

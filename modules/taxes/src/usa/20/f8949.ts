@@ -1,5 +1,5 @@
 import {
-  EventTypes,
+  TaxActions,
   Forms,
   Logger,
   math,
@@ -24,7 +24,7 @@ export const f8949 = (
   const ssn = personal?.SSN;
 
   // Merge trades w the same received & sold dates
-  const trades = taxRows.filter(tax => tax.action === EventTypes.Trade);
+  const trades = taxRows.filter(tax => tax.action === TaxActions.Trade);
 
   if (!trades.length) {
     delete forms.f8949;

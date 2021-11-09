@@ -79,14 +79,14 @@ export const f1040sc = [
   {"nickname":"L44a","fieldName":"topmostSubform[0].Page2[0].f2_12[0]"},
   {"nickname":"L44b","fieldName":"topmostSubform[0].Page2[0].f2_13[0]"},
   {"nickname":"L44c","fieldName":"topmostSubform[0].Page2[0].f2_14[0]"},
-  {"nickname":"L45_Yes","fieldName":"topmostSubform[0].Page2[0].c2_5[0]","checkmark":"Yes"},
-  {"nickname":"L45_NO","fieldName":"topmostSubform[0].Page2[0].c2_5[1]","checkmark":"No"},
-  {"nickname":"L46_Yes","fieldName":"topmostSubform[0].Page2[0].c2_6[0]","checkmark":"Yes"},
-  {"nickname":"L46_NO","fieldName":"topmostSubform[0].Page2[0].c2_6[1]","checkmark":"No"},
-  {"nickname":"L47a_Yes","fieldName":"topmostSubform[0].Page2[0].c2_7[0]","checkmark":"Yes"},
-  {"nickname":"L47a_NO","fieldName":"topmostSubform[0].Page2[0].c2_7[1]","checkmark":"No"},
-  {"nickname":"L47b_Yes","fieldName":"topmostSubform[0].Page2[0].c2_8[0]","checkmark":"Yes"},
-  {"nickname":"L47b_NO","fieldName":"topmostSubform[0].Page2[0].c2_8[1]","checkmark":"No"},
+  {"nickname":"C45_Yes","fieldName":"topmostSubform[0].Page2[0].c2_5[0]","checkmark":"Yes"},
+  {"nickname":"C45_No","fieldName":"topmostSubform[0].Page2[0].c2_5[1]","checkmark":"No"},
+  {"nickname":"C46_Yes","fieldName":"topmostSubform[0].Page2[0].c2_6[0]","checkmark":"Yes"},
+  {"nickname":"C46_No","fieldName":"topmostSubform[0].Page2[0].c2_6[1]","checkmark":"No"},
+  {"nickname":"C47a_Yes","fieldName":"topmostSubform[0].Page2[0].c2_7[0]","checkmark":"Yes"},
+  {"nickname":"C47a_No","fieldName":"topmostSubform[0].Page2[0].c2_7[1]","checkmark":"No"},
+  {"nickname":"C47b_Yes","fieldName":"topmostSubform[0].Page2[0].c2_8[0]","checkmark":"Yes"},
+  {"nickname":"C47b_No","fieldName":"topmostSubform[0].Page2[0].c2_8[1]","checkmark":"No"},
   {"nickname":"L48_Expense1","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item1[0].f2_15[0]"},
   {"nickname":"L48_Amount1","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item1[0].f2_16[0]"},
   {"nickname":"L48_Expense2","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item2[0].f2_17[0]"},
@@ -189,14 +189,14 @@ export interface F1040SC {
   L44a?: string;
   L44b?: string;
   L44c?: string;
-  L45_Yes?: boolean;
-  L45_NO?: boolean;
-  L46_Yes?: boolean;
-  L46_NO?: boolean;
-  L47a_Yes?: boolean;
-  L47a_NO?: boolean;
-  L47b_Yes?: boolean;
-  L47b_NO?: boolean;
+  C45_Yes?: boolean;
+  C45_No?: boolean;
+  C46_Yes?: boolean;
+  C46_No?: boolean;
+  C47a_Yes?: boolean;
+  C47a_No?: boolean;
+  C47b_Yes?: boolean;
+  C47b_No?: boolean;
   L48_Expense1?: string;
   L48_Amount1?: string;
   L48_Expense2?: string;

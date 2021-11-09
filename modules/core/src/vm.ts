@@ -48,7 +48,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   let tmpChunks = [] as AssetChunk[]; // like flash loans for intra-tx underflows
   let newEvents = [] as Events; // index will be added when we add new events to total
-  let txId;
+  let tag, txId;
 
   ////////////////////////////////////////
   // Simple Utils
@@ -192,7 +192,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           inputs: [newChunk.index],
-          txId,
+          tag, txId,
           type: EventTypes.Income,
         });
       }
@@ -309,7 +309,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         index: json.events.length + newEvents.length,
         insecurePath: [],
         to: to,
-        txId,
+        tag, txId,
         type: EventTypes.GuardChange,
       });
     }
@@ -330,7 +330,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       index: json.events.length + newEvents.length,
       inputs: loan.map(toIndex),
       outputs: [],
-      txId,
+      tag, txId,
       type: EventTypes.Debt,
     });
     return loan;
@@ -373,7 +373,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
       index: json.events.length + newEvents.length,
       inputs: [],
       outputs: outputs.map(toIndex),
-      txId,
+      tag, txId,
       type: EventTypes.Debt,
     });
     return outputs;
@@ -390,6 +390,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     }
     json.date = tx.date;
     txId = tx.uuid;
+    tag = tx.tag;
     newEvents = [];
     tmpChunks = [];
     log.debug(`Processing transaction #${tx.index} from ${tx.date}: ${txId}`);
@@ -469,7 +470,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           outputs: disposed.map(toIndex),
-          txId,
+          tag, txId,
           type: EventTypes.Expense,
         });
 
@@ -483,7 +484,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           inputs: received.map(toIndex),
-          txId,
+          tag, txId,
           type: EventTypes.Income,
         });
 
@@ -504,7 +505,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        txId,
+        tag, txId,
         type: EventTypes.Error,
       });
 
@@ -517,7 +518,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        txId,
+        tag, txId,
         type: EventTypes.Error,
       });
 
@@ -535,7 +536,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
           date: json.date,
           index: json.events.length + newEvents.length,
           message,
-          txId,
+          tag, txId,
           type: EventTypes.Error,
         });
       }
@@ -546,7 +547,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         index: json.events.length + newEvents.length,
         inputs: swapsIn.map(toIndex),
         outputs: swapsOut.map(toIndex),
-        txId,
+        tag, txId,
         type: EventTypes.Trade,
       });
     }
@@ -563,7 +564,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         index: json.events.length + newEvents.length,
         inputs: [flashloan.index], // where's it's sibling?!
         outputs: [],
-        txId,
+        tag, txId,
         type: EventTypes.Debt,
       });
       const message = `${account} had an underflow of ${amount} ${asset}`;
@@ -574,7 +575,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
         date: json.date,
         index: json.events.length + newEvents.length,
         message,
-        txId,
+        tag, txId,
         type: EventTypes.Error,
       });
     }

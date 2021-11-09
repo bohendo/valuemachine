@@ -26,6 +26,7 @@ type TaxesExplorerProps = {
   prices: Prices;
   taxInput: TaxInput;
   txTags: TxTags;
+  setTxTags: (val: TxTags) => void;
   unit?: Asset;
   vm: ValueMachine;
 };
@@ -33,6 +34,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   addressBook,
   prices,
   taxInput,
+  setTxTags,
   txTags,
   unit,
   vm,
@@ -104,6 +106,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
         addressBook={addressBook}
         guard={guard}
         prices={prices}
+        setTxTags={setTxTags}
         txTags={txTags}
         unit={unit}
         vm={vm}

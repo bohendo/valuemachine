@@ -15,6 +15,7 @@ export const Example = Template.bind({});
 Example.args = {
   addressBook,
   guard,
+  setTxTags: console.log,
   prices,
   vm,
 };

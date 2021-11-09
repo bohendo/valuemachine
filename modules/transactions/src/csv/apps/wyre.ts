@@ -9,9 +9,9 @@ import { gt, hashCsv, sub } from "@valuemachine/utils";
 import { Assets, CsvSources, Guards } from "../../enums";
 import { getGuard } from "../../utils";
 
-const { USA } = Guards;
+const guard = Guards.USA;
 const { BTC, DAI, ETH, SAI, USD } = Assets;
-const { Fee, SwapIn, SwapOut, Internal } = TransferCategories;
+const { Expense, SwapIn, SwapOut, Internal } = TransferCategories;
 const dateKey = `Created At`;
 
 const daiLaunch = new Date("2019-12-02T00:00:00Z").getTime();
@@ -78,8 +78,8 @@ export const wyreParser = (
       ["Type"]: txType,
     } = row;
 
-    const account = `${USA}/${source}/account`;
-    const exchange = `${USA}/${source}`;
+    const account = `${guard}/${source}/account`;
+    const exchange = `${guard}/${source}`;
 
     const fixDai = asset => asset === DAI && date.getTime() < daiLaunch ? SAI : asset;
     const destType = fixDai(rawDestType);
@@ -90,11 +90,12 @@ export const wyreParser = (
       date: date.toISOString(),
       index: rowIndex,
       sources: [source],
+      tag: { physicalGuard: guard },
       transfers: [],
-      uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
+      uuid: `${source}/${hashCsv(csvData)}-${rowIndex}`,
     } as Transaction;
 
-    const fee = { category: Fee, from: account, to: exchange, index: 0 };
+    const fee = { category: Expense, from: account, to: exchange, index: 0 };
     if (gt(btcFee, "0")) transaction.transfers.push({ ...fee, asset: BTC, amount: daiFee });
     if (gt(daiFee, "0")) transaction.transfers.push({ ...fee, asset: fixDai(DAI), amount: daiFee });
     if (gt(ethFee, "0")) transaction.transfers.push({ ...fee, asset: ETH, amount: ethFee });

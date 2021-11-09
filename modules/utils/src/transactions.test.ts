@@ -13,6 +13,7 @@ const validTransaction = {
   method: "Unknown",
   uuid: "Ethereum/0xabc123",
   sources: [],
+  tag: {},
   transfers: [{
     asset: "ETH",
     category: TransferCategories.Expense,
@@ -41,7 +42,7 @@ describe("Transactions", () => {
     expect(getTransactionsError([{ ...validTransaction, index: 1 }])).to.be.a("string");
   });
 
-  it("should return no errors if tags is valid", async () => {
+  it("should return no errors if tag is valid", async () => {
     expect(getTransactionsError([validTransaction])).to.equal("");
   });
 });

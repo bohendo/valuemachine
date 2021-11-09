@@ -13,7 +13,7 @@ const guard = Guards.IND;
 const dateKey = "Date";
 
 const { INR } = Assets;
-const { Internal, Fee, SwapIn, SwapOut } = TransferCategories;
+const { Internal, Expense, SwapIn, SwapOut } = TransferCategories;
 
 export const wazirxHeaders = [`
 ${dateKey},
@@ -54,8 +54,9 @@ export const wazirxParser = (
       index: rowIndex,
       method: Methods.Unknown,
       sources: [source],
+      tag: { physicalGuard: guard },
       transfers: [],
-      uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
+      uuid: `${source}/${hashCsv(csvData)}-${rowIndex}`,
     } as Transaction;
 
     const account = `${guard}/${source}/account`;
@@ -155,7 +156,7 @@ export const wazirxParser = (
 
       transaction.transfers.push({
         asset: feeAsset,
-        category: Fee,
+        category: Expense,
         from: account,
         index: transferIndex++,
         amount: feeAmount,
