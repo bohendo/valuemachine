@@ -27,6 +27,7 @@ type TransactionExplorerProps = {
   customTxns: TransactionsJson,
   setTransactionsJson: (val: TransactionsJson) => void;
   transactions: Transactions;
+  setTxTags: (val: TxTags) => void;
   txTags?: TxTags;
 };
 export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
@@ -34,6 +35,7 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
   csvFiles,
   customTxns,
   setTransactionsJson,
+  setTxTags,
   transactions,
   txTags,
 }: TransactionExplorerProps) => {
@@ -132,7 +134,12 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
 
       <Divider/>
 
-      <TransactionTable addressBook={addressBook} transactions={transactions} txTags={txTags} />
+      <TransactionTable
+        addressBook={addressBook}
+        transactions={transactions}
+        txTags={txTags}
+        setTxTags={setTxTags}
+      />
 
     </React.Fragment>
   );

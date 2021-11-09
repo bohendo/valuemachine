@@ -238,6 +238,7 @@ export const App: React.FC<AppProps> = ({
                 customTxns={customTxns}
                 transactions={transactions}
                 setTransactionsJson={setTransactionsJson}
+                setTxTags={setTxTags}
                 txTags={txTags}
               />
             </Route>

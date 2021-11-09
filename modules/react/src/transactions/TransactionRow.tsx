@@ -47,6 +47,8 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
   const [newTx, setNewTx] = useState({} as Partial<Transaction>);
   const date = (new Date(tx.date)).toISOString().replace(".000Z", "");
 
+  console.log(`setTxTags is a ${typeof setTxTags}`);
+
   const toggleEditMode = () => {
     setEditMode(!editMode);
     if (editMode) {
@@ -121,7 +123,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                 <TableBody>
                   {tx.transfers.map((transfer: Transfer, i: number) => {
                     const tag = txTags?.[`${tx.uuid}/${transfer.index}`];
-                    return (<>
+                    return (
                       <TableRow key={i}>
                         <TableCell> {
                           transfer.category
@@ -150,7 +152,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                         </TableCell>
                         <TableCell> {transfer.index} </TableCell>
                       </TableRow>
-                    </>);
+                    );
                   })}
                 </TableBody>
               </Table>
