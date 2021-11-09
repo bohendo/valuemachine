@@ -16,13 +16,10 @@ jobs:
       - run: make pull-latest
       - run: make all
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-      - run: make push
+      - run: make push-commit
 
   test:
     runs-on: ubuntu-20.04
-    env:
-      DOCKER_USER: ${{ secrets.DOCKER_USER }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     needs: [build]
     steps:
       - uses: actions/checkout@v1
@@ -31,9 +28,9 @@ jobs:
       - run: make test-transactions
       - run: make test-core
       - run: make test-taxes
+      - run: make pull-commit
       - run: make run-example
       - run: make lint
-      - run: make pull-commit
       - run: make restart-prod
       - run: make dls
       - run: bash ops/health-check.sh server
