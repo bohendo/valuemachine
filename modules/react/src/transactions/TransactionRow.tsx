@@ -47,8 +47,6 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
   const [newTx, setNewTx] = useState({} as Partial<Transaction>);
   const date = (new Date(tx.date)).toISOString().replace(".000Z", "");
 
-  console.log(`setTxTags is a ${typeof setTxTags}`);
-
   const toggleEditMode = () => {
     setEditMode(!editMode);
     if (editMode) {
