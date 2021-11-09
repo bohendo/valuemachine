@@ -9,6 +9,12 @@ import { getTaxReturn } from ".";
 
 const taxYear = TaxYears.USA20;
 const log = getLogger("warn", `Test${taxYear}Filers`);
+const travel = [{
+  enterDate: "2020-01-01",
+  leaveDate: "2020-02-31",
+  country: "IND",
+  usaIncomeEarned: "0",
+}];
 
 describe(`${taxYear} Filers`, () => {
   it(`should include f1040 + schedules 1-3 by default `, async () => {
@@ -20,12 +26,6 @@ describe(`${taxYear} Filers`, () => {
   });
 
   it(`should include f2555 iff lots of travel outside the US was provided`, async () => {
-    const travel = [{
-      enterDate: "2020-01-01",
-      leaveDate: "2020-02-31",
-      country: "IND",
-      usaIncomeEarned: "0",
-    }];
     const noF2555Return = getTaxReturn({ travel }, [], log);
     log.info(`Tax return includes forms: ${Object.keys(noF2555Return)}`);
     expect("f2555" in noF2555Return).to.be.false; // not enough time outside the US
@@ -43,7 +43,7 @@ describe(`${taxYear} Filers`, () => {
   });
 
   it(`should include f8949 & f1040d iff there are >0 trades`, async () => {
-    const taxReturn = getTaxReturn({}, [{
+    const taxReturn = getTaxReturn({ travel }, [{
       // Short-term trade
       date: "2020-12-01T00:00:00",
       action: EventTypes.Trade,
@@ -111,6 +111,7 @@ describe(`${taxYear} Filers`, () => {
       tag: {},
     }];
     const input = {
+      travel,
       forms: {
         ...getEmptyForms(taxYear),
         f1040: {

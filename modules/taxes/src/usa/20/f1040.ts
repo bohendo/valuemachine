@@ -9,7 +9,7 @@ import {
 
 export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   const log = logger.child({ module: "f1040" });
-  const { f1040, f2555 } = forms;
+  const { f1040, f1040sd, f2555 } = forms;
   const personal = input.personal || {};
   const { filingStatus } = personal;
 
@@ -91,15 +91,24 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   ////////////////////////////////////////
   // Taxes due & payments
 
-  if (!forms.f2555) {
-    f1040.L16 = getIncomeTax(f1040.L11, filingStatus);
-  } else {
-    log.warn(`idk what 2b from Foreign Earned Income Tax Worksheet should be, using 0`);
+  if ("f8814" in forms) f1040.C16_1 = true;
+  if ("4972" in forms) f1040.C16_2 = true;
+
+  if (forms.f2555) {
     const L2c = math.add(f2555.L45, f2555.L50);
     const L3 = math.add(f1040.L11, math.add());
     const L4 = getIncomeTax(L3, filingStatus);
     const L5 = getIncomeTax(L2c, filingStatus);
     f1040.L16 = math.subToZero(L4, L5);
+
+  } else if (f1040sd && (math.gt(f1040sd.L18, "0") || math.gt(f1040sd.L19, "0"))) {
+    throw new Error(`Required but not implemented: Schedule D Tax Worksheet`);
+
+  } else if (f1040sd) {
+    throw new Error(`Required but not implemented: Qualified Dividends and Capital Gain Tax Worksheet`);
+
+  } else {
+    f1040.L16 = getIncomeTax(f1040.L11, filingStatus);
   }
 
   f1040.L18 = math.add(

@@ -52,7 +52,7 @@ export const f1040sse = (
     // validYears = taxRows.reduce(sumUpEveryYearsSelfEmploymentIncome).filter(incomeMoreThan400)
     // if (validYears.filter(lastThreeYears).length < 2) abort
     // if (validYears.length > 5) abort
-    log.warn(`Using special deduction on f1040sse.L17`);
+    log.info(`Using special deduction on f1040sse.L17`);
     f1040sse.L16 = math.sub(L14, f1040sse.L15);
     f1040sse.L17 = math.min(
       f1040sse.L16,
@@ -66,7 +66,7 @@ export const f1040sse = (
 
   f1040sse.L4c = math.add(f1040sse.L4a, f1040sse.L4b);
   if (math.lt(f1040sse.L4c, "400")) {
-    log.warn(`Not filing form f1040sse bc L4c < 400`);
+    log.info(`Not filing form f1040sse bc L4c < 400`);
     delete forms.f1040sse;
     return forms;
   }

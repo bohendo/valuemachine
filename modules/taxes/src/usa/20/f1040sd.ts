@@ -104,12 +104,16 @@ export const f1040sd = (
   }
 
   if (next === "L18") {
-    log.warn("Required but not implemented: 28% Rate Gain Worksheet");
-    log.warn("Required but not implemented: Unrecaptured Section 1250 Gain Worksheet");
-    if (math.eq(f1040sd.L18, "0") && math.eq(f1040sd.L19, "0")) {
-      log.warn("Required but not implemented: Qualified Dividends and Capital Gain Tax Worksheet");
-    } else {
-      log.warn("Required but not implemented: Schedule D Tax Worksheet");
+    // should always be false, we still need to make amount optional on tax rows
+    if (taxRows.filter(row => !row.amount).length > 1) {
+      log.warn("Required but not implemented: 28% Rate Gain Worksheet");
+    }
+    if (!("f2555" in forms)) {
+      if (math.eq(f1040sd.L18, "0") && math.eq(f1040sd.L19, "0")) {
+        log.warn("Required but not implemented: Qualified Dividends and Capital Gain Tax Worksheet");
+      } else {
+        log.warn("Required but not implemented: Schedule D Tax Worksheet");
+      }
     }
     next = "Done";
   }
