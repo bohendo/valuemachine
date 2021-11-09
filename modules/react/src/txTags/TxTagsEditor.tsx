@@ -21,14 +21,14 @@ type NewTxTag = {
   value?: any;
 };
 type TxTagsEditorProps = {
-  txTags?: TxTags;
   setTxTags?: (val: TxTags) => void;
   txId?: TxId;
+  txTags?: TxTags;
 };
 export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
-  txTags,
   setTxTags,
   txId,
+  txTags,
 }: TxTagsEditorProps) => {
   const [confirmMsg, setConfirmMsg] = useState("");
   const [modified, setModified] = useState(false);

@@ -24,19 +24,22 @@ import { round } from "@valuemachine/utils";
 import React, { useState } from "react";
 
 import { HexString } from "../utils";
+import { TxTagsEditor } from "../txTags";
 
 import { TransactionEditor } from "./TransactionEditor";
 
 type TransactionRowProps = {
   addressBook: AddressBook;
-  tx: Transaction;
   editTx?: (uuid: TxId, val?: Transaction) => void;
+  setTxTags?: (val: TxTags) => void;
+  tx: Transaction;
   txTags?: TxTags;
 };
 export const TransactionRow: React.FC<TransactionRowProps> = ({
   addressBook,
-  tx,
   editTx,
+  setTxTags,
+  tx,
   txTags,
 }: TransactionRowProps) => {
   const [open, setOpen] = useState(false);
@@ -118,7 +121,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                 <TableBody>
                   {tx.transfers.map((transfer: Transfer, i: number) => {
                     const tag = txTags?.[`${tx.uuid}/${transfer.index}`];
-                    return (
+                    return (<>
                       <TableRow key={i}>
                         <TableCell> {
                           transfer.category
@@ -147,10 +150,17 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                         </TableCell>
                         <TableCell> {transfer.index} </TableCell>
                       </TableRow>
-                    );
+                    </>);
                   })}
                 </TableBody>
               </Table>
+
+              <TxTagsEditor
+                setTxTags={setTxTags}
+                txId={tx.uuid}
+                txTags={txTags}
+              />
+
             </Box>
           </Collapse>
         </TableCell>
@@ -164,7 +174,6 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                 tx={newTx}
                 setTx={saveTx}
               />
-
               <Button
                 sx={{ ml: 3, mb: 2 }}
                 color="primary"

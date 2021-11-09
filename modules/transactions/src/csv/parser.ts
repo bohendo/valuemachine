@@ -1,5 +1,5 @@
 import { CsvFile, Logger, TransactionsJson } from "@valuemachine/types";
-import { getLogger, getTransactionsError, hashCsv, slugify } from "@valuemachine/utils";
+import { chrono, getLogger, getTransactionsError, hashCsv, slugify } from "@valuemachine/utils";
 
 import { headersToSource, getCsvParser } from "./apps";
 
@@ -27,6 +27,8 @@ export const parseCsv = (csvData: string, logger?: Logger): TransactionsJson => 
   const log = logger || getLogger();
   const csv = cleanCsv(csvData);
   const txns = getCsvParser(csv.source)?.(csv.data, log);
+  txns.sort(chrono);
+  txns.forEach((tx, i) => { tx.index = i; });
   if (!txns?.length) {
     log.warn(`Unknown csv format or empty file provided for ${csv.name}`);
     return [];

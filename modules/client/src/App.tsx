@@ -170,6 +170,8 @@ export const App: React.FC<AppProps> = ({
   useEffect(() => {
     if (!customTxns) return;
     console.log(`Saving ${customTxns.length} custom transactions`);
+    customTxns.forEach(tx => { if ("tags" in tx) delete tx.tags; });
+    customTxns.forEach(tx => { tx.tag = "tag" in tx ? tx.tag : {}; });
     store.save(CustomTxnsStore, customTxns);
   }, [customTxns]);
 
