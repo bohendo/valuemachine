@@ -21,7 +21,7 @@ import {
   TxTags,
   ValueMachine,
 } from "@valuemachine/types";
-import { dedup } from "@valuemachine/utils";
+import { dedup, math } from "@valuemachine/utils";
 import axios from "axios";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect } from "react";
@@ -69,11 +69,11 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     const output = json2csv(
       taxes.map(row => ({
         ...row,
-        amount: row.amount,
-        value: row.value,
-        price: row.price,
-        receivePrice: row.receivePrice,
-        capitalChange: row.capitalChange,
+        amount: math.round(row.amount, 6),
+        value: math.round(row.value, 2),
+        price: math.round(row.price, 4),
+        receivePrice: math.round(row.receivePrice, 4),
+        capitalChange: math.round(row.capitalChange, 2),
       })),
       Object.keys(taxes?.[0] || {}),
     );

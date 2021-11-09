@@ -107,8 +107,8 @@ export const f8949 = (
     }
     for (const column of columns) {
       log.debug(`Subtotal ${index} ${column}: short=${shortTotal[column]} long=${longTotal[column]}`);
-      page[`P1L2${column}`] = round(shortTotal[column]);
-      page[`P2L2${column}`] = round(longTotal[column]);
+      page[`P1L2${column}`] = shortTotal[column];
+      page[`P2L2${column}`] = longTotal[column];
     }
   });
 

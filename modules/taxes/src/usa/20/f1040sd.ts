@@ -6,8 +6,6 @@ import {
   TaxRow,
 } from "./utils";
 
-const { add, eq, gt, lt, round } = math;
-
 export const f1040sd = (
   forms: Forms,
   input: TaxInput,

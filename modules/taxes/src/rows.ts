@@ -22,8 +22,6 @@ import {
 import { allTaxYears, securityFeeMap } from "./constants";
 import { getTaxYearBoundaries } from "./utils";
 
-const round = n => math.round(n, 2, false);
-
 export const getTaxRows = ({
   addressBook,
   guard,
@@ -84,13 +82,13 @@ export const getTaxRows = ({
           return {
             date: date,
             action: TaxActions.Trade,
-            amount: math.round(chunk.amount, 6),
+            amount: chunk.amount,
             asset: chunk.asset,
-            price: round(price),
-            value: round(value),
-            receivePrice: round(receivePrice),
+            price: price,
+            value: value,
+            receivePrice: receivePrice,
             receiveDate: getDate(chunk.history[0].date),
-            capitalChange: round(capitalChange),
+            capitalChange: capitalChange,
             tag, txId,
           };
         } else {
@@ -107,11 +105,11 @@ export const getTaxRows = ({
         return {
           date: date,
           action: TaxActions.Income,
-          amount: math.round(chunk.amount, 6),
+          amount: chunk.amount,
           asset: chunk.asset,
-          price: round(price),
-          value: round(income),
-          receivePrice: round(price),
+          price: price,
+          value: income,
+          receivePrice: price,
           receiveDate: date,
           capitalChange: "0.00",
           tag, txId,
@@ -138,11 +136,11 @@ export const getTaxRows = ({
         return {
           date: date,
           action: TaxActions.Expense,
-          amount: math.round(chunk.amount, 6),
+          amount: chunk.amount,
           asset: chunk.asset,
-          price: round(price),
-          value: round(value),
-          receivePrice: round(receivePrice),
+          price: price,
+          value: value,
+          receivePrice: receivePrice,
           receiveDate,
           capitalChange,
           tag, txId,

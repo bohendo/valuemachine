@@ -75,13 +75,13 @@ export const f1040sc = (
     }
   });
 
-  f1040sc.L1 = math.round(totalIncome);
-  f1040sc.L3 = math.round(math.sub(f1040sc.L1, f1040sc.L2));
+  f1040sc.L1 = totalIncome;
+  f1040sc.L3 = math.sub(f1040sc.L1, f1040sc.L2);
   f1040sc.L4 = f1040sc.L42;
-  f1040sc.L5 = math.round(math.sub(f1040sc.L3, f1040sc.L4));
+  f1040sc.L5 = math.sub(f1040sc.L3, f1040sc.L4);
   log.info(`Gross Profit: f1040sc.L5=${f1040sc.L5}`);
 
-  f1040sc.L7 = math.round(math.add(f1040sc.L5, f1040sc.L6));
+  f1040sc.L7 = math.add(f1040sc.L5, f1040sc.L6);
   log.info(`Gross Income: f1040sc.L7=${f1040sc.L7}`);
 
   ////////////////////////////////////////
@@ -210,8 +210,8 @@ export const f1040sc = (
     f1040sc.L25, f1040sc.L26, f1040sc.L27a,
   );
 
-  f1040sc.L29 = math.round(math.sub(f1040sc.L7, f1040sc.L28));
-  f1040sc.L31 = math.round(math.sub(f1040sc.L29, f1040sc.L30));
+  f1040sc.L29 = math.sub(f1040sc.L7, f1040sc.L28);
+  f1040sc.L31 = math.sub(f1040sc.L29, f1040sc.L30);
 
   if (math.gt(f1040sc.L31, "0")) {
     f1040s1.L3 = f1040sc.L31;

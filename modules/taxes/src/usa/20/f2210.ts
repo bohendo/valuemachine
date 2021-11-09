@@ -129,10 +129,7 @@ export const f2210 = (
 
   // Get income rows
   processIncome(taxRows, (row: TaxRow, value: string): void => {
-    income[getCol(row.date)] = math.add(
-      income[getCol(row.date)],
-      math.round(value),
-    );
+    income[getCol(row.date)] = math.add(income[getCol(row.date)], value);
   });
 
   // Get business expenses & tax payments
@@ -145,10 +142,7 @@ export const f2210 = (
       );
     } else {
       // TODO: filter out non-deductible expenses?
-      expenses[getCol(row.date)] = math.add(
-        expenses[getCol(row.date)],
-        math.round(value),
-      );
+      expenses[getCol(row.date)] = math.add(expenses[getCol(row.date)], value);
     }
   });
 
@@ -425,7 +419,7 @@ export const f2210 = (
       total = "0";
       worksheet[getKey(1)].forEach(payment => {
         const diff = daysDiff(Math.min(payment.date, d190630), worksheet[getKey(2)]);
-        const amt = math.round(math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06"));
+        const amt = math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06");
         worksheet[getKey(3)].push(diff);
         worksheet[getKey(4)].push(amt);
         total = math.add(total, amt);
@@ -440,7 +434,7 @@ export const f2210 = (
       total = "0";
       worksheet[getKey(1)].forEach(payment => {
         const diff = daysDiff(Math.min(payment.date, d190930), worksheet[getKey(5)]);
-        const amt = math.round(math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06"));
+        const amt = math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06");
         worksheet[getKey(6)].push(diff);
         worksheet[getKey(7)].push(amt);
         total = math.add(total, amt);
@@ -453,7 +447,7 @@ export const f2210 = (
       total = "0";
       worksheet[getKey(1)].forEach(payment => {
         const diff = daysDiff(Math.min(payment.date, d191231), worksheet[getKey(8)]);
-        const amt = math.round(math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06"));
+        const amt = math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06");
         worksheet[getKey(9)].push(diff);
         worksheet[getKey(10)].push(amt);
         total = math.add(total, amt);
@@ -467,7 +461,7 @@ export const f2210 = (
     worksheet[getKey(13)] = [];
     worksheet[getKey(1)].forEach(payment => {
       const diff = daysDiff(Math.min(payment.date, d200415), worksheet[getKey(11)]);
-      const amt = math.round(math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06"));
+      const amt = math.mul(worksheet[getKey(0)], (diff / 365).toString(), "0.06");
       worksheet[getKey(12)].push(diff);
       worksheet[getKey(13)].push(amt);
       total = math.add(total, amt);

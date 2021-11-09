@@ -147,6 +147,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
                   setTxTags={setTxTags}
                   txId={row.txId}
                   txTags={txTags}
+                  unit={unit}
                 />
               ))}
           </TableBody>
