@@ -44,6 +44,7 @@ describe(`${taxYear} Filers`, () => {
 
   it(`should include f8949 & f1040d iff there are >0 trades`, async () => {
     const taxReturn = getTaxReturn({}, [{
+      // Short-term trade
       date: "2020-12-01T00:00:00",
       action: EventTypes.Trade,
       amount: "10",
@@ -54,10 +55,24 @@ describe(`${taxYear} Filers`, () => {
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "5000",
       tag: {},
+    }, {
+      // Long-term trade
+      date: "2020-12-02T00:00:00",
+      action: EventTypes.Trade,
+      amount: "100",
+      asset: "GME",
+      price: "15",
+      value: "1500",
+      receivePrice: "5",
+      receiveDate: "2019-01-01T00:00:00",
+      capitalChange: "1000",
+      tag: {},
     }], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f8949" in taxReturn).to.be.true;
     expect("f1040sd" in taxReturn).to.be.true;
+    expect(taxReturn.f8949.length).to.equal(1);
+    // log.info(taxReturn);
   });
 
   it(`should implement ${taxYear} math instructions correctly`, async () => {

@@ -34,7 +34,9 @@ export const f1040s1 = (
   });
   if (math.gt(prizeMoney, "0")) {
     log.info(`Earned ${prizeMoney} in prizes`);
-    f1040s1.L8_Etc2 = (f1040s1.L8_Etc2 || "").split(", ").concat(`prizes ${prizeMoney}`).join(", ");
+    f1040s1.L8_Etc2 = (
+      f1040s1.L8_Etc2 ? f1040s1.L8_Etc2.split(", ") : []
+    ).concat(`Prizes ${math.round(prizeMoney, 2)}`).join(", ");
     f1040s1.L8 = math.add(f1040s1.L8, prizeMoney);
   }
 
