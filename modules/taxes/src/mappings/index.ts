@@ -24,9 +24,13 @@ export type FormArchive = {
   [TaxYears.USA20]: Forms_USA20,
 };
 
+// Generic form types to use when we don't know the tax year
+export type Form = { [field: string]: any; };
+export type Forms = { [form: string]: any; };
+
 const multipageForms = ["f8949"];
 
-export const getEmptyForms = (year: TaxYear): any =>
+export const getEmptyForms = (year: TaxYear): Forms =>
   Object.keys(MappingArchive[year]).reduce((forms, form) => ({
     ...forms,
     [form]: multipageForms.includes(form) ? [] : {}

@@ -3,13 +3,13 @@ import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
 import { getPdftk } from "./pdftk";
-import { MappingArchive, TaxYear } from "./mappings";
+import { Forms, Form, MappingArchive, TaxYear } from "./mappings";
 
 const fillForm = async (
   taxYear: TaxYear,
   form: string,
   page: number,
-  data: any,
+  data: Form,
   dir: string,
   libs: { fs: any; execFile: any; },
   logger?: Logger,
@@ -55,7 +55,7 @@ const fillForm = async (
 
 export const fillReturn = async (
   taxYear: TaxYear,
-  forms: any,
+  forms: Forms,
   dir: string,
   libs: { fs: any; execFile: any; },
   logger?: Logger,
