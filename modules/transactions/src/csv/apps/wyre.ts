@@ -92,7 +92,7 @@ export const wyreParser = (
       sources: [source],
       tag: { physicalGuard: guard },
       transfers: [],
-      uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
+      uuid: `${source}/${hashCsv(csvData)}-${rowIndex}`,
     } as Transaction;
 
     const fee = { category: Expense, from: account, to: exchange, index: 0 };

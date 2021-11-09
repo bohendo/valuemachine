@@ -53,7 +53,7 @@ export const digitaloceanParser = (
       sources: [source],
       tag: { physicalGuard: guard, expenseType: ExpenseTypes.EquipmentRental },
       transfers: [],
-      uuid: `${source}/${hashCsv(csvData)}/${rowIndex}`,
+      uuid: `${source}/${hashCsv(csvData)}-${rowIndex}`,
     } as Transaction;
     transaction.transfers.push({
       amount,
