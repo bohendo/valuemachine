@@ -129,7 +129,7 @@ export const f2210 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
 
   // Get business expenses & tax payments
   processExpenses(taxRows, (row: TaxRow, value: string): void => {
-    if (row.tag.expenseType) { // TODO: filter out non deductible expenses
+    if (row.tag.expenseType) {
       expenses[getCol(row.date)] = math.add(
         expenses[getCol(row.date)],
         math.round(value),

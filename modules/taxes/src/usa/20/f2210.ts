@@ -140,8 +140,7 @@ export const f2210 = (
         payments[getCol(row.date)],
         value,
       );
-    } else {
-      // TODO: filter out non-deductible expenses?
+    } else if (row.tag.expenseType || row.tag.description) {
       expenses[getCol(row.date)] = math.add(expenses[getCol(row.date)], value);
     }
   });

@@ -37,8 +37,6 @@ export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
   log.info(`Total income: ${f1040sc.L1}`);
   f1040sc.L3 = round(sub(f1040sc.L1, f1040sc.L2));
 
-  // TODO: Part III
-
   f1040sc.L4 = f1040sc.L42;
   f1040sc.L5 = round(sub(f1040sc.L3, f1040sc.L4));
   f1040sc.L7 = round(add(f1040sc.L5, f1040sc.L6));
@@ -48,7 +46,7 @@ export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
   processExpenses(taxRows, (expense: TaxRow, value: string): void => {
     const message = `${expense.date.split("T")[0]} ` +
       `Expense of ${pad(math.round(expense.amount), 8)} ${pad(expense.asset, 4)} `;
-    if (!expense.tag.expenseType) { // TODO: filter out non-deductible?
+    if (!expense.tag.expenseType) {
       log.info(`${message}: L48 ${expense.tag.description}`);
       f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tag.description;
       f1040sc[`L48R${otherExpenseIndex}_amt`] = value;

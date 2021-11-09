@@ -24,17 +24,9 @@ export type FormArchive = {
   [TaxYears.USA20]: Forms_USA20,
 };
 
-export type Form = {
-  [field: string]: any; // TODO: string | boolean
-};
-
-export type Forms = {
-  [form: string]: any; // TODO: Array<Form> | Form
-};
-
 const multipageForms = ["f8949"];
 
-export const getEmptyForms = (year: TaxYear): Forms =>
+export const getEmptyForms = (year: TaxYear): any =>
   Object.keys(MappingArchive[year]).reduce((forms, form) => ({
     ...forms,
     [form]: multipageForms.includes(form) ? [] : {}

@@ -45,8 +45,9 @@ export const f1040sc = (
   }
 
   ////////////////////////////////////////
-  // Part III - Cost of Goods Sold (TODO: add this info to tax input)
+  // Part III - Cost of Goods Sold
 
+  // This info should probably be added to tax input eventually
   f1040sc.L40 = math.add(
     f1040sc.L35, // inventory at start of year
     f1040sc.L36, // purchases
@@ -87,7 +88,7 @@ export const f1040sc = (
   ////////////////////////////////////////
   // Part II - Expenses
 
-  // TODO: accumulate & add exchange fees as a "Currency Conversion" expense to L48
+  // We should prob accumulate & add exchange fees as a "Currency Conversion" expense to L48
   /*
   let exchangeFees = "0";
   // Process expenses

@@ -55,7 +55,7 @@ const fillForm = async (
 
 export const fillReturn = async (
   taxYear: TaxYear,
-  forms: any, // TODO: fix type
+  forms: any,
   dir: string,
   libs: { fs: any; execFile: any; },
   logger?: Logger,

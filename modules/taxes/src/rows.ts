@@ -131,7 +131,7 @@ export const getTaxRows = ({
           receivePrice = price;
           capitalChange = "0";
         }
-        // TODO: add tag based on the recipient of this expense
+        // do we need to add tags based on the recipient of this expense?
         // eg if it's an expense to coinbase, then tag it as an exchange fee
         return {
           date: date,

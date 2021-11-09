@@ -30,8 +30,6 @@ export const f2555 = (
   f2555.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
   f2555.SSN = personal?.SSN;
 
-  // TODO: check travel history in input to see if we need this form
-
   ////////////////////////////////////////
   // Part I: Generatl Info
 
@@ -109,7 +107,9 @@ export const f2555 = (
     totalIncome = math.add(totalIncome, value);
   });
   processExpenses(taxRows, (expense: TaxRow, value: string): void => {
-    totalExpenses = math.add(totalExpenses, value); // TODO: filter out non-deductible expenses
+    if (expense.tag.expenseType || expense.tag.description) {
+      totalExpenses = math.add(totalExpenses, value);
+    }
   });
   f2555.L23 = math.sub(totalIncome, totalExpenses);
 
@@ -150,7 +150,7 @@ export const f2555 = (
 
   f2555.L37 = "107600";
 
-  // TODO: deal w leap years
+  // do we need to deal w leap years?
   const L39 = math.div(f2555.L38, "365");
   f2555.L39_int = L39.split(".")[0];
   f2555.L39_dec = L39.split(".")[1];

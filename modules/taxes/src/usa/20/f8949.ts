@@ -40,7 +40,7 @@ export const f8949 = (
   const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
   const isLongTerm = (trade: TaxRow): boolean => 
-    (new Date(trade.date).getTime() - new Date(trade.receiveDate).getTime()) >= msPerYear;
+    (new Date(trade.date).getTime() - new Date(trade.receiveDate).getTime()) > msPerYear;
 
   const pageDivider = (list: any[]): any[][] => list.map(
     (e,i) => i % rows.length === 0 ? list.slice(i, i + rows.length) : null,

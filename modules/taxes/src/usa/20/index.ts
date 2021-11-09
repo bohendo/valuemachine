@@ -31,9 +31,10 @@ export const getTaxReturn = (
   // Look for "Sequence Attachment No" in the top right corner of each form
   // `Na` should always come before `N` eg 12a before 12
 
-  /*seq no 34*/ forms = f2555(forms, input, taxRows, log);
   /*seq no 12a*/forms = f8949(forms, input, taxRows, log);
   /*seq no 12*/ forms = f1040sd(forms, input, taxRows, log);
+  // NOTE: 2555 depends on sd despite the higher seq no..
+  /*seq no 34*/ forms = f2555(forms, input, taxRows, log);
   /*seq no 9*/  forms = f1040sc(forms, input, taxRows, log);
   // NOTE: sse depends on sc despite the higher seq no..
   /*seq no 17*/ forms = f1040sse(forms, input, taxRows, log);

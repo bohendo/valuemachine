@@ -48,7 +48,7 @@ export const f1040sse = (
     f1040sse.L15 = "0";
   }
   if (math.lt(f1040sc?.L31, "6107")) {
-    // TODO: also check: (need to ensure we have all tax rows & not just for this year)
+    // also check: (need to ensure we have all tax rows & not just for this year)
     // validYears = taxRows.reduce(sumUpEveryYearsSelfEmploymentIncome).filter(incomeMoreThan400)
     // if (validYears.filter(lastThreeYears).length < 2) abort
     // if (validYears.length > 5) abort
@@ -128,7 +128,7 @@ export const f1040sse = (
   if (!math.eq(f1040sse.L26, "0")) {
     f1040s3.L12e = f1040sse.L26;
     log.info(`Max deferral of self employment taxes: f1040s3.L12e=${f1040s3.L12e}`);
-    log.warn(`Required but not implemented: Deferral Worksheet on i1040 page 105`); // TODO no rush
+    log.warn(`Required but not implemented: Deferral Worksheet on i1040 page 105`);
   }
 
   return { ...forms, f1040s1, f1040s2, f1040sse };
