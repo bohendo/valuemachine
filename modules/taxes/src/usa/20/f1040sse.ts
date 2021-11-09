@@ -47,12 +47,12 @@ export const f1040sse = (
   } else {
     f1040sse.L15 = "0";
   }
-  if (math.lt(f1040sc?.L31, "6107")) {
+  if (math.gt(f1040sc.L31, "0") && math.lt(f1040sc.L31, "6107")) {
     // also check: (need to ensure we have all tax rows & not just for this year)
     // validYears = taxRows.reduce(sumUpEveryYearsSelfEmploymentIncome).filter(incomeMoreThan400)
     // if (validYears.filter(lastThreeYears).length < 2) abort
     // if (validYears.length > 5) abort
-    log.info(`Using special deduction on f1040sse.L17`);
+    log.warn(`Using special deduction on f1040sse.L17`);
     f1040sse.L16 = math.sub(L14, f1040sse.L15);
     f1040sse.L17 = math.min(
       f1040sse.L16,

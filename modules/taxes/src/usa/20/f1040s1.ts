@@ -3,7 +3,6 @@ import {
   IncomeTypes,
   Logger,
   math,
-  processIncome,
   TaxInput,
   TaxRow,
 } from "./utils";
@@ -25,19 +24,27 @@ export const f1040s1 = (
   // Part I - Additional Income
 
   // Prize money won from hackathons, airdrops, etc can go here I guess
-  let prizeMoney = "0";
-  processIncome(taxRows, (income: TaxRow, value: string): void => {
-    if (income.tag.incomeType === IncomeTypes.Prize) {
-      prizeMoney = math.add(prizeMoney, value);
-      log.info(`Adding income of ${value}`);
-    }
-  });
+  const prizeMoney = taxRows.filter(row => row.tag.incomeType === IncomeTypes.Prize).reduce(
+    (tot, row) => math.add(tot, row.value),
+    "0",
+  );
   if (math.gt(prizeMoney, "0")) {
     log.info(`Earned ${prizeMoney} in prizes`);
     f1040s1.L8_Etc2 = (
       f1040s1.L8_Etc2 ? f1040s1.L8_Etc2.split(", ") : []
     ).concat(`Prizes ${math.round(prizeMoney, 2)}`).join(", ");
     f1040s1.L8 = math.add(f1040s1.L8, prizeMoney);
+  }
+  const airdrops = taxRows.filter(row => row.tag.incomeType === IncomeTypes.Airdrop).reduce(
+    (tot, row) => math.add(tot, row.value),
+    "0",
+  );
+  if (math.gt(airdrops, "0")) {
+    log.info(`Earned ${airdrops} in airdrops`);
+    f1040s1.L8_Etc2 = (
+      f1040s1.L8_Etc2 ? f1040s1.L8_Etc2.split(", ") : []
+    ).concat(`Airdrops ${math.round(airdrops, 2)}`).join(", ");
+    f1040s1.L8 = math.add(f1040s1.L8, airdrops);
   }
 
   f1040s1.L9 = math.add(
