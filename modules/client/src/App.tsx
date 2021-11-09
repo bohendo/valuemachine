@@ -276,6 +276,7 @@ export const App: React.FC<AppProps> = ({
               <TaxesExplorer
                 addressBook={addressBook}
                 prices={prices}
+                setTxTags={setTxTags}
                 taxInput={taxInput}
                 txTags={txTags}
                 unit={unit}

@@ -70,6 +70,7 @@ export const getTaxRows = ({
       new Date(datetime).toISOString().split("T")[0];
     const date = getDate(evt.date);
     const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
+    const txId = evt.txId;
 
     if (evt.type === TaxActions.Trade) {
       if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return rows; }
@@ -90,7 +91,7 @@ export const getTaxRows = ({
             receivePrice: round(receivePrice),
             receiveDate: getDate(chunk.history[0].date),
             capitalChange: round(capitalChange),
-            tag,
+            tag, txId,
           };
         } else {
           return null;
@@ -113,7 +114,7 @@ export const getTaxRows = ({
           receivePrice: round(price),
           receiveDate: date,
           capitalChange: "0.00",
-          tag,
+          tag, txId,
         } as TaxRow;
       }));
 
@@ -144,7 +145,7 @@ export const getTaxRows = ({
           receivePrice: round(receivePrice),
           receiveDate,
           capitalChange,
-          tag,
+          tag, txId,
         } as TaxRow;
       }));
 

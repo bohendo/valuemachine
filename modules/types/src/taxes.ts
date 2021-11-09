@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { Asset, DateString, DecString } from "./strings";
+import { Asset, DateString, DecString, TxId } from "./strings";
 import { Tag } from "./txTags";
 
 export const Mapping = Type.Array(Type.Object({
@@ -26,6 +26,7 @@ export const TaxRow = Type.Object({
   price: DecString, // rounded to 10^-2
   tag: Tag,
   value: DecString, // rounded to 10^-2
+  txId: TxId,
   receiveDate: DateString,
   receivePrice: DecString, // rounded to 10^-2
   capitalChange: DecString, // rounded to 10^-2

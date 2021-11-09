@@ -25,18 +25,18 @@ import {
   TxTags,
   ValueMachine,
 } from "@valuemachine/types";
-import {
-  commify,
-  dedup,
-} from "@valuemachine/utils";
+import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { Paginate, SelectOne } from "../utils";
+
+import { TaxTableRow } from "./TaxTableRow";
 
 type TaxTableProps = {
   addressBook: AddressBook;
   guard: Guard;
   prices: Prices;
+  setTxTags: (val: TxTags) => void;
   txTags: TxTags;
   unit?: Asset;
   vm: ValueMachine;
@@ -45,6 +45,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   addressBook,
   guard,
   prices,
+  setTxTags,
   txTags,
   unit: userUnit,
   vm,
@@ -117,6 +118,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
         <Table size="small" sx={{ minWidth: "64em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
+              <TableCell><strong> Expand </strong></TableCell>
               <TableCell sx={{ minWidth: "8em" }}><strong> Date </strong></TableCell>
               <TableCell><strong> Action </strong></TableCell>
               <TableCell><strong> Asset </strong></TableCell>
@@ -125,6 +127,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
               <TableCell sx={{ minWidth: "8em" }}><strong> Receive Date </strong></TableCell>
               <TableCell><strong> {`Receive Price (${unit}/Asset)`} </strong></TableCell>
               <TableCell><strong> {`Capital Change (${unit})`} </strong></TableCell>
+              <TableCell><strong> {`Type`} </strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -138,18 +141,13 @@ export const TaxTable: React.FC<TaxTableProps> = ({
               )
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((row: TaxRow, i: number) => (
-                <TableRow key={i}>
-                  <TableCell sx={{ minWidth: "8em" }}> {
-                    row.date.replace("T", " ").replace(".000Z", "")
-                  } </TableCell>
-                  <TableCell> {row.action} </TableCell>
-                  <TableCell> {`${commify(row.amount)} ${row.asset}`} </TableCell>
-                  <TableCell> {commify(row.price)} </TableCell>
-                  <TableCell> {commify(row.value)} </TableCell>
-                  <TableCell sx={{ minWidth: "8em" }}> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
-                  <TableCell> {commify(row.receivePrice)} </TableCell>
-                  <TableCell> {commify(row.capitalChange)} </TableCell>
-                </TableRow>
+                <TaxTableRow
+                  key={i}
+                  row={row}
+                  setTxTags={setTxTags}
+                  txId={row.txId}
+                  txTags={txTags}
+                />
               ))}
           </TableBody>
         </Table>
