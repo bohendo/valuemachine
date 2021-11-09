@@ -1,5 +1,5 @@
 import { Assets } from "@valuemachine/transactions";
-import { EventTypes } from "@valuemachine/types";
+import { EventTypes, IncomeTypes } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import { expect } from "chai";
 
@@ -38,6 +38,23 @@ describe(`${taxYear} Filers`, () => {
 
   it(`should include f1040sc iff business info is provided`, async () => {
     const taxReturn = getTaxReturn({ business: { name: "Bo & Co", industry: "misc" } }, [], log);
+    log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
+    expect("f1040sc" in taxReturn).to.be.true;
+  });
+
+  it(`should include f1040sse iff there's enough self employment income`, async () => {
+    const taxReturn = getTaxReturn({ business: { name: "Bo & Co", industry: "misc" } }, [{
+      date: "2020-01-01T00:00:00",
+      action: EventTypes.Income,
+      amount: "100",
+      asset: Assets.ETH,
+      price: "1000",
+      value: "100000",
+      receivePrice: "1000",
+      receiveDate: "2020-01-01T00:00:00",
+      capitalChange: "0",
+      tag: { incomeType: IncomeTypes.SelfEmployed },
+    }], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f1040sc" in taxReturn).to.be.true;
   });
