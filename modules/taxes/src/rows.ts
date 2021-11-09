@@ -167,6 +167,11 @@ export const getTaxRows = ({
     }
     return rows;
 
-  }, [] as TaxRow[]).filter(row => math.gt(row.value, "0.01"));
+  }, [] as TaxRow[]).filter(row =>
+    math.gt(row.value, "0.005")
+    && (
+      row.action !== TaxActions.Trade || math.gt(row.capitalChange, "0.005")
+    )
+  );
 
 };
