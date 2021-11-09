@@ -1,4 +1,5 @@
 import {
+  FilingStatuses,
   Forms,
   Logger,
   math,
@@ -116,7 +117,7 @@ export const f1040sd = (
   if (next === "L21") {
     f1040sd.L21 = math.max(
       f1040sd.L16, // capital loss
-      personal.filingStatus === "MarriedSeparate" ? "-1500" : "-3000",
+      personal.filingStatus === FilingStatuses.Separate ? "-1500" : "-3000",
     );
     f1040.L7 = f1040sd.L21;
   }

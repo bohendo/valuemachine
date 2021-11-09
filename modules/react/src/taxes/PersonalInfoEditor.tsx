@@ -1,7 +1,7 @@
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import { TaxInput } from "@valuemachine/types";
+import { FilingStatuses, TaxInput } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
 import { SelectOne, TextInput } from "../utils";
@@ -72,7 +72,7 @@ export const PersonalInfoEditor: React.FC<PersonalInfoEditorProps> = ({
       <Grid item xs={12}>
         <SelectOne
           label="Filing Status"
-          choices={["Single", "MarriedJoint", "MarriedSeparate", "HeadOfHousehold", "Widow"]}
+          choices={Object.keys(FilingStatuses)}
           selection={newTaxInput.personal?.filingStatus || ""}
           setSelection={getSetter("filingStatus")}
         />

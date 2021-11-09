@@ -1,7 +1,6 @@
 import {
   DateString,
   ExpenseTypes,
-  FilingStatuses,
   Forms,
   getIncomeTax,
   Logger,
@@ -238,13 +237,7 @@ export const f2210 = (
 
     f2210[getKey(13)] = math.subToZero(getVal(11), getVal(12));
 
-    if (f1040.Single || f1040.MarriedSeparate) {
-      f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Single);
-    } else if (f1040.MarriedJoint || f1040.Widow) {
-      f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Joint);
-    } else if (f1040.HeadOfHousehold) {
-      f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Head);
-    }
+    f2210[getKey(14)] = getIncomeTax(getVal(13), personal.filingStatus);
 
     f2210[getKey(15)] = getVal(36);
 

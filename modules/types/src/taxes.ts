@@ -3,6 +3,16 @@ import { Static, Type } from "@sinclair/typebox";
 import { Asset, DateString, DecString, TxId } from "./strings";
 import { Tag } from "./txTags";
 
+export const FilingStatuses = {
+  Head: "Head",
+  Joint: "Joint",
+  Separate: "Separate",
+  Single: "Single",
+  Widow: "Widow",
+} as const;
+export const FilingStatus = Type.Enum(FilingStatuses);
+export type FilingStatus = Static<typeof FilingStatus>;
+
 export const Mapping = Type.Array(Type.Object({
   nickname: Type.String(),
   fieldName: Type.String(),
@@ -35,7 +45,7 @@ export type TaxRow = Static<typeof TaxRow>;
 
 export const TaxInput = Type.Object({
   personal: Type.Optional(Type.Object({
-    filingStatus: Type.Optional(Type.String()), // use enum instead of string?
+    filingStatus: Type.Optional(FilingStatus), // use enum instead of string?
     firstName: Type.Optional(Type.String()),
     middleInitial: Type.Optional(Type.String()),
     lastName: Type.Optional(Type.String()),

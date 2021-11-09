@@ -1,9 +1,10 @@
 import { MaxUint256 } from "@ethersproject/constants";
-import { Static, Type } from "@sinclair/typebox";
 import { Guards } from "@valuemachine/transactions";
 import {
   DecString,
   IntString,
+  FilingStatuses,
+  FilingStatus,
   TaxRow,
   TaxActions,
   DateString,
@@ -16,6 +17,7 @@ export {
   DecString,
   EventTypes,
   ExpenseTypes,
+  FilingStatuses,
   IncomeTypes,
   IntString,
   Logger,
@@ -31,14 +33,6 @@ export const guard = Guards.USA;
 
 export const maxint = MaxUint256.toString();
 
-export const FilingStatuses = {
-  Single: "Single", // single or married separate
-  Joint: "Joint", // married joint or widow
-  Head: "Head", // head of household
-} as const;
-export const FilingStatus = Type.Enum(FilingStatuses); // NOT Extensible
-export type FilingStatus = Static<typeof FilingStatus>;
-
 // ISO => "MM, DD, YY"
 export const toFormDate = (date: DateString): string => {
   const pieces = date.split("T")[0].split("-");
@@ -48,13 +42,19 @@ export const toFormDate = (date: DateString): string => {
 export const getGetIncomeTax = (
   taxBrackets: Array<{ rate: DecString; single: IntString; joint: IntString; head: IntString }>,
 ) => (
-  taxableIncome: string,
+  taxableIncome: DecString,
   filingStatus: FilingStatus,
-): string => {
+): DecString => {
   let incomeTax = "0";
   let prevThreshold = "0";
   taxBrackets.forEach(bracket => {
-    const threshold = bracket[filingStatus];
+    const threshold = !filingStatus ? "1" : (
+      filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate
+    ) ? bracket.single : (
+        filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow
+      ) ? bracket.joint : (
+          filingStatus === FilingStatuses.Head
+        ) ? bracket.head : "1";
     if (math.lt(taxableIncome, prevThreshold)) {
       return;
     } else if (math.lt(taxableIncome, threshold)) {

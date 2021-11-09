@@ -11,23 +11,16 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   const log = logger.child({ module: "f1040" });
   const { f1040, f2555 } = forms;
   const personal = input.personal || {};
+  const { filingStatus } = personal;
 
   ////////////////////////////////////////
   // Personal Info
 
-  if (personal.filingStatus === "Single") f1040.Single = true;
-  if (personal.filingStatus === "MarriedSeparate") f1040.MarriedSeparate = true;
-  if (personal.filingStatus === "MarriedJoint") f1040.MarriedJoint = true;
-  if (personal.filingStatus === "Widow") f1040.Widow = true;
-  if (personal.filingStatus === "HeadOfHousehold") f1040.HeadOfHousehold = true;
-  let filingStatus;
-  if (f1040.Single || f1040.MarriedSeparate) {
-    filingStatus = FilingStatuses.Single;
-  } else if (f1040.MarriedJoint || f1040.Widow) {
-    filingStatus = FilingStatuses.Joint;
-  } else if (f1040.HeadOfHousehold) {
-    filingStatus = FilingStatuses.Head;
-  }
+  if (filingStatus === FilingStatuses.Single) f1040.Single = true;
+  if (filingStatus === FilingStatuses.Separate) f1040.MarriedSeparate = true;
+  if (filingStatus === FilingStatuses.Joint) f1040.MarriedJoint = true;
+  if (filingStatus === FilingStatuses.Widow) f1040.Widow = true;
+  if (filingStatus === FilingStatuses.Head) f1040.HeadOfHousehold = true;
 
   f1040.FirstNameMI = `${personal.firstName || ""} ${personal.middleInitial || ""}`;
   f1040.LastName = personal.lastName;
@@ -79,9 +72,9 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   log.info(`Total gross income: f1040.L11=${f1040.L11}`);
 
   f1040.L12 = !filingStatus ? ""
-    : filingStatus === FilingStatuses.Single ? "12200"
-    : filingStatus === FilingStatuses.Joint ? "24400"
-    : filingStatus === FilingStatuses.Head ? "18350"
+    : (filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate) ? "12200"
+    : (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
+    : (filingStatus === FilingStatuses.Head) ? "18350"
     : "";
 
   f1040.L14 = math.add(
