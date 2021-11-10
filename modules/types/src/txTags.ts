@@ -10,6 +10,7 @@ export const IncomeTypes = {
   Airdrop: "Airdrop",
   Dividend: "Dividend",
   Interest: "Interest",
+  Church: "Church",
   Prize: "Prize",
   SelfEmployed: "SelfEmployed",
   Wage: "Wage",

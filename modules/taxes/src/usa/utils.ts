@@ -2,9 +2,10 @@ import { MaxUint256 } from "@ethersproject/constants";
 import { Guards } from "@valuemachine/transactions";
 import {
   DecString,
-  IntString,
-  FilingStatuses,
   FilingStatus,
+  FilingStatuses,
+  IncomeType,
+  IntString,
   TaxRow,
   TaxActions,
   DateString,
@@ -32,6 +33,13 @@ export { TaxYears } from "../mappings";
 export const guard = Guards.USA;
 
 export const maxint = MaxUint256.toString();
+
+export const getTotalIncome = (incomeType: IncomeType, rows: TaxRow[]) =>
+  rows.filter(row => row.tag.incomeType === incomeType).reduce((tot, row) =>
+    math.add(tot, row.tag.multiplier
+      ? math.mul(row.value, row.tag.multiplier)
+      : row.value
+    ), "0");
 
 // ISO => "MM, DD, YY"
 export const toFormDate = (date: DateString): string => {

@@ -1,6 +1,6 @@
 import { Logger, IncomeTypes, TaxInput, TaxRow } from "@valuemachine/types";
 
-import { Forms, math, processIncome } from "./utils";
+import { Forms, getTotalIncome, math } from "./utils";
 
 export const f1040sse = (
   forms: Forms,
@@ -24,12 +24,7 @@ export const f1040sse = (
   ////////////////////////////////////////
   // Part I - Self-Employment Tax
 
-  let totalIncome = "0";
-  processIncome(taxRows, (income: TaxRow, value: string): void => {
-    if (income.tag.incomeType === IncomeTypes.SelfEmployed) {
-      totalIncome = math.add(totalIncome, value);
-    }
-  });
+  const totalIncome = getTotalIncome(IncomeTypes.SelfEmployed, taxRows);
 
   f1040sse.L3 = math.add(
     f1040sse.L1a, // farm profit (from f1040sf or f1065)
@@ -42,11 +37,10 @@ export const f1040sse = (
   ////////////////////////////////////////
   // Part II - Optional Net Earning Method
   const L14 = "5640";
-  if ("f1040sf" in forms) {
-    log.warn(`Required but not implemented: f1040sf logic in Part II`);
-  } else {
-    f1040sse.L15 = "0";
-  }
+
+  if ("f1040sf" in forms) log.warn(`Required but not implemented: f1040sf logic in Part II`);
+  f1040sse.L15 = "0";
+
   if (math.gt(f1040sc.L31, "0") && math.lt(f1040sc.L31, "6107")) {
     // also check: (need to ensure we have all tax rows & not just for this year)
     // validYears = taxRows.reduce(sumUpEveryYearsSelfEmploymentIncome).filter(incomeMoreThan400)
@@ -71,6 +65,7 @@ export const f1040sse = (
     return forms;
   }
 
+  f1040sse.L5a = getTotalIncome(IncomeTypes.Church, taxRows);
   f1040sse.L5b = math.mul(f1040sse.L5a, "0.9235");
   if (math.lt(f1040sse.L5b, "100")) {
     f1040sse.L5b = "0";
@@ -103,21 +98,29 @@ export const f1040sse = (
   ////////////////////////////////////////
   // Part III - Maximum Deferral of Payments
 
+  const marToDec = row => {
+    const year = row.date.substring(0, 4);
+    const time = new Date(row.date).getTime();
+    return time
+      && time >= new Date(`${year}-03-27`).getTime()
+      && time < new Date(`${year}-12-31`).getTime();
+  };
+
   if (math.eq(f1040sse.L4c, "0")) {
     f1040sse.L21 = "0";
   } else {
-    log.warn(`Using 75% instead of calculating share of income from March-December`);
-    f1040sse.L18 = math.mul(f1040sse.L3, "0.75") ;
+    if ("f1040sf" in forms) log.warn(`Required but not implemented: f1040sf income from Mar-Dec`);
+    f1040sse.L18 = getTotalIncome(IncomeTypes.SelfEmployed, taxRows.filter(marToDec));
     f1040sse.L19 = math.gt(f1040sse.L18, "0") ? math.mul(f1040sse.L18, "0.9235") : f1040sse.L18;
-    f1040sse.L20 = math.mul(math.add(f1040sse.L15, f1040sse.L17), "0.75");
+    // instructions say x0.775 is good: https://www.irs.gov/pub/irs-pdf/i1040sse.pdf#page=6
+    f1040sse.L20 = math.mul(math.add(f1040sse.L15, f1040sse.L17), "0.775");
     f1040sse.L21 = math.add(f1040sse.L19, f1040sse.L20);
   }
 
   if (math.eq(f1040sse.L5b, "0")) {
     f1040sse.L23 = "0";
   } else {
-    log.warn(`Using 75% instead of calculating share of income from March-December`);
-    f1040sse.L22 = math.mul(f1040sse.L5a, "0.75");
+    f1040sse.L22 = getTotalIncome(IncomeTypes.Church, taxRows.filter(marToDec));
     f1040sse.L23 = math.mul(f1040sse.L22, "0.9235");
   }
 

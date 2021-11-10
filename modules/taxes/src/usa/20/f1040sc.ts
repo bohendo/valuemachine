@@ -1,6 +1,6 @@
 import { ExpenseTypes, IncomeTypes, Logger, TaxInput, TaxRow } from "@valuemachine/types";
 
-import { Forms, math, processExpenses, processIncome } from "./utils";
+import { getTotalIncome, Forms, math, processExpenses } from "./utils";
 
 export const f1040sc = (
   forms: Forms,
@@ -65,24 +65,22 @@ export const f1040sc = (
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
 
-  let totalIncome = "0";
-  processIncome(taxRows, (income: TaxRow, value: string): void => {
-    if (income.tag.incomeType === IncomeTypes.SelfEmployed) {
-      totalIncome = math.add(totalIncome, value);
-      log.info(
-        `${income.date.split("T")[0]} Income of ${pad(math.round(income.amount))} ` +
-        `${pad(income.asset, 4)} worth ${pad(math.round(value))}`,
-      );
-    }
-  });
-
-  f1040sc.L1 = totalIncome;
-  f1040sc.L3 = math.sub(f1040sc.L1, f1040sc.L2);
+  f1040sc.L1 = getTotalIncome(IncomeTypes.SelfEmployed, taxRows);
+  f1040sc.L3 = math.sub(
+    f1040sc.L1, // total income
+    f1040sc.L2, // returns & allowances
+  );
   f1040sc.L4 = f1040sc.L42;
-  f1040sc.L5 = math.sub(f1040sc.L3, f1040sc.L4);
+  f1040sc.L5 = math.sub(
+    f1040sc.L3, // income - returns
+    f1040sc.L4, // cost of goods
+  );
   log.info(`Gross Profit: f1040sc.L5=${f1040sc.L5}`);
 
-  f1040sc.L7 = math.add(f1040sc.L5, f1040sc.L6);
+  f1040sc.L7 = math.add(
+    f1040sc.L5, // gross profit
+    f1040sc.L6, // other income eg fuel tax credit
+  );
   log.info(`Gross Income: f1040sc.L7=${f1040sc.L7}`);
 
   ////////////////////////////////////////

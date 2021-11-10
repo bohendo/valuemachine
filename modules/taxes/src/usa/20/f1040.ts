@@ -1,13 +1,24 @@
 import {
   FilingStatuses,
+  IncomeTypes,
+  Logger,
+  TaxInput,
+  TaxRow,
+} from "@valuemachine/types";
+
+import {
   Forms,
   getIncomeTax,
-  Logger,
+  getTotalIncome,
   math,
-  TaxInput,
 } from "./utils";
 
-export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
+export const f1040 = (
+  forms: Forms,
+  input: TaxInput,
+  taxRows: TaxRow[],
+  logger: Logger,
+): Forms => {
   const log = logger.child({ module: "f1040" });
   const { f1040, f1040sd, f2555 } = forms;
   const personal = input.personal || {};
@@ -46,6 +57,9 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   if ("f1040sd" in forms) {
     f1040.C7 = true;
   }
+
+  f1040.L2b = getTotalIncome(IncomeTypes.Interest, taxRows);
+  f1040.L3b = getTotalIncome(IncomeTypes.Dividend, taxRows);
 
   f1040.L9 = math.add(
     f1040.L1,  // wages

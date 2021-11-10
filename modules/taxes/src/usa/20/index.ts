@@ -44,7 +44,7 @@ export const getTaxReturn = (
   /*seq no 3*/  forms = f1040s3(forms, input, taxRows, log);
   /*seq no 2*/  forms = f1040s2(forms, input, taxRows, log);
   /*seq no 1*/  forms = f1040s1(forms, input, taxRows, log);
-  /*seq no 0*/  forms = f1040(forms, input, log);
+  /*seq no 0*/  forms = f1040(forms, input, taxRows, log);
 
   return forms;
 };
