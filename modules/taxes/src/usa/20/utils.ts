@@ -11,6 +11,7 @@ export const taxYear = TaxYears.USA20;
 export const logger = getLogger("info", taxYear);
 
 export const thisYear = row => row.date.startsWith("2020");
+export const lastYear = row => row.date.startsWith("2019");
 
 // brackets should match https://files.taxfoundation.org/20191114132604/2020-Tax-Brackets-PDF.pdf
 export const getIncomeTax = getGetIncomeTax([

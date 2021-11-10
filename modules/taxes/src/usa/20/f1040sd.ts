@@ -51,6 +51,29 @@ export const f1040sd = (
     }
   });
 
+  // Capital Loss Carryover Worksheet
+  const ws = {} as any;
+  ws.L1 = "0"; // TODO 2019 total taxable income from f1040.L11b 
+  ws.L2 = math.abs("-1500"); // TODO 2019 capital loss from f1040sd.L21
+  ws.L3 = math.add(ws.L1, ws.L2);
+  if (math.lt(ws.L3, "0")) ws.L3 = "0";
+  ws.L4 = math.min(ws.L2, ws.L3); // instructions say smaller of L2 & L3b.. where's L3b tho?
+  ws.L5 = math.abs("-6300"); // TODO 2019 loss from f1040sd.L7
+  ws.L6 = "0"; // TODO 2019 gain from f1040sd.L15
+  if (math.lt(ws.L6, "0")) ws.L6 = "0";
+  ws.L7 = math.add(ws.L4, ws.L6);
+  ws.L8 = math.subToZero(ws.L5, ws.L7);
+  f1040sd.L6 = ws.L8;
+  log.info(`Short term capital loss carryover from 2019: f1040sd.L6=${f1040sd.L6}`);
+  ws.L9 = math.abs("0"); // TODO 2019 loss from f1040sd.L15
+  ws.L10 = "0"; // TODO 2019 gain from f1040sd.L7
+  if (math.lt(ws.L10, "0")) ws.L10 = "0";
+  ws.L11 = math.subToZero(ws.L4, ws.L5);
+  ws.L12 = math.add(ws.L10, ws.L11);
+  ws.L13 = math.subToZero(ws.L9, ws.L12);
+  f1040sd.L14 = ws.L13;
+  log.info(`Long term capital loss carryover from 2019: f1040sd.L14=${f1040sd.L14}`);
+
   f1040sd.L7 = math.add(
     f1040sd.L1a_h, // simple no-f8949 gain/loss
     f1040sd.L1b_h, // type-A gain/loss
