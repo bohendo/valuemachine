@@ -21,6 +21,8 @@ jobs:
   test:
     runs-on: ubuntu-20.04
     needs: [build]
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
     steps:
       - uses: actions/checkout@v1
       - run: make pull-latest

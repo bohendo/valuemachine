@@ -26,6 +26,8 @@ jobs:
 
   test-utils:
     runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
     steps:
       - uses: actions/checkout@v1
       - run: make pull-latest
@@ -33,6 +35,8 @@ jobs:
 
   test-transactions:
     runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
     steps:
       - uses: actions/checkout@v1
       - run: make pull-latest
@@ -40,6 +44,8 @@ jobs:
 
   test-core:
     runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
     steps:
       - uses: actions/checkout@v1
       - run: make pull-latest
@@ -47,6 +53,8 @@ jobs:
 
   test-taxes:
     runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
     steps:
       - uses: actions/checkout@v1
       - run: make pull-latest
@@ -54,6 +62,8 @@ jobs:
 
   test-package:
     runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
     steps:
       - uses: actions/checkout@v1
       - run: make pull-latest
@@ -61,6 +71,8 @@ jobs:
 
   test-startup:
     runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
     needs: [build]
     steps:
       - uses: actions/checkout@v1
