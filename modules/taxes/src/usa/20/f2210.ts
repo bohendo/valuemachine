@@ -9,6 +9,7 @@ import {
   processIncome,
   TaxInput,
   TaxRow,
+  thisYear,
 } from "./utils";
 
 export const f2210 = (
@@ -127,12 +128,12 @@ export const f2210 = (
   };
 
   // Get income rows
-  processIncome(taxRows, (row: TaxRow, value: string): void => {
+  processIncome(taxRows.filter(thisYear), (row: TaxRow, value: string): void => {
     income[getCol(row.date)] = math.add(income[getCol(row.date)], value);
   });
 
   // Get business expenses & tax payments
-  processExpenses(taxRows, (row: TaxRow, value: string): void => {
+  processExpenses(taxRows.filter(thisYear), (row: TaxRow, value: string): void => {
     if (row.tag.expenseType === ExpenseTypes.Tax) {
       allPayments.push({ date: new Date(row.date).getTime(), value });
       payments[getCol(row.date)] = math.add(

@@ -1,6 +1,7 @@
 import {
   DateString,
   Forms,
+  guard,
   IntString,
   Logger,
   math,
@@ -8,8 +9,8 @@ import {
   processIncome,
   TaxInput,
   TaxRow,
+  thisYear,
   toFormDate,
-  guard,
 } from "./utils";
 
 const USA = guard;
@@ -103,10 +104,10 @@ export const f2555 = (
 
   let totalIncome = "0";
   let totalExpenses = "0";
-  processIncome(taxRows, (income: TaxRow, value: string): void => {
+  processIncome(taxRows.filter(thisYear), (income: TaxRow, value: string): void => {
     totalIncome = math.add(totalIncome, value);
   });
-  processExpenses(taxRows, (expense: TaxRow, value: string): void => {
+  processExpenses(taxRows.filter(thisYear), (expense: TaxRow, value: string): void => {
     if (expense.tag.expenseType || expense.tag.description) {
       totalExpenses = math.add(totalExpenses, value);
     }

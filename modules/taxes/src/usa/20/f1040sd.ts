@@ -5,6 +5,7 @@ import {
   math,
   TaxInput,
   TaxRow,
+  thisYear,
 } from "./utils";
 
 export const f1040sd = (
@@ -105,7 +106,7 @@ export const f1040sd = (
 
   if (next === "L18") {
     // should always be false, we still need to make amount optional on tax rows
-    if (taxRows.filter(row => !row.amount).length > 1) {
+    if (taxRows.filter(thisYear).filter(row => !row.amount).length > 1) {
       log.warn("Required but not implemented: 28% Rate Gain Worksheet");
     }
     if (!("f2555" in forms)) {

@@ -10,6 +10,8 @@ export type Forms = FormArchive["USA20"];
 export const taxYear = TaxYears.USA20;
 export const logger = getLogger("info", taxYear);
 
+export const thisYear = row => row.date.startsWith("2020");
+
 // brackets should match https://files.taxfoundation.org/20191114132604/2020-Tax-Brackets-PDF.pdf
 export const getIncomeTax = getGetIncomeTax([
   { rate: "0.10", single: "9875",   joint: "19750",  head: "14100" },

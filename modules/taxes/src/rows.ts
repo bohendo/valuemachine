@@ -19,14 +19,12 @@ import {
   math,
 } from "@valuemachine/utils";
 
-import { allTaxYears, securityFeeMap } from "./constants";
-import { getTaxYearBoundaries } from "./utils";
+import { securityFeeMap } from "./constants";
 
 export const getTaxRows = ({
   addressBook,
   guard,
   prices,
-  taxYear,
   txTags,
   userUnit,
   vm,
@@ -34,7 +32,6 @@ export const getTaxRows = ({
   addressBook: AddressBook;
   guard: Guard;
   prices: Prices;
-  taxYear?: string;
   txTags?: TxTags,
   userUnit?: Asset;
   vm: ValueMachine;
@@ -42,14 +39,8 @@ export const getTaxRows = ({
   const unit = securityFeeMap[guard] || userUnit;
   if (!unit) throw new Error(`Security asset is unknown for ${guard}`);
 
-  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
-
   return vm?.json?.events.sort(chrono).filter(evt => {
-    const time = new Date(evt.date).getTime();
     const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
-    if (taxYear && taxYear !== allTaxYears && (
-      time < taxYearBoundaries[0] || time > taxYearBoundaries[1]
-    )) return false;
     const account = (evt as TradeEvent).account || (evt as GuardChangeEvent).to || "";
     const evtGuard = tag.physicalGuard || (
       account ? addressBook.getGuard(account) : ""

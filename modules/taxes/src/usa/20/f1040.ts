@@ -11,6 +11,7 @@ import {
   getIncomeTax,
   getTotalIncome,
   math,
+  thisYear,
 } from "./utils";
 
 export const f1040 = (
@@ -58,8 +59,8 @@ export const f1040 = (
     f1040.C7 = true;
   }
 
-  f1040.L2b = getTotalIncome(IncomeTypes.Interest, taxRows);
-  f1040.L3b = getTotalIncome(IncomeTypes.Dividend, taxRows);
+  f1040.L2b = getTotalIncome(IncomeTypes.Interest, taxRows.filter(thisYear));
+  f1040.L3b = getTotalIncome(IncomeTypes.Dividend, taxRows.filter(thisYear));
 
   f1040.L9 = math.add(
     f1040.L1,  // wages

@@ -1,6 +1,6 @@
 import { Logger, IncomeTypes, TaxInput, TaxRow } from "@valuemachine/types";
 
-import { Forms, getTotalIncome, math } from "./utils";
+import { Forms, getTotalIncome, math, thisYear } from "./utils";
 
 export const f1040sse = (
   forms: Forms,
@@ -24,7 +24,7 @@ export const f1040sse = (
   ////////////////////////////////////////
   // Part I - Self-Employment Tax
 
-  const totalIncome = getTotalIncome(IncomeTypes.SelfEmployed, taxRows);
+  const totalIncome = getTotalIncome(IncomeTypes.SelfEmployed, taxRows.filter(thisYear));
 
   f1040sse.L3 = math.add(
     f1040sse.L1a, // farm profit (from f1040sf or f1065)
@@ -65,7 +65,7 @@ export const f1040sse = (
     return forms;
   }
 
-  f1040sse.L5a = getTotalIncome(IncomeTypes.Church, taxRows);
+  f1040sse.L5a = getTotalIncome(IncomeTypes.Church, taxRows.filter(thisYear));
   f1040sse.L5b = math.mul(f1040sse.L5a, "0.9235");
   if (math.lt(f1040sse.L5b, "100")) {
     f1040sse.L5b = "0";

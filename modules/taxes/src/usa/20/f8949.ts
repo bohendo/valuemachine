@@ -1,10 +1,11 @@
 import {
-  TaxActions,
   Forms,
   Logger,
   math,
+  TaxActions,
   TaxInput,
   TaxRow,
+  thisYear,
   toFormDate,
 } from "./utils";
 
@@ -23,7 +24,7 @@ export const f8949 = (
   const name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
   const ssn = personal?.SSN;
 
-  const trades = taxRows.filter(tax => tax.action === TaxActions.Trade);
+  const trades = taxRows.filter(thisYear).filter(tax => tax.action === TaxActions.Trade);
 
   if (!trades.length) {
     delete forms.f8949;

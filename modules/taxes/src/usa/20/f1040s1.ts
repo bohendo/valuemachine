@@ -1,10 +1,12 @@
 import {
   Forms,
+  getTotalIncome,
   IncomeTypes,
   Logger,
   math,
   TaxInput,
   TaxRow,
+  thisYear,
 } from "./utils";
 
 export const f1040s1 = (
@@ -24,10 +26,7 @@ export const f1040s1 = (
   // Part I - Additional Income
 
   // Prize money won from hackathons, airdrops, etc can go here I guess
-  const prizeMoney = taxRows.filter(row => row.tag.incomeType === IncomeTypes.Prize).reduce(
-    (tot, row) => math.add(tot, row.value),
-    "0",
-  );
+  const prizeMoney = getTotalIncome(IncomeTypes.Prize, taxRows.filter(thisYear));
   if (math.gt(prizeMoney, "0")) {
     log.info(`Earned ${prizeMoney} in prizes`);
     f1040s1.L8_Etc2 = (
@@ -35,10 +34,7 @@ export const f1040s1 = (
     ).concat(`Prizes ${math.round(prizeMoney, 2)}`).join(", ");
     f1040s1.L8 = math.add(f1040s1.L8, prizeMoney);
   }
-  const airdrops = taxRows.filter(row => row.tag.incomeType === IncomeTypes.Airdrop).reduce(
-    (tot, row) => math.add(tot, row.value),
-    "0",
-  );
+  const airdrops = getTotalIncome(IncomeTypes.Airdrop, taxRows.filter(thisYear));
   if (math.gt(airdrops, "0")) {
     log.info(`Earned ${airdrops} in airdrops`);
     f1040s1.L8_Etc2 = (

@@ -1,6 +1,6 @@
 import { ExpenseTypes, IncomeTypes, Logger, TaxInput, TaxRow } from "@valuemachine/types";
 
-import { getTotalIncome, Forms, math, processExpenses } from "./utils";
+import { getTotalIncome, Forms, math, processExpenses, thisYear } from "./utils";
 
 export const f1040sc = (
   forms: Forms,
@@ -65,7 +65,7 @@ export const f1040sc = (
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
 
-  f1040sc.L1 = getTotalIncome(IncomeTypes.SelfEmployed, taxRows);
+  f1040sc.L1 = getTotalIncome(IncomeTypes.SelfEmployed, taxRows.filter(thisYear));
   f1040sc.L3 = math.sub(
     f1040sc.L1, // total income
     f1040sc.L2, // returns & allowances
@@ -101,7 +101,7 @@ export const f1040sc = (
   let otherExpenseIndex = otherRows.reduce((res, i) => {
     return res || (!f1040sc[`L48_Expense${i}`] && !f1040sc[`L48_Amount${i}`]) ? i : 0;
   }, 0);
-  processExpenses(taxRows, (expense: TaxRow, value: string): void => {
+  processExpenses(taxRows.filter(thisYear), (expense: TaxRow, value: string): void => {
     const message = `${expense.date.split("T")[0]} Expense of ${
       pad(math.round(expense.amount), 8)
     } ${pad(expense.asset, 4)} `;
