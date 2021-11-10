@@ -10,10 +10,13 @@ export const f1040sc = (
 ): Forms => {
   const log = logger.child({ module: "f1040sc" });
   const { f1040s1, f1040sc, f1040sse } = forms;
-  const { business, personal } = input;
+  const business = input.business || {};
+  const personal = input.personal || {};
 
-  // If no business info, then omit this form
-  if (!business?.industry) {
+  const seIncome = getTotalIncome(IncomeTypes.SelfEmployed, taxRows.filter(thisYear));
+
+  // If no self-employment income, then omit this form
+  if (!math.gt(seIncome, "0")) {
     delete forms.f1040sc;
     return forms;
   }
@@ -65,7 +68,7 @@ export const f1040sc = (
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");
 
-  f1040sc.L1 = getTotalIncome(IncomeTypes.SelfEmployed, taxRows.filter(thisYear));
+  f1040sc.L1 = seIncome;
   f1040sc.L3 = math.sub(
     f1040sc.L1, // total income
     f1040sc.L2, // returns & allowances

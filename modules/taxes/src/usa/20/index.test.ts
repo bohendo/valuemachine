@@ -8,7 +8,7 @@ import { getEmptyForms, TaxYears } from "../../mappings";
 import { getTaxReturn } from ".";
 
 const taxYear = TaxYears.USA20;
-const log = getLogger("warn", `Test${taxYear}Filers`);
+const log = getLogger("info", `Test${taxYear}Filers`);
 const travel = [{
   enterDate: "2020-01-01",
   leaveDate: "2020-02-31",
@@ -25,8 +25,19 @@ describe(`${taxYear} Filers`, () => {
     expect(Object.keys(defaultReturn).length).to.equal(defaultPages.length);
   });
 
-  it(`should include f2555 iff lots of travel outside the US was provided`, async () => {
-    const noF2555Return = getTaxReturn({ travel }, [], log);
+  it.only(`should include f2555 iff lots of travel outside the US was provided`, async () => {
+    const noF2555Return = getTaxReturn({ travel }, [{
+      date: "2020-01-01T00:00:00",
+      action: EventTypes.Income,
+      amount: "100",
+      asset: Assets.ETH,
+      price: "1000",
+      value: "100000",
+      receivePrice: "1000",
+      receiveDate: "2020-01-01T00:00:00",
+      capitalChange: "0",
+      tag: { incomeType: IncomeTypes.SelfEmployed },
+    }], log);
     log.info(`Tax return includes forms: ${Object.keys(noF2555Return)}`);
     expect("f2555" in noF2555Return).to.be.false; // not enough time outside the US
     travel[0].leaveDate = "2020-12-31";

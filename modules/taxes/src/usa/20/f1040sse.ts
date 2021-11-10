@@ -10,10 +10,12 @@ export const f1040sse = (
 ): Forms => {
   const log = logger.child({ module: "f1040sse" });
   const { f1040, f1040s1, f1040s2, f1040s3, f1040sc, f1040sse } = forms;
-  const { personal, business } = input;
+  const personal = input.personal || {};
 
-  // If no business info, then omit this form
-  if (!business?.industry) {
+  const seIncome = getTotalIncome(IncomeTypes.SelfEmployed, taxRows.filter(thisYear));
+
+  // If no se income, then omit this form
+  if (!math.gt(seIncome, "0")) {
     delete forms.f1040sse;
     return forms;
   }
@@ -24,12 +26,10 @@ export const f1040sse = (
   ////////////////////////////////////////
   // Part I - Self-Employment Tax
 
-  const totalIncome = getTotalIncome(IncomeTypes.SelfEmployed, taxRows.filter(thisYear));
-
   f1040sse.L3 = math.add(
     f1040sse.L1a, // farm profit (from f1040sf or f1065)
     f1040sse.L1b, // conservation reserve program payments (from f1040sf or f1065)
-    totalIncome, // supposed to be from f1040sc.L7 but recalculated to avoid circular dependency
+    seIncome, // supposed to be from f1040sc.L7 but recalculated to avoid circular dependency
   );
 
   f1040sse.L4a = math.gt(f1040sse.L3, "0") ? math.mul(f1040sse.L3, "0.9235"): f1040sse.L3;
