@@ -60,7 +60,7 @@ export const f1040 = (
   }
 
   f1040.L2b = getTotalIncome(IncomeTypes.Interest, taxRows.filter(thisYear));
-  f1040.L3b = getTotalIncome(IncomeTypes.Dividend, taxRows.filter(thisYear));
+  f1040.L3b = getTotalIncome(IncomeTypes.Dividend, taxRows);
 
   f1040.L9 = math.add(
     f1040.L1,  // wages
@@ -110,11 +110,15 @@ export const f1040 = (
   if ("4972" in forms) f1040.C16_2 = true;
 
   if (forms.f2555) {
-    const L2c = math.add(f2555.L45, f2555.L50);
-    const L3 = math.add(f1040.L11, math.add());
-    const L4 = getIncomeTax(L3, filingStatus);
-    const L5 = getIncomeTax(L2c, filingStatus);
-    f1040.L16 = math.subToZero(L4, L5);
+    const ws = {} as any; // Foreign Earned Income Tax Worksheet on i1040 pg 35
+    ws.L1 = f1040.L15;
+    ws.L2a = math.add(f2555.L45, f2555.L50);
+    ws.L2b = "0"; // unapplied deducation & exclusions due to foreign earned income exclusion
+    ws.L2c = math.subToZero(ws.L2a, ws.L2b);
+    ws.L3 = math.add(ws.L1, ws.L2c);
+    ws.L4 = getIncomeTax(ws.L3, filingStatus);
+    ws.L5 = getIncomeTax(ws.L2c, filingStatus);
+    f1040.L16 = math.subToZero(ws.L4, ws.L5);
 
   } else if (f1040sd && (math.gt(f1040sd.L18, "0") || math.gt(f1040sd.L19, "0"))) {
     throw new Error(`Required but not implemented: Schedule D Tax Worksheet`);
@@ -169,8 +173,8 @@ export const f1040 = (
     f1040.L34 = math.sub(f1040.L33, f1040.L24);
     log.info(`Total tax refund: f1040.L34=${f1040.L34}`);
   } else if (math.lt(f1040.L33, f1040.L24)) {
-    f1040.L36 = math.sub(f1040.L24, f1040.L33);
-    log.info(`Total tax owed: f1040.L36=${f1040.L36}`);
+    f1040.L37 = math.sub(f1040.L24, f1040.L33);
+    log.info(`Total tax owed: f1040.L37=${f1040.L37}`);
   }
 
   ////////////////////////////////////////

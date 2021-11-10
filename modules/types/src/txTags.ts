@@ -19,11 +19,7 @@ export const IncomeType = Type.Enum(IncomeTypes); // NOT Extensible at run-time
 export type IncomeType = Static<typeof IncomeType>;
 
 // Eg for filling in f1040sc part II
-export const ExpenseTypes = {
-  Business: "Business",
-  Fee: "Fee",
-  Tax: "Tax",
-
+export const BusinessExpenseTypes = {
   Advertising: "Advertising", // f1040sc.L8
   Vehicle: "Vehicle", // f1040sc.L9
   Commission: "Commission", // f1040sc.L10
@@ -47,7 +43,15 @@ export const ExpenseTypes = {
   Utilities: "Utilities", // f1040sc.L25
   Wages: "Wages", // f1040sc.L26
   Other: "Other", // f1040sc.L27a
+} as const;
+export const BusinessExpenseType = Type.Enum(BusinessExpenseTypes); // NOT Extensible at run-time
+export type BusinessExpenseType = Static<typeof BusinessExpenseType>;
 
+export const ExpenseTypes = {
+  ...BusinessExpenseTypes,
+  Tax: "Tax",
+  Fee: "Fee",
+  Personal: "Personal",
 } as const;
 export const ExpenseType = Type.Enum(ExpenseTypes); // NOT Extensible at run-time
 export type ExpenseType = Static<typeof ExpenseType>;

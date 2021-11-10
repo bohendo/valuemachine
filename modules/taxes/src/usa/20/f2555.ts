@@ -1,14 +1,22 @@
 import {
   DateString,
-  Forms,
-  guard,
+  IncomeTypes,
   IntString,
   Logger,
-  math,
-  processExpenses,
-  processIncome,
+  TaxActions,
   TaxInput,
   TaxRow,
+} from "@valuemachine/types";
+
+import {
+  after,
+  isBusinessExpense,
+  before,
+  Forms,
+  getTotalValue,
+  guard,
+  math,
+  strcat,
   thisYear,
   toFormDate,
 } from "./utils";
@@ -23,22 +31,57 @@ export const f2555 = (
 ): Forms => {
   const log = logger.child({ module: "f2555" });
   const { f2555, f1040, f1040s1 } = forms;
-  const { personal, travel } = input;
+  const personal = input.personal || {};
+  const travel = input.travel || [];
 
   // If no travel info, then omit this form
   if (!travel) { delete forms.f2555; return forms; }
 
-  f2555.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
-  f2555.SSN = personal?.SSN;
+  f2555.Name = strcat(personal.firstName, personal.lastName);
+  f2555.SSN = personal.SSN;
 
   ////////////////////////////////////////
-  // Part I: Generatl Info
+  // Part I: General Info
 
-  if (f2555.C5c) {
-    f2555.L3 = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;
-    f2555.L4a = `${forms.f1040.StreetAddress}, ${forms.f1040.City}, ${forms.f1040.State} ${forms.f1040.Zip}`;
-    f2555.L4b = f2555.L1;
+  f2555.L1 = strcat(personal.foreignState, personal.foreignZip, personal.foreignCountry);
+
+  f2555.L2 = personal.occupation;
+  const employer = personal.employer;
+  if (employer) {
+    f2555.L3 = employer.name;
+    if (employer.country === guard) {
+      f2555.L4a = strcat(employer.street, employer.state, employer.country);
+    } else {
+      f2555.L4b = strcat(employer.street, employer.state, employer.country);
+    }
+    if (employer.type === "ForeignEntity") f2555.C5a = true;
+    else if (employer.type === "DomesticCompany") f2555.C5b = true;
+    else if (employer.type === "Self") f2555.C5c = true;
+    else if (employer.type === "ForeignAffiliate") f2555.C5d = true;
+    else if (employer.type) {
+      f2555.C5e = true;
+      f2555.L5e = employer.type;
+    }
+  } else {
+    f2555.L3 = f2555.Name;
+    f2555.L4a = strcat(personal.streetAddress, personal.city, personal.zip);
+    f2555.L4b = strcat(personal.foreignState, personal.foreignZip, personal.foreignCountry);
+    f2555.C5c = true;
   }
+
+  f2555.L6a = ""; // previous year we filed f2555
+  if (f2555.L6a) {
+    f2555.C6c_Yes = true;
+  } else {
+    f2555.C6c_No = true;
+  }
+
+  // f2555.L6c = have you ever revoked either of the exemptions?
+  // f2555.L6d = list all revokations & the year each occured
+  // f2555.L7  = what country are you citizen of?
+  // f2555.L8a = do you have a 2nd residence bc your tax home is miserable?
+  // f2555.L8b = list city,country,days for each 2nd residence & time spent during the tax year
+  // f2555.L9  = list your tax homes
 
   ////////////////////////////////////////
   // Part II: Bona Fide Residence Test
@@ -100,28 +143,45 @@ export const f2555 = (
   ////////////////////////////////////////
   // Part IV: All Tax Payers
 
-  f2555.L19 = f1040.L1;
-
-  let totalIncome = "0";
-  let totalExpenses = "0";
-  processIncome(taxRows.filter(thisYear), (income: TaxRow, value: string): void => {
-    totalIncome = math.add(totalIncome, value);
-  });
-  processExpenses(taxRows.filter(thisYear), (expense: TaxRow, value: string): void => {
-    if (expense.tag.expenseType || expense.tag.description) {
-      totalExpenses = math.add(totalExpenses, value);
-    }
-  });
-  f2555.L23 = math.sub(totalIncome, totalExpenses);
-
-  f2555.L24 = math.add(
-    f2555.L19, f2555.L20a, f2555.L20b,
-    f2555.L21a, f2555.L21b, f2555.L21c,
-    f2555.L21d, f2555.L22g, f2555.L23,
+  const wasInUSA = row => !travel.find(trip =>
+    trip.country === guard
+    && before(trip.enterDate, row.date)
+    && after(trip.leaveDate, row.date)
   );
 
-  f2555.L26 = math.sub(f2555.L24, f2555.L25);
-  log.info(`Foreign earned income: ${f2555.L26}`);
+  // Get all income earned while outside the US
+  f2555.L19 = getTotalValue(
+    taxRows.filter(wasInUSA).filter(thisYear),
+    TaxActions.Income,
+    { incomeType: IncomeTypes.Wage },
+  );
+
+  f2555.L23 = math.sub(
+    getTotalValue(
+      taxRows.filter(wasInUSA).filter(thisYear),
+      TaxActions.Income,
+      { incomeType: IncomeTypes.SelfEmployed },
+    ),
+    getTotalValue(taxRows.filter(thisYear).filter(isBusinessExpense)),
+  );
+
+  f2555.L24 = math.add(
+    f2555.L19,  // total wages
+    f2555.L20a, // share of income from business
+    f2555.L20b, // share of income from partnerships
+    f2555.L21a, // value of provided lodging
+    f2555.L21b, // value of provided meals
+    f2555.L21c, // value of provided car
+    f2555.L21d, // value of other provided stuff
+    f2555.L22g, // total allowances & reimbursements
+    f2555.L23,  // other foreign earned income
+  );
+
+  f2555.L26 = math.sub(
+    f2555.L24, // total foreign earned income
+    f2555.L25, // excludable meals & lodging
+  );
+  log.info(`Total Foreign Earned Income: ${f2555.L26}`);
 
   ////////////////////////////////////////
   // Part V: All Tax Payers
@@ -131,9 +191,11 @@ export const f2555 = (
   ////////////////////////////////////////
   // Part VI: Housing Exclusion
 
-  f2555.L30 = math.lt(f2555.L28, f2555.L29b) ? f2555.L28 : f2555.L29b;
+  f2555.L30 = math.min(f2555.L28, f2555.L29b);
 
-  f2555.L32 = math.eq(f2555.L31, "365") ? "16944" : math.mul(f2555.L31, "46.42");
+  f2555.L31 = daysOutOfUSA;
+
+  f2555.L32 = math.eq(f2555.L31, "366") ? "16944" : math.mul(f2555.L31, "46.42");
 
   f2555.L33 = math.subToZero(f2555.L30, f2555.L32);
 
@@ -151,19 +213,16 @@ export const f2555 = (
 
   f2555.L37 = "107600";
 
-  // do we need to deal w leap years?
-  const L39 = math.div(f2555.L38, "365");
+  f2555.L38 = daysOutOfUSA;
+
+  const L39 = math.round(math.div(daysOutOfUSA, "366"), 3);
   f2555.L39_int = L39.split(".")[0];
   f2555.L39_dec = L39.split(".")[1];
 
   f2555.L40 = math.mul(f2555.L37, L39);
   f2555.L41 = math.subToZero(f2555.L27, f2555.L36);
   f2555.L42 = math.min(f2555.L40, f2555.L41);
-
-  f2555.L43 = math.add(f2555.L36, f2555.L42);
-
-
-  log.info(`Foreign earned income exclusion: ${f2555.L42}`);
+  log.info(`Foreign earned income exclusion: f2555.L42=${f2555.L42}`);
 
   ////////////////////////////////////////
   // Part VIII: Sum Exclusions

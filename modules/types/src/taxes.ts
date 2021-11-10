@@ -68,6 +68,15 @@ export const TaxInput = Type.Object({
     spousePin: Type.Optional(Type.String()),
     phone: Type.Optional(Type.String()),
     email: Type.Optional(Type.String()),
+    employer: Type.Optional(Type.Object({
+      name: Type.Optional(Type.String()),
+      street: Type.Optional(Type.String()),
+      state: Type.Optional(Type.String()),
+      country: Type.Optional(Type.String()),
+      phone: Type.Optional(Type.String()),
+      pin: Type.Optional(Type.String()),
+      type: Type.Optional(Type.String()),
+    })),
     thirdParty: Type.Optional(Type.Object({
       name: Type.Optional(Type.String()),
       phone: Type.Optional(Type.String()),

@@ -1,14 +1,17 @@
 import { MaxUint256 } from "@ethersproject/constants";
 import { Guards } from "@valuemachine/transactions";
 import {
+  BusinessExpenseTypes,
+  DateString,
   DecString,
   FilingStatus,
   FilingStatuses,
   IncomeType,
   IntString,
-  TaxRow,
+  Tag,
+  TaxAction,
   TaxActions,
-  DateString,
+  TaxRow,
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
@@ -33,6 +36,27 @@ export { TaxYears } from "../mappings";
 export const guard = Guards.USA;
 
 export const maxint = MaxUint256.toString();
+
+export const strcat = (...los: string[]): string => los.filter(s => !!s).join(" ");
+
+export const toTime = (d: DateString): number => new Date(d).getTime();
+
+export const before = (d1: DateString, d2: DateString): boolean => toTime(d1) < toTime(d2);
+export const after = (d1: DateString, d2: DateString): boolean => toTime(d1) > toTime(d2);
+
+export const isBusinessExpense = (row: TaxRow): boolean =>
+  row.action === TaxActions.Expense
+    && row.tag
+    && Object.keys(BusinessExpenseTypes).some(t => row.tag.expenseType = t);
+
+export const getTotalValue = (rows: TaxRow[], filterAction?: TaxAction, filterTag?: Tag) =>
+  rows.filter(row => !filterAction || filterAction === row.action).filter(row =>
+    Object.keys(filterTag || {}).every(tagType => row.tag[tagType] === filterTag[tagType])
+  ).reduce((tot, row) =>
+    math.add(tot, row.tag.multiplier
+      ? math.mul(row.value, row.tag.multiplier)
+      : row.value
+    ), "0");
 
 export const getTotalIncome = (incomeType: IncomeType, rows: TaxRow[]) =>
   rows.filter(row => row.tag.incomeType === incomeType).reduce((tot, row) =>
