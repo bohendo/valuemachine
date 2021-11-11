@@ -9,6 +9,7 @@ import { getTaxReturn } from ".";
 
 const taxYear = TaxYears.USA20;
 const log = getLogger("warn", `Test${taxYear}Filers`);
+
 const travel = [{
   enterDate: "2020-01-01",
   leaveDate: "2020-12-01",
@@ -96,6 +97,18 @@ describe(`${taxYear} Filers`, () => {
     expect(taxReturn.f8949.length).to.equal(1);
     log.info(taxReturn.f8949);
     log.info(taxReturn.f1040sd);
+  });
+
+  it(`should include f2210 iff we have not paid enough taxes`, async () => {
+    const taxReturn = getTaxReturn({ travel }, [
+      { ...income, date: "2020-01-15", receiveDate: "2020-01-15", amount: "40", value: "40000" },
+      { ...income, date: "2020-04-15", receiveDate: "2020-04-15", amount: "25", value: "25000" },
+      { ...income, date: "2020-08-15", receiveDate: "2020-08-15", amount: "20", value: "20000" },
+      { ...income, date: "2020-12-15", receiveDate: "2020-12-15", amount: "15", value: "15000" },
+    ], log);
+    log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
+    expect("f2210" in taxReturn).to.be.true;
+    // log.info(taxReturn.f2210);
   });
 
   it(`should implement ${taxYear} math instructions correctly`, async () => {

@@ -1,10 +1,14 @@
 import {
-  Forms,
   Logger,
-  math,
   TaxActions,
   TaxInput,
   TaxRow,
+} from "@valuemachine/types";
+
+import {
+  Forms,
+  math,
+  strcat,
   thisYear,
   toFormDate,
 } from "./utils";
@@ -19,10 +23,10 @@ export const f8949 = (
 ): Forms  => {
   const log = logger.child({ module: "f8949" });
   const { f8949 } = forms;
-  const { personal } = input;
+  const personal = input.personal || {};
 
-  const name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
-  const ssn = personal?.SSN;
+  const name = strcat([personal.firstName, personal.lastName]);
+  const ssn = personal.SSN;
 
   const trades = taxRows.filter(thisYear).filter(tax => tax.action === TaxActions.Trade);
 
@@ -69,7 +73,7 @@ export const f8949 = (
     const fillPage = getCell => (trade: TaxRow, i: number): void => {
       const proceeds = mul(trade.amount, trade.price);
       const cost = mul(trade.amount, trade.receivePrice);
-      subF8949[getCell(i+1, "a")] = `${round(trade.amount, 4)} ${trade.asset}`;
+      subF8949[getCell(i+1, "a")] = strcat([round(trade.amount, 4), trade.asset]);
       subF8949[getCell(i+1, "b")] = toFormDate(trade.receiveDate);
       subF8949[getCell(i+1, "c")] = toFormDate(trade.date);
       subF8949[getCell(i+1, "d")] = proceeds;

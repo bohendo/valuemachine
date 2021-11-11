@@ -40,11 +40,12 @@ export const getTaxReturn = (
   /*seq no 17*/ forms = f1040sse(forms, input, taxRows, log);
   /*seq no 8*/  forms = f1040sb(forms, input, taxRows, log);
   /*seq no 7*/  forms = f1040sa(forms, input, taxRows, log);
-  /*seq no 6*/  forms = f2210(forms, input, taxRows, log);
   /*seq no 3*/  forms = f1040s3(forms, input, taxRows, log);
   /*seq no 2*/  forms = f1040s2(forms, input, taxRows, log);
   /*seq no 1*/  forms = f1040s1(forms, input, taxRows, log);
   /*seq no 0*/  forms = f1040(forms, input, taxRows, log);
+  // NOTE: f2210 depends on f1040 despite the higher seq no..
+  /*seq no 6*/  forms = f2210(forms, input, taxRows, log);
 
   return forms;
 };

@@ -28,7 +28,7 @@ export {
   TaxInput,
   TaxRow,
 } from "@valuemachine/types";
-export { math } from "@valuemachine/utils";
+export { chrono, math } from "@valuemachine/utils";
 
 export { TaxYears } from "../mappings";
 
