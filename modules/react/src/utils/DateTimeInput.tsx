@@ -5,23 +5,23 @@ type DateTimeInputProps = {
   id?: string;
   label?: string;
   helperText?: string;
-  timestamp?: string;
+  dateTime?: string;
   setDateTime?: (val: string) => void;
 };
 export const DateTimeInput: React.FC<DateTimeInputProps> = ({
   id: givenId,
   label: givenLabel,
   helperText,
-  timestamp,
+  dateTime,
   setDateTime,
 }: DateTimeInputProps) => {
   const [display, setDisplay] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!timestamp) return;
-    setDisplay(timestamp);
-  }, [timestamp]);
+    if (!dateTime) return;
+    setDisplay(dateTime);
+  }, [dateTime]);
 
   const slugify = str =>
     str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");
@@ -30,38 +30,38 @@ export const DateTimeInput: React.FC<DateTimeInputProps> = ({
     if (typeof event.target.value !== "string") return;
     const display = event.target.value;
     setDisplay(display);
-    let error, timestamp;
+    let error, dateTime;
     if (display === "") {
-      timestamp = "";
+      dateTime = "";
       error = "";
     } else if (display.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$/)) {
       if (isNaN(new Date(display).getTime())) {
-        timestamp = "";
+        dateTime = "";
         error = "DateTime is invalid";
       } else {
-        timestamp = new Date(display + "Z").toISOString();
+        dateTime = new Date(display + "Z").toISOString();
         error = "";
       }
     } else if (display.match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)) {
       if (isNaN(new Date(display).getTime())) {
-        timestamp = "";
+        dateTime = "";
         error = "DateTime is invalid";
       } else {
-        timestamp = new Date(display + "T00:00:00Z").toISOString();
+        dateTime = new Date(display + "T00:00:00Z").toISOString();
         error = "";
       }
     } else {
-      timestamp = "";
-      error = "Format timestamp as YYYY-MM-DD hh:mm:ss";
+      dateTime = "";
+      error = "Format dateTime as YYYY-MM-DD hh:mm:ss";
     }
     setError(error);
-    if (timestamp && !error) {
-      setDateTime?.(timestamp);
+    if (dateTime && !error) {
+      setDateTime?.(dateTime);
     }
   };
 
   const label = givenLabel || "Input DateTime";
-  const id = givenId || `input-timestamp-${slugify(label)}`;
+  const id = givenId || `input-date-time-${slugify(label)}`;
 
   return (
     <TextField

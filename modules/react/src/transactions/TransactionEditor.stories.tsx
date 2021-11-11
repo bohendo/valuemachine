@@ -18,6 +18,7 @@ Example.args = {
     index: 0,
     method: "",
     sources: [],
+    tag: {},
     transfers: [],
     uuid: "",
   },

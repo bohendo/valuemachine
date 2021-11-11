@@ -16,6 +16,7 @@ const getEmptyTransaction = (): Transaction => JSON.parse(JSON.stringify({
   date: "",
   method: Methods.Unknown,
   sources: [],
+  tag: {},
   transfers: [{
     amount: "",
     asset: "",
@@ -49,7 +50,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
 
   useEffect(() => {
     if (!tx) return;
-    setNewTx(JSON.parse(JSON.stringify(tx)) as Transaction);
+    setNewTx(JSON.parse(JSON.stringify({ ...newTx, ...tx })) as Transaction);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tx]);
 
@@ -88,7 +89,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
         helperText="When did this tx happen?"
         label="Transation DateTime"
         setDateTime={date => setNewTx({ ...newTx, date })}
-        timestamp={newTx?.date}
+        dateTime={newTx?.date}
       />
 
       <Grid item md={2}>

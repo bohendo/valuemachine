@@ -78,8 +78,8 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
 
   useEffect(() => {
     setPage(0);
-    const getDate = (timestamp: string): string =>
-      (new Date(timestamp)).toISOString().split("T")[0];
+    const getDate = (dateTime: string): string =>
+      (new Date(dateTime)).toISOString().split("T")[0];
     setFilteredTxns(transactions?.json
       .filter(tx => !filterStartDate || getDate(tx.date) >= getDate(filterStartDate))
       .filter(tx => !filterEndDate || getDate(tx.date) <= getDate(filterEndDate))
