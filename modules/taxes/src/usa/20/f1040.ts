@@ -2,6 +2,7 @@ import {
   FilingStatuses,
   IncomeTypes,
   Logger,
+  TaxActions,
   TaxInput,
   TaxRow,
 } from "@valuemachine/types";
@@ -9,8 +10,9 @@ import {
 import {
   Forms,
   getIncomeTax,
-  getTotalIncome,
+  getTotalValue,
   math,
+  strcat,
   thisYear,
 } from "./utils";
 
@@ -34,7 +36,7 @@ export const f1040 = (
   if (filingStatus === FilingStatuses.Widow) f1040.Widow = true;
   if (filingStatus === FilingStatuses.Head) f1040.HeadOfHousehold = true;
 
-  f1040.FirstNameMI = `${personal.firstName || ""} ${personal.middleInitial || ""}`;
+  f1040.FirstNameMI = strcat([personal.firstName, personal.middleInitial]);
   f1040.LastName = personal.lastName;
   f1040.SSN = personal.SSN;
   f1040.StreetAddress = personal.streetAddress;
@@ -47,7 +49,7 @@ export const f1040 = (
   f1040.ForeignZip = personal.foreignZip;
 
   if (filingStatus === FilingStatuses.Joint) {
-    f1040.SpouseFirstNameMI = `${personal.spouseFirstName || ""} ${personal.spouseMiddleInitial || ""}`;
+    f1040.SpouseFirstNameMI = strcat([personal.spouseFirstName, personal.spouseMiddleInitial]);
     f1040.SpouseLastName = personal.spouseLastName;
     f1040.SpouseSSN = personal.spouseSSN;
   }
@@ -59,8 +61,16 @@ export const f1040 = (
     f1040.C7 = true;
   }
 
-  f1040.L2b = getTotalIncome(IncomeTypes.Interest, taxRows.filter(thisYear));
-  f1040.L3b = getTotalIncome(IncomeTypes.Dividend, taxRows);
+  f1040.L2b = getTotalValue(
+    taxRows.filter(thisYear),
+    TaxActions.Income,
+    { incomeType: IncomeTypes.Interest },
+  );
+  f1040.L2b = getTotalValue(
+    taxRows.filter(thisYear),
+    TaxActions.Income,
+    { incomeType: IncomeTypes.Dividend },
+  );
 
   f1040.L9 = math.add(
     f1040.L1,  // wages

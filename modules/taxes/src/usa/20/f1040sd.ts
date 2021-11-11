@@ -1,10 +1,14 @@
 import {
   FilingStatuses,
-  Forms,
   Logger,
-  math,
   TaxInput,
   TaxRow,
+} from "@valuemachine/types";
+
+import {
+  Forms,
+  math,
+  strcat,
   thisYear,
 } from "./utils";
 
@@ -16,10 +20,10 @@ export const f1040sd = (
 ): Forms => {
   const log = logger.child({ module: "f1040sd" });
   const { f1040, f1040sd } = forms;
-  const { personal } = input;
+  const personal = input.personal || {};
 
-  f1040sd.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
-  f1040sd.SSN = personal?.SSN;
+  f1040sd.Name = strcat([personal.firstName, personal.lastName]);
+  f1040sd.SSN = personal.SSN;
 
   // Omit this form if we don't have any f8949 pages
   if (!forms.f8949 || !forms.f8949.length) {

@@ -1,11 +1,16 @@
 import {
-  Forms,
-  getTotalIncome,
   IncomeTypes,
   Logger,
-  math,
+  TaxActions,
   TaxInput,
   TaxRow,
+} from "@valuemachine/types";
+
+import {
+  Forms,
+  getTotalValue,
+  strcat,
+  math,
   thisYear,
 } from "./utils";
 
@@ -17,29 +22,33 @@ export const f1040s1 = (
 ): Forms => {
   const log = logger.child({ module: "f1040s1" });
   const { f1040, f1040s1 } = forms;
-  const { personal } = input;
+  const personal = input.personal || {};
 
-  f1040s1.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
+  f1040s1.Name = strcat([personal.firstName, personal.lastName]);
   f1040s1.SSN = personal?.SSN;
 
   ////////////////////////////////////////
   // Part I - Additional Income
 
   // Prize money won from hackathons, airdrops, etc can go here I guess
-  const prizeMoney = getTotalIncome(IncomeTypes.Prize, taxRows.filter(thisYear));
+  const prizeMoney = getTotalValue(
+    taxRows.filter(thisYear),
+    TaxActions.Income,
+    { incomeType: IncomeTypes.Prize },
+  );
   if (math.gt(prizeMoney, "0")) {
     log.info(`Earned ${prizeMoney} in prizes`);
-    f1040s1.L8_Etc2 = (
-      f1040s1.L8_Etc2 ? f1040s1.L8_Etc2.split(", ") : []
-    ).concat(`Prizes ${math.round(prizeMoney, 2)}`).join(", ");
+    f1040s1.L8_Etc2 = strcat([f1040s1.L8_Etc2, `Prizes=${math.round(prizeMoney, 2)}`], ", ");
     f1040s1.L8 = math.add(f1040s1.L8, prizeMoney);
   }
-  const airdrops = getTotalIncome(IncomeTypes.Airdrop, taxRows.filter(thisYear));
+  const airdrops = getTotalValue(
+    taxRows.filter(thisYear),
+    TaxActions.Income,
+    { incomeType: IncomeTypes.Airdrop },
+  );
   if (math.gt(airdrops, "0")) {
     log.info(`Earned ${airdrops} in airdrops`);
-    f1040s1.L8_Etc2 = (
-      f1040s1.L8_Etc2 ? f1040s1.L8_Etc2.split(", ") : []
-    ).concat(`Airdrops ${math.round(airdrops, 2)}`).join(", ");
+    f1040s1.L8_Etc2 = strcat([f1040s1.L8_Etc2, `Airdrops=${math.round(airdrops, 2)}`], ", ");
     f1040s1.L8 = math.add(f1040s1.L8, airdrops);
   }
 

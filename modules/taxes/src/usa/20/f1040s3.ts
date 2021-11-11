@@ -1,6 +1,14 @@
-import { Logger, TaxInput, TaxRow } from "@valuemachine/types";
+import {
+  Logger,
+  TaxInput,
+  TaxRow,
+} from "@valuemachine/types";
 
-import { Forms, math } from "./utils";
+import {
+  Forms,
+  math,
+  strcat,
+} from "./utils";
 
 export const f1040s3 = (
   forms: Forms,
@@ -10,10 +18,10 @@ export const f1040s3 = (
 ): Forms => {
   const log = logger.child({ module: "f1040s3" });
   const { f1040, f1040s3 } = forms;
-  const { personal } = input;
+  const personal = input.personal || {};
 
-  f1040s3.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
-  f1040s3.SSN = personal?.SSN;
+  f1040s3.Name = strcat([personal.firstName, personal.lastName]);
+  f1040s3.SSN = personal.SSN;
 
   ////////////////////////////////////////
   // Part I - Nonrefundable Credits

@@ -1,6 +1,18 @@
-import { Logger, IncomeTypes, TaxInput, TaxRow } from "@valuemachine/types";
+import {
+  IncomeTypes,
+  Logger,
+  TaxActions,
+  TaxInput,
+  TaxRow,
+} from "@valuemachine/types";
 
-import { Forms, getTotalIncome, math, thisYear } from "./utils";
+import {
+  Forms,
+  getTotalValue,
+  math,
+  strcat,
+  thisYear,
+} from "./utils";
 
 export const f1040sse = (
   forms: Forms,
@@ -12,7 +24,11 @@ export const f1040sse = (
   const { f1040, f1040s1, f1040s2, f1040s3, f1040sc, f1040sse } = forms;
   const personal = input.personal || {};
 
-  const seIncome = getTotalIncome(IncomeTypes.SelfEmployed, taxRows.filter(thisYear));
+  const seIncome = getTotalValue(
+    taxRows.filter(thisYear),
+    TaxActions.Income,
+    { incomeType: IncomeTypes.SelfEmployed },
+  );
 
   // If no se income, then omit this form
   if (!math.gt(seIncome, "0")) {
@@ -20,8 +36,8 @@ export const f1040sse = (
     return forms;
   }
 
-  f1040sse.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
-  f1040sse.SSN = personal?.SSN;
+  f1040sse.Name = strcat([personal.firstName, personal.lastName]);
+  f1040sse.SSN = personal.SSN;
 
   ////////////////////////////////////////
   // Part I - Self-Employment Tax
@@ -65,7 +81,13 @@ export const f1040sse = (
     return forms;
   }
 
-  f1040sse.L5a = getTotalIncome(IncomeTypes.Church, taxRows.filter(thisYear));
+  f1040sse.L5a = getTotalValue(
+    taxRows.filter(thisYear),
+    TaxActions.Income,
+    { incomeType: IncomeTypes.Church },
+  );
+
+
   f1040sse.L5b = math.mul(f1040sse.L5a, "0.9235");
   if (math.lt(f1040sse.L5b, "100")) {
     f1040sse.L5b = "0";
@@ -110,7 +132,11 @@ export const f1040sse = (
     f1040sse.L21 = "0";
   } else {
     if ("f1040sf" in forms) log.warn(`Required but not implemented: f1040sf income from Mar-Dec`);
-    f1040sse.L18 = getTotalIncome(IncomeTypes.SelfEmployed, taxRows.filter(marToDec));
+    f1040sse.L18 = getTotalValue(
+      taxRows.filter(marToDec),
+      TaxActions.Income,
+      { incomeType: IncomeTypes.SelfEmployed },
+    );
     f1040sse.L19 = math.gt(f1040sse.L18, "0") ? math.mul(f1040sse.L18, "0.9235") : f1040sse.L18;
     // instructions say x0.775 is good: https://www.irs.gov/pub/irs-pdf/i1040sse.pdf#page=6
     f1040sse.L20 = math.mul(math.add(f1040sse.L15, f1040sse.L17), "0.775");
@@ -120,7 +146,11 @@ export const f1040sse = (
   if (math.eq(f1040sse.L5b, "0")) {
     f1040sse.L23 = "0";
   } else {
-    f1040sse.L22 = getTotalIncome(IncomeTypes.Church, taxRows.filter(marToDec));
+    f1040sse.L22 = getTotalValue(
+      taxRows.filter(marToDec),
+      TaxActions.Income,
+      { incomeType: IncomeTypes.Church },
+    );
     f1040sse.L23 = math.mul(f1040sse.L22, "0.9235");
   }
 

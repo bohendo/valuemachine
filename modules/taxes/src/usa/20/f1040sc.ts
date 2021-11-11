@@ -1,6 +1,20 @@
-import { ExpenseTypes, IncomeTypes, Logger, TaxInput, TaxRow } from "@valuemachine/types";
+import {
+  ExpenseTypes,
+  IncomeTypes,
+  Logger,
+  TaxActions,
+  TaxInput,
+  TaxRow,
+} from "@valuemachine/types";
 
-import { getTotalIncome, Forms, math, processExpenses, thisYear } from "./utils";
+import {
+  Forms,
+  getTotalValue,
+  math,
+  processExpenses,
+  strcat,
+  thisYear,
+} from "./utils";
 
 export const f1040sc = (
   forms: Forms,
@@ -13,7 +27,11 @@ export const f1040sc = (
   const business = input.business || {};
   const personal = input.personal || {};
 
-  const seIncome = getTotalIncome(IncomeTypes.SelfEmployed, taxRows.filter(thisYear));
+  const seIncome = getTotalValue(
+    taxRows.filter(thisYear),
+    TaxActions.Income,
+    { incomeType: IncomeTypes.SelfEmployed },
+  );
 
   // If no self-employment income, then omit this form
   if (!math.gt(seIncome, "0")) {
@@ -21,8 +39,8 @@ export const f1040sc = (
     return forms;
   }
 
-  f1040sc.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
-  f1040sc.SSN = personal?.SSN;
+  f1040sc.Name = strcat([personal.firstName, personal.lastName]);
+  f1040sc.SSN = personal.SSN;
 
   ////////////////////////////////////////
   // Business Info

@@ -122,7 +122,6 @@ describe(`${taxYear} Filers`, () => {
     const input = {
       travel,
       forms: {
-        ...getEmptyForms(taxYear),
         f1040: {
           FirstNameMI: "Bo",
           MarriedSeparate: true,

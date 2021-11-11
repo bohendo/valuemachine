@@ -37,22 +37,22 @@ export const f2555 = (
   // If no travel info, then omit this form
   if (!travel) { delete forms.f2555; return forms; }
 
-  f2555.Name = strcat(personal.firstName, personal.lastName);
+  f2555.Name = strcat([personal.firstName, personal.lastName]);
   f2555.SSN = personal.SSN;
 
   ////////////////////////////////////////
   // Part I: General Info
 
-  f2555.L1 = strcat(personal.foreignState, personal.foreignZip, personal.foreignCountry);
+  f2555.L1 = strcat([personal.foreignState, personal.foreignZip, personal.foreignCountry], ", ");
 
   f2555.L2 = personal.occupation;
   const employer = personal.employer;
   if (employer) {
     f2555.L3 = employer.name;
     if (employer.country === guard) {
-      f2555.L4a = strcat(employer.street, employer.state, employer.country);
+      f2555.L4a = strcat([employer.street, employer.state, employer.country], ", ");
     } else {
-      f2555.L4b = strcat(employer.street, employer.state, employer.country);
+      f2555.L4b = strcat([employer.street, employer.state, employer.country], ", ");
     }
     if (employer.type === "ForeignEntity") f2555.C5a = true;
     else if (employer.type === "DomesticCompany") f2555.C5b = true;
@@ -64,8 +64,8 @@ export const f2555 = (
     }
   } else {
     f2555.L3 = f2555.Name;
-    f2555.L4a = strcat(personal.streetAddress, personal.city, personal.zip);
-    f2555.L4b = strcat(personal.foreignState, personal.foreignZip, personal.foreignCountry);
+    f2555.L4a = strcat([personal.streetAddress, personal.city, personal.zip], ", ");
+    f2555.L4b = strcat([personal.foreignState, personal.foreignZip, personal.foreignCountry], ", ");
     f2555.C5c = true;
   }
 
@@ -236,10 +236,7 @@ export const f2555 = (
   f2555.L45 = math.sub(f2555.L43, f2555.L44);
 
   if (!math.eq(f2555.L45, "0")) {
-    const L8_Etc = `Form 2555 (${math.round(f2555.L45)})`;
-    f1040s1.L8_Etc2 = f1040s1.L8_Etc2
-      ? f1040s1.L8_Etc2.split(", ").concat(L8_Etc).join(", ")
-      : L8_Etc;
+    f1040s1.L8_Etc2 = strcat([f1040s1.L8_Etc2, `Form2555=(${math.round(f2555.L45)})`], ", ");
   }
   f1040s1.L8 = math.sub(f1040s1.L8, f2555.L45);
   f1040s1.L9 = math.add(

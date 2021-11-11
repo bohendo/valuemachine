@@ -6,7 +6,6 @@ import {
   DecString,
   FilingStatus,
   FilingStatuses,
-  IncomeType,
   IntString,
   Tag,
   TaxAction,
@@ -37,7 +36,8 @@ export const guard = Guards.USA;
 
 export const maxint = MaxUint256.toString();
 
-export const strcat = (...los: string[]): string => los.filter(s => !!s).join(" ");
+export const strcat = (los: string[], delimiter = " "): string =>
+  los.filter(s => !!s).join(delimiter);
 
 export const toTime = (d: DateString): number => new Date(d).getTime();
 
@@ -53,13 +53,6 @@ export const getTotalValue = (rows: TaxRow[], filterAction?: TaxAction, filterTa
   rows.filter(row => !filterAction || filterAction === row.action).filter(row =>
     Object.keys(filterTag || {}).every(tagType => row.tag[tagType] === filterTag[tagType])
   ).reduce((tot, row) =>
-    math.add(tot, row.tag.multiplier
-      ? math.mul(row.value, row.tag.multiplier)
-      : row.value
-    ), "0");
-
-export const getTotalIncome = (incomeType: IncomeType, rows: TaxRow[]) =>
-  rows.filter(row => row.tag.incomeType === incomeType).reduce((tot, row) =>
     math.add(tot, row.tag.multiplier
       ? math.mul(row.value, row.tag.multiplier)
       : row.value
