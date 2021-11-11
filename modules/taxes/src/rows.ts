@@ -144,9 +144,10 @@ export const getTaxRows = ({
   }, [] as TaxRow[]).reduce((rows, row) => {
 
     const dupRow = rows.find(r =>
-      r.asset === row.asset &&
-      r.date === row.date &&
-      r.receiveDate === row.receiveDate
+      r.asset === row.asset
+      && r.date === row.date
+      && r.receiveDate === row.receiveDate
+      && r.txId === row.txId
     );
     if (dupRow) {
       dupRow.amount = math.add(dupRow.amount, row.amount);

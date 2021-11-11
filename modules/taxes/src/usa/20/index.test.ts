@@ -3,7 +3,7 @@ import { EventTypes, IncomeTypes } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import { expect } from "chai";
 
-import { getEmptyForms, TaxYears } from "../../mappings";
+import { TaxYears } from "../../mappings";
 
 import { getTaxReturn } from ".";
 
