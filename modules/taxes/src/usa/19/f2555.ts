@@ -95,7 +95,7 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
   f2555.L43 = math.add(f2555.L36, f2555.L42);
 
   if (f2555.L44 === "") {
-    log.warn(`Required but not implemented or provided: f2555.L44`);
+    log.warn(`NOT_IMPLEMENTED or provided: f2555.L44`);
   }
 
   f2555.L45 = math.sub(f2555.L43, f2555.L44);

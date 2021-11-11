@@ -16,6 +16,7 @@ import {
   chrono,
   strcat,
   thisYear,
+  msPerDay,
   toTime,
 } from "./utils";
 
@@ -106,11 +107,11 @@ export const f2210 = (
     lastYearReturn.f1040s2?.L8,  // other taxes from f8959, f8960, etc
   );
 
-  if ("f5329" in forms) log.warn(`Required but not implemented: add 2019 f5329 tax to f2210.L8`);
-  if ("f1040sh" in forms) log.warn(`Required but not implemented: add 2019 f1040sh tax to f2210.L8`);
-  if ("f5404" in forms) log.warn(`Required but not implemented: add 2019 f5404 tax to f2210.L8`);
-  if ("f8959" in forms) log.warn(`Required but not implemented: add 2019 f8959 tax to f2210.L8`);
-  if ("f8960" in forms) log.warn(`Required but not implemented: add 2019 f8960 tax to f2210.L8`);
+  if ("f5329" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f5329 tax to f2210.L8`);
+  if ("f1040sh" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f1040sh tax to f2210.L8`);
+  if ("f5404" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f5404 tax to f2210.L8`);
+  if ("f8959" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8959 tax to f2210.L8`);
+  if ("f8960" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8960 tax to f2210.L8`);
 
   f2210.L9 = math.min(f2210.L5, f2210.L8);
 
@@ -152,12 +153,12 @@ export const f2210 = (
 
   const marToDec = row => {
     const time = toTime(row.date);
-    return time >= new Date("2020-03-27").getTime() && time < new Date("2020-12-31").getTime();
+    return time >= toTime("2020-03-27") && time < toTime("2020-12-31");
   };
 
   const getRangeFilter = cutoff => row => {
     const time = toTime(row.date);
-    return time >= new Date("2020-01-01").getTime() && time < new Date(cutoff).getTime();
+    return time >= toTime("2020-01-01") && time < toTime(cutoff);
   };
 
   const inRange = {
@@ -295,7 +296,7 @@ export const f2210 = (
     f2210[getKey(8)] = math.max(getVal(6), getVal(7));
 
     if ("f8995" in forms) {
-      log.warn(`Required but not implemented: f2210.${getKey(9)}`);
+      log.warn(`NOT_IMPLEMENTED: f2210.${getKey(9)}`);
     } else {
       f2210[getKey(9)] = "0";
     }
@@ -393,16 +394,6 @@ export const f2210 = (
   ////////////////////////////////////////
   // F2210 Worksheet Section B - Figure the Penalty
 
-  const d200715 = toTime("2020-07-15T00:00:00.000Z");
-  const d200915 = new Date("2020-09-15T00:00:00.000Z").getTime();
-  const d200930 = new Date("2020-09-30T00:00:00.000Z").getTime();
-  const d201231 = new Date("2020-12-31T00:00:00.000Z").getTime();
-  const d210115 = new Date("2021-01-15T00:00:00.000Z").getTime();
-  const d210415 = new Date("2021-04-15T00:00:00.000Z").getTime();
-
-  const daysDiff = (d1: number, d2: number): number =>
-    Math.round(Math.abs(d1 - d2) / (1000 * 60 * 60 * 24));
-
   let penalty = "0"; 
 
   const dueLabel = {
@@ -419,8 +410,8 @@ export const f2210 = (
   columns.forEach(column => {
     if (column === "b") return;
 
-    const underpayment = f2210[`L25${column}`]; // Total underpayment
-    const payments = []; // Payments
+    const underpayment = f2210[`L25${column}`]; // Total underpayment on L1a
+    const payments = []; // Payments on L1b
 
     log.info(`Underpayment for period ${column}: ${underpayment}`);
 
@@ -438,8 +429,7 @@ export const f2210 = (
       } else if (math.gt(payment.value, togo)) {
         log.debug(`Applying part of payment & we're done: ${JSON.stringify(payment)}`);
         payment.value = math.sub(payment.value, togo);
-        // put the rest of this payment back
-        allPayments.unshift(payment);
+        allPayments.unshift(payment); // put the rest of this payment back
         payments.push({
           date: payment.date,
           value: togo,
@@ -457,38 +447,42 @@ export const f2210 = (
     }
 
     const getPenalty = (startDate, endDate, q) => {
-      let total = "0";
+      const daysDiff = (t1, t2) => Math.round(Math.abs(t1 - t2) / msPerDay);
+      const rate = "0.03";
       const days = [];
       const penalties = [];
+      let total = "0";
       payments.forEach(payment => {
         const diff = daysDiff(Math.min(payment.date, endDate), startDate);
-        const amt = math.mul(underpayment, (diff / 365).toString(), "0.03");
+        const amt = math.mul(underpayment, (diff / 365).toString(), rate);
         days.push(diff);
         penalties.push(amt);
         total = math.add(total, amt);
       });
-      log.info(`Penalty owed for ${dueLabel[column]} taxes in ${q}: [${days}] => [${penalties}] => ${total}`);
+      log.info(`Penalty owed for ${dueLabel[column]} taxes in ${q}: daysLate=[${
+        days
+      }] * ${rate} => penalties=[${penalties}] => total=${total}`);
       return total;
     };
 
     if (column === "a" || column === "c") {
       // Rate Period 2
       penalty = math.add(penalty, getPenalty(
-        column === "a" ? d200715 : d200915,
-        d200930,
+        column === "a" ? toTime("2020-07-15") : toTime("2020-09-15"),
+        toTime("2020-09-30"),
         "Q3",
       ));
       // Rate Period 3
       penalty = math.add(penalty, getPenalty(
-        d200930,
-        d201231,
+        toTime("2020-09-30"),
+        toTime("2020-12-31"),
         "Q4",
       ));
     }
     // Rate Period 4
     penalty = math.add(penalty, getPenalty(
-      column === "d" ? d210115 : d201231,
-      d210415,
+      column === "d" ? toTime("2021-01-15") : toTime("2020-12-31"),
+      toTime("2021-04-15"),
       "Q5",
     ));
 

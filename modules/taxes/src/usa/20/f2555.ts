@@ -10,12 +10,13 @@ import {
 
 import {
   after,
-  isBusinessExpense,
   before,
   Forms,
   getTotalValue,
   guard,
+  isBusinessExpense,
   math,
+  msPerDay,
   strcat,
   thisYear,
   toFormDate,
@@ -98,7 +99,6 @@ export const f2555 = (
   f2555.L16_From = toFormDate("2020-01-01");
   f2555.L16_To = toFormDate("2020-12-31");
 
-  const msPerDay = 1000 * 60 * 60 * 24;
   const diffDays = (d1: DateString, d2: DateString): IntString =>
     Math.trunc(Math.abs(
       new Date(`${d1}T00:00:00Z`).getTime() - new Date(`${d2}T00:00:00Z`).getTime()
@@ -230,7 +230,7 @@ export const f2555 = (
   f2555.L43 = math.add(f2555.L36, f2555.L42);
 
   if (f2555.L44 === "") {
-    log.warn(`Required but not implemented or provided: f2555.L44`);
+    log.warn(`NOT_IMPLEMENTED or provided: f2555.L44`);
   }
 
   f2555.L45 = math.sub(f2555.L43, f2555.L44);

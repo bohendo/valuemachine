@@ -41,7 +41,7 @@ export const f8889 = (forms: Forms, _taxRows: TaxRow[], logger: Logger): Forms =
 
   f8889.L20 = add(f8889.L18, f8889.L19);
   if (gt(f8889.L20, "0")) {
-    log.warn(`Required but not implemented: part 3 of f8889`);
+    log.warn(`NOT_IMPLEMENTED: part 3 of f8889`);
   }
 
   return { ...forms, f1040s1, f1040s2, f8889 };

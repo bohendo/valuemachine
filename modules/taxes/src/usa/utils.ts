@@ -35,6 +35,8 @@ export { TaxYears } from "../mappings";
 export const guard = Guards.USA;
 
 export const maxint = MaxUint256.toString();
+export const msPerDay = 1000 * 60 * 60 * 24;
+export const msPerYear = msPerDay * 365;
 
 export const strcat = (los: string[], delimiter = " "): string =>
   los.filter(s => !!s).join(delimiter);
@@ -102,26 +104,4 @@ export const getGetIncomeTax = (
     prevThreshold = threshold;
   });
   return incomeTax;
-};
-
-export const processIncome = (
-  taxes: TaxRow[],
-  callback: (row: TaxRow, value: DecString) => void,
-): void => {
-  taxes
-    .filter(row => row.action === TaxActions.Income && math.gt(row.value, "0"))
-    .forEach((income: TaxRow): void => {
-      callback(income, math.mul(income.value, income.tag?.multiplier || "1"));
-    });
-};
-
-export const processExpenses = (
-  taxes: TaxRow[],
-  callback: (row: TaxRow, value: DecString) => void,
-): void => {
-  taxes
-    .filter(row => row.action === TaxActions.Expense && math.gt(row.value, "0"))
-    .forEach((expense: TaxRow): void => {
-      callback(expense, math.mul(expense.value, expense.tag?.multiplier || "1"));
-    });
 };

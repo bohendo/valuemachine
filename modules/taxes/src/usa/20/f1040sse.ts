@@ -54,7 +54,7 @@ export const f1040sse = (
   // Part II - Optional Net Earning Method
   const L14 = "5640";
 
-  if ("f1040sf" in forms) log.warn(`Required but not implemented: f1040sf logic in Part II`);
+  if ("f1040sf" in forms) log.warn(`NOT_IMPLEMENTED: f1040sf logic in Part II`);
   f1040sse.L15 = "0";
 
   if (math.gt(f1040sc.L31, "0") && math.lt(f1040sc.L31, "6107")) {
@@ -131,7 +131,7 @@ export const f1040sse = (
   if (math.eq(f1040sse.L4c, "0")) {
     f1040sse.L21 = "0";
   } else {
-    if ("f1040sf" in forms) log.warn(`Required but not implemented: f1040sf income from Mar-Dec`);
+    if ("f1040sf" in forms) log.warn(`NOT_IMPLEMENTED: f1040sf income from Mar-Dec`);
     f1040sse.L18 = getTotalValue(
       taxRows.filter(marToDec),
       TaxActions.Income,
@@ -190,7 +190,7 @@ export const f1040sse = (
     ws.L2 = f1040.L24; // total tax
 
     if ("f1040sh" in forms) {
-      log.warn(`Required but not implemented: f1040sh deferrals L3a-L3b (i1040 pg 105)`);
+      log.warn(`NOT_IMPLEMENTED: f1040sh deferrals L3a-L3b (i1040 pg 105)`);
       ws.L3c = "0";
     } else {
       ws.L3c = "0";
@@ -199,7 +199,7 @@ export const f1040sse = (
     ws.L4 = math.add(ws.L2, ws.L3c);
 
     if ("f1040sh" in forms) {
-      log.warn(`Required but not implemented: f1040sh deferrals L5 (i1040 pg 105)`);
+      log.warn(`NOT_IMPLEMENTED: f1040sh deferrals L5 (i1040 pg 105)`);
       ws.L5 = "0";
     } else {
       ws.L5 = "0";

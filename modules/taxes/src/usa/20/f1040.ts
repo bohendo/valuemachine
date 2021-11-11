@@ -131,10 +131,10 @@ export const f1040 = (
     f1040.L16 = math.subToZero(ws.L4, ws.L5);
 
   } else if (f1040sd && (math.gt(f1040sd.L18, "0") || math.gt(f1040sd.L19, "0"))) {
-    throw new Error(`Required but not implemented: Schedule D Tax Worksheet`);
+    throw new Error(`NOT_IMPLEMENTED: Schedule D Tax Worksheet`);
 
   } else if (f1040sd) {
-    throw new Error(`Required but not implemented: Qualified Dividends and Capital Gain Tax Worksheet`);
+    throw new Error(`NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet`);
 
   } else {
     f1040.L16 = getIncomeTax(f1040.L11, filingStatus);

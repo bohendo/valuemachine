@@ -30,7 +30,7 @@ export const f1040sa = (
   f1040sa.Name = strcat([personal.firstName, personal.lastName]);
   f1040sa.SSN = personal?.SSN;
 
-  log.warn(`Required but not implemented: f1040sa`);
+  log.warn(`NOT_IMPLEMENTED: f1040sa`);
 
   return { ...forms, f1040sa };
 };

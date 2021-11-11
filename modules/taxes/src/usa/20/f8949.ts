@@ -10,6 +10,7 @@ import {
   math,
   strcat,
   thisYear,
+  msPerYear,
   toFormDate,
 } from "./utils";
 
@@ -37,9 +38,6 @@ export const f8949 = (
 
   ////////////////////////////////////////
   // L1: Report all trade info on f8949
-
-  const msPerDay = 1000 * 60 * 60 * 24;
-  const msPerYear = msPerDay * 365;
 
   const columns = ["d", "e", "g", "h"];
   const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];

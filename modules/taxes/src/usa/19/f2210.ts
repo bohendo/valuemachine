@@ -51,7 +51,7 @@ export const f2210 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
   }
 
   if (math.eq(f2210.L8, "0")) {
-    log.warn(`Required but not implemented or provided: f2210.L8`);
+    log.warn(`NOT_IMPLEMENTED or provided: f2210.L8`);
   }
 
   f2210.L9 = math.min(f2210.L5, f2210.L8);
@@ -225,7 +225,7 @@ export const f2210 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
     f2210[getKey(8)] = math.max(getVal(6), getVal(7));
 
     if ((forms as any).f8995) {
-      log.warn(`Required but not implemented: f2210.${getKey(9)}`);
+      log.warn(`NOT_IMPLEMENTED: f2210.${getKey(9)}`);
     }
 
     f2210[getKey(10)] = math.add(getVal(8), getVal(9));
