@@ -19,16 +19,12 @@ import {
   math,
 } from "@valuemachine/utils";
 
-import { allTaxYears, securityFeeMap } from "./constants";
-import { getTaxYearBoundaries } from "./utils";
-
-const round = n => math.round(n, 2, false);
+import { securityFeeMap } from "./constants";
 
 export const getTaxRows = ({
   addressBook,
   guard,
   prices,
-  taxYear,
   txTags,
   userUnit,
   vm,
@@ -36,7 +32,6 @@ export const getTaxRows = ({
   addressBook: AddressBook;
   guard: Guard;
   prices: Prices;
-  taxYear?: string;
   txTags?: TxTags,
   userUnit?: Asset;
   vm: ValueMachine;
@@ -44,14 +39,8 @@ export const getTaxRows = ({
   const unit = securityFeeMap[guard] || userUnit;
   if (!unit) throw new Error(`Security asset is unknown for ${guard}`);
 
-  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
-
   return vm?.json?.events.sort(chrono).filter(evt => {
-    const time = new Date(evt.date).getTime();
     const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
-    if (taxYear && taxYear !== allTaxYears && (
-      time < taxYearBoundaries[0] || time > taxYearBoundaries[1]
-    )) return false;
     const account = (evt as TradeEvent).account || (evt as GuardChangeEvent).to || "";
     const evtGuard = tag.physicalGuard || (
       account ? addressBook.getGuard(account) : ""
@@ -84,14 +73,15 @@ export const getTaxRows = ({
           return {
             date: date,
             action: TaxActions.Trade,
-            amount: math.round(chunk.amount, 6),
+            amount: chunk.amount,
             asset: chunk.asset,
-            price: round(price),
-            value: round(value),
-            receivePrice: round(receivePrice),
+            price: price,
+            value: value,
+            receivePrice: receivePrice,
             receiveDate: getDate(chunk.history[0].date),
-            capitalChange: round(capitalChange),
-            tag, txId,
+            capitalChange: capitalChange,
+            tag,
+            txId,
           };
         } else {
           return null;
@@ -107,14 +97,15 @@ export const getTaxRows = ({
         return {
           date: date,
           action: TaxActions.Income,
-          amount: math.round(chunk.amount, 6),
+          amount: chunk.amount,
           asset: chunk.asset,
-          price: round(price),
-          value: round(income),
-          receivePrice: round(price),
+          price: price,
+          value: income,
+          receivePrice: price,
           receiveDate: date,
           capitalChange: "0.00",
-          tag, txId,
+          tag,
+          txId,
         } as TaxRow;
       }));
 
@@ -133,19 +124,20 @@ export const getTaxRows = ({
           receivePrice = price;
           capitalChange = "0";
         }
-        // TODO: add tag based on the recipient of this expense
+        // do we need to add tag based on the recipient of this expense?
         // eg if it's an expense to coinbase, then tag it as an exchange fee
         return {
           date: date,
           action: TaxActions.Expense,
-          amount: math.round(chunk.amount, 6),
+          amount: chunk.amount,
           asset: chunk.asset,
-          price: round(price),
-          value: round(value),
-          receivePrice: round(receivePrice),
+          price: price,
+          value: value,
+          receivePrice: receivePrice,
           receiveDate,
           capitalChange,
-          tag, txId,
+          tag,
+          txId,
         } as TaxRow;
       }));
 
@@ -155,9 +147,10 @@ export const getTaxRows = ({
   }, [] as TaxRow[]).reduce((rows, row) => {
 
     const dupRow = rows.find(r =>
-      r.asset === row.asset &&
-      r.date === row.date &&
-      r.receiveDate === row.receiveDate
+      r.asset === row.asset
+      && r.date === row.date
+      && r.receiveDate === row.receiveDate
+      && r.txId === row.txId
     );
     if (dupRow) {
       dupRow.amount = math.add(dupRow.amount, row.amount);
@@ -167,6 +160,10 @@ export const getTaxRows = ({
     }
     return rows;
 
-  }, [] as TaxRow[]).filter(row => math.gt(row.value, "0.01"));
-
+  }, [] as TaxRow[]).filter(row =>
+    math.gt(row.value, "0.005")
+    && (
+      row.action !== TaxActions.Trade || math.gt(row.capitalChange, "0.005")
+    )
+  );
 };

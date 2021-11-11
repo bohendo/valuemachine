@@ -7,12 +7,12 @@ import { getUSA19Return, getUSA20Return } from "./usa";
 const logger = getLogger("info", "TaxReturn");
 
 export const getTaxReturn = (
-  year: TaxYear,
+  taxYear: TaxYear,
   taxInput: TaxInput,
   taxRows: TaxRow[],
   log = logger,
 ): Forms =>
-  !year ? {}
-  : year === TaxYears.USA19 ? getUSA19Return(taxInput, taxRows, log)
-  : year === TaxYears.USA20 ? getUSA20Return(taxInput, taxRows, log)
+  !taxYear ? {}
+  : taxYear === TaxYears.USA19 ? getUSA19Return(taxInput, taxRows, log)
+  : taxYear === TaxYears.USA20 ? getUSA20Return(taxInput, taxRows, log)
   : {};

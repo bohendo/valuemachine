@@ -1,6 +1,6 @@
 import { Assets } from "@valuemachine/transactions";
 import { EventTypes } from "@valuemachine/types";
-import { getLogger, math } from "@valuemachine/utils";
+import { getLogger } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { getEmptyForms, TaxYears } from "../../mappings";
@@ -96,8 +96,6 @@ describe(`${taxYear} Filers`, () => {
     };
     const taxReturn = getTaxReturn(forms, taxRows, logger);
     expect(taxReturn).to.be.ok;
-    const L14 = math.add(taxReturn.f1040.L12, taxReturn.f1040.L13);
-    expect(math.round(taxReturn.f1040.L14)).to.equal(L14);
   });
 });
 

@@ -21,7 +21,7 @@ import {
   TxTags,
   ValueMachine,
 } from "@valuemachine/types";
-import { dedup } from "@valuemachine/utils";
+import { dedup, math } from "@valuemachine/utils";
 import axios from "axios";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect } from "react";
@@ -47,6 +47,8 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   const [taxYear, setTaxYear] = React.useState(allTaxYears);
   const [taxYears, setTaxYears] = React.useState([] as string[]);
 
+  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
+
   useEffect(() => {
     setTaxYear(allTaxYears);
     setTaxYears(dedup(
@@ -61,19 +63,22 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
 
   const handleCsvExport = () => {
     console.log(`Exporting csv for ${taxYear} taxes`);
-    const taxes = getTaxRows({ addressBook, guard, prices, vm, taxYear, txTags });
+    const taxes = getTaxRows({ addressBook, guard, prices, vm, txTags });
     if (!taxes?.length) {
       console.warn(`There were no known taxable events in ${taxYear}`);
       return;
     }
     const output = json2csv(
-      taxes.map(row => ({
+      taxes.filter(row => {
+        const time = new Date(row.date).getTime();
+        return time < taxYearBoundaries[0] || time > taxYearBoundaries[1];
+      }).map(row => ({
         ...row,
-        amount: row.amount,
-        value: row.value,
-        price: row.price,
-        receivePrice: row.receivePrice,
-        capitalChange: row.capitalChange,
+        amount: math.round(row.amount, 6),
+        value: math.round(row.value, 2),
+        price: math.round(row.price, 4),
+        receivePrice: math.round(row.receivePrice, 4),
+        capitalChange: math.round(row.capitalChange, 2),
       })),
       Object.keys(taxes?.[0] || {}),
     );
@@ -85,13 +90,12 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     a.click();
   };
 
-  const handleExport = async (): Promise<void> => {
+  const handleReturnExport = async (): Promise<void> => {
     if (!guard || !taxYear || !vm?.json || !prices?.json || !taxInput) return;
     if (guard !== Guards.USA) return;
     const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
     if (!year) return;
-    const taxRows = getTaxRows({ addressBook, guard, prices, vm, taxYear, txTags });
-    console.log(`Fetching tax return for ${year} w ${Object.keys(taxInput).length} forms`);
+    const taxRows = getTaxRows({ addressBook, guard, prices, vm, txTags });
     const forms = getTaxReturn(year, taxInput, taxRows);
     return new Promise((res, rej) => {
       axios({
@@ -111,7 +115,6 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     });
   };
 
-  const taxYearBoundaries = getTaxYearBoundaries(guard, taxYear);
   // add 10ms in case the boundary is immediately before midnight
   const fmtDate = (time: number) =>
     typeof time === "number" ? new Date(time + 10).toISOString().split("T")[0] : "???";
@@ -169,7 +172,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
               sx={{ ml: 1, my: 2, maxWidth: "24em" }}
               color="primary"
               fullWidth={false}
-              onClick={handleExport}
+              onClick={handleReturnExport}
               size="small"
               startIcon={<DownloadIcon />}
               variant="contained"

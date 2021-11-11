@@ -1,12 +1,16 @@
 import { MaxUint256 } from "@ethersproject/constants";
-import { Static, Type } from "@sinclair/typebox";
 import { Guards } from "@valuemachine/transactions";
 import {
-  DecString,
-  IntString,
-  TaxRow,
-  TaxActions,
+  BusinessExpenseTypes,
   DateString,
+  DecString,
+  FilingStatus,
+  FilingStatuses,
+  IntString,
+  Tag,
+  TaxAction,
+  TaxActions,
+  TaxRow,
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
@@ -16,6 +20,7 @@ export {
   DecString,
   EventTypes,
   ExpenseTypes,
+  FilingStatuses,
   IncomeTypes,
   IntString,
   Logger,
@@ -23,21 +28,37 @@ export {
   TaxInput,
   TaxRow,
 } from "@valuemachine/types";
-export { math } from "@valuemachine/utils";
+export { chrono, math } from "@valuemachine/utils";
 
 export { TaxYears } from "../mappings";
 
 export const guard = Guards.USA;
 
 export const maxint = MaxUint256.toString();
+export const msPerDay = 1000 * 60 * 60 * 24;
+export const msPerYear = msPerDay * 365;
 
-export const FilingStatuses = {
-  Single: "Single", // single or married separate
-  Joint: "Joint", // married joint or widow
-  Head: "Head", // head of household
-} as const;
-export const FilingStatus = Type.Enum(FilingStatuses); // NOT Extensible
-export type FilingStatus = Static<typeof FilingStatus>;
+export const strcat = (los: string[], delimiter = " "): string =>
+  los.filter(s => !!s).join(delimiter);
+
+export const toTime = (d: DateString): number => new Date(d).getTime();
+
+export const before = (d1: DateString, d2: DateString): boolean => toTime(d1) < toTime(d2);
+export const after = (d1: DateString, d2: DateString): boolean => toTime(d1) > toTime(d2);
+
+export const isBusinessExpense = (row: TaxRow): boolean =>
+  row.action === TaxActions.Expense
+    && row.tag
+    && Object.keys(BusinessExpenseTypes).some(t => row.tag.expenseType === t);
+
+export const getTotalValue = (rows: TaxRow[], filterAction?: TaxAction, filterTag?: Tag) =>
+  rows.filter(row =>
+    !filterAction || filterAction === row.action
+  ).filter(row =>
+    Object.keys(filterTag || {}).every(tagType => row.tag[tagType] === filterTag[tagType])
+  ).reduce((tot, row) => (
+    math.add(tot, math.mul(row.value, row.tag.multiplier || "1"))
+  ), "0");
 
 // ISO => "MM, DD, YY"
 export const toFormDate = (date: DateString): string => {
@@ -48,13 +69,19 @@ export const toFormDate = (date: DateString): string => {
 export const getGetIncomeTax = (
   taxBrackets: Array<{ rate: DecString; single: IntString; joint: IntString; head: IntString }>,
 ) => (
-  taxableIncome: string,
+  taxableIncome: DecString,
   filingStatus: FilingStatus,
-): string => {
+): DecString => {
   let incomeTax = "0";
   let prevThreshold = "0";
   taxBrackets.forEach(bracket => {
-    const threshold = bracket[filingStatus];
+    const threshold = !filingStatus ? "1" : (
+      filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate
+    ) ? bracket.single : (
+        filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow
+      ) ? bracket.joint : (
+          filingStatus === FilingStatuses.Head
+        ) ? bracket.head : "1";
     if (math.lt(taxableIncome, prevThreshold)) {
       return;
     } else if (math.lt(taxableIncome, threshold)) {
@@ -77,26 +104,4 @@ export const getGetIncomeTax = (
     prevThreshold = threshold;
   });
   return incomeTax;
-};
-
-export const processIncome = (
-  taxes: TaxRow[],
-  callback: (row: TaxRow, value: DecString) => void,
-): void => {
-  taxes
-    .filter(row => row.action === TaxActions.Income && math.gt(row.value, "0"))
-    .forEach((income: TaxRow): void => {
-      callback(income, math.mul(income.value, income.tag?.multiplier || "1"));
-    });
-};
-
-export const processExpenses = (
-  taxes: TaxRow[],
-  callback: (row: TaxRow, value: DecString) => void,
-): void => {
-  taxes
-    .filter(row => row.action === TaxActions.Expense && math.gt(row.value, "0"))
-    .forEach((expense: TaxRow): void => {
-      callback(expense, math.mul(expense.value, expense.tag?.multiplier || "1"));
-    });
 };

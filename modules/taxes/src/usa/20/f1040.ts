@@ -1,40 +1,44 @@
 import {
   FilingStatuses,
+  IncomeTypes,
+  Logger,
+  TaxActions,
+  TaxInput,
+  TaxRow,
+} from "@valuemachine/types";
+
+import {
   Forms,
   getIncomeTax,
-  Logger,
+  getTotalValue,
   math,
-  TaxInput,
+  strcat,
+  thisYear,
 } from "./utils";
 
-export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
+export const f1040 = (
+  forms: Forms,
+  input: TaxInput,
+  taxRows: TaxRow[],
+  logger: Logger,
+): Forms => {
   const log = logger.child({ module: "f1040" });
-  const { f1040, f2555 } = forms;
+  const { f1040, f1040sd, f2555 } = forms;
   const personal = input.personal || {};
+  const { filingStatus } = personal;
 
   ////////////////////////////////////////
   // Personal Info
 
-  if (personal.filingStatus === "Single") f1040.Single = true;
-  if (personal.filingStatus === "MarriedSeparate") f1040.MarriedSeparate = true;
-  if (personal.filingStatus === "MarriedJoint") f1040.MarriedJoint = true;
-  if (personal.filingStatus === "Widow") f1040.Widow = true;
-  if (personal.filingStatus === "HeadOfHousehold") f1040.HeadOfHousehold = true;
-  let filingStatus;
-  if (f1040.Single || f1040.MarriedSeparate) {
-    filingStatus = FilingStatuses.Single;
-  } else if (f1040.MarriedJoint || f1040.Widow) {
-    filingStatus = FilingStatuses.Joint;
-  } else if (f1040.HeadOfHousehold) {
-    filingStatus = FilingStatuses.Head;
-  }
+  if (filingStatus === FilingStatuses.Single) f1040.Single = true;
+  if (filingStatus === FilingStatuses.Separate) f1040.MarriedSeparate = true;
+  if (filingStatus === FilingStatuses.Joint) f1040.MarriedJoint = true;
+  if (filingStatus === FilingStatuses.Widow) f1040.Widow = true;
+  if (filingStatus === FilingStatuses.Head) f1040.HeadOfHousehold = true;
 
-  f1040.FirstNameMI = `${personal.firstName || ""} ${personal.middleInitial || ""}`;
+  f1040.FirstNameMI = strcat([personal.firstName, personal.middleInitial]);
   f1040.LastName = personal.lastName;
   f1040.SSN = personal.SSN;
-  f1040.SpouseFirstNameMI = `${personal.spouseFirstName || ""} ${personal.spouseMiddleInitial || ""}`;
-  f1040.SpouseLastName = personal.spouseLastName;
-  f1040.SpouseSSN = personal.spouseSSN;
   f1040.StreetAddress = personal.streetAddress;
   f1040.Apt = personal.apt;
   f1040.City = personal.city;
@@ -44,8 +48,11 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   f1040.ForeignState = personal.foreignState;
   f1040.ForeignZip = personal.foreignZip;
 
-  f1040.Occupation = personal.occupation;
-  f1040.SpouseOccupation = personal.spouseOccupation;
+  if (filingStatus === FilingStatuses.Joint) {
+    f1040.SpouseFirstNameMI = strcat([personal.spouseFirstName, personal.spouseMiddleInitial]);
+    f1040.SpouseLastName = personal.spouseLastName;
+    f1040.SpouseSSN = personal.spouseSSN;
+  }
 
   ////////////////////////////////////////
   // Taxable Income
@@ -53,6 +60,17 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   if ("f1040sd" in forms) {
     f1040.C7 = true;
   }
+
+  f1040.L2b = getTotalValue(
+    taxRows.filter(thisYear),
+    TaxActions.Income,
+    { incomeType: IncomeTypes.Interest },
+  );
+  f1040.L2b = getTotalValue(
+    taxRows.filter(thisYear),
+    TaxActions.Income,
+    { incomeType: IncomeTypes.Dividend },
+  );
 
   f1040.L9 = math.add(
     f1040.L1,  // wages
@@ -79,9 +97,9 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   log.info(`Total gross income: f1040.L11=${f1040.L11}`);
 
   f1040.L12 = !filingStatus ? ""
-    : filingStatus === FilingStatuses.Single ? "12200"
-    : filingStatus === FilingStatuses.Joint ? "24400"
-    : filingStatus === FilingStatuses.Head ? "18350"
+    : (filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate) ? "12200"
+    : (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
+    : (filingStatus === FilingStatuses.Head) ? "18350"
     : "";
 
   f1040.L14 = math.add(
@@ -98,15 +116,28 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
   ////////////////////////////////////////
   // Taxes due & payments
 
-  if (!forms.f2555) {
-    f1040.L16 = getIncomeTax(f1040.L11, filingStatus);
+  if ("f8814" in forms) f1040.C16_1 = true;
+  if ("4972" in forms) f1040.C16_2 = true;
+
+  if (forms.f2555) {
+    const ws = {} as any; // Foreign Earned Income Tax Worksheet on i1040 pg 35
+    ws.L1 = f1040.L15;
+    ws.L2a = math.add(f2555.L45, f2555.L50);
+    ws.L2b = "0"; // unapplied deducation & exclusions due to foreign earned income exclusion
+    ws.L2c = math.subToZero(ws.L2a, ws.L2b);
+    ws.L3 = math.add(ws.L1, ws.L2c);
+    ws.L4 = getIncomeTax(ws.L3, filingStatus);
+    ws.L5 = getIncomeTax(ws.L2c, filingStatus);
+    f1040.L16 = math.subToZero(ws.L4, ws.L5);
+
+  } else if (f1040sd && (math.gt(f1040sd.L18, "0") || math.gt(f1040sd.L19, "0"))) {
+    throw new Error(`NOT_IMPLEMENTED: Schedule D Tax Worksheet`);
+
+  } else if (f1040sd) {
+    throw new Error(`NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet`);
+
   } else {
-    log.warn(`idk what 2b from Foreign Earned Income Tax Worksheet should be, using 0`);
-    const L2c = math.add(f2555.L45, f2555.L50);
-    const L3 = math.add(f1040.L11, math.add());
-    const L4 = getIncomeTax(L3, filingStatus);
-    const L5 = getIncomeTax(L2c, filingStatus);
-    f1040.L16 = math.subToZero(L4, L5);
+    f1040.L16 = getIncomeTax(f1040.L11, filingStatus);
   }
 
   f1040.L18 = math.add(
@@ -152,8 +183,8 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
     f1040.L34 = math.sub(f1040.L33, f1040.L24);
     log.info(`Total tax refund: f1040.L34=${f1040.L34}`);
   } else if (math.lt(f1040.L33, f1040.L24)) {
-    f1040.L36 = math.sub(f1040.L24, f1040.L33);
-    log.info(`Total tax owed: f1040.L36=${f1040.L36}`);
+    f1040.L37 = math.sub(f1040.L24, f1040.L33);
+    log.info(`Total tax owed: f1040.L37=${f1040.L37}`);
   }
 
   ////////////////////////////////////////
@@ -170,10 +201,13 @@ export const f1040 = (forms: Forms, input: TaxInput, logger: Logger): Forms => {
 
   f1040.Occupation = personal.occupation;
   f1040.PIN = personal.pin;
-  f1040.SpouseOccupation = personal.spouseOccupation;
-  f1040.SpousePIN = personal.spousePin;
   f1040.Phone = personal.phone;
   f1040.Email = personal.email;
+
+  if (filingStatus === FilingStatuses.Joint) {
+    f1040.SpouseOccupation = personal.spouseOccupation;
+    f1040.SpousePIN = personal.spousePin;
+  }
 
   if (personal.preparer?.name) {
     f1040.PreparerName = personal.preparer.name;

@@ -24,13 +24,9 @@ export type FormArchive = {
   [TaxYears.USA20]: Forms_USA20,
 };
 
-export type Form = {
-  [field: string]: any; // TODO: string | boolean
-};
-
-export type Forms = {
-  [form: string]: any; // TODO: Array<Form> | Form
-};
+// Generic form types to use when we don't know the tax year
+export type Form = { [field: string]: any; };
+export type Forms = { [form: string]: any; };
 
 const multipageForms = ["f8949"];
 

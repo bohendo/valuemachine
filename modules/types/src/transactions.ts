@@ -46,7 +46,7 @@ export const Transfer = Type.Object({
   asset: Asset,
   category: TransferCategory,
   from: Account,
-  index: Type.Optional(Type.Number()), // TODO: require an index on all transfers
+  index: Type.Optional(Type.Number()), // we should require an index on all transfers
   to: Account,
 });
 export type Transfer = Static<typeof Transfer>;

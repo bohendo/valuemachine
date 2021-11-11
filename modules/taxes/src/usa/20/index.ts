@@ -31,19 +31,21 @@ export const getTaxReturn = (
   // Look for "Sequence Attachment No" in the top right corner of each form
   // `Na` should always come before `N` eg 12a before 12
 
-  /*seq no 34*/ forms = f2555(forms, input, taxRows, log);
   /*seq no 12a*/forms = f8949(forms, input, taxRows, log);
   /*seq no 12*/ forms = f1040sd(forms, input, taxRows, log);
+  // NOTE: 2555 depends on sd despite the higher seq no..
+  /*seq no 34*/ forms = f2555(forms, input, taxRows, log);
   /*seq no 9*/  forms = f1040sc(forms, input, taxRows, log);
   // NOTE: sse depends on sc despite the higher seq no..
   /*seq no 17*/ forms = f1040sse(forms, input, taxRows, log);
   /*seq no 8*/  forms = f1040sb(forms, input, taxRows, log);
   /*seq no 7*/  forms = f1040sa(forms, input, taxRows, log);
-  /*seq no 6*/  forms = f2210(forms, input, taxRows, log);
   /*seq no 3*/  forms = f1040s3(forms, input, taxRows, log);
   /*seq no 2*/  forms = f1040s2(forms, input, taxRows, log);
   /*seq no 1*/  forms = f1040s1(forms, input, taxRows, log);
-  /*seq no 0*/  forms = f1040(forms, input, log);
+  /*seq no 0*/  forms = f1040(forms, input, taxRows, log);
+  // NOTE: f2210 depends on f1040 despite the higher seq no..
+  /*seq no 6*/  forms = f2210(forms, input, taxRows, log);
 
   return forms;
 };

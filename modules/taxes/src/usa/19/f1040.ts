@@ -48,7 +48,6 @@ export const f1040 = (oldForms: Forms, logger: Logger): Forms => {
   if (!forms.f2555) {
     f1040.L12a = getIncomeTax(f1040.L11b, filingStatus);
   } else {
-    log.warn(`idk what 2b from Foreign Earned Income Tax Worksheet should be, using 0`);
     const L2c = math.add(f2555.L45, f2555.L50);
     const L3 = math.add(f1040.L11b, math.add());
     const L4 = getIncomeTax(L3, filingStatus);

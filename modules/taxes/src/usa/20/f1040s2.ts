@@ -1,9 +1,13 @@
 import {
-  Forms,
   Logger,
-  math,
   TaxInput,
   TaxRow,
+} from "@valuemachine/types";
+
+import {
+  Forms,
+  math,
+  strcat,
 } from "./utils";
 
 export const f1040s2 = (
@@ -14,10 +18,10 @@ export const f1040s2 = (
 ): Forms => {
   const log = logger.child({ module: "f1040s2" });
   const { f1040, f1040s2 } = forms;
-  const { personal } = input;
+  const personal = input.personal || {};
 
-  f1040s2.Name = `${personal?.firstName || ""} ${personal?.lastName || ""}`;
-  f1040s2.SSN = personal?.SSN;
+  f1040s2.Name = strcat([personal.firstName, personal.lastName]);
+  f1040s2.SSN = personal.SSN;
 
   ////////////////////////////////////////
   // Part I - Tax

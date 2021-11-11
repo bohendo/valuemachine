@@ -125,10 +125,8 @@ export const f8949 = [
   {"nickname":"P1L2h","fieldName":"topmostSubform[0].Page1[0].f1_119[0]"},
   {"nickname":"P2_Name","fieldName":"topmostSubform[0].Page2[0].f2_1[0]"},
   {"nickname":"P2_SSN","fieldName":"topmostSubform[0].Page2[0].f2_2[0]"},
-  {"nickname":"P2_C0_No","fieldName":"topmostSubform[0].Page2[0].c2_1[0]","checkmark":"1"},
-  {"nickname":"P2_C0_Yes","fieldName":"topmostSubform[0].Page2[0].c2_1[1]","checkmark":"2"},
-  {"nickname":"P2_CD","fieldName":"topmostSubform[0].Page2[0].c2_1[2]","checkmark":"3"},
-  {"nickname":"P2_CE","fieldName":"topmostSubform[0].Page2[0].c2_1[2]","checkmark":"3"},
+  {"nickname":"P2_CD","fieldName":"topmostSubform[0].Page2[0].c2_1[0]","checkmark":"1"},
+  {"nickname":"P2_CE","fieldName":"topmostSubform[0].Page2[0].c2_1[1]","checkmark":"2"},
   {"nickname":"P2_CF","fieldName":"topmostSubform[0].Page2[0].c2_1[2]","checkmark":"3"},
   {"nickname":"P2L1aR1","fieldName":"topmostSubform[0].Page2[0].Table_Line1[0].Row1[0].f2_3[0]"},
   {"nickname":"P2L1bR1","fieldName":"topmostSubform[0].Page2[0].Table_Line1[0].Row1[0].f2_4[0]"},
@@ -376,9 +374,9 @@ export interface F8949 {
   P1L2h?: string;
   P2_Name?: string;
   P2_SSN?: string;
-  P2_C0_No?: boolean;
-  P2_C0_Yes?: boolean;
   P2_CD?: boolean;
+  P2_CE?: boolean;
+  P2_CF?: boolean;
   P2L1aR1?: string;
   P2L1bR1?: string;
   P2L1cR1?: string;

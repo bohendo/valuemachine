@@ -3,12 +3,13 @@ import { getLogger, round } from "@valuemachine/utils";
 import axios from "axios";
 
 import { getPdftk } from "./pdftk";
-import { MappingArchive, TaxYear } from "./mappings";
+import { Forms, Form, MappingArchive, TaxYear } from "./mappings";
 
 const fillForm = async (
   taxYear: TaxYear,
   form: string,
-  data: any,
+  page: number,
+  data: Form,
   dir: string,
   libs: { fs: any; execFile: any; },
   logger?: Logger,
@@ -42,7 +43,7 @@ const fillForm = async (
   const cwd = process.cwd();
   const srcPath = cwd.endsWith("taxes") ? `${cwd}/forms/${taxYear}/${form}.pdf`
     : `${cwd}/node_modules/@valuemachine/taxes/forms/${taxYear}/${form}.pdf`;
-  const destPath = `${dir || "/tmp"}/${form}-${taxYear}.pdf`;
+  const destPath = `${dir || "/tmp"}/${form}-${taxYear}${page ? `-${page}` : ""}.pdf`;
   const res = await getPdftk(libs).fill(
     srcPath,
     destPath,
@@ -54,7 +55,7 @@ const fillForm = async (
 
 export const fillReturn = async (
   taxYear: TaxYear,
-  forms: any, // TODO: fix type
+  forms: Forms,
   dir: string,
   libs: { fs: any; execFile: any; },
   logger?: Logger,
@@ -66,10 +67,11 @@ export const fillReturn = async (
     if ("length" in fields) {
       let p = 1;
       for (const page of fields) {
-        log.info(`Filing ${taxYear} page ${p++} of ${form} with ${Object.keys(page).length} fields`);
+        log.info(`Filing ${taxYear} page ${p} of ${form} with ${Object.keys(page).length} fields`);
         pages.push(await fillForm(
           taxYear,
           form,
+          p++,
           page,
           "/tmp",
           libs,
@@ -81,6 +83,7 @@ export const fillReturn = async (
       pages.push(await fillForm(
         taxYear,
         form,
+        0,
         fields,
         "/tmp",
         libs,

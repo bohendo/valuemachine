@@ -75,7 +75,7 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
 
   f2555.L37 = "105900";
 
-  // TODO: deal w leap years
+  // do we need to deal w leap years?
   const L39 = math.round(math.div(f2555.L38, "365"), 3);
   f2555.L39_int = L39.split(".")[0];
   f2555.L39_dec = L39.split(".")[1];
@@ -95,12 +95,12 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
   f2555.L43 = math.add(f2555.L36, f2555.L42);
 
   if (f2555.L44 === "") {
-    log.warn(`Required but not implemented or provided: f2555.L44`);
+    log.warn(`NOT_IMPLEMENTED or provided: f2555.L44`);
   }
 
   f2555.L45 = math.sub(f2555.L43, f2555.L44);
 
-  // TODO: concat strings better
+  // we should probably concat strings better
   f1040s1.L8R2 += `Form 2555 (${f2555.L45})`;
   f1040s1.L8 = math.sub(f1040s1.L8, f2555.L45);
   f1040s1.L9 = math.round(math.add(

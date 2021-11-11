@@ -1,14 +1,33 @@
 import { Assets } from "@valuemachine/transactions";
-import { EventTypes } from "@valuemachine/types";
-import { getLogger, math } from "@valuemachine/utils";
+import { EventTypes, ExpenseTypes, IncomeTypes } from "@valuemachine/types";
+import { getLogger } from "@valuemachine/utils";
 import { expect } from "chai";
 
-import { getEmptyForms, TaxYears } from "../../mappings";
+import { TaxYears } from "../../mappings";
 
 import { getTaxReturn } from ".";
 
 const taxYear = TaxYears.USA20;
 const log = getLogger("warn", `Test${taxYear}Filers`);
+
+const travel = [{
+  enterDate: "2020-01-01",
+  leaveDate: "2020-12-01",
+  country: "IND",
+  usaIncomeEarned: "0",
+}];
+const income = {
+  date: "2020-01-01T00:00:00",
+  action: EventTypes.Income,
+  amount: "100",
+  asset: Assets.ETH,
+  price: "1000",
+  value: "100000",
+  receivePrice: "1000",
+  receiveDate: "2020-01-01T00:00:00",
+  capitalChange: "0",
+  tag: { incomeType: IncomeTypes.SelfEmployed },
+};
 
 describe(`${taxYear} Filers`, () => {
   it(`should include f1040 + schedules 1-3 by default `, async () => {
@@ -20,30 +39,35 @@ describe(`${taxYear} Filers`, () => {
   });
 
   it(`should include f2555 iff lots of travel outside the US was provided`, async () => {
-    const travel = [{
-      enterDate: "2020-01-01",
-      leaveDate: "2020-02-31",
-      country: "IND",
-      usaIncomeEarned: "0",
-    }];
-    const noF2555Return = getTaxReturn({ travel }, [], log);
-    log.info(`Tax return includes forms: ${Object.keys(noF2555Return)}`);
-    expect("f2555" in noF2555Return).to.be.false; // not enough time outside the US
-    travel[0].leaveDate = "2020-12-31";
-    const f2555Return = getTaxReturn({ travel }, [], log);
+    const f2555Return = getTaxReturn({ travel }, [income], log);
     log.info(`Tax return includes forms: ${Object.keys(f2555Return)}`);
     expect("f2555" in f2555Return).to.be.true;
     expect(f2555Return.f2555.L18b_R1).to.be.a("string");
+    log.info(f2555Return.f2555);
   });
 
-  it(`should include f1040sc iff business info is provided`, async () => {
-    const taxReturn = getTaxReturn({ business: { name: "Bo & Co", industry: "misc" } }, [], log);
+  it(`should include f1040sc & f1040sse iff there's enough self employment income`, async () => {
+    const taxReturn = getTaxReturn({ business: { name: "Bo & Co" } }, [income, {
+      date: "2020-02-01T00:00:00",
+      action: EventTypes.Expense,
+      amount: "1",
+      asset: Assets.ETH,
+      price: "1000",
+      value: "1000",
+      receivePrice: "1000",
+      receiveDate: "2020-01-01T00:00:00",
+      capitalChange: "0",
+      tag: { expenseType: ExpenseTypes.EquipmentRental },
+    }], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f1040sc" in taxReturn).to.be.true;
+    expect(taxReturn.f1040sc.L20a).to.equal("1000.0");
+    log.info(taxReturn.f1040sc);
   });
 
   it(`should include f8949 & f1040d iff there are >0 trades`, async () => {
-    const taxReturn = getTaxReturn({}, [{
+    const taxReturn = getTaxReturn({ travel }, [{
+      // Short-term trade
       date: "2020-12-01T00:00:00",
       action: EventTypes.Trade,
       amount: "10",
@@ -54,21 +78,48 @@ describe(`${taxYear} Filers`, () => {
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "5000",
       tag: {},
+    }, {
+      // Long-term trade
+      date: "2020-12-02T00:00:00",
+      action: EventTypes.Trade,
+      amount: "100",
+      asset: "GME",
+      price: "15",
+      value: "1500",
+      receivePrice: "5",
+      receiveDate: "2019-01-01T00:00:00",
+      capitalChange: "1000",
+      tag: {},
     }], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f8949" in taxReturn).to.be.true;
     expect("f1040sd" in taxReturn).to.be.true;
+    expect(taxReturn.f8949.length).to.equal(1);
+    log.info(taxReturn.f8949);
+    log.info(taxReturn.f1040sd);
+  });
+
+  it(`should include f2210 iff we have not paid enough taxes`, async () => {
+    const taxReturn = getTaxReturn({ travel }, [
+      { ...income, date: "2020-01-15", receiveDate: "2020-01-15", amount: "40", value: "40000" },
+      { ...income, date: "2020-04-15", receiveDate: "2020-04-15", amount: "25", value: "25000" },
+      { ...income, date: "2020-08-15", receiveDate: "2020-08-15", amount: "20", value: "20000" },
+      { ...income, date: "2020-12-15", receiveDate: "2020-12-15", amount: "15", value: "15000" },
+    ], log);
+    log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
+    expect("f2210" in taxReturn).to.be.true;
+    // log.info(taxReturn.f2210);
   });
 
   it(`should implement ${taxYear} math instructions correctly`, async () => {
     const taxRows = [{
       date: "2020-01-01T00:00:00",
       action: EventTypes.Income,
-      amount: "10",
+      amount: "100",
       asset: Assets.ETH,
-      price: "100",
-      value: "1000",
-      receivePrice: "100",
+      price: "1000",
+      value: "100000",
+      receivePrice: "1000",
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "0",
       tag: {},
@@ -96,8 +147,8 @@ describe(`${taxYear} Filers`, () => {
       tag: {},
     }];
     const input = {
+      travel,
       forms: {
-        ...getEmptyForms(taxYear),
         f1040: {
           FirstNameMI: "Bo",
           MarriedSeparate: true,
@@ -148,7 +199,6 @@ describe(`${taxYear} Filers`, () => {
     };
     const taxReturn = getTaxReturn(input, taxRows, log);
     expect(taxReturn).to.be.ok;
-    expect(taxReturn.f1040.L14).to.equal(math.add(taxReturn.f1040.L12, taxReturn.f1040.L13));
   });
 });
 

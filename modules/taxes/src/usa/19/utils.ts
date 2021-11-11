@@ -1,4 +1,9 @@
-import { getLogger } from "@valuemachine/utils";
+import {
+  DecString,
+  TaxActions,
+  TaxRow,
+} from "@valuemachine/types";
+import { getLogger, math } from "@valuemachine/utils";
 
 import { FormArchive, TaxYears } from "../../mappings";
 import { maxint, getGetIncomeTax } from "../utils";
@@ -20,3 +25,25 @@ export const getIncomeTax = getGetIncomeTax([
   { rate: "0.35", single: "510300", joint: "612350", head: "510300" },
   { rate: "0.37", single: maxint, joint: maxint, head: maxint },
 ]);
+
+export const processIncome = (
+  taxes: TaxRow[],
+  callback: (row: TaxRow, value: DecString) => void,
+): void => {
+  taxes
+    .filter(row => row.action === TaxActions.Income && math.gt(row.value, "0"))
+    .forEach((income: TaxRow): void => {
+      callback(income, math.mul(income.value, income.tag?.multiplier || "1"));
+    });
+};
+
+export const processExpenses = (
+  taxes: TaxRow[],
+  callback: (row: TaxRow, value: DecString) => void,
+): void => {
+  taxes
+    .filter(row => row.action === TaxActions.Expense && math.gt(row.value, "0"))
+    .forEach((expense: TaxRow): void => {
+      callback(expense, math.mul(expense.value, expense.tag?.multiplier || "1"));
+    });
+};

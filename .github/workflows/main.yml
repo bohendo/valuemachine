@@ -6,6 +6,12 @@ on:
       - main
 
 jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - run: make lint
+
   build:
     runs-on: ubuntu-20.04
     env:
@@ -16,23 +22,60 @@ jobs:
       - run: make pull-latest
       - run: make all
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-      - run: make push
+      - run: make push-commit
 
-  test:
+  test-utils:
     runs-on: ubuntu-20.04
     env:
       DOCKER_USER: ${{ secrets.DOCKER_USER }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-    needs: [build]
     steps:
       - uses: actions/checkout@v1
       - run: make pull-latest
       - run: make test-utils
+
+  test-transactions:
+    runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+    steps:
+      - uses: actions/checkout@v1
+      - run: make pull-latest
       - run: make test-transactions
+
+  test-core:
+    runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+    steps:
+      - uses: actions/checkout@v1
+      - run: make pull-latest
       - run: make test-core
+
+  test-taxes:
+    runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+    steps:
+      - uses: actions/checkout@v1
+      - run: make pull-latest
       - run: make test-taxes
+
+  test-package:
+    runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+    steps:
+      - uses: actions/checkout@v1
+      - run: make pull-latest
       - run: make run-example
-      - run: make lint
+
+  test-startup:
+    runs-on: ubuntu-20.04
+    env:
+      DOCKER_USER: ${{ secrets.DOCKER_USER }}
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v1
       - run: make pull-commit
       - run: make restart-prod
       - run: make dls

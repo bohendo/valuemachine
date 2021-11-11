@@ -6,6 +6,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import {
+  Asset,
   TaxActions,
   TaxRow,
   TxTags,
@@ -23,12 +24,14 @@ type TaxTableRowProps = {
   setTxTags: (val: TxTags) => void;
   txId: TxId;
   txTags: TxTags;
+  unit?: Asset;
 };
 export const TaxTableRow: React.FC<TaxTableRowProps> = ({
   row,
   setTxTags,
   txId,
   txTags,
+  unit,
 }: TaxTableRowProps) => {
   const [open, setOpen] = useState(false);
 
@@ -43,12 +46,12 @@ export const TaxTableRow: React.FC<TaxTableRowProps> = ({
         row.date.replace("T", " ").replace(".000Z", "")
       } </TableCell>
       <TableCell> {row.action} </TableCell>
-      <TableCell> {`${commify(row.amount)} ${row.asset}`} </TableCell>
-      <TableCell> {commify(row.price)} </TableCell>
-      <TableCell> {commify(row.value)} </TableCell>
+      <TableCell> {`${commify(row.amount, 6, unit)} ${row.asset}`} </TableCell>
+      <TableCell> {commify(row.price, 4, unit)} </TableCell>
+      <TableCell> {commify(row.value, 2, unit)} </TableCell>
       <TableCell sx={{ minWidth: "8em" }}> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
-      <TableCell> {commify(row.receivePrice)} </TableCell>
-      <TableCell> {commify(row.capitalChange)} </TableCell>
+      <TableCell> {commify(row.receivePrice, 4, unit)} </TableCell>
+      <TableCell> {commify(row.capitalChange, 2, unit)} </TableCell>
       <TableCell> {
         !row.action ? ""
         : row.action === TaxActions.Expense ? (row.tag.expenseType || "")

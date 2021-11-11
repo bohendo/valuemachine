@@ -114,12 +114,12 @@ export const f1040sd = (forms: Forms, _taxRows: TaxRow[], logger: Logger): Forms
   }
 
   if (next === "L18") {
-    log.warn("Required but not implemented: 28% Rate Gain Worksheet");
-    log.warn("Required but not implemented: Unrecaptured Section 1250 Gain Worksheet");
+    log.warn("NOT_IMPLEMENTED: 28% Rate Gain Worksheet");
+    log.warn("NOT_IMPLEMENTED: Unrecaptured Section 1250 Gain Worksheet");
     if (eq(f1040sd.L18, "0") && eq(f1040sd.L19, "0")) {
-      log.warn("Required but not implemented: Qualified Dividends and Capital Gain Tax Worksheet");
+      log.warn("NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet");
     } else {
-      log.warn("Required but not implemented: Schedule D Tax Worksheet");
+      log.warn("NOT_IMPLEMENTED: Schedule D Tax Worksheet");
     }
     next = "Done";
   }
@@ -136,7 +136,7 @@ export const f1040sd = (forms: Forms, _taxRows: TaxRow[], logger: Logger): Forms
   if (next === "L22") {
     if (!eq(f1040.L3a, "0")) {
       f1040sd.C22_Yes = true;
-      log.warn("Required but not implemented: Qualified Dividends and Capital Gain Tax Worksheet");
+      log.warn("NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet");
     } else {
       f1040sd.C22_No = true;
     }
