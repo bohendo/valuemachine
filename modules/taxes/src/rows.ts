@@ -80,7 +80,8 @@ export const getTaxRows = ({
             receivePrice: receivePrice,
             receiveDate: getDate(chunk.history[0].date),
             capitalChange: capitalChange,
-            tag, txId,
+            tag,
+            txId,
           };
         } else {
           return null;
@@ -103,7 +104,8 @@ export const getTaxRows = ({
           receivePrice: price,
           receiveDate: date,
           capitalChange: "0.00",
-          tag, txId,
+          tag,
+          txId,
         } as TaxRow;
       }));
 
@@ -122,7 +124,7 @@ export const getTaxRows = ({
           receivePrice = price;
           capitalChange = "0";
         }
-        // do we need to add tags based on the recipient of this expense?
+        // do we need to add tag based on the recipient of this expense?
         // eg if it's an expense to coinbase, then tag it as an exchange fee
         return {
           date: date,
@@ -134,7 +136,8 @@ export const getTaxRows = ({
           receivePrice: receivePrice,
           receiveDate,
           capitalChange,
-          tag, txId,
+          tag,
+          txId,
         } as TaxRow;
       }));
 
@@ -163,5 +166,4 @@ export const getTaxRows = ({
       row.action !== TaxActions.Trade || math.gt(row.capitalChange, "0.005")
     )
   );
-
 };

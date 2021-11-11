@@ -1,5 +1,6 @@
 import {
   ExpenseTypes,
+  ExpenseType,
   IncomeTypes,
   Logger,
   TaxActions,
@@ -11,7 +12,6 @@ import {
   Forms,
   getTotalValue,
   math,
-  processExpenses,
   strcat,
   thisYear,
 } from "./utils";
@@ -50,11 +50,7 @@ export const f1040sc = (
   f1040sc.LC = business.name;
   f1040sc.LD = business.eid;
   f1040sc.LE_Address = business.street;
-  f1040sc.LE_CityZip = `${
-    business.city ? `${business.city}, ` : ""
-  }${
-    business.state ? `${business.state} ` : ""
-  }${business.zip || ""}`;
+  f1040sc.LE_CityZip = strcat([business.city, business.state, business.zip], ", ");
 
   if (business.accountingMethod === "Cash") {
     f1040sc.C_F_Cash = true;
@@ -84,8 +80,6 @@ export const f1040sc = (
   ////////////////////////////////////////
   // Part I - Income
 
-  const pad = (str: string, n = 9): string => str.padStart(n, " ");
-
   f1040sc.L1 = seIncome;
   f1040sc.L3 = math.sub(
     f1040sc.L1, // total income
@@ -107,8 +101,52 @@ export const f1040sc = (
   ////////////////////////////////////////
   // Part II - Expenses
 
-  // We should prob accumulate & add exchange fees as a "Currency Conversion" expense to L48
-  /*
+  const getTotalExpenses = (expenseType: ExpenseType) =>
+    getTotalValue(taxRows.filter(thisYear), TaxActions.Expense, { expenseType });
+
+  f1040sc.L8   = getTotalExpenses(ExpenseTypes.Advertising);
+  f1040sc.L9   = getTotalExpenses(ExpenseTypes.Vehicle);
+  f1040sc.L10  = getTotalExpenses(ExpenseTypes.Commission);
+  f1040sc.L11  = getTotalExpenses(ExpenseTypes.Labor);
+  f1040sc.L12  = getTotalExpenses(ExpenseTypes.Depletion);
+  f1040sc.L13  = getTotalExpenses(ExpenseTypes.Depreciation);
+  f1040sc.L14  = getTotalExpenses(ExpenseTypes.EmployeeBenefits);
+  f1040sc.L15  = getTotalExpenses(ExpenseTypes.Insurance);
+  f1040sc.L16a = getTotalExpenses(ExpenseTypes.Mortgage);
+  f1040sc.L16b = getTotalExpenses(ExpenseTypes.Interest);
+  f1040sc.L17  = getTotalExpenses(ExpenseTypes.Legal);
+  f1040sc.L18  = getTotalExpenses(ExpenseTypes.Office);
+  f1040sc.L19  = getTotalExpenses(ExpenseTypes.Pension);
+  f1040sc.L20a = getTotalExpenses(ExpenseTypes.EquipmentRental);
+  f1040sc.L20b = getTotalExpenses(ExpenseTypes.PropertyRental);
+  f1040sc.L21  = getTotalExpenses(ExpenseTypes.Repairs);
+  f1040sc.L22  = getTotalExpenses(ExpenseTypes.Supplies);
+  f1040sc.L23  = getTotalExpenses(ExpenseTypes.Licenses);
+  f1040sc.L24a = getTotalExpenses(ExpenseTypes.Travel);
+  f1040sc.L24b = getTotalExpenses(ExpenseTypes.Meals);
+  f1040sc.L25  = getTotalExpenses(ExpenseTypes.Utilities);
+  f1040sc.L26  = getTotalExpenses(ExpenseTypes.Wages);
+
+  ////////////////////////////////////////
+  // Part V - Other Expenses
+
+  // Get the first row without any manually injected expenses
+  const otherRows = [1, 2, 3, 4, 5, 6, 7 ,8, 9];
+  let otherExpenseIndex = otherRows.reduce((res, i) => {
+    return res || (!f1040sc[`L48_Expense${i}`] && !f1040sc[`L48_Amount${i}`]) ? i : 0;
+  }, 0);
+
+  // Add a new other expense for every expense with type === Other
+  taxRows.filter(thisYear).filter(row => row.action === TaxActions.Expense).forEach(expense => {
+    const value = math.mul(expense.value, expense.tag.multiplier || "1");
+    if (expense.tag.expenseType === ExpenseTypes.Other) {
+      f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tag.description;
+      f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
+    }
+    otherExpenseIndex++;
+  });
+
+  /* We should accumulate & add exchange fees as a "Currency Conversion" expense to L48
   let exchangeFees = "0";
   // Process expenses
   if (math.gt(exchangeFees, "0")) {
@@ -118,97 +156,7 @@ export const f1040sc = (
   }
   */
 
-  const otherRows = [1, 2, 3, 4, 5, 6, 7 ,8, 9];
-  let otherExpenseIndex = otherRows.reduce((res, i) => {
-    return res || (!f1040sc[`L48_Expense${i}`] && !f1040sc[`L48_Amount${i}`]) ? i : 0;
-  }, 0);
-  processExpenses(taxRows.filter(thisYear), (expense: TaxRow, value: string): void => {
-    const message = `${expense.date.split("T")[0]} Expense of ${
-      pad(math.round(expense.amount), 8)
-    } ${pad(expense.asset, 4)} `;
-
-    if (!expense.tag.expenseType && expense.tag.description) {
-      log.info(`${message}: L48 ${expense.tag.description}`);
-      f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tag.description;
-      f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
-      f1040sc.L48 = math.add(f1040sc.L48, value);
-      otherExpenseIndex += 1;
-
-    } else if (expense.tag.expenseType === ExpenseTypes.Advertising) {
-      f1040sc.L8 = math.add(f1040sc.L8, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Vehicle) {
-      f1040sc.L9 = math.add(f1040sc.L9, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Commission) {
-      f1040sc.L10 = math.add(f1040sc.L10, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Labor) {
-      f1040sc.L11 = math.add(f1040sc.L11, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Depletion) {
-      f1040sc.L12 = math.add(f1040sc.L12, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Depreciation) {
-      f1040sc.L13 = math.add(f1040sc.L13, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.EmployeeBenefits) {
-      f1040sc.L14 = math.add(f1040sc.L14, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Insurance) {
-      f1040sc.L15 = math.add(f1040sc.L15, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Mortgage) {
-      f1040sc.L16a = math.add(f1040sc.L16a, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Interest) {
-      f1040sc.L16b = math.add(f1040sc.L16b, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Legal) {
-      f1040sc.L17 = math.add(f1040sc.L17, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Office) {
-      f1040sc.L18 = math.add(f1040sc.L18, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Pension) {
-      f1040sc.L19 = math.add(f1040sc.L19, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.EquipmentRental) {
-      f1040sc.L20a = math.add(f1040sc.L20a, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.PropertyRental) {
-      f1040sc.L20b = math.add(f1040sc.L20b, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Repairs) {
-      f1040sc.L21 = math.add(f1040sc.L21, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Supplies) {
-      f1040sc.L22 = math.add(f1040sc.L22, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Licenses) {
-      f1040sc.L23 = math.add(f1040sc.L23, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Travel) {
-      f1040sc.L24a = math.add(f1040sc.L24a, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Meals) {
-      f1040sc.L24b = math.add(f1040sc.L24b, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Utilities) {
-      f1040sc.L25 = math.add(f1040sc.L25, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Wages) {
-      f1040sc.L26 = math.add(f1040sc.L26, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    } else if (expense.tag.expenseType === ExpenseTypes.Other) {
-      f1040sc.L27a = math.add(f1040sc.L27a, value);
-      log.info(`${message}: ${expense.tag.expenseType}`);
-    }
-  });
-
-  ////////////////////////////////////////
-  // Part V - Other Expenses
-
+  // Add up all other expenses
   f1040sc.L48 = math.add(
     f1040sc.L48_Amount1,
     f1040sc.L48_Amount2,
@@ -221,6 +169,9 @@ export const f1040sc = (
     f1040sc.L48_Amount9,
   );
   f1040sc.L27a = f1040sc.L48;
+
+  ////////////////////////////////////////
+  // Resume Part II - Expenses
 
   f1040sc.L28 = math.add(
     f1040sc.L8, f1040sc.L9, f1040sc.L10, f1040sc.L11, f1040sc.L12,
@@ -247,7 +198,7 @@ export const f1040sc = (
   // Part IV - Vehicle Info
 
   // Warn if user info is required but not provided
-  if (f1040sc.L9 && !("f4562" in forms)) {
+  if (math.gt(f1040sc.L9, "0") && !("f4562" in forms)) {
     if (!f1040sc.L43_MM || !f1040sc.L43_DD || !f1040sc.L43_YY) {
       log.warn(`L43: Date is required but missing`);
     }

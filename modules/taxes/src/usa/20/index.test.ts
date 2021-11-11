@@ -1,5 +1,5 @@
 import { Assets } from "@valuemachine/transactions";
-import { EventTypes, IncomeTypes } from "@valuemachine/types";
+import { EventTypes, ExpenseTypes, IncomeTypes } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import { expect } from "chai";
 
@@ -46,9 +46,22 @@ describe(`${taxYear} Filers`, () => {
   });
 
   it(`should include f1040sc & f1040sse iff there's enough self employment income`, async () => {
-    const taxReturn = getTaxReturn({ business: { name: "Bo & Co" } }, [income], log);
+    const taxReturn = getTaxReturn({ business: { name: "Bo & Co" } }, [income, {
+      date: "2020-02-01T00:00:00",
+      action: EventTypes.Expense,
+      amount: "1",
+      asset: Assets.ETH,
+      price: "1000",
+      value: "1000",
+      receivePrice: "1000",
+      receiveDate: "2020-01-01T00:00:00",
+      capitalChange: "0",
+      tag: { expenseType: ExpenseTypes.EquipmentRental },
+    }], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f1040sc" in taxReturn).to.be.true;
+    expect(taxReturn.f1040sc.L20a).to.equal("1000.0");
+    log.info(taxReturn.f1040sc);
   });
 
   it(`should include f8949 & f1040d iff there are >0 trades`, async () => {
@@ -81,7 +94,8 @@ describe(`${taxYear} Filers`, () => {
     expect("f8949" in taxReturn).to.be.true;
     expect("f1040sd" in taxReturn).to.be.true;
     expect(taxReturn.f8949.length).to.equal(1);
-    // log.info(taxReturn);
+    log.info(taxReturn.f8949);
+    log.info(taxReturn.f1040sd);
   });
 
   it(`should implement ${taxYear} math instructions correctly`, async () => {

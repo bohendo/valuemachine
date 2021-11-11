@@ -96,7 +96,6 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
     if (!year) return;
     const taxRows = getTaxRows({ addressBook, guard, prices, vm, txTags });
-    console.log(`Fetching tax return for ${year} w ${Object.keys(taxInput).length} forms`);
     const forms = getTaxReturn(year, taxInput, taxRows);
     return new Promise((res, rej) => {
       axios({

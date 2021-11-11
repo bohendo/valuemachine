@@ -47,16 +47,16 @@ export const after = (d1: DateString, d2: DateString): boolean => toTime(d1) > t
 export const isBusinessExpense = (row: TaxRow): boolean =>
   row.action === TaxActions.Expense
     && row.tag
-    && Object.keys(BusinessExpenseTypes).some(t => row.tag.expenseType = t);
+    && Object.keys(BusinessExpenseTypes).some(t => row.tag.expenseType === t);
 
 export const getTotalValue = (rows: TaxRow[], filterAction?: TaxAction, filterTag?: Tag) =>
-  rows.filter(row => !filterAction || filterAction === row.action).filter(row =>
+  rows.filter(row =>
+    !filterAction || filterAction === row.action
+  ).filter(row =>
     Object.keys(filterTag || {}).every(tagType => row.tag[tagType] === filterTag[tagType])
-  ).reduce((tot, row) =>
-    math.add(tot, row.tag.multiplier
-      ? math.mul(row.value, row.tag.multiplier)
-      : row.value
-    ), "0");
+  ).reduce((tot, row) => (
+    math.add(tot, math.mul(row.value, row.tag.multiplier || "1"))
+  ), "0");
 
 // ISO => "MM, DD, YY"
 export const toFormDate = (date: DateString): string => {
