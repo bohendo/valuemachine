@@ -3,29 +3,13 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import { Apps, Methods, Sources } from "@valuemachine/transactions";
-import { Transaction, TransferCategories } from "@valuemachine/types";
-import { getTxIdError, getTransactionError } from "@valuemachine/utils";
+import { Transaction } from "@valuemachine/types";
+import { getBlankTransaction, getTxIdError, getTransactionError } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { SelectOne, TextInput, DateTimeInput } from "../utils";
 
 import { TransferEditor } from "./TransferEditor";
-
-const getEmptyTransaction = (): Transaction => JSON.parse(JSON.stringify({
-  apps: [],
-  date: "",
-  method: Methods.Unknown,
-  sources: [],
-  tag: {},
-  transfers: [{
-    amount: "",
-    asset: "",
-    category: TransferCategories.Noop,
-    from: "",
-    to: "",
-  }],
-  uuid: "",
-}));
 
 type TransactionEditorProps = {
   tx?: Partial<Transaction>;
@@ -35,7 +19,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
   tx,
   setTx,
 }: TransactionEditorProps) => {
-  const [newTx, setNewTx] = useState(getEmptyTransaction());
+  const [newTx, setNewTx] = useState(getBlankTransaction());
   const [modified, setModified] = useState(false);
   const [error, setError] = useState("");
 
@@ -89,14 +73,14 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
         helperText="When did this tx happen?"
         label="Transation DateTime"
         setDateTime={date => setNewTx({ ...newTx, date })}
-        dateTime={newTx?.date}
+        dateTime={newTx?.date || ""}
       />
 
       <Grid item md={2}>
         <SelectOne
           label="App"
           choices={Object.keys(Apps)}
-          selection={newTx?.apps?.[0]}
+          selection={newTx?.apps?.[0] || ""}
           setSelection={val => setNewTx({ ...newTx, apps: [val] })}
         />
       </Grid>
@@ -105,7 +89,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
         <SelectOne
           label="Source"
           choices={Object.keys(Sources)}
-          selection={newTx?.sources?.[0]}
+          selection={newTx?.sources?.[0] || ""}
           setSelection={val => setNewTx({ ...newTx, sources: [val] })}
         />
       </Grid>
@@ -114,7 +98,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
         <SelectOne
           label="Method"
           choices={Object.keys(Methods)}
-          selection={newTx?.method}
+          selection={newTx?.method || ""}
           setSelection={val => setNewTx({ ...newTx, method: val })}
         />
       </Grid>
@@ -124,7 +108,7 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
           label="Transaction ID"
           helperText={"Give this tx a universally unique ID"}
           setText={uuid => setNewTx({ ...newTx, uuid })}
-          text={newTx?.uuid}
+          text={newTx?.uuid || ""}
           getError={getTxIdError}
         />
       </Grid>

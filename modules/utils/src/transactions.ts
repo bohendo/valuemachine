@@ -15,6 +15,7 @@ export const getBlankTransaction = (): Transaction => JSON.parse(JSON.stringify(
   index: 0,
   method: "",
   sources: [],
+  tag: {},
   transfers: [{
     amount: "",
     asset: "",

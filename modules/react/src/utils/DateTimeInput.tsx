@@ -20,7 +20,7 @@ export const DateTimeInput: React.FC<DateTimeInputProps> = ({
 
   useEffect(() => {
     if (!dateTime) return;
-    setDisplay(dateTime);
+    setDisplay(dateTime.replace("T", " ").replace(/(.000)?Z/, ""));
   }, [dateTime]);
 
   const slugify = str =>
