@@ -1,6 +1,7 @@
 import {
   FilingStatuses,
   Logger,
+  TaxActions,
   TaxInput,
   TaxRow,
 } from "@valuemachine/types";
@@ -8,6 +9,9 @@ import {
 import {
   Forms,
   math,
+  getRowTotal,
+  isLongTermTrade,
+  lastYear,
   strcat,
   thisYear,
 } from "./utils";
@@ -40,22 +44,69 @@ export const f1040sd = (
     const shortRow = f8949.P1_CA ? "1b" : f8949.P1_CB ? "2" : f8949.P1_CC ? "3" : "";
     if (!shortRow) return;
     for (const col of ["d", "e", "g", "h"]) {
-      f1040sd[`L${shortRow}_${col}`] = math.add(
-        f1040sd[`L${shortRow}_${col}`],
+      f1040sd[`L${shortRow}${col}`] = math.add(
+        f1040sd[`L${shortRow}${col}`],
         f8949[`P1L2${col}`],
       );
     }
     const longRow = f8949.P2_CD ? "8b" : f8949.P2_CE ? "9" : f8949.P2_CF ? "10" : "";
     if (!longRow) return;
     for (const col of ["d", "e", "g", "h"]) {
-      f1040sd[`L${longRow}_${col}`] = math.add(
-        f1040sd[`L${longRow}_${col}`],
+      f1040sd[`L${longRow}${col}`] = math.add(
+        f1040sd[`L${longRow}${col}`],
         f8949[`P2L2${col}`],
       );
     }
   });
 
+  ////////////////////////////////////////
+  // Double check Parts I & II
+
+  let sumTrades = fn => getRowTotal(
+    taxRows.filter(thisYear),
+    TaxActions.Trade,
+    {},
+    row => fn(row),
+  );
+
+  const shortTermProceeds = sumTrades(row => isLongTermTrade(row) ? "0" : row.value);
+  if (!math.eq(shortTermProceeds, f1040sd.L3d))
+    throw new Error(`DOUBLE_CHECK_FAILED: f1040sd.L3d=${f1040sd.L3d} !== ${shortTermProceeds}`);
+
+  const shortTermCost = sumTrades(row =>
+    isLongTermTrade(row) ? "0" : math.mul(row.amount, row.receivePrice)
+  );
+  if (!math.eq(shortTermCost, f1040sd.L3e))
+    throw new Error(`DOUBLE_CHECK_FAILED: f1040sd.L3e=${f1040sd.L3e} !== ${shortTermCost}`);
+
+  const shortTermChange = sumTrades(row => isLongTermTrade(row) ? "0" : row.capitalChange);
+  if (!math.eq(shortTermChange, f1040sd.L3h))
+    throw new Error(`DOUBLE_CHECK_FAILED: f1040sd.L3h=${f1040sd.L3h} !== ${shortTermChange}`);
+
+  const longTermProceeds = sumTrades(row => !isLongTermTrade(row) ? "0" : row.value);
+  if (!math.eq(longTermProceeds, f1040sd.L10d))
+    throw new Error(`DOUBLE_CHECK_FAILED: f1040sd.L10d=${f1040sd.L10d} !== ${longTermProceeds}`);
+
+  const longTermCost = sumTrades(row =>
+    !isLongTermTrade(row) ? "0" : math.mul(row.amount, row.receivePrice)
+  );
+  if (!math.eq(longTermCost, f1040sd.L10e))
+    throw new Error(`DOUBLE_CHECK_FAILED: f1040sd.L10e=${f1040sd.L10e} !== ${longTermCost}`);
+
+  const longTermChange = sumTrades(row => !isLongTermTrade(row) ? "0" : row.capitalChange);
+  if (!math.eq(longTermChange, f1040sd.L10h))
+    throw new Error(`DOUBLE_CHECK_FAILED: f1040sd.L10h=${f1040sd.L10h} !== ${longTermChange}`);
+
+  ////////////////////////////////////////
   // Capital Loss Carryover Worksheet
+
+  sumTrades = fn => getRowTotal(
+    taxRows.filter(lastYear),
+    TaxActions.Trade,
+    {},
+    row => fn(row),
+  );
+
   const ws = {} as any;
   ws.L1 = "0"; // TODO total taxable income from 2019 f1040.L11b
   ws.L2 = math.abs("-1500"); // TODO capital loss from 2019 f1040sd.L21
@@ -79,25 +130,25 @@ export const f1040sd = (
   log.info(`Long term capital loss carryover from 2019: f1040sd.L14=${f1040sd.L14}`);
 
   f1040sd.L7 = math.add(
-    f1040sd.L1a_h, // simple no-f8949 gain/loss
-    f1040sd.L1b_h, // type-A gain/loss
-    f1040sd.L2_h,  // type-B gain/loss
-    f1040sd.L3_h,  // type-C gain/loss
-    f1040sd.L4,    // short term gain/loss from f6252, f4684, f6781, f8824
-    f1040sd.L5,    // short term gain/loss from f1065 schedule K-1
+    f1040sd.L1ah, // simple no-f8949 gain/loss
+    f1040sd.L1bh, // type-A gain/loss
+    f1040sd.L2h,  // type-B gain/loss
+    f1040sd.L3h,  // type-C gain/loss
+    f1040sd.L4,    // gain/loss from f6252, f4684, f6781, f8824
+    f1040sd.L5,    // gain/loss from f1065 schedule K-1
     f1040sd.L6,    // capital loss carryover from last year
   );
   log.info(`Net short-term capital gain/loss: ${f1040sd.L7}`);
 
   f1040sd.L15 = math.add(
-    f1040sd.L8a_h, // simple no-f8949 gain/loss
-    f1040sd.L8b_h, // type-D gain/loss
-    f1040sd.L9_h,  // type-E gain/loss
-    f1040sd.L10_h, // type-F gain/loss
-    f1040sd.L11,   // long term gain/loss from f4797, f2439, f6252, f4684, f6781, f8824
-    f1040sd.L12,   // long term gain/loss from f1065 schedule K-1
+    f1040sd.L8ah, // simple no-f8949 gain/loss
+    f1040sd.L8bh, // type-D gain/loss
+    f1040sd.L9h,  // type-E gain/loss
+    f1040sd.L10h, // type-F gain/loss
+    f1040sd.L11,   // gain/loss from f4797, f2439, f6252, f4684, f6781, f8824
+    f1040sd.L12,   // gain/loss from f1065 schedule K-1
     f1040sd.L13,   // gain distributions
-    f1040sd.L14,   // long term loss carryover from last year
+    f1040sd.L14,   // loss carryover from last year
   );
   log.info(`Net long-term capital gain/loss: ${f1040sd.L15}`);
 

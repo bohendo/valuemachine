@@ -4,13 +4,10 @@ import {
   BusinessExpenseTypes,
   DateString,
   DecString,
-  ExpenseType,
   FilingStatus,
   FilingStatuses,
-  IncomeType,
   IntString,
   Tag,
-  TaxAction,
   TaxActions,
   TaxRow,
 } from "@valuemachine/types";
@@ -39,14 +36,28 @@ export const isBusinessExpense = (row: TaxRow): boolean =>
     && row.tag
     && Object.keys(BusinessExpenseTypes).some(t => row.tag.expenseType === t);
 
-export const getTotalValue = (rows: TaxRow[], filterAction?: TaxAction, filterTag?: Tag) =>
+export const isLongTermTrade = (row: TaxRow): boolean =>
+  toTime(row.date) - toTime(row.receiveDate) > msPerYear;
+
+export const isShortTermTrade = (row: TaxRow): boolean =>
+  toTime(row.date) - toTime(row.receiveDate) > msPerYear;
+
+export const getRowTotal = (
+  rows: TaxRow[],
+  filterAction: string,
+  filterTag: Tag,
+  mapRow: (row) => DecString,
+) => 
   rows.filter(row =>
     !filterAction || filterAction === row.action
   ).filter(row =>
     Object.keys(filterTag || {}).every(tagType => row.tag[tagType] === filterTag[tagType])
   ).reduce((tot, row) => (
-    math.add(tot, math.mul(row.value, row.tag.multiplier || "1"))
+    math.add(tot, math.mul(mapRow(row), row.tag.multiplier || "1"))
   ), "0");
+
+export const getTotalValue = (rows: TaxRow[], filterAction?: string, filterTag?: Tag) =>
+  getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);
 
 // ISO => "MM, DD, YY"
 export const toFormDate = (date: DateString): string => {
