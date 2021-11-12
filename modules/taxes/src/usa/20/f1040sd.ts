@@ -110,11 +110,51 @@ export const f1040sd = (
     row => fn(row),
   );
 
-  ws.L1 = "0"; // TODO total taxable income from 2019 f1040.L11b
-  ws.L2 = math.abs(sumTrades(row => math.lt(row.capitalChange, "0"))); // total capital loss from 2019 f1040sd.L21
+  const sumIncome = incomeType => getRowTotal(
+    taxRows.filter(lastYear),
+    TaxActions.Income,
+    { incomeType },
+  );
+
+  // TODO total taxable income from 2019 f1040.L11b
+  ws.L1 = math.sub(
+    math.add(
+      sumIncome(IncomeTypes.Wage),
+      sumIncome(IncomeTypes.Interest),
+      sumIncome(IncomeTypes.Dividend),
+      sumIncome(IncomeTypes.IRA),
+      sumIncome(IncomeTypes.Pension),
+      sumIncome(IncomeTypes.SocialSecurity),
+      sumTrades(row => row.capitalChange), // need to cut it off at -1500/-3000 a la f1040sd.L21
+
+      // other income from f1040s1 L9,
+      sumIncome(IncomeTypes.TaxCredit),
+      sumIncome(IncomeTypes.Alimony),
+      math.subToZero(
+        sumIncome(IncomeTypes.Business),
+        getRowTotal(taxRows.filter(lastYear).filter(isBusinessExpense)),
+      ),
+      // income from f4797
+      // income from f1040se
+      // income from f1040sf
+      sumIncome(IncomeTypes.Unemployment),
+      sumIncome(IncomeTypes.Prize),
+      sumIncome(IncomeTypes.Airdrop),
+      // other income from prizes, airdrops, etc
+    ),
+    math.add(
+      // adjustments from f1040s1 L22
+      // standard deduction
+      // qualified business income deduction
+    ),
+  );
+
+  // total capital loss from 2019 f1040sd.L21
+  ws.L2 = math.abs(sumTrades(row => math.lt(row.capitalChange, "0")));
   ws.L3 = math.add(ws.L1, ws.L2);
   if (math.lt(ws.L3, "0")) ws.L3 = "0";
-  ws.L4 = math.min(ws.L2, ws.L3); // instructions say smaller of L2 & L3b.. where's L3b tho?
+  // instructions say smaller of L2 & L3b.. where's L3b tho?
+  ws.L4 = math.min(ws.L2, ws.L3);
   // 2019 short term loss from f1040sd.L7
   ws.L5 = sumTrades(row =>
     isLongTermTrade ? "0" : math.lt(row.capitalChange, "0") ? row.capitalChange : "0"
