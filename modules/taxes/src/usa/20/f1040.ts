@@ -1,5 +1,7 @@
 import {
+  DecString,
   FilingStatuses,
+  IncomeType,
   IncomeTypes,
   Logger,
   TaxActions,
@@ -57,7 +59,17 @@ export const f1040 = (
   ////////////////////////////////////////
   // Taxable Income
 
-  if ("f1040sd" in forms) {
+  const getTotalIncome = (incomeType: IncomeType): DecString =>
+    getTotalValue(taxRows.filter(thisYear), TaxActions.Income, { incomeType });
+
+  f1040.L1 = getTotalIncome(IncomeTypes.Wage);
+  f1040.L2b = getTotalIncome(IncomeTypes.Interest);
+  f1040.L3b = getTotalIncome(IncomeTypes.Dividend);
+  f1040.L4b = getTotalIncome(IncomeTypes.IRA);
+  f1040.L5b = getTotalIncome(IncomeTypes.Pension);
+  f1040.L6b = getTotalIncome(IncomeTypes.SocialSecurity);
+
+  if (!("f1040sd" in forms)) {
     f1040.C7 = true;
   }
 

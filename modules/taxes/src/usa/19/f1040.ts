@@ -1,11 +1,13 @@
 import {
   FilingStatuses,
+  Logger,
+} from "@valuemachine/types";
+
+import {
   Forms,
   getIncomeTax,
-  Logger,
   math,
 } from "./utils";
-
 
 export const f1040 = (oldForms: Forms, logger: Logger): Forms => {
   const log = logger.child({ module: "f1040" });

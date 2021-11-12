@@ -1,3 +1,4 @@
+import { TaxInput, TaxRow } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 
 import { getEmptyForms, TaxYears } from "../../mappings";
@@ -14,7 +15,7 @@ import { f1040sd } from "./f1040sd";
 import { f8949 } from "./f8949";
 import { f1040sse } from "./f1040sse";
 import { f2555 } from "./f2555";
-import { Forms, TaxInput, TaxRow } from "./utils";
+import { Forms } from "./utils";
 
 const taxYear = TaxYears.USA20;
 const logger = getLogger("info", taxYear);

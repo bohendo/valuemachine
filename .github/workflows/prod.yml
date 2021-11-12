@@ -53,4 +53,4 @@ jobs:
       - run: make pull-commit
       - run: make push-semver
       - run: docker build --tag ssh-action ops/ssh-action
-      - run: docker run --env=GIT_BRANCH=prod --env=GIT_PROJECT_NAME=valuemachine --env=GIT_REMOTE=origin --env=GIT_REPOSITORY_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git ssh-action $SERVER_URL $SSH_KEY 'make pull; make restart-prod;'
+      - run: docker run --env=GIT_BRANCH=prod --env=GIT_PROJECT_NAME=valuemachine --env=GIT_REMOTE=origin --env=GIT_REPOSITORY_URL=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git ssh-action $SERVER_URL $SSH_KEY 'make pull-commit; make restart-prod;'

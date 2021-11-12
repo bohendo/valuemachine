@@ -68,20 +68,23 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
       console.warn(`There were no known taxable events in ${taxYear}`);
       return;
     }
-    const output = json2csv(
-      taxes.filter(row => {
-        const time = new Date(row.date).getTime();
-        return time < taxYearBoundaries[0] || time > taxYearBoundaries[1];
-      }).map(row => ({
-        ...row,
-        amount: math.round(row.amount, 6),
-        value: math.round(row.value, 2),
-        price: math.round(row.price, 4),
-        receivePrice: math.round(row.receivePrice, 4),
-        capitalChange: math.round(row.capitalChange, 2),
-      })),
-      Object.keys(taxes?.[0] || {}),
-    );
+    const csvData = taxes.filter(row => {
+      const time = new Date(row.date).getTime();
+      return taxYear === allTaxYears || (
+        time <= taxYearBoundaries[0] && time >= taxYearBoundaries[1]
+      );
+    }).map(row => ({
+      ...row,
+      amount: math.round(row.amount, 6),
+      value: math.round(row.value, 2),
+      price: math.round(row.price, 4),
+      receivePrice: math.round(row.receivePrice, 4),
+      capitalChange: math.round(row.capitalChange, 2),
+      tag: JSON.stringify(row.tag),
+    }));
+    const headers = Object.keys(taxes?.[0] || {});
+    console.log(`Exporting csv data w headers: ${headers}`, csvData);
+    const output = json2csv(csvData, headers);
     const name = `${guard}-taxes.csv`;
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
@@ -133,7 +136,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
         <Grid item xs={12} sm={4} sx={{ px: 1, py: 2, maxWidth: "16em" }}>
           <SelectOne
             choices={taxYears}
-            defaultSelection={"all"}
+            defaultSelection={allTaxYears}
             label="Tax Year"
             selection={taxYear}
             setSelection={setTaxYear}

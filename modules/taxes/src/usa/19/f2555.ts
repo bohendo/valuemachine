@@ -1,10 +1,13 @@
 import {
-  Forms,
   Logger,
+  TaxRow,
+} from "@valuemachine/types";
+
+import {
+  Forms,
   math,
   processExpenses,
   processIncome,
-  TaxRow,
 } from "./utils";
 
 export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {

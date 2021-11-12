@@ -57,8 +57,8 @@ export const f1040sd = (
 
   // Capital Loss Carryover Worksheet
   const ws = {} as any;
-  ws.L1 = "0"; // TODO 2019 total taxable income from f1040.L11b 
-  ws.L2 = math.abs("-1500"); // TODO 2019 capital loss from f1040sd.L21
+  ws.L1 = "0"; // TODO total taxable income from 2019 f1040.L11b
+  ws.L2 = math.abs("-1500"); // TODO capital loss from 2019 f1040sd.L21
   ws.L3 = math.add(ws.L1, ws.L2);
   if (math.lt(ws.L3, "0")) ws.L3 = "0";
   ws.L4 = math.min(ws.L2, ws.L3); // instructions say smaller of L2 & L3b.. where's L3b tho?
