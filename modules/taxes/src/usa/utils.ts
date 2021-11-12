@@ -44,16 +44,19 @@ export const isShortTermTrade = (row: TaxRow): boolean =>
 
 export const getRowTotal = (
   rows: TaxRow[],
-  filterAction: string,
-  filterTag: Tag,
-  mapRow: (row) => DecString,
+  filterAction?: string,
+  filterTag?: Tag,
+  mapRow?: (row) => DecString,
 ) => 
   rows.filter(row =>
     !filterAction || filterAction === row.action
   ).filter(row =>
     Object.keys(filterTag || {}).every(tagType => row.tag[tagType] === filterTag[tagType])
   ).reduce((tot, row) => (
-    math.add(tot, math.mul(mapRow(row), row.tag.multiplier || "1"))
+    math.add(tot, math.mul(
+      mapRow ? mapRow(row) : row.value,
+      row.tag.multiplier || "1",
+    ))
   ), "0");
 
 export const getTotalValue = (rows: TaxRow[], filterAction?: string, filterTag?: Tag) =>

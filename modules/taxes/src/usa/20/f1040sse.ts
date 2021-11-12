@@ -27,7 +27,7 @@ export const f1040sse = (
   const seIncome = getTotalValue(
     taxRows.filter(thisYear),
     TaxActions.Income,
-    { incomeType: IncomeTypes.SelfEmployed },
+    { incomeType: IncomeTypes.Business },
   );
 
   // If no se income, then omit this form
@@ -135,7 +135,7 @@ export const f1040sse = (
     f1040sse.L18 = getTotalValue(
       taxRows.filter(marToDec),
       TaxActions.Income,
-      { incomeType: IncomeTypes.SelfEmployed },
+      { incomeType: IncomeTypes.Business },
     );
     f1040sse.L19 = math.gt(f1040sse.L18, "0") ? math.mul(f1040sse.L18, "0.9235") : f1040sse.L18;
     // instructions say x0.775 is good: https://www.irs.gov/pub/irs-pdf/i1040sse.pdf#page=6

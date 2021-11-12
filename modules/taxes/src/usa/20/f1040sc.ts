@@ -27,14 +27,14 @@ export const f1040sc = (
   const business = input.business || {};
   const personal = input.personal || {};
 
-  const seIncome = getTotalValue(
+  const businessIncome = getTotalValue(
     taxRows.filter(thisYear),
     TaxActions.Income,
-    { incomeType: IncomeTypes.SelfEmployed },
+    { incomeType: IncomeTypes.Business },
   );
 
   // If no self-employment income, then omit this form
-  if (!math.gt(seIncome, "0")) {
+  if (!math.gt(businessIncome, "0")) {
     delete forms.f1040sc;
     return forms;
   }
@@ -80,7 +80,7 @@ export const f1040sc = (
   ////////////////////////////////////////
   // Part I - Income
 
-  f1040sc.L1 = seIncome;
+  f1040sc.L1 = businessIncome;
   f1040sc.L3 = math.sub(
     f1040sc.L1, // total income
     f1040sc.L2, // returns & allowances

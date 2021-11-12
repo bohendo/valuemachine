@@ -124,7 +124,7 @@ export const f2210 = (
 
   if (!f2210.CA && !f2210.CB && !f2210.CC && !f2210.CD && !f2210.CE) {
     f2210.CC = true;
-    log.warn(`Assuming that our penalty would be lower if properly calculated...`);
+    log.info(`Assuming that our penalty would be lower if properly calculated...`);
   }
 
   if (math.gt(f2210.L9, f2210.L6)) {
@@ -172,12 +172,12 @@ export const f2210 = (
     getTotalValue(
       taxRows.filter(marToDec),
       TaxActions.Income,
-      { incomeType: IncomeTypes.SelfEmployed },
+      { incomeType: IncomeTypes.Business },
     ),
     getTotalValue(
       taxRows.filter(thisYear),
       TaxActions.Income,
-      { incomeType: IncomeTypes.SelfEmployed },
+      { incomeType: IncomeTypes.Business },
     ),
   );
   log.info(`Proportion of se income earned from Mar27-Dec31: ${P.substring(0, 5)}%`);
@@ -222,7 +222,7 @@ export const f2210 = (
     const seIncome = getTotalValue(
       rowsInRange,
       TaxActions.Income,
-      { incomeType: IncomeTypes.SelfEmployed },
+      { incomeType: IncomeTypes.Business },
     );
 
     const businessExpenses = getTotalValue(

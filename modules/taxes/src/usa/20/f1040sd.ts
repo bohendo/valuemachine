@@ -1,5 +1,6 @@
 import {
   FilingStatuses,
+  IncomeTypes,
   Logger,
   TaxActions,
   TaxInput,
@@ -8,10 +9,11 @@ import {
 
 import {
   Forms,
-  math,
   getRowTotal,
+  isBusinessExpense,
   isLongTermTrade,
   lastYear,
+  math,
   strcat,
   thisYear,
 } from "./utils";
