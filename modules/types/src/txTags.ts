@@ -13,7 +13,14 @@ export const IncomeTypes = {
   Church: "Church",
   Prize: "Prize",
   SelfEmployed: "SelfEmployed",
+  Business: "Business",
   Wage: "Wage",
+  IRA: "IRA",
+  Pension: "Pension",
+  SocialSecurity: "SocialSecurity",
+  TaxCredit: "TaxCredit",
+  Unemployment: "Unemployment",
+  Alimony: "Alimony",
 } as const;
 export const IncomeType = Type.Enum(IncomeTypes); // NOT Extensible at run-time
 export type IncomeType = Static<typeof IncomeType>;
@@ -42,7 +49,6 @@ export const BusinessExpenseTypes = {
   Meals: "Meals", // f1040sc.L24b
   Utilities: "Utilities", // f1040sc.L25
   Wages: "Wages", // f1040sc.L26
-  Other: "Other", // f1040sc.L27a
 } as const;
 export const BusinessExpenseType = Type.Enum(BusinessExpenseTypes); // NOT Extensible at run-time
 export type BusinessExpenseType = Static<typeof BusinessExpenseType>;
@@ -51,6 +57,7 @@ export const ExpenseTypes = {
   ...BusinessExpenseTypes,
   Tax: "Tax",
   Fee: "Fee",
+  Business: "Business", // f1040sc.L48
   Personal: "Personal",
 } as const;
 export const ExpenseType = Type.Enum(ExpenseTypes); // NOT Extensible at run-time

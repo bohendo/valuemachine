@@ -1,4 +1,4 @@
-import { TaxInput } from "@valuemachine/types";
+import { TaxInput, TaxRow } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 
 import { getEmptyForms, TaxYears } from "../../mappings";
@@ -14,7 +14,7 @@ import { f2210 } from "./f2210";
 import { f2555 } from "./f2555";
 import { f8889 } from "./f8889";
 import { f8949 } from "./f8949";
-import { Forms, TaxRow } from "./utils";
+import { Forms } from "./utils";
 
 const taxYear = TaxYears.USA19;
 const logger = getLogger("info", taxYear);

@@ -1,8 +1,4 @@
-import {
-  DecString,
-  TaxActions,
-  TaxRow,
-} from "@valuemachine/types";
+import { DecString, TaxActions, TaxRow } from "@valuemachine/types";
 import { getLogger, math } from "@valuemachine/utils";
 
 import { FormArchive, TaxYears } from "../../mappings";

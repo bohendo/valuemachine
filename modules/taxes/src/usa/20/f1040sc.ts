@@ -139,7 +139,7 @@ export const f1040sc = (
   // Add a new other expense for every expense with type === Other
   taxRows.filter(thisYear).filter(row => row.action === TaxActions.Expense).forEach(expense => {
     const value = math.mul(expense.value, expense.tag.multiplier || "1");
-    if (expense.tag.expenseType === ExpenseTypes.Other) {
+    if (expense.tag.expenseType === ExpenseTypes.Business) {
       f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tag.description;
       f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
     }

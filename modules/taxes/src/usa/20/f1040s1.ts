@@ -30,22 +30,24 @@ export const f1040s1 = (
   ////////////////////////////////////////
   // Part I - Additional Income
 
-  // Prize money won from hackathons, airdrops, etc can go here I guess
-  const prizeMoney = getTotalValue(
+  const getTotalIncome = incomeType => getTotalValue(
     taxRows.filter(thisYear),
     TaxActions.Income,
-    { incomeType: IncomeTypes.Prize },
+    { incomeType },
   );
+
+  f1040s1.L1 = getTotalIncome(IncomeTypes.TaxCredit);
+  f1040s1.L2a = getTotalIncome(IncomeTypes.Alimony);
+  f1040s1.L7 = getTotalIncome(IncomeTypes.Unemployment);
+
+  // Prize money won from hackathons, airdrops, etc can go here I guess
+  const prizeMoney = getTotalIncome(IncomeTypes.Prize);
   if (math.gt(prizeMoney, "0")) {
     log.info(`Earned ${prizeMoney} in prizes`);
     f1040s1.L8_Etc2 = strcat([f1040s1.L8_Etc2, `Prizes=${math.round(prizeMoney, 2)}`], ", ");
     f1040s1.L8 = math.add(f1040s1.L8, prizeMoney);
   }
-  const airdrops = getTotalValue(
-    taxRows.filter(thisYear),
-    TaxActions.Income,
-    { incomeType: IncomeTypes.Airdrop },
-  );
+  const airdrops = getTotalIncome(IncomeTypes.Airdrop);
   if (math.gt(airdrops, "0")) {
     log.info(`Earned ${airdrops} in airdrops`);
     f1040s1.L8_Etc2 = strcat([f1040s1.L8_Etc2, `Airdrops=${math.round(airdrops, 2)}`], ", ");
@@ -55,10 +57,10 @@ export const f1040s1 = (
   f1040s1.L9 = math.add(
     f1040s1.L1,  // taxable refunds/credits/offsets
     f1040s1.L2a, // alimony recieved
-    f1040s1.L3,  // business income (f1040sc)
-    f1040s1.L4,  // other gains (f4797)
-    f1040s1.L5,  // rental/s-corp/trust income (f1040se)
-    f1040s1.L6,  // farm income (f1040sf)
+    f1040s1.L3,  // business income from f1040sc
+    f1040s1.L4,  // other gains from f4797
+    f1040s1.L5,  // rental/s-corp/trust income from f1040se
+    f1040s1.L6,  // farm income from f1040sf
     f1040s1.L7,  // unemployment compensation
     f1040s1.L8,  // other income
   );

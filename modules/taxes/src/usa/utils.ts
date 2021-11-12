@@ -4,8 +4,10 @@ import {
   BusinessExpenseTypes,
   DateString,
   DecString,
+  ExpenseType,
   FilingStatus,
   FilingStatuses,
+  IncomeType,
   IntString,
   Tag,
   TaxAction,
@@ -14,20 +16,6 @@ import {
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
-export {
-  Asset,
-  DateString,
-  DecString,
-  EventTypes,
-  ExpenseTypes,
-  FilingStatuses,
-  IncomeTypes,
-  IntString,
-  Logger,
-  TaxActions,
-  TaxInput,
-  TaxRow,
-} from "@valuemachine/types";
 export { chrono, math } from "@valuemachine/utils";
 
 export { TaxYears } from "../mappings";
