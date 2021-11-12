@@ -10,6 +10,7 @@ import {
   getTransactions,
 } from "@valuemachine/transactions";
 import {
+  IncomeTypes,
   StoreKeys,
   Transaction,
 } from "@valuemachine/types";
@@ -205,6 +206,13 @@ export const App: React.FC<AppProps> = ({
       setTxTags(newTxTags);
     } else {
       console.log(`Saving valid tx tags`);
+      // Convert depreciated income type to the new value
+      Object.keys(txTags).forEach(txId => {
+        const tag = txTags[txId];
+        if (tag.incomeType === "SelfEmployed") {
+          tag.incomeType = IncomeTypes.Business;
+        }
+      });
       store.save(TxTagsStore, txTags);
     }
   }, [txTags]);

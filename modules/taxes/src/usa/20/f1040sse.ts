@@ -87,7 +87,6 @@ export const f1040sse = (
     { incomeType: IncomeTypes.Church },
   );
 
-
   f1040sse.L5b = math.mul(f1040sse.L5a, "0.9235");
   if (math.lt(f1040sse.L5b, "100")) {
     f1040sse.L5b = "0";
