@@ -1,6 +1,5 @@
 import {
   FilingStatuses,
-  IncomeTypes,
   Logger,
   TaxActions,
   TaxInput,
@@ -10,7 +9,7 @@ import {
 import {
   Forms,
   getRowTotal,
-  isBusinessExpense,
+  getTaxableIncome,
   isLongTermTrade,
   lastYear,
   math,
@@ -110,47 +109,16 @@ export const f1040sd = (
     row => fn(row),
   );
 
-  const sumIncome = incomeType => getRowTotal(
-    taxRows.filter(lastYear),
-    TaxActions.Income,
-    { incomeType },
-  );
-
-  // TODO total taxable income from 2019 f1040.L11b
-  ws.L1 = math.sub(
-    math.add(
-      sumIncome(IncomeTypes.Wage),
-      sumIncome(IncomeTypes.Interest),
-      sumIncome(IncomeTypes.Dividend),
-      sumIncome(IncomeTypes.IRA),
-      sumIncome(IncomeTypes.Pension),
-      sumIncome(IncomeTypes.SocialSecurity),
-      sumTrades(row => row.capitalChange), // need to cut it off at -1500/-3000 a la f1040sd.L21
-
-      // other income from f1040s1 L9,
-      sumIncome(IncomeTypes.TaxCredit),
-      sumIncome(IncomeTypes.Alimony),
-      math.subToZero(
-        sumIncome(IncomeTypes.Business),
-        getRowTotal(taxRows.filter(lastYear).filter(isBusinessExpense)),
-      ),
-      // income from f4797
-      // income from f1040se
-      // income from f1040sf
-      sumIncome(IncomeTypes.Unemployment),
-      sumIncome(IncomeTypes.Prize),
-      sumIncome(IncomeTypes.Airdrop),
-      // other income from prizes, airdrops, etc
-    ),
-    math.add(
-      // adjustments from f1040s1 L22
-      // standard deduction
-      // qualified business income deduction
-    ),
-  );
+  if ("f4797" in forms) log.warn(`NOT_IMPLEMENTED: f4797 income in capital loss carryover`);
+  if ("f1040se" in forms) log.warn(`NOT_IMPLEMENTED: f1040se income in capital loss carryover`);
+  if ("f1040sf" in forms) log.warn(`NOT_IMPLEMENTED: f1040sf income in capital loss carryover`);
+  // what if our filing status was different last year?
+  ws.L1 = getTaxableIncome(taxRows.filter(lastYear), personal.filingStatus);
+  log.info(`2019 total taxable income: ${ws.L1}`);
 
   // total capital loss from 2019 f1040sd.L21
   ws.L2 = math.abs(sumTrades(row => math.lt(row.capitalChange, "0")));
+  log.info(`2019 total capital loss: ${ws.L2}`);
   ws.L3 = math.add(ws.L1, ws.L2);
   if (math.lt(ws.L3, "0")) ws.L3 = "0";
   // instructions say smaller of L2 & L3b.. where's L3b tho?
@@ -159,10 +127,12 @@ export const f1040sd = (
   ws.L5 = sumTrades(row =>
     isLongTermTrade ? "0" : math.lt(row.capitalChange, "0") ? row.capitalChange : "0"
   );
+  log.info(`2019 total short term capital loss: ${ws.L5}`);
   // 2019 long term gain from f1040sd.L15
   ws.L6 = sumTrades(row =>
     !isLongTermTrade(row) ? "0" : math.gt(row.capitalChange, "0") ? row.capitalChange : "0"
   );
+  log.info(`2019 total long term capital gain: ${ws.L6}`);
   if (math.lt(ws.L6, "0")) ws.L6 = "0";
   ws.L7 = math.add(ws.L4, ws.L6);
   ws.L8 = math.subToZero(ws.L5, ws.L7);
@@ -173,10 +143,12 @@ export const f1040sd = (
   ws.L9 = sumTrades(row =>
     !isLongTermTrade(row) ? "0" : math.lt(row.capitalChange, "0") ? row.capitalChange : "0"
   );
+  log.info(`2019 total long term capital loss: ${ws.L9}`);
   // 2019 short term gain from f1040sd.L7
   ws.L10 = sumTrades(row =>
     isLongTermTrade(row) ? "0" : math.gt(row.capitalChange, "0") ? row.capitalChange : "0"
   );
+  log.info(`2019 total short term capital gain: ${ws.L10}`);
   if (math.lt(ws.L10, "0")) ws.L10 = "0";
   ws.L11 = math.subToZero(ws.L4, ws.L5);
   ws.L12 = math.add(ws.L10, ws.L11);

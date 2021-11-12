@@ -1,6 +1,8 @@
 import {
+  DateString,
   ExpenseTypes,
   IncomeTypes,
+  IntString,
   Logger,
   TaxActions,
   TaxInput,
@@ -8,15 +10,19 @@ import {
 } from "@valuemachine/types";
 
 import {
+  chrono,
   Forms,
   getIncomeTax,
+  getTaxableIncome,
+  getRowTotal,
   getTotalValue,
+  guard,
   isBusinessExpense,
+  lastYear,
   math,
-  chrono,
+  msPerDay,
   strcat,
   thisYear,
-  msPerDay,
   toTime,
 } from "./utils";
 
@@ -85,33 +91,70 @@ export const f2210 = (
     return forms;
   }
 
-  // TODO: recalculate last year's values?
-  const lastYearReturn = {
-    f1040: {
-      L14: "0",
-    },
-    f1040s2: {
-      L4: "10939.09",
-      L6: "0",
-      L7a: "0",
-      L7b: "0",
-      L8: "0",
-    },
-  } as any; // Last year's tax return
-  f2210.L8 = math.add(
-    lastYearReturn.f1040?.L14,   // total tax (except se, etc) - total credits
-    lastYearReturn.f1040s2?.L4,  // se tax from f1040sse L5
-    lastYearReturn.f1040s2?.L6,  // tax on retirement fund distributions from f5329
-    lastYearReturn.f1040s2?.L7a, // household employment tax from f1040sh
-    lastYearReturn.f1040s2?.L7b, // repayment of first time homeowner credit from f5404
-    lastYearReturn.f1040s2?.L8,  // other taxes from f8959, f8960, etc
-  );
-
+  // recalculate last year's values income & se tax
   if ("f5329" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f5329 tax to f2210.L8`);
   if ("f1040sh" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f1040sh tax to f2210.L8`);
   if ("f5404" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f5404 tax to f2210.L8`);
   if ("f8959" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8959 tax to f2210.L8`);
   if ("f8960" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8960 tax to f2210.L8`);
+  const taxableIncome = getTaxableIncome(taxRows.filter(lastYear), personal.filingStatus);
+  const filingStatus = personal.filingStatus; // what if it was different last yeat?
+  let incomeTax;
+  if (forms.f2555) {
+    // taxableIncome should only include income earned outside of the US..
+    const ws = {} as any; // Foreign Earned Income Tax Worksheet on i1040 pg 35
+    ws.L1 = taxableIncome;
+    const maxFeie2019 = "105900";
+    const travel = input.travel || [];
+    const diffDays = (d1: DateString, d2: DateString): IntString =>
+      Math.trunc(Math.abs(
+        new Date(`${d1}T00:00:00Z`).getTime() - new Date(`${d2}T00:00:00Z`).getTime()
+      ) / msPerDay).toString();
+    const daysInEachCountry = travel.reduce((days, trip) => ({
+      ...days,
+      [trip.country]: math.add(days[trip.country] || "0", diffDays(trip.enterDate, trip.leaveDate))
+    }), {});
+    const daysOutOfUSA = Object.keys(daysInEachCountry).reduce((tot, country) => {
+      return country !== guard ? math.add(tot, daysInEachCountry[country]) : tot;
+    }, "0");
+    const p = math.div(daysOutOfUSA, "365");
+    // feie housing exclusion isn't supported (yet?)
+    ws.L2a = math.min(math.mul(maxFeie2019, p), taxableIncome);
+    ws.L2b = "0"; // unapplied deducation & exclusions due to foreign earned income exclusion
+    ws.L2c = math.subToZero(ws.L2a, ws.L2b);
+    ws.L3 = math.add(ws.L1, ws.L2c);
+    ws.L4 = getIncomeTax(ws.L3, filingStatus);
+    ws.L5 = getIncomeTax(ws.L2c, filingStatus);
+    incomeTax = math.subToZero(ws.L4, ws.L5);
+  } else if (forms.f1040sd && (math.gt(forms.f1040sd.L18, "0") || math.gt(forms.f1040sd.L19, "0"))) {
+    throw new Error(`NOT_IMPLEMENTED: Schedule D Tax Worksheet`);
+  } else if (forms.f1040sd) {
+    throw new Error(`NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet`);
+  } else {
+    incomeTax = getIncomeTax(f1040.L11, filingStatus);
+  }
+  const businessIncome = math.subToZero(
+    getRowTotal(
+      taxRows.filter(lastYear),
+      TaxActions.Income,
+      { incomeType: IncomeTypes.Business }
+    ),
+    getRowTotal(taxRows.filter(lastYear).filter(isBusinessExpense)),
+  );
+  const subjectToSS = math.mul(businessIncome, "0.9235");
+  const seTax = math.add(
+    math.mul( // as per f1040sse.L10
+      // as per f1040sse.L10
+      math.min(subjectToSS, "137700"),
+      "0.124",
+    ),
+    // as per f1040sse.L11
+    math.mul(subjectToSS, "0.029"),
+  );
+  f2210.L8 = math.add(
+    incomeTax, // total tax (except se, etc) - total credits
+    seTax,     // se tax from f1040sse L5
+  );
 
   f2210.L9 = math.min(f2210.L5, f2210.L8);
 

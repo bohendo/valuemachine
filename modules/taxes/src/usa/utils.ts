@@ -6,6 +6,7 @@ import {
   DecString,
   FilingStatus,
   FilingStatuses,
+  IncomeTypes,
   IntString,
   Tag,
   TaxActions,
@@ -106,4 +107,63 @@ export const getGetIncomeTax = (
     prevThreshold = threshold;
   });
   return incomeTax;
+};
+
+// Sum up all income & subtract business expenses & income adjustments
+export const getTaxableIncome = (rows, filingStatus) => {
+  const businessIncome = math.subToZero(
+    getRowTotal(
+      rows,
+      TaxActions.Income,
+      { incomeType: IncomeTypes.Business }
+    ),
+    getRowTotal(rows.filter(isBusinessExpense)),
+  );
+  const totalIncome = math.add(
+    // all non-business income
+    getRowTotal(
+      rows,
+      TaxActions.Income,
+      {},
+      row => row.tag.incomeType === IncomeTypes.Business ? "0" : row.value
+    ),
+    businessIncome,
+    // need to cut losses off at -1500/-3000 a la f1040sd.L21 (what was last year's filing status?)
+    math.max(
+      getRowTotal(
+        rows,
+        TaxActions.Trade,
+        {},
+        row => row.capitalChange
+      ),
+      filingStatus === FilingStatuses.Separate ? "-1500" : "-3000",
+    ),
+  );
+  // We should extract & properly label some of these magic numbers
+  // as per f1040sse.L4a
+  const subjectToSS = math.mul(businessIncome, "0.9235");
+  const seAdjustment = math.mul(
+    math.add(
+      math.mul( // as per f1040sse.L10
+        // as per f1040sse.L10
+        math.min(subjectToSS, "137700"),
+        "0.124",
+      ),
+      // as per f1040sse.L11
+      math.mul(subjectToSS, "0.029"),
+    ),
+    "0.5", // as per f1040sse.L13
+  );
+  const standardDeduction = !filingStatus ? ""
+    : (filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate) ? "12200"
+    : (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
+    : (filingStatus === FilingStatuses.Head) ? "18350"
+    : "";
+  return math.sub(
+    totalIncome,
+    math.add( // add other adjustments from f1040s1 L22 & qualified business income deduction
+      seAdjustment,
+      standardDeduction, // what if our filing status was different last year?
+    ),
+  );
 };

@@ -26,7 +26,7 @@ const income = {
   receivePrice: "1000",
   receiveDate: "2020-01-01T00:00:00",
   capitalChange: "0",
-  tag: { incomeType: IncomeTypes.SelfEmployed },
+  tag: { incomeType: IncomeTypes.Business },
 };
 const tax = {
   date: "2020-02-01T00:00:00",
@@ -113,6 +113,7 @@ describe(`${taxYear} Filers`, () => {
 
   it(`should include f2210 iff we have not paid enough taxes`, async () => {
     const taxReturn = getTaxReturn({ travel }, [
+      { ...income, date: "2019-01-15", receiveDate: "2019-01-15", amount: "40", value: "40000" },
       { ...income, date: "2020-01-15", receiveDate: "2020-01-15", amount: "40", value: "40000" },
       { ...income, date: "2020-04-15", receiveDate: "2020-04-15", amount: "25", value: "25000" },
       { ...income, date: "2020-08-15", receiveDate: "2020-08-15", amount: "20", value: "20000" },
