@@ -99,7 +99,7 @@ export const f2210 = (
     },
   } as any; // Last year's tax return
   f2210.L8 = math.add(
-    lastYearReturn.f1040?.L14,   // total tax - total credits
+    lastYearReturn.f1040?.L14,   // total tax (except se, etc) - total credits
     lastYearReturn.f1040s2?.L4,  // se tax from f1040sse L5
     lastYearReturn.f1040s2?.L6,  // tax on retirement fund distributions from f5329
     lastYearReturn.f1040s2?.L7a, // household employment tax from f1040sh
