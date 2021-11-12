@@ -33,12 +33,12 @@ export const TaxRow = Type.Object({
   action: TaxAction, // subset: Trade or Income
   amount: DecString, // rounded to 10^-6
   asset: Asset,
-  price: DecString, // rounded to 10^-2
+  price: DecString, // rounded to 10^-4
   tag: Tag,
   value: DecString, // rounded to 10^-2
   txId: TxId,
   receiveDate: DateString,
-  receivePrice: DecString, // rounded to 10^-2
+  receivePrice: DecString, // rounded to 10^-4
   capitalChange: DecString, // rounded to 10^-2
 }, { additionalProperties: false });
 export type TaxRow = Static<typeof TaxRow>;

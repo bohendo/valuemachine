@@ -7,20 +7,19 @@ import {
 } from "./strings";
 
 export const IncomeTypes = {
-  Airdrop: "Airdrop",
-  Dividend: "Dividend",
-  Interest: "Interest",
-  Church: "Church",
-  Prize: "Prize",
-  SelfEmployed: "SelfEmployed",
-  Business: "Business",
-  Wage: "Wage",
-  IRA: "IRA",
-  Pension: "Pension",
-  SocialSecurity: "SocialSecurity",
-  TaxCredit: "TaxCredit",
-  Unemployment: "Unemployment",
-  Alimony: "Alimony",
+  Airdrop: "Airdrop", // f1040s1.L8
+  Dividend: "Dividend", // f1040.L3b
+  Interest: "Interest", // f1040.L2b
+  Church: "Church", // f1040sse.L5a
+  Prize: "Prize", // f1040s1.L8
+  Business: "Business", // f1040sc.L1
+  Wage: "Wage", // f1040.L1
+  IRA: "IRA", // f1040.L4b
+  Pension: "Pension", // f1040.L5b
+  SocialSecurity: "SocialSecurity", // f1040.L6b
+  TaxCredit: "TaxCredit", // f1040s1.L1
+  Unemployment: "Unemployment", // f1040s1.L7
+  Alimony: "Alimony", // f1040s1.L2a
 } as const;
 export const IncomeType = Type.Enum(IncomeTypes); // NOT Extensible at run-time
 export type IncomeType = Static<typeof IncomeType>;
@@ -49,6 +48,7 @@ export const BusinessExpenseTypes = {
   Meals: "Meals", // f1040sc.L24b
   Utilities: "Utilities", // f1040sc.L25
   Wages: "Wages", // f1040sc.L26
+  Business: "Business", // f1040sc.L48
 } as const;
 export const BusinessExpenseType = Type.Enum(BusinessExpenseTypes); // NOT Extensible at run-time
 export type BusinessExpenseType = Static<typeof BusinessExpenseType>;
@@ -57,7 +57,6 @@ export const ExpenseTypes = {
   ...BusinessExpenseTypes,
   Tax: "Tax",
   Fee: "Fee",
-  Business: "Business", // f1040sc.L48
   Personal: "Personal",
 } as const;
 export const ExpenseType = Type.Enum(ExpenseTypes); // NOT Extensible at run-time

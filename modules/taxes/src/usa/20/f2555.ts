@@ -160,7 +160,7 @@ export const f2555 = (
     getTotalValue(
       taxRows.filter(wasInUSA).filter(thisYear),
       TaxActions.Income,
-      { incomeType: IncomeTypes.SelfEmployed },
+      { incomeType: IncomeTypes.Business },
     ),
     getTotalValue(taxRows.filter(thisYear).filter(isBusinessExpense)),
   );

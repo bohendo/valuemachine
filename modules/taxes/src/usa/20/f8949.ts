@@ -29,7 +29,12 @@ export const f8949 = (
   const name = strcat([personal.firstName, personal.lastName]);
   const ssn = personal.SSN;
 
-  const trades = taxRows.filter(thisYear).filter(tax => tax.action === TaxActions.Trade);
+  const trades = taxRows.filter(thisYear).filter(tax =>
+    tax.action === TaxActions.Trade || (
+      tax.action === TaxActions.Expense
+      && math.gt(math.abs(tax.capitalChange), "0.005")
+    )
+  );
 
   if (!trades.length) {
     delete forms.f8949;
