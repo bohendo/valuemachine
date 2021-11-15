@@ -26,7 +26,7 @@
     "@ethersproject/units": "5.5.0",
     "@sinclair/typebox": "0.20.5",
     "@valuemachine/types": "0.10.1",
-    "ajv": "8.6.3",
+    "ajv": "8.8.0",
     "ajv-formats": "2.1.1",
     "pino": "6.13.3",
     "pino-pretty": "7.1.0"
