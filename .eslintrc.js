@@ -40,6 +40,7 @@ module.exports = {
     "@typescript-eslint/no-redeclare": "off",
     "comma-dangle": ["warn", "only-multiline"],
     "import/no-anonymous-default-export": "off",
+    "import/no-unresolved": ["error", { ignore: ["csv-parse/sync"] }],
     "import/order": [
       1,
       {

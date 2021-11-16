@@ -3,8 +3,8 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import csv from "csv-parse/lib/sync";
 import { hashCsv, mul, round } from "@valuemachine/utils";
+import { parse as csv } from "csv-parse/sync";
 
 import { Assets, CsvSources, Guards, Methods } from "../../enums";
 
