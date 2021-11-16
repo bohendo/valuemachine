@@ -34,7 +34,7 @@ import {
   getValueMachineError,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
-import { Route, Switch } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import { InputDataManager } from "./components/InputData";
 import { NetWorthExplorer } from "./components/NetWorth";
@@ -222,9 +222,9 @@ export const App: React.FC<AppProps> = ({
       <NavBar unit={unit} setUnit={setUnit} theme={theme} setTheme={setTheme} />
       <Box sx={{ overflow: "auto", flexGrow: 1 }}>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Switch>
+          <Routes>
 
-            <Route exact path="/">
+            <Route path="/" element={
               <InputDataManager
                 addressBook={addressBook}
                 setAddressBookJson={setAddressBookJson}
@@ -237,9 +237,9 @@ export const App: React.FC<AppProps> = ({
                 txTags={txTags}
                 setTxTags={setTxTags}
               />
-            </Route>
+            } />
 
-            <Route exact path="/transactions">
+            <Route path="/transactions" element={
               <TransactionExplorer
                 addressBook={addressBook}
                 csvFiles={csvFiles}
@@ -249,9 +249,9 @@ export const App: React.FC<AppProps> = ({
                 setTxTags={setTxTags}
                 txTags={txTags}
               />
-            </Route>
+            } />
 
-            <Route exact path="/value-machine">
+            <Route path="/value-machine" element={
               <ValueMachineExplorer
                 addressBook={addressBook}
                 vm={vm}
@@ -260,27 +260,27 @@ export const App: React.FC<AppProps> = ({
                 txTags={txTags}
                 setTxTags={setTxTags}
               />
-            </Route>
+            } />
 
-            <Route exact path="/prices">
+            <Route path="/prices" element={
               <PriceManager
                 prices={prices}
                 setPricesJson={setPricesJson}
                 vm={vm}
                 unit={unit}
               />
-            </Route>
+            } />
 
-            <Route exact path="/net-worth">
+            <Route path="/net-worth" element={
               <NetWorthExplorer
                 addressBook={addressBook}
                 prices={prices}
                 unit={unit}
                 vm={vm}
               />
-            </Route>
+            } />
 
-            <Route exact path="/taxes">
+            <Route path="/taxes" element={
               <TaxesExplorer
                 addressBook={addressBook}
                 prices={prices}
@@ -290,9 +290,9 @@ export const App: React.FC<AppProps> = ({
                 unit={unit}
                 vm={vm}
               />
-            </Route>
+            } />
 
-          </Switch>
+          </Routes>
         </Container>
       </Box>
     </Box>
