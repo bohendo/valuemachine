@@ -21,6 +21,7 @@ export {
   TaxTable,
 } from "./taxes";
 export {
+  SyncTransactions,
   TransactionEditor,
   TransactionPorter,
   TransactionTable,
