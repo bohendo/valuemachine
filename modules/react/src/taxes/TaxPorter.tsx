@@ -21,7 +21,7 @@ import {
   TxTags,
   ValueMachine,
 } from "@valuemachine/types";
-import { dedup, math } from "@valuemachine/utils";
+import { dedup, digest, math } from "@valuemachine/utils";
 import axios from "axios";
 import { parse as json2csv } from "json2csv";
 import React, { useEffect } from "react";
@@ -85,7 +85,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
     const headers = Object.keys(taxes?.[0] || {});
     console.log(`Exporting csv data w headers: ${headers}`, csvData);
     const output = json2csv(csvData, headers);
-    const name = `${guard}-taxes.csv`;
+    const name = `${guard}-taxes-${digest(output)}.csv`;
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
     a.href = "data:" + data;
@@ -110,7 +110,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
         const url = window.URL.createObjectURL(new window.Blob([response.data]));
         const link = window.document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `tax-return-${year}.pdf`);
+        link.setAttribute("download", `${year}-tax-return.pdf`);
         window.document.body.appendChild(link);
         link.click();
         res();
