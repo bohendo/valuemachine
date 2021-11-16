@@ -4,7 +4,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import { digest, math } from "@valuemachine/utils";
-import { parse as csv } from "csv-parse/sync";
+import csv from "csv-parse/lib/sync";
 
 import { Assets, CsvSources, Guards, Methods } from "../../enums";
 import { getGuard } from "../../utils";
