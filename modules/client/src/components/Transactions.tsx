@@ -96,7 +96,7 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
       setSyncing(`Parsing ${
         csv.data.split("\n").length - 1
       } rows of ${csv.source} data from ${csv.name}`);
-      await new Promise((res) => setTimeout(res, 200)); // let sync message re-render
+      await new Promise((res) => setTimeout(res, 10)); // let sync message re-render
       newTransactions.mergeCsv(csv.data);
     }
     setTransactionsJson(newTransactions.json);

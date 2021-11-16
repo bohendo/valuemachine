@@ -4,7 +4,6 @@ import {
   getPrices,
   getValueMachine,
 } from "@valuemachine/core";
-import { getTaxRows } from "@valuemachine/taxes";
 import {
   Assets,
   getAddressBook,
@@ -223,12 +222,6 @@ export const App: React.FC<AppProps> = ({
   }, [txTags]);
 
   useEffect(() => {
-    if (!addressBook || !prices || !vm) return;
-    console.log(`Regenerating tax rows..`);
-    setTaxRows(getTaxRows({ addressBook, prices, txTags, userUnit: unit, vm }));
-  }, [addressBook, prices, txTags, unit, vm]);
-
-  useEffect(() => {
     if (!taxRows) return;
     const error = getTaxRowsError(taxRows);
     if (error) {
@@ -237,7 +230,7 @@ export const App: React.FC<AppProps> = ({
       store.save(TaxRowsStore, newTaxRows);
       setTaxRows(newTaxRows);
     } else {
-      console.log(`Saving valid tax rows`);
+      console.log(`Saving ${taxRows.length} valid tax rows`);
       store.save(TaxRowsStore, taxRows);
     }
   }, [taxRows]);
@@ -307,11 +300,15 @@ export const App: React.FC<AppProps> = ({
 
             <Route path="/taxes" element={
               <TaxesExplorer
+                addressBook={addressBook}
+                prices={prices}
+                setTaxRows={setTaxRows}
                 setTxTags={setTxTags}
                 taxInput={taxInput}
                 taxRows={taxRows}
                 txTags={txTags}
                 unit={unit}
+                vm={vm}
               />
             } />
 
