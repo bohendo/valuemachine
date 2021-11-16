@@ -1,5 +1,5 @@
 import { CsvFile, Logger, TransactionsJson } from "@valuemachine/types";
-import { chrono, getLogger, getTransactionsError, hashCsv, slugify } from "@valuemachine/utils";
+import { chrono, getLogger, getTransactionsError, digest, slugify } from "@valuemachine/utils";
 
 import { headersToSource, getCsvParser } from "./apps";
 
@@ -17,7 +17,7 @@ export const cleanCsv = (csvData: string, csvName?: string): CsvFile => {
   }
   return {
     data: cleanCsvData,
-    digest: hashCsv(cleanCsvData),
+    digest: digest(cleanCsvData),
     name: csvName || `${slugify(source)}.csv`,
     source,
   };

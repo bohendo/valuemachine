@@ -1,3 +1,5 @@
+import { toUtf8Bytes } from "@ethersproject/strings";
+import { keccak256 } from "@ethersproject/keccak256";
 import {
   Account,
   Amount,
@@ -10,6 +12,8 @@ import {
 } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
+
+export const digest = (data: string) => keccak256(toUtf8Bytes(data)).substring(2, 10);
 
 export const slugify = str =>
   str.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--/g, "-").replace(/(^-|-$)/, "");

@@ -3,7 +3,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { hashCsv } from "@valuemachine/utils";
+import { digest } from "@valuemachine/utils";
 import { parse as csv } from "csv-parse/sync";
 
 import { Assets, CsvSources, Guards, Methods } from "../../enums";
@@ -56,7 +56,7 @@ export const wazirxParser = (
       sources: [source],
       tag: { physicalGuard: guard },
       transfers: [],
-      uuid: `${source}/${hashCsv(csvData)}-${rowIndex}`,
+      uuid: `${source}/${digest(csvData)}-${rowIndex}`,
     } as Transaction;
 
     const account = `${guard}/${source}/account`;
