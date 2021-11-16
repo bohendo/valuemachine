@@ -1,4 +1,5 @@
 import { getValueMachine, getPrices } from "@valuemachine/core";
+import { getTaxRows } from "@valuemachine/taxes";
 import {
   Assets,
   CsvSources,
@@ -151,3 +152,17 @@ export const txTags = {
     physicalGuard: "IND",
   },
 };
+
+export const taxInput = {
+  personal: {
+    firstName: "Bo",
+  },
+};
+
+export const taxRows = getTaxRows({
+  addressBook,
+  prices,
+  txTags,
+  userUnit: ETH,
+  vm,
+});

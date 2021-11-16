@@ -1,8 +1,9 @@
-import { Mapping, TaxInput } from "@valuemachine/types";
+import { Mapping, TaxInput, TaxRows } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
 
 export const getEmptyTaxInput = (): TaxInput => ({});
+export const getEmptyTaxRows = (): TaxRows => [];
 
 const getDupProps = (list: any[], prop: string) => {
   const occurred = [];
@@ -33,3 +34,10 @@ export const getTaxInputError = (taxInput: TaxInput): string =>
     ? ""
     : validateTaxInput.errors.length ? formatErrors(validateTaxInput.errors)
     : `Invalid TaxInput`;
+
+const validateTaxRows = ajv.compile(TaxRows);
+export const getTaxRowsError = (taxRows: TaxRows): string =>
+  validateTaxRows(taxRows)
+    ? ""
+    : validateTaxRows.errors.length ? formatErrors(validateTaxRows.errors)
+    : `Invalid TaxRows`;

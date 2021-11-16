@@ -4,6 +4,7 @@ import {
   getPrices,
   getValueMachine,
 } from "@valuemachine/core";
+import { getTaxRows } from "@valuemachine/taxes";
 import {
   Assets,
   getAddressBook,
@@ -22,6 +23,7 @@ import {
   getEmptyCsvFiles,
   getEmptyPrices,
   getEmptyTaxInput,
+  getEmptyTaxRows,
   getEmptyTransactions,
   getEmptyTxTags,
   getEmptyValueMachine,
@@ -29,6 +31,7 @@ import {
   getLogger,
   getPricesError,
   getTaxInputError,
+  getTaxRowsError,
   getTransactionsError,
   getTxTagsError,
   getValueMachineError,
@@ -59,6 +62,7 @@ const UnitStore = "Unit" as any;
 const CustomTxnsStore = "CustomTransactions" as any;
 const TaxInputStore = "TaxInput" as any;
 const TxTagsStore = "TxTags" as any;
+const TaxRowsStore = "TaxRows" as any;
 
 export type AppProps = {
   theme: string;
@@ -80,6 +84,7 @@ export const App: React.FC<AppProps> = ({
   const [unit, setUnit] = useState(store.load(UnitStore) || Assets.ETH);
   const [taxInput, setTaxInput] = useState(store.load(TaxInputStore) || getEmptyTaxInput());
   const [txTags, setTxTags] = useState(store.load(TxTagsStore) || getEmptyTxTags());
+  const [taxRows, setTaxRows] = useState(store.load(TaxRowsStore) || getEmptyTaxRows());
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook());
@@ -217,6 +222,26 @@ export const App: React.FC<AppProps> = ({
     }
   }, [txTags]);
 
+  useEffect(() => {
+    if (!addressBook || !prices || !vm) return;
+    console.log(`Regenerating tax rows..`);
+    setTaxRows(getTaxRows({ addressBook, prices, txTags, userUnit: unit, vm }));
+  }, [addressBook, prices, txTags, unit, vm]);
+
+  useEffect(() => {
+    if (!taxRows) return;
+    const error = getTaxRowsError(taxRows);
+    if (error) {
+      console.log(`Removing invalid tax rows: ${error}`);
+      const newTaxRows = getEmptyTaxRows();
+      store.save(TaxRowsStore, newTaxRows);
+      setTaxRows(newTaxRows);
+    } else {
+      console.log(`Saving valid tax rows`);
+      store.save(TaxRowsStore, taxRows);
+    }
+  }, [taxRows]);
+
   return (
     <Box>
       <NavBar unit={unit} setUnit={setUnit} theme={theme} setTheme={setTheme} />
@@ -282,13 +307,11 @@ export const App: React.FC<AppProps> = ({
 
             <Route path="/taxes" element={
               <TaxesExplorer
-                addressBook={addressBook}
-                prices={prices}
                 setTxTags={setTxTags}
                 taxInput={taxInput}
+                taxRows={taxRows}
                 txTags={txTags}
                 unit={unit}
-                vm={vm}
               />
             } />
 

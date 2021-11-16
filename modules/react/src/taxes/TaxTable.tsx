@@ -8,7 +8,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
-  getTaxRows,
   securityFeeMap,
   getTaxYearBoundaries,
 } from "@valuemachine/taxes";
@@ -16,14 +15,12 @@ import {
   Assets,
 } from "@valuemachine/transactions";
 import {
-  AddressBook,
   Asset,
   Guard,
-  Prices,
   TaxActions,
   TaxRow,
+  TaxRows,
   TxTags,
-  ValueMachine,
 } from "@valuemachine/types";
 import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
@@ -33,27 +30,22 @@ import { Paginate, SelectOne } from "../utils";
 import { TaxTableRow } from "./TaxTableRow";
 
 type TaxTableProps = {
-  addressBook: AddressBook;
   guard: Guard;
-  prices: Prices;
   setTxTags: (val: TxTags) => void;
+  taxRows: TaxRows;
   txTags: TxTags;
   unit?: Asset;
-  vm: ValueMachine;
 };
 export const TaxTable: React.FC<TaxTableProps> = ({
-  addressBook,
   guard,
-  prices,
   setTxTags,
   txTags,
+  taxRows,
   unit: userUnit,
-  vm,
 }: TaxTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
-  const [taxRows, setTaxRows] = React.useState([] as TaxRow[]);
-  const [unit, setUnit] = React.useState(Assets.ETH);
+  const [unit, setUnit] = React.useState(userUnit || Assets.ETH);
   const [filterAction, setFilterAction] = useState("");
   const [filterTaxYear, setFilterTaxYear] = useState("");
   const [filteredRows, setFilteredRows] = useState([] as TaxRow[]);
@@ -72,11 +64,6 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   useEffect(() => {
     setUnit(securityFeeMap[guard] || userUnit);
   }, [guard, userUnit]);
-
-  useEffect(() => {
-    if (!guard || !vm?.json?.events?.length) return;
-    setTaxRows(getTaxRows({ addressBook, guard, prices, txTags, userUnit, vm }));
-  }, [addressBook, guard, prices, txTags, userUnit, vm]);
 
   return (<>
     <Paper sx={{ p: 2 }}>

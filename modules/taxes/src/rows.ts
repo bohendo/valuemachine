@@ -1,11 +1,9 @@
-import { Guards, PhysicalGuards } from "@valuemachine/transactions";
 import {
   AddressBook,
   Asset,
   DateString,
   DateTimeString,
   EventTypes,
-  Guard,
   GuardChangeEvent,
   Prices,
   TaxActions,
@@ -23,43 +21,34 @@ import { securityFeeMap } from "./constants";
 
 export const getTaxRows = ({
   addressBook,
-  guard,
   prices,
   txTags,
   userUnit,
   vm,
 }: {
   addressBook: AddressBook;
-  guard: Guard;
   prices: Prices;
   txTags?: TxTags,
   userUnit?: Asset;
   vm: ValueMachine;
-}): TaxRow[] => {
-  const unit = securityFeeMap[guard] || userUnit;
-  if (!unit) throw new Error(`Security asset is unknown for ${guard}`);
+}): TaxRow[] =>
+  vm?.json?.events.sort(chrono).filter(evt => (
+    evt.type === EventTypes.Trade ||
+    evt.type === EventTypes.Income ||
+    evt.type === EventTypes.Expense
+  )).reduce((rows, evt) => {
 
-  return vm?.json?.events.sort(chrono).filter(evt => {
-    const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
-    const account = (evt as TradeEvent).account || (evt as GuardChangeEvent).to || "";
-    const evtGuard = tag.physicalGuard || (
-      account ? addressBook.getGuard(account) : ""
-    ) || account.split("/")[0];
-    return (
-      evt.type === EventTypes.Trade ||
-      evt.type === EventTypes.Income ||
-      evt.type === EventTypes.Expense
-    ) && ((
-      evtGuard === guard
-    ) || (
-      guard === Guards.None && !Object.keys(PhysicalGuards).includes(evtGuard)
-    ));
-  }).reduce((rows, evt) => {
     const getDate = (datetime: DateTimeString): DateString =>
       new Date(datetime).toISOString().split("T")[0];
     const date = getDate(evt.date);
     const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
     const txId = evt.txId;
+    const account = (evt as TradeEvent).account || (evt as GuardChangeEvent).to || "";
+    const guard = tag.physicalGuard || (
+      account ? addressBook.getGuard(account) : ""
+    ) || account.split("/")[0];
+    const unit = securityFeeMap[guard] || userUnit;
+    if (!unit) throw new Error(`Security asset is unknown for guard=${guard}`);
 
     if (evt.type === TaxActions.Trade) {
       if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return rows; }
@@ -72,6 +61,7 @@ export const getTaxRows = ({
           const capitalChange = math.mul(chunk.amount, math.sub(price, receivePrice || "0"));
           return {
             date: date,
+            guard,
             action: TaxActions.Trade,
             amount: chunk.amount,
             asset: chunk.asset,
@@ -96,6 +86,7 @@ export const getTaxRows = ({
         const income = math.mul(chunk.amount, price);
         return {
           date: date,
+          guard,
           action: TaxActions.Income,
           amount: chunk.amount,
           asset: chunk.asset,
@@ -128,6 +119,7 @@ export const getTaxRows = ({
         // eg if it's an expense to coinbase, then tag it as an exchange fee
         return {
           date: date,
+          guard,
           action: TaxActions.Expense,
           amount: chunk.amount,
           asset: chunk.asset,
@@ -140,12 +132,12 @@ export const getTaxRows = ({
           txId,
         } as TaxRow;
       }));
-
     } else {
       return rows;
     }
-  }, [] as TaxRow[]).reduce((rows, row) => {
 
+  // Consolidate rows with the same txId, date & recieve date
+  }, [] as TaxRow[]).reduce((rows, row) => {
     const dupRow = rows.find(r =>
       r.asset === row.asset
       && r.date === row.date
@@ -160,10 +152,10 @@ export const getTaxRows = ({
     }
     return rows;
 
+  // Filter out any rows that only contain dust
   }, [] as TaxRow[]).filter(row =>
     math.gt(row.value, "0.005")
     && (
       row.action !== TaxActions.Trade || math.gt(row.capitalChange, "0.005")
     )
   );
-};

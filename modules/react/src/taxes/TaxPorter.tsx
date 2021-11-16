@@ -6,20 +6,14 @@ import Typography from "@mui/material/Typography";
 import {
   allTaxYears,
   getTaxReturn,
-  getTaxRows,
   getTaxYearBoundaries,
   TaxYears,
 } from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
 import {
-  AddressBook,
   Guard,
-  GuardChangeEvent,
-  Prices,
   TaxInput,
-  TradeEvent,
-  TxTags,
-  ValueMachine,
+  TaxRows,
 } from "@valuemachine/types";
 import { dedup, digest, math } from "@valuemachine/utils";
 import axios from "axios";
@@ -29,20 +23,14 @@ import React, { useEffect } from "react";
 import { SelectOne } from "../utils";
 
 type TaxPorterProps = {
-  addressBook: AddressBook;
   guard: Guard;
-  prices: Prices,
   taxInput?: TaxInput;
-  txTags?: TxTags;
-  vm: ValueMachine,
+  taxRows: TaxRows;
 };
 export const TaxPorter: React.FC<TaxPorterProps> = ({
-  addressBook,
   guard,
-  prices,
   taxInput,
-  txTags,
-  vm,
+  taxRows,
 }: TaxPorterProps) => {
   const [taxYear, setTaxYear] = React.useState(allTaxYears);
   const [taxYears, setTaxYears] = React.useState([] as string[]);
@@ -52,23 +40,19 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   useEffect(() => {
     setTaxYear(allTaxYears);
     setTaxYears(dedup(
-      (vm?.json?.events?.filter(evt =>
-        (evt as TradeEvent).account?.startsWith(guard) ||
-        (evt as GuardChangeEvent).to?.startsWith(guard)
-      ).map(evt => evt.date.split("-")[0]) || []).concat([
+      taxRows.filter(row => row.guard === guard).map(row => row.date.split("-")[0]).concat([
         (new Date().getFullYear() - 1).toString() // always provide the option for last year
       ])
     ).sort());
-  }, [guard, vm]);
+  }, [guard, taxRows]);
 
   const handleCsvExport = () => {
     console.log(`Exporting csv for ${taxYear} taxes`);
-    const taxes = getTaxRows({ addressBook, guard, prices, vm, txTags });
-    if (!taxes?.length) {
+    if (!taxRows?.length) {
       console.warn(`There were no known taxable events in ${taxYear}`);
       return;
     }
-    const csvData = taxes.filter(row => {
+    const csvData = taxRows.filter(row => {
       const time = new Date(row.date).getTime();
       return taxYear === allTaxYears || (
         time <= taxYearBoundaries[0] && time >= taxYearBoundaries[1]
@@ -82,7 +66,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
       capitalChange: math.round(row.capitalChange, 2),
       tag: JSON.stringify(row.tag),
     }));
-    const headers = Object.keys(taxes?.[0] || {});
+    const headers = Object.keys(taxRows?.[0] || {});
     console.log(`Exporting csv data w headers: ${headers}`, csvData);
     const output = json2csv(csvData, headers);
     const name = `${guard}-taxes-${digest(output)}.csv`;
@@ -94,12 +78,11 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   };
 
   const handleReturnExport = async (): Promise<void> => {
-    if (!guard || !taxYear || !vm?.json || !prices?.json || !taxInput) return;
+    if (!guard || !taxYear || !taxInput) return;
     if (guard !== Guards.USA) return;
     const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
-    if (!year) return;
-    const taxRows = getTaxRows({ addressBook, guard, prices, vm, txTags });
-    const forms = getTaxReturn(year, taxInput, taxRows);
+    if (!year || !taxRows?.length) return;
+    const forms = getTaxReturn(year, taxInput, taxRows.filter(row => row.guard === guard));
     return new Promise((res, rej) => {
       axios({
         url: `/api/taxes/${year}`,

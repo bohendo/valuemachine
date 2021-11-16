@@ -6,38 +6,30 @@ import Typography from "@mui/material/Typography";
 import { TaxPorter, TaxTable } from "@valuemachine/react";
 import {
   Guards,
-  PhysicalGuards,
 } from "@valuemachine/transactions";
 import {
-  AddressBook,
   Asset,
-  EventTypes,
   Guard,
-  Prices,
   TaxInput,
-  TradeEvent,
+  TaxRows,
   TxTags,
-  ValueMachine,
 } from "@valuemachine/types";
+import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 type TaxesExplorerProps = {
-  addressBook: AddressBook;
-  prices: Prices;
-  taxInput: TaxInput;
-  txTags: TxTags;
   setTxTags: (val: TxTags) => void;
+  taxInput: TaxInput;
+  taxRows: TaxRows;
+  txTags: TxTags;
   unit?: Asset;
-  vm: ValueMachine;
 };
 export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
-  addressBook,
-  prices,
-  taxInput,
   setTxTags,
+  taxInput,
+  taxRows,
   txTags,
   unit,
-  vm,
 }: TaxesExplorerProps) => {
   const [tab, setTab] = useState(0);
   const [allGuards, setAllGuards] = useState([] as Guard[]);
@@ -48,24 +40,14 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   }, [allGuards, tab]);
 
   useEffect(() => {
-    if (!vm?.json?.events?.length) return;
+    if (!taxRows?.length) return;
     const newGuards = [
       Guards.None,
-      ...Array.from(vm.json.events
-        .filter(
-          e => e.type === EventTypes.Trade || e.type === EventTypes.Income
-        ).reduce((setOfGuards, evt) => {
-          const guard = (evt as TradeEvent).account?.split("/")?.[0];
-          if (Object.keys(PhysicalGuards).includes(guard)) {
-            setOfGuards.add(guard);
-          }
-          return setOfGuards;
-        }, new Set())
-      ).sort() as Guard[]
-    ];
+      dedup(taxRows.map(row => row.guard)).sort(),
+    ] as Guard[];
     setAllGuards(newGuards);
     setGuard(newGuards[0]);
-  }, [vm]);
+  }, [taxRows]);
 
   return (
     <>
@@ -91,25 +73,20 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
         <Grid container sx={{ justifyContent: "center", mb: 2 }}>
           <Grid item sm={6}>
             <TaxPorter
-              addressBook={addressBook}
               guard={guard}
-              prices={prices}
-              vm={vm}
               taxInput={taxInput}
-              txTags={txTags}
+              taxRows={taxRows}
             />
           </Grid>
         </Grid>
       ) : null}
 
       <TaxTable
-        addressBook={addressBook}
         guard={guard}
-        prices={prices}
         setTxTags={setTxTags}
         txTags={txTags}
+        taxRows={taxRows}
         unit={unit}
-        vm={vm}
       />
 
     </>
