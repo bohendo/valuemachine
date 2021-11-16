@@ -19,7 +19,6 @@ import {
   Asset,
   Guard,
   TaxActions,
-  TaxRow,
   TaxRows,
   TxTags,
 } from "@valuemachine/types";
@@ -50,7 +49,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
   const [filterAction, setFilterAction] = useState("");
   const [filterGuard, setFilterGuard] = useState("");
   const [filterTaxYear, setFilterTaxYear] = useState("");
-  const [filteredRows, setFilteredRows] = useState([] as TaxRow[]);
+  const [filteredRows, setFilteredRows] = useState([] as TaxRows);
 
   useEffect(() => {
     setFilteredRows(taxRows.filter(row => (
@@ -68,6 +67,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
 
   useEffect(() => {
     setUnit(securityFeeMap[guard] || userUnit);
+    setPage(0);
   }, [guard, userUnit]);
 
   return (<>
@@ -134,15 +134,17 @@ export const TaxTable: React.FC<TaxTableProps> = ({
         <Table size="small" sx={{ minWidth: "64em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
-              <TableCell><strong> Expand </strong></TableCell>
-              <TableCell sx={{ minWidth: "8em" }}><strong> Date </strong></TableCell>
-              <TableCell><strong> Action </strong></TableCell>
-              <TableCell><strong> Asset </strong></TableCell>
-              <TableCell><strong> {`Price (${unit}/Asset)`} </strong></TableCell>
-              <TableCell><strong> {`Value (${unit})`} </strong></TableCell>
-              <TableCell sx={{ minWidth: "8em" }}><strong> Receive Date </strong></TableCell>
-              <TableCell><strong> {`Receive Price (${unit}/Asset)`} </strong></TableCell>
-              <TableCell><strong> {`Capital Change (${unit})`} </strong></TableCell>
+              <TableCell> {""} </TableCell>
+              <TableCell sx={{ minWidth: "8em" }}><strong> {"Date"} </strong></TableCell>
+              <TableCell><strong> {"Action"} </strong></TableCell>
+              <TableCell><strong> {"Asset"} </strong></TableCell>
+              {!guard ? (<TableCell><strong> {"Guard"} </strong></TableCell>) : null}
+              {!guard ? (<TableCell><strong> {"Unit"} </strong></TableCell>) : null}
+              <TableCell><strong> {`Price${guard ? ` (${unit}/Asset)` : ""}`} </strong></TableCell>
+              <TableCell><strong> {`Value${guard ? ` (${unit})` : ""}`} </strong></TableCell>
+              <TableCell sx={{ minWidth: "8em" }}><strong> {"Receive Date"} </strong></TableCell>
+              <TableCell><strong> {`Receive Price${guard ? ` (${unit}/Asset)` : ""}`} </strong></TableCell>
+              <TableCell><strong> {`Capital Change${guard ? ` (${unit})` : ""}`} </strong></TableCell>
               <TableCell><strong> {`Type`} </strong></TableCell>
             </TableRow>
           </TableHead>
@@ -156,9 +158,10 @@ export const TaxTable: React.FC<TaxTableProps> = ({
                     : 0
               )
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row: TaxRow, i: number) => (
+              .map((row, i) => (
                 <TaxTableRow
                   key={i}
+                  guard={guard}
                   row={row}
                   setTxTags={setTxTags}
                   txId={row.txId}

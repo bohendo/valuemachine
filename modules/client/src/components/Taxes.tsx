@@ -54,7 +54,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   const syncRows = async () => {
     if (!addressBook?.json || !prices?.json || !vm?.json?.events?.length) return;
     setSyncMsg("Syncing..");
-    setTaxRows(getTaxRows({ addressBook, prices, txTags, userUnit: unit, vm }));
+    setTaxRows(await getTaxRows({ addressBook, prices, txTags, userUnit: unit, vm }));
     setSyncMsg("");
   };
 

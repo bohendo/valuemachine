@@ -1,5 +1,4 @@
 import { getValueMachine, getPrices } from "@valuemachine/core";
-import { getTaxRows } from "@valuemachine/taxes";
 import {
   Assets,
   CsvSources,
@@ -158,11 +157,3 @@ export const taxInput = {
     firstName: "Bo",
   },
 };
-
-export const taxRows = getTaxRows({
-  addressBook,
-  prices,
-  txTags,
-  userUnit: ETH,
-  vm,
-});

@@ -1,7 +1,7 @@
 import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
-import { guard, taxRows, txTags } from "../constants";
+import { guard, txTags } from "../constants";
 
 import { TaxTable } from "./TaxTable";
 
@@ -16,5 +16,5 @@ Example.args = {
   guard,
   setTxTags: console.log,
   txTags,
-  taxRows,
+  taxRows: [],
 };

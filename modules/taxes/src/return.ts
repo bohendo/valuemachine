@@ -1,4 +1,4 @@
-import { TaxRow, TaxInput } from "@valuemachine/types";
+import { TaxRows, TaxInput } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 
 import { Forms, TaxYear, TaxYears } from "./mappings";
@@ -9,7 +9,7 @@ const logger = getLogger("info", "TaxReturn");
 export const getTaxReturn = (
   taxYear: TaxYear,
   taxInput: TaxInput,
-  taxRows: TaxRow[],
+  taxRows: TaxRows,
   log = logger,
 ): Forms =>
   !taxYear ? {}

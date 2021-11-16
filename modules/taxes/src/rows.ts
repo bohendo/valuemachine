@@ -7,7 +7,7 @@ import {
   GuardChangeEvent,
   Prices,
   TaxActions,
-  TaxRow,
+  TaxRows,
   TradeEvent,
   TxTags,
   ValueMachine,
@@ -19,7 +19,7 @@ import {
 
 import { securityFeeMap } from "./constants";
 
-export const getTaxRows = ({
+export const getTaxRows = async ({
   addressBook,
   prices,
   txTags,
@@ -31,12 +31,13 @@ export const getTaxRows = ({
   txTags?: TxTags,
   userUnit?: Asset;
   vm: ValueMachine;
-}): TaxRow[] =>
-  vm?.json?.events.sort(chrono).filter(evt => (
+}): Promise<TaxRows> => {
+  const rows = [] as TaxRows;
+  for (const evt of vm?.json?.events.sort(chrono).filter(evt => (
     evt.type === EventTypes.Trade ||
     evt.type === EventTypes.Income ||
     evt.type === EventTypes.Expense
-  )).reduce((rows, evt) => {
+  ))) {
 
     const getDate = (datetime: DateTimeString): DateString =>
       new Date(datetime).toISOString().split("T")[0];
@@ -51,8 +52,8 @@ export const getTaxRows = ({
     if (!unit) throw new Error(`Security asset is unknown for guard=${guard}`);
 
     if (evt.type === TaxActions.Trade) {
-      if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return rows; }
-      return rows.concat(...evt.outputs.map(chunkIndex => {
+      if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); continue; }
+      rows.push(...evt.outputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
         if (chunk.asset !== unit && price !== "0") {
@@ -76,11 +77,11 @@ export const getTaxRows = ({
         } else {
           return null;
         }
-      }).filter(row => !!row) as TaxRow[]);
+      }).filter(row => !!row) as TaxRows);
 
     } else if (evt.type === TaxActions.Income) {
-      if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); return rows; }
-      return rows.concat(...evt.inputs.map(chunkIndex => {
+      if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); continue; }
+      rows.push(...evt.inputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
         const income = math.mul(chunk.amount, price);
@@ -97,12 +98,12 @@ export const getTaxRows = ({
           capitalChange: "0.00",
           tag,
           txId,
-        } as TaxRow;
+        };
       }));
 
     } else if (evt.type === TaxActions.Expense) {
-      if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); return rows; }
-      return rows.concat(...evt.outputs.map(chunkIndex => {
+      if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); continue; }
+      rows.push(...evt.outputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
         const value = math.mul(chunk.amount, price);
@@ -130,14 +131,15 @@ export const getTaxRows = ({
           capitalChange,
           tag,
           txId,
-        } as TaxRow;
+        };
       }));
-    } else {
-      return rows;
     }
 
+    await new Promise(res => setTimeout(res, 1)); // yield to prevent hanging
+  }
+
   // Consolidate rows with the same txId, date & recieve date
-  }, [] as TaxRow[]).reduce((rows, row) => {
+  return rows.reduce((rows, row) => {
     const dupRow = rows.find(r =>
       r.asset === row.asset
       && r.date === row.date
@@ -153,9 +155,10 @@ export const getTaxRows = ({
     return rows;
 
   // Filter out any rows that only contain dust
-  }, [] as TaxRow[]).filter(row =>
+  }, [] as TaxRows).filter(row =>
     math.gt(row.value, "0.005")
     && (
       row.action !== TaxActions.Trade || math.gt(row.capitalChange, "0.005")
     )
   );
+};

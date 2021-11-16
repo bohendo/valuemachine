@@ -1,7 +1,7 @@
 import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
 
-import { guard, taxInput, taxRows } from "../constants";
+import { guard, taxInput } from "../constants";
 
 import { TaxPorter } from "./TaxPorter";
 
@@ -15,5 +15,5 @@ export const Example = Template.bind({});
 Example.args = {
   guard,
   taxInput,
-  taxRows,
+  taxRows: [],
 };
