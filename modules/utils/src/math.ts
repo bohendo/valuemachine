@@ -115,6 +115,7 @@ export const commify = (num: DecString, decimals?: number, asset?: Asset): strin
   let rounded = round(
     num,
     decimals || (asset === "INR" || asset === "USD" ? 2 : undefined),
+    true,
   );
   if (asset !== "INR") {
     return defaultCommify(rounded);
