@@ -1,6 +1,6 @@
 import {
   Logger,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -10,7 +10,7 @@ import {
 
 const { add, gt, lt, mul, round } = math;
 
-export const f1040sse = (forms: Forms, _taxRows: TaxRow[], _logger: Logger): Forms => {
+export const f1040sse = (forms: Forms, _taxRows: TaxRows, _logger: Logger): Forms => {
   const { f1040s1, f1040s2, f1040sse } = forms;
 
   f1040sse.P1_Name = `${forms.f1040.FirstNameMI} ${forms.f1040.LastName}`;

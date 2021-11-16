@@ -5,7 +5,7 @@ import {
   Logger,
   TaxActions,
   TaxInput,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -27,7 +27,7 @@ const USA = guard;
 export const f2555 = (
   forms: Forms,
   input: TaxInput,
-  taxRows: TaxRow[],
+  taxRows: TaxRows,
   logger: Logger,
 ): Forms => {
   const log = logger.child({ module: "f2555" });

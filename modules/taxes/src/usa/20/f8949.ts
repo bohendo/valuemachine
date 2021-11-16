@@ -2,7 +2,7 @@ import {
   Logger,
   TaxActions,
   TaxInput,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -19,7 +19,7 @@ const { add, mul, round, sub } = math;
 export const f8949 = (
   forms: Forms,
   input: TaxInput,
-  taxRows: TaxRow[],
+  taxRows: TaxRows,
   logger: Logger,
 ): Forms  => {
   const log = logger.child({ module: "f8949" });
@@ -47,7 +47,7 @@ export const f8949 = (
   const columns = ["d", "e", "g", "h"];
   const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
-  const isLongTerm = (trade: TaxRow): boolean => 
+  const isLongTerm = (trade): boolean => 
     (new Date(trade.date).getTime() - new Date(trade.receiveDate).getTime()) > msPerYear;
 
   const pageDivider = (list: any[]): any[][] => list.map(
@@ -73,7 +73,7 @@ export const f8949 = (
     subF8949.P1_SSN = subF8949.P2_SSN = ssn;
     subF8949.P1_CC = shortTerm.length > 0;
     subF8949.P2_CF = longTerm.length > 0;
-    const fillPage = getCell => (trade: TaxRow, i: number): void => {
+    const fillPage = getCell => (trade, i): void => {
       const proceeds = mul(trade.amount, trade.price);
       const cost = mul(trade.amount, trade.receivePrice);
       subF8949[getCell(i+1, "a")] = strcat([round(trade.amount, 4), trade.asset]);

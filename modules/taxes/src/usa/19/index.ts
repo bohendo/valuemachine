@@ -1,4 +1,4 @@
-import { TaxInput, TaxRow } from "@valuemachine/types";
+import { TaxInput, TaxRows } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 
 import { getEmptyForms, TaxYears } from "../../mappings";
@@ -21,7 +21,7 @@ const logger = getLogger("info", taxYear);
 
 export const getTaxReturn = (
   taxInput: TaxInput,
-  taxRows: TaxRow[],
+  taxRows: TaxRows,
   log = logger,
 ): Forms => {
   const input = JSON.parse(JSON.stringify(taxInput)) as TaxInput;

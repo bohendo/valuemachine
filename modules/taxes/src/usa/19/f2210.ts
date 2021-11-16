@@ -2,7 +2,7 @@ import {
   DateString,
   FilingStatuses,
   Logger,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -13,7 +13,7 @@ import {
   processIncome,
 } from "./utils";
 
-export const f2210 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+export const f2210 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms => {
   const log = logger.child({ module: "f2210" });
   const { f1040, f1040s2, f1040s3, f1040sse, f2210 } = forms;
 
@@ -123,7 +123,7 @@ export const f2210 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
   };
 
   // Get income rows
-  processIncome(taxRows, (row: TaxRow, value: string): void => {
+  processIncome(taxRows, (row, value): void => {
     income[getCol(row.date)] = math.add(
       income[getCol(row.date)],
       math.round(value),
@@ -131,7 +131,7 @@ export const f2210 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
   });
 
   // Get business expenses & tax payments
-  processExpenses(taxRows, (row: TaxRow, value: string): void => {
+  processExpenses(taxRows, (row, value): void => {
     if (row.tag.expenseType) {
       expenses[getCol(row.date)] = math.add(
         expenses[getCol(row.date)],

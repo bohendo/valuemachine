@@ -1,7 +1,7 @@
 import {
   EventTypes,
   Logger,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -9,7 +9,7 @@ import {
   math,
 } from "./utils";
 
-export const f1040s3 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+export const f1040s3 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms => {
   const log = logger.child({ module: "f1040s3" });
   const { f1040, f1040s3 } = forms;
 
@@ -21,12 +21,10 @@ export const f1040s3 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
     f1040s3.L4, f1040s3.L5, f1040s3.L6,
   ); 
 
-  taxRows
-    .filter(tax => tax.action === EventTypes.Trade)
-    .forEach((tax: TaxRow) => {
-      log.info(`Including tax payment of ${tax.amount} on ${tax.date}`);
-      f1040s3.L8 = math.add(f1040s3.L8, tax.amount);
-    });
+  taxRows.filter(tax => tax.action === EventTypes.Trade).forEach(tax => {
+    log.info(`Including tax payment of ${tax.amount} on ${tax.date}`);
+    f1040s3.L8 = math.add(f1040s3.L8, tax.amount);
+  });
 
   f1040s3.L14 = math.add(
     f1040s3.L8, f1040s3.L9, f1040s3.L10,
