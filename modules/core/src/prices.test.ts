@@ -4,13 +4,7 @@ import {
   DateString,
   Prices,
 } from "@valuemachine/types";
-import {
-  add,
-  div,
-  gt,
-  mul,
-  round,
-} from "@valuemachine/utils";
+import { math } from "@valuemachine/utils";
 
 import { getPrices } from "./prices";
 import {
@@ -18,8 +12,9 @@ import {
   testLogger,
 } from "./testUtils";
 
-const { DAI, USD, ETH, cDAI, MKR, UNI } = Assets;
 const log = testLogger.child({ module: "TestPrices" }, { level: "warn" });
+const { DAI, USD, ETH, cDAI, MKR, UNI } = Assets;
+const { round } = math;
 
 describe("Prices", () => {
   let prices: Prices;
@@ -35,7 +30,7 @@ describe("Prices", () => {
   it("should get nearest prices", async () => {
     const usdPerEth = "1234";
     const plusOneDay = d => new Date(new Date(d).getTime() + (1000 * 60 * 60 * 24)).toISOString();
-    const plusOne = n => add(n, "1");
+    const plusOne = n => math.add(n, "1");
     prices.merge({
       [plusOneDay(date)]: { USD: { ETH: usdPerEth } },
       [plusOneDay(plusOneDay(date))]: { USD: { ETH: plusOne(usdPerEth) } },
@@ -44,7 +39,7 @@ describe("Prices", () => {
   });
 
   it("should calculate some prices from traded chunks", async () => {
-    const amts = ["1", "50", "2"];
+    const amts = ["1.1", "0.1", "50", "2"];
     await prices.syncChunks([
       {
         asset: ETH,
@@ -56,10 +51,18 @@ describe("Prices", () => {
         outputs: [1],
       },
       {
+        asset: ETH,
+        history: [{ date: getDate(2), guard: ETH }],
+        amount: amts[1],
+        index: 0,
+        inputs: [0],
+        outputs: [],
+      },
+      {
         asset: UNI,
         history: [{ date: getDate(2), guard: ETH }],
         disposeDate: getDate(3),
-        amount: amts[1],
+        amount: amts[2],
         index: 1,
         inputs: [0],
         outputs: [2],
@@ -68,14 +71,16 @@ describe("Prices", () => {
         asset: ETH,
         history: [{ date: getDate(3), guard: ETH }],
         disposeDate: getDate(4),
-        amount: amts[2],
+        amount: amts[3],
         index: 2,
         inputs: [1],
         outputs: [],
       },
     ] as AssetChunk[], ETH);
-    expect(prices.getPrice(getDate(2), UNI, ETH)).to.equal(div(amts[0], amts[1]));
-    expect(prices.getPrice(getDate(3), UNI, ETH)).to.equal(div(amts[2], amts[1]));
+    expect(prices.getPrice(getDate(2), UNI, ETH)).to.equal(
+      math.div(math.sub(amts[0], amts[1]), amts[2])
+    );
+    expect(prices.getPrice(getDate(3), UNI, ETH)).to.equal(math.div(amts[3], amts[2]));
   });
 
   it("should set & get prices", async () => {
@@ -103,7 +108,7 @@ describe("Prices", () => {
     expect(
       round(prices.getPrice(date, cDAI, USD))
     ).to.equal(
-      round(mul(usdPerEth, ethPerDai, daiPerCDai))
+      round(math.mul(usdPerEth, ethPerDai, daiPerCDai))
     );
   });
 
@@ -169,7 +174,7 @@ describe("Prices", () => {
       log.info(`On ${
         new Date(dates[i]).toISOString().split("T")[0]
       } 1 ETH was worth $${round(results[i])}`);
-      expect(gt(results[i], "0")).to.be.true;
+      expect(math.gt(results[i], "0")).to.be.true;
     }
   });
 

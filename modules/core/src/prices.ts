@@ -7,6 +7,7 @@ import {
 import {
   Asset,
   AssetChunk,
+  Balances,
   DateString,
   DecString,
   Prices,
@@ -17,11 +18,12 @@ import {
 } from "@valuemachine/types";
 import {
   add,
+  assetsAreClose,
   chrono,
+  diffBalances,
   div,
   eq,
   getEmptyPrices,
-  assetsAreClose,
   getLogger,
   getPricesError,
   gt,
@@ -500,10 +502,10 @@ export const getPrices = (params?: PricesParams): Prices => {
     chunks
       // Gather all the unique dates on which a swap occured
       .reduce((dates, chunk) => {
-        if (chunk.disposeDate && chunk.outputs?.length) {
+        if (chunk.disposeDate && chunk.outputs?.length) { // This chunk was traded for something
           dates.push(chunk.disposeDate);
         }
-        if (chunk.history[0]?.date && chunk.inputs?.length) {
+        if (chunk.history[0]?.date && chunk.inputs?.length) { // Something was traded for this chunk
           dates.push(chunk.history[0]?.date);
         }
         return Array.from(new Set(dates));
@@ -517,26 +519,28 @@ export const getPrices = (params?: PricesParams): Prices => {
             output[chunk.asset] = add(output[chunk.asset] || "0", chunk.amount);
           }
           return output;
-        }, {}),
+        }, {} as Balances),
         in: chunks.reduce((input, chunk) => {
           if (chunk.history[0]?.date === date && chunk.inputs?.length && gt(chunk.amount, "0")) {
             input[chunk.asset] = add(input[chunk.asset] || "0", chunk.amount);
           }
           return input;
-        }, {}),
+        }, {} as Balances),
       }))
 
       // Divide inputs & ouputs to determine exchange rates
       .forEach(swap => {
         const date = formatDate(swap.date);
         const prices = {};
+        // Diff balances just in case refunds weren't processed correctly
+        const [outputs, inputs] = diffBalances([swap.out, swap.in]);
         const assets = {
-          in: Object.keys(swap.in).filter(asset => gt(swap.in[asset], "0")),
-          out: Object.keys(swap.out).filter(asset => gt(swap.out[asset], "0")),
+          in: Object.keys(inputs).filter(asset => gt(inputs[asset], "0")),
+          out: Object.keys(outputs).filter(asset => gt(outputs[asset], "0")),
         };
         const amts = {
-          in: assets.in.map(asset => swap.in[asset]),
-          out: assets.out.map(asset => swap.out[asset]),
+          in: assets.in.map(asset => inputs[asset]),
+          out: assets.out.map(asset => outputs[asset]),
         };
 
         log.info(`Calculating prices on ${date} from swap of [${assets.out}] for [${assets.in}]`);
