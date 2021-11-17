@@ -22,7 +22,6 @@ import React, { useEffect, useState } from "react";
 
 const allGuards = "All";
 
-
 type TaxesExplorerProps = {
   addressBook?: AddressBook;
   globalSyncMsg: string;
@@ -114,6 +113,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
       <Grid item sm={6}>
         <TaxSummary
           guard={guard === allGuards ? "" : guard}
+          prices={prices}
           taxInput={taxInput}
           taxRows={taxRows}
           unit={unit}

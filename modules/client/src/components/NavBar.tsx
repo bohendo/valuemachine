@@ -80,7 +80,7 @@ export const NavBar: React.FC<PropTypes> = ({
   };
 
   useEffect(() => {(async () => {
-    if (syncMsg) return;
+    if (syncMsg) return; // abort if already syncing
     await syncTaxRows({
       addressBook,
       prices,
@@ -91,7 +91,7 @@ export const NavBar: React.FC<PropTypes> = ({
       vm,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  })();}, [txTags, unit]);
+  })();}, [addressBook, prices, txTags, unit, vm]);
 
   return (
     <AppBar position="static" elevation={0} enableColorOnDark>
