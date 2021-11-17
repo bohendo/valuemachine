@@ -13,7 +13,7 @@ import {
   chrono,
   Forms,
   getIncomeTax,
-  getTaxableIncome,
+  getTotalTaxableIncome,
   getRowTotal,
   getTotalValue,
   guard,
@@ -97,7 +97,7 @@ export const f2210 = (
   if ("f5404" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f5404 tax to f2210.L8`);
   if ("f8959" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8959 tax to f2210.L8`);
   if ("f8960" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8960 tax to f2210.L8`);
-  const taxableIncome = getTaxableIncome(taxRows.filter(lastYear), personal.filingStatus);
+  const taxableIncome = getTotalTaxableIncome(taxRows.filter(lastYear), personal.filingStatus);
   const filingStatus = personal.filingStatus; // what if it was different last yeat?
   let incomeTax;
   if (forms.f2555) {
