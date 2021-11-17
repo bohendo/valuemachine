@@ -20,6 +20,7 @@ export {
   SyncPrices,
 } from "./prices";
 export {
+  SyncTaxRows,
   TaxInputEditor,
   TaxPorter,
   TaxTable,
