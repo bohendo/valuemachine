@@ -49,7 +49,8 @@ export const processTxns = async ({
   console.info(`Net Worth: ${JSON.stringify(vm.getNetWorth(), null, 2)}`);
   console.info(`Generated ${vm.json.events.length} events and ${vm.json.chunks.length} chunks`);
   setVMJson({ ...vm.json });
-  setSyncMsg?.("");
-  return vm;
-
+  setSyncMsg?.("Core ValueMachine data is up to date");
+  return new Promise(res => {
+    setTimeout(() => { setSyncMsg?.(""); res(vm); }, 1000);
+  });
 };

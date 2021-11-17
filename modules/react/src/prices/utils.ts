@@ -30,14 +30,22 @@ export const syncPrices = async ({
     prices.merge(newPrices);
     setPricesJson?.({ ...prices.json });
     setSyncMsg?.("Successfully synced prices");
-    setTimeout(() => setSyncMsg?.(""), 1000);
+    return new Promise(res => {
+      setTimeout(() => { setSyncMsg?.(""); res(prices); }, 1000);
+    });
   } catch (e: any) {
     console.error(`Failed to sync prices:`, e);
     if (typeof e?.message === "string") {
       setSyncMsg?.(e.message);
-      setTimeout(() => setSyncMsg?.(""), 5000);
+      return new Promise(res => {
+        setTimeout(() => { setSyncMsg?.(""); res(prices); }, 5000);
+      });
+    } else {
+      setSyncMsg?.("Something went wrong..");
+      return new Promise(res => {
+        setTimeout(() => { setSyncMsg?.(""); res(prices); }, 3000);
+      });
     }
   }
-  return prices;
 };
 

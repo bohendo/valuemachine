@@ -26,7 +26,6 @@ export const syncTaxRows = async ({
   vm: ValueMachine;
 }): Promise<TaxRows> => {
   setSyncMsg?.("Syncing Tax Data..");
-  console.log(`Getting tax rows...`);
   const taxRows = await getTaxRows({
     addressBook,
     prices,
@@ -34,7 +33,7 @@ export const syncTaxRows = async ({
     userUnit: unit,
     vm,
   });
-  console.log(`Got tax rows!`);
+  console.log(`Generated ${taxRows.length} tax rows!`);
   setSyncMsg?.("");
   setTaxRows?.(taxRows);
   return taxRows;

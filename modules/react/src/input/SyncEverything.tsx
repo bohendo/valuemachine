@@ -1,6 +1,7 @@
 import SyncIcon from "@mui/icons-material/Sync";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
+import Typography from "@mui/material/Typography";
 import {
   AddressBook,
   Asset,
@@ -73,7 +74,7 @@ export const SyncEverything: React.FC<SyncEverythingProps> = ({
       unit,
       vm: newVm,
     });
-    const newTaxRows = await syncTaxRows({
+    await syncTaxRows({
       addressBook,
       prices: newPrices,
       setSyncMsg,
@@ -82,7 +83,10 @@ export const SyncEverything: React.FC<SyncEverythingProps> = ({
       unit,
       vm: newVm,
     });
-    console.log(`Done syncing everything, generated ${newTaxRows.length} tax rows`);
+    setSyncMsg("Everything is up to date");
+    return new Promise(res => {
+      setTimeout(() => { setSyncMsg?.(""); res(prices); }, 1000);
+    });
   };
 
   return (
@@ -94,10 +98,12 @@ export const SyncEverything: React.FC<SyncEverythingProps> = ({
         : <SyncIcon color="inherit" />
       }
       onClick={handleSync}
-      sx={{ m: 2, maxWidth: 0.95  }}
+      sx={{ m: 2, maxWidth: 0.95, minWidth: "24em", justifyContent: "flex-end" }}
       variant="text"
     >
-      {syncMsg || "Sync Everything"}
+      <Typography noWrap variant="button">
+        {syncMsg || "Sync Everything"}
+      </Typography>
     </Button>
   );
 };
