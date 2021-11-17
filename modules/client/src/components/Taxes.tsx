@@ -5,7 +5,7 @@ import Grid from "@mui/material/Grid";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import { SyncTaxRows, TaxPorter, TaxTable } from "@valuemachine/react";
+import { SyncTaxRows, TaxPorter, TaxSummary, TaxTable } from "@valuemachine/react";
 import { Guards } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -109,8 +109,16 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
       </Tabs>
     ) : null}
 
-    {(guard && guard !== allGuards && guard !== Guards.None) ? (
-      <Grid container sx={{ justifyContent: "center", mb: 2 }}>
+    <Grid container spacing={2} sx={{ justifyContent: "center", mb: 2 }}>
+      <Grid item sm={6}>
+        <TaxSummary
+          guard={guard}
+          taxInput={taxInput}
+          taxRows={taxRows}
+          unit={unit}
+        />
+      </Grid>
+      {(guard && guard !== allGuards && guard !== Guards.None) ? (
         <Grid item sm={6}>
           <TaxPorter
             guard={guard}
@@ -118,8 +126,8 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
             taxRows={taxRows}
           />
         </Grid>
-      </Grid>
-    ) : null}
+      ) : null}
+    </Grid>
 
     <TaxTable
       guard={guard === allGuards ? "" : guard}

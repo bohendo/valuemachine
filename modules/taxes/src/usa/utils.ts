@@ -110,7 +110,7 @@ export const getGetIncomeTax = (
   return incomeTax;
 };
 
-// Gross business income minus deductable expenses
+// Gross business income minus deductible expenses
 export const getBusinessIncome = (rows) =>
   math.subToZero(
     getRowTotal(
@@ -133,6 +133,7 @@ export const getTotalCapitalChange = (rows, filingStatus) =>
     filingStatus === FilingStatuses.Separate ? "-1500" : "-3000",
   );
 
+// net business income + applicable capital change + other income
 export const getTotalIncome = (rows, filingStatus) =>
   math.add(
     getBusinessIncome(rows),
@@ -146,7 +147,7 @@ export const getTotalIncome = (rows, filingStatus) =>
     getTotalCapitalChange(rows, filingStatus),
   );
 
-// Sum up all income & subtract business expenses & income adjustments
+// combine all income & adjustments
 export const getTotalTaxableIncome = (rows, filingStatus) => {
   // We should extract & properly label some of these magic numbers
   // as per f1040sse.L4a
@@ -168,7 +169,7 @@ export const getTotalTaxableIncome = (rows, filingStatus) => {
     : (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
     : (filingStatus === FilingStatuses.Head) ? "18350"
     : "";
-  return math.sub(
+  return math.subToZero(
     getTotalIncome(rows, filingStatus),
     math.add( // add other adjustments from f1040s1 L22 & qualified business income deduction
       seAdjustment,

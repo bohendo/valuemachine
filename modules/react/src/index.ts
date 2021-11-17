@@ -24,6 +24,7 @@ export {
   SyncTaxRows,
   TaxInputEditor,
   TaxPorter,
+  TaxSummary,
   TaxTable,
 } from "./taxes";
 export {
