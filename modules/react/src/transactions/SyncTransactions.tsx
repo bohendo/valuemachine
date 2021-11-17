@@ -33,10 +33,10 @@ export const SyncTransactions: React.FC<SyncTransactionsProps> = ({
 
   return (
     <Button
-      sx={{ mx: 2, mt: 2, mb: 1, maxWidth: 0.95  }}
       disabled={disabled || !!syncMsg}
       onClick={handleSyncTxns}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
+      sx={{ m: 2, maxWidth: 0.95  }}
       variant="outlined"
     >
       {syncMsg || "Sync Transactions"}

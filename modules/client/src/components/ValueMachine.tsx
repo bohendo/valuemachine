@@ -35,9 +35,9 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
   vm,
 }: ValueMachineExplorerProps) => {
   const [tab, setTab] = useState(0);
-  const handleReset = () => { setVMJson(getEmptyValueMachine()); };
-  return (<>
+  const handleClear = () => { setVMJson(getEmptyValueMachine()); };
 
+  return (<>
     <Typography variant="h3">
       Core ValueMachine Data
     </Typography>
@@ -50,8 +50,8 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
     />
 
     <Button
-      disabled={!vm?.json?.events?.length}
-      onClick={handleReset}
+      disabled={!!globalSyncMsg || !vm?.json?.events?.length}
+      onClick={handleClear}
       startIcon={<ClearIcon/>}
       sx={{ m: 3 }}
       variant="outlined"

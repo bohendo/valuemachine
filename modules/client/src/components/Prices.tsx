@@ -41,7 +41,7 @@ export const PriceManager: React.FC<PropTypes> = ({
 
     <Button
       sx={{ m: 3 }}
-      disabled={!Object.keys(prices.json).length}
+      disabled={!!globalSyncMsg || !Object.keys(prices.json).length}
       onClick={handleClear}
       startIcon={<ClearIcon/>}
       variant="outlined"
@@ -49,7 +49,7 @@ export const PriceManager: React.FC<PropTypes> = ({
       Clear Prices
     </Button>
 
-    <Divider/>
+    <Divider sx={{ mb: 2 }} />
 
     <PriceTable
       prices={prices}

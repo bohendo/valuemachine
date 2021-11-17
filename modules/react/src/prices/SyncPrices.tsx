@@ -34,10 +34,10 @@ export const SyncPrices: React.FC<SyncPricesProps> = ({
 
   return (
     <Button
-      sx={{ m: 3 }}
       disabled={disabled || !!syncMsg}
       onClick={handleSync}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
+      sx={{ m: 2 }}
       variant="outlined"
     >
       {syncMsg || `Sync ${unit} Prices For ${vm.json.chunks.length} Chunks`}

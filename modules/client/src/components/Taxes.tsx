@@ -84,7 +84,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
 
     <Button
       sx={{ m: 3 }}
-      disabled={!taxRows?.length}
+      disabled={!!globalSyncMsg || !taxRows?.length}
       onClick={handleClear}
       startIcon={<ClearIcon/>}
       variant="outlined"
@@ -92,22 +92,24 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
       Clear Tax Rows
     </Button>
 
-    <Divider sx={{ my: 1 }} />
+    <Divider sx={{ mb: 2 }} />
 
-    <Tabs
-      centered
-      indicatorColor="secondary"
-      onChange={(evt, newVal) => setTab(newVal)}
-      sx={{ m: 1 }}
-      textColor="secondary"
-      value={tab}
-    >
-      {guards.map((g, i) => (
-        <Tab key={i} label={g}/>
-      ))}
-    </Tabs>
+    {taxRows.length ? (
+      <Tabs
+        centered
+        indicatorColor="secondary"
+        onChange={(evt, newVal) => setTab(newVal)}
+        sx={{ m: 1 }}
+        textColor="secondary"
+        value={tab}
+      >
+        {guards.map((g, i) => (
+          <Tab key={i} label={g}/>
+        ))}
+      </Tabs>
+    ) : null}
 
-    {(guard !== allGuards && guard !== Guards.None) ? (
+    {(guard && guard !== allGuards && guard !== Guards.None) ? (
       <Grid container sx={{ justifyContent: "center", mb: 2 }}>
         <Grid item sm={6}>
           <TaxPorter

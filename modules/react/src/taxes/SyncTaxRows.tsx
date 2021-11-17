@@ -41,10 +41,10 @@ export const SyncTaxRows: React.FC<SyncTaxRowsProps> = ({
 
   return (
     <Button
-      sx={{ m: 2, maxWidth: 0.95  }}
       disabled={disabled || !!syncMsg}
       onClick={handleSync}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
+      sx={{ m: 2, maxWidth: 0.95  }}
       variant="outlined"
     >
       {syncMsg || `Sync Tax Rows w ${vm?.json?.events?.length || "0"} VM Events`}

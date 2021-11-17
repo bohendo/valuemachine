@@ -34,7 +34,6 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
 }: TransactionExplorerProps) => {
   const handleClear = () => { setTransactionsJson([]); };
   return (<>
-
     <Typography variant="h3">
       Transaction Explorer
     </Typography>
@@ -49,7 +48,7 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
 
     <Button
       sx={{ m: 3 }}
-      disabled={!transactions?.json?.length}
+      disabled={!!globalSyncMsg || !transactions?.json?.length}
       onClick={handleClear}
       startIcon={<ClearIcon/>}
       variant="outlined"
@@ -57,7 +56,7 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
       Clear Transactions
     </Button>
 
-    <Divider sx={{ my: 2 }} />
+    <Divider sx={{ mb: 2 }} />
 
     <TransactionTable
       addressBook={addressBook}
@@ -65,6 +64,5 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
       txTags={txTags}
       setTxTags={setTxTags}
     />
-
   </>);
 };

@@ -41,7 +41,7 @@ export const SyncValueMachine: React.FC<SyncValueMachineProps> = ({
       disabled={disabled || !!syncMsg || !newTransactions?.length}
       onClick={handleTxProcessing}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
-      sx={{ m: 3 }}
+      sx={{ m: 2, maxWidth: 0.95  }}
       variant="outlined"
     >
       {syncMsg || `Process ${newTransactions?.length} New Transactions`}

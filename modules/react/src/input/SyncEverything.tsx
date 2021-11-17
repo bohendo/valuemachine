@@ -67,15 +67,15 @@ export const SyncEverything: React.FC<SyncEverythingProps> = ({
 
   return (
     <Button
-      sx={{ mx: 2, mt: 2, mb: 1, maxWidth: 0.95  }}
+      color="inherit"
       disabled={!!syncMsg}
-      onClick={handleSync}
       endIcon={syncMsg
         ? <CircularProgress size={20} color="inherit" />
         : <SyncIcon color="inherit" />
       }
+      onClick={handleSync}
+      sx={{ m: 2, maxWidth: 0.95  }}
       variant="text"
-      color="inherit"
     >
       {syncMsg || "Sync Everything"}
     </Button>
