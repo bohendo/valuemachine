@@ -30,6 +30,7 @@ export {
   TransactionEditor,
   TransactionPorter,
   TransactionTable,
+  syncTxns,
 } from "./transactions";
 export {
   TxTagsEditor,
@@ -48,4 +49,5 @@ export {
   ChunkTable,
   EventTable,
   SyncValueMachine,
+  processTxns,
 } from "./valuemachine";

@@ -5,29 +5,42 @@ import {
   AddressBook,
   CsvFiles,
   TransactionsJson,
+  ValueMachine,
+  ValueMachineJson,
 } from "@valuemachine/types";
 import React, { useState } from "react";
 
 import { syncTxns } from "../transactions";
+import { processTxns } from "../valuemachine";
 
 type SyncEverythingProps = {
   addressBook: AddressBook;
   csvFiles: CsvFiles,
   customTxns: TransactionsJson,
   setTransactionsJson: (val: TransactionsJson) => void;
+  setVMJson: (val: ValueMachineJson) => void;
+  vm: ValueMachine;
 };
 export const SyncEverything: React.FC<SyncEverythingProps> = ({
   addressBook,
   csvFiles,
   customTxns,
   setTransactionsJson,
+  setVMJson,
+  vm,
 }: SyncEverythingProps) => {
   const [syncMsg, setSyncMsg] = useState("");
 
   const handleSync = async () => {
     if (syncMsg) return;
-    await syncTxns(addressBook, customTxns, csvFiles, setSyncMsg, setTransactionsJson);
-    // await processTxns()
+    const newTxns = await syncTxns(
+      addressBook,
+      customTxns,
+      csvFiles,
+      setTransactionsJson,
+      setSyncMsg,
+    );
+    await processTxns(vm, newTxns, setVMJson, setSyncMsg);
     // await fetchPrices()
     // await getTaxRows()
   };

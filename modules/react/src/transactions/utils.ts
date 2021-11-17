@@ -16,9 +16,9 @@ export const syncTxns = async (
   addressBook: AddressBook,
   customTxns: TransactionsJson,
   csvFiles: CsvFiles,
-  setSyncMsg: (val: string) => void,
-  setTransactionsJson: (val: TransactionsJson) => void,
-) => {
+  setTransactionsJson?: (val: TransactionsJson) => void,
+  setSyncMsg?: (val: string) => void,
+): Promise<TransactionsJson> => {
   // Sync Chain Data
   const newTransactions = getTransactions({
     json: JSON.parse(JSON.stringify(customTxns)),
@@ -34,7 +34,7 @@ export const syncTxns = async (
     while (true) {
       try {
         if (!isEthSynced) {
-          setSyncMsg(`Syncing Ethereum data for ${selfAddresses.length} addresses`);
+          setSyncMsg?.(`Syncing Ethereum data for ${selfAddresses.length} addresses`);
           const resE = await axios.post("/api/ethereum", {
             addressBook: addressBook.json
           }) as any;
@@ -48,7 +48,7 @@ export const syncTxns = async (
           }
         }
         if (!isPolygonSynced) {
-          setSyncMsg(`Syncing Polygon data for ${selfAddresses.length} addresses`);
+          setSyncMsg?.(`Syncing Polygon data for ${selfAddresses.length} addresses`);
           const resP = await axios.post("/api/polygon", {
             addressBook: addressBook.json
           }) as any;
@@ -70,12 +70,13 @@ export const syncTxns = async (
     }
   }
   for (const csv of Object.values(csvFiles)) {
-    setSyncMsg(`Parsing ${
+    setSyncMsg?.(`Parsing ${
       csv.data.split("\n").length - 1
     } rows of ${csv.source} data from ${csv.name}`);
     await new Promise((res) => setTimeout(res, 10)); // let sync message re-render
     newTransactions.mergeCsv(csv.data);
   }
-  setTransactionsJson(newTransactions.json);
-  setSyncMsg("");
+  setTransactionsJson?.(newTransactions.json);
+  setSyncMsg?.("");
+  return (newTransactions.json);
 };
