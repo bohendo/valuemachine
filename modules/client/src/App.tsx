@@ -46,8 +46,8 @@ import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
 
-const store = getLocalStore(localStorage);
 const logger = getLogger("warn");
+const store = getLocalStore(localStorage);
 
 // localstorage keys
 const {

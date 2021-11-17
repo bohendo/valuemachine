@@ -48,12 +48,12 @@ export const SyncTransactions: React.FC<SyncTransactionsProps> = ({
         try {
           if (!isEthSynced) {
             setSyncMsg(`Syncing Ethereum data for ${selfAddresses.length} addresses`);
-            const resEth = await axios.post("/api/ethereum", {
+            const resE = await axios.post("/api/ethereum", {
               addressBook: addressBook.json
             }) as any;
-            console.log(`Got ${resEth.data.length} Eth transactions`, resEth.data);
-            if (resEth.status === 200 && typeof(resEth.data) === "object") {
-              newTransactions.merge(resEth.data);
+            console.log(`Got ${resE.data.length} Eth transactions:`, resE.data);
+            if (resE.status === 200 && typeof(resE.data) === "object") {
+              newTransactions.merge(resE.data);
               isEthSynced = true;
             } else {
               await new Promise((res) => setTimeout(res, 10000));
@@ -62,14 +62,15 @@ export const SyncTransactions: React.FC<SyncTransactionsProps> = ({
           }
           if (!isPolygonSynced) {
             setSyncMsg(`Syncing Polygon data for ${selfAddresses.length} addresses`);
-            const resPolygon = await axios.post("/api/polygon", {
+            const resP = await axios.post("/api/polygon", {
               addressBook: addressBook.json
             }) as any;
-            console.log(`Got ${resPolygon.data.length} Polygon transactions`);
-            if (resPolygon.status === 200 && typeof(resPolygon.data) === "object") {
-              newTransactions.merge(resPolygon.data);
+            console.log(`Got ${resP.data.length} Polygon transactions:`, resP.data);
+            if (resP.status === 200 && typeof(resP.data) === "object") {
+              newTransactions.merge(resP.data);
               isPolygonSynced = true;
             } else {
+              console.warn(`Unsuccessful response: code=${resP.status} resType=${typeof resP.data}`);
               await new Promise((res) => setTimeout(res, 10000));
               continue;
             }

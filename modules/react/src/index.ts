@@ -42,4 +42,5 @@ export {
 export {
   ChunkTable,
   EventTable,
+  SyncValueMachine,
 } from "./valuemachine";
