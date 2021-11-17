@@ -11,6 +11,7 @@ import {
   Tag,
   TaxActions,
   TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
@@ -44,7 +45,7 @@ export const isShortTermTrade = (row: TaxRow): boolean =>
   toTime(row.date) - toTime(row.receiveDate) > msPerYear;
 
 export const getRowTotal = (
-  rows: TaxRow[],
+  rows: TaxRows,
   filterAction?: string,
   filterTag?: Tag,
   mapRow?: (row) => DecString,
@@ -60,7 +61,7 @@ export const getRowTotal = (
     ))
   ), "0");
 
-export const getTotalValue = (rows: TaxRow[], filterAction?: string, filterTag?: Tag) =>
+export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: Tag) =>
   getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);
 
 // ISO => "MM, DD, YY"

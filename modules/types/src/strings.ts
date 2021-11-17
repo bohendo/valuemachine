@@ -42,8 +42,8 @@ export const Amount = toType(amount); export type Amount = Static<typeof Amount>
 export const App = toType(alphanum); export type App = Static<typeof App>;
 export const Asset = toType(alphanumish); export type Asset = Static<typeof Asset>;
 export const Bytes32 = toType(bytes32); export type Bytes32 = Static<typeof Bytes32>;
-export const CsvDigest = toType(digest); export type CsvDigest = Static<typeof CsvDigest>;
 export const DecString = toType(decimal); export type DecString = Static<typeof DecString>;
+export const Digest = toType(digest); export type Digest = Static<typeof Digest>;
 export const EvmAddress = toType(evmAddress); export type EvmAddress = Static<typeof EvmAddress>;
 export const Guard = toType(guard); export type Guard = Static<typeof Guard>;
 export const HexString = toType(hexstring); export type HexString = Static<typeof HexString>;

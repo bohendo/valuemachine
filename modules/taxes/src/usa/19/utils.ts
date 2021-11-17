@@ -1,4 +1,4 @@
-import { DecString, TaxActions, TaxRow } from "@valuemachine/types";
+import { DecString, TaxActions, TaxRow, TaxRows } from "@valuemachine/types";
 import { getLogger, math } from "@valuemachine/utils";
 
 import { FormArchive, TaxYears } from "../../mappings";
@@ -23,7 +23,7 @@ export const getIncomeTax = getGetIncomeTax([
 ]);
 
 export const processIncome = (
-  taxes: TaxRow[],
+  taxes: TaxRows,
   callback: (row: TaxRow, value: DecString) => void,
 ): void => {
   taxes
@@ -34,7 +34,7 @@ export const processIncome = (
 };
 
 export const processExpenses = (
-  taxes: TaxRow[],
+  taxes: TaxRows,
   callback: (row: TaxRow, value: DecString) => void,
 ): void => {
   taxes

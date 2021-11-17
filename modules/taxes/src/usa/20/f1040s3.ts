@@ -1,7 +1,7 @@
 import {
   Logger,
   TaxInput,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -13,7 +13,7 @@ import {
 export const f1040s3 = (
   forms: Forms,
   input: TaxInput,
-  taxRows: TaxRow[],
+  taxRows: TaxRows,
   logger: Logger,
 ): Forms => {
   const log = logger.child({ module: "f1040s3" });

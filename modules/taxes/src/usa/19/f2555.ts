@@ -1,6 +1,6 @@
 import {
   Logger,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -10,7 +10,7 @@ import {
   processIncome,
 } from "./utils";
 
-export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+export const f2555 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms => {
   const log = logger.child({ module: "f2555" });
   const { f2555, f1040, f1040s1 } = forms;
 
@@ -33,10 +33,10 @@ export const f2555 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms =>
 
   let totalIncome = "0";
   let totalExpenses = "0";
-  processIncome(taxRows, (income: TaxRow, value: string): void => {
+  processIncome(taxRows, (income, value): void => {
     totalIncome = math.add(totalIncome, value);
   });
-  processExpenses(taxRows, (expense: TaxRow, value: string): void => {
+  processExpenses(taxRows, (expense, value): void => {
     totalExpenses = math.add(totalExpenses, value);
   });
   f2555.L23 = math.round(math.sub(totalIncome, totalExpenses));

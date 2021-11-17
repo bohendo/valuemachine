@@ -12,7 +12,12 @@ import {
   TransactionsJson,
   TxTags,
 } from "@valuemachine/types";
-import { getAddressBookError, getCsvFilesError, getTransactionsError } from "@valuemachine/utils";
+import {
+  digest,
+  getAddressBookError,
+  getCsvFilesError,
+  getTransactionsError,
+} from "@valuemachine/utils";
 import React from "react";
 
 type InputPorterProps = {
@@ -87,7 +92,7 @@ export const InputPorter: React.FC<InputPorterProps> = ({
     const data = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
     a.href = "data:" + data;
-    a.download = "valuemachine.json";
+    a.download = `valuemachine-${digest(output)}.json`;
     a.click();
   };
 

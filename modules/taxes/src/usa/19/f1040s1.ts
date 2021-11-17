@@ -1,7 +1,7 @@
 import {
   IncomeTypes,
   Logger,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -10,7 +10,7 @@ import {
   processIncome,
 } from "./utils";
 
-export const f1040s1 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+export const f1040s1 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms => {
   const log = logger.child({ module: "f1040s1" });
   const { f1040, f1040s1 } = forms;
 
@@ -18,7 +18,7 @@ export const f1040s1 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
   f1040s1.SSN = f1040.SSN;
 
   let prizeMoney = "0";
-  processIncome(taxRows, (income: TaxRow, value: string): void => {
+  processIncome(taxRows, (income, value): void => {
     if (income.tag.incomeType === IncomeTypes.Prize) {
       prizeMoney = math.add(prizeMoney, value);
       log.info(`Adding income of ${value}`);

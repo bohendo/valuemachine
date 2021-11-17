@@ -4,6 +4,7 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import { digest } from "@valuemachine/utils";
 import React from "react";
 
 type PorterProps = {
@@ -53,7 +54,7 @@ export const Porter: React.FC<PorterProps> = ({
     const dataUrl = `text/json;charset=utf-8,${encodeURIComponent(output)}`;
     const a = document.createElement("a");
     a.href = "data:" + dataUrl;
-    a.download = `${name}.json`;
+    a.download = `${name}-${digest(output)}.json`;
     a.click();
   };
 

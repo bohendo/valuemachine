@@ -151,3 +151,9 @@ export const txTags = {
     physicalGuard: "IND",
   },
 };
+
+export const taxInput = {
+  personal: {
+    firstName: "Bo",
+  },
+};

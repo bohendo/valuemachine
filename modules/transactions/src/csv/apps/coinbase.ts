@@ -3,8 +3,8 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
+import { digest, math } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
-import { hashCsv, math } from "@valuemachine/utils";
 
 import { Assets, CsvSources, Guards, Methods } from "../../enums";
 import { getGuard } from "../../utils";
@@ -63,7 +63,7 @@ export const coinbaseParser = (
       sources: [source],
       tag: { physicalGuard: guard },
       transfers: [],
-      uuid: `${source}/${hashCsv(csvData)}-${rowIndex}`,
+      uuid: `${source}/${digest(csvData)}-${rowIndex}`,
     } as Transaction;
 
     let transferIndex = 1;

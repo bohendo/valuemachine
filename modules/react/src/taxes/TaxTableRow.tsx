@@ -5,8 +5,10 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
+import { securityFeeMap } from "@valuemachine/taxes";
 import {
   Asset,
+  Guard,
   TaxActions,
   TaxRow,
   TxTags,
@@ -20,6 +22,7 @@ import React, { useState } from "react";
 import { TxTagsEditor } from "../txTags";
 
 type TaxTableRowProps = {
+  guard: Guard;
   row: TaxRow;
   setTxTags: (val: TxTags) => void;
   txId: TxId;
@@ -27,6 +30,7 @@ type TaxTableRowProps = {
   unit?: Asset;
 };
 export const TaxTableRow: React.FC<TaxTableRowProps> = ({
+  guard,
   row,
   setTxTags,
   txId,
@@ -35,6 +39,8 @@ export const TaxTableRow: React.FC<TaxTableRowProps> = ({
 }: TaxTableRowProps) => {
   const [open, setOpen] = useState(false);
 
+  const fmtDate = d => d.replace("T", " ").replace(".000Z", "");
+
   return (<>
     <TableRow>
       <TableCell onClick={() => setOpen(!open)} sx={{ p: 1, maxWidth: "4em" }}>
@@ -42,14 +48,14 @@ export const TaxTableRow: React.FC<TaxTableRowProps> = ({
           {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
         </IconButton>
       </TableCell>
-      <TableCell sx={{ minWidth: "8em" }}> {
-        row.date.replace("T", " ").replace(".000Z", "")
-      } </TableCell>
+      <TableCell sx={{ minWidth: "8em" }}> {fmtDate(row.date)} </TableCell>
       <TableCell> {row.action} </TableCell>
       <TableCell> {`${commify(row.amount, 6, unit)} ${row.asset}`} </TableCell>
+      {!guard ? (<TableCell> {row.guard} </TableCell>) : null}
+      {!guard ? (<TableCell> {securityFeeMap[row.guard] || unit || ""} </TableCell>) : null}
       <TableCell> {commify(row.price, 4, unit)} </TableCell>
       <TableCell> {commify(row.value, 2, unit)} </TableCell>
-      <TableCell sx={{ minWidth: "8em" }}> {row.receiveDate.replace("T", " ").replace(".000Z", "")} </TableCell>
+      <TableCell sx={{ minWidth: "8em" }}> {fmtDate(row.receiveDate)} </TableCell>
       <TableCell> {commify(row.receivePrice, 4, unit)} </TableCell>
       <TableCell> {commify(row.capitalChange, 2, unit)} </TableCell>
       <TableCell> {
@@ -73,6 +79,5 @@ export const TaxTableRow: React.FC<TaxTableRowProps> = ({
         </Collapse>
       </TableCell>
     </TableRow>
-
   </>);
 };

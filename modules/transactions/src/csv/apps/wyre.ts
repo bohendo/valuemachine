@@ -3,8 +3,8 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
+import { gt, digest, sub } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
-import { gt, hashCsv, sub } from "@valuemachine/utils";
 
 import { Assets, CsvSources, Guards } from "../../enums";
 import { getGuard } from "../../utils";
@@ -92,7 +92,7 @@ export const wyreParser = (
       sources: [source],
       tag: { physicalGuard: guard },
       transfers: [],
-      uuid: `${source}/${hashCsv(csvData)}-${rowIndex}`,
+      uuid: `${source}/${digest(csvData)}-${rowIndex}`,
     } as Transaction;
 
     const fee = { category: Expense, from: account, to: exchange, index: 0 };

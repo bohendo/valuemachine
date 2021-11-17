@@ -1,6 +1,6 @@
 import {
   Logger,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -10,7 +10,7 @@ import {
 
 const { add, gt, mul, round, sub, subToZero } = math;
 
-export const f8889 = (forms: Forms, _taxRows: TaxRow[], logger: Logger): Forms => {
+export const f8889 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms => {
   const log = logger.child({ module: "f8889" });
   const { f1040s1, f1040s2, f8889 } = forms;
 

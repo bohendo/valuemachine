@@ -3,76 +3,80 @@ import Grid from "@mui/material/Grid";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import { TaxPorter, TaxTable } from "@valuemachine/react";
-import {
-  Guards,
-  PhysicalGuards,
-} from "@valuemachine/transactions";
+import { SyncTaxRows, TaxPorter, TaxTable } from "@valuemachine/react";
+import { Guards } from "@valuemachine/transactions";
 import {
   AddressBook,
   Asset,
-  EventTypes,
   Guard,
   Prices,
-  TaxInput,
-  TradeEvent,
-  TxTags,
   ValueMachine,
+  TaxInput,
+  TaxRows,
+  TxTags,
 } from "@valuemachine/types";
+import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
+const allGuards = "All";
+
 type TaxesExplorerProps = {
-  addressBook: AddressBook;
-  prices: Prices;
-  taxInput: TaxInput;
-  txTags: TxTags;
+  addressBook?: AddressBook;
+  prices?: Prices;
+  setTaxRows: (val: TaxRows) => void;
   setTxTags: (val: TxTags) => void;
+  taxInput: TaxInput;
+  taxRows: TaxRows;
+  txTags: TxTags;
   unit?: Asset;
-  vm: ValueMachine;
+  vm?: ValueMachine;
 };
 export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   addressBook,
   prices,
-  taxInput,
+  setTaxRows,
   setTxTags,
+  taxInput,
+  taxRows,
   txTags,
   unit,
   vm,
 }: TaxesExplorerProps) => {
-  const [tab, setTab] = useState(0);
-  const [allGuards, setAllGuards] = useState([] as Guard[]);
   const [guard, setGuard] = React.useState("");
+  const [guards, setGuards] = useState([] as Guard[]);
+  const [tab, setTab] = useState(0);
 
   useEffect(() => {
-    setGuard(allGuards[tab]);
-  }, [allGuards, tab]);
+    setGuard(guards[tab]);
+  }, [guards, tab]);
 
   useEffect(() => {
-    if (!vm?.json?.events?.length) return;
-    const newGuards = [
+    if (!taxRows?.length) return;
+    const newGuards = dedup([
+      allGuards,
       Guards.None,
-      ...Array.from(vm.json.events
-        .filter(
-          e => e.type === EventTypes.Trade || e.type === EventTypes.Income
-        ).reduce((setOfGuards, evt) => {
-          const guard = (evt as TradeEvent).account?.split("/")?.[0];
-          if (Object.keys(PhysicalGuards).includes(guard)) {
-            setOfGuards.add(guard);
-          }
-          return setOfGuards;
-        }, new Set())
-      ).sort() as Guard[]
-    ];
-    setAllGuards(newGuards);
+      ...taxRows.map(row => row.guard).sort(),
+    ]) as Guard[];
+    setGuards(newGuards);
     setGuard(newGuards[0]);
-  }, [vm]);
+  }, [taxRows]);
 
   return (
     <>
       <Typography variant="h3">
         Taxes Explorer
       </Typography>
-      <Divider/>
+
+      <SyncTaxRows
+        addressBook={addressBook}
+        prices={prices}
+        setTaxRows={setTaxRows}
+        txTags={txTags}
+        unit={unit}
+        vm={vm}
+      />
+
+      <Divider sx={{ my: 1 }} />
 
       <Tabs
         centered
@@ -82,34 +86,29 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
         textColor="secondary"
         value={tab}
       >
-        {allGuards.map((guard, i) => (
-          <Tab key={i} label={guard}/>
+        {guards.map((g, i) => (
+          <Tab key={i} label={g}/>
         ))}
       </Tabs>
 
-      {guard !== Guards.None ? (
+      {(guard !== allGuards && guard !== Guards.None) ? (
         <Grid container sx={{ justifyContent: "center", mb: 2 }}>
           <Grid item sm={6}>
             <TaxPorter
-              addressBook={addressBook}
               guard={guard}
-              prices={prices}
-              vm={vm}
               taxInput={taxInput}
-              txTags={txTags}
+              taxRows={taxRows}
             />
           </Grid>
         </Grid>
       ) : null}
 
       <TaxTable
-        addressBook={addressBook}
-        guard={guard}
-        prices={prices}
+        guard={guard === allGuards ? "" : guard}
         setTxTags={setTxTags}
         txTags={txTags}
+        taxRows={taxRows}
         unit={unit}
-        vm={vm}
       />
 
     </>

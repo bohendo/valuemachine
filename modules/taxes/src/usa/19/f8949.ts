@@ -1,7 +1,7 @@
 import {
   EventTypes,
   Logger,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -23,7 +23,7 @@ type Trade = {
   amount: string;
 };
 
-export const f8949 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms  => {
+export const f8949 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms  => {
   const log = logger.child({ module: "f8949" });
   const f1040 = forms.f1040;
   let f8949 = forms.f8949.length ? forms.f8949 : [];
@@ -35,7 +35,7 @@ export const f8949 = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms  =
 
   // Merge trades w the same received & sold dates
   const trades = [] as Trade[];
-  taxRows.filter(tax => tax.action === EventTypes.Trade).forEach((tax: TaxRow): void => {
+  taxRows.filter(tax => tax.action === EventTypes.Trade).forEach(tax => {
     trades.push({
       date: getDate(tax.date),
       asset: tax.asset,

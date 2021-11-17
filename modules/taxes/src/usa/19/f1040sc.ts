@@ -2,7 +2,7 @@ import {
   ExpenseTypes,
   IncomeTypes,
   Logger,
-  TaxRow,
+  TaxRows,
 } from "@valuemachine/types";
 
 import {
@@ -14,7 +14,7 @@ import {
 
 const { add, gt, lt, round, sub } = math;
 
-export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms => {
+export const f1040sc = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms => {
   const log = logger.child({ module: "f1040sc" });
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 
@@ -24,7 +24,7 @@ export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
   f1040sc.SSN = f1040.SSN;
 
   let totalIncome = "0";
-  processIncome(taxRows, (income: TaxRow, value: string): void => {
+  processIncome(taxRows, (income, value): void => {
     if (income.tag.incomeType === IncomeTypes.Prize) {
       log.debug(`Prize money goes on f1040s1.L8`);
     } else {
@@ -46,7 +46,7 @@ export const f1040sc = (forms: Forms, taxRows: TaxRow[], logger: Logger): Forms 
 
   let otherExpenseIndex = 1;
   let exchangeFees = "0";
-  processExpenses(taxRows, (expense: TaxRow, value: string): void => {
+  processExpenses(taxRows, (expense, value): void => {
     const message = `${expense.date.split("T")[0]} ` +
       `Expense of ${pad(math.round(expense.amount), 8)} ${pad(expense.asset, 4)} `;
     if (!expense.tag.expenseType) {

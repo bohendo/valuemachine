@@ -3,8 +3,8 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
+import { digest, mul, round } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
-import { hashCsv, mul, round } from "@valuemachine/utils";
 
 import { Assets, CsvSources, Guards, Methods } from "../../enums";
 
@@ -62,7 +62,7 @@ export const elementsParser = (
       sources: [source],
       tag: { physicalGuard: guard },
       transfers: [],
-      uuid: `${source}/${hashCsv(csvData)}-${rowIndex}`,
+      uuid: `${source}/${digest(csvData)}-${rowIndex}`,
     } as Transaction;
 
     let transferIndex = 1;

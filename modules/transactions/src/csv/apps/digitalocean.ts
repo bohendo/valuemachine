@@ -4,7 +4,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { hashCsv, math } from "@valuemachine/utils";
+import { digest, math } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
 import { Assets, CsvSources, Guards, Methods } from "../../enums";
@@ -53,7 +53,7 @@ export const digitaloceanParser = (
       sources: [source],
       tag: { physicalGuard: guard, expenseType: ExpenseTypes.EquipmentRental },
       transfers: [],
-      uuid: `${source}/${hashCsv(csvData)}-${rowIndex}`,
+      uuid: `${source}/${digest(csvData)}-${rowIndex}`,
     } as Transaction;
     transaction.transfers.push({
       amount,

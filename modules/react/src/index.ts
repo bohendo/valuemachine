@@ -16,11 +16,17 @@ export {
   NetWorthTable,
 } from "./output";
 export {
+  PriceTable,
+  SyncPrices,
+} from "./prices";
+export {
+  SyncTaxRows,
   TaxInputEditor,
   TaxPorter,
   TaxTable,
 } from "./taxes";
 export {
+  SyncTransactions,
   TransactionEditor,
   TransactionPorter,
   TransactionTable,
@@ -41,4 +47,5 @@ export {
 export {
   ChunkTable,
   EventTable,
+  SyncValueMachine,
 } from "./valuemachine";
