@@ -1,13 +1,9 @@
-import SyncIcon from "@mui/icons-material/Sync";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import { TaxPorter, TaxTable } from "@valuemachine/react";
-import { getTaxRows } from "@valuemachine/taxes";
+import { SyncTaxRows, TaxPorter, TaxTable } from "@valuemachine/react";
 import { Guards } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -48,15 +44,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
 }: TaxesExplorerProps) => {
   const [guard, setGuard] = React.useState("");
   const [guards, setGuards] = useState([] as Guard[]);
-  const [syncMsg, setSyncMsg] = useState("");
   const [tab, setTab] = useState(0);
-
-  const syncRows = async () => {
-    if (!addressBook?.json || !prices?.json || !vm?.json?.events?.length) return;
-    setSyncMsg("Syncing..");
-    setTaxRows(await getTaxRows({ addressBook, prices, txTags, userUnit: unit, vm }));
-    setSyncMsg("");
-  };
 
   useEffect(() => {
     setGuard(guards[tab]);
@@ -79,15 +67,14 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
         Taxes Explorer
       </Typography>
 
-      <Button
-        sx={{ m: 2, maxWidth: 0.95  }}
-        disabled={!!syncMsg}
-        onClick={syncRows}
-        startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
-        variant="outlined"
-      >
-        {syncMsg || `Sync Tax Rows w ${vm?.json?.events?.length || "0"} VM Events`}
-      </Button>
+      <SyncTaxRows
+        addressBook={addressBook}
+        prices={prices}
+        setTaxRows={setTaxRows}
+        txTags={txTags}
+        unit={unit}
+        vm={vm}
+      />
 
       <Divider sx={{ my: 1 }} />
 
