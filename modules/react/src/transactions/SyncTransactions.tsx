@@ -28,7 +28,13 @@ export const SyncTransactions: React.FC<SyncTransactionsProps> = ({
 
   const handleSyncTxns = async () => {
     if (syncMsg) return;
-    await syncTxns(addressBook, customTxns, csvFiles, setTransactionsJson, setSyncMsg);
+    await syncTxns({
+      addressBook,
+      csvFiles,
+      customTxns,
+      setSyncMsg,
+      setTransactionsJson,
+    });
   };
 
   return (

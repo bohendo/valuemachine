@@ -29,7 +29,13 @@ export const SyncPrices: React.FC<SyncPricesProps> = ({
 
   const handleSync = async () => {
     if (syncMsg) return;
-    await syncPrices(vm, prices, unit, setPricesJson, setSyncMsg);
+    await syncPrices({
+      prices,
+      setPricesJson,
+      setSyncMsg,
+      unit,
+      vm,
+    });
   };
 
   return (

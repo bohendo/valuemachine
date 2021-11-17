@@ -1,5 +1,5 @@
 import {
-  TransactionsJson,
+  Transactions,
   ValueMachine,
   ValueMachineJson,
 } from "@valuemachine/types";
@@ -7,16 +7,21 @@ import {
   getValueMachineError,
 } from "@valuemachine/utils";
 
-export const processTxns = async (
-  vm: ValueMachine,
-  txJson: TransactionsJson,
-  setVMJson: (val: ValueMachineJson) => void,
-  setSyncMsg?: (val: string) => void,
-): Promise<ValueMachine> => {
+export const processTxns = async ({
+  setSyncMsg,
+  setVMJson,
+  transactions,
+  vm,
+}: {
+  setSyncMsg?: (val: string) => void;
+  setVMJson: (val: ValueMachineJson) => void;
+  transactions: Transactions;
+  vm: ValueMachine;
+}): Promise<ValueMachine> => {
 
-  const newTransactions = txJson?.filter(tx =>
+  const newTransactions = transactions?.json?.filter(tx =>
     new Date(tx.date).getTime() > new Date(vm.json.date).getTime(),
-  );
+  ) || [];
 
   setSyncMsg?.("Starting..");
   let start = Date.now();

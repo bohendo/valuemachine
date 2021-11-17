@@ -33,7 +33,12 @@ export const SyncValueMachine: React.FC<SyncValueMachineProps> = ({
 
   const handleTxProcessing = async () => {
     if (syncMsg) return;
-    await processTxns(vm, transactions.json, setVMJson, setSyncMsg);
+    await processTxns({
+      setSyncMsg,
+      setVMJson,
+      transactions,
+      vm,
+    });
   };
 
   return (

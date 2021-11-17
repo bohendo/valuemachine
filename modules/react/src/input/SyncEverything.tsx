@@ -53,16 +53,36 @@ export const SyncEverything: React.FC<SyncEverythingProps> = ({
 
   const handleSync = async () => {
     if (syncMsg) return;
-    const newTxns = await syncTxns(
+    const newTxns = await syncTxns({
       addressBook,
-      customTxns,
       csvFiles,
-      setTransactionsJson,
+      customTxns,
       setSyncMsg,
-    );
-    const newVm = await processTxns(vm, newTxns, setVMJson, setSyncMsg);
-    const newPrices = await syncPrices(newVm, prices, unit, setPricesJson, setSyncMsg);
-    await syncTaxRows(addressBook, newPrices, txTags, unit, newVm, setTaxRows, setSyncMsg);
+      setTransactionsJson,
+    });
+    const newVm = await processTxns({
+      setSyncMsg,
+      setVMJson,
+      transactions: newTxns,
+      vm,
+    });
+    const newPrices = await syncPrices({
+      prices,
+      setPricesJson,
+      setSyncMsg,
+      unit,
+      vm: newVm,
+    });
+    const newTaxRows = await syncTaxRows({
+      addressBook,
+      prices: newPrices,
+      setSyncMsg,
+      setTaxRows,
+      txTags,
+      unit,
+      vm: newVm,
+    });
+    console.log(`Done syncing everything, generated ${newTaxRows.length} tax rows`);
   };
 
   return (

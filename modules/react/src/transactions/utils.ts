@@ -5,6 +5,7 @@ import {
   AddressBook,
   AddressCategories,
   CsvFiles,
+  Transactions,
   TransactionsJson,
 } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
@@ -12,13 +13,19 @@ import axios from "axios";
 
 const logger = getLogger("warn");
 
-export const syncTxns = async (
-  addressBook: AddressBook,
-  customTxns: TransactionsJson,
-  csvFiles: CsvFiles,
-  setTransactionsJson?: (val: TransactionsJson) => void,
-  setSyncMsg?: (val: string) => void,
-): Promise<TransactionsJson> => {
+export const syncTxns = async ({
+  addressBook,
+  csvFiles,
+  customTxns,
+  setSyncMsg,
+  setTransactionsJson,
+}: {
+  addressBook: AddressBook;
+  csvFiles: CsvFiles;
+  customTxns: TransactionsJson;
+  setSyncMsg?: (val: string) => void;
+  setTransactionsJson?: (val: TransactionsJson) => void;
+}): Promise<Transactions> => {
   // Sync Chain Data
   const newTransactions = getTransactions({
     json: JSON.parse(JSON.stringify(customTxns)),
@@ -78,5 +85,5 @@ export const syncTxns = async (
   }
   setTransactionsJson?.(newTransactions.json);
   setSyncMsg?.("");
-  return (newTransactions.json);
+  return (newTransactions);
 };

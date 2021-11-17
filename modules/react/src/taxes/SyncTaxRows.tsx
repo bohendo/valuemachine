@@ -36,7 +36,15 @@ export const SyncTaxRows: React.FC<SyncTaxRowsProps> = ({
   const handleSync = async () => {
     if (!addressBook?.json || !prices?.json || !vm?.json?.events?.length || !unit) return;
     if (syncMsg) return;
-    await syncTaxRows(addressBook, prices, txTags, unit, vm, setTaxRows, setSyncMsg);
+    await syncTaxRows({
+      addressBook,
+      prices,
+      setSyncMsg,
+      setTaxRows,
+      txTags,
+      unit,
+      vm,
+    });
   };
 
   return (
