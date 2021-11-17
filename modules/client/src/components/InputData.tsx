@@ -35,7 +35,12 @@ import {
   TaxInput,
   TxTags,
 } from "@valuemachine/types";
-import { getBlankAddressEntry, getBlankTransaction, getLogger } from "@valuemachine/utils";
+import {
+  getBlankAddressEntry,
+  getBlankTransaction,
+  getLogger,
+  getTransactionsError,
+} from "@valuemachine/utils";
 import React, { useState } from "react";
 
 const logger = getLogger("warn");
@@ -256,7 +261,10 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
         <TransactionTable
           addressBook={addressBook}
           setTransactions={setCustomTxns}
-          transactions={getTransactions({ json: customTxns || [], logger })}
+          transactions={getTransactions({
+            json: !getTransactionsError(customTxns) ? customTxns : [],
+            logger
+          })}
         />
       </div>
 

@@ -174,10 +174,19 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!customTxns) return;
-    console.log(`Saving ${customTxns.length} custom transactions`);
+    // Migrate old data types
     customTxns.forEach(tx => { if ("tags" in tx) delete tx.tags; });
     customTxns.forEach(tx => { tx.tag = "tag" in tx ? tx.tag : {}; });
-    store.save(CustomTxnsStore, customTxns);
+    const error = getTransactionsError(customTxns);
+    if (error) {
+      console.log(`Removing ${customTxns?.length || "0"} invalid custom transactions: ${error}`);
+      const newCustomTxns = getEmptyTransactions();
+      store.save(CustomTxnsStore, newCustomTxns);
+      setCustomTxns(newCustomTxns);
+    } else {
+      console.log(`Saving ${customTxns.length} custom transactions`);
+      store.save(CustomTxnsStore, customTxns);
+    }
   }, [customTxns]);
 
   useEffect(() => {
