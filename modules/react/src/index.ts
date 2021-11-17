@@ -19,6 +19,7 @@ export {
 export {
   PriceTable,
   SyncPrices,
+  syncPrices,
 } from "./prices";
 export {
   SyncTaxRows,
@@ -26,6 +27,7 @@ export {
   TaxPorter,
   TaxSummary,
   TaxTable,
+  syncTaxRows,
 } from "./taxes";
 export {
   SyncTransactions,

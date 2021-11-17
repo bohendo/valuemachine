@@ -22,6 +22,7 @@ import React, { useEffect, useState } from "react";
 
 const allGuards = "All";
 
+
 type TaxesExplorerProps = {
   addressBook?: AddressBook;
   globalSyncMsg: string;

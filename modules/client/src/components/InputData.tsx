@@ -150,10 +150,10 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
 
       <Tabs
         indicatorColor="secondary"
-        onChange={(evt, newVal) => setTab(parseInt(newVal))}
+        onChange={(evt, newVal) => setTab(newVal)}
         sx={{ mt: 1 }}
         textColor="secondary"
-        value={tab}
+        value={parseInt(tab.toString())}
         variant="scrollable"
       >
         <Tab sx={{ flexGrow: 1 }} label="Address Book"/>

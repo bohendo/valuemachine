@@ -10,7 +10,11 @@ import AppBar from "@mui/material/AppBar";
 import IconButton from "@mui/material/IconButton";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { SelectOne, SyncEverything } from "@valuemachine/react";
+import {
+  SelectOne,
+  SyncEverything,
+  syncTaxRows,
+} from "@valuemachine/react";
 import {
   Cryptocurrencies,
   FiatCurrencies,
@@ -27,7 +31,7 @@ import {
   ValueMachine,
   ValueMachineJson,
 } from "@valuemachine/types";
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 type PropTypes = {
@@ -74,6 +78,20 @@ export const NavBar: React.FC<PropTypes> = ({
       setTheme("light");
     }
   };
+
+  useEffect(() => {(async () => {
+    if (syncMsg) return;
+    await syncTaxRows({
+      addressBook,
+      prices,
+      setSyncMsg,
+      setTaxRows,
+      txTags,
+      unit,
+      vm,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })();}, [txTags, unit]);
 
   return (
     <AppBar position="static" elevation={0} enableColorOnDark>
