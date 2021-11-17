@@ -46,8 +46,8 @@ import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
 
-const logger = getLogger("warn");
 const store = getLocalStore(localStorage);
+const logger = getLogger("warn");
 
 // localstorage keys
 const {
@@ -111,7 +111,7 @@ export const App: React.FC<AppProps> = ({
   }, [addressBookJson]);
 
   useEffect(() => {
-    if (!addressBook || !transactionsJson) return;
+    if (!transactionsJson) return;
     const error = getTransactionsError(transactionsJson);
     if (error) {
       console.log(`Removing ${transactionsJson?.length || "0"} invalid transactions: ${error}`);
@@ -123,10 +123,10 @@ export const App: React.FC<AppProps> = ({
       store.save(TransactionsStore, transactionsJson);
       setTransactions(getTransactions({ json: transactionsJson, store, logger }));
     }
-  }, [addressBook, transactionsJson]);
+  }, [transactionsJson]);
 
   useEffect(() => {
-    if (!addressBook || !vmJson) return;
+    if (!vmJson) return;
     const error = getValueMachineError(vmJson);
     if (error) {
       console.log(`Removing invalid vm: ${error}`);
@@ -141,7 +141,7 @@ export const App: React.FC<AppProps> = ({
       setVM(getValueMachine({ json: vmJson, logger, store }));
     }
 
-  }, [addressBook, vmJson]);
+  }, [vmJson]);
 
   useEffect(() => {
     if (!pricesJson || !unit) return;

@@ -16,6 +16,10 @@ export {
   NetWorthTable,
 } from "./output";
 export {
+  PriceTable,
+  SyncPrices,
+} from "./prices";
+export {
   TaxInputEditor,
   TaxPorter,
   TaxTable,
