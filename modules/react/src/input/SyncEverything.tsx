@@ -8,36 +8,39 @@ import {
 } from "@valuemachine/types";
 import React, { useState } from "react";
 
-import { syncTxns } from "./utils";
+import { syncTxns } from "../transactions";
 
-type SyncTransactionsProps = {
+type SyncEverythingProps = {
   addressBook: AddressBook;
   csvFiles: CsvFiles,
   customTxns: TransactionsJson,
   setTransactionsJson: (val: TransactionsJson) => void;
 };
-export const SyncTransactions: React.FC<SyncTransactionsProps> = ({
+export const SyncEverything: React.FC<SyncEverythingProps> = ({
   addressBook,
   csvFiles,
   customTxns,
   setTransactionsJson,
-}: SyncTransactionsProps) => {
+}: SyncEverythingProps) => {
   const [syncMsg, setSyncMsg] = useState("");
 
-  const handleSyncTxns = async () => {
+  const handleSync = async () => {
     if (syncMsg) return;
     await syncTxns(addressBook, customTxns, csvFiles, setSyncMsg, setTransactionsJson);
+    // await processTxns()
+    // await fetchPrices()
+    // await getTaxRows()
   };
 
   return (
     <Button
       sx={{ mx: 2, mt: 2, mb: 1, maxWidth: 0.95  }}
       disabled={!!syncMsg}
-      onClick={handleSyncTxns}
+      onClick={handleSync}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
       variant="outlined"
     >
-      {syncMsg || "Sync Transactions"}
+      {syncMsg || "Sync"}
     </Button>
   );
 };
