@@ -12,12 +12,14 @@ import React, { useState } from "react";
 import { syncPrices } from "./utils";
 
 type SyncPricesProps = {
+  disabled?: boolean;
   prices: Prices;
   setPricesJson: (val: PricesJson) => void;
   unit: Asset,
   vm: ValueMachine,
 };
 export const SyncPrices: React.FC<SyncPricesProps> = ({
+  disabled,
   prices,
   setPricesJson,
   unit,
@@ -33,7 +35,7 @@ export const SyncPrices: React.FC<SyncPricesProps> = ({
   return (
     <Button
       sx={{ m: 3 }}
-      disabled={!!syncMsg}
+      disabled={disabled || !!syncMsg}
       onClick={handleSync}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
       variant="outlined"

@@ -34,6 +34,8 @@ type PropTypes = {
   addressBook: AddressBook;
   csvFiles: CsvFiles;
   customTxns: TransactionsJson;
+  syncMsg: string;
+  setSyncMsg: (val: string) => void;
   prices: Prices;
   setPricesJson: (val: PricesJson) => void;
   setTaxRows: (val: TaxRows) => void;
@@ -51,6 +53,8 @@ export const NavBar: React.FC<PropTypes> = ({
   csvFiles,
   customTxns,
   prices,
+  syncMsg,
+  setSyncMsg,
   setPricesJson,
   setTaxRows,
   setTheme,
@@ -152,9 +156,11 @@ export const NavBar: React.FC<PropTypes> = ({
           customTxns={customTxns}
           prices={prices}
           setPricesJson={setPricesJson}
+          setSyncMsg={setSyncMsg}
           setTaxRows={setTaxRows}
           setTransactionsJson={setTransactionsJson}
           setVMJson={setVMJson}
+          syncMsg={syncMsg}
           txTags={txTags}
           unit={unit}
           vm={vm}
@@ -170,7 +176,7 @@ export const NavBar: React.FC<PropTypes> = ({
 
         <IconButton
           sx={{ ml: 1, minWidth: "2em" }}
-          color="secondary"
+          color="inherit"
           edge="start"
           onClick={toggleTheme}
         >

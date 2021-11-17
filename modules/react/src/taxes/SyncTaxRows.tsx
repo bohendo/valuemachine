@@ -15,6 +15,7 @@ import { syncTaxRows } from "./utils";
 
 type SyncTaxRowsProps = {
   addressBook?: AddressBook;
+  disabled?: boolean;
   prices?: Prices;
   setTaxRows: (val: TaxRows) => void;
   txTags: TxTags;
@@ -23,6 +24,7 @@ type SyncTaxRowsProps = {
 };
 export const SyncTaxRows: React.FC<SyncTaxRowsProps> = ({
   addressBook,
+  disabled,
   prices,
   setTaxRows,
   txTags,
@@ -40,7 +42,7 @@ export const SyncTaxRows: React.FC<SyncTaxRowsProps> = ({
   return (
     <Button
       sx={{ m: 2, maxWidth: 0.95  }}
-      disabled={!!syncMsg}
+      disabled={disabled || !!syncMsg}
       onClick={handleSync}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
       variant="outlined"

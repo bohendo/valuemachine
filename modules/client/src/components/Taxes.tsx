@@ -22,6 +22,7 @@ const allGuards = "All";
 
 type TaxesExplorerProps = {
   addressBook?: AddressBook;
+  globalSyncMsg: string;
   prices?: Prices;
   setTaxRows: (val: TaxRows) => void;
   setTxTags: (val: TxTags) => void;
@@ -33,6 +34,7 @@ type TaxesExplorerProps = {
 };
 export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   addressBook,
+  globalSyncMsg,
   prices,
   setTaxRows,
   setTxTags,
@@ -61,56 +63,55 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     setGuard(newGuards[0]);
   }, [taxRows]);
 
-  return (
-    <>
-      <Typography variant="h3">
-        Taxes Explorer
-      </Typography>
+  return (<>
+    <Typography variant="h3">
+      Taxes Explorer
+    </Typography>
 
-      <SyncTaxRows
-        addressBook={addressBook}
-        prices={prices}
-        setTaxRows={setTaxRows}
-        txTags={txTags}
-        unit={unit}
-        vm={vm}
-      />
+    <SyncTaxRows
+      addressBook={addressBook}
+      disabled={!!globalSyncMsg}
+      prices={prices}
+      setTaxRows={setTaxRows}
+      txTags={txTags}
+      unit={unit}
+      vm={vm}
+    />
 
-      <Divider sx={{ my: 1 }} />
+    <Divider sx={{ my: 1 }} />
 
-      <Tabs
-        centered
-        indicatorColor="secondary"
-        onChange={(evt, newVal) => setTab(newVal)}
-        sx={{ m: 1 }}
-        textColor="secondary"
-        value={tab}
-      >
-        {guards.map((g, i) => (
-          <Tab key={i} label={g}/>
-        ))}
-      </Tabs>
+    <Tabs
+      centered
+      indicatorColor="secondary"
+      onChange={(evt, newVal) => setTab(newVal)}
+      sx={{ m: 1 }}
+      textColor="secondary"
+      value={tab}
+    >
+      {guards.map((g, i) => (
+        <Tab key={i} label={g}/>
+      ))}
+    </Tabs>
 
-      {(guard !== allGuards && guard !== Guards.None) ? (
-        <Grid container sx={{ justifyContent: "center", mb: 2 }}>
-          <Grid item sm={6}>
-            <TaxPorter
-              guard={guard}
-              taxInput={taxInput}
-              taxRows={taxRows}
-            />
-          </Grid>
+    {(guard !== allGuards && guard !== Guards.None) ? (
+      <Grid container sx={{ justifyContent: "center", mb: 2 }}>
+        <Grid item sm={6}>
+          <TaxPorter
+            guard={guard}
+            taxInput={taxInput}
+            taxRows={taxRows}
+          />
         </Grid>
-      ) : null}
+      </Grid>
+    ) : null}
 
-      <TaxTable
-        guard={guard === allGuards ? "" : guard}
-        setTxTags={setTxTags}
-        txTags={txTags}
-        taxRows={taxRows}
-        unit={unit}
-      />
+    <TaxTable
+      guard={guard === allGuards ? "" : guard}
+      setTxTags={setTxTags}
+      txTags={txTags}
+      taxRows={taxRows}
+      unit={unit}
+    />
 
-    </>
-  );
+  </>);
 };

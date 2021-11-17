@@ -18,6 +18,7 @@ import React, { useState } from "react";
 
 type ValueMachineExplorerProps = {
   addressBook: AddressBook;
+  globalSyncMsg: string;
   setVMJson: (vmJson: any) => void;
   transactions: Transactions;
   txTags?: TxTags;
@@ -26,6 +27,7 @@ type ValueMachineExplorerProps = {
 };
 export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
   addressBook,
+  globalSyncMsg,
   setVMJson,
   transactions,
   txTags,
@@ -41,6 +43,7 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
     </Typography>
 
     <SyncValueMachine
+      disabled={!!globalSyncMsg}
       setVMJson={setVMJson}
       transactions={transactions}
       vm={vm}

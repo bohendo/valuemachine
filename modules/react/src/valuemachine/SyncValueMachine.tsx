@@ -11,11 +11,13 @@ import React, { useEffect, useState } from "react";
 import { processTxns } from "./utils";
 
 type SyncValueMachineProps = {
+  disabled?: boolean;
   setVMJson: (vmJson: any) => void;
   transactions: Transactions;
   vm: ValueMachine;
 };
 export const SyncValueMachine: React.FC<SyncValueMachineProps> = ({
+  disabled,
   setVMJson,
   transactions,
   vm,
@@ -36,7 +38,7 @@ export const SyncValueMachine: React.FC<SyncValueMachineProps> = ({
 
   return (
     <Button
-      disabled={!!syncMsg || !newTransactions?.length}
+      disabled={disabled || !!syncMsg || !newTransactions?.length}
       onClick={handleTxProcessing}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
       sx={{ m: 3 }}

@@ -13,7 +13,7 @@ import {
   ValueMachine,
   ValueMachineJson,
 } from "@valuemachine/types";
-import React, { useState } from "react";
+import React from "react";
 
 import { syncPrices } from "../prices";
 import { syncTxns } from "../transactions";
@@ -26,9 +26,11 @@ type SyncEverythingProps = {
   customTxns: TransactionsJson;
   prices: Prices;
   setPricesJson: (val: PricesJson) => void;
+  setSyncMsg: (val: string) => void;
   setTaxRows: (val: TaxRows) => void;
   setTransactionsJson: (val: TransactionsJson) => void;
   setVMJson: (val: ValueMachineJson) => void;
+  syncMsg,
   txTags: TxTags;
   unit: Asset;
   vm: ValueMachine;
@@ -39,14 +41,15 @@ export const SyncEverything: React.FC<SyncEverythingProps> = ({
   customTxns,
   prices,
   setPricesJson,
+  setSyncMsg,
   setTaxRows,
   setTransactionsJson,
   setVMJson,
+  syncMsg,
   txTags,
   unit,
   vm,
 }: SyncEverythingProps) => {
-  const [syncMsg, setSyncMsg] = useState("");
 
   const handleSync = async () => {
     if (syncMsg) return;
@@ -67,8 +70,12 @@ export const SyncEverything: React.FC<SyncEverythingProps> = ({
       sx={{ mx: 2, mt: 2, mb: 1, maxWidth: 0.95  }}
       disabled={!!syncMsg}
       onClick={handleSync}
-      startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
-      variant="outlined"
+      endIcon={syncMsg
+        ? <CircularProgress size={20} color="inherit" />
+        : <SyncIcon color="inherit" />
+      }
+      variant="text"
+      color="inherit"
     >
       {syncMsg || "Sync"}
     </Button>

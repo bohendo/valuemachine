@@ -14,12 +14,14 @@ type SyncTransactionsProps = {
   addressBook: AddressBook;
   csvFiles: CsvFiles,
   customTxns: TransactionsJson,
+  disabled?: boolean;
   setTransactionsJson: (val: TransactionsJson) => void;
 };
 export const SyncTransactions: React.FC<SyncTransactionsProps> = ({
   addressBook,
   csvFiles,
   customTxns,
+  disabled,
   setTransactionsJson,
 }: SyncTransactionsProps) => {
   const [syncMsg, setSyncMsg] = useState("");
@@ -32,7 +34,7 @@ export const SyncTransactions: React.FC<SyncTransactionsProps> = ({
   return (
     <Button
       sx={{ mx: 2, mt: 2, mb: 1, maxWidth: 0.95  }}
-      disabled={!!syncMsg}
+      disabled={disabled || !!syncMsg}
       onClick={handleSyncTxns}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
       variant="outlined"
