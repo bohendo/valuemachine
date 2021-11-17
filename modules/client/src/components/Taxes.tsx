@@ -112,7 +112,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     <Grid container spacing={2} sx={{ justifyContent: "center", mb: 2 }}>
       <Grid item sm={6}>
         <TaxSummary
-          guard={guard}
+          guard={guard === allGuards ? "" : guard}
           taxInput={taxInput}
           taxRows={taxRows}
           unit={unit}

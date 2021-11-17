@@ -40,8 +40,6 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
   const [totalTaxesDue, setTotalTaxesDue] = useState("0");
   const [unit, setUnit] = React.useState(getUnit(guard, userUnit));
 
-  console.log(`Rendering Summary w userUnit=${userUnit} unit=${unit}`);
-
   useEffect(() => {
     setUnit(getUnit(guard, userUnit));
   }, [guard, userUnit]);
@@ -76,23 +74,23 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
       </Typography>
 
       <Typography variant="h6">
-        {`Total Business Income: ${math.round(totalBusinessIncome, 2)}`}
+        {`Total Business Income: ${math.commify(totalBusinessIncome, 2, unit)}`}
       </Typography>
 
       <Typography variant="h6">
-        {`Total Capital Gain/Loss: ${math.round(totalCapitalChange, 2)}`}
+        {`Total Capital Gain/Loss: ${math.commify(totalCapitalChange, 2, unit)}`}
       </Typography>
 
       <Typography variant="h6">
-        {`Total Income: ${math.round(totalIncome, 2)}`}
+        {`Total Income: ${math.commify(totalIncome, 2, unit)}`}
       </Typography>
 
       <Typography variant="h6">
-        {`Total Taxable Income: ${math.round(totalTaxableIncome, 2)}`}
+        {`Total Taxable Income: ${math.commify(totalTaxableIncome, 2, unit)}`}
       </Typography>
 
       <Typography variant="h6">
-        {`Total Taxes Due: ${math.round(totalTaxesDue, 2)}`}
+        {`Total Taxes Due: ${math.commify(totalTaxesDue, 2, unit)}`}
       </Typography>
 
     </Paper>
