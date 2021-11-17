@@ -147,7 +147,7 @@ export const NavBar: React.FC<PropTypes> = ({
           component="h1"
           noWrap
         >
-          Value Machine
+          {" "}
         </Typography>
 
         <SyncEverything
