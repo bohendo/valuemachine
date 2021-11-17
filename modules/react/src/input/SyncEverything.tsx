@@ -7,7 +7,9 @@ import {
   CsvFiles,
   Prices,
   PricesJson,
+  TaxRows,
   TransactionsJson,
+  TxTags,
   ValueMachine,
   ValueMachineJson,
 } from "@valuemachine/types";
@@ -16,16 +18,19 @@ import React, { useState } from "react";
 import { syncPrices } from "../prices";
 import { syncTxns } from "../transactions";
 import { processTxns } from "../valuemachine";
+import { syncTaxRows } from "../taxes";
 
 type SyncEverythingProps = {
   addressBook: AddressBook;
-  csvFiles: CsvFiles,
-  customTxns: TransactionsJson,
-  prices: Prices,
+  csvFiles: CsvFiles;
+  customTxns: TransactionsJson;
+  prices: Prices;
   setPricesJson: (val: PricesJson) => void;
+  setTaxRows: (val: TaxRows) => void;
   setTransactionsJson: (val: TransactionsJson) => void;
   setVMJson: (val: ValueMachineJson) => void;
-  unit: Asset,
+  txTags: TxTags;
+  unit: Asset;
   vm: ValueMachine;
 };
 export const SyncEverything: React.FC<SyncEverythingProps> = ({
@@ -34,8 +39,10 @@ export const SyncEverything: React.FC<SyncEverythingProps> = ({
   customTxns,
   prices,
   setPricesJson,
+  setTaxRows,
   setTransactionsJson,
   setVMJson,
+  txTags,
   unit,
   vm,
 }: SyncEverythingProps) => {
@@ -51,8 +58,8 @@ export const SyncEverything: React.FC<SyncEverythingProps> = ({
       setSyncMsg,
     );
     const newVm = await processTxns(vm, newTxns, setVMJson, setSyncMsg);
-    await syncPrices(newVm, prices, unit, setPricesJson, setSyncMsg);
-    // await getTaxRows()
+    const newPrices = await syncPrices(newVm, prices, unit, setPricesJson, setSyncMsg);
+    await syncTaxRows(addressBook, newPrices, txTags, unit, newVm, setTaxRows, setSyncMsg);
   };
 
   return (

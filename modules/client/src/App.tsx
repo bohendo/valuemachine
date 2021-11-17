@@ -246,7 +246,22 @@ export const App: React.FC<AppProps> = ({
 
   return (
     <Box>
-      <NavBar unit={unit} setUnit={setUnit} theme={theme} setTheme={setTheme} />
+      <NavBar
+        addressBook={addressBook}
+        csvFiles={csvFiles}
+        customTxns={customTxns}
+        prices={prices}
+        setPricesJson={setPricesJson}
+        setTaxRows={setTaxRows}
+        setTheme={setTheme}
+        setTransactionsJson={setTransactionsJson}
+        setUnit={setUnit}
+        setVMJson={setVMJson}
+        theme={theme}
+        txTags={txTags}
+        unit={unit}
+        vm={vm}
+      />
       <Box sx={{ overflow: "auto", flexGrow: 1 }}>
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Routes>

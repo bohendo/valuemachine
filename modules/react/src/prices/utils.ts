@@ -12,7 +12,7 @@ export const syncPrices = async (
   unit: Asset,
   setPricesJson?: (val: PricesJson) => void,
   setSyncMsg?: (val: string) => void,
-): Promise<PricesJson> => {
+): Promise<Prices> => {
   try {
     setSyncMsg?.(`Fetching price data for ${vm.json.chunks.length} chunks..`);
     const newPrices = (await axios.post(
@@ -32,6 +32,6 @@ export const syncPrices = async (
       setTimeout(() => setSyncMsg?.(""), 5000);
     }
   }
-  return prices.json;
+  return prices;
 };
 

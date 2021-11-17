@@ -9,6 +9,7 @@ export {
 } from "./csv";
 export {
   InputPorter,
+  SyncEverything,
 } from "./input";
 export {
   Balances,
