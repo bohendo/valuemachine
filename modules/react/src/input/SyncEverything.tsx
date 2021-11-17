@@ -77,7 +77,7 @@ export const SyncEverything: React.FC<SyncEverythingProps> = ({
       variant="text"
       color="inherit"
     >
-      {syncMsg || "Sync"}
+      {syncMsg || "Sync Everything"}
     </Button>
   );
 };

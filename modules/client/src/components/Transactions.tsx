@@ -1,3 +1,5 @@
+import ClearIcon from "@mui/icons-material/Delete";
+import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import { SyncTransactions, TransactionTable } from "@valuemachine/react";
@@ -29,27 +31,40 @@ export const TransactionExplorer: React.FC<TransactionExplorerProps> = ({
   setTxTags,
   transactions,
   txTags,
-}: TransactionExplorerProps) => (<>
+}: TransactionExplorerProps) => {
+  const handleClear = () => { setTransactionsJson([]); };
+  return (<>
 
-  <Typography variant="h3">
-    Transaction Explorer
-  </Typography>
+    <Typography variant="h3">
+      Transaction Explorer
+    </Typography>
 
-  <SyncTransactions
-    addressBook={addressBook}
-    csvFiles={csvFiles}
-    customTxns={customTxns}
-    disabled={!!globalSyncMsg}
-    setTransactionsJson={setTransactionsJson}
-  />
+    <SyncTransactions
+      addressBook={addressBook}
+      csvFiles={csvFiles}
+      customTxns={customTxns}
+      disabled={!!globalSyncMsg}
+      setTransactionsJson={setTransactionsJson}
+    />
 
-  <Divider sx={{ my: 2 }} />
+    <Button
+      sx={{ m: 3 }}
+      disabled={!transactions?.json?.length}
+      onClick={handleClear}
+      startIcon={<ClearIcon/>}
+      variant="outlined"
+    >
+      Clear Transactions
+    </Button>
 
-  <TransactionTable
-    addressBook={addressBook}
-    transactions={transactions}
-    txTags={txTags}
-    setTxTags={setTxTags}
-  />
+    <Divider sx={{ my: 2 }} />
 
-</>);
+    <TransactionTable
+      addressBook={addressBook}
+      transactions={transactions}
+      txTags={txTags}
+      setTxTags={setTxTags}
+    />
+
+  </>);
+};

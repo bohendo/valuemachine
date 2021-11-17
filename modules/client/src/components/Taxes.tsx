@@ -1,3 +1,5 @@
+import ClearIcon from "@mui/icons-material/Delete";
+import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import Tab from "@mui/material/Tab";
@@ -63,6 +65,8 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     setGuard(newGuards[0]);
   }, [taxRows]);
 
+  const handleClear = () => { setTaxRows([]); };
+
   return (<>
     <Typography variant="h3">
       Taxes Explorer
@@ -77,6 +81,16 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
       unit={unit}
       vm={vm}
     />
+
+    <Button
+      sx={{ m: 3 }}
+      disabled={!taxRows?.length}
+      onClick={handleClear}
+      startIcon={<ClearIcon/>}
+      variant="outlined"
+    >
+      Clear Tax Rows
+    </Button>
 
     <Divider sx={{ my: 1 }} />
 
