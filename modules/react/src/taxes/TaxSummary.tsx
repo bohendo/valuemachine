@@ -18,6 +18,9 @@ import {
 import { math } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
+const getUnit = (guard, defaultUnit) => 
+  (guard ? securityFeeMap[guard] : null) || defaultUnit || Assets.ETH;
+
 type TaxSummaryProps = {
   guard?: Guard;
   taxInput?: TaxInput;
@@ -35,12 +38,12 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
   const [totalIncome, setTotalIncome] = useState("0");
   const [totalTaxableIncome, setTotalTaxableIncome] = useState("0");
   const [totalTaxesDue, setTotalTaxesDue] = useState("0");
-  const [unit, setUnit] = React.useState(userUnit || Assets.ETH);
+  const [unit, setUnit] = React.useState(getUnit(guard, userUnit));
 
   console.log(`Rendering Summary w userUnit=${userUnit} unit=${unit}`);
 
   useEffect(() => {
-    setUnit((guard ? securityFeeMap[guard] : null) || userUnit);
+    setUnit(getUnit(guard, userUnit));
   }, [guard, userUnit]);
 
   useEffect(() => {

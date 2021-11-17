@@ -1,5 +1,5 @@
 export { SyncTaxRows } from "./SyncTaxRows";
-export { TaxInputEditor } from "./TaxInputEditor";
+export { TaxInputEditor } from "./input";
 export { TaxPorter } from "./TaxPorter";
 export { TaxSummary } from "./TaxSummary";
 export { TaxTable } from "./TaxTable";
