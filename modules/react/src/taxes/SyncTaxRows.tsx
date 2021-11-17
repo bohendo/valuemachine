@@ -1,7 +1,6 @@
 import SyncIcon from "@mui/icons-material/Sync";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import { getTaxRows } from "@valuemachine/taxes";
 import {
   AddressBook,
   Asset,
@@ -11,6 +10,8 @@ import {
   TxTags,
 } from "@valuemachine/types";
 import React, { useState } from "react";
+
+import { syncTaxRows } from "./utils";
 
 type SyncTaxRowsProps = {
   addressBook?: AddressBook;
@@ -30,18 +31,17 @@ export const SyncTaxRows: React.FC<SyncTaxRowsProps> = ({
 }: SyncTaxRowsProps) => {
   const [syncMsg, setSyncMsg] = useState("");
 
-  const syncRows = async () => {
-    if (!addressBook?.json || !prices?.json || !vm?.json?.events?.length) return;
-    setSyncMsg("Syncing..");
-    setTaxRows(await getTaxRows({ addressBook, prices, txTags, userUnit: unit, vm }));
-    setSyncMsg("");
+  const handleSync = async () => {
+    if (!addressBook?.json || !prices?.json || !vm?.json?.events?.length || !unit) return;
+    if (syncMsg) return;
+    await syncTaxRows(addressBook, prices, txTags, unit, vm, setTaxRows, setSyncMsg);
   };
 
   return (
     <Button
       sx={{ m: 2, maxWidth: 0.95  }}
       disabled={!!syncMsg}
-      onClick={syncRows}
+      onClick={handleSync}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
       variant="outlined"
     >

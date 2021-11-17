@@ -8,7 +8,8 @@ import {
   ValueMachine,
 } from "@valuemachine/types";
 import React, { useState } from "react";
-import axios from "axios";
+
+import { syncPrices } from "./utils";
 
 type SyncPricesProps = {
   prices: Prices;
@@ -24,34 +25,16 @@ export const SyncPrices: React.FC<SyncPricesProps> = ({
 }: SyncPricesProps) => {
   const [syncMsg, setSyncMsg] = useState("");
 
-  const syncPrices = async () => {
+  const handleSync = async () => {
     if (syncMsg) return;
-    try {
-      setSyncMsg(`Fetching price data for ${vm.json.chunks.length} chunks..`);
-      const newPrices = (await axios.post(
-        `/api/prices/chunks/${unit}`,
-        { chunks: vm.json.chunks },
-      ) as any).data;
-      console.info(`Synced new prices`, newPrices);
-      setSyncMsg("Successfully fetched prices! Importing..");
-      prices.merge(newPrices);
-      setPricesJson({ ...prices.json });
-      setSyncMsg("Successfully synced prices");
-      setTimeout(() => setSyncMsg(""), 1000);
-    } catch (e: any) {
-      console.error(`Failed to sync prices:`, e);
-      if (typeof e?.message === "string") {
-        setSyncMsg(e.message);
-        setTimeout(() => setSyncMsg(""), 5000);
-      }
-    }
+    await syncPrices(vm, prices, unit, setPricesJson, setSyncMsg);
   };
 
   return (
     <Button
       sx={{ m: 3 }}
       disabled={!!syncMsg}
-      onClick={syncPrices}
+      onClick={handleSync}
       startIcon={syncMsg ? <CircularProgress size={20} /> : <SyncIcon/>}
       variant="outlined"
     >

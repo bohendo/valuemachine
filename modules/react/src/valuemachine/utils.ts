@@ -12,7 +12,7 @@ export const processTxns = async (
   txJson: TransactionsJson,
   setVMJson: (val: ValueMachineJson) => void,
   setSyncMsg?: (val: string) => void,
-): Promise<ValueMachineJson> => {
+): Promise<ValueMachine> => {
 
   const newTransactions = txJson?.filter(tx =>
     new Date(tx.date).getTime() > new Date(vm.json.date).getTime(),
@@ -45,6 +45,6 @@ export const processTxns = async (
   console.info(`Generated ${vm.json.events.length} events and ${vm.json.chunks.length} chunks`);
   setVMJson({ ...vm.json });
   setSyncMsg?.("");
-  return vm.json;
+  return vm;
 
 };
