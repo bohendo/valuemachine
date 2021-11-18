@@ -14,7 +14,6 @@ const travel = [{
   enterDate: "2020-01-01",
   leaveDate: "2020-12-01",
   country: "IND",
-  usaIncomeEarned: "0",
 }];
 const income = {
   date: "2020-01-01T00:00:00",

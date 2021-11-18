@@ -121,7 +121,7 @@ export const getBusinessIncome = (rows) =>
     getRowTotal(rows.filter(isBusinessExpense)),
   );
 
-// need to cut capital losses off at -1500/-3000 a la f1040sd.L21
+// cut capital losses off at -1500/-3000 a la f1040sd.L21
 export const getTotalCapitalChange = (rows, filingStatus) =>
   math.max(
     getRowTotal(

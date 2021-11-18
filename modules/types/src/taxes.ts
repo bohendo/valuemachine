@@ -101,7 +101,6 @@ export const TaxInput = Type.Object({
     enterDate: DateString,
     leaveDate: DateString,
     country: Type.String(), // 3-letter code a la ISO 3166-1 alpha-3
-    usaIncomeEarned: Type.Optional(DecString),
   }, { additionalProperties: false }))),
   // If business info provided, insert f1040sc & f1040sse else treat all income as wages
   business: Type.Optional(Type.Object({

@@ -114,7 +114,7 @@ export const sigfigs = (decStr: string, n = 3): string => {
 export const commify = (num: DecString, decimals?: number, asset?: Asset): string => {
   let rounded = round(
     num,
-    decimals || (asset === "INR" || asset === "USD" ? 2 : undefined),
+    typeof decimals === "number" ? decimals : (asset === "INR" || asset === "USD" ? 2 : undefined),
     true,
   );
   if (asset !== "INR") {

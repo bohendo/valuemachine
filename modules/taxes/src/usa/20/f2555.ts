@@ -137,7 +137,7 @@ export const f2555 = (
     f2555[`L18c_R${i+1}`] = toFormDate(trip.leaveDate);
     f2555[`L18d_R${i+1}`] = trip.country !== USA ? diffDays(trip.enterDate, trip.leaveDate) : "0";
     f2555[`L18e_R${i+1}`] = trip.country === USA ? diffDays(trip.enterDate, trip.leaveDate) : "0";
-    f2555[`L18f_R${i+1}`] = trip.usaIncomeEarned;
+    f2555[`L18f_R${i+1}`] = "0"; // get income by country
   }
 
   ////////////////////////////////////////

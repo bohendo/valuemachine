@@ -25,7 +25,6 @@ Example.args = {
       enterDate: "2020-01-01",
       leaveDate: "2020-03-31",
       country: "USA",
-      usaIncomeEarned: "1000000",
     }],
     forms: {
       f1040: {
