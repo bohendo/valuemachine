@@ -24,14 +24,18 @@ const getUnit = (guard, defaultUnit) =>
 
 const getRepricer = (unit, prices) => row => {
   if (!unit || !prices) return row;
-  if (getUnit(row.guard, unit) !== unit) {
-    const conversion = prices?.getNearest(row.date, getUnit(row.guard, unit), unit) || "1";
-    row.price = math.mul(conversion, row.price);
-    row.receivePrice = math.mul(conversion, row.receivePrice);
-    row.value = math.mul(conversion, row.value);
-    row.capitalChange = math.mul(conversion, row.capitalChange);
+  const fromUnit = getUnit(row.guard, unit);
+  if (fromUnit !== unit) {
+    const newRow = { ...row };
+    const conversion = prices?.getNearest(row.date, fromUnit, unit) || "1";
+    newRow.price = math.mul(conversion, row.price);
+    newRow.receivePrice = math.mul(conversion, row.receivePrice);
+    newRow.value = math.mul(conversion, row.value);
+    newRow.capitalChange = math.mul(conversion, row.capitalChange);
+    return newRow;
+  } else {
+    return row;
   }
-  return row;
 };
 
 type TaxSummaryProps = {
@@ -54,32 +58,46 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
   const [totalTaxableIncome, setTotalTaxableIncome] = useState("0");
   const [totalTaxesDue, setTotalTaxesDue] = useState("0");
   const [unit, setUnit] = React.useState(getUnit(guard, userUnit));
+  const [repricedRows, setRepricedRows] = useState([] as TaxRows);
 
   useEffect(() => {
     setUnit(getUnit(guard, userUnit));
   }, [guard, userUnit]);
 
   useEffect(() => {
+    const rowsByGuard = taxRows.filter(row => !guard || row.guard === guard);
+    if (guard) {
+      console.log(`Repricing ${rowsByGuard.length} of ${
+        taxRows.length
+      } rows that have guard === ${guard}`);
+    } else {
+      console.log(`Repricing ALL rows bc no guard was provided`);
+    }
+    setRepricedRows(rowsByGuard.map(getRepricer(unit, prices)));
+  }, [guard, prices, taxRows, unit]);
+
+  useEffect(() => {
+    if (!repricedRows?.length) return;
     setTotalBusinessIncome(getBusinessIncome(
-      taxRows.filter(row => !guard || row.guard === guard).map(getRepricer(unit, prices)),
+      repricedRows,
     ));
     setTotalCapitalChange(getTotalCapitalChange(
-      taxRows.filter(row => !guard || row.guard === guard).map(getRepricer(unit, prices)),
+      repricedRows,
       taxInput?.personal?.filingStatus || "",
     ));
     setTotalIncome(getTotalIncome(
-      taxRows.filter(row => !guard || row.guard === guard).map(getRepricer(unit, prices)),
+      repricedRows,
       taxInput?.personal?.filingStatus || "",
     ));
     setTotalTaxableIncome(getTotalTaxableIncome(
-      taxRows.filter(row => !guard || row.guard === guard).map(getRepricer(unit, prices)),
+      repricedRows,
       taxInput?.personal?.filingStatus || "",
     ));
     setTotalTaxesDue(getTotalTaxes(
-      taxRows.filter(row => !guard || row.guard === guard).map(getRepricer(unit, prices)),
+      repricedRows,
       taxInput,
     ));
-  }, [guard, prices, taxInput, taxRows, unit]);
+  }, [repricedRows, taxInput]);
 
   return (<>
     <Paper sx={{ p: 3 }}>

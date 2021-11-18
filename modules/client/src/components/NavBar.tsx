@@ -13,7 +13,7 @@ import Typography from "@mui/material/Typography";
 import {
   SelectOne,
   SyncEverything,
-  syncTaxRows,
+//   syncTaxRows,
 } from "@valuemachine/react";
 import {
   Cryptocurrencies,
@@ -31,7 +31,7 @@ import {
   ValueMachine,
   ValueMachineJson,
 } from "@valuemachine/types";
-import React, { useEffect } from "react";
+import React/*, { useEffect }*/ from "react";
 import { Link } from "react-router-dom";
 
 type PropTypes = {
@@ -79,8 +79,10 @@ export const NavBar: React.FC<PropTypes> = ({
     }
   };
 
+  /*
   useEffect(() => {(async () => {
     if (syncMsg) return; // abort if already syncing
+    if (!txTags || !unit) return;
     await syncTaxRows({
       addressBook,
       prices,
@@ -91,7 +93,8 @@ export const NavBar: React.FC<PropTypes> = ({
       vm,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  })();}, [addressBook, prices, txTags, unit, vm]);
+  })();}, [txTags, unit]);
+  */
 
   return (
     <AppBar position="static" elevation={0} enableColorOnDark>
