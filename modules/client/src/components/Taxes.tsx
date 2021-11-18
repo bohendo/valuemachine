@@ -1,9 +1,11 @@
+import ClearIcon from "@mui/icons-material/Delete";
+import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import { SyncTaxRows, TaxPorter, TaxTable } from "@valuemachine/react";
+import { SyncTaxRows, TaxPorter, TaxSummary, TaxTable } from "@valuemachine/react";
 import { Guards } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -22,6 +24,7 @@ const allGuards = "All";
 
 type TaxesExplorerProps = {
   addressBook?: AddressBook;
+  globalSyncMsg: string;
   prices?: Prices;
   setTaxRows: (val: TaxRows) => void;
   setTxTags: (val: TxTags) => void;
@@ -33,6 +36,7 @@ type TaxesExplorerProps = {
 };
 export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   addressBook,
+  globalSyncMsg,
   prices,
   setTaxRows,
   setTxTags,
@@ -61,23 +65,36 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     setGuard(newGuards[0]);
   }, [taxRows]);
 
-  return (
-    <>
-      <Typography variant="h3">
-        Taxes Explorer
-      </Typography>
+  const handleClear = () => { setTaxRows([]); };
 
-      <SyncTaxRows
-        addressBook={addressBook}
-        prices={prices}
-        setTaxRows={setTaxRows}
-        txTags={txTags}
-        unit={unit}
-        vm={vm}
-      />
+  return (<>
+    <Typography variant="h3">
+      Taxes Explorer
+    </Typography>
 
-      <Divider sx={{ my: 1 }} />
+    <SyncTaxRows
+      addressBook={addressBook}
+      disabled={!!globalSyncMsg}
+      prices={prices}
+      setTaxRows={setTaxRows}
+      txTags={txTags}
+      unit={unit}
+      vm={vm}
+    />
 
+    <Button
+      sx={{ m: 3 }}
+      disabled={!!globalSyncMsg || !taxRows?.length}
+      onClick={handleClear}
+      startIcon={<ClearIcon/>}
+      variant="outlined"
+    >
+      Clear Tax Rows
+    </Button>
+
+    <Divider sx={{ mb: 2 }} />
+
+    {taxRows.length ? (
       <Tabs
         centered
         indicatorColor="secondary"
@@ -90,27 +107,36 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
           <Tab key={i} label={g}/>
         ))}
       </Tabs>
+    ) : null}
 
-      {(guard !== allGuards && guard !== Guards.None) ? (
-        <Grid container sx={{ justifyContent: "center", mb: 2 }}>
-          <Grid item sm={6}>
-            <TaxPorter
-              guard={guard}
-              taxInput={taxInput}
-              taxRows={taxRows}
-            />
-          </Grid>
+    <Grid container spacing={2} sx={{ justifyContent: "center", mb: 2 }}>
+      <Grid item sm={6}>
+        <TaxSummary
+          guard={guard === allGuards ? "" : guard}
+          prices={prices}
+          taxInput={taxInput}
+          taxRows={taxRows}
+          unit={unit}
+        />
+      </Grid>
+      {(guard && guard !== allGuards && guard !== Guards.None) ? (
+        <Grid item sm={6}>
+          <TaxPorter
+            guard={guard}
+            taxInput={taxInput}
+            taxRows={taxRows}
+          />
         </Grid>
       ) : null}
+    </Grid>
 
-      <TaxTable
-        guard={guard === allGuards ? "" : guard}
-        setTxTags={setTxTags}
-        txTags={txTags}
-        taxRows={taxRows}
-        unit={unit}
-      />
+    <TaxTable
+      guard={guard === allGuards ? "" : guard}
+      setTxTags={setTxTags}
+      txTags={txTags}
+      taxRows={taxRows}
+      unit={unit}
+    />
 
-    </>
-  );
+  </>);
 };

@@ -9,7 +9,7 @@ import {
 import {
   Forms,
   getRowTotal,
-  getTaxableIncome,
+  getTotalTaxableIncome,
   isLongTermTrade,
   lastYear,
   math,
@@ -113,7 +113,7 @@ export const f1040sd = (
   if ("f1040se" in forms) log.warn(`NOT_IMPLEMENTED: f1040se income in capital loss carryover`);
   if ("f1040sf" in forms) log.warn(`NOT_IMPLEMENTED: f1040sf income in capital loss carryover`);
   // what if our filing status was different last year?
-  ws.L1 = getTaxableIncome(taxRows.filter(lastYear), personal.filingStatus);
+  ws.L1 = getTotalTaxableIncome(taxRows.filter(lastYear), personal.filingStatus);
   log.info(`2019 total taxable income: ${ws.L1}`);
 
   // total capital loss from 2019 f1040sd.L21

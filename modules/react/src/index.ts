@@ -9,6 +9,7 @@ export {
 } from "./csv";
 export {
   InputPorter,
+  SyncEverything,
 } from "./input";
 export {
   Balances,
@@ -18,18 +19,22 @@ export {
 export {
   PriceTable,
   SyncPrices,
+  syncPrices,
 } from "./prices";
 export {
   SyncTaxRows,
   TaxInputEditor,
   TaxPorter,
+  TaxSummary,
   TaxTable,
+  syncTaxRows,
 } from "./taxes";
 export {
   SyncTransactions,
   TransactionEditor,
   TransactionPorter,
   TransactionTable,
+  syncTxns,
 } from "./transactions";
 export {
   TxTagsEditor,
@@ -48,4 +53,5 @@ export {
   ChunkTable,
   EventTable,
   SyncValueMachine,
+  processTxns,
 } from "./valuemachine";

@@ -10,28 +10,65 @@ import AppBar from "@mui/material/AppBar";
 import IconButton from "@mui/material/IconButton";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { SelectOne } from "@valuemachine/react";
+import {
+  SelectOne,
+  SyncEverything,
+//   syncTaxRows,
+} from "@valuemachine/react";
 import {
   Cryptocurrencies,
   FiatCurrencies,
 } from "@valuemachine/transactions";
 import {
-  Asset
+  AddressBook,
+  Asset,
+  CsvFiles,
+  Prices,
+  PricesJson,
+  TaxRows,
+  TransactionsJson,
+  TxTags,
+  ValueMachine,
+  ValueMachineJson,
 } from "@valuemachine/types";
-import React from "react";
+import React/*, { useEffect }*/ from "react";
 import { Link } from "react-router-dom";
 
 type PropTypes = {
-  unit: Asset;
-  setUnit: (val: Asset) => void;
-  theme: Asset;
+  addressBook: AddressBook;
+  csvFiles: CsvFiles;
+  customTxns: TransactionsJson;
+  syncMsg: string;
+  setSyncMsg: (val: string) => void;
+  prices: Prices;
+  setPricesJson: (val: PricesJson) => void;
+  setTaxRows: (val: TaxRows) => void;
   setTheme: (val: Asset) => void;
+  setTransactionsJson: (val: TransactionsJson) => void;
+  setUnit: (val: Asset) => void;
+  setVMJson: (val: ValueMachineJson) => void;
+  theme: Asset;
+  txTags: TxTags;
+  unit: Asset;
+  vm: ValueMachine;
 }
 export const NavBar: React.FC<PropTypes> = ({
-  unit,
-  setUnit,
-  theme,
+  addressBook,
+  csvFiles,
+  customTxns,
+  prices,
+  syncMsg,
+  setSyncMsg,
+  setPricesJson,
+  setTaxRows,
   setTheme,
+  setTransactionsJson,
+  setUnit,
+  setVMJson,
+  theme,
+  txTags,
+  unit,
+  vm,
 }: PropTypes) => {
 
   const toggleTheme = () => {
@@ -41,6 +78,23 @@ export const NavBar: React.FC<PropTypes> = ({
       setTheme("light");
     }
   };
+
+  /*
+  useEffect(() => {(async () => {
+    if (syncMsg) return; // abort if already syncing
+    if (!txTags || !unit) return;
+    await syncTaxRows({
+      addressBook,
+      prices,
+      setSyncMsg,
+      setTaxRows,
+      txTags,
+      unit,
+      vm,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  })();}, [txTags, unit]);
+  */
 
   return (
     <AppBar position="static" elevation={0} enableColorOnDark>
@@ -114,8 +168,24 @@ export const NavBar: React.FC<PropTypes> = ({
           component="h1"
           noWrap
         >
-          Value Machine
+          {" "}
         </Typography>
+
+        <SyncEverything
+          addressBook={addressBook}
+          csvFiles={csvFiles}
+          customTxns={customTxns}
+          prices={prices}
+          setPricesJson={setPricesJson}
+          setSyncMsg={setSyncMsg}
+          setTaxRows={setTaxRows}
+          setTransactionsJson={setTransactionsJson}
+          setVMJson={setVMJson}
+          syncMsg={syncMsg}
+          txTags={txTags}
+          unit={unit}
+          vm={vm}
+        />
 
         <SelectOne
           label="Units"
@@ -127,7 +197,7 @@ export const NavBar: React.FC<PropTypes> = ({
 
         <IconButton
           sx={{ ml: 1, minWidth: "2em" }}
-          color="secondary"
+          color="inherit"
           edge="start"
           onClick={toggleTheme}
         >

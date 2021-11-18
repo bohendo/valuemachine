@@ -12,24 +12,27 @@ import {
 import React from "react";
 
 type PropTypes = {
+  globalSyncMsg: string;
   prices: Prices;
   setPricesJson: (val: PricesJson) => void;
-  vm: ValueMachine,
   unit: Asset,
+  vm: ValueMachine,
 };
 export const PriceManager: React.FC<PropTypes> = ({
+  globalSyncMsg,
   prices,
   setPricesJson,
-  vm,
   unit,
+  vm,
 }: PropTypes) => {
-  const clearPrices = () => { setPricesJson({}); };
+  const handleClear = () => { setPricesJson({}); };
   return (<>
     <Typography variant="h3">
       Price Explorer
     </Typography>
 
     <SyncPrices
+      disabled={!!globalSyncMsg}
       prices={prices}
       setPricesJson={setPricesJson}
       unit={unit}
@@ -38,15 +41,15 @@ export const PriceManager: React.FC<PropTypes> = ({
 
     <Button
       sx={{ m: 3 }}
-      disabled={!Object.keys(prices.json).length}
-      onClick={clearPrices}
+      disabled={!!globalSyncMsg || !Object.keys(prices.json).length}
+      onClick={handleClear}
       startIcon={<ClearIcon/>}
       variant="outlined"
     >
       Clear Prices
     </Button>
 
-    <Divider/>
+    <Divider sx={{ mb: 2 }} />
 
     <PriceTable
       prices={prices}

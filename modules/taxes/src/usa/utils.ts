@@ -110,9 +110,9 @@ export const getGetIncomeTax = (
   return incomeTax;
 };
 
-// Sum up all income & subtract business expenses & income adjustments
-export const getTaxableIncome = (rows, filingStatus) => {
-  const businessIncome = math.subToZero(
+// Gross business income minus deductible expenses
+export const getBusinessIncome = (rows) =>
+  math.subToZero(
     getRowTotal(
       rows,
       TaxActions.Income,
@@ -120,29 +120,38 @@ export const getTaxableIncome = (rows, filingStatus) => {
     ),
     getRowTotal(rows.filter(isBusinessExpense)),
   );
-  const totalIncome = math.add(
-    // all non-business income
+
+// need to cut capital losses off at -1500/-3000 a la f1040sd.L21
+export const getTotalCapitalChange = (rows, filingStatus) =>
+  math.max(
+    getRowTotal(
+      rows,
+      TaxActions.Trade,
+      {},
+      row => row.capitalChange
+    ),
+    filingStatus === FilingStatuses.Separate ? "-1500" : "-3000",
+  );
+
+// net business income + applicable capital change + other income
+export const getTotalIncome = (rows, filingStatus) =>
+  math.add(
+    getBusinessIncome(rows),
+    // get total non-business income
     getRowTotal(
       rows,
       TaxActions.Income,
       {},
       row => row.tag.incomeType === IncomeTypes.Business ? "0" : row.value
     ),
-    businessIncome,
-    // need to cut losses off at -1500/-3000 a la f1040sd.L21 (what was last year's filing status?)
-    math.max(
-      getRowTotal(
-        rows,
-        TaxActions.Trade,
-        {},
-        row => row.capitalChange
-      ),
-      filingStatus === FilingStatuses.Separate ? "-1500" : "-3000",
-    ),
+    getTotalCapitalChange(rows, filingStatus),
   );
+
+// combine all income & adjustments
+export const getTotalTaxableIncome = (rows, filingStatus) => {
   // We should extract & properly label some of these magic numbers
   // as per f1040sse.L4a
-  const subjectToSS = math.mul(businessIncome, "0.9235");
+  const subjectToSS = math.mul(getBusinessIncome(rows), "0.9235");
   const seAdjustment = math.mul(
     math.add(
       math.mul( // as per f1040sse.L10
@@ -160,11 +169,14 @@ export const getTaxableIncome = (rows, filingStatus) => {
     : (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
     : (filingStatus === FilingStatuses.Head) ? "18350"
     : "";
-  return math.sub(
-    totalIncome,
+  return math.subToZero(
+    getTotalIncome(rows, filingStatus),
     math.add( // add other adjustments from f1040s1 L22 & qualified business income deduction
       seAdjustment,
       standardDeduction, // what if our filing status was different last year?
     ),
   );
 };
+
+export const getTotalTaxes = (rows, input) =>
+  rows ? "2" : input ? "1" : "0";

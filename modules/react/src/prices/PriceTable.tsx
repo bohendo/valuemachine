@@ -67,7 +67,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
   const byAsset = (e1, e2) => (e1[0] < e2[0]) ? -1 : 1;
 
   return (
-    <Paper sx={{ p: 2, minWidth: "70em" }}>
+    <Paper sx={{ p: 2 }}>
 
       <Grid container>
         <Grid item xs={12}>
@@ -104,7 +104,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-        <Table sx={{ maxWidth: 0.98 }}>
+        <Table sx={{ maxWidth: 0.98, minWidth: "70em"  }}>
           <TableHead>
             <TableRow>
               <TableCell> Date </TableCell>

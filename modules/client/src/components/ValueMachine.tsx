@@ -18,6 +18,7 @@ import React, { useState } from "react";
 
 type ValueMachineExplorerProps = {
   addressBook: AddressBook;
+  globalSyncMsg: string;
   setVMJson: (vmJson: any) => void;
   transactions: Transactions;
   txTags?: TxTags;
@@ -26,6 +27,7 @@ type ValueMachineExplorerProps = {
 };
 export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
   addressBook,
+  globalSyncMsg,
   setVMJson,
   transactions,
   txTags,
@@ -33,22 +35,23 @@ export const ValueMachineExplorer: React.FC<ValueMachineExplorerProps> = ({
   vm,
 }: ValueMachineExplorerProps) => {
   const [tab, setTab] = useState(0);
-  const handleReset = () => { setVMJson(getEmptyValueMachine()); };
-  return (<>
+  const handleClear = () => { setVMJson(getEmptyValueMachine()); };
 
+  return (<>
     <Typography variant="h3">
       Core ValueMachine Data
     </Typography>
 
     <SyncValueMachine
+      disabled={!!globalSyncMsg}
       setVMJson={setVMJson}
       transactions={transactions}
       vm={vm}
     />
 
     <Button
-      disabled={!vm?.json?.events?.length}
-      onClick={handleReset}
+      disabled={!!globalSyncMsg || !vm?.json?.events?.length}
+      onClick={handleClear}
       startIcon={<ClearIcon/>}
       sx={{ m: 3 }}
       variant="outlined"

@@ -4,7 +4,7 @@ import Typography from "@mui/material/Typography";
 import { FilingStatuses, TaxInput } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
-import { SelectOne, TextInput } from "../utils";
+import { SelectOne, TextInput } from "../../utils";
 
 type PersonalInfoEditorProps = {
   taxInput?: TaxInput;

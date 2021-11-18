@@ -35,7 +35,12 @@ import {
   TaxInput,
   TxTags,
 } from "@valuemachine/types";
-import { getBlankAddressEntry, getBlankTransaction, getLogger } from "@valuemachine/utils";
+import {
+  getBlankAddressEntry,
+  getBlankTransaction,
+  getLogger,
+  getTransactionsError,
+} from "@valuemachine/utils";
 import React, { useState } from "react";
 
 const logger = getLogger("warn");
@@ -145,10 +150,10 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
 
       <Tabs
         indicatorColor="secondary"
-        onChange={(evt, newVal) => setTab(parseInt(newVal))}
+        onChange={(evt, newVal) => setTab(newVal)}
         sx={{ mt: 1 }}
         textColor="secondary"
-        value={tab}
+        value={parseInt(tab.toString())}
         variant="scrollable"
       >
         <Tab sx={{ flexGrow: 1 }} label="Address Book"/>
@@ -256,7 +261,10 @@ export const InputDataManager: React.FC<InputDataManagerProps> = ({
         <TransactionTable
           addressBook={addressBook}
           setTransactions={setCustomTxns}
-          transactions={getTransactions({ json: customTxns || [], logger })}
+          transactions={getTransactions({
+            json: !getTransactionsError(customTxns) ? customTxns : [],
+            logger
+          })}
         />
       </div>
 

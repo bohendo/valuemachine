@@ -46,8 +46,8 @@ import { TaxesExplorer } from "./components/Taxes";
 import { TransactionExplorer } from "./components/Transactions";
 import { ValueMachineExplorer } from "./components/ValueMachine";
 
-const store = getLocalStore(localStorage);
 const logger = getLogger("warn");
+const store = getLocalStore(localStorage);
 
 // localstorage keys
 const {
@@ -84,6 +84,7 @@ export const App: React.FC<AppProps> = ({
   const [taxInput, setTaxInput] = useState(store.load(TaxInputStore) || getEmptyTaxInput());
   const [txTags, setTxTags] = useState(store.load(TxTagsStore) || getEmptyTxTags());
   const [taxRows, setTaxRows] = useState(store.load(TaxRowsStore) || getEmptyTaxRows());
+  const [globalSyncMsg, setGlobalSyncMsg] = useState("");
 
   // Utilities derived from localstorage data
   const [addressBook, setAddressBook] = useState(getAddressBook());
@@ -174,10 +175,19 @@ export const App: React.FC<AppProps> = ({
 
   useEffect(() => {
     if (!customTxns) return;
-    console.log(`Saving ${customTxns.length} custom transactions`);
+    // Migrate old data types
     customTxns.forEach(tx => { if ("tags" in tx) delete tx.tags; });
     customTxns.forEach(tx => { tx.tag = "tag" in tx ? tx.tag : {}; });
-    store.save(CustomTxnsStore, customTxns);
+    const error = getTransactionsError(customTxns);
+    if (error) {
+      console.log(`Removing ${customTxns?.length || "0"} invalid custom transactions: ${error}`);
+      const newCustomTxns = getEmptyTransactions();
+      store.save(CustomTxnsStore, newCustomTxns);
+      setCustomTxns(newCustomTxns);
+    } else {
+      console.log(`Saving ${customTxns.length} custom transactions`);
+      store.save(CustomTxnsStore, customTxns);
+    }
   }, [customTxns]);
 
   useEffect(() => {
@@ -237,7 +247,24 @@ export const App: React.FC<AppProps> = ({
 
   return (
     <Box>
-      <NavBar unit={unit} setUnit={setUnit} theme={theme} setTheme={setTheme} />
+      <NavBar
+        addressBook={addressBook}
+        csvFiles={csvFiles}
+        customTxns={customTxns}
+        prices={prices}
+        setPricesJson={setPricesJson}
+        setSyncMsg={setGlobalSyncMsg}
+        setTaxRows={setTaxRows}
+        setTheme={setTheme}
+        setTransactionsJson={setTransactionsJson}
+        setUnit={setUnit}
+        setVMJson={setVMJson}
+        syncMsg={globalSyncMsg}
+        theme={theme}
+        txTags={txTags}
+        unit={unit}
+        vm={vm}
+      />
       <Box sx={{ overflow: "auto", flexGrow: 1 }}>
         <Container maxWidth="lg" sx={{ py: 4 }}>
           <Routes>
@@ -262,9 +289,10 @@ export const App: React.FC<AppProps> = ({
                 addressBook={addressBook}
                 csvFiles={csvFiles}
                 customTxns={customTxns}
-                transactions={transactions}
+                globalSyncMsg={globalSyncMsg}
                 setTransactionsJson={setTransactionsJson}
                 setTxTags={setTxTags}
+                transactions={transactions}
                 txTags={txTags}
               />
             } />
@@ -272,20 +300,22 @@ export const App: React.FC<AppProps> = ({
             <Route path="/value-machine" element={
               <ValueMachineExplorer
                 addressBook={addressBook}
-                vm={vm}
+                globalSyncMsg={globalSyncMsg}
+                setTxTags={setTxTags}
                 setVMJson={setVMJson}
                 transactions={transactions}
                 txTags={txTags}
-                setTxTags={setTxTags}
+                vm={vm}
               />
             } />
 
             <Route path="/prices" element={
               <PriceManager
+                globalSyncMsg={globalSyncMsg}
                 prices={prices}
                 setPricesJson={setPricesJson}
-                vm={vm}
                 unit={unit}
+                vm={vm}
               />
             } />
 
@@ -301,6 +331,7 @@ export const App: React.FC<AppProps> = ({
             <Route path="/taxes" element={
               <TaxesExplorer
                 addressBook={addressBook}
+                globalSyncMsg={globalSyncMsg}
                 prices={prices}
                 setTaxRows={setTaxRows}
                 setTxTags={setTxTags}
