@@ -1,4 +1,10 @@
 import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
   getBusinessIncome,
@@ -16,7 +22,7 @@ import {
   TaxInput,
   TaxRows,
 } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
+import { dedup, math } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 const getUnit = (guard, defaultUnit) => 
@@ -52,13 +58,16 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
   taxRows,
   unit: userUnit,
 }: TaxSummaryProps) => {
-  const [totalBusinessIncome, setTotalBusinessIncome] = useState("0");
-  const [totalCapitalChange, setTotalCapitalChange] = useState("0");
-  const [totalIncome, setTotalIncome] = useState("0");
-  const [totalTaxableIncome, setTotalTaxableIncome] = useState("0");
-  const [totalTaxesDue, setTotalTaxesDue] = useState("0");
+  // const [totalBusinessIncome, setTotalBusinessIncome] = useState("0");
+  // const [totalCapitalChange, setTotalCapitalChange] = useState("0");
+  // const [totalIncome, setTotalIncome] = useState("0");
+  // const [totalTaxableIncome, setTotalTaxableIncome] = useState("0");
+  // const [totalTaxesDue, setTotalTaxesDue] = useState("0");
+  const [years, setYears] = React.useState([] as string[]);
   const [unit, setUnit] = React.useState(getUnit(guard, userUnit));
   const [repricedRows, setRepricedRows] = useState([] as TaxRows);
+
+  console.log(`Years w guard=${guard} activity: ${years}`);
 
   useEffect(() => {
     setUnit(getUnit(guard, userUnit));
@@ -73,9 +82,14 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
     } else {
       console.log(`Repricing ALL rows bc no guard was provided`);
     }
-    setRepricedRows(rowsByGuard.map(getRepricer(unit, prices)));
+    const repriced = rowsByGuard.map(getRepricer(unit, prices));
+    setRepricedRows(repriced);
+    setYears(dedup(repriced.map(row => row.date.split("-")[0])).sort((y1, y2) =>
+      parseInt(y2) - parseInt(y1)
+    ));
   }, [guard, prices, taxRows, unit]);
 
+  /*
   useEffect(() => {
     if (!repricedRows?.length) return;
     setTotalBusinessIncome(getBusinessIncome(
@@ -98,6 +112,7 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
       taxInput,
     ));
   }, [repricedRows, taxInput]);
+  */
 
   return (<>
     <Paper sx={{ p: 3 }}>
@@ -106,25 +121,64 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
         {`Unit of Account: ${unit}`}
       </Typography>
 
-      <Typography variant="h6">
-        {`Total Business Income: ${math.commify(totalBusinessIncome, 2, unit)}`}
-      </Typography>
+      <TableContainer>
+        <Table size="small" sx={{ minWidth: "20em", overflow: "auto" }}>
+          <TableHead>
+            <TableRow>
+              <TableCell><strong> {"Tax Year"} </strong></TableCell>
+              <TableCell><strong> {"Business Income"} </strong></TableCell>
+              <TableCell><strong> {"Capital Change"} </strong></TableCell>
+              <TableCell><strong> {"Total Income"} </strong></TableCell>
+              <TableCell><strong> {"Taxable Income"} </strong></TableCell>
+              <TableCell><strong> {"Taxes Due"} </strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {/*<TableRow> Add totals of all years to the top row</TableRow>*/}
+            {years.map((year, i) => (
+              <TableRow key={i}>
 
-      <Typography variant="h6">
-        {`Total Capital Gain/Loss: ${math.commify(totalCapitalChange, 2, unit)}`}
-      </Typography>
+                <TableCell> {year} </TableCell>
 
-      <Typography variant="h6">
-        {`Total Income: ${math.commify(totalIncome, 2, unit)}`}
-      </Typography>
+                <TableCell>{
+                  math.commify(getBusinessIncome(
+                    repricedRows.filter(r => r.date.startsWith(year))
+                  ), 0, unit)
+                }</TableCell>
 
-      <Typography variant="h6">
-        {`Total Taxable Income: ${math.commify(totalTaxableIncome, 2, unit)}`}
-      </Typography>
+                <TableCell>{
+                  math.commify(getTotalCapitalChange(
+                    repricedRows.filter(r => r.date.startsWith(year)),
+                    taxInput?.personal?.filingStatus || "",
+                  ), 0, unit)
+                }</TableCell>
 
-      <Typography variant="h6">
-        {`Total Taxes Due: ${math.commify(totalTaxesDue, 2, unit)}`}
-      </Typography>
+                <TableCell>{
+                  math.commify(getTotalIncome(
+                    repricedRows.filter(r => r.date.startsWith(year)),
+                    taxInput?.personal?.filingStatus || "",
+                  ), 0, unit)
+                }</TableCell>
+
+                <TableCell>{
+                  math.commify(getTotalTaxableIncome(
+                    repricedRows.filter(r => r.date.startsWith(year)),
+                    taxInput?.personal?.filingStatus || "",
+                  ), 0, unit)
+                }</TableCell>
+
+                <TableCell>{
+                  math.commify(getTotalTaxes(
+                    repricedRows.filter(r => r.date.startsWith(year)),
+                    taxInput,
+                  ), 0, unit)
+                }</TableCell>
+
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
     </Paper>
   </>);

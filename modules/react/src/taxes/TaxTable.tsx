@@ -179,6 +179,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
         setPage={setPage}
         setRowsPerPage={setRowsPerPage}
       />
+
     </Paper>
   </>);
 };

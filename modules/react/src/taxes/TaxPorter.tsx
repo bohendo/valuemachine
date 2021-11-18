@@ -116,7 +116,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           </Typography>
         </Grid>
 
-        <Grid item xs={12} sm={4} sx={{ px: 1, py: 2, maxWidth: "16em" }}>
+        <Grid item sx={{ px: 1, py: 2, maxWidth: "16em" }}>
           <SelectOne
             choices={taxYears}
             defaultSelection={allTaxYears}
@@ -127,7 +127,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           />
         </Grid>
 
-        <Grid item xs={12} sm={8} sx={{ ml: 1, mr: -4 }}>
+        <Grid item sx={{ ml: 1, mr: -4 }}>
           <Typography noWrap variant="body1">
             {taxYear === allTaxYears
               ? "Entire financial history"
