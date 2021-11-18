@@ -12,16 +12,23 @@ import { taxYearMap } from "./constants";
 
 export const log = getLogger("info");
 
-export const getTaxYearBoundaries = (guard: Guard, taxYear: string): [number, number] => {
-  if (!taxYear?.match(/^[0-9]{4}$/)) return [0, 5000000000000]; // from 1970 until after 2100
-  const prevYear = round(sub(taxYear, "1"), 0).padStart(4, "0");
+export const getTaxYearBoundaries = (guard: Guard, year: string): [number, number] => {
+  if (!year?.match(/^[0-9]{4}$/)) return [0, 5000000000000]; // from 1970 until after 2100
+  const prevYear = round(sub(year, "1"), 0).padStart(4, "0");
   return taxYearMap[guard] ? [
     new Date(taxYearMap[guard].replace(/^0000/, prevYear)).getTime(),
-    new Date(taxYearMap[guard].replace(/^0000/, taxYear)).getTime(),
+    new Date(taxYearMap[guard].replace(/^0000/, year)).getTime(),
   ] : [
     new Date(taxYearMap.default.replace(/^0000/, prevYear)).getTime(),
-    new Date(taxYearMap.default.replace(/^0000/, taxYear)).getTime(),
+    new Date(taxYearMap.default.replace(/^0000/, year)).getTime(),
   ];
+};
+
+export const inTaxYear = (guard, year) => row => {
+  if (!year || !year?.match(/^[0-9]{4}$/)) return true; // eg if year is "All"
+  const taxYearBoundaries = getTaxYearBoundaries(guard, year);
+  const time = new Date(row.date).getTime();
+  return time > taxYearBoundaries[0] && time <= taxYearBoundaries[1];
 };
 
 export const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapping => {

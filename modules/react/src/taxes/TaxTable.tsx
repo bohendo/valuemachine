@@ -9,7 +9,7 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
   securityFeeMap,
-  getTaxYearBoundaries,
+  inTaxYear,
 } from "@valuemachine/taxes";
 import {
   Assets,
@@ -58,10 +58,7 @@ export const TaxTable: React.FC<TaxTableProps> = ({
       (!guard || row.guard === guard) &&
       (!filterGuard || (filterGuard && guard) || row.guard === filterGuard)
     ) && (
-      !filterTaxYear || (
-        new Date(row.date).getTime() >= getTaxYearBoundaries(guard, filterTaxYear)[0] &&
-        new Date(row.date).getTime() <= getTaxYearBoundaries(guard, filterTaxYear)[1]
-      )
+      !filterTaxYear || inTaxYear(guard, filterTaxYear)(row)
     )));
   }, [guard, filterGuard, filterAction, filterTaxYear, taxRows]);
 

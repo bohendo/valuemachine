@@ -11,6 +11,7 @@ import {
   securityFeeMap,
   getTotalCapitalChange,
   getTotalIncome,
+  inTaxYear,
   getTotalTaxableIncome,
   getTotalTaxes,
 } from "@valuemachine/taxes";
@@ -58,11 +59,6 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
   taxRows,
   unit: userUnit,
 }: TaxSummaryProps) => {
-  // const [totalBusinessIncome, setTotalBusinessIncome] = useState("0");
-  // const [totalCapitalChange, setTotalCapitalChange] = useState("0");
-  // const [totalIncome, setTotalIncome] = useState("0");
-  // const [totalTaxableIncome, setTotalTaxableIncome] = useState("0");
-  // const [totalTaxesDue, setTotalTaxesDue] = useState("0");
   const [years, setYears] = React.useState([] as string[]);
   const [unit, setUnit] = React.useState(getUnit(guard, userUnit));
   const [repricedRows, setRepricedRows] = useState([] as TaxRows);
@@ -88,31 +84,6 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
       parseInt(y2) - parseInt(y1)
     ));
   }, [guard, prices, taxRows, unit]);
-
-  /*
-  useEffect(() => {
-    if (!repricedRows?.length) return;
-    setTotalBusinessIncome(getBusinessIncome(
-      repricedRows,
-    ));
-    setTotalCapitalChange(getTotalCapitalChange(
-      repricedRows,
-      taxInput?.personal?.filingStatus || "",
-    ));
-    setTotalIncome(getTotalIncome(
-      repricedRows,
-      taxInput?.personal?.filingStatus || "",
-    ));
-    setTotalTaxableIncome(getTotalTaxableIncome(
-      repricedRows,
-      taxInput?.personal?.filingStatus || "",
-    ));
-    setTotalTaxesDue(getTotalTaxes(
-      repricedRows,
-      taxInput,
-    ));
-  }, [repricedRows, taxInput]);
-  */
 
   return (<>
     <Paper sx={{ p: 3 }}>
@@ -142,34 +113,34 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
 
                 <TableCell>{
                   math.commify(getBusinessIncome(
-                    repricedRows.filter(r => r.date.startsWith(year))
+                    repricedRows.filter(inTaxYear(guard, year)),
                   ), 0, unit)
                 }</TableCell>
 
                 <TableCell>{
                   math.commify(getTotalCapitalChange(
-                    repricedRows.filter(r => r.date.startsWith(year)),
+                    repricedRows.filter(inTaxYear(guard, year)),
                     taxInput?.personal?.filingStatus || "",
                   ), 0, unit)
                 }</TableCell>
 
                 <TableCell>{
                   math.commify(getTotalIncome(
-                    repricedRows.filter(r => r.date.startsWith(year)),
+                    repricedRows.filter(inTaxYear(guard, year)),
                     taxInput?.personal?.filingStatus || "",
                   ), 0, unit)
                 }</TableCell>
 
                 <TableCell>{
                   math.commify(getTotalTaxableIncome(
-                    repricedRows.filter(r => r.date.startsWith(year)),
+                    repricedRows.filter(inTaxYear(guard, year)),
                     taxInput?.personal?.filingStatus || "",
                   ), 0, unit)
                 }</TableCell>
 
                 <TableCell>{
                   math.commify(getTotalTaxes(
-                    repricedRows.filter(r => r.date.startsWith(year)),
+                    repricedRows.filter(inTaxYear(guard, year)),
                     taxInput,
                   ), 0, unit)
                 }</TableCell>

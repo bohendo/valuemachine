@@ -7,6 +7,7 @@ import {
   allTaxYears,
   getTaxReturn,
   getTaxYearBoundaries,
+  inTaxYear,
   TaxYears,
 } from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
@@ -52,12 +53,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
       console.warn(`There were no known taxable events in ${taxYear}`);
       return;
     }
-    const csvData = taxRows.filter(row => {
-      const time = new Date(row.date).getTime();
-      return taxYear === allTaxYears || (
-        time <= taxYearBoundaries[0] && time >= taxYearBoundaries[1]
-      );
-    }).map(row => ({
+    const csvData = taxRows.filter(inTaxYear(guard, taxYear)).map(row => ({
       ...row,
       amount: math.round(row.amount, 6),
       value: math.round(row.value, 2),
