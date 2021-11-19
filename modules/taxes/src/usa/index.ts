@@ -5,5 +5,5 @@ export {
   getTotalCapitalChange,
   getTotalIncome,
   getTotalTaxableIncome,
-  getTotalTaxes,
+  getTotalTax,
 } from "./utils";

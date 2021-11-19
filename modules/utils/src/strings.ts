@@ -9,6 +9,7 @@ import {
   DateTimeString,
   DecString,
   TxId,
+  TaxYear,
 } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
@@ -57,3 +58,8 @@ const validateTxId = ajv.compile(TxId);
 export const getTxIdError = (txId: TxId): string => validateTxId(txId) ? ""
   : validateTxId.errors.length ? formatErrors(validateTxId.errors)
   : `Invalid TxId: ${JSON.stringify(txId)}`;
+
+const validateTaxYear = ajv.compile(TaxYear);
+export const getTaxYearError = (taxYear: TaxYear): string => validateTaxYear(taxYear) ? ""
+  : validateTaxYear.errors.length ? formatErrors(validateTaxYear.errors)
+  : `Invalid TaxYear: ${JSON.stringify(taxYear)}`;

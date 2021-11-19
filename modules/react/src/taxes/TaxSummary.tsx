@@ -13,7 +13,7 @@ import {
   getTotalIncome,
   inTaxYear,
   getTotalTaxableIncome,
-  getTotalTaxes,
+  getTotalTax,
 } from "@valuemachine/taxes";
 import { Assets } from "@valuemachine/transactions";
 import {
@@ -139,7 +139,7 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
                 }</TableCell>
 
                 <TableCell>{
-                  math.commify(getTotalTaxes(
+                  math.commify(getTotalTax(
                     repricedRows.filter(inTaxYear(guard, year)),
                     taxInput,
                   ), 0, unit)

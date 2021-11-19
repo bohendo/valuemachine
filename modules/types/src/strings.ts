@@ -34,8 +34,17 @@ const account = `(${guard}/)?(${venue}/)?${alphanumish}`;
 // eg Ethereum/0xabc123/123 for a transfer at index 123
 const txid = `${guard}/${alphanumish}(/${integer})?`;
 
+// TaxYear eg USA2020 or IND2019
+const countryId = `[A-Z]{3}`; // a stricter subset of guard
+const year = `${num}{4}`;
+const taxYear = `${countryId}${year}`;
+
 ////////////////////////////////////////
 // Export Schemas & Types
+
+export const Year = toType(year); export type Year = Static<typeof Year>;
+export const CountryId = toType(countryId); export type CountryId = Static<typeof CountryId>;
+export const TaxYear = toType(taxYear); export type TaxYear = Static<typeof TaxYear>;
 
 export const Account = toType(account); export type Account = Static<typeof Account>;
 export const Amount = toType(amount); export type Amount = Static<typeof Amount>;

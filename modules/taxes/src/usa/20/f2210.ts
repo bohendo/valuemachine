@@ -16,7 +16,7 @@ import {
   getTotalTaxableIncome,
   getRowTotal,
   getTotalValue,
-  guard,
+  USA,
   isBusinessExpense,
   lastYear,
   math,
@@ -97,7 +97,7 @@ export const f2210 = (
   if ("f5404" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f5404 tax to f2210.L8`);
   if ("f8959" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8959 tax to f2210.L8`);
   if ("f8960" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8960 tax to f2210.L8`);
-  const taxableIncome = getTotalTaxableIncome(taxRows.filter(lastYear), personal.filingStatus);
+  const taxableIncome = getTotalTaxableIncome(input, taxRows.filter(lastYear));
   const filingStatus = personal.filingStatus; // what if it was different last yeat?
   let incomeTax;
   if (forms.f2555) {
@@ -115,7 +115,7 @@ export const f2210 = (
       [trip.country]: math.add(days[trip.country] || "0", diffDays(trip.enterDate, trip.leaveDate))
     }), {});
     const daysOutOfUSA = Object.keys(daysInEachCountry).reduce((tot, country) => {
-      return country !== guard ? math.add(tot, daysInEachCountry[country]) : tot;
+      return country !== USA ? math.add(tot, daysInEachCountry[country]) : tot;
     }, "0");
     const p = math.div(daysOutOfUSA, "365");
     // feie housing exclusion isn't supported (yet?)

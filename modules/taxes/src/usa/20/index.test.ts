@@ -49,7 +49,7 @@ describe(`${taxYear} Filers`, () => {
     expect(Object.keys(defaultReturn).length).to.equal(defaultPages.length);
   });
 
-  it(`should include f2555 iff lots of travel outside the US was provided`, async () => {
+  it.only(`should include f2555 iff lots of travel outside the US was provided`, async () => {
     const f2555Return = getTaxReturn({ travel }, [income, tax], log);
     log.info(`Tax return includes forms: ${Object.keys(f2555Return)}`);
     expect("f2555" in f2555Return).to.be.true;

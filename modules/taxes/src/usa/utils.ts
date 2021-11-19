@@ -1,5 +1,3 @@
-import { MaxUint256 } from "@ethersproject/constants";
-import { Guards } from "@valuemachine/transactions";
 import {
   BusinessExpenseTypes,
   DateString,
@@ -10,39 +8,33 @@ import {
   IntString,
   Tag,
   TaxActions,
+  TaxInput,
   TaxRow,
   TaxRows,
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
+import {
+  USA,
+  msPerDay,
+  msPerYear,
+} from "./constants";
+
 export { chrono, math } from "@valuemachine/utils";
 
 export { TaxYears } from "../mappings";
 
-export const guard = Guards.USA;
-
-export const maxint = MaxUint256.toString();
-export const msPerDay = 1000 * 60 * 60 * 24;
-export const msPerYear = msPerDay * 365;
+////////////////////////////////////////
+// String
 
 export const strcat = (los: string[], delimiter = " "): string =>
   los.filter(s => !!s).join(delimiter);
 
-export const toTime = (d: DateString): number => new Date(d).getTime();
+////////////////////////////////////////
+// Util
 
-export const before = (d1: DateString, d2: DateString): boolean => toTime(d1) < toTime(d2);
-export const after = (d1: DateString, d2: DateString): boolean => toTime(d1) > toTime(d2);
-
-export const isBusinessExpense = (row: TaxRow): boolean =>
-  row.action === TaxActions.Expense
-    && row.tag
-    && Object.keys(BusinessExpenseTypes).some(t => row.tag.expenseType === t);
-
-export const isLongTermTrade = (row: TaxRow): boolean =>
-  toTime(row.date) - toTime(row.receiveDate) > msPerYear;
-
-export const isShortTermTrade = (row: TaxRow): boolean =>
-  toTime(row.date) - toTime(row.receiveDate) > msPerYear;
+export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: Tag) =>
+  getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);
 
 export const getRowTotal = (
   rows: TaxRows,
@@ -61,14 +53,201 @@ export const getRowTotal = (
     ))
   ), "0");
 
-export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: Tag) =>
-  getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);
+////////////////////////////////////////
+// Date
+
+export const toTime = (d: DateString): number => new Date(d).getTime();
+
+export const before = (d1: DateString, d2: DateString): boolean => toTime(d1) < toTime(d2);
+export const after = (d1: DateString, d2: DateString): boolean => toTime(d1) > toTime(d2);
 
 // ISO => "MM, DD, YY"
 export const toFormDate = (date: DateString): string => {
   const pieces = date.split("T")[0].split("-");
   return `${pieces[1]}, ${pieces[2]}, ${pieces[0]}`;
 };
+
+export const daysInYear = (year: IntString): IntString => {
+  const y = parseInt(year);
+  return y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0) ? "366" : "365";
+};
+
+////////////////////////////////////////
+// Expense
+
+export const isBusinessExpense = (row: TaxRow): boolean =>
+  row.action === TaxActions.Expense
+    && row.tag
+    && Object.keys(BusinessExpenseTypes).some(t => row.tag.expenseType === t);
+
+////////////////////////////////////////
+// Travel
+
+export const diffDays = (d1: DateString, d2: DateString): IntString =>
+  Math.trunc(Math.abs(
+    new Date(`${d1}T00:00:00Z`).getTime() - new Date(`${d2}T00:00:00Z`).getTime()
+  ) / msPerDay).toString();
+
+export const getTravel = (input: TaxInput, start: DateString, end: DateString) => {
+  const [s, e] = [toTime(start), toTime(end)];
+  return (input.travel || []).reduce((trips, trip) => {
+    const t = { s: toTime(trip.enterDate), e: toTime(trip.leaveDate) };
+    if (t.s > e || t.e < s) return trips;
+    return trips.concat({
+      ...trip,
+      enterDate: t.s > s ? trip.enterDate : start,
+      leaveDate: t.e < e ? trip.leaveDate : end,
+    });
+  }, [] as any[]);
+};
+
+export const getDaysByCountry = (input: TaxInput, start: DateString, end: DateString) => {
+  const travel = getTravel(input, start, end);
+  return travel.reduce((days, trip) => ({
+    ...days,
+    [trip.country]: math.add(days[trip.country] || "0", diffDays(trip.enterDate, trip.leaveDate))
+  }), {});
+};
+
+export const getDaysAbroad = (input: TaxInput, start: DateString, end: DateString) => {
+  const daysInEachCountry = getDaysByCountry(input, start, end);
+  return Object.keys(daysInEachCountry).reduce((tot, country) => {
+    return country !== USA ? math.add(tot, daysInEachCountry[country]) : tot;
+  }, "0");
+};
+
+export const outsideUSA = (input, start, end) => {
+  const travel = getTravel(input, start, end);
+  return (row) =>
+    !travel.find(trip =>
+      trip.country === USA
+      && before(trip.enterDate, row.date)
+      && after(trip.leaveDate, row.date)
+    );
+};
+
+////////////////////////////////////////
+// Capital
+
+export const isLongTermTrade = (row: TaxRow): boolean =>
+  toTime(row.date) - toTime(row.receiveDate) > msPerYear;
+
+export const isShortTermTrade = (row: TaxRow): boolean =>
+  toTime(row.date) - toTime(row.receiveDate) > msPerYear;
+
+// cut capital losses off at -1500/-3000 a la f1040sd.L21
+export const getTotalCapitalChange = (rows, filingStatus) =>
+  math.max(
+    getRowTotal(
+      rows,
+      TaxActions.Trade,
+      {},
+      row => row.capitalChange
+    ),
+    filingStatus === FilingStatuses.Separate ? "-1500" : "-3000",
+  );
+
+////////////////////////////////////////
+// Income
+
+// Gross business income minus deductible expenses
+export const getBusinessIncome = (rows) =>
+  math.subToZero(
+    getRowTotal(
+      rows,
+      TaxActions.Income,
+      { incomeType: IncomeTypes.Business }
+    ),
+    getRowTotal(rows.filter(isBusinessExpense)),
+  );
+
+// Gross business income minus deductible expenses
+export const getGetForeignEarnedIncome = (year) =>
+  (input, rows) => {
+    const [yearStart, yearEnd] = [`${year}-01-01`, `${year}-12-31`];
+    const travel = getTravel(input, yearStart, yearEnd);
+    const outOfUSA = row => !travel.find(trip =>
+      trip.country === USA
+      && before(trip.enterDate, row.date)
+      && after(trip.leaveDate, row.date)
+    );
+    const foreignRows = rows.filter(outOfUSA).filter(row => row.date.startsWith(year));
+    return math.add(
+      getTotalValue(foreignRows, TaxActions.Income, { incomeType: IncomeTypes.Wage }),
+      math.subToZero(
+        getTotalValue(foreignRows, TaxActions.Income, { incomeType: IncomeTypes.Business }),
+        getTotalValue(foreignRows.filter(isBusinessExpense)),
+      ),
+    );
+  };
+
+export const getGetForeignEarnedIncomeExclusion = (year, max) => {
+  const [yearStart, yearEnd] = [`${year}-01-01`, `${year}-12-31`];
+  const getForeignEarnedIncome = getGetForeignEarnedIncome(year);
+  return (input, rows) => {
+    const income = getForeignEarnedIncome(input, rows);
+    const percentDaysAbroad = math.div(
+      getDaysAbroad(input, yearStart, yearEnd),
+      daysInYear(year),
+    );
+    return math.min(
+      income,
+      math.mul(max, percentDaysAbroad),
+    );
+  };
+};
+
+// net business income + applicable capital change + other income - feie
+export const getGetTotalIncome = (year, maxFeie) => (input: TaxInput, rows: TaxRows) =>
+  math.sub(
+    math.add(
+      getBusinessIncome(rows),
+      // get total non-business income
+      getRowTotal(
+        rows,
+        TaxActions.Income,
+        {},
+        row => row.tag.incomeType === IncomeTypes.Business ? "0" : row.value
+      ),
+      getTotalCapitalChange(rows, input.personal?.filingStatus),
+    ),
+    getGetForeignEarnedIncome(year, maxFeie)(input, rows),
+  );
+
+// combine all income & adjustments
+export const getGetTotalTaxableIncome = (year, maxFeie) => (input: TaxInput, rows: TaxRows) => {
+  // We should extract & properly label some of these magic numbers
+  // as per f1040sse.L4a
+  const subjectToSS = math.mul(getBusinessIncome(rows), "0.9235");
+  const seAdjustment = math.mul(
+    math.add(
+      math.mul( // as per f1040sse.L10
+        // as per f1040sse.L10
+        math.min(subjectToSS, "137700"),
+        "0.124",
+      ),
+      // as per f1040sse.L11
+      math.mul(subjectToSS, "0.029"),
+    ),
+    "0.5", // as per f1040sse.L13
+  );
+  const filingStatus = input.personal?.filingStatus;
+  const standardDeduction = !filingStatus ? "0"
+    : (filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate) ? "12200"
+    : (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
+    : (filingStatus === FilingStatuses.Head) ? "18350"
+    : "0";
+  return math.subToZero(
+    getGetTotalIncome(year, maxFeie)(input, rows),
+    math.add( // add other adjustments from f1040s1 L22 & qualified business income deduction
+      seAdjustment,
+      standardDeduction, // what if our filing status was different last year?
+    ),
+  );
+};
+
+////////////////////////////////////////
+// Tax
 
 export const getGetIncomeTax = (
   taxBrackets: Array<{ rate: DecString; single: IntString; joint: IntString; head: IntString }>,
@@ -108,74 +287,6 @@ export const getGetIncomeTax = (
     prevThreshold = threshold;
   });
   return incomeTax;
-};
-
-// Gross business income minus deductible expenses
-export const getBusinessIncome = (rows) =>
-  math.subToZero(
-    getRowTotal(
-      rows,
-      TaxActions.Income,
-      { incomeType: IncomeTypes.Business }
-    ),
-    getRowTotal(rows.filter(isBusinessExpense)),
-  );
-
-// cut capital losses off at -1500/-3000 a la f1040sd.L21
-export const getTotalCapitalChange = (rows, filingStatus) =>
-  math.max(
-    getRowTotal(
-      rows,
-      TaxActions.Trade,
-      {},
-      row => row.capitalChange
-    ),
-    filingStatus === FilingStatuses.Separate ? "-1500" : "-3000",
-  );
-
-// net business income + applicable capital change + other income
-export const getTotalIncome = (rows, filingStatus) =>
-  math.add(
-    getBusinessIncome(rows),
-    // get total non-business income
-    getRowTotal(
-      rows,
-      TaxActions.Income,
-      {},
-      row => row.tag.incomeType === IncomeTypes.Business ? "0" : row.value
-    ),
-    getTotalCapitalChange(rows, filingStatus),
-  );
-
-// combine all income & adjustments
-export const getTotalTaxableIncome = (rows, filingStatus) => {
-  // We should extract & properly label some of these magic numbers
-  // as per f1040sse.L4a
-  const subjectToSS = math.mul(getBusinessIncome(rows), "0.9235");
-  const seAdjustment = math.mul(
-    math.add(
-      math.mul( // as per f1040sse.L10
-        // as per f1040sse.L10
-        math.min(subjectToSS, "137700"),
-        "0.124",
-      ),
-      // as per f1040sse.L11
-      math.mul(subjectToSS, "0.029"),
-    ),
-    "0.5", // as per f1040sse.L13
-  );
-  const standardDeduction = !filingStatus ? ""
-    : (filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate) ? "12200"
-    : (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
-    : (filingStatus === FilingStatuses.Head) ? "18350"
-    : "";
-  return math.subToZero(
-    getTotalIncome(rows, filingStatus),
-    math.add( // add other adjustments from f1040s1 L22 & qualified business income deduction
-      seAdjustment,
-      standardDeduction, // what if our filing status was different last year?
-    ),
-  );
 };
 
 export const getTotalTaxes = (rows, input) =>

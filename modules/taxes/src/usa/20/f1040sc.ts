@@ -12,6 +12,7 @@ import {
   Forms,
   getTotalValue,
   math,
+  getBusinessIncome,
   strcat,
   thisYear,
 } from "./utils";
@@ -183,6 +184,10 @@ export const f1040sc = (
 
   f1040sc.L29 = math.sub(f1040sc.L7, f1040sc.L28);
   f1040sc.L31 = math.sub(f1040sc.L29, f1040sc.L30);
+  log.warn(`Net business income: f1040sc.L31=${f1040sc.L31}`);
+  const totalBusinessIncome = getBusinessIncome(taxRows.filter(thisYear));
+  if (totalBusinessIncome !== f1040sc.L31)
+    log.warn(`DOUBLE_CHECK_FAILED: f1040sc.L31=${f1040sc.L31} !== ${totalBusinessIncome}`);
 
   if (math.gt(f1040sc.L31, "0")) {
     f1040s1.L3 = f1040sc.L31;

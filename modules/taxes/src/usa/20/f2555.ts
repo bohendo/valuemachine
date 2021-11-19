@@ -1,7 +1,5 @@
 import {
-  DateString,
   IncomeTypes,
-  IntString,
   Logger,
   TaxActions,
   TaxInput,
@@ -10,19 +8,23 @@ import {
 
 import {
   after,
+  maxFeie,
   before,
   Forms,
+  getDaysAbroad,
+  getForeignEarnedIncome,
+  daysThisYear,
+  getForeignEarnedIncomeExclusion,
   getTotalValue,
-  guard,
+  getDaysByCountry,
+  diffDays,
+  USA,
   isBusinessExpense,
   math,
-  msPerDay,
   strcat,
   thisYear,
   toFormDate,
 } from "./utils";
-
-const USA = guard;
 
 export const f2555 = (
   forms: Forms,
@@ -35,8 +37,8 @@ export const f2555 = (
   const personal = input.personal || {};
   const travel = input.travel || [];
 
-  // If no travel info, then omit this form
-  if (!travel) { delete forms.f2555; return forms; }
+  // If no travel history, then omit this form
+  if (!travel?.length) { delete forms.f2555; return forms; }
 
   f2555.Name = strcat([personal.firstName, personal.lastName]);
   f2555.SSN = personal.SSN;
@@ -50,7 +52,7 @@ export const f2555 = (
   const employer = personal.employer;
   if (employer) {
     f2555.L3 = employer.name;
-    if (employer.country === guard) {
+    if (employer.country === USA) {
       f2555.L4a = strcat([employer.street, employer.state, employer.country], ", ");
     } else {
       f2555.L4b = strcat([employer.street, employer.state, employer.country], ", ");
@@ -85,44 +87,27 @@ export const f2555 = (
   // f2555.L9  = list your tax homes
 
   ////////////////////////////////////////
-  // Part II: Bona Fide Residence Test
-
-  // Remove this form if we are explicitly disqualified from being a bona fide resident
-  if (f2555.C13a_Yes && f2555.C13b_No) {
-    delete forms.f2555;
-    return forms;
-  }
+  // Part II: Bona Fide Residence Test - not applicable yet
 
   ////////////////////////////////////////
   // Part III: Physical Presence Test
 
-  f2555.L16_From = toFormDate("2020-01-01");
-  f2555.L16_To = toFormDate("2020-12-31");
-
-  const diffDays = (d1: DateString, d2: DateString): IntString =>
-    Math.trunc(Math.abs(
-      new Date(`${d1}T00:00:00Z`).getTime() - new Date(`${d2}T00:00:00Z`).getTime()
-    ) / msPerDay).toString();
-
-  const daysInEachCountry = travel.reduce((days, trip) => ({
-    ...days,
-    [trip.country]: math.add(days[trip.country] || "0", diffDays(trip.enterDate, trip.leaveDate))
-  }), {});
-
-  log.info(`Days present by country: ${JSON.stringify(daysInEachCountry)}`);
-
-  const daysOutOfUSA = Object.keys(daysInEachCountry).reduce((tot, country) => {
-    return country !== USA ? math.add(tot, daysInEachCountry[country]) : tot;
-  }, "0");
-
-  if (math.lt(daysOutOfUSA, "330")) {
-    log.info(`Physical presence test failed: ${daysOutOfUSA} < 330 days out of the USA`);
+  // If/when we allow using a non-standard fiscal year, inject the relevant 12-month period here
+  const [yearStart, yearEnd] = ["2020-01-01", "2020-12-31"];
+  const daysAbroad = getDaysAbroad(input, yearStart, yearEnd);
+  if (math.lt(daysAbroad, "330")) {
+    log.info(`Physical presence test failed: ${daysAbroad} < 330 days out of the USA`);
     delete forms.f2555;
     return forms;
   } else {
-    log.info(`Physical presence test passed: ${daysOutOfUSA} >= 330 days out of the USA`);
+    log.info(`Physical presence test passed: ${daysAbroad} >= 330 days out of the USA`);
   }
 
+  const daysInEachCountry = getDaysByCountry(input, yearStart, yearEnd);
+  log.info(`Days present by country: ${JSON.stringify(daysInEachCountry)}`);
+
+  f2555.L16_From = toFormDate(yearStart);
+  f2555.L16_To = toFormDate(yearEnd);
   f2555.L17 = Object.keys(daysInEachCountry).reduce((max, country) => {
     if (country === USA) return max;
     if (!max) return country;
@@ -143,22 +128,22 @@ export const f2555 = (
   ////////////////////////////////////////
   // Part IV: All Tax Payers
 
-  const wasInUSA = row => !travel.find(trip =>
-    trip.country === guard
+  const outOfUSA = row => !travel.find(trip =>
+    trip.country === USA
     && before(trip.enterDate, row.date)
     && after(trip.leaveDate, row.date)
   );
 
   // Get all income earned while outside the US
   f2555.L19 = getTotalValue(
-    taxRows.filter(wasInUSA).filter(thisYear),
+    taxRows.filter(outOfUSA).filter(thisYear),
     TaxActions.Income,
     { incomeType: IncomeTypes.Wage },
   );
 
   f2555.L23 = math.sub(
     getTotalValue(
-      taxRows.filter(wasInUSA).filter(thisYear),
+      taxRows.filter(outOfUSA).filter(thisYear),
       TaxActions.Income,
       { incomeType: IncomeTypes.Business },
     ),
@@ -182,6 +167,9 @@ export const f2555 = (
     f2555.L25, // excludable meals & lodging
   );
   log.info(`Total Foreign Earned Income: ${f2555.L26}`);
+  const foreignEarnedIncome = getForeignEarnedIncome(input, taxRows);
+  if (!math.eq(f2555.L26, foreignEarnedIncome))
+    log.warn(`DOUBLE_CHECK_FAILED: f2555.L26=${f2555.L26} !== ${foreignEarnedIncome}`);
 
   ////////////////////////////////////////
   // Part V: All Tax Payers
@@ -193,9 +181,9 @@ export const f2555 = (
 
   f2555.L30 = math.min(f2555.L28, f2555.L29b);
 
-  f2555.L31 = daysOutOfUSA;
+  f2555.L31 = daysAbroad;
 
-  f2555.L32 = math.eq(f2555.L31, "366") ? "16944" : math.mul(f2555.L31, "46.42");
+  f2555.L32 = math.eq(daysAbroad, daysThisYear) ? "17216" : math.mul(daysAbroad, "47.04");
 
   f2555.L33 = math.subToZero(f2555.L30, f2555.L32);
 
@@ -211,18 +199,20 @@ export const f2555 = (
   ////////////////////////////////////////
   // Part VII: Income Exclusion
 
-  f2555.L37 = "107600";
+  f2555.L37 = maxFeie;
+  f2555.L38 = daysAbroad;
 
-  f2555.L38 = daysOutOfUSA;
-
-  const L39 = math.round(math.div(daysOutOfUSA, "366"), 3);
+  const L39 = math.div(daysAbroad, daysThisYear);
   f2555.L39_int = L39.split(".")[0];
-  f2555.L39_dec = L39.split(".")[1];
+  f2555.L39_dec = math.round(L39, 3).split(".")[1];
 
   f2555.L40 = math.mul(f2555.L37, L39);
   f2555.L41 = math.subToZero(f2555.L27, f2555.L36);
   f2555.L42 = math.min(f2555.L40, f2555.L41);
   log.info(`Foreign earned income exclusion: f2555.L42=${f2555.L42}`);
+  const foreignEarnedIncomeExclusion = getForeignEarnedIncomeExclusion(input, taxRows);
+  if (!math.eq(f2555.L42, foreignEarnedIncomeExclusion))
+    log.warn(`DOUBLE_CHECK_FAILED: f2555.L42=${f2555.L42} !== ${foreignEarnedIncomeExclusion}`);
 
   ////////////////////////////////////////
   // Part VIII: Sum Exclusions

@@ -13,6 +13,8 @@ import {
   Forms,
   getIncomeTax,
   getTotalValue,
+  getTotalIncome,
+  getTotalTaxableIncome,
   math,
   strcat,
   thisYear,
@@ -59,15 +61,15 @@ export const f1040 = (
   ////////////////////////////////////////
   // Taxable Income
 
-  const getTotalIncome = (incomeType: IncomeType): DecString =>
+  const sumIncome = (incomeType: IncomeType): DecString =>
     getTotalValue(taxRows.filter(thisYear), TaxActions.Income, { incomeType });
 
-  f1040.L1 = getTotalIncome(IncomeTypes.Wage);
-  f1040.L2b = getTotalIncome(IncomeTypes.Interest);
-  f1040.L3b = getTotalIncome(IncomeTypes.Dividend);
-  f1040.L4b = getTotalIncome(IncomeTypes.IRA);
-  f1040.L5b = getTotalIncome(IncomeTypes.Pension);
-  f1040.L6b = getTotalIncome(IncomeTypes.SocialSecurity);
+  f1040.L1 = sumIncome(IncomeTypes.Wage);
+  f1040.L2b = sumIncome(IncomeTypes.Interest);
+  f1040.L3b = sumIncome(IncomeTypes.Dividend);
+  f1040.L4b = sumIncome(IncomeTypes.IRA);
+  f1040.L5b = sumIncome(IncomeTypes.Pension);
+  f1040.L6b = sumIncome(IncomeTypes.SocialSecurity);
 
   if (!("f1040sd" in forms)) {
     f1040.C7 = true;
@@ -84,6 +86,8 @@ export const f1040 = (
     { incomeType: IncomeTypes.Dividend },
   );
 
+  log.warn(forms.f1040s1, `f1040s1`);
+
   f1040.L9 = math.add(
     f1040.L1,  // wages
     f1040.L2b, // taxable interest (f1040sb?)
@@ -95,6 +99,9 @@ export const f1040 = (
     f1040.L8,  // other income (f1040s1)
   );
   log.info(`Total income: f1040.L9=${f1040.L9}`);
+  const totalIncome = getTotalIncome(input, taxRows);
+  if (totalIncome !== f1040.L9)
+    log.warn(`DOUBLE_CHECK_FAILED: f1040.L9=${f1040.L9} !== ${totalIncome}`);
 
   f1040.L10c = math.add(
     f1040.L10a, // income adjustments from f1040s1
@@ -108,11 +115,10 @@ export const f1040 = (
   );
   log.info(`Total gross income: f1040.L11=${f1040.L11}`);
 
-  f1040.L12 = !filingStatus ? ""
-    : (filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate) ? "12200"
-    : (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
+  f1040.L12 =
+    (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
     : (filingStatus === FilingStatuses.Head) ? "18350"
-    : "";
+    : "12200";
 
   f1040.L14 = math.add(
     f1040.L12, // standard deduction
@@ -124,6 +130,9 @@ export const f1040 = (
     f1040.L14, // total deductions
   );
   log.info(`Total Taxable Income: f1040.L15=${f1040.L15}`);
+  const totalTaxableIncome = getTotalTaxableIncome(input, taxRows);
+  if (totalTaxableIncome !== f1040.L15)
+    log.warn(`DOUBLE_CHECK_FAILED: f1040.L15=${f1040.L15} !== ${totalTaxableIncome}`);
 
   ////////////////////////////////////////
   // Taxes due & payments

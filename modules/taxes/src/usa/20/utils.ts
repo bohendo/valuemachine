@@ -1,17 +1,34 @@
 import { getLogger } from "@valuemachine/utils";
 
 import { FormArchive, TaxYears } from "../../mappings";
-import { maxint, getGetIncomeTax } from "../utils";
+import {
+  maxint,
+  getGetIncomeTax,
+  getGetTotalIncome,
+  getGetTotalTaxableIncome,
+  getGetForeignEarnedIncome,
+  getGetForeignEarnedIncomeExclusion,
+  daysInYear,
+} from "../utils";
 
 export * from "../utils";
 
 export type Forms = FormArchive["USA20"];
 
+export const year = "2020";
 export const taxYear = TaxYears.USA20;
 export const logger = getLogger("info", taxYear);
+export const daysThisYear = daysInYear(year);
 
-export const thisYear = row => row.date.startsWith("2020");
+export const maxFeie = "107600";
+
+export const thisYear = row => row.date.startsWith(year);
 export const lastYear = row => row.date.startsWith("2019");
+
+export const getForeignEarnedIncome = getGetForeignEarnedIncome(year);
+export const getForeignEarnedIncomeExclusion = getGetForeignEarnedIncomeExclusion(year, maxFeie);
+export const getTotalIncome = getGetTotalIncome(year, maxFeie);
+export const getTotalTaxableIncome = getGetTotalTaxableIncome(year, maxFeie);
 
 // brackets should match https://files.taxfoundation.org/20191114132604/2020-Tax-Brackets-PDF.pdf
 export const getIncomeTax = getGetIncomeTax([
