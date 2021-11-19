@@ -1,7 +1,6 @@
 import {
   DateString,
   Guard,
-  Mapping,
   TaxYear,
 } from "@valuemachine/types";
 import { getLogger, math } from "@valuemachine/utils";
@@ -44,44 +43,3 @@ export const inTaxYear = (guard, year) => row => {
   const time = new Date(row.date).getTime();
   return time > taxYearBoundaries[0] && time <= taxYearBoundaries[1];
 };
-
-////////////////////////////////////////
-// Mapping
-
-export const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapping => {
-  for (const m of master) {
-    const s = slave.find(e => e.fieldName === m.fieldName);
-    // Make sure all fields except nickname equal the values from the empty pdf
-    if (!s) {
-      log.warn(`Adding new entry for ${m.fieldName} to ${form} mappings`);
-      slave.push({
-        nickname: m.nickname,
-        fieldName: m.fieldName,
-        checkmark: m.checkmark,
-      });
-    } else if (m.checkmark) {
-      s.checkmark = m.checkmark;
-    }
-  }
-  for (const i of slave.map((_, i) => i)) {
-    const s = slave[i];
-    if ((s as any).fieldType) delete (s as any).fieldType;
-    if (!master.find(m => m.fieldName === s.fieldName)) {
-      log.warn(`Removing ${s.nickname} from ${form} mappings`);
-      slave.splice(i, 1);
-    }
-  }
-  return slave;
-};
-
-export const getTestForm = mapping =>
-  mapping.reduce((form, entry) => ({
-    ...form,
-    [entry.nickname]: entry.checkmark ? true : entry.nickname,
-  }), {});
-
-export const getTestReturn = mappings =>
-  Object.keys(mappings).reduce((forms, form) => ({
-    ...forms,
-    [form]: getTestForm(mappings[form]),
-  }), {});

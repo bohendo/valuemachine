@@ -7,11 +7,22 @@ import { expect } from "chai";
 
 import { MappingArchive, TaxYears } from "./mappings";
 import { fillReturn } from "./pdf";
-import { getTestReturn } from "./utils";
 
 const log = getLogger("warn", "TestMappings");
 const libs = { fs, execFile };
 const root = path.join(__dirname, "..");
+
+const getTestForm = mapping =>
+  mapping.reduce((form, entry) => ({
+    ...form,
+    [entry.nickname]: entry.checkmark ? true : entry.nickname,
+  }), {});
+
+const getTestReturn = mappings =>
+  Object.keys(mappings).reduce((forms, form) => ({
+    ...forms,
+    [form]: getTestForm(mappings[form]),
+  }), {});
 
 describe("Tax Form Mappings", () => {
 
