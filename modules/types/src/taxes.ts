@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { Asset, DateString, DecString, Guard, TxId } from "./strings";
+import { Asset, DateString, DecString, TaxYear, TxId } from "./strings";
 import { Tag } from "./txTags";
 
 export const FilingStatuses = {
@@ -30,7 +30,7 @@ export type TaxAction = Static<typeof TaxAction>;
 
 export const TaxRow = Type.Object({
   date: DateString,
-  guard: Guard,
+  taxYear: TaxYear,
   action: TaxAction, // subset: Trade or Income
   amount: DecString, // rounded to 10^-6
   asset: Asset,

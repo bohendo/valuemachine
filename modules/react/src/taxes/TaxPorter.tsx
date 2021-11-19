@@ -41,7 +41,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   useEffect(() => {
     setTaxYear(allTaxYears);
     setTaxYears(dedup(
-      taxRows.filter(row => row.guard === guard).map(row => row.date.split("-")[0]).concat([
+      taxRows.filter(row => row.taxYear.startsWith(guard)).map(row => row.date.split("-")[0]).concat([
         (new Date().getFullYear() - 1).toString() // always provide the option for last year
       ])
     ).sort());
@@ -76,9 +76,13 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   const handleReturnExport = async (): Promise<void> => {
     if (!guard || !taxYear || !taxInput) return;
     if (guard !== Guards.USA) return;
-    const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
+    const year = taxYear === "2019" ? TaxYears.USA2019 : taxYear === "2020" ? TaxYears.USA2020 : "";
     if (!year || !taxRows?.length) return;
-    const forms = getTaxReturn(year, taxInput, taxRows.filter(row => row.guard === guard));
+    const forms = getTaxReturn(
+      year,
+      taxInput,
+      taxRows.filter(row => row.taxYear.startsWith(guard)),
+    );
     return new Promise((res, rej) => {
       axios({
         url: `/api/taxes/${year}`,

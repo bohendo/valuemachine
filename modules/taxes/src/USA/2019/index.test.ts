@@ -7,7 +7,7 @@ import { getEmptyForms, TaxYears } from "../../mappings";
 
 import { getTaxReturn } from ".";
 
-const taxYear = TaxYears.USA19;
+const taxYear = TaxYears.USA2019;
 const logger = getLogger("warn", `Test${taxYear}`);
 
 describe(`${taxYear} Filers`, () => {

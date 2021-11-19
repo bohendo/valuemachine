@@ -86,8 +86,6 @@ export const f1040 = (
     { incomeType: IncomeTypes.Dividend },
   );
 
-  log.warn(forms.f1040s1, `f1040s1`);
-
   f1040.L9 = math.add(
     f1040.L1,  // wages
     f1040.L2b, // taxable interest (f1040sb?)

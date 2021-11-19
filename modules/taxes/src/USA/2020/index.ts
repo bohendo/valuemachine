@@ -17,7 +17,7 @@ import { f1040sse } from "./f1040sse";
 import { f2555 } from "./f2555";
 import { Forms } from "./utils";
 
-const taxYear = TaxYears.USA20;
+const taxYear = TaxYears.USA2020;
 const logger = getLogger("info", taxYear);
 
 export const getTaxReturn = (

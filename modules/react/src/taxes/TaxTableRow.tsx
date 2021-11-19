@@ -51,8 +51,8 @@ export const TaxTableRow: React.FC<TaxTableRowProps> = ({
       <TableCell sx={{ minWidth: "8em" }}> {fmtDate(row.date)} </TableCell>
       <TableCell> {row.action} </TableCell>
       <TableCell> {`${commify(row.amount, 6, unit)} ${row.asset}`} </TableCell>
-      {!guard ? (<TableCell> {row.guard} </TableCell>) : null}
-      {!guard ? (<TableCell> {securityFeeMap[row.guard] || unit || ""} </TableCell>) : null}
+      {!guard ? (<TableCell> {row.taxYear.substring(0, 3)} </TableCell>) : null}
+      {!guard ? (<TableCell> {securityFeeMap[row.taxYear.substring(0, 3)] || unit || ""} </TableCell>) : null}
       <TableCell> {commify(row.price, 4, unit)} </TableCell>
       <TableCell> {commify(row.value, 2, unit)} </TableCell>
       <TableCell sx={{ minWidth: "8em" }}> {fmtDate(row.receiveDate)} </TableCell>

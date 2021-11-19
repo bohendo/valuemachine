@@ -59,7 +59,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     const newGuards = dedup([
       allGuards,
       Guards.None,
-      ...taxRows.map(row => row.guard).sort(),
+      ...taxRows.map(row => row.taxYear.substring(0, 3)).sort(),
     ]) as Guard[];
     setGuards(newGuards);
     setGuard(newGuards[0]);

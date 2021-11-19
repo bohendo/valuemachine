@@ -18,6 +18,7 @@ import {
 } from "@valuemachine/utils";
 
 import { securityFeeMap } from "./constants";
+import { getTaxYear } from "./utils";
 
 export const getTaxRows = async ({
   addressBook,
@@ -49,6 +50,7 @@ export const getTaxRows = async ({
       account ? addressBook.getGuard(account) : ""
     ) || account.split("/")[0];
     const unit = securityFeeMap[guard] || userUnit;
+    const taxYear = getTaxYear(guard, date);
     if (!unit) throw new Error(`Security asset is unknown for guard=${guard}`);
 
     if (evt.type === TaxActions.Trade) {
@@ -62,7 +64,7 @@ export const getTaxRows = async ({
           const capitalChange = math.mul(chunk.amount, math.sub(price, receivePrice || "0"));
           return {
             date: date,
-            guard,
+            taxYear,
             action: TaxActions.Trade,
             amount: chunk.amount,
             asset: chunk.asset,
@@ -87,7 +89,7 @@ export const getTaxRows = async ({
         const income = math.mul(chunk.amount, price);
         return {
           date: date,
-          guard,
+          taxYear,
           action: TaxActions.Income,
           amount: chunk.amount,
           asset: chunk.asset,
@@ -120,7 +122,7 @@ export const getTaxRows = async ({
         // eg if it's an expense to coinbase, then tag it as an exchange fee
         return {
           date: date,
-          guard,
+          taxYear,
           action: TaxActions.Expense,
           amount: chunk.amount,
           asset: chunk.asset,

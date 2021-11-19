@@ -16,7 +16,7 @@ import { f8889 } from "./f8889";
 import { f8949 } from "./f8949";
 import { Forms } from "./utils";
 
-const taxYear = TaxYears.USA19;
+const taxYear = TaxYears.USA2019;
 const logger = getLogger("info", taxYear);
 
 export const getTaxReturn = (

@@ -9,11 +9,12 @@ import { f1040sd, F1040SD } from "./f1040sd";
 import { f1040sse, F1040SSE } from "./f1040sse";
 import { f2210, F2210 } from "./f2210";
 import { f2555, F2555 } from "./f2555";
+import { f8889, F8889 } from "./f8889";
 import { f8949, F8949 } from "./f8949";
 
 // The order here is the default order in which pages will be merged
 // Sort them according to the Sequence Attachment No in the top right corner of each form
-export const Mappings_USA20 = {
+export const Mappings_USA2019 = {
   /*seq no 0  */ f1040,
   /*seq no 1  */ f1040s1,
   /*seq no 2  */ f1040s2,
@@ -26,33 +27,36 @@ export const Mappings_USA20 = {
   /*seq no 12a*/ f8949,
   /*seq no 17 */ f1040sse,
   /*seq no 34 */ f2555,
+  /*seq no 52 */ f8889,
 } as const;
 
-export type F1040_USA20 = F1040;
-export type F1040S1_USA20 = F1040S1;
-export type F1040S2_USA20 = F1040S2;
-export type F1040S3_USA20 = F1040S3;
-export type F1040SA_USA20 = F1040SA;
-export type F1040SB_USA20 = F1040SB;
-export type F1040SC_USA20 = F1040SC;
-export type F1040SD_USA20 = F1040SD;
-export type F1040SSE_USA20 = F1040SSE;
-export type F2210_USA20 = F2210;
-export type F2555_USA20 = F2555;
-export type F8949_USA20 = F8949;
+export type F1040_USA2019 = F1040;
+export type F1040S1_USA2019 = F1040S1;
+export type F1040S2_USA2019 = F1040S2;
+export type F1040S3_USA2019 = F1040S3;
+export type F1040SA_USA2019 = F1040SA;
+export type F1040SB_USA2019 = F1040SB;
+export type F1040SC_USA2019 = F1040SC;
+export type F1040SD_USA2019 = F1040SD;
+export type F1040SSE_USA2019 = F1040SSE;
+export type F2210_USA2019 = F2210;
+export type F2555_USA2019 = F2555;
+export type F8889_USA2019 = F8889;
+export type F8949_USA2019 = F8949;
 
 // Multiple pages are expected for forms with array type
-export type Forms_USA20 = {
-  f1040?: F1040_USA20,
-  f1040s1?: F1040S1_USA20,
-  f1040s2?: F1040S2_USA20,
-  f1040s3?: F1040S3_USA20,
-  f2210?: F2210_USA20,
-  f1040sa?: F1040SA_USA20,
-  f1040sb?: F1040SB_USA20,
-  f1040sc?: F1040SC_USA20,
-  f1040sd?: F1040SD_USA20,
-  f8949?: F8949_USA20[],
-  f1040sse?: F1040SSE_USA20,
-  f2555?: F2555_USA20,
+export type Forms_USA2019 = {
+  f1040?: F1040_USA2019,
+  f1040s1?: F1040S1_USA2019,
+  f1040s2?: F1040S2_USA2019,
+  f1040s3?: F1040S3_USA2019,
+  f2210?: F2210_USA2019,
+  f1040sa?: F1040SA_USA2019,
+  f1040sb?: F1040SB_USA2019,
+  f1040sc?: F1040SC_USA2019,
+  f1040sd?: F1040SD_USA2019,
+  f8949?: F8949_USA2019[],
+  f1040sse?: F1040SSE_USA2019,
+  f2555?: F2555_USA2019,
+  f8889?: F8889_USA2019,
 };

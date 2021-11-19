@@ -7,7 +7,7 @@ import { TaxYears } from "../../mappings";
 
 import { getTaxReturn } from ".";
 
-const taxYear = TaxYears.USA20;
+const taxYear = TaxYears.USA2020;
 const log = getLogger("warn", `Test${taxYear}Filers`);
 
 const travel = [{
@@ -49,7 +49,7 @@ describe(`${taxYear} Filers`, () => {
     expect(Object.keys(defaultReturn).length).to.equal(defaultPages.length);
   });
 
-  it.only(`should include f2555 iff lots of travel outside the US was provided`, async () => {
+  it(`should include f2555 iff lots of travel outside the US was provided`, async () => {
     const f2555Return = getTaxReturn({ travel }, [income, tax], log);
     log.info(`Tax return includes forms: ${Object.keys(f2555Return)}`);
     expect("f2555" in f2555Return).to.be.true;

@@ -15,10 +15,10 @@ import React, { useEffect, useState } from "react";
 
 import { Confirm, SelectOne, TextInput } from "../../utils";
 
-const taxYear = TaxYears.USA20;
+const taxYear = TaxYears.USA2020;
 const mappings = MappingArchive[taxYear];
 
-type Forms = FormArchive["USA20"];
+type Forms = FormArchive["USA2020"];
 type NewForm = { form?: string; field?: string; value?: any; };
 type FormsEditorProps = {
   forms?: Forms;

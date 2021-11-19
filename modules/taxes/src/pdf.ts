@@ -1,9 +1,9 @@
-import { Logger } from "@valuemachine/types";
-import { getLogger, round } from "@valuemachine/utils";
+import { Logger, TaxYear } from "@valuemachine/types";
+import { getLogger, round, splitTaxYear } from "@valuemachine/utils";
 import axios from "axios";
 
 import { getPdftk } from "./pdftk";
-import { Forms, Form, MappingArchive, TaxYear } from "./mappings";
+import { Forms, Form, MappingArchive } from "./mappings";
 
 const fillForm = async (
   taxYear: TaxYear,
@@ -104,9 +104,11 @@ export const fetchUsaForm = async (
   logger?: Logger,
 ): Promise<boolean> => {
   const log = (logger || getLogger()).child({ module: "FetchUsaForm" });
-  const url = taxYear.endsWith((new Date().getFullYear() - 1).toString().substring(2))
+  const [guard, year] = splitTaxYear(taxYear);
+  if (guard !== "USA") throw new Error(`Can only fetch USA forms, not ${guard}`);
+  const url = year !== new Date().getFullYear().toString()
     ? `https://www.irs.gov/pub/irs-pdf/${form}.pdf`
-    : `https://www.irs.gov/pub/irs-prior/${form}--20${taxYear.substring(3)}.pdf`;
+    : `https://www.irs.gov/pub/irs-prior/${form}--${year}.pdf`;
   log.info(`Fetching ${taxYear} ${form} from ${url}`);
   const emptyPdf = `${process.cwd()}/forms/${taxYear}/${form}.pdf`;
   const writer = fs.createWriteStream(emptyPdf);
