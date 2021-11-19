@@ -1,7 +1,12 @@
 import {
   DateString,
+  DecString,
   Guard,
+  Tag,
+  TaxRows,
+  IntString,
   TaxYear,
+  Year,
 } from "@valuemachine/types";
 import { getLogger, math } from "@valuemachine/utils";
 
@@ -10,12 +15,25 @@ import { taxYearCutoffs } from "./constants";
 export const log = getLogger("info");
 
 ////////////////////////////////////////
+// String
+
+export const strcat = (los: string[], delimiter = " "): string =>
+  los.filter(s => !!s).join(delimiter);
+
+////////////////////////////////////////
 // Date
 
 export const toTime = (d: DateString): number => new Date(d).getTime();
-
 export const before = (d1: DateString, d2: DateString): boolean => toTime(d1) < toTime(d2);
 export const after = (d1: DateString, d2: DateString): boolean => toTime(d1) > toTime(d2);
+
+export const daysInYear = (year: Year): IntString => {
+  const y = parseInt(year);
+  return y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0) ? "366" : "365";
+};
+
+////////////////////////////////////////
+// TaxYear
 
 export const getTaxYear = (guard: Guard, date: DateString): TaxYear => {
   const year = date.split("-")[0];
@@ -43,3 +61,26 @@ export const inTaxYear = (guard, year) => row => {
   const time = new Date(row.date).getTime();
   return time > taxYearBoundaries[0] && time <= taxYearBoundaries[1];
 };
+
+////////////////////////////////////////
+// Total Value
+
+export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: Tag) =>
+  getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);
+
+export const getRowTotal = (
+  rows: TaxRows,
+  filterAction?: string,
+  filterTag?: Tag,
+  mapRow?: (row) => DecString,
+) => 
+  rows.filter(row =>
+    !filterAction || filterAction === row.action
+  ).filter(row =>
+    Object.keys(filterTag || {}).every(tagType => row.tag[tagType] === filterTag[tagType])
+  ).reduce((tot, row) => (
+    math.add(tot, math.mul(
+      mapRow ? mapRow(row) : row.value,
+      row.tag.multiplier || "1",
+    ))
+  ), "0");

@@ -10,8 +10,8 @@ import {
   getBusinessIncome,
   securityFeeMap,
   getTotalCapitalChange,
-  getGetTotalIncome,
-  getGetTotalTaxableIncome,
+  getTotalIncome,
+  getTotalTaxableIncome,
   getTotalTax,
 } from "@valuemachine/taxes";
 import { Assets } from "@valuemachine/transactions";
@@ -28,22 +28,6 @@ import React, { useEffect, useState } from "react";
 const getUnit = (guard, defaultUnit) => 
   (guard ? securityFeeMap[guard] : null) || defaultUnit || Assets.ETH;
 
-const getRepricer = (unit, prices) => row => {
-  if (!unit || !prices) return row;
-  const fromUnit = getUnit(row.taxYear.substring(0, 3), unit);
-  if (fromUnit !== unit) {
-    const newRow = { ...row };
-    const conversion = prices?.getNearest(row.date, fromUnit, unit) || "1";
-    newRow.price = math.mul(conversion, row.price);
-    newRow.receivePrice = math.mul(conversion, row.receivePrice);
-    newRow.value = math.mul(conversion, row.value);
-    newRow.capitalChange = math.mul(conversion, row.capitalChange);
-    return newRow;
-  } else {
-    return row;
-  }
-};
-
 type TaxSummaryProps = {
   guard?: Guard;
   prices?: Prices;
@@ -58,9 +42,8 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
   taxRows,
   unit: userUnit,
 }: TaxSummaryProps) => {
-  const [taxYears, setTaxYears] = React.useState([] as string[]);
-  const [unit, setUnit] = React.useState(getUnit(guard, userUnit));
-  const [repricedRows, setRepricedRows] = useState([] as TaxRows);
+  const [taxYears, setTaxYears] = useState([] as string[]);
+  const [unit, setUnit] = useState(getUnit(guard, userUnit));
 
   console.log(`Years w guard=${guard} activity: ${taxYears}`);
 
@@ -69,19 +52,11 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
   }, [guard, userUnit]);
 
   useEffect(() => {
-    const rowsByGuard = taxRows.filter(row => !guard || row.taxYear.startsWith(guard));
-    if (guard) {
-      console.log(`Repricing ${rowsByGuard.length} of ${
-        taxRows.length
-      } rows that have guard === ${guard}`);
-    } else {
-      console.log(`Repricing ALL rows bc no guard was provided`);
-    }
-    const repriced = rowsByGuard.map(getRepricer(unit, prices));
-    setRepricedRows(repriced);
-    setTaxYears(dedup(repriced.map(row => row.taxYear)).sort((y1, y2) =>
-      parseInt(y2.substring(3)) - parseInt(y1.substring(3))
-    ));
+    setTaxYears(
+      dedup(taxRows.map(row => row.taxYear))
+        .filter(taxYear => !guard || taxYear.startsWith(guard))
+        .sort()
+    );
   }, [guard, prices, taxRows, unit]);
 
   return (<>
@@ -104,44 +79,29 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {/*<TableRow> Add totals of all taxYears to the top row</TableRow>*/}
             {taxYears.map((taxYear, i) => (
               <TableRow key={i}>
 
-                <TableCell> {taxYear} </TableCell>
+                <TableCell> {guard ? taxYear.replace(guard, "") : taxYear} </TableCell>
 
                 <TableCell>{
-                  math.commify(getBusinessIncome(
-                    repricedRows.filter(r => r.taxYear === taxYear),
-                  ), 0, unit)
+                  math.commify(getBusinessIncome(taxYear, taxInput, taxRows), 0, unit)
                 }</TableCell>
 
                 <TableCell>{
-                  math.commify(getTotalCapitalChange(
-                    taxInput,
-                    repricedRows.filter(r => r.taxYear === taxYear),
-                  ), 0, unit)
+                  math.commify(getTotalCapitalChange(taxYear, taxInput, taxRows), 0, unit)
                 }</TableCell>
 
                 <TableCell>{
-                  math.commify(getGetTotalIncome(taxYear.substring(3))(
-                    taxInput,
-                    repricedRows.filter(r => r.taxYear === taxYear),
-                  ), 0, unit)
+                  math.commify(getTotalIncome(taxYear, taxInput, taxRows), 0, unit)
                 }</TableCell>
 
                 <TableCell>{
-                  math.commify(getGetTotalTaxableIncome(taxYear.substring(3))(
-                    taxInput,
-                    repricedRows.filter(r => r.taxYear === taxYear),
-                  ), 0, unit)
+                  math.commify(getTotalTaxableIncome(taxYear, taxInput, taxRows), 0, unit)
                 }</TableCell>
 
                 <TableCell>{
-                  math.commify(getTotalTax(
-                    taxInput,
-                    repricedRows.filter(r => r.taxYear === taxYear),
-                  ), 0, unit)
+                  math.commify(getTotalTax(taxYear, taxInput, taxRows), 0, unit)
                 }</TableCell>
 
               </TableRow>

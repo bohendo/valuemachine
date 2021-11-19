@@ -6,6 +6,7 @@ import {
 } from "@valuemachine/core";
 import {
   Assets,
+  PhysicalGuards,
   getAddressBook,
   getTransactions,
 } from "@valuemachine/transactions";
@@ -219,14 +220,13 @@ export const App: React.FC<AppProps> = ({
       store.save(TxTagsStore, newTxTags);
       setTxTags(newTxTags);
     } else {
-      console.log(`Saving valid tx tags`);
-      // Convert depreciated income type to the new value
       Object.keys(txTags).forEach(txId => {
         const tag = txTags[txId];
-        if (tag.incomeType === "SelfEmployed") {
-          tag.incomeType = IncomeTypes.Business;
-        }
+        // Convert depreciated values to the new ones
+        if (tag.incomeType === "SelfEmployed") { tag.incomeType = IncomeTypes.Business; }
+        if (tag.physicalGuard === "None") { tag.physicalGuard = PhysicalGuards.IDK; }
       });
+      console.log(`Saving ${Object.keys(txTags).length} valid tx tags`);
       store.save(TxTagsStore, txTags);
     }
   }, [txTags]);

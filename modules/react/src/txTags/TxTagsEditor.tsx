@@ -10,7 +10,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { PhysicalGuards, Guards } from "@valuemachine/transactions";
 import { ExpenseTypes, IncomeTypes, TxId, TxTags, TxTagTypes } from "@valuemachine/types";
-import { getDecStringError, getTxIdError } from "@valuemachine/utils";
+import { dedup, getDecStringError, getTxIdError } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { Confirm, HexString, SelectOne, TextInput } from "../utils";
@@ -163,7 +163,7 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
           <Grid item>
             <SelectOne
               label="Physical Guard"
-              choices={[Guards.None, ...Object.keys(PhysicalGuards)]}
+              choices={dedup([Guards.IDK, ...Object.keys(PhysicalGuards)])}
               selection={newTxTag.value?.toString() || txTags?.[newTxTag.txId]?.[newTxTag.tagType] || ""}
               setSelection={physicalGuard => setNewTxTag({ ...newTxTag, value: physicalGuard })}
             />

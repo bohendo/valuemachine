@@ -125,6 +125,7 @@ export const PhysicalGuards = {
   UMI: "UMI", URY: "URY", USA: "USA", UZB: "UZB", VAT: "VAT", VCT: "VCT", VEN: "VEN", VGB: "VGB",
   VIR: "VIR", VNM: "VNM", VUT: "VUT", WLF: "WLF", WSM: "WSM", YEM: "YEM", ZAF: "ZAF", ZMB: "ZMB",
   ZWE: "ZWE",
+  IDK: "IDK", // Special value representing an unknown physical guard
 } as const;
 
 export const Guards = {

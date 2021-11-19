@@ -1,3 +1,4 @@
+import { PhysicalGuards } from "@valuemachine/transactions";
 import {
   AddressBook,
   Asset,
@@ -46,9 +47,10 @@ export const getTaxRows = async ({
     const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
     const txId = evt.txId;
     const account = (evt as TradeEvent).account || (evt as GuardChangeEvent).to || "";
-    const guard = tag.physicalGuard || (
+    let guard = tag.physicalGuard || (
       account ? addressBook.getGuard(account) : ""
     ) || account.split("/")[0];
+    if (guard.length > 3) guard = PhysicalGuards.IDK; // if len > 3 then it's an unknown guard
     const unit = securityFeeMap[guard] || userUnit;
     const taxYear = getTaxYear(guard, date);
     if (!unit) throw new Error(`Security asset is unknown for guard=${guard}`);

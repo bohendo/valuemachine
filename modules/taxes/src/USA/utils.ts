@@ -6,7 +6,6 @@ import {
   FilingStatuses,
   IncomeTypes,
   IntString,
-  Tag,
   TaxActions,
   TaxInput,
   TaxRow,
@@ -17,6 +16,9 @@ import { math } from "@valuemachine/utils";
 
 import {
   after,
+  daysInYear,
+  getRowTotal,
+  getTotalValue,
   before,
   toTime,
 } from "../utils";
@@ -37,46 +39,12 @@ export { chrono, math } from "@valuemachine/utils";
 export { TaxYears } from "../mappings";
 
 ////////////////////////////////////////
-// String
-
-export const strcat = (los: string[], delimiter = " "): string =>
-  los.filter(s => !!s).join(delimiter);
-
-////////////////////////////////////////
-// Util
-
-export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: Tag) =>
-  getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);
-
-export const getRowTotal = (
-  rows: TaxRows,
-  filterAction?: string,
-  filterTag?: Tag,
-  mapRow?: (row) => DecString,
-) => 
-  rows.filter(row =>
-    !filterAction || filterAction === row.action
-  ).filter(row =>
-    Object.keys(filterTag || {}).every(tagType => row.tag[tagType] === filterTag[tagType])
-  ).reduce((tot, row) => (
-    math.add(tot, math.mul(
-      mapRow ? mapRow(row) : row.value,
-      row.tag.multiplier || "1",
-    ))
-  ), "0");
-
-////////////////////////////////////////
 // Date
 
 // ISO => "MM, DD, YY"
 export const toFormDate = (date: DateString): string => {
   const pieces = date.split("T")[0].split("-");
   return `${pieces[1]}, ${pieces[2]}, ${pieces[0]}`;
-};
-
-export const daysInYear = (year: Year): IntString => {
-  const y = parseInt(year);
-  return y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0) ? "366" : "365";
 };
 
 ////////////////////////////////////////

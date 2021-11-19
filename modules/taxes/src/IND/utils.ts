@@ -4,7 +4,6 @@ import {
   DecString,
   FilingStatuses,
   IncomeTypes,
-  Tag,
   TaxActions,
   TaxInput,
   TaxRow,
@@ -14,9 +13,8 @@ import { math } from "@valuemachine/utils";
 
 import {
   toTime,
+  getRowTotal,
 } from "../utils";
-
-export * from "../utils";
 
 export { chrono, math } from "@valuemachine/utils";
 
@@ -25,35 +23,6 @@ export { TaxYears } from "../mappings";
 export const maxint = MaxUint256.toString();
 export const msPerDay = 1000 * 60 * 60 * 24;
 export const msPerYear = msPerDay * 365;
-
-////////////////////////////////////////
-// String
-
-export const strcat = (los: string[], delimiter = " "): string =>
-  los.filter(s => !!s).join(delimiter);
-
-////////////////////////////////////////
-// Util
-
-export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: Tag) =>
-  getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);
-
-export const getRowTotal = (
-  rows: TaxRows,
-  filterAction?: string,
-  filterTag?: Tag,
-  mapRow?: (row) => DecString,
-) => 
-  rows.filter(row =>
-    !filterAction || filterAction === row.action
-  ).filter(row =>
-    Object.keys(filterTag || {}).every(tagType => row.tag[tagType] === filterTag[tagType])
-  ).reduce((tot, row) => (
-    math.add(tot, math.mul(
-      mapRow ? mapRow(row) : row.value,
-      row.tag.multiplier || "1",
-    ))
-  ), "0");
 
 ////////////////////////////////////////
 // Expense
@@ -74,14 +43,11 @@ export const isShortTermTrade = (row: TaxRow): boolean =>
 
 // cut capital losses off at -1500/-3000 a la f1040sd.L21
 export const getTotalCapitalChange = (input: TaxInput, rows: TaxRows) =>
-  math.max(
-    getRowTotal(
-      rows,
-      TaxActions.Trade,
-      {},
-      row => row.capitalChange
-    ),
-    input.personal?.filingStatus === FilingStatuses.Separate ? "-1500" : "-3000",
+  getRowTotal(
+    rows,
+    TaxActions.Trade,
+    {},
+    row => row.capitalChange
   );
 
 ////////////////////////////////////////
