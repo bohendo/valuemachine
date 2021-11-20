@@ -13,18 +13,16 @@ import {
 } from "./const";
 import {
   chrono,
-  diffDays,
+  getTotalTax,
   Forms,
   getNetBusinessIncome,
-  getIncomeTax,
-  getTotalTaxableIncome,
+  applyTaxBracket,
   math,
   msPerDay,
   strcat,
   sumExpenses,
   sumIncome,
   toTime,
-  USA,
 } from "./utils";
 
 export const f2210 = (
@@ -98,53 +96,8 @@ export const f2210 = (
   if ("f5404" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f5404 tax to f2210.L8`);
   if ("f8959" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8959 tax to f2210.L8`);
   if ("f8960" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8960 tax to f2210.L8`);
-  const taxableIncome = getTotalTaxableIncome(lastYear, input, rows);
-  const filingStatus = personal.filingStatus; // what if it was different last yeat?
-  let incomeTax;
-  if (forms.f2555) {
-    // taxableIncome should only include income earned outside of the US..
-    const ws = {} as any; // Foreign Earned Income Tax Worksheet on i1040 pg 35
-    ws.L1 = taxableIncome;
-    const maxFeie2019 = "105900";
-    const travel = input.travel || [];
-    const daysInEachCountry = travel.reduce((days, trip) => ({
-      ...days,
-      [trip.country]: math.add(days[trip.country] || "0", diffDays(trip.enterDate, trip.leaveDate))
-    }), {});
-    const daysOutOfUSA = Object.keys(daysInEachCountry).reduce((tot, country) => {
-      return country !== USA ? math.add(tot, daysInEachCountry[country]) : tot;
-    }, "0");
-    const p = math.div(daysOutOfUSA, "365");
-    // feie housing exclusion isn't supported (yet?)
-    ws.L2a = math.min(math.mul(maxFeie2019, p), taxableIncome);
-    ws.L2b = "0"; // unapplied deducation & exclusions due to foreign earned income exclusion
-    ws.L2c = math.subToZero(ws.L2a, ws.L2b);
-    ws.L3 = math.add(ws.L1, ws.L2c);
-    ws.L4 = getIncomeTax(thisYear, ws.L3, filingStatus);
-    ws.L5 = getIncomeTax(thisYear, ws.L2c, filingStatus);
-    incomeTax = math.subToZero(ws.L4, ws.L5);
-  } else if (forms.f1040sd && (math.gt(forms.f1040sd.L18, "0") || math.gt(forms.f1040sd.L19, "0"))) {
-    throw new Error(`NOT_IMPLEMENTED: Schedule D Tax Worksheet`);
-  } else if (forms.f1040sd) {
-    throw new Error(`NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet`);
-  } else {
-    incomeTax = getIncomeTax(thisYear, f1040.L11, filingStatus);
-  }
-  const subjectToSS = math.mul(getNetBusinessIncome(lastYear, rows), "0.9235");
-  const seTax = math.add(
-    math.mul( // as per f1040sse.L10
-      // as per f1040sse.L10
-      math.min(subjectToSS, "137700"),
-      "0.124",
-    ),
-    // as per f1040sse.L11
-    math.mul(subjectToSS, "0.029"),
-  );
-  f2210.L8 = math.add(
-    incomeTax, // total tax (except se, etc) - total credits
-    seTax,     // se tax from f1040sse L5
-  );
-
+  f2210.L8 = getTotalTax(lastYear, input, rows);
+  log.info(`Taxes owed last year: ${f2210.L8}`);
   f2210.L9 = math.min(f2210.L5, f2210.L8);
 
   ////////////////////////////////////////
@@ -162,13 +115,14 @@ export const f2210 = (
   if (math.gt(f2210.L9, f2210.L6)) {
     f2210.C9_Yes = true;
     if ((f2210.CA || f2210.CE) && !f2210.CB && !f2210.CC && !f2210.CD) {
-      log.info(`No figuring penalty, filing only page 1 of form 2210`);
+      log.info(`NOT_IMPLEMENTED: we should only file the simple part of form 2210`);
+      delete forms.f2210;
       return forms;
     }
   } else {
     f2210.C9_No = true;
     if (!f2210.CE) {
-      log.info(`No penalty required, not filing form 2210`);
+      log.info(`No penalty required, not filing form 2210: f2210.L9=min(${f2210.L5}, ${f2210.L8}) < f2210.L6=${f2210.L6}`);
       delete forms.f2210;
       return forms;
     }
@@ -321,7 +275,7 @@ export const f2210 = (
 
     f2210[getKey(13)] = math.subToZero(getVal(11), getVal(12));
 
-    f2210[getKey(14)] = getIncomeTax(thisYear, getVal(13), personal.filingStatus);
+    f2210[getKey(14)] = applyTaxBracket(thisYear, getVal(13), personal.filingStatus);
 
     f2210[getKey(15)] = getVal(36);
 

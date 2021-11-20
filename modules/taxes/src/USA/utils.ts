@@ -234,22 +234,26 @@ export const getTotalIncome = (year: Year, input: TaxInput, rows: TaxRows) =>
     getForeignEarnedIncome(year, input, rows),
   );
 
+////////////////////////////////////////
+// Tax
+
+export const getSelfEmploymentTax = (year: Year, input: TaxInput, rows: TaxRows): DecString => {
+  // We should extract & properly label some of these magic numbers
+  const subjectToSS = math.mul(getNetBusinessIncome(year, rows), "0.9235"); // a la f1040sse.L4a
+  return math.add(
+    math.mul( 
+      math.min(subjectToSS, "137700"), // a la f1040sse.L10
+      "0.124", // a la f1040sse.L10
+    ),
+    math.mul(subjectToSS, "0.029"), // a la f1040sse.L11
+  );
+};
+
 // combine all income & adjustments
 export const getTotalTaxableIncome = (year: Year, input: TaxInput, rows: TaxRows) => {
-  // We should extract & properly label some of these magic numbers
-  // as per f1040sse.L4a
-  const subjectToSS = math.mul(getNetBusinessIncome(year, rows), "0.9235");
   const seAdjustment = math.mul(
-    math.add(
-      math.mul( // as per f1040sse.L10
-        // as per f1040sse.L10
-        math.min(subjectToSS, "137700"),
-        "0.124",
-      ),
-      // as per f1040sse.L11
-      math.mul(subjectToSS, "0.029"),
-    ),
-    "0.5", // as per f1040sse.L13
+    getSelfEmploymentTax(year, input, rows),
+    "0.5", // a la f1040sse.L13
   );
   const filingStatus = input.personal?.filingStatus;
   const standardDeduction = !filingStatus ? "0"
@@ -266,25 +270,22 @@ export const getTotalTaxableIncome = (year: Year, input: TaxInput, rows: TaxRows
   );
 };
 
-////////////////////////////////////////
-// Tax
-
-export const getIncomeTax = (
+export const applyTaxBracket = (
   year: Year,
   taxableIncome: DecString,
-  filingStatus: FilingStatus,
+  filingStatus?: FilingStatus,
 ): DecString => {
   const taxBrackets = getTaxBrackets(year);
   let incomeTax = "0";
   let prevThreshold = "0";
   taxBrackets.forEach(bracket => {
-    const threshold = !filingStatus ? "1" : (
+    const threshold = !filingStatus ? "0" : (
       filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate
     ) ? bracket.single : (
         filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow
       ) ? bracket.joint : (
           filingStatus === FilingStatuses.Head
-        ) ? bracket.head : "1";
+        ) ? bracket.head : "0";
     if (math.lt(taxableIncome, prevThreshold)) {
       return;
     } else if (math.lt(taxableIncome, threshold)) {
@@ -309,7 +310,7 @@ export const getIncomeTax = (
   return incomeTax;
 };
 
-export const getTotalTax = (year: Year, input: TaxInput, rows: TaxRows): DecString => {
+export const getIncomeTax = (year: Year, input: TaxInput, rows: TaxRows): DecString => {
   const feie = getForeignEarnedIncomeExclusion(year, input, rows);
   const exemptDividends = sumIncome(
     year,
@@ -317,7 +318,7 @@ export const getTotalTax = (year: Year, input: TaxInput, rows: TaxRows): DecStri
     IncomeTypes.Dividend
   );
   const capGains = getTotalCapitalChange(year, input, rows);
-  const filingStatus = input.personal.filingStatus;
+  const filingStatus = input.personal?.filingStatus;
   if (math.gt(feie, "0")) {
     const ws = {} as any; // Foreign Earned Income Tax Worksheet on i1040 pg 35
     ws.L1 = getTotalTaxableIncome(year, input, rows);
@@ -325,15 +326,20 @@ export const getTotalTax = (year: Year, input: TaxInput, rows: TaxRows): DecStri
     ws.L2b = "0"; // unapplied deducation & exclusions due to foreign earned income exclusion
     ws.L2c = math.subToZero(ws.L2a, ws.L2b);
     ws.L3 = math.add(ws.L1, ws.L2c);
-    ws.L4 = getIncomeTax(year, ws.L3, filingStatus);
-    ws.L5 = getIncomeTax(year, ws.L2c, filingStatus);
+    ws.L4 = applyTaxBracket(year, ws.L3, filingStatus);
+    ws.L5 = applyTaxBracket(year, ws.L2c, filingStatus);
     return math.subToZero(ws.L4, ws.L5);
   } else if (math.gt(capGains, "0")) {
     throw new Error(`NOT_IMPLEMENTED: Schedule D Tax Worksheet`);
   } else if (math.gt(exemptDividends, "0")) {
     throw new Error(`NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet`);
   } else {
-    return getIncomeTax(year, getTotalTaxableIncome(year, input, rows), filingStatus);
+    return applyTaxBracket(year, getTotalTaxableIncome(year, input, rows), filingStatus);
   }
-
 };
+
+export const getTotalTax = (year: Year, input: TaxInput, rows: TaxRows): DecString =>
+  math.add(
+    getIncomeTax(year, input, rows),
+    getSelfEmploymentTax(year, input, rows),
+  );

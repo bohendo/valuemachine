@@ -15,6 +15,7 @@ import {
   Forms,
   getTotalIncome,
   getTotalTax,
+  getIncomeTax,
   getTotalTaxableIncome,
   math,
   strcat,
@@ -133,7 +134,7 @@ export const f1040 = (
   if ("f8814" in forms) f1040.C16_1 = true;
   if ("4972" in forms) f1040.C16_2 = true;
 
-  f1040.L16 = getTotalTax(thisYear, input, rows);
+  f1040.L16 = getIncomeTax(thisYear, input, rows);
 
   f1040.L18 = math.add(
     f1040.L16, // Income tax
@@ -147,11 +148,15 @@ export const f1040 = (
     f1040.L18, // total tax credits
     f1040.L21, // tax liabilities
   );
-  f1040.L24 = math.add(
+
+  f1040.L24 = getTotalTax(thisYear, input, rows);
+  log.info(`Total Tax: f1040.L24=${f1040.L24}`);
+  const L24 = math.add(
     f1040.L22, // total tax liabilities
     f1040.L23, // other taxes from f1040s2
   );
-  log.info(`Total taxes: f1040.L24=${f1040.L24}`);
+  if (!math.eq(L24, f1040.L24))
+    log.warn(`DOUBLE_CHECK_FAILED: f1040.L24=${L24} !== totalTax=${f1040.L24}`);
 
   f1040.L25d = math.add(
     f1040.L25a, // taxes withheld from wages (W-2)
