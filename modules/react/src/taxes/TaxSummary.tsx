@@ -62,15 +62,18 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
   return (<>
     <Paper sx={{ p: 3 }}>
 
-      <Typography variant="h6">
-        {`Unit of Account: ${unit}`}
-      </Typography>
+      {guard ? (
+        <Typography variant="h6">
+          {`Unit of Account: ${getUnit(guard, unit)}`}
+        </Typography>
+      ) : null}
 
       <TableContainer>
         <Table size="small" sx={{ minWidth: "20em", overflow: "auto" }}>
           <TableHead>
             <TableRow>
               <TableCell><strong> {"Tax Year"} </strong></TableCell>
+              {!guard ? (<TableCell><strong> {"Unit"} </strong></TableCell>) : null}
               <TableCell><strong> {"Business Income"} </strong></TableCell>
               <TableCell><strong> {"Capital Change"} </strong></TableCell>
               <TableCell><strong> {"Total Income"} </strong></TableCell>
@@ -83,6 +86,9 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
               <TableRow key={i}>
 
                 <TableCell> {guard ? taxYear.replace(guard, "") : taxYear} </TableCell>
+                {!guard ? (
+                  <TableCell> {getUnit(taxYear.substring(0, 3), unit)} </TableCell>
+                ) : null}
 
                 <TableCell>{
                   math.commify(getNetBusinessIncome(taxYear, taxInput, taxRows), 0, unit)

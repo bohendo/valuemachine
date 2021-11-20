@@ -329,13 +329,12 @@ export const getIncomeTax = (year: Year, input: TaxInput, rows: TaxRows): DecStr
     ws.L4 = applyTaxBracket(year, ws.L3, filingStatus);
     ws.L5 = applyTaxBracket(year, ws.L2c, filingStatus);
     return math.subToZero(ws.L4, ws.L5);
-  } else if (math.gt(capGains, "0")) {
-    throw new Error(`NOT_IMPLEMENTED: Schedule D Tax Worksheet`);
   } else if (math.gt(exemptDividends, "0")) {
-    throw new Error(`NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet`);
-  } else {
-    return applyTaxBracket(year, getTotalTaxableIncome(year, input, rows), filingStatus);
+    console.warn(`NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet`);
+  } else if (!math.eq(capGains, "0")) {
+    console.warn(`NOT_IMPLEMENTED: Schedule D Tax Worksheet`);
   }
+  return applyTaxBracket(year, getTotalTaxableIncome(year, input, rows), filingStatus);
 };
 
 export const getTotalTax = (year: Year, input: TaxInput, rows: TaxRows): DecString =>
