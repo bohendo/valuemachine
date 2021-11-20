@@ -237,7 +237,7 @@ export const getTotalIncome = (year: Year, input: TaxInput, rows: TaxRows) =>
 ////////////////////////////////////////
 // Tax
 
-export const getSelfEmploymentTax = (year: Year, input: TaxInput, rows: TaxRows): DecString => {
+export const getSelfEmploymentTax = (year: Year, rows: TaxRows): DecString => {
   // We should extract & properly label some of these magic numbers
   const subjectToSS = math.mul(getNetBusinessIncome(year, rows), "0.9235"); // a la f1040sse.L4a
   return math.add(
@@ -249,12 +249,17 @@ export const getSelfEmploymentTax = (year: Year, input: TaxInput, rows: TaxRows)
   );
 };
 
-// combine all income & adjustments
-export const getTotalTaxableIncome = (year: Year, input: TaxInput, rows: TaxRows) => {
-  const seAdjustment = math.mul(
-    getSelfEmploymentTax(year, input, rows),
+export const getSelfEmploymentAdjustment = (
+  year: Year,
+  rows: TaxRows,
+): DecString =>
+  math.mul(
+    getSelfEmploymentTax(year, rows),
     "0.5", // a la f1040sse.L13
   );
+
+// combine all income & adjustments
+export const getTotalTaxableIncome = (year: Year, input: TaxInput, rows: TaxRows) => {
   const filingStatus = input.personal?.filingStatus;
   const standardDeduction = !filingStatus ? "0"
     : (filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate) ? "12200"
@@ -264,7 +269,7 @@ export const getTotalTaxableIncome = (year: Year, input: TaxInput, rows: TaxRows
   return math.subToZero(
     getTotalIncome(year, input, rows),
     math.add( // add other adjustments from f1040s1 L22 & qualified business income deduction
-      seAdjustment,
+      getSelfEmploymentAdjustment(year, rows),
       standardDeduction, // what if our filing status was different last year?
     ),
   );
@@ -340,5 +345,5 @@ export const getIncomeTax = (year: Year, input: TaxInput, rows: TaxRows): DecStr
 export const getTotalTax = (year: Year, input: TaxInput, rows: TaxRows): DecString =>
   math.add(
     getIncomeTax(year, input, rows),
-    getSelfEmploymentTax(year, input, rows),
+    getSelfEmploymentTax(year, rows),
   );

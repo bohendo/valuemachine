@@ -15,6 +15,7 @@ import {
   chrono,
   getTotalTax,
   Forms,
+  getSelfEmploymentAdjustment,
   getNetBusinessIncome,
   applyTaxBracket,
   math,
@@ -51,7 +52,6 @@ export const f2210 = (
     f1040s2.L7b, // repayment of first time homeowner credit
     f1040s2.L8,  // other taxes from f8959, f8960, etc
   );
-
   if (math.gt(f1040s2.L8, "0") || math.gt(f1040s2.L7a, "0")) {
     log.warn(`Read instructions & verify value on f2210.L2`);
   }
@@ -96,8 +96,9 @@ export const f2210 = (
   if ("f5404" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f5404 tax to f2210.L8`);
   if ("f8959" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8959 tax to f2210.L8`);
   if ("f8960" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8960 tax to f2210.L8`);
-  f2210.L8 = getTotalTax(lastYear, input, rows);
+  f2210.L8 = getTotalTax(lastYear, input, rows); // Not exactly right, some taxes can be excluded
   log.info(`Taxes owed last year: ${f2210.L8}`);
+
   f2210.L9 = math.min(f2210.L5, f2210.L8);
 
   ////////////////////////////////////////
@@ -224,41 +225,16 @@ export const f2210 = (
     ////////////////////////////////////////
     // Schedule AI Part I - Annualized Income Installments
 
-    const subjectToSS = math.mul(
-      netBusinessIncome,
-      "0.9235", // as per f1040sse.L4a
-    );
-    log.info(`SE Income subject to SS for ${Q}: ${subjectToSS}`);
-
-    const seAdjustment = math.mul(
-      math.add(
-        math.mul(
-          math.min(
-            subjectToSS,
-            "137700", // as per f1040sse.L10
-          ),
-          "0.124", // as per f1040sse.L10
-        ),
-        math.mul(
-          subjectToSS,
-          "0.029", // as per f1040sse.L11
-        ),
-      ),
-      "0.5", // as per f1040sse.L13
-    );
+    const seAdjustment = getSelfEmploymentAdjustment(thisYear, rowsInRange);
     log.info(`SE Adjustment for ${Q}: ${seAdjustment} (total adjustment=${forms.f1040s1.L14})`);
 
     f2210[getKey(1)] = math.subToZero(grossBusinessIncome, seAdjustment);
     log.info(`Adjusted Income for ${Q}: ${f2210[getKey(1)]}`);
 
     f2210[getKey(3)] = math.mul(getVal(1), getVal(2));
-
     f2210[getKey(4)] = "0";
-
     f2210[getKey(6)] = math.mul(getVal(4), getVal(5));
-
     f2210[getKey(7)] = f1040.L12;
-
     f2210[getKey(8)] = math.max(getVal(6), getVal(7));
 
     if ("f8995" in forms) {
@@ -268,25 +244,15 @@ export const f2210 = (
     }
 
     f2210[getKey(10)] = math.add(getVal(8), getVal(9));
-
     f2210[getKey(11)] = math.subToZero(getVal(3), getVal(10));
-
     f2210[getKey(12)] = "0"; // if estate/trust then do something else
-
     f2210[getKey(13)] = math.subToZero(getVal(11), getVal(12));
-
     f2210[getKey(14)] = applyTaxBracket(thisYear, getVal(13), personal.filingStatus);
-
     f2210[getKey(15)] = getVal(36);
-
     f2210[getKey(16)] = math.div(math.sub(f2210.L2, f1040s2.L4), getVal(2));
-
     f2210[getKey(17)] = math.add(getVal(14), getVal(15), getVal(16));
-
     f2210[getKey(18)] = math.div(f2210.L3, getVal(2));
-
     f2210[getKey(19)] = math.subToZero(getVal(17), getVal(18));
-
     f2210[getKey(21)] = math.mul(getVal(20), getVal(19));
 
     if (column === "b") {
@@ -304,11 +270,8 @@ export const f2210 = (
     }
 
     f2210[getKey(24)] = math.mul(f2210.L9, "0.25");
-
     f2210[getKey(25)] = math.sub(getPrevVal(26), getPrevVal(27));
-
     f2210[getKey(26)] = math.add(getVal(24), getVal(25));
-
     f2210[getKey(27)] = math.min(getVal(23), getVal(26));
 
     log.info(`Required installment for ${Q}: ${getVal(27)}`);

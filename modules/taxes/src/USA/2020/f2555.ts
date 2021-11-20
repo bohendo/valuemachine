@@ -34,7 +34,7 @@ export const f2555 = (
   logger: Logger,
 ): Forms => {
   const log = logger.child({ module: "f2555" });
-  const { f2555, f1040, f1040s1 } = forms;
+  const { f2555, f1040s1 } = forms;
   const personal = input.personal || {};
   const travel = input.travel || [];
 
@@ -169,18 +169,13 @@ export const f2555 = (
   // Part VI: Housing Exclusion
 
   f2555.L30 = math.min(f2555.L28, f2555.L29b);
-
   f2555.L31 = daysAbroad;
-
   f2555.L32 = math.eq(daysAbroad, daysThisYear) ? "17216" : math.mul(daysAbroad, "47.04");
-
   f2555.L33 = math.subToZero(f2555.L30, f2555.L32);
-
   if (math.gt(f2555.L33, "0")) {
     const L35 = math.min(math.div(f2555.L34, f2555.L27), "1");
     f2555.L35_int = L35.split(".")[0];
     f2555.L35_dec = L35.split(".")[1];
-
     f2555.L36 = math.min(math.mul(f2555.L33, L35), f2555.L34);
     log.info(`Foreign housing exclusion: ${f2555.L36}`);
   }
@@ -190,11 +185,9 @@ export const f2555 = (
 
   f2555.L37 = maxFeie;
   f2555.L38 = daysAbroad;
-
   const L39 = math.div(daysAbroad, daysThisYear);
   f2555.L39_int = L39.split(".")[0];
   f2555.L39_dec = math.round(L39, 3).split(".")[1];
-
   f2555.L40 = math.mul(f2555.L37, L39);
   f2555.L41 = math.subToZero(f2555.L27, f2555.L36);
   f2555.L42 = math.min(f2555.L40, f2555.L41);
@@ -207,13 +200,10 @@ export const f2555 = (
   // Part VIII: Sum Exclusions
 
   f2555.L43 = math.add(f2555.L36, f2555.L42);
-
   if (f2555.L44 === "") {
     log.warn(`NOT_IMPLEMENTED or provided: f2555.L44`);
   }
-
   f2555.L45 = math.sub(f2555.L43, f2555.L44);
-
   if (!math.eq(f2555.L45, "0")) {
     f1040s1.L8_Etc2 = strcat([f1040s1.L8_Etc2, `Form2555=(${math.round(f2555.L45)})`], ", ");
   }
@@ -227,26 +217,20 @@ export const f2555 = (
   // Part IX: Housing Deduction
 
   if (math.gt(f2555.L33, f2555.L36) && math.gt(f2555.L27, f2555.L43)) {
-
     f2555.L46 = math.sub(f2555.L33, f2555.L36);
-
     f2555.L47 = math.sub(f2555.L27, f2555.L43);
     log.info(`${f2555.L27} - ${f2555.L43} = ${f2555.L47}`);
-
     f2555.L48 = math.min(f2555.L46, f2555.L47);
-
     if (f2555.L49 === "" && math.gt(f2555.L47, f2555.L48)) {
       log.warn(`Maybe required but not provided or implemented: L49 (Housing Deduction Carryover Worksheet)`);
     }
-
     f2555.L50 = math.add(f2555.L48, f2555.L49);
     if (math.gt(f2555.L50, "0")) {
       log.warn(`You're supposed to write "f2555 ${f2555.L50}" to the left of f1040s1.L22 lol`);
     }
     f1040s1.L22 = math.add(f1040s1.L22, f2555.L50);
     log.info(`Foreign housing deduction: ${f2555.L50}`);
-
   }
 
-  return { ...forms, f2555, f1040 };
+  return { ...forms, f2555 };
 };

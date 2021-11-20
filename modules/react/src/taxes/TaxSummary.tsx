@@ -55,7 +55,7 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
     setTaxYears(
       dedup(taxRows.map(row => row.taxYear))
         .filter(taxYear => !guard || taxYear.startsWith(guard))
-        .sort()
+        .sort().reverse()
     );
   }, [guard, prices, taxRows, unit]);
 
