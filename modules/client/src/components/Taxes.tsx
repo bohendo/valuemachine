@@ -58,8 +58,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     if (!taxRows?.length) return;
     const newGuards = dedup([
       allGuards,
-      Guards.None,
-      ...taxRows.map(row => row.guard).sort(),
+      ...taxRows.map(row => row.taxYear.substring(0, 3)).sort(),
     ]) as Guard[];
     setGuards(newGuards);
     setGuard(newGuards[0]);
@@ -110,7 +109,7 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
     ) : null}
 
     <Grid container spacing={2} sx={{ justifyContent: "center", mb: 2 }}>
-      <Grid item sm={6}>
+      <Grid item sm={8}>
         <TaxSummary
           guard={guard === allGuards ? "" : guard}
           prices={prices}
@@ -119,8 +118,8 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
           unit={unit}
         />
       </Grid>
-      {(guard && guard !== allGuards && guard !== Guards.None) ? (
-        <Grid item sm={6}>
+      {(guard && guard !== allGuards && guard !== Guards.IDK) ? (
+        <Grid item sm={4}>
           <TaxPorter
             guard={guard}
             taxInput={taxInput}

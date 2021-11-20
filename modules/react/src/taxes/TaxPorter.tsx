@@ -7,6 +7,7 @@ import {
   allTaxYears,
   getTaxReturn,
   getTaxYearBoundaries,
+  inTaxYear,
   TaxYears,
 } from "@valuemachine/taxes";
 import { Guards } from "@valuemachine/transactions";
@@ -40,7 +41,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   useEffect(() => {
     setTaxYear(allTaxYears);
     setTaxYears(dedup(
-      taxRows.filter(row => row.guard === guard).map(row => row.date.split("-")[0]).concat([
+      taxRows.filter(row => row.taxYear.startsWith(guard)).map(row => row.date.split("-")[0]).concat([
         (new Date().getFullYear() - 1).toString() // always provide the option for last year
       ])
     ).sort());
@@ -52,12 +53,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
       console.warn(`There were no known taxable events in ${taxYear}`);
       return;
     }
-    const csvData = taxRows.filter(row => {
-      const time = new Date(row.date).getTime();
-      return taxYear === allTaxYears || (
-        time <= taxYearBoundaries[0] && time >= taxYearBoundaries[1]
-      );
-    }).map(row => ({
+    const csvData = taxRows.filter(inTaxYear(guard, taxYear)).map(row => ({
       ...row,
       amount: math.round(row.amount, 6),
       value: math.round(row.value, 2),
@@ -80,9 +76,13 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   const handleReturnExport = async (): Promise<void> => {
     if (!guard || !taxYear || !taxInput) return;
     if (guard !== Guards.USA) return;
-    const year = taxYear === "2019" ? TaxYears.USA19 : taxYear === "2020" ? TaxYears.USA20 : "";
+    const year = taxYear === "2019" ? TaxYears.USA2019 : taxYear === "2020" ? TaxYears.USA2020 : "";
     if (!year || !taxRows?.length) return;
-    const forms = getTaxReturn(year, taxInput, taxRows.filter(row => row.guard === guard));
+    const forms = getTaxReturn(
+      year,
+      taxInput,
+      taxRows.filter(row => row.taxYear.startsWith(guard)),
+    );
     return new Promise((res, rej) => {
       axios({
         url: `/api/taxes/${year}`,
@@ -116,7 +116,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           </Typography>
         </Grid>
 
-        <Grid item xs={12} sm={4} sx={{ px: 1, py: 2, maxWidth: "16em" }}>
+        <Grid item sx={{ px: 1, py: 2, maxWidth: "16em" }}>
           <SelectOne
             choices={taxYears}
             defaultSelection={allTaxYears}
@@ -127,7 +127,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           />
         </Grid>
 
-        <Grid item xs={12} sm={8} sx={{ ml: 1, mr: -4 }}>
+        <Grid item sx={{ ml: 1, mr: -4 }}>
           <Typography noWrap variant="body1">
             {taxYear === allTaxYears
               ? "Entire financial history"

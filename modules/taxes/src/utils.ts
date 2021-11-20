@@ -1,63 +1,97 @@
 import {
+  DateString,
+  DecString,
   Guard,
-  Mapping,
+  Tag,
+  TaxRows,
+  IntString,
+  TaxYear,
+  Year,
 } from "@valuemachine/types";
-import {
-  getLogger,
-  round,
-  sub,
-} from "@valuemachine/utils";
+import { getLogger, math } from "@valuemachine/utils";
 
-import { taxYearMap } from "./constants";
+import { taxYearCutoffs } from "./constants";
 
 export const log = getLogger("info");
 
-export const getTaxYearBoundaries = (guard: Guard, taxYear: string): [number, number] => {
-  if (!taxYear?.match(/^[0-9]{4}$/)) return [0, 5000000000000]; // from 1970 until after 2100
-  const prevYear = round(sub(taxYear, "1"), 0).padStart(4, "0");
-  return taxYearMap[guard] ? [
-    new Date(taxYearMap[guard].replace(/^0000/, prevYear)).getTime(),
-    new Date(taxYearMap[guard].replace(/^0000/, taxYear)).getTime(),
+////////////////////////////////////////
+// String
+
+export const strcat = (los: string[], delimiter = " "): string =>
+  los.filter(s => !!s).join(delimiter);
+
+////////////////////////////////////////
+// Date
+
+export const toTime = (d: DateString): number => new Date(d).getTime();
+export const before = (d1: DateString, d2: DateString): boolean => toTime(d1) < toTime(d2);
+export const after = (d1: DateString, d2: DateString): boolean => toTime(d1) > toTime(d2);
+
+export const daysInYear = (year: Year): IntString => {
+  const y = parseInt(year);
+  return y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0) ? "366" : "365";
+};
+
+////////////////////////////////////////
+// TaxYear
+
+export const getTaxYear = (guard: Guard, date: DateString): TaxYear => {
+  const year = date.split("-")[0];
+  const cutoff = (taxYearCutoffs[guard] || taxYearCutoffs.default).replace(/^0000/, year);
+  return `${guard}${
+    after(cutoff, date) ? year : (parseInt(year) + 1).toString()
+  }`;
+};
+
+export const getTaxYearBoundaries = (guard: Guard, year: string): [number, number] => {
+  if (!year?.match(/^[0-9]{4}$/)) return [0, 5000000000000]; // from 1970 until after 2100
+  const prevYear = math.round(math.sub(year, "1"), 0).padStart(4, "0");
+  return taxYearCutoffs[guard] ? [
+    new Date(taxYearCutoffs[guard].replace(/^0000/, prevYear)).getTime(),
+    new Date(taxYearCutoffs[guard].replace(/^0000/, year)).getTime(),
   ] : [
-    new Date(taxYearMap.default.replace(/^0000/, prevYear)).getTime(),
-    new Date(taxYearMap.default.replace(/^0000/, taxYear)).getTime(),
+    new Date(taxYearCutoffs.default.replace(/^0000/, prevYear)).getTime(),
+    new Date(taxYearCutoffs.default.replace(/^0000/, year)).getTime(),
   ];
 };
 
-export const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapping => {
-  for (const m of master) {
-    const s = slave.find(e => e.fieldName === m.fieldName);
-    // Make sure all fields except nickname equal the values from the empty pdf
-    if (!s) {
-      log.warn(`Adding new entry for ${m.fieldName} to ${form} mappings`);
-      slave.push({
-        nickname: m.nickname,
-        fieldName: m.fieldName,
-        checkmark: m.checkmark,
-      });
-    } else if (m.checkmark) {
-      s.checkmark = m.checkmark;
-    }
-  }
-  for (const i of slave.map((_, i) => i)) {
-    const s = slave[i];
-    if ((s as any).fieldType) delete (s as any).fieldType;
-    if (!master.find(m => m.fieldName === s.fieldName)) {
-      log.warn(`Removing ${s.nickname} from ${form} mappings`);
-      slave.splice(i, 1);
-    }
-  }
-  return slave;
+export const inTaxYear = (guard, year) => row => {
+  if (!year || !year?.match(/^[0-9]{4}$/)) return true; // eg if year is "All"
+  const taxYearBoundaries = getTaxYearBoundaries(guard, year);
+  const time = new Date(row.date).getTime();
+  return time > taxYearBoundaries[0] && time <= taxYearBoundaries[1];
 };
 
-export const getTestForm = mapping =>
-  mapping.reduce((form, entry) => ({
-    ...form,
-    [entry.nickname]: entry.checkmark ? true : entry.nickname,
-  }), {});
+////////////////////////////////////////
+// Total Value
 
-export const getTestReturn = mappings =>
-  Object.keys(mappings).reduce((forms, form) => ({
-    ...forms,
-    [form]: getTestForm(mappings[form]),
-  }), {});
+export const sumRows = (
+  rows: TaxRows,
+  mapRow?: (row) => DecString,
+) => 
+  rows.reduce((tot, row) => (
+    math.add(tot, math.mul(
+      mapRow ? mapRow(row) : row.value,
+      row.tag.multiplier || "1",
+    ))
+  ), "0");
+
+export const getRowTotal = (
+  rows: TaxRows,
+  filterAction?: string,
+  filterTag?: Tag,
+  mapRow?: (row) => DecString,
+) => 
+  sumRows(
+    rows.filter(row =>
+      !filterAction || filterAction === row.action
+    ).filter(row =>
+      !filterTag || Object.keys(filterTag || {}).every(tagType =>
+        row.tag[tagType] === filterTag[tagType]
+      )
+    ),
+    mapRow,
+  );
+
+export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: Tag) =>
+  getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);

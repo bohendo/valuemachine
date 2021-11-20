@@ -1,27 +1,25 @@
-import { Static, Type } from "@sinclair/typebox";
+import { TaxYear } from "@valuemachine/types";
 
-import { Mappings_USA19, Forms_USA19 } from "./USA19";
-import { Mappings_USA20, Forms_USA20 } from "./USA20";
+import { Mappings_USA2019, Forms_USA2019 } from "./USA2019";
+import { Mappings_USA2020, Forms_USA2020 } from "./USA2020";
 
-export * from "./USA19";
-export * from "./USA20";
+export * from "./USA2019";
+export * from "./USA2020";
 
 // Can't just be 2019 bc enums can't start with a number
 export const TaxYears = {
-  USA19: "USA19",
-  USA20: "USA20",
+  USA2019: "USA2019",
+  USA2020: "USA2020",
 } as const;
-export const TaxYear = Type.Enum(TaxYears); // NOT Extensible
-export type TaxYear = Static<typeof TaxYear>;
 
 export const MappingArchive = {
-  [TaxYears.USA19]: Mappings_USA19,
-  [TaxYears.USA20]: Mappings_USA20,
+  [TaxYears.USA2019]: Mappings_USA2019,
+  [TaxYears.USA2020]: Mappings_USA2020,
 };
 
 export type FormArchive = {
-  [TaxYears.USA19]: Forms_USA19,
-  [TaxYears.USA20]: Forms_USA20,
+  [TaxYears.USA2019]: Forms_USA2019,
+  [TaxYears.USA2020]: Forms_USA2020,
 };
 
 // Generic form types to use when we don't know the tax year

@@ -14,10 +14,9 @@ export const Example = Template.bind({});
 Example.args = {
   taxInput: {
     travel: [{
+      country: "IND",
       enterDate: "2020-01-01",
       leaveDate: "2020-12-31",
-      country: "IND",
-      usaIncomeEarned: "0",
     }],
   },
   setTaxInput: console.log,

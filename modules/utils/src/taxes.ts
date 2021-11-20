@@ -1,9 +1,14 @@
-import { Mapping, TaxInput, TaxRows } from "@valuemachine/types";
+import { Mapping, TaxInput, TaxRows, TaxYear } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";
 
 export const getEmptyTaxInput = (): TaxInput => ({});
 export const getEmptyTaxRows = (): TaxRows => [];
+
+export const splitTaxYear = (taxYear: TaxYear): string[] => [
+  taxYear.substring(0, 3),
+  taxYear.substring(3, 7),
+];
 
 const getDupProps = (list: any[], prop: string) => {
   const occurred = [];

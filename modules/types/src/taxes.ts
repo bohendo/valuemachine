@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
-import { Asset, DateString, DecString, Guard, TxId } from "./strings";
+import { Asset, DateString, DecString, TaxYear, TxId } from "./strings";
 import { Tag } from "./txTags";
 
 export const FilingStatuses = {
@@ -30,7 +30,7 @@ export type TaxAction = Static<typeof TaxAction>;
 
 export const TaxRow = Type.Object({
   date: DateString,
-  guard: Guard,
+  taxYear: TaxYear,
   action: TaxAction, // subset: Trade or Income
   amount: DecString, // rounded to 10^-6
   asset: Asset,
@@ -101,7 +101,6 @@ export const TaxInput = Type.Object({
     enterDate: DateString,
     leaveDate: DateString,
     country: Type.String(), // 3-letter code a la ISO 3166-1 alpha-3
-    usaIncomeEarned: Type.Optional(DecString),
   }, { additionalProperties: false }))),
   // If business info provided, insert f1040sc & f1040sse else treat all income as wages
   business: Type.Optional(Type.Object({

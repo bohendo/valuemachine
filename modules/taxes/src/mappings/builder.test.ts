@@ -48,7 +48,7 @@ const buildMapping = async (year, form) => {
 
 describe("Mappings Builder", () => {
   it(`should build & fix one form mapping`, async () => {
-    const [year, form] = [TaxYears.USA20, "f1040sc"];
+    const [year, form] = [TaxYears.USA2020, "f1040sc"];
     await buildMapping(year, form);
   });
 

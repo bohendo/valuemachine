@@ -1,3 +1,4 @@
+import { PhysicalGuards } from "@valuemachine/transactions";
 import {
   AddressBook,
   Asset,
@@ -18,6 +19,7 @@ import {
 } from "@valuemachine/utils";
 
 import { securityFeeMap } from "./constants";
+import { getTaxYear } from "./utils";
 
 export const getTaxRows = async ({
   addressBook,
@@ -45,10 +47,12 @@ export const getTaxRows = async ({
     const tag = { ...(evt.tag || {}), ...(txTags?.[evt.txId] || {}) };
     const txId = evt.txId;
     const account = (evt as TradeEvent).account || (evt as GuardChangeEvent).to || "";
-    const guard = tag.physicalGuard || (
+    let guard = tag.physicalGuard || (
       account ? addressBook.getGuard(account) : ""
     ) || account.split("/")[0];
+    if (guard.length > 3) guard = PhysicalGuards.IDK; // if len > 3 then it's an unknown guard
     const unit = securityFeeMap[guard] || userUnit;
+    const taxYear = getTaxYear(guard, date);
     if (!unit) throw new Error(`Security asset is unknown for guard=${guard}`);
 
     if (evt.type === TaxActions.Trade) {
@@ -62,7 +66,7 @@ export const getTaxRows = async ({
           const capitalChange = math.mul(chunk.amount, math.sub(price, receivePrice || "0"));
           return {
             date: date,
-            guard,
+            taxYear,
             action: TaxActions.Trade,
             amount: chunk.amount,
             asset: chunk.asset,
@@ -87,7 +91,7 @@ export const getTaxRows = async ({
         const income = math.mul(chunk.amount, price);
         return {
           date: date,
-          guard,
+          taxYear,
           action: TaxActions.Income,
           amount: chunk.amount,
           asset: chunk.asset,
@@ -120,7 +124,7 @@ export const getTaxRows = async ({
         // eg if it's an expense to coinbase, then tag it as an exchange fee
         return {
           date: date,
-          guard,
+          taxYear,
           action: TaxActions.Expense,
           amount: chunk.amount,
           asset: chunk.asset,

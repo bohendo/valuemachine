@@ -21,7 +21,7 @@ export const securityFeeMap = {
   [Guards.USA]: Assets.USD,
 } as const;
 
-export const taxYearMap = {
+export const taxYearCutoffs = {
   default: "0000-12-31T23:59:59.999Z",
   [Guards.USA]: "0000-12-31T23:59:59.999Z",
   [Guards.IND]: "0000-03-31T23:59:59.999Z",

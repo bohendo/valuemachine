@@ -9,7 +9,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { DateString, DecString, TaxInput } from "@valuemachine/types";
+import { DateString, TaxInput } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
 import { Confirm, DateInput, TextInput } from "../../utils";
@@ -18,7 +18,6 @@ type Trip = {
   enterDate?: DateString;
   leaveDate?: DateString;
   country?: string;
-  usaIncomeEarned?: DecString;
 };
 type TravelHistoryEditorProps = {
   taxInput?: TaxInput;
@@ -55,7 +54,6 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
           enterDate: newTrip.enterDate || "",
           leaveDate: newTrip.leaveDate || "",
           country: newTrip.country || "",
-          usaIncomeEarned: newTrip.usaIncomeEarned || "0",
         },
       ],
     });
@@ -104,15 +102,6 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
       </Grid>
 
       <Grid item>
-        <TextInput
-          helperText={"USD earned while in this country"}
-          label="USA Income Earned"
-          setText={getSetter("usaIncomeEarned")}
-          text={newTrip?.usaIncomeEarned || ""}
-        />
-      </Grid>
-
-      <Grid item>
         <DateInput
           label="Enter Date"
           setDate={getSetter("enterDate")}
@@ -147,19 +136,19 @@ export const TravelHistoryEditor: React.FC<TravelHistoryEditorProps> = ({
             <TableCell><strong> Country </strong></TableCell>
             <TableCell><strong> Enter Date </strong></TableCell>
             <TableCell><strong> Leave Date </strong></TableCell>
-            <TableCell><strong> USA Income Earned </strong></TableCell>
             <TableCell sx={{ width: "4em" }}><strong> Delete </strong></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {(!taxInput || !taxInput.travel)
             ? null
-            : taxInput.travel.map((trip: Trip, index: number) => (
+            : taxInput.travel.sort((t1, t2) =>
+              t1.enterDate > t2.enterDate ? -1 : 1
+            ).map((trip: Trip, index: number) => (
               <TableRow key={index}>
                 <TableCell> {trip.country} </TableCell>
                 <TableCell> {trip.enterDate} </TableCell>
                 <TableCell> {trip.leaveDate} </TableCell>
-                <TableCell> {trip.usaIncomeEarned} </TableCell>
                 <TableCell
                   sx={{ width: "4em" }}
                   onClick={() => handleDelete(index)}

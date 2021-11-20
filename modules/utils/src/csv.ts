@@ -1,5 +1,3 @@
-import { toUtf8Bytes } from "@ethersproject/strings";
-import { keccak256 } from "@ethersproject/keccak256";
 import { CsvFiles } from "@valuemachine/types";
 
 import { ajv, formatErrors } from "./validate";

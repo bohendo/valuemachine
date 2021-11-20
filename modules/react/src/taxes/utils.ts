@@ -33,7 +33,7 @@ export const syncTaxRows = async ({
     userUnit: unit,
     vm,
   });
-  console.log(`Generated ${taxRows.length} tax rows!`);
+  console.log(`Generated ${taxRows.length} tax rows!`, taxRows);
   setSyncMsg?.("");
   setTaxRows?.(taxRows);
   return taxRows;
