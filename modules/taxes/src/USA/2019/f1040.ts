@@ -48,12 +48,12 @@ export const f1040 = (oldForms: Forms, logger: Logger): Forms => {
   log.info(`Taxable Income: ${math.round(f1040.L11b)}`);
 
   if (!forms.f2555) {
-    f1040.L12a = getIncomeTax(f1040.L11b, filingStatus);
+    f1040.L12a = getIncomeTax("2019", f1040.L11b, filingStatus);
   } else {
     const L2c = math.add(f2555.L45, f2555.L50);
     const L3 = math.add(f1040.L11b, math.add());
-    const L4 = getIncomeTax(L3, filingStatus);
-    const L5 = getIncomeTax(L2c, filingStatus);
+    const L4 = getIncomeTax("2019", L3, filingStatus);
+    const L5 = getIncomeTax("2019", L2c, filingStatus);
     f1040.L12a = math.subToZero(L4, L5);
   }
 

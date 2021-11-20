@@ -26,6 +26,7 @@ const income = {
   receiveDate: "2020-01-01T00:00:00",
   capitalChange: "0",
   tag: { incomeType: IncomeTypes.Business },
+  taxYear: "USA2020",
 };
 const tax = {
   date: "2020-02-01T00:00:00",
@@ -38,6 +39,7 @@ const tax = {
   receiveDate: "2020-01-01T00:00:00",
   capitalChange: "0",
   tag: { expenseType: ExpenseTypes.Tax },
+  taxYear: "USA2020",
 };
 
 describe(`${taxYear} Filers`, () => {
@@ -69,6 +71,7 @@ describe(`${taxYear} Filers`, () => {
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "0",
       tag: { expenseType: ExpenseTypes.EquipmentRental },
+      taxYear: "USA2020",
     }], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f1040sc" in taxReturn).to.be.true;
@@ -89,6 +92,7 @@ describe(`${taxYear} Filers`, () => {
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "5000",
       tag: {},
+      taxYear: "USA2020",
     }, {
       // Long-term trade
       date: "2020-12-02T00:00:00",
@@ -101,6 +105,7 @@ describe(`${taxYear} Filers`, () => {
       receiveDate: "2019-01-01T00:00:00",
       capitalChange: "1000",
       tag: {},
+      taxYear: "USA2020",
     }], log);
     log.info(`Tax return includes forms: ${Object.keys(taxReturn)}`);
     expect("f8949" in taxReturn).to.be.true;
@@ -135,6 +140,7 @@ describe(`${taxYear} Filers`, () => {
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "0",
       tag: {},
+      taxYear: "USA2020",
     }, {
       date: "2020-12-01T00:00:00",
       action: EventTypes.Trade,
@@ -146,6 +152,7 @@ describe(`${taxYear} Filers`, () => {
       receiveDate: "2020-01-01T00:00:00",
       capitalChange: "5000",
       tag: {},
+      taxYear: "USA2020",
     }, {
       date: "2020-12-02T00:00:00",
       action: EventTypes.Trade,
@@ -157,6 +164,7 @@ describe(`${taxYear} Filers`, () => {
       receiveDate: "2019-01-01T00:00:00",
       capitalChange: "1000",
       tag: {},
+      taxYear: "USA2020",
     }];
     const input = {
       travel,

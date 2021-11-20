@@ -1,5 +1,5 @@
 export {
-  getBusinessIncome,
+  getNetBusinessIncome,
   getTotalCapitalChange,
   getTotalIncome,
   getTotalTaxableIncome,

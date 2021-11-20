@@ -240,11 +240,11 @@ export const f2210 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms => 
     f2210[getKey(13)] = math.subToZero(getVal(11), getVal(12));
 
     if (f1040.Single || f1040.MarriedFilingSeparately) {
-      f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Single);
+      f2210[getKey(14)] = getIncomeTax("2019", getVal(13), FilingStatuses.Single);
     } else if (f1040.MarriedFilingJointly || f1040.QualifiedWidow) {
-      f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Joint);
+      f2210[getKey(14)] = getIncomeTax("2019", getVal(13), FilingStatuses.Joint);
     } else if (f1040.HeadOfHousehold) {
-      f2210[getKey(14)] = getIncomeTax(getVal(13), FilingStatuses.Head);
+      f2210[getKey(14)] = getIncomeTax("2019", getVal(13), FilingStatuses.Head);
     }
 
     f2210[getKey(15)] = getVal(36);

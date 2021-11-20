@@ -159,7 +159,7 @@ export const f1040sse = (
 
   if (!math.eq(f1040sse.L26, "0")) {
     f1040s3.L12e = f1040sse.L26;
-    log.warn(`Deferring maximum self employment taxes: f1040s3.L12e=${f1040s3.L12e}`);
+    log.info(`Deferring maximum self employment taxes: f1040s3.L12e=${f1040s3.L12e}`);
 
     ////////////////////////////////////////
     // Deferral Worksheet for Schedule SE
@@ -205,25 +205,16 @@ export const f1040sse = (
     }
 
     ws.L6 = f1040sse.L26;
-
     ws.L7 = math.add(ws.L5, ws.L6);
-
     ws.L8 = math.sub(ws.L4, ws.L7);
-
     ws.L9 = math.subToZero(ws.L1c, ws.L8);
-
     ws.L10 = math.subToZero(ws.L7, ws.L9);
-
     ws.L11 = f1040s3.L12e; // amount reported (doesn't have to be the full amount)
-
     ws.L12 = math.mul(ws.L7, "0.5");
-
     ws.L13 = math.min(ws.L11, ws.L12);
-    log.warn(`A Tax Payment of ${ws.L13} is due on 2022-12-31`);
-
     ws.L14 = math.min(ws.L11, ws.L13);
-    log.warn(`A Tax Payment of ${ws.L13} is due on 2021-12-31`);
-
+    log.warn(`A Tax Payment of ${ws.L13} is due on 2022-12-31`);
+    log.warn(`A Tax Payment of ${ws.L14} is due on 2022-12-31`);
   }
 
   return { ...forms, f1040s1, f1040s2, f1040sse };

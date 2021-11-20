@@ -65,8 +65,16 @@ export const inTaxYear = (guard, year) => row => {
 ////////////////////////////////////////
 // Total Value
 
-export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: Tag) =>
-  getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);
+export const sumRows = (
+  rows: TaxRows,
+  mapRow?: (row) => DecString,
+) => 
+  rows.reduce((tot, row) => (
+    math.add(tot, math.mul(
+      mapRow ? mapRow(row) : row.value,
+      row.tag.multiplier || "1",
+    ))
+  ), "0");
 
 export const getRowTotal = (
   rows: TaxRows,
@@ -74,13 +82,16 @@ export const getRowTotal = (
   filterTag?: Tag,
   mapRow?: (row) => DecString,
 ) => 
-  rows.filter(row =>
-    !filterAction || filterAction === row.action
-  ).filter(row =>
-    Object.keys(filterTag || {}).every(tagType => row.tag[tagType] === filterTag[tagType])
-  ).reduce((tot, row) => (
-    math.add(tot, math.mul(
-      mapRow ? mapRow(row) : row.value,
-      row.tag.multiplier || "1",
-    ))
-  ), "0");
+  sumRows(
+    rows.filter(row =>
+      !filterAction || filterAction === row.action
+    ).filter(row =>
+      !filterTag || Object.keys(filterTag || {}).every(tagType =>
+        row.tag[tagType] === filterTag[tagType]
+      )
+    ),
+    mapRow,
+  );
+
+export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: Tag) =>
+  getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);

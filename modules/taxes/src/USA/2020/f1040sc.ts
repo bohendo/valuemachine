@@ -3,24 +3,27 @@ import {
   ExpenseType,
   IncomeTypes,
   Logger,
-  TaxActions,
   TaxInput,
   TaxRows,
 } from "@valuemachine/types";
 
 import {
+  thisYear
+} from "./const";
+import {
   Forms,
-  getTotalValue,
+  getBusinessExpenses,
+  getNetBusinessIncome,
+  sumExpenses,
   math,
-  getBusinessIncome,
   strcat,
-  thisYear,
+  sumIncome,
 } from "./utils";
 
 export const f1040sc = (
   forms: Forms,
   input: TaxInput,
-  taxRows: TaxRows,
+  rows: TaxRows,
   logger: Logger,
 ): Forms => {
   const log = logger.child({ module: "f1040sc" });
@@ -28,14 +31,10 @@ export const f1040sc = (
   const business = input.business || {};
   const personal = input.personal || {};
 
-  const businessIncome = getTotalValue(
-    taxRows.filter(thisYear),
-    TaxActions.Income,
-    { incomeType: IncomeTypes.Business },
-  );
+  const grossBusinessIncome = sumIncome(thisYear, rows, IncomeTypes.Business);
 
   // If no self-employment income, then omit this form
-  if (!math.gt(businessIncome, "0")) {
+  if (!math.gt(grossBusinessIncome, "0")) {
     delete forms.f1040sc;
     return forms;
   }
@@ -81,15 +80,15 @@ export const f1040sc = (
   ////////////////////////////////////////
   // Part I - Income
 
-  f1040sc.L1 = businessIncome;
+  f1040sc.L1 = grossBusinessIncome;
   f1040sc.L3 = math.sub(
     f1040sc.L1, // total income
-    f1040sc.L2, // returns & allowances
+    f1040sc.L2, // returns & allowances (unsupported)
   );
   f1040sc.L4 = f1040sc.L42;
   f1040sc.L5 = math.sub(
     f1040sc.L3, // income - returns
-    f1040sc.L4, // cost of goods
+    f1040sc.L4, // cost of goods (unsupported)
   );
   log.info(`Gross Profit: f1040sc.L5=${f1040sc.L5}`);
 
@@ -103,7 +102,7 @@ export const f1040sc = (
   // Part II - Expenses
 
   const getTotalExpenses = (expenseType: ExpenseType) =>
-    getTotalValue(taxRows.filter(thisYear), TaxActions.Expense, { expenseType });
+    sumExpenses(thisYear, rows, expenseType);
 
   f1040sc.L8   = getTotalExpenses(ExpenseTypes.Advertising);
   f1040sc.L9   = getTotalExpenses(ExpenseTypes.Vehicle);
@@ -131,22 +130,6 @@ export const f1040sc = (
   ////////////////////////////////////////
   // Part V - Other Expenses
 
-  // Get the first row without any manually injected expenses
-  const otherRows = [1, 2, 3, 4, 5, 6, 7 ,8, 9];
-  let otherExpenseIndex = otherRows.reduce((res, i) => {
-    return res || (!f1040sc[`L48_Expense${i}`] && !f1040sc[`L48_Amount${i}`]) ? i : 0;
-  }, 0);
-
-  // Add a new other expense for every expense with type === Other
-  taxRows.filter(thisYear).filter(row => row.action === TaxActions.Expense).forEach(expense => {
-    const value = math.mul(expense.value, expense.tag.multiplier || "1");
-    if (expense.tag.expenseType === ExpenseTypes.Business) {
-      f1040sc[`L48R${otherExpenseIndex}_desc`] = expense.tag.description;
-      f1040sc[`L48R${otherExpenseIndex}_amt`] = value;
-    }
-    otherExpenseIndex++;
-  });
-
   /* We should accumulate & add exchange fees as a "Currency Conversion" expense to L48
   let exchangeFees = "0";
   // Process expenses
@@ -157,37 +140,58 @@ export const f1040sc = (
   }
   */
 
-  // Add up all other expenses
-  f1040sc.L48 = math.add(
-    f1040sc.L48_Amount1,
-    f1040sc.L48_Amount2,
-    f1040sc.L48_Amount3,
-    f1040sc.L48_Amount4,
-    f1040sc.L48_Amount5,
-    f1040sc.L48_Amount6,
-    f1040sc.L48_Amount7,
-    f1040sc.L48_Amount8,
-    f1040sc.L48_Amount9,
+  let otherExpenseIndex = 1;
+  f1040sc.L48 = sumExpenses(thisYear, rows, ExpenseTypes.Business, row => {
+    const description = row.tag.description || "Miscellaneous";
+    const desc = `L48R${otherExpenseIndex}_desc`;
+    const amt = `L48R${otherExpenseIndex++}_amt`;
+    if (otherExpenseIndex >= 10) {
+      log.warn(`OTHER_EXPENSE_OVERFLOW: omitting description for: ${description}`);
+      f1040sc[desc] = f1040sc[desc].endsWith(", etc") ? f1040sc[desc] : `${f1040sc[desc]}, etc`;
+      f1040sc[amt] = math.add(
+        f1040sc[amt],
+        math.mul(row.value, row.tag.multiplier || "1"),
+      );
+    } else {
+      // Side effect: Add a new row to L48 for any generic business expenses
+      f1040sc[`L48R${otherExpenseIndex}_desc`] = description;
+      f1040sc[`L48R${otherExpenseIndex}_amt`] = math.mul(row.value, row.tag.multiplier || "1");
+    }
+    return row.value; // sum util applies multiplier to the value returned here
+  });
+
+  // Double check that L48 rows add up to our total other expenses
+  const L48 = math.add(
+    f1040sc.L48_Amount1, f1040sc.L48_Amount2, f1040sc.L48_Amount3,
+    f1040sc.L48_Amount4, f1040sc.L48_Amount5, f1040sc.L48_Amount6,
+    f1040sc.L48_Amount7, f1040sc.L48_Amount8, f1040sc.L48_Amount9,
   );
+  if (!math.eq(L48, f1040sc.L48))
+    log.warn(`DOUBLE_CHECK_FAILED: sum(L48)=${L48} !== otherExpenses=${f1040sc.L48}`);
+
   f1040sc.L27a = f1040sc.L48;
 
   ////////////////////////////////////////
   // Resume Part II - Expenses
 
-  f1040sc.L28 = math.add(
+  f1040sc.L28 = getBusinessExpenses(thisYear, rows);
+  const L28 = math.add(
     f1040sc.L8, f1040sc.L9, f1040sc.L10, f1040sc.L11, f1040sc.L12,
     f1040sc.L13, f1040sc.L14, f1040sc.L15, f1040sc.L16a, f1040sc.L16b,
     f1040sc.L17, f1040sc.L18, f1040sc.L19, f1040sc.L20a, f1040sc.L20b,
     f1040sc.L21, f1040sc.L22, f1040sc.L23, f1040sc.L24a, f1040sc.L24b,
     f1040sc.L25, f1040sc.L26, f1040sc.L27a,
   );
+  if (!math.eq(L48, f1040sc.L48))
+    log.warn(`DOUBLE_CHECK_FAILED: sum(L8-L27a)=${L28} !== netBusinessIncome=${f1040sc.L28}`);
 
   f1040sc.L29 = math.sub(f1040sc.L7, f1040sc.L28);
   f1040sc.L31 = math.sub(f1040sc.L29, f1040sc.L30);
-  log.warn(`Net business income: f1040sc.L31=${f1040sc.L31}`);
-  const totalBusinessIncome = getBusinessIncome(taxRows.filter(thisYear));
-  if (totalBusinessIncome !== f1040sc.L31)
-    log.warn(`DOUBLE_CHECK_FAILED: f1040sc.L31=${f1040sc.L31} !== ${totalBusinessIncome}`);
+  log.info(`Net business income: f1040sc.L31=${f1040sc.L31}`);
+  const netBusinessIncome = getNetBusinessIncome(thisYear, rows);
+  if (!math.eq(netBusinessIncome, f1040sc.L31)) log.warn(
+    `DOUBLE_CHECK_FAILED: f1040sc.L31=${f1040sc.L31} !== netBusinessIncome=${netBusinessIncome}`
+  );
 
   if (math.gt(f1040sc.L31, "0")) {
     f1040s1.L3 = f1040sc.L31;

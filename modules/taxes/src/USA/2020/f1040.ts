@@ -4,32 +4,33 @@ import {
   IncomeType,
   IncomeTypes,
   Logger,
-  TaxActions,
   TaxInput,
   TaxRows,
 } from "@valuemachine/types";
 
 import {
+  thisYear,
+} from "./const";
+import {
   Forms,
-  getIncomeTax,
-  getTotalValue,
   getTotalIncome,
+  getTotalTax,
   getTotalTaxableIncome,
   math,
   strcat,
-  thisYear,
+  sumIncome,
 } from "./utils";
 
 export const f1040 = (
   forms: Forms,
   input: TaxInput,
-  taxRows: TaxRows,
+  rows: TaxRows,
   logger: Logger,
 ): Forms => {
   const log = logger.child({ module: "f1040" });
-  const { f1040, f1040sd, f2555 } = forms;
+  const f1040 = forms.f1040 || {};
   const personal = input.personal || {};
-  const { filingStatus } = personal;
+  const filingStatus = personal.filingStatus || "";
 
   ////////////////////////////////////////
   // Personal Info
@@ -61,30 +62,24 @@ export const f1040 = (
   ////////////////////////////////////////
   // Taxable Income
 
-  const sumIncome = (incomeType: IncomeType): DecString =>
-    getTotalValue(taxRows.filter(thisYear), TaxActions.Income, { incomeType });
+  const getIncome = (incomeType: IncomeType, exempt?: boolean): DecString =>
+    sumIncome(thisYear, rows.filter(row => !exempt || row.tag.exempt === exempt), incomeType);
 
-  f1040.L1 = sumIncome(IncomeTypes.Wage);
-  f1040.L2b = sumIncome(IncomeTypes.Interest);
-  f1040.L3b = sumIncome(IncomeTypes.Dividend);
-  f1040.L4b = sumIncome(IncomeTypes.IRA);
-  f1040.L5b = sumIncome(IncomeTypes.Pension);
-  f1040.L6b = sumIncome(IncomeTypes.SocialSecurity);
+  f1040.L1 = getIncome(IncomeTypes.Wage);
+  f1040.L2a = getIncome(IncomeTypes.Interest, true);
+  f1040.L2b = getIncome(IncomeTypes.Interest);
+  f1040.L3a = getIncome(IncomeTypes.Dividend, true);
+  f1040.L3b = getIncome(IncomeTypes.Dividend);
+  f1040.L4a = getIncome(IncomeTypes.IRA, true);
+  f1040.L4b = getIncome(IncomeTypes.IRA);
+  f1040.L5a = getIncome(IncomeTypes.Pension, true);
+  f1040.L5b = getIncome(IncomeTypes.Pension);
+  f1040.L6a = getIncome(IncomeTypes.SocialSecurity, true);
+  f1040.L6b = getIncome(IncomeTypes.SocialSecurity);
 
   if (!("f1040sd" in forms)) {
     f1040.C7 = true;
   }
-
-  f1040.L2b = getTotalValue(
-    taxRows.filter(thisYear),
-    TaxActions.Income,
-    { incomeType: IncomeTypes.Interest },
-  );
-  f1040.L2b = getTotalValue(
-    taxRows.filter(thisYear),
-    TaxActions.Income,
-    { incomeType: IncomeTypes.Dividend },
-  );
 
   f1040.L9 = math.add(
     f1040.L1,  // wages
@@ -97,8 +92,8 @@ export const f1040 = (
     f1040.L8,  // other income (f1040s1)
   );
   log.info(`Total income: f1040.L9=${f1040.L9}`);
-  const totalIncome = getTotalIncome(input, taxRows);
-  if (totalIncome !== f1040.L9)
+  const totalIncome = getTotalIncome(thisYear, input, rows);
+  if (!math.eq(totalIncome, f1040.L9))
     log.warn(`DOUBLE_CHECK_FAILED: f1040.L9=${f1040.L9} !== ${totalIncome}`);
 
   f1040.L10c = math.add(
@@ -128,8 +123,8 @@ export const f1040 = (
     f1040.L14, // total deductions
   );
   log.info(`Total Taxable Income: f1040.L15=${f1040.L15}`);
-  const totalTaxableIncome = getTotalTaxableIncome(input, taxRows);
-  if (totalTaxableIncome !== f1040.L15)
+  const totalTaxableIncome = getTotalTaxableIncome(thisYear, input, rows);
+  if (!math.eq(totalTaxableIncome, f1040.L15))
     log.warn(`DOUBLE_CHECK_FAILED: f1040.L15=${f1040.L15} !== ${totalTaxableIncome}`);
 
   ////////////////////////////////////////
@@ -138,26 +133,7 @@ export const f1040 = (
   if ("f8814" in forms) f1040.C16_1 = true;
   if ("4972" in forms) f1040.C16_2 = true;
 
-  if (forms.f2555) {
-    const ws = {} as any; // Foreign Earned Income Tax Worksheet on i1040 pg 35
-    ws.L1 = f1040.L15;
-    ws.L2a = math.add(f2555.L45, f2555.L50);
-    ws.L2b = "0"; // unapplied deducation & exclusions due to foreign earned income exclusion
-    ws.L2c = math.subToZero(ws.L2a, ws.L2b);
-    ws.L3 = math.add(ws.L1, ws.L2c);
-    ws.L4 = getIncomeTax(ws.L3, filingStatus);
-    ws.L5 = getIncomeTax(ws.L2c, filingStatus);
-    f1040.L16 = math.subToZero(ws.L4, ws.L5);
-
-  } else if (f1040sd && (math.gt(f1040sd.L18, "0") || math.gt(f1040sd.L19, "0"))) {
-    throw new Error(`NOT_IMPLEMENTED: Schedule D Tax Worksheet`);
-
-  } else if (f1040sd) {
-    throw new Error(`NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet`);
-
-  } else {
-    f1040.L16 = getIncomeTax(f1040.L11, filingStatus);
-  }
+  f1040.L16 = getTotalTax(thisYear, input, rows);
 
   f1040.L18 = math.add(
     f1040.L16, // Income tax

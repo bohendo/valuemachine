@@ -2,7 +2,6 @@ import { DecString, TaxActions, TaxRow, TaxRows } from "@valuemachine/types";
 import { getLogger, math } from "@valuemachine/utils";
 
 import { FormArchive, TaxYears } from "../../mappings";
-import { getGetIncomeTax } from "../utils";
 
 export * from "../utils";
 
@@ -11,9 +10,6 @@ export type Forms = FormArchive["USA2019"];
 export const year = "2019";
 export const taxYear = TaxYears.USA2019;
 export const logger = getLogger("info", taxYear);
-
-// brackets should match some source of truth idk what
-export const getIncomeTax = getGetIncomeTax(year);
 
 export const processIncome = (
   taxes: TaxRows,

@@ -10,17 +10,17 @@ import {
 import { splitTaxYear } from "@valuemachine/utils";
 
 import {
-  getBusinessIncome as getBusinessIncomeIND,
+  getNetBusinessIncome as getNetBusinessIncomeIND,
   getTotalCapitalChange as getTotalCapitalChangeIND,
   getTotalIncome as getTotalIncomeIND,
   getTotalTaxableIncome as getTotalTaxableIncomeIND,
   getTotalTax as getTotalTaxIND,
 } from "./IND";
 import {
-  getBusinessIncome as getBusinessIncomeUSA,
+  getNetBusinessIncome as getNetBusinessIncomeUSA,
   getTotalCapitalChange as getTotalCapitalChangeUSA,
-  getGetTotalIncome as getGetTotalIncomeUSA,
-  getGetTotalTaxableIncome as getGetTotalTaxableIncomeUSA,
+  getTotalIncome as getTotalIncomeUSA,
+  getTotalTaxableIncome as getTotalTaxableIncomeUSA,
   getTotalTax as getTotalTaxUSA,
 } from "./USA";
 import { getTotalValue,  getRowTotal } from "./utils";
@@ -28,17 +28,17 @@ import { getTotalValue,  getRowTotal } from "./utils";
 ////////////////////////////////////////
 // Income/Tax by TaxYear
 
-export const getBusinessIncome = (
+export const getNetBusinessIncome = (
   taxYear: TaxYear,
   input: TaxInput,
   rows: TaxRows,
 ): DecString => {
-  const [guard] = splitTaxYear(taxYear);
+  const [guard, year] = splitTaxYear(taxYear);
   const taxRows = rows.filter(row => row.taxYear === taxYear);
   if (guard === Guards.IND) {
-    return getBusinessIncomeIND(taxRows);
+    return getNetBusinessIncomeIND(taxRows);
   } else if (guard === Guards.USA) {
-    return getBusinessIncomeUSA(taxRows);
+    return getNetBusinessIncomeUSA(year, taxRows);
   } else {
     return getTotalValue(taxRows, TaxActions.Income, { incomeType: IncomeTypes.Business });
   }
@@ -49,12 +49,12 @@ export const getTotalCapitalChange = (
   input: TaxInput,
   rows: TaxRows,
 ): DecString => {
-  const [guard] = splitTaxYear(taxYear);
+  const [guard, year] = splitTaxYear(taxYear);
   const taxRows = rows.filter(row => row.taxYear === taxYear);
   if (guard === Guards.IND) {
     return getTotalCapitalChangeIND(input, taxRows);
   } else if (guard === Guards.USA) {
-    return getTotalCapitalChangeUSA(input, taxRows);
+    return getTotalCapitalChangeUSA(year, input, taxRows);
   } else {
     return getRowTotal(taxRows, "", {}, row => row.capitalChange);
   }
@@ -70,7 +70,7 @@ export const getTotalIncome = (
   if (guard === Guards.IND) {
     return getTotalIncomeIND(input, taxRows);
   } else if (guard === Guards.USA) {
-    return getGetTotalIncomeUSA(year)(input, taxRows);
+    return getTotalIncomeUSA(year, input, taxRows);
   } else {
     return getTotalValue(taxRows, TaxActions.Income);
   }
@@ -86,7 +86,7 @@ export const getTotalTaxableIncome = (
   if (guard === Guards.IND) {
     return getTotalTaxableIncomeIND(input, taxRows);
   } else if (guard === Guards.USA) {
-    return getGetTotalTaxableIncomeUSA(year)(input, taxRows);
+    return getTotalTaxableIncomeUSA(year, input, taxRows);
   } else {
     return getTotalValue(taxRows, TaxActions.Income);
   }
@@ -97,12 +97,12 @@ export const getTotalTax = (
   input: TaxInput,
   rows: TaxRows,
 ): DecString => {
-  const [guard] = splitTaxYear(taxYear);
+  const [guard, year] = splitTaxYear(taxYear);
   const taxRows = rows.filter(row => row.taxYear === taxYear);
   if (guard === Guards.IND) {
     return getTotalTaxIND(input, taxRows);
   } else if (guard === Guards.USA) {
-    return getTotalTaxUSA(input, taxRows);
+    return getTotalTaxUSA(year, input, taxRows);
   } else {
     return "0";
   }

@@ -7,7 +7,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
-  getBusinessIncome,
+  getNetBusinessIncome,
   securityFeeMap,
   getTotalCapitalChange,
   getTotalIncome,
@@ -85,7 +85,7 @@ export const TaxSummary: React.FC<TaxSummaryProps> = ({
                 <TableCell> {guard ? taxYear.replace(guard, "") : taxYear} </TableCell>
 
                 <TableCell>{
-                  math.commify(getBusinessIncome(taxYear, taxInput, taxRows), 0, unit)
+                  math.commify(getNetBusinessIncome(taxYear, taxInput, taxRows), 0, unit)
                 }</TableCell>
 
                 <TableCell>{

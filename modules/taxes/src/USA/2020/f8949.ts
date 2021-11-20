@@ -7,10 +7,10 @@ import {
 
 import {
   Forms,
+  isLongTermTrade,
   math,
   strcat,
   thisYear,
-  msPerYear,
   toFormDate,
 } from "./utils";
 
@@ -23,7 +23,7 @@ export const f8949 = (
   logger: Logger,
 ): Forms  => {
   const log = logger.child({ module: "f8949" });
-  const { f8949 } = forms;
+  const f8949 = forms.f8949 || [];
   const personal = input.personal || {};
 
   const name = strcat([personal.firstName, personal.lastName]);
@@ -47,15 +47,12 @@ export const f8949 = (
   const columns = ["d", "e", "g", "h"];
   const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
-  const isLongTerm = (trade): boolean => 
-    (new Date(trade.date).getTime() - new Date(trade.receiveDate).getTime()) > msPerYear;
-
   const pageDivider = (list: any[]): any[][] => list.map(
     (e,i) => i % rows.length === 0 ? list.slice(i, i + rows.length) : null,
   ).filter(e => !!e);
 
-  const shortPages = pageDivider(trades.filter(trade => !isLongTerm(trade)));
-  const longPages = pageDivider(trades.filter(isLongTerm));
+  const shortPages = pageDivider(trades.filter(trade => !isLongTermTrade(trade)));
+  const longPages = pageDivider(trades.filter(isLongTermTrade));
 
   const getLongCell = (row: number, column: string): string => `P2L1${column}R${row}`;
   const getShortCell = (row: number, column: string): string => `P1L1${column}R${row}`;

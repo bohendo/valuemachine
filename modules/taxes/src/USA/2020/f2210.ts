@@ -1,8 +1,6 @@
 import {
-  DateString,
   ExpenseTypes,
   IncomeTypes,
-  IntString,
   Logger,
   TaxActions,
   TaxInput,
@@ -10,26 +8,29 @@ import {
 } from "@valuemachine/types";
 
 import {
+  thisYear,
+  lastYear,
+} from "./const";
+import {
   chrono,
+  diffDays,
   Forms,
+  getNetBusinessIncome,
   getIncomeTax,
   getTotalTaxableIncome,
-  getRowTotal,
-  getTotalValue,
-  USA,
-  isBusinessExpense,
-  lastYear,
   math,
   msPerDay,
   strcat,
-  thisYear,
+  sumExpenses,
+  sumIncome,
   toTime,
+  USA,
 } from "./utils";
 
 export const f2210 = (
   forms: Forms,
   input: TaxInput,
-  taxRows: TaxRows,
+  rows: TaxRows,
   logger: Logger,
 ): Forms => {
   const log = logger.child({ module: "f2210" });
@@ -97,7 +98,7 @@ export const f2210 = (
   if ("f5404" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f5404 tax to f2210.L8`);
   if ("f8959" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8959 tax to f2210.L8`);
   if ("f8960" in forms) log.warn(`NOT_IMPLEMENTED: add 2019 f8960 tax to f2210.L8`);
-  const taxableIncome = getTotalTaxableIncome(input, taxRows.filter(lastYear));
+  const taxableIncome = getTotalTaxableIncome(lastYear, input, rows);
   const filingStatus = personal.filingStatus; // what if it was different last yeat?
   let incomeTax;
   if (forms.f2555) {
@@ -106,10 +107,6 @@ export const f2210 = (
     ws.L1 = taxableIncome;
     const maxFeie2019 = "105900";
     const travel = input.travel || [];
-    const diffDays = (d1: DateString, d2: DateString): IntString =>
-      Math.trunc(Math.abs(
-        new Date(`${d1}T00:00:00Z`).getTime() - new Date(`${d2}T00:00:00Z`).getTime()
-      ) / msPerDay).toString();
     const daysInEachCountry = travel.reduce((days, trip) => ({
       ...days,
       [trip.country]: math.add(days[trip.country] || "0", diffDays(trip.enterDate, trip.leaveDate))
@@ -123,25 +120,17 @@ export const f2210 = (
     ws.L2b = "0"; // unapplied deducation & exclusions due to foreign earned income exclusion
     ws.L2c = math.subToZero(ws.L2a, ws.L2b);
     ws.L3 = math.add(ws.L1, ws.L2c);
-    ws.L4 = getIncomeTax(ws.L3, filingStatus);
-    ws.L5 = getIncomeTax(ws.L2c, filingStatus);
+    ws.L4 = getIncomeTax(thisYear, ws.L3, filingStatus);
+    ws.L5 = getIncomeTax(thisYear, ws.L2c, filingStatus);
     incomeTax = math.subToZero(ws.L4, ws.L5);
   } else if (forms.f1040sd && (math.gt(forms.f1040sd.L18, "0") || math.gt(forms.f1040sd.L19, "0"))) {
     throw new Error(`NOT_IMPLEMENTED: Schedule D Tax Worksheet`);
   } else if (forms.f1040sd) {
     throw new Error(`NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet`);
   } else {
-    incomeTax = getIncomeTax(f1040.L11, filingStatus);
+    incomeTax = getIncomeTax(thisYear, f1040.L11, filingStatus);
   }
-  const businessIncome = math.subToZero(
-    getRowTotal(
-      taxRows.filter(lastYear),
-      TaxActions.Income,
-      { incomeType: IncomeTypes.Business }
-    ),
-    getRowTotal(taxRows.filter(lastYear).filter(isBusinessExpense)),
-  );
-  const subjectToSS = math.mul(businessIncome, "0.9235");
+  const subjectToSS = math.mul(getNetBusinessIncome(lastYear, rows), "0.9235");
   const seTax = math.add(
     math.mul( // as per f1040sse.L10
       // as per f1040sse.L10
@@ -212,16 +201,8 @@ export const f2210 = (
   };
 
   const P = math.div(
-    getTotalValue(
-      taxRows.filter(marToDec),
-      TaxActions.Income,
-      { incomeType: IncomeTypes.Business },
-    ),
-    getTotalValue(
-      taxRows.filter(thisYear),
-      TaxActions.Income,
-      { incomeType: IncomeTypes.Business },
-    ),
+    sumIncome(thisYear, rows.filter(marToDec), IncomeTypes.Business),
+    sumIncome(thisYear, rows, IncomeTypes.Business),
   );
   log.info(`Proportion of se income earned from Mar27-Dec31: ${P.substring(0, 5)}%`);
 
@@ -253,32 +234,20 @@ export const f2210 = (
     const getPrevVal = (row: number): string =>
       f2210[`aiL${row}${columns[columns.indexOf(column) - 1]}`];
 
-    const rowsInRange = taxRows.filter(inRange[column]);
+    const rowsInRange = rows.filter(inRange[column]);
     log.info(`Got ${rowsInRange.length} tax rows for ${Q}`);
 
-    const wageIncome = getTotalValue(
-      rowsInRange,
-      TaxActions.Income,
-      { incomeType: IncomeTypes.Wage },
-    );
+    const wageIncome = sumIncome(thisYear, rowsInRange, IncomeTypes.Wage);
+    const grossBusinessIncome = sumIncome(thisYear, rowsInRange, IncomeTypes.Business);
+    const netBusinessIncome = getNetBusinessIncome(thisYear, rowsInRange);
 
-    const seIncome = getTotalValue(
-      rowsInRange,
-      TaxActions.Income,
-      { incomeType: IncomeTypes.Business },
-    );
-
-    const businessExpenses = getTotalValue(
-      rowsInRange.filter(isBusinessExpense),
-    );
-
-    log.info(`${Q}: seIncome=${seIncome} | expenses=${businessExpenses} | wageIncome=${wageIncome}`);
+    log.info(`${Q}: netBusinessIncome=${netBusinessIncome} | wageIncome=${wageIncome}`);
 
     ////////////////////////////////////////
     // Schedule AI Part II - Annualized Self-Employment Tax
 
     f2210[getKey(28)] = math.mul(
-      math.sub(seIncome, businessExpenses),
+      netBusinessIncome,
       "0.9235",
     );
 
@@ -302,7 +271,7 @@ export const f2210 = (
     // Schedule AI Part I - Annualized Income Installments
 
     const subjectToSS = math.mul(
-      math.sub(seIncome, businessExpenses),
+      netBusinessIncome,
       "0.9235", // as per f1040sse.L4a
     );
     log.info(`SE Income subject to SS for ${Q}: ${subjectToSS}`);
@@ -325,7 +294,7 @@ export const f2210 = (
     );
     log.info(`SE Adjustment for ${Q}: ${seAdjustment} (total adjustment=${forms.f1040s1.L14})`);
 
-    f2210[getKey(1)] = math.subToZero(seIncome, seAdjustment);
+    f2210[getKey(1)] = math.subToZero(grossBusinessIncome, seAdjustment);
     log.info(`Adjusted Income for ${Q}: ${f2210[getKey(1)]}`);
 
     f2210[getKey(3)] = math.mul(getVal(1), getVal(2));
@@ -352,7 +321,7 @@ export const f2210 = (
 
     f2210[getKey(13)] = math.subToZero(getVal(11), getVal(12));
 
-    f2210[getKey(14)] = getIncomeTax(getVal(13), personal.filingStatus);
+    f2210[getKey(14)] = getIncomeTax(thisYear, getVal(13), personal.filingStatus);
 
     f2210[getKey(15)] = getVal(36);
 
@@ -413,11 +382,7 @@ export const f2210 = (
     const getPrevVal = (row: number): string =>
       f2210[`L${row}${columns[columns.indexOf(column) - 1]}`];
 
-    f2210[getKey(19)] = getTotalValue(
-      taxRows.filter(moreRanges[column]),
-      TaxActions.Expense,
-      { expenseType: ExpenseTypes.Tax },
-    );
+    f2210[getKey(19)] = sumExpenses(thisYear, rows.filter(moreRanges[column]), ExpenseTypes.Tax);
 
     if (column === "a") {
       f2210[getKey(23)] = getVal(19);
@@ -446,7 +411,7 @@ export const f2210 = (
     d: "Q4",
   };
 
-  const allPayments = taxRows.filter(row =>
+  const allPayments = rows.filter(row =>
     row.action === TaxActions.Expense && row.tag.expenseType === ExpenseTypes.Tax
   ).sort(chrono).map(row => ({ date: toTime(row.date), value: row.value }));
 
@@ -467,7 +432,7 @@ export const f2210 = (
           date: Date.now(),
           value: togo,
         });
-        log.warn(`You didn't make enough payments.. Assuming you pay $${togo} today..`);
+        log.info(`You didn't make enough payments.. Assuming you pay $${togo} today..`);
         break;
       } else if (math.gt(payment.value, togo)) {
         log.debug(`Applying part of payment & we're done: ${JSON.stringify(payment)}`);
@@ -486,7 +451,7 @@ export const f2210 = (
     }
 
     if (!math.eq(togo, "0")) {
-      log.warn(`After all payments made, still ${togo} to go`);
+      log.info(`After all payments made, still ${togo} to go`);
     }
 
     const getPenalty = (startDate, endDate, q) => {

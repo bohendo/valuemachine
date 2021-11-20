@@ -1,35 +1,36 @@
 import {
   IncomeTypes,
   Logger,
-  TaxActions,
   TaxInput,
   TaxRows,
 } from "@valuemachine/types";
 
 import {
+  thisYear,
+} from "./const";
+import {
   after,
   maxFeie,
+  sumIncome,
+  getNetBusinessIncome,
   before,
   Forms,
   getDaysAbroad,
   getForeignEarnedIncome,
   daysThisYear,
   getForeignEarnedIncomeExclusion,
-  getTotalValue,
   getDaysByCountry,
   diffDays,
   USA,
-  isBusinessExpense,
   math,
   strcat,
-  thisYear,
   toFormDate,
 } from "./utils";
 
 export const f2555 = (
   forms: Forms,
   input: TaxInput,
-  taxRows: TaxRows,
+  rows: TaxRows,
   logger: Logger,
 ): Forms => {
   const log = logger.child({ module: "f2555" });
@@ -135,25 +136,13 @@ export const f2555 = (
   );
 
   // Get all income earned while outside the US
-  f2555.L19 = getTotalValue(
-    taxRows.filter(outOfUSA).filter(thisYear),
-    TaxActions.Income,
-    { incomeType: IncomeTypes.Wage },
-  );
-
-  f2555.L23 = math.sub(
-    getTotalValue(
-      taxRows.filter(outOfUSA).filter(thisYear),
-      TaxActions.Income,
-      { incomeType: IncomeTypes.Business },
-    ),
-    getTotalValue(taxRows.filter(thisYear).filter(isBusinessExpense)),
-  );
+  f2555.L19 = sumIncome(thisYear, rows.filter(outOfUSA), IncomeTypes.Wage);
+  f2555.L23 = getNetBusinessIncome(thisYear, rows.filter(outOfUSA));
 
   f2555.L24 = math.add(
     f2555.L19,  // total wages
-    f2555.L20a, // share of income from business
-    f2555.L20b, // share of income from partnerships
+    f2555.L20a, // share of income from personal services via a business
+    f2555.L20b, // share of income from personal services via partnerships
     f2555.L21a, // value of provided lodging
     f2555.L21b, // value of provided meals
     f2555.L21c, // value of provided car
@@ -167,7 +156,7 @@ export const f2555 = (
     f2555.L25, // excludable meals & lodging
   );
   log.info(`Total Foreign Earned Income: ${f2555.L26}`);
-  const foreignEarnedIncome = getForeignEarnedIncome(input, taxRows);
+  const foreignEarnedIncome = getForeignEarnedIncome(thisYear, input, rows);
   if (!math.eq(f2555.L26, foreignEarnedIncome))
     log.warn(`DOUBLE_CHECK_FAILED: f2555.L26=${f2555.L26} !== ${foreignEarnedIncome}`);
 
@@ -210,7 +199,7 @@ export const f2555 = (
   f2555.L41 = math.subToZero(f2555.L27, f2555.L36);
   f2555.L42 = math.min(f2555.L40, f2555.L41);
   log.info(`Foreign earned income exclusion: f2555.L42=${f2555.L42}`);
-  const foreignEarnedIncomeExclusion = getForeignEarnedIncomeExclusion(input, taxRows);
+  const foreignEarnedIncomeExclusion = getForeignEarnedIncomeExclusion(thisYear, input, rows);
   if (!math.eq(f2555.L42, foreignEarnedIncomeExclusion))
     log.warn(`DOUBLE_CHECK_FAILED: f2555.L42=${f2555.L42} !== ${foreignEarnedIncomeExclusion}`);
 

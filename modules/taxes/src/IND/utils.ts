@@ -54,7 +54,7 @@ export const getTotalCapitalChange = (input: TaxInput, rows: TaxRows) =>
 // Income
 
 // Gross business income minus deductible expenses
-export const getBusinessIncome = (rows) =>
+export const getNetBusinessIncome = (rows) =>
   math.subToZero(
     getRowTotal(
       rows,
@@ -66,7 +66,7 @@ export const getBusinessIncome = (rows) =>
 
 export const getTotalIncome = (input: TaxInput, rows: TaxRows) =>
   math.add(
-    getBusinessIncome(rows),
+    getNetBusinessIncome(rows),
     // get total non-business income
     getRowTotal(
       rows,

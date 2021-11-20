@@ -64,6 +64,7 @@ export type ExpenseType = Static<typeof ExpenseType>;
 
 export const TxTagTypes = {
   description: "description",
+  exempt: "exempt",
   expenseType: "expenseType",
   incomeType: "incomeType",
   multiplier: "multiplier",
@@ -74,6 +75,7 @@ export type TxTagType = Static<typeof TxTagType>;
 
 export const Tag = Type.Object({
   description: Type.Optional(Type.String()),
+  exempt: Type.Optional(Type.Boolean()),
   expenseType: Type.Optional(Type.String()),
   incomeType: Type.Optional(Type.String()),
   multiplier: Type.Optional(DecString),
