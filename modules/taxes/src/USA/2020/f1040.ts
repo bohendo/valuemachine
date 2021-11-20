@@ -13,10 +13,15 @@ import {
 } from "./const";
 import {
   Forms,
+  getTotalGrossIncome,
   getTotalIncome,
+  getStandardDeduction,
   getTotalTax,
+  getTotalIncomeAdjustments,
+  getTotalDeductions,
   getIncomeTax,
   getTotalTaxableIncome,
+  getTotalCapitalChange,
   math,
   strcat,
   sumIncome,
@@ -82,7 +87,10 @@ export const f1040 = (
     f1040.C7 = true;
   }
 
-  f1040.L9 = math.add(
+  f1040.L7 = getTotalCapitalChange(thisYear, input, rows);
+  f1040.L9 = getTotalIncome(thisYear, input, rows);
+  log.info(`Total income: f1040.L9=${f1040.L9}`);
+  const L9 = math.add(
     f1040.L1,  // wages
     f1040.L2b, // taxable interest (f1040sb?)
     f1040.L3b, // taxable dividends (f1040sb?)
@@ -92,41 +100,49 @@ export const f1040 = (
     f1040.L7,  // capital gain/loss (f1040sd)
     f1040.L8,  // other income (f1040s1)
   );
-  log.info(`Total income: f1040.L9=${f1040.L9}`);
-  const totalIncome = getTotalIncome(thisYear, input, rows);
-  if (!math.eq(totalIncome, f1040.L9))
-    log.warn(`DOUBLE_CHECK_FAILED: f1040.L9=${f1040.L9} !== ${totalIncome}`);
+  if (!math.eq(L9, f1040.L9))
+    log.warn(`DOUBLE_CHECK_FAILED: sum(L1-L8)=${L9} !== f1040.L9=${f1040.L9}`);
 
-  f1040.L10c = math.add(
+  f1040.L10c = getTotalIncomeAdjustments(thisYear, rows);
+  log.info(`Total income adjustments: f1040.L10c=${f1040.L10c}`);
+  const L10c = math.add(
     f1040.L10a, // income adjustments from f1040s1
     f1040.L10b, // charitable deductions
   );
-  log.info(`Total income adjustments: f1040.L10c=${f1040.L10c}`);
+  if (!math.eq(f1040.L10c, L10c))
+    log.warn(`DOUBLE_CHECK_FAILED: sum(L10a-L10b)=${L10c} !== f1040.L10c=${f1040.L10c}`);
 
-  f1040.L11 = math.sub(
+  f1040.L11 = getTotalGrossIncome(thisYear, input, rows);
+  log.info(`Total gross income: f1040.L11=${f1040.L11}`);
+  const L11 = math.sub(
     f1040.L9,   // total income
     f1040.L10c, // total adjustments
   );
-  log.info(`Total gross income: f1040.L11=${f1040.L11}`);
+  if (!math.eq(f1040.L11, L11))
+    log.warn(`DOUBLE_CHECK_FAILED: L9-L10c=${L11} !== f1040.L11=${f1040.L11}`);
 
-  f1040.L12 =
-    (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
-    : (filingStatus === FilingStatuses.Head) ? "18350"
-    : "12200";
+  f1040.L12 = getStandardDeduction(input);
 
-  f1040.L14 = math.add(
+  // All deductions
+  f1040.L14 = getTotalDeductions(input);
+  log.info(`Total deductions: f1040.L14=${f1040.L14}`);
+  const L14 = math.add(
     f1040.L12, // standard deduction
     f1040.L13, // qualified business income deduction
   );
+  if (!math.eq(f1040.L14, L14))
+    log.warn(`DOUBLE_CHECK_FAILED: sum(L12-L13)=${L14} !== f1040.L14=${f1040.L14}`);
 
-  f1040.L15 = math.subToZero(
+  f1040.L15 = getTotalTaxableIncome(thisYear, input, rows);
+  log.info(`Total Taxable Income: f1040.L15=${f1040.L15}`);
+  const L15 = math.subToZero(
     f1040.L11, // adjusted gross income
     f1040.L14, // total deductions
   );
-  log.info(`Total Taxable Income: f1040.L15=${f1040.L15}`);
-  const totalTaxableIncome = getTotalTaxableIncome(thisYear, input, rows);
-  if (!math.eq(totalTaxableIncome, f1040.L15))
-    log.warn(`DOUBLE_CHECK_FAILED: f1040.L15=${f1040.L15} !== ${totalTaxableIncome}`);
+  log.info(`f1040.L11=${f1040.L11}`);
+  log.info(`f1040.L14=${f1040.L14}`);
+  if (!math.eq(f1040.L15, L15))
+    log.warn(`DOUBLE_CHECK_FAILED: L11-L14=${L15} !== f1040.L15=${f1040.L15}`);
 
   ////////////////////////////////////////
   // Taxes due & payments
@@ -156,7 +172,7 @@ export const f1040 = (
     f1040.L23, // other taxes from f1040s2
   );
   if (!math.eq(L24, f1040.L24))
-    log.warn(`DOUBLE_CHECK_FAILED: f1040.L24=${L24} !== totalTax=${f1040.L24}`);
+    log.warn(`DOUBLE_CHECK_FAILED: sum(L22-L23)=${L24} !== f1040.L24=${f1040.L24}`);
 
   f1040.L25d = math.add(
     f1040.L25a, // taxes withheld from wages (W-2)

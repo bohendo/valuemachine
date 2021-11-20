@@ -182,7 +182,7 @@ export const f1040sc = (
     f1040sc.L21, f1040sc.L22, f1040sc.L23, f1040sc.L24a, f1040sc.L24b,
     f1040sc.L25, f1040sc.L26, f1040sc.L27a,
   );
-  if (!math.eq(L48, f1040sc.L48))
+  if (!math.eq(L28, f1040sc.L28))
     log.warn(`DOUBLE_CHECK_FAILED: sum(L8-L27a)=${L28} !== netBusinessIncome=${f1040sc.L28}`);
 
   f1040sc.L29 = math.sub(f1040sc.L7, f1040sc.L28);

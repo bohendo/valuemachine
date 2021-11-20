@@ -51,13 +51,6 @@ describe(`${taxYear} Filers`, () => {
     expect(Object.keys(defaultReturn).length).to.equal(defaultPages.length);
   });
 
-  it(`should include f2555 iff lots of travel outside the US was provided`, async () => {
-    const f2555Return = getTaxReturn({ travel }, [income, tax], log);
-    expect("f2555" in f2555Return).to.be.true;
-    expect(f2555Return.f2555.L18b_R1).to.be.a("string");
-    log.info(f2555Return.f2555, "f2555");
-  });
-
   it(`should include f1040sc & f1040sse iff there's enough self employment income`, async () => {
     const taxReturn = getTaxReturn({ business: { name: "Bo & Co" } }, [income, tax, {
       date: "2020-02-01T00:00:00",
@@ -79,7 +72,7 @@ describe(`${taxYear} Filers`, () => {
 
   // Requires schedule d tax worksheet
   it.skip(`should include f8949 & f1040d iff there are >0 trades`, async () => {
-    const taxReturn = getTaxReturn({ travel }, [{
+    const taxReturn = getTaxReturn({}, [{
       // Short-term trade
       date: "2020-12-01T00:00:00",
       action: EventTypes.Trade,
@@ -113,8 +106,15 @@ describe(`${taxYear} Filers`, () => {
     log.info(taxReturn.f1040sd, "f1040sd");
   });
 
+  it(`should include f2555 iff lots of travel outside the US was provided`, async () => {
+    const f2555Return = getTaxReturn({ travel }, [income, tax], log);
+    expect("f2555" in f2555Return).to.be.true;
+    expect(f2555Return.f2555.L18b_R1).to.be.a("string");
+    log.info(f2555Return.f2555, "f2555");
+  });
+
   it(`should include f2210 iff we have not paid enough taxes`, async () => {
-    const taxReturn = getTaxReturn({ travel }, [
+    const taxReturn = getTaxReturn({}, [
       // Enough income last year that estimated payments are due this year
       { ...income, date: "2019-01-15", receiveDate: "2019-01-15", amount: "40", value: "40000", taxYear: "USA2019" },
       { ...income, date: "2019-04-15", receiveDate: "2019-04-15", amount: "40", value: "40000", taxYear: "USA2019" },

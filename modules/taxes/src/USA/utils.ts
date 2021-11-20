@@ -231,7 +231,7 @@ export const getTotalIncome = (year: Year, input: TaxInput, rows: TaxRows) =>
       ),
       getTotalCapitalChange(year, input, rows),
     ),
-    getForeignEarnedIncome(year, input, rows),
+    getForeignEarnedIncomeExclusion(year, input, rows),
   );
 
 ////////////////////////////////////////
@@ -239,7 +239,10 @@ export const getTotalIncome = (year: Year, input: TaxInput, rows: TaxRows) =>
 
 export const getSelfEmploymentTax = (year: Year, rows: TaxRows): DecString => {
   // We should extract & properly label some of these magic numbers
-  const subjectToSS = math.mul(getNetBusinessIncome(year, rows), "0.9235"); // a la f1040sse.L4a
+  const subjectToSS = math.mul(
+    getNetBusinessIncome(year, rows),
+    "0.9235",
+  ); // a la f1040sse.L4a
   return math.add(
     math.mul( 
       math.min(subjectToSS, "137700"), // a la f1040sse.L10
@@ -258,22 +261,36 @@ export const getSelfEmploymentAdjustment = (
     "0.5", // a la f1040sse.L13
   );
 
-// combine all income & adjustments
-export const getTotalTaxableIncome = (year: Year, input: TaxInput, rows: TaxRows) => {
+export const getStandardDeduction = (input: TaxInput) => {
   const filingStatus = input.personal?.filingStatus;
-  const standardDeduction = !filingStatus ? "0"
-    : (filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate) ? "12200"
-    : (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
+  const stdDeduction =
+    (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
     : (filingStatus === FilingStatuses.Head) ? "18350"
-    : "0";
-  return math.subToZero(
-    getTotalIncome(year, input, rows),
-    math.add( // add other adjustments from f1040s1 L22 & qualified business income deduction
-      getSelfEmploymentAdjustment(year, rows),
-      standardDeduction, // what if our filing status was different last year?
-    ),
-  );
+    : "12200";
+  return stdDeduction;
 };
+
+// Add any newly supported adjustments here
+export const getTotalIncomeAdjustments = (year: Year, rows: TaxRows) =>
+  getSelfEmploymentAdjustment(year, rows);
+
+// Combine all income & adjustments
+export const getTotalGrossIncome = (year: Year, input: TaxInput, rows: TaxRows) =>
+  math.sub(
+    getTotalIncome(year, input, rows),
+    getTotalIncomeAdjustments(year, rows),
+  );
+
+// And any newly supported deductions here
+export const getTotalDeductions = (input: TaxInput) =>
+  getStandardDeduction(input);
+
+// combine all income & adjustments & deductions
+export const getTotalTaxableIncome = (year: Year, input: TaxInput, rows: TaxRows) =>
+  math.subToZero(
+    getTotalGrossIncome(year, input, rows),
+    getTotalDeductions(input),
+  );
 
 export const applyTaxBracket = (
   year: Year,

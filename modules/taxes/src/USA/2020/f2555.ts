@@ -10,7 +10,7 @@ import {
 } from "./const";
 import {
   after,
-  maxFeie,
+  getMaxFeie,
   sumIncome,
   getNetBusinessIncome,
   before,
@@ -183,7 +183,7 @@ export const f2555 = (
   ////////////////////////////////////////
   // Part VII: Income Exclusion
 
-  f2555.L37 = maxFeie;
+  f2555.L37 = getMaxFeie(thisYear);
   f2555.L38 = daysAbroad;
   const L39 = math.div(daysAbroad, daysThisYear);
   f2555.L39_int = L39.split(".")[0];

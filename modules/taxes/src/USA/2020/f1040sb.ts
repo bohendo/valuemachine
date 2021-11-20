@@ -12,7 +12,7 @@ import {
 export const f1040sb = (
   forms: Forms,
   input: TaxInput,
-  taxRows: TaxRows,
+  rows: TaxRows,
   logger: Logger,
 ): Forms => {
   const log = logger.child({ module: "f1040sb" });

@@ -1,16 +1,18 @@
 import {
   Logger,
-  TaxActions,
   TaxInput,
   TaxRows,
 } from "@valuemachine/types";
 
 import {
+  thisYear
+} from "./const";
+import {
   Forms,
+  getTrades,
   isLongTermTrade,
   math,
   strcat,
-  thisYear,
   toFormDate,
 } from "./utils";
 
@@ -29,12 +31,7 @@ export const f8949 = (
   const name = strcat([personal.firstName, personal.lastName]);
   const ssn = personal.SSN;
 
-  const trades = taxRows.filter(thisYear).filter(tax =>
-    tax.action === TaxActions.Trade || (
-      tax.action === TaxActions.Expense
-      && math.gt(math.abs(tax.capitalChange), "0.005")
-    )
-  );
+  const trades = getTrades(thisYear, taxRows);
 
   if (!trades.length) {
     delete forms.f8949;

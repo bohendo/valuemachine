@@ -1,37 +1,37 @@
 import {
   IncomeTypes,
   Logger,
-  TaxActions,
   TaxInput,
   TaxRows,
 } from "@valuemachine/types";
 
 import {
+  thisYear,
+} from "./const";
+import {
   Forms,
-  getTotalValue,
+  getSelfEmploymentAdjustment,
+  getSelfEmploymentTax,
+  getNetBusinessIncome,
   math,
   strcat,
-  thisYear,
+  sumIncome,
 } from "./utils";
 
 export const f1040sse = (
   forms: Forms,
   input: TaxInput,
-  taxRows: TaxRows,
+  rows: TaxRows,
   logger: Logger,
 ): Forms => {
   const log = logger.child({ module: "f1040sse" });
   const { f1040, f1040s1, f1040s2, f1040s3, f1040sc, f1040sse } = forms;
   const personal = input.personal || {};
 
-  const seIncome = getTotalValue(
-    taxRows.filter(thisYear),
-    TaxActions.Income,
-    { incomeType: IncomeTypes.Business },
-  );
+  const netBusinessIncome = getNetBusinessIncome(thisYear, rows);
 
   // If no se income, then omit this form
-  if (!math.gt(seIncome, "0")) {
+  if (!math.gt(netBusinessIncome, "0")) {
     delete forms.f1040sse;
     return forms;
   }
@@ -45,7 +45,7 @@ export const f1040sse = (
   f1040sse.L3 = math.add(
     f1040sse.L1a, // farm profit (from f1040sf or f1065)
     f1040sse.L1b, // conservation reserve program payments (from f1040sf or f1065)
-    seIncome, // supposed to be from f1040sc.L7 but recalculated to avoid circular dependency
+    netBusinessIncome, // should match f1040sc.L7
   );
 
   f1040sse.L4a = math.gt(f1040sse.L3, "0") ? math.mul(f1040sse.L3, "0.9235"): f1040sse.L3;
@@ -59,7 +59,7 @@ export const f1040sse = (
 
   if (math.gt(f1040sc.L31, "0") && math.lt(f1040sc.L31, "6107")) {
     // also check: (need to ensure we have all tax rows & not just for this year)
-    // validYears = taxRows.reduce(sumUpEveryYearsSelfEmploymentIncome).filter(incomeMoreThan400)
+    // validYears = rows.reduce(sumUpEveryYearsSelfEmploymentIncome).filter(incomeMoreThan400)
     // if (validYears.filter(lastThreeYears).length < 2) abort
     // if (validYears.length > 5) abort
     log.warn(`Using special deduction on f1040sse.L17`);
@@ -81,12 +81,7 @@ export const f1040sse = (
     return forms;
   }
 
-  f1040sse.L5a = getTotalValue(
-    taxRows.filter(thisYear),
-    TaxActions.Income,
-    { incomeType: IncomeTypes.Church },
-  );
-
+  f1040sse.L5a = sumIncome(thisYear, rows, IncomeTypes.Church);
   f1040sse.L5b = math.mul(f1040sse.L5a, "0.9235");
   if (math.lt(f1040sse.L5b, "100")) {
     f1040sse.L5b = "0";
@@ -107,14 +102,26 @@ export const f1040sse = (
   f1040sse.L9 = math.subToZero(L7, f1040sse.L8d);
   f1040sse.L10 = math.mul(math.min(f1040sse.L6, f1040sse.L9), "0.124");
   f1040sse.L11 = math.mul(f1040sse.L6, "0.029");
-  f1040sse.L12 = math.add(f1040sse.L10, f1040sse.L11);
-  f1040sse.L13 = math.mul(f1040sse.L12, "0.5");
 
+  log.info(`f1040sse.L4a=${f1040sse.L4a}`);
+  log.info(`f1040sse.L4b=${f1040sse.L4b}`);
+  log.info(`f1040sse.L4c=${f1040sse.L4c}`);
+  log.info(`f1040sse.L10=${f1040sse.L10}`);
+  log.info(`f1040sse.L11=${f1040sse.L11}`);
+
+  f1040sse.L12 = getSelfEmploymentTax(thisYear, rows);
+  log.info(`Self employment tax: f1040sse.L12=${f1040sse.L12}`);
   f1040s2.L4 = f1040sse.L12;
-  log.info(`Self employment tax: f1040s2.L4=${f1040s2.L4}`);
+  const L12 = math.add(f1040sse.L10, f1040sse.L11);
+  if (!math.eq(L12, f1040sse.L12))
+    log.warn(`DOUBLE_CHECK_FAILED: sum(L10-L11)=${L12} !== f1040sse.L12=${f1040sse.L12}`);
 
+  f1040sse.L13 = getSelfEmploymentAdjustment(thisYear, rows);
+  log.info(`Self employment tax deduction: f1040sse.L13=${f1040sse.L13}`);
   f1040s1.L14 = f1040sse.L13;
-  log.info(`Self employment tax deduction: f1040s1.L14=${f1040s1.L14}`);
+  const L13 = math.mul(f1040sse.L12, "0.5");
+  if (!math.eq(L13, f1040sse.L13))
+    log.warn(`DOUBLE_CHECK_FAILED: L13/2=${L13} !== f1040sse.L13=${f1040sse.L13}`);
 
   ////////////////////////////////////////
   // Part III - Maximum Deferral of Payments
@@ -131,11 +138,7 @@ export const f1040sse = (
     f1040sse.L21 = "0";
   } else {
     if ("f1040sf" in forms) log.warn(`NOT_IMPLEMENTED: f1040sf income from Mar-Dec`);
-    f1040sse.L18 = getTotalValue(
-      taxRows.filter(marToDec),
-      TaxActions.Income,
-      { incomeType: IncomeTypes.Business },
-    );
+    f1040sse.L18 = sumIncome(thisYear, rows.filter(marToDec), IncomeTypes.Business);
     f1040sse.L19 = math.gt(f1040sse.L18, "0") ? math.mul(f1040sse.L18, "0.9235") : f1040sse.L18;
     // instructions say x0.775 is good: https://www.irs.gov/pub/irs-pdf/i1040sse.pdf#page=6
     f1040sse.L20 = math.mul(math.add(f1040sse.L15, f1040sse.L17), "0.775");
@@ -145,11 +148,7 @@ export const f1040sse = (
   if (math.eq(f1040sse.L5b, "0")) {
     f1040sse.L23 = "0";
   } else {
-    f1040sse.L22 = getTotalValue(
-      taxRows.filter(marToDec),
-      TaxActions.Income,
-      { incomeType: IncomeTypes.Church },
-    );
+    f1040sse.L22 = sumIncome(thisYear, rows.filter(marToDec), IncomeTypes.Church);
     f1040sse.L23 = math.mul(f1040sse.L22, "0.9235");
   }
 
@@ -165,7 +164,6 @@ export const f1040sse = (
     // Deferral Worksheet for Schedule SE
 
     const ws = {} as any;
-
     ws.L1a = math.add(
       f1040.L25d, // taxes withheld
       f1040.L26,  // estimated tax payments
@@ -185,25 +183,20 @@ export const f1040sse = (
       f1040s3.L12d,  // other tax credits
     );
     ws.L1c = math.add(ws.L1a, ws.L1b);
-
     ws.L2 = f1040.L24; // total tax
-
     if ("f1040sh" in forms) {
       log.warn(`NOT_IMPLEMENTED: f1040sh deferrals L3a-L3b (i1040 pg 105)`);
       ws.L3c = "0";
     } else {
       ws.L3c = "0";
     }
-
     ws.L4 = math.add(ws.L2, ws.L3c);
-
     if ("f1040sh" in forms) {
       log.warn(`NOT_IMPLEMENTED: f1040sh deferrals L5 (i1040 pg 105)`);
       ws.L5 = "0";
     } else {
       ws.L5 = "0";
     }
-
     ws.L6 = f1040sse.L26;
     ws.L7 = math.add(ws.L5, ws.L6);
     ws.L8 = math.sub(ws.L4, ws.L7);
