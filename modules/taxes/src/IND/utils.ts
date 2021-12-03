@@ -41,7 +41,6 @@ export const isLongTermTrade = (row: TaxRow): boolean =>
 export const isShortTermTrade = (row: TaxRow): boolean =>
   toTime(row.date) - toTime(row.receiveDate) > msPerYear;
 
-// cut capital losses off at -1500/-3000 a la f1040sd.L21
 export const getTotalCapitalChange = (input: TaxInput, rows: TaxRows) =>
   getRowTotal(
     rows,
