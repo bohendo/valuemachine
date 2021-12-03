@@ -56,7 +56,7 @@ export const getTransactionsError = (transactionsJson: TransactionsJson): string
       ? formatErrors(validateTransactions.errors)
       : `Invalid Transactions`;
   }
-  const indexErrors = transactionsJson.map((tx, index) =>
+  const indexErrors = transactionsJson.map((tx: Transaction, index: number): string =>
     tx.index !== index ? `Invalid tx index, expected ${index} but got ${tx.index}` : ""
   ).filter(e => !!e);
   if (indexErrors.length) {

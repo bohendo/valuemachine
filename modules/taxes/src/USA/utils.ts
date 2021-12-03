@@ -20,7 +20,6 @@ import {
   after,
   before,
   daysInYear,
-  getRowTotal,
   getTotalValue,
   sumRows,
   toTime,
@@ -100,13 +99,13 @@ export const outsideUSA = (input, start, end) => {
 };
 
 ////////////////////////////////////////
-// Capital
+// Trades
 
 export const isLongTermTrade = (row: TaxRow): boolean =>
   toTime(row.date) - toTime(row.receiveDate) > msPerYear;
 
 export const isShortTermTrade = (row: TaxRow): boolean =>
-  toTime(row.date) - toTime(row.receiveDate) > msPerYear;
+  toTime(row.date) - toTime(row.receiveDate) <= msPerYear;
 
 export const getTrades = (year: Year, rows: TaxRows): TaxRows => 
   rows.filter(row =>
@@ -176,6 +175,15 @@ export const sumIncome = (year: Year, rows: TaxRows, incomeType: IncomeType): De
     && row.tag.incomeType === incomeType
   ));
 
+// get total non-business income
+export const getNonBusinessIncome = (year: Year, rows: TaxRows) =>
+  sumRows(rows.filter(row =>
+    row.taxYear === `${USA}${year}`
+    && row.action === TaxActions.Income
+    && row.tag.incomeType
+    && row.tag.incomeType !== IncomeTypes.Business
+  ));
+
 // Gross business income minus deductible expenses
 export const getNetBusinessIncome = (year: Year, rows: TaxRows) =>
   math.subToZero(
@@ -222,13 +230,7 @@ export const getTotalIncome = (year: Year, input: TaxInput, rows: TaxRows) =>
   math.sub(
     math.add(
       getNetBusinessIncome(year, rows),
-      // get total non-business income
-      getRowTotal(
-        rows,
-        TaxActions.Income,
-        {},
-        row => row.tag.incomeType === IncomeTypes.Business ? "0" : row.value
-      ),
+      getNonBusinessIncome(year, rows),
       getTotalCapitalChange(year, input, rows),
     ),
     getForeignEarnedIncomeExclusion(year, input, rows),
