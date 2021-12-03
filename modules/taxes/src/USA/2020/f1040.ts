@@ -13,15 +13,15 @@ import {
 } from "./const";
 import {
   Forms,
+  getIncomeTax,
+  getStandardDeduction,
+  getTotalCapitalChange,
+  getTotalDeductions,
   getTotalGrossIncome,
   getTotalIncome,
-  getStandardDeduction,
-  getTotalTax,
   getTotalIncomeAdjustments,
-  getTotalDeductions,
-  getIncomeTax,
+  getTotalTax,
   getTotalTaxableIncome,
-  getTotalCapitalChange,
   math,
   strcat,
   sumIncome,
@@ -90,6 +90,7 @@ export const f1040 = (
   f1040.L7 = getTotalCapitalChange(thisYear, input, rows);
   f1040.L9 = getTotalIncome(thisYear, input, rows);
   log.info(`Total income: f1040.L9=${f1040.L9}`);
+
   const L9 = math.add(
     f1040.L1,  // wages
     f1040.L2b, // taxable interest (f1040sb?)

@@ -11,12 +11,13 @@ import {
   Forms,
   getTrades,
   isLongTermTrade,
+  isShortTermTrade,
   math,
   strcat,
   toFormDate,
 } from "./utils";
 
-const { add, mul, round, sub } = math;
+const { add, mul, round } = math;
 
 export const f8949 = (
   forms: Forms,
@@ -48,7 +49,7 @@ export const f8949 = (
     (e,i) => i % rows.length === 0 ? list.slice(i, i + rows.length) : null,
   ).filter(e => !!e);
 
-  const shortPages = pageDivider(trades.filter(trade => !isLongTermTrade(trade)));
+  const shortPages = pageDivider(trades.filter(isShortTermTrade));
   const longPages = pageDivider(trades.filter(isLongTermTrade));
 
   const getLongCell = (row: number, column: string): string => `P2L1${column}R${row}`;
@@ -75,7 +76,7 @@ export const f8949 = (
       subF8949[getCell(i+1, "c")] = toFormDate(trade.date);
       subF8949[getCell(i+1, "d")] = proceeds;
       subF8949[getCell(i+1, "e")] = cost;
-      subF8949[getCell(i+1, "h")] = sub(proceeds, cost);
+      subF8949[getCell(i+1, "h")] = trade.capitalChange;
     };
     shortTerm.forEach(fillPage(getShortCell));
     longTerm.forEach(fillPage(getLongCell));

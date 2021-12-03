@@ -38,48 +38,58 @@ export const f1040sd = (
   ////////////////////////////////////////
   // Parts I & II - Sum up all gains/losses
 
-  f1040sd.L3d = sumShortTermTrades(thisYear, rows, row => row.value);
-  f1040sd.L3e = sumShortTermTrades(thisYear, rows, row => math.mul(row.amount, row.receivePrice));
-  f1040sd.L3h = sumShortTermTrades(thisYear, rows, row => row.capitalChange);
-  f1040sd.L10d = sumLongTermTrades(thisYear, rows, row => row.value);
-  f1040sd.L10e = sumLongTermTrades(thisYear, rows, row => math.mul(row.amount, row.receivePrice));
-  f1040sd.L10h = sumLongTermTrades(thisYear, rows, row => row.capitalChange);
-
-  /*
   ////////////////////////////////////////
   // Double check Parts I & II
   const f8949 = forms.f8949 || [];
+
   f8949.forEach(page => {
-    const shortRow = page.P1_CA ? "1b" : page.P1_CB ? "2" : page.P1_CC ? "3" : "";
-    if (!shortRow) return;
     for (const col of ["d", "e", "g", "h"]) {
-      f1040sd[`L${shortRow}${col}`] = math.add(
-        f1040sd[`L${shortRow}${col}`],
+      log.info(`Adding f8949.L3${col}=${page[`P1L2${col}`]} to f1040sd.L3${col}=${f1040sd[`L3${col}`]}`);
+      f1040sd[`L3${col}`] = math.add(
+        f1040sd[`L3${col}`],
         page[`P1L2${col}`],
       );
     }
-    const longRow = page.P2_CD ? "8b" : page.P2_CE ? "9" : page.P2_CF ? "10" : "";
-    if (!longRow) return;
     for (const col of ["d", "e", "g", "h"]) {
-      f1040sd[`L${longRow}${col}`] = math.add(
-        f1040sd[`L${longRow}${col}`],
+      log.info(`Adding f8949.L10${col}=${page[`P2L2${col}`]} to f1040sd.L10${col}=${f1040sd[`L10${col}`]}`);
+      f1040sd[`L10${col}`] = math.add(
+        f1040sd[`L10${col}`],
         page[`P2L2${col}`],
       );
     }
   });
-  if (!math.eq(shortTermProceeds, f1040sd.L3d))
-    log.warn(`DOUBLE_CHECK_FAILED: f1040sd.L3d=${f1040sd.L3d} !== ${shortTermProceeds}`);
-  if (!math.eq(shortTermCost, f1040sd.L3e))
-    log.warn(`DOUBLE_CHECK_FAILED: f1040sd.L3e=${f1040sd.L3e} !== ${shortTermCost}`);
-  if (!math.eq(shortTermChange, f1040sd.L3h))
-    log.warn(`DOUBLE_CHECK_FAILED: f1040sd.L3h=${f1040sd.L3h} !== ${shortTermChange}`);
-  if (!math.eq(longTermProceeds, f1040sd.L10d))
-    log.warn(`DOUBLE_CHECK_FAILED: f1040sd.L10d=${f1040sd.L10d} !== ${longTermProceeds}`);
-  if (!math.eq(longTermCost, f1040sd.L10e))
-    log.warn(`DOUBLE_CHECK_FAILED: f1040sd.L10e=${f1040sd.L10e} !== ${longTermCost}`);
-  if (!math.eq(longTermChange, f1040sd.L10h))
-    log.warn(`DOUBLE_CHECK_FAILED: f1040sd.L10h=${f1040sd.L10h} !== ${longTermChange}`);
-  */
+
+  const shortProceeds = sumShortTermTrades(thisYear, rows, row => row.value);
+  if (!math.eq(shortProceeds, f1040sd.L3d)) log.warn(
+    `DOUBLE_CHECK_FAILED: f1040sd.L3d=${f1040sd.L3d} !== shortProceeds=${shortProceeds}`
+  );
+
+  const shortCost = sumShortTermTrades(thisYear, rows, row =>
+    math.mul(row.amount, row.receivePrice)
+  );
+  if (!math.eq(shortCost, f1040sd.L3e)) log.warn(
+    `DOUBLE_CHECK_FAILED: f1040sd.L3e=${f1040sd.L3e} !== shortCost=${shortCost}`
+  );
+
+  const shortChange = sumShortTermTrades(thisYear, rows, row => row.capitalChange);
+  if (!math.eq(shortChange, f1040sd.L3h)) log.warn(
+    `DOUBLE_CHECK_FAILED: f1040sd.L3h=${f1040sd.L3h} !== shortChange=${shortChange}`
+  );
+
+  const longProceeds = sumLongTermTrades(thisYear, rows, row => row.value);
+  if (!math.eq(longProceeds, f1040sd.L10d)) log.warn(
+    `DOUBLE_CHECK_FAILED: f1040sd.L10d=${f1040sd.L10d} !== longProceeds=${longProceeds}`
+  );
+
+  const longCost = sumLongTermTrades(thisYear, rows, row => math.mul(row.amount, row.receivePrice));
+  if (!math.eq(longCost, f1040sd.L10e)) log.warn(
+    `DOUBLE_CHECK_FAILED: f1040sd.L10e=${f1040sd.L10e} !== longCost=${longCost}`
+  );
+
+  const longChange = sumLongTermTrades(thisYear, rows, row => row.capitalChange);
+  if (!math.eq(longChange, f1040sd.L10h)) log.warn(
+    `DOUBLE_CHECK_FAILED: f1040sd.L10h=${f1040sd.L10h} !== longChange=${longChange}`
+  );
 
   ////////////////////////////////////////
   // Capital Loss Carryover Worksheet i1040sd pg 11
