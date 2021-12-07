@@ -1,12 +1,12 @@
 import Typography from "@mui/material/Typography";
-import { Prices } from "@valuemachine/prices";
+import { PriceFns } from "@valuemachine/prices";
 import { BalanceTable, NetWorthTable } from "@valuemachine/react";
 import { AddressBook, Asset, ValueMachine } from "@valuemachine/types";
 import React from "react";
 
 type NetWorthProps = {
   addressBook: AddressBook;
-  prices: Prices;
+  prices: PriceFns;
   unit: Asset;
   vm: ValueMachine;
 };

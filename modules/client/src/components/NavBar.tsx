@@ -10,7 +10,7 @@ import AppBar from "@mui/material/AppBar";
 import IconButton from "@mui/material/IconButton";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { Prices, PricesJson } from "@valuemachine/prices";
+import { PriceFns, PriceJson } from "@valuemachine/prices";
 import {
   SelectOne,
   SyncEverything,
@@ -39,8 +39,8 @@ type PropTypes = {
   customTxns: TransactionsJson;
   syncMsg: string;
   setSyncMsg: (val: string) => void;
-  prices: Prices;
-  setPricesJson: (val: PricesJson) => void;
+  prices: PriceFns;
+  setPricesJson: (val: PriceJson) => void;
   setTaxRows: (val: TaxRows) => void;
   setTheme: (val: Asset) => void;
   setTransactionsJson: (val: TransactionsJson) => void;

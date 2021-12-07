@@ -1,4 +1,4 @@
-import { Prices } from "@valuemachine/prices";
+import { PriceFns } from "@valuemachine/prices";
 import { PhysicalGuards } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -29,7 +29,7 @@ export const getTaxRows = async ({
   vm,
 }: {
   addressBook: AddressBook;
-  prices: Prices;
+  prices: PriceFns;
   txTags?: TxTags,
   userUnit?: Asset;
   vm: ValueMachine;

@@ -6,14 +6,14 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { Prices } from "@valuemachine/prices";
+import { PriceFns } from "@valuemachine/prices";
 import { Asset, Balances } from "@valuemachine/types";
 import { add, div, gt, lt, mul, round } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 type NetWorthTableProps = {
   balances: Balances;
-  prices: Prices;
+  prices: PriceFns;
   unit: Asset;
 };
 export const NetWorthTable: React.FC<NetWorthTableProps> = ({

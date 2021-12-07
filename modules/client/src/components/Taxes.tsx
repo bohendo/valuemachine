@@ -7,7 +7,7 @@ import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import { SyncTaxRows, TaxPorter, TaxSummary, TaxTable } from "@valuemachine/react";
 import { Guards } from "@valuemachine/transactions";
-import { Prices } from "@valuemachine/prices";
+import { PriceFns } from "@valuemachine/prices";
 import {
   AddressBook,
   Asset,
@@ -25,7 +25,7 @@ const allGuards = "All";
 type TaxesExplorerProps = {
   addressBook?: AddressBook;
   globalSyncMsg: string;
-  prices?: Prices;
+  prices?: PriceFns;
   setTaxRows: (val: TaxRows) => void;
   setTxTags: (val: TxTags) => void;
   taxInput: TaxInput;

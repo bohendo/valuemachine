@@ -8,7 +8,7 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { Prices, PricesJson } from "@valuemachine/prices";
+import { PriceFns, PriceJson } from "@valuemachine/prices";
 import {
   Cryptocurrencies,
   FiatCurrencies,
@@ -20,7 +20,7 @@ import React, { useEffect, useState } from "react";
 import { DateInput, SelectOne } from "../utils";
 
 type PriceTableProps = {
-  prices: Prices;
+  prices: PriceFns;
   unit: Asset,
 };
 export const PriceTable: React.FC<PriceTableProps> = ({
@@ -31,11 +31,11 @@ export const PriceTable: React.FC<PriceTableProps> = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [filterAsset, setFilterAsset] = useState("");
   const [filterDate, setFilterDate] = useState("");
-  const [filteredPrices, setFilteredPrices] = useState({} as PricesJson);
+  const [filteredPrices, setFilteredPrices] = useState({} as PriceJson);
 
   useEffect(() => {
     if (!prices) return;
-    const newFilteredPrices = {} as PricesJson;
+    const newFilteredPrices = {} as PriceJson;
     Object.entries(prices.json).forEach(([date, priceList]) => {
       if (filterDate && !date.startsWith(filterDate.split("T")[0])) return null;
       if (Object.keys(priceList).length === 0) return null;

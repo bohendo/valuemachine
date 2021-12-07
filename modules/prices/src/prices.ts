@@ -29,12 +29,12 @@ import axios from "axios";
 // curl https://api.coingecko.com/api/v3/coins/list
 // | jq 'map({ key: .symbol, value: .id }) | from_entries' > ./coingecko.json
 import * as coingecko from "./coingecko.json";
-import { Prices, PricesJson, PricesParams } from "./types";
+import { PriceFns, PriceJson, PricesParams } from "./types";
 import { getEmptyPrices, getPricesError } from "./utils";
 
 const { ETH, WETH } = Assets;
 
-export const getPrices = (params?: PricesParams): Prices => {
+export const getPrices = (params?: PricesParams): PriceFns => {
   const { logger, json: pricesJson, save, unit: defaultUnit } = params || {};
   const json = pricesJson || getEmptyPrices();
   const log = (logger || getLogger()).child({ module: "Prices" });
@@ -423,7 +423,7 @@ export const getPrices = (params?: PricesParams): Prices => {
     return undefined;
   };
 
-  const merge = (prices: PricesJson): void => {
+  const merge = (prices: PriceJson): void => {
     Object.entries(prices).forEach(([date, priceList]) => {
       Object.entries(priceList).forEach(([unit, prices]) => {
         Object.entries(prices).forEach(([asset, price]) => {
@@ -487,9 +487,9 @@ export const getPrices = (params?: PricesParams): Prices => {
     return json[date][unit][asset];
   };
 
-  const syncChunks = async (chunks: AssetChunk[], givenUnit?: Asset): Promise<PricesJson> => {
+  const syncChunks = async (chunks: AssetChunk[], givenUnit?: Asset): Promise<PriceJson> => {
     const unit = formatUnit(givenUnit);
-    const chunkPrices = {} as PricesJson;
+    const chunkPrices = {} as PriceJson;
     chunks
       // Gather all the unique dates on which a swap occured
       .reduce((dates, chunk) => {

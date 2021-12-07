@@ -5,6 +5,8 @@ export {
 } from "@valuemachine/core";
 export {
   getPrices,
+  PriceFns,
+  PriceJson,
 } from "@valuemachine/prices";
 export * as components from "@valuemachine/react";
 export {

@@ -2,7 +2,7 @@ import SyncIcon from "@mui/icons-material/Sync";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
-import { Prices, PricesJson } from "@valuemachine/prices";
+import { PriceFns, PriceJson } from "@valuemachine/prices";
 import {
   AddressBook,
   Asset,
@@ -24,8 +24,8 @@ type SyncEverythingProps = {
   addressBook: AddressBook;
   csvFiles: CsvFiles;
   customTxns: TransactionsJson;
-  prices: Prices;
-  setPricesJson: (val: PricesJson) => void;
+  prices: PriceFns;
+  setPricesJson: (val: PriceJson) => void;
   setSyncMsg: (val: string) => void;
   setTaxRows: (val: TaxRows) => void;
   setTransactionsJson: (val: TransactionsJson) => void;
