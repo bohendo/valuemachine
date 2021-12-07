@@ -1,4 +1,4 @@
-import { getPrices } from "@valuemachine/core";
+import { getPrices } from "@valuemachine/prices";
 import { getLogger } from "@valuemachine/utils";
 import express from "express";
 import axios from "axios";

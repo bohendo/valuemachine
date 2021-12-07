@@ -112,9 +112,14 @@ test-core: core
 watch-core: transactions
 	bash ops/test-unit.sh core watch
 
+test-prices: prices
+	bash ops/test-unit.sh prices test
+watch-prices: core
+	bash ops/test-unit.sh prices watch
+
 test-taxes: taxes
 	bash ops/test-unit.sh taxes test
-watch-taxes: core
+watch-taxes: prices
 	bash ops/test-unit.sh taxes watch
 
 test-react: react
@@ -131,6 +136,8 @@ test-all: package
 	bash ops/test-unit.sh transactions test
 	@sleep 1
 	bash ops/test-unit.sh core test
+	@sleep 1
+	bash ops/test-unit.sh prices test
 	@sleep 1
 	bash ops/test-unit.sh taxes test
 	@sleep 1
@@ -179,17 +186,22 @@ core: transactions utils types $(shell find modules/core $(find_options))
 	$(docker_run) "cd modules/core && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-taxes: core transactions utils types $(shell find modules/taxes $(find_options))
+prices: core $(shell find modules/prices $(find_options))
+	$(log_start)
+	$(docker_run) "cd modules/prices && npm run build"
+	$(log_finish) && mv -f $(totalTime) .flags/$@
+
+taxes: prices core transactions utils types $(shell find modules/taxes $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/taxes && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-react: taxes core transactions utils types $(shell find modules/react/src $(find_options))
+react: taxes prices core transactions utils types $(shell find modules/react/src $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/react && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@
 
-package: react core transactions utils types $(shell find modules/package $(find_options))
+package: react prices core transactions utils types $(shell find modules/package $(find_options))
 	$(log_start)
 	$(docker_run) "cd modules/package && npm run build"
 	$(log_finish) && mv -f $(totalTime) .flags/$@

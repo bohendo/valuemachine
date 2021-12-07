@@ -1,4 +1,5 @@
-import { getValueMachine, getPrices } from "@valuemachine/core";
+import { getValueMachine } from "@valuemachine/core";
+import { getPrices } from "@valuemachine/prices";
 import {
   Assets,
   CsvSources,

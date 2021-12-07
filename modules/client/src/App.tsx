@@ -1,9 +1,11 @@
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 import {
-  getPrices,
   getValueMachine,
 } from "@valuemachine/core";
+import {
+  getPrices,
+} from "@valuemachine/prices";
 import {
   Assets,
   PhysicalGuards,

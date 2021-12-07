@@ -1,9 +1,11 @@
 export {
-  getPrices,
   getValueMachine,
   describeChunk,
   describeEvent,
 } from "@valuemachine/core";
+export {
+  getPrices,
+} from "@valuemachine/prices";
 export * as components from "@valuemachine/react";
 export {
   describeTransaction,
