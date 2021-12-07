@@ -1,17 +1,23 @@
-import { PriceFns } from "@valuemachine/prices";
-import { PhysicalGuards } from "@valuemachine/transactions";
+import {
+  TradeEvent,
+  GuardChangeEvent,
+  EventTypes,
+  ValueMachine,
+} from "@valuemachine/core";
+import {
+  PriceFns,
+} from "@valuemachine/prices";
+import {
+  PhysicalGuards,
+} from "@valuemachine/transactions";
 import {
   AddressBook,
   Asset,
   DateString,
   DateTimeString,
-  EventTypes,
-  GuardChangeEvent,
   TaxActions,
   TaxRows,
-  TradeEvent,
   TxTags,
-  ValueMachine,
 } from "@valuemachine/types";
 import {
   chrono,

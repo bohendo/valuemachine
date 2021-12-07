@@ -8,8 +8,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
-  Account,
-  AddressBook,
   ErrorEvent,
   Event,
   EventErrorCodes,
@@ -17,8 +15,12 @@ import {
   GuardChangeEvent,
   HydratedEvent,
   TradeEvent,
-  TxTags,
   ValueMachine,
+} from "@valuemachine/core";
+import {
+  Account,
+  AddressBook,
+  TxTags,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 

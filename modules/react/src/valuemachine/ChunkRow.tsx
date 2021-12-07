@@ -10,8 +10,10 @@ import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
-  AddressBook,
   AssetChunk,
+} from "@valuemachine/core";
+import {
+  AddressBook,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 

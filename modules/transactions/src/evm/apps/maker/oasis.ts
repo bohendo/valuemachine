@@ -7,10 +7,10 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { math, diffBalances, sumTransfers } from "@valuemachine/utils";
+import { math, diffBalances } from "@valuemachine/utils";
 
 import { Apps, Methods } from "../../enums";
-import { parseEvent } from "../../utils";
+import { parseEvent, sumTransfers } from "../../utils";
 
 import { exchangeAddresses } from "./addresses";
 import { findDSProxies } from "./proxy";

@@ -1,9 +1,14 @@
 import { Static, Type } from "@sinclair/typebox";
-
-import { Logger } from "./logger";
-import { Account, Asset, DecString, DateTimeString } from "./strings";
-import { Transaction } from "./transactions";
-import { Tag } from "./txTags";
+import {
+  Account,
+  Asset,
+  Balances,
+  DateTimeString,
+  DecString,
+  Tag,
+  Transaction,
+} from "@valuemachine/types";
+import pino from "pino";
 
 ////////////////////////////////////////
 // JSON Schema
@@ -29,8 +34,6 @@ export type AssetChunk = Static<typeof AssetChunk>;
 export const AssetChunks = Type.Array(AssetChunk);
 export type AssetChunks = Static<typeof AssetChunks>;
 
-export const Balances = Type.Record(Type.String(), DecString);
-export type Balances = Static<typeof Balances>;
 
 export const EventTypes = {
   Debt: "Debt",
@@ -228,7 +231,7 @@ export type ValueMachineJson = Static<typeof ValueMachineJson>;
 
 export type ValueMachineParams = {
   json?: ValueMachineJson;
-  logger?: Logger;
+  logger?: pino.Logger;
 };
 
 export interface ValueMachine {
@@ -240,3 +243,4 @@ export interface ValueMachine {
   getNetWorth: (account?: string) => Balances;
   json: ValueMachineJson;
 }
+

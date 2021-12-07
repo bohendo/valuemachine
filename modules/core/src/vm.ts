@@ -1,29 +1,34 @@
 import {
   Account,
   Asset,
-  AssetChunk,
   Balances,
-  ChunkIndex,
   DecString,
+  OutgoingTransfers,
+  Transaction,
+  TransferCategories,
+} from "@valuemachine/types";
+import {
+  describeBalance,
+  getLogger,
+  math,
+} from "@valuemachine/utils";
+
+import {
+  AssetChunk,
+  ChunkIndex,
   EventErrorCodes,
   Events,
   EventTypes,
   HydratedAssetChunk,
   HydratedEvent,
-  OutgoingTransfers,
-  Transaction,
-  TransferCategories,
   ValueMachine,
   ValueMachineParams,
-} from "@valuemachine/types";
+} from "./types";
 import {
-  describeBalance,
   getEmptyValueMachine,
-  getLogger,
   getValueMachineError,
-  math,
   sumChunks,
-} from "@valuemachine/utils";
+} from "./utils";
 
 const { add, eq, gt, lt, max, mul, sub } = math;
 const {

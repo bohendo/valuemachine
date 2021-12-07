@@ -1,9 +1,9 @@
+import { ValueMachine } from "@valuemachine/core";
 import { getTaxRows } from "@valuemachine/taxes";
 import { PriceFns } from "@valuemachine/prices";
 import {
   AddressBook,
   Asset,
-  ValueMachine,
   TaxRows,
   TxTags,
 } from "@valuemachine/types";

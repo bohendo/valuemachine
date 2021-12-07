@@ -1,11 +1,11 @@
 import {
-  Transactions,
   ValueMachine,
-  ValueMachineJson,
-} from "@valuemachine/types";
-import {
   getValueMachineError,
-} from "@valuemachine/utils";
+  ValueMachineJson,
+} from "@valuemachine/core";
+import {
+  Transactions,
+} from "@valuemachine/types";
 
 export const processTxns = async ({
   setSyncMsg,

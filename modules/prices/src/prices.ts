@@ -1,4 +1,7 @@
 import {
+  AssetChunk,
+} from "@valuemachine/core";
+import {
   Assets,
   EvmAssets,
   FiatCurrencies,
@@ -6,7 +9,6 @@ import {
 } from "@valuemachine/transactions";
 import {
   Asset,
-  AssetChunk,
   Balances,
   DateString,
   DecString,

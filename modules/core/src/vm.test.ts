@@ -6,13 +6,9 @@ import {
   Sources,
 } from "@valuemachine/transactions";
 import {
-  EventTypes,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  getValueMachineError,
-  math,
-} from "@valuemachine/utils";
+import { math } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { getValueMachine } from "./vm";
@@ -23,6 +19,12 @@ import {
   getTestAddressBook,
   testLogger,
 } from "./testUtils";
+import {
+  EventTypes,
+} from "./types";
+import {
+  getValueMachineError,
+} from "./utils";
 
 const { add, sub } = math;
 const { ETH, DAI, UniV2_UNI_ETH, UNI, USD } = Assets;

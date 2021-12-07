@@ -1,4 +1,5 @@
-import { Asset, AssetChunk, DateString, DecString, DateTimeString } from "@valuemachine/types";
+import { AssetChunk } from "@valuemachine/core";
+import { Asset, DateString, DecString, DateTimeString } from "@valuemachine/types";
 import { Static, Type } from "@sinclair/typebox";
 import pino from "pino";
 

@@ -5,9 +5,10 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import { AddressBook, ValueMachine } from "@valuemachine/types";
-import React, { useEffect, useState } from "react";
+import { ValueMachine } from "@valuemachine/core";
+import { AddressBook } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
+import React, { useEffect, useState } from "react";
 
 import { HexString } from "../utils";
 

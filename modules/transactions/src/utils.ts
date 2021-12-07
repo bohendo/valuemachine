@@ -2,18 +2,27 @@ import { hexlify, hexZeroPad } from "@ethersproject/bytes";
 import {
   AddressBook,
   Asset,
+  Balances,
   Guard,
   Transaction,
   Transfer,
+  Value,
   TransferCategories,
 } from "@valuemachine/types";
-import { describeBalance, diffBalances, math, sumTransfers } from "@valuemachine/utils";
+import {
+  describeBalance,
+  diffBalances,
+  math,
+  sumValue,
+} from "@valuemachine/utils";
 
 import { Assets, Guards, Methods } from "./enums";
 
 const {
   Fee, Income, Expense, SwapIn, SwapOut, Refund, Borrow, Repay, Internal,
 } = TransferCategories;
+
+export const sumTransfers = (transfers: Transfer[]): Balances => sumValue(transfers as Value[]);
 
 export const describeTransaction = (addressBook: AddressBook, tx: Transaction): string => {
   const fees = tx.transfers.filter(t => t.category === Fee);

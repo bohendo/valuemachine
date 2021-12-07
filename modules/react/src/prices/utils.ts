@@ -1,10 +1,12 @@
 import {
+  ValueMachine,
+} from "@valuemachine/core";
+import {
   PriceFns,
   PriceJson,
 } from "@valuemachine/prices";
 import {
   Asset,
-  ValueMachine,
 } from "@valuemachine/types";
 import axios from "axios";
 

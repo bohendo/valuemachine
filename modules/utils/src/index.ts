@@ -11,8 +11,8 @@ export {
   sortAddressEntries,
 } from "./addressBook";
 export {
-  getEmptyCsvFiles,
   getCsvFilesError,
+  getEmptyCsvFiles,
 } from "./csv";
 export {
   getEmptyEvmData,
@@ -25,10 +25,13 @@ export {
 } from "./logger";
 export * as math from "./math";
 export {
-  dedup,
   assetsAreClose,
-  valuesAreClose,
   chrono,
+  dedup,
+  describeBalance,
+  diffBalances,
+  sumValue,
+  valuesAreClose,
 } from "./misc";
 export {
   digest,
@@ -66,12 +69,3 @@ export {
   ajv,
   formatErrors,
 } from "./validate";
-export {
-  describeBalance,
-  diffBalances,
-  getEmptyValueMachine,
-  getValueMachineError,
-  mergeBalances,
-  sumChunks,
-  sumTransfers,
-} from "./vm";

@@ -19,6 +19,8 @@ import { math } from "@valuemachine/utils";
 
 import { Guards } from "../enums";
 
+export { sumTransfers } from "../utils";
+
 export const describeAbi = (abi: any) => {
   const iface = new Interface(abi);
   return [

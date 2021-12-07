@@ -2,9 +2,11 @@ import SyncIcon from "@mui/icons-material/Sync";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import {
+  ValueMachine,
+} from "@valuemachine/core";
+import {
   Transactions,
   TransactionsJson,
-  ValueMachine,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 

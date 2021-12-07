@@ -2,7 +2,14 @@ import SyncIcon from "@mui/icons-material/Sync";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
-import { PriceFns, PriceJson } from "@valuemachine/prices";
+import {
+  ValueMachine,
+  ValueMachineJson,
+} from "@valuemachine/core";
+import {
+  PriceFns,
+  PriceJson,
+} from "@valuemachine/prices";
 import {
   AddressBook,
   Asset,
@@ -10,8 +17,6 @@ import {
   TaxRows,
   TransactionsJson,
   TxTags,
-  ValueMachine,
-  ValueMachineJson,
 } from "@valuemachine/types";
 import React from "react";
 

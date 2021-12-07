@@ -1,5 +1,10 @@
-export { getAddressBook } from "./addressBook";
-export { cleanCsv, parseCsv } from "./csv";
+export {
+  getAddressBook
+} from "./addressBook";
+export {
+  cleanCsv,
+  parseCsv,
+} from "./csv";
 export {
   Apps,
   Assets,
@@ -25,5 +30,11 @@ export {
   parseEvmTx,
   publicAddresses,
 } from "./evm";
-export { getTransactions } from "./manager";
-export { describeTransaction, getTestTx } from "./utils";
+export {
+  getTransactions,
+} from "./manager";
+export {
+  describeTransaction,
+  getTestTx,
+  sumTransfers,
+} from "./utils";
