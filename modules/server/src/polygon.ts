@@ -1,7 +1,12 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
-import { getAddressBook, getPolygonData, Guards } from "@valuemachine/transactions";
-import { getLogger, getAddressBookError } from "@valuemachine/utils";
 import express from "express";
+import {
+  getAddressBook,
+  getAddressBookError,
+  getPolygonData,
+  getLogger,
+  Guards,
+} from "valuemachine";
 
 import { env } from "./env";
 import { getPollerHandler } from "./poller";

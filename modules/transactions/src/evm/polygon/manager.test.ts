@@ -22,7 +22,7 @@ describe.skip("Polygon Data Manager", () => {
   beforeEach(() => {
     polygonData = getPolygonData({
       covalentKey: env.covalentKey,
-      store: testStore,
+      save: val => testStore.save("PolygonData", val),
       logger,
     });
   });

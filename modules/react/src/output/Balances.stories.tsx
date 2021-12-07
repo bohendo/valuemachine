@@ -3,13 +3,13 @@ import { ComponentStory, ComponentMeta } from "@storybook/react";
 
 import { balances } from "../constants";
 
-import { Balances } from "./Balances";
+import { BalanceDisplay } from "./Balances";
 
 export default {
   title: "Balances",
-  component: Balances,
-} as ComponentMeta<typeof Balances>;
-const Template: ComponentStory<typeof Balances> = (args) => <Balances {...args} />;
+  component: BalanceDisplay,
+} as ComponentMeta<typeof BalanceDisplay>;
+const Template: ComponentStory<typeof BalanceDisplay> = (args) => <BalanceDisplay {...args} />;
 
 export const Example = Template.bind({});
 Example.args = {

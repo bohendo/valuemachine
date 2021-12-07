@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { Logger } from "./logger";
-import { Store } from "./store";
 import { AddressBook } from "./addressBook";
 import { Transaction, TransactionsJson } from "./transactions";
 import {
@@ -84,7 +83,7 @@ export type EvmDataParams = {
   providerUrl?: string;
   json?: EvmDataJson;
   logger?: Logger;
-  store?: Store;
+  save?: (val: EvmDataJson) => void;
 };
 
 export interface EvmData {

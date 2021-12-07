@@ -1,6 +1,5 @@
 import {
   CsvParser,
-  StoreKeys,
   Transactions,
   TransactionsJson,
   TransactionsParams,
@@ -14,17 +13,17 @@ import { parseCsv } from "./csv";
 import { mergeTransaction } from "./merge";
 
 export const getTransactions = (params?: TransactionsParams): Transactions => {
-  const { json: transactionsJson, logger, store } = params || {};
+  const { json: transactionsJson, logger, save } = params || {};
 
   const log = (logger || getLogger()).child({ module: "Transactions" });
-  const json = transactionsJson || (store ? store.load(StoreKeys.Transactions) : []);
+  const json = transactionsJson || [] as TransactionsJson;
 
   const error = getTransactionsError(json);
   if (error) throw new Error(error);
 
   log.debug(`Loaded transaction data containing ${
     json.length
-  } transactions from ${transactionsJson ? "input" : store ? "store" : "default"}`);
+  } transactions from ${transactionsJson ? "input" : "default"}`);
 
   ////////////////////////////////////////
   // Internal Helper Methods
@@ -37,10 +36,9 @@ export const getTransactions = (params?: TransactionsParams): Transactions => {
     } else {
       log.debug("All transactions have been validated");
     }
-    if (store) {
-      // Save to store
+    if (save) {
       log.info(`Saving ${json.length} transactions to storage`);
-      store.save(StoreKeys.Transactions, json);
+      save?.(json);
     }
   };
 

@@ -11,7 +11,7 @@ import { gt } from "@valuemachine/utils";
 
 import { HexString } from "../utils";
 
-import { Balances } from "./Balances";
+import { BalanceDisplay } from "./Balances";
 
 type BalanceTableProps = {
   addressBook: AddressBook;
@@ -53,7 +53,7 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
                       <HexString value={account} display={addressBook.getName(account, true)}/>
                     </TableCell>
                     <TableCell>
-                      <Balances balances={balances}/>
+                      <BalanceDisplay balances={balances}/>
                     </TableCell>
                   </TableRow>
                 ) : null)

@@ -5,20 +5,23 @@ import Grid from "@mui/material/Grid";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import { SyncTaxRows, TaxPorter, TaxSummary, TaxTable } from "@valuemachine/react";
-import { Guards } from "@valuemachine/transactions";
-import { PriceFns } from "@valuemachine/prices";
+import React, { useEffect, useState } from "react";
 import {
   AddressBook,
   Asset,
+  dedup,
   Guard,
-  ValueMachine,
+  Guards,
+  PriceFns,
+  SyncTaxRows,
   TaxInput,
+  TaxPorter,
   TaxRows,
+  TaxSummary,
+  TaxTable,
   TxTags,
-} from "@valuemachine/types";
-import { dedup } from "@valuemachine/utils";
-import React, { useEffect, useState } from "react";
+  ValueMachine,
+} from "valuemachine";
 
 const allGuards = "All";
 

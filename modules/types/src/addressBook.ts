@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { Logger } from "./logger";
-import { Store } from "./store";
 import { Account, Guard } from "./strings";
 
 ////////////////////////////////////////
@@ -60,7 +59,7 @@ export type AddressBookParams = {
   json?: AddressBookJson | AddressEntry[]; // for user-defined addresses saved eg in localstorage
   hardcoded?: AddressEntry[]; // for list of addresess saved in app-level code
   logger?: Logger;
-  store?: Store;
+  save?: (val: AddressBookJson) => void;
 }
 
 export interface AddressBook {

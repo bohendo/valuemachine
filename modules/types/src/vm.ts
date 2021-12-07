@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 
 import { Logger } from "./logger";
-import { Store } from "./store";
 import { Account, Asset, DecString, DateTimeString } from "./strings";
 import { Transaction } from "./transactions";
 import { Tag } from "./txTags";
@@ -230,7 +229,6 @@ export type ValueMachineJson = Static<typeof ValueMachineJson>;
 export type ValueMachineParams = {
   json?: ValueMachineJson;
   logger?: Logger;
-  store?: Store;
 };
 
 export interface ValueMachine {
@@ -241,5 +239,4 @@ export interface ValueMachine {
   getEvent: (index: number) => HydratedEvent;
   getNetWorth: (account?: string) => Balances;
   json: ValueMachineJson;
-  save: () => void;
 }

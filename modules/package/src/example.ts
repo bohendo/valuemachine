@@ -3,15 +3,16 @@ import path from "path";
 
 import {
   getAddressBook,
+  getEthereumData,
+  getFileStore,
   getPrices,
   getTransactions,
-  getEthereumData,
   getValueMachine,
   types,
   utils,
 } from "."; // replace "." with "valuemachine" in your code
 
-const { getFileStore, getLogger, mul, round, sub } = utils;
+const { getLogger, mul, round, sub } = utils;
 const { AddressCategories, EventTypes } = types;
 const logger = getLogger("info");
 
@@ -35,7 +36,7 @@ const transactions = getTransactions({ logger });
   const chainData = getEthereumData({
     etherscanKey: process.env.ETHERSCAN_KEY,
     logger,
-    store,
+    save: val => store.save("EthereumData", val),
   });
 
   // Fetch eth chain data, this can take a while
@@ -52,7 +53,7 @@ const transactions = getTransactions({ logger });
 
   // Create a price fetcher & fetch the relevant prices
   const unit = "USD";
-  const prices = getPrices({ logger, save: val => store.save("Prices" as any, val), unit });
+  const prices = getPrices({ logger, save: val => store.save("Prices", val), unit });
   for (const chunk of vm.json.chunks) {
     const { asset, history, disposeDate } = chunk;
     for (const date of [history[0]?.date, disposeDate]) {

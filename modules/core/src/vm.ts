@@ -11,7 +11,6 @@ import {
   HydratedAssetChunk,
   HydratedEvent,
   OutgoingTransfers,
-  StoreKeys,
   Transaction,
   TransferCategories,
   ValueMachine,
@@ -37,11 +36,10 @@ const {
 } = TransferCategories;
 
 export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
-  const { logger, store, json: vmJson } = params || {};
+  const { logger, json: vmJson } = params || {};
 
   const log = (logger || getLogger()).child({ module: "ValueMachine" });
-  const json = vmJson || store?.load(StoreKeys.ValueMachine) || getEmptyValueMachine();
-  const save = (): void => store?.save(StoreKeys.ValueMachine, json);
+  const json = vmJson || getEmptyValueMachine();
 
   const error = getValueMachineError(json);
   if (error) throw new Error(error);
@@ -596,6 +594,5 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
     getEvent,
     getNetWorth,
     json,
-    save,
   };
 };

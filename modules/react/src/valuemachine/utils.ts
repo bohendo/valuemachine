@@ -41,7 +41,7 @@ export const processTxns = async ({
       setSyncMsg?.(`Processing txns ${transaction.index - gauge}-${
         transaction.index + chunk - gauge
       } at a rate of ${Math.round((10 * 1000 * gauge)/(Date.now() - start))/10} tx/sec`);
-      vm.save();
+      setVMJson(vm.json);
       start = Date.now();
     }
     await new Promise(res => setTimeout(res, 1)); // Yield to other pending operations

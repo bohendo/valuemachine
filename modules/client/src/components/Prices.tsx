@@ -2,9 +2,14 @@ import ClearIcon from "@mui/icons-material/Delete";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
-import { PriceTable, SyncPrices } from "@valuemachine/react";
-import { PriceFns, PriceJson } from "@valuemachine/prices";
-import { Asset, ValueMachine } from "@valuemachine/types";
+import {
+  Asset,
+  PriceFns,
+  PriceJson,
+  PriceTable,
+  SyncPrices,
+  ValueMachine,
+} from "valuemachine";
 import React from "react";
 
 type PropTypes = {

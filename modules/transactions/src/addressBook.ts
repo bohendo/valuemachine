@@ -9,7 +9,6 @@ import {
   AddressCategories,
   AddressCategory,
   AddressEntry,
-  StoreKeys,
 } from "@valuemachine/types";
 import {
   fmtAddress,
@@ -23,9 +22,9 @@ import { Guards } from "./enums";
 import { publicAddresses } from "./evm";
 
 export const getAddressBook = (params?: AddressBookParams): AddressBook => {
-  const { json: addressBookJson, hardcoded, logger, store } = params || {};
+  const { json: addressBookJson, hardcoded, logger } = params || {};
   const log = (logger || getLogger()).child({ module: "AddressBook" });
-  const input = addressBookJson || store?.load(StoreKeys.AddressBook) || getEmptyAddressBook();
+  const input = addressBookJson || getEmptyAddressBook();
   const json = input.length ? (input as AddressEntry[]).reduce((out, entry) => {
     out[entry.address] = entry;
     return out;

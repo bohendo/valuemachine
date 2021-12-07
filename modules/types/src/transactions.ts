@@ -10,7 +10,6 @@ import {
   Source,
   TxId,
 } from "./strings";
-import { Store } from "./store";
 import { Tag } from "./txTags";
 
 ////////////////////////////////////////
@@ -72,7 +71,7 @@ export type TransactionsJson = Static<typeof TransactionsJson>;
 export type TransactionsParams = {
   json?: TransactionsJson;
   logger?: Logger;
-  store?: Store;
+  save?: (val: TransactionsJson) => void;
 };
 
 export type Transactions = {

@@ -1,5 +1,5 @@
-import { getLogger } from "@valuemachine/utils";
 import express from "express";
+import { getLogger } from "valuemachine";
 
 import { env } from "./env";
 import { ethereumRouter } from "./ethereum";

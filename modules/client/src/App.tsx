@@ -1,30 +1,16 @@
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
-import {
-  getValueMachine,
-} from "@valuemachine/core";
-import {
-  getEmptyPrices,
-  getPrices,
-  getPricesError,
-} from "@valuemachine/prices";
+import React, { useEffect, useState } from "react";
+import { Route, Routes } from "react-router-dom";
 import {
   Assets,
-  PhysicalGuards,
-  getAddressBook,
-  getTransactions,
-} from "@valuemachine/transactions";
-import {
-  IncomeTypes,
-  StoreKeys,
-  Transaction,
-} from "@valuemachine/types";
-import {
   fmtAddressBook,
+  getAddressBook,
   getAddressBookError,
   getCsvFilesError,
   getEmptyAddressBook,
   getEmptyCsvFiles,
+  getEmptyPrices,
   getEmptyTaxInput,
   getEmptyTaxRows,
   getEmptyTransactions,
@@ -32,14 +18,19 @@ import {
   getEmptyValueMachine,
   getLocalStore,
   getLogger,
+  getPrices,
+  getPricesError,
   getTaxInputError,
   getTaxRowsError,
+  getTransactions,
   getTransactionsError,
   getTxTagsError,
+  getValueMachine,
   getValueMachineError,
-} from "@valuemachine/utils";
-import React, { useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+  IncomeTypes,
+  PhysicalGuards,
+  Transaction,
+} from "valuemachine";
 
 import { InputDataManager } from "./components/InputData";
 import { NetWorthExplorer } from "./components/NetWorth";
@@ -53,12 +44,10 @@ const logger = getLogger("warn");
 const store = getLocalStore(localStorage);
 
 // localstorage keys
-const {
-  AddressBook: AddressBookStore,
-  CsvFiles: CsvStore,
-  Transactions: TransactionsStore,
-  ValueMachine: ValueMachineStore,
-} = StoreKeys;
+const AddressBookStore = "AddressBook" as any;
+const CsvStore = "Csv" as any;
+const TransactionsStore = "Transactions" as any;
+const ValueMachineStore = "ValueMachine" as any;
 const PricesStore = "Prices" as any;
 const UnitStore = "Unit" as any;
 const CustomTxnsStore = "CustomTransactions" as any;

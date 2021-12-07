@@ -2,7 +2,7 @@ import SyncIcon from "@mui/icons-material/Sync";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import {
-  Prices,
+  PriceFns,
 } from "@valuemachine/prices";
 import {
   AddressBook,
@@ -18,7 +18,7 @@ import { syncTaxRows } from "./utils";
 type SyncTaxRowsProps = {
   addressBook?: AddressBook;
   disabled?: boolean;
-  prices?: Prices;
+  prices?: PriceFns;
   setTaxRows: (val: TaxRows) => void;
   txTags: TxTags;
   unit?: Asset;

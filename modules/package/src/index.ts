@@ -9,6 +9,7 @@ export {
   PriceJson,
 } from "@valuemachine/prices";
 export * as components from "@valuemachine/react";
+export * from "@valuemachine/react";
 export {
   describeTransaction,
   getAddressBook,
@@ -17,5 +18,9 @@ export {
   getTransactions,
   publicAddresses,
 } from "@valuemachine/transactions";
+export * from "@valuemachine/types";
 export * as types from "@valuemachine/types";
+export * from "@valuemachine/utils";
 export * as utils from "@valuemachine/utils";
+
+export { getLocalStore, getFileStore } from "./utils";

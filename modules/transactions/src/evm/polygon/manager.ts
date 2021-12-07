@@ -8,8 +8,6 @@ import {
   EvmMetadata,
   EvmParsers,
   Logger,
-  Store,
-  StoreKeys,
   Transaction,
   TransactionsJson,
 } from "@valuemachine/types";
@@ -34,26 +32,23 @@ export const getPolygonData = ({
   polygonscanKey,
   json: polygonDataJson,
   logger,
-  store,
+  save,
 }: {
   covalentKey?: string,
   polygonscanKey?: string,
   json?: EvmDataJson;
   logger?: Logger,
-  store?: Store,
+  save?: (val: EvmDataJson) => void,
 }): EvmData => {
   const log = (logger || getLogger()).child?.({ module: "PolygonData" });
-  const json = polygonDataJson || store?.load(StoreKeys.PolygonData) || getEmptyEvmData();
-  const save = () => store
-    ? store.save(StoreKeys.PolygonData, json)
-    : log.warn(`No store provided, can't save polygon data`);
+  const json = polygonDataJson || getEmptyEvmData();
 
   const error = getEvmDataError(json);
   if (error) throw new Error(error);
 
   log.debug(`Loaded polygon data containing ${
     Object.keys(json.transactions).length
-  } transactions from ${polygonDataJson ? "input" : store ? "store" : "default"}`);
+  } transactions from ${polygonDataJson ? "input" : "default"}`);
 
   const metadata = {
     id: 137,
@@ -88,7 +83,7 @@ export const getPolygonData = ({
       lastUpdated: toISOString(Date.now()),
       history,
     };
-    save();
+    save(json);
     if (!history.length) {
       log.info(`Didn't find any ${metadata.name} activity for ${address}`);
       return;
@@ -109,7 +104,7 @@ export const getPolygonData = ({
           return;
         }
         json.transactions[tx.hash] = tx;
-        save();
+        save(json);
       });
     });
     await new Promise<void>((res, rej) => {
@@ -146,7 +141,7 @@ export const getPolygonData = ({
     if (error) throw new Error(error);
     // log.debug(polygonTx, `Parsed raw polygon tx to a valid evm tx`);
     json.transactions[polygonTx.hash] = polygonTx;
-    save();
+    save(json);
     return;
   };
 
