@@ -6,6 +6,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import { Prices } from "@valuemachine/prices";
 import {
   getNetBusinessIncome,
   securityFeeMap,
@@ -18,7 +19,6 @@ import { Assets } from "@valuemachine/transactions";
 import {
   Asset,
   Guard,
-  Prices,
   TaxInput,
   TaxRows,
 } from "@valuemachine/types";

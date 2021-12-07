@@ -8,15 +8,12 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import { Prices, PricesJson } from "@valuemachine/prices";
 import {
   Cryptocurrencies,
   FiatCurrencies,
 } from "@valuemachine/transactions";
-import {
-  Asset,
-  Prices,
-  PricesJson,
-} from "@valuemachine/types";
+import { Asset } from "@valuemachine/types";
 import { sigfigs } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 

@@ -16,11 +16,13 @@
     "test": "ts-mocha --check-leaks --color --exit --timeout 60000 'src/**/*.test.ts'"
   },
   "dependencies": {
+    "@sinclair/typebox": "0.20.5",
     "@valuemachine/core": "0.10.1",
     "@valuemachine/transactions": "0.10.1",
     "@valuemachine/types": "0.10.1",
     "@valuemachine/utils": "0.10.1",
-    "axios": "0.24.0"
+    "axios": "0.24.0",
+    "pino": "6.13.3"
   },
   "devDependencies": {
     "@rollup/plugin-json": "4.1.0",

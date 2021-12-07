@@ -3,7 +3,6 @@ import { Static, Type } from "@sinclair/typebox";
 import { AddressBookJson } from "./addressBook";
 import { CsvFiles } from "./csv";
 import { EvmDataJson } from "./evmData";
-import { PricesJson } from "./prices";
 import { ValueMachineJson } from "./vm";
 import { TransactionsJson } from "./transactions";
 
@@ -12,7 +11,6 @@ export const StoreKeys = {
   CsvFiles: "CsvFiles",
   EthereumData: "EthereumData",
   PolygonData: "PolygonData",
-  Prices: "Prices",
   Transactions: "Transactions",
   ValueMachine: "ValueMachine",
 } as const;
@@ -24,7 +22,6 @@ interface StoreTypeMap {
   [StoreKeys.CsvFiles]: CsvFiles;
   [StoreKeys.EthereumData]: EvmDataJson;
   [StoreKeys.PolygonData]: EvmDataJson;
-  [StoreKeys.Prices]: PricesJson;
   [StoreKeys.Transactions]: TransactionsJson;
   [StoreKeys.ValueMachine]: ValueMachineJson;
 }

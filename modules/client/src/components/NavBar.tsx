@@ -10,6 +10,7 @@ import AppBar from "@mui/material/AppBar";
 import IconButton from "@mui/material/IconButton";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import { Prices, PricesJson } from "@valuemachine/prices";
 import {
   SelectOne,
   SyncEverything,
@@ -23,8 +24,6 @@ import {
   AddressBook,
   Asset,
   CsvFiles,
-  Prices,
-  PricesJson,
   TaxRows,
   TransactionsJson,
   TxTags,

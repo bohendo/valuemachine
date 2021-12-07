@@ -2,7 +2,6 @@ import { Store, StoreKey, StoreKeys } from "@valuemachine/types";
 
 import { getEmptyAddressBook, getAddressBookError } from "./addressBook";
 import { getEmptyEvmData, getEvmDataError } from "./evmData";
-import { getEmptyPrices, getPricesError } from "./prices";
 import { getEmptyTransactions, getTransactionsError } from "./transactions";
 import { getEmptyValueMachine, getValueMachineError } from "./vm";
 
@@ -10,7 +9,6 @@ const validators =  {
   [StoreKeys.AddressBook]: getAddressBookError,
   [StoreKeys.EthereumData]: getEvmDataError,
   [StoreKeys.PolygonData]: getEvmDataError,
-  [StoreKeys.Prices]: getPricesError,
   [StoreKeys.Transactions]: getTransactionsError,
   [StoreKeys.ValueMachine]: getValueMachineError,
 };
@@ -19,7 +17,6 @@ const emptyStore = {
   [StoreKeys.AddressBook]: getEmptyAddressBook(),
   [StoreKeys.EthereumData]: getEmptyEvmData(),
   [StoreKeys.PolygonData]: getEmptyEvmData(),
-  [StoreKeys.Prices]: getEmptyPrices(),
   [StoreKeys.Transactions]: getEmptyTransactions(),
   [StoreKeys.ValueMachine]: getEmptyValueMachine(),
 };

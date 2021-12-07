@@ -1,3 +1,4 @@
+import { Prices } from "@valuemachine/prices";
 import { PhysicalGuards } from "@valuemachine/transactions";
 import {
   AddressBook,
@@ -6,7 +7,6 @@ import {
   DateTimeString,
   EventTypes,
   GuardChangeEvent,
-  Prices,
   TaxActions,
   TaxRows,
   TradeEvent,

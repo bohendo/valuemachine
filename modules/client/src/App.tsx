@@ -4,7 +4,9 @@ import {
   getValueMachine,
 } from "@valuemachine/core";
 import {
+  getEmptyPrices,
   getPrices,
+  getPricesError,
 } from "@valuemachine/prices";
 import {
   Assets,
@@ -23,7 +25,6 @@ import {
   getCsvFilesError,
   getEmptyAddressBook,
   getEmptyCsvFiles,
-  getEmptyPrices,
   getEmptyTaxInput,
   getEmptyTaxRows,
   getEmptyTransactions,
@@ -31,7 +32,6 @@ import {
   getEmptyValueMachine,
   getLocalStore,
   getLogger,
-  getPricesError,
   getTaxInputError,
   getTaxRowsError,
   getTransactionsError,
@@ -56,10 +56,10 @@ const store = getLocalStore(localStorage);
 const {
   AddressBook: AddressBookStore,
   CsvFiles: CsvStore,
-  Prices: PricesStore,
   Transactions: TransactionsStore,
   ValueMachine: ValueMachineStore,
 } = StoreKeys;
+const PricesStore = "Prices" as any;
 const UnitStore = "Unit" as any;
 const CustomTxnsStore = "CustomTransactions" as any;
 const TaxInputStore = "TaxInput" as any;
@@ -158,7 +158,12 @@ export const App: React.FC<AppProps> = ({
     } else {
       console.log(`Refreshing ${Object.keys(pricesJson).length} price entries`);
       store.save(PricesStore, pricesJson);
-      setPrices(getPrices({ json: pricesJson, logger, store, unit }));
+      setPrices(getPrices({
+        json: pricesJson,
+        logger,
+        save: val => store.save(PricesStore, val),
+        unit,
+      }));
     }
   }, [pricesJson, unit]);
 

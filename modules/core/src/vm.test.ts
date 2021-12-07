@@ -14,13 +14,13 @@ import {
   getValueMachineError,
   sub,
 } from "@valuemachine/utils";
+import { expect } from "chai";
 
 import { getValueMachine } from "./vm";
 import {
   AddressOne,
   AddressTwo,
   AddressThree,
-  expect,
   getTestAddressBook,
   testLogger,
 } from "./testUtils";

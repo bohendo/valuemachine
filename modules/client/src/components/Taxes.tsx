@@ -7,11 +7,11 @@ import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import { SyncTaxRows, TaxPorter, TaxSummary, TaxTable } from "@valuemachine/react";
 import { Guards } from "@valuemachine/transactions";
+import { Prices } from "@valuemachine/prices";
 import {
   AddressBook,
   Asset,
   Guard,
-  Prices,
   ValueMachine,
   TaxInput,
   TaxRows,

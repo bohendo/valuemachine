@@ -52,7 +52,7 @@ const transactions = getTransactions({ logger });
 
   // Create a price fetcher & fetch the relevant prices
   const unit = "USD";
-  const prices = getPrices({ logger, store, unit });
+  const prices = getPrices({ logger, save: val => store.save("Prices" as any, val), unit });
   for (const chunk of vm.json.chunks) {
     const { asset, history, disposeDate } = chunk;
     for (const date of [history[0]?.date, disposeDate]) {

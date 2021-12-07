@@ -1,12 +1,8 @@
 import SyncIcon from "@mui/icons-material/Sync";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import {
-  Asset,
-  Prices,
-  PricesJson,
-  ValueMachine,
-} from "@valuemachine/types";
+import { Prices, PricesJson } from "@valuemachine/prices";
+import { Asset, ValueMachine } from "@valuemachine/types";
 import React, { useState } from "react";
 
 import { syncPrices } from "./utils";

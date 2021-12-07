@@ -2,9 +2,11 @@ import SyncIcon from "@mui/icons-material/Sync";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import {
+  Prices,
+} from "@valuemachine/prices";
+import {
   AddressBook,
   Asset,
-  Prices,
   ValueMachine,
   TaxRows,
   TxTags,

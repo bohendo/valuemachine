@@ -1,8 +1,8 @@
 import { getTaxRows } from "@valuemachine/taxes";
+import { Prices } from "@valuemachine/prices";
 import {
   AddressBook,
   Asset,
-  Prices,
   ValueMachine,
   TaxRows,
   TxTags,

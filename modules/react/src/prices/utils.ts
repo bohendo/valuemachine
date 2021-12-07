@@ -1,7 +1,9 @@
 import {
-  Asset,
   Prices,
   PricesJson,
+} from "@valuemachine/prices";
+import {
+  Asset,
   ValueMachine,
 } from "@valuemachine/types";
 import axios from "axios";

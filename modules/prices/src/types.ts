@@ -1,9 +1,6 @@
+import { Asset, AssetChunk, DateString, DecString, DateTimeString } from "@valuemachine/types";
 import { Static, Type } from "@sinclair/typebox";
-
-import { Logger } from "./logger";
-import { Store } from "./store";
-import { Asset, DateString, DecString, DateTimeString } from "./strings";
-import { AssetChunk } from "./vm";
+import pino from "pino";
 
 ////////////////////////////////////////
 // JSON Schema
@@ -20,9 +17,9 @@ export type PricesJson = Static<typeof PricesJson>;
 // Function Interfaces
 
 export type PricesParams = {
-  logger?: Logger;
+  logger?: pino.Logger;
   json?: PricesJson;
-  store?: Store;
+  save?: (pricesJson: PricesJson) => void;
   unit?: Asset;
 };
 

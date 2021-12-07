@@ -5,10 +5,10 @@ import {
   Prices,
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
+import { expect } from "chai";
 
 import { getPrices } from "./prices";
 import {
-  expect,
   testLogger,
 } from "./testUtils";
 

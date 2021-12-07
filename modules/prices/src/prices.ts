@@ -10,10 +10,6 @@ import {
   Balances,
   DateString,
   DecString,
-  Prices,
-  PricesJson,
-  PricesParams,
-  StoreKeys,
   DateTimeString,
 } from "@valuemachine/types";
 import {
@@ -23,9 +19,7 @@ import {
   diffBalances,
   div,
   eq,
-  getEmptyPrices,
   getLogger,
-  getPricesError,
   gt,
   mul,
   round,
@@ -35,21 +29,18 @@ import axios from "axios";
 // curl https://api.coingecko.com/api/v3/coins/list
 // | jq 'map({ key: .symbol, value: .id }) | from_entries' > ./coingecko.json
 import * as coingecko from "./coingecko.json";
+import { Prices, PricesJson, PricesParams } from "./types";
+import { getEmptyPrices, getPricesError } from "./utils";
 
 const { ETH, WETH } = Assets;
 
 export const getPrices = (params?: PricesParams): Prices => {
-  const { logger, store, json: pricesJson, unit: defaultUnit } = params || {};
-  const json = pricesJson || store?.load(StoreKeys.Prices) || getEmptyPrices();
-  const save = (): void => store?.save(StoreKeys.Prices, json);
+  const { logger, json: pricesJson, save, unit: defaultUnit } = params || {};
+  const json = pricesJson || getEmptyPrices();
   const log = (logger || getLogger()).child({ module: "Prices" });
 
   const error = getPricesError(json);
   if (error) throw new Error(error);
-
-  log.debug(`Loaded prices for ${
-    Object.keys(json).length
-  } dates from ${pricesJson ? "input" : "store"}`);
 
   ////////////////////////////////////////
   // Internal helper functions
@@ -374,7 +365,7 @@ export const getPrices = (params?: PricesParams): Prices => {
     if (!json[date]) json[date] = {};
     if (!json[date][unit]) json[date][unit] = {};
     json[date][unit][asset] = formatPrice(price);
-    save();
+    save?.(json);
   };
 
   ////////////////////////////////////////
