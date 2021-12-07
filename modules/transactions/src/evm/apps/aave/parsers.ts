@@ -10,7 +10,7 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  div,
+  math,
   insertVenue,
   valuesAreClose,
 } from "@valuemachine/utils";
@@ -72,7 +72,7 @@ const aTokenAbi = [
 const associatedTransfer = (asset: string, amount: string) =>
   (transfer: Transfer): boolean =>
     asset === transfer.asset &&
-    valuesAreClose(transfer.amount, amount, div(amount, "100"));
+    valuesAreClose(transfer.amount, amount, math.div(amount, "100"));
 
 const coreParser = (
   tx: Transaction,

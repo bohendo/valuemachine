@@ -14,7 +14,7 @@ import {
   FiatCurrencies,
 } from "@valuemachine/transactions";
 import { Asset } from "@valuemachine/types";
-import { sigfigs } from "@valuemachine/utils";
+import { math } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { DateInput, SelectOne } from "../utils";
@@ -138,7 +138,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                             .map(e => e[1])
                             .map((price, i) => (
                               <TableCell style={{ maxWidth: "120px" }} key={i}>
-                                {sigfigs(price, 3)}
+                                {math.sigfigs(price, 3)}
                               </TableCell>
                             ))}
                         </TableRow>

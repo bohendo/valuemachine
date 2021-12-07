@@ -9,16 +9,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  abs,
-  div,
-  eq,
-  gt,
-  insertVenue,
-  round,
-  toBN,
-  valuesAreClose,
-} from "@valuemachine/utils";
+import { insertVenue, math, valuesAreClose } from "@valuemachine/utils";
 
 import { Apps, Tokens } from "../../enums";
 
@@ -30,6 +21,7 @@ import {
 import { parseLogNote } from "./utils";
 
 const appName = Apps.Dai;
+const { abs, div, eq, gt, round, toBN } = math;
 const { DAI, SAI } = Tokens;
 const { Expense, Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 

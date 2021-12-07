@@ -6,7 +6,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { gt, insertVenue, sub } from "@valuemachine/utils";
+import { insertVenue, math } from "@valuemachine/utils";
 
 import { Assets, Apps, Methods } from "../../enums";
 import { parseEvent } from "../../utils";
@@ -72,10 +72,10 @@ const coreParser = (
               transfer.asset === ETH &&
               transfer.from === coreAddress && transfer.to === sireAuctionAddress
             )?.amount;
-            if (gt(birthingFee, "0")) {
+            if (math.gt(birthingFee, "0")) {
               tx.transfers.push({
                 asset: ETH,
-                amount: sub(deposit.amount, birthingFee),
+                amount: math.sub(deposit.amount, birthingFee),
                 category: TransferCategories.Expense,
                 from: event.args.owner,
                 index: txLog.index,

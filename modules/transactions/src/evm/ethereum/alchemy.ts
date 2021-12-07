@@ -11,7 +11,7 @@ import {
   dedup,
   getEvmTransactionError,
   getLogger,
-  toBN,
+  math,
 } from "@valuemachine/utils";
 import axios from "axios";
 
@@ -120,16 +120,16 @@ export const getAlchemyFetcher = ({
     );
     const transaction = {
       from: getAddress(tx.from),
-      gasPrice: toBN(tx.effectiveGasPrice || tx.gasPrice).toString(),
-      gasUsed: toBN(receipt.gasUsed).toString(),
+      gasPrice: math.toBN(tx.effectiveGasPrice || tx.gasPrice).toString(),
+      gasUsed: math.toBN(receipt.gasUsed).toString(),
       hash: hexlify(tx.hash),
       logs: receipt.logs.map(evt => ({
         address: getAddress(evt.address),
-        index: toBN(evt.logIndex).toNumber(),
+        index: math.toBN(evt.logIndex).toNumber(),
         topics: evt.topics.map(hexlify),
         data: hexlify(evt.data || "0x"),
       })),
-      nonce: toBN(tx.nonce).toNumber(),
+      nonce: math.toBN(tx.nonce).toNumber(),
       status: getStatus(tx, receipt),
       timestamp,
       transfers: formatTraces(traces, metadata),

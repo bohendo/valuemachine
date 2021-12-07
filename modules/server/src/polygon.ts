@@ -16,9 +16,10 @@ const log = getLogger(env.logLevel).child({ module: `${Guards.Polygon}Transactio
 
 const polygonData = getPolygonData({
   covalentKey: env.covalentKey,
+  json: store.load("PolygonData"),
   logger: log,
   polygonscanKey: env.polygonscanKey,
-  store,
+  save: val => store.save("PolygonData", val),
 });
 const handlePoller = getPollerHandler(
   polygonData.syncAddressBook,

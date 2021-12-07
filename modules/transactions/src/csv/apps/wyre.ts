@@ -3,13 +3,14 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { gt, digest, sub } from "@valuemachine/utils";
+import { digest, math } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
 import { Assets, CsvSources, Guards } from "../../enums";
 import { getGuard } from "../../utils";
 
 const guard = Guards.USA;
+const { gt, sub } = math;
 const { BTC, DAI, ETH, SAI, USD } = Assets;
 const { Expense, SwapIn, SwapOut, Internal } = TransferCategories;
 const dateKey = `Created At`;

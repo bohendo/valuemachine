@@ -15,7 +15,7 @@ import {
   TxId,
 } from "@valuemachine/types";
 import {
-  commify,
+  math,
 } from "@valuemachine/utils";
 import React, { useState } from "react";
 
@@ -50,14 +50,14 @@ export const TaxTableRow: React.FC<TaxTableRowProps> = ({
       </TableCell>
       <TableCell sx={{ minWidth: "8em" }}> {fmtDate(row.date)} </TableCell>
       <TableCell> {row.action} </TableCell>
-      <TableCell> {`${commify(row.amount, 6, unit)} ${row.asset}`} </TableCell>
+      <TableCell> {`${math.commify(row.amount, 6, unit)} ${row.asset}`} </TableCell>
       {!guard ? (<TableCell> {row.taxYear.substring(0, 3)} </TableCell>) : null}
       {!guard ? (<TableCell> {securityFeeMap[row.taxYear.substring(0, 3)] || unit || ""} </TableCell>) : null}
-      <TableCell> {commify(row.price, 4, unit)} </TableCell>
-      <TableCell> {commify(row.value, 2, unit)} </TableCell>
+      <TableCell> {math.commify(row.price, 4, unit)} </TableCell>
+      <TableCell> {math.commify(row.value, 2, unit)} </TableCell>
       <TableCell sx={{ minWidth: "8em" }}> {fmtDate(row.receiveDate)} </TableCell>
-      <TableCell> {commify(row.receivePrice, 4, unit)} </TableCell>
-      <TableCell> {commify(row.capitalChange, 2, unit)} </TableCell>
+      <TableCell> {math.commify(row.receivePrice, 4, unit)} </TableCell>
+      <TableCell> {math.commify(row.capitalChange, 2, unit)} </TableCell>
       <TableCell> {
         !row.action ? ""
         : row.action === TaxActions.Expense ? (row.tag.expenseType || "")

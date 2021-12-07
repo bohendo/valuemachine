@@ -9,12 +9,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  div,
-  gt,
-  toBN,
-  valuesAreClose,
-} from "@valuemachine/utils";
+import { math, valuesAreClose } from "@valuemachine/utils";
 
 import { Apps, Assets, Tokens } from "../../enums";
 import { diffAsc, parseEvent } from "../../utils";
@@ -80,7 +75,7 @@ export const saiParser = (
 
       const event = parseEvent(tubAbi, txLog, evmMeta);
       if (event?.name === "LogNewCup") {
-        tx.method = `Create CDP-${toBN(event.args.cup)}`;
+        tx.method = `Create CDP-${math.toBN(event.args.cup)}`;
         continue;
       }
       tx.apps.push(appName);
@@ -91,13 +86,13 @@ export const saiParser = (
       })`);
 
       if (logNote.name === "give") {
-        tx.method = `Give CDP-${toBN(logNote.args[1])}`;
+        tx.method = `Give CDP-${math.toBN(logNote.args[1])}`;
 
       } else if (logNote.name === "bite") {
-        tx.method = `Bite CDP-${toBN(logNote.args[1])}`;
+        tx.method = `Bite CDP-${math.toBN(logNote.args[1])}`;
 
       } else if (logNote.name === "shut") {
-        tx.method = `Shut CDP-${toBN(logNote.args[1])}`;
+        tx.method = `Shut CDP-${math.toBN(logNote.args[1])}`;
 
       // WETH -> PETH: Categorize WETH transfer as a swap out
       } else if (logNote.name === "join") {
@@ -137,7 +132,7 @@ export const saiParser = (
 
       // PETH -> CDP: Categorize PETH transfer as deposit
       } else if (logNote.name === "lock") {
-        const cdp = `${evmMeta.name}/${appName}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${evmMeta.name}/${appName}-CDP-${math.toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfer = tx.transfers.filter(t =>
           t.category !== Fee && t.asset === PETH
@@ -155,7 +150,7 @@ export const saiParser = (
 
       // PETH <- CDP: Categorize PETH transfer as withdraw
       } else if (logNote.name === "free") {
-        const cdp = `${evmMeta.name}/${appName}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${evmMeta.name}/${appName}-CDP-${math.toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const transfers = tx.transfers.filter(t =>
           ethish.includes(t.asset)
@@ -183,7 +178,7 @@ export const saiParser = (
 
       // SAI <- CDP
       } else if (logNote.name === "draw") {
-        const cdp = `${evmMeta.name}/${appName}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${evmMeta.name}/${appName}-CDP-${math.toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const borrow = tx.transfers.filter(t =>
           t.asset === SAI && isSelf(t.to)
@@ -198,7 +193,7 @@ export const saiParser = (
 
       // SAI -> CDP
       } else if (logNote.name === "wipe") {
-        const cdp = `${evmMeta.name}/${appName}-CDP-${toBN(logNote.args[1])}`;
+        const cdp = `${evmMeta.name}/${appName}-CDP-${math.toBN(logNote.args[1])}`;
         const wad = formatUnits(hexlify(stripZeros(logNote.args[2])), 18);
         const repay = tx.transfers.filter(t =>
           t.asset === SAI && isSelf(t.from) && t.category !== Fee
@@ -235,7 +230,7 @@ export const saiParser = (
           t.asset === SAI
           && isSelf(t.from)
           && t.to === cageAddress
-          && gt(t.amount, "0")
+          && math.gt(t.amount, "0")
         );
         if (swapOut) {
           swapOut.category = SwapOut;
@@ -247,7 +242,7 @@ export const saiParser = (
           t.asset === ETH
           && isSelf(t.to)
           && t.from === cageAddress
-          && valuesAreClose(t.amount, wad, div(wad, "100"))
+          && valuesAreClose(t.amount, wad, math.div(wad, "100"))
         );
         if (swapIn) {
           swapIn.category = SwapIn;

@@ -17,20 +17,15 @@ import {
   ValueMachineParams,
 } from "@valuemachine/types";
 import {
-  add,
   describeBalance,
-  eq,
   getEmptyValueMachine,
   getLogger,
   getValueMachineError,
-  gt,
-  lt,
-  max,
-  mul,
-  sub,
+  math,
   sumChunks,
 } from "@valuemachine/utils";
 
+const { add, eq, gt, lt, max, mul, sub } = math;
 const {
   Internal, Income, SwapIn, Borrow, Expense, Fee, SwapOut, Repay, Refund
 } = TransferCategories;

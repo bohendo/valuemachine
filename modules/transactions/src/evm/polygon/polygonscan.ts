@@ -12,7 +12,7 @@ import {
   dedup,
   getEvmTransactionError,
   getLogger,
-  toBN,
+  math,
 } from "@valuemachine/utils";
 import axios from "axios";
 
@@ -118,7 +118,7 @@ export const getPolygonscanFetcher = ({
     // Save timestamps while fetching account histories so we can reuse them later
     [...simple, ...internal, ...token, ...nft].forEach(tx => {
       if (tx.blockNumber && (tx.timestamp || tx.timeStamp)) {
-        const blockNumber = toBN(tx.blockNumber).toString();
+        const blockNumber = math.toBN(tx.blockNumber).toString();
         const timestamp = toISOString(tx.timestamp || tx.timeStamp);
         timestampCache[blockNumber] = timestamp;
         log.debug(`Added new timestamp cache entry for ${blockNumber}: ${timestamp}`);
@@ -138,21 +138,21 @@ export const getPolygonscanFetcher = ({
       query("proxy", "eth_getTransactionReceipt", txHash),
       query("account", "txlistinternal", txHash).catch(tmpTxlistinternalErrorHandler("txHash")),
     ]);
-    const timestamp = timestampCache[toBN(tx.blockNumber).toString()] || toISOString(
+    const timestamp = timestampCache[math.toBN(tx.blockNumber).toString()] || toISOString(
       (await query("proxy", "eth_getBlockByNumber", receipt.blockNumber)).timestamp
     );
     const transaction = {
       from: getAddress(tx.from),
-      gasPrice: toBN(tx.effectiveGasPrice || tx.gasPrice).toString(),
-      gasUsed: toBN(receipt.gasUsed).toString(),
+      gasPrice: math.toBN(tx.effectiveGasPrice || tx.gasPrice).toString(),
+      gasUsed: math.toBN(receipt.gasUsed).toString(),
       hash: hexlify(tx.hash),
       logs: receipt.logs.map(evt => ({
         address: getAddress(evt.address),
-        index: toBN(evt.logIndex).toNumber(),
+        index: math.toBN(evt.logIndex).toNumber(),
         topics: evt.topics.map(hexlify),
         data: hexlify(evt.data || "0x"),
       })),
-      nonce: toBN(tx.nonce).toNumber(),
+      nonce: math.toBN(tx.nonce).toNumber(),
       status: getStatus(tx, receipt),
       timestamp,
       transfers: transfers.map(transfer => ({

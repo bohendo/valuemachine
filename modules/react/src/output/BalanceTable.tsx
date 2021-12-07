@@ -7,7 +7,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { AddressBook, ValueMachine } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
-import { gt } from "@valuemachine/utils";
+import { math } from "@valuemachine/utils";
 
 import { HexString } from "../utils";
 
@@ -47,7 +47,7 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
             {Object.entries(allBalances)
               .sort((e1, e2) => e1[0] > e2[0] ? 1 : -1)
               .map(([account, balances]: any, i: number) =>
-                Object.values(balances).some(bal => gt(bal, "0")) ? (
+                Object.values(balances).some(bal => math.gt(bal, "0")) ? (
                   <TableRow key={i}>
                     <TableCell sx={{ mr: 2, pr: 2 }}>
                       <HexString value={account} display={addressBook.getName(account, true)}/>

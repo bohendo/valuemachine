@@ -7,7 +7,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { add, diffBalances, sumTransfers } from "@valuemachine/utils";
+import { math, diffBalances, sumTransfers } from "@valuemachine/utils";
 
 import { Apps, Methods } from "../../enums";
 import { parseEvent } from "../../utils";
@@ -130,7 +130,7 @@ export const oasisParser = (
       log.warn(`DSProxy left behind ${amount} ${asset}, adding this to our first swap out`);
       const swapOut = tx.transfers.find(t => t.category === SwapOut && t.asset === asset);
       if (swapOut) {
-        swapOut.amount = add(swapOut.amount, amount);
+        swapOut.amount = math.add(swapOut.amount, amount);
       }
     });
   }

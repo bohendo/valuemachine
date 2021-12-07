@@ -114,7 +114,11 @@ export const App: React.FC<AppProps> = ({
     } else {
       console.log(`Refreshing ${transactionsJson.length} transactions`);
       store.save(TransactionsStore, transactionsJson);
-      setTransactions(getTransactions({ json: transactionsJson, store, logger }));
+      setTransactions(getTransactions({
+        json: transactionsJson,
+        logger,
+        save: val => store.save(TransactionsStore, val),
+      }));
     }
   }, [transactionsJson]);
 
@@ -131,7 +135,7 @@ export const App: React.FC<AppProps> = ({
         vmJson.events?.length || "0"
       } events & ${vmJson.chunks?.length || "0"} chunks`);
       store.save(ValueMachineStore, vmJson);
-      setVM(getValueMachine({ json: vmJson, logger, store }));
+      setVM(getValueMachine({ json: vmJson, logger }));
     }
 
   }, [vmJson]);

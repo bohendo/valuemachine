@@ -7,9 +7,9 @@ import {
 } from "@valuemachine/types";
 import {
   chrono,
-  div,
-  getLogger,
   dedup,
+  getLogger,
+  math,
   valuesAreClose,
 } from "@valuemachine/utils";
 
@@ -89,7 +89,7 @@ export const mergeTransaction = (
       log.debug(`Inserted new evm tx w ${transfers.length} mergable transfers: ${newTx.method}`);
       return sort(transactions);
     }
-    const wiggleRoom = div(evmTransfer.amount, "100");
+    const wiggleRoom = math.div(evmTransfer.amount, "100");
 
     // Does this transfer have the same asset & similar amount as the new evm tx
     const isMergable = (transfer: Transfer): boolean => 
@@ -161,7 +161,7 @@ export const mergeTransaction = (
           valuesAreClose(
             newTransfer.amount,
             oldTransfer.amount,
-            div(oldTransfer.amount, "100"),
+            math.div(oldTransfer.amount, "100"),
           )
         ))
       )
@@ -172,7 +172,7 @@ export const mergeTransaction = (
 
     // Mergable csv txns can only contain one transfer
     const extTransfer = newTx.transfers[0];
-    const wiggleRoom = div(extTransfer.amount, "100");
+    const wiggleRoom = math.div(extTransfer.amount, "100");
     if (newTx.transfers.length !== 1 || extTransfer.category !== Internal) {
       transactions.push(newTx);
       log.debug(`Inserted csv tx w ${newTx.transfers.length} transfers: ${newTx.method}`);

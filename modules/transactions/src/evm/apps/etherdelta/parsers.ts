@@ -10,10 +10,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import {
-  eq,
-  insertVenue,
-} from "@valuemachine/utils";
+import { insertVenue, math } from "@valuemachine/utils";
 
 import { Apps, Assets, Methods } from "../../enums";
 import { parseEvent } from "../../utils";
@@ -88,7 +85,7 @@ export const coreParser = (
             transfer.category = Internal;
             transfer.from = account;
             tx.method = Methods.Withdraw;
-            if (eq(event.args.balance, "0")) {
+            if (math.eq(event.args.balance, "0")) {
               tx.transfers.push({
                 asset: transfer.asset,
                 amount: "ALL",

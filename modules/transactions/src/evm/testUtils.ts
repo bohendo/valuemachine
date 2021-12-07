@@ -52,14 +52,16 @@ export const getParseTx = (params?: {
   const storePath = params?.storePath || path.join(__dirname, "../testData");
   const store = getFileStore(storePath);
   const polyData = getPolygonData({
-    polygonscanKey: env.polygonscanKey,
+    json: store.load("PolygonData"),
     logger,
-    save: val => store.save("EthereumData", val),
+    polygonscanKey: env.polygonscanKey,
+    save: val => store.save("PolygonData", val),
   });
   const ethData = getEthereumData({
     etherscanKey: env.etherscanKey,
+    json: store.load("EthereumData"),
     logger,
-    save: val => store.save("PolygonData", val),
+    save: val => store.save("EthereumData", val),
   });
   return async ({
     txid,

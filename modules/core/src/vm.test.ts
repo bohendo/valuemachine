@@ -10,9 +10,8 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  add,
   getValueMachineError,
-  sub,
+  math,
 } from "@valuemachine/utils";
 import { expect } from "chai";
 
@@ -25,6 +24,7 @@ import {
   testLogger,
 } from "./testUtils";
 
+const { add, sub } = math;
 const { ETH, DAI, UniV2_UNI_ETH, UNI, USD } = Assets;
 const {
   Borrow,

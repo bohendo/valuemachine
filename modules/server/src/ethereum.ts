@@ -17,8 +17,9 @@ const log = getLogger(env.logLevel).child({ module: `${Guards.Ethereum}Transacti
 const ethereumData = getEthereumData({
   alchemyProvider: env.alchemyProvider,
   etherscanKey: env.etherscanKey,
+  json: store.load("EthereumData"),
   logger: log,
-  store,
+  save: val => store.save("EthereumData", val),
 });
 const handlePoller = getPollerHandler(
   ethereumData.syncAddressBook,

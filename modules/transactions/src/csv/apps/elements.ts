@@ -3,7 +3,7 @@ import {
   Transaction,
   TransferCategories,
 } from "@valuemachine/types";
-import { digest, mul, round } from "@valuemachine/utils";
+import { digest, math } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
 import { Assets, CsvSources, Guards, Methods } from "../../enums";
@@ -43,7 +43,7 @@ export const elementsParser = (
       ["Status"]: status,
     } = row;
 
-    const amount = status === "Posted" ? (credit || mul(debit, "-1")) : "0";
+    const amount = status === "Posted" ? (credit || math.mul(debit, "-1")) : "0";
     log.info(`Changed of $${amount} w new balance of ${balance} after: ${description}`);
 
     if (status !== "Posted") {
@@ -68,7 +68,7 @@ export const elementsParser = (
     let transferIndex = 1;
     if (debit) {
       transaction.transfers.push({
-        amount: round(debit, 2),
+        amount: math.round(debit, 2),
         asset: Assets.USD,
         category: TransferCategories.Expense,
         from: account,
@@ -79,7 +79,7 @@ export const elementsParser = (
 
     if (credit) {
       transaction.transfers.push({
-        amount: round(credit, 2),
+        amount: math.round(credit, 2),
         asset: Assets.USD,
         category: TransferCategories.Income,
         from: description === "Interest Income" ? bank : external,

@@ -7,7 +7,7 @@ import {
   Transfer,
   TransferCategories,
 } from "@valuemachine/types";
-import { describeBalance, diffBalances, round, sumTransfers } from "@valuemachine/utils";
+import { describeBalance, diffBalances, math, sumTransfers } from "@valuemachine/utils";
 
 import { Assets, Guards, Methods } from "./enums";
 
@@ -63,7 +63,7 @@ export const describeTransaction = (addressBook: AddressBook, tx: Transaction): 
   } else if (nonFee.some(t => t.category === Internal)) {
     const transfer = nonFee.find(t => t.category === Internal);
     return `${tx.method || "Transfer"} of ${
-      round(transfer.amount)} ${transfer.asset
+      math.round(transfer.amount)} ${transfer.asset
     } from ${
       addressBook.getName(transfer.from, true)
     } to ${

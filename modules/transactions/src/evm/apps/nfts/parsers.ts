@@ -8,7 +8,7 @@ import {
   Logger,
   Transaction,
 } from "@valuemachine/types";
-import { toBN } from "@valuemachine/utils";
+import { math } from "@valuemachine/utils";
 
 import { Apps, Methods } from "../../enums";
 import { getTransferCategory, parseEvent } from "../../utils";
@@ -85,7 +85,7 @@ const coreParser = (
       const tokenId = event.args.tokenId.toString();
       const asset = `${getName(address)}_${
         // If tokenId is huge then hexlify + abbreviate it
-        tokenId.length > 20 ? toBN(tokenId).toHexString().substring(0, 10) : tokenId
+        tokenId.length > 20 ? math.toBN(tokenId).toHexString().substring(0, 10) : tokenId
       }` as Asset;
       tx.apps.push(appName);
       if (event.name === "Transfer") {

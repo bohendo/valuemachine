@@ -10,7 +10,7 @@ import {
 import {
   dedup,
   getLogger,
-  toBN,
+  math,
 } from "@valuemachine/utils";
 import axios from "axios";
 
@@ -37,7 +37,7 @@ export const getCovalentFetcher = ({
   ////////////////////////////////////////
   // Internal Heleprs
 
-  const numify = (val: number | string): number => toBN(val).toNumber();
+  const numify = (val: number | string): number => math.toBN(val).toNumber();
   const stringify = (val: number | string): string => numify(val).toString();
 
   // CAIP-10

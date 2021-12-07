@@ -13,16 +13,11 @@ import {
   DateTimeString,
 } from "@valuemachine/types";
 import {
-  add,
   assetsAreClose,
   chrono,
   diffBalances,
-  div,
-  eq,
   getLogger,
-  gt,
-  mul,
-  round,
+  math,
 } from "@valuemachine/utils";
 import axios from "axios";
 
@@ -32,6 +27,7 @@ import * as coingecko from "./coingecko.json";
 import { PriceFns, PriceJson, PricesParams } from "./types";
 import { getEmptyPrices, getPricesError } from "./utils";
 
+const { add, div, eq, gt, mul, round } = math;
 const { ETH, WETH } = Assets;
 
 export const getPrices = (params?: PricesParams): PriceFns => {

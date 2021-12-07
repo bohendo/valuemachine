@@ -19,6 +19,7 @@
     "@valuemachine/core": "0.10.1",
     "@valuemachine/prices": "0.10.1",
     "@valuemachine/react": "0.10.1",
+    "@valuemachine/taxes": "0.10.1",
     "@valuemachine/transactions": "0.10.1",
     "@valuemachine/types": "0.10.1",
     "@valuemachine/utils": "0.10.1"

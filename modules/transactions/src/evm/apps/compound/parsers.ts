@@ -11,10 +11,8 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
-  div,
-  gt,
   insertVenue,
-  sub,
+  math,
   valuesAreClose,
 } from "@valuemachine/utils";
 
@@ -83,7 +81,7 @@ const cTokenAbi = [
 
 const associatedTransfer = (asset: string, amount: string) =>
   (transfer: Transfer): boolean =>
-    transfer.asset === asset && valuesAreClose(transfer.amount, amount, div(amount, "100"));
+    transfer.asset === asset && valuesAreClose(transfer.amount, amount, math.div(amount, "100"));
 
 const coreParser = (
   tx: Transaction,
@@ -133,10 +131,10 @@ const coreParser = (
         log.debug(`Starting Balance: ${oldBal} | New Balance: ${newBal}`);
         const deposit = tx.transfers.find(associatedTransfer(asset, amount));
         if (deposit) {
-          const balChange = sub(newBal, oldBal);
-          const interest = sub(balChange, deposit.amount);
+          const balChange = math.sub(newBal, oldBal);
+          const interest = math.sub(balChange, deposit.amount);
           log.debug(`Amount Deposited: ${deposit.amount} | Interest Acrued: ${interest}`);
-          if (gt(interest, "0")) {
+          if (math.gt(interest, "0")) {
             tx.transfers.push({
               asset,
               category: Income,
@@ -161,10 +159,10 @@ const coreParser = (
           isSelf(transfer.to) && transfer.asset === asset && transfer.amount === amount
         );
         if (withdraw) {
-          const principal = sub(oldBal, newBal);
-          const interest = sub(withdraw.amount, principal);
+          const principal = math.sub(oldBal, newBal);
+          const interest = math.sub(withdraw.amount, principal);
           log.debug(`Principal: ${principal} | Interest Acrued: ${interest}`);
-          if (gt(interest, "0")) {
+          if (math.gt(interest, "0")) {
             tx.transfers.push({
               asset,
               category: Income,
