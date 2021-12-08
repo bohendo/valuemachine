@@ -1,5 +1,4 @@
-import { TransferCategories } from "@valuemachine/types";
-
+import { TransferCategories } from "../../../enums";
 import { Apps } from "../../enums";
 import {
   getParseTx,

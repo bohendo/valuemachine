@@ -1,15 +1,11 @@
 import { formatUnits } from "@ethersproject/units";
-import {
-  AddressBook,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction } from "../../../types";
 import { Apps } from "../../enums";
 import { parseEvent } from "../../utils";
+import { EvmMetadata, EvmTransaction } from "../../types";
 
 import { managerAddresses, relayerAddresses } from "./addresses";
 

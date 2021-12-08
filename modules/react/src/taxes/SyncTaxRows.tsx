@@ -3,9 +3,9 @@ import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import { ValueMachine } from "@valuemachine/core";
 import { PriceFns } from "@valuemachine/prices";
-import { TxTags } from "@valuemachine/transactions";
+import { AddressBook, TxTags } from "@valuemachine/transactions";
 import { TaxRows } from "@valuemachine/taxes";
-import { AddressBook, Asset } from "@valuemachine/types";
+import { Asset } from "@valuemachine/types";
 import React, { useState } from "react";
 
 import { syncTaxRows } from "./utils";

@@ -5,7 +5,7 @@ import {
   AddressBook,
   CsvFiles,
   TransactionsJson,
-} from "@valuemachine/types";
+} from "@valuemachine/transactions";
 import React, { useState } from "react";
 
 import { syncTxns } from "./utils";

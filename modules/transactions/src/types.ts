@@ -3,7 +3,6 @@ import {
   Account,
   Amount,
   Asset,
-  CsvParser,
   DateTimeString,
   DecString,
   Guard,
@@ -12,10 +11,72 @@ import {
   TxId,
 } from "@valuemachine/types";
 
-import { BusinessExpenseTypes, ExpenseTypes, IncomeTypes } from "./enums";
+import {
+  AddressCategories,
+  BusinessExpenseTypes,
+  ExpenseTypes,
+  IncomeTypes,
+  PrivateCategories,
+  PublicCategories,
+  TransferCategories,
+} from "./enums";
 
 ////////////////////////////////////////
-// JSON Schema
+// AddressBook
+
+// Addresses that only concern a single user eg EOAs & multisigs
+export const PrivateCategory = Type.Enum(PrivateCategories); // NOT Extensible at run-time
+export type PrivateCategory = Static<typeof PrivateCategory>;
+
+// Addresses that interact with the entire crypto ecosystem eg tokens
+export const PublicCategory = Type.Enum(PublicCategories); // NOT Extensible at run-time
+export type PublicCategory = Static<typeof PublicCategory>;
+
+export const AddressCategory = Type.Enum(AddressCategories); // NOT Extensible at run-time
+export type AddressCategory = Static<typeof AddressCategory>;
+
+export const AddressEntry = Type.Object({
+  address: Account,
+  category: AddressCategory,
+  decimals: Type.Optional(Type.Number()), // for erc20 token addresses
+  name: Type.String(),
+  guard: Type.Optional(Guard), // EOAs should be secured by a physical guard too
+});
+export type AddressEntry = Static<typeof AddressEntry>;
+
+export const AddressBookJson = Type.Record(Type.String(), AddressEntry);
+export type AddressBookJson = Static<typeof AddressBookJson>;
+
+export type AddressBookParams = {
+  json?: AddressBookJson | AddressEntry[]; // for user-defined addresses saved eg in localstorage
+  hardcoded?: AddressEntry[]; // for list of addresess saved in app-level code
+  logger?: Logger;
+  save?: (val: AddressBookJson) => void;
+}
+
+export interface AddressBook {
+  addresses: Account[];
+  selfAddresses: Account[];
+  getCategory(address: Account): AddressCategory;
+  getGuard(address: Account): Guard;
+  getDecimals(address: Account): number;
+  getName(address: Account, prefix?: boolean): string;
+  isSelf(address: Account): boolean;
+  isToken(address: Account): boolean;
+  isNFT(address: Account): boolean;
+  json: AddressBookJson;
+}
+
+////////////////////////////////////////
+// Csv
+
+export type CsvParser = (
+  csvData: string,
+  logger: Logger,
+) => TransactionsJson;
+
+////////////////////////////////////////
+// Transaction JSON Schema
 
 export const IncomeType = Type.Enum(IncomeTypes); // NOT Extensible at run-time
 export type IncomeType = Static<typeof IncomeType>;
@@ -50,28 +111,6 @@ export const TxTagTypes = {
 export const TxTagType = Type.Enum(TxTagTypes); // NOT Extensible at run-time
 export type TxTagType = Static<typeof TxTagType>;
 
-// Self to non-self transfers
-export const OutgoingTransfers = {
-  Expense: "Expense",
-  Fee: "Fee",
-  Repay: "Repay",
-  SwapOut: "SwapOut",
-} as const;
-
-// Non-self to self transfers
-export const IncomingTransfers = {
-  Income: "Income",
-  Refund: "Refund",
-  Borrow: "Borrow",
-  SwapIn: "SwapIn",
-} as const;
-
-export const TransferCategories = {
-  ...OutgoingTransfers,
-  ...IncomingTransfers,
-  Noop: "Noop", // zero-value or external->external or other useless transfers to filter out
-  Internal: "Internal", // self to self transfers
-} as const;
 export const TransferCategory = Type.Enum(TransferCategories); // NOT Extensible
 export type TransferCategory = Static<typeof TransferCategory>;
 

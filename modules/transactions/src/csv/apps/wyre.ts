@@ -1,12 +1,9 @@
-import {
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 import { digest, math } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
-import { Assets, CsvSources, Guards } from "../../enums";
+import { Assets, CsvSources, Guards, TransferCategories } from "../../enums";
+import { Transaction } from "../../types";
 import { getGuard } from "../../utils";
 
 const guard = Guards.USA;

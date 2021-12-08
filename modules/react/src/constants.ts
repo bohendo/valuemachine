@@ -1,6 +1,7 @@
 import { getValueMachine } from "@valuemachine/core";
 import { getPrices } from "@valuemachine/prices";
 import {
+  AddressCategories,
   Assets,
   CsvSources,
   getAddressBook,
@@ -8,11 +9,8 @@ import {
   getTransactions,
   Guards,
   Sources,
-} from "@valuemachine/transactions";
-import {
-  AddressCategories,
   TransferCategories,
-} from "@valuemachine/types";
+} from "@valuemachine/transactions";
 
 const { BCH, BTC, DAI, ETH, UNI, INR, USD } = Assets;
 const { Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;

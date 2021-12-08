@@ -1,14 +1,9 @@
-import {
-  AddressBook,
-  EvmParsers,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
+import { AddressBook, Transaction } from "../../types";
 import { polygonParsers } from "../apps";
 import { parseEvmTx } from "../parser";
+import { EvmMetadata, EvmParsers, EvmTransaction } from "../types";
 
 export const parsePolygonTx = (
   polygonTx: EvmTransaction,

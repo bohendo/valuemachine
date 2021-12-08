@@ -1,23 +1,14 @@
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
-import {
-  AddressBook,
-  Asset,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  Transfer,
-  TransferCategories,
-} from "@valuemachine/types";
-import {
-  insertVenue,
-  math,
-  valuesAreClose,
-} from "@valuemachine/utils";
+import { Asset, Logger } from "@valuemachine/types";
+import { math, valuesAreClose } from "@valuemachine/utils";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction, Transfer } from "../../../types";
+import { insertVenue } from "../../../utils";
 import { Apps, Methods, Tokens } from "../../enums";
 import { parseEvent } from "../../utils";
+import { EvmMetadata, EvmTransaction } from "../../types";
 
 import {
   compAddress,

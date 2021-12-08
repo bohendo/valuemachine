@@ -1,16 +1,11 @@
 import fs from "fs";
 import path from "path";
 
-import {
-  Account,
-  TxId,
-  AddressBook,
-  Logger,
-  Transaction,
-} from "@valuemachine/types";
-import { getTransactionError } from "@valuemachine/utils";
+import { Account, TxId, Logger } from "@valuemachine/types";
 
 import { env, getTestAddressBook, testLogger } from "../testUtils";
+import { AddressBook, Transaction } from "../types";
+import { getTransactionError } from "../utils";
 
 import { getPolygonData } from "./polygon";
 import { getEthereumData } from "./ethereum";

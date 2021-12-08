@@ -1,10 +1,4 @@
-import {
-  Logger,
-  DateTimeString,
-  Transaction,
-  Transfer,
-  TransferCategories,
-} from "@valuemachine/types";
+import { DateTimeString, Logger } from "@valuemachine/types";
 import {
   chrono,
   dedup,
@@ -14,10 +8,12 @@ import {
 } from "@valuemachine/utils";
 
 import {
+  CsvSources,
   EvmNames,
   Methods,
-  CsvSources,
+  TransferCategories,
 } from "./enums";
+import { Transaction, Transfer } from "./types";
 
 const { Fee, Income, Expense, Internal } = TransferCategories;
 

@@ -1,16 +1,10 @@
 import { AddressZero } from "@ethersproject/constants";
-import {
-  AddressBook,
-  Asset,
-  EvmMetadata,
-  EvmTransaction,
-  EvmTransactionLog,
-  Logger,
-  Transaction,
-} from "@valuemachine/types";
+import { Asset, Logger } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
+import { AddressBook, Transaction } from "../../../types";
 import { Apps, Methods } from "../../enums";
+import { EvmMetadata, EvmTransaction, EvmTransactionLog } from "../../types";
 import { getTransferCategory, parseEvent } from "../../utils";
 
 import { marketParser } from "./markets";

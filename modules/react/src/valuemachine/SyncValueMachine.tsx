@@ -7,7 +7,7 @@ import {
 import {
   Transactions,
   TransactionsJson,
-} from "@valuemachine/types";
+} from "@valuemachine/transactions";
 import React, { useEffect, useState } from "react";
 
 import { processTxns } from "./utils";

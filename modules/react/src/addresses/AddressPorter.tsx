@@ -1,5 +1,4 @@
-import { AddressBookJson } from "@valuemachine/types";
-import { getAddressBookError } from "@valuemachine/utils";
+import { AddressBookJson, getAddressBookError } from "@valuemachine/transactions";
 import React from "react";
 
 import { Porter } from "../utils";

@@ -7,10 +7,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { parseCsv } from "@valuemachine/transactions";
-import {
-  CsvFiles,
-} from "@valuemachine/types";
+import { CsvFiles, parseCsv } from "@valuemachine/transactions";
 import React, { useState } from "react";
 
 import { Confirm } from "../utils";

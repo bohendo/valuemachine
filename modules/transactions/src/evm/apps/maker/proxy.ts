@@ -1,15 +1,11 @@
 import { Interface } from "@ethersproject/abi";
-import {
-  AddressBook,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction } from "../../../types";
 import { addresses as allAddresses } from "../addresses";
 import { Apps, Methods, Tokens } from "../../enums";
+import { EvmMetadata, EvmTransaction } from "../../types";
 import { getTransferCategory, parseEvent } from "../../utils";
 
 import {

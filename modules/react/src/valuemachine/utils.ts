@@ -5,7 +5,7 @@ import {
 } from "@valuemachine/core";
 import {
   Transactions,
-} from "@valuemachine/types";
+} from "@valuemachine/transactions";
 
 export const processTxns = async ({
   setSyncMsg,

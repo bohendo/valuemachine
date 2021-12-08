@@ -1,6 +1,6 @@
 import React from "react";
 import { ComponentStory, ComponentMeta } from "@storybook/react";
-import { insertVenue } from "@valuemachine/utils";
+import { insertVenue } from "@valuemachine/transactions";
 
 import { addressBook, address, account, bytes32, uuid } from "../constants";
 

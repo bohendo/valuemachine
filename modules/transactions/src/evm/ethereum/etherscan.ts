@@ -1,22 +1,12 @@
 import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
 import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
-import {
-  Bytes32,
-  EvmAddress,
-  EvmTransaction,
-  Logger,
-} from "@valuemachine/types";
-import {
-  dedup,
-  getEvmTransactionError,
-  getLogger,
-  math,
-} from "@valuemachine/utils";
+import { Bytes32, Logger } from "@valuemachine/types";
+import { dedup, getLogger, math } from "@valuemachine/utils";
 import axios from "axios";
 
-import { getStatus, toISOString } from "../utils";
-import { EvmFetcher } from "../types";
+import { getEvmTransactionError, getStatus, toISOString } from "../utils";
+import { EvmAddress, EvmFetcher, EvmTransaction } from "../types";
 import { Assets, Guards } from "../../enums";
 
 export const getEtherscanFetcher = ({

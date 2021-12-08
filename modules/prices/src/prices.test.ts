@@ -1,16 +1,12 @@
+import { AssetChunk } from "@valuemachine/core";
 import { Assets } from "@valuemachine/transactions";
-import {
-  AssetChunk,
-  DateString,
-  PriceFns,
-} from "@valuemachine/types";
+import { DateString } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { getPrices } from "./prices";
-import {
-  testLogger,
-} from "./testUtils";
+import { testLogger } from "./testUtils";
+import { PriceFns } from "./types";
 
 const log = testLogger.child({ module: "TestPrices" }, { level: "warn" });
 const { DAI, USD, ETH, cDAI, MKR, UNI } = Assets;

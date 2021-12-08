@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { AssetChunk } from "@valuemachine/types";
 
+import { AssetChunk } from "./types";
 import {
   getValueMachineError,
   sumChunks,

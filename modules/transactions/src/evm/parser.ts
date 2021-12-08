@@ -1,19 +1,14 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import { formatEther } from "@ethersproject/units";
-import {
-  AddressBook,
-  EvmParsers,
-  EvmTransaction,
-  EvmTransfer,
-  EvmMetadata,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
-import { dedup, getNewContractAddress, math } from "@valuemachine/utils";
+import { Logger } from "@valuemachine/types";
+import { dedup, math } from "@valuemachine/utils";
+
+import { TransferCategories } from "../enums";
+import { AddressBook, Transaction } from "../types";
 
 import { Methods } from "./enums";
-import { getTransferCategory } from "./utils";
+import { EvmMetadata, EvmParsers, EvmTransaction, EvmTransfer } from "./types";
+import { getNewContractAddress, getTransferCategory } from "./utils";
 
 export const parseEvmTx = (
   evmTx: EvmTransaction,

@@ -4,10 +4,8 @@ import {
   getTestTx,
   Guards,
   Sources,
-} from "@valuemachine/transactions";
-import {
   TransferCategories,
-} from "@valuemachine/types";
+} from "@valuemachine/transactions";
 import { math } from "@valuemachine/utils";
 import { expect } from "chai";
 

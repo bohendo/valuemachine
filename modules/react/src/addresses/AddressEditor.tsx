@@ -3,11 +3,11 @@ import { isHexString } from "@ethersproject/bytes";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import AddIcon from "@mui/icons-material/AddCircle";
-import { PhysicalGuards } from "@valuemachine/transactions";
 import {
   AddressCategories,
   AddressEntry,
-} from "@valuemachine/types";
+  PhysicalGuards,
+} from "@valuemachine/transactions";
 import React, { useEffect, useState } from "react";
 
 import { SelectOne, TextInput } from "../utils";
@@ -121,7 +121,7 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
           label="Category"
           choices={Object.keys(AddressCategories)}
           selection={newEntry?.category}
-          setSelection={category => setNewEntry({ ...newEntry, category })}
+          setSelection={(category: any) => setNewEntry({ ...newEntry, category })}
         />
       </Grid>
 

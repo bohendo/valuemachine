@@ -1,7 +1,5 @@
-import { ChainData } from "@valuemachine/types";
-import { getTransactionsError } from "@valuemachine/utils";
-
 import { Guards } from "../../enums";
+import { getTransactionsError } from "../../utils";
 import {
   env,
   expect,
@@ -10,13 +8,14 @@ import {
   testLogger,
   parsePolygonTx,
 } from "../testUtils";
+import { EvmData } from "../types";
 
 import { getPolygonData } from "./manager";
 
 const logger = testLogger.child({ module: "TestPolygonData" }, { level: "info" });
 
 describe.skip("Polygon Data Manager", () => {
-  let polygonData: ChainData;
+  let polygonData: EvmData;
   const testAddress = "0xada083a3c06ee526F827b43695F2DcFf5C8C892B";
   const addressBook = getTestAddressBook(testAddress);
   beforeEach(() => {

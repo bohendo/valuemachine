@@ -18,11 +18,11 @@ import {
   ValueMachine,
 } from "@valuemachine/core";
 import {
+  AddressBook,
   TxTags,
 } from "@valuemachine/transactions";
 import {
   Account,
-  AddressBook,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 

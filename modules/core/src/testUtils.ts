@@ -1,11 +1,9 @@
 import {
-  getAddressBook,
-} from "@valuemachine/transactions";
-import {
   AddressBook,
   AddressBookJson,
   AddressCategories,
-} from "@valuemachine/types";
+  getAddressBook,
+} from "@valuemachine/transactions";
 import {
   getLogger,
 } from "@valuemachine/utils";

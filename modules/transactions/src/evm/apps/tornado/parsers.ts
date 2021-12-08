@@ -1,13 +1,9 @@
-import {
-  AddressBook,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction } from "../../../types";
+import { EvmMetadata, EvmTransaction } from "../../types";
 import { Apps } from "../../enums";
 
 import { addresses, mixerAddresses } from "./addresses";

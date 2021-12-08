@@ -1,17 +1,10 @@
-import {
-  AddressBook,
-  Asset,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
-import {
-  assetsAreClose,
-  insertVenue,
-} from "@valuemachine/utils";
+import { Asset, Logger } from "@valuemachine/types";
+import { assetsAreClose } from "@valuemachine/utils";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction } from "../../../types";
+import { EvmMetadata, EvmTransaction } from "../../types";
+import { insertVenue } from "../../../utils";
 import { Apps, Methods, Tokens } from "../../enums";
 import { parseEvent } from "../../utils";
 

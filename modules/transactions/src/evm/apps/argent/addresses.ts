@@ -1,9 +1,5 @@
-import {
-  AddressCategories,
-} from "@valuemachine/types";
-import {
-  setAddressCategory,
-} from "@valuemachine/utils";
+import { AddressCategories } from "../../../enums";
+import { setAddressCategory } from "../../../utils";
 
 // Find more manager addresses at https://github.com/argentlabs/argent-contracts/releases/tag/2.1
 

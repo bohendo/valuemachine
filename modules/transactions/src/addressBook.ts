@@ -1,25 +1,23 @@
 import { isHexString } from "@ethersproject/bytes";
 import { isAddress as isEthAddress } from "@ethersproject/address";
+import { Account, Guard } from "@valuemachine/types";
+import { getLogger } from "@valuemachine/utils";
+
+import { AddressCategories, Guards } from "./enums";
+import { publicAddresses } from "./evm";
 import {
-  Account,
   AddressBook,
-  Guard,
   AddressBookJson,
   AddressBookParams,
-  AddressCategories,
   AddressCategory,
   AddressEntry,
-} from "@valuemachine/types";
+} from "./types";
 import {
   fmtAddress,
   fmtAddressEntry,
   getAddressEntryError,
   getEmptyAddressBook,
-  getLogger,
-} from "@valuemachine/utils";
-
-import { Guards } from "./enums";
-import { publicAddresses } from "./evm";
+} from "./utils";
 
 export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const { json: addressBookJson, hardcoded, logger } = params || {};

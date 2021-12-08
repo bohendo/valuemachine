@@ -20,6 +20,35 @@ export {
 } from "./evm/enums";
 
 ////////////////////////////////////////
+// Addresses Categories
+
+export const PrivateCategories = {
+  Employee: "Employee",
+  Employer: "Employer",
+  Family: "Family",
+  Friend: "Friend",
+  Merchant: "Merchant",
+  Private: "Private",
+  Self: "Self", // User controlled
+} as const;
+
+export const PublicCategories = {
+  Burn: "Burn",
+  Defi: "Defi",
+  Donation: "Donation",
+  Exchange: "Exchange",
+  NFT: "NFT",
+  Proxy: "Proxy",
+  Public: "Public",
+  Token: "Token",
+} as const;
+
+export const AddressCategories = {
+  ...PublicCategories,
+  ...PrivateCategories,
+} as const;
+
+////////////////////////////////////////
 // Utxo stuff
 
 export const UtxoChains = {
@@ -32,6 +61,32 @@ export const UtxoAssets = {
   BCH: "BCH",
   BTC: "BTC",
   LTC: "LTC",
+} as const;
+
+////////////////////////////////////////
+// Transfer Categories
+
+// Self to non-self transfers
+export const OutgoingTransfers = {
+  Expense: "Expense",
+  Fee: "Fee",
+  Repay: "Repay",
+  SwapOut: "SwapOut",
+} as const;
+
+// Non-self to self transfers
+export const IncomingTransfers = {
+  Income: "Income",
+  Refund: "Refund",
+  Borrow: "Borrow",
+  SwapIn: "SwapIn",
+} as const;
+
+export const TransferCategories = {
+  ...OutgoingTransfers,
+  ...IncomingTransfers,
+  Noop: "Noop", // zero-value or external->external or other useless transfers to filter out
+  Internal: "Internal", // self to self transfers
 } as const;
 
 ////////////////////////////////////////

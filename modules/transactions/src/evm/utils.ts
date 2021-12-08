@@ -1,25 +1,49 @@
 import { Interface } from "@ethersproject/abi";
 import { getAddress as getEvmAddress } from "@ethersproject/address";
-import { isHexString } from "@ethersproject/bytes";
+import { hexlify, isHexString } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
+import { keccak256 } from "@ethersproject/keccak256";
+import { encode } from "@ethersproject/rlp";
 import { formatEther } from "@ethersproject/units";
+import { Account, DecString } from "@valuemachine/types";
+import { ajv, formatErrors, math } from "@valuemachine/utils";
+
+import { AddressCategories, Guards, TransferCategories } from "../enums";
+import { AddressBook, Transfer, TransferCategory } from "../types";
+
 import {
-  Account,
-  AddressBook,
-  AddressCategories,
-  DecString,
+  EvmAddress,
+  EvmDataJson,
   EvmMetadata,
+  EvmTransaction,
   EvmTransactionLog,
   EvmTransfer,
-  Transfer,
-  TransferCategories,
-  TransferCategory,
-} from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
-
-import { Guards } from "../enums";
+} from "./types";
 
 export { sumTransfers } from "../utils";
+
+export const getEmptyEvmData = (): EvmDataJson => ({
+  addresses: {},
+  transactions: {},
+});
+
+export const getNewContractAddress = (from: EvmAddress, nonce: number): EvmAddress => `0x${
+  keccak256(encode([from.split("/").pop(), hexlify(nonce)])).substring(26).toLowerCase()
+}`;
+
+const validateEvmData = ajv.compile(EvmDataJson);
+export const getEvmDataError = (evmDataJson: EvmDataJson): string =>
+  validateEvmData(evmDataJson)
+    ? ""
+    : validateEvmData.errors.length ? formatErrors(validateEvmData.errors)
+    : `Invalid EvmData: ${JSON.stringify(evmDataJson)}`;
+
+const validateEvmTransaction = ajv.compile(EvmTransaction);
+export const getEvmTransactionError = (ethTx: EvmTransaction): string =>
+  validateEvmTransaction(ethTx)
+    ? ""
+    : validateEvmTransaction.errors.length ? formatErrors(validateEvmTransaction.errors)
+    : `Invalid EvmTransaction: ${JSON.stringify(ethTx)}`;
 
 export const describeAbi = (abi: any) => {
   const iface = new Interface(abi);

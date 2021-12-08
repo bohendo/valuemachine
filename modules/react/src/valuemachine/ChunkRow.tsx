@@ -14,7 +14,7 @@ import {
 } from "@valuemachine/core";
 import {
   AddressBook,
-} from "@valuemachine/types";
+} from "@valuemachine/transactions";
 import React, { useEffect, useState } from "react";
 
 import { HexString } from "../utils";

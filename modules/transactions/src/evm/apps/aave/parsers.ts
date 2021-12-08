@@ -1,21 +1,12 @@
 import { formatUnits } from "@ethersproject/units";
-import {
-  AddressBook,
-  Asset,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  Transfer,
-  TransferCategories,
-} from "@valuemachine/types";
-import {
-  math,
-  insertVenue,
-  valuesAreClose,
-} from "@valuemachine/utils";
+import { Asset, Logger } from "@valuemachine/types";
+import { math, valuesAreClose } from "@valuemachine/utils";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction, Transfer } from "../../../types";
+import { insertVenue } from "../../../utils";
 import { Apps, Tokens, Evms } from "../../enums";
+import { EvmMetadata, EvmTransaction } from "../../types";
 import { parseEvent } from "../../utils";
 
 import { addresses, defiAddresses } from "./addresses";

@@ -15,8 +15,10 @@ import {
   ValueMachine,
 } from "@valuemachine/core";
 import {
-  Account,
   AddressBook,
+} from "@valuemachine/transactions";
+import {
+  Account,
   Asset,
 } from "@valuemachine/types";
 import { dedup } from "@valuemachine/utils";

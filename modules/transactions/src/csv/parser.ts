@@ -1,6 +1,10 @@
-import { CsvFile, Logger, TransactionsJson } from "@valuemachine/types";
-import { chrono, getLogger, getTransactionsError, digest, slugify } from "@valuemachine/utils";
+import { Logger } from "@valuemachine/types";
+import { chrono, getLogger, digest, slugify } from "@valuemachine/utils";
 
+import { TransactionsJson } from "../types";
+import { getTransactionsError } from "../utils";
+
+import { CsvFile } from "./types";
 import { headersToSource, getCsvParser } from "./apps";
 
 export const cleanCsv = (csvData: string, csvName?: string): CsvFile => {

@@ -1,27 +1,12 @@
 import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
-import {
-  AddressBook,
-  Bytes32,
-  EvmAddress,
-  EvmData,
-  EvmDataJson,
-  EvmParsers,
-  Logger,
-  Transaction,
-  TransactionsJson,
-} from "@valuemachine/types";
-import {
-  chrono,
-  getBytes32Error,
-  getEmptyEvmData,
-  getEvmDataError,
-  getEvmTransactionError,
-  getLogger,
-} from "@valuemachine/utils";
+import { Bytes32, Logger } from "@valuemachine/types";
+import { chrono, getBytes32Error, getLogger } from "@valuemachine/utils";
 import getQueue from "queue";
 
-import { toISOString } from "../utils";
 import { Assets, Guards } from "../../enums";
+import { AddressBook, Transaction, TransactionsJson } from "../../types";
+import { EvmAddress, EvmData, EvmDataJson, EvmParsers } from "../types";
+import { getEmptyEvmData, getEvmDataError, getEvmTransactionError, toISOString } from "../utils";
 
 import { getAlchemyFetcher } from "./alchemy";
 import { getEtherscanFetcher } from "./etherscan";

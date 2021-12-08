@@ -3,8 +3,7 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { CsvSources, cleanCsv } from "@valuemachine/transactions";
-import { CsvFiles } from "@valuemachine/types";
+import { CsvFiles, CsvSources, cleanCsv } from "@valuemachine/transactions";
 import React from "react";
 
 type CsvPorterProps = {

@@ -6,7 +6,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import { ValueMachine } from "@valuemachine/core";
-import { AddressBook } from "@valuemachine/types";
+import { AddressBook } from "@valuemachine/transactions";
 import { math } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 

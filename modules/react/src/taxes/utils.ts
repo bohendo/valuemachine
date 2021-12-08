@@ -3,10 +3,9 @@ import {
   getTaxRows,
   TaxRows,
 } from "@valuemachine/taxes";
-import { TxTags } from "@valuemachine/transactions";
+import { AddressBook, TxTags } from "@valuemachine/transactions";
 import { PriceFns } from "@valuemachine/prices";
 import {
-  AddressBook,
   Asset,
 } from "@valuemachine/types";
 

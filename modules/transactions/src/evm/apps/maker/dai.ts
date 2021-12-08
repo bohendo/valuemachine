@@ -1,17 +1,13 @@
 import { hexlify, stripZeros } from "@ethersproject/bytes";
 import { formatUnits } from "@ethersproject/units";
-import {
-  AddressBook,
-  Asset,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
-import { insertVenue, math, valuesAreClose } from "@valuemachine/utils";
+import { Asset, Logger } from "@valuemachine/types";
+import { math, valuesAreClose } from "@valuemachine/utils";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction } from "../../../types";
+import { insertVenue } from "../../../utils";
 import { Apps, Tokens } from "../../enums";
+import { EvmMetadata, EvmTransaction } from "../../types";
 
 import {
   dsrAddress,
