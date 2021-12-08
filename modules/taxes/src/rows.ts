@@ -67,20 +67,22 @@ export const getTaxRows = async ({
         const chunk = vm.getChunk(chunkIndex);
         const price = prices.getNearest(date, chunk.asset, unit) || "0";
         if (chunk.asset !== unit && price !== "0") {
-          const value = math.mul(chunk.amount, price);
-          const receivePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset, unit);
-          const capitalChange = math.mul(chunk.amount, math.sub(price, receivePrice || "0"));
+          const amount = chunk.amount;
+          const value = math.mul(amount, price);
+          const receiveDate = getDate(chunk.history[0].date);
+          const receivePrice = prices.getNearest(receiveDate, chunk.asset, unit) || "0";
+          const capitalChange = math.mul(amount, math.sub(price, receivePrice));
           return {
             date: date,
             taxYear,
             action: TaxActions.Trade,
-            amount: chunk.amount,
+            amount,
             asset: chunk.asset,
-            price: price,
-            value: value,
-            receivePrice: receivePrice,
-            receiveDate: getDate(chunk.history[0].date),
-            capitalChange: capitalChange,
+            price,
+            value,
+            receivePrice,
+            receiveDate,
+            capitalChange,
             tag,
             txId,
           };
@@ -153,12 +155,16 @@ export const getTaxRows = async ({
     const dupRow = rows.find(r =>
       r.asset === row.asset
       && r.date === row.date
+      && r.action === row.action
+      && r.price === row.price
       && r.receiveDate === row.receiveDate
+      && r.receivePrice === row.receivePrice
       && r.txId === row.txId
     );
     if (dupRow) {
       dupRow.amount = math.add(dupRow.amount, row.amount);
       dupRow.value = math.add(dupRow.value, row.value);
+      dupRow.capitalChange = math.add(dupRow.capitalChange, row.capitalChange);
     } else {
       rows.push(row);
     }
@@ -168,7 +174,7 @@ export const getTaxRows = async ({
   }, [] as TaxRows).filter(row =>
     math.gt(row.value, "0.005")
     && (
-      row.action !== TaxActions.Trade || math.gt(row.capitalChange, "0.005")
+      row.action === TaxActions.Income || math.gt(row.capitalChange, "0.005")
     )
   );
 };
