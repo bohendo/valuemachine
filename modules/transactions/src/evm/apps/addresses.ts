@@ -1,6 +1,7 @@
 import { AddressZero } from "@ethersproject/constants";
-import { AddressCategories } from "@valuemachine/types";
-import { setAddressCategory } from "@valuemachine/utils";
+
+import { AddressCategories } from "../../enums";
+import { setAddressCategory } from "../../utils";
 
 import { addresses as aave } from "./aave/addresses";
 import { addresses as airswap } from "./airswap/addresses";

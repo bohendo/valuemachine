@@ -1,6 +1,9 @@
 import fs from "fs";
 
-import { getFileStore, getLogger } from "@valuemachine/utils";
+import {
+  getFileStore,
+  getLogger,
+} from "valuemachine";
 
 import { env } from "./env";
 

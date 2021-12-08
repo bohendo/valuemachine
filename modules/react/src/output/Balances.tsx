@@ -3,13 +3,13 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableRow from "@mui/material/TableRow";
-import { Balances as BalancesType } from "@valuemachine/types";
+import { Balances } from "@valuemachine/types";
 import React from "react";
 
-export const Balances = ({
+export const BalanceDisplay = ({
   balances,
 }: {
-  balances: BalancesType,
+  balances: Balances,
 }) => {
   return (<>
     <TableContainer>

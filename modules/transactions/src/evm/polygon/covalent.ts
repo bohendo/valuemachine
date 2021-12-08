@@ -1,20 +1,11 @@
 import { getAddress as getEvmAddress } from "@ethersproject/address";
 import { formatEther } from "@ethersproject/units";
 import { hexlify } from "@ethersproject/bytes";
-import {
-  Bytes32,
-  EvmAddress,
-  EvmMetadata,
-  Logger,
-} from "@valuemachine/types";
-import {
-  dedup,
-  getLogger,
-  toBN,
-} from "@valuemachine/utils";
+import { Bytes32, Logger } from "@valuemachine/types";
+import { dedup, getLogger, math } from "@valuemachine/utils";
 import axios from "axios";
 
-import { EvmFetcher } from "../types";
+import { EvmAddress, EvmFetcher, EvmMetadata } from "../types";
 import { Assets, Guards } from "../../enums";
 
 export const getCovalentFetcher = ({
@@ -37,7 +28,7 @@ export const getCovalentFetcher = ({
   ////////////////////////////////////////
   // Internal Heleprs
 
-  const numify = (val: number | string): number => toBN(val).toNumber();
+  const numify = (val: number | string): number => math.toBN(val).toNumber();
   const stringify = (val: number | string): string => numify(val).toString();
 
   // CAIP-10

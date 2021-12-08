@@ -4,27 +4,27 @@ import {
   getTestTx,
   Guards,
   Sources,
-} from "@valuemachine/transactions";
-import {
-  EventTypes,
   TransferCategories,
-} from "@valuemachine/types";
-import {
-  add,
-  getValueMachineError,
-  sub,
-} from "@valuemachine/utils";
+} from "@valuemachine/transactions";
+import { math } from "@valuemachine/utils";
+import { expect } from "chai";
 
 import { getValueMachine } from "./vm";
 import {
   AddressOne,
   AddressTwo,
   AddressThree,
-  expect,
   getTestAddressBook,
   testLogger,
 } from "./testUtils";
+import {
+  EventTypes,
+} from "./types";
+import {
+  getValueMachineError,
+} from "./utils";
 
+const { add, sub } = math;
 const { ETH, DAI, UniV2_UNI_ETH, UNI, USD } = Assets;
 const {
   Borrow,

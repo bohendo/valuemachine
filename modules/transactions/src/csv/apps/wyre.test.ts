@@ -1,6 +1,6 @@
-import { getTransactionsError } from "@valuemachine/utils";
+import { expect } from "chai";
 
-import { expect } from "../../testUtils";
+import { getTransactionsError } from "../../utils";
 import { parseCsv } from "../parser";
 
 import { wyreHeaders } from "./wyre";

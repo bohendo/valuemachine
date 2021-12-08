@@ -9,13 +9,11 @@ import {
   getTaxYearBoundaries,
   inTaxYear,
   TaxYears,
-} from "@valuemachine/taxes";
-import { Guards } from "@valuemachine/transactions";
-import {
-  Guard,
   TaxInput,
   TaxRows,
-} from "@valuemachine/types";
+} from "@valuemachine/taxes";
+import { Guards } from "@valuemachine/transactions";
+import { Guard } from "@valuemachine/types";
 import { dedup, digest, math } from "@valuemachine/utils";
 import axios from "axios";
 import { parse as json2csv } from "json2csv";
@@ -53,15 +51,20 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
       console.warn(`There were no known taxable events in ${taxYear}`);
       return;
     }
-    const csvData = taxRows.filter(inTaxYear(guard, taxYear)).map(row => ({
-      ...row,
-      amount: math.round(row.amount, 6),
-      value: math.round(row.value, 2),
-      price: math.round(row.price, 4),
-      receivePrice: math.round(row.receivePrice, 4),
-      capitalChange: math.round(row.capitalChange, 2),
-      tag: JSON.stringify(row.tag),
-    }));
+    const csvData = taxRows
+      .filter(row => row.taxYear === taxYear || row.taxYear.startsWith(guard))
+      .filter(inTaxYear(guard, taxYear))
+      .map(row => ({
+        ...row,
+        amount: math.round(row.amount, 8),
+        value: math.round(row.value, 2),
+        price: math.round(row.price, 6),
+        receivePrice: math.round(row.receivePrice, 6),
+        capitalChange: math.round(row.capitalChange, 2),
+      })).map((row: any) => {
+        delete row.tag;
+        return row;
+      });
     const headers = Object.keys(taxRows?.[0] || {});
     console.log(`Exporting csv data w headers: ${headers}`, csvData);
     const output = json2csv(csvData, headers);

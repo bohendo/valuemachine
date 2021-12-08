@@ -1,22 +1,12 @@
 import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
 import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
-import {
-  Bytes32,
-  EvmAddress,
-  EvmTransaction,
-  Logger,
-} from "@valuemachine/types";
-import {
-  dedup,
-  getEvmTransactionError,
-  getLogger,
-  toBN,
-} from "@valuemachine/utils";
+import { Bytes32, Logger } from "@valuemachine/types";
+import { dedup, getLogger, math } from "@valuemachine/utils";
 import axios from "axios";
 
-import { getStatus, toISOString } from "../utils";
-import { EvmFetcher } from "../types";
+import { getEvmTransactionError, getStatus, toISOString } from "../utils";
+import { EvmAddress, EvmFetcher, EvmTransaction } from "../types";
 import { Assets, Guards } from "../../enums";
 
 export const getEtherscanFetcher = ({
@@ -107,7 +97,7 @@ export const getEtherscanFetcher = ({
     // Save timestamps while fetching account histories so we can reuse them later
     transactions.forEach(tx => {
       if (tx.blockNumber && (tx.timestamp || tx.timeStamp)) {
-        const blockNumber = toBN(tx.blockNumber).toString();
+        const blockNumber = math.toBN(tx.blockNumber).toString();
         const timestamp = toISOString(tx.timestamp || tx.timeStamp);
         timestampCache[blockNumber] = timestamp;
         log.debug(`Cached a timestamp entry for block ${blockNumber}: ${timestamp}`);
@@ -122,21 +112,21 @@ export const getEtherscanFetcher = ({
       query("proxy", "eth_getTransactionReceipt", txHash),
       query("account", "txlistinternal", txHash),
     ]);
-    const timestamp = timestampCache[toBN(tx.blockNumber).toString()] || toISOString(
+    const timestamp = timestampCache[math.toBN(tx.blockNumber).toString()] || toISOString(
       (await query("proxy", "eth_getBlockByNumber", receipt.blockNumber)).timestamp
     );
     const transaction = {
       from: getAddress(tx.from),
-      gasPrice: toBN(tx.effectiveGasPrice || tx.gasPrice).toString(),
-      gasUsed: toBN(receipt.gasUsed).toString(),
+      gasPrice: math.toBN(tx.effectiveGasPrice || tx.gasPrice).toString(),
+      gasUsed: math.toBN(receipt.gasUsed).toString(),
       hash: hexlify(tx.hash),
       logs: receipt.logs.map(evt => ({
         address: getAddress(evt.address),
-        index: toBN(evt.logIndex).toNumber(),
+        index: math.toBN(evt.logIndex).toNumber(),
         topics: evt.topics.map(hexlify),
         data: hexlify(evt.data || "0x"),
       })),
-      nonce: toBN(tx.nonce).toNumber(),
+      nonce: math.toBN(tx.nonce).toNumber(),
       status: getStatus(tx, receipt),
       timestamp,
       transfers: transfers.map(transfer => ({

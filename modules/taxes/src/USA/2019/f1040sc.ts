@@ -1,15 +1,13 @@
-import {
-  ExpenseTypes,
-  IncomeTypes,
-  Logger,
-  TaxRows,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
 import {
+  ExpenseTypes,
   Forms,
+  IncomeTypes,
   math,
   processExpenses,
   processIncome,
+  TaxRows,
 } from "./utils";
 
 const { add, gt, lt, round, sub } = math;

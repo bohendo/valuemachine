@@ -1,23 +1,49 @@
 import { Interface } from "@ethersproject/abi";
 import { getAddress as getEvmAddress } from "@ethersproject/address";
-import { isHexString } from "@ethersproject/bytes";
+import { hexlify, isHexString } from "@ethersproject/bytes";
 import { AddressZero } from "@ethersproject/constants";
+import { keccak256 } from "@ethersproject/keccak256";
+import { encode } from "@ethersproject/rlp";
 import { formatEther } from "@ethersproject/units";
+import { Account, DecString } from "@valuemachine/types";
+import { ajv, formatErrors, math } from "@valuemachine/utils";
+
+import { AddressCategories, Guards, TransferCategories } from "../enums";
+import { AddressBook, Transfer, TransferCategory } from "../types";
+
 import {
-  Account,
-  AddressBook,
-  AddressCategories,
-  DecString,
+  EvmAddress,
+  EvmDataJson,
   EvmMetadata,
+  EvmTransaction,
   EvmTransactionLog,
   EvmTransfer,
-  Transfer,
-  TransferCategories,
-  TransferCategory,
-} from "@valuemachine/types";
-import { diff, gt, toBN } from "@valuemachine/utils";
+} from "./types";
 
-import { Guards } from "../enums";
+export { sumTransfers } from "../utils";
+
+export const getEmptyEvmData = (): EvmDataJson => ({
+  addresses: {},
+  transactions: {},
+});
+
+export const getNewContractAddress = (from: EvmAddress, nonce: number): EvmAddress => `0x${
+  keccak256(encode([from.split("/").pop(), hexlify(nonce)])).substring(26).toLowerCase()
+}`;
+
+const validateEvmData = ajv.compile(EvmDataJson);
+export const getEvmDataError = (evmDataJson: EvmDataJson): string =>
+  validateEvmData(evmDataJson)
+    ? ""
+    : validateEvmData.errors.length ? formatErrors(validateEvmData.errors)
+    : `Invalid EvmData: ${JSON.stringify(evmDataJson)}`;
+
+const validateEvmTransaction = ajv.compile(EvmTransaction);
+export const getEvmTransactionError = (ethTx: EvmTransaction): string =>
+  validateEvmTransaction(ethTx)
+    ? ""
+    : validateEvmTransaction.errors.length ? formatErrors(validateEvmTransaction.errors)
+    : `Invalid EvmTransaction: ${JSON.stringify(ethTx)}`;
 
 export const describeAbi = (abi: any) => {
   const iface = new Interface(abi);
@@ -31,9 +57,9 @@ export const describeAbi = (abi: any) => {
   ].join(`\n`);
 };
 
-export const toNumber = (val: number | string): number => toBN(val).toNumber();
+export const toNumber = (val: number | string): number => math.toBN(val).toNumber();
 
-export const toString = (val: number | string): string => toBN(val).toString();
+export const toString = (val: number | string): string => math.toBN(val).toString();
 
 export const toISOString = (val?: number | string): string => {
   const firstBlockTimeMs = 1438269988 * 1000; // timestamp of block #1 (genesis has no timestamp)
@@ -42,7 +68,7 @@ export const toISOString = (val?: number | string): string => {
   } else if (typeof val === "string" && val.includes("T")) {
     return new Date(val).toISOString();
   } else {
-    const time = typeof val === "number" ? val : toBN(val).toNumber();
+    const time = typeof val === "number" ? val : math.toBN(val).toNumber();
     return new Date(time < firstBlockTimeMs ? time * 1000 : time).toISOString();
   }
 };
@@ -69,26 +95,26 @@ export const formatTraces = (traces: any[], meta: EvmMetadata): EvmTransfer[] =>
       : trace.type === "suicide" ? trace.action.balance
       : "0"
     ),
-  })).filter(t => gt(t.value, "0"));
+  })).filter(t => math.gt(t.value, "0"));
 };
 
 export const getStatus = (tx: any, receipt: any): number => 
   // If post-byzantium, then the receipt already has a status, yay
   typeof receipt.status === "number" ? receipt.status
-  : isHexString(receipt.status) ? toBN(receipt.status).toNumber()
+  : isHexString(receipt.status) ? math.toBN(receipt.status).toNumber()
   // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
-  : toBN(tx.gasLimit || tx.gas).gt(toBN(receipt.gasUsed)) ? 1
+  : math.toBN(tx.gasLimit || tx.gas).gt(math.toBN(receipt.gasUsed)) ? 1
   // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
-  : toBN(tx.gasLimit || tx.gas).eq(toBN("21000")) ? 1
+  : math.toBN(tx.gasLimit || tx.gas).eq(math.toBN("21000")) ? 1
   // Otherwise it PROBABLY failed
   : 0;
 
 // Smallest difference is first, largest is last
 // If diff in 1 is greater than diff in 2, swap them
 export const diffAsc = (compareTo: DecString) => (t1: Transfer, t2: Transfer): number =>
-  gt(
-    diff(t1.amount, compareTo),
-    diff(t2.amount, compareTo),
+  math.gt(
+    math.diff(t1.amount, compareTo),
+    math.diff(t2.amount, compareTo),
   ) ? 1 : -1;
 
 // Clean up if/when I get feedback on https://github.com/ethers-io/ethers.js/issues/1831

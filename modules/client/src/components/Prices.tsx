@@ -2,19 +2,20 @@ import ClearIcon from "@mui/icons-material/Delete";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
-import { PriceTable, SyncPrices } from "@valuemachine/react";
 import {
   Asset,
-  Prices,
-  PricesJson,
+  PriceFns,
+  PriceJson,
+  PriceTable,
+  SyncPrices,
   ValueMachine,
-} from "@valuemachine/types";
+} from "valuemachine";
 import React from "react";
 
 type PropTypes = {
   globalSyncMsg: string;
-  prices: Prices;
-  setPricesJson: (val: PricesJson) => void;
+  prices: PriceFns;
+  setPricesJson: (val: PriceJson) => void;
   unit: Asset,
   vm: ValueMachine,
 };

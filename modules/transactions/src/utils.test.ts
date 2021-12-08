@@ -1,10 +1,9 @@
-import { expect } from "chai";
 import { AddressZero } from "@ethersproject/constants";
-import { TransferCategories } from "@valuemachine/types";
+import { expect } from "chai";
 
-import {
-  getTransactionsError,
-} from "./transactions";
+import { TransferCategories } from "./enums";
+import { getTransactionsError, sumTransfers } from "./utils";
+import { Transfer } from "./types";
 
 const validTransaction = {
   apps: [],
@@ -29,7 +28,8 @@ const validTransaction = {
   }],
 };
 
-describe("Transactions", () => {
+describe("Transaction Utils", () => {
+
   it("should return no errors if json is valid", async () => {
     expect(getTransactionsError([validTransaction])).to.equal("");
   });
@@ -45,4 +45,22 @@ describe("Transactions", () => {
   it("should return no errors if tag is valid", async () => {
     expect(getTransactionsError([validTransaction])).to.equal("");
   });
+
+  it("should sum transfers", async () => {
+    expect(sumTransfers([{
+      asset: "ETH",
+      amount: "1.0",
+    }, {
+      asset: "ETH",
+      amount: "2.0",
+    }, {
+      asset: "RAI",
+      amount: "3.0",
+    }] as Transfer[])).to.deep.equal({
+      ETH: "3.0",
+      RAI: "3.0",
+    });
+  });
+
 });
+

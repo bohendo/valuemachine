@@ -7,21 +7,23 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { Methods } from "@valuemachine/transactions";
 import {
-  Account,
   AddressBook,
-  App,
-  Asset,
   IncomingTransfers,
+  Methods,
   OutgoingTransfers,
-  Source,
   Transaction,
   Transactions,
   TransactionsJson,
   TransferCategories,
-  TxId,
   TxTags,
+} from "@valuemachine/transactions";
+import {
+  Account,
+  App,
+  Asset,
+  Source,
+  TxId,
 } from "@valuemachine/types";
 import { chrono, dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";

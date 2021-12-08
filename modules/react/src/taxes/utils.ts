@@ -1,11 +1,12 @@
-import { getTaxRows } from "@valuemachine/taxes";
+import { ValueMachine } from "@valuemachine/core";
 import {
-  AddressBook,
-  Asset,
-  Prices,
-  ValueMachine,
+  getTaxRows,
   TaxRows,
-  TxTags,
+} from "@valuemachine/taxes";
+import { AddressBook, TxTags } from "@valuemachine/transactions";
+import { PriceFns } from "@valuemachine/prices";
+import {
+  Asset,
 } from "@valuemachine/types";
 
 export const syncTaxRows = async ({
@@ -18,7 +19,7 @@ export const syncTaxRows = async ({
   vm,
 }: {
   addressBook: AddressBook;
-  prices: Prices;
+  prices: PriceFns;
   setSyncMsg?: (val: string) => void;
   setTaxRows?: (val: TaxRows) => void;
   txTags: TxTags;

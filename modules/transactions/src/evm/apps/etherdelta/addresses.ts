@@ -1,10 +1,5 @@
-import {
-  AddressCategories,
-} from "@valuemachine/types";
-import {
-  setAddressCategory,
-} from "@valuemachine/utils";
-
+import { AddressCategories } from "../../../enums";
+import { setAddressCategory } from "../../../utils";
 import { Apps } from "../../enums";
 
 // Simple, standalone tokens only. App-specific tokens can be found in that app's parser.

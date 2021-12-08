@@ -10,9 +10,11 @@ import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
-  AddressBook,
   AssetChunk,
-} from "@valuemachine/types";
+} from "@valuemachine/core";
+import {
+  AddressBook,
+} from "@valuemachine/transactions";
 import React, { useEffect, useState } from "react";
 
 import { HexString } from "../utils";

@@ -1,7 +1,7 @@
-import { TaxInput, TaxRows } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 
 import { getEmptyForms, TaxYears } from "../../mappings";
+import { TaxInput, TaxRows } from "../../types";
 
 import { f1040 } from "./f1040";
 import { f1040s1 } from "./f1040s1";

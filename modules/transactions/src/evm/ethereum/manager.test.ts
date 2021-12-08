@@ -1,9 +1,6 @@
-import {
-  env,
-  expect,
-  getTestAddressBook,
-  testLogger,
-} from "../testUtils";
+import { expect } from "chai";
+
+import { env, getTestAddressBook, testLogger } from "../testUtils";
 
 import { getEthereumData } from "./manager";
 

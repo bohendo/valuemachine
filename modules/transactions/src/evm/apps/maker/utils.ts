@@ -1,8 +1,7 @@
 import { Interface } from "@ethersproject/abi";
 import { HashZero } from "@ethersproject/constants";
-import {
-  EvmTransactionLog,
-} from "@valuemachine/types";
+
+import { EvmTransactionLog } from "../../types";
 
 export const parseLogNote = (
   abi: string[],

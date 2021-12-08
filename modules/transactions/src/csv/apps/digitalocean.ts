@@ -1,13 +1,9 @@
-import {
-  ExpenseTypes,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 import { digest, math } from "@valuemachine/utils";
 import csv from "csv-parse/lib/sync";
 
-import { Assets, CsvSources, Guards, Methods } from "../../enums";
+import { Assets, CsvSources, Guards, ExpenseTypes, Methods, TransferCategories } from "../../enums";
+import { Transaction } from "../../types";
 
 const guard = Guards.USA;
 const source = CsvSources.DigitalOcean;

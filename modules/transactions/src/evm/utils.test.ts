@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { AddressZero, HashZero } from "@ethersproject/constants";
 
-import { getEvmDataError } from "./evmData";
+import { getEvmDataError } from "./utils";
 
 const validAddressHistory = {
   [AddressZero]: {
@@ -60,4 +60,3 @@ describe("EvmData", () => {
   });
 
 });
-

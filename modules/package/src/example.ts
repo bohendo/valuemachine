@@ -2,17 +2,18 @@ import fs from "fs";
 import path from "path";
 
 import {
+  AddressCategories,
+  EventTypes,
   getAddressBook,
+  getEthereumData,
+  getFileStore,
+  getLogger,
   getPrices,
   getTransactions,
-  getEthereumData,
   getValueMachine,
-  types,
-  utils,
+  math,
 } from "."; // replace "." with "valuemachine" in your code
 
-const { getFileStore, getLogger, mul, round, sub } = utils;
-const { AddressCategories, EventTypes } = types;
 const logger = getLogger("info");
 
 // store the data we download & generate on the filesystem
@@ -34,8 +35,9 @@ const transactions = getTransactions({ logger });
   // Get chain data management tools
   const chainData = getEthereumData({
     etherscanKey: process.env.ETHERSCAN_KEY,
+    json: store.load("EthereumData"),
     logger,
-    store,
+    save: val => store.save("EthereumData", val),
   });
 
   // Fetch eth chain data, this can take a while
@@ -52,7 +54,12 @@ const transactions = getTransactions({ logger });
 
   // Create a price fetcher & fetch the relevant prices
   const unit = "USD";
-  const prices = getPrices({ logger, store, unit });
+  const prices = getPrices({
+    json: store.load("Prices"),
+    logger,
+    save: val => store.save("Prices", val),
+    unit,
+  });
   for (const chunk of vm.json.chunks) {
     const { asset, history, disposeDate } = chunk;
     for (const date of [history[0]?.date, disposeDate]) {
@@ -71,9 +78,9 @@ const transactions = getTransactions({ logger });
         const takePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset);
         const givePrice = prices.getNearest(chunk.disposeDate, chunk.asset);
         if (!takePrice || !givePrice) return;
-        const change = mul(chunk.amount, sub(givePrice, takePrice));
+        const change = math.mul(chunk.amount, math.sub(givePrice, takePrice));
         console.log(`${
-          round(chunk.amount, 4).padStart(12, " ")
+          math.round(chunk.amount, 4).padStart(12, " ")
         } | ${
           chunk.asset.padStart(12, " ")
         } | ${
@@ -81,7 +88,7 @@ const transactions = getTransactions({ logger });
         } | ${
           chunk.disposeDate.split("T")[0].padStart(12, " ")
         } | ${
-          round(change, 2)
+          math.round(change, 2)
         }`);
       });
     }

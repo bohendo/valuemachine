@@ -20,6 +20,35 @@ export {
 } from "./evm/enums";
 
 ////////////////////////////////////////
+// Addresses Categories
+
+export const PrivateCategories = {
+  Employee: "Employee",
+  Employer: "Employer",
+  Family: "Family",
+  Friend: "Friend",
+  Merchant: "Merchant",
+  Private: "Private",
+  Self: "Self", // User controlled
+} as const;
+
+export const PublicCategories = {
+  Burn: "Burn",
+  Defi: "Defi",
+  Donation: "Donation",
+  Exchange: "Exchange",
+  NFT: "NFT",
+  Proxy: "Proxy",
+  Public: "Public",
+  Token: "Token",
+} as const;
+
+export const AddressCategories = {
+  ...PublicCategories,
+  ...PrivateCategories,
+} as const;
+
+////////////////////////////////////////
 // Utxo stuff
 
 export const UtxoChains = {
@@ -32,6 +61,32 @@ export const UtxoAssets = {
   BCH: "BCH",
   BTC: "BTC",
   LTC: "LTC",
+} as const;
+
+////////////////////////////////////////
+// Transfer Categories
+
+// Self to non-self transfers
+export const OutgoingTransfers = {
+  Expense: "Expense",
+  Fee: "Fee",
+  Repay: "Repay",
+  SwapOut: "SwapOut",
+} as const;
+
+// Non-self to self transfers
+export const IncomingTransfers = {
+  Income: "Income",
+  Refund: "Refund",
+  Borrow: "Borrow",
+  SwapIn: "SwapIn",
+} as const;
+
+export const TransferCategories = {
+  ...OutgoingTransfers,
+  ...IncomingTransfers,
+  Noop: "Noop", // zero-value or external->external or other useless transfers to filter out
+  Internal: "Internal", // self to self transfers
 } as const;
 
 ////////////////////////////////////////
@@ -132,4 +187,57 @@ export const Guards = {
   ...DigitalGuards,
   ...PhysicalGuards,
   None: "None",
+} as const;
+
+////////////////////////////////////////
+// Tags
+
+export const IncomeTypes = {
+  Airdrop: "Airdrop", // f1040s1.L8
+  Dividend: "Dividend", // f1040.L3b
+  Interest: "Interest", // f1040.L2b
+  Church: "Church", // f1040sse.L5a
+  Prize: "Prize", // f1040s1.L8
+  Business: "Business", // f1040sc.L1
+  Wage: "Wage", // f1040.L1
+  IRA: "IRA", // f1040.L4b
+  Pension: "Pension", // f1040.L5b
+  SocialSecurity: "SocialSecurity", // f1040.L6b
+  TaxCredit: "TaxCredit", // f1040s1.L1
+  Unemployment: "Unemployment", // f1040s1.L7
+  Alimony: "Alimony", // f1040s1.L2a
+} as const;
+
+// Eg for filling in f1040sc part II
+export const BusinessExpenseTypes = {
+  Advertising: "Advertising", // f1040sc.L8
+  Vehicle: "Vehicle", // f1040sc.L9
+  Commission: "Commission", // f1040sc.L10
+  Labor: "Labor", // f1040sc.L11
+  Depletion: "Depletion", // f1040sc.L12
+  Depreciation: "Depreciation", // f1040sc.L13
+  EmployeeBenefits: "EmployeeBenefits", // f1040sc.L14
+  Insurance: "Insurance", // f1040sc.L15
+  Mortgage: "Mortgage", // f1040sc.L16a
+  Interest: "Interest", // f1040sc.L16b
+  Legal: "Legal", // f1040sc.L17
+  Office: "Office", // f1040sc.L18
+  Pension: "Pension", // f1040sc.L19
+  EquipmentRental: "EquipmentRental", // f1040sc.L20a
+  PropertyRental: "PropertyRentalOffice", // f1040sc.L20b
+  Repairs: "Repairs", // f1040sc.L21
+  Supplies: "Supplies", // f1040sc.L22
+  Licenses: "Licenses", // f1040sc.L23
+  Travel: "Travel", // f1040sc.L24a
+  Meals: "Meals", // f1040sc.L24b
+  Utilities: "Utilities", // f1040sc.L25
+  Wages: "Wages", // f1040sc.L26
+  Business: "Business", // f1040sc.L48
+} as const;
+
+export const ExpenseTypes = {
+  ...BusinessExpenseTypes,
+  Tax: "Tax",
+  Fee: "Fee",
+  Personal: "Personal",
 } as const;

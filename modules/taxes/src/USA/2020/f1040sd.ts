@@ -1,25 +1,20 @@
+import { Logger } from "@valuemachine/types";
+
+import { lastYear, thisYear } from "./const";
 import {
   FilingStatuses,
-  Logger,
-  IncomeTypes,
-  TaxInput,
-  TaxRows,
-} from "@valuemachine/types";
-
-import {
-  thisYear,
-  lastYear,
-} from "./const";
-import {
   Forms,
-  sumShortTermTrades,
-  sumLongTermTrades,
-  sumTrades,
   getTotalCapitalChange,
-  sumIncome,
   getTotalTaxableIncome,
+  IncomeTypes,
   math,
   strcat,
+  sumIncome,
+  sumLongTermTrades,
+  sumShortTermTrades,
+  sumTrades,
+  TaxInput,
+  TaxRows,
 } from "./utils";
 
 export const f1040sd = (

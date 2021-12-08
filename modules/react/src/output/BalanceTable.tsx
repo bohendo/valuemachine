@@ -5,13 +5,14 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import { AddressBook, ValueMachine } from "@valuemachine/types";
+import { ValueMachine } from "@valuemachine/core";
+import { AddressBook } from "@valuemachine/transactions";
+import { math } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
-import { gt } from "@valuemachine/utils";
 
 import { HexString } from "../utils";
 
-import { Balances } from "./Balances";
+import { BalanceDisplay } from "./Balances";
 
 type BalanceTableProps = {
   addressBook: AddressBook;
@@ -47,13 +48,13 @@ export const BalanceTable: React.FC<BalanceTableProps> = ({
             {Object.entries(allBalances)
               .sort((e1, e2) => e1[0] > e2[0] ? 1 : -1)
               .map(([account, balances]: any, i: number) =>
-                Object.values(balances).some(bal => gt(bal, "0")) ? (
+                Object.values(balances).some(bal => math.gt(bal, "0")) ? (
                   <TableRow key={i}>
                     <TableCell sx={{ mr: 2, pr: 2 }}>
                       <HexString value={account} display={addressBook.getName(account, true)}/>
                     </TableCell>
                     <TableCell>
-                      <Balances balances={balances}/>
+                      <BalanceDisplay balances={balances}/>
                     </TableCell>
                   </TableRow>
                 ) : null)

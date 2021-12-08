@@ -1,23 +1,13 @@
 import { getAddress as getEvmAddress } from "@ethersproject/address";
 import { hexlify } from "@ethersproject/bytes";
 import { formatEther } from "@ethersproject/units";
-import {
-  Bytes32,
-  EvmAddress,
-  EvmTransaction,
-  Logger,
-} from "@valuemachine/types";
-import {
-  dedup,
-  getEvmTransactionError,
-  getLogger,
-  toBN,
-} from "@valuemachine/utils";
+import { Bytes32, Logger } from "@valuemachine/types";
+import { dedup, getLogger, math } from "@valuemachine/utils";
 import axios from "axios";
 
-import { formatTraces, getStatus, toISOString } from "../utils";
-import { EvmFetcher } from "../types";
 import { Assets, Guards } from "../../enums";
+import { formatTraces, getEvmTransactionError, getStatus, toISOString } from "../utils";
+import { EvmAddress, EvmFetcher, EvmTransaction } from "../types";
 
 export const getAlchemyFetcher = ({
   providerUrl,
@@ -120,16 +110,16 @@ export const getAlchemyFetcher = ({
     );
     const transaction = {
       from: getAddress(tx.from),
-      gasPrice: toBN(tx.effectiveGasPrice || tx.gasPrice).toString(),
-      gasUsed: toBN(receipt.gasUsed).toString(),
+      gasPrice: math.toBN(tx.effectiveGasPrice || tx.gasPrice).toString(),
+      gasUsed: math.toBN(receipt.gasUsed).toString(),
       hash: hexlify(tx.hash),
       logs: receipt.logs.map(evt => ({
         address: getAddress(evt.address),
-        index: toBN(evt.logIndex).toNumber(),
+        index: math.toBN(evt.logIndex).toNumber(),
         topics: evt.topics.map(hexlify),
         data: hexlify(evt.data || "0x"),
       })),
-      nonce: toBN(tx.nonce).toNumber(),
+      nonce: math.toBN(tx.nonce).toNumber(),
       status: getStatus(tx, receipt),
       timestamp,
       transfers: formatTraces(traces, metadata),

@@ -1,29 +1,12 @@
 import { isAddress as isEvmAddress, getAddress as getEvmAddress } from "@ethersproject/address";
-import {
-  AddressBook,
-  Bytes32,
-  EvmAddress,
-  EvmData,
-  EvmDataJson,
-  EvmParsers,
-  Logger,
-  Store,
-  StoreKeys,
-  Transaction,
-  TransactionsJson,
-} from "@valuemachine/types";
-import {
-  chrono,
-  getBytes32Error,
-  getEmptyEvmData,
-  getEvmDataError,
-  getEvmTransactionError,
-  getLogger,
-} from "@valuemachine/utils";
+import { Bytes32, Logger } from "@valuemachine/types";
+import { chrono, getBytes32Error, getLogger } from "@valuemachine/utils";
 import getQueue from "queue";
 
-import { toISOString } from "../utils";
 import { Assets, Guards } from "../../enums";
+import { AddressBook, Transaction, TransactionsJson } from "../../types";
+import { EvmAddress, EvmData, EvmDataJson, EvmParsers } from "../types";
+import { getEmptyEvmData, getEvmDataError, getEvmTransactionError, toISOString } from "../utils";
 
 import { getAlchemyFetcher } from "./alchemy";
 import { getEtherscanFetcher } from "./etherscan";
@@ -34,26 +17,23 @@ export const getEthereumData = ({
   etherscanKey,
   json: ethDataJson,
   logger,
-  store,
+  save,
 }: {
   alchemyProvider?: string,
   etherscanKey?: string,
   json?: EvmDataJson,
   logger?: Logger,
-  store?: Store,
+  save?: (val: EvmDataJson) => void,
 }): EvmData => {
   const log = (logger || getLogger()).child?.({ module: "EthereumData" });
-  const json = ethDataJson || store?.load(StoreKeys.EthereumData) || getEmptyEvmData();
-  const save = () => store
-    ? store.save(StoreKeys.EthereumData, json)
-    : undefined;
+  const json = ethDataJson || getEmptyEvmData();
 
   const inputError = getEvmDataError(json);
   if (inputError) throw new Error(inputError);
 
   log.debug(`Loaded eth data containing ${
     Object.keys(json.transactions).length
-  } EthTxs from ${ethDataJson ? "input" : store ? "store" : "default"}`);
+  } EthTxs from ${ethDataJson ? "input" : "default"}`);
 
   const metadata = {
     id: 1,
@@ -89,7 +69,7 @@ export const getEthereumData = ({
       lastUpdated: toISOString(Date.now()),
       history,
     };
-    save();
+    save(json);
     if (!history.length) {
       log.info(`Didn't find any ${metadata.name} activity for ${address}`);
       return;
@@ -110,7 +90,7 @@ export const getEthereumData = ({
           return;
         }
         json.transactions[tx.hash] = tx;
-        save();
+        save(json);
       });
     });
     await new Promise<void>((res, rej) => {
@@ -144,7 +124,7 @@ export const getEthereumData = ({
       const txError = getEvmTransactionError(tx);
       if (txError) throw new Error(txError);
       json.transactions[txHash] = tx;
-      save();
+      save(json);
     } catch (e) {
       log.error(e);
     }

@@ -1,20 +1,17 @@
 import SyncIcon from "@mui/icons-material/Sync";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import {
-  Asset,
-  Prices,
-  PricesJson,
-  ValueMachine,
-} from "@valuemachine/types";
+import { ValueMachine } from "@valuemachine/core";
+import { PriceFns, PriceJson } from "@valuemachine/prices";
+import { Asset } from "@valuemachine/types";
 import React, { useState } from "react";
 
 import { syncPrices } from "./utils";
 
 type SyncPricesProps = {
   disabled?: boolean;
-  prices: Prices;
-  setPricesJson: (val: PricesJson) => void;
+  prices: PriceFns;
+  setPricesJson: (val: PriceJson) => void;
   unit: Asset,
   vm: ValueMachine,
 };

@@ -1,26 +1,13 @@
 import { hexlify, stripZeros } from "@ethersproject/bytes";
 import { formatUnits } from "@ethersproject/units";
-import {
-  AddressBook,
-  Asset,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
-import {
-  abs,
-  div,
-  eq,
-  gt,
-  insertVenue,
-  round,
-  toBN,
-  valuesAreClose,
-} from "@valuemachine/utils";
+import { Asset, Logger } from "@valuemachine/types";
+import { math, valuesAreClose } from "@valuemachine/utils";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction } from "../../../types";
+import { insertVenue } from "../../../utils";
 import { Apps, Tokens } from "../../enums";
+import { EvmMetadata, EvmTransaction } from "../../types";
 
 import {
   dsrAddress,
@@ -30,6 +17,7 @@ import {
 import { parseLogNote } from "./utils";
 
 const appName = Apps.Dai;
+const { abs, div, eq, gt, round, toBN } = math;
 const { DAI, SAI } = Tokens;
 const { Expense, Income, Internal, SwapIn, SwapOut, Borrow, Repay } = TransferCategories;
 

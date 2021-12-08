@@ -1,21 +1,27 @@
 import {
   BusinessExpenseTypes,
-  DateString,
-  IncomeType,
   ExpenseType,
-  DecString,
-  FilingStatus,
-  FilingStatuses,
+  IncomeType,
   IncomeTypes,
+} from "@valuemachine/transactions";
+import {
+  DateString,
+  DecString,
   IntString,
-  TaxActions,
-  TaxInput,
-  TaxRow,
-  TaxRows,
   Year,
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
+import {
+  FilingStatuses,
+  TaxActions,
+} from "../enums";
+import {
+  FilingStatus,
+  TaxInput,
+  TaxRow,
+  TaxRows,
+} from "../types";
 import {
   after,
   before,
@@ -33,12 +39,29 @@ import {
   USA,
 } from "./constants";
 
+export {
+  ExpenseType,
+  ExpenseTypes,
+  IncomeType,
+  IncomeTypes,
+  BusinessExpenseTypes,
+} from "@valuemachine/transactions";
+export { chrono, math } from "@valuemachine/utils";
+
 export * from "../utils";
 export * from "./constants";
 
-export { chrono, math } from "@valuemachine/utils";
-
+export {
+  FilingStatuses,
+  TaxActions,
+} from "../enums";
 export { TaxYears } from "../mappings";
+
+export {
+  TaxInput,
+  TaxRow,
+  TaxRows,
+} from "../types";
 
 ////////////////////////////////////////
 // Date

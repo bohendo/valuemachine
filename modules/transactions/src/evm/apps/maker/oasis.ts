@@ -1,16 +1,12 @@
 import { formatUnits } from "@ethersproject/units";
-import {
-  AddressBook,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
-import { add, diffBalances, sumTransfers } from "@valuemachine/utils";
+import { Logger } from "@valuemachine/types";
+import { math, diffBalances } from "@valuemachine/utils";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction } from "../../../types";
 import { Apps, Methods } from "../../enums";
-import { parseEvent } from "../../utils";
+import { EvmMetadata, EvmTransaction } from "../../types";
+import { parseEvent, sumTransfers } from "../../utils";
 
 import { exchangeAddresses } from "./addresses";
 import { findDSProxies } from "./proxy";
@@ -130,7 +126,7 @@ export const oasisParser = (
       log.warn(`DSProxy left behind ${amount} ${asset}, adding this to our first swap out`);
       const swapOut = tx.transfers.find(t => t.category === SwapOut && t.asset === asset);
       if (swapOut) {
-        swapOut.amount = add(swapOut.amount, amount);
+        swapOut.amount = math.add(swapOut.amount, amount);
       }
     });
   }

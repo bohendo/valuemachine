@@ -1,11 +1,9 @@
-import {
-  FilingStatuses,
-  Logger,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
 import {
-  Forms,
   applyTaxBracket,
+  FilingStatuses,
+  Forms,
   math,
 } from "./utils";
 

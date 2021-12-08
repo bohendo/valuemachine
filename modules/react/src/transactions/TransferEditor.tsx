@@ -1,11 +1,14 @@
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import { Transfer, TransferCategories } from "@valuemachine/types";
+import {
+  Transfer,
+  TransferCategories,
+  getTransferError,
+} from "@valuemachine/transactions";
 import {
   getAccountError,
   getAmountError,
   getAssetError,
-  getTransferError,
 } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 

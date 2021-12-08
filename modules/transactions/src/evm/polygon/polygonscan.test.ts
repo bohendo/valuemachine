@@ -1,8 +1,6 @@
-import {
-  env,
-  expect,
-  testLogger,
-} from "../testUtils";
+import { expect } from "chai";
+
+import { env, testLogger } from "../testUtils";
 
 import { getPolygonscanFetcher } from "./polygonscan";
 

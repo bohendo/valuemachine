@@ -4,16 +4,16 @@ import Divider from "@mui/material/Divider";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import { SyncValueMachine, ChunkTable, EventTable } from "@valuemachine/react";
 import {
   AddressBook,
+  ChunkTable,
+  EventTable,
+  getEmptyValueMachine,
+  SyncValueMachine,
   Transactions,
   TxTags,
   ValueMachine,
-} from "@valuemachine/types";
-import {
-  getEmptyValueMachine,
-} from "@valuemachine/utils";
+} from "valuemachine";
 import React, { useState } from "react";
 
 type ValueMachineExplorerProps = {

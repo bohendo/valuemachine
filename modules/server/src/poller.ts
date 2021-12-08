@@ -1,5 +1,10 @@
-import { getLogger } from "@valuemachine/utils";
-import { Account, AddressBook, Guard, TransactionsJson } from "@valuemachine/types";
+import {
+  Account,
+  AddressBook,
+  getLogger,
+  Guard,
+  TransactionsJson,
+} from "valuemachine";
 
 import { env } from "./env";
 import { getLogAndSend, STATUS_MY_BAD } from "./utils";

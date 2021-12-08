@@ -1,5 +1,4 @@
-import { TransactionsJson } from "@valuemachine/types";
-import { getTransactionsError } from "@valuemachine/utils";
+import { getTransactionsError, TransactionsJson } from "@valuemachine/transactions";
 import React from "react";
 
 import { Porter } from "../utils";

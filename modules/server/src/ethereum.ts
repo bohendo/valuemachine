@@ -1,7 +1,12 @@
 import { isAddress as isEthAddress } from "@ethersproject/address";
-import { getAddressBook, getEthereumData, Guards } from "@valuemachine/transactions";
-import { getAddressBookError, getLogger } from "@valuemachine/utils";
 import express from "express";
+import {
+  getAddressBook,
+  getAddressBookError,
+  getEthereumData,
+  getLogger,
+  Guards,
+} from "valuemachine";
 
 import { env } from "./env";
 import { getPollerHandler } from "./poller";
@@ -12,8 +17,9 @@ const log = getLogger(env.logLevel).child({ module: `${Guards.Ethereum}Transacti
 const ethereumData = getEthereumData({
   alchemyProvider: env.alchemyProvider,
   etherscanKey: env.etherscanKey,
+  json: store.load("EthereumData"),
   logger: log,
-  store,
+  save: val => store.save("EthereumData", val),
 });
 const handlePoller = getPollerHandler(
   ethereumData.syncAddressBook,

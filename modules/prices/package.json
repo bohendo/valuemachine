@@ -1,0 +1,39 @@
+{
+  "name": "@valuemachine/prices",
+  "version": "0.10.1",
+  "description": "Utilities for managing asset prices",
+  "author": "Bo Henderson",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/bohendo/valuemachine#readme",
+  "repository": { "type": "git", "url": "git+ssh://git@github.com/bohendo/valuemachine.git" },
+  "bugs": { "url": "https://github.com/bohendo/valuemachine/issues" },
+  "main": "dist/bundle.js",
+  "module": "dist/bundle.esm.js",
+  "types": "dist/bundle.d.ts",
+  "files": ["dist/bundle.js", "dist/bundle.esm.js", "dist/bundle.d.ts"],
+  "scripts": {
+    "build": "rollup --config rollup.config.js",
+    "test": "ts-mocha --check-leaks --color --exit --timeout 60000 'src/**/*.test.ts'"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "0.20.5",
+    "@valuemachine/core": "0.10.1",
+    "@valuemachine/transactions": "0.10.1",
+    "@valuemachine/types": "0.10.1",
+    "@valuemachine/utils": "0.10.1",
+    "axios": "0.24.0",
+    "pino": "6.13.3"
+  },
+  "devDependencies": {
+    "@rollup/plugin-json": "4.1.0",
+    "@rollup/plugin-node-resolve": "13.0.6",
+    "@rollup/plugin-typescript": "8.3.0",
+    "chai": "4.3.4",
+    "mocha": "9.1.3",
+    "rollup": "2.60.2",
+    "rollup-plugin-dts": "4.0.1",
+    "ts-mocha": "8.0.0",
+    "tslib": "2.3.1",
+    "typescript": "4.4.4"
+  }
+}

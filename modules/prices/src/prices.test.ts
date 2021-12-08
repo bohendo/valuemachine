@@ -1,23 +1,19 @@
+import { AssetChunk } from "@valuemachine/core";
 import { Assets } from "@valuemachine/transactions";
-import {
-  AssetChunk,
-  DateString,
-  Prices,
-} from "@valuemachine/types";
+import { DateString } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
+import { expect } from "chai";
 
 import { getPrices } from "./prices";
-import {
-  expect,
-  testLogger,
-} from "./testUtils";
+import { testLogger } from "./testUtils";
+import { PriceFns } from "./types";
 
 const log = testLogger.child({ module: "TestPrices" }, { level: "warn" });
 const { DAI, USD, ETH, cDAI, MKR, UNI } = Assets;
 const { round } = math;
 
 describe("Prices", () => {
-  let prices: Prices;
+  let prices: PriceFns;
   const date = "2020-01-01";
   const getDate = (index: number): DateString =>
     new Date(new Date(date).getTime() + (index * 1000 * 60 * 60 * 24)).toISOString();

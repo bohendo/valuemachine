@@ -8,22 +8,19 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import { PriceFns, PriceJson } from "@valuemachine/prices";
 import {
   Cryptocurrencies,
   FiatCurrencies,
 } from "@valuemachine/transactions";
-import {
-  Asset,
-  Prices,
-  PricesJson,
-} from "@valuemachine/types";
-import { sigfigs } from "@valuemachine/utils";
+import { Asset } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { DateInput, SelectOne } from "../utils";
 
 type PriceTableProps = {
-  prices: Prices;
+  prices: PriceFns;
   unit: Asset,
 };
 export const PriceTable: React.FC<PriceTableProps> = ({
@@ -34,11 +31,11 @@ export const PriceTable: React.FC<PriceTableProps> = ({
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [filterAsset, setFilterAsset] = useState("");
   const [filterDate, setFilterDate] = useState("");
-  const [filteredPrices, setFilteredPrices] = useState({} as PricesJson);
+  const [filteredPrices, setFilteredPrices] = useState({} as PriceJson);
 
   useEffect(() => {
     if (!prices) return;
-    const newFilteredPrices = {} as PricesJson;
+    const newFilteredPrices = {} as PriceJson;
     Object.entries(prices.json).forEach(([date, priceList]) => {
       if (filterDate && !date.startsWith(filterDate.split("T")[0])) return null;
       if (Object.keys(priceList).length === 0) return null;
@@ -141,7 +138,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                             .map(e => e[1])
                             .map((price, i) => (
                               <TableCell style={{ maxWidth: "120px" }} key={i}>
-                                {sigfigs(price, 3)}
+                                {math.sigfigs(price, 3)}
                               </TableCell>
                             ))}
                         </TableRow>

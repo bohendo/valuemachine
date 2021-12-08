@@ -1,6 +1,6 @@
-import { CsvFiles } from "@valuemachine/types";
+import { ajv, formatErrors } from "@valuemachine/utils";
 
-import { ajv, formatErrors } from "./validate";
+import { CsvFiles } from "./types";
 
 export const getEmptyCsvFiles = (): CsvFiles => ({});
 

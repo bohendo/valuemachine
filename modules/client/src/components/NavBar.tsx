@@ -10,29 +10,24 @@ import AppBar from "@mui/material/AppBar";
 import IconButton from "@mui/material/IconButton";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import React/*, { useEffect }*/ from "react";
+import { Link } from "react-router-dom";
 import {
+  Asset,
+  AddressBook,
+  Cryptocurrencies,
+  CsvFiles,
+  FiatCurrencies,
+  PriceFns,
+  PriceJson,
   SelectOne,
   SyncEverything,
-//   syncTaxRows,
-} from "@valuemachine/react";
-import {
-  Cryptocurrencies,
-  FiatCurrencies,
-} from "@valuemachine/transactions";
-import {
-  AddressBook,
-  Asset,
-  CsvFiles,
-  Prices,
-  PricesJson,
   TaxRows,
   TransactionsJson,
   TxTags,
   ValueMachine,
   ValueMachineJson,
-} from "@valuemachine/types";
-import React/*, { useEffect }*/ from "react";
-import { Link } from "react-router-dom";
+} from "valuemachine";
 
 type PropTypes = {
   addressBook: AddressBook;
@@ -40,8 +35,8 @@ type PropTypes = {
   customTxns: TransactionsJson;
   syncMsg: string;
   setSyncMsg: (val: string) => void;
-  prices: Prices;
-  setPricesJson: (val: PricesJson) => void;
+  prices: PriceFns;
+  setPricesJson: (val: PriceJson) => void;
   setTaxRows: (val: TaxRows) => void;
   setTheme: (val: Asset) => void;
   setTransactionsJson: (val: TransactionsJson) => void;

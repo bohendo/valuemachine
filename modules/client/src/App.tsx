@@ -1,22 +1,11 @@
 import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
-import {
-  getPrices,
-  getValueMachine,
-} from "@valuemachine/core";
+import React, { useEffect, useState } from "react";
+import { Route, Routes } from "react-router-dom";
 import {
   Assets,
-  PhysicalGuards,
-  getAddressBook,
-  getTransactions,
-} from "@valuemachine/transactions";
-import {
-  IncomeTypes,
-  StoreKeys,
-  Transaction,
-} from "@valuemachine/types";
-import {
   fmtAddressBook,
+  getAddressBook,
   getAddressBookError,
   getCsvFilesError,
   getEmptyAddressBook,
@@ -29,15 +18,19 @@ import {
   getEmptyValueMachine,
   getLocalStore,
   getLogger,
+  getPrices,
   getPricesError,
   getTaxInputError,
   getTaxRowsError,
+  getTransactions,
   getTransactionsError,
   getTxTagsError,
+  getValueMachine,
   getValueMachineError,
-} from "@valuemachine/utils";
-import React, { useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+  IncomeTypes,
+  PhysicalGuards,
+  Transaction,
+} from "valuemachine";
 
 import { InputDataManager } from "./components/InputData";
 import { NetWorthExplorer } from "./components/NetWorth";
@@ -51,13 +44,11 @@ const logger = getLogger("warn");
 const store = getLocalStore(localStorage);
 
 // localstorage keys
-const {
-  AddressBook: AddressBookStore,
-  CsvFiles: CsvStore,
-  Prices: PricesStore,
-  Transactions: TransactionsStore,
-  ValueMachine: ValueMachineStore,
-} = StoreKeys;
+const AddressBookStore = "AddressBook" as any;
+const CsvStore = "Csv" as any;
+const TransactionsStore = "Transactions" as any;
+const ValueMachineStore = "ValueMachine" as any;
+const PricesStore = "Prices" as any;
 const UnitStore = "Unit" as any;
 const CustomTxnsStore = "CustomTransactions" as any;
 const TaxInputStore = "TaxInput" as any;
@@ -123,7 +114,11 @@ export const App: React.FC<AppProps> = ({
     } else {
       console.log(`Refreshing ${transactionsJson.length} transactions`);
       store.save(TransactionsStore, transactionsJson);
-      setTransactions(getTransactions({ json: transactionsJson, store, logger }));
+      setTransactions(getTransactions({
+        json: transactionsJson,
+        logger,
+        save: val => store.save(TransactionsStore, val),
+      }));
     }
   }, [transactionsJson]);
 
@@ -140,7 +135,7 @@ export const App: React.FC<AppProps> = ({
         vmJson.events?.length || "0"
       } events & ${vmJson.chunks?.length || "0"} chunks`);
       store.save(ValueMachineStore, vmJson);
-      setVM(getValueMachine({ json: vmJson, logger, store }));
+      setVM(getValueMachine({ json: vmJson, logger }));
     }
 
   }, [vmJson]);
@@ -156,7 +151,12 @@ export const App: React.FC<AppProps> = ({
     } else {
       console.log(`Refreshing ${Object.keys(pricesJson).length} price entries`);
       store.save(PricesStore, pricesJson);
-      setPrices(getPrices({ json: pricesJson, logger, store, unit }));
+      setPrices(getPrices({
+        json: pricesJson,
+        logger,
+        save: val => store.save(PricesStore, val),
+        unit,
+      }));
     }
   }, [pricesJson, unit]);
 

@@ -1,12 +1,10 @@
-import {
-  EventTypes,
-  Logger,
-  TaxRows,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
 import {
   Forms,
   math,
+  TaxActions,
+  TaxRows,
   toFormDate,
 } from "./utils";
 
@@ -35,7 +33,7 @@ export const f8949 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms  =>
 
   // Merge trades w the same received & sold dates
   const trades = [] as Trade[];
-  taxRows.filter(tax => tax.action === EventTypes.Trade).forEach(tax => {
+  taxRows.filter(tax => tax.action === TaxActions.Trade).forEach(tax => {
     trades.push({
       date: getDate(tax.date),
       asset: tax.asset,

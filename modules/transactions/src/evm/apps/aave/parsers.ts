@@ -1,21 +1,12 @@
 import { formatUnits } from "@ethersproject/units";
-import {
-  AddressBook,
-  Asset,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  Transfer,
-  TransferCategories,
-} from "@valuemachine/types";
-import {
-  div,
-  insertVenue,
-  valuesAreClose,
-} from "@valuemachine/utils";
+import { Asset, Logger } from "@valuemachine/types";
+import { math, valuesAreClose } from "@valuemachine/utils";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction, Transfer } from "../../../types";
+import { insertVenue } from "../../../utils";
 import { Apps, Tokens, Evms } from "../../enums";
+import { EvmMetadata, EvmTransaction } from "../../types";
 import { parseEvent } from "../../utils";
 
 import { addresses, defiAddresses } from "./addresses";
@@ -72,7 +63,7 @@ const aTokenAbi = [
 const associatedTransfer = (asset: string, amount: string) =>
   (transfer: Transfer): boolean =>
     asset === transfer.asset &&
-    valuesAreClose(transfer.amount, amount, div(amount, "100"));
+    valuesAreClose(transfer.amount, amount, math.div(amount, "100"));
 
 const coreParser = (
   tx: Transaction,

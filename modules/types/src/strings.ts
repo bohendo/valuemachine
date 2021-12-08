@@ -14,8 +14,8 @@ const alphanumish = "[-_a-zA-Z0-9]+";  // eg "Uni-V2_DAI_ETH"
 const words = "[-_ a-zA-Z0-9]+"; // eg "Deposit Liquidity"
 
 const hex = `[0-9a-f]`;
-const checksummed = `[0-9a-fA-F]`;
-const evmAddress = `0x${checksummed}{40}`;
+// const checksummed = `[0-9a-fA-F]`;
+// const evmAddress = `0x${checksummed}{40}`;
 const bytes32 = `0x${hex}{64}`;
 const digest = `${hex}{8}`;
 const hexstring = `0x${hex}*`; // "0x" is a valid hex string that contains zero bytes of data
@@ -53,7 +53,7 @@ export const Asset = toType(alphanumish); export type Asset = Static<typeof Asse
 export const Bytes32 = toType(bytes32); export type Bytes32 = Static<typeof Bytes32>;
 export const DecString = toType(decimal); export type DecString = Static<typeof DecString>;
 export const Digest = toType(digest); export type Digest = Static<typeof Digest>;
-export const EvmAddress = toType(evmAddress); export type EvmAddress = Static<typeof EvmAddress>;
+// export const EvmAddress = toType(evmAddress); export type EvmAddress = Static<typeof EvmAddress>;
 export const Guard = toType(guard); export type Guard = Static<typeof Guard>;
 export const HexString = toType(hexstring); export type HexString = Static<typeof HexString>;
 export const IntString = toType(integer); export type IntString = Static<typeof IntString>;

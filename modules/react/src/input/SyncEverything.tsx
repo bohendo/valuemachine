@@ -3,16 +3,24 @@ import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Typography from "@mui/material/Typography";
 import {
-  AddressBook,
-  Asset,
-  CsvFiles,
-  Prices,
-  PricesJson,
-  TaxRows,
-  TransactionsJson,
-  TxTags,
   ValueMachine,
   ValueMachineJson,
+} from "@valuemachine/core";
+import {
+  PriceFns,
+  PriceJson,
+} from "@valuemachine/prices";
+import {
+  TaxRows,
+} from "@valuemachine/taxes";
+import {
+  AddressBook,
+  CsvFiles,
+  TransactionsJson,
+  TxTags,
+} from "@valuemachine/transactions";
+import {
+  Asset,
 } from "@valuemachine/types";
 import React from "react";
 
@@ -25,8 +33,8 @@ type SyncEverythingProps = {
   addressBook: AddressBook;
   csvFiles: CsvFiles;
   customTxns: TransactionsJson;
-  prices: Prices;
-  setPricesJson: (val: PricesJson) => void;
+  prices: PriceFns;
+  setPricesJson: (val: PriceJson) => void;
   setSyncMsg: (val: string) => void;
   setTaxRows: (val: TaxRows) => void;
   setTransactionsJson: (val: TransactionsJson) => void;

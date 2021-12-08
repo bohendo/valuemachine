@@ -2,15 +2,16 @@ import ClearIcon from "@mui/icons-material/Delete";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
-import { SyncTransactions, TransactionTable } from "@valuemachine/react";
+import React from "react";
 import {
   AddressBook,
   CsvFiles,
+  SyncTransactions,
   Transactions,
   TransactionsJson,
+  TransactionTable,
   TxTags,
-} from "@valuemachine/types";
-import React from "react";
+} from "valuemachine";
 
 type TransactionExplorerProps = {
   addressBook: AddressBook;

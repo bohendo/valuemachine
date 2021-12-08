@@ -1,4 +1,7 @@
 import {
+  AssetChunk,
+} from "@valuemachine/core";
+import {
   Assets,
   EvmAssets,
   FiatCurrencies,
@@ -6,50 +9,36 @@ import {
 } from "@valuemachine/transactions";
 import {
   Asset,
-  AssetChunk,
   Balances,
   DateString,
   DecString,
-  Prices,
-  PricesJson,
-  PricesParams,
-  StoreKeys,
   DateTimeString,
 } from "@valuemachine/types";
 import {
-  add,
   assetsAreClose,
   chrono,
   diffBalances,
-  div,
-  eq,
-  getEmptyPrices,
   getLogger,
-  getPricesError,
-  gt,
-  mul,
-  round,
+  math,
 } from "@valuemachine/utils";
 import axios from "axios";
 
 // curl https://api.coingecko.com/api/v3/coins/list
 // | jq 'map({ key: .symbol, value: .id }) | from_entries' > ./coingecko.json
 import * as coingecko from "./coingecko.json";
+import { PriceFns, PriceJson, PricesParams } from "./types";
+import { getEmptyPrices, getPricesError } from "./utils";
 
+const { add, div, eq, gt, mul, round } = math;
 const { ETH, WETH } = Assets;
 
-export const getPrices = (params?: PricesParams): Prices => {
-  const { logger, store, json: pricesJson, unit: defaultUnit } = params || {};
-  const json = pricesJson || store?.load(StoreKeys.Prices) || getEmptyPrices();
-  const save = (): void => store?.save(StoreKeys.Prices, json);
+export const getPrices = (params?: PricesParams): PriceFns => {
+  const { logger, json: pricesJson, save, unit: defaultUnit } = params || {};
+  const json = pricesJson || getEmptyPrices();
   const log = (logger || getLogger()).child({ module: "Prices" });
 
   const error = getPricesError(json);
   if (error) throw new Error(error);
-
-  log.debug(`Loaded prices for ${
-    Object.keys(json).length
-  } dates from ${pricesJson ? "input" : "store"}`);
 
   ////////////////////////////////////////
   // Internal helper functions
@@ -374,7 +363,7 @@ export const getPrices = (params?: PricesParams): Prices => {
     if (!json[date]) json[date] = {};
     if (!json[date][unit]) json[date][unit] = {};
     json[date][unit][asset] = formatPrice(price);
-    save();
+    save?.(json);
   };
 
   ////////////////////////////////////////
@@ -432,7 +421,7 @@ export const getPrices = (params?: PricesParams): Prices => {
     return undefined;
   };
 
-  const merge = (prices: PricesJson): void => {
+  const merge = (prices: PriceJson): void => {
     Object.entries(prices).forEach(([date, priceList]) => {
       Object.entries(priceList).forEach(([unit, prices]) => {
         Object.entries(prices).forEach(([asset, price]) => {
@@ -496,9 +485,9 @@ export const getPrices = (params?: PricesParams): Prices => {
     return json[date][unit][asset];
   };
 
-  const syncChunks = async (chunks: AssetChunk[], givenUnit?: Asset): Promise<PricesJson> => {
+  const syncChunks = async (chunks: AssetChunk[], givenUnit?: Asset): Promise<PriceJson> => {
     const unit = formatUnit(givenUnit);
-    const chunkPrices = {} as PricesJson;
+    const chunkPrices = {} as PriceJson;
     chunks
       // Gather all the unique dates on which a swap occured
       .reduce((dates, chunk) => {

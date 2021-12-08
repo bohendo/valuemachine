@@ -1,17 +1,8 @@
-import {
-  DecString,
-  FilingStatuses,
-  IncomeType,
-  IncomeTypes,
-  Logger,
-  TaxInput,
-  TaxRows,
-} from "@valuemachine/types";
+import { DecString, Logger } from "@valuemachine/types";
 
+import { thisYear } from "./const";
 import {
-  thisYear,
-} from "./const";
-import {
+  FilingStatuses,
   Forms,
   getIncomeTax,
   getStandardDeduction,
@@ -22,9 +13,13 @@ import {
   getTotalIncomeAdjustments,
   getTotalTax,
   getTotalTaxableIncome,
+  IncomeType,
+  IncomeTypes,
   math,
   strcat,
   sumIncome,
+  TaxInput,
+  TaxRows,
 } from "./utils";
 
 export const f1040 = (

@@ -1,7 +1,7 @@
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { getLocalStore } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
+import { getLocalStore } from "valuemachine";
 
 import "./Theme.css";
 import { App } from "./App";

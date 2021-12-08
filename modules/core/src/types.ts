@@ -1,10 +1,16 @@
 import { Static, Type } from "@sinclair/typebox";
-
-import { Logger } from "./logger";
-import { Store } from "./store";
-import { Account, Asset, DecString, DateTimeString } from "./strings";
-import { Transaction } from "./transactions";
-import { Tag } from "./txTags";
+import {
+  Transaction,
+  TxTag,
+} from "@valuemachine/transactions";
+import {
+  Account,
+  Asset,
+  Balances,
+  DateTimeString,
+  DecString,
+} from "@valuemachine/types";
+import pino from "pino";
 
 ////////////////////////////////////////
 // JSON Schema
@@ -30,9 +36,6 @@ export type AssetChunk = Static<typeof AssetChunk>;
 export const AssetChunks = Type.Array(AssetChunk);
 export type AssetChunks = Static<typeof AssetChunks>;
 
-export const Balances = Type.Record(Type.String(), DecString);
-export type Balances = Static<typeof Balances>;
-
 export const EventTypes = {
   Debt: "Debt",
   Error: "Error",
@@ -55,7 +58,7 @@ export type EventErrorCode = Static<typeof EventErrorCode>;
 const BaseEvent = Type.Object({
   date: DateTimeString,
   index: Type.Number(),
-  tag: Tag,
+  tag: TxTag,
   txId: Type.String(),
 });
 type BaseEvent = Static<typeof BaseEvent>;
@@ -229,8 +232,7 @@ export type ValueMachineJson = Static<typeof ValueMachineJson>;
 
 export type ValueMachineParams = {
   json?: ValueMachineJson;
-  logger?: Logger;
-  store?: Store;
+  logger?: pino.Logger;
 };
 
 export interface ValueMachine {
@@ -241,5 +243,4 @@ export interface ValueMachine {
   getEvent: (index: number) => HydratedEvent;
   getNetWorth: (account?: string) => Balances;
   json: ValueMachineJson;
-  save: () => void;
 }

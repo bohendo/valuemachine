@@ -1,5 +1,4 @@
-import { TaxInput } from "@valuemachine/types";
-import { getTaxInputError } from "@valuemachine/utils";
+import { getTaxInputError, TaxInput } from "@valuemachine/taxes";
 import React from "react";
 
 import { Porter } from "../utils";

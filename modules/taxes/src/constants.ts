@@ -1,7 +1,4 @@
-import {
-  Assets,
-  Guards,
-} from "@valuemachine/transactions";
+import { Assets, Guards } from "@valuemachine/transactions";
 
 export const allTaxYears = "all";
 

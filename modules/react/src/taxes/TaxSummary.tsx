@@ -6,6 +6,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import { PriceFns } from "@valuemachine/prices";
 import {
   getNetBusinessIncome,
   securityFeeMap,
@@ -13,15 +14,11 @@ import {
   getTotalIncome,
   getTotalTaxableIncome,
   getTotalTax,
-} from "@valuemachine/taxes";
-import { Assets } from "@valuemachine/transactions";
-import {
-  Asset,
-  Guard,
-  Prices,
   TaxInput,
   TaxRows,
-} from "@valuemachine/types";
+} from "@valuemachine/taxes";
+import { Assets } from "@valuemachine/transactions";
+import { Asset, Guard } from "@valuemachine/types";
 import { dedup, math } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
@@ -30,7 +27,7 @@ const getUnit = (guard, defaultUnit) =>
 
 type TaxSummaryProps = {
   guard?: Guard;
-  prices?: Prices;
+  prices?: PriceFns;
   taxInput: TaxInput;
   taxRows: TaxRows;
   unit?: Asset;

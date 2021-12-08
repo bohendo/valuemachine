@@ -1,17 +1,9 @@
-import {
-  Account,
-  AddressBook,
-  AddressCategories,
-} from "@valuemachine/types";
+import { Account } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
-import { use } from "chai";
-import promised from "chai-as-promised";
 
+import { AddressCategories } from "./enums";
 import { getAddressBook } from "./addressBook";
-
-use(promised);
-
-export { expect } from "chai";
+import { AddressBook } from "./types";
 
 export const env = {
   logLevel: process.env.LOG_LEVEL || "error",

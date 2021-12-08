@@ -1,20 +1,26 @@
 import { MaxUint256 } from "@ethersproject/constants";
 import {
   BusinessExpenseTypes,
-  DecString,
-  FilingStatuses,
   IncomeTypes,
-  TaxActions,
-  TaxInput,
-  TaxRow,
-  TaxRows,
+} from "@valuemachine/transactions";
+import {
+  DecString,
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
 import {
+  FilingStatuses,
+  TaxActions,
+} from "../enums";
+import {
   toTime,
   getRowTotal,
 } from "../utils";
+import {
+  TaxInput,
+  TaxRow,
+  TaxRows,
+} from "../types";
 
 export { chrono, math } from "@valuemachine/utils";
 
@@ -41,7 +47,6 @@ export const isLongTermTrade = (row: TaxRow): boolean =>
 export const isShortTermTrade = (row: TaxRow): boolean =>
   toTime(row.date) - toTime(row.receiveDate) > msPerYear;
 
-// cut capital losses off at -1500/-3000 a la f1040sd.L21
 export const getTotalCapitalChange = (input: TaxInput, rows: TaxRows) =>
   getRowTotal(
     rows,

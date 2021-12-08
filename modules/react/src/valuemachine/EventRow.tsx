@@ -10,13 +10,16 @@ import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import {
-  AddressBook,
+  describeChunk,
+  describeEvent,
   EventTypes,
   GuardChangeEvent,
   HydratedEvent,
+} from "@valuemachine/core";
+import {
+  AddressBook,
   TxTags,
-} from "@valuemachine/types";
-import { describeChunk, describeEvent } from "@valuemachine/core";
+} from "@valuemachine/transactions";
 import React, { useEffect, useState } from "react";
 
 import { TxTagsEditor } from "../txTags";

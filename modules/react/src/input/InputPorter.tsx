@@ -7,18 +7,21 @@ import Typography from "@mui/material/Typography";
 import {
   AddressBookJson,
   CsvFiles,
-  InputData,
-  TaxInput,
-  TransactionsJson,
-  TxTags,
-} from "@valuemachine/types";
-import {
-  digest,
   getAddressBookError,
   getCsvFilesError,
   getTransactionsError,
+  TransactionsJson,
+  TxTags,
+} from "@valuemachine/transactions";
+import {
+  TaxInput,
+} from "@valuemachine/taxes";
+import {
+  digest,
 } from "@valuemachine/utils";
 import React from "react";
+
+import { InputData } from "../types";
 
 type InputPorterProps = {
   csvFiles: CsvFiles;

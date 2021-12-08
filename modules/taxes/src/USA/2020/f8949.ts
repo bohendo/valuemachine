@@ -1,12 +1,6 @@
-import {
-  Logger,
-  TaxInput,
-  TaxRows,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
-import {
-  thisYear
-} from "./const";
+import { thisYear } from "./const";
 import {
   Forms,
   getTrades,
@@ -14,6 +8,8 @@ import {
   isShortTermTrade,
   math,
   strcat,
+  TaxInput,
+  TaxRows,
   toFormDate,
 } from "./utils";
 

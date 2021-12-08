@@ -11,10 +11,8 @@ import {
   AddressEntry,
   AddressBook,
   AddressBookJson,
-} from "@valuemachine/types";
-import {
   sortAddressEntries
-} from "@valuemachine/utils";
+} from "@valuemachine/transactions";
 import React, { useEffect, useState } from "react";
 
 import { Paginate, SelectOne } from "../utils";

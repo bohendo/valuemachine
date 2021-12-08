@@ -12,15 +12,17 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { describeTransaction } from "@valuemachine/transactions";
 import {
   AddressBook,
+  describeTransaction,
   Transaction,
   Transfer,
-  TxId,
   TxTags,
+} from "@valuemachine/transactions";
+import {
+  TxId,
 } from "@valuemachine/types";
-import { round } from "@valuemachine/utils";
+import { math } from "@valuemachine/utils";
 import React, { useState } from "react";
 
 import { HexString } from "../utils";
@@ -129,7 +131,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                       } </TableCell>
                       <TableCell> {transfer.asset} </TableCell>
                       <TableCell> {
-                        transfer.amount === "ALL" ? transfer.amount : round(transfer.amount || "1")
+                        transfer.amount === "ALL" ? transfer.amount : math.round(transfer.amount || "1")
                       }{ // transfer multiplier
                         tag?.multiplier ? ` (x${tag?.multiplier})` : null
                       }{ // tx multiplier

@@ -12,7 +12,7 @@ export {
   SyncEverything,
 } from "./input";
 export {
-  Balances,
+  BalanceDisplay,
   BalanceTable,
   NetWorthTable,
 } from "./output";
@@ -41,10 +41,12 @@ export {
   TxTagsPorter,
 } from "./txTags";
 export {
+  InputData,
+} from "./types";
+export {
   Confirm,
   DateInput,
   DateTimeInput,
-  HexString,
   SelectMany,
   SelectOne,
   TextInput,

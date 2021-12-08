@@ -1,21 +1,13 @@
 import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
-import {
-  Account,
-  AddressBook,
-  Asset,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
-import {
-  eq,
-  insertVenue,
-} from "@valuemachine/utils";
+import { Account, Asset, Logger } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction } from "../../../types";
+import { insertVenue } from "../../../utils";
 import { Apps, Assets, Methods } from "../../enums";
+import { EvmMetadata, EvmTransaction } from "../../types";
 import { parseEvent } from "../../utils";
 
 import { etherdeltaAddress } from "./addresses";
@@ -88,7 +80,7 @@ export const coreParser = (
             transfer.category = Internal;
             transfer.from = account;
             tx.method = Methods.Withdraw;
-            if (eq(event.args.balance, "0")) {
+            if (math.eq(event.args.balance, "0")) {
               tx.transfers.push({
                 asset: transfer.asset,
                 amount: "ALL",

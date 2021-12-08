@@ -1,16 +1,9 @@
-import {
-  AddressBook,
-  EvmMetadata,
-  EvmTransaction,
-  Logger,
-  Transaction,
-  TransferCategories,
-} from "@valuemachine/types";
-import {
-  mul,
-  sub,
-} from "@valuemachine/utils";
+import { Logger } from "@valuemachine/types";
+import { math } from "@valuemachine/utils";
 
+import { TransferCategories } from "../../../enums";
+import { AddressBook, Transaction } from "../../../types";
+import { EvmMetadata, EvmTransaction } from "../../types";
 import { Apps } from "../../enums";
 
 import { addresses, mixerAddresses } from "./addresses";
@@ -33,7 +26,7 @@ const relayerAddress = addresses.find(e => e.name === relayer).address;
 
 // Eg "0.088" => "0.1", "8.9" => "10"
 const closestTenPow = amt => amt.startsWith("0.")
-  ? mul("10", "0." + "0".repeat(amt.match(/0.0*/)[0].length - 2) + "1")
+  ? math.mul("10", "0." + "0".repeat(amt.match(/0.0*/)[0].length - 2) + "1")
   : "1" + "0".repeat(amt.split(".")[0].length);
 
 export const coreParser = (
@@ -77,7 +70,7 @@ export const coreParser = (
       category: Fee,
       index: 0,
       from: account,
-      amount: sub(total, withdraw.amount),
+      amount: math.sub(total, withdraw.amount),
       to: relayerAddress,
     });
     tx.method = "Withdraw";

@@ -1,7 +1,9 @@
-import { getPrices } from "@valuemachine/core";
-import { getLogger } from "@valuemachine/utils";
-import express from "express";
 import axios from "axios";
+import express from "express";
+import {
+  getLogger,
+  getPrices,
+} from "valuemachine";
 
 import { env } from "./env";
 import {
@@ -47,7 +49,7 @@ const fetchPrice = async (rawDate: string, unit: string, asset: string): Promise
 };
 
 const syncPrice = async (rawDate: string, unit: string, asset: string): Promise<string> => {
-  const prices = getPrices({ store, logger: log, unit: unit });
+  const prices = getPrices({ save: val => store.save("Prices" as any, val), logger: log, unit: unit });
   const date = rawDate.includes("T") ? rawDate.split("T")[0] : rawDate;
   let price = prices.getPrice(date, asset);
   if (price) { return price; }
@@ -81,7 +83,7 @@ pricesRouter.post("/chunks/:unit", async (req, res) => {
   const { unit } = req.params;
   const { chunks } = req.body;
   log.info(`Getting ${unit} prices for ${chunks.length} chunks`);
-  const prices = getPrices({ store, logger: log, unit: unit });
+  const prices = getPrices({ save: val => store.save("Prices" as any, val), logger: log, unit: unit });
   try {
     const pricesJson = await prices.syncChunks(chunks);
     logAndSend(pricesJson);

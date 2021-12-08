@@ -1,9 +1,10 @@
 import { Logger, TaxYear } from "@valuemachine/types";
-import { getLogger, round, splitTaxYear } from "@valuemachine/utils";
+import { getLogger, math } from "@valuemachine/utils";
 import axios from "axios";
 
 import { getPdftk } from "./pdftk";
 import { Forms, Form, MappingArchive } from "./mappings";
+import { splitTaxYear } from "./utils";
 
 const fillForm = async (
   taxYear: TaxYear,
@@ -26,7 +27,7 @@ const fillForm = async (
     } else if (typeof value === "string" && !entry.checkmark) {
       // Round decimal strings
       if (value.match(/^-?[0-9]+\.[0-9]+$/)) {
-        mappedData[entry.fieldName] = round(value, 2);
+        mappedData[entry.fieldName] = math.round(value, 2);
       } else {
         mappedData[entry.fieldName] = value;
       }

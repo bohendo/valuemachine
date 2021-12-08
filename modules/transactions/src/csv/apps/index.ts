@@ -1,6 +1,5 @@
-import { CsvParser } from "@valuemachine/types";
-
 import { CsvSources } from "../enums";
+import { CsvParser } from "../types";
 
 import { coinbaseParser, coinbaseHeaders } from "./coinbase";
 import { digitaloceanParser, digitaloceanHeaders } from "./digitalocean";

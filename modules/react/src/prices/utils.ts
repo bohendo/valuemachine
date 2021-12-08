@@ -1,8 +1,12 @@
 import {
-  Asset,
-  Prices,
-  PricesJson,
   ValueMachine,
+} from "@valuemachine/core";
+import {
+  PriceFns,
+  PriceJson,
+} from "@valuemachine/prices";
+import {
+  Asset,
 } from "@valuemachine/types";
 import axios from "axios";
 
@@ -13,12 +17,12 @@ export const syncPrices = async ({
   unit,
   vm,
 }: {
-  prices: Prices;
-  setPricesJson?: (val: PricesJson) => void;
+  prices: PriceFns;
+  setPricesJson?: (val: PriceJson) => void;
   setSyncMsg?: (val: string) => void;
   unit: Asset;
   vm: ValueMachine;
-}): Promise<Prices> => {
+}): Promise<PriceFns> => {
   try {
     setSyncMsg?.(`Fetching price data for ${vm.json.chunks.length} chunks..`);
     const newPrices = (await axios.post(

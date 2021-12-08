@@ -1,3 +1,39 @@
-export { getPrices } from "./prices";
-export { getValueMachine } from "./vm";
-export { describeChunk, describeEvent } from "./utils";
+export {
+  AssetChunk,
+  AssetChunks,
+  ChunkIndex,
+  DebtEvent,
+  ErrorEvent,
+  Event,
+  EventErrorCode,
+  EventErrorCodes,
+  Events,
+  EventType,
+  EventTypes,
+  ExpenseEvent,
+  GuardChangeEvent,
+  HydratedAssetChunk,
+  HydratedDebtEvent,
+  HydratedErrorEvent,
+  HydratedEvent,
+  HydratedExpenseEvent,
+  HydratedGuardChangeEvent,
+  HydratedIncomeEvent,
+  HydratedTradeEvent,
+  IncomeEvent,
+  TradeEvent,
+  ValueMachine,
+  ValueMachineJson,
+  ValueMachineParams,
+} from "./types";
+export {
+  getValueMachine,
+} from "./vm";
+export {
+  describeChunk,
+  describeEvent,
+  getEmptyValueMachine,
+  getValueMachineError,
+  mergeBalances,
+  sumChunks,
+} from "./utils";
