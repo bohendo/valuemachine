@@ -1,8 +1,9 @@
-import { TaxRows, TaxInput, TaxYear } from "@valuemachine/types";
+import { TaxYear } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 
 import { Forms, TaxYears } from "./mappings";
 import { getUSA2019Return, getUSA2020Return } from "./USA";
+import { TaxRows, TaxInput } from "./types";
 
 const logger = getLogger("info", "TaxReturn");
 

@@ -1,18 +1,11 @@
 import SyncIcon from "@mui/icons-material/Sync";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import {
-  ValueMachine,
-} from "@valuemachine/core";
-import {
-  PriceFns,
-} from "@valuemachine/prices";
-import {
-  AddressBook,
-  Asset,
-  TaxRows,
-  TxTags,
-} from "@valuemachine/types";
+import { ValueMachine } from "@valuemachine/core";
+import { PriceFns } from "@valuemachine/prices";
+import { TxTags } from "@valuemachine/transactions";
+import { TaxRows } from "@valuemachine/taxes";
+import { AddressBook, Asset } from "@valuemachine/types";
 import React, { useState } from "react";
 
 import { syncTaxRows } from "./utils";

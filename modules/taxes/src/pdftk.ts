@@ -1,6 +1,8 @@
-import { Mapping } from "@valuemachine/types";
-import { getLogger, getMappingError } from "@valuemachine/utils";
+import { getLogger } from "@valuemachine/utils";
 import { encode as iconv } from "iconv-lite";
+
+import { Mapping } from "./types";
+import { getMappingError } from "./utils";
 
 // Inspired by & partially copy/pasted from:
 // https://github.com/rhaseven7h/utf8-fdf-generator/commit/1e8cfea73a88b20a23493df0cdb874ae61e9cd37

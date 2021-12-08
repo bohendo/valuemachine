@@ -1,6 +1,5 @@
 import { EventTypes } from "@valuemachine/core";
-import { Assets } from "@valuemachine/transactions";
-import { ExpenseTypes, IncomeTypes } from "@valuemachine/types";
+import { Assets, ExpenseTypes, IncomeTypes } from "@valuemachine/transactions";
 import { getLogger } from "@valuemachine/utils";
 import { expect } from "chai";
 

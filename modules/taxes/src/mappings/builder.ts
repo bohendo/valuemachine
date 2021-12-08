@@ -1,8 +1,11 @@
 // NOTE: this file is for dev-use only & shouldn't be included in the prod dist bundle
 // These tools can be used to build new form mappings or verify that current ones are valid
-import { Logger, Mapping } from "@valuemachine/types";
-import { getLogger, getMappingError } from "@valuemachine/utils";
+import { Logger } from "@valuemachine/types";
+import { getLogger } from "@valuemachine/utils";
 import { compile } from "json-schema-to-typescript";
+
+import { Mapping } from "../types";
+import { getMappingError } from "../utils";
 
 import { MappingArchive } from ".";
 

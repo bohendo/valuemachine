@@ -1,15 +1,23 @@
 import { Static, Type } from "@sinclair/typebox";
+import {
+  TxTag,
+} from "@valuemachine/transactions";
+import {
+  Asset,
+  DateString,
+  DecString,
+  TaxYear,
+  TxId,
+} from "@valuemachine/types";
 
-import { Asset, DateString, DecString, TaxYear, TxId } from "./strings";
-import { Tag } from "./txTags";
+import {
+  FilingStatuses,
+  TaxActions,
+} from "./enums";
 
-export const FilingStatuses = {
-  Head: "Head",
-  Joint: "Joint",
-  Separate: "Separate",
-  Single: "Single",
-  Widow: "Widow",
-} as const;
+export const TaxAction = Type.Enum(TaxActions); // NOT Extensible
+export type TaxAction = Static<typeof TaxAction>;
+
 export const FilingStatus = Type.Enum(FilingStatuses);
 export type FilingStatus = Static<typeof FilingStatus>;
 
@@ -20,14 +28,6 @@ export const Mapping = Type.Array(Type.Object({
 }, { additionalProperties: false }));
 export type Mapping = Static<typeof Mapping>;
 
-export const TaxActions = {
-  Income: "Income",
-  Trade: "Trade",
-  Expense: "Expense",
-} as const;
-export const TaxAction = Type.Enum(TaxActions); // NOT Extensible
-export type TaxAction = Static<typeof TaxAction>;
-
 export const TaxRow = Type.Object({
   date: DateString,
   taxYear: TaxYear,
@@ -35,7 +35,7 @@ export const TaxRow = Type.Object({
   amount: DecString, // rounded to 10^-6
   asset: Asset,
   price: DecString, // rounded to 10^-4
-  tag: Tag,
+  tag: TxTag,
   value: DecString, // rounded to 10^-2
   txId: TxId,
   receiveDate: DateString,

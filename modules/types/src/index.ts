@@ -27,9 +27,6 @@ export {
   EvmTransfer,
 } from "./evmData";
 export {
-  InputData,
-} from "./input";
-export {
   Logger,
 } from "./logger";
 export {
@@ -54,16 +51,6 @@ export {
   Year,
 } from "./strings";
 export {
-  FilingStatus,
-  FilingStatuses,
-  Mapping,
-  TaxAction,
-  TaxActions,
-  TaxInput,
-  TaxRow,
-  TaxRows,
-} from "./taxes";
-export {
   IncomingTransfers,
   OutgoingTransfers,
   Transaction,
@@ -74,18 +61,6 @@ export {
   TransferCategories,
   TransferCategory,
 } from "./transactions";
-export {
-  BusinessExpenseType,
-  BusinessExpenseTypes,
-  ExpenseType,
-  ExpenseTypes,
-  IncomeType,
-  IncomeTypes,
-  Tag,
-  TxTags,
-  TxTagType,
-  TxTagTypes,
-} from "./txTags";
 export {
   Balances,
   Value,

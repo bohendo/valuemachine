@@ -10,13 +10,16 @@ import {
   TransferCategories,
 } from "@valuemachine/types";
 import {
+  ajv,
   describeBalance,
   diffBalances,
+  formatErrors,
   math,
   sumValue,
 } from "@valuemachine/utils";
 
 import { Assets, Guards, Methods } from "./enums";
+import { TxTags } from "./types";
 
 const {
   Fee, Income, Expense, SwapIn, SwapOut, Refund, Borrow, Repay, Internal,
@@ -119,3 +122,13 @@ export const getTestTx = (transfers: Transfer[]): Transaction => ({
   tag: {},
   transfers: transfers || [],
 });
+
+////////////////////////////////////////
+// Tags
+
+export const getEmptyTxTags = (): TxTags => ({});
+
+const validateTxTags = ajv.compile(TxTags);
+export const getTxTagsError = (txTags: TxTags): string => validateTxTags(txTags) ? ""
+  : validateTxTags.errors.length ? formatErrors(validateTxTags.errors)
+  : `Invalid TxTags: ${JSON.stringify(txTags)}`;

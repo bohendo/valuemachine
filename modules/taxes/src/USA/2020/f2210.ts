@@ -1,28 +1,23 @@
-import {
-  ExpenseTypes,
-  IncomeTypes,
-  Logger,
-  TaxActions,
-  TaxInput,
-  TaxRows,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
+import { lastYear, thisYear } from "./const";
 import {
-  thisYear,
-  lastYear,
-} from "./const";
-import {
-  chrono,
-  getTotalTax,
-  Forms,
-  getSelfEmploymentAdjustment,
-  getNetBusinessIncome,
   applyTaxBracket,
+  chrono,
+  ExpenseTypes,
+  Forms,
+  getNetBusinessIncome,
+  getSelfEmploymentAdjustment,
+  getTotalTax,
+  IncomeTypes,
   math,
   msPerDay,
   strcat,
   sumExpenses,
   sumIncome,
+  TaxActions,
+  TaxInput,
+  TaxRows,
   toTime,
 } from "./utils";
 

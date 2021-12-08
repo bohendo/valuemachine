@@ -1,18 +1,21 @@
+import { TxTag } from "@valuemachine/transactions";
 import {
   DateString,
   DecString,
   Guard,
-  Tag,
-  TaxRows,
   IntString,
   TaxYear,
   Year,
 } from "@valuemachine/types";
-import { getLogger, math } from "@valuemachine/utils";
+import { ajv, formatErrors, getLogger, math } from "@valuemachine/utils";
 
 import { taxYearCutoffs } from "./constants";
+import { Mapping, TaxInput, TaxRows } from "./types";
 
 export const log = getLogger("info");
+
+export const getEmptyTaxInput = (): TaxInput => ({});
+export const getEmptyTaxRows = (): TaxRows => [];
 
 ////////////////////////////////////////
 // String
@@ -33,7 +36,52 @@ export const daysInYear = (year: Year): IntString => {
 };
 
 ////////////////////////////////////////
+// Validation
+
+const getDupProps = (list: any[], prop: string) => {
+  const occurred = [];
+  return list.reduce((dup, entry) => {
+    if (dup) return dup; // short-circuit as soon as we find the first dup;
+    if (occurred.includes(entry[prop])) return entry[prop];
+    occurred.push(entry[prop]);
+    return "";
+  }, "");
+};
+
+const validateMapping = ajv.compile(Mapping);
+export const getMappingError = (mapping: Mapping): string =>
+  validateMapping(mapping)
+    ? (getDupProps(mapping, "nickname")
+      ? `Duplicate nickname: ${getDupProps(mapping, "nickname")}`
+      : (getDupProps(mapping, "fieldName")
+        ? `Duplicate fieldName: ${getDupProps(mapping, "fieldName")}`
+        : ""
+      )
+    ) : validateMapping.errors.length
+      ? formatErrors(validateMapping.errors)
+      : `Invalid Mapping`;
+
+const validateTaxInput = ajv.compile(TaxInput);
+export const getTaxInputError = (taxInput: TaxInput): string =>
+  validateTaxInput(taxInput)
+    ? ""
+    : validateTaxInput.errors.length ? formatErrors(validateTaxInput.errors)
+    : `Invalid TaxInput`;
+
+const validateTaxRows = ajv.compile(TaxRows);
+export const getTaxRowsError = (taxRows: TaxRows): string =>
+  validateTaxRows(taxRows)
+    ? ""
+    : validateTaxRows.errors.length ? formatErrors(validateTaxRows.errors)
+    : `Invalid TaxRows`;
+
+////////////////////////////////////////
 // TaxYear
+
+export const splitTaxYear = (taxYear: TaxYear): string[] => [
+  taxYear.substring(0, 3),
+  taxYear.substring(3, 7),
+];
 
 export const getTaxYear = (guard: Guard, date: DateString): TaxYear => {
   const year = date.split("-")[0];
@@ -79,7 +127,7 @@ export const sumRows = (
 export const getRowTotal = (
   rows: TaxRows,
   filterAction?: string,
-  filterTag?: Tag,
+  filterTag?: TxTag,
   mapRow?: (row) => DecString,
 ) => 
   sumRows(
@@ -93,5 +141,5 @@ export const getRowTotal = (
     mapRow,
   );
 
-export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: Tag) =>
+export const getTotalValue = (rows: TaxRows, filterAction?: string, filterTag?: TxTag) =>
   getRowTotal(rows, filterAction || "", filterTag || {}, row => row.value);

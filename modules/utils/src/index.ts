@@ -47,24 +47,12 @@ export {
   slugify,
 } from "./strings";
 export {
-  getEmptyTaxInput,
-  getEmptyTaxRows,
-  getMappingError,
-  getTaxInputError,
-  getTaxRowsError,
-  splitTaxYear,
-} from "./taxes";
-export {
   getBlankTransaction,
   getEmptyTransactions,
   getTransactionError,
   getTransactionsError,
   getTransferError,
 } from "./transactions";
-export {
-  getEmptyTxTags,
-  getTxTagsError,
-} from "./txTags";
 export {
   ajv,
   formatErrors,

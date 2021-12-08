@@ -1,11 +1,13 @@
 import { ValueMachine } from "@valuemachine/core";
-import { getTaxRows } from "@valuemachine/taxes";
+import {
+  getTaxRows,
+  TaxRows,
+} from "@valuemachine/taxes";
+import { TxTags } from "@valuemachine/transactions";
 import { PriceFns } from "@valuemachine/prices";
 import {
   AddressBook,
   Asset,
-  TaxRows,
-  TxTags,
 } from "@valuemachine/types";
 
 export const syncTaxRows = async ({

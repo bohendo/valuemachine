@@ -1,14 +1,10 @@
-import { Guards } from "@valuemachine/transactions";
+import { Guards, IncomeTypes } from "@valuemachine/transactions";
 import {
   DecString,
-  IncomeTypes,
-  TaxActions,
-  TaxInput,
-  TaxRows,
   TaxYear,
 } from "@valuemachine/types";
-import { splitTaxYear } from "@valuemachine/utils";
 
+import { TaxActions } from "./enums";
 import {
   getNetBusinessIncome as getNetBusinessIncomeIND,
   getTotalCapitalChange as getTotalCapitalChangeIND,
@@ -23,7 +19,12 @@ import {
   getTotalTaxableIncome as getTotalTaxableIncomeUSA,
   getTotalTax as getTotalTaxUSA,
 } from "./USA";
-import { getTotalValue,  getRowTotal } from "./utils";
+import {
+  TaxInput,
+  TaxRows,
+} from "./types";
+import { getTotalValue,  getRowTotal, splitTaxYear } from "./utils";
+
 
 ////////////////////////////////////////
 // Income/Tax by TaxYear

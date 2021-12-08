@@ -8,8 +8,15 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import { PhysicalGuards, Guards } from "@valuemachine/transactions";
-import { ExpenseTypes, IncomeTypes, TxId, TxTags, TxTagTypes } from "@valuemachine/types";
+import {
+  ExpenseTypes,
+  Guards,
+  IncomeTypes,
+  PhysicalGuards,
+  TxTags,
+  TxTagTypes,
+} from "@valuemachine/transactions";
+import { TxId } from "@valuemachine/types";
 import { dedup, getDecStringError, getTxIdError } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 

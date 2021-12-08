@@ -41,6 +41,9 @@ export {
   TxTagsPorter,
 } from "./txTags";
 export {
+  InputData,
+} from "./types";
+export {
   Confirm,
   DateInput,
   DateTimeInput,

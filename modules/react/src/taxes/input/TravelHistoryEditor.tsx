@@ -9,7 +9,8 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { DateString, TaxInput } from "@valuemachine/types";
+import { TaxInput } from "@valuemachine/taxes";
+import { DateString } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
 import { Confirm, DateInput, TextInput } from "../../utils";

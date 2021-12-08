@@ -1,11 +1,9 @@
-import {
-  Logger,
-  TaxRows,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
 import {
   Forms,
   math,
+  TaxRows,
 } from "./utils";
 
 const { add, gt, mul, round, sub, subToZero } = math;

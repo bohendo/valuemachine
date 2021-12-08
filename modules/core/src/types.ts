@@ -1,12 +1,14 @@
 import { Static, Type } from "@sinclair/typebox";
 import {
+  Transaction,
+  TxTag,
+} from "@valuemachine/transactions";
+import {
   Account,
   Asset,
   Balances,
   DateTimeString,
   DecString,
-  Tag,
-  Transaction,
 } from "@valuemachine/types";
 import pino from "pino";
 
@@ -34,7 +36,6 @@ export type AssetChunk = Static<typeof AssetChunk>;
 export const AssetChunks = Type.Array(AssetChunk);
 export type AssetChunks = Static<typeof AssetChunks>;
 
-
 export const EventTypes = {
   Debt: "Debt",
   Error: "Error",
@@ -57,7 +58,7 @@ export type EventErrorCode = Static<typeof EventErrorCode>;
 const BaseEvent = Type.Object({
   date: DateTimeString,
   index: Type.Number(),
-  tag: Tag,
+  tag: TxTag,
   txId: Type.String(),
 });
 type BaseEvent = Static<typeof BaseEvent>;
@@ -243,4 +244,3 @@ export interface ValueMachine {
   getNetWorth: (account?: string) => Balances;
   json: ValueMachineJson;
 }
-

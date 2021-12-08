@@ -1,7 +1,7 @@
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
-import { TaxInput } from "@valuemachine/types";
+import { TaxInput } from "@valuemachine/taxes";
 import React, { useEffect, useState } from "react";
 
 import { TextInput } from "../../utils";

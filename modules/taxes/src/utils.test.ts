@@ -1,6 +1,6 @@
 import { expect } from "chai";
 
-import { getMappingError, getTaxInputError } from "./taxes";
+import { getMappingError, getTaxInputError } from "./utils";
 
 describe("Tax Validators", () => {
 
@@ -53,5 +53,6 @@ describe("Tax Validators", () => {
   });
 
 });
+
 
 

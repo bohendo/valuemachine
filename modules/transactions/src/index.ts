@@ -8,6 +8,7 @@ export {
 export {
   Apps,
   Assets,
+  BusinessExpenseTypes,
   Cryptocurrencies,
   CsvSources,
   DigitalGuards,
@@ -16,8 +17,10 @@ export {
   EvmMethods,
   EvmNames,
   EvmTokens,
+  ExpenseTypes,
   FiatCurrencies,
   Guards,
+  IncomeTypes,
   Methods,
   PhysicalGuards,
   Sources,
@@ -34,7 +37,27 @@ export {
   getTransactions,
 } from "./manager";
 export {
+  BusinessExpenseType,
+  ExpenseType,
+  IncomeType,
+  IncomingTransfers,
+  OutgoingTransfers,
+  Transaction,
+  Transactions,
+  TransactionsJson,
+  TransactionsParams,
+  Transfer,
+  TransferCategories,
+  TransferCategory,
+  TxTag,
+  TxTags,
+  TxTagType,
+  TxTagTypes,
+} from "./types";
+export {
   describeTransaction,
+  getEmptyTxTags,
   getTestTx,
+  getTxTagsError,
   sumTransfers,
 } from "./utils";

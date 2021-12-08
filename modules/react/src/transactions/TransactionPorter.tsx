@@ -1,4 +1,4 @@
-import { TransactionsJson } from "@valuemachine/types";
+import { TransactionsJson } from "@valuemachine/transactions";
 import { getTransactionsError } from "@valuemachine/utils";
 import React from "react";
 

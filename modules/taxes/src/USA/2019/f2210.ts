@@ -1,16 +1,13 @@
-import {
-  DateString,
-  FilingStatuses,
-  Logger,
-  TaxRows,
-} from "@valuemachine/types";
+import { DateString, Logger } from "@valuemachine/types";
 
 import {
-  Forms,
   applyTaxBracket,
+  FilingStatuses,
+  Forms,
   math,
   processExpenses,
   processIncome,
+  TaxRows,
 } from "./utils";
 
 export const f2210 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms => {

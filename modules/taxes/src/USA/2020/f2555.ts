@@ -1,30 +1,26 @@
-import {
-  IncomeTypes,
-  Logger,
-  TaxInput,
-  TaxRows,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
-import {
-  thisYear,
-} from "./const";
+import { thisYear } from "./const";
 import {
   after,
-  getMaxFeie,
-  sumIncome,
-  getNetBusinessIncome,
   before,
+  daysThisYear,
+  diffDays,
   Forms,
   getDaysAbroad,
-  getForeignEarnedIncome,
-  daysThisYear,
-  getForeignEarnedIncomeExclusion,
   getDaysByCountry,
-  diffDays,
-  USA,
+  getForeignEarnedIncome,
+  getForeignEarnedIncomeExclusion,
+  getMaxFeie,
+  getNetBusinessIncome,
+  IncomeTypes,
   math,
   strcat,
+  sumIncome,
+  TaxInput,
+  TaxRows,
   toFormDate,
+  USA,
 } from "./utils";
 
 export const f2555 = (

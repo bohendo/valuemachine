@@ -10,18 +10,11 @@ import Typography from "@mui/material/Typography";
 import {
   securityFeeMap,
   inTaxYear,
-} from "@valuemachine/taxes";
-import {
-  Assets,
-  Guards,
-} from "@valuemachine/transactions";
-import {
-  Asset,
-  Guard,
   TaxActions,
   TaxRows,
-  TxTags,
-} from "@valuemachine/types";
+} from "@valuemachine/taxes";
+import { Assets, Guards, TxTags } from "@valuemachine/transactions";
+import { Asset, Guard } from "@valuemachine/types";
 import { dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 

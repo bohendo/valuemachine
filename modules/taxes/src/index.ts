@@ -4,6 +4,10 @@ export {
   taxYearCutoffs,
 } from "./constants";
 export {
+  FilingStatuses,
+  TaxActions,
+} from "./enums";
+export {
   F1040_USA2019,
   F1040_USA2020,
   F1040S1_USA2019,
@@ -58,14 +62,28 @@ export {
   getTotalTaxableIncome,
 } from "./summary";
 export {
+  FilingStatus,
+  Mapping,
+  TaxAction,
+  TaxInput,
+  TaxRow,
+  TaxRows,
+} from "./types";
+export {
   after,
   before,
   daysInYear,
+  getEmptyTaxInput,
+  getEmptyTaxRows,
+  getMappingError,
   getRowTotal,
+  getTaxInputError,
+  getTaxRowsError,
   getTaxYear,
   getTaxYearBoundaries,
   getTotalValue,
   inTaxYear,
+  splitTaxYear,
   strcat,
   sumRows,
   toTime,

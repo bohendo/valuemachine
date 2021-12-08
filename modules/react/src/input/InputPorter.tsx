@@ -4,13 +4,13 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import { TxTags, TransactionsJson } from "@valuemachine/transactions";
+import {
+  TaxInput,
+} from "@valuemachine/taxes";
 import {
   AddressBookJson,
   CsvFiles,
-  InputData,
-  TaxInput,
-  TransactionsJson,
-  TxTags,
 } from "@valuemachine/types";
 import {
   digest,
@@ -19,6 +19,8 @@ import {
   getTransactionsError,
 } from "@valuemachine/utils";
 import React from "react";
+
+import { InputData } from "../types";
 
 type InputPorterProps = {
   csvFiles: CsvFiles;

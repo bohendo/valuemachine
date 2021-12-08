@@ -9,15 +9,13 @@ import {
 } from "@valuemachine/prices";
 import {
   PhysicalGuards,
+  TxTags,
 } from "@valuemachine/transactions";
 import {
   AddressBook,
   Asset,
   DateString,
   DateTimeString,
-  TaxActions,
-  TaxRows,
-  TxTags,
 } from "@valuemachine/types";
 import {
   chrono,
@@ -25,6 +23,8 @@ import {
 } from "@valuemachine/utils";
 
 import { securityFeeMap } from "./constants";
+import { TaxActions } from "./enums";
+import { TaxRows } from "./types";
 import { getTaxYear } from "./utils";
 
 export const getTaxRows = async ({

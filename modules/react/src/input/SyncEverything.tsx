@@ -11,12 +11,16 @@ import {
   PriceJson,
 } from "@valuemachine/prices";
 import {
+  TaxRows,
+} from "@valuemachine/taxes";
+import {
+  TransactionsJson,
+  TxTags,
+} from "@valuemachine/transactions";
+import {
   AddressBook,
   Asset,
   CsvFiles,
-  TaxRows,
-  TransactionsJson,
-  TxTags,
 } from "@valuemachine/types";
 import React from "react";
 

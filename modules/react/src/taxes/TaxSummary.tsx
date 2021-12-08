@@ -14,14 +14,11 @@ import {
   getTotalIncome,
   getTotalTaxableIncome,
   getTotalTax,
-} from "@valuemachine/taxes";
-import { Assets } from "@valuemachine/transactions";
-import {
-  Asset,
-  Guard,
   TaxInput,
   TaxRows,
-} from "@valuemachine/types";
+} from "@valuemachine/taxes";
+import { Assets } from "@valuemachine/transactions";
+import { Asset, Guard } from "@valuemachine/types";
 import { dedup, math } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 

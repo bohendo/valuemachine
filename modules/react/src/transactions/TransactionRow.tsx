@@ -12,13 +12,12 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { describeTransaction } from "@valuemachine/transactions";
+import { describeTransaction, TxTags } from "@valuemachine/transactions";
 import {
   AddressBook,
   Transaction,
   Transfer,
   TxId,
-  TxTags,
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 import React, { useState } from "react";

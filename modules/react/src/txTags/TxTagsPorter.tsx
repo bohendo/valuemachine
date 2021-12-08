@@ -1,5 +1,4 @@
-import { TxTags } from "@valuemachine/types";
-import { getTxTagsError } from "@valuemachine/utils";
+import { getTxTagsError, TxTags } from "@valuemachine/transactions";
 import React from "react";
 
 import { Porter } from "../utils";

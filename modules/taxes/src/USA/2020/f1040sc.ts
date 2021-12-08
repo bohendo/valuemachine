@@ -1,23 +1,19 @@
-import {
-  ExpenseTypes,
-  ExpenseType,
-  IncomeTypes,
-  Logger,
-  TaxInput,
-  TaxRows,
-} from "@valuemachine/types";
+import { Logger } from "@valuemachine/types";
 
+import { thisYear } from "./const";
 import {
-  thisYear
-} from "./const";
-import {
+  ExpenseType,
+  ExpenseTypes,
   Forms,
   getBusinessExpenses,
   getNetBusinessIncome,
-  sumExpenses,
+  IncomeTypes,
   math,
   strcat,
+  sumExpenses,
   sumIncome,
+  TaxInput,
+  TaxRows,
 } from "./utils";
 
 export const f1040sc = (

@@ -7,7 +7,10 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { Methods } from "@valuemachine/transactions";
+import {
+  Methods,
+  TxTags,
+} from "@valuemachine/transactions";
 import {
   Account,
   AddressBook,
@@ -21,7 +24,6 @@ import {
   TransactionsJson,
   TransferCategories,
   TxId,
-  TxTags,
 } from "@valuemachine/types";
 import { chrono, dedup } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";

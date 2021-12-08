@@ -1,7 +1,9 @@
-import { DecString, TaxActions, TaxRow, TaxRows } from "@valuemachine/types";
+import { DecString } from "@valuemachine/types";
 import { getLogger, math } from "@valuemachine/utils";
 
+import { TaxActions } from "../../enums";
 import { FormArchive, TaxYears } from "../../mappings";
+import { TaxRow, TaxRows } from "../../types";
 
 export * from "../utils";
 

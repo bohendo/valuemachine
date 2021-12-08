@@ -1,9 +1,10 @@
 import { Logger, TaxYear } from "@valuemachine/types";
-import { getLogger, math, splitTaxYear } from "@valuemachine/utils";
+import { getLogger, math } from "@valuemachine/utils";
 import axios from "axios";
 
 import { getPdftk } from "./pdftk";
 import { Forms, Form, MappingArchive } from "./mappings";
+import { splitTaxYear } from "./utils";
 
 const fillForm = async (
   taxYear: TaxYear,

@@ -1,20 +1,26 @@
 import { MaxUint256 } from "@ethersproject/constants";
 import {
   BusinessExpenseTypes,
-  DecString,
-  FilingStatuses,
   IncomeTypes,
-  TaxActions,
-  TaxInput,
-  TaxRow,
-  TaxRows,
+} from "@valuemachine/transactions";
+import {
+  DecString,
 } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 
 import {
+  FilingStatuses,
+  TaxActions,
+} from "../enums";
+import {
   toTime,
   getRowTotal,
 } from "../utils";
+import {
+  TaxInput,
+  TaxRow,
+  TaxRows,
+} from "../types";
 
 export { chrono, math } from "@valuemachine/utils";
 

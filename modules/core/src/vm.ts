@@ -1,11 +1,13 @@
 import {
+  OutgoingTransfers,
+  Transaction,
+  TransferCategories,
+} from "@valuemachine/transactions";
+import {
   Account,
   Asset,
   Balances,
   DecString,
-  OutgoingTransfers,
-  Transaction,
-  TransferCategories,
 } from "@valuemachine/types";
 import {
   describeBalance,

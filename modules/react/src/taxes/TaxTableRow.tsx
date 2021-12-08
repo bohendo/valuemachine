@@ -5,13 +5,17 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
-import { securityFeeMap } from "@valuemachine/taxes";
+import {
+  securityFeeMap,
+  TaxActions,
+  TaxRow,
+} from "@valuemachine/taxes";
+import {
+  TxTags,
+} from "@valuemachine/transactions";
 import {
   Asset,
   Guard,
-  TaxActions,
-  TaxRow,
-  TxTags,
   TxId,
 } from "@valuemachine/types";
 import {

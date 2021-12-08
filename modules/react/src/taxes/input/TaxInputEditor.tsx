@@ -2,7 +2,7 @@ import Divider from "@mui/material/Divider";
 import Paper from "@mui/material/Paper";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
-import { TaxInput } from "@valuemachine/types";
+import { TaxInput } from "@valuemachine/taxes";
 import React, { useState } from "react";
 
 import { FormsEditor } from "./FormsEditor";

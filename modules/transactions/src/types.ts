@@ -1,22 +1,32 @@
 import { Static, Type } from "@sinclair/typebox";
-
-import { CsvParser } from "./csv";
-import { Logger } from "./logger";
 import {
   Account,
   Amount,
   Asset,
+  CsvParser,
   DateTimeString,
   DecString,
   Guard,
+  Logger,
   Source,
   TxId,
-} from "./strings";
+} from "@valuemachine/types";
+
+import { BusinessExpenseTypes, ExpenseTypes, IncomeTypes } from "./enums";
 
 ////////////////////////////////////////
 // JSON Schema
 
-export const Tag = Type.Object({
+export const IncomeType = Type.Enum(IncomeTypes); // NOT Extensible at run-time
+export type IncomeType = Static<typeof IncomeType>;
+
+export const BusinessExpenseType = Type.Enum(BusinessExpenseTypes); // NOT Extensible at run-time
+export type BusinessExpenseType = Static<typeof BusinessExpenseType>;
+
+export const ExpenseType = Type.Enum(ExpenseTypes); // NOT Extensible at run-time
+export type ExpenseType = Static<typeof ExpenseType>;
+
+export const TxTag = Type.Object({
   description: Type.Optional(Type.String()),
   exempt: Type.Optional(Type.Boolean()),
   expenseType: Type.Optional(Type.String()),
@@ -24,9 +34,9 @@ export const Tag = Type.Object({
   multiplier: Type.Optional(DecString),
   physicalGuard: Type.Optional(Guard),
 });
-export type Tag = Static<typeof Tag>;
+export type TxTag = Static<typeof TxTag>;
 
-export const TxTags = Type.Record(TxId, Tag);
+export const TxTags = Type.Record(TxId, TxTag);
 export type TxTags = Static<typeof TxTags>;
 
 export const TxTagTypes = {
@@ -81,7 +91,7 @@ export const Transaction = Type.Object({
   index: Type.Optional(Type.Number()), // required after merging txns together
   method: Type.String(),
   sources: Type.Array(Source),
-  tag: Tag,
+  tag: TxTag,
   transfers: Type.Array(Transfer),
   uuid: TxId,
 });
@@ -104,3 +114,4 @@ export type Transactions = {
   mergeCsv: (csvData: string, parser?: CsvParser) => void;
   merge: (transactions: TransactionsJson) => void;
 };
+

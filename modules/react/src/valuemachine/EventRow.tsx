@@ -17,8 +17,10 @@ import {
   HydratedEvent,
 } from "@valuemachine/core";
 import {
-  AddressBook,
   TxTags,
+} from "@valuemachine/transactions";
+import {
+  AddressBook,
 } from "@valuemachine/types";
 import React, { useEffect, useState } from "react";
 
