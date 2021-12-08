@@ -1,8 +1,9 @@
+import { expect } from "chai";
 import { HashZero } from "@ethersproject/constants";
 
 import { Assets, Guards, Methods, Sources, TransferCategories } from "./enums";
 import { mergeTransaction } from "./merge";
-import { expect, testLogger } from "./testUtils";
+import { testLogger } from "./testUtils";
 import { Transaction } from "./types";
 
 const log = testLogger.child({ module: "TestMerge" }, { level: "warn" });

@@ -1,10 +1,8 @@
+import { expect } from "chai";
+
 import { TransferCategories } from "../../../enums";
 import { Apps, Evms } from "../../enums";
-import {
-  getParseTx,
-  expect,
-  testLogger,
-} from "../../testUtils";
+import { getParseTx, testLogger } from "../../testUtils";
 
 const appName = Apps.Aave;
 const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });

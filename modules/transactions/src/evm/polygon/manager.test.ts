@@ -1,8 +1,9 @@
+import { expect } from "chai";
+
 import { Guards } from "../../enums";
 import { getTransactionsError } from "../../utils";
 import {
   env,
-  expect,
   getTestAddressBook,
   testStore,
   testLogger,

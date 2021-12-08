@@ -1,10 +1,8 @@
+import { expect } from "chai";
+
 import { TransferCategories } from "../../../enums";
 import { Apps, Methods } from "../../enums";
-import {
-  getParseTx,
-  expect,
-  testLogger,
-} from "../../testUtils";
+import { getParseTx, testLogger } from "../../testUtils";
 
 const appName = Apps.ENS;
 const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });

@@ -1,10 +1,8 @@
+import { expect } from "chai";
+
 import { TransferCategories } from "../../../enums";
 import { Apps } from "../../enums";
-import {
-  getParseTx,
-  expect,
-  testLogger,
-} from "../../testUtils";
+import { getParseTx, testLogger } from "../../testUtils";
 
 const { Weth, WMatic } = Apps;
 const logger = testLogger.child({ module: `Test${Weth}` }, { level: "warn" });

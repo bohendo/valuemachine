@@ -1,4 +1,5 @@
-import { expect } from "../../testUtils";
+import { expect } from "chai";
+
 import { getTransactionsError } from "../../utils";
 import { parseCsv } from "../parser";
 
