@@ -8,20 +8,21 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { PriceFns, PriceJson } from "@valuemachine/prices";
+import { PriceFns, PriceJson, PriceEntry } from "@valuemachine/prices";
 import {
+  Assets,
   Cryptocurrencies,
   FiatCurrencies,
 } from "@valuemachine/transactions";
 import { Asset } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
+import { chrono, math } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { DateInput, SelectOne } from "../utils";
 
 type PriceTableProps = {
   prices: PriceFns;
-  unit: Asset,
+  unit?: Asset,
 };
 export const PriceTable: React.FC<PriceTableProps> = ({
   prices,
@@ -30,18 +31,22 @@ export const PriceTable: React.FC<PriceTableProps> = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
   const [filterAsset, setFilterAsset] = useState("");
+  const [filterUnit, setFilterUnit] = useState(unit);
   const [filterDate, setFilterDate] = useState("");
-  const [filteredPrices, setFilteredPrices] = useState({} as PriceJson);
+  const [filteredPrices, setFilteredPrices] = useState([] as PriceJson);
 
   useEffect(() => {
-    if (!prices) return;
+    if (!prices?.getJson()) return;
     const newFilteredPrices = prices.getJson().filter(entry => (
       !filterDate || entry.date.startsWith(filterDate)
+    ) && (
+      (!filterUnit || entry.unit === filterUnit) &&
+      (!unit || entry.unit === unit)
     ) && (
       !filterAsset || entry.asset === filterAsset
     ));
     setFilteredPrices(newFilteredPrices);
-  }, [unit, prices, filterAsset, filterDate]);
+  }, [unit, prices, filterAsset, filterDate, filterUnit]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -52,26 +57,37 @@ export const PriceTable: React.FC<PriceTableProps> = ({
     setPage(0);
   };
 
-  const byAsset = (e1, e2) => (e1[0] < e2[0]) ? -1 : 1;
-
   return (
     <Paper sx={{ p: 2 }}>
 
       <Grid container>
         <Grid item xs={12}>
           <Typography align="center" variant="h4" sx={{ m: 2 }} component="div">
-            {`${unit} Prices on ${Object.keys(filteredPrices).length} days`}
+            {`${filteredPrices.length} ${
+              unit ? `${unit} ` : ""
+            }Price${filteredPrices.length === 1 ? "" : "s"}`}
           </Typography>
         </Grid>
 
         <Grid item>
           <SelectOne
             label="Filter Asset"
-            choices={Object.keys({ ...FiatCurrencies, ...Cryptocurrencies })}
+            choices={Object.keys({ ...Assets })}
             selection={filterAsset}
             setSelection={setFilterAsset}
           />
         </Grid>
+
+        {!unit ? (
+          <Grid item>
+            <SelectOne
+              label="Filter Unit"
+              choices={Object.keys({ ...FiatCurrencies, ...Cryptocurrencies })}
+              selection={filterUnit}
+              setSelection={setFilterUnit}
+            />
+          </Grid>
+        ) : null}
 
         <Grid item>
           <DateInput
@@ -83,58 +99,38 @@ export const PriceTable: React.FC<PriceTableProps> = ({
       </Grid>
 
       <TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[25, 50, 100, 250]}
-          component="div"
-          count={Object.keys(filteredPrices).length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-        <Table sx={{ maxWidth: 0.98, minWidth: "70em"  }}>
+        <Table sx={{ minWidth: "70em"  }}>
           <TableHead>
             <TableRow>
               <TableCell> Date </TableCell>
-              <TableCell> Prices ({unit}) </TableCell>
+              {!unit ? <TableCell> Unit </TableCell> : null}
+              <TableCell> Asset </TableCell>
+              <TableCell> Price </TableCell>
+              <TableCell> Source </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {Object.entries(filteredPrices)
-              .sort((e1, e2) => new Date(e2[0]).getTime() - new Date(e1[0]).getTime())
+            {filteredPrices
+              .sort(chrono)
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map(([date, list], i: number) => (
+              .map((entry: PriceEntry, i: number) => (
                 <TableRow key={i}>
-                  <TableCell style={{ width: "120px" }}><strong>
-                    {date.replace("T", " ").replace("Z", "")}
-                  </strong></TableCell>
+                  <TableCell style={{ width: "120px" }}>
+                    {entry.date.replace("T", " ").replace("Z", "")}
+                  </TableCell>
+                  {!unit ? (
+                    <TableCell>
+                      {entry.unit}
+                    </TableCell>
+                  ) : null}
                   <TableCell>
-                    <Table sx={{ maxWidth: 0.98 }}>
-                      <TableHead>
-                        <TableRow>
-                          {Object.entries(list[unit] || {})
-                            .sort(byAsset)
-                            .map(e => e[0])
-                            .map(asset => (
-                              <TableCell style={{ maxWidth: "120px" }} key={asset}>
-                                <strong> {asset} </strong>
-                              </TableCell>
-                            ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        <TableRow>
-                          {Object.entries(list[unit] || {})
-                            .sort(byAsset)
-                            .map(e => e[1])
-                            .map((price, i) => (
-                              <TableCell style={{ maxWidth: "120px" }} key={i}>
-                                {math.sigfigs(price as any, 3)}
-                              </TableCell>
-                            ))}
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                    {entry.asset}
+                  </TableCell>
+                  <TableCell>
+                    {math.round(entry.price, 6)}
+                  </TableCell>
+                  <TableCell>
+                    {entry.source}
                   </TableCell>
                 </TableRow>
               ))}

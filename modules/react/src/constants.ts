@@ -117,17 +117,17 @@ export const vm = getValueMachine();
 // Generate value machine data from transactions
 transactions.json.forEach(tx => vm.execute(tx));
 
-console.log(`Setting price on date ${transactions.json[4].date}`);
 const today = new Date().toISOString().split("T")[0];
+const source = "Hardcoded";
 export const prices = getPriceFns({
   json: [
-    { date: today, unit: USD, asset: BCH, price: "580", source: "Test" },
-    { date: today, unit: USD, asset: BTC, price: "55000", source: "Test" },
-    { date: today, unit: USD, asset: DAI, price: "1.01", source: "Test" },
-    { date: today, unit: USD, asset: ETH, price: "3500", source: "Test" },
-    { date: today, unit: USD, asset: INR, price: "0.133", source: "Test" },
-    { date: transactions.json[4].date, unit: USD, asset: UNI, price: "4", source: "Test" },
-    { date: transactions.json[5].date, unit: USD, asset: UNI, price: "6", source: "Test" },
+    { date: today, unit: USD, asset: BCH, price: "580", source },
+    { date: today, unit: USD, asset: BTC, price: "55000", source },
+    { date: today, unit: USD, asset: DAI, price: "1.01", source },
+    { date: today, unit: USD, asset: ETH, price: "3500", source },
+    { date: today, unit: USD, asset: INR, price: "0.133", source },
+    { date: transactions.json[4].date, unit: USD, asset: UNI, price: "4", source },
+    { date: transactions.json[5].date, unit: USD, asset: UNI, price: "6", source },
   ],
 });
 prices.syncChunks(vm.json.chunks);

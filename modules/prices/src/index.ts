@@ -3,6 +3,7 @@ export {
 } from "./prices";
 export {
   PriceFns,
+  PriceEntry,
   PriceJson,
 } from "./types";
 export {
