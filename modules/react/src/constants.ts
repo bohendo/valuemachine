@@ -1,5 +1,5 @@
 import { getValueMachine } from "@valuemachine/core";
-import { getPrices } from "@valuemachine/prices";
+import { getPriceFns } from "@valuemachine/prices";
 import {
   AddressCategories,
   Assets,
@@ -119,7 +119,7 @@ transactions.json.forEach(tx => vm.execute(tx));
 
 console.log(`Setting price on date ${transactions.json[4].date}`);
 const today = new Date().toISOString().split("T")[0];
-export const prices = getPrices({
+export const prices = getPriceFns({
   json: {
     [today]: { [USD]: {
       [BCH]: "580",

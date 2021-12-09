@@ -8,7 +8,7 @@ import {
   getEthereumData,
   getFileStore,
   getLogger,
-  getPrices,
+  getPriceFns,
   getTransactions,
   getValueMachine,
   math,
@@ -54,7 +54,7 @@ const transactions = getTransactions({ logger });
 
   // Create a price fetcher & fetch the relevant prices
   const unit = "USD";
-  const prices = getPrices({
+  const prices = getPriceFns({
     json: store.load("Prices"),
     logger,
     save: val => store.save("Prices", val),

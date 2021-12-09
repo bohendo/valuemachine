@@ -32,7 +32,7 @@ import { getEmptyPrices, getPricesError } from "./utils";
 const { add, div, eq, gt, mul, round } = math;
 const { ETH, WETH } = Assets;
 
-export const getPrices = (params?: PricesParams): PriceFns => {
+export const getPriceFns = (params?: PricesParams): PriceFns => {
   const { logger, json: pricesJson, save, unit: defaultUnit } = params || {};
   const json = pricesJson || getEmptyPrices();
   const log = (logger || getLogger()).child({ module: "Prices" });

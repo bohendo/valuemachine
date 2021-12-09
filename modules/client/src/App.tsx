@@ -18,7 +18,7 @@ import {
   getEmptyValueMachine,
   getLocalStore,
   getLogger,
-  getPrices,
+  getPriceFns,
   getPricesError,
   getTaxInputError,
   getTaxRowsError,
@@ -82,7 +82,7 @@ export const App: React.FC<AppProps> = ({
   const [addressBook, setAddressBook] = useState(getAddressBook());
   const [transactions, setTransactions] = useState(getTransactions());
   const [vm, setVM] = useState(getValueMachine());
-  const [prices, setPrices] = useState(getPrices());
+  const [prices, setPrices] = useState(getPriceFns());
 
   useEffect(() => {
     if (!addressBookJson) return;
@@ -151,7 +151,7 @@ export const App: React.FC<AppProps> = ({
     } else {
       console.log(`Refreshing ${Object.keys(pricesJson).length} price entries`);
       store.save(PricesStore, pricesJson);
-      setPrices(getPrices({
+      setPrices(getPriceFns({
         json: pricesJson,
         logger,
         save: val => store.save(PricesStore, val),

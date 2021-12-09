@@ -34,7 +34,7 @@ export {
 } from "@valuemachine/core";
 export {
   getEmptyPrices,
-  getPrices,
+  getPriceFns,
   getPricesError,
   PriceFns,
   PriceJson,

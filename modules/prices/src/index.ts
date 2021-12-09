@@ -1,5 +1,5 @@
 export {
-  getPrices,
+  getPriceFns,
 } from "./prices";
 export {
   PriceFns,

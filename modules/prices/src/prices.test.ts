@@ -4,7 +4,7 @@ import { DateString } from "@valuemachine/types";
 import { math } from "@valuemachine/utils";
 import { expect } from "chai";
 
-import { getPrices } from "./prices";
+import { getPriceFns } from "./prices";
 import { testLogger } from "./testUtils";
 import { PriceFns } from "./types";
 
@@ -19,7 +19,7 @@ describe("Prices", () => {
     new Date(new Date(date).getTime() + (index * 1000 * 60 * 60 * 24)).toISOString();
 
   beforeEach(() => {
-    prices = getPrices({ logger: log });
+    prices = getPriceFns({ logger: log });
     expect(Object.keys(prices.json).length).to.equal(0);
   });
 
