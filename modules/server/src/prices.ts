@@ -70,9 +70,9 @@ const syncPrice = async (rawDate: string, unit: string, asset: string): Promise<
   } else
     price = await fetchPrice(date, unit, asset);
 
-  if (price) { prices.setPrice(price, date, asset, unit); return price; }
+  if (price) { prices.setPrice({ price, date, asset, unit, source: "?" }); return price; }
   price = await prices.syncPrice(date, asset);
-  if (price) { prices.setPrice(price, date, asset, unit); return price; }
+  if (price) { prices.setPrice({ price, date, asset, unit, source: "?" }); return price; }
   throw new Error(`Couldn't get price of ${asset} on ${date}`);
 };
 

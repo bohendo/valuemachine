@@ -1,37 +1,87 @@
 import { AssetChunk } from "@valuemachine/core";
 import { Assets } from "@valuemachine/transactions";
 import { DateString } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
+import { getLogger, math, msPerDay, toISOString, toTime } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { getPriceFns } from "./prices";
-import { testLogger } from "./testUtils";
 import { PriceFns } from "./types";
 
-const log = testLogger.child({ module: "TestPrices" }, { level: "warn" });
-const { DAI, USD, ETH, cDAI, MKR, UNI } = Assets;
+const log = getLogger(process.env.LOG_LEVEL || "warn", "TestPrices");
+const { DAI, USD, ETH, cDAI, MKR, SAI, UNI } = Assets;
 const { round } = math;
 
 describe("Prices", () => {
   let prices: PriceFns;
-  const date = "2020-01-01";
+  const date = "2020-01-01T12:00:00Z";
+  const source = "Test";
   const getDate = (index: number): DateString =>
-    new Date(new Date(date).getTime() + (index * 1000 * 60 * 60 * 24)).toISOString();
+    toISOString(toTime(date) + (index * msPerDay));
+  const plusOneDay = (d: DateString) =>
+    toISOString(toTime(d) + msPerDay);
 
   beforeEach(() => {
     prices = getPriceFns({ logger: log });
-    expect(Object.keys(prices.json).length).to.equal(0);
+    expect(prices.getJson().length).to.equal(0);
+  });
+
+  it("should set & get prices", async () => {
+    const usdPerEth = "1234";
+    const ethPerDai = "0.0008";
+    const ethPerMkr = "1.234";
+    const daiPerCDai = "0.02041";
+    prices.merge([
+      { date, unit: USD, asset: ETH, price: usdPerEth, source },
+      { date, unit: ETH, asset: DAI, price: ethPerDai, source },
+      { date, unit: ETH, asset: MKR, price: ethPerMkr, source },
+      { date, unit: DAI, asset: cDAI, price: daiPerCDai, source },
+    ]);
+    log.info(prices.getJson(), `All prices on ${date}`);
+    expect(round(prices.getPrice(date, ETH, USD))).to.equal(round(usdPerEth));
+    expect(round(prices.getPrice(date, DAI, ETH))).to.equal(round(ethPerDai));
+    expect(round(prices.getPrice(date, MKR, ETH))).to.equal(round(ethPerMkr));
+    expect(round(prices.getPrice(date, cDAI, DAI))).to.equal(round(daiPerCDai));
+    /* expect(
+      round(prices.getPrice(date, cDAI, USD))
+    ).to.equal(
+      round(math.mul(usdPerEth, ethPerDai, daiPerCDai))
+    ); */
   });
 
   it("should get nearest prices", async () => {
+    const [unit, asset] = [USD, ETH];
     const usdPerEth = "1234";
-    const plusOneDay = d => new Date(new Date(d).getTime() + (1000 * 60 * 60 * 24)).toISOString();
-    const plusOne = n => math.add(n, "1");
-    prices.merge({
-      [plusOneDay(date)]: { USD: { ETH: usdPerEth } },
-      [plusOneDay(plusOneDay(date))]: { USD: { ETH: plusOne(usdPerEth) } },
-    });
+    prices.merge([
+      { date, unit, asset, price: usdPerEth, source },
+      { date: plusOneDay(date), unit, asset, price: math.add(usdPerEth, "1"), source },
+      { date: plusOneDay(plusOneDay(date)), unit, asset, price: math.add(usdPerEth, "2"), source },
+    ]);
     expect(round(prices.getNearest(date, ETH, USD))).to.equal(round(usdPerEth));
+  });
+
+  // This price graph is adversarial to ensure it's a worst-case that requires backtracking
+  it("should find a proper path between prices", async () => {
+    const [AETH, BETH, CETH, DETH, FETH, PETH, TEST, WTEST, cDAI, acDAI] =
+      ["AETH", "BETH", "CETH", "DETH", "FETH", "PETH", "TEST", "WTEST", "cDAI", "acDAI"];
+    prices.merge([
+      { date, unit: ETH, asset: PETH, price: "1.0132", source },
+      { date, unit: ETH, asset: DAI, price: "0.0022", source },
+      { date, unit: ETH, asset: AETH, price: "1", source },
+      { date, unit: AETH, asset: BETH, price: "1", source },
+      { date, unit: BETH, asset: CETH, price: "1", source },
+      { date, unit: DETH, asset: TEST, price: "1", source },
+      { date, unit: FETH, asset: WTEST, price: "1", source },
+      { date, unit: cDAI, asset: acDAI, price: "1", source },
+      { date, unit: PETH, asset: DETH, price: "1", source },
+      { date, unit: PETH, asset: FETH, price: "0.9869", source },
+      { date, unit: DAI, asset: cDAI, price: "0.02", source },
+      { date, unit: DAI, asset: SAI, price: "1", source },
+      { date, unit: SAI, asset: PETH, price: "458.351", source },
+      { date, unit: SAI, asset: MKR, price: "569.8779", source },
+      { date, unit: MKR, asset: SAI, price: "0.00175", source },
+    ]);
+    log.info(prices.getJson(), `All prices`);
+    expect(prices.getPrice(date, "CETH", ETH)).to.be.ok;
   });
 
   it("should calculate some prices from traded chunks", async () => {
@@ -79,81 +129,9 @@ describe("Prices", () => {
     expect(prices.getPrice(getDate(3), UNI, ETH)).to.equal(math.div(amts[3], amts[2]));
   });
 
-  it("should set & get prices", async () => {
-    const usdPerEth = "1234";
-    const ethPerDai = "0.0008";
-    const ethPerMkr = "1.234";
-    const daiPerCDai = "0.02041";
-    prices.merge({ [date]: {
-      USD: {
-        ETH: usdPerEth,
-      },
-      ETH: {
-        DAI: ethPerDai,
-        MKR: ethPerMkr,
-      },
-      DAI: {
-        cDAI: daiPerCDai,
-      },
-    } });
-    expect(round(prices.getPrice(date, ETH, USD))).to.equal(round(usdPerEth));
-    expect(round(prices.getPrice(date, DAI, ETH))).to.equal(round(ethPerDai));
-    expect(round(prices.getPrice(date, MKR, ETH))).to.equal(round(ethPerMkr));
-    expect(round(prices.getPrice(date, cDAI, DAI))).to.equal(round(daiPerCDai));
-    log.info(prices.json, `All prices on ${date}`);
-    expect(
-      round(prices.getPrice(date, cDAI, USD))
-    ).to.equal(
-      round(math.mul(usdPerEth, ethPerDai, daiPerCDai))
-    );
-  });
-
-  // This price graph is adversarial to ensure it's a worst-case that requires backtracking
-  it("should find a proper path between prices", async () => {
-    prices.merge({ [date]: {
-      ETH: {
-        "PETH": "1.01324835228845479",
-        "DAI": "0.0022106382659755107",
-        "AETH": "1",
-      },
-      AETH: {
-        "BETH": "1",
-      },
-      BETH: {
-        "CETH": "1",
-      },
-      FETH: {
-        "TEST": "1",
-      },
-      WETHy: {
-        "WTEST": "1",
-      },
-      cDAI: {
-        "acDAI": "1",
-      },
-      PETH: {
-        "FETH": "1",
-        "WETHy": "0.986924871618559309940522374665122283",
-      },
-      DAI: {
-        "cDAI": "0.02",
-        "SAI": "1",
-      },
-      SAI: {
-        // "PETH": "458.351041816119249543",
-        "MKR": "569.877871353024680810695929796535270104",
-      },
-      MKR: {
-        "SAI": "0.00175476194158191084713006669037875",
-      },
-    } });
-    log.info(prices.json, `All prices`);
-    expect(prices.getPrice(date, "CETH", ETH)).to.be.ok;
-  });
-
   // Tests that require network calls might be fragile, skip them for now
   it.skip("should fetch a price of assets not in the Assets enum", async () => {
-    expect(await prices.syncPrice(new Date().toISOString(), "idleUSDTYield", USD)).to.be.ok;
+    expect(await prices.syncPrice(toISOString(), "idleUSDTYield", USD)).to.be.ok;
   });
 
   // Tests that require network calls might be fragile, skip them for now
@@ -168,7 +146,7 @@ describe("Prices", () => {
     const results = await Promise.all(dates.map(date => prices.syncPrice(date, ETH, USD)));
     for (const i in results) {
       log.info(`On ${
-        new Date(dates[i]).toISOString().split("T")[0]
+        toISOString(dates[i]).split("T")[0]
       } 1 ETH was worth $${round(results[i])}`);
       expect(math.gt(results[i], "0")).to.be.true;
     }

@@ -32,7 +32,7 @@ export const syncPrices = async ({
     console.info(`Synced new prices`, newPrices);
     setSyncMsg?.("Successfully fetched prices! Importing..");
     prices.merge(newPrices);
-    setPricesJson?.({ ...prices.json });
+    setPricesJson?.(prices.getJson());
     setSyncMsg?.("Successfully synced prices");
     return new Promise(res => {
       setTimeout(() => { setSyncMsg?.(""); res(prices); }, 1000);

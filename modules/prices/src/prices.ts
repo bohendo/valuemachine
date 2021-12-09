@@ -10,27 +10,36 @@ import {
 import {
   Asset,
   Balances,
-  DateString,
-  DecString,
   DateTimeString,
 } from "@valuemachine/types";
 import {
   assetsAreClose,
   chrono,
+  dedup,
   diffBalances,
   getLogger,
   math,
+  toTime,
 } from "@valuemachine/utils";
 import axios from "axios";
 
 // curl https://api.coingecko.com/api/v3/coins/list
 // | jq 'map({ key: .symbol, value: .id }) | from_entries' > ./coingecko.json
 import * as coingecko from "./coingecko.json";
-import { PriceFns, PriceJson, PricesParams } from "./types";
-import { getEmptyPrices, getPricesError } from "./utils";
+import {
+  PriceEntry,
+  PriceFns,
+  PriceJson,
+  PricesParams,
+} from "./types";
+import {
+  formatPrice,
+  formatUnit,
+  getEmptyPrices,
+  getPricesError,
+} from "./utils";
 
 const { add, div, eq, gt, mul, round } = math;
-const { ETH, WETH } = Assets;
 
 export const getPriceFns = (params?: PricesParams): PriceFns => {
   const { logger, json: pricesJson, save, unit: defaultUnit } = params || {};
@@ -42,28 +51,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
 
   ////////////////////////////////////////
   // Internal helper functions
-
-  // Limit value from having any more than 18 decimals of precision (but ensure it has at least 1)
-  const formatPrice = (price: DecString): DecString => {
-    const truncated = round(price, 18).replace(/0+$/, "");
-    if (truncated.endsWith(".")) return truncated + "0";
-    return truncated;
-  };
-
-  const formatDate = (date: DateString | DateTimeString): DateString => {
-    if (isNaN((new Date(date)).getTime())) {
-      throw new Error(`Invalid Date: "${date}"`);
-    } else if ((new Date(date)).getTime() > Date.now()) {
-      throw new Error(`Date is in the future: "${date}"`);
-    }
-    return (new Date(date)).toISOString().split("T")[0];
-  };
-
-  // Never use WETH as unit, use ETH instead
-  const formatUnit = (givenUnit: Asset): Asset => {
-    const unit = givenUnit || defaultUnit || ETH;
-    return unit === WETH ? ETH : unit;
-  };
 
   const retry = async (attempt: () => Promise<any>): Promise<any> => {
     let response;
@@ -87,34 +74,27 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   };
 
   // Given an asset, get a list of other assets that we already have exchange rates for
-  const getNeighbors = (date: DateString, asset: Asset): Asset[] => {
-    const neighbors = new Set();
-    Object.keys(json[date] || {}).forEach(a1 => {
-      Object.keys(json[date]?.[a1] || {}).forEach(a2 => {
-        if (a1 === asset && a2 !== asset) neighbors.add(a2);
-        if (a2 === asset && a1 !== asset) neighbors.add(a1);
-      });
-    });
-    return Array.from(neighbors) as Asset[];
-  };
+  const getNeighbors = (date: DateTimeString, asset: Asset): Asset[] =>
+    dedup(json.map(entry => {
+      if (entry.date !== date) return null;
+      else if (entry.asset === asset) return entry.unit;
+      else if (entry.unit === asset) return entry.asset;
+      else return null;
+    }).filter(a => !!a));
 
-  const getPath = (date: DateString, start: Asset, target: Asset): Asset[] => {
-    const unvisited = new Set();
-    Object.keys(json[date] || {}).forEach(a1 => {
-      unvisited.add(a1);
-      Object.keys(json[date]?.[a1] || {}).forEach(a2 => {
-        unvisited.add(a2);
-      });
-    });
-    const countPrices = (date: DateString, asset?: Asset): number => {
-      let count = 0;
-      Object.keys(json[date] || {}).forEach(a1 => {
-        Object.keys(json[date]?.[a1] || {}).forEach(a2 => {
-          if (!asset || (a1 === asset || a2 === asset)) count += 1;
-        });
-      });
-      return count;
-    };
+  const getPath = (date: DateTimeString, start: Asset, target: Asset): Asset[] => {
+    const unvisited = new Set(
+      json.filter(entry => entry.date === date).reduce((out, entry) => {
+        return [...out, entry.asset, entry.unit];
+      }, [] as Asset[])
+    );
+
+    const countPrices = (date: DateTimeString, asset?: Asset): number =>
+      json.filter(entry => entry.date === date).reduce((count, entry) => {
+        if (!asset || entry.unit === asset || entry.asset === asset) return count + 1;
+        else return count;
+      }, 0);
+
     if (
       !unvisited.has(start) || !unvisited.has(target) ||
       !countPrices(date, start) || !countPrices(date, target)
@@ -163,7 +143,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
           // Are there any other unvisited nodes to check?
           if (!branches.length || unvisited.size === 0) {
             log.debug(`No exchange-rate-path exists between ${start} and ${target}`);
-            log.debug(json[date], `Prices we have so far`);
+            log.debug(json.filter(entry => entry.date === date), `Prices we have so far`);
             log.debug(distances, `Final distances from ${start} to ${target}`);
             return [];
           } else {
@@ -190,21 +170,22 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   // Price Oracles
 
   const getCoinGeckoPrice = async (
-    date: DateString,
+    date: DateTimeString,
     asset: Asset,
     givenUnit: Asset,
   ): Promise<string | undefined> => {
-    const unit = formatUnit(givenUnit);
+    const unit = formatUnit(givenUnit || defaultUnit);
     const coinId = coingecko[asset] || coingecko[asset.toLowerCase()];
     if (!coinId) {
       log.warn(`Asset "${asset}" is not available on CoinGecko`);
       return undefined;
     }
     // eg https://api.coingecko.com/api/v3/coins/bitcoin/history?date=30-12-2017
+    const day = date.split("T")[0];
     const coingeckoUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/history?date=${
-      `${date.split("-")[2]}-${date.split("-")[1]}-${date.split("-")[0]}`
+      `${day.split("-")[2]}-${day.split("-")[1]}-${day.split("-")[0]}`
     }`;
-    log.info(`Fetching ${unit} price of ${asset} on ${date} from ${coingeckoUrl}`);
+    log.info(`Fetching ${unit} price of ${asset} on ${day} from ${coingeckoUrl}`);
     const attempt = async () => (await axios.get(coingeckoUrl, { timeout: 10000 })).data;
     let price;
     try {
@@ -214,16 +195,16 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       log.error(e.message);
     }
     if (!price || eq(price, "0")) {
-      log.warn(`Could not fetch ${asset} price from CoinGecko on ${date}`);
+      log.warn(`Could not fetch ${asset} price from CoinGecko on ${day}`);
     }
     return price;
   };
 
   const getUniswapV1Price = async (
-    date: DateString,
+    date: DateTimeString,
     asset: Asset,
   ): Promise<string | undefined> => {
-    if (asset === ETH) return "1";
+    if (asset === Assets.ETH) return "1";
     const assetId = publicAddresses.find(market =>
       market.name.startsWith("UniV1-") && market.name.endsWith(asset)
     )?.address;
@@ -264,7 +245,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   };
 
   const getUniswapV2Price = async (
-    date: DateString,
+    date: DateTimeString,
     asset: Asset,
     unit: Asset,
   ): Promise<string | undefined> => {
@@ -312,7 +293,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
 
   // Aggregator for all versions of uniswap
   const getUniswapPrice = async (
-    date: DateString,
+    date: DateTimeString,
     asset: Asset,
     givenUnit: Asset,
   ): Promise<string | undefined> => {
@@ -320,20 +301,20 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     const uniV2Launch = new Date("2020-05-04").getTime();
     const uniV3Launch = new Date("2021-05-04").getTime();
     const time = new Date(date).getTime();
-    const unit = formatUnit(givenUnit);
+    const unit = formatUnit(givenUnit || defaultUnit);
     // Uniswap was not deployed yet, can't fetch price
     if (time < uniV1Launch) {
       return undefined;
     } else if (time < uniV2Launch) {
-      if (unit === ETH) {
+      if (unit === Assets.ETH) {
         return await getUniswapV1Price(date, asset);
       } else {
         return undefined;
       }
     } else if (time < uniV3Launch) {
-      if (unit === ETH) {
+      if (unit === Assets.ETH) {
         return await getUniswapV1Price(date, asset)
-          || await getUniswapV2Price(date, asset, ETH);
+          || await getUniswapV2Price(date, asset, Assets.ETH);
       } else {
         return await getUniswapV2Price(date, asset, unit);
       }
@@ -342,53 +323,77 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     // Use the one with best liquidity?
     // Or should we average all available prices?
     // Or use a liquidity-weighted average?! Fancy
-    if (unit === ETH) {
+    if (unit === Assets.ETH) {
       return await getUniswapV1Price(date, asset)
-        || await getUniswapV2Price(date, asset, ETH);
-      //|| await getUniswapV3Price(date, asset, ETH);
+        || await getUniswapV2Price(date, asset, Assets.ETH);
+      //|| await getUniswapV3Price(date, asset, Assets.ETH);
     } else {
       return await getUniswapV2Price(date, asset, unit);
-      //|| await getUniswapV3Price(date, asset, ETH);
+      //|| await getUniswapV3Price(date, asset, Assets.ETH);
     }
   };
 
   const setPrice = (
-    price: DecString,
-    rawDate: DateString,
-    asset: Asset,
-    givenUnit?: Asset,
+    entry: PriceEntry,
   ): void => {
-    const date = formatDate(rawDate);
-    const unit = formatUnit(givenUnit);
-    if (!json[date]) json[date] = {};
-    if (!json[date][unit]) json[date][unit] = {};
-    json[date][unit][asset] = formatPrice(price);
+    const { date, asset, unit } = entry;
+    const dup = json.find(oldEntry =>
+      oldEntry.date === date && oldEntry.asset === asset && oldEntry.unit === unit
+    );
+    if (dup) {
+      log.debug(`Replacing duplicate ${unit} price for ${asset} on ${date}: ${entry.price}`);
+      dup.price = formatPrice(entry.price);
+      dup.source = entry.source;
+    } else {
+      log.debug(`Inserting new ${unit} price for ${asset} on ${date}: ${entry.price}`);
+      json.push(entry);
+    }
     save?.(json);
   };
 
   ////////////////////////////////////////
   // Exported Methods
 
+  const merge = (newPrices: PriceJson): void => {
+    const error = getPricesError(newPrices);
+    if (error) throw new Error(error);
+    newPrices.forEach(setPrice);
+    json.sort(chrono);
+    save?.(json);
+  };
+
   const getPrice = (
-    rawDate: DateString,
+    date: DateTimeString,
     asset: Asset,
     givenUnit?: Asset,
   ): string | undefined => {
-    const date = formatDate(rawDate);
-    const unit = formatUnit(givenUnit);
+    const unit = formatUnit(givenUnit || defaultUnit);
     if (assetsAreClose(asset, unit)) return "1";
-    if (json[date]?.[unit]?.[asset]) return formatPrice(json[date][unit][asset]);
-    if (json[date]?.[asset]?.[unit]) return formatPrice(div("1", json[date][asset][unit]));
+    // Only entries with the right date are relevant
+    const relevant = json.filter(entry => entry.date === date);
+    log.debug(`Found ${relevant.length} price entries on ${date}`);
+    let entry;
+    // Return an exact match if we have one
+    entry = relevant.find(entry => entry.unit === unit && entry.asset === asset);
+    log.debug(`Exact match: ${entry?.price} ${entry?.unit} per ${entry?.asset}`);
+    if (entry) return formatPrice(entry.price);
+    // Return the inverse if we have an entry with the asset & unit swapped
+    entry = relevant.find(entry => entry.unit === asset && entry.asset === unit);
+    log.debug(`Inverse match: ${entry?.price} ${entry?.unit} per ${entry?.asset}`);
+    if (entry) return formatPrice(math.div("1", entry.price));
+    log.debug(`No matches, calculating path from ${unit} to ${asset}...`);
     const path = getPath(date, unit, asset);
     if (!path.length) return undefined;
     let price = "1"; 
     let prev;
     path.forEach(step => {
       if (prev) {
-        if (json[date]?.[prev]?.[step]) {
-          price = mul(price, json[date]?.[prev]?.[step]);
-        } else if (json[date]?.[step]?.[prev]) {
-          price = mul(price, div("1", json[date]?.[step]?.[prev]));
+        entry = relevant.find(e => e.unit === prev && e.asset === step);
+        if (entry) {
+          price = mul(price, entry.price);
+        } else {
+          entry = relevant.find(e => e.unit === step && e.asset === prev);
+          price = mul(price, div("1", entry.price));
         }
         log.debug(`Got path to price of ${step}: ${formatPrice(price)} ${unit}`);
       }
@@ -398,17 +403,16 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   };
 
   const getNearest = (
-    rawDate: DateString,
+    date: DateTimeString,
     asset: Asset,
     givenUnit?: Asset,
   ): string | undefined => {
-    const date = formatDate(rawDate);
-    const unit = formatUnit(givenUnit);
+    const unit = formatUnit(givenUnit || defaultUnit);
     log.debug(`Getting ${unit} price of ${asset} on date closest to ${date}..`);
     let price = getPrice(date, asset, givenUnit);
     if (price) return price;
-    const diff = (d1, d2) => Math.abs(new Date(d1).getTime() - new Date(d2).getTime());
-    const availableDates = Object.keys(json).sort((d1, d2) => {
+    const diff = (d1, d2) => Math.abs(toTime(d1) - toTime(d2));
+    const availableDates = json.map(e => e.date).sort((d1, d2) => {
       return diff(d1, date) - diff(d2, date);
     });
     for (const candidate of availableDates) {
@@ -421,42 +425,15 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     return undefined;
   };
 
-  const merge = (prices: PriceJson): void => {
-    Object.entries(prices).forEach(([date, priceList]) => {
-      Object.entries(priceList).forEach(([unit, prices]) => {
-        Object.entries(prices).forEach(([asset, price]) => {
-          if (
-            typeof price === "string" &&
-            typeof date === "string" &&
-            typeof asset === "string" &&
-            typeof unit === "string"
-          ) {
-            log.debug(`Merging ${unit} price for ${asset} on ${date}: ${price}`);
-            setPrice(
-              price as DecString,
-              date as DateString,
-              asset as Asset,
-              unit as Asset,
-            );
-          } else {
-            log.warn(`NOT merging ${unit} price for ${asset} on ${date}: ${price}`);
-          }
-        });
-      });
-    });
-  };
-
   const syncPrice = async (
-    rawDate: DateString,
+    date: DateTimeString,
     asset: Asset,
     givenUnit?: Asset,
   ): Promise<string | undefined> => {
-    const date = formatDate(rawDate);
-    const unit = formatUnit(givenUnit);
+    const unit = formatUnit(givenUnit || defaultUnit);
+    let source;
     if (assetsAreClose(asset, unit)) return "1";
-    if (!json[date]) json[date] = {};
-    if (!json[date][unit]) json[date][unit] = {};
-    if (!json[date][unit][asset]) {
+    if (!getPrice(date, asset, unit)) {
       let price = getPrice(date, asset, unit);
       if (
         !price &&
@@ -465,6 +442,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
         && !!price // Don't actually use uniswap prices until issue #103 is resolved
       ) {
         price = await getUniswapPrice(date, asset, unit);
+        source = "Uniswap";
       }
       if (!price) {
         if (Object.keys(FiatCurrencies).includes(asset)) {
@@ -476,18 +454,19 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
         } else {
           price = await getCoinGeckoPrice(date, asset, unit);
         }
+        source = "CoinGecko";
       }
       if (price) {
-        setPrice(round(price, 18).replace(/0+$/, ""), date, asset, unit);
-        log.info(`Synced price on ${date}: 1 ${asset} = ${json[date][unit][asset]} ${unit}`);
+        setPrice({ date, asset, unit, price: round(price, 18).replace(/0+$/, ""), source });
+        log.info(`Synced price on ${date}: 1 ${asset} = ${getPrice(date, asset, unit)} ${unit}`);
       }
     }
-    return json[date][unit][asset];
+    return getPrice(date, asset, unit);
   };
 
   const syncChunks = async (chunks: AssetChunk[], givenUnit?: Asset): Promise<PriceJson> => {
-    const unit = formatUnit(givenUnit);
-    const chunkPrices = {} as PriceJson;
+    const unit = formatUnit(givenUnit || defaultUnit);
+    const chunkPrices = [] as PriceJson;
     chunks
       // Gather all the unique dates on which a swap occured
       .reduce((dates, chunk) => {
@@ -519,8 +498,8 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
 
       // Divide inputs & ouputs to determine exchange rates
       .forEach(swap => {
-        const date = formatDate(swap.date);
-        const prices = {};
+        const date = swap.date;
+        const source = "Calc"; // How could we get access to the txid here?
         // Diff balances just in case refunds weren't processed correctly
         const [outputs, inputs] = diffBalances([swap.out, swap.in]);
         const assets = {
@@ -538,39 +517,84 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
           const asset = { in: assets.in[0], out: assets.out[0] };
           const amt = { in: amts.in[0], out: amts.out[0] };
           if (eq(amt.in, "0") || eq(amt.out, "0")) return;
-          prices[asset.out] = prices[asset.out] || {};
-          prices[asset.in] = prices[asset.in] || {};
-          prices[asset.out][asset.in] = div(amt.out, amt.in);
-          prices[asset.in][asset.out] = div(amt.in, amt.out);
-          chunkPrices[date] = { ...chunkPrices[date], ...prices };
+          chunkPrices.push({
+            date, unit: asset.out, asset: asset.in, price: div(amt.out, amt.in), source,
+          });
+          chunkPrices.push({
+            date, unit: asset.in, asset: asset.out, price: div(amt.in, amt.out), source,
+          });
+
 
         // Assumes that for 2 inputs => 1 output,
         // - the 2 inputs have equal value
         // - the total input has value equal to the output
         } else if (assets.in.length === 2 && assets.out.length === 1) {
-          prices[assets.in[0]] = prices[assets.in[0]] || {};
-          prices[assets.in[1]] = prices[assets.in[1]] || {};
-          // Get prices of the two liq inputs relative to each other
-          prices[assets.in[0]][assets.in[1]] = div(amts.in[0], amts.in[1]);
-          prices[assets.in[1]][assets.in[0]] = div(amts.in[1], amts.in[0]);
-          // Get prices of the liq token relative to each input
-          prices[assets.in[1]][assets.out[0]] = div(mul(amts.in[1], "2"), amts.out[0]);
-          prices[assets.in[0]][assets.out[0]] = div(mul(amts.in[0], "2"), amts.out[0]);
-          chunkPrices[date] = { ...chunkPrices[date], ...prices };
+          // Get prices of the two inputs relative to each other
+          chunkPrices.push({
+            date,
+            unit: assets.in[0],
+            asset: assets.in[1],
+            price: div(amts.in[0], amts.in[1]),
+            source,
+          });
+          chunkPrices.push({
+            date,
+            unit: assets.in[1],
+            asset: assets.in[0],
+            price: div(amts.in[1], amts.in[0]),
+            source,
+          });
+          // Get prices of the output relative to each input
+          chunkPrices.push({
+            date,
+            unit: assets.in[1],
+            asset: assets.out[0],
+            price: div(mul(amts.in[1], "2"), amts.out[0]),
+            source,
+          });
+          chunkPrices.push({
+            date,
+            unit: assets.in[0],
+            asset: assets.out[0],
+            price: div(mul(amts.in[0], "2"), amts.out[0]),
+            source,
+          });
 
         // Assumes that for 1 input => 2 outputs,
         // - the 2 outputs have equal value
         // - the input has value equal to the total output
         } else if (assets.out.length === 2 && assets.in.length === 1) {
-          prices[assets.out[0]] = prices[assets.out[0]] || {};
-          prices[assets.out[1]] = prices[assets.out[1]] || {};
-          // Get prices of the two liq outputs relative to each other
-          prices[assets.out[0]][assets.out[1]] = div(amts.out[0], amts.out[1]);
-          prices[assets.out[1]][assets.out[0]] = div(amts.out[1], amts.out[0]);
-          // Get prices of the liq token relative to each output
-          prices[assets.out[1]][assets.in[0]] = div(mul(amts.out[1], "2"), amts.in[0]);
-          prices[assets.out[0]][assets.in[0]] = div(mul(amts.out[0], "2"), amts.in[0]);
-          chunkPrices[date] = { ...chunkPrices[date], ...prices };
+          // Get prices of the two outputs relative to each other
+          chunkPrices.push({
+            date,
+            unit: assets.out[0],
+            asset: assets.out[1],
+            price: div(amts.out[0], amts.out[1]),
+            source,
+          });
+          chunkPrices.push({
+            date,
+            unit: assets.out[1],
+            asset: assets.out[0],
+            price: div(amts.out[1], amts.out[0]),
+            source,
+          });
+          // Get prices of the input relative to each output
+          chunkPrices.push({
+            date,
+            unit: assets.out[1],
+            asset: assets.in[0],
+            price: div(mul(amts.out[1], "2"), amts.in[0]),
+            source,
+          });
+          chunkPrices.push({
+            date,
+            unit: assets.out[0],
+            asset: assets.in[0],
+            price: div(mul(amts.out[0], "2"), amts.in[0]),
+            source,
+          });
+
         } else if (assets.in.length || assets.out.length) {
           log.warn(`Unable to get prices from swap: [${assets.out}] => [${assets.in}]`);
         }
@@ -582,7 +606,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       const { asset, history, disposeDate } = chunk;
       if (unit === asset) continue;
       for (const rawDate of [history[0]?.date, disposeDate]) {
-        const date = rawDate ? formatDate(rawDate) : null;
+        const date = rawDate || null;
         if (!date) continue;
         chunkPrices[date] = chunkPrices[date] || {};
         chunkPrices[date][unit] = chunkPrices[date][unit] || {};
@@ -592,12 +616,16 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     return chunkPrices;
   };
 
+  const getJson = (): PriceJson => {
+    return [...json];
+  };
+
   return {
-    getPrice,
+    getJson,
     getNearest,
-    setPrice,
-    json,
+    getPrice,
     merge,
+    setPrice,
     syncChunks,
     syncPrice,
   };

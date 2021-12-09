@@ -26,7 +26,7 @@ export const PriceManager: React.FC<PropTypes> = ({
   unit,
   vm,
 }: PropTypes) => {
-  const handleClear = () => { setPricesJson({}); };
+  const handleClear = () => { setPricesJson([]); };
   return (<>
     <Typography variant="h3">
       Price Explorer
@@ -42,7 +42,7 @@ export const PriceManager: React.FC<PropTypes> = ({
 
     <Button
       sx={{ m: 3 }}
-      disabled={!!globalSyncMsg || !Object.keys(prices.json).length}
+      disabled={!!globalSyncMsg || !prices.getJson().length}
       onClick={handleClear}
       startIcon={<ClearIcon/>}
       variant="outlined"

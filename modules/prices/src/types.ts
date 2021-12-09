@@ -1,17 +1,30 @@
 import { AssetChunk } from "@valuemachine/core";
-import { Asset, DateString, DecString, DateTimeString } from "@valuemachine/types";
+import { Asset, DateTimeString, DecString } from "@valuemachine/types";
 import { Static, Type } from "@sinclair/typebox";
 import pino from "pino";
 
 ////////////////////////////////////////
 // JSON Schema
 
-// unit:asset:price where price is the number of units per asset
-export const PriceList = Type.Record(Type.String(), Type.Record(Type.String(), DecString));
-export type PriceList = Static<typeof PriceList>;
+export const PriceSources = {
+  CoinGecko: "CoinGecko",
+  UniswapV1: "UniswapV1",
+  UniswapV2: "UniswapV2",
+  UniswapV3: "UniswapV3",
+} as const;
+export const PriceSource = Type.Enum(PriceSources);
+export type PriceSource = Static<typeof PriceSource>;
 
-// date:PriceList
-export const PriceJson = Type.Record(Type.String(), PriceList);
+export const PriceEntry = Type.Object({
+  date: DateTimeString,
+  unit: Asset,
+  asset: Asset,
+  price: DecString, // n units per 1 asset
+  source: Type.String(), // PriceSource or TxId
+});
+export type PriceEntry = Static<typeof PriceEntry>;
+
+export const PriceJson = Type.Array(PriceEntry);
 export type PriceJson = Static<typeof PriceJson>;
 
 ////////////////////////////////////////
@@ -27,8 +40,8 @@ export type PricesParams = {
 export interface PriceFns {
   getPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => string | undefined;
   getNearest: (date: DateTimeString, asset: Asset, unit?: Asset) => string | undefined;
-  setPrice: (price: DecString, rawDate: DateString, asset: Asset, givenUnit?: Asset) => void;
-  json: PriceJson;
+  setPrice: (entry: PriceEntry) => void;
+  getJson: () => PriceJson;
   merge: (prices: PriceJson) => void;
   syncChunks: (chunks: AssetChunk[], unit?: Asset) => Promise<PriceJson>;
   syncPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => Promise<string | undefined>;

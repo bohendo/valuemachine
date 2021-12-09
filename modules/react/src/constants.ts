@@ -120,19 +120,15 @@ transactions.json.forEach(tx => vm.execute(tx));
 console.log(`Setting price on date ${transactions.json[4].date}`);
 const today = new Date().toISOString().split("T")[0];
 export const prices = getPriceFns({
-  json: {
-    [today]: { [USD]: {
-      [BCH]: "580",
-      [BTC]: "55000",
-      [DAI]: "1.01",
-      [ETH]: "3500",
-      [INR]: "0.0133",
-    } },
-    // At the time of depositing UNI onto coinbase
-    [transactions.json[4].date.split("T")[0]]: { [USD]: { [UNI]: "4" } },
-    // At the time of selling UNI on coinbase
-    [transactions.json[5].date.split("T")[0]]: { [USD]: { [UNI]: "6" } },
-  },
+  json: [
+    { date: today, unit: USD, asset: BCH, price: "580", source: "Test" },
+    { date: today, unit: USD, asset: BTC, price: "55000", source: "Test" },
+    { date: today, unit: USD, asset: DAI, price: "1.01", source: "Test" },
+    { date: today, unit: USD, asset: ETH, price: "3500", source: "Test" },
+    { date: today, unit: USD, asset: INR, price: "0.133", source: "Test" },
+    { date: transactions.json[4].date, unit: USD, asset: UNI, price: "4", source: "Test" },
+    { date: transactions.json[5].date, unit: USD, asset: UNI, price: "6", source: "Test" },
+  ],
 });
 prices.syncChunks(vm.json.chunks);
 

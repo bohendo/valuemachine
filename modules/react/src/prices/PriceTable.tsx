@@ -35,20 +35,11 @@ export const PriceTable: React.FC<PriceTableProps> = ({
 
   useEffect(() => {
     if (!prices) return;
-    const newFilteredPrices = {} as PriceJson;
-    Object.entries(prices.json).forEach(([date, priceList]) => {
-      if (filterDate && !date.startsWith(filterDate.split("T")[0])) return null;
-      if (Object.keys(priceList).length === 0) return null;
-      if (Object.keys(priceList[unit] || {}).length === 0) return null;
-      Object.entries(priceList[unit] || {}).forEach(([asset, price]) => {
-        if (!filterAsset || filterAsset === asset) {
-          newFilteredPrices[date] = newFilteredPrices[date] || {};
-          newFilteredPrices[date][unit] = newFilteredPrices[date][unit] || {};
-          newFilteredPrices[date][unit][asset] = price;
-        }
-      });
-      return null;
-    });
+    const newFilteredPrices = prices.getJson().filter(entry => (
+      !filterDate || entry.date.startsWith(filterDate)
+    ) && (
+      !filterAsset || entry.asset === filterAsset
+    ));
     setFilteredPrices(newFilteredPrices);
   }, [unit, prices, filterAsset, filterDate]);
 
@@ -138,7 +129,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                             .map(e => e[1])
                             .map((price, i) => (
                               <TableCell style={{ maxWidth: "120px" }} key={i}>
-                                {math.sigfigs(price, 3)}
+                                {math.sigfigs(price as any, 3)}
                               </TableCell>
                             ))}
                         </TableRow>
