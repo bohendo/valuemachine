@@ -4,7 +4,6 @@ export {
 export * as math from "./math";
 export {
   assetsAreClose,
-  chrono,
   dedup,
   describeBalance,
   diffBalances,
@@ -24,6 +23,16 @@ export {
   getTxIdError,
   slugify,
 } from "./strings";
+export {
+  after,
+  before,
+  chrono,
+  daysInYear,
+  msPerDay,
+  msPerYear,
+  toISOString,
+  toTime,
+} from "./time";
 export {
   ajv,
   formatErrors,
