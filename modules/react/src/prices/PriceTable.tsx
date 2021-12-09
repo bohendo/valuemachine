@@ -10,12 +10,12 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import { PriceFns, PriceJson, PriceEntry } from "@valuemachine/prices";
 import {
-  Assets,
-  Cryptocurrencies,
+  EvmAssets,
+  UtxoAssets,
   FiatCurrencies,
 } from "@valuemachine/transactions";
 import { Asset } from "@valuemachine/types";
-import { chrono, math } from "@valuemachine/utils";
+import { chrono, dedup, math } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { DateInput, SelectOne } from "../utils";
@@ -30,10 +30,15 @@ export const PriceTable: React.FC<PriceTableProps> = ({
 }: PriceTableProps) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
+  const [allAssets, setAllAssets] = useState([] as Asset[]);
   const [filterAsset, setFilterAsset] = useState("");
   const [filterUnit, setFilterUnit] = useState(unit);
   const [filterDate, setFilterDate] = useState("");
   const [filteredPrices, setFilteredPrices] = useState([] as PriceJson);
+
+  useEffect(() => {
+    setAllAssets(dedup(prices?.getJson().map(entry => entry.asset)));
+  }, [prices]);
 
   useEffect(() => {
     if (!prices?.getJson()) return;
@@ -72,7 +77,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
         <Grid item>
           <SelectOne
             label="Filter Asset"
-            choices={Object.keys({ ...Assets })}
+            choices={allAssets}
             selection={filterAsset}
             setSelection={setFilterAsset}
           />
@@ -82,7 +87,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
           <Grid item>
             <SelectOne
               label="Filter Unit"
-              choices={Object.keys({ ...FiatCurrencies, ...Cryptocurrencies })}
+              choices={Object.keys({ ...FiatCurrencies, ...EvmAssets, ...UtxoAssets })}
               selection={filterUnit}
               setSelection={setFilterUnit}
             />
@@ -99,7 +104,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
       </Grid>
 
       <TableContainer>
-        <Table sx={{ minWidth: "70em"  }}>
+        <Table sx={{ minWidth: "40em"  }}>
           <TableHead>
             <TableRow>
               <TableCell> Date </TableCell>

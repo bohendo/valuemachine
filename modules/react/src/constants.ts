@@ -117,7 +117,7 @@ export const vm = getValueMachine();
 // Generate value machine data from transactions
 transactions.json.forEach(tx => vm.execute(tx));
 
-const today = new Date().toISOString().split("T")[0];
+const today = new Date().toISOString();
 const source = "Hardcoded";
 export const prices = getPriceFns({
   json: [

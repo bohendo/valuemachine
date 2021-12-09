@@ -22,9 +22,6 @@ export const assetsAreClose = (asset1: Asset, asset2: Asset): boolean =>
 export const valuesAreClose = (q1: DecString, q2: DecString, wiggleRoom = "0.000001") =>
   lt(diff(q1, q2), wiggleRoom);
 
-export const chrono = (d1: { date: DateTimeString; }, d2: { date: DateTimeString; }): number =>
-  new Date(d1.date).getTime() - new Date(d2.date).getTime();
-
 export const sumValue = (values: Array<Value>): Balances => {
   const result = values.reduce((total, value) => {
     if (!value.amount) {
