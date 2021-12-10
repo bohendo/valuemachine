@@ -3,24 +3,25 @@ import { getLogger } from "@valuemachine/utils";
 
 import { AddressCategories } from "./enums";
 import { getAddressBook } from "./addressBook";
+import { fmtAddress } from "./utils";
 import { AddressBook } from "./types";
 
 export const env = {
   logLevel: process.env.LOG_LEVEL || "error",
-
   alchemyProvider: process.env.ALCHEMY_PROVIDER || "",
   covalentKey: process.env.COVALENT_KEY || "",
   etherscanKey: process.env.ETHERSCAN_KEY || "",
   polygonscanKey: process.env.POLYGONSCAN_KEY || "",
 };
 
-export const testLogger = getLogger(env.logLevel).child({ module: "TestUtils" });
+export const testLogger = getLogger(env.logLevel || "warn").child({ module: "TestUtils" });
 
 testLogger.info(env, "starting tx tests in env");
 
 export const getTestAddressBook = (...selfAddresses: Account[]): AddressBook =>
   getAddressBook({
-    json: selfAddresses.reduce((addressBookJson, address, i) => {
+    json: selfAddresses.reduce((addressBookJson, rawAddress, i) => {
+      const address = fmtAddress(rawAddress);
       addressBookJson[address] = {
         address,
         name: `Self${i}`,
@@ -28,5 +29,5 @@ export const getTestAddressBook = (...selfAddresses: Account[]): AddressBook =>
       };
       return addressBookJson;
     }, {}),
-    logger: testLogger,
+    logger: getLogger("warn"),
   });

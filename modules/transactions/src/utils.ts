@@ -13,6 +13,7 @@ import {
   diffBalances,
   formatErrors,
   math,
+  msPerDay,
   sumValue,
 } from "@valuemachine/utils";
 
@@ -186,7 +187,7 @@ export const getGuard = (asset: Asset): Guard =>
 let txIndex = 0;
 export const getTestTx = (transfers: Transfer[]): Transaction => ({
   date: new Date(
-    new Date("2020-01-01T01:00:00Z").getTime() + (txIndex * 24 * 60 * 60 * 1000)
+    new Date("2020-01-01T01:00:00Z").getTime() + (txIndex * msPerDay)
   ).toISOString(),
   uuid: `Test/${hexZeroPad(hexlify(txIndex), 32)}`,
   index: txIndex++,

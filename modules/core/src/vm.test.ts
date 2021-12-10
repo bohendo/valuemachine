@@ -1,22 +1,16 @@
 import {
   Assets,
   EvmApps,
+  getTestAddressBook,
   getTestTx,
   Guards,
   Sources,
   TransferCategories,
 } from "@valuemachine/transactions";
-import { math } from "@valuemachine/utils";
+import { getLogger, math } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { getValueMachine } from "./vm";
-import {
-  AddressOne,
-  AddressTwo,
-  AddressThree,
-  getTestAddressBook,
-  testLogger,
-} from "./testUtils";
 import {
   EventTypes,
 } from "./types";
@@ -39,9 +33,11 @@ const {
 } = TransferCategories;
 const { Coinbase } = Sources;
 const { Ethereum, USA } = Guards;
-const log = testLogger.child({ module: "TestVM" }, { level: "silent" });
-
-const addressBook = getTestAddressBook();
+const log = getLogger(process.env.LOG_LEVEL || "silent", "TestVM");
+const AddressOne = "0x1111111111111111111111111111111111111111";
+const AddressTwo = "0x2222222222222222222222222222222222222222";
+const AddressThree = "0x3333333333333333333333333333333333333333";
+const addressBook = getTestAddressBook(AddressOne, AddressTwo);
 const ethAccount = `${Ethereum}/${AddressOne}`;
 const otherAccount = `${Ethereum}/${AddressTwo}`;
 const venueAccount = `${Ethereum}/${EvmApps.Aave}/${AddressOne}`;
