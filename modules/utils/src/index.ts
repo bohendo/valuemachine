@@ -3,7 +3,6 @@ export {
 } from "./logger";
 export * as math from "./math";
 export {
-  assetsAreClose,
   dedup,
   describeBalance,
   diffBalances,

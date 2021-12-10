@@ -1,5 +1,4 @@
 import { Asset, Logger } from "@valuemachine/types";
-import { assetsAreClose } from "@valuemachine/utils";
 
 import { TransferCategories } from "../../../enums";
 import { AddressBook, Transaction } from "../../../types";
@@ -102,14 +101,14 @@ export const coreParser = (
         continue;
       }
       log.info(`Parsing yToken transfer of ${yTransfer.amount} ${yTransfer.asset}`);
-      const transfer = tx.transfers.find(t =>
+      const transfer = tx.transfers.find(t => (
         t.category !== Fee
-        && assetsAreClose(t.asset, asset)
-        && (
-          (isSelf(t.to) && isSelf(yTransfer.from)) ||
-          (isSelf(t.from) && isSelf(yTransfer.to))
-        )
-      );
+      ) && (
+        t.asset === asset || t.asset.replace(/^W/, "") === asset.replace(/^W/, "")
+      ) && (
+        (isSelf(t.to) && isSelf(yTransfer.from)) ||
+        (isSelf(t.from) && isSelf(yTransfer.to))
+      ));
       if (!transfer) {
         log.warn(`Couldn't find a matching ${asset} transfer`);
       } else {

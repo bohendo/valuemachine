@@ -237,7 +237,6 @@ export {
 } from "@valuemachine/types";
 export {
   ajv,
-  assetsAreClose,
   chrono,
   dedup,
   describeBalance,
