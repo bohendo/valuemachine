@@ -1,22 +1,25 @@
-import { AssetChunk } from "@valuemachine/core";
-import { Assets } from "@valuemachine/transactions";
-import { DateString } from "@valuemachine/types";
-import { getLogger, math, msPerDay, toISOString, toTime } from "@valuemachine/utils";
+import { getValueMachine } from "@valuemachine/core";
+import {
+  getTestAddressBook,
+  Assets,
+  getTestTx,
+  Guards,
+  TransferCategories,
+} from "@valuemachine/transactions";
+import { getLogger, math, toISOString } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { getPriceFns } from "./prices";
 import { PriceFns } from "./types";
 
 const log = getLogger(process.env.LOG_LEVEL || "warn", "TestPrices");
-const { DAI, USD, ETH, cDAI, MKR, SAI, UNI } = Assets;
+const { DAI, USD, ETH, cDAI, MKR, SAI, UNI, UniV2_UNI_ETH } = Assets;
 const { round } = math;
 
 describe("Prices", () => {
   let prices: PriceFns;
   const date = "2020-01-01T12:00:00Z";
   const source = "Test";
-  const getDate = (index: number): DateString =>
-    toISOString(toTime(date) + (index * msPerDay));
 
   beforeEach(() => {
     prices = getPriceFns({ logger: log });
@@ -82,49 +85,35 @@ describe("Prices", () => {
     expect(prices.getPrice(date, "CETH", ETH)).to.be.ok;
   });
 
-  it("should calculate some prices from traded chunks", async () => {
-    const amts = ["1.1", "0.1", "50", "2"];
-    await prices.syncChunks([
-      {
-        asset: ETH,
-        history: [{ date: getDate(1), guard: ETH }],
-        disposeDate: getDate(2),
-        amount: amts[0],
-        index: 0,
-        inputs: [],
-        outputs: [1],
-      },
-      {
-        asset: ETH,
-        history: [{ date: getDate(2), guard: ETH }],
-        amount: amts[1],
-        index: 0,
-        inputs: [0],
-        outputs: [],
-      },
-      {
-        asset: UNI,
-        history: [{ date: getDate(2), guard: ETH }],
-        disposeDate: getDate(3),
-        amount: amts[2],
-        index: 1,
-        inputs: [0],
-        outputs: [2],
-      },
-      {
-        asset: ETH,
-        history: [{ date: getDate(3), guard: ETH }],
-        disposeDate: getDate(4),
-        amount: amts[3],
-        index: 2,
-        inputs: [1],
-        outputs: [],
-      },
-    ] as AssetChunk[], ETH);
-    expect(prices.getPrice(getDate(2), UNI, ETH)).to.equal(
-      math.div(math.sub(amts[0], amts[1]), amts[2])
-    );
-    expect(prices.getPrice(getDate(3), UNI, ETH)).to.equal(math.div(amts[3], amts[2]));
+  it("should calculate prices from ValueMachine data", async () => {
+    const me = "Ethereum/0x1111111111111111111111111111111111111111";
+    const notMe = "Ethereum/0x2222222222222222222222222222222222222222";
+    const vm = getValueMachine({ addressBook: getTestAddressBook(me) });
+    const { Income, Fee, SwapIn, SwapOut } = TransferCategories;
+    [getTestTx([
+      { amount: "10", asset: ETH, category: Income, from: notMe, to: me },
+    ]), getTestTx([
+      { amount: "0.1", asset: ETH, category: Fee, from: me, to: Guards.Ethereum },
+      { amount: "1.0", asset: ETH, category: SwapOut, from: me, to: notMe },
+      { amount: "50.0", asset: UNI, category: SwapIn, from: notMe, to: me },
+    ]), getTestTx([
+      { amount: "0.1", asset: ETH, category: Fee, from: me, to: Guards.Ethereum },
+      { amount: "1.0", asset: ETH, category: SwapOut, from: me, to: notMe },
+      { amount: "50.0", asset: UNI, category: SwapOut, from: me, to: notMe },
+      { amount: "0.02", asset: UniV2_UNI_ETH, category: SwapIn, from: notMe, to: me },
+    ]), getTestTx([
+      { amount: "0.1", asset: ETH, category: Fee, from: me, to: Guards.Ethereum },
+      { amount: "0.02", asset: UniV2_UNI_ETH, category: SwapOut, from: me, to: notMe },
+      { amount: "1.1", asset: ETH, category: SwapIn, from: notMe, to: me },
+      { amount: "60.0", asset: UNI, category: SwapIn, from: notMe, to: me },
+    ]), getTestTx([
+      { amount: "0.1", asset: ETH, category: Fee, from: me, to: Guards.Ethereum },
+      { amount: "60.0", asset: UNI, category: SwapOut, from: me, to: notMe },
+      { amount: "1.0", asset: ETH, category: SwapIn, from: notMe, to: me },
+    ])].forEach(vm.execute);
+    await prices.syncPrices(vm, Assets.ETH);
+    expect(prices.getPrice("2020-01-02T01:00:00.000Z", UNI, ETH)).to.equal("0.02");
+    expect(prices.getPrice("2020-01-03T01:00:00.000Z", UniV2_UNI_ETH, ETH)).to.equal("100.0");
   });
 
   // Tests that require network calls might be fragile, skip them for now

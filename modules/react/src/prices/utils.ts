@@ -26,8 +26,8 @@ export const syncPrices = async ({
   try {
     setSyncMsg?.(`Fetching price data for ${vm.json.chunks.length} chunks..`);
     const newPrices = (await axios.post(
-      `/api/prices/chunks/${unit}`,
-      { chunks: vm.json.chunks },
+      `/api/prices/${unit}`,
+      { vmJson: vm.json },
     ) as any).data;
     console.info(`Synced new prices`, newPrices);
     setSyncMsg?.("Successfully fetched prices! Importing..");

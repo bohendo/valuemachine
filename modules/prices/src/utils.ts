@@ -12,6 +12,9 @@ import {
   ajv,
   formatErrors,
   math,
+  msPerDay,
+  toISOString,
+  toTime,
 } from "@valuemachine/utils";
 
 import { PriceJson } from "./types";
@@ -19,6 +22,26 @@ import { PriceJson } from "./types";
 const { ETH, MATIC, WETH, WMATIC } = Assets;
 
 export const getEmptyPrices = (): PriceJson => ([]);
+
+// Get the equivalent ticker for wrapped/deposited assets
+// eg WETH -> ETH, aDAI -> DAI, amMATIC -> MATIC, stkAAVE -> AAVE
+// NOT used for wrapped/deposited assets with a different price than the underlying
+export const toTicker = (asset: Asset) => {
+  if (asset === WETH) return ETH;
+  if (asset === WMATIC) return MATIC;
+  if (asset.startsWith("a")) return asset.substring(1);
+  if (asset.startsWith("am")) return asset.substring(2);
+  if (asset.startsWith("stk")) return asset.substring(3);
+  return asset;
+};
+
+export const daySuffix = "T00:00:00Z";
+
+export const toNextDay = (d?: DateTimeString): DateTimeString =>
+  toISOString(toTime(d) + msPerDay).split("T")[0] + daySuffix;
+
+export const toDay = (d?: DateTimeString): DateTimeString =>
+  toISOString(d).split("T")[0] + daySuffix;
 
 const validatePrices = ajv.compile(PriceJson);
 export const getPricesError = (pricesJson: PriceJson): string =>

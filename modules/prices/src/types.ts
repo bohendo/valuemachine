@@ -1,4 +1,4 @@
-import { AssetChunk } from "@valuemachine/core";
+import { ValueMachine } from "@valuemachine/core";
 import { Asset, DateTimeString, DecString } from "@valuemachine/types";
 import { Static, Type } from "@sinclair/typebox";
 import pino from "pino";
@@ -42,7 +42,6 @@ export interface PriceFns {
   getJson: () => PriceJson;
   getPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => DecString | undefined;
   merge: (prices: PriceJson) => void;
-  setPrice: (entry: PriceEntry) => void;
-  syncChunks: (chunks: AssetChunk[], unit?: Asset) => Promise<PriceJson>;
-  syncPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => Promise<DecString | undefined>;
+  syncPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => Promise<PriceJson>;
+  syncPrices: (vm: ValueMachine, unit?: Asset) => Promise<PriceJson>;
 }

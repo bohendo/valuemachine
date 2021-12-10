@@ -121,16 +121,16 @@ const today = new Date().toISOString();
 const source = "Hardcoded";
 export const prices = getPriceFns({
   json: [
-    { date: today, unit: USD, asset: BCH, price: "580", source },
-    { date: today, unit: USD, asset: BTC, price: "55000", source },
-    { date: today, unit: USD, asset: DAI, price: "1.01", source },
-    { date: today, unit: USD, asset: ETH, price: "3500", source },
-    { date: today, unit: USD, asset: INR, price: "0.133", source },
-    { date: transactions.json[4].date, unit: USD, asset: UNI, price: "4", source },
-    { date: transactions.json[5].date, unit: USD, asset: UNI, price: "6", source },
+    { date: today, unit, asset: BCH, price: "580", source },
+    { date: today, unit, asset: BTC, price: "55000", source },
+    { date: today, unit, asset: DAI, price: "1.01", source },
+    { date: today, unit, asset: ETH, price: "3500", source },
+    { date: today, unit, asset: INR, price: "0.133", source },
+    { date: transactions.json[4].date, unit, asset: UNI, price: "4", source },
+    { date: transactions.json[5].date, unit, asset: UNI, price: "6", source },
   ],
 });
-prices.syncChunks(vm.json.chunks);
+prices.syncPrices(vm, unit);
 
 export const txTags = {
   ["Test/0x0000000000000000000000000000000000000000000000000000000000000000/1"]: {

@@ -7,24 +7,10 @@
     "source": "CoinGecko"
   },
   {
-    "date": "2020-02-03T08:03:43.000Z",
-    "asset": "ETH",
-    "unit": "USD",
-    "price": "188.55064179431113",
-    "source": "CoinGecko"
-  },
-  {
     "date": "2019-11-07T04:27:33.000Z",
     "asset": "SAI",
     "unit": "USD",
     "price": "1.013760190959222",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2019-11-15T04:27:05.000Z",
-    "asset": "SAI",
-    "unit": "USD",
-    "price": "1.0092998169369127",
     "source": "CoinGecko"
   },
   {
@@ -42,10 +28,10 @@
     "source": "CoinGecko"
   },
   {
-    "date": "2019-12-19T06:19:09.000Z",
+    "date": "2019-11-15T04:27:05.000Z",
     "asset": "SAI",
     "unit": "USD",
-    "price": "0.9976218950226403",
+    "price": "1.0092998169369127",
     "source": "CoinGecko"
   },
   {
@@ -53,6 +39,13 @@
     "asset": "SAI",
     "unit": "USD",
     "price": "1.0053586900838654",
+    "source": "CoinGecko"
+  },
+  {
+    "date": "2019-12-19T06:19:09.000Z",
+    "asset": "SAI",
+    "unit": "USD",
+    "price": "0.9976218950226403",
     "source": "CoinGecko"
   },
   {
@@ -77,21 +70,7 @@
     "source": "CoinGecko"
   },
   {
-    "date": "2020-02-03T07:58:27.000Z",
-    "asset": "cDAI",
-    "unit": "USD",
-    "price": "0.020119741324706023",
-    "source": "CoinGecko"
-  },
-  {
     "date": "2020-01-05T05:54:40.000Z",
-    "asset": "DAI",
-    "unit": "USD",
-    "price": "0.9701337426756221",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2020-01-05T06:00:55.000Z",
     "asset": "DAI",
     "unit": "USD",
     "price": "0.9701337426756221",
@@ -105,10 +84,31 @@
     "source": "CoinGecko"
   },
   {
+    "date": "2020-01-05T06:00:55.000Z",
+    "asset": "DAI",
+    "unit": "USD",
+    "price": "0.9701337426756221",
+    "source": "CoinGecko"
+  },
+  {
+    "date": "2020-02-03T07:58:27.000Z",
+    "asset": "cDAI",
+    "unit": "USD",
+    "price": "0.020119741324706023",
+    "source": "CoinGecko"
+  },
+  {
     "date": "2020-02-03T07:58:27.000Z",
     "asset": "DAI",
     "unit": "USD",
     "price": "0.9974633291392077",
+    "source": "CoinGecko"
+  },
+  {
+    "date": "2020-02-03T08:03:43.000Z",
+    "asset": "ETH",
+    "unit": "USD",
+    "price": "188.55064179431113",
     "source": "CoinGecko"
   },
   {
