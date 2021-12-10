@@ -75,8 +75,8 @@ const transactions = getTransactions({ logger });
     case EventTypes.Trade: {
       event.outputs.forEach(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const takePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset);
-        const givePrice = prices.getNearest(chunk.disposeDate, chunk.asset);
+        const takePrice = prices.getPrice(chunk.history[0]?.date, chunk.asset);
+        const givePrice = prices.getPrice(chunk.disposeDate, chunk.asset);
         if (!takePrice || !givePrice) return;
         const change = math.mul(chunk.amount, math.sub(givePrice, takePrice));
         console.log(`${

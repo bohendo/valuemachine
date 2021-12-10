@@ -6,6 +6,7 @@ import {
   DateString,
   DecString,
   DateTimeString,
+  Logger,
 } from "@valuemachine/types";
 import {
   ajv,
@@ -48,3 +49,23 @@ export const formatUnit = (givenUnit: Asset): Asset => {
   return unit === WETH ? ETH : unit === WMATIC ? MATIC : unit;
 };
 
+export const retry = async (attempt: () => Promise<any>, log?: Logger): Promise<any> => {
+  let response;
+  try {
+    response = await attempt();
+  // Try one more time if we get a timeout
+  } catch (e) {
+    if (e.message.toLowerCase().includes("timeout") || e.message.includes("EAI_AGAIN")) {
+      log?.warn(`Request timed out, trying one more time..`);
+      await new Promise(res => setTimeout(res, 1000)); // short pause
+      response = await attempt();
+    } else if (e.message.includes("429") || e.message.toLowerCase().includes("rate limit")) {
+      log?.warn(`We're rate limited, pausing then trying one more time..`);
+      await new Promise(res => setTimeout(res, 8000)); // long pause
+      response = await attempt();
+    } else {
+      throw e;
+    }
+  }
+  return response;
+};

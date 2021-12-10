@@ -65,6 +65,9 @@ export const mul = (...lon: string[]): string =>
 export const div = (a: string, b: string): string =>
   fromRay(toRay(toRay(a)).div(toRay(b)));
 
+export const inv = (n: string): string =>
+  div("1", n);
+
 export const sub = (a: string, b: string): string =>
   fromRay(toRay(a).sub(toRay(b)));
 

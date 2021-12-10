@@ -28,6 +28,7 @@ export {
   before,
   chrono,
   daysInYear,
+  msDiff,
   msPerDay,
   msPerYear,
   toISOString,

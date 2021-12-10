@@ -17,12 +17,21 @@ describe("Prices", () => {
   const source = "Test";
   const getDate = (index: number): DateString =>
     toISOString(toTime(date) + (index * msPerDay));
-  const plusOneDay = (d: DateString) =>
-    toISOString(toTime(d) + msPerDay);
 
   beforeEach(() => {
     prices = getPriceFns({ logger: log });
     expect(prices.getJson().length).to.equal(0);
+  });
+
+  it("should return an interpolated price if no exact value is available", async () => {
+    const [unit, asset] = [USD, ETH];
+    prices.merge([
+      { date: "2020-01-01T12:00:00Z", unit, asset, price: "1000", source },
+      { date: "2020-01-04T12:00:00Z", unit, asset, price: "1500", source },
+    ]);
+    const price = prices.getPrice("2020-01-03T12:00:00Z", asset, unit);
+    expect(math.gt(price, "1000")).to.be.true;
+    expect(math.lt(price, "1500")).to.be.true;
   });
 
   it("should set & get prices", async () => {
@@ -41,22 +50,11 @@ describe("Prices", () => {
     expect(round(prices.getPrice(date, DAI, ETH))).to.equal(round(ethPerDai));
     expect(round(prices.getPrice(date, MKR, ETH))).to.equal(round(ethPerMkr));
     expect(round(prices.getPrice(date, cDAI, DAI))).to.equal(round(daiPerCDai));
-    /* expect(
+    expect(
       round(prices.getPrice(date, cDAI, USD))
     ).to.equal(
       round(math.mul(usdPerEth, ethPerDai, daiPerCDai))
-    ); */
-  });
-
-  it("should get nearest prices", async () => {
-    const [unit, asset] = [USD, ETH];
-    const usdPerEth = "1234";
-    prices.merge([
-      { date, unit, asset, price: usdPerEth, source },
-      { date: plusOneDay(date), unit, asset, price: math.add(usdPerEth, "1"), source },
-      { date: plusOneDay(plusOneDay(date)), unit, asset, price: math.add(usdPerEth, "2"), source },
-    ]);
-    expect(round(prices.getNearest(date, ETH, USD))).to.equal(round(usdPerEth));
+    );
   });
 
   // This price graph is adversarial to ensure it's a worst-case that requires backtracking
@@ -127,11 +125,6 @@ describe("Prices", () => {
       math.div(math.sub(amts[0], amts[1]), amts[2])
     );
     expect(prices.getPrice(getDate(3), UNI, ETH)).to.equal(math.div(amts[3], amts[2]));
-  });
-
-  // Tests that require network calls might be fragile, skip them for now
-  it.skip("should fetch a price of assets not in the Assets enum", async () => {
-    expect(await prices.syncPrice(toISOString(), "idleUSDTYield", USD)).to.be.ok;
   });
 
   // Tests that require network calls might be fragile, skip them for now

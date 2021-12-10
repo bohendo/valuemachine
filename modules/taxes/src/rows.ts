@@ -65,12 +65,12 @@ export const getTaxRows = async ({
       if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); continue; }
       rows.push(...evt.outputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const price = prices.getNearest(date, chunk.asset, unit) || "0";
+        const price = prices.getPrice(date, chunk.asset, unit) || "0";
         if (chunk.asset !== unit && price !== "0") {
           const amount = chunk.amount;
           const value = math.mul(amount, price);
           const receiveDate = getDate(chunk.history[0].date);
-          const receivePrice = prices.getNearest(receiveDate, chunk.asset, unit) || "0";
+          const receivePrice = prices.getPrice(receiveDate, chunk.asset, unit) || "0";
           const capitalChange = math.mul(amount, math.sub(price, receivePrice));
           return {
             date: date,
@@ -95,7 +95,7 @@ export const getTaxRows = async ({
       if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); continue; }
       rows.push(...evt.inputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const price = prices.getNearest(date, chunk.asset, unit) || "0";
+        const price = prices.getPrice(date, chunk.asset, unit) || "0";
         const income = math.mul(chunk.amount, price);
         return {
           date: date,
@@ -117,12 +117,12 @@ export const getTaxRows = async ({
       if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); continue; }
       rows.push(...evt.outputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const price = prices.getNearest(date, chunk.asset, unit) || "0";
+        const price = prices.getPrice(date, chunk.asset, unit) || "0";
         const value = math.mul(chunk.amount, price);
         const receiveDate = chunk.history[0]?.date.split("T")[0];
         let receivePrice, capitalChange;
         if (chunk.asset !== unit && price !== "0") {
-          receivePrice = prices.getNearest(receiveDate, chunk.asset, unit);
+          receivePrice = prices.getPrice(receiveDate, chunk.asset, unit);
           capitalChange = math.mul(chunk.amount, math.sub(price, receivePrice || "0"));
         } else {
           receivePrice = price;
