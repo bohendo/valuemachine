@@ -31,7 +31,7 @@ export const getNearbyPrices = (prices: PriceJson, date, asset, unit): PriceJson
     if (pair.length === 1) return pair; // stop updating pair if we've found an exact match
     if (point.date === date) return [point];
     if (point.date < date && (!pair[0] || point.date > pair[0].date)) return [point, pair[1]];
-    if (point.date > date && (!pair[1] || point.date > pair[1].date)) return [pair[0], point];
+    if (point.date > date && (!pair[1] || point.date < pair[1].date)) return [pair[0], point];
     return pair;
   }, [] as PriceJson);
 
