@@ -23,6 +23,13 @@ import {
 
 // curl https://api.coingecko.com/api/v3/coins/list
 // | jq 'map({ key: .symbol, value: .id }) | from_entries' > ./coingecko.json
+// Then manually fix:
+// UNI: universe-token -> uniswap
+// GTC: global-trust-coin -> gitcoin
+// GEN: evolution -> daostack
+// BAT: bat-finance -> basic-attention-token
+// RAI: rai-token -> rai
+// ADT: rm bc it's not supported anymore seems like
 import * as coingecko from "./coingecko-index.json";
 
 const source = PriceSources.CoinGecko;
