@@ -15,9 +15,11 @@ import {
 const log = getLogger(env.logLevel || "warn", "Prices");
 
 const prices = getPriceFns({
-  save: val => store.save("Prices" as any, val),
+  save: val => store.save("Prices", val),
+  json: store.load("Prices"),
   logger: log,
 });
+log.info(`Good morning prices router, we have ${prices.getJson().length} existing prices`);
 
 export const pricesRouter = express.Router();
 
@@ -26,7 +28,9 @@ pricesRouter.post("/:unit", async (req, res) => {
   const { unit } = req.params;
   const { vmJson } = req.body;
   const vm = getValueMachine({ json: vmJson });
-  log.info(`Getting ${unit} prices for ${vm?.json?.chunks?.length} chunks`);
+  log.info(`Getting ${unit} prices for ${vm?.json?.chunks?.length} chunks (${
+    prices.getJson().length
+  } existing entries)`);
   try {
     const pricesJson = await prices.syncPrices(vm, unit);
     logAndSend(pricesJson);
