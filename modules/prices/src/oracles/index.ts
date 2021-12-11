@@ -1,2 +1,2 @@
-export { fetchCoinGeckoPrice } from "./coingecko";
+export { getCoinGeckoEntries } from "./coingecko";
 export { fetchUniswapPrice } from "./uniswap";

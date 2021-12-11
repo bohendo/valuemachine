@@ -23,7 +23,7 @@ import {
   toTime,
 } from "@valuemachine/utils";
 
-import { fetchCoinGeckoPrice } from "./oracles";
+import { getCoinGeckoEntries } from "./oracles";
 import { findPath } from "./dijkstra";
 import {
   PriceEntry,
@@ -36,7 +36,6 @@ import {
   getEmptyPrices,
   getPricesError,
   toDay,
-  toNextDay,
   toTicker,
 } from "./utils";
 
@@ -211,6 +210,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     let [asset, unit] = [toTicker(givenAsset), toTicker(givenUnit || defaultUnit)];
     if (!asset || !unit) return []; // eg if asset is unsupported or has no value
     if (asset === unit) return []; // Exchange rate is 1:1, nothing to sync
+    log.debug(`Syncing ${unit} price of ${asset} on ${date}`);
     const isFiat = a => Object.keys(FiatCurrencies).includes(a);
     if (isFiat(asset) && isFiat(unit)) {
       log.warn(`NOT_IMPLEMENTED: Syncing fiat:fiat exchange rates`);
@@ -218,47 +218,12 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     } else if (isFiat(asset)) {
       [asset, unit] = [unit, asset]; // If asset is fiat, then swap asset & unit
     }
-    const entries = [] as PriceJson;
-
     // If we already have the data we need to interpolate a price..
     // Return that price data.. but how? For now return nothing
-    let price = getExact(date, asset, unit);
-    if (price) return [];
-
+    const price = getExact(date, asset, unit);
+    if (price) return [/*TODO: return entries needed to calc the path from asset to unit*/];
     log.info(`An exact ${unit} price for ${asset} is not available on ${date}, fetching..`);
-
-    let day = toDay(date);
-    // Try to fetch from uniswap oracle first once issue #4 is resolved
-    price = await fetchCoinGeckoPrice(day, asset, unit, log);
-    if (price) {
-      entries.push({
-        date: day,
-        unit,
-        asset,
-        price,
-        source: "CoinGecko",
-      });
-
-      // If date is in the middle of a day, fetch the price on midnight of the next day too
-      if (date !== day) {
-        day = toNextDay(date);
-        if (day <= toDay()) { // Don't fetch if the next day is in the future
-          price = await fetchCoinGeckoPrice(day, asset, unit, log);
-          if (price) {
-            entries.push({
-              date: day,
-              unit,
-              asset,
-              price,
-              source: "CoinGecko",
-            });
-          }
-        }
-      }
-    }
-
-    merge(entries);
-    return entries;
+    return getCoinGeckoEntries(json, date, asset, unit, setPrice, log);
   };
 
   const syncPrices = async (vm: ValueMachine, givenUnit?: Asset): Promise<PriceJson> => {

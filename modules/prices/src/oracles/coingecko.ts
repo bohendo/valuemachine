@@ -9,16 +9,33 @@ import {
 import axios from "axios";
 
 import {
-  toDay,
-  toTicker,
+  PriceJson,
+  PriceEntry,
+  PriceSources,
+} from "../types";
+import {
   retry,
+  toDay,
+  toNextDay,
+  toTicker,
 } from "../utils";
 
 // curl https://api.coingecko.com/api/v3/coins/list
 // | jq 'map({ key: .symbol, value: .id }) | from_entries' > ./coingecko.json
 import * as coingecko from "./coingecko-index.json";
 
-export const fetchCoinGeckoPrice = async (
+// Usually, the asset or unit that sorts first is treated as the unit
+const getEnclosingPair = (prices: PriceJson, date, asset, unit): PriceJson =>
+  prices.filter(entry =>
+    (entry.asset === asset && entry.unit === unit) ||
+    (entry.unit === asset && entry.asset === unit)
+  ).reduce((pair, point) => {
+    if (point.date < date && (!pair[0] || point.date > pair[0].date)) return [point, pair[1]];
+    if (point.date > date && (!pair[1] || point.date > pair[1].date)) return [pair[0], point];
+    return pair;
+  }, [] as PriceJson);
+
+const fetchCoinGeckoPrice = async (
   givenDate: DateTimeString,
   givenAsset: Asset,
   givenUnit: Asset,
@@ -48,4 +65,55 @@ export const fetchCoinGeckoPrice = async (
     log?.warn(`Could not fetch ${asset} price from CoinGecko on ${day}`);
   }
   return price;
+};
+
+export const getCoinGeckoEntries = async (
+  prices: PriceJson,
+  date: DateTimeString,
+  asset: Asset,
+  unit: Asset,
+  setPrice: (entry: PriceEntry) => void,
+  log?: Logger,
+): Promise<PriceJson> => {
+  // TODO: move this day before & after logic into the coingecko fetcher
+  // Then we should just give the fetcher the target date & it will return the 1 or 2
+  // entries we need (and it shouldn't re-fetch them if we have them already)
+  // This might mean that we need to give the list of price entries to the coingecko fetcher..
+  let day = toDay(date);
+  const pair = getEnclosingPair(
+    prices.filter(entry => entry.source === PriceSources.CoinGecko),
+    date,
+    asset,
+    unit,
+  );
+  if (pair[0]?.date && pair[0].date < day) {
+    const price = await fetchCoinGeckoPrice(day, asset, unit, log);
+    if (price) {
+      const newEntry = {
+        date: day,
+        unit,
+        asset,
+        price,
+        source: PriceSources.CoinGecko,
+      };
+      setPrice(newEntry);
+      pair[0] = newEntry;
+    }
+  }
+  day = toNextDay(date);
+  if (pair[1]?.date && pair[1].date > day) {
+    const price = await fetchCoinGeckoPrice(day, asset, unit, log);
+    if (price) {
+      const newEntry = {
+        date: day,
+        unit,
+        asset,
+        price,
+        source: PriceSources.CoinGecko,
+      };
+      setPrice(newEntry);
+      pair[1] = newEntry;
+    }
+  }
+  return pair;
 };
