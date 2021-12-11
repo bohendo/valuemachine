@@ -137,22 +137,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     save?.(json);
   };
 
-  const getExact = (
-    date: DateTimeString,
-    givenAsset: Asset,
-    givenUnit?: Asset,
-  ): DecString | undefined => {
-    const [asset, unit] = [toTicker(givenAsset), toTicker(givenUnit || defaultUnit)];
-    if (asset === unit) return "1";
-    const path = findPath(json.filter(entry => entry.date === date), date, unit, asset, log);
-    if (!path.length) {
-      log.debug(`No path is available between ${unit} and ${asset} on ${date}..`);
-      return undefined;
-    }
-    log.debug(path, `Got path from ${unit} to ${asset} on ${date}..`);
-    return formatPrice(sumPath(path, date));
-  };
-
   const getPrice = (
     date: DateTimeString,
     givenAsset: Asset,
@@ -300,7 +284,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   };
 
   return {
-    getExact,
     getJson,
     getPrice,
     merge,

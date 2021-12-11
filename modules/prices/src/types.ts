@@ -38,7 +38,6 @@ export type PricesParams = {
 };
 
 export interface PriceFns {
-  getExact: (date: DateTimeString, asset: Asset, unit?: Asset) => DecString | undefined;
   getJson: () => PriceJson;
   getPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => DecString | undefined;
   merge: (prices: PriceJson) => void;
