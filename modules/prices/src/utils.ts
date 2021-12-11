@@ -41,9 +41,9 @@ export const getNearbyPrices = (prices: PriceJson, date, asset, unit): PriceJson
 export const toTicker = (asset: Asset) => {
   if (asset === WETH) return ETH;
   if (asset === WMATIC) return MATIC;
-  if (asset.startsWith("a")) return asset.substring(1);
-  if (asset.startsWith("am")) return asset.substring(2);
   if (asset.startsWith("stk")) return asset.substring(3);
+  if (asset.startsWith("am")) return asset.substring(2);
+  if (asset.startsWith("a")) return asset.substring(1);
   return asset;
 };
 
