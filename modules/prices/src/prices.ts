@@ -15,6 +15,7 @@ import {
 import {
   before,
   chrono,
+  diffBalances,
   getLogger,
   math,
   toTime,
@@ -153,16 +154,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     return formatPrice(sumPath(path, date));
   };
 
-  // If we're syncing the price at 2pm..
-  // fetch prices for midnight on that day & the next day if not present..
-  // and return the 2 price entries required for interpolation
-  //
-  // If we're syncing USD:cDAI and we already have USD:ETH, ETH:DAI, DAI:cDAI rates..
-  // then what should we return?
-  // [] because we don't need to sync anything?
-  // [USD:ETH, ETH:DAI, DAI:cDAI] bc that's what's needed to calculate an answer to the request?
-  // The later is better but idk how to return that... :(
-  //
   const syncPrice = async (
     date: DateTimeString,
     givenAsset: Asset,
@@ -174,7 +165,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     log.debug(`Syncing ${unit} price of ${asset} on ${date}`);
     const isFiat = a => Object.keys(FiatCurrencies).includes(a);
     if (isFiat(asset) && isFiat(unit)) {
-      log.warn(`NOT_IMPLEMENTED: Syncing fiat:fiat exchange rates`);
+      log.warn(`NOT_IMPLEMENTED: Syncing fiat:fiat exchange rates eg ${unit} price of ${asset}`);
       return [];
     } else if (isFiat(asset)) {
       [asset, unit] = [unit, asset]; // If asset is fiat, then swap asset & unit
@@ -183,7 +174,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     // Then return that price data.. but how? For now return nothing
     const path = findPath(json, date, asset, unit, log);
     if (path.length) return path.reduce((cum, cur) => cum.concat(cur.prices), [] as PriceJson);
-    log.info(`An exact ${unit} price for ${asset} is not available on ${date}, fetching..`);
+    log.info(`A path to the ${unit} price for ${asset} is not available on ${date}, fetching..`);
     return getCoinGeckoEntries(json, date, asset, unit, setPrice, log);
   };
 
@@ -193,15 +184,12 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     vm.json.events.filter(evt => evt.type === EventTypes.Trade).forEach(evt => {
       const trade = vm.getEvent(evt.index) as HydratedTradeEvent;
       const source = `Event#${evt.index}`;
-      const input = sumChunks(trade.inputs);
-      const output = sumChunks(trade.outputs);
+      const [input, output] = diffBalances([sumChunks(trade.inputs), sumChunks(trade.outputs)]);
       const inAssets = Object.keys(input).sort();
       const outAssets = Object.keys(output).sort();
       log.info(`Calculating prices on ${trade.date} from swap of [${inAssets}] for [${outAssets}]`);
-
       // We're only saving one of eg ETH:DAI or DAI:ETH bc we don't need both
       // The one that sorts first is biased towards being treated as the unit
-
       // Assumes that the input and output have equal value
       if (inAssets.length === 1 && outAssets.length === 1) {
         newPrices.push({
@@ -264,8 +252,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     for (const chunk of vm.json.chunks) {
       const { asset, history, disposeDate } = chunk;
       if (unit === asset) continue;
-      for (const rawDate of [history[0]?.date, disposeDate]) {
-        const date = rawDate || null;
+      for (const date of [history[0]?.date, disposeDate]) {
         if (!date) continue;
         newPrices.push(...(await syncPrice(date, asset, unit)));
       }

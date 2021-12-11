@@ -87,6 +87,7 @@ export const getCoinGeckoEntries = async (
       const price = await fetchCoinGeckoPrice(day, asset, unit, log);
       if (price) {
         const newEntry = { date: day, unit, asset, price, source };
+        log.info(`Saving new ${source} ${unit} price for ${asset} on ${day}: ${price}`);
         setPrice(newEntry);
         nearby[0] = newEntry;
       }
@@ -95,6 +96,7 @@ export const getCoinGeckoEntries = async (
         const price = await fetchCoinGeckoPrice(day, asset, unit, log);
         if (price) {
           const newEntry = { date: day, unit, asset, price, source };
+          log.info(`Saving new ${source} ${unit} price for ${asset} on ${day}: ${price}`);
           setPrice(newEntry);
           nearby[0] = newEntry;
         }
@@ -112,5 +114,7 @@ export const getCoinGeckoEntries = async (
   } else {
     log.warn(`IDK how to fetch data for ${nearby.length} nearby prices`);
   }
-  return nearby;
+  const clean = nearby.filter(e => !!e);
+  log.info(`Returning ${clean.length} nearby ${unit} prices for ${asset} on ${date}`);
+  return clean;
 };
