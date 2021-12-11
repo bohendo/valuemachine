@@ -4,8 +4,6 @@ import {
   DateTimeString,
 } from "@valuemachine/types";
 import {
-  dedup,
-  math,
   msDiff,
 } from "@valuemachine/utils";
 
@@ -23,26 +21,24 @@ const isInterpolable = (prices: PriceJson, date, asset, unit): boolean => {
 
 // Given an asset, get a list of other assets that we already have exchange rates for
 const getNeighbors = (prices: PriceJson, date: DateTimeString, asset: Asset): Asset[] =>
-  dedup(prices.filter(entry =>
+  prices.filter(entry =>
     entry.asset === asset || entry.unit === asset
-  ).map(entry => {
+  ).reduce((neighbors, entry) => {
     const candidate = entry.asset === asset ? entry.unit : entry.asset;
+    if (neighbors.includes(candidate)) return neighbors;
     if (entry.date === date) {
-      return candidate;
+      return [...neighbors, candidate];
     } else {
       if (isInterpolable(prices, date, asset, candidate)) {
-        return candidate;
+        return [...neighbors, candidate];
       } else {
-        return null;
+        return neighbors;
       }
     }
-  }).filter(a => !!a));
+  }, [] as Asset[]);
 
 const getDistance = (path: Path): number => path.reduce((distance, step) => {
-  if (step.prices.length === 2) return parseInt(math.round(math.add(
-    distance.toString(),
-    msDiff(step.prices[0].date, step.prices[1].date).toString(),
-  ), 0));
+  if (step.prices.length === 2) return distance + msDiff(step.prices[0].date, step.prices[1].date);
   else return distance;
 }, 0);
 
@@ -53,16 +49,12 @@ export const findPath = (
   end: Asset,
   log?: Logger,
 ): Path => {
+  const startTime = Date.now();
+  log.debug(`Searching for path from ${start} to ${end} on ${date}`);
 
   const unvisited = new Set(
-    prices
-      .reduce((out, entry) => ([...out, entry.asset, entry.unit]), [] as Asset[])
-      .filter(asset =>
-        isInterpolable(prices, date, asset, start) || isInterpolable(prices, date, asset, end) 
-      )
+    prices.reduce((out, entry) => ([...out, entry.asset, entry.unit]), [] as Asset[])
   );
-
-  log?.debug(`Unvisited assets: ${Array.from(unvisited).join(", ")}`);
 
   if (!unvisited.has(start) || !unvisited.has(end)) {
     log?.debug(`${end} to ${start} exchange rate is unavailable on ${date}`);
@@ -138,7 +130,9 @@ export const findPath = (
     }
   }
 
-  log?.debug(`Found a path: ${pathToCurrent.map(step => step.asset).join(" -> ")}`);
   log?.trace(distances, `Final distances from ${start} to ${end}`);
+  log?.debug(`Found a path on ${date} in ${Date.now() - startTime}ms: ${
+    pathToCurrent.map(step => step.asset).join(" -> ")
+  }`);
   return pathToCurrent;
 };
