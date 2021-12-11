@@ -92,16 +92,15 @@ describe("Prices", () => {
       ...(repeat(400, () => getRandomEntry("2020-09-01"))),
       ...(repeat(400, () => getRandomEntry("2021-01-04"))),
     ]);
-    log.info(`Benchmarking pathfinder against ${prices.getJson().length} price entries`);
-    const n = 100;
+    const n = 20;
     const start = Date.now();
-    repeat(100, () => {
+    repeat(n, () => {
       expect(prices.getPrice(d2, "BB", "AA")).to.equal("2.0");
       expect(prices.getPrice(d2, "CC", "AA")).to.equal("4.0");
       expect(prices.getPrice(d2, "DD", "AA")).to.equal("8.0");
     });
     const rate = Math.round((n * 30000) / (Date.now() - start))/10;
-    log.info(`Got ${n*3} prices at a rate of ${rate} paths found per second`);
+    log.info(`Found ${n*3} prices at a rate of ${rate} paths found per second`);
     expect(rate).to.be.gt(100);
   });
 

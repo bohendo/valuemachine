@@ -48,6 +48,30 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   const error = getPricesError(json);
   if (error) throw new Error(error);
 
+  // Maintains chronological ordering
+  const insertEntry = (prices: PriceJson, entry: PriceEntry) => {
+    let done = false;
+    return prices.reduce((newPrices, oldEntry) => {
+      if (done) return [...newPrices, oldEntry];
+      if (oldEntry.date >= entry.date) {
+        if (
+          oldEntry.date !== entry.date ||
+          oldEntry.asset !== entry.asset ||
+          oldEntry.unit !== entry.unit ||
+          oldEntry.source !== entry.source
+        ) {
+          done = true; // Not a duplicate, add this entry & be done
+          return [...newPrices, entry, oldEntry];
+        } else {
+          done = true; // Duplicate, not adding this entry at all
+          return [...newPrices, oldEntry];
+        }
+      } else {
+        return [...newPrices, oldEntry];
+      }
+    }, []);
+  };
+
   const setPrice = (
     entry: PriceEntry,
   ): void => {
@@ -247,20 +271,34 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       }
     });
 
+    const oldLen = json.length;
     merge(newPrices);
+    log.info(`Merged ${newPrices.length} calculated prices into ${
+      oldLen
+    } existing prices yielding: ${json.length} total prices`);
+
+    // Sync current prices for presently held assets
+    for (const asset of Object.keys(vm.getNetWorth())) {
+      const syncedPrices = await syncPrice(toDay(), asset, unit);
+      syncedPrices.forEach(entry => insertEntry(newPrices, entry));
+    }
 
     for (const chunk of vm.json.chunks) {
       const { asset, history, disposeDate } = chunk;
       if (unit === asset) continue;
       for (const date of [history[0]?.date, disposeDate]) {
         if (!date) continue;
-        newPrices.push(...(await syncPrice(date, asset, unit)));
+        // Don't resync any prices that we've already synced
+        if (!newPrices.some(entry =>
+          entry.date === date && (
+            (entry.asset === asset && entry.unit === unit) ||
+            (entry.asset === unit && entry.unit === asset)
+          )
+        )) {
+          const syncedPrices = await syncPrice(date, asset, unit);
+          syncedPrices.forEach(entry => insertEntry(newPrices, entry));
+        }
       }
-    }
-
-    // Sync current prices for presently held assets
-    for (const asset of Object.keys(vm.getNetWorth())) {
-      newPrices.push(...(await syncPrice(toDay(), asset, unit)));
     }
 
     return newPrices;
