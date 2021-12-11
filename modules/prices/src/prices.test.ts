@@ -5,7 +5,7 @@ import {
   getTestTx,
   TransferCategories,
 } from "@valuemachine/transactions";
-import { getLogger } from "@valuemachine/utils";
+import { getLogger, msPerDay, toTime, toISOString } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { getPriceFns } from "./prices";
@@ -65,6 +65,44 @@ describe("Prices", () => {
     ]);
     const price = prices.getPrice(d2, "D", "A");
     expect(price).to.equal("8.0");
+  });
+
+  it("should pathfind reasonably quickly", async () => {
+    const repeat = (n: number, fn: any): any[] => {
+      return "0".repeat(n).split("").map((v, i) => fn(i));
+    };
+    const getRandomEntry = (startDate) => {
+      const seed = Math.random();
+      const last = parseInt(seed.toString().substring(5, 6));
+      return {
+        date: toISOString(Math.round(toTime(startDate) + seed * 90 * msPerDay)),
+        unit: last <= 3 ? "AA" : last <= 6 ? "BB" : "CC",
+        asset: last <= 3 ? "BB" : last <= 6 ? "CC" : "DD",
+        price: (last + 1).toString(),
+        source: "RNG",
+      };
+    };
+    const [d1, d2, d3] = ["2021-01-01", "2021-01-02", "2021-01-03"].map(toDay);
+    prices.merge([
+      { date: d1, unit: "AA", asset: "BB", price: "1", source },
+      { date: d3, unit: "AA", asset: "BB", price: "3", source },
+      { date: d1, unit: "BB", asset: "CC", price: "1", source },
+      { date: d3, unit: "BB", asset: "CC", price: "3", source },
+      { date: d2, unit: "CC", asset: "DD", price: "2", source },
+      ...(repeat(400, () => getRandomEntry("2020-09-01"))),
+      ...(repeat(400, () => getRandomEntry("2021-01-04"))),
+    ]);
+    log.info(`Benchmarking pathfinder against ${prices.getJson().length} price entries`);
+    const n = 100;
+    const start = Date.now();
+    repeat(100, () => {
+      expect(prices.getPrice(d2, "BB", "AA")).to.equal("2.0");
+      expect(prices.getPrice(d2, "CC", "AA")).to.equal("4.0");
+      expect(prices.getPrice(d2, "DD", "AA")).to.equal("8.0");
+    });
+    const rate = Math.round((n * 30000) / (Date.now() - start))/10;
+    log.info(`Got ${n*3} prices at a rate of ${rate} paths found per second`);
+    expect(rate).to.be.gt(100);
   });
 
   it.skip("should calculate prices from ValueMachine data", async () => {
