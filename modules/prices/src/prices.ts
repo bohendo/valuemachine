@@ -218,8 +218,8 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     } else if (isFiat(asset)) {
       [asset, unit] = [unit, asset]; // If asset is fiat, then swap asset & unit
     }
-    // If we already have the data we need to interpolate a price..
-    // Return that price data.. but how? For now return nothing
+    // If we already have the data we need to calculate a price w/out interpolation..
+    // Then return that price data.. but how? For now return nothing
     const price = getExact(date, asset, unit);
     if (price) return [/*TODO: return entries needed to calc the path from asset to unit*/];
     log.info(`An exact ${unit} price for ${asset} is not available on ${date}, fetching..`);
