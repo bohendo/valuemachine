@@ -23,6 +23,18 @@ const { ETH, MATIC, WETH, WMATIC } = Assets;
 
 export const getEmptyPrices = (): PriceJson => ([]);
 
+export const getNearbyPrices = (prices: PriceJson, date, asset, unit): PriceJson =>
+  prices.filter(entry =>
+    (entry.asset === asset && entry.unit === unit) ||
+    (entry.unit === asset && entry.asset === unit)
+  ).reduce((pair, point) => {
+    if (pair.length === 1) return pair; // stop updating pair if we've found an exact match
+    if (point.date === date) return [point];
+    if (point.date < date && (!pair[0] || point.date > pair[0].date)) return [point, pair[1]];
+    if (point.date > date && (!pair[1] || point.date > pair[1].date)) return [pair[0], point];
+    return pair;
+  }, [] as PriceJson);
+
 // Get the equivalent ticker for wrapped/deposited assets
 // eg WETH -> ETH, aDAI -> DAI, amMATIC -> MATIC, stkAAVE -> AAVE
 // NOT used for wrapped/deposited assets with a different price than the underlying

@@ -45,3 +45,13 @@ export interface PriceFns {
   syncPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => Promise<PriceJson>;
   syncPrices: (vm: ValueMachine, unit?: Asset) => Promise<PriceJson>;
 }
+
+////////////////////////////////////////
+// Path
+
+export type Step = {
+  asset: Asset;
+  prices: PriceJson; // empty for first step
+};
+
+export type Path = Array<Step>;

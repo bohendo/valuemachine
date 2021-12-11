@@ -13,19 +13,17 @@ import {
   DecString,
 } from "@valuemachine/types";
 import {
-  after,
   before,
   chrono,
   getLogger,
   math,
-  msDiff,
-  msPerDay,
   toTime,
 } from "@valuemachine/utils";
 
 import { getCoinGeckoEntries } from "./oracles";
-import { findPath } from "./dijkstra";
+import { findPath } from "./pathfinder";
 import {
+  Path,
   PriceEntry,
   PriceFns,
   PriceJson,
@@ -67,6 +65,67 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     save?.(json);
   };
 
+  const interpolate = (
+    a: PriceEntry,
+    b: PriceEntry,
+    d: DateTimeString,
+    unit: Asset,
+  ): DecString => {
+    const [pre, suc] = before(a.date, b.date) ? [a, b] : [b, a];
+    const preRate = pre.unit !== unit ? pre.price : math.inv(pre.price);
+    const sucRate = suc.unit !== unit ? suc.price : math.inv(suc.price);
+    const preTime = toTime(pre.date);
+    const sucTime = toTime(suc.date);
+    // Assertion prevents divide by zero errors
+    if (preTime === sucTime) {
+      if (preTime === toTime(d)) {
+        // if all dates are equal, return the averge
+        return math.div(math.add(preRate, sucRate), "2");
+      } else {
+        throw new Error(`Times before & after are the same`);
+      }
+    }
+    const slope = math.div(
+      math.sub(sucRate, preRate),
+      math.sub(sucTime.toString(), preTime.toString()),
+    );
+    const time = toTime(d);
+    const interpolated = math.add(
+      preRate,
+      math.mul(
+        (time - toTime(pre.date)).toString(),
+        slope,
+      ),
+    );
+    log.debug(
+      `Interpolated a price of ${interpolated} on ${d} between ${
+        preRate} on ${pre.date
+      } and ${
+        sucRate} on ${suc.date
+      }`,
+    );
+    return math.round(interpolated, 8);
+  };
+
+  const sumPath = (path: Path, date): DecString => {
+    log.trace(path, "Summing path");
+    let prev;
+    return path.reduce((rate, step) => {
+      if (prev) {
+        return math.mul(
+          rate,
+          step.prices.length === 0 ? "1"
+          : step.prices.length === 1 ? (
+            step.prices[0].unit !== prev ? step.prices[0].price : math.inv(step.prices[0].price)
+          ) : step.prices.length === 2 ? interpolate(step.prices[0], step.prices[1], date, prev)
+          : "1"
+        );
+      }
+      prev = step.asset;
+      return rate;
+    }, "1");
+  };
+
   ////////////////////////////////////////
   // Exported Methods
 
@@ -84,45 +143,14 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     givenUnit?: Asset,
   ): DecString | undefined => {
     const [asset, unit] = [toTicker(givenAsset), toTicker(givenUnit || defaultUnit)];
-    if (toTicker(asset) === unit) return "1";
-    // Only entries with the exact right date should be considered
-    const rates = json.filter(entry => entry.date === date);
-    log.debug(`Found ${rates.length} price entries on ${date}`);
-    let entry;
-    // Return an exact match if we have one
-    entry = rates.find(entry => entry.unit === unit && entry.asset === asset);
-    if (entry) {
-      log.debug(`Exact match: ${entry?.price} ${entry?.unit} per ${entry?.asset}`);
-      return formatPrice(entry.price);
-    }
-    // Return the inverse if we have an entry with the asset & unit swapped
-    entry = rates.find(entry => entry.unit === asset && entry.asset === unit);
-    if (entry) {
-      log.debug(`Inverse match: ${entry?.price} ${entry?.unit} per ${entry?.asset}`);
-      return formatPrice(math.inv(entry.price));
-    }
-    log.debug(`Direct rate is not available, searching for a path from ${unit} to ${asset}...`);
-    const path = findPath(json, date, unit, asset, log);
+    if (asset === unit) return "1";
+    const path = findPath(json.filter(entry => entry.date === date), date, unit, asset, log);
     if (!path.length) {
       log.debug(`No path is available between ${unit} and ${asset} on ${date}..`);
       return undefined;
     }
-    let price = "1"; 
-    let prev;
-    path.forEach(step => {
-      if (prev) {
-        entry = rates.find(e => e.unit === prev && e.asset === step);
-        if (entry) {
-          price = mul(price, entry.price);
-        } else {
-          entry = rates.find(e => e.unit === step && e.asset === prev);
-          price = mul(price, div("1", entry.price));
-        }
-        log.debug(`Got path to price of ${step}: ${formatPrice(price)} ${unit}`);
-      }
-      prev = step;
-    });
-    return formatPrice(price);
+    log.debug(path, `Got path from ${unit} to ${asset} on ${date}..`);
+    return formatPrice(sumPath(path, date));
   };
 
   const getPrice = (
@@ -132,64 +160,13 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   ): DecString | undefined => {
     const [asset, unit] = [toTicker(givenAsset), toTicker(givenUnit || defaultUnit)];
     log.debug(`Getting ${unit} price of ${asset} on date closest to ${date}..`);
-    const price = getExact(date, asset, givenUnit);
-    if (price) return price;
-    // Get all price entries for this asset/unit pair
-    const rates = json.filter(entry => (
-      (entry.asset === asset && entry.unit === unit) || 
-      (entry.unit === asset && entry.asset === unit)
-    )).sort(chrono);
-    // Get the newest rate that's before the given date
-    const preceeding = rates.filter(entry => before(entry.date, date)).pop();
-    // Get the oldest rate that's after the given date
-    const succeeding = rates.filter(entry => after(entry.date, date))[0];
-    if (!preceeding && !succeeding) {
+    const path = findPath(json, date, asset, unit, log);
+    if (!path.length) {
+      log.debug(`No path is available between ${unit} and ${asset} on ${date}..`);
       return undefined;
-    } else if (preceeding && !succeeding) {
-      log.warn(
-        `No exchange rates are available after ${date}, returning the rate from ${preceeding.date}`
-      );
-      return preceeding.asset === asset ? preceeding.price : math.inv(preceeding.price);
-    } else if (!preceeding && succeeding) {
-      log.warn(
-        `No exchange rates are available before ${date}, returning the rate from ${succeeding.date}`
-      );
-      return succeeding.asset === asset ? succeeding.price : math.inv(succeeding.price);
-    } else if (preceeding && succeeding) {
-      if (msDiff(preceeding.date, date) > 7 * msPerDay) log.warn(
-        `Exchange rate before (${preceeding.date}) is >7 days from target date ${date}`
-      );
-      if (msDiff(succeeding.date, date) > 7 * msPerDay) log.warn(
-        `Exchange rate after (${succeeding.date}) is >7 days from target date ${date}`
-      );
-      const rateBefore = preceeding.asset === asset ? preceeding.price : math.inv(preceeding.price);
-      const rateAfter = succeeding.asset === asset ? succeeding.price : math.inv(succeeding.price);
-      const timeBefore = toTime(preceeding.date);
-      const timeAfter = toTime(succeeding.date);
-      // Assertion prevents divide by zero errors
-      if (timeBefore === timeAfter) throw new Error(`Times before & after are the same`);
-      const slope = math.div(
-        math.sub(rateAfter, rateBefore),
-        math.sub(timeAfter.toString(), timeBefore.toString()),
-      );
-      const time = toTime(date);
-      const interpolated = math.add(
-        rateBefore,
-        math.mul(
-          (time - toTime(preceeding.date)).toString(),
-          slope,
-        ),
-      );
-      log.debug(
-        `Interpolated a price of ${interpolated} on ${date} between ${
-          rateBefore} on ${preceeding.date
-        } and ${
-          rateAfter} on ${succeeding.date
-        }`,
-      );
-      return interpolated;
     }
-    return undefined;
+    log.debug(path, `Got path from ${unit} to ${asset} on ${date}..`);
+    return formatPrice(sumPath(path, date));
   };
 
   // If we're syncing the price at 2pm..
@@ -220,8 +197,8 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     }
     // If we already have the data we need to calculate a price w/out interpolation..
     // Then return that price data.. but how? For now return nothing
-    const price = getExact(date, asset, unit);
-    if (price) return [/*TODO: return entries needed to calc the path from asset to unit*/];
+    const path = findPath(json, date, asset, unit, log);
+    if (path.length) return path.reduce((cum, cur) => cum.concat(cur.prices), [] as PriceJson);
     log.info(`An exact ${unit} price for ${asset} is not available on ${date}, fetching..`);
     return getCoinGeckoEntries(json, date, asset, unit, setPrice, log);
   };
