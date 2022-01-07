@@ -16,7 +16,7 @@ if [[ "${cmd##*-}" == "test" ]]
 then
   set -o pipefail
   echo "Starting $unit tester"
-  exec npm run test -- $opts
+  exec npm run test -- $opts | pino-pretty --colorize --ignore "pid,hostname" --translateTime
 
 elif [[ "${cmd##*-}" == "watch" ]]
 then
@@ -57,7 +57,7 @@ then
       echo "Re-running tests..."
 
       prev_checksum="$(getChecksum)"
-      (npm run test -- $opts &)
+      (npm run test -- $opts | pino-pretty --colorize --ignore "pid,hostname" --translateTime &)
 
     # If no changes, do nothing
     else sleep 2

@@ -16,7 +16,7 @@ export const getEtherscanFetcher = ({
   apiKey: string,
   logger: Logger,
 }): EvmFetcher => {
-  const log = (logger || getLogger()).child?.({ module: "EtherscanFetcher" });
+  const log = (logger || getLogger()).child?.({ name: "EtherscanFetcher" });
 
   if (!apiKey) throw new Error(`Etherscan api key is required`);
 

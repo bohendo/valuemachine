@@ -16,7 +16,7 @@ export const getAlchemyFetcher = ({
   providerUrl: string,
   logger: Logger,
 }): EvmFetcher => {
-  const log = (logger || getLogger()).child?.({ module: "AlchemyFetcher" });
+  const log = (logger || getLogger()).child?.({ name: "AlchemyFetcher" });
 
   if (!providerUrl) throw new Error(`Alchemy provider URL is required`);
 

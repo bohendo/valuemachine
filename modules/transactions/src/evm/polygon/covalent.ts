@@ -15,7 +15,7 @@ export const getCovalentFetcher = ({
   apiKey: string,
   logger: Logger,
 }): EvmFetcher => {
-  const log = (logger || getLogger()).child?.({ module: "CovalentFetcher" });
+  const log = (logger || getLogger()).child?.({ name: "CovalentFetcher" });
 
   if (!apiKey) throw new Error(`Covalent api key is required`);
 

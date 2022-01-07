@@ -16,7 +16,7 @@ export const getPolygonscanFetcher = ({
   apiKey: string,
   logger: Logger,
 }): EvmFetcher => {
-  const log = (logger || getLogger()).child?.({ module: "PolygonscanFetcher" });
+  const log = (logger || getLogger()).child?.({ name: "PolygonscanFetcher" });
 
   if (!apiKey) throw new Error(`Polygonscan api key is required`);
 

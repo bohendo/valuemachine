@@ -25,7 +25,7 @@ export const getPolygonData = ({
   logger?: Logger,
   save?: (val: EvmDataJson) => void,
 }): EvmData => {
-  const log = (logger || getLogger()).child?.({ module: "PolygonData" });
+  const log = (logger || getLogger()).child?.({ name: "PolygonData" });
   const json = polygonDataJson || getEmptyEvmData();
 
   const error = getEvmDataError(json);
