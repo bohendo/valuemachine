@@ -17,7 +17,7 @@ const coreParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ name: `${appName}:${evmTx.hash.substring(0, 6)}` });
 
   // If this eth tx is self->airswap then replace income/expense w swap in/out
   if (addressBook.isSelf(evmTx.from) && addresses.some(e => e.address === evmTx.to)) {

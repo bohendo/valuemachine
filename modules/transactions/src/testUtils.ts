@@ -14,7 +14,7 @@ export const env = {
   polygonscanKey: process.env.POLYGONSCAN_KEY || "",
 };
 
-export const testLogger = getLogger(env.logLevel || "warn").child({ module: "TestUtils" });
+export const testLogger = getLogger(env.logLevel || "warn").child({ name: "TestUtils" });
 
 testLogger.info(env, "starting tx tests in env");
 

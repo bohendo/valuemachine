@@ -7,7 +7,7 @@ import {
 
 import { env } from "./env";
 
-export const log = getLogger(env.logLevel).child({ module: "Utils" });
+export const log = getLogger(env.logLevel).child({ name: "Utils" });
 
 export const STATUS_SUCCESS = 200;
 export const STATUS_NOT_FOUND = 404;
@@ -18,11 +18,11 @@ export const store = getFileStore("/data", fs);
 
 export const getLogAndSend = (res) => (message, code = STATUS_SUCCESS): void => {
   if (code === STATUS_SUCCESS) {
-    log.child({ module: "Send" }).info(`Success: ${
+    log.child({ name: "Send" }).info(`Success: ${
       typeof message === "string" ? message : JSON.stringify(message, null, 2)
     }`);
   } else {
-    log.child({ module: "Send" }).warn(`Error ${code}: ${message}`);
+    log.child({ name: "Send" }).warn(`Error ${code}: ${message}`);
   }
   res.status(code).send(message);
   return;

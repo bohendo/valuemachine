@@ -15,7 +15,7 @@ const fillForm = async (
   libs: { fs: any; execFile: any; },
   logger?: Logger,
 ): Promise<string> => {
-  const log = (logger || getLogger()).child({ module: "FillForm" });
+  const log = (logger || getLogger()).child({ name: "FillForm" });
   const mapping = MappingArchive[taxYear][form];
   const mappedData = {};
   for (const [key, value] of Object.entries(data)) {
@@ -61,7 +61,7 @@ export const fillReturn = async (
   libs: { fs: any; execFile: any; },
   logger?: Logger,
 ): Promise<string> => {
-  const log = (logger || getLogger()).child({ module: "FillReturn" });
+  const log = (logger || getLogger()).child({ name: "FillReturn" });
   const pages = [] as string[];
   for (const form of Object.keys(forms)) {
     const fields = forms[form];
@@ -104,7 +104,7 @@ export const fetchUsaForm = async (
   fs: any,
   logger?: Logger,
 ): Promise<boolean> => {
-  const log = (logger || getLogger()).child({ module: "FetchUsaForm" });
+  const log = (logger || getLogger()).child({ name: "FetchUsaForm" });
   const [guard, year] = splitTaxYear(taxYear);
   if (guard !== "USA") throw new Error(`Can only fetch USA forms, not ${guard}`);
   const url = year !== new Date().getFullYear().toString()

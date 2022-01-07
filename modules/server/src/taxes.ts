@@ -11,7 +11,7 @@ import {
   STATUS_YOUR_BAD,
 } from "./utils";
 
-const log = logger.child({ module: "Taxes" });
+const log = logger.child({ name: "Taxes" });
 
 export const taxesRouter = express.Router();
 

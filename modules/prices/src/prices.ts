@@ -49,7 +49,7 @@ const { div, mul } = math;
 export const getPriceFns = (params?: PricesParams): PriceFns => {
   const { logger, json: pricesJson, save, unit: defaultUnit } = params || {};
   const json = pricesJson || getEmptyPrices();
-  const log = (logger || getLogger()).child({ module: "Prices" });
+  const log = (logger || getLogger()).child({ name: "Prices" });
 
   const error = getPricesError(json);
   if (error) throw new Error(error);

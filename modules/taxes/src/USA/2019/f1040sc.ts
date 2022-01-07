@@ -13,7 +13,7 @@ import {
 const { add, gt, lt, round, sub } = math;
 
 export const f1040sc = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms => {
-  const log = logger.child({ module: "f1040sc" });
+  const log = logger.child({ name: "f1040sc" });
   const { f1040, f1040s1, f1040sc, f1040sse } = forms;
 
   const pad = (str: string, n = 9): string => str.padStart(n, " ");

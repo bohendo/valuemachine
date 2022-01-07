@@ -5,7 +5,7 @@ import { Apps, Methods } from "../../enums";
 import { getParseTx, testLogger } from "../../testUtils";
 
 const appName = Apps.ENS;
-const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
+const log = testLogger.child({ name: `Test${appName}` }, { level: "warn" });
 const parseTx = getParseTx({ logger: log });
 
 describe(appName, () => {

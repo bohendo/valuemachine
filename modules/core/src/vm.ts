@@ -40,7 +40,7 @@ const {
 export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
   const { logger, json: vmJson } = params || {};
 
-  const log = (logger || getLogger()).child({ module: "ValueMachine" });
+  const log = (logger || getLogger()).child({ name: "ValueMachine" });
   const json = vmJson || getEmptyValueMachine();
 
   const error = getValueMachineError(json);

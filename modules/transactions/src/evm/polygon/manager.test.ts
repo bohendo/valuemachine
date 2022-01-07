@@ -13,7 +13,7 @@ import { EvmData } from "../types";
 
 import { getPolygonData } from "./manager";
 
-const logger = testLogger.child({ module: "TestPolygonData" }, { level: "info" });
+const logger = testLogger.child({ name: "TestPolygonData" }, { level: "info" });
 
 describe.skip("Polygon Data Manager", () => {
   let polygonData: EvmData;

@@ -21,7 +21,7 @@ import {
 
 export const getAddressBook = (params?: AddressBookParams): AddressBook => {
   const { json: addressBookJson, hardcoded, logger } = params || {};
-  const log = (logger || getLogger()).child({ module: "AddressBook" });
+  const log = (logger || getLogger()).child({ name: "AddressBook" });
   const input = addressBookJson || getEmptyAddressBook();
   const json = input.length ? (input as AddressEntry[]).reduce((out, entry) => {
     out[entry.address] = entry;

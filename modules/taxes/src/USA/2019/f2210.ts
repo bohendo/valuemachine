@@ -11,7 +11,7 @@ import {
 } from "./utils";
 
 export const f2210 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms => {
-  const log = logger.child({ module: "f2210" });
+  const log = logger.child({ name: "f2210" });
   const { f1040, f1040s2, f1040s3, f1040sse, f2210 } = forms;
 
   f2210.Name = `${f1040.FirstNameMI} ${f1040.LastName}`;

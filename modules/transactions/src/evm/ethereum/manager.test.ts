@@ -4,7 +4,7 @@ import { env, getTestAddressBook, testLogger } from "../testUtils";
 
 import { getEthereumData } from "./manager";
 
-const logger = testLogger.child({ module: "TestEthereumData" }, { level: "trace" });
+const logger = testLogger.child({ name: "TestEthereumData" }, { level: "trace" });
 
 // Skip tests that require network calls unless we're actively debugging
 describe.skip("Ethereum Data Manager", () => {

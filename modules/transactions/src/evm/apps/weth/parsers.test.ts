@@ -5,7 +5,7 @@ import { Apps } from "../../enums";
 import { getParseTx, testLogger } from "../../testUtils";
 
 const { Weth, WMatic } = Apps;
-const logger = testLogger.child({ module: `Test${Weth}` }, { level: "warn" });
+const logger = testLogger.child({ name: `Test${Weth}` }, { level: "warn" });
 const parseTx = getParseTx({ logger });
 
 describe(Weth, () => {

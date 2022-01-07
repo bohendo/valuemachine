@@ -26,7 +26,7 @@ const coreParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ name: `${appName}:${evmTx.hash.substring(0, 6)}` });
 
   const handleDeposit = (from: string, to: string, instance: string, index?: number) => {
     tx.transfers.filter(t => t.from === from && t.to === to).forEach(deposit => {

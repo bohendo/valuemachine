@@ -8,7 +8,7 @@ import { pricesRouter } from "./prices";
 import { taxesRouter } from "./taxes";
 import { getLogAndSend, STATUS_NOT_FOUND } from "./utils";
 
-const log = getLogger(env.logLevel).child({ module: "Entry" });
+const log = getLogger(env.logLevel).child({ name: "Entry" });
 
 log.info(`Starting server in env: ${JSON.stringify(env, null, 2)}`);
 

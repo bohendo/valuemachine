@@ -15,7 +15,7 @@ export const getPollerHandler = (
   getData: (addressBook: AddressBook) => TransactionsJson,
   dataType: Guard,
 ) => {
-  const log = getLogger("debug" || env.logLevel).child({ module: `${dataType}Poller` });
+  const log = getLogger("debug" || env.logLevel).child({ name: `${dataType}Poller` });
   let syncing = [];
   return async (
     addressBook: AddressBook,

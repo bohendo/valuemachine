@@ -4,7 +4,7 @@ import { env, testLogger } from "../testUtils";
 
 import { getPolygonscanFetcher } from "./polygonscan";
 
-const logger = testLogger.child({ module: "Polygonscan Fetcher" }, { level: "trace" });
+const logger = testLogger.child({ name: "Polygonscan Fetcher" }, { level: "trace" });
 
 // Skip tests that require network calls unless we're actively debugging
 describe.skip("Polygonscan Fetcher", () => {

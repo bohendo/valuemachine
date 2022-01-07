@@ -36,7 +36,7 @@ export const coreParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: `${appName}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ name: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { isSelf } = addressBook;
   const account = `${evmMeta.name}/${appName}`;
 

@@ -19,7 +19,7 @@ export const parseEvmTx = (
 ): Transaction => {
   if (!evmTx?.hash) throw new Error(`Invalid evm tx: ${JSON.stringify(evmTx)}`);
   const { isSelf } = addressBook;
-  const log = logger.child({ module: `EVM${evmTx.hash?.substring(0, 8)}` });
+  const log = logger.child({ name: `EVM${evmTx.hash?.substring(0, 8)}` });
   // log.debug(evmTx, `Parsing evm tx`);
 
   let tx = {

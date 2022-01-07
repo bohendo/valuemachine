@@ -30,7 +30,7 @@ const coreParser = (
   logger: Logger,
 ): Transaction => {
   const { getDecimals } = addressBook;
-  const log = logger.child({ module: `${Apps.Weth}:${evmTx.hash.substring(0, 6)}` });
+  const log = logger.child({ name: `${Apps.Weth}:${evmTx.hash.substring(0, 6)}` });
   const isProxy = address => gatewayAddress === address;
   const isSelf = address => addressBook.isSelf(address) || isProxy(address);
 

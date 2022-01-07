@@ -4,7 +4,7 @@ import { env, testLogger } from "../testUtils";
 
 import { getEtherscanFetcher } from "./etherscan";
 
-const logger = testLogger.child({ module: "Etherscan Fetcher" }, { level: "debug" });
+const logger = testLogger.child({ name: "Etherscan Fetcher" }, { level: "debug" });
 
 // Skip tests that require network calls unless we're actively debugging
 describe.skip("Etherscan Fetcher", () => {

@@ -29,7 +29,7 @@ export const f2555 = (
   rows: TaxRows,
   logger: Logger,
 ): Forms => {
-  const log = logger.child({ module: "f2555" });
+  const log = logger.child({ name: "f2555" });
   const { f2555, f1040s1 } = forms;
   const personal = input.personal || {};
   const travel = input.travel || [];
