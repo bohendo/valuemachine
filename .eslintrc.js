@@ -1,4 +1,5 @@
 module.exports = {
+  root: true,
   env: {
     browser: true,
     node: true,
@@ -11,7 +12,6 @@ module.exports = {
     "plugin:import/typescript",
     "plugin:import/warnings",
     "plugin:react/recommended",
-    "react-app",
   ],
   overrides: [
     {
