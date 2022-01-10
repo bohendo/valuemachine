@@ -174,7 +174,8 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     }
     // Prices at each chunk's receive & dispose dates are required
     for (const chunk of vm.json.chunks) {
-      const { asset, history, disposeDate } = chunk;
+      const { amount, asset, history, disposeDate } = chunk;
+      if (!amount) continue; // Prices can't be reliably retrieved for NFTs, skip them
       if (unit === asset) continue; // Prices not required if asset === unit bc it's trivially 1
       const receive = history[0]?.date;
       if (!receive) {
@@ -337,7 +338,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   ): Promise<PriceJson> => {
     const unit = toTicker(givenUnit || defaultUnit);
     const newPrices = [] as PriceJson;
-    // To fetch from coingecko:
+    // To fetch from coingecko or covalent:
     // convert missing time prices into the day prices required to interpolate accurately
     const toFetch = {} as MissingPrices;
     for (const asset of Object.keys(missingPrices)) {
@@ -351,7 +352,9 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       toFetch[asset] = dedup(toFetch[asset]).sort();
       log.debug(`Fetching ${toFetch[asset].length} ${unit} prices of ${asset}`);
       for (const day of toFetch[asset]) {
-        newPrices.push(...(await getCoinGeckoEntries(json, day, asset, unit, setPrice, log)));
+        const newEntries = await getCoinGeckoEntries(json, day, asset, unit, setPrice, log);
+        merge(newEntries);
+        newPrices.push(...newEntries);
       }
     }
     log.info(`Fetched ${newPrices.length} new ${unit} prices`);

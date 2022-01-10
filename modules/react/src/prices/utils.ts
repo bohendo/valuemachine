@@ -28,6 +28,8 @@ export const syncPrices = async ({
     setSyncMsg?.(`Calculating price data for ${vm.json.chunks.length} chunks..`);
     await new Promise(res => setTimeout(res, 1)); // yield to update sync msg
     const newPrices = await prices.calcPrices(vm);
+    prices.merge(newPrices);
+    setPricesJson?.(prices.getJson());
     const missing = prices.getMissing(vm, unit);
     for (const asset of Object.keys(missing)) {
       setSyncMsg?.(`Fetching ${missing[asset].length} missing ${unit} prices for ${asset}...`);
@@ -35,11 +37,10 @@ export const syncPrices = async ({
         `/api/prices/${unit}/${asset}`,
         { dates: missing[asset] },
       ) as any).data);
+      prices.merge(newPrices);
+      setPricesJson?.(prices.getJson());
     }
     console.info(`Synced new prices`, newPrices);
-    setSyncMsg?.("Successfully fetched prices! Importing..");
-    prices.merge(newPrices);
-    setPricesJson?.(prices.getJson());
     setSyncMsg?.("Successfully synced prices");
     return new Promise(res => {
       setTimeout(() => { setSyncMsg?.(""); res(prices); }, 1000);
