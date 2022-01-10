@@ -15,9 +15,12 @@ import {
 import {
   before,
   chrono,
+  dedup,
   diffBalances,
   getLogger,
   math,
+  msDiff,
+  msPerDay,
   toTime,
 } from "@valuemachine/utils";
 import axios from "axios";
@@ -25,6 +28,7 @@ import axios from "axios";
 import { getCoinGeckoEntries } from "./oracles";
 import { findPath } from "./pathfinder";
 import {
+  MissingPrices,
   Path,
   PriceEntry,
   PriceFns,
@@ -34,8 +38,10 @@ import {
 import {
   formatPrice,
   getEmptyPrices,
+  getNearbyPrices,
   getPricesError,
   toDay,
+  toNextDay,
   toTicker,
 } from "./utils";
 
@@ -48,30 +54,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
 
   const error = getPricesError(json);
   if (error) throw new Error(error);
-
-  // Maintains chronological ordering
-  const insertEntry = (prices: PriceJson, entry: PriceEntry) => {
-    let done = false;
-    return prices.reduce((newPrices, oldEntry) => {
-      if (done) return [...newPrices, oldEntry];
-      if (oldEntry.date >= entry.date) {
-        if (
-          oldEntry.date !== entry.date ||
-          oldEntry.asset !== entry.asset ||
-          oldEntry.unit !== entry.unit ||
-          oldEntry.source !== entry.source
-        ) {
-          done = true; // Not a duplicate, add this entry & be done
-          return [...newPrices, entry, oldEntry];
-        } else {
-          done = true; // Duplicate, not adding this entry at all
-          return [...newPrices, oldEntry];
-        }
-      } else {
-        return [...newPrices, oldEntry];
-      }
-    }, []);
-  };
 
   const setPrice = (
     entry: PriceEntry,
@@ -88,6 +70,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       log.debug(`Inserting new ${unit} price for ${asset} on ${date}: ${entry.price}`);
       json.push(entry);
     }
+    json.sort(chrono);
     save?.(json);
   };
 
@@ -96,13 +79,14 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     b: PriceEntry,
     d: DateTimeString,
     unit: Asset,
+    limit?: number, // max ms to interpolate across
   ): DecString => {
     const [pre, suc] = before(a.date, b.date) ? [a, b] : [b, a];
     const preRate = pre.unit !== unit ? pre.price : math.inv(pre.price);
     const sucRate = suc.unit !== unit ? suc.price : math.inv(suc.price);
     const preTime = toTime(pre.date);
     const sucTime = toTime(suc.date);
-    // Assertion prevents divide by zero errors
+    // avoid divide by zero errors
     if (preTime === sucTime) {
       if (preTime === toTime(d)) {
         // if all dates are equal, return the averge
@@ -110,6 +94,9 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       } else {
         throw new Error(`Times before & after are the same`);
       }
+    }
+    if (limit && sucTime - preTime > limit) {
+      throw new Error(`Times before & after exceed the limit of ${limit}ms`);
     }
     const slope = math.div(
       math.sub(sucRate, preRate),
@@ -152,6 +139,77 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     }, "1");
   };
 
+  // Only returns a price if
+  // - we have an exact match
+  // - we can interpolate across <= 24 hours
+  // - we can extrapolate <= 24 hours into the future
+  const getAccurate = (
+    date: DateTimeString,
+    givenAsset: Asset,
+    givenUnit?: Asset,
+  ): DecString | undefined => {
+    const unit = toTicker(givenUnit || defaultUnit);
+    const asset = toTicker(givenAsset);
+    if (unit === asset) return "1";
+    const nearby = getNearbyPrices(json, date, asset, unit);
+    if (nearby.length === 1) {
+      return nearby[0].unit === unit ? nearby[0].price : math.inv(nearby[0].price);
+    } else if (
+      nearby.length === 2 &&
+      nearby[0] &&
+      nearby[1] &&
+      msDiff(nearby[0].date, nearby[1].date) <= msPerDay
+    ) {
+      return interpolate(nearby[0], nearby[1], date, unit);
+    }
+    return undefined;
+  };
+
+  const getRequiredPrices = (vm: ValueMachine, givenUnit?: Asset): MissingPrices => {
+    const unit = toTicker(givenUnit || defaultUnit);
+    const required = {} as MissingPrices;
+    // Current prices of presently held assets are required
+    for (const asset of Object.keys(vm.getNetWorth())) {
+      required[asset] = required[asset] || [];
+      required[asset].push(toDay());
+    }
+    // Prices at each chunk's receive & dispose dates are required
+    for (const chunk of vm.json.chunks) {
+      const { asset, history, disposeDate } = chunk;
+      if (unit === asset) continue; // Prices not required if asset === unit bc it's trivially 1
+      const receive = history[0]?.date;
+      if (!receive) {
+        log.warn(`No receive date for chunk #${chunk.index} of ${chunk.amount} ${chunk.asset}`);
+        continue;
+      }
+      for (const date of [receive, disposeDate]) {
+        if (!date) continue; // Held chunks don't have a dispose date
+        required[asset] = required[asset] || [];
+        required[asset].push(toDay(date));
+      }
+    }
+    // Remove duplicates & sort
+    for (const asset of Object.keys(required)) {
+      required[asset] = dedup(required[asset]).sort();
+    }
+    return required;
+  };
+
+  // Returns exact timestamps that are missing rather than interpolation requirements
+  const getMissingPrices = (vm: ValueMachine, givenUnit?: Asset): MissingPrices => {
+    const unit = toTicker(givenUnit || defaultUnit);
+    const missing = getRequiredPrices(vm, unit);
+    for (const asset of Object.keys(missing)) {
+      for (const date of missing[asset]) {
+        // if we have sufficient data to accurately interpolate this price then remove it
+        if (getAccurate(date, asset, unit)) {
+          missing[asset].splice(missing[asset].findIndex(d => d === date), 1);
+        }
+      }
+    }
+    return missing;
+  };
+
   ////////////////////////////////////////
   // Exported Methods
 
@@ -159,7 +217,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     const error = getPricesError(newPrices);
     if (error) throw new Error(error);
     newPrices.forEach(setPrice);
-    json.sort(chrono);
     save?.(json);
   };
 
@@ -203,8 +260,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     return getCoinGeckoEntries(json, date, asset, unit, setPrice, log);
   };
 
-  const syncPrices = async (vm: ValueMachine, givenUnit?: Asset): Promise<PriceJson> => {
-    const unit = toTicker(givenUnit || defaultUnit);
+  const calcPrices = (vm: ValueMachine): PriceJson => {
     const newPrices = [] as PriceJson;
     vm.json.events.filter(evt => evt.type === EventTypes.Trade).forEach(evt => {
       const trade = vm.getEvent(evt.index) as HydratedTradeEvent;
@@ -224,7 +280,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
           price: div(output[outAssets[0]], input[inAssets[0]]),
           source,
         });
-
       // Assumes that for 2 inputs => 1 output,
       // - the 2 inputs have equal value
       // - the total input has value equal to the output
@@ -245,7 +300,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
           price: div(mul(input[inAssets[0]], "2"), output[outAssets[0]]),
           source,
         });
-
       // Assumes that for 1 input => 2 outputs,
       // - the 2 outputs have equal value
       // - the input has value equal to the total output
@@ -266,42 +320,52 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
           price: div(mul(output[outAssets[0]], "2"), input[inAssets[0]]),
           source,
         });
-
       } else if (inAssets.length || outAssets.length) {
         log.warn(`Unable to calculate prices from swap: [${inAssets}] => [${outAssets}]`);
       }
     });
-
     const oldLen = json.length;
     merge(newPrices);
     log.info(`Merged ${newPrices.length} calculated prices into ${
       oldLen
     } existing prices yielding: ${json.length} total prices`);
+    return newPrices;
+  };
 
-    // Sync current prices for presently held assets
-    for (const asset of Object.keys(vm.getNetWorth())) {
-      const syncedPrices = await syncPrice(toDay(), asset, unit);
-      syncedPrices.forEach(entry => insertEntry(newPrices, entry));
-    }
-
-    for (const chunk of vm.json.chunks) {
-      const { asset, history, disposeDate } = chunk;
-      if (unit === asset) continue;
-      for (const date of [history[0]?.date, disposeDate]) {
-        if (!date) continue;
-        // Don't resync any prices that we've already synced
-        if (!newPrices.some(entry =>
-          entry.date === date && (
-            (entry.asset === asset && entry.unit === unit) ||
-            (entry.asset === unit && entry.unit === asset)
-          )
-        )) {
-          const syncedPrices = await syncPrice(date, asset, unit);
-          syncedPrices.forEach(entry => insertEntry(newPrices, entry));
-        }
+  const fetchPrices = async (
+    missingPrices: MissingPrices,
+    givenUnit?: Asset,
+  ): Promise<PriceJson> => {
+    const unit = toTicker(givenUnit || defaultUnit);
+    const newPrices = [] as PriceJson;
+    // To fetch from coingecko:
+    // convert missing time prices into the day prices required to interpolate accurately
+    const toFetch = {} as MissingPrices;
+    for (const asset of Object.keys(missingPrices)) {
+      for (const time of missingPrices[asset]) {
+        toFetch[asset] = toFetch[asset] || [];
+        toFetch[asset].push(toDay(time), toNextDay(time));
       }
     }
+    // Remove duplicates & sort
+    for (const asset of Object.keys(toFetch)) {
+      toFetch[asset] = dedup(toFetch[asset]).sort();
+      log.debug(`Fetching ${toFetch[asset].length} ${unit} prices of ${asset}`);
+      for (const day of toFetch[asset]) {
+        newPrices.push(...(await getCoinGeckoEntries(json, day, asset, unit, setPrice, log)));
+      }
+    }
+    log.info(`Fetched ${newPrices.length} new ${unit} prices`);
+    return newPrices;
+  };
 
+  // cacluclates & fetches missing prices
+  // Only useful for server-side applications, usually clients will calculate & servers will fetch
+  const syncPrices = async (vm: ValueMachine, givenUnit?: Asset): Promise<PriceJson> => {
+    const unit = toTicker(givenUnit || defaultUnit);
+    const newPrices = calcPrices(vm); // re-calculate prices given vm data
+    const missingPrices = getMissingPrices(vm, unit);
+    newPrices.push(...(await fetchPrices(missingPrices)));
     return newPrices;
   };
 
@@ -316,22 +380,17 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     ) as any).data;
   };
 
-  // For use server-side to fetch prices from CORS/key-protected APIs eg CoinGecko
-  const serve = async (vm: ValueMachine, givenUnit?: Asset): Promise<PriceJson> => {
-    const unit = toTicker(givenUnit || defaultUnit);
-    return syncPrices(vm, unit);
-  };
-
   const getJson = (): PriceJson => {
     return [...json];
   };
 
   return {
+    calcPrices,
+    fetchPrices,
     getJson,
     getPrice,
     merge,
     request,
-    serve,
     syncPrice,
     syncPrices,
   };

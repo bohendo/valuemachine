@@ -27,6 +27,10 @@ export type PriceEntry = Static<typeof PriceEntry>;
 export const PriceJson = Type.Array(PriceEntry);
 export type PriceJson = Static<typeof PriceJson>;
 
+// eg { DAI: ["2020-01-01T00:00:00Z", "2020-01-01T12:00:00Z"], ETH: ["2020-01-01T00:00:00Z"] }
+export const MissingPrices = Type.Record(Type.String(), Type.Array(DateTimeString));
+export type MissingPrices = Static<typeof MissingPrices>;
+
 ////////////////////////////////////////
 // Function Interfaces
 
@@ -38,11 +42,12 @@ export type PricesParams = {
 };
 
 export interface PriceFns {
+  calcPrices: (vm: ValueMachine) => PriceJson;
+  fetchPrices: (missingPrices: MissingPrices, unit?: Asset) => Promise<PriceJson>;
   getJson: () => PriceJson;
   getPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => DecString | undefined;
   merge: (prices: PriceJson) => void;
-  request: (vm: ValueMachine, givenUnit?: Asset) => Promise<PriceJson>;
-  serve: (vm: ValueMachine, givenUnit?: Asset) => Promise<PriceJson>;
+  request: (vm: ValueMachine, unit?: Asset) => Promise<PriceJson>;
   syncPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => Promise<PriceJson>;
   syncPrices: (vm: ValueMachine, unit?: Asset) => Promise<PriceJson>;
 }

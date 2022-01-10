@@ -150,7 +150,7 @@ export const getTaxRows = async ({
     await new Promise(res => setTimeout(res, 1)); // yield to prevent hanging
   }
 
-  // Consolidate rows with the same txId, date & recieve date
+  // Consolidate rows with the same txId, date & receive date
   return rows.reduce((rows, row) => {
     const dupRow = rows.find(r =>
       r.asset === row.asset

@@ -48,7 +48,7 @@ export const f1040s1 = (
 
   f1040s1.L9 = math.add(
     f1040s1.L1,  // taxable refunds/credits/offsets
-    f1040s1.L2a, // alimony recieved
+    f1040s1.L2a, // alimony received
     f1040s1.L3,  // business income from f1040sc
     f1040s1.L4,  // other gains from f4797
     f1040s1.L5,  // rental/s-corp/trust income from f1040se

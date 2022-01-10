@@ -115,7 +115,7 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
       <Grid item md={4}>
         <TextInput 
           getError={getAccountError}
-          helperText={"Who recieved the transfer"}
+          helperText={"Who received the transfer"}
           label="To"
           setText={to => setNewTransfer({ ...newTransfer, to })}
           text={newTransfer.to}

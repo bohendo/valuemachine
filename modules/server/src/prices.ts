@@ -32,7 +32,7 @@ pricesRouter.post("/:unit", async (req, res) => {
     prices.getJson().length
   } existing entries)`);
   try {
-    const pricesJson = await prices.serve(vm, unit);
+    const pricesJson = await prices.syncPrices(vm, unit);
     logAndSend(pricesJson);
   } catch (e) {
     log.error(e.message);

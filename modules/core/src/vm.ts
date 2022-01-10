@@ -176,7 +176,7 @@ export const getValueMachine = (params?: ValueMachineParams): ValueMachine => {
 
   const underflow = (amount: DecString, asset: Asset, account: Account): AssetChunk => {
     // Fixes apps that provide insufficient info in tx logs to determine interest income eg DSR
-    // Disposing of more than we recieved is assumed to represent income rather than a flashloan
+    // Disposing of more than we received is assumed to represent income rather than a flashloan
     const [_guard, maybeVenu, maybeAddress] = account.split("/");
     const venue = maybeAddress ? maybeVenu : !maybeAddress?.startsWith("0x") ? maybeAddress : "";
     if (venue) {
