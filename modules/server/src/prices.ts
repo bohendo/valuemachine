@@ -2,7 +2,6 @@ import express from "express";
 import {
   getLogger,
   getPriceFns,
-  getValueMachine,
 } from "valuemachine";
 
 import { env } from "./env";
@@ -23,16 +22,16 @@ log.info(`Good morning prices router, we have ${prices.getJson().length} existin
 
 export const pricesRouter = express.Router();
 
-pricesRouter.post("/:unit", async (req, res) => {
+pricesRouter.post("/:unit/:asset", async (req, res) => {
   const logAndSend = getLogAndSend(res);
-  const { unit } = req.params;
-  const { vmJson } = req.body;
-  const vm = getValueMachine({ json: vmJson });
-  log.info(`Getting ${unit} prices for ${vm?.json?.chunks?.length} chunks (${
-    prices.getJson().length
-  } existing entries)`);
+  const { asset, unit } = req.params;
+  const { dates } = req.body;
+  if (!dates.length) {
+    log.warn(`No dates for missing ${unit} prices of ${asset} were provided`);
+  }
+  log.info(`Fetching ${dates.length} missing ${unit} prices of ${asset}`);
   try {
-    const pricesJson = await prices.syncPrices(vm, unit);
+    const pricesJson = await prices.fetchPrices({ [asset]: dates }, unit);
     logAndSend(pricesJson);
   } catch (e) {
     log.error(e.message);

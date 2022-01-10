@@ -45,9 +45,9 @@ export interface PriceFns {
   calcPrices: (vm: ValueMachine) => PriceJson;
   fetchPrices: (missingPrices: MissingPrices, unit?: Asset) => Promise<PriceJson>;
   getJson: () => PriceJson;
+  getMissing: (vm: ValueMachine, unit?: Asset) => MissingPrices;
   getPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => DecString | undefined;
   merge: (prices: PriceJson) => void;
-  request: (vm: ValueMachine, unit?: Asset) => Promise<PriceJson>;
   syncPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => Promise<PriceJson>;
   syncPrices: (vm: ValueMachine, unit?: Asset) => Promise<PriceJson>;
 }

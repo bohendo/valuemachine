@@ -23,7 +23,6 @@ import {
   msPerDay,
   toTime,
 } from "@valuemachine/utils";
-import axios from "axios";
 
 import { getCoinGeckoEntries } from "./oracles";
 import { findPath } from "./pathfinder";
@@ -195,8 +194,18 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     return required;
   };
 
+  ////////////////////////////////////////
+  // Exported Methods
+
+  const merge = (newPrices: PriceJson): void => {
+    const error = getPricesError(newPrices);
+    if (error) throw new Error(error);
+    newPrices.forEach(setPrice);
+    save?.(json);
+  };
+
   // Returns exact timestamps that are missing rather than interpolation requirements
-  const getMissingPrices = (vm: ValueMachine, givenUnit?: Asset): MissingPrices => {
+  const getMissing = (vm: ValueMachine, givenUnit?: Asset): MissingPrices => {
     const unit = toTicker(givenUnit || defaultUnit);
     const missing = getRequiredPrices(vm, unit);
     for (const asset of Object.keys(missing)) {
@@ -208,16 +217,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       }
     }
     return missing;
-  };
-
-  ////////////////////////////////////////
-  // Exported Methods
-
-  const merge = (newPrices: PriceJson): void => {
-    const error = getPricesError(newPrices);
-    if (error) throw new Error(error);
-    newPrices.forEach(setPrice);
-    save?.(json);
   };
 
   const getPrice = (
@@ -364,20 +363,9 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   const syncPrices = async (vm: ValueMachine, givenUnit?: Asset): Promise<PriceJson> => {
     const unit = toTicker(givenUnit || defaultUnit);
     const newPrices = calcPrices(vm); // re-calculate prices given vm data
-    const missingPrices = getMissingPrices(vm, unit);
+    const missingPrices = getMissing(vm, unit);
     newPrices.push(...(await fetchPrices(missingPrices)));
     return newPrices;
-  };
-
-  // For use client-side where we can't reliable interact w APIs due to CORS/key restrictions
-  const request = async (vm: ValueMachine, givenUnit?: Asset): Promise<PriceJson> => {
-    const unit = toTicker(givenUnit || defaultUnit);
-    // TODO: Instead of sending the entire vm in the request,
-    // pull out asset:date pairs to request prices for
-    return (await axios.post(
-      `/api/prices/${unit}`,
-      { vmJson: vm.json },
-    ) as any).data;
   };
 
   const getJson = (): PriceJson => {
@@ -388,9 +376,9 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     calcPrices,
     fetchPrices,
     getJson,
+    getMissing,
     getPrice,
     merge,
-    request,
     syncPrice,
     syncPrices,
   };

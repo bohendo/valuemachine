@@ -4,6 +4,7 @@ import {
   DateTimeString,
 } from "@valuemachine/types";
 import {
+  getLogger,
   math,
 } from "@valuemachine/utils";
 import axios from "axios";
@@ -38,8 +39,9 @@ const fetchCoinGeckoPrice = async (
   givenDate: DateTimeString,
   givenAsset: Asset,
   givenUnit: Asset,
-  log?: Logger,
+  logger?: Logger,
 ): Promise<string | undefined> => {
+  const log = (logger || getLogger()).child({ name: source });
   const [asset, unit] = [toTicker(givenAsset), toTicker(givenUnit)];
   const day = toDay(givenDate).split("T")[0];
   const coinId = coingecko[asset] || coingecko[asset.toLowerCase()];
@@ -72,8 +74,9 @@ export const getCoinGeckoEntries = async (
   asset: Asset,
   unit: Asset,
   setPrice: (entry: PriceEntry) => void,
-  log?: Logger,
+  logger?: Logger,
 ): Promise<PriceJson> => {
+  const log = (logger || getLogger()).child({ name: source });
   // We just give the fetcher the target date & it will return the 1 or 2
   // entries we need (and it shouldn't re-fetch them if we have them already)
   let day = toDay(date);
@@ -95,6 +98,8 @@ export const getCoinGeckoEntries = async (
         log.info(`Saving new ${source} ${unit} price for ${asset} on ${day}: ${price}`);
         setPrice(newEntry);
         nearby[0] = newEntry;
+      } else {
+        log.warn(`Couldn't fetch a ${unit} price of ${asset} on ${day} from ${source}`);
       }
     } else {
       if (!nearby[0]?.date || nearby[0].date < day) {
@@ -104,6 +109,8 @@ export const getCoinGeckoEntries = async (
           log.info(`Saving new ${source} ${unit} price for ${asset} on ${day}: ${price}`);
           setPrice(newEntry);
           nearby[0] = newEntry;
+        } else {
+          log.warn(`Couldn't fetch a ${unit} price of ${asset} on ${day} from ${source}`);
         }
       }
       day = toNextDay(date);
@@ -113,6 +120,8 @@ export const getCoinGeckoEntries = async (
           const newEntry = { date: day, unit, asset, price, source };
           setPrice(newEntry);
           nearby[1] = newEntry;
+        } else {
+          log.warn(`Couldn't fetch a ${unit} price of ${asset} on ${day} from ${source}`);
         }
       }
     }
