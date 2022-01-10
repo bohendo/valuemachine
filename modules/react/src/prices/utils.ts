@@ -8,7 +8,6 @@ import {
 import {
   Asset,
 } from "@valuemachine/types";
-import axios from "axios";
 
 export const syncPrices = async ({
   prices,
@@ -24,11 +23,9 @@ export const syncPrices = async ({
   vm: ValueMachine;
 }): Promise<PriceFns> => {
   try {
+    // TODO: calculate prices from vm data before requesting anything
     setSyncMsg?.(`Fetching price data for ${vm.json.chunks.length} chunks..`);
-    const newPrices = (await axios.post(
-      `/api/prices/${unit}`,
-      { vmJson: vm.json },
-    ) as any).data;
+    const newPrices = await prices.request(vm, unit);
     console.info(`Synced new prices`, newPrices);
     setSyncMsg?.("Successfully fetched prices! Importing..");
     prices.merge(newPrices);

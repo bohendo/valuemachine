@@ -74,10 +74,8 @@ export const getCoinGeckoEntries = async (
   setPrice: (entry: PriceEntry) => void,
   log?: Logger,
 ): Promise<PriceJson> => {
-  // TODO: move this day before & after logic into the coingecko fetcher
-  // Then we should just give the fetcher the target date & it will return the 1 or 2
+  // We just give the fetcher the target date & it will return the 1 or 2
   // entries we need (and it shouldn't re-fetch them if we have them already)
-  // This might mean that we need to give the list of price entries to the coingecko fetcher..
   let day = toDay(date);
   const nearby = getNearbyPrices(
     prices.filter(entry => entry.source === source),

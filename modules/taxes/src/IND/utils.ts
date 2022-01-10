@@ -130,5 +130,5 @@ export const getIncomeTax = (input: TaxInput, rows: TaxRows): DecString => {
   return incomeTax;
 };
 
-// TODO: properly apply Indian income/cap gain rules
+// we still need to properly apply Indian income/cap gain rules
 export const getTotalTax = (input, rows) => getIncomeTax(input, rows);

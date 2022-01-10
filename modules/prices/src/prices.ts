@@ -20,6 +20,7 @@ import {
   math,
   toTime,
 } from "@valuemachine/utils";
+import axios from "axios";
 
 import { getCoinGeckoEntries } from "./oracles";
 import { findPath } from "./pathfinder";
@@ -304,6 +305,23 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     return newPrices;
   };
 
+  // For use client-side where we can't reliable interact w APIs due to CORS/key restrictions
+  const request = async (vm: ValueMachine, givenUnit?: Asset): Promise<PriceJson> => {
+    const unit = toTicker(givenUnit || defaultUnit);
+    // TODO: Instead of sending the entire vm in the request,
+    // pull out asset:date pairs to request prices for
+    return (await axios.post(
+      `/api/prices/${unit}`,
+      { vmJson: vm.json },
+    ) as any).data;
+  };
+
+  // For use server-side to fetch prices from CORS/key-protected APIs eg CoinGecko
+  const serve = async (vm: ValueMachine, givenUnit?: Asset): Promise<PriceJson> => {
+    const unit = toTicker(givenUnit || defaultUnit);
+    return syncPrices(vm, unit);
+  };
+
   const getJson = (): PriceJson => {
     return [...json];
   };
@@ -312,6 +330,8 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     getJson,
     getPrice,
     merge,
+    request,
+    serve,
     syncPrice,
     syncPrices,
   };

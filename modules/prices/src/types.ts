@@ -16,7 +16,7 @@ export const PriceSource = Type.Enum(PriceSources);
 export type PriceSource = Static<typeof PriceSource>;
 
 export const PriceEntry = Type.Object({
-  date: DateTimeString, // TODO: use numbers for quicker comparisons
+  date: DateTimeString, // we should prob use numbers for quicker comparisons
   unit: Asset,
   asset: Asset,
   price: DecString, // n units per 1 asset
@@ -41,6 +41,8 @@ export interface PriceFns {
   getJson: () => PriceJson;
   getPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => DecString | undefined;
   merge: (prices: PriceJson) => void;
+  request: (vm: ValueMachine, givenUnit?: Asset) => Promise<PriceJson>;
+  serve: (vm: ValueMachine, givenUnit?: Asset) => Promise<PriceJson>;
   syncPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => Promise<PriceJson>;
   syncPrices: (vm: ValueMachine, unit?: Asset) => Promise<PriceJson>;
 }
