@@ -29,7 +29,6 @@ import {
 } from "./types";
 import {
   getEmptyPrices,
-  getNearbyPrices,
   getPricesError,
   toDay,
   toNextDay,
@@ -63,34 +62,51 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     save?.(json);
   };
 
-  const interpolate = (
+  // Interpolate a price between the two entries
+  // or extrapolate if one of the two entries is missing
+  // If a limit is given, we won't interpolate or extrapolate across more ms than the limit
+  const infer = (
     a: PriceEntry,
     b: PriceEntry,
-    d: number,
+    time: number,
     unit: Asset,
-    limit?: number, // max ms to interpolate across
+    limit?: number, // max ms to infer across
   ): number => {
-    const [pre, suc] = a.time < b.time ? [a, b] : [b, a];
+    const [pre, suc] = a?.time < b?.time ? [a, b] : [b, a];
+    // Extrapolate if one of the two entries is missing
+    if (!suc && pre) {
+      if (!limit || time - pre.time < limit) {
+        return pre.price;
+      } else {
+        throw new Error(`Not extrapolating across more than ${limit}ms: ${time - pre.time}ms`);
+      }
+    }
+    if (!pre && suc) {
+      if (!limit || suc.time - time < limit) {
+        return suc.price;
+      } else {
+        throw new Error(`Not extrapolating across more than ${limit}ms: ${suc.time - time}ms`);
+      }
+    }
+    if (!pre && !suc) throw new Error(`Can't infer across two undefined points`);
     const preRate = pre.unit !== unit ? pre.price : 1/pre.price;
     const sucRate = suc.unit !== unit ? suc.price : 1/suc.price;
-    const preTime = pre.time;
-    const sucTime = suc.time;
     // avoid divide by zero errors
-    if (preTime === sucTime) {
-      if (preTime === d) {
+    if (pre.time === suc.time) {
+      if (pre.time === time) {
         // if all dates are equal, return the averge
         return (preRate + sucRate) / 2;
       } else {
         throw new Error(`Times before & after are the same`);
       }
     }
-    if (limit && sucTime - preTime > limit) {
-      throw new Error(`Times before & after exceed the limit of ${limit}ms`);
+    if (limit && suc.time - pre.time > limit) {
+      throw new Error(`Not interpolating across more than ${limit}ms: ${suc.time - pre.time}ms`);
     }
-    const slope = (sucRate - preRate) / (sucTime - preTime);
-    const interpolated = preRate + (slope * (d - pre.time));
+    const slope = (sucRate - preRate) / (suc.time - pre.time);
+    const interpolated = preRate + (slope * (time - pre.time));
     log.debug(
-      `Interpolated a price of ${interpolated} on ${d} between ${
+      `Interpolated a price of ${interpolated} on ${time} between ${
         preRate} on ${pre.time
       } and ${
         sucRate} on ${suc.time
@@ -107,39 +123,13 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
         return rate * (
           step.prices.length === 0 ? 1 : step.prices.length === 1 ? (
             step.prices[0].unit !== prev ? step.prices[0].price : 1/step.prices[0].price
-          ) : step.prices.length === 2 ? interpolate(step.prices[0], step.prices[1], time, prev)
+          ) : step.prices.length === 2 ? infer(step.prices[0], step.prices[1], time, prev)
           : 1
         );
       }
       prev = step.asset;
       return rate;
     }, 1);
-  };
-
-  // Only returns a price if
-  // - we have an exact match
-  // - we can interpolate across <= 24 hours
-  // - we can extrapolate <= 24 hours into the future
-  const getAccurate = (
-    time: number,
-    givenAsset: Asset,
-    givenUnit?: Asset,
-  ): number | undefined => {
-    const unit = toTicker(givenUnit || defaultUnit);
-    const asset = toTicker(givenAsset);
-    if (unit === asset) return 1;
-    const nearby = getNearbyPrices(json, time, asset, unit);
-    if (nearby.length === 1) {
-      return nearby[0].unit === unit ? nearby[0].price : 1/nearby[0].price;
-    } else if (
-      nearby.length === 2 &&
-      nearby[0] &&
-      nearby[1] &&
-      nearby[1].time - nearby[0].time <= msPerDay
-    ) {
-      return interpolate(nearby[0], nearby[1], time, unit);
-    }
-    return undefined;
   };
 
   const getRequiredPrices = (vm: ValueMachine, givenUnit?: Asset): MissingPrices => {
@@ -183,36 +173,37 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     save?.(json);
   };
 
-  // Returns exact timestamps that are missing rather than interpolation requirements
-  const getMissing = (vm: ValueMachine, givenUnit?: Asset): MissingPrices => {
-    const unit = toTicker(givenUnit || defaultUnit);
-    const missing = getRequiredPrices(vm, unit);
-    for (const asset of Object.keys(missing)) {
-      for (const date of missing[asset]) {
-        // if we have sufficient data to accurately interpolate this price then remove it
-        if (getAccurate(toTime(date), asset, unit)) {
-          missing[asset].splice(missing[asset].findIndex(d => d === date), 1);
-        }
-      }
-    }
-    return missing;
-  };
-
   const getPrice = (
     givenTime: DateTimeString | number,
     givenAsset: Asset,
     givenUnit?: Asset,
+    limit?: number,
   ): number | undefined => {
     const time = typeof givenTime === "string" ? toTime(givenTime) : givenTime;
     const [asset, unit] = [toTicker(givenAsset), toTicker(givenUnit || defaultUnit)];
     log.debug(`Getting ${unit} price of ${asset} on date closest to ${time}..`);
-    const path = findPath(json, time, asset, unit, log);
+    const path = findPath(json, time, asset, unit, limit, log);
     if (!path.length) {
       log.debug(`No path is available between ${unit} and ${asset} on ${time}..`);
       return undefined;
     }
     log.debug(path, `Got path from ${unit} to ${asset} on ${time}..`);
     return sumPath(path, time);
+  };
+
+  // Returns exact timestamps that are missing rather than interpolation requirements
+  const getMissing = (vm: ValueMachine, givenUnit?: Asset): MissingPrices => {
+    const unit = toTicker(givenUnit || defaultUnit);
+    const missing = getRequiredPrices(vm, unit);
+    for (const asset of Object.keys(missing)) {
+      for (const date of missing[asset]) {
+        // if we have sufficient data to accurately infer this price across <24 hrs then remove it
+        if (getPrice(toTime(date), asset, unit, msPerDay + 1)) {
+          missing[asset].splice(missing[asset].findIndex(d => d === date), 1);
+        }
+      }
+    }
+    return missing;
   };
 
   const calcPrices = (vm: ValueMachine): PriceJson => {
@@ -295,7 +286,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     const unit = toTicker(givenUnit || defaultUnit);
     const newPrices = [] as PriceJson;
     // To fetch from coingecko or covalent:
-    // convert missing time prices into the day prices required to interpolate accurately
+    // convert missing time prices into the day prices required to infer accurately
     const toFetch = {} as MissingPrices;
     for (const asset of Object.keys(missingPrices)) {
       for (const date of missingPrices[asset]) {

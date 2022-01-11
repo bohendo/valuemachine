@@ -55,15 +55,13 @@ const transactions = getTransactions({ logger });
   // Create a price fetcher & fetch the relevant prices
   const unit = "USD";
   const prices = getPriceFns({
-    json: store.load("Prices"),
     logger,
-    save: val => store.save("Prices", val),
     unit,
   });
   prices.calcPrices(vm);
 
   // calculate & print capital gains
-  console.log(`    Amount |        Asset | Receive Date | Dispose Date | Capital Change (USD)`);
+  console.log(`      Amount |        Asset | Receive Date | Dispose Date | Capital Change (USD)`);
   for (const event of vm.json.events) {
     switch(event.type) {
     case EventTypes.Trade: {

@@ -2,24 +2,32 @@ import {
   Asset,
   Logger,
 } from "@valuemachine/types";
-import {
-  msDiff,
-} from "@valuemachine/utils";
 
 import { Path, PriceJson } from "./types";
 import { getNearbyPrices } from "./utils";
 
-const isInterpolable = (prices: PriceJson, time: number, asset: Asset, unit: Asset): boolean => {
+const isInferable = (
+  prices: PriceJson,
+  time: number,
+  asset: Asset,
+  unit: Asset,
+  limit?: number,
+): boolean => {
   if (asset === unit) return true;
   const nearby = getNearbyPrices(prices, time, asset, unit);
-  if (nearby.length === 1 || (nearby.length === 2 && nearby[0] && nearby[1])) {
-    return true;
+  if (nearby.length === 0) return false;
+  if (nearby.length === 1) return true;
+  if (nearby.length === 2) {
+    if (nearby[0] && nearby[1]) return true;
+    if (nearby[0] && !nearby[1] && (!limit || time - nearby[0].time < limit)) return true;
+    if (!nearby[0] && nearby[1] && (!limit || nearby[1].time - time < limit)) return true;
+    if (!nearby[0] && !nearby[1]) return false;
   }
   return false;
 };
 
 // Given an asset, get a list of other assets that we already have exchange rates for
-const getNeighbors = (prices: PriceJson, time: number, asset: Asset): Asset[] =>
+const getNeighbors = (prices: PriceJson, time: number, asset: Asset, limit?: number): Asset[] =>
   prices.filter(entry =>
     entry.asset === asset || entry.unit === asset
   ).reduce((neighbors, entry) => {
@@ -28,7 +36,7 @@ const getNeighbors = (prices: PriceJson, time: number, asset: Asset): Asset[] =>
     if (entry.time === time) {
       return [...neighbors, candidate];
     } else {
-      if (isInterpolable(prices, time, asset, candidate)) {
+      if (isInferable(prices, time, asset, candidate, limit)) {
         return [...neighbors, candidate];
       } else {
         return neighbors;
@@ -36,9 +44,17 @@ const getNeighbors = (prices: PriceJson, time: number, asset: Asset): Asset[] =>
     }
   }, [] as Asset[]);
 
-const getDistance = (path: Path): number => path.reduce((distance, step) => {
-  if (step.prices.length === 2) return distance + msDiff(step.prices[0].time, step.prices[1].time);
-  else return distance;
+const getDistance = (path: Path, time: number): number => path.reduce((distance, step) => {
+  if (step.prices.length === 2) {
+    if (step.prices[0] && step.prices[1]) {
+      return distance + Math.abs(step.prices[1].time - step.prices[0].time);
+    } else if (step.prices[0] && !step.prices[1]) {
+      return distance + Math.abs(time - step.prices[0].time);
+    } else if (!step.prices[0] && step.prices[1]) {
+      return distance + Math.abs(step.prices[1].time - time);
+    }
+  }
+  return distance;
 }, 0);
 
 export const findPath = (
@@ -46,6 +62,7 @@ export const findPath = (
   time: number,
   start: Asset,
   end: Asset,
+  limit?: number,
   log?: Logger,
 ): Path => {
   const startTime = Date.now();
@@ -76,7 +93,9 @@ export const findPath = (
   const branches = [] as Asset[];
   let pathToCurrent = distances[current].path;
   while (current) {
-    const neighbors = getNeighbors(prices, time, current).filter(node => unvisited.has(node));
+    const neighbors = getNeighbors(prices, time, current, limit).filter(
+      node => unvisited.has(node)
+    );
     log?.debug(`Checking unvisited neighbors of ${current}: ${neighbors.join(", ")}`);
     let closest;
     if (!branches.includes(current) && neighbors.length > 1) {
@@ -91,7 +110,7 @@ export const findPath = (
         asset: neighbor,
         prices: getNearbyPrices(prices, time, neighbor, current),
       }]);
-      const newDistance = getDistance(newPathToNeighbor);
+      const newDistance = getDistance(newPathToNeighbor, time);
       distances[neighbor] = {
         distance: newDistance < oldDistance ? newDistance : oldDistance,
         path: newDistance < oldDistance ? newPathToNeighbor : oldPathToNeighbor,
