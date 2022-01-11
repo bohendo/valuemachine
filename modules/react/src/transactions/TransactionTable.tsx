@@ -94,7 +94,6 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         (e1.date > e2.date) ? -1 : (e1.date < e2.date) ? 1 : 0
       ) || []
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     addressBook, transactions,
     filterAccount,

@@ -74,23 +74,6 @@ export const NavBar: React.FC<PropTypes> = ({
     }
   };
 
-  /*
-  useEffect(() => {(async () => {
-    if (syncMsg) return; // abort if already syncing
-    if (!txTags || !unit) return;
-    await syncTaxRows({
-      addressBook,
-      prices,
-      setSyncMsg,
-      setTaxRows,
-      txTags,
-      unit,
-      vm,
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  })();}, [txTags, unit]);
-  */
-
   return (
     <AppBar position="static" elevation={0} enableColorOnDark>
       <Toolbar variant="dense" sx={{ overflow: "auto" }}>

@@ -142,6 +142,8 @@ test-all: package
 	bash ops/test-unit.sh taxes test
 	@sleep 1
 	bash ops/test-unit.sh package test
+	@sleep 1
+	bash ops/lint.sh
 
 publish: package
 	bash ops/npm-publish.sh

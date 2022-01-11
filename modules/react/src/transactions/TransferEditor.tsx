@@ -37,7 +37,6 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
   useEffect(() => {
     if (!newTransfer || !modified || error) return;
     setTransfer?.(newTransfer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newTransfer, modified, error]);
 
   useEffect(() => {
@@ -48,7 +47,6 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
   useEffect(() => {
     setError(newTransfer ? getTransferError(newTransfer) : "");
     if (!error) setTransfer?.(newTransfer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newTransfer]);
 
   useEffect(() => {

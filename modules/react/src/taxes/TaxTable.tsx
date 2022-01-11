@@ -71,11 +71,15 @@ export const TaxTable: React.FC<TaxTableProps> = ({
                 ? `${filteredRows.length} Taxable Event${filteredRows.length === 1 ? "" : "s"}`
                 : `${filteredRows.length} of ${taxRows?.length} Taxable Event${taxRows?.length === 1 ? "" : "s"}`
             ) : guard === Guards.None ? (
-              filteredRows.length === taxRows?.filter(r => r.taxYear.substring(0, 3) === guard).length
+              filteredRows.length === taxRows?.filter(
+                r => r.taxYear.substring(0, 3) === guard
+              ).length
                 ? `${filteredRows.length} INSECURE Taxable Event${filteredRows.length === 1 ? "" : "s"}`
                 : `${filteredRows.length} of ${taxRows?.filter(r => r.taxYear.substring(0, 3) === guard).length} INSECURE Taxable Event${taxRows?.length === 1 ? "" : "s"}`
             ) : (
-              filteredRows.length === taxRows?.filter(r => r.taxYear.substring(0, 3) === guard).length
+              filteredRows.length === taxRows?.filter(
+                r => r.taxYear.substring(0, 3) === guard
+              ).length
                 ? `${filteredRows.length} Taxable ${guard} Event${filteredRows.length === 1 ? "" : "s"}`
                 : `${filteredRows.length} of ${taxRows?.filter(r => r.taxYear.substring(0, 3) === guard).length} Taxable ${guard} Event${taxRows?.length === 1 ? "" : "s"}`
             )}

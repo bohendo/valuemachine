@@ -80,7 +80,6 @@ export const AddressEditor: React.FC<AddressEditorProps> = ({
     } else {
       setNewEntryError(getErrors(newEntry));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addresses, entryModified, newEntry]);
 
   useEffect(() => {

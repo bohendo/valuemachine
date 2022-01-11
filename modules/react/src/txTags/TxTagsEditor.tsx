@@ -56,7 +56,6 @@ export const TxTagsEditor: React.FC<TxTagsEditorProps> = ({
     ));
     if (!txId) return;
     setNewTxTag({ ...newTxTag, txId });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [txId, txTags]);
 
   useEffect(() => {

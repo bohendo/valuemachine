@@ -45,7 +45,7 @@ export const getTaxRows = async ({
     evt.type === EventTypes.Trade ||
     evt.type === EventTypes.Income ||
     evt.type === EventTypes.Expense
-  ))) {
+  )) || []) {
 
     const getDate = (datetime: DateTimeString): DateString =>
       new Date(datetime).toISOString().split("T")[0];

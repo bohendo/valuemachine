@@ -41,7 +41,6 @@ export const TransactionEditor: React.FC<TransactionEditorProps> = ({
   useEffect(() => {
     if (!tx) return;
     setNewTx(JSON.parse(JSON.stringify({ ...newTx, ...tx })) as Transaction);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tx]);
 
   useEffect(() => {
