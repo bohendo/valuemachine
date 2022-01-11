@@ -1,4 +1,7 @@
 export {
+  isSupportedByCoinGecko,
+} from "./oracles";
+export {
   getPriceFns,
 } from "./prices";
 export {

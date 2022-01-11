@@ -35,6 +35,11 @@ import * as coingecko from "./coingecko-index.json";
 
 const source = PriceSources.CoinGecko;
 
+export const isSupportedByCoinGecko = (asset: Asset): boolean => {
+  const coinId = coingecko[asset] || coingecko[asset.toLowerCase()];
+  return !!coinId;
+};
+
 const fetchCoinGeckoPrice = async (
   givenDate: DateTimeString,
   givenAsset: Asset,

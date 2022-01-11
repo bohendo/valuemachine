@@ -29,7 +29,6 @@ const dec2 =  {
 let counter = 0;
 const setPrice = (newPrices) => { log.info(newPrices, `setPrice #${counter++}`); };
 
-// Tests that require network calls might be fragile, skip them unless we're actively debugging
 describe("CoinGecko", () => {
 
   it("should not re-fetch existing entries for a daily price", async () => {
@@ -50,7 +49,7 @@ describe("CoinGecko", () => {
     expect(counter).to.equal(0);
   });
 
-  // Tests that require network calls are fragile
+  // Tests that require network calls might be fragile, skip them unless we're actively debugging
   it.skip("should fetch one new entry for a daily price", async () => {
     const date = "2021-12-01T00:00:00Z";
     counter = 0;
