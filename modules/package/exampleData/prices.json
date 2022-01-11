@@ -1,121 +1,37 @@
 [
   {
-    "date": "2019-11-02T03:25:10.000Z",
-    "asset": "ETH",
-    "unit": "USD",
-    "price": "183.064191451962",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2019-11-07T04:27:33.000Z",
+    "time": 1573791633000,
+    "unit": "cSAI",
     "asset": "SAI",
-    "unit": "USD",
-    "price": "1.013760190959222",
-    "source": "CoinGecko"
+    "price": 47.52312095527313,
+    "source": "Event#5"
   },
   {
-    "date": "2019-11-07T05:15:26.000Z",
-    "asset": "SAI",
-    "unit": "USD",
-    "price": "1.013760190959222",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2019-11-15T04:20:33.000Z",
-    "asset": "SAI",
-    "unit": "USD",
-    "price": "1.0092998169369127",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2019-11-15T04:27:05.000Z",
-    "asset": "SAI",
-    "unit": "USD",
-    "price": "1.0092998169369127",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2019-11-19T02:18:57.000Z",
-    "asset": "SAI",
-    "unit": "USD",
-    "price": "1.0053586900838654",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2019-12-19T06:19:09.000Z",
-    "asset": "SAI",
-    "unit": "USD",
-    "price": "0.9976218950226403",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2019-12-19T06:19:09.000Z",
+    "time": 1576736349000,
+    "unit": "SAI",
     "asset": "DAI",
-    "unit": "USD",
-    "price": "1.001236941108159",
-    "source": "CoinGecko"
+    "price": 1,
+    "source": "Event#8"
   },
   {
-    "date": "2019-12-21T07:40:11.000Z",
-    "asset": "DAI",
-    "unit": "USD",
-    "price": "0.9972592645057585",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2019-12-21T07:40:11.000Z",
+    "time": 1576914011000,
+    "unit": "DAI",
     "asset": "cDAI",
-    "unit": "USD",
-    "price": "0.019901553020371356",
-    "source": "CoinGecko"
+    "price": 0.020026749819975074,
+    "source": "Event#9"
   },
   {
-    "date": "2020-01-05T05:54:40.000Z",
+    "time": 1578203680000,
+    "unit": "cDAI",
     "asset": "DAI",
-    "unit": "USD",
-    "price": "0.9701337426756221",
-    "source": "CoinGecko"
+    "price": 49.85556724654295,
+    "source": "Event#10"
   },
   {
-    "date": "2020-01-05T05:54:40.000Z",
-    "asset": "cDAI",
-    "unit": "USD",
-    "price": "0.020192410381946725",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2020-01-05T06:00:55.000Z",
+    "time": 1580716707000,
+    "unit": "cDAI",
     "asset": "DAI",
-    "unit": "USD",
-    "price": "0.9701337426756221",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2020-02-03T07:58:27.000Z",
-    "asset": "cDAI",
-    "unit": "USD",
-    "price": "0.020119741324706023",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2020-02-03T07:58:27.000Z",
-    "asset": "DAI",
-    "unit": "USD",
-    "price": "0.9974633291392077",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2020-02-03T08:03:43.000Z",
-    "asset": "ETH",
-    "unit": "USD",
-    "price": "188.55064179431113",
-    "source": "CoinGecko"
-  },
-  {
-    "date": "2020-02-03T08:03:43.000Z",
-    "asset": "DAI",
-    "unit": "USD",
-    "price": "0.9974633291392077",
-    "source": "CoinGecko"
+    "price": 49.594363808159684,
+    "source": "Event#12"
   }
 ]

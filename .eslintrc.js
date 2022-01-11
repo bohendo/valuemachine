@@ -81,9 +81,4 @@ module.exports = {
       version: "detect",
     },
   },
-  settings: {
-    react: {
-      version: "detect",
-    },
-  },
 };

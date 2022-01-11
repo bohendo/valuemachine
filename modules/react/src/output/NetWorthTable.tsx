@@ -36,7 +36,7 @@ export const NetWorthTable: React.FC<NetWorthTableProps> = ({
     if (!prices || !unit) return;
     const today = new Date().toISOString();
     setTodayPrices(Object.keys(balances).reduce((total, asset) => {
-      total[asset] = prices.getPrice(today, asset, unit) || "0";
+      total[asset] = (prices.getPrice(today, asset, unit) || 0).toString();
       return total;
     }, {} as Balances));
   }, [balances, prices, unit]);

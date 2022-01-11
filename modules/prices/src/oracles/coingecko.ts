@@ -5,7 +5,7 @@ import {
 } from "@valuemachine/types";
 import {
   getLogger,
-  math,
+  toTime,
 } from "@valuemachine/utils";
 import axios from "axios";
 
@@ -45,7 +45,7 @@ const fetchCoinGeckoPrice = async (
   givenAsset: Asset,
   givenUnit: Asset,
   logger?: Logger,
-): Promise<string | undefined> => {
+): Promise<number | undefined> => {
   const log = (logger || getLogger()).child({ name: source });
   const [asset, unit] = [toTicker(givenAsset), toTicker(givenUnit)];
   const day = toDay(givenDate).split("T")[0];
@@ -63,11 +63,11 @@ const fetchCoinGeckoPrice = async (
   let price;
   try {
     const response = await retry(attempt, log);
-    price = response?.market_data?.current_price?.[unit.toLowerCase()]?.toString();
+    price = response?.market_data?.current_price?.[unit.toLowerCase()];
   } catch (e) {
     log?.error(e.message);
   }
-  if (!price || math.eq(price, "0")) {
+  if (!price) {
     log?.warn(`Could not fetch ${asset} price from ${source} on ${day}`);
   }
   return price;
@@ -82,12 +82,14 @@ export const getCoinGeckoEntries = async (
   logger?: Logger,
 ): Promise<PriceJson> => {
   const log = (logger || getLogger()).child({ name: source });
+  const time = toTime(date);
+  let day = toDay(date);
+  let timeOfDay = toTime(day);
   // We just give the fetcher the target date & it will return the 1 or 2
   // entries we need (and it shouldn't re-fetch them if we have them already)
-  let day = toDay(date);
   const nearby = getNearbyPrices(
     prices.filter(entry => entry.source === source),
-    date,
+    time,
     asset,
     unit,
   );
@@ -99,7 +101,7 @@ export const getCoinGeckoEntries = async (
     if (day === date) {
       const price = await fetchCoinGeckoPrice(day, asset, unit, log);
       if (price) {
-        const newEntry = { date: day, unit, asset, price, source };
+        const newEntry = { time: toTime(day), unit, asset, price, source };
         log.info(`Saving new ${source} ${unit} price for ${asset} on ${day}: ${price}`);
         setPrice(newEntry);
         nearby[0] = newEntry;
@@ -107,10 +109,10 @@ export const getCoinGeckoEntries = async (
         log.warn(`Couldn't fetch a ${unit} price of ${asset} on ${day} from ${source}`);
       }
     } else {
-      if (!nearby[0]?.date || nearby[0].date < day) {
+      if (!nearby[0]?.time || nearby[0].time < timeOfDay) {
         const price = await fetchCoinGeckoPrice(day, asset, unit, log);
         if (price) {
-          const newEntry = { date: day, unit, asset, price, source };
+          const newEntry = { time: timeOfDay, unit, asset, price, source };
           log.info(`Saving new ${source} ${unit} price for ${asset} on ${day}: ${price}`);
           setPrice(newEntry);
           nearby[0] = newEntry;
@@ -119,10 +121,11 @@ export const getCoinGeckoEntries = async (
         }
       }
       day = toNextDay(date);
-      if (!nearby[1]?.date || nearby[1].date > day) {
+      timeOfDay = toTime(day);
+      if (!nearby[1]?.time || nearby[1].time > timeOfDay) {
         const price = await fetchCoinGeckoPrice(day, asset, unit, log);
         if (price) {
-          const newEntry = { date: day, unit, asset, price, source };
+          const newEntry = { time: timeOfDay, unit, asset, price, source };
           setPrice(newEntry);
           nearby[1] = newEntry;
         } else {

@@ -3,15 +3,12 @@ import {
 } from "@valuemachine/transactions";
 import {
   Asset,
-  DateString,
-  DecString,
   DateTimeString,
   Logger,
 } from "@valuemachine/types";
 import {
   ajv,
   formatErrors,
-  math,
   msPerDay,
   toISOString,
   toTime,
@@ -23,15 +20,15 @@ const { ETH, MATIC, WETH, WMATIC } = Assets;
 
 export const getEmptyPrices = (): PriceJson => ([]);
 
-export const getNearbyPrices = (prices: PriceJson, date, asset, unit): PriceJson =>
+export const getNearbyPrices = (prices: PriceJson, time: number, asset, unit): PriceJson =>
   prices.filter(entry =>
     (entry.asset === asset && entry.unit === unit) ||
     (entry.unit === asset && entry.asset === unit)
   ).reduce((pair, point) => {
     if (pair.length === 1) return pair; // stop updating pair if we've found an exact match
-    if (point.date === date) return [point];
-    if (point.date < date && (!pair[0] || point.date > pair[0].date)) return [point, pair[1]];
-    if (point.date > date && (!pair[1] || point.date < pair[1].date)) return [pair[0], point];
+    if (point.time === time) return [point];
+    if (point.time < time && (!pair[0] || point.time > pair[0].time)) return [point, pair[1]];
+    if (point.time > time && (!pair[1] || point.time < pair[1].time)) return [pair[0], point];
     return pair;
   }, [] as PriceJson);
 
@@ -49,10 +46,10 @@ export const toTicker = (asset: Asset) => {
 
 export const daySuffix = "T00:00:00Z";
 
-export const toNextDay = (d?: DateTimeString): DateTimeString =>
+export const toNextDay = (d?: DateTimeString | number): DateTimeString =>
   toISOString(toTime(d) + msPerDay).split("T")[0] + daySuffix;
 
-export const toDay = (d?: DateTimeString): DateTimeString =>
+export const toDay = (d?: DateTimeString | number): DateTimeString =>
   toISOString(d).split("T")[0] + daySuffix;
 
 const validatePrices = ajv.compile(PriceJson);
@@ -61,22 +58,6 @@ export const getPricesError = (pricesJson: PriceJson): string =>
     ? ""
     : validatePrices.errors.length ? formatErrors(validatePrices.errors)
     : `Invalid Prices`;
-
-// Limit value from having any more than 18 decimals of precision (but ensure it has at least 1)
-export const formatPrice = (price: DecString): DecString => {
-  const truncated = math.round(price, 18).replace(/0+$/, "");
-  if (truncated.endsWith(".")) return truncated + "0";
-  return truncated;
-};
-
-export const formatDate = (date: DateString | DateTimeString): DateString => {
-  if (isNaN((new Date(date)).getTime())) {
-    throw new Error(`Invalid Date: "${date}"`);
-  } else if ((new Date(date)).getTime() > Date.now()) {
-    throw new Error(`Date is in the future: "${date}"`);
-  }
-  return (new Date(date)).toISOString().split("T")[0];
-};
 
 // replace all wrapped assets with the underlying (unless they're fundamentally different eg WBTC)
 export const formatUnit = (givenUnit: Asset): Asset => {

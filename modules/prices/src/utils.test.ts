@@ -4,16 +4,16 @@ import { expect } from "chai";
 import { getEmptyPrices, getPricesError } from "./utils";
 
 const validPrices = [{
-  date: new Date().toISOString(),
+  time: Date.now(),
   unit: Assets.DAI,
   asset: Assets.ETH,
-  price: "4500.12",
+  price: 4500.12,
   source: "Test/1",
 }, {
-  date: new Date().toISOString(),
+  time: Date.now(),
   unit: Assets.DAI,
   asset: Assets.BTC,
-  price: "45000.12",
+  price: 45000.12,
   source: "Test/2",
 }];
 

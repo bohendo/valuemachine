@@ -11,6 +11,7 @@ import {
   Sources,
   TransferCategories,
 } from "@valuemachine/transactions";
+import { toTime } from "@valuemachine/utils";
 
 const { BCH, BTC, DAI, ETH, UNI, INR, USD } = Assets;
 const { Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;
@@ -117,20 +118,20 @@ export const vm = getValueMachine();
 // Generate value machine data from transactions
 transactions.json.forEach(tx => vm.execute(tx));
 
-const today = new Date().toISOString();
+const today = Date.now();
 const source = "Hardcoded";
 export const prices = getPriceFns({
   json: [
-    { date: today, unit, asset: BCH, price: "580", source },
-    { date: today, unit, asset: BTC, price: "55000", source },
-    { date: today, unit, asset: DAI, price: "1.01", source },
-    { date: today, unit, asset: ETH, price: "3500", source },
-    { date: today, unit, asset: INR, price: "0.133", source },
-    { date: transactions.json[4].date, unit, asset: UNI, price: "4", source },
-    { date: transactions.json[5].date, unit, asset: UNI, price: "6", source },
+    { time: today, unit, asset: BCH, price: 580, source },
+    { time: today, unit, asset: BTC, price: 55000, source },
+    { time: today, unit, asset: DAI, price: 1.01, source },
+    { time: today, unit, asset: ETH, price: 3500, source },
+    { time: today, unit, asset: INR, price: 0.133, source },
+    { time: toTime(transactions.json[4].date), unit, asset: UNI, price: 4, source },
+    { time: toTime(transactions.json[5].date), unit, asset: UNI, price: 6, source },
   ],
 });
-prices.syncPrices(vm, unit);
+prices.calcPrices(vm);
 
 export const txTags = {
   ["Test/0x0000000000000000000000000000000000000000000000000000000000000000/1"]: {

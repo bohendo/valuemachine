@@ -15,7 +15,7 @@ import {
   FiatCurrencies,
 } from "@valuemachine/transactions";
 import { Asset } from "@valuemachine/types";
-import { chrono, dedup, math } from "@valuemachine/utils";
+import { dedup, math, toISOString } from "@valuemachine/utils";
 import React, { useEffect, useState } from "react";
 
 import { DateInput, SelectOne } from "../utils";
@@ -43,7 +43,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
   useEffect(() => {
     if (!prices?.getJson()) return;
     const newFilteredPrices = prices.getJson().filter(entry => (
-      !filterDate || entry.date.startsWith(filterDate)
+      !filterDate || toISOString(entry.time).startsWith(filterDate)
     ) && (
       (!filterUnit || entry.unit === filterUnit) &&
       (!unit || entry.unit === unit)
@@ -116,12 +116,12 @@ export const PriceTable: React.FC<PriceTableProps> = ({
           </TableHead>
           <TableBody>
             {filteredPrices
-              .sort(chrono)
+              .sort((e1, e2) => e1.time - e2.time)
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((entry: PriceEntry, i: number) => (
                 <TableRow key={i}>
                   <TableCell style={{ width: "120px" }}>
-                    {entry.date.replace("T", " ").replace("Z", "")}
+                    {toISOString(entry.time).replace("T", " ").replace("Z", "")}
                   </TableCell>
                   {!unit ? (
                     <TableCell>
@@ -132,7 +132,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
                     {entry.asset}
                   </TableCell>
                   <TableCell>
-                    {math.round(entry.price, 6)}
+                    {math.round(entry.price.toString(), 6)}
                   </TableCell>
                   <TableCell>
                     {entry.source}

@@ -1,5 +1,5 @@
 import { ValueMachine } from "@valuemachine/core";
-import { Asset, DateTimeString, DecString } from "@valuemachine/types";
+import { Asset, DateTimeString } from "@valuemachine/types";
 import { Static, Type } from "@sinclair/typebox";
 import pino from "pino";
 
@@ -16,10 +16,10 @@ export const PriceSource = Type.Enum(PriceSources);
 export type PriceSource = Static<typeof PriceSource>;
 
 export const PriceEntry = Type.Object({
-  date: DateTimeString, // we should prob use numbers for quicker comparisons
+  time: Type.Number(), // ms since epoch
   unit: Asset,
   asset: Asset,
-  price: DecString, // n units per 1 asset
+  price: Type.Number(), // n units per 1 asset
   source: Type.String(), // PriceSource or TxId
 });
 export type PriceEntry = Static<typeof PriceEntry>;
@@ -46,10 +46,8 @@ export interface PriceFns {
   fetchPrices: (missingPrices: MissingPrices, unit?: Asset) => Promise<PriceJson>;
   getJson: () => PriceJson;
   getMissing: (vm: ValueMachine, unit?: Asset) => MissingPrices;
-  getPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => DecString | undefined;
+  getPrice: (time: DateTimeString | number, asset: Asset, unit?: Asset) => number | undefined;
   merge: (prices: PriceJson) => void;
-  syncPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => Promise<PriceJson>;
-  syncPrices: (vm: ValueMachine, unit?: Asset) => Promise<PriceJson>;
 }
 
 ////////////////////////////////////////

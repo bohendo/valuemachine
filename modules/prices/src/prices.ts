@@ -5,21 +5,14 @@ import {
   EventTypes,
 } from "@valuemachine/core";
 import {
-  FiatCurrencies,
-} from "@valuemachine/transactions";
-import {
   Asset,
   DateTimeString,
-  DecString,
 } from "@valuemachine/types";
 import {
-  before,
-  chrono,
   dedup,
   diffBalances,
   getLogger,
   math,
-  msDiff,
   msPerDay,
   toTime,
 } from "@valuemachine/utils";
@@ -35,7 +28,6 @@ import {
   PricesParams,
 } from "./types";
 import {
-  formatPrice,
   getEmptyPrices,
   getNearbyPrices,
   getPricesError,
@@ -43,8 +35,6 @@ import {
   toNextDay,
   toTicker,
 } from "./utils";
-
-const { div, mul } = math;
 
 export const getPriceFns = (params?: PricesParams): PriceFns => {
   const { logger, json: pricesJson, save, unit: defaultUnit } = params || {};
@@ -57,39 +47,39 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   const setPrice = (
     entry: PriceEntry,
   ): void => {
-    const { date, asset, unit } = entry;
+    const { time, asset, unit } = entry;
     const dup = json.find(oldEntry =>
-      oldEntry.date === date && oldEntry.asset === asset && oldEntry.unit === unit
+      oldEntry.time === time && oldEntry.asset === asset && oldEntry.unit === unit
     );
     if (dup) {
-      log.debug(`Replacing duplicate ${unit} price for ${asset} on ${date}: ${entry.price}`);
-      dup.price = formatPrice(entry.price);
+      log.debug(`Replacing duplicate ${unit} price for ${asset} on ${time}: ${entry.price}`);
+      dup.price = entry.price;
       dup.source = entry.source;
     } else {
-      log.debug(`Inserting new ${unit} price for ${asset} on ${date}: ${entry.price}`);
+      log.debug(`Inserting new ${unit} price for ${asset} on ${time}: ${entry.price}`);
       json.push(entry);
     }
-    json.sort(chrono);
+    json.sort((p1, p2) => p1.time - p2.time);
     save?.(json);
   };
 
   const interpolate = (
     a: PriceEntry,
     b: PriceEntry,
-    d: DateTimeString,
+    d: number,
     unit: Asset,
     limit?: number, // max ms to interpolate across
-  ): DecString => {
-    const [pre, suc] = before(a.date, b.date) ? [a, b] : [b, a];
-    const preRate = pre.unit !== unit ? pre.price : math.inv(pre.price);
-    const sucRate = suc.unit !== unit ? suc.price : math.inv(suc.price);
-    const preTime = toTime(pre.date);
-    const sucTime = toTime(suc.date);
+  ): number => {
+    const [pre, suc] = a.time < b.time ? [a, b] : [b, a];
+    const preRate = pre.unit !== unit ? pre.price : 1/pre.price;
+    const sucRate = suc.unit !== unit ? suc.price : 1/suc.price;
+    const preTime = pre.time;
+    const sucTime = suc.time;
     // avoid divide by zero errors
     if (preTime === sucTime) {
-      if (preTime === toTime(d)) {
+      if (preTime === d) {
         // if all dates are equal, return the averge
-        return math.div(math.add(preRate, sucRate), "2");
+        return (preRate + sucRate) / 2;
       } else {
         throw new Error(`Times before & after are the same`);
       }
@@ -97,45 +87,33 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     if (limit && sucTime - preTime > limit) {
       throw new Error(`Times before & after exceed the limit of ${limit}ms`);
     }
-    const slope = math.div(
-      math.sub(sucRate, preRate),
-      math.sub(sucTime.toString(), preTime.toString()),
-    );
-    const time = toTime(d);
-    const interpolated = math.add(
-      preRate,
-      math.mul(
-        (time - toTime(pre.date)).toString(),
-        slope,
-      ),
-    );
+    const slope = (sucRate - preRate) / (sucTime - preTime);
+    const interpolated = preRate + (slope * (d - pre.time));
     log.debug(
       `Interpolated a price of ${interpolated} on ${d} between ${
-        preRate} on ${pre.date
+        preRate} on ${pre.time
       } and ${
-        sucRate} on ${suc.date
+        sucRate} on ${suc.time
       }`,
     );
-    return math.round(interpolated, 8);
+    return interpolated;
   };
 
-  const sumPath = (path: Path, date): DecString => {
+  const sumPath = (path: Path, time: number): number => {
     log.trace(path, "Summing path");
     let prev;
     return path.reduce((rate, step) => {
       if (prev) {
-        return math.mul(
-          rate,
-          step.prices.length === 0 ? "1"
-          : step.prices.length === 1 ? (
-            step.prices[0].unit !== prev ? step.prices[0].price : math.inv(step.prices[0].price)
-          ) : step.prices.length === 2 ? interpolate(step.prices[0], step.prices[1], date, prev)
-          : "1"
+        return rate * (
+          step.prices.length === 0 ? 1 : step.prices.length === 1 ? (
+            step.prices[0].unit !== prev ? step.prices[0].price : 1/step.prices[0].price
+          ) : step.prices.length === 2 ? interpolate(step.prices[0], step.prices[1], time, prev)
+          : 1
         );
       }
       prev = step.asset;
       return rate;
-    }, "1");
+    }, 1);
   };
 
   // Only returns a price if
@@ -143,23 +121,23 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   // - we can interpolate across <= 24 hours
   // - we can extrapolate <= 24 hours into the future
   const getAccurate = (
-    date: DateTimeString,
+    time: number,
     givenAsset: Asset,
     givenUnit?: Asset,
-  ): DecString | undefined => {
+  ): number | undefined => {
     const unit = toTicker(givenUnit || defaultUnit);
     const asset = toTicker(givenAsset);
-    if (unit === asset) return "1";
-    const nearby = getNearbyPrices(json, date, asset, unit);
+    if (unit === asset) return 1;
+    const nearby = getNearbyPrices(json, time, asset, unit);
     if (nearby.length === 1) {
-      return nearby[0].unit === unit ? nearby[0].price : math.inv(nearby[0].price);
+      return nearby[0].unit === unit ? nearby[0].price : 1/nearby[0].price;
     } else if (
       nearby.length === 2 &&
       nearby[0] &&
       nearby[1] &&
-      msDiff(nearby[0].date, nearby[1].date) <= msPerDay
+      nearby[1].time - nearby[0].time <= msPerDay
     ) {
-      return interpolate(nearby[0], nearby[1], date, unit);
+      return interpolate(nearby[0], nearby[1], time, unit);
     }
     return undefined;
   };
@@ -212,7 +190,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     for (const asset of Object.keys(missing)) {
       for (const date of missing[asset]) {
         // if we have sufficient data to accurately interpolate this price then remove it
-        if (getAccurate(date, asset, unit)) {
+        if (getAccurate(toTime(date), asset, unit)) {
           missing[asset].splice(missing[asset].findIndex(d => d === date), 1);
         }
       }
@@ -221,49 +199,27 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   };
 
   const getPrice = (
-    date: DateTimeString,
+    givenTime: DateTimeString | number,
     givenAsset: Asset,
     givenUnit?: Asset,
-  ): DecString | undefined => {
+  ): number | undefined => {
+    const time = typeof givenTime === "string" ? toTime(givenTime) : givenTime;
     const [asset, unit] = [toTicker(givenAsset), toTicker(givenUnit || defaultUnit)];
-    log.debug(`Getting ${unit} price of ${asset} on date closest to ${date}..`);
-    const path = findPath(json, date, asset, unit, log);
+    log.debug(`Getting ${unit} price of ${asset} on date closest to ${time}..`);
+    const path = findPath(json, time, asset, unit, log);
     if (!path.length) {
-      log.debug(`No path is available between ${unit} and ${asset} on ${date}..`);
+      log.debug(`No path is available between ${unit} and ${asset} on ${time}..`);
       return undefined;
     }
-    log.debug(path, `Got path from ${unit} to ${asset} on ${date}..`);
-    return formatPrice(sumPath(path, date));
-  };
-
-  const syncPrice = async (
-    date: DateTimeString,
-    givenAsset: Asset,
-    givenUnit?: Asset,
-  ): Promise<PriceJson> => {
-    let [asset, unit] = [toTicker(givenAsset), toTicker(givenUnit || defaultUnit)];
-    if (!asset || !unit) return []; // eg if asset is unsupported or has no value
-    if (asset === unit) return []; // Exchange rate is 1:1, nothing to sync
-    log.debug(`Syncing ${unit} price of ${asset} on ${date}`);
-    const isFiat = a => Object.keys(FiatCurrencies).includes(a);
-    if (isFiat(asset) && isFiat(unit)) {
-      log.warn(`NOT_IMPLEMENTED: Syncing fiat:fiat exchange rates eg ${unit} price of ${asset}`);
-      return [];
-    } else if (isFiat(asset)) {
-      [asset, unit] = [unit, asset]; // If asset is fiat, then swap asset & unit
-    }
-    // If we already have the data we need to calculate a price w/out interpolation..
-    // Then return that price data.. but how? For now return nothing
-    const path = findPath(json, date, asset, unit, log);
-    if (path.length) return path.reduce((cum, cur) => cum.concat(cur.prices), [] as PriceJson);
-    log.info(`A path to the ${unit} price for ${asset} is not available on ${date}, fetching..`);
-    return getCoinGeckoEntries(json, date, asset, unit, setPrice, log);
+    log.debug(path, `Got path from ${unit} to ${asset} on ${time}..`);
+    return sumPath(path, time);
   };
 
   const calcPrices = (vm: ValueMachine): PriceJson => {
     const newPrices = [] as PriceJson;
     vm.json.events.filter(evt => evt.type === EventTypes.Trade).forEach(evt => {
       const trade = vm.getEvent(evt.index) as HydratedTradeEvent;
+      const time = toTime(trade.date);
       const source = `Event#${evt.index}`;
       const [input, output] = diffBalances([sumChunks(trade.inputs), sumChunks(trade.outputs)]);
       const inAssets = Object.keys(input).sort();
@@ -274,10 +230,10 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       // Assumes that the input and output have equal value
       if (inAssets.length === 1 && outAssets.length === 1) {
         newPrices.push({
-          date: trade.date,
+          time,
           unit: outAssets[0],
           asset: inAssets[0],
-          price: div(output[outAssets[0]], input[inAssets[0]]),
+          price: parseFloat(math.div(output[outAssets[0]], input[inAssets[0]])),
           source,
         });
       // Assumes that for 2 inputs => 1 output,
@@ -286,18 +242,18 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       } else if (inAssets.length === 2 && outAssets.length === 1) {
         // Get prices of the two inputs relative to each other
         newPrices.push({
-          date: trade.date,
+          time,
           unit: inAssets[0],
           asset: inAssets[1],
-          price: div(input[inAssets[0]], input[inAssets[1]]),
+          price: parseFloat(math.div(input[inAssets[0]], input[inAssets[1]])),
           source,
         });
         // Get prices of the output relative to each input
         newPrices.push({
-          date: trade.date,
+          time,
           unit: inAssets[0],
           asset: outAssets[0],
-          price: div(mul(input[inAssets[0]], "2"), output[outAssets[0]]),
+          price: parseFloat(math.div(math.mul(input[inAssets[0]], "2"), output[outAssets[0]])),
           source,
         });
       // Assumes that for 1 input => 2 outputs,
@@ -306,18 +262,18 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       } else if (outAssets.length === 2 && inAssets.length === 1) {
         // Get prices of the two outputs relative to each other
         newPrices.push({
-          date: trade.date,
+          time,
           unit: outAssets[0],
           asset: outAssets[1],
-          price: div(output[outAssets[0]], output[outAssets[1]]),
+          price: parseFloat(math.div(output[outAssets[0]], output[outAssets[1]])),
           source,
         });
         // Get prices of the input relative to each output
         newPrices.push({
-          date: trade.date,
+          time,
           unit: outAssets[0],
           asset: inAssets[0],
-          price: div(mul(output[outAssets[0]], "2"), input[inAssets[0]]),
+          price: parseFloat(math.div(math.mul(output[outAssets[0]], "2"), input[inAssets[0]])),
           source,
         });
       } else if (inAssets.length || outAssets.length) {
@@ -342,9 +298,9 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     // convert missing time prices into the day prices required to interpolate accurately
     const toFetch = {} as MissingPrices;
     for (const asset of Object.keys(missingPrices)) {
-      for (const time of missingPrices[asset]) {
+      for (const date of missingPrices[asset]) {
         toFetch[asset] = toFetch[asset] || [];
-        toFetch[asset].push(toDay(time), toNextDay(time));
+        toFetch[asset].push(toDay(date), toNextDay(date));
       }
     }
     // Remove duplicates & sort
@@ -361,16 +317,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     return newPrices;
   };
 
-  // cacluclates & fetches missing prices
-  // Only useful for server-side applications, usually clients will calculate & servers will fetch
-  const syncPrices = async (vm: ValueMachine, givenUnit?: Asset): Promise<PriceJson> => {
-    const unit = toTicker(givenUnit || defaultUnit);
-    const newPrices = calcPrices(vm); // re-calculate prices given vm data
-    const missingPrices = getMissing(vm, unit);
-    newPrices.push(...(await fetchPrices(missingPrices)));
-    return newPrices;
-  };
-
   const getJson = (): PriceJson => {
     return [...json];
   };
@@ -382,7 +328,5 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     getMissing,
     getPrice,
     merge,
-    syncPrice,
-    syncPrices,
   };
 };

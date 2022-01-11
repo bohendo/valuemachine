@@ -1,5 +1,5 @@
 import { Assets } from "@valuemachine/transactions";
-import { getLogger, math, toISOString, toTime } from "@valuemachine/utils";
+import { getLogger, toISOString, toTime } from "@valuemachine/utils";
 import { expect } from "chai";
 
 import { PriceSources } from "../types";
@@ -11,18 +11,18 @@ const log = getLogger(process.env.LOG_LEVEL || "warn", "TestCoinGecko");
 const { ETH, USD } = Assets;
 
 const dec1 =  {
-  date: "2021-12-01T00:00:00Z",
+  time: toTime("2021-12-01T00:00:00Z"),
   unit: USD,
   asset: ETH,
-  price: "4637.121616831405",
+  price: 4637.12,
   source,
 };
 
 const dec2 =  {
-  date: "2021-12-02T00:00:00Z",
+  time: toTime("2021-12-02T00:00:00Z"),
   unit: USD,
   asset: ETH,
-  price: "4589.610617539151",
+  price: 4589.61,
   source,
 };
 
@@ -94,8 +94,8 @@ describe("CoinGecko", () => {
       for (const j in results[i]) {
         log.info(`On ${
           toISOString(dates[i]).split("T")[0]
-        } 1 ETH was worth $${math.round(results[i][j].price)}`);
-        expect(math.gt(results[i][j].price, "0")).to.be.true;
+        } 1 ETH was worth $${results[i][j].price}`);
+        expect(results[i][j].price).to.be.gt(0);
       }
     }
   });
