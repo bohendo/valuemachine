@@ -16,7 +16,7 @@ export const getAlchemyFetcher = ({
   providerUrl: string,
   logger: Logger,
 }): EvmFetcher => {
-  const log = (logger || getLogger()).child?.({ module: "AlchemyFetcher" });
+  const log = (logger || getLogger()).child?.({ name: "AlchemyFetcher" });
 
   if (!providerUrl) throw new Error(`Alchemy provider URL is required`);
 
@@ -115,11 +115,11 @@ export const getAlchemyFetcher = ({
       hash: hexlify(tx.hash),
       logs: receipt.logs.map(evt => ({
         address: getAddress(evt.address),
-        index: math.toBN(evt.logIndex).toNumber(),
+        index: math.toNum(evt.logIndex),
         topics: evt.topics.map(hexlify),
         data: hexlify(evt.data || "0x"),
       })),
-      nonce: math.toBN(tx.nonce).toNumber(),
+      nonce: math.toNum(tx.nonce),
       status: getStatus(tx, receipt),
       timestamp,
       transfers: formatTraces(traces, metadata),

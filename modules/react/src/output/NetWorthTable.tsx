@@ -34,9 +34,9 @@ export const NetWorthTable: React.FC<NetWorthTableProps> = ({
 
   useEffect(() => {
     if (!prices || !unit) return;
-    const today = new Date().toISOString();
+    const today = Date.now();
     setTodayPrices(Object.keys(balances).reduce((total, asset) => {
-      total[asset] = prices.getNearest(today, asset, unit) || "0";
+      total[asset] = (prices.getPrice(today, asset, unit) || 0).toString();
       return total;
     }, {} as Balances));
   }, [balances, prices, unit]);

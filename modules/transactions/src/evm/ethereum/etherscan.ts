@@ -16,7 +16,7 @@ export const getEtherscanFetcher = ({
   apiKey: string,
   logger: Logger,
 }): EvmFetcher => {
-  const log = (logger || getLogger()).child?.({ module: "EtherscanFetcher" });
+  const log = (logger || getLogger()).child?.({ name: "EtherscanFetcher" });
 
   if (!apiKey) throw new Error(`Etherscan api key is required`);
 
@@ -122,11 +122,11 @@ export const getEtherscanFetcher = ({
       hash: hexlify(tx.hash),
       logs: receipt.logs.map(evt => ({
         address: getAddress(evt.address),
-        index: math.toBN(evt.logIndex).toNumber(),
+        index: math.toNum(evt.logIndex),
         topics: evt.topics.map(hexlify),
         data: hexlify(evt.data || "0x"),
       })),
-      nonce: math.toBN(tx.nonce).toNumber(),
+      nonce: math.toNum(tx.nonce),
       status: getStatus(tx, receipt),
       timestamp,
       transfers: transfers.map(transfer => ({

@@ -235,7 +235,7 @@ export const getForeignEarnedIncome = (year: Year, input: TaxInput, rows: TaxRow
 
 export const getForeignEarnedIncomeExclusion = (year: Year, input: TaxInput, rows: TaxRows) => {
   const [yearStart, yearEnd] = [`${year}-01-01`, `${year}-12-31`];
-  // TODO: If too few days abroad, return zero
+  // If we've spent too few days abroad, we ought to just return zero here
   // We could eventually pull housing exclusion info out of tax input here too..
   const income = getForeignEarnedIncome(year, input, rows);
   const percentDaysAbroad = math.div(

@@ -25,7 +25,7 @@ export const elementsParser = (
   csvData: string,
   logger: Logger,
 ): Transaction[] => {
-  const log = logger.child({ module: source }); 
+  const log = logger.child({ name: source }); 
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of ${source} data`);
   return csv(csvData, { columns: true, skip_empty_lines: true }).sort((r1, r2) => {
     return new Date(r1[dateKey]).getTime() - new Date(r2[dateKey]).getTime();

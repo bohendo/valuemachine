@@ -1,18 +1,35 @@
-import { AssetChunk } from "@valuemachine/core";
-import { Asset, DateString, DecString, DateTimeString } from "@valuemachine/types";
+import { ValueMachine } from "@valuemachine/core";
+import { Asset, DateTimeString } from "@valuemachine/types";
 import { Static, Type } from "@sinclair/typebox";
 import pino from "pino";
 
 ////////////////////////////////////////
 // JSON Schema
 
-// unit:asset:price where price is the number of units per asset
-export const PriceList = Type.Record(Type.String(), Type.Record(Type.String(), DecString));
-export type PriceList = Static<typeof PriceList>;
+export const PriceSources = {
+  CoinGecko: "CoinGecko",
+  UniswapV1: "UniswapV1",
+  UniswapV2: "UniswapV2",
+  UniswapV3: "UniswapV3",
+} as const;
+export const PriceSource = Type.Enum(PriceSources);
+export type PriceSource = Static<typeof PriceSource>;
 
-// date:PriceList
-export const PriceJson = Type.Record(Type.String(), PriceList);
+export const PriceEntry = Type.Object({
+  time: Type.Number(), // ms since epoch
+  unit: Asset,
+  asset: Asset,
+  price: Type.Number(), // n units per 1 asset
+  source: Type.String(), // PriceSource or TxId
+});
+export type PriceEntry = Static<typeof PriceEntry>;
+
+export const PriceJson = Type.Array(PriceEntry);
 export type PriceJson = Static<typeof PriceJson>;
+
+// eg { DAI: ["2020-01-01T00:00:00Z", "2020-01-01T12:00:00Z"], ETH: ["2020-01-01T00:00:00Z"] }
+export const MissingPrices = Type.Record(Type.String(), Type.Array(DateTimeString));
+export type MissingPrices = Static<typeof MissingPrices>;
 
 ////////////////////////////////////////
 // Function Interfaces
@@ -25,11 +42,20 @@ export type PricesParams = {
 };
 
 export interface PriceFns {
-  getPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => string | undefined;
-  getNearest: (date: DateTimeString, asset: Asset, unit?: Asset) => string | undefined;
-  setPrice: (price: DecString, rawDate: DateString, asset: Asset, givenUnit?: Asset) => void;
-  json: PriceJson;
+  calcPrices: (vm: ValueMachine) => PriceJson;
+  fetchPrices: (missingPrices: MissingPrices, unit?: Asset) => Promise<PriceJson>;
+  getJson: () => PriceJson;
+  getMissing: (vm: ValueMachine, unit?: Asset) => MissingPrices;
+  getPrice: (time: DateTimeString | number, asset: Asset, unit?: Asset) => number | undefined;
   merge: (prices: PriceJson) => void;
-  syncChunks: (chunks: AssetChunk[], unit?: Asset) => Promise<PriceJson>;
-  syncPrice: (date: DateTimeString, asset: Asset, unit?: Asset) => Promise<string | undefined>;
 }
+
+////////////////////////////////////////
+// Path
+
+export type Step = {
+  asset: Asset;
+  prices: PriceJson; // empty for first step
+};
+
+export type Path = Array<Step>;

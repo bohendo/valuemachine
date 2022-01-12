@@ -1,6 +1,6 @@
 {
   "name": "valuemachine",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "description": "Low level utilities for portfolio and tax analysis",
   "repository": {
     "type": "git",
@@ -16,13 +16,14 @@
   "scripts": {},
   "devDependencies": {
     "david": "12.0.0",
-    "@typescript-eslint/eslint-plugin": "4.33.0",
-    "@typescript-eslint/parser": "4.33.0",
-    "ethers": "5.5.1",
-    "eslint": "7.32.0",
-    "eslint-plugin-import": "2.25.3",
-    "eslint-plugin-react": "7.27.0",
-    "eslint-plugin-unused-imports": "1.1.5",
+    "@typescript-eslint/eslint-plugin": "5.9.1",
+    "@typescript-eslint/parser": "5.9.1",
+    "ethers": "5.5.3",
+    "eslint": "8.6.0",
+    "eslint-plugin-import": "2.25.4",
+    "eslint-plugin-mocha": "10.0.3",
+    "eslint-plugin-react": "7.28.0",
+    "eslint-plugin-unused-imports": "2.0.0",
     "tslib": "2.3.1"
   }
 }

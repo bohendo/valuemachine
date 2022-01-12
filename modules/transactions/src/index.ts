@@ -62,6 +62,9 @@ export {
   getTransactions,
 } from "./manager";
 export {
+  getTestAddressBook,
+} from "./testUtils";
+export {
   AddressBook,
   AddressBookJson,
   AddressBookParams,

@@ -2,7 +2,7 @@ import { expect } from "chai";
 
 import { diffBalances } from "./misc";
 
-describe("Misc Utils", () => {
+describe("Balances", () => {
 
   it("should diff balances", async () => {
     expect(diffBalances([{

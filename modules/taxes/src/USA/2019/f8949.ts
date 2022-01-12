@@ -22,7 +22,7 @@ type Trade = {
 };
 
 export const f8949 = (forms: Forms, taxRows: TaxRows, logger: Logger): Forms  => {
-  const log = logger.child({ module: "f8949" });
+  const log = logger.child({ name: "f8949" });
   const f1040 = forms.f1040;
   let f8949 = forms.f8949.length ? forms.f8949 : [];
 

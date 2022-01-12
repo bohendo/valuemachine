@@ -5,7 +5,7 @@ import { Apps, Evms } from "../../enums";
 import { getParseTx, testLogger } from "../../testUtils";
 
 const appName = Apps.Aave;
-const log = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
+const log = testLogger.child({ name: `Test${appName}` }, { level: "warn" });
 const parseTx = getParseTx({ logger: log });
 
 describe(appName, () => {

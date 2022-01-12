@@ -1,8 +1,12 @@
+const ignore = "^_";
+
 module.exports = {
+  root: true,
   env: {
     browser: true,
+    es6: true,
+    mocha: true,
     node: true,
-    es6: true
   },
   extends: [
     "eslint:recommended",
@@ -11,7 +15,6 @@ module.exports = {
     "plugin:import/typescript",
     "plugin:import/warnings",
     "plugin:react/recommended",
-    "react-app",
   ],
   overrides: [
     {
@@ -32,11 +35,15 @@ module.exports = {
   plugins: [
     "@typescript-eslint",
     "import",
+    "mocha",
     "react",
     "unused-imports",
   ],
   rules: {
-    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", {
+      varsIgnorePattern: ignore,
+      argsIgnorePattern: ignore,
+    }],
     "@typescript-eslint/no-redeclare": "off",
     "comma-dangle": ["warn", "only-multiline"],
     "import/no-anonymous-default-export": "off",
@@ -55,16 +62,19 @@ module.exports = {
     "no-loop-func": ["off"],
     "no-undef": ["warn"],
     "no-useless-computed-key": ["off"],
+    "no-unused-vars": ["off"],
     "no-var": ["warn"],
     "prefer-const": ["warn"],
     "object-curly-spacing": ["warn", "always"],
     "quotes": ["warn", "double", { allowTemplateLiterals: true, avoidEscape: true }],
     "semi": ["warn", "always"],
     "unused-imports/no-unused-imports-ts": "warn",
-    "unused-imports/no-unused-vars-ts": [
-      "warn",
-      { "vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_" },
-    ],
+    "unused-imports/no-unused-vars-ts": ["warn", {
+      "vars": "all",
+      "varsIgnorePattern": ignore,
+      "args": "after-used",
+      "argsIgnorePattern": ignore,
+    }],
   },
   settings: {
     react: {

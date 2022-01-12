@@ -7,7 +7,7 @@ import { AddressCategories } from "./enums";
 import { testLogger } from "./testUtils";
 import { getAddressBookError, fmtAddressBook } from "./utils";
 
-const log = testLogger.child({ module: "TestAddressBook" }, { level: "warn" });
+const log = testLogger.child({ name: "TestAddressBook" }, { level: "warn" });
 
 const makeAddress = (val: string): string => `0x${val.repeat(40).substring(0, 40)}`;
 

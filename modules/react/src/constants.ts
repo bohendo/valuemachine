@@ -1,5 +1,5 @@
 import { getValueMachine } from "@valuemachine/core";
-import { getPrices } from "@valuemachine/prices";
+import { getPriceFns } from "@valuemachine/prices";
 import {
   AddressCategories,
   Assets,
@@ -11,6 +11,7 @@ import {
   Sources,
   TransferCategories,
 } from "@valuemachine/transactions";
+import { toTime } from "@valuemachine/utils";
 
 const { BCH, BTC, DAI, ETH, UNI, INR, USD } = Assets;
 const { Internal, Expense, Income, SwapIn, SwapOut } = TransferCategories;
@@ -117,24 +118,20 @@ export const vm = getValueMachine();
 // Generate value machine data from transactions
 transactions.json.forEach(tx => vm.execute(tx));
 
-console.log(`Setting price on date ${transactions.json[4].date}`);
-const today = new Date().toISOString().split("T")[0];
-export const prices = getPrices({
-  json: {
-    [today]: { [USD]: {
-      [BCH]: "580",
-      [BTC]: "55000",
-      [DAI]: "1.01",
-      [ETH]: "3500",
-      [INR]: "0.0133",
-    } },
-    // At the time of depositing UNI onto coinbase
-    [transactions.json[4].date.split("T")[0]]: { [USD]: { [UNI]: "4" } },
-    // At the time of selling UNI on coinbase
-    [transactions.json[5].date.split("T")[0]]: { [USD]: { [UNI]: "6" } },
-  },
+const today = Date.now();
+const source = "Hardcoded";
+export const prices = getPriceFns({
+  json: [
+    { time: today, unit, asset: BCH, price: 580, source },
+    { time: today, unit, asset: BTC, price: 55000, source },
+    { time: today, unit, asset: DAI, price: 1.01, source },
+    { time: today, unit, asset: ETH, price: 3500, source },
+    { time: today, unit, asset: INR, price: 0.133, source },
+    { time: toTime(transactions.json[4].date), unit, asset: UNI, price: 4, source },
+    { time: toTime(transactions.json[5].date), unit, asset: UNI, price: 6, source },
+  ],
 });
-prices.syncChunks(vm.json.chunks);
+prices.calcPrices(vm);
 
 export const txTags = {
   ["Test/0x0000000000000000000000000000000000000000000000000000000000000000/1"]: {

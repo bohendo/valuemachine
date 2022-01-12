@@ -8,7 +8,7 @@ import { getTransactionsError } from "./utils";
 export const getTransactions = (params?: TransactionsParams): Transactions => {
   const { json: transactionsJson, logger, save } = params || {};
 
-  const log = (logger || getLogger()).child({ module: "Transactions" });
+  const log = (logger || getLogger()).child({ name: "Transactions" });
   const json = transactionsJson || [] as TransactionsJson;
 
   const error = getTransactionsError(json);

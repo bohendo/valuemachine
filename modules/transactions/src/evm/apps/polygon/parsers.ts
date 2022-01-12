@@ -44,7 +44,7 @@ export const coreParser = (
   addressBook: AddressBook,
   logger: Logger,
 ): Transaction => {
-  const log = logger.child({ module: appName });
+  const log = logger.child({ name: appName });
   const { getName, isToken, getDecimals } = addressBook;
   const addressZero = `${evmMeta.name}/${AddressZero}`;
 

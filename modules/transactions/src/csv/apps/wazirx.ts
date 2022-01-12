@@ -33,7 +33,7 @@ export const wazirxParser = (
   logger: Logger,
 ): Transaction[] => {
   const source = CsvSources.Wazirx;
-  const log = logger.child({ module: source });
+  const log = logger.child({ name: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of waxrix data`);
   return csv(csvData, { columns: true, skip_empty_lines: true }).sort((r1, r2) =>
     new Date(r1[dateKey]).getTime() - new Date(r2[dateKey]).getTime()

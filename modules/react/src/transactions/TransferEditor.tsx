@@ -37,7 +37,6 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
   useEffect(() => {
     if (!newTransfer || !modified || error) return;
     setTransfer?.(newTransfer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newTransfer, modified, error]);
 
   useEffect(() => {
@@ -48,7 +47,6 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
   useEffect(() => {
     setError(newTransfer ? getTransferError(newTransfer) : "");
     if (!error) setTransfer?.(newTransfer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newTransfer]);
 
   useEffect(() => {
@@ -115,7 +113,7 @@ export const TransferEditor: React.FC<TransferEditorProps> = ({
       <Grid item md={4}>
         <TextInput 
           getError={getAccountError}
-          helperText={"Who recieved the transfer"}
+          helperText={"Who received the transfer"}
           label="To"
           setText={to => setNewTransfer({ ...newTransfer, to })}
           text={newTransfer.to}

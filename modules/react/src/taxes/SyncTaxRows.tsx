@@ -31,7 +31,7 @@ export const SyncTaxRows: React.FC<SyncTaxRowsProps> = ({
   const [syncMsg, setSyncMsg] = useState("");
 
   const handleSync = async () => {
-    if (!addressBook?.json || !prices?.json || !vm?.json?.events?.length || !unit) return;
+    if (!addressBook?.json || !prices?.getJson() || !vm?.json?.events?.length || !unit) return;
     if (syncMsg) return;
     await syncTaxRows({
       addressBook,

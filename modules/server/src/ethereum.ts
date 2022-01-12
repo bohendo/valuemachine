@@ -12,7 +12,7 @@ import { env } from "./env";
 import { getPollerHandler } from "./poller";
 import { getLogAndSend, store, STATUS_YOUR_BAD } from "./utils";
 
-const log = getLogger(env.logLevel).child({ module: `${Guards.Ethereum}Transactions` });
+const log = getLogger(env.logLevel).child({ name: `${Guards.Ethereum}Transactions` });
 
 const ethereumData = getEthereumData({
   alchemyProvider: env.alchemyProvider,

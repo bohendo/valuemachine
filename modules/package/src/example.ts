@@ -8,7 +8,7 @@ import {
   getEthereumData,
   getFileStore,
   getLogger,
-  getPrices,
+  getPriceFns,
   getTransactions,
   getValueMachine,
   math,
@@ -54,29 +54,21 @@ const transactions = getTransactions({ logger });
 
   // Create a price fetcher & fetch the relevant prices
   const unit = "USD";
-  const prices = getPrices({
-    json: store.load("Prices"),
+  const prices = getPriceFns({
     logger,
-    save: val => store.save("Prices", val),
     unit,
   });
-  for (const chunk of vm.json.chunks) {
-    const { asset, history, disposeDate } = chunk;
-    for (const date of [history[0]?.date, disposeDate]) {
-      if (!date) continue;
-      await prices.syncPrice(date, asset);
-    }
-  }
+  prices.calcPrices(vm);
 
   // calculate & print capital gains
-  console.log(`    Amount |        Asset | Receive Date | Dispose Date | Capital Change (USD)`);
+  console.log(`      Amount |        Asset | Receive Date | Dispose Date | Capital Change (USD)`);
   for (const event of vm.json.events) {
     switch(event.type) {
     case EventTypes.Trade: {
       event.outputs.forEach(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const takePrice = prices.getNearest(chunk.history[0]?.date, chunk.asset);
-        const givePrice = prices.getNearest(chunk.disposeDate, chunk.asset);
+        const takePrice = (prices.getPrice(chunk.history[0]?.date, chunk.asset) || 0).toString();
+        const givePrice = (prices.getPrice(chunk.disposeDate, chunk.asset) || 0).toString();
         if (!takePrice || !givePrice) return;
         const change = math.mul(chunk.amount, math.sub(givePrice, takePrice));
         console.log(`${

@@ -45,7 +45,7 @@ export const mergeTransaction = (
   newTx: Transaction,
   logger: Logger,
 ): Transaction[] => {
-  let log = (logger || getLogger()).child({ module: "MergeTx" });
+  let log = (logger || getLogger()).child({ name: "MergeTx" });
   if (!newTx?.transfers?.length) {
     log.debug(`Skipped new tx with zero transfers`);
     return transactions;
@@ -65,7 +65,7 @@ export const mergeTransaction = (
   } else if (
     Object.keys(EvmNames).includes(newTx.sources[0])
   ) {
-    log = (logger || getLogger()).child({ module: `MergeEthTx` });
+    log = (logger || getLogger()).child({ name: `MergeEthTx` });
 
     // Detect & replace duplicates
     const index = transactions.findIndex(tx => tx.uuid === newTx.uuid);
@@ -147,7 +147,7 @@ export const mergeTransaction = (
     Object.keys(CsvSources).includes(newTx.sources[0])
   ) {
     const source = newTx.sources[0];
-    log = (logger || getLogger()).child({ module: `Merge${source}Tx` });
+    log = (logger || getLogger()).child({ name: `Merge${source}Tx` });
 
     if (transactions.filter(tx => tx.sources.includes(source)).find(tx =>
       tx.uuid === newTx.uuid || (

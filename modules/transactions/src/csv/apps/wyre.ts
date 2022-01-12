@@ -54,7 +54,7 @@ export const wyreParser = (
   logger: Logger,
 ): Transaction[] => {
   const source = CsvSources.Wyre;
-  const log = logger.child({ module: source });
+  const log = logger.child({ name: source });
   log.info(`Processing ${csvData.split(`\n`).length - 2} rows of wyre data`);
   return csv(csvData, { columns: true, skip_empty_lines: true }).sort((r1, r2) => {
     return new Date(r1[dateKey]).getTime() - new Date(r2[dateKey]).getTime();

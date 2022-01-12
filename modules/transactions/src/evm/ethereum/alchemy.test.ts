@@ -4,7 +4,7 @@ import { env, testLogger } from "../testUtils";
 
 import { getAlchemyFetcher } from "./alchemy";
 
-const logger = testLogger.child({ module: "Alchemy Fetcher" }, { level: "trace" });
+const logger = testLogger.child({ name: "Alchemy Fetcher" }, { level: "trace" });
 
 // Skip tests that require network calls unless we're actively debugging
 describe.skip("Alchemy Fetcher", () => {

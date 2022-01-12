@@ -13,7 +13,7 @@ export const f1040sa = (
   rows: TaxRows,
   logger: Logger,
 ): Forms => {
-  const log = logger.child({ module: "f1040sa" });
+  const log = logger.child({ name: "f1040sa" });
   const { f1040sa } = forms;
   const personal = input.personal || {};
   const inputForms = input.forms || {};

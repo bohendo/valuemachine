@@ -6,7 +6,7 @@ import { mergeTransaction } from "./merge";
 import { testLogger } from "./testUtils";
 import { Transaction } from "./types";
 
-const log = testLogger.child({ module: "TestMerge" }, { level: "warn" });
+const log = testLogger.child({ name: "TestMerge" }, { level: "warn" });
 const { ETH } = Assets;
 const { Fee, Expense, Internal } = TransferCategories;
 const { Coinbase, Ethereum } = Sources;

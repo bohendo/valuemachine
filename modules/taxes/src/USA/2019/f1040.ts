@@ -8,7 +8,7 @@ import {
 } from "./utils";
 
 export const f1040 = (oldForms: Forms, logger: Logger): Forms => {
-  const log = logger.child({ module: "f1040" });
+  const log = logger.child({ name: "f1040" });
   const forms = JSON.parse(JSON.stringify(oldForms)) as Forms;
   const { f1040, f1040s1, f1040s2, f1040s3, f2555 } = forms;
 

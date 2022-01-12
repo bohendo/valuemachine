@@ -1,177 +1,152 @@
-import { AssetChunk } from "@valuemachine/core";
-import { Assets } from "@valuemachine/transactions";
-import { DateString } from "@valuemachine/types";
-import { math } from "@valuemachine/utils";
+import { getValueMachine } from "@valuemachine/core";
+import {
+  getTestAddressBook,
+  Assets,
+  getTestTx,
+  TransferCategories,
+} from "@valuemachine/transactions";
+import {
+  getLogger,
+  msPerDay,
+  toTime,
+} from "@valuemachine/utils";
 import { expect } from "chai";
 
-import { getPrices } from "./prices";
-import { testLogger } from "./testUtils";
+import { getPriceFns } from "./prices";
 import { PriceFns } from "./types";
+import { toDay } from "./utils";
 
-const log = testLogger.child({ module: "TestPrices" }, { level: "warn" });
-const { DAI, USD, ETH, cDAI, MKR, UNI } = Assets;
-const { round } = math;
+const log = getLogger(process.env.LOG_LEVEL || "warn", "TestPrices");
 
 describe("Prices", () => {
   let prices: PriceFns;
-  const date = "2020-01-01";
-  const getDate = (index: number): DateString =>
-    new Date(new Date(date).getTime() + (index * 1000 * 60 * 60 * 24)).toISOString();
+  const source = "Test";
 
   beforeEach(() => {
-    prices = getPrices({ logger: log });
-    expect(Object.keys(prices.json).length).to.equal(0);
+    prices = getPriceFns({ logger: log });
+    expect(prices.getJson().length).to.equal(0);
   });
 
-  it("should get nearest prices", async () => {
-    const usdPerEth = "1234";
-    const plusOneDay = d => new Date(new Date(d).getTime() + (1000 * 60 * 60 * 24)).toISOString();
-    const plusOne = n => math.add(n, "1");
-    prices.merge({
-      [plusOneDay(date)]: { USD: { ETH: usdPerEth } },
-      [plusOneDay(plusOneDay(date))]: { USD: { ETH: plusOne(usdPerEth) } },
+  it("should return an inferred price if no exact value is available", async () => {
+    const [t1, t2, t3] = ["2021-12-01", "2021-12-02", "2021-12-03"].map(toDay).map(toTime);
+    prices.merge([
+      { time: t1, unit: "A", asset: "B", price: 1, source },
+      { time: t3, unit: "A", asset: "B", price: 3, source },
+    ]);
+    expect(prices.getPrice(t1 - 1, "B", "A")).to.equal(1); // backwards extrapolation
+    expect(prices.getPrice(t2, "B", "A")).to.equal(2); // interpolation
+    expect(prices.getPrice(t3 + 1, "B", "A")).to.equal(3); // forwards extrapolation
+  });
+
+  it("should find a valid path between prices", async () => {
+    // This price graph is adversarial to ensure it's a worst-case
+    // C1,C2,C3 form a cycle, the C2 branch requires backtracking
+    const time = toTime("2020-01-01T12:00:00Z");
+    prices.merge([
+      { time, unit: "C1", asset: "C2", price: 1, source },
+      { time, unit: "C2", asset: "C3", price: 1, source },
+      { time, unit: "C1", asset: "C3", price: 1, source },
+      { time, unit: "C1", asset: "C1A", price: 2, source },
+      { time, unit: "C1B", asset: "C1A", price: 0.5, source },
+      { time, unit: "C1B", asset: "C1C", price: 2, source },
+      { time, unit: "C2", asset: "C2A", price: 1, source },
+      { time, unit: "C2A", asset: "C2B", price: 1, source },
+      { time, unit: "C2A", asset: "C2C", price: 1, source },
+      { time, unit: "C2C", asset: "C2D", price: 1, source },
+      { time, unit: "C3", asset: "C3A", price: 1, source },
+      { time, unit: "C3A", asset: "C3B", price: 1, source },
+    ]);
+    expect(prices.getPrice(time, "C1C", "C1")).to.equal(8);
+    expect(prices.getPrice(time + 1, "C1C", "C1")).to.equal(8);
+    expect(prices.getPrice(time - 1, "C1C", "C1")).to.equal(8);
+  });
+
+  it("should pathfind across several interpolated prices", async () => {
+    const [t1, t2, t3] = ["2021-12-01", "2021-12-02", "2021-12-03"].map(toDay).map(toTime);
+    prices.merge([
+      { time: t1, unit: "A", asset: "B", price: 1, source },
+      { time: t3, unit: "A", asset: "B", price: 3, source },
+      { time: t1, unit: "B", asset: "C", price: 1, source },
+      { time: t3, unit: "B", asset: "C", price: 3, source },
+      { time: t2, unit: "C", asset: "D", price: 2, source },
+    ]);
+    expect(prices.getPrice(t2, "B", "A")).to.equal(2);
+    expect(prices.getPrice(t2, "C", "A")).to.equal(4);
+    expect(prices.getPrice(t2, "D", "A")).to.equal(8);
+    expect(Math.round(prices.getPrice(t2 + 1, "D", "A"))).to.equal(8);
+    expect(Math.round(prices.getPrice(t2 - 1, "D", "A"))).to.equal(8);
+  });
+
+  it("should calculate prices from ValueMachine data", async () => {
+    const me = "Ethereum/0x1111111111111111111111111111111111111111";
+    const notMe = "Ethereum/0x2222222222222222222222222222222222222222";
+    const vm = getValueMachine({ addressBook: getTestAddressBook(me) });
+    const { Income, SwapIn, SwapOut } = TransferCategories;
+    const txns = [getTestTx([
+      { amount: "100", asset: "A", category: Income, from: notMe, to: me },
+    ]), getTestTx([
+      { amount: "4", asset: "A", category: SwapOut, from: me, to: notMe },
+      { amount: "2", asset: "B", category: SwapIn, from: notMe, to: me },
+    ]), getTestTx([
+      { amount: "4", asset: "A", category: SwapOut, from: me, to: notMe },
+      { amount: "2", asset: "B", category: SwapOut, from: me, to: notMe },
+      { amount: "1", asset: "C", category: SwapIn, from: notMe, to: me },
+    ]), getTestTx([
+      { amount: "1", asset: "C", category: SwapOut, from: me, to: notMe },
+      { amount: "8", asset: "A", category: SwapIn, from: notMe, to: me },
+      { amount: "4", asset: "B", category: SwapIn, from: notMe, to: me },
+    ]), getTestTx([
+      { amount: "4", asset: "B", category: SwapOut, from: me, to: notMe },
+      { amount: "1", asset: "A", category: SwapIn, from: notMe, to: me },
+    ])];
+    txns.forEach(vm.execute);
+    prices.calcPrices(vm, Assets.ETH);
+    expect(prices.getPrice(txns[1].date, "B", "A")).to.equal(2);
+    expect(prices.getPrice(txns[2].date, "C", "A")).to.equal(8);
+  });
+
+  it("should pathfind reasonably quickly", async () => {
+    const repeat = (n: number, fn: any): any[] => {
+      return "0".repeat(n).split("").map((v, i) => fn(i));
+    };
+    const getRandomEntry = (startDate) => {
+      const seed = Math.random();
+      const last = parseInt(seed.toString().substring(5, 6));
+      return {
+        time: Math.round(toTime(startDate) + seed * 90 * msPerDay),
+        unit: last <= 3 ? "AA" : last <= 6 ? "BB" : "CC",
+        asset: last <= 3 ? "BB" : last <= 6 ? "CC" : "DD",
+        price: last + 1,
+        source: "RNG",
+      };
+    };
+    const [t1, t2, t3] = ["2021-01-01", "2021-01-02", "2021-01-03"].map(toDay).map(toTime);
+    // Inject hundreds of price entries so the pathfinder has to do some real work
+    prices.merge([
+      { time: t1, unit: "AA", asset: "BB", price: 1, source },
+      { time: t3, unit: "AA", asset: "BB", price: 3, source },
+      { time: t1, unit: "BB", asset: "CC", price: 1, source },
+      { time: t3, unit: "BB", asset: "CC", price: 3, source },
+      { time: t2, unit: "CC", asset: "DD", price: 2, source },
+      ...(repeat(400, () => getRandomEntry("2020-09-01"))),
+      ...(repeat(400, () => getRandomEntry("2021-01-04"))),
+    ]);
+    const nPaths = 10;
+    const nChecks = 6;
+    const start = Date.now();
+    repeat(nPaths, () => {
+      // Add a few random ms to avoid the cache & exact-match-short-circuit
+      const randomMs = Math.round(Math.random() * 100);
+      expect(Math.round(prices.getPrice(t2 + randomMs, "BB", "AA"))).to.equal(2);
+      expect(Math.round(prices.getPrice(t2 - randomMs, "BB", "AA"))).to.equal(2);
+      expect(Math.round(prices.getPrice(t2 + randomMs, "CC", "AA"))).to.equal(4);
+      expect(Math.round(prices.getPrice(t2 - randomMs, "CC", "AA"))).to.equal(4);
+      expect(Math.round(prices.getPrice(t2 + randomMs, "DD", "AA"))).to.equal(8);
+      expect(Math.round(prices.getPrice(t2 - randomMs, "DD", "AA"))).to.equal(8);
     });
-    expect(round(prices.getNearest(date, ETH, USD))).to.equal(round(usdPerEth));
-  });
-
-  it("should calculate some prices from traded chunks", async () => {
-    const amts = ["1.1", "0.1", "50", "2"];
-    await prices.syncChunks([
-      {
-        asset: ETH,
-        history: [{ date: getDate(1), guard: ETH }],
-        disposeDate: getDate(2),
-        amount: amts[0],
-        index: 0,
-        inputs: [],
-        outputs: [1],
-      },
-      {
-        asset: ETH,
-        history: [{ date: getDate(2), guard: ETH }],
-        amount: amts[1],
-        index: 0,
-        inputs: [0],
-        outputs: [],
-      },
-      {
-        asset: UNI,
-        history: [{ date: getDate(2), guard: ETH }],
-        disposeDate: getDate(3),
-        amount: amts[2],
-        index: 1,
-        inputs: [0],
-        outputs: [2],
-      },
-      {
-        asset: ETH,
-        history: [{ date: getDate(3), guard: ETH }],
-        disposeDate: getDate(4),
-        amount: amts[3],
-        index: 2,
-        inputs: [1],
-        outputs: [],
-      },
-    ] as AssetChunk[], ETH);
-    expect(prices.getPrice(getDate(2), UNI, ETH)).to.equal(
-      math.div(math.sub(amts[0], amts[1]), amts[2])
-    );
-    expect(prices.getPrice(getDate(3), UNI, ETH)).to.equal(math.div(amts[3], amts[2]));
-  });
-
-  it("should set & get prices", async () => {
-    const usdPerEth = "1234";
-    const ethPerDai = "0.0008";
-    const ethPerMkr = "1.234";
-    const daiPerCDai = "0.02041";
-    prices.merge({ [date]: {
-      USD: {
-        ETH: usdPerEth,
-      },
-      ETH: {
-        DAI: ethPerDai,
-        MKR: ethPerMkr,
-      },
-      DAI: {
-        cDAI: daiPerCDai,
-      },
-    } });
-    expect(round(prices.getPrice(date, ETH, USD))).to.equal(round(usdPerEth));
-    expect(round(prices.getPrice(date, DAI, ETH))).to.equal(round(ethPerDai));
-    expect(round(prices.getPrice(date, MKR, ETH))).to.equal(round(ethPerMkr));
-    expect(round(prices.getPrice(date, cDAI, DAI))).to.equal(round(daiPerCDai));
-    log.info(prices.json, `All prices on ${date}`);
-    expect(
-      round(prices.getPrice(date, cDAI, USD))
-    ).to.equal(
-      round(math.mul(usdPerEth, ethPerDai, daiPerCDai))
-    );
-  });
-
-  // This price graph is adversarial to ensure it's a worst-case that requires backtracking
-  it("should find a proper path between prices", async () => {
-    prices.merge({ [date]: {
-      ETH: {
-        "PETH": "1.01324835228845479",
-        "DAI": "0.0022106382659755107",
-        "AETH": "1",
-      },
-      AETH: {
-        "BETH": "1",
-      },
-      BETH: {
-        "CETH": "1",
-      },
-      FETH: {
-        "TEST": "1",
-      },
-      WETHy: {
-        "WTEST": "1",
-      },
-      cDAI: {
-        "acDAI": "1",
-      },
-      PETH: {
-        "FETH": "1",
-        "WETHy": "0.986924871618559309940522374665122283",
-      },
-      DAI: {
-        "cDAI": "0.02",
-        "SAI": "1",
-      },
-      SAI: {
-        // "PETH": "458.351041816119249543",
-        "MKR": "569.877871353024680810695929796535270104",
-      },
-      MKR: {
-        "SAI": "0.00175476194158191084713006669037875",
-      },
-    } });
-    log.info(prices.json, `All prices`);
-    expect(prices.getPrice(date, "CETH", ETH)).to.be.ok;
-  });
-
-  // Tests that require network calls might be fragile, skip them for now
-  it.skip("should fetch a price of assets not in the Assets enum", async () => {
-    expect(await prices.syncPrice(new Date().toISOString(), "idleUSDTYield", USD)).to.be.ok;
-  });
-
-  // Tests that require network calls might be fragile, skip them for now
-  it.skip("should handle rate limits gracefully", async () => {
-    // trigger a rate limit
-    const ethLaunchish = new Date("2017-01-01").getTime();
-    const getRandomDate = () => new Date(Math.round(
-      ethLaunchish + (Math.random() * (Date.now() - ethLaunchish))
-    ));
-    log.info(`Starting rate limit test`);
-    const dates = "0".repeat(42).split("").map(() => getRandomDate());
-    const results = await Promise.all(dates.map(date => prices.syncPrice(date, ETH, USD)));
-    for (const i in results) {
-      log.info(`On ${
-        new Date(dates[i]).toISOString().split("T")[0]
-      } 1 ETH was worth $${round(results[i])}`);
-      expect(math.gt(results[i], "0")).to.be.true;
-    }
+    const rate = Math.round((nPaths * nChecks * 1000) / (Date.now() - start));
+    log.info(`Found ${nPaths * nChecks} prices at a rate of ${rate} paths found per second`);
+    expect(rate).to.be.gt(100);
   });
 
 });

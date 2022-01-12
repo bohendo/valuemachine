@@ -15,7 +15,7 @@ export const getCovalentFetcher = ({
   apiKey: string,
   logger: Logger,
 }): EvmFetcher => {
-  const log = (logger || getLogger()).child?.({ module: "CovalentFetcher" });
+  const log = (logger || getLogger()).child?.({ name: "CovalentFetcher" });
 
   if (!apiKey) throw new Error(`Covalent api key is required`);
 
@@ -28,8 +28,7 @@ export const getCovalentFetcher = ({
   ////////////////////////////////////////
   // Internal Heleprs
 
-  const numify = (val: number | string): number => math.toBN(val).toNumber();
-  const stringify = (val: number | string): string => numify(val).toString();
+  const stringify = (val: number | string): string => math.toNum(val).toString();
 
   // CAIP-10
   const getAddress = (address: string): string => `${metadata.name}/${getEvmAddress(address)}`;

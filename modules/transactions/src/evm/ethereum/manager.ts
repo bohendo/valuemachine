@@ -25,7 +25,7 @@ export const getEthereumData = ({
   logger?: Logger,
   save?: (val: EvmDataJson) => void,
 }): EvmData => {
-  const log = (logger || getLogger()).child?.({ module: "EthereumData" });
+  const log = (logger || getLogger()).child?.({ name: "EthereumData" });
   const json = ethDataJson || getEmptyEvmData();
 
   const inputError = getEvmDataError(json);

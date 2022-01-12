@@ -9,6 +9,7 @@ import {
   Balances,
   DateTimeString,
   DecString,
+  TxId,
 } from "@valuemachine/types";
 import pino from "pino";
 
@@ -59,7 +60,7 @@ const BaseEvent = Type.Object({
   date: DateTimeString,
   index: Type.Number(),
   tag: TxTag,
-  txId: Type.String(),
+  txId: TxId,
 });
 type BaseEvent = Static<typeof BaseEvent>;
 

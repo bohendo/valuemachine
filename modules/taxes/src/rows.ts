@@ -45,7 +45,7 @@ export const getTaxRows = async ({
     evt.type === EventTypes.Trade ||
     evt.type === EventTypes.Income ||
     evt.type === EventTypes.Expense
-  ))) {
+  )) || []) {
 
     const getDate = (datetime: DateTimeString): DateString =>
       new Date(datetime).toISOString().split("T")[0];
@@ -65,12 +65,12 @@ export const getTaxRows = async ({
       if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); continue; }
       rows.push(...evt.outputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const price = prices.getNearest(date, chunk.asset, unit) || "0";
+        const price = (prices.getPrice(date, chunk.asset, unit) || 0).toFixed(18);
         if (chunk.asset !== unit && price !== "0") {
           const amount = chunk.amount;
           const value = math.mul(amount, price);
           const receiveDate = getDate(chunk.history[0].date);
-          const receivePrice = prices.getNearest(receiveDate, chunk.asset, unit) || "0";
+          const receivePrice = (prices.getPrice(receiveDate, chunk.asset, unit) || 0).toFixed(18);
           const capitalChange = math.mul(amount, math.sub(price, receivePrice));
           return {
             date: date,
@@ -95,7 +95,7 @@ export const getTaxRows = async ({
       if (!evt.inputs) { console.warn(`Missing ${evt.type} inputs`, evt); continue; }
       rows.push(...evt.inputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const price = prices.getNearest(date, chunk.asset, unit) || "0";
+        const price = (prices.getPrice(date, chunk.asset, unit) || 0).toFixed(18);
         const income = math.mul(chunk.amount, price);
         return {
           date: date,
@@ -117,13 +117,13 @@ export const getTaxRows = async ({
       if (!evt.outputs) { console.warn(`Missing ${evt.type} outputs`, evt); continue; }
       rows.push(...evt.outputs.map(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const price = prices.getNearest(date, chunk.asset, unit) || "0";
+        const price = (prices.getPrice(date, chunk.asset, unit) || 0).toFixed(18);
         const value = math.mul(chunk.amount, price);
         const receiveDate = chunk.history[0]?.date.split("T")[0];
         let receivePrice, capitalChange;
         if (chunk.asset !== unit && price !== "0") {
-          receivePrice = prices.getNearest(receiveDate, chunk.asset, unit);
-          capitalChange = math.mul(chunk.amount, math.sub(price, receivePrice || "0"));
+          receivePrice = (prices.getPrice(receiveDate, chunk.asset, unit) || 0).toFixed(18);
+          capitalChange = math.mul(chunk.amount, math.sub(price, receivePrice));
         } else {
           receivePrice = price;
           capitalChange = "0";
@@ -150,7 +150,7 @@ export const getTaxRows = async ({
     await new Promise(res => setTimeout(res, 1)); // yield to prevent hanging
   }
 
-  // Consolidate rows with the same txId, date & recieve date
+  // Consolidate rows with the same txId, date & receive date
   return rows.reduce((rows, row) => {
     const dupRow = rows.find(r =>
       r.asset === row.asset

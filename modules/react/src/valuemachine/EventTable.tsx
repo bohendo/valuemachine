@@ -141,6 +141,7 @@ export const EventTable: React.FC<EventTableProps> = ({
               <TableCell><strong> Date </strong></TableCell>
               <TableCell><strong> Type </strong></TableCell>
               <TableCell><strong> Description </strong></TableCell>
+              <TableCell><strong> Index </strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

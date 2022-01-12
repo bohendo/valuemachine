@@ -19,7 +19,7 @@ fi
 if [[ "$VM_PROD" == "true" ]]
 then
   echo "Starting valuemachine server in prod-mode"
-  exec node --no-deprecation "$prod_target"
+  exec node --no-deprecation "$prod_target" | pino-pretty --colorize --ignore "pid,hostname" --translateTime
 else
   echo "Starting valuemachine server in dev-mode w env:"
   env
@@ -32,5 +32,5 @@ else
     --polling-interval 1000 \
     --watch src \
     --exec "node -r ts-node/register" \
-    "$dev_target"
+    "$dev_target" | pino-pretty --colorize --ignore "pid,hostname" --translateTime
 fi

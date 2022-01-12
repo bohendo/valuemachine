@@ -5,7 +5,7 @@ import { Apps, Methods } from "../../enums";
 import { getParseTx, testLogger } from "../../testUtils";
 
 const appName = Apps.Yearn;
-const logger = testLogger.child({ module: `Test${appName}` }, { level: "warn" });
+const logger = testLogger.child({ name: `Test${appName}` }, { level: "warn" });
 const parseTx = getParseTx({ logger });
 
 describe(appName, () => {
