@@ -8,9 +8,9 @@ import { Asset, DecString, HexString } from "@valuemachine/types";
 
 const precision = 36;
 
-const fromRay = (n: BN | string): string => formatUnits((n || "0").toString(), precision);
+const fromRay = (n: BN | DecString): DecString => formatUnits((n || "0").toString(), precision);
 
-const toRay = (n: BN | string): BN => {
+const toRay = (n: BN | DecString): BN => {
   const str = (n || "0").toString();
   if (!str.includes(".")) return parseUnits(str, precision);
   const split = str.split(".");
@@ -18,9 +18,9 @@ const toRay = (n: BN | string): BN => {
   return parseUnits(`${split[0]}.${split[1].substring(0, precision)}`, precision);
 };
 
-const floor = (decStr: string): string => decStr.substring(0, decStr.indexOf("."));
+const floor = (decStr: DecString): DecString => decStr.substring(0, decStr.indexOf("."));
 
-const roundInt = (decStr: string): string => 
+const roundInt = (decStr: DecString): DecString =>
   toRay(decStr).lt(toRay("0"))
     ? floor(fromRay(toRay(decStr).sub(toRay("0.5"))).toString())
     : floor(fromRay(toRay(decStr).add(toRay("0.5"))).toString());
@@ -28,12 +28,15 @@ const roundInt = (decStr: string): string =>
 ////////////////////////////////////////
 // Exports
 
-export const toBN = (n: BN | number | string | { _hex: HexString }): BN =>
+export const toBN = (n: BN | number | DecString | { _hex: HexString }): BN =>
   BN.from(
     (n && (n as { _hex: HexString })._hex)
       ? (n as { _hex: HexString })._hex
-      : n.toString(),
+      : typeof n === "number" ? n.toFixed(18) : n.toString(),
   );
+
+export const toNum = (n: BN | DecString | number): number =>
+  toBN(n).toNumber();
 
 export const eq = (a, b): boolean => toRay(a).eq(toRay(b));
 export const gt = (a, b): boolean => toRay(a).gt(toRay(b));
@@ -41,50 +44,50 @@ export const lt = (a, b): boolean => toRay(a).lt(toRay(b));
 
 export const isNeg = (a): boolean => lt(a, "0");
 
-export const max = (...lon: string[]): string =>
+export const max = (...lon: DecString[]): DecString =>
   lon.reduce(
     (max: any, current: any) => gt(max, current) ? max : current,
     "-" + MaxUint256.toString(),
   );
 
-export const min = (...lon: string[]): string =>
+export const min = (...lon: DecString[]): DecString =>
   lon.reduce(
     (min: any, current: any) => (lt(min, current) ? min : current),
     MaxUint256.toString(),
   );
 
-export const add = (...lon: string[]): string =>
+export const add = (...lon: DecString[]): DecString =>
   lon.reduce((sum, current) => fromRay(toRay(sum).add(toRay(current))), "0");
 
-export const mul = (...lon: string[]): string =>
+export const mul = (...lon: DecString[]): DecString =>
   lon.reduce(
     (product, current) => fromRay(roundInt(fromRay(toRay(product).mul(toRay(current))))),
     "1",
   );
 
-export const div = (a: string, b: string): string =>
+export const div = (a: DecString, b: DecString): DecString =>
   fromRay(toRay(toRay(a)).div(toRay(b)));
 
-export const inv = (n: string): string =>
+export const inv = (n: DecString): DecString =>
   div("1", n);
 
-export const sub = (a: string, b: string): string =>
+export const sub = (a: DecString, b: DecString): DecString =>
   fromRay(toRay(a).sub(toRay(b)));
 
-export const subToZero = (a: string, b: string): string => {
+export const subToZero = (a: DecString, b: DecString): DecString => {
   const diff = toRay(a).sub(toRay(b));
   return diff.gt(Zero) ? fromRay(diff) : "0";
 };
 
-export const abs = (a: string): string =>
+export const abs = (a: DecString): DecString =>
   toRay(a).gt(Zero) ? a : mul(a, "-1");
 
 // absolute value of subtracting a and b
-export const diff = (a: string, b: string): string =>
+export const diff = (a: DecString, b: DecString): DecString =>
   abs(sub(a, b));
 
 // Round to n decimal places
-export const round = (decStr: string, n?: number, stripTrailingZeros?: boolean): string => {
+export const round = (decStr: DecString, n?: number, stripTrailingZeros?: boolean): DecString => {
   if (n <= 0) { return roundInt(decStr); }
   if (n === undefined) {
     n = n || ( // If n is not provided, set it based on the magnitude of the input
@@ -106,7 +109,7 @@ export const round = (decStr: string, n?: number, stripTrailingZeros?: boolean):
 };
 
 // Round so that there are at least n significant figures available
-export const sigfigs = (decStr: string, n = 3): string => {
+export const sigfigs = (decStr: DecString, n = 3): DecString => {
   if (!decStr.includes(".") || decStr.split(".")[0] !== "0") { return round(decStr, n); }
   const dec = decStr.split(".")[1];
   const leadingZeros = dec.length - dec.replace(/^0+/, "").length;
@@ -114,7 +117,7 @@ export const sigfigs = (decStr: string, n = 3): string => {
 };
 
 // Locale-dependent rounding & commification
-export const commify = (num: DecString, decimals?: number, asset?: Asset): string => {
+export const commify = (num: DecString, decimals?: number, asset?: Asset): DecString => {
   let rounded = round(
     num,
     typeof decimals === "number" ? decimals : (asset === "INR" || asset === "USD" ? 2 : undefined),

@@ -122,11 +122,11 @@ export const getEtherscanFetcher = ({
       hash: hexlify(tx.hash),
       logs: receipt.logs.map(evt => ({
         address: getAddress(evt.address),
-        index: math.toBN(evt.logIndex).toNumber(),
+        index: math.toNum(evt.logIndex),
         topics: evt.topics.map(hexlify),
         data: hexlify(evt.data || "0x"),
       })),
-      nonce: math.toBN(tx.nonce).toNumber(),
+      nonce: math.toNum(tx.nonce),
       status: getStatus(tx, receipt),
       timestamp,
       transfers: transfers.map(transfer => ({

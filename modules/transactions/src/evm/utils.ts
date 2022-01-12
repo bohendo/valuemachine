@@ -57,8 +57,6 @@ export const describeAbi = (abi: any) => {
   ].join(`\n`);
 };
 
-export const toNumber = (val: number | string): number => math.toBN(val).toNumber();
-
 export const toString = (val: number | string): string => math.toBN(val).toString();
 
 export const toISOString = (val?: number | string): string => {
@@ -68,7 +66,7 @@ export const toISOString = (val?: number | string): string => {
   } else if (typeof val === "string" && val.includes("T")) {
     return new Date(val).toISOString();
   } else {
-    const time = typeof val === "number" ? val : math.toBN(val).toNumber();
+    const time = typeof val === "number" ? val : math.toNum(val);
     return new Date(time < firstBlockTimeMs ? time * 1000 : time).toISOString();
   }
 };
@@ -101,7 +99,7 @@ export const formatTraces = (traces: any[], meta: EvmMetadata): EvmTransfer[] =>
 export const getStatus = (tx: any, receipt: any): number => 
   // If post-byzantium, then the receipt already has a status, yay
   typeof receipt.status === "number" ? receipt.status
-  : isHexString(receipt.status) ? math.toBN(receipt.status).toNumber()
+  : isHexString(receipt.status) ? math.toNum(receipt.status)
   // If pre-byzantium tx used less gas than the limit, it definitely didn't fail
   : math.toBN(tx.gasLimit || tx.gas).gt(math.toBN(receipt.gasUsed)) ? 1
   // If it used exactly 21000 gas, it's PROBABLY a simple transfer that succeeded
