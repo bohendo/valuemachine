@@ -115,6 +115,7 @@ describe("Prices", () => {
       };
     };
     const [t1, t2, t3] = ["2021-01-01", "2021-01-02", "2021-01-03"].map(toDay).map(toTime);
+    // Inject hundreds of price entries so the pathfinder has to do some real work
     prices.merge([
       { time: t1, unit: "AA", asset: "BB", price: 1, source },
       { time: t3, unit: "AA", asset: "BB", price: 3, source },
@@ -127,9 +128,11 @@ describe("Prices", () => {
     const n = 20;
     const start = Date.now();
     repeat(n, () => {
-      expect(prices.getPrice(t2, "BB", "AA")).to.equal(2);
-      expect(prices.getPrice(t2, "CC", "AA")).to.equal(4);
-      expect(prices.getPrice(t2, "DD", "AA")).to.equal(8);
+      // Add a few random ms to avoid the cache & exact-match-short-circuit
+      const randomMs = Math.round(Math.random() * 1000);
+      expect(Math.round(prices.getPrice(t2 + randomMs, "BB", "AA"))).to.equal(2);
+      expect(Math.round(prices.getPrice(t2 + randomMs, "CC", "AA"))).to.equal(4);
+      expect(Math.round(prices.getPrice(t2 + randomMs, "DD", "AA"))).to.equal(8);
     });
     const rate = Math.round((n * 30000) / (Date.now() - start))/10;
     log.info(`Found ${n*3} prices at a rate of ${rate} paths found per second`);

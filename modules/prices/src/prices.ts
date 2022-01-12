@@ -181,6 +181,11 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
   ): number | undefined => {
     const time = typeof givenTime === "string" ? toTime(givenTime) : givenTime;
     const [asset, unit] = [toTicker(givenAsset), toTicker(givenUnit || defaultUnit)];
+    // If we have an exact match then skip the generalized pathfinder logic
+    const exact = json.find(p => p.time === time && (
+      (p.asset === asset && p.unit === unit) || (p.asset === unit && p.unit === asset)
+    ));
+    if (exact?.price) return exact.asset === asset ? exact.price : 1/exact.price;
     log.debug(`Getting ${unit} price of ${asset} on date closest to ${time}..`);
     const path = findPath(json, time, asset, unit, limit, log);
     if (!path.length) {
@@ -188,7 +193,22 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       return undefined;
     }
     log.debug(path, `Got path from ${unit} to ${asset} on ${time}..`);
-    return sumPath(path, time);
+    const price = sumPath(path, time);
+    // Maybe cache this price if we had to calculate it
+    // Cache prices that are older than 24hrs bc it's prob the date of a taxable event, etc
+    // Current prices are unlikely to be needed again tomorrow, don't cache these
+    if ((path.length > 1 || path[0].prices.length > 1) && time < Date.now() - msPerDay) {
+      setPrice({
+        time,
+        unit,
+        asset,
+        price,
+        source: path.reduce((src, step) => {
+          return `${src}+${step.prices.map(s => s?.source || "").join("+")}`;
+        }, "").replace(/^\++/, "").replace(/\++$/ , "").replace(/\++/, "+"),
+      });
+    }
+    return price;
   };
 
   // Returns exact timestamps that are missing rather than interpolation requirements
