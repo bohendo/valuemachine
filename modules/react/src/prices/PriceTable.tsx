@@ -37,7 +37,7 @@ export const PriceTable: React.FC<PriceTableProps> = ({
   const [filteredPrices, setFilteredPrices] = useState([] as PriceJson);
 
   useEffect(() => {
-    setAllAssets(dedup(prices?.getJson().map(entry => entry.asset))).sort();
+    setAllAssets(dedup(prices?.getJson().map(entry => entry.asset)).sort());
   }, [prices]);
 
   useEffect(() => {
