@@ -100,6 +100,7 @@ export const EventRow: React.FC<EventRowProps> = ({
         <TableCell> {event.date.replace("T", " ").replace(".000Z", "")} </TableCell>
         <TableCell> {event.type} </TableCell>
         <TableCell> {describeEvent(event)} </TableCell>
+        <TableCell> {event.index} </TableCell>
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
