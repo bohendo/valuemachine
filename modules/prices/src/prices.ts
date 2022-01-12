@@ -76,25 +76,25 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     // Extrapolate if one of the two entries is missing
     if (!suc && pre) {
       if (!limit || time - pre.time < limit) {
-        return pre.price;
+        return pre.unit === unit ? pre.price : 1/pre.price;
       } else {
         throw new Error(`Not extrapolating across more than ${limit}ms: ${time - pre.time}ms`);
       }
     }
     if (!pre && suc) {
       if (!limit || suc.time - time < limit) {
-        return suc.price;
+        return suc.unit === unit ? suc.price : 1/suc.price;
       } else {
         throw new Error(`Not extrapolating across more than ${limit}ms: ${suc.time - time}ms`);
       }
     }
     if (!pre && !suc) throw new Error(`Can't infer across two undefined points`);
-    const preRate = pre.unit !== unit ? pre.price : 1/pre.price;
-    const sucRate = suc.unit !== unit ? suc.price : 1/suc.price;
+    const preRate = pre.unit === unit ? pre.price : 1/pre.price;
+    const sucRate = suc.unit === unit ? suc.price : 1/suc.price;
     // avoid divide by zero errors
     if (pre.time === suc.time) {
       if (pre.time === time) {
-        // if all dates are equal, return the averge
+        // if dates are equal, return the averge
         return (preRate + sucRate) / 2;
       } else {
         throw new Error(`Times before & after are the same`);
@@ -113,54 +113,6 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       }`,
     );
     return interpolated;
-  };
-
-  const sumPath = (path: Path, time: number): number => {
-    log.trace(path, "Summing path");
-    let prev;
-    return path.reduce((rate, step) => {
-      if (prev) {
-        return rate * (
-          step.prices.length === 0 ? 1 : step.prices.length === 1 ? (
-            step.prices[0].unit !== prev ? step.prices[0].price : 1/step.prices[0].price
-          ) : step.prices.length === 2 ? infer(step.prices[0], step.prices[1], time, prev)
-          : 1
-        );
-      }
-      prev = step.asset;
-      return rate;
-    }, 1);
-  };
-
-  const getRequiredPrices = (vm: ValueMachine, givenUnit?: Asset): MissingPrices => {
-    const unit = toTicker(givenUnit || defaultUnit);
-    const required = {} as MissingPrices;
-    // Current prices of presently held assets are required
-    for (const asset of Object.keys(vm.getNetWorth())) {
-      required[asset] = required[asset] || [];
-      required[asset].push(toDay());
-    }
-    // Prices at each chunk's receive & dispose dates are required
-    for (const chunk of vm.json.chunks) {
-      const { amount, asset, history, disposeDate } = chunk;
-      if (!amount) continue; // Prices can't be reliably retrieved for NFTs, skip them
-      if (unit === asset) continue; // Prices not required if asset === unit bc it's trivially 1
-      const receive = history[0]?.date;
-      if (!receive) {
-        log.warn(`No receive date for chunk #${chunk.index} of ${chunk.amount} ${chunk.asset}`);
-        continue;
-      }
-      for (const date of [receive, disposeDate]) {
-        if (!date) continue; // Held chunks don't have a dispose date
-        required[asset] = required[asset] || [];
-        required[asset].push(toDay(date));
-      }
-    }
-    // Remove duplicates & sort
-    for (const asset of Object.keys(required)) {
-      required[asset] = dedup(required[asset]).sort();
-    }
-    return required;
   };
 
   ////////////////////////////////////////
@@ -185,7 +137,7 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
     const exact = json.find(p => p.time === time && (
       (p.asset === asset && p.unit === unit) || (p.asset === unit && p.unit === asset)
     ));
-    if (exact?.price) return exact.asset === asset ? exact.price : 1/exact.price;
+    if (exact?.price) return exact.unit === unit ? exact.price : 1/exact.price;
     log.debug(`Getting ${unit} price of ${asset} on date closest to ${time}..`);
     const path = findPath(json, time, asset, unit, limit, log);
     if (!path.length) {
@@ -193,6 +145,22 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
       return undefined;
     }
     log.debug(path, `Got path from ${unit} to ${asset} on ${time}..`);
+    const sumPath = (path: Path, time: number): number => {
+      log.trace(path, "Summing path");
+      let prev;
+      return path.reduce((rate, step) => {
+        if (prev) {
+          return rate * (
+            step.prices.length === 0 ? 1 : step.prices.length === 1 ? (
+              step.prices[0].unit === step.asset ? step.prices[0].price : 1/step.prices[0].price
+            ) : step.prices.length === 2 ? infer(step.prices[0], step.prices[1], time, step.asset)
+            : 1
+          );
+        }
+        prev = step.asset;
+        return rate;
+      }, 1);
+    };
     const price = sumPath(path, time);
     // Maybe cache this price if we had to calculate it
     // Cache prices that are older than 24hrs bc it's prob the date of a taxable event, etc
@@ -213,6 +181,36 @@ export const getPriceFns = (params?: PricesParams): PriceFns => {
 
   // Returns exact timestamps that are missing rather than interpolation requirements
   const getMissing = (vm: ValueMachine, givenUnit?: Asset): MissingPrices => {
+    const getRequiredPrices = (vm: ValueMachine, givenUnit?: Asset): MissingPrices => {
+      const unit = toTicker(givenUnit || defaultUnit);
+      const required = {} as MissingPrices;
+      // Current prices of presently held assets are required
+      for (const asset of Object.keys(vm.getNetWorth())) {
+        required[asset] = required[asset] || [];
+        required[asset].push(toDay());
+      }
+      // Prices at each chunk's receive & dispose dates are required
+      for (const chunk of vm.json.chunks) {
+        const { amount, asset, history, disposeDate } = chunk;
+        if (!amount) continue; // Prices can't be reliably retrieved for NFTs, skip them
+        if (unit === asset) continue; // Prices not required if asset === unit bc it's trivially 1
+        const receive = history[0]?.date;
+        if (!receive) {
+          log.warn(`No receive date for chunk #${chunk.index} of ${chunk.amount} ${chunk.asset}`);
+          continue;
+        }
+        for (const date of [receive, disposeDate]) {
+          if (!date) continue; // Held chunks don't have a dispose date
+          required[asset] = required[asset] || [];
+          required[asset].push(toDay(date));
+        }
+      }
+      // Remove duplicates & sort
+      for (const asset of Object.keys(required)) {
+        required[asset] = dedup(required[asset]).sort();
+      }
+      return required;
+    };
     const unit = toTicker(givenUnit || defaultUnit);
     const missing = getRequiredPrices(vm, unit);
     for (const asset of Object.keys(missing)) {
