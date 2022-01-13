@@ -1,4 +1,3 @@
-import { AddressZero } from "@ethersproject/constants";
 import { formatUnits } from "@ethersproject/units";
 import { Asset, Logger } from "@valuemachine/types";
 import { math, valuesAreClose } from "@valuemachine/utils";
@@ -84,20 +83,13 @@ const coreParser = (
   const log = logger.child({ name: `${appName}:${evmTx.hash.substring(0, 6)}` });
   const { getDecimals, getName, isSelf } = addressBook;
 
-  const cTokenToTokenDecimals = (cToken: string): number => {
+  // Hardcode decimals values for underlying assets w non-default values
+  const getUnderlyingDecimals = (cToken: string): number => {
     switch (cToken) {
-    case Tokens.cBAT: return getDecimals("0x0d8775f648430679a709e98d2b0cb6250d2887ef");
-    case Tokens.cCOMP: return getDecimals(compAddress);
-    case Tokens.cDAI: return getDecimals("0x6b175474e89094c44da98b954eedeac495271d0f");
-    case Tokens.cETH: return getDecimals(AddressZero);
-    case Tokens.cREP: return getDecimals("0x1985365e9f78359a9b6ad760e32412f4a445e862");
-    case Tokens.cSAI: return getDecimals("0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359");
-    case Tokens.cUNI: return getDecimals("0x1f9840a85d5af5bf1d1762f925bdaddc4201f984");
-    case Tokens.cUSDC: return getDecimals("0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48");
-    case Tokens.cUSDT: return getDecimals("0xdac17f958d2ee523a2206206994597c13d831ec7");
-    case Tokens.cWBTC: return getDecimals("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599");
-    case Tokens.cWBTCv2: return getDecimals("0x2260fac5e5542a773aa44fbcfedf7c193bc2c599");
-    case Tokens.cZRX: return getDecimals("0xe41d2489571d322189246dafa5ebde1f4699f498");
+    case Tokens.cUSDC: return 6;
+    case Tokens.cUSDT: return 6;
+    case Tokens.cWBTC: return 8;
+    case Tokens.cWBTCv2: return 8;
     default: return 18;
     }
   };
@@ -242,7 +234,7 @@ const coreParser = (
       tx.apps.push(appName);
       const cAsset = getName(address);
       const asset = cAsset.replace(/^c/, "");
-      const decimals = cTokenToTokenDecimals(address);
+      const decimals = getUnderlyingDecimals(cAsset);
       const cDecimals = getDecimals(address);
 
       // Deposit
