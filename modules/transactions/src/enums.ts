@@ -224,7 +224,7 @@ export const BusinessExpenseTypes = {
   Office: "Office", // f1040sc.L18
   Pension: "Pension", // f1040sc.L19
   EquipmentRental: "EquipmentRental", // f1040sc.L20a
-  PropertyRental: "PropertyRentalOffice", // f1040sc.L20b
+  PropertyRental: "PropertyRental", // f1040sc.L20b
   Repairs: "Repairs", // f1040sc.L21
   Supplies: "Supplies", // f1040sc.L22
   Licenses: "Licenses", // f1040sc.L23

@@ -150,8 +150,8 @@ export const f1040sc = (
       );
     } else {
       // Side effect: Add a new row to L48 for any generic business expenses
-      f1040sc[`L48R${otherExpenseIndex}_desc`] = description;
-      f1040sc[`L48R${otherExpenseIndex}_amt`] = math.mul(row.value, row.tag.multiplier || "1");
+      f1040sc[`L48_Expense${otherExpenseIndex}`] = description;
+      f1040sc[`L48_Amount${otherExpenseIndex}`] = math.mul(row.value, row.tag.multiplier || "1");
     }
     return row.value; // sum util applies multiplier to the value returned here
   });
