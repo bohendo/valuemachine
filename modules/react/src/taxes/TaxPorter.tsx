@@ -96,7 +96,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
         const url = window.URL.createObjectURL(new window.Blob([response.data]));
         const link = window.document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `${year}-tax-return.pdf`);
+        link.setAttribute("download", `${year}-tax-return-${digest(url)}.pdf`);
         window.document.body.appendChild(link);
         link.click();
         res();
