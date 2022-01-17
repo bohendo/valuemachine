@@ -111,15 +111,26 @@ export const f2555 = (
     return math.gt(daysInEachCountry[country], daysInEachCountry[max]) ? country : max;
   }, "");
 
-  for (const i of [0, 1, 2, 3]) {
-    if (!travel[i]) continue;
-    const trip = travel[i];
-    f2555[`L18a_R${i+1}`] = trip.country;
-    f2555[`L18b_R${i+1}`] = toFormDate(trip.enterDate);
-    f2555[`L18c_R${i+1}`] = toFormDate(trip.leaveDate);
-    f2555[`L18d_R${i+1}`] = trip.country !== USA ? diffDays(trip.enterDate, trip.leaveDate) : "0";
-    f2555[`L18e_R${i+1}`] = trip.country === USA ? diffDays(trip.enterDate, trip.leaveDate) : "0";
-    f2555[`L18f_R${i+1}`] = "0"; // get income by country
+  if (math.eq(daysAbroad, "")) {
+    f2555[`L18a_R1`] = "Physically present in a foreign country";
+    f2555[`L18a_R2`] = "for the entire 12-month period.";
+  } else {
+    let idx = 1;
+    for (const i of [0, 1, 2, 3]) {
+      const trip = travel[i];
+      if (!trip) continue;
+      if (after(trip.enterDate, yearEnd)) continue;
+      if (before(trip.leaveDate, yearStart)) continue;
+      const enterDate = before(trip.enterDate, yearStart) ? yearStart : trip.enterDate;
+      const leaveDate = after(trip.leaveDate, yearEnd) ? yearEnd : trip.leaveDate;
+      f2555[`L18a_R${idx}`] = trip.country;
+      f2555[`L18b_R${idx}`] = toFormDate(enterDate);
+      f2555[`L18c_R${idx}`] = toFormDate(leaveDate);
+      f2555[`L18d_R${idx}`] = trip.country !== USA ? diffDays(enterDate, leaveDate) : "0";
+      f2555[`L18e_R${idx}`] = trip.country === USA ? diffDays(enterDate, leaveDate) : "0";
+      f2555[`L18f_R${idx}`] = "0"; // get income by country
+      idx += 1;
+    }
   }
 
   ////////////////////////////////////////
