@@ -1,9 +1,10 @@
 import { DecString, Logger } from "@valuemachine/types";
 
-import { thisYear } from "./const";
+import { nextYear, thisYear } from "./const";
 import {
   FilingStatuses,
   Forms,
+  ExpenseTypes,
   getIncomeTax,
   getStandardDeduction,
   getTotalCapitalChange,
@@ -17,6 +18,7 @@ import {
   IncomeTypes,
   math,
   strcat,
+  sumExpenses,
   sumIncome,
   TaxInput,
   TaxRows,
@@ -175,6 +177,9 @@ export const f1040 = (
     f1040.L25b, // taxes withheld from self employment (f1099)
     f1040.L25c, // other taxes withheld
   );
+
+  f1040.L26 = sumExpenses(thisYear, rows, ExpenseTypes.Tax);
+
   f1040.L32 = math.add(
     f1040.L27, // earned income credit
     f1040.L28, // extra child tax credit (f8812)
@@ -182,22 +187,42 @@ export const f1040 = (
     f1040.L30, // recovery rebate credit
     f1040.L31, // payments from f1040se
   );
-  log.info(`Total payments & credits: f1040.L32=${f1040.L32}`);
+  log.info(`Total tax credits & certain tax payments: f1040.L32=${f1040.L32}`);
 
   f1040.L33 = math.add(
     f1040.L25d, // total tax withholdings
     f1040.L26,  // estimated payments & amount applied from 2019 return
     f1040.L32,  // total payments & credits
   );
-  log.info(`Total tax payments: f1040.L33=${f1040.L33}`);
 
   if (math.gt(f1040.L33, f1040.L24)) {
     f1040.L34 = math.sub(f1040.L33, f1040.L24);
-    log.info(`Total tax refund: f1040.L34=${f1040.L34}`);
   } else if (math.lt(f1040.L33, f1040.L24)) {
     f1040.L37 = math.sub(f1040.L24, f1040.L33);
-    log.info(`Total tax owed: f1040.L37=${f1040.L37}`);
   }
+
+  // Add late tax payments made during the following tax year to estimated tax payments
+  if (math.gt(f1040.L37, "0")) {
+    const latePayments = math.min(
+      sumExpenses(nextYear, rows, ExpenseTypes.Tax),
+      f1040.L37,
+    );
+    if (math.gt(latePayments, "0")) {
+      log.info(`A late payment of ${latePayments} was detected, re-calculating taxes due..`);
+      f1040.L26 = math.add(f1040.L26, latePayments);
+      // Recalculate everything after L26
+      f1040.L33 = math.add(
+        f1040.L25d, // total tax withholdings
+        f1040.L26,  // estimated payments & amount applied from 2019 return
+        f1040.L32,  // total payments & credits
+      );
+      f1040.L37 = math.subToZero(f1040.L37, latePayments);
+    }
+  }
+
+  log.info(`Total tax payments: f1040.L33=${f1040.L33}`);
+  log.info(`Total tax refund: f1040.L34=${f1040.L34}`);
+  log.info(`Total tax owed: f1040.L37=${f1040.L37}`);
 
   ////////////////////////////////////////
   // More Personal Info
