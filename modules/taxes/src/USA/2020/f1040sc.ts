@@ -139,8 +139,8 @@ export const f1040sc = (
   let otherExpenseIndex = 1;
   f1040sc.L48 = sumExpenses(thisYear, rows, ExpenseTypes.Business, row => {
     const description = row.tag.description || "Miscellaneous";
-    const desc = `L48R${otherExpenseIndex}_desc`;
-    const amt = `L48R${otherExpenseIndex++}_amt`;
+    const desc = `L48_Expense${otherExpenseIndex}`;
+    const amt = `L48_Amount${otherExpenseIndex}`;
     if (otherExpenseIndex >= 10) {
       log.warn(`OTHER_EXPENSE_OVERFLOW: omitting description for: ${description}`);
       f1040sc[desc] = f1040sc[desc].endsWith(", etc") ? f1040sc[desc] : `${f1040sc[desc]}, etc`;
@@ -150,9 +150,10 @@ export const f1040sc = (
       );
     } else {
       // Side effect: Add a new row to L48 for any generic business expenses
-      f1040sc[`L48_Expense${otherExpenseIndex}`] = description;
-      f1040sc[`L48_Amount${otherExpenseIndex}`] = math.mul(row.value, row.tag.multiplier || "1");
+      f1040sc[desc] = description;
+      f1040sc[amt] = math.mul(row.value, row.tag.multiplier || "1");
     }
+    otherExpenseIndex += 1;
     return row.value; // sum util applies multiplier to the value returned here
   });
 
