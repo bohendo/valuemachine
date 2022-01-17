@@ -24,6 +24,8 @@ import {
 } from "valuemachine";
 
 const allGuards = "All";
+const defaultGuard = Guards.USA;
+const defaultTab = 3; // hardcoded for dev convenience
 
 type TaxesExplorerProps = {
   addressBook?: AddressBook;
@@ -49,9 +51,9 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
   unit,
   vm,
 }: TaxesExplorerProps) => {
-  const [guard, setGuard] = React.useState("");
+  const [guard, setGuard] = React.useState(defaultGuard as Guard);
   const [guards, setGuards] = useState([] as Guard[]);
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(defaultTab as number);
 
   useEffect(() => {
     setGuard(guards[tab]);
@@ -64,7 +66,8 @@ export const TaxesExplorer: React.FC<TaxesExplorerProps> = ({
       ...taxRows.map(row => row.taxYear.substring(0, 3)).sort(),
     ]) as Guard[];
     setGuards(newGuards);
-    setGuard(newGuards[0]);
+    // Default to displaying the default guard if present
+    setGuard(guards.includes(defaultGuard) ? defaultGuard : allGuards);
   }, [taxRows]);
 
   const handleClear = () => { setTaxRows([]); };
