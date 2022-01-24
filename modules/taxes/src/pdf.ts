@@ -26,7 +26,7 @@ const fillForm = async (
       mappedData[entry.fieldName] = value ? entry.checkmark : undefined;
     } else if (typeof value === "string" && !entry.checkmark) {
       // Round decimal strings
-      if (value.match(/^-?[0-9]+\.?[0-9]*$/)) {
+      if (value.match(/^-?[0-9]+\.[0-9]+$/)) {
         mappedData[entry.fieldName] = math.round(value, 2);
       } else {
         mappedData[entry.fieldName] = value;

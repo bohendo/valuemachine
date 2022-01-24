@@ -150,7 +150,7 @@ export const sumLongTermTrades = (year: Year, rows: TaxRows, map?: (row: TaxRow)
 export const getTotalCapitalChange = (year: Year, input: TaxInput, rows: TaxRows) =>
   math.max(
     sumTrades(year, rows, row => row.capitalChange),
-    input.personal?.filingStatus === FilingStatuses.Separate ? "-1500" : "-3000",
+    input.personal?.filingStatus === FilingStatuses.Separate ? "-1500.0" : "-3000.0",
   );
 
 ////////////////////////////////////////
@@ -270,7 +270,7 @@ export const getSelfEmploymentTax = (year: Year, rows: TaxRows): DecString => {
   ); // a la f1040sse.L4a
   return math.add(
     math.mul( 
-      math.min(subjectToSS, "137700"), // a la f1040sse.L10
+      math.min(subjectToSS, "137700.0"), // a la f1040sse.L10
       "0.124", // a la f1040sse.L10
     ),
     math.mul(subjectToSS, "0.029"), // a la f1040sse.L11
@@ -289,9 +289,9 @@ export const getSelfEmploymentAdjustment = (
 export const getStandardDeduction = (input: TaxInput) => {
   const filingStatus = input.personal?.filingStatus;
   const stdDeduction =
-    (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400"
-    : (filingStatus === FilingStatuses.Head) ? "18350"
-    : "12200";
+    (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400.0"
+    : (filingStatus === FilingStatuses.Head) ? "18350.0"
+    : "12200.0";
   return stdDeduction;
 };
 
