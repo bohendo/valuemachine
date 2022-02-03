@@ -32,21 +32,38 @@ export const f1040s1 = (
   f1040s1.L2a = sumIncome(thisYear, rows, IncomeTypes.Alimony);
   f1040s1.L7 = sumIncome(thisYear, rows, IncomeTypes.Unemployment);
 
-  // Prize money won from hackathons, airdrops, etc can go here I guess
-  const prizeMoney = sumIncome(thisYear, rows, IncomeTypes.Prize);
-  if (math.gt(prizeMoney, "0")) {
-    log.info(`Earned ${prizeMoney} in prizes`);
-    f1040s1.L8_Etc2 = strcat([f1040s1.L8_Etc2, `Prizes=${math.round(prizeMoney, 2)}`], ", ");
-    f1040s1.L8 = math.add(f1040s1.L8, prizeMoney);
-  }
+  f1040s1.L8h = sumIncome(thisYear, rows, IncomeTypes.Prize);
+
   const airdrops = sumIncome(thisYear, rows, IncomeTypes.Airdrop);
   if (math.gt(airdrops, "0")) {
     log.info(`Earned ${airdrops} in airdrops`);
-    f1040s1.L8_Etc2 = strcat([f1040s1.L8_Etc2, `Airdrops=${math.round(airdrops, 2)}`], ", ");
-    f1040s1.L8 = math.add(f1040s1.L8, airdrops);
+    f1040s1.L8z_Etc2 = strcat([f1040s1.L8z_Etc2, `Airdrops=${math.round(airdrops, 2)}`], ", ");
+    f1040s1.L8z = math.add(f1040s1.L8z, airdrops);
   }
 
   f1040s1.L9 = math.add(
+    f1040s1.L8a, // net operating loss
+    f1040s1.L8b, // gambling
+    f1040s1.L8c, // cancellation of debt
+    f1040s1.L8d, // foreign earned income exclusion from f2555
+    f1040s1.L8e, // taxable health savings account distribution
+    f1040s1.L8f, // alaska permenant fund
+    f1040s1.L8g, // jury duty
+    f1040s1.L8h, // prizes & awards
+    f1040s1.L8i, // activity not engaged in for profit
+    f1040s1.L8j, // stock options
+    f1040s1.L8k, // non-business rental income
+    f1040s1.L8l, // (para-)olympic prize money
+    f1040s1.L8m, // section 951(a) inclusion
+    f1040s1.L8n, // section 951A(a) inclusion
+    f1040s1.L8o, // section 461(l) inclusion
+    f1040s1.L8p, // ABLE account distributions
+    f1040s1.L8z, // Other income
+  );
+  log.info(`Total additional income: f1040s1.L9=${f1040s1.L9}`);
+  f1040.L8 = f1040s1.L9;
+
+  f1040s1.L10 = math.add(
     f1040s1.L1,  // taxable refunds/credits/offsets
     f1040s1.L2a, // alimony received
     f1040s1.L3,  // business income from f1040sc
@@ -54,7 +71,7 @@ export const f1040s1 = (
     f1040s1.L5,  // rental/s-corp/trust income from f1040se
     f1040s1.L6,  // farm income from f1040sf
     f1040s1.L7,  // unemployment compensation
-    f1040s1.L8,  // other income
+    f1040s1.L9,  // other income
   );
   log.info(`Total additional income: f1040s1.L9=${f1040s1.L9}`);
   f1040.L8 = f1040s1.L9;
@@ -62,25 +79,42 @@ export const f1040s1 = (
   ////////////////////////////////////////
   // Part II - Adjustments to  Income
 
-  f1040s1.L22 = getTotalIncomeAdjustments(thisYear, rows);
-  log.info(`Total adjustments to income: f1040s1.L22=${f1040s1.L22}`);
-  f1040.L10a = f1040s1.L22;
-  const L22 = math.add(
-    f1040s1.L10,  // educator expenses
-    f1040s1.L11,  // special business expenses (f2106)
-    f1040s1.L12,  // health savings account (f8889)
-    f1040s1.L13,  // military moving expenses (3903)
-    f1040s1.L14,  // self employment tax deduction (f1040sse)
-    f1040s1.L15,  // self employed SEP/SIMPLE
-    f1040s1.L16,  // self employed health insurance deduction
-    f1040s1.L17,  // early withdrawal penalty
-    f1040s1.L18a, // alimony paid
-    f1040s1.L19,  // IRA deduction
-    f1040s1.L20,  // student loan interest deduction
-    f1040s1.L21,  // tuition deduction (form f8917)
+  f1040s1.L25 = math.add(
+    f1040s1.L24a, // juty duty
+    f1040s1.L24b, // deductible expenses from rental income
+    f1040s1.L24c, // non-taxable amoutn of (para-)olympic prizes
+    f1040s1.L24d, // reforestation
+    f1040s1.L24e, // repayment of supplemental unemployment benefits
+    f1040s1.L24f, // contributions to pension plans
+    f1040s1.L24g, // contributions by certain chaplains
+    f1040s1.L24h, // attorney fees and court costs for actions involving certain claims
+    f1040s1.L24i, // attorney fees and court costs for snitching on tax evaders
+    f1040s1.L24j, // housing deductions from f2555
+    f1040s1.L24k, // excess deductions of section 67(e) expenses from Schedule K-1
+    f1040s1.L24z, // other adjustments
   );
-  if (!math.eq(L22, f1040s1.L22))
-    log.warn(`DOUBLE_CHECK_FAILED: sum(L10-L21)=${L22} !== f1040s1.L22=${f1040s1.L22}`);
+
+  f1040s1.L26 = getTotalIncomeAdjustments(thisYear, rows);
+  log.info(`Total adjustments to income: f1040s1.L26=${f1040s1.L26}`);
+  const L26 = math.add(
+    f1040s1.L11,  // educator expenses
+    f1040s1.L12,  // certain business expenses of reservists, etc from f2106
+    f1040s1.L13,  // health savings account deduction from f8889
+    f1040s1.L14,  // Moving expenses for members of the Armed Forces from f3903
+    f1040s1.L15,  // deductible part of self-employment tax from f1040sse
+    f1040s1.L16,  // self-employed SEP, SIMPLE, and qualified plans
+    f1040s1.L17,  // self-employed health insurance deduction
+    f1040s1.L18,  // penalty on early withdrawal of savings
+    f1040s1.L19a, // alimony paid
+    f1040s1.L20,  // IRA deduction
+    f1040s1.L21,  // student loan interest deduction
+    f1040s1.L23,  // archer MSA deduction
+    f1040s1.L25,  // other adjustments
+  );
+  if (!math.eq(L26, f1040s1.L26))
+    log.warn(`DOUBLE_CHECK_FAILED: sum(L10-L21)=${L26} !== f1040s1.L26=${f1040s1.L26}`);
+
+  f1040.L10 = f1040s1.L26;
 
   return { ...forms, f1040, f1040s1 };
 };

@@ -101,35 +101,35 @@ export const f1040 = (
   if (!math.eq(L9, f1040.L9))
     log.warn(`DOUBLE_CHECK_FAILED: sum(L1-L8)=${L9} !== f1040.L9=${f1040.L9}`);
 
-  f1040.L10c = getTotalIncomeAdjustments(thisYear, rows);
-  log.info(`Total income adjustments: f1040.L10c=${f1040.L10c}`);
-  const L10c = math.add(
-    f1040.L10a, // income adjustments from f1040s1
-    f1040.L10b, // charitable deductions
-  );
-  if (!math.eq(f1040.L10c, L10c))
-    log.warn(`DOUBLE_CHECK_FAILED: sum(L10a-L10b)=${L10c} !== f1040.L10c=${f1040.L10c}`);
+  f1040.L10 = getTotalIncomeAdjustments(thisYear, rows);
+  log.info(`Total income adjustments: f1040.L10=${f1040.L10}`);
 
   f1040.L11 = getTotalGrossIncome(thisYear, input, rows);
   log.info(`Total gross income: f1040.L11=${f1040.L11}`);
   const L11 = math.sub(
     f1040.L9,   // total income
-    f1040.L10c, // total adjustments
+    f1040.L10, // total adjustments
   );
   if (!math.eq(f1040.L11, L11))
-    log.warn(`DOUBLE_CHECK_FAILED: L9-L10c=${L11} !== f1040.L11=${f1040.L11}`);
+    log.warn(`DOUBLE_CHECK_FAILED: L9-L10=${L11} !== f1040.L11=${f1040.L11}`);
 
-  f1040.L12 = getStandardDeduction(input);
+  f1040.L12a = getStandardDeduction(input);
+  const L12c = math.add(
+    f1040.L12a, // income adjustments from f1040s1
+    f1040.L12b, // charitable deductions
+  );
+  if (!math.eq(f1040.L12c, L12c))
+    log.warn(`DOUBLE_CHECK_FAILED: sum(L12a-L12b)=${L12c} !== f1040.L12c=${f1040.L12c}`);
 
   // All deductions
   f1040.L14 = getTotalDeductions(input);
   log.info(`Total deductions: f1040.L14=${f1040.L14}`);
   const L14 = math.add(
-    f1040.L12, // standard deduction
+    f1040.L12c, // standard deduction
     f1040.L13, // qualified business income deduction
   );
   if (!math.eq(f1040.L14, L14))
-    log.warn(`DOUBLE_CHECK_FAILED: sum(L12-L13)=${L14} !== f1040.L14=${f1040.L14}`);
+    log.warn(`DOUBLE_CHECK_FAILED: sum(L12c-L13)=${L14} !== f1040.L14=${f1040.L14}`);
 
   f1040.L15 = getTotalTaxableIncome(thisYear, input, rows);
   log.info(`Total Taxable Income: f1040.L15=${f1040.L15}`);
@@ -181,7 +181,7 @@ export const f1040 = (
   f1040.L26 = sumExpenses(thisYear, rows, ExpenseTypes.Tax);
 
   f1040.L32 = math.add(
-    f1040.L27, // earned income credit
+    f1040.L27a, // earned income credit
     f1040.L28, // extra child tax credit (f8812)
     f1040.L29, // american opportunity credit (f8863)
     f1040.L30, // recovery rebate credit
