@@ -75,6 +75,13 @@ export const getTaxRowsError = (taxRows: TaxRows): string =>
     : validateTaxRows.errors.length ? formatErrors(validateTaxRows.errors)
     : `Invalid TaxRows`;
 
+const validateTaxYear = ajv.compile(TaxYear);
+export const getTaxYearError = (taxYear: TaxYear): string =>
+  validateTaxYear(taxYear)
+    ? ""
+    : validateTaxYear.errors.length ? formatErrors(validateTaxYear.errors)
+    : `Invalid TaxYear`;
+
 ////////////////////////////////////////
 // TaxYear
 

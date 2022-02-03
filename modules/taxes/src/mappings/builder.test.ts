@@ -23,8 +23,9 @@ const buildMapping = async (year, form) => {
   try {
     defaultMapping = await pdftk.getMapping(emptyPdf);
   } catch (e) {
-    // Might have failed bc empty forms aren't available, fetch them and try again
-    await fetchUsaForm(year, form, fs);
+    // Might have failed bc empty forms isn't available, fetch it and try again
+    log.warn(`Failed to get mapping from ${emptyPdf}, fetching empty form & trying again..`);
+    await fetchUsaForm(year, form, fs, log);
     defaultMapping = await pdftk.getMapping(emptyPdf);
   }
   log.info(`Got a mapping w ${defaultMapping.length} fields from ${emptyPdf}`);
@@ -48,7 +49,7 @@ const buildMapping = async (year, form) => {
 
 describe("Mappings Builder", () => {
   it(`should build & fix one form mapping`, async () => {
-    const [year, form] = [TaxYears.USA2020, "f1040sc"];
+    const [year, form] = [TaxYears.USA2021, "f1040"];
     await buildMapping(year, form);
   });
 

@@ -15,8 +15,8 @@ export const buildMappingFile = async (
   defaultMapping,
   logger?: Logger,
 ): Promise<string> => {
-  const log = (logger || getLogger()).child({ name: "Build" });
-  const mapping = MappingArchive[year]?.[form] || {};
+  const log = (logger || getLogger()).child({ name: "BuildMappings" });
+  const mapping = MappingArchive[year]?.[form] || [];
 
   const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapping => {
     for (const m of master) {
