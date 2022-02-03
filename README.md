@@ -14,89 +14,88 @@ import fs from "fs";
 import path from "path";
 
 import {
+  AddressCategories,
+  EventTypes,
   getAddressBook,
-  getChainData,
-  getPrices,
-  getTransactions, 
+  getEthereumData,
+  getFileStore,
+  getLogger,
+  getPriceFns,
+  getTransactions,
   getValueMachine,
-  types,
-  utils,
+  math,
 } from "valuemachine";
 
-const { getFileStore, getLogger, mul, round, sub } = utils;
-const { AddressCategories, EventTypes } = types;
 const logger = getLogger("info");
 
 // store the data we download & generate on the filesystem
 const store = getFileStore(path.join(__dirname, "../exampleData"), fs);
 
 // Gather & categorize the addresses we want to analyze
-const addressBookJson = [{
-  address: "0x1057bea69c9add11c6e3de296866aff98366cfe3",
-  category: AddressCategories.Self, // this is a string of the key name so just "Self" is fine too
-  name: "bohendo.eth",
-}];
+const address = "Ethereum/0x8dD2470FA76bfEd24b7ef69a83F0063A6C03cA3f";
+const addressBookJson = {
+  [address]: { address, category: AddressCategories.Self, name: "bohendo.argent.xyz" },
+};
 const addressBook = getAddressBook({ json: addressBookJson, logger });
+
+// Get tools for gathering & processing transactions
+const transactions = getTransactions({ logger });
 
 // We'll be making network calls to get chain data & prices so switch to async mode
 (async () => {
 
-  // Fetch tx history and receipts from etherscan
-  const chainData = getChainData({
-    logger,
-    store,
+  // Get chain data management tools
+  const chainData = getEthereumData({
     etherscanKey: process.env.ETHERSCAN_KEY,
+    json: store.load("EthereumData"),
+    logger,
+    save: val => store.save("EthereumData", val),
   });
-  await chainData.syncAddresses(
-    addressBook.addresses.filter(a => addressBook.isSelf(a))
-  );
 
-  // Convert eth chain data into transactions
-  const transactions = getTransactions({ addressBook, logger });
-  transactions.mergeEthereum(chainData);
+  // Fetch eth chain data, this can take a while
+  await chainData.syncAddressBook(addressBook);
+
+  // Parse data into transactions and add them to the list
+  transactions.merge(chainData.getTransactions(addressBook));
 
   // Create a value machine & process our transactions
-  const vm = getValueMachine({ addressBook, logger });
+  const vm = getValueMachine({ logger });
   for (const transaction of transactions.json) {
     vm.execute(transaction);
   }
 
   // Create a price fetcher & fetch the relevant prices
   const unit = "USD";
-  const prices = getPrices({ logger, store, unit });
-  for (const chunk of vm.json.chunks) {
-    const { asset, receiveDate, disposeDate } = chunk;
-    for (const date of [receiveDate, disposeDate]) {
-      if (!date) continue;
-      await prices.syncPrice(date, asset);
-    }
-  }
+  const prices = getPriceFns({
+    logger,
+    unit,
+  });
+  prices.calcPrices(vm);
 
   // calculate & print capital gains
+  console.log(`      Amount |        Asset | Receive Date | Dispose Date | Capital Change (USD)`);
   for (const event of vm.json.events) {
-    if (event.type === EventTypes.Trade) {
+    switch(event.type) {
+    case EventTypes.Trade: {
       event.outputs.forEach(chunkIndex => {
         const chunk = vm.getChunk(chunkIndex);
-        const takePrice = prices.getPrice(chunk.receiveDate, chunk.asset);
-        const givePrice = prices.getPrice(chunk.disposeDate, chunk.asset);
+        const takePrice = (prices.getPrice(chunk.history[0]?.date, chunk.asset) || 0).toString();
+        const givePrice = (prices.getPrice(chunk.disposeDate, chunk.asset) || 0).toString();
         if (!takePrice || !givePrice) return;
-        const change = mul(chunk.quantity, sub(givePrice, takePrice));
+        const change = math.mul(chunk.amount, math.sub(givePrice, takePrice));
         console.log(`${
-          addressBook.getName(event.account)
-        } got a chunk of ${
-          round(chunk.quantity, 4)
-        } ${
-          chunk.asset
-        } on ${
-          chunk.receiveDate
-        } and gave it away on ${
-          chunk.disposeDate
-        } for a capital change of ${
-          round(change, 2)
-        } ${
-          unit
+          math.round(chunk.amount, 4).padStart(12, " ")
+        } | ${
+          chunk.asset.padStart(12, " ")
+        } | ${
+          chunk.history[0]?.date.split("T")[0].padStart(12, " ")
+        } | ${
+          chunk.disposeDate.split("T")[0].padStart(12, " ")
+        } | ${
+          math.round(change, 2)
         }`);
       });
+    }
     }
   }
 

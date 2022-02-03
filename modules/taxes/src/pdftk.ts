@@ -49,6 +49,9 @@ export const toFdf = (data: FdfJson): Buffer => {
   ]);
 };
 
+export const getDefaultNickname = (index: number, fieldName: string): string =>
+  `${index}_${fieldName.split(".").pop().split("[").shift()}`;
+
 export const getPdftk = (libs: { fs: any, execFile: any }) => {
   const { fs, execFile } = libs;
   if (!fs) throw new Error(`Node fs module must be injected`);
@@ -65,7 +68,7 @@ export const getPdftk = (libs: { fs: any, execFile: any }) => {
           const fieldType = field.match(/FieldType: ([^\n]*)/)?.[1]?.trim() || "";
           const fieldName = field.match(/FieldName: ([^\n]*)/)?.[1]?.trim() || "";
           if (!fieldName || !fieldType) return mapping;
-          const nickname = `${index}_${fieldName.split(".").pop().split("[").shift()}`;
+          const nickname = getDefaultNickname(index, fieldName);
           if (fieldType === "Text") {
             return [...mapping, {
               fieldName,

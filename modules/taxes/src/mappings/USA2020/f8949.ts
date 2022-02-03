@@ -247,7 +247,7 @@ export const f8949 = [
   {"nickname":"P2L2h","fieldName":"topmostSubform[0].Page2[0].f2_119[0]"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F8949 {
   P1_Name?: string;

@@ -40,7 +40,7 @@ export const f1040sa = [
   {"nickname":"C18","fieldName":"topmostSubform[0].Page1[0].Line18_ReadOrder[0].c1_3[0]","checkmark":"1"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F1040SA {
   Name?: string;

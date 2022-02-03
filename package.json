@@ -1,6 +1,6 @@
 {
   "name": "valuemachine",
-  "version": "0.20.5",
+  "version": "0.21.0",
   "description": "Low level utilities for portfolio and tax analysis",
   "repository": {
     "type": "git",

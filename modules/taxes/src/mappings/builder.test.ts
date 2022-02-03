@@ -2,6 +2,7 @@ import { execFile } from "child_process";
 import fs from "fs";
 import path from "path";
 
+import { TaxYear } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import { expect } from "chai";
 
@@ -17,19 +18,20 @@ const libs = { fs, execFile };
 const pdftk = getPdftk(libs);
 const root = path.join(__dirname, "../..");
 
-const buildMapping = async (year, form) => {
-  const emptyPdf = `${root}/forms/${year}/${form}.pdf`;
+const buildMapping = async (taxYear: TaxYear, form: string) => {
+  const emptyPdf = `${root}/forms/${taxYear}/${form}.pdf`;
   let defaultMapping;
   try {
     defaultMapping = await pdftk.getMapping(emptyPdf);
   } catch (e) {
-    // Might have failed bc empty forms aren't available, fetch them and try again
-    await fetchUsaForm(year, form, fs);
+    // Might have failed bc empty forms isn't available, fetch it and try again
+    log.warn(`Failed to get mapping from ${emptyPdf}, fetching empty form & trying again..`);
+    await fetchUsaForm(taxYear, form, fs, log);
     defaultMapping = await pdftk.getMapping(emptyPdf);
   }
   log.info(`Got a mapping w ${defaultMapping.length} fields from ${emptyPdf}`);
-  const mappingFileContent = await buildMappingFile(year, form, defaultMapping, log);
-  const mappingFilePath = `${root}/src/mappings/${year}/${form}.ts`;
+  const mappingFileContent = await buildMappingFile(taxYear, form, defaultMapping, log);
+  const mappingFilePath = `${root}/src/mappings/${taxYear}/${form}.ts`;
   expect(mappingFileContent).to.be.a("string");
   expect(mappingFilePath).to.be.a("string");
   if (fs.existsSync(mappingFilePath)) {
@@ -48,14 +50,14 @@ const buildMapping = async (year, form) => {
 
 describe("Mappings Builder", () => {
   it(`should build & fix one form mapping`, async () => {
-    const [year, form] = [TaxYears.USA2020, "f1040sc"];
-    await buildMapping(year, form);
+    const [taxYear, form] = [TaxYears.USA2021, "f1040s1"];
+    await buildMapping(taxYear, form);
   });
 
   it(`should build & fix all form mappings`, async () => {
-    for (const year of Object.keys(TaxYears)) {
-      for (const form of Object.keys(MappingArchive[year])) {
-        await buildMapping(year, form);
+    for (const taxYear of Object.keys(TaxYears)) {
+      for (const form of Object.keys(MappingArchive[taxYear])) {
+        await buildMapping(taxYear, form);
       }
     }
   });

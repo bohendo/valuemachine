@@ -119,7 +119,7 @@ export const f1040 = [
   {"nickname":"PreparerFirmEIN","fieldName":"topmostSubform[0].Page2[0].PaidPreparer[0].Preparer[0].f2_37[0]"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F1040 {
   Single?: boolean;

@@ -76,7 +76,7 @@ export const f1040sb = [
   {"nickname":"C8_No","fieldName":"topmostSubform[0].Page1[0].c1_3[1]","checkmark":"2"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F1040SB {
   Name?: string;

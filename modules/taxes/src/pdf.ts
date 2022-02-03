@@ -4,7 +4,7 @@ import axios from "axios";
 
 import { getPdftk } from "./pdftk";
 import { Forms, Form, MappingArchive } from "./mappings";
-import { splitTaxYear } from "./utils";
+import { getTaxYearError, splitTaxYear } from "./utils";
 
 const fillForm = async (
   taxYear: TaxYear,
@@ -94,7 +94,7 @@ export const fillReturn = async (
   }
   return getPdftk(libs).cat(
     pages,
-    `${dir || "/tmp"}/tax-return-${taxYear}.pdf`,
+    `${dir || "/tmp"}/${taxYear}-tax-return.pdf`,
   );
 };
 
@@ -104,6 +104,8 @@ export const fetchUsaForm = async (
   fs: any,
   logger?: Logger,
 ): Promise<boolean> => {
+  const error = getTaxYearError(taxYear);
+  if (error) throw new Error(error);
   const log = (logger || getLogger()).child({ name: "FetchUsaForm" });
   const [guard, year] = splitTaxYear(taxYear);
   if (guard !== "USA") throw new Error(`Can only fetch USA forms, not ${guard}`);
@@ -120,7 +122,13 @@ export const fetchUsaForm = async (
         log.info(`Finished writing pdf file to ${emptyPdf}`);
         res(true);
       });
-      writer.on("error", rej);
-    }).catch(e => rej(e));
+      writer.on("error", e => {
+        log.error(`Failed to write response: ${e.message}`);
+        rej(e);
+      });
+    }).catch(e => {
+      log.error(`Failed to fetch ${taxYear} ${form}: ${e.message}`);
+      rej(e);
+    });
   });
 };

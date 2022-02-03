@@ -210,7 +210,7 @@ export const f2210 = [
   {"nickname":"Line32d_0","fieldName":"topmostSubform[0].Page4[0].Part2Table[0].Line34[0].Line32d[0]"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F2210 {
   Name?: string;

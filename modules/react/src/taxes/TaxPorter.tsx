@@ -79,7 +79,8 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
   const handleReturnExport = async (): Promise<void> => {
     if (!guard || !taxYear || !taxInput) return;
     if (guard !== Guards.USA) return;
-    const year = taxYear === "2019" ? TaxYears.USA2019 : taxYear === "2020" ? TaxYears.USA2020 : "";
+    const year = Object.keys(TaxYears).find(ty => ty.endsWith(taxYear));
+    console.log(`Exporting tax return for year ${year} from tax year ${taxYear}`);
     if (!year || !taxRows?.length) return;
     const forms = getTaxReturn(
       year,
@@ -155,7 +156,7 @@ export const TaxPorter: React.FC<TaxPorterProps> = ({
           </Button>
         </Grid>
 
-        {guard === Guards.USA && (taxYear === "2019" || taxYear === "2020") ?
+        {guard === Guards.USA && Object.keys(TaxYears).some(ty => ty.endsWith(taxYear)) ?
           <Grid item xs={12} sm={6}>
             <Button
               sx={{ ml: 1, my: 2, maxWidth: "24em" }}

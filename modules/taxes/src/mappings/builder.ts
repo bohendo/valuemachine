@@ -1,52 +1,69 @@
 // NOTE: this file is for dev-use only & shouldn't be included in the prod dist bundle
 // These tools can be used to build new form mappings or verify that current ones are valid
-import { Logger } from "@valuemachine/types";
+import { Logger, TaxYear } from "@valuemachine/types";
 import { getLogger } from "@valuemachine/utils";
 import { compile } from "json-schema-to-typescript";
 
+import { getDefaultNickname } from "../pdftk";
+import { getMappingError, splitTaxYear } from "../utils";
 import { Mapping } from "../types";
-import { getMappingError } from "../utils";
 
 import { MappingArchive } from ".";
 
 export const buildMappingFile = async (
-  year,
-  form,
-  defaultMapping,
+  taxYear: TaxYear,
+  form: string,
+  defaultMapping: Mapping,
   logger?: Logger,
 ): Promise<string> => {
-  const log = (logger || getLogger()).child({ name: "Build" });
-  const mapping = MappingArchive[year]?.[form] || {};
+  const log = (logger || getLogger()).child({ name: "BuildMappings" });
+  const mapping = MappingArchive[taxYear]?.[form] || [];
+  const [guard, year] = splitTaxYear(taxYear);
+  const lastTaxYear = `${guard}${parseInt(year) - 1}`;
+  const prevMapping = MappingArchive[lastTaxYear]?.[form] || [];
 
-  const syncMapping = (form: string, master: Mapping, slave: Mapping): Mapping => {
-    for (const m of master) {
-      const s = slave.find(e => e.fieldName === m.fieldName);
-      // Make sure all fields except nickname equal the values from the empty pdf
-      if (!s) {
-        log.warn(`Adding new entry for ${m.fieldName} to ${form} mappings`);
-        slave.push({
-          nickname: m.nickname,
-          fieldName: m.fieldName,
-          checkmark: m.checkmark,
-        });
-      } else if (m.checkmark) {
-        s.checkmark = m.checkmark;
-      }
+  // Add any fields from the master to the slave
+  for (const master of defaultMapping) {
+    const slave = mapping.find(e => e.fieldName === master.fieldName);
+    // Make sure all fields except nickname equal the values from the empty pdf
+    if (!slave) {
+      log.warn(`Adding new entry for ${master.fieldName} to ${form} mappings`);
+      mapping.push({
+        nickname: (prevMapping?.[master.fieldName]?.nickname)
+          ? prevMapping[master.fieldName].nickname
+          : master.nickname,
+        fieldName: master.fieldName,
+        checkmark: master.checkmark,
+      });
+    } else if (master.checkmark) {
+      slave.checkmark = master.checkmark;
     }
-    for (const i of slave.map((_, i) => i)) {
-      const s = slave[i];
-      if ((s as any).fieldType) delete (s as any).fieldType;
-      if (!master.find(m => m.fieldName === s.fieldName)) {
-        log.warn(`Removing ${s.nickname} from ${form} mappings`);
-        slave.splice(i, 1);
-      }
+  }
+
+  // Remove any fields from the slave that don't exist on the master
+  for (const i of mapping.map((_, i) => i)) {
+    const slave = mapping[i];
+    if ((slave as any).fieldType) delete (slave as any).fieldType; // depreciated field
+    if (!defaultMapping.find(master => master.fieldName === slave.fieldName)) {
+      log.warn(`Removing ${slave.nickname} from ${form} mappings`);
+      mapping.splice(i, 1);
     }
-    return slave;
-  };
-  syncMapping(form, defaultMapping, mapping);
+  }
+
+  // Replace any default nicknames on the slave if a nickname existed on last year's master
+  for (const i of mapping.map((_, i) => i)) {
+    const slave = mapping[i];
+    const master = prevMapping?.find(m => m.fieldName === slave.fieldName);
+    const defaultNickname = getDefaultNickname(i + 1, slave.fieldName);
+    log.info(`slave nickname: ${slave.nickname} vs default nickname: ${defaultNickname}`);
+    if (slave.nickname === defaultNickname && master?.nickname) {
+      log.warn(`Replacing nickname of ${slave.nickname} with last year's ${master.nickname}`);
+      slave.nickname = master.nickname;
+    }
+  }
 
   const error = getMappingError(mapping);
-  if (error) throw new Error(`${year} ${form}: ${error}`);
+  if (error) throw new Error(`${taxYear} ${form}: ${error}`);
   const title = form.toUpperCase();
   const ts = new Promise(res => {
     const schema = defaultMapping.reduce((schema, entry) => ({
@@ -63,9 +80,9 @@ export const buildMappingFile = async (
       properties: {},
     });
     compile(schema, title, {
-      bannerComment: "// This interface was automatically generated from the above schema",
+      bannerComment: "// The following interface was automatically generated from the above schema",
     }).then(ts => {
-      log.info(`Got interface w ${ts.split("\n").length - 5} props from ${year} ${form} mapping`);
+      log.info(`Got interface w ${ts.split("\n").length - 5} props from ${taxYear} ${form} mapping`);
       res(ts);
     });
   });
