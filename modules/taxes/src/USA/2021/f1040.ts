@@ -90,13 +90,13 @@ export const f1040 = (
 
   const L9 = math.add(
     f1040.L1,  // wages
-    f1040.L2b, // taxable interest (f1040sb?)
-    f1040.L3b, // taxable dividends (f1040sb?)
+    f1040.L2b, // taxable interest from f1040sb
+    f1040.L3b, // taxable dividends from f1040sb
     f1040.L4b, // IRA distributions
     f1040.L5b, // pensions & annuities
     f1040.L6b, // taxable social security benefits
-    f1040.L7,  // capital gain/loss (f1040sd)
-    f1040.L8,  // other income (f1040s1)
+    f1040.L7,  // capital gain/loss from f1040sd
+    f1040.L8,  // other income from f1040s1
   );
   if (!math.eq(L9, f1040.L9))
     log.warn(`DOUBLE_CHECK_FAILED: sum(L1-L8)=${L9} !== f1040.L9=${f1040.L9}`);
@@ -114,12 +114,10 @@ export const f1040 = (
     log.warn(`DOUBLE_CHECK_FAILED: L9-L10=${L11} !== f1040.L11=${f1040.L11}`);
 
   f1040.L12a = getStandardDeduction(input);
-  const L12c = math.add(
+  f1040.L12c = math.add(
     f1040.L12a, // income adjustments from f1040s1
     f1040.L12b, // charitable deductions
   );
-  if (!math.eq(f1040.L12c, L12c))
-    log.warn(`DOUBLE_CHECK_FAILED: sum(L12a-L12b)=${L12c} !== f1040.L12c=${f1040.L12c}`);
 
   // All deductions
   f1040.L14 = getTotalDeductions(input);

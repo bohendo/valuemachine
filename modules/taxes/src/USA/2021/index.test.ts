@@ -44,7 +44,7 @@ const tax = {
   taxYear,
 };
 
-describe.only(`${taxYear} Filers`, () => {
+describe(`${taxYear} Filers`, () => {
   it(`should include f1040 + schedules 1-3 by default `, async () => {
     const defaultReturn = getTaxReturn({}, [], log);
     log.info(`Tax return includes forms: ${Object.keys(defaultReturn)}`);

@@ -42,10 +42,10 @@ export const f1040s1 = (
   }
 
   f1040s1.L9 = math.add(
-    f1040s1.L8a, // net operating loss
+    math.mul(f1040s1.L8a, "-1"), // net operating loss
     f1040s1.L8b, // gambling
     f1040s1.L8c, // cancellation of debt
-    f1040s1.L8d, // foreign earned income exclusion from f2555
+    math.mul(f1040s1.L8d, "-1"), // foreign earned income exclusion from f2555
     f1040s1.L8e, // taxable health savings account distribution
     f1040s1.L8f, // alaska permenant fund
     f1040s1.L8g, // jury duty
@@ -60,8 +60,7 @@ export const f1040s1 = (
     f1040s1.L8p, // ABLE account distributions
     f1040s1.L8z, // Other income
   );
-  log.info(`Total additional income: f1040s1.L9=${f1040s1.L9}`);
-  f1040.L8 = f1040s1.L9;
+  log.info(`Other additional income: f1040s1.L9=${f1040s1.L9}`);
 
   f1040s1.L10 = math.add(
     f1040s1.L1,  // taxable refunds/credits/offsets
@@ -73,8 +72,8 @@ export const f1040s1 = (
     f1040s1.L7,  // unemployment compensation
     f1040s1.L9,  // other income
   );
-  log.info(`Total additional income: f1040s1.L9=${f1040s1.L9}`);
-  f1040.L8 = f1040s1.L9;
+  log.info(`Total additional income: f1040s1.L10=${f1040s1.L10}`);
+  f1040.L8 = f1040s1.L10;
 
   ////////////////////////////////////////
   // Part II - Adjustments to  Income

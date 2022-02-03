@@ -40,24 +40,16 @@ export const f2210 = (
   f2210.L1 = f1040.L22;
 
   f2210.L2 = math.add(
-    f1040s2.L4,  // se tax
-    f1040s2.L5,  // medicare/social security tax
-    f1040s2.L6,  // retirement plan tax
-    f1040s2.L7a, // household employment tax from f1040sh
-    f1040s2.L7b, // repayment of first time homeowner credit
-    f1040s2.L8,  // other taxes from f8959, f8960, etc
+    f1040s2.L4, f1040s2.L8, f1040s2.L9, f1040s2.L10, f1040s2.L11, f1040s2.L12,
+    f1040s2.L14, f1040s2.L15, f1040s2.L16, f1040s2.L17a, f1040s2.L17c, f1040s2.L17d,
+    f1040s2.L17e, f1040s2.L17f, f1040s2.L17g, f1040s2.L17h, f1040s2.L17i, f1040s2.L17j,
+    f1040s2.L17l, f1040s2.L17z, f1040s2.L19,
   );
-  if (math.gt(f1040s2.L8, "0") || math.gt(f1040s2.L7a, "0")) {
-    log.warn(`Read instructions & verify value on f2210.L2`);
+  if (math.gt(f1040s2.L8, "0")) {
+    log.warn(`Verify that the value on f2210.L8 only includes tax on distributions (${f2210.L8})`);
   }
 
-  f2210.L3 = math.add(
-    f1040s3.L8,   // net premium tax credit
-    f1040s3.L9,   // payment w request for extension
-    f1040s3.L10,  // excess social security credit
-    f1040s3.L11,  // fuel tax credit
-    f1040s3.L12f, // sum of other credits from f2439, f1040sh, f7202, f8885, etc
-  );
+  f2210.L3 = f1040s3.L15;
 
   f2210.L4 = math.sub(
     math.add(
@@ -75,7 +67,7 @@ export const f2210 = (
 
   f2210.L5 = math.mul(f2210.L4, "0.90");
 
-  f2210.L6 = math.add(f1040.L25d, f1040s3.L10);
+  f2210.L6 = f1040.L25d;
 
   f2210.L7 = math.sub(f2210.L4, f2210.L6);
 
@@ -229,7 +221,7 @@ export const f2210 = (
     f2210[getKey(3)] = math.mul(getVal(1), getVal(2));
     f2210[getKey(4)] = "0";
     f2210[getKey(6)] = math.mul(getVal(4), getVal(5));
-    f2210[getKey(7)] = f1040.L12;
+    f2210[getKey(7)] = f1040.L12c;
     f2210[getKey(8)] = math.max(getVal(6), getVal(7));
 
     if ("f8995" in forms) {
@@ -244,7 +236,7 @@ export const f2210 = (
     f2210[getKey(13)] = math.subToZero(getVal(11), getVal(12));
     f2210[getKey(14)] = applyTaxBracket(thisYear, getVal(13), personal.filingStatus);
     f2210[getKey(15)] = getVal(36);
-    f2210[getKey(16)] = math.div(math.sub(f2210.L2, f1040s2.L4), getVal(2));
+    f2210[getKey(16)] = math.div(math.sub(f2210.L2, f1040s2.L21), getVal(2));
     f2210[getKey(17)] = math.add(getVal(14), getVal(15), getVal(16));
     f2210[getKey(18)] = math.div(f2210.L3, getVal(2));
     f2210[getKey(19)] = math.subToZero(getVal(17), getVal(18));
@@ -410,7 +402,7 @@ export const f2210 = (
 
   log.info(`Total Penalty: ${penalty}`);
 
-  f2210.L27 = penalty;
+  f2210.L19 = penalty;
   f1040.L38 = penalty;
 
   return { ...forms, f2210, f1040 };

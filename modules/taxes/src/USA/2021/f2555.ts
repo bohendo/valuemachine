@@ -211,14 +211,40 @@ export const f2555 = (
     log.warn(`NOT_IMPLEMENTED or provided: f2555.L44`);
   }
   f2555.L45 = math.sub(f2555.L43, f2555.L44);
-  if (!math.eq(f2555.L45, "0")) {
-    f1040s1.L8_Etc2 = strcat([f1040s1.L8_Etc2, `Form2555=(${math.round(f2555.L45)})`], ", ");
-  }
-  f1040s1.L8 = math.sub(f1040s1.L8, f2555.L45);
+  f1040s1.L8d = f2555.L45;
+
+  // Recalculate f1040s1 values after adding the foreign income tax deduction
   f1040s1.L9 = math.add(
-    f1040s1.L1, f1040s1.L2a, f1040s1.L3, f1040s1.L4,
-    f1040s1.L5, f1040s1.L6, f1040s1.L7, f1040s1.L8,
+    f1040s1.L8a, // net operating loss
+    f1040s1.L8b, // gambling
+    f1040s1.L8c, // cancellation of debt
+    f1040s1.L8d, // foreign earned income exclusion from f2555
+    f1040s1.L8e, // taxable health savings account distribution
+    f1040s1.L8f, // alaska permenant fund
+    f1040s1.L8g, // jury duty
+    f1040s1.L8h, // prizes & awards
+    f1040s1.L8i, // activity not engaged in for profit
+    f1040s1.L8j, // stock options
+    f1040s1.L8k, // non-business rental income
+    f1040s1.L8l, // (para-)olympic prize money
+    f1040s1.L8m, // section 951(a) inclusion
+    f1040s1.L8n, // section 951A(a) inclusion
+    f1040s1.L8o, // section 461(l) inclusion
+    f1040s1.L8p, // ABLE account distributions
+    f1040s1.L8z, // Other income
   );
+  log.info(`Total RECALCULATED additional income: f1040s1.L9=${f1040s1.L9}`);
+  f1040s1.L10 = math.add(
+    f1040s1.L1,  // taxable refunds/credits/offsets
+    f1040s1.L2a, // alimony received
+    f1040s1.L3,  // business income from f1040sc
+    f1040s1.L4,  // other gains from f4797
+    f1040s1.L5,  // rental/s-corp/trust income from f1040se
+    f1040s1.L6,  // farm income from f1040sf
+    f1040s1.L7,  // unemployment compensation
+    f1040s1.L9,  // other income
+  );
+  log.info(`Total RECALCULATED additional income: f1040s1.L9=${f1040s1.L9}`);
 
   ////////////////////////////////////////
   // Part IX: Housing Deduction
@@ -232,11 +258,8 @@ export const f2555 = (
       log.warn(`Maybe required but not provided or implemented: L49 (Housing Deduction Carryover Worksheet)`);
     }
     f2555.L50 = math.add(f2555.L48, f2555.L49);
-    if (math.gt(f2555.L50, "0")) {
-      log.warn(`You're supposed to write "f2555 ${f2555.L50}" to the left of f1040s1.L22 lol`);
-    }
-    f1040s1.L22 = math.add(f1040s1.L22, f2555.L50);
-    log.info(`Foreign housing deduction: ${f2555.L50}`);
+    f1040s1.L24j = f2555.L50;
+    log.info(`Foreign housing deduction: f1040s1.L24j=${f1040s1.L24j}`);
   }
 
   return { ...forms, f2555 };

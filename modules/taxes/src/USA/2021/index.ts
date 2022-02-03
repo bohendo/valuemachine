@@ -8,8 +8,6 @@ import { f1040s1 } from "./f1040s1";
 import { f1040s2 } from "./f1040s2";
 import { f1040s3 } from "./f1040s3";
 import { f2210 } from "./f2210";
-import { f1040sa } from "./f1040sa";
-import { f1040sb } from "./f1040sb";
 import { f1040sc } from "./f1040sc";
 import { f1040sd } from "./f1040sd";
 import { f8949 } from "./f8949";
@@ -17,7 +15,7 @@ import { f1040sse } from "./f1040sse";
 import { f2555 } from "./f2555";
 import { Forms } from "./utils";
 
-const taxYear = TaxYears.USA2020;
+const taxYear = TaxYears.USA2021;
 const logger = getLogger("info", taxYear);
 
 export const getTaxReturn = (
@@ -39,8 +37,6 @@ export const getTaxReturn = (
   /*seq no 9*/  forms = f1040sc(forms, input, taxRows, log);
   // NOTE: sse depends on sc despite the higher seq no..
   /*seq no 17*/ forms = f1040sse(forms, input, taxRows, log);
-  /*seq no 8*/  forms = f1040sb(forms, input, taxRows, log);
-  /*seq no 7*/  forms = f1040sa(forms, input, taxRows, log);
   /*seq no 3*/  forms = f1040s3(forms, input, taxRows, log);
   /*seq no 2*/  forms = f1040s2(forms, input, taxRows, log);
   /*seq no 1*/  forms = f1040s1(forms, input, taxRows, log);
