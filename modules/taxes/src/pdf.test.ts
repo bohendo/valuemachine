@@ -28,7 +28,7 @@ describe("Tax Form Mappings", () => {
 
   // Creates test returns where every checkbox is checked & every field is filled with it's nickname
   it.skip("should fill all fields and check all boxes on all forms", async () => {
-    for (const year of [TaxYears.USA2020]) { // Object.keys(TaxYears)) {
+    for (const year of [TaxYears.USA2021]) {
       const formData = getTestReturn(MappingArchive[year]);
       expect(await fillReturn(year, formData, root, libs, log)).to.be.a("string");
     }
