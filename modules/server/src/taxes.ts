@@ -20,7 +20,7 @@ taxesRouter.post("/:taxYear", async (req, res) => {
   const { taxYear } = req.params;
   const { forms } = req.body;
   log.info(`Building ${Object.keys(forms || {}).length} forms for ${taxYear} return`);
-  if (!forms) {
+  if (!Object.keys(forms || {}).length) {
     return logAndSend("No forms were provided", STATUS_YOUR_BAD);
   }
   try {

@@ -38,7 +38,7 @@ export {
   Mappings_USA2020,
 } from "./USA2020";
 
-// Can't just be 2019 bc enums can't start with a number
+// Can't just be eg "2019" bc enums can't start with a number
 export const TaxYears = {
   USA2019: "USA2019",
   USA2020: "USA2020",
