@@ -1,24 +1,24 @@
 /* eslint-disable */
 
 export const f2210 = [
-  {"nickname":"1_f1_1","fieldName":"topmostSubform[0].Page1[0].f1_1[0]"},
-  {"nickname":"2_f1_2","fieldName":"topmostSubform[0].Page1[0].f1_2[0]"},
-  {"nickname":"3_f1_3","fieldName":"topmostSubform[0].Page1[0].f1_3[0]"},
-  {"nickname":"4_f1_4","fieldName":"topmostSubform[0].Page1[0].f1_4[0]"},
-  {"nickname":"5_f1_5","fieldName":"topmostSubform[0].Page1[0].f1_5[0]"},
-  {"nickname":"6_f1_6","fieldName":"topmostSubform[0].Page1[0].f1_6[0]"},
-  {"nickname":"7_f1_7","fieldName":"topmostSubform[0].Page1[0].f1_7[0]"},
-  {"nickname":"8_f1_8","fieldName":"topmostSubform[0].Page1[0].f1_8[0]"},
-  {"nickname":"9_f1_9","fieldName":"topmostSubform[0].Page1[0].f1_9[0]"},
-  {"nickname":"10_f1_10","fieldName":"topmostSubform[0].Page1[0].f1_10[0]"},
-  {"nickname":"11_f1_11","fieldName":"topmostSubform[0].Page1[0].f1_11[0]"},
-  {"nickname":"12_c1_1","fieldName":"topmostSubform[0].Page1[0].c1_1[0]","checkmark":"1"},
-  {"nickname":"13_c1_1","fieldName":"topmostSubform[0].Page1[0].c1_1[1]","checkmark":"2"},
-  {"nickname":"14_c1_2","fieldName":"topmostSubform[0].Page1[0].c1_2[0]","checkmark":"1"},
-  {"nickname":"15_c1_3","fieldName":"topmostSubform[0].Page1[0].c1_3[0]","checkmark":"1"},
-  {"nickname":"16_c1_4","fieldName":"topmostSubform[0].Page1[0].c1_4[0]","checkmark":"1"},
-  {"nickname":"17_c1_5","fieldName":"topmostSubform[0].Page1[0].c1_5[0]","checkmark":"1"},
-  {"nickname":"18_c1_6","fieldName":"topmostSubform[0].Page1[0].c1_6[0]","checkmark":"1"},
+  {"nickname":"Name","fieldName":"topmostSubform[0].Page1[0].f1_1[0]"},
+  {"nickname":"SSN","fieldName":"topmostSubform[0].Page1[0].f1_2[0]"},
+  {"nickname":"L1","fieldName":"topmostSubform[0].Page1[0].f1_3[0]"},
+  {"nickname":"L2","fieldName":"topmostSubform[0].Page1[0].f1_4[0]"},
+  {"nickname":"L3","fieldName":"topmostSubform[0].Page1[0].f1_5[0]"},
+  {"nickname":"L4","fieldName":"topmostSubform[0].Page1[0].f1_6[0]"},
+  {"nickname":"L5","fieldName":"topmostSubform[0].Page1[0].f1_7[0]"},
+  {"nickname":"L6","fieldName":"topmostSubform[0].Page1[0].f1_8[0]"},
+  {"nickname":"L7","fieldName":"topmostSubform[0].Page1[0].f1_9[0]"},
+  {"nickname":"L8","fieldName":"topmostSubform[0].Page1[0].f1_10[0]"},
+  {"nickname":"L9","fieldName":"topmostSubform[0].Page1[0].f1_11[0]"},
+  {"nickname":"C9_No","fieldName":"topmostSubform[0].Page1[0].c1_1[0]","checkmark":"1"},
+  {"nickname":"C9_Yes","fieldName":"topmostSubform[0].Page1[0].c1_1[1]","checkmark":"2"},
+  {"nickname":"CA","fieldName":"topmostSubform[0].Page1[0].c1_2[0]","checkmark":"1"},
+  {"nickname":"CB","fieldName":"topmostSubform[0].Page1[0].c1_3[0]","checkmark":"1"},
+  {"nickname":"CC","fieldName":"topmostSubform[0].Page1[0].c1_4[0]","checkmark":"1"},
+  {"nickname":"CD","fieldName":"topmostSubform[0].Page1[0].c1_5[0]","checkmark":"1"},
+  {"nickname":"CE","fieldName":"topmostSubform[0].Page1[0].c1_6[0]","checkmark":"1"},
   {"nickname":"19_f2_1","fieldName":"topmostSubform[0].Page2[0].SectionATable[0].Line10[0].f2_1[0]"},
   {"nickname":"20_f2_2","fieldName":"topmostSubform[0].Page2[0].SectionATable[0].Line10[0].f2_2[0]"},
   {"nickname":"21_f2_3","fieldName":"topmostSubform[0].Page2[0].SectionATable[0].Line10[0].f2_3[0]"},
@@ -205,24 +205,24 @@ export const f2210 = [
 // This interface was automatically generated from the above schema
 
 export interface F2210 {
-  "1_f1_1"?: string;
-  "2_f1_2"?: string;
-  "3_f1_3"?: string;
-  "4_f1_4"?: string;
-  "5_f1_5"?: string;
-  "6_f1_6"?: string;
-  "7_f1_7"?: string;
-  "8_f1_8"?: string;
-  "9_f1_9"?: string;
-  "10_f1_10"?: string;
-  "11_f1_11"?: string;
-  "12_c1_1"?: boolean;
-  "13_c1_1"?: boolean;
-  "14_c1_2"?: boolean;
-  "15_c1_3"?: boolean;
-  "16_c1_4"?: boolean;
-  "17_c1_5"?: boolean;
-  "18_c1_6"?: boolean;
+  Name?: string;
+  SSN?: string;
+  L1?: string;
+  L2?: string;
+  L3?: string;
+  L4?: string;
+  L5?: string;
+  L6?: string;
+  L7?: string;
+  L8?: string;
+  L9?: string;
+  C9_No?: boolean;
+  C9_Yes?: boolean;
+  CA?: boolean;
+  CB?: boolean;
+  CC?: boolean;
+  CD?: boolean;
+  CE?: boolean;
   "19_f2_1"?: string;
   "20_f2_2"?: string;
   "21_f2_3"?: string;

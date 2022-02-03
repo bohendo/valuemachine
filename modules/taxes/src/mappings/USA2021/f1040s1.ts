@@ -1,35 +1,35 @@
 /* eslint-disable */
 
 export const f1040s1 = [
-  {"nickname":"1_f1_01","fieldName":"form1[0].Page1[0].f1_01[0]"},
-  {"nickname":"2_f1_02","fieldName":"form1[0].Page1[0].f1_02[0]"},
-  {"nickname":"3_f1_03","fieldName":"form1[0].Page1[0].f1_03[0]"},
-  {"nickname":"4_f1_04","fieldName":"form1[0].Page1[0].f1_04[0]"},
-  {"nickname":"5_f1_05","fieldName":"form1[0].Page1[0].f1_05[0]"},
-  {"nickname":"6_f1_06","fieldName":"form1[0].Page1[0].f1_06[0]"},
-  {"nickname":"7_f1_07","fieldName":"form1[0].Page1[0].f1_07[0]"},
-  {"nickname":"8_f1_08","fieldName":"form1[0].Page1[0].f1_08[0]"},
-  {"nickname":"9_f1_09","fieldName":"form1[0].Page1[0].f1_09[0]"},
-  {"nickname":"10_f1_10","fieldName":"form1[0].Page1[0].f1_10[0]"},
+  {"nickname":"Name","fieldName":"form1[0].Page1[0].f1_01[0]"},
+  {"nickname":"SSN","fieldName":"form1[0].Page1[0].f1_02[0]"},
+  {"nickname":"L1","fieldName":"form1[0].Page1[0].f1_03[0]"},
+  {"nickname":"L2a","fieldName":"form1[0].Page1[0].f1_04[0]"},
+  {"nickname":"L2b","fieldName":"form1[0].Page1[0].f1_05[0]"},
+  {"nickname":"L3","fieldName":"form1[0].Page1[0].f1_06[0]"},
+  {"nickname":"L4","fieldName":"form1[0].Page1[0].f1_07[0]"},
+  {"nickname":"L5","fieldName":"form1[0].Page1[0].f1_08[0]"},
+  {"nickname":"L6","fieldName":"form1[0].Page1[0].f1_09[0]"},
+  {"nickname":"L7","fieldName":"form1[0].Page1[0].f1_10[0]"},
   {"nickname":"11_f1_11","fieldName":"form1[0].Page1[0].f1_11[0]"},
   {"nickname":"12_f1_12","fieldName":"form1[0].Page1[0].f1_12[0]"},
-  {"nickname":"13_f1_13","fieldName":"form1[0].Page1[0].f1_13[0]"},
-  {"nickname":"14_f1_14","fieldName":"form1[0].Page1[0].f1_14[0]"},
-  {"nickname":"15_f1_15","fieldName":"form1[0].Page1[0].f1_15[0]"},
-  {"nickname":"16_f1_16","fieldName":"form1[0].Page1[0].f1_16[0]"},
-  {"nickname":"17_f1_17","fieldName":"form1[0].Page1[0].f1_17[0]"},
-  {"nickname":"18_f1_18","fieldName":"form1[0].Page1[0].f1_18[0]"},
-  {"nickname":"19_f1_19","fieldName":"form1[0].Page1[0].f1_19[0]"},
-  {"nickname":"20_f1_20","fieldName":"form1[0].Page1[0].f1_20[0]"},
-  {"nickname":"21_f1_21","fieldName":"form1[0].Page1[0].f1_21[0]"},
-  {"nickname":"22_f1_22","fieldName":"form1[0].Page1[0].f1_22[0]"},
-  {"nickname":"23_f1_23","fieldName":"form1[0].Page1[0].f1_23[0]"},
+  {"nickname":"L8","fieldName":"form1[0].Page1[0].f1_13[0]"},
+  {"nickname":"L9","fieldName":"form1[0].Page1[0].f1_14[0]"},
+  {"nickname":"L10","fieldName":"form1[0].Page1[0].f1_15[0]"},
+  {"nickname":"L11","fieldName":"form1[0].Page1[0].f1_16[0]"},
+  {"nickname":"L12","fieldName":"form1[0].Page1[0].f1_17[0]"},
+  {"nickname":"L13","fieldName":"form1[0].Page1[0].f1_18[0]"},
+  {"nickname":"L14","fieldName":"form1[0].Page1[0].f1_19[0]"},
+  {"nickname":"L15","fieldName":"form1[0].Page1[0].f1_20[0]"},
+  {"nickname":"L16","fieldName":"form1[0].Page1[0].f1_21[0]"},
+  {"nickname":"L17","fieldName":"form1[0].Page1[0].f1_22[0]"},
+  {"nickname":"L18a","fieldName":"form1[0].Page1[0].f1_23[0]"},
   {"nickname":"24_f1_24","fieldName":"form1[0].Page1[0].f1_24[0]"},
-  {"nickname":"25_f1_25","fieldName":"form1[0].Page1[0].f1_25[0]"},
-  {"nickname":"26_f1_26","fieldName":"form1[0].Page1[0].f1_26[0]"},
+  {"nickname":"L18c","fieldName":"form1[0].Page1[0].f1_25[0]"},
+  {"nickname":"L19","fieldName":"form1[0].Page1[0].f1_26[0]"},
   {"nickname":"27_f1_27","fieldName":"form1[0].Page1[0].Line8z_ReadOrder[0].f1_27[0]"},
   {"nickname":"28_f1_28","fieldName":"form1[0].Page1[0].Line8z_ReadOrder[0].f1_28[0]"},
-  {"nickname":"29_f1_29","fieldName":"form1[0].Page1[0].f1_29[0]"},
+  {"nickname":"L22","fieldName":"form1[0].Page1[0].f1_29[0]"},
   {"nickname":"30_f1_30","fieldName":"form1[0].Page1[0].f1_30[0]"},
   {"nickname":"31_f1_31","fieldName":"form1[0].Page1[0].f1_31[0]"},
   {"nickname":"32_f2_01","fieldName":"form1[0].Page2[0].f2_01[0]"},
@@ -68,35 +68,35 @@ export const f1040s1 = [
 // This interface was automatically generated from the above schema
 
 export interface F1040S1 {
-  "1_f1_01"?: string;
-  "2_f1_02"?: string;
-  "3_f1_03"?: string;
-  "4_f1_04"?: string;
-  "5_f1_05"?: string;
-  "6_f1_06"?: string;
-  "7_f1_07"?: string;
-  "8_f1_08"?: string;
-  "9_f1_09"?: string;
-  "10_f1_10"?: string;
+  Name?: string;
+  SSN?: string;
+  L1?: string;
+  L2a?: string;
+  L2b?: string;
+  L3?: string;
+  L4?: string;
+  L5?: string;
+  L6?: string;
+  L7?: string;
   "11_f1_11"?: string;
   "12_f1_12"?: string;
-  "13_f1_13"?: string;
-  "14_f1_14"?: string;
-  "15_f1_15"?: string;
-  "16_f1_16"?: string;
-  "17_f1_17"?: string;
-  "18_f1_18"?: string;
-  "19_f1_19"?: string;
-  "20_f1_20"?: string;
-  "21_f1_21"?: string;
-  "22_f1_22"?: string;
-  "23_f1_23"?: string;
+  L8?: string;
+  L9?: string;
+  L10?: string;
+  L11?: string;
+  L12?: string;
+  L13?: string;
+  L14?: string;
+  L15?: string;
+  L16?: string;
+  L17?: string;
+  L18a?: string;
   "24_f1_24"?: string;
-  "25_f1_25"?: string;
-  "26_f1_26"?: string;
+  L18c?: string;
+  L19?: string;
   "27_f1_27"?: string;
   "28_f1_28"?: string;
-  "29_f1_29"?: string;
+  L22?: string;
   "30_f1_30"?: string;
   "31_f1_31"?: string;
   "32_f2_01"?: string;
