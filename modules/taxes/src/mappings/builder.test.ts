@@ -49,7 +49,7 @@ const buildMapping = async (year, form) => {
 
 describe("Mappings Builder", () => {
   it(`should build & fix one form mapping`, async () => {
-    const [year, form] = [TaxYears.USA2021, "f1040"];
+    const [year, form] = [TaxYears.USA2021, "f8949"]; // cache breaker
     await buildMapping(year, form);
   });
 
