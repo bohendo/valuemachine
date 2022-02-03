@@ -45,7 +45,7 @@ export const f1040s1 = [
   {"nickname":"L19c","fieldName":"form1[0].Page2[0].f2_11[0]"},
   {"nickname":"L20","fieldName":"form1[0].Page2[0].f2_12[0]"},
   {"nickname":"L21","fieldName":"form1[0].Page2[0].f2_13[0]"},
-  {"nickname":"L22","fieldName":"form1[0].Page2[0].f2_14[0]"},
+  {"nickname":"RO_L22","fieldName":"form1[0].Page2[0].f2_14[0]"},
   {"nickname":"L23","fieldName":"form1[0].Page2[0].f2_15[0]"},
   {"nickname":"L24a","fieldName":"form1[0].Page2[0].f2_16[0]"},
   {"nickname":"L24b","fieldName":"form1[0].Page2[0].f2_17[0]"},
@@ -65,7 +65,7 @@ export const f1040s1 = [
   {"nickname":"L26","fieldName":"form1[0].Page2[0].f2_31[0]"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F1040S1 {
   Name?: string;
@@ -112,7 +112,7 @@ export interface F1040S1 {
   L19c?: string;
   L20?: string;
   L21?: string;
-  L22?: string;
+  RO_L22?: string;
   L23?: string;
   L24a?: string;
   L24b?: string;

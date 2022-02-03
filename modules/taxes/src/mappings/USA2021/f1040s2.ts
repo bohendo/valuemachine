@@ -46,7 +46,7 @@ export const f1040s2 = [
   {"nickname":"L21","fieldName":"form1[0].Page2[0].f2_25[0]"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F1040S2 {
   Name?: string;

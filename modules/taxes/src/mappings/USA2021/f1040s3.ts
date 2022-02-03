@@ -33,7 +33,7 @@ export const f1040s3 = [
   {"nickname":"L13b","fieldName":"form1[0].Page2[0].f2_06[0]"},
   {"nickname":"L13c","fieldName":"form1[0].Page2[0].f2_07[0]"},
   {"nickname":"L13d","fieldName":"form1[0].Page2[0].f2_08[0]"},
-  {"nickname":"L13e","fieldName":"form1[0].Page2[0].f2_09[0]"},
+  {"nickname":"RO_L13e","fieldName":"form1[0].Page2[0].f2_09[0]"},
   {"nickname":"L13f","fieldName":"form1[0].Page2[0].f2_10[0]"},
   {"nickname":"L13g","fieldName":"form1[0].Page2[0].f2_11[0]"},
   {"nickname":"L13h","fieldName":"form1[0].Page2[0].f2_12[0]"},
@@ -44,7 +44,7 @@ export const f1040s3 = [
   {"nickname":"L15","fieldName":"form1[0].Page2[0].f2_17[0]"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F1040S3 {
   Name?: string;
@@ -54,38 +54,38 @@ export interface F1040S3 {
   L3?: string;
   L4?: string;
   L5?: string;
+  L6a?: string;
+  L6b?: string;
   L6c?: string;
-  L6?: string;
+  L6d?: string;
+  L6e?: string;
+  L6f?: string;
+  L6g?: string;
+  L6h?: string;
+  L6i?: string;
+  L6j?: string;
+  L6k?: string;
+  L6l?: string;
+  L6z_Etc?: string;
+  L6z_Etc2?: string;
+  L6z?: string;
   L7?: string;
   L8?: string;
   L9?: string;
   L10?: string;
   L11?: string;
-  "15_f1_15"?: string;
-  L12b?: string;
-  L12c?: string;
-  L12d_Etc?: string;
-  L12d?: string;
-  "20_f1_20"?: string;
-  "21_f1_21"?: string;
-  L13?: string;
-  "23_f1_23"?: string;
-  "24_f1_24"?: string;
-  "25_f2_01"?: string;
-  "26_f2_02"?: string;
-  "27_f2_03"?: string;
-  "28_f2_04"?: string;
-  "29_f2_05"?: string;
-  "30_f2_06"?: string;
-  "31_f2_07"?: string;
-  "32_f2_08"?: string;
-  "33_f2_09"?: string;
-  "34_f2_10"?: string;
-  "35_f2_11"?: string;
-  "36_f2_12"?: string;
-  "37_f2_13"?: string;
-  "38_f2_14"?: string;
-  "39_f2_15"?: string;
-  "40_f2_16"?: string;
-  "41_f2_17"?: string;
+  L12?: string;
+  L13a?: string;
+  L13b?: string;
+  L13c?: string;
+  L13d?: string;
+  RO_L13e?: string;
+  L13f?: string;
+  L13g?: string;
+  L13h?: string;
+  L13z_Etc?: string;
+  L13z_Etc2?: string;
+  L13z?: string;
+  L14?: string;
+  L15?: string;
 }

@@ -108,7 +108,7 @@ export const f1040sc = [
   {"nickname":"L48","fieldName":"topmostSubform[0].Page2[0].f2_33[0]"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F1040SC {
   Name?: string;

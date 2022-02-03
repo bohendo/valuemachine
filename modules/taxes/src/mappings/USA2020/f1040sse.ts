@@ -39,7 +39,7 @@ export const f1040sse = [
   {"nickname":"L26","fieldName":"topmostSubform[0].Page2[0].f2_09[0]"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F1040SSE {
   Name?: string;

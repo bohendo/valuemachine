@@ -80,7 +80,7 @@ export const buildMappingFile = async (
       properties: {},
     });
     compile(schema, title, {
-      bannerComment: "// This interface was automatically generated from the above schema",
+      bannerComment: "// The following interface was automatically generated from the above schema",
     }).then(ts => {
       log.info(`Got interface w ${ts.split("\n").length - 5} props from ${taxYear} ${form} mapping`);
       res(ts);

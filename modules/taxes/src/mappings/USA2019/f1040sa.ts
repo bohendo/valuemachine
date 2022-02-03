@@ -40,7 +40,7 @@ export const f1040sa = [
   {"nickname":"C0_Noop2","fieldName":"topmostSubform[0].Page1[0].c1_3[0]","checkmark":"X"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F1040SA {
   Name?: string;

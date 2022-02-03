@@ -163,7 +163,7 @@ export const f2555 = [
   {"nickname":"L50","fieldName":"topmostSubform[0].Page3[0].f3_37[0]"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F2555 {
   Name?: string;

@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 export const f1040sc = [
-  {"nickname":"1_f1_1","fieldName":"topmostSubform[0].Page1[0].PgHeader[0].f1_1[0]"},
+  {"nickname":"Name","fieldName":"topmostSubform[0].Page1[0].PgHeader[0].f1_1[0]"},
   {"nickname":"SSN","fieldName":"topmostSubform[0].Page1[0].f1_2[0]"},
   {"nickname":"LA","fieldName":"topmostSubform[0].Page1[0].f1_3[0]"},
   {"nickname":"LB","fieldName":"topmostSubform[0].Page1[0].BComb[0].f1_4[0]"},
@@ -105,13 +105,13 @@ export const f1040sc = [
   {"nickname":"L48_Amount8","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item8[0].f2_30[0]"},
   {"nickname":"L48_Expense9","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item9[0].f2_31[0]"},
   {"nickname":"L48_Amount9","fieldName":"topmostSubform[0].Page2[0].PartVTable[0].Item9[0].f2_32[0]"},
-  {"nickname":"106_f2_33","fieldName":"topmostSubform[0].Page2[0].f2_33[0]"}
+  {"nickname":"L48","fieldName":"topmostSubform[0].Page2[0].f2_33[0]"}
 ];
 
-// This interface was automatically generated from the above schema
+// The following interface was automatically generated from the above schema
 
 export interface F1040SC {
-  "1_f1_1"?: string;
+  Name?: string;
   SSN?: string;
   LA?: string;
   LB?: string;
@@ -215,5 +215,5 @@ export interface F1040SC {
   L48_Amount8?: string;
   L48_Expense9?: string;
   L48_Amount9?: string;
-  "106_f2_33"?: string;
+  L48?: string;
 }
