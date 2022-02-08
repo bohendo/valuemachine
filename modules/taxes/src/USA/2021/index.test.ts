@@ -48,7 +48,7 @@ describe(`${taxYear} Filers`, () => {
   it(`should include f1040 + schedules 1-3 by default `, async () => {
     const defaultReturn = getTaxReturn({}, [], log);
     log.info(`Tax return includes forms: ${Object.keys(defaultReturn)}`);
-    const defaultPages = ["f1040", "f1040s1", "f1040s2", "f1040s3"];
+    const defaultPages = ["f1040"];
     expect(defaultReturn).to.have.all.keys(...defaultPages);
     expect(Object.keys(defaultReturn).length).to.equal(defaultPages.length);
   });

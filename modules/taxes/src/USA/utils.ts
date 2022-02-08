@@ -63,6 +63,8 @@ export {
   TaxRows,
 } from "../types";
 
+const { Single, Separate, Joint, Head, Widow } = FilingStatuses;
+
 ////////////////////////////////////////
 // Date
 
@@ -150,7 +152,7 @@ export const sumLongTermTrades = (year: Year, rows: TaxRows, map?: (row: TaxRow)
 export const getTotalCapitalChange = (year: Year, input: TaxInput, rows: TaxRows) =>
   math.max(
     sumTrades(year, rows, row => row.capitalChange),
-    input.personal?.filingStatus === FilingStatuses.Separate ? "-1500.0" : "-3000.0",
+    input.personal?.filingStatus === Separate ? "-1500.0" : "-3000.0",
   );
 
 ////////////////////////////////////////
@@ -289,8 +291,8 @@ export const getSelfEmploymentAdjustment = (
 export const getStandardDeduction = (input: TaxInput) => {
   const filingStatus = input.personal?.filingStatus;
   const stdDeduction =
-    (filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow) ? "24400.0"
-    : (filingStatus === FilingStatuses.Head) ? "18350.0"
+    (filingStatus === Joint || filingStatus === Widow) ? "24400.0"
+    : (filingStatus === Head) ? "18350.0"
     : "12200.0";
   return stdDeduction;
 };
@@ -327,11 +329,11 @@ export const applyTaxBracket = (
   let prevThreshold = "0";
   taxBrackets.forEach(bracket => {
     const threshold = !filingStatus ? "0" : (
-      filingStatus === FilingStatuses.Single || filingStatus === FilingStatuses.Separate
+      filingStatus === Single || filingStatus === Separate
     ) ? bracket.single : (
-        filingStatus === FilingStatuses.Joint || filingStatus === FilingStatuses.Widow
+        filingStatus === Joint || filingStatus === Widow
       ) ? bracket.joint : (
-          filingStatus === FilingStatuses.Head
+          filingStatus === Head
         ) ? bracket.head : "0";
     if (math.lt(taxableIncome, prevThreshold)) {
       return;
@@ -359,6 +361,8 @@ export const applyTaxBracket = (
 
 export const getIncomeTax = (year: Year, input: TaxInput, rows: TaxRows): DecString => {
   const feie = getForeignEarnedIncomeExclusion(year, input, rows);
+  const getIncome = (incomeType: IncomeType, exempt?: boolean): DecString =>
+    sumIncome(year, rows.filter(row => !exempt || row.tag.exempt === exempt), incomeType);
   const exemptDividends = sumIncome(
     year,
     rows.filter(row => row.tag.exempt),
@@ -379,7 +383,72 @@ export const getIncomeTax = (year: Year, input: TaxInput, rows: TaxRows): DecStr
   } else if (math.gt(exemptDividends, "0")) {
     console.warn(`NOT_IMPLEMENTED: Qualified Dividends and Capital Gain Tax Worksheet`);
   } else if (!math.eq(capGains, "0")) {
-    console.warn(`NOT_IMPLEMENTED: Schedule D Tax Worksheet`);
+    const ws = {} as any; // Schedule D Tax Worksheet on i1040sd pg 16
+    ws.L1 = getTotalTaxableIncome(year, input, rows);
+    ws.L2 = getIncome(IncomeTypes.Dividend, true);
+    ws.L3 = "0"; // TODO: f4952 stuff
+    ws.L4 = "0"; // TODO: f4952 stuff
+    ws.L5 = math.subToZero(ws.L3, ws.L4);
+    ws.L6 = math.subToZero(ws.L2, ws.L5);
+    ws.L7 = math.min(
+      getTotalCapitalChange(year, input, rows), // f1040sd.L16
+      sumLongTermTrades(year, rows, row => row.capitalChange), // f1040sd.L15 (TODO: carryover)
+    );
+    ws.L8 = math.min(ws.L3, ws.L4);
+    ws.L9 = math.subToZero(ws.L7, ws.L8);
+    ws.L10 = math.add(ws.L6, ws.L9);
+    ws.L11 = "0"; // TODO add 28% rate gain & unrecaptured gains worksheet values
+    ws.L12 = math.min(ws.L9, ws.L11);
+    ws.L13 = math.sub(ws.L10, ws.L12);
+    ws.L14 = math.subToZero(ws.L1, ws.L13);
+    ws.L15 = !filingStatus ? "0"
+      : (filingStatus === Single || filingStatus === Separate) ? "40400"
+      : (filingStatus === Joint || filingStatus === Widow) ? "80800"
+      : (filingStatus === Head) ? "54100"
+      : "0";
+    ws.L16 = math.min(ws.L1, ws.L15);
+    ws.L17 = math.min(ws.L14, ws.L16);
+    ws.L18 = math.subToZero(ws.L1, ws.L10);
+    ws.L19 = math.min(
+      ws.L1,
+      (filingStatus === Single || filingStatus === Separate) ? "164925"
+      : (filingStatus === Joint || filingStatus === Widow) ? "329850"
+      : (filingStatus === Head) ? "164900"
+      : "0",
+    );
+    ws.L20 = math.min(ws.L14, ws.L19);
+    ws.L21 = math.max(ws.L18, ws.L20);
+    ws.L22 = math.sub(ws.L16, ws.L17);
+    if (!math.eq(ws.L1, ws.L16)) {
+      ws.L23 = math.min(ws.L1, ws.L13);
+      ws.L24 = ws.L22;
+      ws.L25 = math.subToZero(ws.L23, ws.L24);
+      ws.L26 = !filingStatus ? "0"
+        : filingStatus === Single ? "445850"
+        : filingStatus === Separate ? "250800"
+        : (filingStatus === Joint || filingStatus === Widow) ? "501800"
+        : (filingStatus === Head) ? "473750"
+        : "0";
+      ws.L27 = math.min(ws.L1, ws.L26);
+      ws.L28 = math.add(ws.L21, ws.L22);
+      ws.L29 = math.subToZero(ws.L27, ws.L28);
+      ws.L30 = math.min(ws.L25, ws.L29);
+      ws.L31 = math.mul(ws.L30, "0.15");
+      ws.L32 = math.add(ws.L24, ws.L30);
+      if (!math.eq(ws.L1, ws.L32)) {
+        ws.L33 = math.sub(ws.L23, ws.L32);
+        ws.L34 = math.mul(ws.L33, "0.20");
+        // TODO: handle case where f1040sd.L18 or L19 is nonzero
+        ws.L41 = math.add(ws.L21, ws.L22, ws.L30, ws.L33, ws.L39);
+        ws.L42 = math.sub(ws.L1, ws.L41);
+        ws.L43 = math.mul(ws.L42, "0.28");
+      }
+    }
+    ws.L44 = applyTaxBracket(year, ws.L21, filingStatus);
+    ws.L45 = math.add(ws.L31, ws.L34, ws.L40, ws.L43, ws.L44);
+    ws.L46 = applyTaxBracket(year, ws.L1, filingStatus);
+    ws.L47 = math.min(ws.L45, ws.L46);
+    return ws.L47;
   }
   return applyTaxBracket(year, getTotalTaxableIncome(year, input, rows), filingStatus);
 };
