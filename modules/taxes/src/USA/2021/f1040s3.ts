@@ -75,5 +75,12 @@ export const f1040s3 = (
   f1040.L31 = f1040s3.L15;
   log.info(`Total payments & refundable credits: f1040.L31=${f1040.L31}`);
 
-  return { ...forms, f1040, f1040s3 };
+  // If relevant values are all zero, don't file this form
+  if (math.eq(f1040s3.L8, "0") && math.eq(f1040s3.L15, "0")) {
+    delete forms.f1040s3;
+    return forms;
+  } else {
+    return { ...forms, f1040, f1040s3 };
+  }
+
 };

@@ -79,5 +79,12 @@ export const f1040s2 = (
   f1040.L23 = f1040s2.L21;
   log.info(`Total other taxes: f1040.L23=${f1040.L23}`);
 
-  return { ...forms, f1040, f1040s2 };
+  // If relevant values are all zero, don't file this form
+  if (math.eq(f1040s2.L3, "0") && math.eq(f1040s2.L21, "0")) {
+    delete forms.f1040s2;
+    return forms;
+  } else {
+    return { ...forms, f1040, f1040s2 };
+  }
+
 };
