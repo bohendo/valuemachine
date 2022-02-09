@@ -28,7 +28,9 @@ export const f2210 = (
   logger: Logger,
 ): Forms => {
   const log = logger.child({ name: "f2210" });
-  const { f1040, f1040s2, f1040s3, f2210 } = forms;
+  const { f1040, f2210 } = forms;
+  const f1040s2 = forms.f1040s2 || {};
+  const f1040s3 = forms.f1040s3 || {};
   const personal = input.personal || {};
 
   f2210.Name = strcat([personal.firstName, personal.lastName]);

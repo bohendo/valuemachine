@@ -115,5 +115,12 @@ export const f1040s1 = (
 
   f1040.L10 = f1040s1.L26;
 
-  return { ...forms, f1040, f1040s1 };
+  // If relevant values are all zero, don't file this form
+  if (math.eq(f1040s1.L10, "0") && math.eq(f1040s1.L26, "0")) {
+    delete forms.f1040s1;
+    return forms;
+  } else {
+    return { ...forms, f1040, f1040s1 };
+  }
+
 };
