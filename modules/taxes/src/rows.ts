@@ -170,11 +170,7 @@ export const getTaxRows = async ({
     }
     return rows;
 
-  // Filter out any rows that only contain dust or trades w negligible capital change
-  }, [] as TaxRows).filter(row =>
-    math.gt(row.value, "0.005")
-    && (
-      row.action !== TaxActions.Trade || math.gt(row.capitalChange, "0.005")
-    )
-  );
+  // Filter out any rows that only contain dust
+  }, [] as TaxRows).filter(row => math.gt(row.value, "0.005"));
+
 };
