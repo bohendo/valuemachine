@@ -20,6 +20,17 @@ USD Subtotal,
 USD Total (inclusive of fees),
 USD Fees,
 Notes
+`.replace(/\n/g, ""), `
+${dateKey},
+Transaction Type,
+Asset,
+Quantity Transacted,
+Spot Price Currency,
+Spot Price at Transaction,
+Subtotal,
+Total (inclusive of fees),
+Fees,
+Notes
 `.replace(/\n/g, "")];
 
 export const coinbaseParser = (
