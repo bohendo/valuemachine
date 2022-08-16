@@ -7,7 +7,9 @@ These tools are **jurisdiction-neutral** ie there is zero business logic that is
 
 ## Example Usage
 
-To calculate the capital gains & losses for an eth address:
+Launch the dashboard with: `make start`
+
+To calculate the capital gains & losses for an eth address, import the `valuemachine` library & use it like:
 
 ```typescript
 import fs from "fs";
